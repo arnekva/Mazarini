@@ -1,0 +1,29 @@
+{
+  "name": "MZ",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@replit/database": "^2.0.0",
+    "axios": "^0.21.1",
+    "base-64": "^1.0.0",
+    "clean": "^4.0.2",
+    "clean-text-utils": "^1.1.17",
+    "discord.js": "^12.5.3",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "node": "latest",
+    "node-fetch": "^2.6.1",
+    "node-schedule": "^2.0.0",
+    "npm": "latest",
+    "replitdb-client": "^2.1.0",
+    "say": "^0.16.0",
+    "weighted-random-object": "^1.0.8"
+  }
+}
