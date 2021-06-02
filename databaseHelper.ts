@@ -3,8 +3,8 @@ import * as cleanTextUtils from 'clean-text-utils';
 import { escapeString } from "./textUtils";
 import { Spinner } from "./spinner";
 
-import JSONdb from 'simple-json-db';
-const db = new JSONdb('/database.json');
+const fs = require('fs');
+
 import emojiStrip from 'emoji-strip';
 
 //const db = new Database()
@@ -33,43 +33,30 @@ export class DatabaseHelper {
 	static async setValue(prefix: dbPrefix, key: string, value: string, clb?: (success: boolean) => void) {
 		// const asciiSafe = /^[\x00-\x7FÆØÅæøå]*$/
 		// const success = asciiSafe.test(value) && asciiSafe.test(key);
-		const keyVal = prefix + "-" + key;
-		const strippedValue = emojiStrip(value);
-		const success = !!strippedValue.trim(); //Get truthy/falsy value
-		if (strippedValue.trim()) {
-			try {
-				db.set(keyVal, {strippedValue})
-				/*.then(() => {
-					if (clb)
-						clb(success);
-				});*/
-			} catch (error) {
-				console.log("Klarte ikke sette verdi i databasen. ")
-				if (clb)
-					clb(success);
-			}
-		} else {
-			console.log("Nøkkelen feilet: <" + value + ">.")
-			if (clb)
-				clb(success);
-		}
+		let rawdata = fs.readFileSync('database.json');
+		let allData = JSON.parse(rawdata);
+		Object.keys(allData).forEach(function(key1) {
+			console.log(key1, allData[key]);
+			if(allData[key1].name == key)
+			allData[prefix] = value;
+		});
 
 	}
 
 	static async setValueObject(prefix: dbPrefix, key: string, value: any, clb?: () => void ){
 		const keyVal = prefix + "-" + key;
-		try {
+		/*try {
 				await db.set(keyVal, value)
 				/*.then(() => {
 					if (clb)
 						clb();
 				});*/
-			} catch (error) {
+			} catch () {
 				console.log("Klarte ikke sette verdi i databasen. ")
-				if (clb)
-					clb();
+				//if (clb)
+				//	clb();
 			}
-
+			/*
 	}
 /**
  * @param prefix - Databaseprefix. Må være av type dbprefix. Nye prefixer MÅ legges til i typen på toppen av databaseHelper.
@@ -77,42 +64,34 @@ export class DatabaseHelper {
  * @param clb - Callback som kjører (med verdien som parameter) etter at verdien er hentet ut. Det er her verdien behandles
  */
 	static getValue(prefix: dbPrefix, key: string, clb: (val: string) => void) {
-		let cleanKey = escapeString(key);
-		const keyVal = prefix + "-" + cleanKey;
-		if (cleanKey) {
-			try {
-				return db.get(keyVal)
-				/*.then((value: string) => {
-					if (clb) {
-						clb(value)
-					}
-				})*/
-			} catch (error) {
-				console.log("Klarte ikke hente verdi fra databasen. Stacktrace: " + error)
-				return undefined;
-			}
-		}
-		else {
-			console.log("Nøkkelen er tom: <" + cleanKey + ">. Dette kan være forsårsaket av at brukernavnet er helt tomt.")
-			return undefined;
-		}
+		let rawdata = fs.readFileSync('database.json');
+		let allData = JSON.parse(rawdata);
+		let valToReturn = "";
+		Object.keys(allData).forEach(function(key1) {
+			console.log(key1, allData[key]);
+			if(allData[key1].name == key)
+			valToReturn = allData[prefix];
+		});
+		return valToReturn;
 	};
 	static async getValueWithoutPrefix(key: string, clb?: (val: string) => void) {
-		try {
-			return await db.get(key);
-		} catch (error) {
-			console.log("Pøvde å hente data for nøkkel <" + key + ">, men dataen er feilformattert.")
-			// sendToErrorChannel("Pøvde å hente data for nøkkel  <" + key + ">, men dataen er feilformattert.")
-			return "*<feilformattert data>*";
-		}
+		let rawdata = fs.readFileSync('database.json');
+		let allData = JSON.parse(rawdata);
+		let valToReturn = "";
+		Object.keys(allData).forEach(function(key1) {
+			console.log(key1, allData[key]);
+			if(allData[key1].name == key)
+			valToReturn = allData[key];
+		});
+		return valToReturn;
 	};
 
 
 
 	static deleteValue(key: string, clb?: () => void) {
-		db.delete(key)
-		if (clb)
-			clb();
+		//db.delete(key)
+		//if (clb)
+		//	clb();
 		
 	}
 
