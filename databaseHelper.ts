@@ -38,7 +38,7 @@ export class DatabaseHelper {
 		const success = !!strippedValue.trim(); //Get truthy/falsy value
 		if (strippedValue.trim()) {
 			try {
-				db.set(keyVal, strippedValue)
+				db.set(keyVal, {strippedValue})
 				/*.then(() => {
 					if (clb)
 						clb(success);
