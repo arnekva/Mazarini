@@ -128,7 +128,7 @@ export class DatabaseHelper {
 	// https://replit.com/talk/learn/Replit-DB/43305
 	//BARE FOR SPIN
 	static async getAllValuesFromPrefix(prefix: dbPrefix, clb: (val: userValPair[]) => void) {
-		
+		/*
 		const list = await db.list(prefix).then((val: string) => {
 			const nameList = val.split("\n")
 
@@ -152,6 +152,7 @@ export class DatabaseHelper {
 					clb(userValueList)
 				});
 		})
+		*/
 	}
 	static async nukeDatabase() {
 		/*await db.empty().then(() => {
