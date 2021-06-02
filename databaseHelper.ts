@@ -154,9 +154,9 @@ export class DatabaseHelper {
 		})
 	}
 	static async nukeDatabase() {
-		await db.empty().then(() => {
+		/*await db.empty().then(() => {
 			console.log("Database slettet. Alle verdier er fjernet.")
-		})
+		})*/
 	}
 
 	static stripPrefixFromString(text: string, prefix: dbPrefix) {
