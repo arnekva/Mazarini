@@ -65,7 +65,7 @@ mazariniClient.on('message', async (message: Message) => {
 	//UNCOMMENT denne når du jobber med viktige ting for å unngå rar oppførsel	
 	if (!(Admin.isAuthorAdmin(message.member))) {
 		if (message.content.includes("!mz"))
-			message.channel.send("Vedlikehold/utvikling på databasen pågår. Alle funksjoner er midlertidig skrudd av. Se #bot-utvikling for mer info")
+			message.channel.send("Vedlikehold/utvikling på databasen pågår. Alle funksjoner er derfor midlertidig utilgjengelig. Se channelen 'bot-utvikling' for mer info")
 		return;
 	}
 
