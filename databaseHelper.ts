@@ -115,12 +115,19 @@ export class DatabaseHelper {
 
 	//Feil
 	static getAllValues(clb: () => void) {
-		db.JSON().then((keys: string) => {
-			return keys;
+		const keys: string[] = [];
+		db.JSON().forEach((key: string) => {
+			keys.push(key)
 		});
+		return keys;
 	}
 
-	static getAllKeysFromPrefix(prefix: dbPrefix): Promise<String> {
+	static getAllKeysFromPrefix(prefix: dbPrefix){
+		const keys: string[] = [];
+		db.JSON().forEach((key: string) => {
+			keys.push(key)
+		});
+		return keys;
 		return db.JSON(prefix).then((keys: string) => {
 			return keys;
 		});
