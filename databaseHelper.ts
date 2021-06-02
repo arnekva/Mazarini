@@ -3,9 +3,9 @@ import * as cleanTextUtils from 'clean-text-utils';
 import { escapeString } from "./textUtils";
 import { Spinner } from "./spinner";
 
-const Client = require("replitdb-client");
-const client = new Client();
-const emojiStrip = require('emoji-strip')
+import JSONdb from 'simple-json-db';
+const db = new JSONdb('/database.json');
+import emojiStrip from 'emoji-strip';
 
 //const db = new Database()
 /**
@@ -38,7 +38,7 @@ export class DatabaseHelper {
 		const success = !!strippedValue.trim(); //Get truthy/falsy value
 		if (strippedValue.trim()) {
 			try {
-				await client.set(keyVal, strippedValue).then(() => {
+				await db.set(keyVal, strippedValue).then(() => {
 					if (clb)
 						clb(success);
 				});
@@ -58,7 +58,7 @@ export class DatabaseHelper {
 	static async setValueObject(prefix: dbPrefix, key: string, value: any, clb?: () => void ){
 		const keyVal = prefix + "-" + key;
 		try {
-				await client.set(keyVal, value).then(() => {
+				await db.set(keyVal, value).then(() => {
 					if (clb)
 						clb();
 				});
@@ -79,7 +79,7 @@ export class DatabaseHelper {
 		const keyVal = prefix + "-" + cleanKey;
 		if (cleanKey) {
 			try {
-				return client.get(keyVal).then((value: string) => {
+				return db.get(keyVal).then((value: string) => {
 					if (clb) {
 						clb(value)
 					}
@@ -96,7 +96,7 @@ export class DatabaseHelper {
 	};
 	static async getValueWithoutPrefix(key: string, clb?: (val: string) => void) {
 		try {
-			return await client.get(key);
+			return await db.get(key);
 		} catch (error) {
 			console.log("Pøvde å hente data for nøkkel <" + key + ">, men dataen er feilformattert.")
 			// sendToErrorChannel("Pøvde å hente data for nøkkel  <" + key + ">, men dataen er feilformattert.")
@@ -107,7 +107,7 @@ export class DatabaseHelper {
 
 
 	static deleteValue(key: string, clb?: () => void) {
-		client.delete(key).then(() => {
+		db.delete(key).then(() => {
 			if (clb)
 				clb();
 		});
@@ -115,13 +115,13 @@ export class DatabaseHelper {
 
 	//Feil
 	static getAllValues(clb: () => void) {
-		client.list().then((keys: string) => {
+		db.list().then((keys: string) => {
 			return keys;
 		});
 	}
 
 	static getAllKeysFromPrefix(prefix: dbPrefix): Promise<String> {
-		return client.list(prefix).then((keys: string) => {
+		return db.list(prefix).then((keys: string) => {
 			return keys;
 		});
 	}
@@ -129,7 +129,7 @@ export class DatabaseHelper {
 	//BARE FOR SPIN
 	static async getAllValuesFromPrefix(prefix: dbPrefix, clb: (val: userValPair[]) => void) {
 		
-		const list = await client.list(prefix).then((val: string) => {
+		const list = await db.list(prefix).then((val: string) => {
 			const nameList = val.split("\n")
 
 			const promiseList: any[] = [];
@@ -154,7 +154,7 @@ export class DatabaseHelper {
 		})
 	}
 	static async nukeDatabase() {
-		await client.empty().then(() => {
+		await db.empty().then(() => {
 			console.log("Database slettet. Alle verdier er fjernet.")
 		})
 	}
