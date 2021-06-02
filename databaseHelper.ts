@@ -4,7 +4,7 @@ import { escapeString } from "./textUtils";
 import { Spinner } from "./spinner";
 
 const fs = require('fs');
-
+const db = require('quick.db');
 import emojiStrip from 'emoji-strip';
 import { write } from "fs";
 
@@ -37,27 +37,30 @@ export class DatabaseHelper {
 		let rawdata = fs.readFileSync('database.json');
 		let allData = JSON.parse(rawdata);
 		let isFound = false;
-		Object.keys(allData).forEach(function(key1, index) {
-			console.log("*******");
-			
-			console.log(allData[index]);
-			console.log(key1);
-			if(allData[key1].name == key){
-				console.log("was found");
-				
+		console.log("*******");
+		for(let k in allData) {
+			if(allData[k].name == key){
 				isFound = true;
-				allData[prefix] = value;
+				const valToBeWritten = allData[k];
+				valToBeWritten[prefix] = value;
+
+			fs.writeFileSync('database.json', valToBeWritten);
 			}
-		});
+			
+		 }
+
 		if(!isFound){
 			console.log("not found");
-			
+		
 			const data = {
 				"name": key,
 				[prefix]: value,
 			}
 			let writeData = JSON.stringify(data);
-			fs.writeFileSync('database.json', writeData);
+			fs.appendFile('database.json', writeData, function (err: any) {
+				if (err) throw err;
+				console.log('Saved!');
+			  });
 		}
 
 	}
