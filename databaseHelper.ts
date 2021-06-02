@@ -79,11 +79,12 @@ export class DatabaseHelper {
 		const keyVal = prefix + "-" + cleanKey;
 		if (cleanKey) {
 			try {
-				return db.get(keyVal).then((value: string) => {
+				return db.get(keyVal)
+				/*.then((value: string) => {
 					if (clb) {
 						clb(value)
 					}
-				})
+				})*/
 			} catch (error) {
 				console.log("Klarte ikke hente verdi fra databasen. Stacktrace: " + error)
 				return undefined;
@@ -107,10 +108,10 @@ export class DatabaseHelper {
 
 
 	static deleteValue(key: string, clb?: () => void) {
-		db.delete(key).then(() => {
-			if (clb)
-				clb();
-		});
+		db.delete(key)
+		if (clb)
+			clb();
+		
 	}
 
 	//Feil
