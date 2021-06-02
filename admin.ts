@@ -67,21 +67,24 @@ export class Admin {
 	}
 	static async deleteDatabaseKeysFromPrefix(prefix: dbPrefix, message: Message) {
 
-		const keys = await DatabaseHelper.getAllKeysFromPrefix(prefix).then((dbKeys: any) => {
+		const keys = await DatabaseHelper.getAllKeysFromPrefix(prefix)
+		/*.then((dbKeys: any) => {
 			const splitKeys = dbKeys.split("\n")
 			splitKeys.forEach((el: string) => {
 				DatabaseHelper.deleteValue(el)
 			})
 		})
+		*/
 
 	}
 	static async deleteDatabaseKeysFromPrefixNotCommand(prefix: dbPrefix) {
-		const keys = await DatabaseHelper.getAllKeysFromPrefix(prefix).then((dbKeys: any) => {
+		const keys = await DatabaseHelper.getAllKeysFromPrefix(prefix)
+		/*.then((dbKeys: any) => {
 			const splitKeys = dbKeys.split("\n")
 			splitKeys.forEach((el: string) => {
 				DatabaseHelper.deleteValue(el)
 			})
-		})
+		})*/
 	}
 
 	static async replyToMsgAsBot(rawMessage: Message, content: string){

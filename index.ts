@@ -153,7 +153,7 @@ function checkMessageForJokes(message: Message){
 
 
 
-const discordToken = process.env['TOKEN']
+const discordToken = "ODAyOTQ1Nzk2NDU3NzU4NzYw.YA2niw.uUCQwK0J_7Vj88H_zbTyLuLMsow";
 mazariniClient.login(discordToken);
 
 mazariniClient.on("reconnecting", function() {
