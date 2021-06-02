@@ -128,9 +128,9 @@ export class DatabaseHelper {
 			keys.push(key)
 		});
 		return keys;
-		return db.JSON(prefix).then((keys: string) => {
+		/*return db.JSON(prefix).then((keys: string) => {
 			return keys;
-		});
+		});*/
 	}
 	// https://replit.com/talk/learn/Replit-DB/43305
 	//BARE FOR SPIN
