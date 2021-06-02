@@ -163,8 +163,8 @@ export class Spinner {
 
 
 		});
-		//const val2 = DatabaseHelper.getValue
-		console.log(vals);
+		const val2 = DatabaseHelper.getAllValues();
+		console.log(val2);
 		
 		// Spinner.sendWinner(message, "")
 	}

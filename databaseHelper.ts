@@ -17,7 +17,7 @@ export interface userValPair {
 	value: string,
 	opt?: any,
 }
-
+//https://www.npmjs.com/package/quick.db TODO: HER
 export interface dbObject {
 
 }
@@ -34,34 +34,7 @@ export class DatabaseHelper {
 	static async setValue(prefix: dbPrefix, key: string, value: string, clb?: (success: boolean) => void) {
 		// const asciiSafe = /^[\x00-\x7FÆØÅæøå]*$/
 		// const success = asciiSafe.test(value) && asciiSafe.test(key);
-		let rawdata = fs.readFileSync('database.json');
-		let allData = JSON.parse(rawdata);
-		let isFound = false;
-		console.log("*******");
-		for(let k in allData) {
-			if(allData[k].name == key){
-				isFound = true;
-				const valToBeWritten = allData[k];
-				valToBeWritten[prefix] = value;
-
-			fs.writeFileSync('database.json', valToBeWritten);
-			}
-			
-		 }
-
-		if(!isFound){
-			console.log("not found");
-		
-			const data = {
-				"name": key,
-				[prefix]: value,
-			}
-			let writeData = JSON.stringify(data);
-			fs.appendFile('database.json', writeData, function (err: any) {
-				if (err) throw err;
-				console.log('Saved!');
-			  });
-		}
+		db.set(`${key}.${prefix}`, `${value}` )
 
 	}
 
@@ -86,15 +59,7 @@ export class DatabaseHelper {
  * @param clb - Callback som kjører (med verdien som parameter) etter at verdien er hentet ut. Det er her verdien behandles
  */
 	static getValue(prefix: dbPrefix, key: string, clb: (val: string) => void) {
-		let rawdata = fs.readFileSync('database.json');
-		let allData = JSON.parse(rawdata);
-		let valToReturn = "";
-		Object.keys(allData).forEach(function(key1) {
-			console.log(key1, allData[key]);
-			if(allData[key1].name == key)
-			valToReturn = allData[prefix];
-		});
-		return valToReturn;
+		return db.get(`${key}.${prefix}`)
 	};
 	static async getValueWithoutPrefix(key: string, clb?: (val: string) => void) {
 		let rawdata = fs.readFileSync('database.json');
@@ -118,12 +83,10 @@ export class DatabaseHelper {
 	}
 
 	//Feil
-	static getAllValues(clb: () => void) {
+	static getAllValues() {
 		const keys: string[] = [];
-		/*db.JSON().forEach((key: string) => {
-			keys.push(key)
-		});*/
-		return keys;
+
+		return db.all();
 	}
 
 	static getAllKeysFromPrefix(prefix: dbPrefix){
