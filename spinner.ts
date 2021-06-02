@@ -54,7 +54,7 @@ function didSpinnerBreak(){
 export class Spinner {
 
 	static spin(message: Message) {
-
+		console.log("spinning");
 		const min = weightedRandomObject(spinMinutes).number;
 		const sec = Math.floor(Math.random() * 60);
 		const cleanUsername = escapeString(message.author.username);
@@ -76,6 +76,9 @@ export class Spinner {
 	}
 
 	static async incrementCounter(message: Message) {
+		const currentVal = DatabaseHelper.getValue("counterSpin", message.author.username, () => {});
+		console.log(currentVal);
+		
 		await DatabaseHelper.getValue("counterSpin", message.author.username, (val) => {
 			if (val) {
 				if (parseInt(val)) {
@@ -94,7 +97,7 @@ export class Spinner {
 	}
 
 	static async compareScore(message: Message, newScore: string) {
-		await DatabaseHelper.getValue("spin", message.author.username, (val) => {
+		const val = DatabaseHelper.getValue("spin", message.author.username, (val) => {
 			if (val) {
 				if (parseInt(val) < parseInt(newScore)) {
 					DatabaseHelper.setValue("spin", message.author.username, newScore);
@@ -103,6 +106,11 @@ export class Spinner {
 			else
 				DatabaseHelper.setValue("spin", message.author.username, newScore);
 		})
+		if(!val){
+			DatabaseHelper.setValue("spin", message.author.username, newScore);
+		}
+		console.log(val);
+		
 	}
 
 	static formatScore(score: string) {
@@ -154,12 +162,10 @@ export class Spinner {
 			}
 
 
-		}).then(() => {
-
-			//empty for now
-		}).catch((error) => {
-			MessageHelper.sendMessage(message.channel, "Noe feilet: " + error);
-		})
+		});
+		//const val2 = DatabaseHelper.getValue
+		console.log(vals);
+		
 		// Spinner.sendWinner(message, "")
 	}
 

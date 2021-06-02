@@ -6,6 +6,7 @@ import { Spinner } from "./spinner";
 const fs = require('fs');
 
 import emojiStrip from 'emoji-strip';
+import { write } from "fs";
 
 //const db = new Database()
 /**
@@ -35,11 +36,29 @@ export class DatabaseHelper {
 		// const success = asciiSafe.test(value) && asciiSafe.test(key);
 		let rawdata = fs.readFileSync('database.json');
 		let allData = JSON.parse(rawdata);
-		Object.keys(allData).forEach(function(key1) {
-			console.log(key1, allData[key]);
-			if(allData[key1].name == key)
-			allData[prefix] = value;
+		let isFound = false;
+		Object.keys(allData).forEach(function(key1, index) {
+			console.log("*******");
+			
+			console.log(allData[index]);
+			console.log(key1);
+			if(allData[key1].name == key){
+				console.log("was found");
+				
+				isFound = true;
+				allData[prefix] = value;
+			}
 		});
+		if(!isFound){
+			console.log("not found");
+			
+			const data = {
+				"name": key,
+				[prefix]: value,
+			}
+			let writeData = JSON.stringify(data);
+			fs.writeFileSync('database.json', writeData);
+		}
 
 	}
 
@@ -106,9 +125,13 @@ export class DatabaseHelper {
 
 	static getAllKeysFromPrefix(prefix: dbPrefix){
 		const keys: string[] = [];
-		/*db.JSON().forEach((key: string) => {
-			keys.push(key)
-		});*/
+		let rawdata = fs.readFileSync('database.json');
+		let allData = JSON.parse(rawdata);
+		Object.keys(allData).forEach(function(key1) {
+			console.log(key1, allData[key1]);
+			if(!!allData[prefix])
+			keys.push(allData[prefix])
+		});
 		return keys;
 		/*return db.JSON(prefix).then((keys: string) => {
 			return keys;
