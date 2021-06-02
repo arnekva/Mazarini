@@ -116,17 +116,17 @@ export class DatabaseHelper {
 	//Feil
 	static getAllValues(clb: () => void) {
 		const keys: string[] = [];
-		db.JSON().forEach((key: string) => {
+		/*db.JSON().forEach((key: string) => {
 			keys.push(key)
-		});
+		});*/
 		return keys;
 	}
 
 	static getAllKeysFromPrefix(prefix: dbPrefix){
 		const keys: string[] = [];
-		db.JSON().forEach((key: string) => {
+		/*db.JSON().forEach((key: string) => {
 			keys.push(key)
-		});
+		});*/
 		return keys;
 		/*return db.JSON(prefix).then((keys: string) => {
 			return keys;
