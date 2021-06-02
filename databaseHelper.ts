@@ -38,10 +38,11 @@ export class DatabaseHelper {
 		const success = !!strippedValue.trim(); //Get truthy/falsy value
 		if (strippedValue.trim()) {
 			try {
-				await db.set(keyVal, strippedValue).then(() => {
+				db.set(keyVal, strippedValue)
+				/*.then(() => {
 					if (clb)
 						clb(success);
-				});
+				});*/
 			} catch (error) {
 				console.log("Klarte ikke sette verdi i databasen. ")
 				if (clb)
@@ -58,10 +59,11 @@ export class DatabaseHelper {
 	static async setValueObject(prefix: dbPrefix, key: string, value: any, clb?: () => void ){
 		const keyVal = prefix + "-" + key;
 		try {
-				await db.set(keyVal, value).then(() => {
+				await db.set(keyVal, value)
+				/*.then(() => {
 					if (clb)
 						clb();
-				});
+				});*/
 			} catch (error) {
 				console.log("Klarte ikke sette verdi i databasen. ")
 				if (clb)
