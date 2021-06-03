@@ -15,4 +15,9 @@ export class ArrayUtils {
 		valuePair.forEach((val) => str += val.key + " " + (formatValue ? formatValue(val.val) : val.val) + "\n");
 		return str;
 	}
+
+	static randomChoiceFromArray(arr: any[]) {
+		return arr[Math.floor(arr.length * Math.random())];
+	}
+
 }

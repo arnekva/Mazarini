@@ -23,7 +23,7 @@ import { MessageHelper } from "../helpers/messageHelper";
 export interface ICommandElement {
 	commandName: string;
 	description: string;
-	command: (rawMessage: Message, messageContent: string, args: string[] | undefined) => void;
+	command: (rawMessage: Message, messageContent: string, args: string[]) => void;
 	hideFromListing?: boolean;
 	isAdmin?: boolean;
 	deprecated?: string;
@@ -52,6 +52,7 @@ export const commands: ICommandElement[] = [
 	JokeCommands.eivndPrideCommand,
 	JokeCommands.reactWithWord,
 	JokeCommands.bonkSender,
+	JokeCommands.uwuMessage,
 	Spinner.listNumberOfSpins,
 	// Admin.nukeDatabase,
 	Admin.setVal,

@@ -1,7 +1,8 @@
 import { Message, User, TextChannel } from "discord.js";
-import { bonkMemeUrls } from "../globals";
+import { globalArrays } from "../globals";
 import { DatabaseHelper } from "../helpers/databaseHelper";
 import { MessageHelper } from "../helpers/messageHelper";
+import { ArrayUtils } from "../utils/arrayUtils";
 import { findLetterEmoji } from "../utils/miscUtils";
 import { ICommandElement } from "./commands";
 
@@ -172,7 +173,6 @@ export class JokeCommands {
 	 * String sent must not contain repeat characters 
 	 */
 	static async reactWithLetters(message: Message, msgContent: string, args: string[] | undefined) {
-		console.log(args)
 		const splitTab = msgContent.split(" ");
 		let msgId = "";
 		let letterTab: string[] = []
@@ -185,7 +185,6 @@ export class JokeCommands {
 				letterTab = letterTab.concat(newWord.split(""))
 			}
 		}
-
 		let messageToReactTo = message;
 		if (msgId) {
 			let searchMessage = await MessageHelper.findMessageById(message, msgId)
@@ -205,15 +204,32 @@ export class JokeCommands {
 		})
 	}
 
-	//TODO: Finish this, currently doesnt send message. Missing some ascii emojies to concat in front and end
-	static async uWuIfyer(message: Message, msgContent: string) {
-		const msgToUwU = await MessageHelper.findMessageById(message, msgContent) ?? "";
-		msgToUwU.replace("r", "w").replace("l", "w").concat("(´・ω・｀)")
+
+	static async uWuIfyer(message: Message, msgContent: string, args: string[]) {
+		let fMsg;
+		if (args && args[0].length > 10 && parseInt(args[0])) {
+			fMsg = await MessageHelper.sendMessage(message.channel, "Leter etter meldingen...")
+			const msgToUwU = await <Message><unknown>MessageHelper.findMessageById(message, msgContent);
+			const uwuIfiedText = JokeCommands.uwuText(msgToUwU.content)
+			if (fMsg)
+				fMsg.edit(uwuIfiedText)
+			else
+				MessageHelper.sendMessage(message.channel, uwuIfiedText)
+		} else {
+			let textToBeUwued = JokeCommands.uwuText(args.join(" "));
+			MessageHelper.sendMessage(message.channel, textToBeUwued)
+		}
+
+
 	}
 
 	static async sendBonk(message: Message) {
-		const img = bonkMemeUrls[Math.floor(Math.random() * bonkMemeUrls.length)]
+		const img = ArrayUtils.randomChoiceFromArray(globalArrays.bonkMemeUrls)
 		MessageHelper.sendMessage(message.channel, img)
+	}
+
+	private static uwuText(t: string) {
+		return ArrayUtils.randomChoiceFromArray(globalArrays.asciiEmojies).concat(" " + t.replace("r", "w").replace("l", "w").concat(" ", ArrayUtils.randomChoiceFromArray(globalArrays.asciiEmojies)));
 	}
 
 	/*
@@ -305,6 +321,14 @@ export class JokeCommands {
 		isAdmin: true,
 		command: (rawMessage: Message, messageContent: string) => {
 			JokeCommands.eivindprideItAll(rawMessage);
+		}
+	}
+	static readonly uwuMessage: ICommandElement = {
+		commandName: "uwu",
+		description: "UwU-ify en melding",
+
+		command: (rawMessage: Message, messageContent: string, args: string[]) => {
+			JokeCommands.uWuIfyer(rawMessage, messageContent, args);
 		}
 	}
 }

@@ -3,7 +3,7 @@
 import { commands } from "./commands/commands"
 import { Admin } from "./admin/admin";
 
-import { Guild, GuildManager, GuildMember, Message, Role, TextChannel, User, Emoji } from "discord.js";
+import { Guild, GuildMember, Message, Role, TextChannel, User, Emoji } from "discord.js";
 import { doesThisMessageNeedAnEivindPride } from "./utils/miscUtils";
 const Discord = require('discord.js');
 const mazariniClient = new Discord.Client();
@@ -11,7 +11,7 @@ const schedule = require('node-schedule');
 const diff = require('deep-diff');
 import didYouMean from 'didyoumean2'
 import { DatabaseHelper } from "./helpers/databaseHelper";
-import { maxHeaderSize } from "http";
+
 import { MessageHelper } from "./helpers/messageHelper";
 import { Spinner } from "./commands/spinner";
 
@@ -92,6 +92,8 @@ mazariniClient.on('message', async (message: Message) => {
 });
 
 async function checkForCommand(message: Message) {
+	if (message.author == mazariniClient.user)
+		return;
 	if (message.content.toLowerCase().startsWith("!mz")) {
 
 		let cmdFound = false;
@@ -102,7 +104,7 @@ async function checkForCommand(message: Message) {
 
 				//Remove '!mz <command name>' from the content to avoid repeating this process in each function. 
 				const messageContent = message.content.replace("!mz " + cmd.commandName, "").replace("!Mz " + cmd.commandName, "").replace("!MZ " + cmd.commandName, "").trim()
-				const args = !!messageContent ? messageContent.split(" ") : undefined;
+				const args = !!messageContent ? messageContent.split(" ") : [];
 				if (cmd.isAdmin) {
 					if (Admin.isAuthorAdmin(message.member)) {
 						cmd.command(message, messageContent, args)

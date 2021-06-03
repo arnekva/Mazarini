@@ -42,10 +42,6 @@ export class DatabaseHelper {
 
 	}
 
-	static async setValueObject(prefix: dbPrefix, key: string, value: any, clb?: () => void) {
-		const keyVal = prefix + "-" + key;
-
-	}
 	/*
 }
 /**
@@ -68,14 +64,6 @@ export class DatabaseHelper {
 	};
 
 
-
-	static deleteValue(key: string) {
-		//db.delete(key)
-		//if (clb)
-		//	clb();
-
-	}
-
 	static deleteSpecificPrefixValues(prefix: dbPrefix) {
 		const users = db.getData(`${folderPrefix}`);
 		Object.keys(users).forEach((el) => {
@@ -83,12 +71,7 @@ export class DatabaseHelper {
 		})
 	}
 
-	//Feil
-	static getAllValues() {
-		const keys: string[] = [];
 
-		// return db.all();
-	}
 
 
 

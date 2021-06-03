@@ -68,8 +68,10 @@ export class WarzoneCommands {
 				responseString += "\nNumber of Contracts: " + data.br.contracts;
 				responseString += "\nTime Played: " + convertTime(data.br.timePlayed);
 				responseString += "\nGames Played: " + data.br.gamesPlayed;
-
-				MessageHelper.sendMessage(message.channel, responseString)
+				if (sentMessage)
+					sentMessage.edit(responseString)
+				else
+					MessageHelper.sendMessage(message.channel, responseString)
 			} catch (error) {
 				message.reply(error)
 			}
@@ -82,11 +84,8 @@ export class WarzoneCommands {
 		const gamertag = content[0];
 		const platform = content[1];
 		const weapon = content[2];
-		// if (gamertag.includes("CookieSlice")) {
-		//   message.reply("Not permitted: not allowed") //nice
-		//forgot a return; here bro
-		// }
-		console.log("here?123")
+
+
 		try {
 			await API.login("arne.kva@gmail.com", "Mazarini332");
 			console.log("here?")

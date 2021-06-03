@@ -107,12 +107,11 @@ export class Spinner {
 	static async listScores(message: Message, isWeeklyReset?: boolean) {
 		const weekNumber = getWeekNumber(new Date())[1];
 		MessageHelper.sendMessage(message.channel, "*** HIGHSCORE *** for uke " + (isWeeklyReset ? weekNumber - 1 : getWeekNumber(new Date())[1]));
-		let scoreList = "";
 
-		const val2 = DatabaseHelper.getAllValues();
-		console.log(val2);
+		const val2 = DatabaseHelper.getAllValuesFromPrefix("spin");
+		const highscoreList = ArrayUtils.makeValuePairIntoOneString(val2, Spinner.formatValue);
+		MessageHelper.sendMessage(message.channel, highscoreList);
 
-		// Spinner.sendWinner(message, "")
 	}
 
 	static async listSpinCounter(message: Message) {

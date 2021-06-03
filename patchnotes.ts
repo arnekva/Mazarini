@@ -21,11 +21,13 @@ export class PatchNotes {
 	public static readonly currentPatchNotes: string
 		= "* Boten kjører nå på en Raspberry Pi"
 		+ "\n* Du kan nå ha alle typer emojier i statusen din"
+		+ "\n* UwU command er endelig tilbake"
 		+ "\n*Tekniske Notes*" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
 		+ "\n* Byttet Database - bruker nå node-json-db, og alle brukere er nå objekter"
 		+ "\n* Boten kan nå kjøres i lokale testmiljøer. Du trenger tilgang til github repoet og node installert."
 		+ "\n* Metodene i DatabaseHelper skrives om - verdier blir nå returnert i stedet for å ta i bruk callbacks"
 		+ "\n* Oppdater til Node v14, som gir mye flere muligheter, blant annet å hente X siste meldinger fra en channel"
+		+ "\n* Lagt opp bedre mappestruktur"
 		;
 
 	static getCurrentPatchNotes() {
