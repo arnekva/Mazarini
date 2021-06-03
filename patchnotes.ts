@@ -9,7 +9,7 @@ export class PatchNotes {
 	 * Increment y for mindre oppdateringer (enkle funksjoner osv)
 	 * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
 	 */
-	public static readonly currentVersion = "2.0.4";
+	public static readonly currentVersion = "2.1.1";
 
 	/** Private, brukes kun av getCurrentPatchNotes */
 	private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -28,6 +28,8 @@ export class PatchNotes {
 		+ "\n* Metodene i DatabaseHelper skrives om - verdier blir nå returnert i stedet for å ta i bruk callbacks"
 		+ "\n* Oppdater til Node v14, som gir mye flere muligheter, blant annet å hente X siste meldinger fra en channel"
 		+ "\n* Lagt opp bedre mappestruktur"
+		+ "\n* MessageHelper.sendMessage tar nå inn raw message i stedet for channel for å gi bedre replies."
+		+ "\n* MessageHelper.sendMessage sjekker nå om meldingen som skal sendes er tom for å unngå kræsjer. "
 		;
 
 	static getCurrentPatchNotes() {
