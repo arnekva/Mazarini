@@ -11,10 +11,8 @@ export class Admin {
 		hideFromListing: true,
 		isAdmin: true,
 		command: async (rawMessage: Message, messageContent: string) => {
-				await DatabaseHelper.setValue("stock", rawMessage.author.id, rawMessage.content.replace("!mz debug ", ""))
-				const x = await DatabaseHelper.getValue("stock", rawMessage.author.id, (val) => {
-					MessageHelper.sendMessage(rawMessage.channel, val)
-				})
+			await DatabaseHelper.setValue("stock", rawMessage.author.id, rawMessage.content.replace("!mz debug ", ""))
+			const x = await DatabaseHelper.getValue("stock", rawMessage.author.id)
 
 		}
 
@@ -46,7 +44,7 @@ export class Admin {
 		const key = cmdSplit[1];
 		const keyToDelete = prefix + "-" + key;
 		DatabaseHelper.deleteValue(keyToDelete, () => {
-		MessageHelper.sendMessage(message.channel, "Slettet nøkkel <" + keyToDelete + ">.")
+			MessageHelper.sendMessage(message.channel, "Slettet nøkkel <" + keyToDelete + ">.")
 
 		})
 
@@ -57,12 +55,7 @@ export class Admin {
 		const content = messageContent.split(" ");
 		const prefix = content[0] as dbPrefix;
 		const key = content[1];
-		const val = await DatabaseHelper.getValue(prefix, key, (val) => {
-			if (val)
-				MessageHelper.sendMessage(message.channel, val)
-			else
-				MessageHelper.sendMessage(message.channel, "Ingen verdi funnet for nøkkel <" + key + "> med prefix <" + prefix + ">")
-		})
+		const val = await DatabaseHelper.getValue(prefix, key)
 
 	}
 	static async deleteDatabaseKeysFromPrefix(prefix: dbPrefix, message: Message) {
@@ -87,7 +80,7 @@ export class Admin {
 		})*/
 	}
 
-	static async replyToMsgAsBot(rawMessage: Message, content: string){
+	static async replyToMsgAsBot(rawMessage: Message, content: string) {
 		//TODO: Get message by ID and reply
 		/*
 		
@@ -99,61 +92,61 @@ export class Admin {
 
 		const id = content.substr(0, content.indexOf(" "));
 		// const id = c[0].trim();
-		const replyString = content.substr(content.indexOf(" ")+1);
+		const replyString = content.substr(content.indexOf(" ") + 1);
 		allChannels.forEach((channel: TextChannel) => {
-			if(channel){
-			channel.messages.fetch(id).then(async message => {
-				if(message.guild){
-				
-					message.reply(replyString)
+			if (channel) {
+				channel.messages.fetch(id).then(async message => {
+					if (message.guild) {
 
-				}
-			} ).catch((error) => {
-				//Catch thrown error
-			})
+						message.reply(replyString)
+
+					}
+				}).catch((error) => {
+					//Catch thrown error
+				})
 			}
 
 		})
 	}
-	static async reactToMsgAsBot(rawMessage: Message, content: string){
+	static async reactToMsgAsBot(rawMessage: Message, content: string) {
 		/*
 			For å sleppe å måtte sende med channel id for meldingen (kun id på selve meld) så må man loope gjennom alle channels på leting. 
 		*/
 		//Filter out non-text channel and cast as TextChannel
 		const allChannels = rawMessage.client.channels.cache.array().filter(channel => channel instanceof TextChannel) as TextChannel[];
-	
+
 
 		const c = content.split(" ");
 		const id = c[0].trim();
 		const emojiString = c[1];
-		if(!!id && !!emojiString){
-		
-		allChannels.forEach((channel: TextChannel) => {
-			if(channel){
-			channel.messages.fetch(id).then(async message => {
-				if(message.guild){
+		if (!!id && !!emojiString) {
 
-				const reactionEmoji = await message.client.emojis.cache.find(emoji => emoji.name == emojiString)
-				if(reactionEmoji)
-					message.react(reactionEmoji)
+			allChannels.forEach((channel: TextChannel) => {
+				if (channel) {
+					channel.messages.fetch(id).then(async message => {
+						if (message.guild) {
 
-				 else {
-					try{
-						message.react(emojiString)
-					} catch(error){
-						message.reply("dette gjekk te helvette. Stacktrace: " + error)
-					}
+							const reactionEmoji = await message.client.emojis.cache.find(emoji => emoji.name == emojiString)
+							if (reactionEmoji)
+								message.react(reactionEmoji)
+
+							else {
+								try {
+									message.react(emojiString)
+								} catch (error) {
+									message.reply("dette gjekk te helvette. Stacktrace: " + error)
+								}
+							}
+						}
+					}).catch((error) => {
+						//Catch thrown error
+					})
 				}
-				}
-			} ).catch((error) => {
-				//Catch thrown error
+
 			})
-			}
-
-		})
 		} else {
 			MessageHelper.replyFormattingError(rawMessage, "<message id> <emoji navn>")
-	}
+		}
 	}
 	static async sendMessageAsBotToSpecificChannel(message: Message) {
 		const channelOld = message.channel;
@@ -171,33 +164,33 @@ export class Admin {
 		const user = message.client.users.cache.find(user => user.username == username);
 		// const id = c[0].trim();
 
-		const replyString = messageContent.substr(messageContent.indexOf(" ")+1);
-		if(user){
-			if(user.username == message.author.username){
+		const replyString = messageContent.substr(messageContent.indexOf(" ") + 1);
+		if (user) {
+			if (user.username == message.author.username) {
 				message.reply("Du kan kje warna deg sjøl, bro")
 				return;
 			}
-		await DatabaseHelper.getValue("warningCounter", user.username, (val) => {
-			if (val) {
-				if (parseInt(val)) {
-					let newVal = parseInt(val);
-					newVal += 1;
-					//TODO: Do something når counter når et visst nivå? eks. 10
-					DatabaseHelper.setValue("warningCounter", user.username, newVal.toString(), (success) => {
-						if (!success) {
-							message.channel.send("Teksten inneholder ulovlige verdier")
-						} else {
-							//Send msg to origin channel
-							MessageHelper.sendMessage(message.channel, user.username + ", du har fått en advarsel. Du har nå " + newVal + " advarsler.")
-							//Send msg to action-log
-							MessageHelper.sendMessage(message.channel, "", true, message.author.username + " ga en advarsel til " + user.username + " på grunn av: " + replyString + ". " + user.username + " har nå " + newVal + " advarsler", "warning")
-						}
-					});
-				}
-			}
-			else
-				DatabaseHelper.setValue("warningCounter", user.username, "1");
-		})
+			// await DatabaseHelper.getValue("warningCounter", user.username, (val) => {
+			// 	if (val) {
+			// 		if (parseInt(val)) {
+			// 			let newVal = parseInt(val);
+			// 			newVal += 1;
+			// 			//TODO: Do something når counter når et visst nivå? eks. 10
+			// 			DatabaseHelper.setValue("warningCounter", user.username, newVal.toString(), (success) => {
+			// 				if (!success) {
+			// 					message.channel.send("Teksten inneholder ulovlige verdier")
+			// 				} else {
+			// 					//Send msg to origin channel
+			// 					MessageHelper.sendMessage(message.channel, user.username + ", du har fått en advarsel. Du har nå " + newVal + " advarsler.")
+			// 					//Send msg to action-log
+			// 					MessageHelper.sendMessage(message.channel, "", true, message.author.username + " ga en advarsel til " + user.username + " på grunn av: " + replyString + ". " + user.username + " har nå " + newVal + " advarsler", "warning")
+			// 				}
+			// 			});
+			// 		}
+			// 	}
+			// 	else
+			// 		DatabaseHelper.setValue("warningCounter", user.username, "1");
+			// })
 		} else {
 			MessageHelper.sendMessage(message.channel, "Feil: Du har enten skrevet feil bruker navn eller ikke inkludert en melding.")
 		}
@@ -218,7 +211,7 @@ export class Admin {
 		description: "Slett en gitt nøkkel med oppgitt prefix. <prefix> <nøkkel>",
 		hideFromListing: true,
 		isAdmin: true,
-		command: (rawMessage: Message, messageContent: string)=> {
+		command: (rawMessage: Message, messageContent: string) => {
 			Admin.deleteSpecificValue(rawMessage, messageContent);
 		}
 	}

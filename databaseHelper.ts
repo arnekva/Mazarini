@@ -4,7 +4,10 @@ import { escapeString } from "./textUtils";
 import { Spinner } from "./spinner";
 
 const fs = require('fs');
-// const db = require('quick.db');
+import { JsonDB } from 'node-json-db';
+import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
+const db = new JsonDB(new Config("myDataBase", true, true, '/'));
+const folderPrefix = "/users";
 import emojiStrip from 'emoji-strip';
 import { write } from "fs";
 
@@ -19,8 +22,10 @@ export interface userValPair {
 }
 //https://www.npmjs.com/package/quick.db TODO: HER
 export interface dbObject {
+	name: string,
 
 }
+
 export type dbPrefix = "spin" | "birthday" | "stock" | "mygling" | "week" | "counterSpin" | "ATHspin" | "sCounterWeeklySpin" | "warningCounter" | "dogeCoin" | "test";
 
 export class DatabaseHelper {
@@ -35,6 +40,21 @@ export class DatabaseHelper {
 		// const asciiSafe = /^[\x00-\x7FÆØÅæøå]*$/
 		// const success = asciiSafe.test(value) && asciiSafe.test(key);
 		// db.set(`${key}.${prefix}`, `${value}` )
+
+		db.push(`${folderPrefix}/${key}/${prefix}`, `${value}`)
+		// console.log(userValue);
+
+
+		// if (findByName) {
+		// 	findByName.get(`${prefix}`).set(`${value}`).save()
+		// 	// findByName.set("name", key).save();
+		// } else {
+		// 	console.log("entered else");
+
+		// 	db.get("users").push({ name: key }).save();
+		// }
+		// db.get("users").get(key).set(prefix, value).save()
+		// db.set(`${key}.${prefix}`, `${value}`).save();
 
 	}
 
@@ -58,8 +78,9 @@ export class DatabaseHelper {
 * @param key - Nøkkel: Her bruker du vanligvis brukernavn (message.author.username)
 * @param clb - Callback som kjører (med verdien som parameter) etter at verdien er hentet ut. Det er her verdien behandles
 */
-	static getValue(prefix: dbPrefix, key: string, clb: (val: string) => void) {
+	static getValue(prefix: dbPrefix, key: string) {
 		// return db.get(`${key}.${prefix}`)
+		return db.getData(`${folderPrefix}/${key}/${prefix}`);
 	};
 	static async getValueWithoutPrefix(key: string, clb?: (val: string) => void) {
 		let rawdata = fs.readFileSync('database.json');
@@ -109,7 +130,7 @@ export class DatabaseHelper {
 		/*
 		const list = await db.list(prefix).then((val: string) => {
 			const nameList = val.split("\n")
-
+	
 			const promiseList: any[] = [];
 			nameList.forEach((el: string) => {
 				promiseList.push(DatabaseHelper.getValueWithoutPrefix(el))
@@ -117,13 +138,13 @@ export class DatabaseHelper {
 			Promise.all(promiseList).then(
 				(result: any) => {
 					let userValueList: userValPair[] = [];
-
+	
 					promiseList.forEach((el: string, index: number) => {
-
+	
 						const name = DatabaseHelper.stripPrefixFromString(nameList[index], "spin")
 						if (name !== "Arne#1111")
 							userValueList.push({ key: name, value: result[index] })
-
+	
 					})
 					
 					userValueList.sort((a, b) => (parseInt(a.value) < parseInt(b.value)) ? 1 : -1)

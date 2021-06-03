@@ -76,42 +76,30 @@ export class Spinner {
 	}
 
 	static async incrementCounter(message: Message) {
-		const currentVal = DatabaseHelper.getValue("counterSpin", message.author.username, () => { });
-		console.log(currentVal);
+		// const currentVal = DatabaseHelper.getValue("counterSpin", message.author.username, () => { });
 
-		await DatabaseHelper.getValue("counterSpin", message.author.username, (val) => {
-			if (val) {
-				if (parseInt(val)) {
-					let newVal = parseInt(val);
-					newVal += 1;
-					DatabaseHelper.setValue("counterSpin", message.author.username, newVal.toString(), (success) => {
-						if (!success) {
-							message.channel.send("Teksten inneholder ulovlige verdier")
-						}
-					});
-				}
-			}
-			else
-				DatabaseHelper.setValue("counterSpin", message.author.username, "1");
-		})
+		// await DatabaseHelper.getValue("counterSpin", message.author.username, (val) => {
+		// 	if (val) {
+		// 		if (parseInt(val)) {
+		// 			let newVal = parseInt(val);
+		// 			newVal += 1;
+		// 			DatabaseHelper.setValue("counterSpin", message.author.username, newVal.toString(), (success) => {
+		// 				if (!success) {
+		// 					message.channel.send("Teksten inneholder ulovlige verdier")
+		// 				}
+		// 			});
+		// 		}
+		// 	}
+		// 	else
+		// 		DatabaseHelper.setValue("counterSpin", message.author.username, "1");
+		// })
 	}
 
 	static async compareScore(message: Message, newScore: string) {
-		const val = DatabaseHelper.getValue("spin", message.author.username, (val) => {
-			if (val) {
-				if (parseInt(val) < parseInt(newScore)) {
-					DatabaseHelper.setValue("spin", message.author.username, newScore);
-				}
-			}
-			else
-				DatabaseHelper.setValue("spin", message.author.username, newScore);
-		})
-		const verdi = false;
-		if (verdi) {
+		const val = DatabaseHelper.getValue("spin", message.author.username)
+		if (parseInt(val) < parseInt(newScore)) {
 			DatabaseHelper.setValue("spin", message.author.username, newScore);
 		}
-		console.log(val);
-
 	}
 
 	static formatScore(score: string) {
@@ -133,18 +121,18 @@ export class Spinner {
 					/* ATH start
 						Linjene under sjekker nåværende highscore opp mot ATH highscore. Hvis ingen ATH eksisterer i DB, oprettes det med nåværende highscore.
 					*/
-					const currentATH = DatabaseHelper.getValue("ATHspin", el.key, (val) => {
-						if (val && parseInt(val)) {
-							if (parseInt(val) < parseInt(el.value))
-								DatabaseHelper.setValue("ATHspin", el.key, el.value)
-						}
-						else {
-							DatabaseHelper.setValue("ATHspin", el.key, el.value, (success) => {
-								// console.log(success)
-							})
-							console.log("no val, setting ATH to current highscore for " + el.key)
-						}
-					})
+					// const currentATH = DatabaseHelper.getValue("ATHspin", el.key, (val) => {
+					// 	if (val && parseInt(val)) {
+					// 		if (parseInt(val) < parseInt(el.value))
+					// 			DatabaseHelper.setValue("ATHspin", el.key, el.value)
+					// 	}
+					// 	else {
+					// 		DatabaseHelper.setValue("ATHspin", el.key, el.value, (success) => {
+					// 			// console.log(success)
+					// 		})
+					// 		console.log("no val, setting ATH to current highscore for " + el.key)
+					// 	}
+					// })
 					/*
 					ATH END 
 					 */

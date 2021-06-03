@@ -30,6 +30,7 @@
     "npm": "latest",
     "rimraf": "^3.0.2",
     "say": "^0.16.0",
+    "stormdb": "^0.4.1",
     "ts-node": "^10.0.0",
     "typescript": "^4.3.2",
     "weighted-random-object": "^1.0.8"
