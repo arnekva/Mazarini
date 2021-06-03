@@ -1,6 +1,7 @@
-import { MessageHelper } from "./messageHelper";
+
 import { Channel, Client, DMChannel, NewsChannel, TextChannel, Message } from "discord.js";
-import { ICommandElement } from "./commands";
+import { ICommandElement } from "./commands/commands";
+import { MessageHelper } from "./helpers/messageHelper";
 export class PatchNotes {
 
 	/** Version x.y.z

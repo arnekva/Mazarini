@@ -1,13 +1,14 @@
 import { Spinner } from "./spinner";
 import { Message, TextChannel } from "discord.js";
-import { MessageHelper } from "./messageHelper";
+
 import { JokeCommands } from "./jokeCommands";
-import { Admin } from "./admin";
+import { Admin } from "../admin/admin";
 import { GitHubCommands } from "./githubCommands";
 import { GameCommands } from "./gameCommands";
 import { GamblingCommands } from "./gamblingCommands";
 import { WarzoneCommands } from "./warzoneCommands";
-import { PatchNotes } from "./patchnotes";
+import { PatchNotes } from "../patchnotes";
+import { MessageHelper } from "../helpers/messageHelper";
 
 
 /**
@@ -17,7 +18,7 @@ import { PatchNotes } from "./patchnotes";
  * @param command Funksjon som skal kjøres
  * @param hideFromListing (Optional) Sett til true for å gjemme funksjonen fra !mz help listen.
  * @param isAdmin (Optional) Sett til true for å kun la admins kjøre.
- * @param deprecated (Optional) Hvis commanden bytter navn, sett den gamle til deprecated og la verdien være navnet på den nye commanden (eks !mz master bytter til !mz countdown -> behold !mz master og ha "countdown" i verdien på deprecated). Da vil botten legge til informasjon om deprecated og be de bruke den nye neste gang (TODO: Implementer)
+ * @param deprecated (Optional) Hvis commanden bytter navn, sett den gamle til deprecated og la verdien være navnet på den nye commanden (eks !mz master bytter til !mz countdown -> behold !mz master og ha "countdown" i verdien på deprecated). Da vil botten legge til informasjon om deprecated og be de bruke den nye neste gang
  */
 export interface ICommandElement {
 	commandName: string;
@@ -25,7 +26,7 @@ export interface ICommandElement {
 	command: (rawMessage: Message, messageContent: string, args: string[] | undefined) => void;
 	hideFromListing?: boolean;
 	isAdmin?: boolean;
-	deprecated?: string; 
+	deprecated?: string;
 }
 
 const helpCommand: ICommandElement = {
@@ -39,15 +40,15 @@ export const commands: ICommandElement[] = [
 	helpCommand,
 	Spinner.highscoreCommand,
 	Spinner.allTimeHighCommand,
-  Admin.command,
-  JokeCommands.roggaVaskHuset,
-  JokeCommands.deadmaggi,
+	Admin.command,
+	JokeCommands.roggaVaskHuset,
+	JokeCommands.deadmaggi,
 	JokeCommands.thomasFese,
 	JokeCommands.mygleStatus,
 	JokeCommands.getAllMygling,
 	JokeCommands.masterCountdown,
 	JokeCommands.countdown,
-  JokeCommands.elDavido,
+	JokeCommands.elDavido,
 	JokeCommands.eivndPrideCommand,
 	JokeCommands.reactWithWord,
 	JokeCommands.bonkSender,
@@ -63,14 +64,14 @@ export const commands: ICommandElement[] = [
 	Admin.warnUserCommand,
 	Spinner.setHighscoreCommand,
 	Admin.deleteValFromPrefix,
-  GitHubCommands.issueCommand,
-  JokeCommands.eivindSkyld,
+	GitHubCommands.issueCommand,
+	JokeCommands.eivindSkyld,
 	GameCommands.getDropVerdansk,
 	GameCommands.getDropRebirth,
-  GameCommands.getDropFromGrid,
-  GamblingCommands.addCoinsCommand,
-  GamblingCommands.removeCoinsCommand,
-  GamblingCommands.checkCoinsCommand,
+	GameCommands.getDropFromGrid,
+	GamblingCommands.addCoinsCommand,
+	GamblingCommands.removeCoinsCommand,
+	GamblingCommands.checkCoinsCommand,
 	WarzoneCommands.getWZStats,
 	WarzoneCommands.getWeeklyWZStats,
 	WarzoneCommands.getWeaponStats,
@@ -79,7 +80,7 @@ export const commands: ICommandElement[] = [
 ]
 
 export const helperCommands = ((rawMessage: Message, messageContent: string, args: string[] | undefined) => {
-	const isLookingForAllAdmin = !!args &&   args[0] === "admin" && Admin.isAuthorAdmin(rawMessage.member);
+	const isLookingForAllAdmin = !!args && args[0] === "admin" && Admin.isAuthorAdmin(rawMessage.member);
 	let commandString = "Kommandoer: ";
 	let commandStringList: string[] = [];
 	const commandForHelp = messageContent.replace("!mz help", "").trim()
@@ -87,28 +88,28 @@ export const helperCommands = ((rawMessage: Message, messageContent: string, arg
 	if (args && args[0] !== "admin") {
 		let found = 0;
 		commands.forEach((cmd) => {
-			if (cmd.commandName == commandForHelp){
-				MessageHelper.sendMessage(rawMessage.channel, cmd.commandName + (cmd.isAdmin ? " (Admin) " : "")+ ": " + cmd.description)
-		found++;
-			}	
+			if (cmd.commandName == commandForHelp) {
+				MessageHelper.sendMessage(rawMessage.channel, cmd.commandName + (cmd.isAdmin ? " (Admin) " : "") + ": " + cmd.description)
+				found++;
+			}
 		})
-		if(found == 0){
+		if (found == 0) {
 			MessageHelper.sendMessage(rawMessage.channel, "Fant ingen kommando '" + commandForHelp + "'. ")
 		}
 	}
 	else {
 		commands.forEach((cmd) => {
-			//TODO: !mz help admin for å se alle admin commands?
-			if(isLookingForAllAdmin ){
+
+			if (isLookingForAllAdmin) {
 				commandStringList.push(cmd.commandName + (cmd.isAdmin ? " (admin)" : (cmd.hideFromListing ? " (gjemt fra visning) " : "")));
 			} else {
-				if(!cmd.hideFromListing)
-				commandStringList.push(cmd.commandName);
+				if (!cmd.hideFromListing)
+					commandStringList.push(cmd.commandName);
 			}
-			
+
 		})
 		commandStringList.sort();
-		commandStringList.forEach((str) => commandString += "\n" +str )
+		commandStringList.forEach((str) => commandString += "\n" + str)
 		commandString += "\n\n" + "*Bruk '!mz help <command>' for beskrivelse*"
 		MessageHelper.sendMessage(rawMessage.channel, commandString)
 	}

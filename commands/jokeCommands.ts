@@ -1,9 +1,10 @@
 import { Message, User, TextChannel } from "discord.js";
+import { bonkMemeUrls } from "../globals";
+import { DatabaseHelper } from "../helpers/databaseHelper";
+import { MessageHelper } from "../helpers/messageHelper";
+import { findLetterEmoji } from "../utils/miscUtils";
 import { ICommandElement } from "./commands";
-import { DatabaseHelper, userValPair } from "./databaseHelper";
-import { MessageHelper } from "./messageHelper";
-import { findLetterEmoji } from "./miscUtils"
-import { bonkMemeUrls } from "./globals"
+
 
 export class JokeCommands {
 
@@ -123,6 +124,7 @@ export class JokeCommands {
 		const mygling = await DatabaseHelper.getAllValuesFromPrefix("mygling")
 		let myglinger = "";
 		mygling.forEach((status) => myglinger += status.key + " " + status.val + "\n")
+		myglinger = myglinger.trim() ? myglinger : "Ingen har satt statusen sin i dag";
 		MessageHelper.sendMessage(message.channel, myglinger)
 		// const vals = await DatabaseHelper.getAllValuesFromPrefix("mygling")
 	}

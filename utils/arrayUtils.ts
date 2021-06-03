@@ -1,4 +1,4 @@
-import { userValPair, ValuePair } from "./databaseHelper";
+import { userValPair, ValuePair } from "../helpers/databaseHelper";
 
 export class ArrayUtils {
 	static sortUserValuePairArray(val: ValuePair[]) {

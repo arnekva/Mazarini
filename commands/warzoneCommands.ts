@@ -1,27 +1,22 @@
-import { MessageHelper } from "./messageHelper";
+
 import { Channel, Client, DMChannel, Message, NewsChannel, TextChannel } from "discord.js";
+import { MessageHelper } from "../helpers/messageHelper";
 import { ICommandElement } from "./commands";
 const API = require('call-of-duty-api')();
 
 export class WarzoneCommands {
 
 	static async getBRContent(message: Message, messageContent: string, isWeekly?: boolean) {
-		//Smurf account
 		const content = messageContent.split(" ")
 		const gamertag = content[0];
 		const platform = content[1];
-		// if (gamertag.includes("CookieSlice")) {
-		//   message.reply("Not permitted: not allowed") //nice
-		//forgot a return; here bro
-		// }
+
 		try {
 			await API.login("arne.kva@gmail.com", "Mazarini332");
 		} catch (Error) {
 			message.reply("Klarte ikke logge inn")
 		}
 
-		//TODO: Exclude plunder forde det suge @Eivind pls fix
-		//FIXME: fix this
 		const sentMessage = await MessageHelper.sendMessage(message.channel, "Henter data...")
 		if (isWeekly) {
 			let response = "Weekly Warzone stats for <" + gamertag + ">";
@@ -50,7 +45,7 @@ export class WarzoneCommands {
 				response += "\nMatches Played: " + stats.matchesPlayed;
 				response += "\nChests opened: " + stats.objectiveBrCacheOpen;
 				response += "\nEnemies down (circle 1, 2, 3, 4, 5): " + stats.objectiveBrDownEnemyCircle1 + ", " + stats.objectiveBrDownEnemyCircle2 + ", " + stats.objectiveBrDownEnemyCircle3 + ", " + stats.objectiveBrDownEnemyCircle4 + ", " + stats.objectiveBrDownEnemyCircle5 + " ";
-				if(sentMessage)
+				if (sentMessage)
 					sentMessage.edit(response)
 				else
 					MessageHelper.sendMessage(message.channel, response)

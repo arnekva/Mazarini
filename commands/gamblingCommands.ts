@@ -1,12 +1,10 @@
-import { MessageHelper } from "./messageHelper";
+
 import { Message } from "discord.js";
 import { Channel, Client, DMChannel, NewsChannel, TextChannel } from "discord.js";
+import { dbPrefix } from "../helpers/databaseHelper";
+import { MessageHelper } from "../helpers/messageHelper";
 import { ICommandElement } from "./commands";
-import { DatabaseHelper, dbPrefix, userValPair } from "./databaseHelper";
-import { getWeekNumber } from "./dateUtils";
-import { escapeString } from "./textUtils";
-import { getRndInteger, getRndBetween0and100, getRandomPercentage } from "./randomUtils";
-import { ArrayUtils } from "./arrayUtils";
+
 
 
 export class GamblingCommands {

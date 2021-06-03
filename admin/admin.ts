@@ -1,7 +1,8 @@
 import { Channel, GuildMember, Message, TextChannel } from "discord.js";
-import { ICommandElement } from "./commands";
-import { DatabaseHelper, dbPrefix } from "./databaseHelper";
-import { MessageHelper } from "./messageHelper";
+import { ICommandElement } from "../commands/commands";
+import { DatabaseHelper, dbPrefix } from "../helpers/databaseHelper";
+import { MessageHelper } from "../helpers/messageHelper";
+
 
 export class Admin {
 
@@ -43,10 +44,11 @@ export class Admin {
 		const prefix = cmdSplit[0];
 		const key = cmdSplit[1];
 		const keyToDelete = prefix + "-" + key;
-		DatabaseHelper.deleteValue(keyToDelete, () => {
-			MessageHelper.sendMessage(message.channel, "Slettet nøkkel <" + keyToDelete + ">.")
+		//TODO:
+		// DatabaseHelper.deleteValue(keyToDelete, () => {
+		// 	MessageHelper.sendMessage(message.channel, "Slettet nøkkel <" + keyToDelete + ">.")
 
-		})
+		// })
 
 	}
 
@@ -58,36 +60,10 @@ export class Admin {
 		const val = await DatabaseHelper.getValue(prefix, key)
 
 	}
-	static async deleteDatabaseKeysFromPrefix(prefix: dbPrefix, message: Message) {
 
-		// const keys = await DatabaseHelper.getAllKeysFromPrefix(prefix)
-		/*.then((dbKeys: any) => {
-			const splitKeys = dbKeys.split("\n")
-			splitKeys.forEach((el: string) => {
-				DatabaseHelper.deleteValue(el)
-			})
-		})
-		*/
-
-	}
-	static async deleteDatabaseKeysFromPrefixNotCommand(prefix: dbPrefix) {
-		// const keys = await DatabaseHelper.getAllKeysFromPrefix(prefix)
-		/*.then((dbKeys: any) => {
-			const splitKeys = dbKeys.split("\n")
-			splitKeys.forEach((el: string) => {
-				DatabaseHelper.deleteValue(el)
-			})
-		})*/
-	}
 
 	static async replyToMsgAsBot(rawMessage: Message, content: string) {
-		//TODO: Get message by ID and reply
-		/*
-		
-	https://stackoverflow.com/questions/49442638/get-message-by-id-discord-js
-	!mz reply <messageid: string> -m "msg to reply with"
-	
-		*/
+
 		const allChannels = rawMessage.client.channels.cache.array().filter(channel => channel instanceof TextChannel) as TextChannel[];
 
 		const id = content.substr(0, content.indexOf(" "));
@@ -170,27 +146,16 @@ export class Admin {
 				message.reply("Du kan kje warna deg sjøl, bro")
 				return;
 			}
-			// await DatabaseHelper.getValue("warningCounter", user.username, (val) => {
-			// 	if (val) {
-			// 		if (parseInt(val)) {
-			// 			let newVal = parseInt(val);
-			// 			newVal += 1;
-			// 			//TODO: Do something når counter når et visst nivå? eks. 10
-			// 			DatabaseHelper.setValue("warningCounter", user.username, newVal.toString(), (success) => {
-			// 				if (!success) {
-			// 					message.channel.send("Teksten inneholder ulovlige verdier")
-			// 				} else {
-			// 					//Send msg to origin channel
-			// 					MessageHelper.sendMessage(message.channel, user.username + ", du har fått en advarsel. Du har nå " + newVal + " advarsler.")
-			// 					//Send msg to action-log
-			// 					MessageHelper.sendMessage(message.channel, "", true, message.author.username + " ga en advarsel til " + user.username + " på grunn av: " + replyString + ". " + user.username + " har nå " + newVal + " advarsler", "warning")
-			// 				}
-			// 			});
-			// 		}
-			// 	}
-			// 	else
-			// 		DatabaseHelper.setValue("warningCounter", user.username, "1");
-			// })
+			const userWarnings = DatabaseHelper.getValue("warningCounter", user.username);
+			if (parseInt(userWarnings)) {
+				let newVal = parseInt(userWarnings)
+				newVal += 1;
+				DatabaseHelper.setValue("warningCounter", user.username, newVal.toString());
+				MessageHelper.sendMessage(message.channel, user.username + ", du har fått en advarsel. Du har nå " + newVal + " advarsler.")
+				//Send msg to action-log
+				MessageHelper.sendMessage(message.channel, "", true, message.author.username + " ga en advarsel til " + user.username + " på grunn av: " + replyString + ". " + user.username + " har nå " + newVal + " advarsler", "warning")
+
+			}
 		} else {
 			MessageHelper.sendMessage(message.channel, "Feil: Du har enten skrevet feil bruker navn eller ikke inkludert en melding.")
 		}
@@ -198,17 +163,17 @@ export class Admin {
 
 	static readonly deleteValFromPrefix: ICommandElement = {
 		commandName: "deletekeys",
-		description: "Slett alle databasenøkler og tilhørende verdier for den gitte prefixen",
+		description: "Slett alle databasenøkler og tilhørende verdier for den gitte prefixen (Virker ikke)",
 		hideFromListing: true,
 		isAdmin: true,
 		command: (rawMessage: Message, messageContent: string) => {
 			const prefix = rawMessage.content.replace("!mz deletekeys ", "") as dbPrefix;
-			Admin.deleteDatabaseKeysFromPrefix(prefix, rawMessage);
+			DatabaseHelper.deleteSpecificPrefixValues(prefix);
 		}
 	}
 	static readonly deleteSpecificKey: ICommandElement = {
 		commandName: "deletekey",
-		description: "Slett en gitt nøkkel med oppgitt prefix. <prefix> <nøkkel>",
+		description: "Slett en gitt nøkkel med oppgitt prefix. <prefix> <nøkkel> (Virker ikke)",
 		hideFromListing: true,
 		isAdmin: true,
 		command: (rawMessage: Message, messageContent: string) => {

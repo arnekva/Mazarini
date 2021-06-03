@@ -1,7 +1,7 @@
 import { MessageHelper } from "./messageHelper";
 import * as cleanTextUtils from 'clean-text-utils';
-import { escapeString } from "./textUtils";
-import { Spinner } from "./spinner";
+import { escapeString } from "../utils/textUtils";
+
 
 //https://openbase.com/js/node-json-db
 import { JsonDB } from 'node-json-db';
@@ -21,7 +21,7 @@ export interface userValPair {
 	value: string,
 	opt?: any,
 }
-//https://www.npmjs.com/package/quick.db TODO: HER
+
 export interface dbObject {
 	name: string,
 
@@ -36,7 +36,7 @@ export class DatabaseHelper {
 	 * @param key - Nøkkel: Her bruker du vanligvis brukernavn (message.author.username)
 	 * @param value - Verdi som settes i databasen
 	 */
-	static setValue(prefix: dbPrefix, key: string, value: string, clb?: (success: boolean) => void) {
+	static setValue(prefix: dbPrefix, key: string, value: string) {
 
 		db.push(`${folderPrefix}/${key}/${prefix}`, `${value}`)
 
@@ -57,23 +57,30 @@ export class DatabaseHelper {
 			const data = db.getData(`${folderPrefix}/${key}/${prefix}`)
 			return data;
 		} catch (error) {
-			db.push(`${folderPrefix}/${key}/${prefix}`, `1`)
-			return "1";
+			db.push(`${folderPrefix}/${key}/${prefix}`, `0`)
+			return "0";
 		}
 
 	};
 
-	static async getValueWithoutPrefix(key: string, clb?: (val: string) => void) {
+	static async getAllUsers() {
 		db.getData("users");
 	};
 
 
 
-	static deleteValue(key: string, clb?: () => void) {
+	static deleteValue(key: string) {
 		//db.delete(key)
 		//if (clb)
 		//	clb();
 
+	}
+
+	static deleteSpecificPrefixValues(prefix: dbPrefix) {
+		const users = db.getData(`${folderPrefix}`);
+		Object.keys(users).forEach((el) => {
+			db.delete(`${folderPrefix}/${el}/${prefix}`)
+		})
 	}
 
 	//Feil

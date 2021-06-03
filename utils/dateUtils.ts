@@ -1,4 +1,4 @@
-import { DatabaseHelper } from "./databaseHelper"
+import { DatabaseHelper } from "../helpers/databaseHelper"
 
 export function getWeekNumber(d: Date) {
   // Copy date so don't modify original

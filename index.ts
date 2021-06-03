@@ -1,15 +1,19 @@
 
-import { MessageHelper } from "./messageHelper";
-import { commands } from "./commands"
-import { Admin } from "./admin";
-import { Spinner } from "./spinner";
+
+import { commands } from "./commands/commands"
+import { Admin } from "./admin/admin";
+
 import { Guild, GuildManager, GuildMember, Message, Role, TextChannel, User, Emoji } from "discord.js";
-import { doesThisMessageNeedAnEivindPride } from "./miscUtils";
+import { doesThisMessageNeedAnEivindPride } from "./utils/miscUtils";
 const Discord = require('discord.js');
 const mazariniClient = new Discord.Client();
 const schedule = require('node-schedule');
 const diff = require('deep-diff');
 import didYouMean from 'didyoumean2'
+import { DatabaseHelper } from "./helpers/databaseHelper";
+import { maxHeaderSize } from "http";
+import { MessageHelper } from "./helpers/messageHelper";
+import { Spinner } from "./commands/spinner";
 
 require('dotenv').config();
 
@@ -30,29 +34,36 @@ mazariniClient.on('ready', () => {
 	//https://www.npmjs.com/package/node-schedule
 	action_log_channel = mazariniClient.channels.cache.get("810832760364859432")
 
-	const resetMygleJob = schedule.scheduleJob({ hour: 7, minute: 0 }, function () {
+	const resetMygleJob = schedule.scheduleJob({ hour: 21, minute: 26 }, function () {
 		console.log("Kjører resett av mygling kl 08:00")
-		Admin.deleteDatabaseKeysFromPrefixNotCommand("mygling")
+		DatabaseHelper.deleteSpecificPrefixValues("mygling")
 	});
 
-	const reminSpinJob = schedule.scheduleJob("0 20 * * 7", function () {
+	const reminSpinJob = schedule.scheduleJob("0 21 * * 7", function () {
 		console.log("Minner om reset")
 		const las_vegas = mazariniClient.channels.cache.get("808992127249678386")
 		MessageHelper.sendMessage(las_vegas, "Husk at ukens spin resetter i morgen klokken 09:00! ")
 	});
 
-	const resetSpinJob = schedule.scheduleJob("0 7 * * 1", async function () {
+	const resetSpinJob = schedule.scheduleJob("0 9 * * 1", async function () {
 		console.log("Kjører resett av spins, mandag 09:00")
 		const las_vegas = mazariniClient.channels.cache.get("808992127249678386")
 
 		const spinnerMention = "<@&823504322213838888>"
 		const message = await las_vegas.send(spinnerMention + ", ukens spin har blitt nullstilt. Her er ukens score:\n")
 		await Spinner.listScores(message, true)
-		Admin.deleteDatabaseKeysFromPrefixNotCommand("spin")
+		Spinner.updateATH();
+		DatabaseHelper.deleteSpecificPrefixValues("spin")
 
+		const spinnerRole = mazariniClient.guild.roles.fetch("823504322213838888")
 
-		//TODO: Finne ut hvorfor denne feilet?
-		// mazariniClient.members.forEach((member: GuildMember) => member.roles.remove(spinnerRole))
+		//TODO: Pass på at dene funker. Hvis den gjør det, kan vi unngå at den logger til action_log?
+		try {
+			mazariniClient.members.forEach((member: GuildMember) => member.roles.remove(spinnerRole))
+
+		} catch (error) {
+			MessageHelper.sendMessageToActionLog(message, "Error: Klarte ikke slette rollen spinners fra alle medlemmene. Stacktrace: " + error)
+		}
 	});
 });
 
@@ -135,9 +146,6 @@ function checkMessageForJokes(message: Message) {
 			polseCounter++;
 		}
 	}
-	// included in regex now?
-	// if(message.content.includes("🌭"))
-	// polseCounter++;
 
 	if (polseCounter > 0)
 		message.channel.send("Hæ, " + (polseCounter > 1 ? polseCounter + " " : "") + "pølse" + (polseCounter > 1 ? "r" : "") + "?");

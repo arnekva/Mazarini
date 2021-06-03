@@ -2,26 +2,32 @@
     "users": {
         "Arne": {
             "spin": "514",
-            "ATHspin": "514",
+            "ATHspin": "932",
             "mygling": "😊",
-            "counterSpin": "317"
+            "counterSpin": "317",
+            "dogeCoin": "5000"
         },
         "ThomasW": {
             "mygling": "digge ny patch 🆒 ™️ <:tomas:811518790235324466>",
             "ATHspin": "752",
-            "counterSpin": "213"
+            "counterSpin": "213",
+            "dogeCoin": "5000",
+            "warningCounter": "2"
         },
         "Eivind": {
             "ATHspin": "915",
-            "counterSpin": "1140"
+            "counterSpin": "1140",
+            "dogeCoin": "5000"
         },
         "Deadmaggi": {
             "ATHspin": "303",
-            "counterSpin": "5"
+            "counterSpin": "5",
+            "dogeCoin": "5000"
         },
         "Brzeczyszczykiewicz": {
             "ATHspin": "842",
-            "counterSpin": "1945"
+            "counterSpin": "1945",
+            "dogeCoin": "5000"
         }
     }
 }

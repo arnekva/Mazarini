@@ -1,12 +1,15 @@
-import { MessageHelper } from "./messageHelper";
+
 import { Message } from "discord.js";
 import { Channel, Client, DMChannel, NewsChannel, TextChannel } from "discord.js";
+import { DatabaseHelper } from "../helpers/databaseHelper";
+import { MessageHelper } from "../helpers/messageHelper";
+import { ArrayUtils } from "../utils/arrayUtils";
+import { getWeekNumber } from "../utils/dateUtils";
+import { getRandomPercentage } from "../utils/randomUtils";
+import { escapeString } from "../utils/textUtils";
 import { ICommandElement } from "./commands";
-import { DatabaseHelper, dbPrefix, userValPair } from "./databaseHelper";
-import { getWeekNumber } from "./dateUtils";
-import { escapeString } from "./textUtils";
-import { getRndInteger, getRndBetween0and100, getRandomPercentage } from "./randomUtils";
-import { ArrayUtils } from "./arrayUtils";
+
+
 
 const weightedRandomObject = require("weighted-random-object");
 
@@ -147,12 +150,11 @@ export class Spinner {
 	}
 
 	static updateATH() {
-		const ATHVals = DatabaseHelper.getAllValuesFromPrefix("ATHspin");
-		const SpinVals = DatabaseHelper.getAllValuesFromPrefix("spin");
+		DatabaseHelper.compareAndUpdateValue("ATHspin", "spin")
 	}
 
 	static async allTimeHigh(message: Message) {
-		DatabaseHelper.compareAndUpdateValue("ATHspin", "spin")
+		Spinner.updateATH();
 		const val = DatabaseHelper.getAllValuesFromPrefix("ATHspin");
 		ArrayUtils.sortUserValuePairArray(val);
 		const printList = ArrayUtils.makeValuePairIntoOneString(val, Spinner.formatValue);
