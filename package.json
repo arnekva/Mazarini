@@ -1,5 +1,5 @@
 {
-  "name": "MZ",
+  "name": "mazarini",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -36,7 +36,6 @@
     "weighted-random-object": "^1.0.8"
   },
   "devDependencies": {
-    "@types/emoji-strip": "^1.0.0",
-    "local-db": "^2.0.0"
+    "@types/emoji-strip": "^1.0.0"
   }
 }
