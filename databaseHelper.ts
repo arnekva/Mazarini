@@ -4,7 +4,7 @@ import { escapeString } from "./textUtils";
 import { Spinner } from "./spinner";
 
 const fs = require('fs');
-const db = require('quick.db');
+// const db = require('quick.db');
 import emojiStrip from 'emoji-strip';
 import { write } from "fs";
 
@@ -25,20 +25,20 @@ export type dbPrefix = "spin" | "birthday" | "stock" | "mygling" | "week" | "cou
 
 export class DatabaseHelper {
 
-/**
- * @param prefix - Databaseprefix. Må være av type dbprefix. Nye prefixer MÅ legges til i typen på toppen av databaseHelper.
- * @param key - Nøkkel: Her bruker du vanligvis brukernavn (message.author.username)
- * @param value - Verdi som settes i databasen
- * @param clb - (Optional) Callback som kjøres (hvis oppgitt) som sier om det er successfull eller ei
- */
+	/**
+	 * @param prefix - Databaseprefix. Må være av type dbprefix. Nye prefixer MÅ legges til i typen på toppen av databaseHelper.
+	 * @param key - Nøkkel: Her bruker du vanligvis brukernavn (message.author.username)
+	 * @param value - Verdi som settes i databasen
+	 * @param clb - (Optional) Callback som kjøres (hvis oppgitt) som sier om det er successfull eller ei
+	 */
 	static async setValue(prefix: dbPrefix, key: string, value: string, clb?: (success: boolean) => void) {
 		// const asciiSafe = /^[\x00-\x7FÆØÅæøå]*$/
 		// const success = asciiSafe.test(value) && asciiSafe.test(key);
-		db.set(`${key}.${prefix}`, `${value}` )
+		// db.set(`${key}.${prefix}`, `${value}` )
 
 	}
 
-	static async setValueObject(prefix: dbPrefix, key: string, value: any, clb?: () => void ){
+	static async setValueObject(prefix: dbPrefix, key: string, value: any, clb?: () => void) {
 		const keyVal = prefix + "-" + key;
 		/*try {
 				await db.set(keyVal, value)
@@ -46,29 +46,29 @@ export class DatabaseHelper {
 					if (clb)
 						clb();
 				});*/
-			} catch () {
-				console.log("Klarte ikke sette verdi i databasen. ")
-				//if (clb)
-				//	clb();
-			}
-			/*
+	} catch() {
+		console.log("Klarte ikke sette verdi i databasen. ")
+		//if (clb)
+		//	clb();
 	}
+	/*
+}
 /**
- * @param prefix - Databaseprefix. Må være av type dbprefix. Nye prefixer MÅ legges til i typen på toppen av databaseHelper.
- * @param key - Nøkkel: Her bruker du vanligvis brukernavn (message.author.username)
- * @param clb - Callback som kjører (med verdien som parameter) etter at verdien er hentet ut. Det er her verdien behandles
- */
+* @param prefix - Databaseprefix. Må være av type dbprefix. Nye prefixer MÅ legges til i typen på toppen av databaseHelper.
+* @param key - Nøkkel: Her bruker du vanligvis brukernavn (message.author.username)
+* @param clb - Callback som kjører (med verdien som parameter) etter at verdien er hentet ut. Det er her verdien behandles
+*/
 	static getValue(prefix: dbPrefix, key: string, clb: (val: string) => void) {
-		return db.get(`${key}.${prefix}`)
+		// return db.get(`${key}.${prefix}`)
 	};
 	static async getValueWithoutPrefix(key: string, clb?: (val: string) => void) {
 		let rawdata = fs.readFileSync('database.json');
 		let allData = JSON.parse(rawdata);
 		let valToReturn = "";
-		Object.keys(allData).forEach(function(key1) {
+		Object.keys(allData).forEach(function (key1) {
 			console.log(key1, allData[key]);
-			if(allData[key1].name == key)
-			valToReturn = allData[key];
+			if (allData[key1].name == key)
+				valToReturn = allData[key];
 		});
 		return valToReturn;
 	};
@@ -79,24 +79,24 @@ export class DatabaseHelper {
 		//db.delete(key)
 		//if (clb)
 		//	clb();
-		
+
 	}
 
 	//Feil
 	static getAllValues() {
 		const keys: string[] = [];
 
-		return db.all();
+		// return db.all();
 	}
 
-	static getAllKeysFromPrefix(prefix: dbPrefix){
+	static getAllKeysFromPrefix(prefix: dbPrefix) {
 		const keys: string[] = [];
 		let rawdata = fs.readFileSync('database.json');
 		let allData = JSON.parse(rawdata);
-		Object.keys(allData).forEach(function(key1) {
+		Object.keys(allData).forEach(function (key1) {
 			console.log(key1, allData[key1]);
-			if(!!allData[prefix])
-			keys.push(allData[prefix])
+			if (!!allData[prefix])
+				keys.push(allData[prefix])
 		});
 		return keys;
 		/*return db.JSON(prefix).then((keys: string) => {
