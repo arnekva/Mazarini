@@ -17,7 +17,7 @@ export class WarzoneCommands {
 			message.reply("Klarte ikke logge inn")
 		}
 
-		const sentMessage = await MessageHelper.sendMessage(message.channel, "Henter data...")
+		const sentMessage = await MessageHelper.sendMessage(message, "Henter data...")
 		if (isWeekly) {
 			let response = "Weekly Warzone stats for <" + gamertag + ">";
 			try {
@@ -48,7 +48,7 @@ export class WarzoneCommands {
 				if (sentMessage)
 					sentMessage.edit(response)
 				else
-					MessageHelper.sendMessage(message.channel, response)
+					MessageHelper.sendMessage(message, response)
 			} catch (error) {
 				message.reply(error)
 			}
@@ -71,7 +71,7 @@ export class WarzoneCommands {
 				if (sentMessage)
 					sentMessage.edit(responseString)
 				else
-					MessageHelper.sendMessage(message.channel, responseString)
+					MessageHelper.sendMessage(message, responseString)
 			} catch (error) {
 				message.reply(error)
 			}

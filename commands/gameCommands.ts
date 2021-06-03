@@ -3,8 +3,6 @@ import { MessageHelper } from "../helpers/messageHelper";
 import { getRndInteger } from "../utils/randomUtils";
 import { ICommandElement } from "./commands";
 
-
-
 interface dropCoordinate {
 	xDropCoordinate: number;
 	yDropCoordinate: number;
@@ -53,12 +51,12 @@ function getValidDropCoordinate(xCircleCenter: number, yCircleCenter: number): d
 export class GameCommands {
 	static dropVerdansk(message: Message) {
 		const randomElement = verdansk[Math.floor(Math.random() * verdansk.length)];
-		MessageHelper.sendMessage(message.channel, "Dere dropper i " + randomElement)
+		MessageHelper.sendMessage(message, "Dere dropper i " + randomElement)
 	}
 
 	static dropRebirth(message: Message) {
 		const randomElement = rebirthIsland[Math.floor(Math.random() * rebirthIsland.length)];
-		MessageHelper.sendMessage(message.channel, "Dere dropper i " + randomElement)
+		MessageHelper.sendMessage(message, "Dere dropper i " + randomElement)
 	}
 	static dropGrid(message: Message, messageContent: string) {
 		const gridLetter = "ABCDEFGHIJ"
@@ -71,12 +69,12 @@ export class GameCommands {
 		const gridNumber = parseInt(grid.charAt(1));
 
 		if (!gridLetter.includes(letter) || !validNumbers.includes(validNumbers) || grid == "" || Number.isNaN(gridNumber)) {
-			MessageHelper.sendMessage(message.channel, "Kan du ikkje i det minsta velga kor sirkelen e?")
+			MessageHelper.sendMessage(message, "Kan du ikkje i det minsta velga kor sirkelen e?")
 			return
 		}
 
 		if (illegalCenterCoordinates.includes(grid)) {
-			MessageHelper.sendMessage(message.channel, "E det sirkelen din? Dokker e fucked... \n(Botten klare ikkje å regna ud koordinater for så små grids)")
+			MessageHelper.sendMessage(message, "E det sirkelen din? Dokker e fucked... \n(Botten klare ikkje å regna ud koordinater for så små grids)")
 			return;
 		}
 
@@ -93,9 +91,9 @@ export class GameCommands {
 					dropPlaces += "\n" + dropLocations[i].name;
 			})
 		}
-		MessageHelper.sendMessage(message.channel, "Dere dropper på " + gridLetter[xDropCoordinate] + yDropCoordinate)
+		MessageHelper.sendMessage(message, "Dere dropper på " + gridLetter[xDropCoordinate] + yDropCoordinate)
 		if (dropPlaces)
-			MessageHelper.sendMessage(message.channel, "Her ligger: " + dropPlaces)
+			MessageHelper.sendMessage(message, "Her ligger: " + dropPlaces)
 
 	}
 

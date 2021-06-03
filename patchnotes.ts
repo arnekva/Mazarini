@@ -40,7 +40,7 @@ export class PatchNotes {
 
 		command: (rawMessage: Message, messageContent: string) => {
 			const pn = PatchNotes.getCurrentPatchNotes();
-			MessageHelper.sendMessage(rawMessage.channel, pn)
+			MessageHelper.sendMessage(rawMessage, pn)
 		}
 	}
 

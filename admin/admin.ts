@@ -151,13 +151,13 @@ export class Admin {
 				let newVal = parseInt(userWarnings)
 				newVal += 1;
 				DatabaseHelper.setValue("warningCounter", user.username, newVal.toString());
-				MessageHelper.sendMessage(message.channel, user.username + ", du har fått en advarsel. Du har nå " + newVal + " advarsler.")
+				MessageHelper.sendMessage(message, user.username + ", du har fått en advarsel. Du har nå " + newVal + " advarsler.")
 				//Send msg to action-log
-				MessageHelper.sendMessage(message.channel, "", true, message.author.username + " ga en advarsel til " + user.username + " på grunn av: " + replyString + ". " + user.username + " har nå " + newVal + " advarsler", "warning")
+				MessageHelper.sendMessage(message, "", true, message.author.username + " ga en advarsel til " + user.username + " på grunn av: " + replyString + ". " + user.username + " har nå " + newVal + " advarsler", "warning")
 
 			}
 		} else {
-			MessageHelper.sendMessage(message.channel, "Feil: Du har enten skrevet feil bruker navn eller ikke inkludert en melding.")
+			MessageHelper.sendMessage(message, "Feil: Du har enten skrevet feil bruker navn eller ikke inkludert en melding.")
 		}
 	}
 

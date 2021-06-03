@@ -65,11 +65,11 @@ export class Spinner {
 		if (cleanUsername.length < 2) {
 			message.reply("Det kan virke som om brukernavnet ditt inneholder for få lovlige tegn (" + cleanUsername + "). Dette må rettes opp i før du får spinne.")
 		} else {
-			MessageHelper.sendMessage(message.channel, message.author.username + " spant fidget spinneren sin i " + min + " minutt og " + sec + " sekund!")
+			MessageHelper.sendMessage(message, message.author.username + " spant fidget spinneren sin i " + min + " minutt og " + sec + " sekund!")
 			if (min == 0 && sec == 0) {
-				MessageHelper.sendMessage(message.channel, "lol du suge")
+				MessageHelper.sendMessage(message, "lol du suge")
 			} else if (min == 10 && sec == 59) {
-				MessageHelper.sendMessage(message.channel, "gz bro")
+				MessageHelper.sendMessage(message, "gz bro")
 			}
 			const formatedScore = Spinner.formatScore(min + sec);
 			Spinner.compareScore(message, formatedScore);
@@ -86,7 +86,8 @@ export class Spinner {
 				cur++;
 				DatabaseHelper.setValue("counterSpin", message.author.username, cur.toString())
 			} catch (error) {
-				message.reply("u don fucked it")
+				MessageHelper.sendMessageToActionLog(message.channel as TextChannel, "Noe gikk galt med incrementing av spinner totalen for " + message.author.username + ". Stacktrace: " + error)
+				message.reply("Noe gikk galt. Feilen blir loggført. Stacktrace: " + error)
 			}
 		}
 	}
@@ -106,11 +107,11 @@ export class Spinner {
 
 	static async listScores(message: Message, isWeeklyReset?: boolean) {
 		const weekNumber = getWeekNumber(new Date())[1];
-		MessageHelper.sendMessage(message.channel, "*** HIGHSCORE *** for uke " + (isWeeklyReset ? weekNumber - 1 : getWeekNumber(new Date())[1]));
+		MessageHelper.sendMessage(message, "*** HIGHSCORE *** for uke " + (isWeeklyReset ? weekNumber - 1 : getWeekNumber(new Date())[1]));
 
 		const val2 = DatabaseHelper.getAllValuesFromPrefix("spin");
 		const highscoreList = ArrayUtils.makeValuePairIntoOneString(val2, Spinner.formatValue);
-		MessageHelper.sendMessage(message.channel, highscoreList);
+		MessageHelper.sendMessage(message, highscoreList);
 
 	}
 
@@ -118,7 +119,7 @@ export class Spinner {
 		const val = DatabaseHelper.getAllValuesFromPrefix("counterSpin");
 		ArrayUtils.sortUserValuePairArray(val);
 		const printList = ArrayUtils.makeValuePairIntoOneString(val, undefined, "Total antall spins");
-		MessageHelper.sendMessage(message.channel, printList)
+		MessageHelper.sendMessage(message, printList)
 
 	}
 
@@ -157,7 +158,7 @@ export class Spinner {
 		const val = DatabaseHelper.getAllValuesFromPrefix("ATHspin");
 		ArrayUtils.sortUserValuePairArray(val);
 		const printList = ArrayUtils.makeValuePairIntoOneString(val, Spinner.formatValue);
-		MessageHelper.sendMessage(message.channel, printList)
+		MessageHelper.sendMessage(message, printList)
 	}
 
 	static readonly allTimeHighCommand: ICommandElement = {
@@ -203,9 +204,9 @@ export class Spinner {
 				let newString = mainString.split(" ");
 				try {
 					DatabaseHelper.setValue("spin", newString[0], newString[1])
-					MessageHelper.sendMessage(rawMessage.channel, "Oppdaterte databaseverdi for nøkkel <" + newString[0] + "> med verdi <" + newString[1] + ">.")
+					MessageHelper.sendMessage(rawMessage, "Oppdaterte databaseverdi for nøkkel <" + newString[0] + "> med verdi <" + newString[1] + ">.")
 				} catch (error) {
-					MessageHelper.sendMessage(rawMessage.channel, "Kunne ikke ppdaterte databaseverdi for nøkkel <" + newString[0] + ">. Feilkode: " + error)
+					MessageHelper.sendMessage(rawMessage, "Kunne ikke ppdaterte databaseverdi for nøkkel <" + newString[0] + ">. Feilkode: " + error)
 				}
 			}
 		}

@@ -10,22 +10,22 @@ import { ICommandElement } from "./commands";
 export class JokeCommands {
 
 	static async vaskHuset(message: Message) {
-		await MessageHelper.sendMessage(message.channel, Math.random() < 0.5 ? "Øyvind, vask huset!" : "Fin klokka")
+		await MessageHelper.sendMessage(message, Math.random() < 0.5 ? "Øyvind, vask huset!" : "Fin klokka")
 
 	}
 
 	static async kLikka(message: Message) {
-		await MessageHelper.sendMessage(message.channel, Math.random() < 0.95 ? "Han " + (Math.random() < 0.5 ? "skææææææm" : "") + "trunte på vei te buen " : "kLikka")
+		await MessageHelper.sendMessage(message, Math.random() < 0.95 ? "Han " + (Math.random() < 0.5 ? "skææææææm" : "") + "trunte på vei te buen " : "kLikka")
 
 	}
 
 	static async thomasTing(message: Message) {
-		await MessageHelper.sendMessage(message.channel, Math.random() < 0.5 ? "Har fese!" : (Math.random() < 0.5) ? "Hæ, Erlend Navle?" : "Roe kebaben sin")
+		await MessageHelper.sendMessage(message, Math.random() < 0.5 ? "Har fese!" : (Math.random() < 0.5) ? "Hæ, Erlend Navle?" : "Roe kebaben sin")
 
 	}
 
 	static async eivind(message: Message) {
-		await MessageHelper.sendMessage(message.channel, Math.random() < 0.5 ? "Leke me fyrstikker :3" : "Blei busta av Mamma med fyrstikker :S")
+		await MessageHelper.sendMessage(message, Math.random() < 0.5 ? "Leke me fyrstikker :3" : "Blei busta av Mamma med fyrstikker :S")
 
 	}
 
@@ -40,33 +40,33 @@ export class JokeCommands {
 						const game = maggi.presence.activities[0].name == "Custom Status" ? maggi.presence.activities[1] : maggi.presence.activities[0];
 						if (game && maggi.presence.clientStatus.desktop) {
 							if (game.name == "Visual Studio Code") {
-								await MessageHelper.sendMessage(message.channel, "Han har Visual Studio Code åpent! Han jobbe faktisk med masteren!")
+								await MessageHelper.sendMessage(message, "Han har Visual Studio Code åpent! Han jobbe faktisk med masteren!")
 							}
 							else if (maggi.presence.clientStatus.desktop == "online") {
-								await MessageHelper.sendMessage(message.channel, "Ja Magnus, kordan går det med masteren? Ser du spele *" + game.name + "*.")
+								await MessageHelper.sendMessage(message, "Ja Magnus, kordan går det med masteren? Ser du spele *" + game.name + "*.")
 							} else if (maggi.presence.clientStatus.desktop == "idle") {
-								await MessageHelper.sendMessage(message.channel, "Maen e idle akkurat nå, men det kan ver han spele *" + game.name + "* fordeom.")
+								await MessageHelper.sendMessage(message, "Maen e idle akkurat nå, men det kan ver han spele *" + game.name + "* fordeom.")
 							} else if (maggi.presence.clientStatus.desktop == "dnd") {
-								await MessageHelper.sendMessage(message.channel, "Maen har Do Not Disturb på, mens han spele *" + game.name + "*. Må la an ver i fred >:(")
+								await MessageHelper.sendMessage(message, "Maen har Do Not Disturb på, mens han spele *" + game.name + "*. Må la an ver i fred >:(")
 							}
 						} else {
 							if (maggi.presence.clientStatus.mobile) {
-								await MessageHelper.sendMessage(message.channel, "Han har Discord åpent på telefonen, så han game nok ikkje.")
+								await MessageHelper.sendMessage(message, "Han har Discord åpent på telefonen, så han game nok ikkje.")
 							} else if (maggi.presence.clientStatus.web) {
-								await MessageHelper.sendMessage(message.channel, "Ser ut som om han besøker Discord fra nettleseren? Wtf")
+								await MessageHelper.sendMessage(message, "Ser ut som om han besøker Discord fra nettleseren? Wtf")
 							} else if (maggi.presence.clientStatus.desktop) {
-								await MessageHelper.sendMessage(message.channel, "Han er på PC-en, men gjør ingenting akkurat nå. ")
+								await MessageHelper.sendMessage(message, "Han er på PC-en, men gjør ingenting akkurat nå. ")
 							}
 						}
 					}
 					else {
-						await MessageHelper.sendMessage(message.channel, "Ingen aktivitet registrert på Discord. Sover han? Drikker han? Begge deler samtidig? ")
+						await MessageHelper.sendMessage(message, "Ingen aktivitet registrert på Discord. Sover han? Drikker han? Begge deler samtidig? ")
 					}
 				} else {
-					await MessageHelper.sendMessage(message.channel, "Magnus er ikke online. Da sover han mest sannsynlig. Kødda, han får ikke sove med alt bråket fra byggeplassen kekw")
+					await MessageHelper.sendMessage(message, "Magnus er ikke online. Da sover han mest sannsynlig. Kødda, han får ikke sove med alt bråket fra byggeplassen kekw")
 				}
 			} else {
-				await MessageHelper.sendMessage(message.channel, "Ingen bruker med id '221739293889003520' er registrert på serveren. Har Maggi rage quitta?")
+				await MessageHelper.sendMessage(message, "Ingen bruker med id '221739293889003520' er registrert på serveren. Har Maggi rage quitta?")
 			}
 		}
 	}
@@ -118,7 +118,7 @@ export class JokeCommands {
 
 		}
 		else {
-			MessageHelper.sendMessage(message.channel, "Du kan kje mygla så møye. Mindre enn 150 tegn, takk");
+			MessageHelper.sendMessage(message, "Du kan kje mygla så møye. Mindre enn 150 tegn, takk");
 		}
 	}
 	static async getAllMygleStatus(message: Message) {
@@ -126,7 +126,7 @@ export class JokeCommands {
 		let myglinger = "";
 		mygling.forEach((status) => myglinger += status.key + " " + status.val + "\n")
 		myglinger = myglinger.trim() ? myglinger : "Ingen har satt statusen sin i dag";
-		MessageHelper.sendMessage(message.channel, myglinger)
+		MessageHelper.sendMessage(message, myglinger)
 		// const vals = await DatabaseHelper.getAllValuesFromPrefix("mygling")
 	}
 	static async countdownToDate(message: Message) {
@@ -141,7 +141,7 @@ export class JokeCommands {
 		else
 			sendThisText += "\n" + ("Magnus har levert masteren sin :)")
 
-		MessageHelper.sendMessage(message.channel, sendThisText)
+		MessageHelper.sendMessage(message, sendThisText)
 	}
 
 	/**
@@ -207,17 +207,19 @@ export class JokeCommands {
 
 	static async uWuIfyer(message: Message, msgContent: string, args: string[]) {
 		let fMsg;
-		if (args && args[0].length > 10 && parseInt(args[0])) {
-			fMsg = await MessageHelper.sendMessage(message.channel, "Leter etter meldingen...")
+		if (args && args[0] && args[0].length > 10 && parseInt(args[0])) {
+			fMsg = await MessageHelper.sendMessage(message, "Leter etter meldingen...")
 			const msgToUwU = await <Message><unknown>MessageHelper.findMessageById(message, msgContent);
 			const uwuIfiedText = JokeCommands.uwuText(msgToUwU.content)
 			if (fMsg)
 				fMsg.edit(uwuIfiedText)
 			else
-				MessageHelper.sendMessage(message.channel, uwuIfiedText)
+				MessageHelper.sendMessage(message, uwuIfiedText)
 		} else {
-			let textToBeUwued = JokeCommands.uwuText(args.join(" "));
-			MessageHelper.sendMessage(message.channel, textToBeUwued)
+
+
+			let textToBeUwued = JokeCommands.uwuText(args.length > 0 ? args.join(" ") : "Please skriv inn ein tekst eller id neste gang");
+			MessageHelper.sendMessage(message, textToBeUwued)
 		}
 
 
@@ -225,7 +227,7 @@ export class JokeCommands {
 
 	static async sendBonk(message: Message) {
 		const img = ArrayUtils.randomChoiceFromArray(globalArrays.bonkMemeUrls)
-		MessageHelper.sendMessage(message.channel, img)
+		MessageHelper.sendMessage(message, img)
 	}
 
 	private static uwuText(t: string) {

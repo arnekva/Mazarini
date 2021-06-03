@@ -29,7 +29,7 @@ export class GitHubCommands {
 				},
 				body: JSON.stringify({ title: titleAndBody[0].trim(), body: titleAndBody[1] ? titleAndBody[1] : "" })
 			}).then((response: any) => {
-				MessageHelper.sendMessage(message.channel, "Har laget et GitHub issue med tittel: " + titleAndBody[0].trim());
+				MessageHelper.sendMessage(message, "Har laget et GitHub issue med tittel: " + titleAndBody[0].trim());
 			})
 		} else {
 			message.reply("Du har ikke formattert stringen riktig. Eksempel: '!mz issue *title* -m *body*'")

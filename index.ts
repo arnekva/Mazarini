@@ -110,16 +110,16 @@ async function checkForCommand(message: Message) {
 						cmd.command(message, messageContent, args)
 
 					} else {
-						MessageHelper.sendMessage(message.channel, "", true, message.author.username + " forsøkte å bruke " + cmd.commandName + " uten tilgang", "unauthorized")
+						MessageHelper.sendMessage(message, "", true, message.author.username + " forsøkte å bruke " + cmd.commandName + " uten tilgang", "unauthorized")
 					}
 				} else {
 					try {
 						if (!!cmd.deprecated)
-							MessageHelper.sendMessage(message.channel, "*Denne funksjoner er markert som deprecated/utfaset. Bruk **" + cmd.deprecated + "*** *i stedet*")
+							MessageHelper.sendMessage(message, "*Denne funksjoner er markert som deprecated/utfaset. Bruk **" + cmd.deprecated + "*** *i stedet*")
 						cmd.command(message, messageContent, args);
 					} catch (error) {
 						//!mz maggi feiler en gang i blant, så prøver å fange den og printe stacktrace i action_log.
-						MessageHelper.sendMessage(message.channel, "", true, message.author.username + " forsøkte å bruke " + cmd.commandName + " men en feil oppstod. Stacktrace: \n" + error, "error")
+						MessageHelper.sendMessage(message, "", true, message.author.username + " forsøkte å bruke " + cmd.commandName + " men en feil oppstod. Stacktrace: \n" + error, "error")
 					}
 				}
 				cmdFound = true;
@@ -194,11 +194,11 @@ mazariniClient.on("guildCreate", function (guild: Guild) {
 });
 
 mazariniClient.on("guildMemberAdd", function (member: GuildMember) {
-	MessageHelper.sendMessage(member.guild.channels.cache.get("340626855990132747") as TextChannel, "Welcome to the Gulag, " + (member.nickname ?? member.displayName) + ". Fight for your release.")
+	MessageHelper.sendMessageToSpecificChannel("340626855990132747", "Welcome to the Gulag, " + (member.nickname ?? member.displayName) + ". Fight for your release.", member.guild.channels.cache.get("340626855990132747") as TextChannel)
 	MessageHelper.sendMessageToActionLog(member.guild.channels.cache.first() as TextChannel, "En bruker ble med i Mazarini: " + (member.nickname ?? member.displayName))
 });
 mazariniClient.on("guildMemberRemove", function (member: GuildMember) {
-	MessageHelper.sendMessage(member.guild.channels.cache.get("340626855990132747") as TextChannel, "Farvell, " + (member.nickname ?? member.displayName))
+	MessageHelper.sendMessageToSpecificChannel("340626855990132747", "Farvell, " + (member.nickname ?? member.displayName), member.guild.channels.cache.get("340626855990132747") as TextChannel)
 	MessageHelper.sendMessageToActionLog(member.guild.channels.cache.first() as TextChannel, "En bruker forlot Mazarini: " + (member.nickname ?? member.displayName))
 });
 

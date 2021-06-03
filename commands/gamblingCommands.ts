@@ -74,7 +74,7 @@ export class GamblingCommands {
 
 
 		// }) 
-		await MessageHelper.sendMessage(message.channel, "DogeCoins removed!")
+		await MessageHelper.sendMessage(message, "DogeCoins removed!")
 	}
 
 	static async checkCoins(message: Message, messageContent: string) {

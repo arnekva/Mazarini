@@ -90,12 +90,12 @@ export const helperCommands = ((rawMessage: Message, messageContent: string, arg
 		let found = 0;
 		commands.forEach((cmd) => {
 			if (cmd.commandName == commandForHelp) {
-				MessageHelper.sendMessage(rawMessage.channel, cmd.commandName + (cmd.isAdmin ? " (Admin) " : "") + ": " + cmd.description)
+				MessageHelper.sendMessage(rawMessage, cmd.commandName + (cmd.isAdmin ? " (Admin) " : "") + ": " + cmd.description)
 				found++;
 			}
 		})
 		if (found == 0) {
-			MessageHelper.sendMessage(rawMessage.channel, "Fant ingen kommando '" + commandForHelp + "'. ")
+			MessageHelper.sendMessage(rawMessage, "Fant ingen kommando '" + commandForHelp + "'. ")
 		}
 	}
 	else {
@@ -112,7 +112,7 @@ export const helperCommands = ((rawMessage: Message, messageContent: string, arg
 		commandStringList.sort();
 		commandStringList.forEach((str) => commandString += "\n" + str)
 		commandString += "\n\n" + "*Bruk '!mz help <command>' for beskrivelse*"
-		MessageHelper.sendMessage(rawMessage.channel, commandString)
+		MessageHelper.sendMessage(rawMessage, commandString)
 	}
 
 })
