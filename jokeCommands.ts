@@ -147,9 +147,15 @@ export class JokeCommands {
 	static async eivindprideItAll(message: Message) {
 		try {
 			const channel = message.channel as TextChannel;
+			const react = message.guild?.emojis.cache.find(emoji => emoji.name == "eivindpride")
+
 			if (message.client) {
-				//channel.messages.fetch({ limit: 15,  }, true, true).then((el) => {
-				//})
+				channel.messages.fetch({ limit: 15, }, false, true).then((el) => {
+					el.forEach((message) => {
+						if (react)
+							message.react(react)
+					})
+				})
 			}
 		} catch (error) {
 			console.log(error);
@@ -292,8 +298,9 @@ export class JokeCommands {
 	}
 	static readonly eivndPrideCommand: ICommandElement = {
 		commandName: "eivindpride",
-		description: "Eivindpride it. Eivindpride it ALL. (Virker ikke)",
+		description: "Eivindpride it. Eivindpride it ALL.",
 		hideFromListing: true,
+		isAdmin: true,
 		command: (rawMessage: Message, messageContent: string) => {
 			JokeCommands.eivindprideItAll(rawMessage);
 		}

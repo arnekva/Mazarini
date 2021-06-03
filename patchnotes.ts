@@ -8,7 +8,7 @@ export class PatchNotes {
 	 * Increment y for mindre oppdateringer (enkle funksjoner osv)
 	 * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
 	 */
-	public static readonly currentVersion = "2.0.3";
+	public static readonly currentVersion = "2.0.4";
 
 	/** Private, brukes kun av getCurrentPatchNotes */
 	private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -24,6 +24,7 @@ export class PatchNotes {
 		+ "\n* Byttet Database - bruker nå node-json-db, og alle brukere er nå objekter"
 		+ "\n* Boten kan nå kjøres i lokale testmiljøer. Du trenger tilgang til github repoet og node installert."
 		+ "\n* Metodene i DatabaseHelper skrives om - verdier blir nå returnert i stedet for å ta i bruk callbacks"
+		+ "\n* Oppdater til Node v14, som gir mye flere muligheter, blant annet å hente X siste meldinger fra en channel"
 		;
 
 	static getCurrentPatchNotes() {
