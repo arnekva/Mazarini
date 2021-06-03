@@ -6,7 +6,7 @@ import { DatabaseHelper, dbPrefix, userValPair } from "./databaseHelper";
 import { getWeekNumber } from "./dateUtils";
 import { escapeString } from "./textUtils";
 import { getRndInteger, getRndBetween0and100, getRandomPercentage } from "./randomUtils";
-import { ArrayUtils} from "./arrayUtils";
+import { ArrayUtils } from "./arrayUtils";
 
 const weightedRandomObject = require("weighted-random-object");
 
@@ -47,7 +47,7 @@ const spinMinutes = [
 	}
 ];
 
-function didSpinnerBreak(){
+function didSpinnerBreak() {
 	return getRandomPercentage(1); //1% sjanse for å ødelegge spinneren
 }
 
@@ -64,9 +64,9 @@ export class Spinner {
 			message.reply("Det kan virke som om brukernavnet ditt inneholder for få lovlige tegn (" + cleanUsername + "). Dette må rettes opp i før du får spinne.")
 		} else {
 			MessageHelper.sendMessage(message.channel, message.author.username + " spant fidget spinneren sin i " + min + " minutt og " + sec + " sekund!")
-			if(min == 0 && sec == 0){
+			if (min == 0 && sec == 0) {
 				MessageHelper.sendMessage(message.channel, "lol du suge")
-			} else if(min == 10 && sec == 59){
+			} else if (min == 10 && sec == 59) {
 				MessageHelper.sendMessage(message.channel, "gz bro")
 			}
 			const formatedScore = Spinner.formatScore(min + sec);
@@ -76,9 +76,9 @@ export class Spinner {
 	}
 
 	static async incrementCounter(message: Message) {
-		const currentVal = DatabaseHelper.getValue("counterSpin", message.author.username, () => {});
+		const currentVal = DatabaseHelper.getValue("counterSpin", message.author.username, () => { });
 		console.log(currentVal);
-		
+
 		await DatabaseHelper.getValue("counterSpin", message.author.username, (val) => {
 			if (val) {
 				if (parseInt(val)) {
@@ -106,11 +106,12 @@ export class Spinner {
 			else
 				DatabaseHelper.setValue("spin", message.author.username, newScore);
 		})
-		if(!val){
+		const verdi = false;
+		if (verdi) {
 			DatabaseHelper.setValue("spin", message.author.username, newScore);
 		}
 		console.log(val);
-		
+
 	}
 
 	static formatScore(score: string) {
@@ -165,7 +166,7 @@ export class Spinner {
 		});
 		const val2 = DatabaseHelper.getAllValues();
 		console.log(val2);
-		
+
 		// Spinner.sendWinner(message, "")
 	}
 
@@ -214,28 +215,28 @@ export class Spinner {
 		}
 	}
 
-  static async allTimeHigh(message: Message) {
-      	const grid = message.content.replace("!mz ATH ", "")
-        let output = "Hei";
-      const vals = await DatabaseHelper.getAllValuesFromPrefix("ATHspin", (val: userValPair[]) => { 
-				// ArrayUtils.sortUserValuePairArray(val)
-         const formattedValues = val.map((value) => 	
-          value.key.replace("ATH", "") + ": " + Spinner.formatValue(value.value) + "\n")
-        MessageHelper.sendMessage(message.channel, "" + formattedValues.join(""))
-      }
-      ).catch(error => {
-        console.log("Got Error" + error)
-        MessageHelper.sendMessage(message.channel, "Fikk error: " + error)
-      })
-  }
+	static async allTimeHigh(message: Message) {
+		const grid = message.content.replace("!mz ATH ", "")
+		let output = "Hei";
+		const vals = await DatabaseHelper.getAllValuesFromPrefix("ATHspin", (val: userValPair[]) => {
+			// ArrayUtils.sortUserValuePairArray(val)
+			const formattedValues = val.map((value) =>
+				value.key.replace("ATH", "") + ": " + Spinner.formatValue(value.value) + "\n")
+			MessageHelper.sendMessage(message.channel, "" + formattedValues.join(""))
+		}
+		).catch(error => {
+			console.log("Got Error" + error)
+			MessageHelper.sendMessage(message.channel, "Fikk error: " + error)
+		})
+	}
 
-  static readonly allTimeHighCommand: ICommandElement = {
-    commandName: "ATH",
+	static readonly allTimeHighCommand: ICommandElement = {
+		commandName: "ATH",
 		description: "Printer hver person sin beste spin!",
 		command: (rawMessage: Message, messageContent: string) => {
 			Spinner.allTimeHigh(rawMessage);
 		}
-  }
+	}
 
 	static readonly command: ICommandElement = {
 		commandName: "spin",
