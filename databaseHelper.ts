@@ -3,13 +3,14 @@ import * as cleanTextUtils from 'clean-text-utils';
 import { escapeString } from "./textUtils";
 import { Spinner } from "./spinner";
 
-const fs = require('fs');
+//https://openbase.com/js/node-json-db
 import { JsonDB } from 'node-json-db';
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
 const db = new JsonDB(new Config("myDataBase", true, true, '/'));
 const folderPrefix = "/users";
 import emojiStrip from 'emoji-strip';
 import { write } from "fs";
+import { exception } from "console";
 
 //const db = new Database()
 /**
@@ -34,64 +35,36 @@ export class DatabaseHelper {
 	 * @param prefix - Databaseprefix. Må være av type dbprefix. Nye prefixer MÅ legges til i typen på toppen av databaseHelper.
 	 * @param key - Nøkkel: Her bruker du vanligvis brukernavn (message.author.username)
 	 * @param value - Verdi som settes i databasen
-	 * @param clb - (Optional) Callback som kjøres (hvis oppgitt) som sier om det er successfull eller ei
 	 */
-	static async setValue(prefix: dbPrefix, key: string, value: string, clb?: (success: boolean) => void) {
-		// const asciiSafe = /^[\x00-\x7FÆØÅæøå]*$/
-		// const success = asciiSafe.test(value) && asciiSafe.test(key);
-		// db.set(`${key}.${prefix}`, `${value}` )
+	static setValue(prefix: dbPrefix, key: string, value: string, clb?: (success: boolean) => void) {
 
 		db.push(`${folderPrefix}/${key}/${prefix}`, `${value}`)
-		// console.log(userValue);
-
-
-		// if (findByName) {
-		// 	findByName.get(`${prefix}`).set(`${value}`).save()
-		// 	// findByName.set("name", key).save();
-		// } else {
-		// 	console.log("entered else");
-
-		// 	db.get("users").push({ name: key }).save();
-		// }
-		// db.get("users").get(key).set(prefix, value).save()
-		// db.set(`${key}.${prefix}`, `${value}`).save();
 
 	}
 
 	static async setValueObject(prefix: dbPrefix, key: string, value: any, clb?: () => void) {
 		const keyVal = prefix + "-" + key;
-		/*try {
-				await db.set(keyVal, value)
-				/*.then(() => {
-					if (clb)
-						clb();
-				});*/
-	} catch() {
-		console.log("Klarte ikke sette verdi i databasen. ")
-		//if (clb)
-		//	clb();
+
 	}
 	/*
 }
 /**
 * @param prefix - Databaseprefix. Må være av type dbprefix. Nye prefixer MÅ legges til i typen på toppen av databaseHelper.
 * @param key - Nøkkel: Her bruker du vanligvis brukernavn (message.author.username)
-* @param clb - Callback som kjører (med verdien som parameter) etter at verdien er hentet ut. Det er her verdien behandles
 */
 	static getValue(prefix: dbPrefix, key: string) {
-		// return db.get(`${key}.${prefix}`)
-		return db.getData(`${folderPrefix}/${key}/${prefix}`);
+		try {
+			const data = db.getData(`${folderPrefix}/${key}/${prefix}`)
+			return data;
+		} catch (error) {
+			db.push(`${folderPrefix}/${key}/${prefix}`, `1`)
+			return "1";
+		}
+
 	};
+
 	static async getValueWithoutPrefix(key: string, clb?: (val: string) => void) {
-		let rawdata = fs.readFileSync('database.json');
-		let allData = JSON.parse(rawdata);
-		let valToReturn = "";
-		Object.keys(allData).forEach(function (key1) {
-			console.log(key1, allData[key]);
-			if (allData[key1].name == key)
-				valToReturn = allData[key];
-		});
-		return valToReturn;
+		db.getData("users");
 	};
 
 
@@ -110,48 +83,41 @@ export class DatabaseHelper {
 		// return db.all();
 	}
 
-	static getAllKeysFromPrefix(prefix: dbPrefix) {
-		const keys: string[] = [];
-		let rawdata = fs.readFileSync('database.json');
-		let allData = JSON.parse(rawdata);
-		Object.keys(allData).forEach(function (key1) {
-			console.log(key1, allData[key1]);
-			if (!!allData[prefix])
-				keys.push(allData[prefix])
-		});
-		return keys;
-		/*return db.JSON(prefix).then((keys: string) => {
-			return keys;
-		});*/
-	}
-	// https://replit.com/talk/learn/Replit-DB/43305
-	//BARE FOR SPIN
-	static async getAllValuesFromPrefix(prefix: dbPrefix, clb: (val: userValPair[]) => void) {
-		/*
-		const list = await db.list(prefix).then((val: string) => {
-			const nameList = val.split("\n")
-	
-			const promiseList: any[] = [];
-			nameList.forEach((el: string) => {
-				promiseList.push(DatabaseHelper.getValueWithoutPrefix(el))
-			})
-			Promise.all(promiseList).then(
-				(result: any) => {
-					let userValueList: userValPair[] = [];
-	
-					promiseList.forEach((el: string, index: number) => {
-	
-						const name = DatabaseHelper.stripPrefixFromString(nameList[index], "spin")
-						if (name !== "Arne#1111")
-							userValueList.push({ key: name, value: result[index] })
-	
+
+
+	/**
+	 * Ser gjennom alle brukere og sammenligner 1 med 2. Hvis 2 er større, setter funksjonen 1 = 2;
+	 * Unnskyld fremtidige mennesker som ska prøva å tyda dette her. 
+	 * @param prefix1 Compare
+	 * @param prefix2 Compare
+	 */
+	static compareAndUpdateValue(prefix1: dbPrefix, prefix2: dbPrefix) {
+		const users = db.getData(`${folderPrefix}`);
+		Object.keys(users).forEach((el) => {
+			Object.keys(users[el]).forEach((el2) => {
+				if (el2 == prefix1) {
+					Object.keys(users[el]).forEach((el4) => {
+						if (el4 == prefix2) {
+							if (users[el][el2] < users[el][el4]) {
+								DatabaseHelper.setValue(prefix1, el, users[el][el4])
+							}
+						}
 					})
-					
-					userValueList.sort((a, b) => (parseInt(a.value) < parseInt(b.value)) ? 1 : -1)
-					clb(userValueList)
-				});
+				}
+			})
 		})
-		*/
+	}
+
+	static getAllValuesFromPrefix(prefix: dbPrefix) {
+		const users = db.getData(`${folderPrefix}`);
+		const valueList: ValuePair[] = [];
+		Object.keys(users).forEach((el) => {
+			Object.keys(users[el]).forEach((el2) => {
+				if (el2 == prefix)
+					valueList.push({ key: el, val: users[el][el2] })
+			})
+		})
+		return valueList;
 	}
 	static async nukeDatabase() {
 		/*await db.empty().then(() => {
@@ -163,9 +129,16 @@ export class DatabaseHelper {
 		return text.replace(prefix + "-", "");
 	}
 }
-export interface Score {
+export interface ValuePair {
 	key: string;
 	val: string;
+}
+export interface ValuePair {
+	key: string;
+	val: string;
+}
+export interface prefixVal {
+	anyName: string;
 }
 
 

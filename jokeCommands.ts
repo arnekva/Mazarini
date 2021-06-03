@@ -58,8 +58,8 @@ export class JokeCommands {
 						}
 					}
 					else {
-					await MessageHelper.sendMessage(message.channel, "Ingen aktivitet registrert på Discord. Sover han? Drikker han? Begge deler samtidig? ")
-				}
+						await MessageHelper.sendMessage(message.channel, "Ingen aktivitet registrert på Discord. Sover han? Drikker han? Begge deler samtidig? ")
+					}
 				} else {
 					await MessageHelper.sendMessage(message.channel, "Magnus er ikke online. Da sover han mest sannsynlig. Kødda, han får ikke sove med alt bråket fra byggeplassen kekw")
 				}
@@ -89,34 +89,30 @@ export class JokeCommands {
 		};
 
 		if (content.length < 150) {
-			DatabaseHelper.setValue("mygling", message.author.username, content, (success) => {
-				if (!success)
-					message.channel.send("Meldingen inneholder ulovlige tegn.")
-				else{
-					let emoji = "";
-					const randInt = Math.random();
-					if(randInt <= 0.3)
-					emoji = "👍"
-					else if( randInt <= 0.4)
-					emoji ="🤙"
-					else if(randInt <= 0.5)
-					emoji ="🙌"
-					else if(randInt <= 0.6)
-					emoji = "🤔"
-					else if(randInt <= 0.7)
-					emoji = "🙏"
-					else if(randInt <= 0.8)
-					emoji = "💩"
-					else if(randInt <= 0.9)
-					emoji = "👏"
-					else if(randInt > 0.9)
-					emoji = "👌"
-					else
-					emoji = "🖕" //Failsafe?
+			DatabaseHelper.setValue("mygling", message.author.username, content);
 
-					message.react(emoji)
-				}
-			});
+			let emoji = "";
+			const randInt = Math.random();
+			if (randInt <= 0.3)
+				emoji = "👍"
+			else if (randInt <= 0.4)
+				emoji = "🤙"
+			else if (randInt <= 0.5)
+				emoji = "🙌"
+			else if (randInt <= 0.6)
+				emoji = "🤔"
+			else if (randInt <= 0.7)
+				emoji = "🙏"
+			else if (randInt <= 0.8)
+				emoji = "💩"
+			else if (randInt <= 0.9)
+				emoji = "👏"
+			else if (randInt > 0.9)
+				emoji = "👌"
+			else
+				emoji = "🖕" //Failsafe?
+
+			message.react(emoji)
 
 		}
 		else {
@@ -124,49 +120,23 @@ export class JokeCommands {
 		}
 	}
 	static async getAllMygleStatus(message: Message) {
-		const vals = await DatabaseHelper.getAllValuesFromPrefix("mygling", (val: userValPair[]) => {
-			if (val.length > 0 && val[0].value !== null) {
-				// const nameList = val.split("\n")
-				let mygleListe = "";
-				val.forEach((el) => {
-					mygleListe += "\n" + el.key.replace("mygling-", "") + " " + el.value;
-				})
-				MessageHelper.sendMessage(message.channel, mygleListe);
-			} else
-				MessageHelper.sendMessage(message.channel, "Ingen så mygle ennå");
-		}).then(() => {
-
-		})
+		const mygling = await DatabaseHelper.getAllValuesFromPrefix("mygling")
+		let myglinger = "";
+		mygling.forEach((status) => myglinger += status.key + " " + status.val + "\n")
+		MessageHelper.sendMessage(message.channel, myglinger)
+		// const vals = await DatabaseHelper.getAllValuesFromPrefix("mygling")
 	}
 	static async countdownToDate(message: Message) {
 		let sendThisText = "";
-		const total = new Date(2021, 5, 1, 6).getTime() - new Date().getTime();
-		const seconds = Math.floor((total / 1000) % 60);
-		const minutes = Math.floor((total / 1000 / 60) % 60);
-		const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
-		const days = Math.floor(total / (1000 * 60 * 60 * 24));
-		if(total > 0)
-		sendThisText += ( "Det er " + days + (days != 1 ? " dager, " : " dag, ") + hours + (hours > 1 ? " timer, " : " time, ") + minutes + " minutter og " + seconds + " sekunder til Arne skal inn i HV! :(")
-		else 
-		sendThisText += "\n" + ( "Arne er nå i HV :)")
-		const total3 = new Date(2021, 5, 1, 10).getTime() - new Date().getTime();
-		const seconds3 = Math.floor((total3 / 1000) % 60);
-		const minutes3 = Math.floor((total3 / 1000 / 60) % 60);
-		const hours3 = Math.floor((total3 / (1000 * 60 * 60)) % 24);
-		const days3 = Math.floor(total3 / (1000 * 60 * 60 * 24));
-			if(total3 > 0)
-		sendThisText += "\n" +("Det er " + days3 + (days3 != 1 ? " dager, " : " dag, ") + hours3 + (hours3 > 1 ? " timer, " : " time, ") + minutes3 + " minutter og " + seconds3 + " sekunder igjen av Eivind sin master!")
-		else 
-		sendThisText += "\n" + ("Eivind har levert masteren sin :)")
 		const total2 = new Date(2021, 5, 15, 10).getTime() - new Date().getTime();
 		const seconds2 = Math.floor((total2 / 1000) % 60);
 		const minutes2 = Math.floor((total2 / 1000 / 60) % 60);
 		const hours2 = Math.floor((total2 / (1000 * 60 * 60)) % 24);
 		const days2 = Math.floor(total2 / (1000 * 60 * 60 * 24));
-		if(total2 > 0)
-		sendThisText += "\n" + ("Det er " + days2 + " dager, " + hours2 + " timer, " + minutes2 + " minutter og " + seconds2 + " sekunder igjen av Magnus sin master!")
+		if (total2 > 0)
+			sendThisText += "\n" + ("Det er " + days2 + " dager, " + hours2 + " timer, " + minutes2 + " minutter og " + seconds2 + " sekunder igjen av Magnus sin master!")
 		else
-		sendThisText += "\n" + ("Magnus har levert masteren sin :)")
+			sendThisText += "\n" + ("Magnus har levert masteren sin :)")
 
 		MessageHelper.sendMessage(message.channel, sendThisText)
 	}
@@ -193,15 +163,15 @@ export class JokeCommands {
 	/** 
 	 * String sent must not contain repeat characters 
 	 */
-	static async reactWithLetters(message: Message, msgContent: string, args: string[] | undefined){
+	static async reactWithLetters(message: Message, msgContent: string, args: string[] | undefined) {
 		console.log(args)
 		const splitTab = msgContent.split(" ");
 		let msgId = "";
 		let letterTab: string[] = []
 
-		for(let i = 0; i<splitTab.length; i++){
-			if(splitTab[i].length > 10 && parseInt(splitTab[i]))
-			msgId = splitTab[i];
+		for (let i = 0; i < splitTab.length; i++) {
+			if (splitTab[i].length > 10 && parseInt(splitTab[i]))
+				msgId = splitTab[i];
 			else {
 				const newWord = (i == 0 ? "" : " ") + splitTab[i];
 				letterTab = letterTab.concat(newWord.split(""))
@@ -209,16 +179,16 @@ export class JokeCommands {
 		}
 
 		let messageToReactTo = message;
-		if(msgId){
+		if (msgId) {
 			let searchMessage = await MessageHelper.findMessageById(message, msgId)
-			if(searchMessage)
+			if (searchMessage)
 				messageToReactTo = searchMessage;
 		}
 
 		let usedLetter = "";
 		let spaceCounter = 0;
 		letterTab.forEach((letter: string) => {
-			if(usedLetter.includes(letter) && letter == " "){
+			if (usedLetter.includes(letter) && letter == " ") {
 				spaceCounter++;
 			}
 			const emoji = usedLetter.includes(letter) ? findLetterEmoji(letter, true, spaceCounter) : findLetterEmoji(letter)
@@ -226,14 +196,14 @@ export class JokeCommands {
 			messageToReactTo.react(emoji)
 		})
 	}
-	
+
 	//TODO: Finish this, currently doesnt send message. Missing some ascii emojies to concat in front and end
-	static async uWuIfyer(message: Message, msgContent: string){
+	static async uWuIfyer(message: Message, msgContent: string) {
 		const msgToUwU = await MessageHelper.findMessageById(message, msgContent) ?? "";
 		msgToUwU.replace("r", "w").replace("l", "w").concat("(´・ω・｀)")
 	}
 
-	static async sendBonk(message: Message){
+	static async sendBonk(message: Message) {
 		const img = bonkMemeUrls[Math.floor(Math.random() * bonkMemeUrls.length)]
 		MessageHelper.sendMessage(message.channel, img)
 	}

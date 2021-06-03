@@ -8,7 +8,7 @@ export class PatchNotes {
 	 * Increment y for mindre oppdateringer (enkle funksjoner osv)
 	 * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
 	 */
-	public static readonly currentVersion = "1.0.3";
+	public static readonly currentVersion = "2.0.3";
 
 	/** Private, brukes kun av getCurrentPatchNotes */
 	private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -17,16 +17,20 @@ export class PatchNotes {
 	 * Eks: Senket sannsynligheten for å få høye tall på spinneren
 	 * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv. 
 	 */
-	public static readonly currentPatchNotes: string 
-		= "* Hvis du skriver feil command vil boten nå lete etter en som matcher og foreslå den hvis funnet"
-		// + "\n*Tekniske Notes*" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
+	public static readonly currentPatchNotes: string
+		= "* Boten kjører nå på en Raspberry Pi"
+		+ "\n* Du kan nå ha alle typer emojier i statusen din"
+		+ "\n*Tekniske Notes*" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
+		+ "\n* Byttet Database - bruker nå node-json-db, og alle brukere er nå objekter"
+		+ "\n* Boten kan nå kjøres i lokale testmiljøer. Du trenger tilgang til github repoet og node installert."
+		+ "\n* Metodene i DatabaseHelper skrives om - verdier blir nå returnert i stedet for å ta i bruk callbacks"
 		;
-	
-static getCurrentPatchNotes(){
-	return PatchNotes.header + "\n" + PatchNotes.currentPatchNotes;
-}
 
-static readonly getPatchNotes: ICommandElement = {
+	static getCurrentPatchNotes() {
+		return PatchNotes.header + "\n" + PatchNotes.currentPatchNotes;
+	}
+
+	static readonly getPatchNotes: ICommandElement = {
 		commandName: "patch",
 		description: "Vis nyligste patch notes",
 
@@ -36,7 +40,7 @@ static readonly getPatchNotes: ICommandElement = {
 		}
 	}
 
-static readonly publishPatchNotes: ICommandElement = {
+	static readonly publishPatchNotes: ICommandElement = {
 		commandName: "publishnotes",
 		description: "Vis nyligste patch notes",
 		hideFromListing: true,

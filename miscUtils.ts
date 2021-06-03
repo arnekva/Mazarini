@@ -11,17 +11,17 @@ export function doesThisMessageNeedAnEivindPride(content: string, polseCounter: 
 }
 
 
-export function findLetterEmoji(sentLetter: string, isSecond?: boolean, spaceCounter?: number){
+export function findLetterEmoji(sentLetter: string, isSecond?: boolean, spaceCounter?: number) {
 	let letter = "";
-	switch(sentLetter.toUpperCase()){
+	switch (sentLetter.toUpperCase()) {
 		case "A":
-			letter = isSecond? "🅰" : "🇦";
+			letter = isSecond ? "🅰" : "🇦";
 			break;
 		case "B":
 			letter = isSecond ? "🅱" : "🇧";
 			break;
 		case "C":
-			letter = isSecond? "©️" : "🇨";
+			letter = isSecond ? "©️" : "🇨";
 			break;
 		case "D":
 			letter = "🇩";
@@ -36,10 +36,10 @@ export function findLetterEmoji(sentLetter: string, isSecond?: boolean, spaceCou
 			letter = "🇬";
 			break;
 		case "H":
-			letter = "🇭"; 
+			letter = "🇭";
 			break;
 		case "I":
-			letter = isSecond? "ℹ" : "🇮";
+			letter = isSecond ? "ℹ" : "🇮";
 			break;
 		case "J":
 			letter = "🇯";
@@ -57,19 +57,19 @@ export function findLetterEmoji(sentLetter: string, isSecond?: boolean, spaceCou
 			letter = "🇳";
 			break;
 		case "O":
-			letter = isSecond? "🅾" : "🇴";
+			letter = isSecond ? "🅾" : "🇴";
 			break;
 		case "P":
-			letter = isSecond? "🅿️" : "🇵";
+			letter = isSecond ? "🅿️" : "🇵";
 			break;
 		case "Q":
 			letter = "🇶";
 			break;
 		case "R":
-			letter = isSecond? "®️" : "🇷";
+			letter = isSecond ? "®️" : "🇷";
 			break;
 		case "S":
-			letter = isSecond? "💲" : "🇸";
+			letter = isSecond ? "💲" : "🇸";
 			break;
 		case "T":
 			letter = isSecond ? "✝️" : "🇹";
@@ -78,13 +78,13 @@ export function findLetterEmoji(sentLetter: string, isSecond?: boolean, spaceCou
 			letter = "🇺";
 			break;
 		case "V":
-			letter = isSecond? "☑️" : "🇻";
+			letter = isSecond ? "☑️" : "🇻";
 			break;
 		case "W":
 			letter = "🇼";
 			break;
 		case "X":
-			letter = isSecond? "✖" : "🇽";
+			letter = isSecond ? "✖" : "🇽";
 			break;
 		case "Y":
 			letter = "🇾";
@@ -99,22 +99,22 @@ export function findLetterEmoji(sentLetter: string, isSecond?: boolean, spaceCou
 			letter = "🚫";
 			break;
 		case " ":
-			letter =  "⬛" 
-			if(spaceCounter == 1)
-				letter =  "🟦";
-			if(spaceCounter == 2)
+			letter = "⬛"
+			if (spaceCounter == 1)
+				letter = "🟦";
+			if (spaceCounter == 2)
 				letter = "🟪"
-			if(spaceCounter == 3)
+			if (spaceCounter == 3)
 				letter = "🟥"
-			if(spaceCounter == 4)
+			if (spaceCounter == 4)
 				letter = "⬜"
-			if(spaceCounter == 5)
+			if (spaceCounter == 5)
 				letter = "🟫"
-			if(spaceCounter == 6)
+			if (spaceCounter == 6)
 				letter = "🟩"
-			
+
 			break;
-		
+
 		case "0":
 			letter = "0️⃣";
 			break;
@@ -146,7 +146,7 @@ export function findLetterEmoji(sentLetter: string, isSecond?: boolean, spaceCou
 			letter = "9️⃣";
 			break;
 		case "!":
-			letter = isSecond?  "❗": "❕";
+			letter = isSecond ? "❗" : "❕";
 			break;
 		case "?":
 			letter = isSecond ? "❓" : "❔";

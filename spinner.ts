@@ -54,7 +54,6 @@ function didSpinnerBreak() {
 export class Spinner {
 
 	static spin(message: Message) {
-		console.log("spinning");
 		const min = weightedRandomObject(spinMinutes).number;
 		const sec = Math.floor(Math.random() * 60);
 		const cleanUsername = escapeString(message.author.username);
@@ -77,22 +76,16 @@ export class Spinner {
 
 	static async incrementCounter(message: Message) {
 		// const currentVal = DatabaseHelper.getValue("counterSpin", message.author.username, () => { });
-
-		// await DatabaseHelper.getValue("counterSpin", message.author.username, (val) => {
-		// 	if (val) {
-		// 		if (parseInt(val)) {
-		// 			let newVal = parseInt(val);
-		// 			newVal += 1;
-		// 			DatabaseHelper.setValue("counterSpin", message.author.username, newVal.toString(), (success) => {
-		// 				if (!success) {
-		// 					message.channel.send("Teksten inneholder ulovlige verdier")
-		// 				}
-		// 			});
-		// 		}
-		// 	}
-		// 	else
-		// 		DatabaseHelper.setValue("counterSpin", message.author.username, "1");
-		// })
+		const currentTotalspin = DatabaseHelper.getValue("counterSpin", message.author.username);
+		if (currentTotalspin) {
+			try {
+				let cur = parseInt(currentTotalspin);
+				cur++;
+				DatabaseHelper.setValue("counterSpin", message.author.username, cur.toString())
+			} catch (error) {
+				message.reply("u don fucked it")
+			}
+		}
 	}
 
 	static async compareScore(message: Message, newScore: string) {
@@ -112,46 +105,7 @@ export class Spinner {
 		const weekNumber = getWeekNumber(new Date())[1];
 		MessageHelper.sendMessage(message.channel, "*** HIGHSCORE *** for uke " + (isWeeklyReset ? weekNumber - 1 : getWeekNumber(new Date())[1]));
 		let scoreList = "";
-		const vals = await DatabaseHelper.getAllValuesFromPrefix("spin", (val: userValPair[]) => {
-			let scoreList = "";
-			if (val.length > 0) {
 
-				// ArrayUtils.sortUserValuePairArray(val)
-				val.forEach((el) => {
-					/* ATH start
-						Linjene under sjekker nåværende highscore opp mot ATH highscore. Hvis ingen ATH eksisterer i DB, oprettes det med nåværende highscore.
-					*/
-					// const currentATH = DatabaseHelper.getValue("ATHspin", el.key, (val) => {
-					// 	if (val && parseInt(val)) {
-					// 		if (parseInt(val) < parseInt(el.value))
-					// 			DatabaseHelper.setValue("ATHspin", el.key, el.value)
-					// 	}
-					// 	else {
-					// 		DatabaseHelper.setValue("ATHspin", el.key, el.value, (success) => {
-					// 			// console.log(success)
-					// 		})
-					// 		console.log("no val, setting ATH to current highscore for " + el.key)
-					// 	}
-					// })
-					/*
-					ATH END 
-					 */
-
-					scoreList += "\n" + el.key + ": " + Spinner.formatValue(el.value)
-				})
-
-				MessageHelper.sendMessage(message.channel, scoreList);
-				if (isWeeklyReset) {
-					let resultText = "\nUkens vinner er: " + val[0].key + "\nUkens taper er: " + val[val.length - 1].key;
-					MessageHelper.sendMessage(message.channel, resultText);
-				}
-
-			} else {
-				MessageHelper.sendMessage(message.channel, "Ingen har spunnet enda!");
-			}
-
-
-		});
 		const val2 = DatabaseHelper.getAllValues();
 		console.log(val2);
 
@@ -159,21 +113,10 @@ export class Spinner {
 	}
 
 	static async listSpinCounter(message: Message) {
-		MessageHelper.sendMessage(message.channel, "*** Total Antall Spins ***"); // + getWeekNumber(new Date())[1]);
-
-		const vals = await DatabaseHelper.getAllValuesFromPrefix("counterSpin", (val: userValPair[]) => {
-			let spinCounterList = "";
-			// ArrayUtils.sortUserValuePairArray(val);
-			if (val.length > 0) {
-				val.forEach((el) => {
-					spinCounterList += "\n" + DatabaseHelper.stripPrefixFromString(el.key, "counterSpin",) + ": " + el.value;
-				})
-				MessageHelper.sendMessage(message.channel, spinCounterList);
-			} else {
-				MessageHelper.sendMessage(message.channel, "Ingen har spunnet enda!");
-			}
-
-		})
+		const val = DatabaseHelper.getAllValuesFromPrefix("counterSpin");
+		ArrayUtils.sortUserValuePairArray(val);
+		const printList = ArrayUtils.makeValuePairIntoOneString(val, undefined, "Total antall spins");
+		MessageHelper.sendMessage(message.channel, printList)
 
 	}
 
@@ -203,19 +146,17 @@ export class Spinner {
 		}
 	}
 
+	static updateATH() {
+		const ATHVals = DatabaseHelper.getAllValuesFromPrefix("ATHspin");
+		const SpinVals = DatabaseHelper.getAllValuesFromPrefix("spin");
+	}
+
 	static async allTimeHigh(message: Message) {
-		const grid = message.content.replace("!mz ATH ", "")
-		let output = "Hei";
-		const vals = await DatabaseHelper.getAllValuesFromPrefix("ATHspin", (val: userValPair[]) => {
-			// ArrayUtils.sortUserValuePairArray(val)
-			const formattedValues = val.map((value) =>
-				value.key.replace("ATH", "") + ": " + Spinner.formatValue(value.value) + "\n")
-			MessageHelper.sendMessage(message.channel, "" + formattedValues.join(""))
-		}
-		).catch(error => {
-			console.log("Got Error" + error)
-			MessageHelper.sendMessage(message.channel, "Fikk error: " + error)
-		})
+		DatabaseHelper.compareAndUpdateValue("ATHspin", "spin")
+		const val = DatabaseHelper.getAllValuesFromPrefix("ATHspin");
+		ArrayUtils.sortUserValuePairArray(val);
+		const printList = ArrayUtils.makeValuePairIntoOneString(val, Spinner.formatValue);
+		MessageHelper.sendMessage(message.channel, printList)
 	}
 
 	static readonly allTimeHighCommand: ICommandElement = {

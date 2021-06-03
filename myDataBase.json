@@ -1,21 +1,27 @@
 {
     "users": {
         "Arne": {
-            "spin": "152",
-            "ATHspin": "932"
+            "spin": "514",
+            "ATHspin": "514",
+            "mygling": "😊",
+            "counterSpin": "317"
         },
         "ThomasW": {
             "mygling": "mygle i møte, mens eg halvveis ser film",
-            "ATHspin": "752"
+            "ATHspin": "752",
+            "counterSpin": "213"
         },
         "Eivind": {
-            "ATHspin": "915"
+            "ATHspin": "915",
+            "counterSpin": "1140"
         },
         "Deadmaggi": {
-            "ATHspin": "303"
+            "ATHspin": "303",
+            "counterSpin": "5"
         },
         "Brzeczyszczykiewicz": {
-            "ATHspin": "842"
+            "ATHspin": "842",
+            "counterSpin": "1945"
         }
     }
 }

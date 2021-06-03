@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "run": "nodemon index.ts --ignore myDataBase.json",
     "test": "mocha"
   },
   "keywords": [],

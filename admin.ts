@@ -60,7 +60,7 @@ export class Admin {
 	}
 	static async deleteDatabaseKeysFromPrefix(prefix: dbPrefix, message: Message) {
 
-		const keys = await DatabaseHelper.getAllKeysFromPrefix(prefix)
+		// const keys = await DatabaseHelper.getAllKeysFromPrefix(prefix)
 		/*.then((dbKeys: any) => {
 			const splitKeys = dbKeys.split("\n")
 			splitKeys.forEach((el: string) => {
@@ -71,7 +71,7 @@ export class Admin {
 
 	}
 	static async deleteDatabaseKeysFromPrefixNotCommand(prefix: dbPrefix) {
-		const keys = await DatabaseHelper.getAllKeysFromPrefix(prefix)
+		// const keys = await DatabaseHelper.getAllKeysFromPrefix(prefix)
 		/*.then((dbKeys: any) => {
 			const splitKeys = dbKeys.split("\n")
 			splitKeys.forEach((el: string) => {
