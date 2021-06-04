@@ -15,3 +15,40 @@ Denne filen på inneholde koden
 export type env = "dev" | "prod";
 export const environment: env = "dev";
 ```
+
+Du må også opprette en 'myDataBase.json' fil. Denne kan være tom, men eksempeldata kan være:
+```json
+{
+    "users": {
+        "Arne": {
+            "spin": "514",
+            "ATHspin": "932",
+            "mygling": "😊",
+            "counterSpin": "321",
+            "dogeCoin": "5000"
+        },
+        "ThomasW": {
+            "mygling": "digge ny patch 🆒",
+            "ATHspin": "752",
+            "counterSpin": "213",
+            "dogeCoin": "5000",
+            "warningCounter": "2"
+        },
+        "Eivind": {
+            "ATHspin": "915",
+            "counterSpin": "1140",
+            "dogeCoin": "5000"
+        },
+        "Deadmaggi": {
+            "ATHspin": "303",
+            "counterSpin": "5",
+            "dogeCoin": "5000"
+        },
+        "Brzeczyszczykiewicz": {
+            "ATHspin": "842",
+            "counterSpin": "1945",
+            "dogeCoin": "5000"
+        }
+    }
+}
+```

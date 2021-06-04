@@ -26,7 +26,7 @@ mazariniClient.on('ready', () => {
 	action_log_channel = mazariniClient.channels.cache.get("810832760364859432")
 	console.log(`Logged in as ${mazariniClient.user.tag}!`);
 	if (environment == "prod") {
-		MessageHelper.sendMessageToActionLog(action_log_channel, "Boten er nå på i production mode igjen.")
+		MessageHelper.sendMessageToActionLog(action_log_channel, "Boten er nå live i production mode.")
 	}
 	mazariniClient.user.setPresence({
 		activity: {
