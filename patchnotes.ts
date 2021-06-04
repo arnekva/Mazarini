@@ -21,8 +21,9 @@ export class PatchNotes {
 	public static readonly currentPatchNotes: string
 		= "* Achievements er lagt til for spinneren. Bruk !mz achievements for å se dine achievements"
 
-		+ "\n* Boten gir nå beskjed når den er i utviklingsmodus, og at databaseverdier ikke blir lagret når aktivt."
+		// + "\n* Boten gir nå beskjed når den er i utviklingsmodus, og at databaseverdier ikke blir lagret når aktivt."
 		// + "\n*Tekniske Notes*" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
+		// + "\n*" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
 		;
 
 	static getCurrentPatchNotes() {
