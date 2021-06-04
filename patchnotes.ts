@@ -22,6 +22,7 @@ export class PatchNotes {
 		= "* Boten kjører nå på en Raspberry Pi"
 		+ "\n* Du kan nå ha alle typer emojier i statusen din"
 		+ "\n* UwU command er endelig tilbake"
+		+ "\n* Boten gir nå beskjed når den er i utviklingsmodus, og at databaseverdier ikke blir lagret når aktivt."
 		+ "\n*Tekniske Notes*" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
 		+ "\n* Byttet Database - bruker nå node-json-db, og alle brukere er nå objekter"
 		+ "\n* Boten kan nå kjøres i lokale testmiljøer. Du trenger tilgang til github repoet og node installert."
