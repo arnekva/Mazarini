@@ -29,9 +29,13 @@ export class Achievements {
 
     static awardAchievement(username: string, achievementID: achievementIDs, rawMessage: Message, silent?: boolean) {
         const achiev = achievements.find((el) => el.id == achievementID);
-        DatabaseHelper.setAchievementObject("achievement", username, achievementID, achiev?.points)
-        if (!silent)
-            MessageHelper.sendMessage(rawMessage, "Gratulerer! Du har låst opp et achievement: " + achiev?.title + ". " + achiev?.description + " (" + achiev?.points + " poeng).")
+        const test = DatabaseHelper.getAchievement("achievement", username, achievementID);
+        if (!test) {
+            DatabaseHelper.setAchievementObject("achievement", username, achievementID, achiev?.points)
+            if (!silent)
+                MessageHelper.sendMessage(rawMessage, "Gratulerer! Du har låst opp et achievement: " + achiev?.title + ". " + achiev?.description + " (" + achiev?.points + " poeng).")
+        }
+
     }
 
     static findAchievementById(id: string) {
@@ -61,7 +65,7 @@ export class Achievements {
 
         Object.keys(users).forEach((username) => {
             const currentTotalspin = DatabaseHelper.getValue("counterSpin", username);
-            AchievementHelper.awardSpinningAch(username, currentTotalspin, message)
+            AchievementHelper.awardSpinningAch(username, currentTotalspin, message, true)
 
         })
     }

@@ -47,6 +47,11 @@ export class DatabaseHelper {
 		db.push(`${folderPrefix}/${key}/${prefix}/${achievementID}`, `${value}`)
 
 	}
+	static getAchievement(prefix: dbPrefix, key: string, achievementID: achievementIDs) {
+
+		return db.getData(`${folderPrefix}/${key}/${prefix}/${achievementID}`);
+
+	}
 
 	/*
 }

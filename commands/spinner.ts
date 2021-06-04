@@ -84,9 +84,9 @@ export class Spinner {
 		const currentTotalspin = DatabaseHelper.getValue("counterSpin", message.author.username);
 		if (currentTotalspin) {
 			try {
-				let cur = currentTotalspin;
+				let cur = parseInt(currentTotalspin);
 				cur = cur += 1;
-				AchievementHelper.awardSpinningAch(message.author.username, cur, message)
+				AchievementHelper.awardSpinningAch(message.author.username, cur.toString(), message)
 
 				DatabaseHelper.setValue("counterSpin", message.author.username, cur.toString())
 			} catch (error) {
