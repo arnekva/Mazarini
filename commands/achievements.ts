@@ -57,7 +57,7 @@ export class Achievements {
 
     static async awardMissing(message: Message) {
         const users = await DatabaseHelper.getAllUsers()
-        console.log(users);
+        // console.log(users);
 
         Object.keys(users).forEach((username) => {
             const currentTotalspin = DatabaseHelper.getValue("counterSpin", username);

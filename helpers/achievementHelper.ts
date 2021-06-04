@@ -12,13 +12,13 @@ export class AchievementHelper {
                 let cur = parseInt(currentTotalspin);
                 if (cur >= 10000)
                     Achievements.awardAchievement(username, "10000spin", message, true)
-                else if (cur >= 5000)
+                if (cur >= 5000)
                     Achievements.awardAchievement(username, "5000spin", message, true)
-                else if (cur >= 1000)
+                if (cur >= 1000)
                     Achievements.awardAchievement(username, "1000spin", message, true)
-                else if (cur >= 100)
+                if (cur >= 100)
                     Achievements.awardAchievement(username, "100spin", message, true)
-                else if (cur >= 1)
+                if (cur >= 1)
                     Achievements.awardAchievement(username, "firstSpin", message, true)
 
 
