@@ -14,6 +14,7 @@ import { DatabaseHelper } from "./helpers/databaseHelper";
 
 import { MessageHelper } from "./helpers/messageHelper";
 import { Spinner } from "./commands/spinner";
+import { environment } from "./client-env";
 
 require('dotenv').config();
 
@@ -22,7 +23,11 @@ const polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê)*(ls)(e|a|å
 export let action_log_channel: TextChannel;
 
 mazariniClient.on('ready', () => {
+	action_log_channel = mazariniClient.channels.cache.get("810832760364859432")
 	console.log(`Logged in as ${mazariniClient.user.tag}!`);
+	if (environment == "prod") {
+		MessageHelper.sendMessageToActionLog(action_log_channel, "Boten er nå på i production mode igjen.")
+	}
 	mazariniClient.user.setPresence({
 		activity: {
 			name: "for !mz commands",
@@ -116,6 +121,8 @@ async function checkForCommand(message: Message) {
 					try {
 						if (!!cmd.deprecated)
 							MessageHelper.sendMessage(message, "*Denne funksjoner er markert som deprecated/utfaset. Bruk **" + cmd.deprecated + "*** *i stedet*")
+						if (environment === "dev")
+							MessageHelper.sendMessage(message, "***Boten er for øyeblikket i utviklingsmodus**. Det betyr at commandoer kan virke ustabile, og at databaseverdier ikke blir lagret.*")
 						cmd.command(message, messageContent, args);
 					} catch (error) {
 						//!mz maggi feiler en gang i blant, så prøver å fange den og printe stacktrace i action_log.
