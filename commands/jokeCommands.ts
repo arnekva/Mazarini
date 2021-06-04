@@ -90,7 +90,7 @@ export class JokeCommands {
 				});
 		};
 
-		if (content.length < 150) {
+		if (content.length < 150 && content.trim().length > 0) {
 			DatabaseHelper.setValue("mygling", message.author.username, content);
 
 			let emoji = "";
@@ -118,7 +118,7 @@ export class JokeCommands {
 
 		}
 		else {
-			MessageHelper.sendMessage(message, "Du kan kje mygla så møye. Mindre enn 150 tegn, takk");
+			MessageHelper.sendMessage(message, content.trim().length > 0 ? "Du kan kje mygla så møye. Mindre enn 150 tegn, takk" : "Du må sei koffor du mygle, bro");
 		}
 	}
 	static async getAllMygleStatus(message: Message) {
