@@ -20,7 +20,7 @@ export class JokeCommands {
 	}
 
 	static async thomasTing(message: Message) {
-		await MessageHelper.sendMessage(message, Math.random() < 0.5 ? "Har fese!" : (Math.random() < 0.5) ? "Hæ, Erlend Navle?" : "Roe kebaben sin")
+		await MessageHelper.sendMessage(message, Math.random() < 0.5 ? "Har drede :S!" : (Math.random() < 0.5) ? "Hæ, Erlend Navle?" : "Sovna på golve :)")
 
 	}
 
@@ -76,6 +76,17 @@ export class JokeCommands {
 		const regex = new RegExp(/(?<=\<)(.*?)(?=\>)/ig)
 		let content = messageContent;
 		const matchedUsrname = content.match(regex);
+		let url;
+		if (message.attachments) {
+			url = message.attachments.first()?.url;
+		}
+		const count = messageContent.split("://")
+		const count2 = messageContent.split("www")
+		if (count.length > 2 || count2.length > 2) {
+			message.reply("Max ein attachment, bro")
+			return;
+		}
+
 		if (matchedUsrname) {
 			const id = matchedUsrname.forEach(
 				(el, index) => {
@@ -91,7 +102,7 @@ export class JokeCommands {
 		};
 
 		if (content.length < 150 && content.trim().length > 0) {
-			DatabaseHelper.setValue("mygling", message.author.username, content);
+			DatabaseHelper.setValue("mygling", message.author.username, content + (url ? " " + url : ""));
 
 			let emoji = "";
 			const randInt = Math.random();
