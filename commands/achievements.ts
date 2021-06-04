@@ -53,9 +53,9 @@ export class Achievements {
                 printList += `\n${index + 1}: ${currentAch?.title} - ${currentAch?.description} (${currentAch?.points}) `
                 totalScore += currentAch?.points ?? 0;
             })
-            printList += "\nAchievement Score: " + totalScore;
+            printList += "\n*Achievement Score: " + totalScore + "*";
             if (totalScore == 0)
-                printList = "Du har ikke opplåst noen achievements enda. Bruk !mz achievements for å se en liste over alle (Ikke implementert)"
+                printList = "Du har ikke opplåst noen achievements enda. Bruk !mz listachievements for å se en liste over alle (Ikke implementert)"
             MessageHelper.sendMessage(message, printList)
         }
     }
