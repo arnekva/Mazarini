@@ -10,20 +10,16 @@ export class AchievementHelper {
         if (currentTotalspin) {
             try {
                 let cur = parseInt(currentTotalspin);
-                if (cur >= 10000)
-                    Achievements.awardAchievement(username, "10000spin", message, true)
-                if (cur >= 5000)
-                    Achievements.awardAchievement(username, "5000spin", message, true)
-                if (cur >= 1000)
-                    Achievements.awardAchievement(username, "1000spin", message, true)
-                if (cur >= 100)
-                    Achievements.awardAchievement(username, "100spin", message, true)
                 if (cur >= 1)
                     Achievements.awardAchievement(username, "firstSpin", message, true)
-
-
-
-
+                if (cur >= 100)
+                    Achievements.awardAchievement(username, "100spin", message, true)
+                if (cur >= 1000)
+                    Achievements.awardAchievement(username, "1000spin", message, true)
+                if (cur >= 5000)
+                    Achievements.awardAchievement(username, "5000spin", message, true)
+                if (cur >= 10000)
+                    Achievements.awardAchievement(username, "10000spin", message, true)
                 DatabaseHelper.setValue("counterSpin", username, cur.toString())
             } catch (error) {
                 message.reply("Noe gikk galt. Stacktrace: " + error)
