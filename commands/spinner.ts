@@ -1,12 +1,14 @@
 
 import { Message } from "discord.js";
 import { Channel, Client, DMChannel, NewsChannel, TextChannel } from "discord.js";
+import { AchievementHelper } from "../helpers/achievementHelper";
 import { DatabaseHelper } from "../helpers/databaseHelper";
 import { MessageHelper } from "../helpers/messageHelper";
 import { ArrayUtils } from "../utils/arrayUtils";
 import { getWeekNumber } from "../utils/dateUtils";
 import { getRandomPercentage } from "../utils/randomUtils";
 import { escapeString } from "../utils/textUtils";
+import { Achievements } from "./achievements";
 import { ICommandElement } from "./commands";
 
 
@@ -82,8 +84,10 @@ export class Spinner {
 		const currentTotalspin = DatabaseHelper.getValue("counterSpin", message.author.username);
 		if (currentTotalspin) {
 			try {
-				let cur = parseInt(currentTotalspin);
-				cur++;
+				let cur = currentTotalspin;
+				cur = cur += 1;
+				AchievementHelper.awardSpinningAch(message.author.username, cur, message)
+
 				DatabaseHelper.setValue("counterSpin", message.author.username, cur.toString())
 			} catch (error) {
 				MessageHelper.sendMessageToActionLog(message.channel as TextChannel, "Noe gikk galt med incrementing av spinner totalen for " + message.author.username + ". Stacktrace: " + error)

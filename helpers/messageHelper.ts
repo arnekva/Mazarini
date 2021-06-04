@@ -20,8 +20,8 @@ export class MessageHelper {
 		const channel = rawMessage.channel as TextChannel;
 		// channel = channel as TextChannel;
 		if (!message.trim()) {
-			rawMessage.reply("Hmm .. her kom det en tom melding. Hendelsen blir loggført så en nerd kan ta en skikk på hva som skjedde")
-			MessageHelper.sendMessageToActionLog(channel, "En tom melding ble forsøkt sendt fra channel " + channel.name + ", forårsaket av en melding fra " + rawMessage.author.username + ". Meldingsinnhold: " + rawMessage.content)
+			rawMessage.reply("Hmm .. her kom det en tom melding. Hendelsen blir loggført så en nerd kan ta en skikk på hva som skjedde <" + message + ">")
+			// MessageHelper.sendMessageToActionLog(channel, "En tom melding ble forsøkt sendt fra channel " + channel.name + ", forårsaket av en melding fra " + rawMessage.author.username + ". Meldingsinnhold: " + rawMessage.content)
 			return;
 		}
 

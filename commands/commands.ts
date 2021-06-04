@@ -9,6 +9,7 @@ import { GamblingCommands } from "./gamblingCommands";
 import { WarzoneCommands } from "./warzoneCommands";
 import { PatchNotes } from "../patchnotes";
 import { MessageHelper } from "../helpers/messageHelper";
+import { Achievements } from "./achievements";
 
 
 
@@ -79,6 +80,8 @@ export const commands: ICommandElement[] = [
 	WarzoneCommands.getWeaponStats,
 	PatchNotes.getPatchNotes,
 	PatchNotes.publishPatchNotes,
+	Achievements.listAchievements,
+	Achievements.giveMissingAchievements,
 
 ]
 

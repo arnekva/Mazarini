@@ -11,6 +11,7 @@ const folderPrefix = "/users";
 import emojiStrip from 'emoji-strip';
 import { write } from "fs";
 import { exception } from "console";
+import { achievementIDs } from "../commands/achievements";
 
 //const db = new Database()
 /**
@@ -27,7 +28,7 @@ export interface dbObject {
 
 }
 
-export type dbPrefix = "spin" | "birthday" | "stock" | "mygling" | "week" | "counterSpin" | "ATHspin" | "sCounterWeeklySpin" | "warningCounter" | "dogeCoin" | "test";
+export type dbPrefix = "spin" | "birthday" | "stock" | "mygling" | "week" | "counterSpin" | "ATHspin" | "sCounterWeeklySpin" | "warningCounter" | "dogeCoin" | "test" | "achievement";
 
 export class DatabaseHelper {
 
@@ -39,6 +40,11 @@ export class DatabaseHelper {
 	static setValue(prefix: dbPrefix, key: string, value: string) {
 
 		db.push(`${folderPrefix}/${key}/${prefix}`, `${value}`)
+
+	}
+	static setAchievementObject(prefix: dbPrefix, key: string, achievementID: achievementIDs, value: any) {
+
+		db.push(`${folderPrefix}/${key}/${prefix}/${achievementID}`, `${value}`)
 
 	}
 
@@ -60,7 +66,7 @@ export class DatabaseHelper {
 	};
 
 	static async getAllUsers() {
-		db.getData("users");
+		return db.getData("/users");
 	};
 
 
