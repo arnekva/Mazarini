@@ -1,3 +1,4 @@
 node_modules
 myDataBase.json
 ./myDataBase.json
+client-env.ts
