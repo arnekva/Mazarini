@@ -1,13 +1,13 @@
 # Mazarini Bot
 
-### Installering og Kjøring
+## Installering og Kjøring
 
 Kjør 'npm install' i mappen for å installere dependencies.
 
-Kjør 'npm run start' for å starte index.ts via nodemon. Inkluderer ignore for databasefil.
+Kjør 'npm run start' for å starte index.ts via nodemon. Denne gir hot reloads (restarter boten for hver kodeendring), men med database-filen på ignore.
 
 
-### Viktig
+## Viktig
 Du må opprette en fil i main folder som heter 'client-env.ts'
 Denne filen må inneholde koden
 ```typescript
@@ -52,3 +52,12 @@ Du må også opprette en 'myDataBase.json' fil. Denne kan være tom, men eksempe
     }
 }
 ```
+
+## Før push av endringer
+
+Pass på at .gitignore fungerer. Ikke commit eller push database-filen. 
+
+## Prod reboot
+
+Det er for øyeblikket ingen automatisk pull av nye endringer, så den må manuelt restartes på Pi-en. 
+
