@@ -11,6 +11,7 @@ import { PatchNotes } from "../patchnotes";
 import { MessageHelper } from "../helpers/messageHelper";
 
 
+
 /**
  * Interface for kommandoer. Alle kommandoer må følge dette oppsettet.
  * @param commandName Stringen som trigger kommandoen (kommer etter !mz)
@@ -78,6 +79,7 @@ export const commands: ICommandElement[] = [
 	WarzoneCommands.getWeaponStats,
 	PatchNotes.getPatchNotes,
 	PatchNotes.publishPatchNotes,
+
 ]
 
 export const helperCommands = ((rawMessage: Message, messageContent: string, args: string[] | undefined) => {

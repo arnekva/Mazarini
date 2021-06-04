@@ -13,8 +13,6 @@
   "dependencies": {
     "@replit/database": "^2.0.0",
     "@types/node": "^15.6.2",
-    "axios": "^0.21.1",
-    "base-64": "^1.0.0",
     "call-of-duty-api": "^1.3.4",
     "clean": "^4.0.2",
     "clean-text-utils": "^1.1.17",
@@ -30,8 +28,6 @@
     "nodemon": "^2.0.7",
     "npm": "latest",
     "rimraf": "^3.0.2",
-    "say": "^0.16.0",
-    "stormdb": "^0.4.1",
     "ts-node": "^10.0.0",
     "typescript": "^4.3.2",
     "weighted-random-object": "^1.0.8"
