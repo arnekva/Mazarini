@@ -48,9 +48,18 @@ export class DatabaseHelper {
 
 	}
 	static getAchievement(prefix: dbPrefix, key: string, achievementID: achievementIDs) {
+		let data;
+		try {
+			data = db.getData(`${folderPrefix}/${key}/${prefix}/${achievementID}`);
+		} catch (error) {
+			//No data;
+		}
+		return data;
 
-		return db.getData(`${folderPrefix}/${key}/${prefix}/${achievementID}`);
-
+	}
+	/** For missing folders, like achievement, you can add them using this */
+	static addUserFolder(key: string, prefix: dbPrefix) {
+		db.push(`${folderPrefix}/${key}/${prefix}`, {})
 	}
 
 	/*
@@ -64,7 +73,7 @@ export class DatabaseHelper {
 			const data = db.getData(`${folderPrefix}/${key}/${prefix}`)
 			return data;
 		} catch (error) {
-			db.push(`${folderPrefix}/${key}/${prefix}`, `0`)
+			db.push(`${folderPrefix}/${key}/${prefix}`, prefix === "achievement" ? {} : `0`)
 			return "0";
 		}
 

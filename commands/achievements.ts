@@ -29,11 +29,13 @@ export class Achievements {
 
     static awardAchievement(username: string, achievementID: achievementIDs, rawMessage: Message, silent?: boolean) {
         const achiev = achievements.find((el) => el.id == achievementID);
-        const test = DatabaseHelper.getAchievement("achievement", username, achievementID);
-        if (!test) {
+        const hasAchievementsObj = DatabaseHelper.getValue("achievement", username); //FIXME: This line needs to be there to check if Achievements exist, as getValue creates Achievements if not present
+        let hasThisAch = DatabaseHelper.getAchievement("achievement", username, achievementID);
+
+        if (!hasThisAch) {
             DatabaseHelper.setAchievementObject("achievement", username, achievementID, achiev?.points)
             if (!silent)
-                MessageHelper.sendMessage(rawMessage, "Gratulerer! Du har låst opp et achievement: " + achiev?.title + ". " + achiev?.description + " (" + achiev?.points + " poeng).")
+                MessageHelper.sendMessage(rawMessage, "Gratulerer! Du har låst opp et achievement: " + achiev?.title + "! " + achiev?.description + " (" + achiev?.points + " poeng).")
         }
 
     }
