@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon index.ts --ignore myDataBase.json",
-    "runbg": "pm2 --name mazarini start npm -- run start",
-    "stopbg": "pm2 delete mazarini",
+    "start:bg": "pm2 --name mazarini start npm -- run start",
+    "stop:bg": "pm2 delete mazarini",
     "test": "mocha"
   },
   "keywords": [],
