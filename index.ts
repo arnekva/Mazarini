@@ -14,7 +14,7 @@ import { DatabaseHelper } from "./helpers/databaseHelper";
 
 import { MessageHelper } from "./helpers/messageHelper";
 import { Spinner } from "./commands/spinner";
-import { environment } from "./client-env";
+import { discordSecret, environment } from "./client-env";
 
 require('dotenv').config();
 
@@ -170,8 +170,7 @@ function checkMessageForJokes(message: Message) {
 
 
 
-const discordToken = "ODAyOTQ1Nzk2NDU3NzU4NzYw.YA2niw.uUCQwK0J_7Vj88H_zbTyLuLMsow";
-mazariniClient.login(discordToken);
+mazariniClient.login(discordSecret);
 
 mazariniClient.on("reconnecting", function () {
 	console.log(`client tries to reconnect to the WebSocket`);
