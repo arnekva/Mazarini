@@ -23,12 +23,18 @@ const polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê)*(ls)(e|a|å
 export let action_log_channel: TextChannel;
 
 mazariniClient.on('ready', () => {
+	const args = process.argv.slice(2);
+	console.log(args)
+
 	action_log_channel = mazariniClient.channels.cache.get("810832760364859432")
 	const today = new Date();
 	const time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
 	console.log(`Logged in as ${mazariniClient.user.tag} ${time} !`);
 	if (environment == "prod") {
 		MessageHelper.sendMessageToActionLog(action_log_channel, "Boten er nå live i production mode.")
+	}
+	if (args[0] == "crashed") {
+		MessageHelper.sendMessageToActionLog(action_log_channel, "Boten har restartet selv etter et kræsj. Argument line: " + args[0])
 	}
 	mazariniClient.user.setPresence({
 		activity: {
