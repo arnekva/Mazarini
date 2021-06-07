@@ -223,21 +223,19 @@ export class JokeCommands {
 		if (args && args[0] && args[0].length > 10 && parseInt(args[0])) {
 			fMsg = await MessageHelper.sendMessage(message, "Leter etter meldingen...")
 			const msgToUwU = await <Message><unknown>MessageHelper.findMessageById(message, msgContent);
-			const uwuIfiedText = JokeCommands.uwuText(msgToUwU.content)
-			if (fMsg)
-				fMsg.edit(uwuIfiedText)
+			if (msgToUwU) {
+				const uwuIfiedText = JokeCommands.uwuText(msgToUwU.content)
+				if (fMsg)
+					fMsg.edit(uwuIfiedText)
+				else
+					MessageHelper.sendMessage(message, uwuIfiedText)
+			}
 			if (!msgToUwU && fMsg)
 				fMsg.edit("Fant ikke meldingen \:(")
-			else
-				MessageHelper.sendMessage(message, uwuIfiedText)
 		} else {
-
-
 			let textToBeUwued = JokeCommands.uwuText(args.length > 0 ? args.join(" ") : "Please skriv inn ein tekst eller id neste gang");
 			MessageHelper.sendMessage(message, textToBeUwued)
 		}
-
-
 	}
 
 	static async sendBonk(message: Message, content: string, args: string[]) {
