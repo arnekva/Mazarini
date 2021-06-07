@@ -1,4 +1,5 @@
 import { Message, User, TextChannel } from "discord.js";
+import { parse } from "dotenv/types";
 import { globalArrays } from "../globals";
 import { AchievementHelper } from "../helpers/achievementHelper";
 import { DatabaseHelper } from "../helpers/databaseHelper";
@@ -245,7 +246,10 @@ export class JokeCommands {
 			user = args[0];
 			bkCounter = DatabaseHelper.getValue("bonkCounter", user);
 			this.incrementBonkCounter(message, user, bkCounter)
+
 		}
+		bkCounter = parseInt(bkCounter) + 1;
+
 		MessageHelper.sendMessage(message, (user ? user + ", du har blitt bonket. (" + `${bkCounter} ${bkCounter == 1 ? 'gang' : 'ganger'}) ` : "") + img)
 
 
@@ -260,6 +264,7 @@ export class JokeCommands {
 				AchievementHelper.awardBonkingAch(user, cur.toString(), message)
 
 				DatabaseHelper.setValue("bonkCounter", user, cur.toString())
+				return cur;
 			} catch (error) {
 				MessageHelper.sendMessageToActionLog(message.channel as TextChannel, "Noe gikk galt med incrementing totalen for " + user + ". Stacktrace: " + error)
 				message.reply("Noe gikk galt. Feilen blir loggført. Stacktrace: " + error)
