@@ -8,7 +8,7 @@ Kjør 'npm run start' for å starte index.ts via nodemon. Denne gir hot reloads 
 
 
 ## Viktig
-Du må opprette en fil i main folder som heter 'client-env.ts'
+Du må opprette en fil i main folder som heter 'client-env.ts' - bruk 'npm run create:env'
 Denne filen må inneholde koden
 ```typescript
 // "dev" for development, "prod" hvis du hoste boten live. "dev" vil sende warning hvis folk bruke boten mens du utvikle
@@ -16,7 +16,8 @@ export type env = "dev" | "prod";
 export const environment: env = "dev";
 ```
 
-Du må også opprette en 'myDataBase.json' fil. Denne kan være tom, men eksempeldata kan være:
+
+Du må også opprette en 'myDataBase.json' fil. Bruk 'npm run create:db' for å opprette filen i rett struktur. Denne kan være tom, men eksempeldata du kan lime inn kan være:
 ```json
 {
     "users": {

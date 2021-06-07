@@ -169,8 +169,12 @@ function checkMessageForJokes(message: Message) {
 }
 
 
+/** Login client */
+if (discordSecret.includes("insert"))
+	throw new TypeError("**FEIL** Klienten mangler Discord Secret Token i client-env.ts")
+else
+	mazariniClient.login(discordSecret);
 
-mazariniClient.login(discordSecret);
 
 mazariniClient.on("reconnecting", function () {
 	console.log(`client tries to reconnect to the WebSocket`);

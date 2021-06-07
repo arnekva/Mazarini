@@ -7,7 +7,9 @@
     "start": "nodemon index.ts --ignore myDataBase.json",
     "start:bg": "pm2 --name mazarini start npm -- run start",
     "stop:bg": "pm2 delete mazarini",
-    "test": "mocha"
+    "test": "mocha",
+    "create:env": "echo export type env = 'dev' ^| 'prod';export const environment: env = 'dev';export const discordSecret = 'insert token here'; > client-env.ts ",
+    "create:db": "echo {\"'users\": { }} > myDataBase.json "
   },
   "keywords": [],
   "author": "",
