@@ -24,7 +24,9 @@ export let action_log_channel: TextChannel;
 
 mazariniClient.on('ready', () => {
 	action_log_channel = mazariniClient.channels.cache.get("810832760364859432")
-	console.log(`Logged in as ${mazariniClient.user.tag}!`);
+	const today = new Date();
+	const time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+	console.log(`Logged in as ${mazariniClient.user.tag} ${time} !`);
 	if (environment == "prod") {
 		MessageHelper.sendMessageToActionLog(action_log_channel, "Boten er nå live i production mode.")
 	}
