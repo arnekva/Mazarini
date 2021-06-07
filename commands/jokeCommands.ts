@@ -226,6 +226,8 @@ export class JokeCommands {
 			const uwuIfiedText = JokeCommands.uwuText(msgToUwU.content)
 			if (fMsg)
 				fMsg.edit(uwuIfiedText)
+			if (!msgToUwU && fMsg)
+				fMsg.edit("Fant ikke meldingen \:(")
 			else
 				MessageHelper.sendMessage(message, uwuIfiedText)
 		} else {
