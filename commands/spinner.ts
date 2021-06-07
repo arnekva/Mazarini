@@ -114,6 +114,7 @@ export class Spinner {
 		MessageHelper.sendMessage(message, "*** HIGHSCORE *** for uke " + (isWeeklyReset ? weekNumber - 1 : getWeekNumber(new Date())[1]));
 
 		const val2 = DatabaseHelper.getAllValuesFromPrefix("spin");
+		ArrayUtils.sortUserValuePairArray(val2);
 		const highscoreList = ArrayUtils.makeValuePairIntoOneString(val2, Spinner.formatValue);
 		MessageHelper.sendMessage(message, highscoreList);
 

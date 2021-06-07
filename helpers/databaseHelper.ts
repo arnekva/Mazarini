@@ -73,11 +73,21 @@ export class DatabaseHelper {
 			const data = db.getData(`${folderPrefix}/${key}/${prefix}`)
 			return data;
 		} catch (error) {
-			db.push(`${folderPrefix}/${key}/${prefix}`, prefix === "achievement" ? {} : `0`)
+			const val = DatabaseHelper.valueToPush(prefix);
+			db.push(`${folderPrefix}/${key}/${prefix}`, val)
 			return "0";
 		}
 
 	};
+
+	static valueToPush(prefix: dbPrefix) {
+		if (prefix === "achievement")
+			return {}
+		else if (prefix === "spin" || prefix == "ATHspin")
+			return "00"
+		else
+			return "0";
+	}
 
 	static async getAllUsers() {
 		return db.getData("/users");
@@ -122,10 +132,8 @@ export class DatabaseHelper {
 		const users = db.getData(`${folderPrefix}`);
 		const valueList: ValuePair[] = [];
 		Object.keys(users).forEach((el) => {
-			Object.keys(users[el]).forEach((el2) => {
-				if (el2 == prefix)
-					valueList.push({ key: el, val: users[el][el2] })
-			})
+			const val = DatabaseHelper.getValue(prefix, el);
+			valueList.push({ key: el, val: val })
 		})
 		return valueList;
 	}
