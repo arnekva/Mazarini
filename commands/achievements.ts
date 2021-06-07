@@ -39,7 +39,7 @@ export class Achievements {
         if (!hasThisAch) {
             DatabaseHelper.setAchievementObject("achievement", username, achievementID, achiev?.points)
             if (!silent)
-                MessageHelper.sendMessage(rawMessage, "Gratulerer! Du har låst opp et achievement: " + achiev?.title + "! " + achiev?.description + " (" + achiev?.points + " poeng).")
+                MessageHelper.sendMessage(rawMessage, "Gratulerer, " + username + "! Du har låst opp et achievement: " + achiev?.title + "! " + achiev?.description + " (" + achiev?.points + " poeng).")
         }
 
     }
