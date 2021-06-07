@@ -19,11 +19,13 @@ export class PatchNotes {
 	 * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv. 
 	 */
 	public static readonly currentPatchNotes: string
-		= "* Fikset feil en feil som førte til at boten ikke klarte sette inn nye rader i databasen. "
+		= "* Du kan nå bonke spesifikke personer "
+		+ "\n* Alle personer har nå en bonk counter som vises hver gang personen blir bonket"
+		+ "\n* Boten leter nå etter flere pølser i meldinger"
 
 		// + "\n* Boten gir nå beskjed når den er i utviklingsmodus, og at databaseverdier ikke blir lagret når aktivt."
-		// + "\n*Tekniske Notes*" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
-		// + "\n*" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
+		+ "\n*Tekniske Notes*" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
+		+ "\n* Regexen som leter etter pølse søker nå også gjennom filnavn på vedlegg på jakt etter norske og engelske variasjoner" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
 		;
 
 	static getCurrentPatchNotes() {
