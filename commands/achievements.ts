@@ -4,7 +4,7 @@ import { DatabaseHelper } from "../helpers/databaseHelper";
 import { MessageHelper } from "../helpers/messageHelper";
 import { ICommandElement } from "./commands";
 
-export type achievementIDs = "firstSpin" | "100spin" | "1000spin" | "5000spin" | "10000spin";
+export type achievementIDs = "firstSpin" | "100spin" | "1000spin" | "5000spin" | "10000spin" | "bonkOnce" | "bonk50" | "bonk100";
 
 
 
@@ -21,6 +21,10 @@ export const achievements: MZAchievement[] = [
     { id: "1000spin", title: "1000 spins", description: "Spin fidget spinneren 1000 ganger", points: 25 },
     { id: "5000spin", title: "5000 spins", description: "Spin fidget spinneren 5000 ganger", points: 35 },
     { id: "10000spin", title: "10000 spins", description: "Spin fidget spinneren 10000 ganger", points: 50 },
+    { id: "bonkOnce", title: "Første bonk", description: "Bli bonket én gang", points: 5 },
+    { id: "bonk50", title: "50 bonks", description: "Bli bonket 50 ganger", points: 10 },
+    { id: "bonk100", title: "100 bonks", description: "Bli bonket 100 ganger", points: 15 },
+
 
 ];
 

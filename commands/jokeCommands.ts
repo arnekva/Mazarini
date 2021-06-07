@@ -1,5 +1,6 @@
 import { Message, User, TextChannel } from "discord.js";
 import { globalArrays } from "../globals";
+import { AchievementHelper } from "../helpers/achievementHelper";
 import { DatabaseHelper } from "../helpers/databaseHelper";
 import { MessageHelper } from "../helpers/messageHelper";
 import { ArrayUtils } from "../utils/arrayUtils";
@@ -236,9 +237,34 @@ export class JokeCommands {
 
 	}
 
-	static async sendBonk(message: Message) {
+	static async sendBonk(message: Message, content: string, args: string[]) {
 		const img = ArrayUtils.randomChoiceFromArray(globalArrays.bonkMemeUrls)
-		MessageHelper.sendMessage(message, img)
+		let user;
+		let bkCounter;
+		if (args) {
+			user = args[0];
+			bkCounter = DatabaseHelper.getValue("bonkCounter", user);
+			this.incrementBonkCounter(message, user, bkCounter)
+		}
+		MessageHelper.sendMessage(message, (user ? user + ", du har blitt bonket. (" + `${bkCounter} ${bkCounter == 1 ? 'gang' : 'ganger'}) ` : "") + img)
+
+
+	}
+
+	static incrementBonkCounter(message: Message, user: string, counter: string) {
+		// const currentVal = DatabaseHelper.getValue("counterSpin", message.author.username, () => { });
+		if (counter) {
+			try {
+				let cur = parseInt(counter);
+				cur = cur += 1;
+				AchievementHelper.awardBonkingAch(user, cur.toString(), message)
+
+				DatabaseHelper.setValue("bonkCounter", user, cur.toString())
+			} catch (error) {
+				MessageHelper.sendMessageToActionLog(message.channel as TextChannel, "Noe gikk galt med incrementing totalen for " + user + ". Stacktrace: " + error)
+				message.reply("Noe gikk galt. Feilen blir loggført. Stacktrace: " + error)
+			}
+		}
 	}
 
 	private static uwuText(t: string) {
@@ -258,9 +284,9 @@ export class JokeCommands {
 	}
 	static readonly bonkSender: ICommandElement = {
 		commandName: "bonk",
-		description: "Send en bonk meme",
-		command: (rawMessage: Message, messageContent: string) => {
-			JokeCommands.sendBonk(rawMessage);
+		description: "Send en bonk. Kan brukes mot brukere.",
+		command: (rawMessage: Message, messageContent: string, args: string[]) => {
+			JokeCommands.sendBonk(rawMessage, messageContent, args);
 		}
 	}
 	static readonly reactWithWord: ICommandElement = {

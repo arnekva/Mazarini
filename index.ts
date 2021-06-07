@@ -18,7 +18,7 @@ import { discordSecret, environment } from "./client-env";
 
 require('dotenv').config();
 
-const polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê)*(ls)(e|a|å)|(pause)|(🌭)/ig);
+const polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê)*(ls)(e|a|å)|(pause)|(🌭)|(hotdog)|(sausage)|(hot-dog)/ig);
 
 export let action_log_channel: TextChannel;
 
@@ -47,7 +47,7 @@ mazariniClient.on('ready', () => {
 	//https://www.npmjs.com/package/node-schedule
 	action_log_channel = mazariniClient.channels.cache.get("810832760364859432")
 
-	const resetMygleJob = schedule.scheduleJob({ hour: 21, minute: 26 }, function () {
+	const resetMygleJob = schedule.scheduleJob({ hour: 8, minute: 0, }, function () {
 		console.log("Kjører resett av mygling kl 08:00")
 		DatabaseHelper.deleteSpecificPrefixValues("mygling")
 	});
@@ -162,6 +162,10 @@ function checkMessageForJokes(message: Message) {
 		if (matches) {
 			polseCounter++;
 		}
+	}
+	if (message.attachments) {
+		if (polseRegex.exec(message.attachments.first()?.name ?? ""))
+			polseCounter++;
 	}
 
 	if (polseCounter > 0)

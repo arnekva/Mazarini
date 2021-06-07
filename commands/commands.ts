@@ -10,6 +10,7 @@ import { WarzoneCommands } from "./warzoneCommands";
 import { PatchNotes } from "../patchnotes";
 import { MessageHelper } from "../helpers/messageHelper";
 import { Achievements } from "./achievements";
+import { SpotifyCommands } from "./spotifyCommands";
 
 
 
@@ -82,6 +83,7 @@ export const commands: ICommandElement[] = [
 	PatchNotes.publishPatchNotes,
 	Achievements.listAchievements,
 	Achievements.giveMissingAchievements,
+	SpotifyCommands.currentUserIsPlaying,
 
 ]
 

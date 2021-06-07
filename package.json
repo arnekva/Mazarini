@@ -9,7 +9,7 @@
     "start:crashed": "pm2 --name mazarini start npm -- run start -a crashed",
     "stop:bg": "pm2 delete mazarini",
     "test": "mocha",
-    "create:env": "echo export type env = 'dev' ^| 'prod';export const environment: env = 'dev';export const discordSecret = 'insert token here'; > client-env.ts ",
+    "create:env": "echo export type env = 'dev' ^| 'prod';export const environment: env = 'dev';export const discordSecret = 'insert token here';;export const spotifyToken = 'insert token here'; > client-env.ts ",
     "create:db": "echo {\"users\": { }} > myDataBase.json "
   },
   "keywords": [],
@@ -32,6 +32,7 @@
     "node-schedule": "^2.0.0",
     "nodemon": "^2.0.7",
     "npm": "latest",
+    "request": "^2.88.2",
     "rimraf": "^3.0.2",
     "ts-node": "^10.0.0",
     "typescript": "^4.3.2",

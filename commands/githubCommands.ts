@@ -3,7 +3,6 @@ import { Message, User } from "discord.js";
 import { MessageHelper } from "../helpers/messageHelper";
 
 const fetch = require("node-fetch");
-const base64 = require('base-64');
 
 interface GitHubIssueRequest {
 	title: string;

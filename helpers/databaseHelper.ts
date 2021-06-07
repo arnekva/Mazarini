@@ -28,7 +28,7 @@ export interface dbObject {
 
 }
 
-export type dbPrefix = "spin" | "birthday" | "stock" | "mygling" | "week" | "counterSpin" | "ATHspin" | "sCounterWeeklySpin" | "warningCounter" | "dogeCoin" | "test" | "achievement";
+export type dbPrefix = "spin" | "birthday" | "stock" | "mygling" | "week" | "counterSpin" | "ATHspin" | "sCounterWeeklySpin" | "warningCounter" | "dogeCoin" | "test" | "achievement" | "bonkCounter";
 
 export class DatabaseHelper {
 
