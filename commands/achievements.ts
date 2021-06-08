@@ -14,7 +14,7 @@ export interface MZAchievement {
     description: string,
     points: number,
 }
-
+//Move to file?
 export const achievements: MZAchievement[] = [
     { id: "firstSpin", title: "Første spin", description: "Spin fidget spinneren 1 gang", points: 5 },
     { id: "100spin", title: "100 spins", description: "Spin fidget spinneren 100 ganger", points: 15 },

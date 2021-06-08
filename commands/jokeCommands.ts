@@ -273,7 +273,7 @@ export class JokeCommands {
 	}
 
 	private static uwuText(t: string) {
-		return ArrayUtils.randomChoiceFromArray(globalArrays.asciiEmojies).concat(" " + t.replaceAll("r", "w").replaceAll("l", "w").concat(" ", ArrayUtils.randomChoiceFromArray(globalArrays.asciiEmojies)));
+		return ArrayUtils.randomChoiceFromArray(globalArrays.asciiEmojies).concat(" " + t.replace(/r/g, "w").replace(/l/g, "w").concat(" ", ArrayUtils.randomChoiceFromArray(globalArrays.asciiEmojies)));
 	}
 
 	/*
