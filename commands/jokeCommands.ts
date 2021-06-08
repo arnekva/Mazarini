@@ -242,17 +242,22 @@ export class JokeCommands {
 		const img = ArrayUtils.randomChoiceFromArray(globalArrays.bonkMemeUrls)
 		let user;
 		let bkCounter;
-		if (args) {
+		if (args.length > 0) {
 			user = args[0];
-			bkCounter = DatabaseHelper.getValue("bonkCounter", user);
-			this.incrementBonkCounter(message, user, bkCounter)
+			if (DatabaseHelper.findUserByUsername(user, message)) {
+				bkCounter = DatabaseHelper.getValue("bonkCounter", user);
+				this.incrementBonkCounter(message, user, bkCounter)
+				bkCounter = parseInt(bkCounter) + 1;
+				MessageHelper.sendMessage(message, (user ? user + ", du har blitt bonket. (" + `${bkCounter} ${bkCounter == 1 ? 'gang' : 'ganger'}) ` : "") + img)
+			} else {
+				message.reply("du har ikke oppgitt et gyldig brukernavn")
+			}
 
+
+		} else {
+
+			MessageHelper.sendMessage(message, img)
 		}
-		bkCounter = parseInt(bkCounter) + 1;
-
-		MessageHelper.sendMessage(message, (user ? user + ", du har blitt bonket. (" + `${bkCounter} ${bkCounter == 1 ? 'gang' : 'ganger'}) ` : "") + img)
-
-
 	}
 
 	static incrementBonkCounter(message: Message, user: string, counter: string) {

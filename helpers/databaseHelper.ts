@@ -12,6 +12,7 @@ import emojiStrip from 'emoji-strip';
 import { write } from "fs";
 import { exception } from "console";
 import { achievementIDs } from "../commands/achievements";
+import { Message } from "discord.js";
 
 //const db = new Database()
 /**
@@ -99,6 +100,10 @@ export class DatabaseHelper {
 		Object.keys(users).forEach((el) => {
 			db.delete(`${folderPrefix}/${el}/${prefix}`)
 		})
+	}
+
+	static findUserByUsername(username: string, rawMessage: Message) {
+		return rawMessage.client.users.cache.find(user => user.username == username);
 	}
 
 

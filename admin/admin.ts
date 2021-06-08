@@ -137,7 +137,7 @@ export class Admin {
 	static async warnUser(message: Message, messageContent: string) {
 		const username = messageContent.substr(0, messageContent.indexOf(" "));
 
-		const user = message.client.users.cache.find(user => user.username == username);
+		const user = DatabaseHelper.findUserByUsername(username, message);// message.client.users.cache.find(user => user.username == username);
 		// const id = c[0].trim();
 
 		const replyString = messageContent.substr(messageContent.indexOf(" ") + 1);
@@ -147,13 +147,19 @@ export class Admin {
 				return;
 			}
 			const userWarnings = DatabaseHelper.getValue("warningCounter", user.username);
-			if (parseInt(userWarnings)) {
+			console.log(userWarnings);
+
+			if (!isNaN(userWarnings)) {
 				let newVal = parseInt(userWarnings)
 				newVal += 1;
 				DatabaseHelper.setValue("warningCounter", user.username, newVal.toString());
 				MessageHelper.sendMessage(message, user.username + ", du har fått en advarsel. Du har nå " + newVal + " advarsler.")
 				//Send msg to action-log
 				MessageHelper.sendMessage(message, "", true, message.author.username + " ga en advarsel til " + user.username + " på grunn av: " + replyString + ". " + user.username + " har nå " + newVal + " advarsler", "warning")
+
+			} else {
+				MessageHelper.sendMessageToActionLog(message.channel as TextChannel, "Verdien for warningcounter er NaN: <" + userWarnings + ">.")
+				message.reply("klarte ikke å øke warning counteren for " + user.username + ". Hendelsen er loggført.")
 
 			}
 		} else {
