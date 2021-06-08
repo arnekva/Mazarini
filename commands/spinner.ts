@@ -81,7 +81,7 @@ export class Spinner {
 
 	static async incrementCounter(message: Message) {
 		// const currentVal = DatabaseHelper.getValue("counterSpin", message.author.username, () => { });
-		const currentTotalspin = DatabaseHelper.getValue("counterSpin", message.author.username);
+		const currentTotalspin = DatabaseHelper.getValue("counterSpin", message.author.username, message);
 		if (currentTotalspin) {
 			try {
 				let cur = parseInt(currentTotalspin);
@@ -97,7 +97,7 @@ export class Spinner {
 	}
 
 	static async compareScore(message: Message, newScore: string) {
-		const val = DatabaseHelper.getValue("spin", message.author.username)
+		const val = DatabaseHelper.getValue("spin", message.author.username, message)
 		if (parseInt(val) < parseInt(newScore)) {
 			DatabaseHelper.setValue("spin", message.author.username, newScore);
 		}
@@ -113,7 +113,7 @@ export class Spinner {
 		const weekNumber = getWeekNumber(new Date())[1];
 		MessageHelper.sendMessage(message, "*** HIGHSCORE *** for uke " + (isWeeklyReset ? weekNumber - 1 : getWeekNumber(new Date())[1]));
 
-		const val2 = DatabaseHelper.getAllValuesFromPrefix("spin");
+		const val2 = DatabaseHelper.getAllValuesFromPrefix("spin", message);
 		ArrayUtils.sortUserValuePairArray(val2);
 		const highscoreList = ArrayUtils.makeValuePairIntoOneString(val2, Spinner.formatValue);
 		MessageHelper.sendMessage(message, highscoreList);
@@ -121,7 +121,7 @@ export class Spinner {
 	}
 
 	static async listSpinCounter(message: Message) {
-		const val = DatabaseHelper.getAllValuesFromPrefix("counterSpin");
+		const val = DatabaseHelper.getAllValuesFromPrefix("counterSpin", message);
 		ArrayUtils.sortUserValuePairArray(val);
 		const printList = ArrayUtils.makeValuePairIntoOneString(val, undefined, "Total antall spins");
 		MessageHelper.sendMessage(message, printList)
@@ -160,7 +160,7 @@ export class Spinner {
 
 	static async allTimeHigh(message: Message) {
 		Spinner.updateATH();
-		const val = DatabaseHelper.getAllValuesFromPrefix("ATHspin");
+		const val = DatabaseHelper.getAllValuesFromPrefix("ATHspin", message);
 		ArrayUtils.sortUserValuePairArray(val);
 		const printList = ArrayUtils.makeValuePairIntoOneString(val, Spinner.formatValue);
 		MessageHelper.sendMessage(message, printList)

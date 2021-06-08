@@ -33,7 +33,7 @@ export class Achievements {
 
     static awardAchievement(username: string, achievementID: achievementIDs, rawMessage: Message, silent?: boolean) {
         const achiev = achievements.find((el) => el.id == achievementID);
-        const hasAchievementsObj = DatabaseHelper.getValue("achievement", username); //FIXME: This line needs to be there to check if Achievements exist, as getValue creates Achievements if not present
+        const hasAchievementsObj = DatabaseHelper.getValue("achievement", username, rawMessage); //FIXME: This line needs to be there to check if Achievements exist, as getValue creates Achievements if not present
         let hasThisAch = DatabaseHelper.getAchievement("achievement", username, achievementID);
 
         if (!hasThisAch) {
@@ -49,7 +49,7 @@ export class Achievements {
     }
 
     static listUserAchievements(message: Message) {
-        const allAchievs = DatabaseHelper.getValue("achievement", message.author.username);
+        const allAchievs = DatabaseHelper.getValue("achievement", message.author.username, message);
 
         let printList = "**Dine achievements**";
         let totalScore = 0;
@@ -71,7 +71,7 @@ export class Achievements {
         // console.log(users);
 
         Object.keys(users).forEach((username) => {
-            const currentTotalspin = DatabaseHelper.getValue("counterSpin", username);
+            const currentTotalspin = DatabaseHelper.getValue("counterSpin", username, message);
             AchievementHelper.awardSpinningAch(username, currentTotalspin, message, true)
 
         })

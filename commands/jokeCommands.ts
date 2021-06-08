@@ -135,7 +135,7 @@ export class JokeCommands {
 		}
 	}
 	static async getAllMygleStatus(message: Message) {
-		const mygling = await DatabaseHelper.getAllValuesFromPrefix("mygling")
+		const mygling = await DatabaseHelper.getAllValuesFromPrefix("mygling", message)
 		let myglinger = "";
 		mygling.forEach((status) => myglinger += status.key + " " + status.val + "\n")
 		myglinger = myglinger.trim() ? myglinger : "Ingen har satt statusen sin i dag";
@@ -245,7 +245,7 @@ export class JokeCommands {
 		if (args.length > 0) {
 			user = args[0];
 			if (DatabaseHelper.findUserByUsername(user, message)) {
-				bkCounter = DatabaseHelper.getValue("bonkCounter", user);
+				bkCounter = DatabaseHelper.getValue("bonkCounter", user, message);
 				this.incrementBonkCounter(message, user, bkCounter)
 				bkCounter = parseInt(bkCounter) + 1;
 				MessageHelper.sendMessage(message, (user ? user + ", du har blitt bonket. (" + `${bkCounter} ${bkCounter == 1 ? 'gang' : 'ganger'}) ` : "") + img)

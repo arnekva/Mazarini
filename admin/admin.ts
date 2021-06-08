@@ -13,7 +13,7 @@ export class Admin {
 		isAdmin: true,
 		command: async (rawMessage: Message, messageContent: string) => {
 			await DatabaseHelper.setValue("stock", rawMessage.author.id, rawMessage.content.replace("!mz debug ", ""))
-			const x = await DatabaseHelper.getValue("stock", rawMessage.author.id)
+			const x = await DatabaseHelper.getValue("stock", rawMessage.author.id, rawMessage)
 
 		}
 
@@ -57,7 +57,7 @@ export class Admin {
 		const content = messageContent.split(" ");
 		const prefix = content[0] as dbPrefix;
 		const key = content[1];
-		const val = await DatabaseHelper.getValue(prefix, key)
+		const val = await DatabaseHelper.getValue(prefix, key, message)
 
 	}
 
@@ -146,7 +146,7 @@ export class Admin {
 				message.reply("Du kan kje warna deg sjøl, bro")
 				return;
 			}
-			const userWarnings = DatabaseHelper.getValue("warningCounter", user.username);
+			const userWarnings = DatabaseHelper.getValue("warningCounter", user.username, message);
 			console.log(userWarnings);
 
 			if (!isNaN(userWarnings)) {
