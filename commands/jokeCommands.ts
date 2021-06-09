@@ -45,7 +45,7 @@ export class JokeCommands {
 					let currentChannel = message.client.channels.cache.get(allChannels[i].id);
 
 					if (currentChannel?.isText()) {
-						const messages = await (currentChannel as TextChannel).messages.fetch({ limit: 100 })
+						const messages = await (currentChannel as TextChannel).messages.fetch({ limit: 50 })
 						const filtered = messages.filter(m => m.author.username == "Deadmaggi")
 						filtered.forEach((el) => allMsg.push(el.createdTimestamp))
 					}
