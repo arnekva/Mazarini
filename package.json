@@ -6,7 +6,7 @@
   "scripts": {
     "start": "nodemon index.ts --ignore myDataBase.json",
     "start:bg": "pm2 --name mazarini start npm -- run start",
-    "start:crashed": "pm2 --name mazarini start npm -- run start -a crashed",
+    "start:crashed": "pm2 delete mazarini  && pm2 --name mazarini start npm -- run start -a crashed",
     "stop:bg": "pm2 delete mazarini",
     "test": "mocha",
     "create:env": "echo export type env = 'dev' ^| 'prod';export const environment: env = 'dev';export const discordSecret = 'insert token here';export const spotifyToken = 'insert token here'; > client-env.ts ",
