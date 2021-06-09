@@ -6,6 +6,7 @@ import { DatabaseHelper } from "../helpers/databaseHelper";
 import { MessageHelper } from "../helpers/messageHelper";
 import { ArrayUtils } from "../utils/arrayUtils";
 import { findLetterEmoji } from "../utils/miscUtils";
+import { msToTime } from "../utils/textUtils";
 import { ICommandElement } from "./commands";
 
 
@@ -33,10 +34,38 @@ export class JokeCommands {
 
 	static async isMaggiPlaying(message: Message) {
 		const guild = message.channel.client.guilds.cache.get("340626855990132747");
+		let difference: string | number = "0";
 		if (guild) {
 			const maggi = guild.members.cache.get("221739293889003520")
 			if (maggi) {
+				// message.reply("TEST: Siste melding fra magnus ble sendt " + maggi.lastMessage?.createdTimestamp)
+				const allMsg: number[] = [];
+				const allChannels = message.client.channels.cache.array();
+				for (let i = 0; i < allChannels.length; i++) {
+					let currentChannel = message.client.channels.cache.get(allChannels[i].id);
+
+					if (currentChannel?.isText()) {
+						const messages = await (currentChannel as TextChannel).messages.fetch({ limit: 100 })
+						const filtered = messages.filter(m => m.author.username == "Deadmaggi")
+						filtered.forEach((el) => allMsg.push(el.createdTimestamp))
+					}
+				}
+
+				try {
+					allMsg.sort();
+					const newestMessage = allMsg[allMsg.length - 1];
+					const now = new Date().getTime();
+					difference = msToTime(now - newestMessage, true);
+
+
+				} catch (error) {
+					message.reply("dette kræsje bro")
+				}
+
+				// console.log(allMsg);
+
 				// await MessageHelper.sendMessage(message.channel, "Han leve")
+				const differenceAsNumber = parseInt(difference as string);
 				if (maggi.presence.clientStatus) {
 					if (maggi.presence.activities && maggi.presence.activities[0]) {
 						const game = maggi.presence.activities[0].name == "Custom Status" ? maggi.presence.activities[1] : maggi.presence.activities[0];
@@ -57,7 +86,12 @@ export class JokeCommands {
 							} else if (maggi.presence.clientStatus.web) {
 								await MessageHelper.sendMessage(message, "Ser ut som om han besøker Discord fra nettleseren? Wtf")
 							} else if (maggi.presence.clientStatus.desktop) {
-								await MessageHelper.sendMessage(message, "Han er på PC-en, men gjør ingenting akkurat nå. ")
+								if (maggi.presence.clientStatus.desktop == "idle") {
+
+									await MessageHelper.sendMessage(message, "Maen e idle, så då sove han garantert. (" + differenceAsNumber + " timer siden sist melding)")
+								} else if (differenceAsNumber > 6) {
+									await MessageHelper.sendMessage(message, "Det har gått mer enn 6 timer siden sist melding, og PC-en står på. Da har han nok sovnet (" + differenceAsNumber + " timer siden sist melding)")
+								}
 							}
 						}
 					}

@@ -130,7 +130,7 @@ async function checkForCommand(message: Message) {
 						if (!!cmd.deprecated)
 							MessageHelper.sendMessage(message, "*Denne funksjoner er markert som deprecated/utfaset. Bruk **" + cmd.deprecated + "*** *i stedet*")
 						if (environment === "dev")
-							MessageHelper.sendMessage(message, "***Boten er for øyeblikket i utviklingsmodus**. Det betyr at commandoer kan virke ustabile, og at databaseverdier ikke blir lagret.*")
+							MessageHelper.sendMessage(message, "***Boten er for øyeblikket i utviklingsmodus**. Det betyr at commands kan virke ustabile, og at databaseverdier ikke blir lagret.*")
 						cmd.command(message, messageContent, args);
 					} catch (error) {
 						//!mz maggi feiler en gang i blant, så prøver å fange den og printe stacktrace i action_log.
