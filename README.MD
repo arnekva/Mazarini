@@ -11,9 +11,10 @@ Kjør 'npm run start' for å starte index.ts via nodemon. Denne gir hot reloads 
 Du må opprette en fil i main folder som heter 'client-env.ts' - bruk 'npm run create:env'
 Denne filen må inneholde koden
 ```typescript
-// "dev" for development, "prod" hvis du hoste boten live. "dev" vil sende warning hvis folk bruke boten mens du utvikle
+// "dev" for development, "prod" hvis du hoste boten live. "dev" vil sende warning hvis folk bruke boten mens du utvikler
 export type env = "dev" | "prod";
 export const environment: env = "dev";
+export const discordSecret = 'insert token'
 ```
 
 
