@@ -242,12 +242,14 @@ mazariniClient.on("guildMemberUpdate", function (oldMember: GuildMember, newMemb
 	const whatChanged = compareMember(oldMember, newMember);
 	// console.log(newMember)
 	let changesString = "";
-	if (differences)
+	if (differences){
 		differences.forEach((change: any, index: number) => {
 			// console.log(change)
 			changesString += change.path + (index == differences.length ? " " : ",")
 		})
-	MessageHelper.sendMessageToActionLog(newMember.client.channels.cache.array()[0] as TextChannel, "Oppdatert bruker " + (oldMember.nickname ?? oldMember.displayName) + ": " + whatChanged + ".")
+		MessageHelper.sendMessageToActionLog(newMember.client.channels.cache.array()[0] as TextChannel, "Oppdatert bruker " + (oldMember.nickname ?? oldMember.displayName) + ": " + whatChanged + ".")
+		
+	}
 });
 
 /** TODO END */
