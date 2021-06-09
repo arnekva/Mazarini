@@ -171,7 +171,7 @@ export class JokeCommands {
 	static async getAllMygleStatus(message: Message) {
 		const mygling = await DatabaseHelper.getAllValuesFromPrefix("mygling", message)
 		let myglinger = "";
-		mygling.forEach((status) => myglinger += status.key + " " + status.val + "\n")
+		mygling.forEach((status) => myglinger += status.val ? status.key + " " + status.val + "\n" : "")
 		myglinger = myglinger.trim() ? myglinger : "Ingen har satt statusen sin i dag";
 		MessageHelper.sendMessage(message, myglinger)
 		// const vals = await DatabaseHelper.getAllValuesFromPrefix("mygling")
