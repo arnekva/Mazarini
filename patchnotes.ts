@@ -9,7 +9,7 @@ export class PatchNotes {
 	 * Increment y for mindre oppdateringer (enkle funksjoner osv)
 	 * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
 	 */
-	public static readonly currentVersion = "2.2.1";
+	public static readonly currentVersion = "2.2.2";
 
 	/** Private, brukes kun av getCurrentPatchNotes */
 	private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -20,7 +20,6 @@ export class PatchNotes {
 	 */
 	public static readonly currentPatchNotes: string
 		= "* Du kan nå bonke spesifikke personer "
-		+ "\n* Alle personer har nå en bonk counter som vises hver gang personen blir bonket"
 		+ "\n* Boten leter nå etter flere pølser i meldinger"
 
 		// + "\n* Boten gir nå beskjed når den er i utviklingsmodus, og at databaseverdier ikke blir lagret når aktivt."
