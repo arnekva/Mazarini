@@ -69,11 +69,14 @@ export class DatabaseHelper {
 * @param prefix - Databaseprefix. Må være av type dbprefix. Nye prefixer MÅ legges til i typen på toppen av databaseHelper.
 * @param key - Nøkkel: Her bruker du vanligvis brukernavn (message.author.username)
 */
-	static getValue(prefix: dbPrefix, key: string, message: Message) {
+	static getValue(prefix: dbPrefix, key: string, message: Message, noInsertions?: boolean) {
 		try {
 			const data = db.getData(`${folderPrefix}/${key}/${prefix}`)
 			return data;
 		} catch (error) {
+			if (noInsertions)
+				return undefined;
+
 			const val = DatabaseHelper.valueToPush(prefix);
 			if (DatabaseHelper.findUserByUsername(key, message))
 				db.push(`${folderPrefix}/${key}/${prefix}`, val)
@@ -142,7 +145,7 @@ export class DatabaseHelper {
 		const users = db.getData(`${folderPrefix}`);
 		const valueList: ValuePair[] = [];
 		Object.keys(users).forEach((el) => {
-			const val = DatabaseHelper.getValue(prefix, el, message);
+			const val = DatabaseHelper.getValue(prefix, el, message, true);
 			valueList.push({ key: el, val: val })
 		})
 		return valueList;
