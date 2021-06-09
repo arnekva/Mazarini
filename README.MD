@@ -54,11 +54,8 @@ Du må også opprette en 'myDataBase.json' fil. Bruk 'npm run create:db' for å 
 }
 ```
 
-## Før push av endringer
-
-Pass på at .gitignore fungerer. Ikke commit eller push database-filen. 
 
 ## Prod reboot
 
-Det er for øyeblikket ingen automatisk pull av nye endringer, så den må manuelt restartes på Pi-en. 
+Det er for øyeblikket ingen automatisk pull av nye endringer
 
