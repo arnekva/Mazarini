@@ -11,9 +11,10 @@ Kjør 'npm run start' for å starte index.ts via nodemon. Denne gir hot reloads 
 Du må opprette en fil i main folder som heter 'client-env.ts' - bruk 'npm run create:env'
 Denne filen må inneholde koden
 ```typescript
-// "dev" for development, "prod" hvis du hoste boten live. "dev" vil sende warning hvis folk bruke boten mens du utvikle
+// "dev" for development, "prod" hvis du hoste boten live. "dev" vil sende warning hvis folk bruke boten mens du utvikler
 export type env = "dev" | "prod";
 export const environment: env = "dev";
+export const discordSecret = 'insert token'
 ```
 
 
@@ -54,11 +55,8 @@ Du må også opprette en 'myDataBase.json' fil. Bruk 'npm run create:db' for å 
 }
 ```
 
-## Før push av endringer
-
-Pass på at .gitignore fungerer. Ikke commit eller push database-filen. 
 
 ## Prod reboot
 
-Det er for øyeblikket ingen automatisk pull av nye endringer, så den må manuelt restartes på Pi-en. 
+Det er for øyeblikket ingen automatisk pull av nye endringer
 
