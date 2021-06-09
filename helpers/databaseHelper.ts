@@ -75,7 +75,7 @@ export class DatabaseHelper {
 			return data;
 		} catch (error) {
 			if (noInsertions)
-				return undefined;
+				return "";
 
 			const val = DatabaseHelper.valueToPush(prefix);
 			if (DatabaseHelper.findUserByUsername(key, message))
