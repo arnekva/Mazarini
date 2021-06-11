@@ -13,7 +13,8 @@ interface musicMethod {
 }
 
 export const methods: musicMethod[] = [
-    { title: "Topp 10 artister", method: "user.gettopartists", cmdId: "top10" }
+    { title: "Topp 10 artister", method: "user.gettopartists", cmdId: "top10" },
+    { title: "Tilknytt Last.fm-bruker", method: "400", cmdId: "user" }
 ]
 
 export class Music {
