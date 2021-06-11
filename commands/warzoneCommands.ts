@@ -1,5 +1,6 @@
 
 import { Channel, Client, DMChannel, Message, NewsChannel, TextChannel } from "discord.js";
+import { mwPw } from "../client-env";
 import { MessageHelper } from "../helpers/messageHelper";
 import { ICommandElement } from "./commands";
 const API = require('call-of-duty-api')();
@@ -12,12 +13,12 @@ export class WarzoneCommands {
 		const platform = content[1];
 
 		try {
-			await API.login("arne.kva@gmail.com", "Mazarini332");
+			await API.login("arne.kva@gmail.com", mwPw);
 		} catch (Error) {
 			message.reply("Klarte ikke logge inn")
 		}
 
-		const sentMessage = await MessageHelper.sendMessage(message, "Henter data...")
+		const sentMessage = await MessageHelper.sendMessage(message, "Henter data... (funker sannsynligvis ikke :()")
 		if (isWeekly) {
 			let response = "Weekly Warzone stats for <" + gamertag + ">";
 			try {
