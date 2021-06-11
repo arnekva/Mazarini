@@ -52,7 +52,7 @@ export class WarzoneCommands {
 				else
 					MessageHelper.sendMessage(message, response)
 			} catch (error) {
-				message.reply("Bro, du har ingen statistikk denne ugå")
+				message.edit("Du har ingen statistikk å vise for denne uken :( ")
 			}
 			// MessageHelper.sendMessage(message.channel, response)
 		} else {
