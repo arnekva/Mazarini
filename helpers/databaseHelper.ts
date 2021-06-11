@@ -29,7 +29,7 @@ export interface dbObject {
 
 }
 
-export type dbPrefix = "spin" | "birthday" | "stock" | "mygling" | "week" | "counterSpin" | "ATHspin" | "sCounterWeeklySpin" | "warningCounter" | "dogeCoin" | "test" | "achievement" | "bonkCounter";
+export type dbPrefix = "spin" | "birthday" | "stock" | "mygling" | "week" | "counterSpin" | "ATHspin" | "sCounterWeeklySpin" | "warningCounter" | "dogeCoin" | "test" | "achievement" | "bonkCounter" | "lastFmUsername";
 
 export class DatabaseHelper {
 
@@ -63,12 +63,16 @@ export class DatabaseHelper {
 		db.push(`${folderPrefix}/${key}/${prefix}`, {})
 	}
 
-	/*
-}
-/**
-* @param prefix - Databaseprefix. Må være av type dbprefix. Nye prefixer MÅ legges til i typen på toppen av databaseHelper.
-* @param key - Nøkkel: Her bruker du vanligvis brukernavn (message.author.username)
-*/
+
+
+	/**
+	 * 
+	 * @param prefix Databaseprefix - Verdien fra brukeren du er ute etter
+	 * @param key Brukernavn
+	 * @param message Message objekt er nødvendig for å kunne gi finne brukere
+	 * @param noInsertions FUnksjonen oppretter en tom verdi hvis den ikke eksisterer. Sett denne true dersom den IKKE skal opprette default verdi hvis den ikke finnes
+	 * @returns 
+	 */
 	static getValue(prefix: dbPrefix, key: string, message: Message, noInsertions?: boolean) {
 		try {
 			const data = db.getData(`${folderPrefix}/${key}/${prefix}`)

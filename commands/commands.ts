@@ -11,6 +11,7 @@ import { PatchNotes } from "../patchnotes";
 import { MessageHelper } from "../helpers/messageHelper";
 import { Achievements } from "./achievements";
 import { SpotifyCommands } from "./spotifyCommands";
+import { Music } from "./musicCommands";
 
 
 
@@ -84,6 +85,7 @@ export const commands: ICommandElement[] = [
 	Achievements.listAchievements,
 	Achievements.giveMissingAchievements,
 	SpotifyCommands.currentUserIsPlaying,
+	Music.musicCommands,
 
 ]
 
