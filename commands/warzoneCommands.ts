@@ -18,7 +18,7 @@ export class WarzoneCommands {
 			message.reply("Klarte ikke logge inn")
 		}
 
-		const sentMessage = await MessageHelper.sendMessage(message, "Henter data... (funker sannsynligvis ikke)")
+		const sentMessage = await MessageHelper.sendMessage(message, "Henter data...")
 		if (isWeekly) {
 			let response = "Weekly Warzone stats for <" + gamertag + ">";
 			try {
