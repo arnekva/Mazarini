@@ -18,11 +18,12 @@ export class WarzoneCommands {
 			message.reply("Klarte ikke logge inn")
 		}
 
-		const sentMessage = await MessageHelper.sendMessage(message, "Henter data... (funker sannsynligvis ikke :()")
+		const sentMessage = await MessageHelper.sendMessage(message, "Henter data... (funker sannsynligvis ikke)")
 		if (isWeekly) {
 			let response = "Weekly Warzone stats for <" + gamertag + ">";
 			try {
 				let data = await API.MWweeklystats(gamertag, platform);
+
 				const stats = data.wz.mode.br_all.properties;
 
 				response += "\nKills: " + stats.kills;
@@ -51,7 +52,7 @@ export class WarzoneCommands {
 				else
 					MessageHelper.sendMessage(message, response)
 			} catch (error) {
-				message.reply(error)
+				message.reply("Bro, du har ingen statistikk denne ugå")
 			}
 			// MessageHelper.sendMessage(message.channel, response)
 		} else {
