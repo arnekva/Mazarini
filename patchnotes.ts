@@ -19,8 +19,8 @@ export class PatchNotes {
 	 * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv. 
 	 */
 	public static readonly currentPatchNotes: string
-		= "* Du kan nå knytte Last.FM brukeren din til Discord brukernavnet ditt, og hente ut topp 10 artister (flere funksjoner er under utvikling) med funksjonen !mz music top10 etter tilknytting"
-		+ "* Rettet en bug i Warzone stats, som nå skal gi ordentlig feilmelding dersom noe går galt. "
+		= "* Du kan nå knytte Last.FM brukeren din til Discord brukernavnet ditt, og hente ut din toppliste for album, sanger og artister. Se '!mz help musikk' for mer info"
+		+ "*  "
 
 
 		// + "\n* Boten gir nå beskjed når den er i utviklingsmodus, og at databaseverdier ikke blir lagret når aktivt."

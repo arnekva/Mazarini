@@ -22,3 +22,8 @@ export function msToTime(duration: number, onlyHours?: boolean) {
 
 	return onlyHours ? hours : newHours + ":" + newminutes + ":" + newseconds + "." + milliseconds;
 }
+export function replaceLast(mainString: string, searchString: string, replaceWith: string) {
+	var a = mainString.split("");
+	a[mainString.lastIndexOf(searchString)] = replaceWith;
+	return a.join("");
+}

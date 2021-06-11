@@ -14,8 +14,9 @@ Denne filen må inneholde koden
 // "dev" for development, "prod" hvis du hoste boten live. "dev" vil sende warning hvis folk bruke boten mens du utvikler
 export type env = "dev" | "prod";
 export const environment: env = "dev";
-export const discordSecret = 'insert token'
-export const mwPw = 'insert pw'
+export const discordSecret = 'insert token';
+export const mwPw = 'insert pw';
+export const lfKey = 'insert key';
 ```
 
 

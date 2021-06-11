@@ -1,26 +1,74 @@
+
 import { Message } from "discord.js";
-import { discordSecret } from "../client-env";
+import { parse } from "dotenv/types";
+import { discordSecret, lfKey } from "../client-env";
 import { DatabaseHelper } from "../helpers/databaseHelper";
 import { MessageHelper } from "../helpers/messageHelper";
+import { replaceLast } from "../utils/textUtils";
 import { ICommandElement } from "./commands";
 const fetch = require("node-fetch");
-export type musicCommand = "user" | "top10" | "top50" | "topalbum" | "topsong" | "topartist" | "top";
+export type musicCommand = "top";
 
+export type topMethods = "songs" | "artist" | "album" | "tags";
+
+export type commandTypes = "topp";
 interface musicMethod {
-    method: string;
+    description: string;
     title: string;
-    cmdId: string;
+    command: commandTypes;
 }
 
 export const methods: musicMethod[] = [
-    { title: "Topp 10 artister", method: "user.gettopartists", cmdId: "top10" },
-    { title: "Tilknytt Last.fm-bruker", method: "400", cmdId: "user" }
+    { title: "Topp", description: "Hent ut en toppliste (Artist, album, sanger eller tags)", command: "topp" },
+
 ]
+
+interface fetchData {
+    user: string;
+    method: {
+        cmd: string,
+        desc: string,
+    };
+    limit: string;
+    includeStats: boolean;
+}
 
 export class Music {
     static readonly baseUrl = "http://ws.audioscrobbler.com/2.0/";
     static findCommand(message: Message, content: string, args: string[]) {
-        const method = methods.filter(e => e.cmdId == args[0])[0].method;
+
+        if (!args[0]) {
+            message.reply("Feilformattert. Mangler du f.eks 'topp'?")
+            return
+        }
+
+        /** CHECKS at alt eksistere */
+        const method = methods.filter(e => e.command == args[0])[0];
+        if (!method) {
+            message.reply("Kommandoen eksisterer ikke. Bruk 'topp'")
+            return;
+        }
+        const username = Music.getLastFMUsernameByDiscordUsername(message.author.username, message)
+        if (!username) {
+            message.reply("Du har ikke registrert brukernavnet ditt. Bruk '!mz musikk user <discordnavn> <last.fm navn>")
+            return;
+        }
+        const cmd = Music.getCommand(method.command, args[1])
+        if (!cmd) {
+            message.reply("kommandoen eksisterer ikke. Bruk 'artist', 'songs' eller 'album'")
+            return;
+        }
+
+        /** CHECKS END */
+
+        const data: fetchData = {
+            user: username,
+            method: { cmd: cmd, desc: method.title },
+            limit: args[2] ?? "10",
+            includeStats: !!args[3]
+
+        }
+
         switch (args[0]) {
             case "user":
                 if (args[1] && args[2]) {
@@ -34,42 +82,82 @@ export class Music {
                     message.reply("formattering skal være '!mz music user DISCORDNAVN LAST.FMNAVN")
                 }
                 break;
-            case "top10":
-                Music.findLastFmData(message, message.author.username, method)
-                break;
             default:
+                this.findLastFmData(message, data);
                 break;
         }
     }
+    static getCommand(c: commandTypes, s: string) {
+        switch (c) {
+            case "topp":
+                if (s as topMethods)
+                    return this.findTopMethod(s);
+        }
+    }
+    static findTopMethod(m: string) {
+        const base = "user."
+        switch (m) {
+            case "album":
+                return base + "gettopalbums";
+            case "artist":
+                return base + "gettopartists"
+            case "songs":
+                return base + "gettoptracks";
+            case "tags":
+                return base + "gettoptags";
+            default:
+                return undefined;
+        }
+    }
 
-    static async findLastFmData(message: Message, discordUsername: string, methodP: string) {
+    static async findLastFmData(message: Message, dataParam: fetchData) {
         const msg = await MessageHelper.sendMessage(message, "Laster data...")
-        const apiKey = "ce5cbfa8594fd12020e9fcfefff30f14"
-        const username = Music.getLastFMUsernameByDiscordUsername(discordUsername, message);
-        if (!username) {
-            message.reply("du må registrere last.fm brukernavnet ditt først med '!mz music user <discordNavn> <lastFm navn>'")
+        const apiKey = lfKey;
+        if (parseInt(dataParam.limit) > 30) {
+            message.reply("Litt for høy limit, deranes")
             return;
         }
-        const method = methodP;
-        let artistString = "Topp 10 artister:";
-        fetch(Music.baseUrl + `?method=${method}&user=${username}&api_key=${apiKey}&format=json&limit=10`, {
-            method: "GET",
-        }).then((res: any) => {
-            res.json().then((data: any) => {
-                data.topartists.artist.forEach((element: { name: string; playcount: string; }) => {
-                    artistString += `\n${element.name}: ${element.playcount}`
-                    // console.log(element.name + ": " + element.playcount);
+        let artistString = dataParam.method.desc + " " + dataParam.limit;
+        Promise.all([
+            fetch(Music.baseUrl + `?method=${dataParam.method.cmd}&user=${dataParam.user}&api_key=${apiKey}&format=json&limit=${dataParam.limit}`, {
+                method: "GET",
+            }),
+            fetch(Music.baseUrl + `?method=user.getinfo&user=${dataParam.user}&api_key=${apiKey}&format=json`)
+        ])
+            .then(([resTop, resInfo]) => {
+                Promise.all([
+                    resTop.json(),
+                    resInfo.json()
+                ])
+                    .then(([topData, info]) => {
+                        const totalPlaycount = info["user"].playcount ?? "1";
+                        let prop;
+                        const strippedMethod = dataParam.method.cmd.replace("user.get", "");
+                        const methodWithoutGet = replaceLast(strippedMethod.replace("top", ""), "s", "");
+                        artistString += " " + methodWithoutGet + "s";
 
-                });
-                // console.log(data.topartists.artist);
-                if (msg)
-                    msg.edit(artistString)
-                else
-                    MessageHelper.sendMessage(message, artistString);
-            });
+                        prop = topData[strippedMethod][methodWithoutGet] as { name: string, playcount: string, artist?: { name: string } }[];
 
 
-        }).catch((error: any) => console.log(error));
+                        if (prop) {
+
+                            prop.forEach((element: { name: string, playcount: string, artist?: { name: string } }) => {
+
+                                artistString += `\n${element.artist ? element.artist.name + " - " : ""}${element.name} (${element.playcount} plays) ${dataParam.includeStats ? ((parseInt(element.playcount) / parseInt(totalPlaycount)) * 100).toFixed(1) + "%" : ""} `
+                            });
+                            artistString += `\n*Totalt ${topData[strippedMethod]["@attr"].total} ${methodWithoutGet}s i biblioteket`
+                        }
+                        else
+                            message.reply("Fant ingen data. Kanskje feilformattert?")
+
+                        artistString += `, ${totalPlaycount} totale avspillinger*`
+
+                        if (msg)
+                            msg.edit(artistString)
+                        else
+                            MessageHelper.sendMessage(message, artistString);
+                    });
+            }).catch((error: any) => console.log(error));
 
     }
 
@@ -81,9 +169,10 @@ export class Music {
     }
 
 
+
     static readonly musicCommands: ICommandElement = {
-        commandName: "music",
-        description: "'User': Sett bruker\n'Top10': Topp 10 artister\n'topalbum': Top 10 album\n'topsong': Topp 10 sanger\n'top': Topp 10 artister",
+        commandName: "musikk",
+        description: "Bruk '!mz musikk <topp> <songs|albums|artist> <limit?>(valgfri)",
         hideFromListing: true,
         isAdmin: true,
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
