@@ -15,6 +15,7 @@ Denne filen må inneholde koden
 export type env = "dev" | "prod";
 export const environment: env = "dev";
 export const discordSecret = 'insert token'
+export const mwPw = 'insert pw'
 ```
 
 
