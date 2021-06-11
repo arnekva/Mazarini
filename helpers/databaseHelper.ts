@@ -117,14 +117,18 @@ export class DatabaseHelper {
 	static findUserByUsername(username: string, rawMessage: Message) {
 		return rawMessage.client.users.cache.find(user => user.username == username);
 	}
+	static findUserById(id: string, rawMessage: Message) {
+		return rawMessage.client.users.cache.find(user => user.id == id);
+	}
 
 
 
 
 
 	/**
+	 * FIXME: This abomination
 	 * Ser gjennom alle brukere og sammenligner 1 med 2. Hvis 2 er større, setter funksjonen 1 = 2;
-	 * Unnskyld fremtidige mennesker som ska prøva å tyda dette her. 
+	 * Unnskyld fremtidige mennesker som ska prøva å tyda dette her.  
 	 * @param prefix1 Compare
 	 * @param prefix2 Compare
 	 */

@@ -110,12 +110,16 @@ Docs: https://www.last.fm/api/show/user.getInfo
     */
 
     static async findLastFmData(message: Message, dataParam: fetchData) {
-        const msg = await MessageHelper.sendMessage(message, "Laster data...")
-        const apiKey = lfKey;
         if (parseInt(dataParam.limit) > 30) {
             message.reply("Litt for høy limit, deranes")
             return;
+        } else if (!parseInt(dataParam.limit)) {
+            dataParam.limit = "10";
+            dataParam.includeStats = true;
         }
+        const msg = await MessageHelper.sendMessage(message, "Laster data...")
+        const apiKey = lfKey;
+
         let artistString = dataParam.method.desc + " " + dataParam.limit;
         Promise.all([
             fetch(Music.baseUrl + `?method=${dataParam.method.cmd}&user=${dataParam.user}&api_key=${apiKey}&format=json&limit=${dataParam.limit}`, {
@@ -147,7 +151,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
                         else
                             message.reply("Fant ingen data. Kanskje feilformattert?")
 
-                        artistString += `, ${totalPlaycount} totale avspillinger.  ${dataParam.includeStats ? (numPlaysInTopX / parseInt(totalPlaycount) * 100).toFixed(1) + "% av avspillingene er fra dine topp " + dataParam.limit + " artister." : ""}* `
+                        artistString += `, ${totalPlaycount} totale avspillinger.  ${dataParam.includeStats ? (numPlaysInTopX / parseInt(totalPlaycount) * 100).toFixed(1) + "% av avspillingene er fra dine topp " + dataParam.limit + "." : ""}* `
 
                         if (msg)
                             msg.edit(artistString)
