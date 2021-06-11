@@ -39,28 +39,28 @@ export class JokeCommands {
 			const maggi = guild.members.cache.get("221739293889003520")
 			if (maggi) {
 				// message.reply("TEST: Siste melding fra magnus ble sendt " + maggi.lastMessage?.createdTimestamp)
-				const allMsg: number[] = [];
-				const allChannels = message.client.channels.cache.array();
-				for (let i = 0; i < allChannels.length; i++) {
-					let currentChannel = message.client.channels.cache.get(allChannels[i].id);
+				// const allMsg: number[] = [];
+				// const allChannels = message.client.channels.cache.array();
+				// for (let i = 0; i < allChannels.length; i++) {
+				// 	let currentChannel = message.client.channels.cache.get(allChannels[i].id);
 
-					if (currentChannel?.isText()) {
-						const messages = await (currentChannel as TextChannel).messages.fetch({ limit: 50 })
-						const filtered = messages.filter(m => m.author.username == "Deadmaggi")
-						filtered.forEach((el) => allMsg.push(el.createdTimestamp))
-					}
-				}
+				// 	if (currentChannel?.isText()) {
+				// 		const messages = await (currentChannel as TextChannel).messages.fetch({ limit: 50 })
+				// 		const filtered = messages.filter(m => m.author.username == "Deadmaggi")
+				// 		filtered.forEach((el) => allMsg.push(el.createdTimestamp))
+				// 	}
+				// }
 
-				try {
-					allMsg.sort();
-					const newestMessage = allMsg[allMsg.length - 1];
-					const now = new Date().getTime();
-					difference = msToTime(now - newestMessage, true);
+				// try {
+				// 	allMsg.sort();
+				// 	const newestMessage = allMsg[allMsg.length - 1];
+				// 	const now = new Date().getTime();
+				// 	difference = msToTime(now - newestMessage, true);
 
 
-				} catch (error) {
-					message.reply("dette kræsje bro")
-				}
+				// } catch (error) {
+				// 	message.reply("dette kræsje bro")
+				// }
 
 				// console.log(allMsg);
 
