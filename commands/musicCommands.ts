@@ -56,7 +56,7 @@ export class Music {
             }
             const cmd = Music.getCommand(method.command, args[1])
             if (!cmd) {
-                message.reply("kommandoen eksisterer ikke. Bruk 'artist', 'songs' eller 'album'")
+                message.reply("kommandoen mangler 'artist', 'songs' eller 'album' bak topp")
                 return;
             }
 
@@ -105,6 +105,9 @@ export class Music {
                 return undefined;
         }
     }
+    /*
+Docs: https://www.last.fm/api/show/user.getInfo
+    */
 
     static async findLastFmData(message: Message, dataParam: fetchData) {
         const msg = await MessageHelper.sendMessage(message, "Laster data...")
@@ -131,14 +134,12 @@ export class Music {
                         const strippedMethod = dataParam.method.cmd.replace("user.get", "");
                         const methodWithoutGet = replaceLast(strippedMethod.replace("top", ""), "s", "");
                         artistString += " " + methodWithoutGet + "s";
-
                         prop = topData[strippedMethod][methodWithoutGet] as { name: string, playcount: string, artist?: { name: string } }[];
-
-
+                        let numPlaysInTopX = 0;
                         if (prop) {
 
                             prop.forEach((element: { name: string, playcount: string, artist?: { name: string } }) => {
-
+                                numPlaysInTopX += (parseInt(element.playcount));
                                 artistString += `\n${element.artist ? element.artist.name + " - " : ""}${element.name} (${element.playcount} plays) ${dataParam.includeStats ? ((parseInt(element.playcount) / parseInt(totalPlaycount)) * 100).toFixed(1) + "%" : ""} `
                             });
                             artistString += `\n*Totalt ${topData[strippedMethod]["@attr"].total} ${methodWithoutGet}s i biblioteket`
@@ -146,7 +147,7 @@ export class Music {
                         else
                             message.reply("Fant ingen data. Kanskje feilformattert?")
 
-                        artistString += `, ${totalPlaycount} totale avspillinger*`
+                        artistString += `, ${totalPlaycount} totale avspillinger.  ${dataParam.includeStats ? (numPlaysInTopX / parseInt(totalPlaycount) * 100).toFixed(1) + "% av avspillingene er fra dine topp " + dataParam.limit + " artister." : ""}* `
 
                         if (msg)
                             msg.edit(artistString)
