@@ -44,7 +44,7 @@ export class Music {
 
         /** CHECKS at alt eksistere */
         const method = methods.filter(e => e.command == args[0])[0];
-        if (!method) {
+        if (!method && args[0] != "user") {
             message.reply("Kommandoen eksisterer ikke. Bruk 'topp'")
             return;
         }
