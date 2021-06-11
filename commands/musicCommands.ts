@@ -44,47 +44,43 @@ export class Music {
 
         /** CHECKS at alt eksistere */
         const method = methods.filter(e => e.command == args[0])[0];
-        if (!method && args[0] != "user") {
-            message.reply("Kommandoen eksisterer ikke. Bruk 'topp'")
-            return;
-        }
-        const username = Music.getLastFMUsernameByDiscordUsername(message.author.username, message)
-        if (!username) {
-            message.reply("Du har ikke registrert brukernavnet ditt. Bruk '!mz musikk user <discordnavn> <last.fm navn>")
-            return;
-        }
-        const cmd = Music.getCommand(method.command, args[1])
-        if (!cmd) {
-            message.reply("kommandoen eksisterer ikke. Bruk 'artist', 'songs' eller 'album'")
-            return;
-        }
+        if (args[0] != "user") {
+            if (!method) {
+                message.reply("Kommandoen eksisterer ikke. Bruk 'topp'")
+                return;
+            }
+            const username = Music.getLastFMUsernameByDiscordUsername(message.author.username, message)
+            if (!username) {
+                message.reply("Du har ikke registrert brukernavnet ditt. Bruk '!mz musikk user <discordnavn> <last.fm navn>")
+                return;
+            }
+            const cmd = Music.getCommand(method.command, args[1])
+            if (!cmd) {
+                message.reply("kommandoen eksisterer ikke. Bruk 'artist', 'songs' eller 'album'")
+                return;
+            }
 
-        /** CHECKS END */
+            /** CHECKS END */
 
-        const data: fetchData = {
-            user: username,
-            method: { cmd: cmd, desc: method.title },
-            limit: args[2] ?? "10",
-            includeStats: !!args[3]
+            const data: fetchData = {
+                user: username,
+                method: { cmd: cmd, desc: method.title },
+                limit: args[2] ?? "10",
+                includeStats: !!args[3]
 
-        }
-
-        switch (args[0]) {
-            case "user":
-                if (args[1] && args[2]) {
-                    if (args[1] !== message.author.username) {
-                        message.reply("du kan kun knytte ditt eget brukernavn")
-                        return;
-                    }
-                    Music.connectLastFmUsernameToUser(args[1], args[2], message)
-                    message.reply("Knyttet bruker " + args[1] + " til Last.fm brukernavnet " + args[2]);
-                } else {
-                    message.reply("formattering skal være '!mz music user DISCORDNAVN LAST.FMNAVN")
+            }
+            this.findLastFmData(message, data);
+        } else {
+            if (args[1] && args[2]) {
+                if (args[1] !== message.author.username) {
+                    message.reply("du kan kun knytte ditt eget brukernavn")
+                    return;
                 }
-                break;
-            default:
-                this.findLastFmData(message, data);
-                break;
+                Music.connectLastFmUsernameToUser(args[1], args[2], message)
+                message.reply("Knyttet bruker " + args[1] + " til Last.fm brukernavnet " + args[2]);
+            } else {
+                message.reply("formattering skal være '!mz music user DISCORDNAVN LAST.FMNAVN")
+            }
         }
     }
     static getCommand(c: commandTypes, s: string) {
