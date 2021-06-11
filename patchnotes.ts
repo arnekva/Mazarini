@@ -9,7 +9,7 @@ export class PatchNotes {
 	 * Increment y for mindre oppdateringer (enkle funksjoner osv)
 	 * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
 	 */
-	public static readonly currentVersion = "2.2.2";
+	public static readonly currentVersion = "2.3.0";
 
 	/** Private, brukes kun av getCurrentPatchNotes */
 	private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -19,12 +19,13 @@ export class PatchNotes {
 	 * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv. 
 	 */
 	public static readonly currentPatchNotes: string
-		= "* Nye bonks "
+		= "* Du kan nå knytte Last.FM brukeren din til Discord brukernavnet ditt, og hente ut topp 10 artister (flere funksjoner er under utvikling) med funksjonen !mz music top10 etter tilknytting"
+		+ "* Rettet en bug i Warzone stats, som nå skal gi ordentlig feilmelding dersom noe går galt. "
 
 
 		// + "\n* Boten gir nå beskjed når den er i utviklingsmodus, og at databaseverdier ikke blir lagret når aktivt."
 		+ "\n*Tekniske Notes*" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
-		+ "\n* Fikset kræsj som skjedde når Spotify-aktivitet ble registrert på brukere. " //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
+		+ "\n* Music-klassen er opprettet for å håndtere musikk-relaterte kommandoer. " //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
 		;
 
 	static getCurrentPatchNotes() {
