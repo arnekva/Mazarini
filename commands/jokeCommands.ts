@@ -34,66 +34,13 @@ export class JokeCommands {
 
 	static async isMaggiPlaying(message: Message) {
 		const guild = message.channel.client.guilds.cache.get("340626855990132747");
-		let difference: string | number = "0";
 		if (guild) {
 			const maggi = guild.members.cache.get("221739293889003520")
 			if (maggi) {
-				// message.reply("TEST: Siste melding fra magnus ble sendt " + maggi.lastMessage?.createdTimestamp)
-				// const allMsg: number[] = [];
-				// const allChannels = message.client.channels.cache.array();
-				// for (let i = 0; i < allChannels.length; i++) {
-				// 	let currentChannel = message.client.channels.cache.get(allChannels[i].id);
-
-				// 	if (currentChannel?.isText()) {
-				// 		const messages = await (currentChannel as TextChannel).messages.fetch({ limit: 50 })
-				// 		const filtered = messages.filter(m => m.author.username == "Deadmaggi")
-				// 		filtered.forEach((el) => allMsg.push(el.createdTimestamp))
-				// 	}
-				// }
-
-				// try {
-				// 	allMsg.sort();
-				// 	const newestMessage = allMsg[allMsg.length - 1];
-				// 	const now = new Date().getTime();
-				// 	difference = msToTime(now - newestMessage, true);
-
-
-				// } catch (error) {
-				// 	message.reply("dette kræsje bro")
-				// }
-
-				// console.log(allMsg);
-
-				// await MessageHelper.sendMessage(message.channel, "Han leve")
-				const differenceAsNumber = parseInt(difference as string);
 				if (maggi.presence.clientStatus) {
 					if (maggi.presence.activities && maggi.presence.activities[0]) {
 						const game = maggi.presence.activities[0].name == "Custom Status" ? maggi.presence.activities[1] : maggi.presence.activities[0];
-						if (game && maggi.presence.clientStatus.desktop) {
-							if (game.name == "Visual Studio Code") {
-								await MessageHelper.sendMessage(message, "Han har Visual Studio Code åpent! Han jobbe faktisk med masteren!")
-							}
-							else if (maggi.presence.clientStatus.desktop == "online") {
-								await MessageHelper.sendMessage(message, "Ja Magnus, kordan går det med masteren? Ser du spele *" + game.name + "*.")
-							} else if (maggi.presence.clientStatus.desktop == "idle") {
-								await MessageHelper.sendMessage(message, "Maen e idle akkurat nå, men det kan ver han spele *" + game.name + "* fordeom.")
-							} else if (maggi.presence.clientStatus.desktop == "dnd") {
-								await MessageHelper.sendMessage(message, "Maen har Do Not Disturb på, mens han spele *" + game.name + "*. Må la an ver i fred >:(")
-							}
-						} else {
-							if (maggi.presence.clientStatus.mobile) {
-								await MessageHelper.sendMessage(message, "Han har Discord åpent på telefonen, så han game nok ikkje.")
-							} else if (maggi.presence.clientStatus.web) {
-								await MessageHelper.sendMessage(message, "Ser ut som om han besøker Discord fra nettleseren? Wtf")
-							} else if (maggi.presence.clientStatus.desktop) {
-								if (maggi.presence.clientStatus.desktop == "idle") {
-
-									await MessageHelper.sendMessage(message, "Maen e idle, så då sove han garantert. (" + differenceAsNumber + " timer siden sist melding)")
-								} else if (differenceAsNumber > 6) {
-									await MessageHelper.sendMessage(message, "Det har gått mer enn 6 timer siden sist melding, og PC-en står på. Da har han nok sovnet (" + differenceAsNumber + " timer siden sist melding)")
-								}
-							}
-						}
+						await MessageHelper.sendMessage(message, `Maggi e ${maggi.presence.clientStatus.desktop ? "på pc-en" : (maggi.presence.clientStatus.mobile ? "på mobilen" : "i nettleseren")} på PC-en${game.name ? " med aktiviteten " + game.name + "." : "."}`)
 					}
 					else {
 						await MessageHelper.sendMessage(message, "Ingen aktivitet registrert på Discord. Sover han? Drikker han? Begge deler samtidig? ")
@@ -116,6 +63,7 @@ export class JokeCommands {
 		if (message.attachments) {
 			url = message.attachments.first()?.url;
 		}
+
 		const count = messageContent.split("://")
 		const count2 = messageContent.split("www")
 		if (count.length > 2 || count2.length > 2) {
