@@ -40,7 +40,7 @@ export class JokeCommands {
 				if (maggi.presence.clientStatus) {
 					if (maggi.presence.activities && maggi.presence.activities[0]) {
 						const game = maggi.presence.activities[0].name == "Custom Status" ? maggi.presence.activities[1] : maggi.presence.activities[0];
-						await MessageHelper.sendMessage(message, `Maggi e ${maggi.presence.clientStatus.desktop ? "på pc-en" : (maggi.presence.clientStatus.mobile ? "på mobilen" : "i nettleseren")} på PC-en${game.name ? " med aktiviteten " + game.name + "." : "."}`)
+						await MessageHelper.sendMessage(message, `Maggi e ${maggi.presence.clientStatus.desktop ? "på pc-en" : (maggi.presence.clientStatus.mobile ? "på mobilen" : "i nettleseren")} på PC-en${game ? " med aktiviteten " + game.name + "." : "."}`)
 					}
 					else {
 						await MessageHelper.sendMessage(message, "Ingen aktivitet registrert på Discord. Sover han? Drikker han? Begge deler samtidig? ")
