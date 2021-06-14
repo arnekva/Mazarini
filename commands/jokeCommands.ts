@@ -156,7 +156,9 @@ export class JokeCommands {
 		if (dateObj.seconds > 0)
 			timeTab.push(" " + dateObj.seconds + " sekunder");
 		timeTab.forEach((text, index) => {
-			timeString += text + (index < timeTab.length - 1 && timeTab.length > 1 ? " og" : ",");
+			timeString += text
+			if (index <= timeTab.length - 2 && timeTab.length > 1)
+				timeString += (index == timeTab.length - 2 ? " og" : ", ");
 		})
 		timeString += textEnding;
 		return timeString;
