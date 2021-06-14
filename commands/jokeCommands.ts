@@ -1,3 +1,4 @@
+import { time } from "console";
 import { Message, User, TextChannel } from "discord.js";
 import { parse } from "dotenv/types";
 import { globalArrays } from "../globals";
@@ -5,6 +6,7 @@ import { AchievementHelper } from "../helpers/achievementHelper";
 import { DatabaseHelper } from "../helpers/databaseHelper";
 import { MessageHelper } from "../helpers/messageHelper";
 import { ArrayUtils } from "../utils/arrayUtils";
+import { countdownTime, DateUtils } from "../utils/dateUtils";
 import { findLetterEmoji } from "../utils/miscUtils";
 import { msToTime } from "../utils/textUtils";
 import { ICommandElement } from "./commands";
@@ -126,22 +128,40 @@ export class JokeCommands {
 	}
 	static async countdownToDate(message: Message) {
 		let sendThisText = "";
-		const total2 = new Date(2021, 5, 15, 10).getTime() - new Date().getTime();
-		const seconds2 = Math.floor((total2 / 1000) % 60);
-		const minutes2 = Math.floor((total2 / 1000 / 60) % 60);
-		const hours2 = Math.floor((total2 / (1000 * 60 * 60)) % 24);
-		const days2 = Math.floor(total2 / (1000 * 60 * 60 * 24));
-		if (total2 > 0)
-			sendThisText += "\n" + ("Det er " + (hours2 > 0 ? hours2 + " timer " : "") + (minutes2 > 0 ? ", " + minutes2 + " minutter" : "") + (seconds2 ? " og " + seconds2 + " sekunder " : "") + " igjen av Magnus sin master!")
-		else
-			sendThisText += "\n" + ("Magnus har levert masteren sin :)")
+		const maggiMaster = DateUtils.getTimeTo(new Date(2021, 5, 15, 10));
+		sendThisText += "\n" + JokeCommands.formatCountdownText(maggiMaster, "igjen av Magnus sin master", "Magnus har levert masteren sin :)")
+		const thomasJobb = DateUtils.getTimeTo(new Date(2021, 6, 29, 15));
+		sendThisText += "\n" + JokeCommands.formatCountdownText(thomasJobb, "igjen av Thomas sin sommerjobb", "Thomas e ferige med sommberjobben :)")
 
 		MessageHelper.sendMessage(message, sendThisText)
 	}
-
 	/**
-	 * Denne funksjonen fungerer ikke, siden den krever Node v12 eller høyere. Repl.it kjører bare v10.24
+	 * 
+	 * @param dateObj Date object
+	 * @param textEnding Det som skal stå etter tiden (eks 1 dag 1 time <text ending> - 1 dag og 1 time 'igjen til ferie')
+	 * @param finishedText Det som printes hvis datoen/tiden har passert
 	 */
+	static formatCountdownText(dateObj: countdownTime | undefined, textEnding: string, finishedText: string) {
+		if (!dateObj)
+			return finishedText;
+		const timeTab: string[] = [];
+		let timeString = "Det er";
+
+		if (dateObj.days > 0)
+			timeTab.push(" " + dateObj.days + " dager")
+		if (dateObj.hours > 0)
+			timeTab.push(" " + dateObj.hours + " timer");
+		if (dateObj.minutes > 0)
+			timeTab.push(" " + dateObj.minutes + " minutter");
+		if (dateObj.seconds > 0)
+			timeTab.push(" " + dateObj.seconds + " sekunder");
+		timeTab.forEach((text, index) => {
+			timeString += text + (index == timeTab.length - 1 && timeTab.length > 1 ? ", " : " og ");
+		})
+		timeString += textEnding;
+		return timeString;
+	}
+
 	static async eivindprideItAll(message: Message) {
 		try {
 			const channel = message.channel as TextChannel;
