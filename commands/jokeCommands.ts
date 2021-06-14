@@ -158,9 +158,9 @@ export class JokeCommands {
 		timeTab.forEach((text, index) => {
 			timeString += text
 			if (index <= timeTab.length - 2 && timeTab.length > 1)
-				timeString += (index == timeTab.length - 2 ? " og" : ", ");
+				timeString += (index == timeTab.length - 2 ? " og" : ",");
 		})
-		timeString += textEnding;
+		timeString += " " + textEnding;
 		return timeString;
 	}
 
