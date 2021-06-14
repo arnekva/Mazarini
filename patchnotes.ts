@@ -9,7 +9,7 @@ export class PatchNotes {
 	 * Increment y for mindre oppdateringer (enkle funksjoner osv)
 	 * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
 	 */
-	public static readonly currentVersion = "2.3.0";
+	public static readonly currentVersion = "2.3.1";
 
 	/** Private, brukes kun av getCurrentPatchNotes */
 	private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -25,7 +25,7 @@ export class PatchNotes {
 
 		// + "\n* Boten gir nå beskjed når den er i utviklingsmodus, og at databaseverdier ikke blir lagret når aktivt."
 		+ "\n*Tekniske Notes*" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
-		+ "\n* Music-klassen er opprettet for å håndtere musikk-relaterte kommandoer. " //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
+		+ "\n* Nye måte å håndtere countdown på" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
 		;
 
 	static getCurrentPatchNotes() {
