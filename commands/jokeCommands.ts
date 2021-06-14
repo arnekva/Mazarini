@@ -132,7 +132,7 @@ export class JokeCommands {
 		const hours2 = Math.floor((total2 / (1000 * 60 * 60)) % 24);
 		const days2 = Math.floor(total2 / (1000 * 60 * 60 * 24));
 		if (total2 > 0)
-			sendThisText += "\n" + ("Det er " + (hours2 > 0 ? hours2 : "") + " timer, " + minutes2 + " minutter og " + seconds2 + " sekunder igjen av Magnus sin master!")
+			sendThisText += "\n" + ("Det er " + (hours2 > 0 ? hours2 + " timer, " : "") + (minutes2 > 0 ? minutes2 + " minutter og " : "") + (seconds2 ? seconds2 + " sekunder " : "") + " igjen av Magnus sin master!")
 		else
 			sendThisText += "\n" + ("Magnus har levert masteren sin :)")
 
