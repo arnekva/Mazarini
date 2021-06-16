@@ -21,3 +21,24 @@ export function getWeekNumber(d: Date) {
 
   return [d.getUTCFullYear(), weekNo, weekStartDate, weekEndDate] as const;
 }
+export interface countdownTime {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+
+}
+export class DateUtils {
+  static getTimeTo(date: Date): countdownTime | undefined {
+    const total = date.getTime() - new Date().getTime();
+    if (total < 0)
+      return undefined;
+    const rDate: countdownTime = {
+      days: Math.floor(total / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((total / (1000 * 60 * 60)) % 24),
+      minutes: Math.floor((total / 1000 / 60) % 60),
+      seconds: Math.floor((total / 1000) % 60)
+    }
+    return rDate;
+  }
+}
