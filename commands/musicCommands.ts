@@ -10,8 +10,9 @@ const fetch = require("node-fetch");
 export type musicCommand = "top";
 
 export type topMethods = "songs" | "artist" | "album" | "tags";
+export type weeklyMethods = "songs" | "artist";
 
-export type commandTypes = "topp";
+export type commandTypes = "topp" | "weekly";
 interface musicMethod {
     description: string;
     title: string;
@@ -20,6 +21,7 @@ interface musicMethod {
 
 export const methods: musicMethod[] = [
     { title: "Topp", description: "Hent ut en toppliste (Artist, album, sanger eller tags)", command: "topp" },
+    { title: "Ukentlig", description: "Hent ut en toppliste (Artist, album, sanger eller tags)", command: "weekly" },
 
 ]
 
@@ -46,7 +48,7 @@ export class Music {
         const method = methods.filter(e => e.command == args[0])[0];
         if (args[0] != "user") {
             if (!method) {
-                message.reply("Kommandoen eksisterer ikke. Bruk 'topp'")
+                message.reply("Kommandoen eksisterer ikke. Bruk 'topp' eller 'weekly'")
                 return;
             }
             const username = Music.getLastFMUsernameByDiscordUsername(message.author.username, message)
@@ -55,8 +57,9 @@ export class Music {
                 return;
             }
             const cmd = Music.getCommand(method.command, args[1])
+
             if (!cmd) {
-                message.reply("kommandoen mangler 'artist', 'songs' eller 'album' bak topp")
+                message.reply("kommandoen mangler 'artist', 'songs' eller 'album' eller  bak topp eller weekly")
                 return;
             }
 
@@ -79,7 +82,7 @@ export class Music {
                 Music.connectLastFmUsernameToUser(args[1], args[2], message)
                 message.reply("Knyttet bruker " + args[1] + " til Last.fm brukernavnet " + args[2]);
             } else {
-                message.reply("formattering skal være '!mz music user DISCORDNAVN LAST.FMNAVN")
+                message.reply("formattering skal være '!mz music user *DISCORDNAVN* *LAST.FMNAVN*")
             }
         }
     }
@@ -88,6 +91,9 @@ export class Music {
             case "topp":
                 if (s as topMethods)
                     return this.findTopMethod(s);
+            case "weekly":
+                if (s as weeklyMethods)
+                    return this.findWeeklyMethod(s);
         }
     }
     static findTopMethod(m: string) {
@@ -101,6 +107,19 @@ export class Music {
                 return base + "gettoptracks";
             case "tags":
                 return base + "gettoptags";
+            case "weekly":
+                return base + "getweeklytrackchart";
+            default:
+                return undefined;
+        }
+    }
+    static findWeeklyMethod(m: string) {
+        const base = "user."
+        switch (m) {
+            case "artist":
+                return base + "getweeklyartistchart"
+            case "songs":
+                return base + "getweeklytrackchart";
             default:
                 return undefined;
         }
@@ -111,7 +130,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
 
     static async findLastFmData(message: Message, dataParam: fetchData) {
         if (parseInt(dataParam.limit) > 30) {
-            message.reply("Litt for høy limit, deranes")
+            message.reply("Litt for høg limit, deranes. Maks 30.")
             return;
         } else if (!parseInt(dataParam.limit)) {
             dataParam.limit = "10";
@@ -119,7 +138,10 @@ Docs: https://www.last.fm/api/show/user.getInfo
         }
         const msg = await MessageHelper.sendMessage(message, "Laster data...")
         const apiKey = lfKey;
-
+        /** TODO: 
+         *  Sjekk om den funker som default (sikkert ikke)
+         *  Gjøre forskjellige fetcher for weekly og topp? Eventuelt kanskje bare forskjellige attr i then-en
+         */
         let artistString = dataParam.method.desc + " " + dataParam.limit;
         Promise.all([
             fetch(Music.baseUrl + `?method=${dataParam.method.cmd}&user=${dataParam.user}&api_key=${apiKey}&format=json&limit=${dataParam.limit}`, {
@@ -133,25 +155,31 @@ Docs: https://www.last.fm/api/show/user.getInfo
                     resInfo.json()
                 ])
                     .then(([topData, info]) => {
+                        const isWeekly = dataParam.method.cmd.includes("weekly")
+
                         const totalPlaycount = info["user"].playcount ?? "1";
                         let prop;
                         const strippedMethod = dataParam.method.cmd.replace("user.get", "");
-                        const methodWithoutGet = replaceLast(strippedMethod.replace("top", ""), "s", "");
+                        const methodWithoutGet = isWeekly ? strippedMethod.replace("weekly", "").replace("chart", "") : replaceLast(strippedMethod.replace("top", ""), "s", "");
                         artistString += " " + methodWithoutGet + "s";
+                        console.log(methodWithoutGet);
+
                         prop = topData[strippedMethod][methodWithoutGet] as { name: string, playcount: string, artist?: { name: string } }[];
+                        console.log(topData[strippedMethod]);
                         let numPlaysInTopX = 0;
                         if (prop) {
 
-                            prop.forEach((element: { name: string, playcount: string, artist?: { name: string } }) => {
+                            prop.forEach((element: { name: string, playcount: string, artist?: any, }) => {
                                 numPlaysInTopX += (parseInt(element.playcount));
-                                artistString += `\n${element.artist ? element.artist.name + " - " : ""}${element.name} (${element.playcount} plays) ${dataParam.includeStats ? ((parseInt(element.playcount) / parseInt(totalPlaycount)) * 100).toFixed(1) + "%" : ""} `
+                                artistString += `\n${isWeekly && element.artist ? element.artist["#text"] + " - " : (element.artist ? element.artist.name + " - " : "")}${element.name} (${element.playcount} plays) ${dataParam.includeStats ? ((parseInt(element.playcount) / parseInt(totalPlaycount)) * 100).toFixed(1) + "%" : ""} `
                             });
-                            artistString += `\n*Totalt ${topData[strippedMethod]["@attr"].total} ${methodWithoutGet}s i biblioteket`
+                            if (!isWeekly)
+                                artistString += `\n*Totalt ${topData[strippedMethod]["@attr"].total} ${methodWithoutGet}s i biblioteket`
                         }
                         else
                             message.reply("Fant ingen data. Kanskje feilformattert?")
-
-                        artistString += `, ${totalPlaycount} totale avspillinger.  ${dataParam.includeStats ? (numPlaysInTopX / parseInt(totalPlaycount) * 100).toFixed(1) + "% av avspillingene er fra dine topp " + dataParam.limit + "." : ""}* `
+                        if (!isWeekly)
+                            artistString += `, ${totalPlaycount} totale avspillinger.  ${dataParam.includeStats ? (numPlaysInTopX / parseInt(totalPlaycount) * 100).toFixed(1) + "% av avspillingene er fra dine topp " + dataParam.limit + "." : ""}* `
 
                         if (msg)
                             msg.edit(artistString)

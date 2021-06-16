@@ -112,8 +112,8 @@ export class Spinner {
 	static async listScores(message: Message, isWeeklyReset?: boolean) {
 		const weekNumber = getWeekNumber(new Date())[1];
 		MessageHelper.sendMessage(message, "*** HIGHSCORE *** for uke " + (isWeeklyReset ? weekNumber - 1 : getWeekNumber(new Date())[1]));
-
-		const val2 = DatabaseHelper.getAllValuesFromPrefix("spin", message);
+		//FIXME: 
+		const val2 = DatabaseHelper.getAllValuesFromPrefix("spin", message).filter(e => e.val != "Ugyldig verdi");
 		ArrayUtils.sortUserValuePairArray(val2);
 		const highscoreList = ArrayUtils.makeValuePairIntoOneString(val2, Spinner.formatValue);
 		MessageHelper.sendMessage(message, highscoreList);

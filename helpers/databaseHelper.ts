@@ -154,7 +154,9 @@ export class DatabaseHelper {
 		const valueList: ValuePair[] = [];
 		Object.keys(users).forEach((el) => {
 			const val = DatabaseHelper.getValue(prefix, el, message, true);
-			valueList.push({ key: el, val: val })
+			//FIXME: Test this more?
+			if (val)
+				valueList.push({ key: el, val: val })
 		})
 		return valueList;
 	}
