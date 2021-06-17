@@ -21,7 +21,7 @@ interface musicMethod {
 
 export const methods: musicMethod[] = [
     { title: "Topp", description: "Hent ut en toppliste (Artist, album, sanger eller tags)", command: "topp" },
-    { title: "Ukentlig", description: "Hent ut en toppliste (Artist, album, sanger eller tags)", command: "weekly" },
+    { title: "Siste 7 dager", description: "Hent ut en toppliste (Artist, album, sanger eller tags)", command: "weekly" },
 
 ]
 

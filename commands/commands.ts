@@ -25,103 +25,103 @@ import { Music } from "./musicCommands";
  * @param deprecated (Optional) Hvis commanden bytter navn, sett den gamle til deprecated og la verdien være navnet på den nye commanden (eks !mz master bytter til !mz countdown -> behold !mz master og ha "countdown" i verdien på deprecated). Da vil botten legge til informasjon om deprecated og be de bruke den nye neste gang
  */
 export interface ICommandElement {
-	commandName: string;
-	description: string;
-	command: (rawMessage: Message, messageContent: string, args: string[]) => void;
-	hideFromListing?: boolean;
-	isAdmin?: boolean;
-	deprecated?: string;
+    commandName: string;
+    description: string;
+    command: (rawMessage: Message, messageContent: string, args: string[]) => void;
+    hideFromListing?: boolean;
+    isAdmin?: boolean;
+    deprecated?: string;
 }
 
 const helpCommand: ICommandElement = {
-	commandName: "help",
-	description: "List alle metoder. Bruk '!mz help <command>' for å finne ut mer om en spesifikk kommando",
-	command: (rawMessage, messageContent, args) => helperCommands(rawMessage, messageContent, args)
+    commandName: "help",
+    description: "List alle metoder. Bruk '!mz help <command>' for å finne ut mer om en spesifikk kommando",
+    command: (rawMessage, messageContent, args) => helperCommands(rawMessage, messageContent, args)
 }
 
 export const commands: ICommandElement[] = [
-	Spinner.command,
-	helpCommand,
-	Spinner.highscoreCommand,
-	Spinner.allTimeHighCommand,
-	Admin.command,
-	JokeCommands.roggaVaskHuset,
-	JokeCommands.deadmaggi,
-	JokeCommands.thomasFese,
-	JokeCommands.mygleStatus,
-	JokeCommands.getAllMygling,
-	JokeCommands.masterCountdown,
-	JokeCommands.countdown,
-	JokeCommands.elDavido,
-	JokeCommands.eivndPrideCommand,
-	JokeCommands.reactWithWord,
-	JokeCommands.bonkSender,
-	JokeCommands.uwuMessage,
-	Spinner.listNumberOfSpins,
-	// Admin.nukeDatabase,
-	Admin.setVal,
-	Admin.setSpinVal,
-	Admin.getVal,
-	Admin.deleteSpecificKey,
-	Admin.sendMsgAsBot,
-	Admin.reactToMsg,
-	Admin.replyToMsg,
-	Admin.warnUserCommand,
-	Spinner.setHighscoreCommand,
-	Admin.deleteValFromPrefix,
-	GitHubCommands.issueCommand,
-	JokeCommands.eivindSkyld,
-	GameCommands.getDropVerdansk,
-	GameCommands.getDropRebirth,
-	GameCommands.getDropFromGrid,
-	GamblingCommands.addCoinsCommand,
-	GamblingCommands.removeCoinsCommand,
-	GamblingCommands.checkCoinsCommand,
-	WarzoneCommands.getWZStats,
-	WarzoneCommands.getWeeklyWZStats,
-	WarzoneCommands.getWeaponStats,
-	PatchNotes.getPatchNotes,
-	PatchNotes.publishPatchNotes,
-	Achievements.listAchievements,
-	Achievements.giveMissingAchievements,
-	SpotifyCommands.currentUserIsPlaying,
-	Music.musicCommands,
+    Spinner.command,
+    helpCommand,
+    Spinner.highscoreCommand,
+    Spinner.allTimeHighCommand,
+    Admin.command,
+    JokeCommands.roggaVaskHuset,
+    JokeCommands.deadmaggi,
+    JokeCommands.thomasFese,
+    JokeCommands.mygleStatus,
+    JokeCommands.getAllMygling,
+    JokeCommands.masterCountdown,
+    JokeCommands.countdown,
+    JokeCommands.elDavido,
+    JokeCommands.eivndPrideCommand,
+    JokeCommands.reactWithWord,
+    JokeCommands.bonkSender,
+    JokeCommands.uwuMessage,
+    Spinner.listNumberOfSpins,
+    // Admin.nukeDatabase,
+    Admin.setVal,
+    Admin.setSpinVal,
+    Admin.getVal,
+    Admin.deleteSpecificKey,
+    Admin.sendMsgAsBot,
+    Admin.reactToMsg,
+    Admin.replyToMsg,
+    Admin.warnUserCommand,
+    Spinner.setHighscoreCommand,
+    Admin.deleteValFromPrefix,
+    GitHubCommands.issueCommand,
+    JokeCommands.eivindSkyld,
+    GameCommands.getDropVerdansk,
+    GameCommands.getDropRebirth,
+    GameCommands.getDropFromGrid,
+    GamblingCommands.addCoinsCommand,
+    GamblingCommands.checkCoinsCommand,
+    GamblingCommands.createBetCommand,
+    WarzoneCommands.getWZStats,
+    WarzoneCommands.getWeeklyWZStats,
+    WarzoneCommands.getWeaponStats,
+    PatchNotes.getPatchNotes,
+    PatchNotes.publishPatchNotes,
+    Achievements.listAchievements,
+    Achievements.giveMissingAchievements,
+    SpotifyCommands.currentUserIsPlaying,
+    Music.musicCommands,
 
 ]
 
 export const helperCommands = ((rawMessage: Message, messageContent: string, args: string[] | undefined) => {
-	const isLookingForAllAdmin = !!args && args[0] === "admin" && Admin.isAuthorAdmin(rawMessage.member);
-	let commandString = "Kommandoer: ";
-	let commandStringList: string[] = [];
-	const commandForHelp = messageContent.replace("!mz help", "").trim()
+    const isLookingForAllAdmin = !!args && args[0] === "admin" && Admin.isAuthorAdmin(rawMessage.member);
+    let commandString = "Kommandoer: ";
+    let commandStringList: string[] = [];
+    const commandForHelp = messageContent.replace("!mz help", "").trim()
 
-	if (args && args[0] !== "admin") {
-		let found = 0;
-		commands.forEach((cmd) => {
-			if (cmd.commandName == commandForHelp) {
-				MessageHelper.sendMessage(rawMessage, cmd.commandName + (cmd.isAdmin ? " (Admin) " : "") + ": " + cmd.description)
-				found++;
-			}
-		})
-		if (found == 0) {
-			MessageHelper.sendMessage(rawMessage, "Fant ingen kommando '" + commandForHelp + "'. ")
-		}
-	}
-	else {
-		commands.forEach((cmd) => {
+    if (args && args[0] !== "admin" && commandForHelp.length > 0) {
+        let found = 0;
+        commands.forEach((cmd) => {
+            if (cmd.commandName == commandForHelp) {
+                MessageHelper.sendMessage(rawMessage, cmd.commandName + (cmd.isAdmin ? " (Admin) " : "") + ": " + cmd.description)
+                found++;
+            }
+        })
+        if (found == 0) {
+            MessageHelper.sendMessage(rawMessage, "Fant ingen kommando '" + commandForHelp + "'. ")
+        }
+    }
+    else {
+        commands.forEach((cmd) => {
 
-			if (isLookingForAllAdmin) {
-				commandStringList.push(cmd.commandName + (cmd.isAdmin ? " (admin)" : (cmd.hideFromListing ? " (gjemt fra visning) " : "")));
-			} else {
-				if (!cmd.hideFromListing)
-					commandStringList.push(cmd.commandName);
-			}
+            if (isLookingForAllAdmin) {
+                commandStringList.push(cmd.commandName + (cmd.isAdmin ? " (admin)" : (cmd.hideFromListing ? " (gjemt fra visning) " : "")));
+            } else {
+                if (!cmd.hideFromListing)
+                    commandStringList.push(cmd.commandName);
+            }
 
-		})
-		commandStringList.sort();
-		commandStringList.forEach((str) => commandString += "\n" + str)
-		commandString += "\n\n" + "*Bruk '!mz help <command>' for beskrivelse*"
-		MessageHelper.sendMessage(rawMessage, commandString)
-	}
+        })
+        commandStringList.sort();
+        commandStringList.forEach((str) => commandString += "\n" + str)
+        commandString += "\n\n" + "*Bruk '!mz help <command>' for beskrivelse*"
+        MessageHelper.sendMessage(rawMessage, commandString)
+    }
 
 })

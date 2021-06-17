@@ -9,7 +9,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = "2.3.1";
+    public static readonly currentVersion = "2.4.0";
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -19,13 +19,10 @@ export class PatchNotes {
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv. 
      */
     public static readonly currentPatchNotes: string
-        = "* Flere funksjoner for å se statistikk via Last.fm. Du kan nå hente ut weekly stats (oppdateres daglig?)"
-        + "*  Nye (shitty) svar på navnfunksjonene"
-
-
+        = "* Betting kommandoen er nå under utvikling"
         // + "\n* Boten gir nå beskjed når den er i utviklingsmodus, og at databaseverdier ikke blir lagret når aktivt."
         + "\n*Tekniske Notes*" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
-        + "\n* Lagt til filter for ugyldig verdi i highscore for spinneren" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
+        + "\n* Kan nå lagre verdier under other i databasen." //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
         ;
 
     static getCurrentPatchNotes() {

@@ -1,7 +1,7 @@
 
 import { Message } from "discord.js";
 import { Channel, Client, DMChannel, NewsChannel, TextChannel } from "discord.js";
-import { dbPrefix } from "../helpers/databaseHelper";
+import { DatabaseHelper, dbPrefix } from "../helpers/databaseHelper";
 import { MessageHelper } from "../helpers/messageHelper";
 import { ICommandElement } from "./commands";
 
@@ -9,110 +9,92 @@ import { ICommandElement } from "./commands";
 
 export class GamblingCommands {
 
-	//Todo: Add mz startPoll
-	//Todo: Add mz endPoll
-	//TOdo: Fikse coins converter
-	//Todo: Add Butikk
-	//!mz addcoins arne 2000
-	static async manageCoins(message: Message, messageContent: string, isRemove?: boolean) {
-		const content = messageContent.split("-v"); //V for value (:
-		const username = content[0].trim();
-		let value = "";
-		const newCont = content.slice(1)
-		newCont.forEach((el) => value += el.trim())
-		console.log("Adding dogeCoins <" + value + "> for key <" + username + ">")
-		// await DatabaseHelper.getValue("dogeCoin", username, (val) => {
-		// 	if (val) {
-		// 		if (parseInt(val)) { // <- do it there
-		// 			let newVal = isRemove ? parseInt(val) - parseInt(value) : parseInt(val) + parseInt(value);
-		// 			DatabaseHelper.setValue("dogeCoin", username, newVal.toString(), (success) => {
-		// 				if (!success) {
-		// 					message.channel.send("Teksten inneholder ulovlige verdier")
-		// 				}
-		// 				else {
-		// 					MessageHelper.sendMessage(message.channel, isRemove ? "DogeCoins removed" : "DogeCoins Added!")
-		// 				}
-		// 			});
-		// 		}
-		// 		else {
-		// 			MessageHelper.sendMessage(message.channel, "Plz use norwegian tall.")
-		// 		}
-		// 	}
-		// 	else {
-		// 		MessageHelper.sendMessage(message.channel, "Brukeren suger, han har ikke tall")
-		// 	}
+    //Todo: Add mz startPoll
+    //Todo: Add mz endPoll
+    //TOdo: Fikse coins converter
+    //Todo: Add Butikk
 
-		// })
-	}
-
-	static async removeCoins(message: Message, messageContent: string) {
-		const content = messageContent.split("-v"); //V for value (:
-		const username = content[0].trim();
-		let value = "";
-		const newCont = content.slice(1)
-		newCont.forEach((el) => value += el.trim())
-		console.log("Removing dogeCoins <" + value + ">")
-		// await DatabaseHelper.getValue("dogeCoin", username, (val) =>{ 
-		//     if (val) {
-		// 			  if (parseInt(val)) { // <- do it there
-		//         if(parseInt(val) < parseInt(value)){
-		// 				    let newVal = parseInt(val) - parseInt(value);
-		// 				    DatabaseHelper.setValue("dogeCoin", username, newVal.toString(), (success) => {
-		// 					    if (!success) {
-		// 						    message.channel.send("Teksten inneholder ulovlige verdier")
-		// 					    }
-		// 				    });
-		//         }
-		//         else{
-		// 			      MessageHelper.sendMessage(message.channel, "User has to few DogeCoins to remove.")
-		//         }
-		// 			  }
-		//       else{
-		//         MessageHelper.sendMessage(message.channel, "Plz use norwegian tall.")
-		//       }
-		// 		  }
+    static async manageCoins(message: Message, messageContent: string, args: string[]) {
+        if (!args[0] && !args[1]) {
+            MessageHelper.sendMessage(message, `Feil formattering. <brukernavn> <coins>`)
+            return;
+        }
+        const user = args[0];
+        const prefix = "dogeCoin";
+        let val: string | number = args[1];
+        if (Number(val)) {
+            const currentVal = DatabaseHelper.getValue(prefix, user, message);
+            if (Number(currentVal))
+                val = Number(val) + Number(currentVal);
+            DatabaseHelper.setValue(prefix, user, val.toString());
+            MessageHelper.sendMessage(message, `${user} har nå ${val} dogecoins.`)
+        } else
+            MessageHelper.sendMessage(message, `Du må bruke et tall som verdi`)
+    }
 
 
-		// }) 
-		await MessageHelper.sendMessage(message, "DogeCoins removed!")
-	}
+    static async createBet(message: Message, messageContent: string, args: string[]) {
+        const betString = `${message.author.username} har startet et veddemål: ${messageContent}. Reager med 👍 for JA, 👎 for NEI. Resultat vises om 20 sek`
+        const startMessage = await MessageHelper.sendMessage(message, betString)
+        if (startMessage) {
+            startMessage.react("👍")
+            startMessage.react("👎")
 
-	static async checkCoins(message: Message, messageContent: string) {
-		const content = messageContent.split(" ");
-		const prefix = content[0] as dbPrefix;
-		const key = "dogeCoin";
-		// const val = await DatabaseHelper.getValue("dogeCoin", prefix, (val) => {
-		// 	if (val)
-		// 		MessageHelper.sendMessage(message.channel, val)
-		// 	else
-		// 		MessageHelper.sendMessage(message.channel, "Ingen verdi funnet for nøkkel <" + key + "> med prefix <" + prefix + ">")
-		// })
-	}
+            setTimeout(function () {
+                let fullString = "";
+                const positive: string[] = [];
+                const negative: string[] = [];
+                const allReactions = startMessage.reactions.cache.forEach((reaction) => {
+                    fullString += "Folk som reagerte med " + reaction.emoji.name + ":"
+                    const users = reaction.users;
+                    users.cache.forEach((us, ind) => {
+                        if (reaction.emoji.name == "👍")
+                            positive.push(us.username)
+                        else
+                            negative.push(us.username)
+                        fullString += (us.username == "Mazarini Bot" ? "" : " " + us.username + ",");
+                    })
+                    fullString += "\n";
+                })
+                MessageHelper.sendMessage(message, fullString)
+                DatabaseHelper.setBetObject("bet", startMessage.id, { positivePeople: positive, negativePeople: negative })
+            }, 20000) //Sett til 60000
+        }
+    }
 
-	static readonly addCoinsCommand: ICommandElement = {
-		commandName: "addcoins",
-		description: "Add coins to person",
-		hideFromListing: true,
-		isAdmin: true,
-		command: (rawMessage: Message, messageContent: string) => {
-			GamblingCommands.manageCoins(rawMessage, messageContent);
-		}
-	}
-	static readonly removeCoinsCommand: ICommandElement = {
-		commandName: "removecoins",
-		description: "Remove coins from person",
-		hideFromListing: true,
-		isAdmin: true,
-		command: (rawMessage: Message, messageContent: string) => {
-			GamblingCommands.manageCoins(rawMessage, messageContent, true);
-		}
-	}
-	static readonly checkCoinsCommand: ICommandElement = {
-		commandName: "checkcoins",
-		description: "Check coins on a person",
-		command: (rawMessage: Message, messageContent: string) => {
-			GamblingCommands.checkCoins(rawMessage, messageContent);
-		}
-	}
+
+    static async checkCoins(message: Message, messageContent: string, args: string[]) {
+        if (!args[0]) {
+            MessageHelper.sendMessage(message, `Feil formattering. <brukernavn>`)
+            return;
+        }
+        const val = DatabaseHelper.getValue("dogeCoin", args[0], message)
+        MessageHelper.sendMessage(message, `${args[0]} har ${val} dogecoins`)
+    }
+
+    static readonly addCoinsCommand: ICommandElement = {
+        commandName: "coins",
+        description: "Legg til eller fjern coins fra en person. <Brukernavn> <verdi> (pluss/minus)",
+        hideFromListing: true,
+        isAdmin: true,
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            GamblingCommands.manageCoins(rawMessage, messageContent, args);
+        }
+    }
+
+    static readonly checkCoinsCommand: ICommandElement = {
+        commandName: "checkcoins",
+        description: "Check coins on a person",
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            GamblingCommands.checkCoins(rawMessage, messageContent, args);
+        }
+    }
+    static readonly createBetCommand: ICommandElement = {
+        commandName: "bet",
+        description: "Start et ja/nei veddemål",
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            GamblingCommands.createBet(rawMessage, messageContent, args);
+        }
+    }
 
 }
