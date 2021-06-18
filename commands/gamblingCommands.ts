@@ -57,6 +57,7 @@ export class GamblingCommands {
                     fullString += "\n";
                 })
                 MessageHelper.sendMessage(message, fullString)
+                //TODO: Include description and value;
                 DatabaseHelper.setBetObject("bet", startMessage.id, { positivePeople: positive, negativePeople: negative })
             }, 20000) //Sett til 60000
         }
