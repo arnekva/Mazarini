@@ -77,6 +77,7 @@ export const commands: ICommandElement[] = [
     GamblingCommands.addCoinsCommand,
     GamblingCommands.checkCoinsCommand,
     GamblingCommands.createBetCommand,
+    GamblingCommands.resolveBetCommand,
     WarzoneCommands.getWZStats,
     WarzoneCommands.getWeeklyWZStats,
     WarzoneCommands.getWeaponStats,

@@ -32,6 +32,22 @@ export interface dbObject {
 
 export type dbPrefix = "spin" | "birthday" | "stock" | "mygling" | "week" | "counterSpin" | "ATHspin" | "sCounterWeeklySpin" | "warningCounter" | "dogeCoin" | "test" | "achievement" | "bonkCounter" | "lastFmUsername";
 
+export interface betObject {
+    discriminator: "BETOBJECT",
+    description: string,
+    value: string,
+    positivePeople: string[],
+    negativePeople: string[],
+    messageId: string,
+}
+export interface betObjectReturned {
+    discriminator: "BETOBJECT",
+    description: string,
+    value: string,
+    positivePeople: string,
+    negativePeople: string,
+    messageId: string,
+}
 export class DatabaseHelper {
 
     /**
@@ -46,11 +62,24 @@ export class DatabaseHelper {
     static setNonUserValue(id: string, key: string, value: string) {
         db.push(`${otherFolderPreifx}/${key}/${id}`, `${value}`)
     }
-    static setBetObject(key: string, messageId: string, value: { positivePeople: any[], negativePeople: any[] }) {
-
-        db.push(`${otherFolderPreifx}/${key}/${messageId}/positive`, `${value.positivePeople}`)
-        db.push(`${otherFolderPreifx}/${key}/${messageId}/negative`, `${value.negativePeople}`)
-
+    static setActiveBetObject(key: string, value: betObject) {
+        db.push(`${otherFolderPreifx}/activeBet/${key}/positivePeople`, `${value.positivePeople}`)
+        db.push(`${otherFolderPreifx}/activeBet/${key}/negativePeople`, `${value.negativePeople}`)
+        db.push(`${otherFolderPreifx}/activeBet/${key}/value`, `${value.value}`)
+        db.push(`${otherFolderPreifx}/activeBet/${key}/description`, `${value.description}`)
+        db.push(`${otherFolderPreifx}/activeBet/${key}/messageId`, `${value.messageId}`)
+    }
+    static getActiveBetObject(key: string,) {
+        try {
+            const data = db.getData(`${otherFolderPreifx}/activeBet/${key}`)
+            return data;
+        } catch (error) {
+            return undefined;
+        }
+    }
+    static setBetObject(key: string, messageId: string, value: betObject) {
+        db.push(`${otherFolderPreifx}/storedBets/${messageId}/positive`, `${value.positivePeople}`)
+        db.push(`${otherFolderPreifx}/storedBets/${messageId}/negative`, `${value.negativePeople}`)
     }
     static setAchievementObject(prefix: dbPrefix, key: string, achievementID: achievementIDs, value: any) {
 
@@ -115,7 +144,9 @@ export class DatabaseHelper {
         return db.getData("/users");
     };
 
-
+    static deleteActiveBet(username: string) {
+        db.delete(`${otherFolderPreifx}/activeBet/${username}`)
+    }
     static deleteSpecificPrefixValues(prefix: dbPrefix) {
         const users = db.getData(`${folderPrefix}`);
         Object.keys(users).forEach((el) => {
