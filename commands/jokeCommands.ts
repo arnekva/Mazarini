@@ -30,7 +30,7 @@ export class JokeCommands {
     }
 
     static async eivind(message: Message) {
-        await MessageHelper.sendMessage(message, Math.random() < 0.5 ? "Spise pistasj som ein eller aen psykopat??" : "Blei fratatt fyrstikkene av Mamma D:")
+        await MessageHelper.sendMessage(message, Math.random() < 0.7 ? "Lure på om most important news showe up på vår channel? Kan någen oppdatera han på server-bot-news-channel-fronten, faen ka" : "Spsie pistasj :3")
 
     }
 
