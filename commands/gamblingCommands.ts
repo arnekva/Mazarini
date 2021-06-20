@@ -135,6 +135,9 @@ export class GamblingCommands {
             if (parseInt(val) > parseInt(userMoney)) {
                 message.reply("Du har ikke nok penger til å gamble så mye")
                 return;
+            } else if (parseInt(val) < 1) {
+                message.reply("Du må gamble med et positivt tall, bro")
+                return;
             }
         }
         if (val && Number(val)) {
