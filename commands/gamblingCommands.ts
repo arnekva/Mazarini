@@ -145,7 +145,6 @@ export class GamblingCommands {
             let roll = Math.floor(Math.random() * 101);
             let newMoneyValue = 0;
             let multiplier = GamblingCommands.getMultiplier(roll, valAsNum);
-            roll = 100;
             if (roll >= 50) {
 
                 newMoneyValue = Number(userMoney) + (multiplier * valAsNum);
