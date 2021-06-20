@@ -58,10 +58,11 @@ export class DatabaseHelper {
     static setValue(prefix: dbPrefix, key: string, value: string) {
         db.push(`${folderPrefix}/${key}/${prefix}`, `${value}`)
     }
-
+    /** Sett en verdi i "other"-delen av databasen */
     static setNonUserValue(id: string, key: string, value: string) {
         db.push(`${otherFolderPreifx}/${key}/${id}`, `${value}`)
     }
+    /** Knytter et bet til en bruker */
     static setActiveBetObject(key: string, value: betObject) {
         db.push(`${otherFolderPreifx}/activeBet/${key}/positivePeople`, `${value.positivePeople}`)
         db.push(`${otherFolderPreifx}/activeBet/${key}/negativePeople`, `${value.negativePeople}`)
@@ -86,7 +87,7 @@ export class DatabaseHelper {
         db.push(`${folderPrefix}/${key}/${prefix}/${achievementID}`, `${value}`)
 
     }
-
+    /** Increment verdien for en int som ligger i databasen */
     static incrementValue(prefix: dbPrefix, key: string, increment: string, message: Message) {
         const oldValue = DatabaseHelper.getValue(prefix, key, message)
         const newVal = Number(oldValue) + Number(increment);

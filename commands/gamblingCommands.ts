@@ -142,10 +142,14 @@ export class GamblingCommands {
         }
         if (val && Number(val)) {
             const valAsNum = Number(Number(val).toFixed(2));
-            const roll = Math.floor(Math.random() * 101);
+            let roll = Math.floor(Math.random() * 101);
             let newMoneyValue = 0;
-            if (roll >= 50)
-                newMoneyValue = Number(userMoney) + valAsNum;
+            let multiplier = GamblingCommands.getMultiplier(roll, valAsNum);
+            roll = 100;
+            if (roll >= 50) {
+
+                newMoneyValue = Number(userMoney) + (multiplier * valAsNum);
+            }
             else
                 newMoneyValue = Number(userMoney) - valAsNum;
 
@@ -154,9 +158,15 @@ export class GamblingCommands {
             const gambling = new MessageEmbed()
                 .setTitle("Gambling 🎲")
                 .setDescription(`${message.author.username} gamblet ${valAsNum} av ${userMoney} coins.\nTerningen trillet: ${roll}/100. Du ${roll >= 50 ? "vant! 💰💰" : "tapte 💸"}\nDu har nå ${newMoneyValue.toFixed(2)} coins.`)
-
+            if (roll >= 100)
+                gambling.addField("Trillet 100!", "Du trillet 100 og vant 5 ganger så mye som du satset!")
             MessageHelper.sendFormattedMessage(message, gambling);
         }
+    }
+    static getMultiplier(roll: number, amountBet: number) {
+        if (roll >= 100)
+            return 10;
+        return 1;
     }
 
     static takeUpLoan(message: Message, content: string, args: string[]) {
@@ -202,12 +212,19 @@ export class GamblingCommands {
             return;
         }
         if (!isNaN(wantsToPayDownThisAmount)) {
-            const newTotal = Number(totalDebt) - Number(args[0])
+            let newTotal = Number(totalDebt) - Number(args[0])
+
             const userMasNumber = Number(userMoney);
             if (userMasNumber < wantsToPayDownThisAmount) {
                 message.reply("du har ikke råd til dette.")
                 return;
             } else {
+                let backToPayer = 0;
+                if (newTotal < 0) {
+                    message.reply("du har betalt " + Math.abs(newTotal) + " for mye på lånet ditt. Dette blir tilbakebetalt. ")
+                    backToPayer = Math.abs(newTotal);
+                }
+                newTotal += Math.abs(newTotal);
                 DatabaseHelper.setValue("debt", username, newTotal.toFixed(2))
                 const newDogeCoinsCOunter = Number(userMoney) - wantsToPayDownThisAmount;
                 DatabaseHelper.setValue("dogeCoin", username, newDogeCoinsCOunter.toFixed(2))
@@ -239,12 +256,14 @@ export class GamblingCommands {
 
 
     static async checkCoins(message: Message, messageContent: string, args: string[]) {
+        let username;
         if (!args[0]) {
-            MessageHelper.sendMessage(message, `Feil formattering. <brukernavn>`)
-            return;
-        }
-        const val = DatabaseHelper.getValue("dogeCoin", args[0], message)
-        MessageHelper.sendMessage(message, `${args[0]} har ${val} dogecoins`)
+            username = message.author.username;
+        } else
+            username = args[0];
+
+        const val = DatabaseHelper.getValue("dogeCoin", username, message)
+        MessageHelper.sendMessage(message, `${username} har ${val} dogecoins`)
     }
 
     static readonly addCoinsCommand: ICommandElement = {
@@ -284,6 +303,15 @@ export class GamblingCommands {
     static readonly checkCoinsCommand: ICommandElement = {
         commandName: "checkcoins",
         description: "Check coins on a person",
+        deprecated: "wallet",
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            GamblingCommands.checkCoins(rawMessage, messageContent, args);
+        }
+    }
+    static readonly walletCommand: ICommandElement = {
+        commandName: "wallet",
+        description: "Check coins on a person",
+        deprecated: "wallet",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.checkCoins(rawMessage, messageContent, args);
         }

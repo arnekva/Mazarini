@@ -81,7 +81,7 @@ export class MessageHelper {
         }
         return messageToReturn
     }
-
+    /** Send en embedded message (se gambling for eksempel) */
     static async sendFormattedMessage(message: Message, newMessage: MessageEmbed) {
         message.channel.send(newMessage)
     }
