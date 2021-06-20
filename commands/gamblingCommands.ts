@@ -204,6 +204,10 @@ export class GamblingCommands {
     static payDownDebt(message: Message, content: string, args: string[]) {
         const username = message.author.username;
         const totalDebt = DatabaseHelper.getValue("debt", username, message)
+        if (Number(totalDebt) <= 0) {
+            message.reply("Du har ingen lån")
+            return;
+        }
         const userMoney = DatabaseHelper.getValue("dogeCoin", message.author.username, message);
         const wantsToPayDownThisAmount = Number(args[0]);
         if (wantsToPayDownThisAmount < 1) {
