@@ -227,7 +227,7 @@ export class GamblingCommands {
                     message.reply("du har betalt " + Math.abs(newTotal) + " for mye på lånet ditt. Dette blir tilbakebetalt. ")
                     backToPayer = Math.abs(newTotal);
                 }
-                newTotal += Math.abs(newTotal);
+                newTotal += backToPayer;
                 DatabaseHelper.setValue("debt", username, newTotal.toFixed(2))
                 const newDogeCoinsCOunter = Number(userMoney) - wantsToPayDownThisAmount + backToPayer;
                 DatabaseHelper.setValue("dogeCoin", username, newDogeCoinsCOunter.toFixed(2))
@@ -238,7 +238,22 @@ export class GamblingCommands {
             message.reply("Du har ikke skrevet inn et tall");
         }
     }
+    static vippsCoins(message: Message, content: string, args: string[]) {
+        if (!args[0]) {
+            message.reply("du må sei kem du ska vippsa, bro")
+            return;
+        }
+        if (!args[1]) {
+            message.reply("du må sei kor møye du ska vippsa, bro")
+            return;
+        }
 
+        const userWhoGetsCoins = args[0];
+        const coinsToVipps = args[1];
+
+        const authorBalance = Number(DatabaseHelper.getValue("dogeCoin", message.author.username, message));
+
+    }
     static dealCoins(message: Message, value: string, peopleGettingCoins: string) {
         const peopleCoins = peopleGettingCoins.split(",").filter(u => u !== "Mazarini Bot")
         const basePot = 50;

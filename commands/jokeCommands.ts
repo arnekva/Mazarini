@@ -45,7 +45,7 @@ export class JokeCommands {
                 if (user.presence.clientStatus) {
                     if (user.presence.activities && user.presence.activities[0]) {
                         const game = user.presence.activities[0].name == "Custom Status" ? user.presence.activities[1] : user.presence.activities[0];
-                        await MessageHelper.sendMessage(message, `Maggi e ${user.presence.clientStatus.desktop ? "på pc-en" : (user.presence.clientStatus.mobile ? "på mobilen" : "i nettleseren")} ${game ? "med aktiviteten " + game.name + "." : "uten någe aktivitet."}`)
+                        await MessageHelper.sendMessage(message, `${name} e ${user.presence.clientStatus.desktop ? "på pc-en" : (user.presence.clientStatus.mobile ? "på mobilen" : "i nettleseren")} ${game ? "med aktiviteten " + game.name + "." : "uten någe aktivitet."}`)
                     }
                     else {
                         await MessageHelper.sendMessage(message, "Ingen aktivitet registrert på Discord. Sover han? Drikker han? Begge deler samtidig? ")
