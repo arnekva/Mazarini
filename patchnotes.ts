@@ -9,7 +9,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = "2.4.0";
+    public static readonly currentVersion = "2.5.0";
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -19,10 +19,13 @@ export class PatchNotes {
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv. 
      */
     public static readonly currentPatchNotes: string
-        = "* Betting kommandoen er nå under utvikling"
+        = "* Ny gambling kommando! Kjør !mz gamble <verdi> for å gambla dogecoinene dine. Trill over 50 for å vinna!"
+        + "\n* Dersom du skulle gå tom for penger er MazariniBank alltid åpen! !mz lån <verdi>"
         // + "\n* Boten gir nå beskjed når den er i utviklingsmodus, og at databaseverdier ikke blir lagret når aktivt."
         + "\n*Tekniske Notes*" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
-        + "\n* Kan nå lagre verdier under other i databasen." //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
+        + "\n* Lagt til ny funksjon i DatabaseHelper, incrementValue. Da slipper du å hente ut gamle verdier for å bare øke et tall." //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
+        + "\n* Ny MessageUtils for message-relaterte funksjoner som ikke innebærer sending."
+        + "\n* Nye database-prefixer: Debt og loanCounter."
         ;
 
     static getCurrentPatchNotes() {

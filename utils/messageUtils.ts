@@ -6,5 +6,6 @@ export namespace MessageUtils {
         const msgId = message.id;
         if (leetReg.test(msgId))
             return "1337";
+        return "none";
     }
 }
