@@ -223,9 +223,9 @@ export class GamblingCommands {
                     message.reply("du har betalt " + Math.abs(newTotal) + " for mye på lånet ditt. Dette blir tilbakebetalt. ")
                     backToPayer = Math.abs(newTotal);
                 }
-                newTotal += Math.abs(newTotal) + backToPayer;
+                newTotal += Math.abs(newTotal);
                 DatabaseHelper.setValue("debt", username, newTotal.toFixed(2))
-                const newDogeCoinsCOunter = Number(userMoney) - wantsToPayDownThisAmount;
+                const newDogeCoinsCOunter = Number(userMoney) - wantsToPayDownThisAmount + backToPayer;
                 DatabaseHelper.setValue("dogeCoin", username, newDogeCoinsCOunter.toFixed(2))
                 MessageHelper.sendMessage(message, `Du har nå betalt ned ${wantsToPayDownThisAmount} av lånet ditt på ${totalDebt}. Lånet er nå på ${newTotal} og du har ${newDogeCoinsCOunter} coins igjen.`)
             }
