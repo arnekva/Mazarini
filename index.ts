@@ -15,6 +15,7 @@ import { DatabaseHelper } from "./helpers/databaseHelper";
 import { MessageHelper } from "./helpers/messageHelper";
 import { Spinner } from "./commands/spinner";
 import { discordSecret, environment } from "./client-env";
+import { MessageUtils } from "./utils/messageUtils";
 
 require('dotenv').config();
 
@@ -177,6 +178,11 @@ function checkMessageForJokes(message: Message) {
         //check for 10% chance of eivindpriding
         if ((doesThisMessageNeedAnEivindPride(message.content, polseCounter)) && react)
             message.react(react)
+    }
+    const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message);
+    if (idJoke == "1337") {
+        message.reply("nice, id-en te meldingen din inneholde 1337. Gz, du har vonne 500 dogecoins")
+        DatabaseHelper.incrementValue("dogeCoin", message.author.username, "500", message);
     }
 }
 

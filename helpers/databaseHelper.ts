@@ -86,6 +86,12 @@ export class DatabaseHelper {
         db.push(`${folderPrefix}/${key}/${prefix}/${achievementID}`, `${value}`)
 
     }
+
+    static incrementValue(prefix: dbPrefix, key: string, increment: string, message: Message) {
+        const oldValue = DatabaseHelper.getValue(prefix, key, message)
+        const newVal = Number(oldValue) + Number(increment);
+        DatabaseHelper.setValue(prefix, key, newVal.toFixed(2))
+    }
     static getAchievement(prefix: dbPrefix, key: string, achievementID: achievementIDs) {
         let data;
         try {
