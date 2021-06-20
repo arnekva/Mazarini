@@ -74,7 +74,7 @@ mazariniClient.on('ready', () => {
         //TODO: Pass på at dene funker. Hvis den gjør det, kan vi unngå at den logger til action_log?
         try {
             mazariniClient.members.forEach((member: GuildMember) => member.roles.remove(spinnerRole))
-
+            // DatabaseHelper.find
         } catch (error) {
             MessageHelper.sendMessageToActionLog(message, "Error: Klarte ikke slette rollen spinners fra alle medlemmene. Stacktrace: " + error)
         }

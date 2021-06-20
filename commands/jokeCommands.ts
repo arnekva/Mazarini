@@ -34,15 +34,18 @@ export class JokeCommands {
 
     }
 
-    static async isMaggiPlaying(message: Message) {
+    static async isMaggiPlaying(message: Message, content: string, args: string[]) {
+        let name = "maggi";
+        if (args[0])
+            name = args[0];
         const guild = message.channel.client.guilds.cache.get("340626855990132747");
         if (guild) {
-            const maggi = guild.members.cache.get("221739293889003520")
-            if (maggi) {
-                if (maggi.presence.clientStatus) {
-                    if (maggi.presence.activities && maggi.presence.activities[0]) {
-                        const game = maggi.presence.activities[0].name == "Custom Status" ? maggi.presence.activities[1] : maggi.presence.activities[0];
-                        await MessageHelper.sendMessage(message, `Maggi e ${maggi.presence.clientStatus.desktop ? "på pc-en" : (maggi.presence.clientStatus.mobile ? "på mobilen" : "i nettleseren")} ${game ? "med aktiviteten " + game.name + "." : "uten någe aktivitet."}`)
+            const user = guild.members.cache.filter(u => u.displayName == name).first();
+            if (user) {
+                if (user.presence.clientStatus) {
+                    if (user.presence.activities && user.presence.activities[0]) {
+                        const game = user.presence.activities[0].name == "Custom Status" ? user.presence.activities[1] : user.presence.activities[0];
+                        await MessageHelper.sendMessage(message, `Maggi e ${user.presence.clientStatus.desktop ? "på pc-en" : (user.presence.clientStatus.mobile ? "på mobilen" : "i nettleseren")} ${game ? "med aktiviteten " + game.name + "." : "uten någe aktivitet."}`)
                     }
                     else {
                         await MessageHelper.sendMessage(message, "Ingen aktivitet registrert på Discord. Sover han? Drikker han? Begge deler samtidig? ")
@@ -349,8 +352,16 @@ export class JokeCommands {
     static readonly deadmaggi: ICommandElement = {
         commandName: "maggi",
         description: "Går det egentlig bra med masteren te Magnus?",
-        command: (rawMessage: Message, messageContent: string) => {
-            JokeCommands.isMaggiPlaying(rawMessage);
+        deprecated: "aktivitet",
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            JokeCommands.isMaggiPlaying(rawMessage, messageContent, args);
+        }
+    }
+    static readonly activityCommand: ICommandElement = {
+        commandName: "aktivitet",
+        description: "Går det egentlig bra med masteren te Magnus?",
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            JokeCommands.isMaggiPlaying(rawMessage, messageContent, args);
         }
     }
     static readonly eivindSkyld: ICommandElement = {
