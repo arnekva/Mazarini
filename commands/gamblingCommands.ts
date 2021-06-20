@@ -138,18 +138,19 @@ export class GamblingCommands {
             }
         }
         if (val && Number(val)) {
+            const valAsNum = Number(Number(val).toFixed(2));
             const roll = Math.floor(Math.random() * 101);
             let newMoneyValue = 0;
             if (roll >= 50)
-                newMoneyValue = Number(userMoney) + Number(val);
+                newMoneyValue = Number(userMoney) + valAsNum;
             else
-                newMoneyValue = Number(userMoney) - (Number(val));
+                newMoneyValue = Number(userMoney) - valAsNum;
 
             DatabaseHelper.setValue("dogeCoin", message.author.username, newMoneyValue.toFixed(2))
 
             const gambling = new MessageEmbed()
                 .setTitle("Gambling 🎲")
-                .setDescription(`${message.author.username} gamblet ${val} av ${userMoney} coins.\nTerningen trillet: ${roll}/100. Du ${roll >= 50 ? "vant! 💰💰" : "tapte 💸"}\nDu har nå ${newMoneyValue.toFixed(2)} coins.`)
+                .setDescription(`${message.author.username} gamblet ${valAsNum} av ${userMoney} coins.\nTerningen trillet: ${roll}/100. Du ${roll >= 50 ? "vant! 💰💰" : "tapte 💸"}\nDu har nå ${newMoneyValue.toFixed(2)} coins.`)
 
             MessageHelper.sendFormattedMessage(message, gambling);
         }
