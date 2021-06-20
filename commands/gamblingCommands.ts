@@ -223,7 +223,7 @@ export class GamblingCommands {
                     message.reply("du har betalt " + Math.abs(newTotal) + " for mye på lånet ditt. Dette blir tilbakebetalt. ")
                     backToPayer = Math.abs(newTotal);
                 }
-                newTotal += Math.abs(newTotal);
+                newTotal += Math.abs(newTotal) + backToPayer;
                 DatabaseHelper.setValue("debt", username, newTotal.toFixed(2))
                 const newDogeCoinsCOunter = Number(userMoney) - wantsToPayDownThisAmount;
                 DatabaseHelper.setValue("dogeCoin", username, newDogeCoinsCOunter.toFixed(2))
@@ -310,7 +310,6 @@ export class GamblingCommands {
     static readonly walletCommand: ICommandElement = {
         commandName: "wallet",
         description: "Check coins on a person",
-        deprecated: "wallet",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.checkCoins(rawMessage, messageContent, args);
         }
