@@ -170,8 +170,11 @@ export class GamblingCommands {
             } else if (argAsNum > 1000) {
                 message.reply("du kan låne maks 1000 coins")
                 return;
-            } else
-                amountToLoan = argAsNum;
+            } else if (argAsNum < 1) {
+                message.reply("Kan kje låna mindre enn 1 coin")
+                return;
+            }
+            amountToLoan = argAsNum;
         }
         const username = message.author.username;
         const totalLoans = DatabaseHelper.getValue("loanCounter", username, message)
@@ -194,6 +197,10 @@ export class GamblingCommands {
         const totalDebt = DatabaseHelper.getValue("debt", username, message)
         const userMoney = DatabaseHelper.getValue("dogeCoin", message.author.username, message);
         const wantsToPayDownThisAmount = Number(args[0]);
+        if (wantsToPayDownThisAmount < 1) {
+            message.reply("skriv inn et positivt tall, bro")
+            return;
+        }
         if (!isNaN(wantsToPayDownThisAmount)) {
             const newTotal = Number(totalDebt) - Number(args[0])
             const userMasNumber = Number(userMoney);
