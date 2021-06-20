@@ -138,6 +138,16 @@ export class DatabaseHelper {
 
     };
 
+    static getValueWithoutMessage(prefix: dbPrefix, key: string) {
+        try {
+            const data = db.getData(`${folderPrefix}/${key}/${prefix}`)
+            return data;
+        } catch (error) {
+            return undefined;
+        }
+
+    };
+
     static valueToPush(prefix: dbPrefix) {
         if (prefix === "achievement")
             return {}
