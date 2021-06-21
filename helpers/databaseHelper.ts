@@ -137,7 +137,7 @@ export class DatabaseHelper {
         }
 
     };
-
+    /** Hent en verdi uten message objektet. Vil ikke replye med error hvis ikke funnet. */
     static getValueWithoutMessage(prefix: dbPrefix, key: string) {
         try {
             const data = db.getData(`${folderPrefix}/${key}/${prefix}`)
@@ -147,7 +147,7 @@ export class DatabaseHelper {
         }
 
     };
-
+    /** Finn default verdi å sette i databasen hvis det ikke eksisterer.  */
     static valueToPush(prefix: dbPrefix) {
         if (prefix === "achievement")
             return {}
@@ -156,11 +156,11 @@ export class DatabaseHelper {
         else
             return "0";
     }
-
+    /** Hent alle brukere */
     static async getAllUsers() {
         return db.getData("/users");
     };
-
+    /** Slett et aktivt bet */
     static deleteActiveBet(username: string) {
         db.delete(`${otherFolderPreifx}/activeBet/${username}`)
     }
@@ -205,7 +205,7 @@ export class DatabaseHelper {
             })
         })
     }
-
+    /** Hent alle verdier for en gitt prefix */
     static getAllValuesFromPrefix(prefix: dbPrefix, message: Message) {
         const users = db.getData(`${folderPrefix}`);
         const valueList: ValuePair[] = [];
@@ -222,7 +222,7 @@ export class DatabaseHelper {
             console.log("Database slettet. Alle verdier er fjernet.")
         })*/
     }
-
+    /** Fjern prefix fra en string */
     static stripPrefixFromString(text: string, prefix: dbPrefix) {
         return text.replace(prefix + "-", "");
     }
