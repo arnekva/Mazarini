@@ -158,7 +158,7 @@ export class GamblingCommands {
                 .setTitle("Gambling 🎲")
                 .setDescription(`${message.author.username} gamblet ${valAsNum} av ${userMoney} coins.\nTerningen trillet: ${roll}/100. Du ${roll >= 50 ? "vant! 💰💰" : "tapte 💸"}\nDu har nå ${newMoneyValue.toFixed(2)} coins.`)
             if (roll >= 100)
-                gambling.addField("Trillet 100!", "Du trillet 100 og vant 5 ganger så mye som du satset!")
+                gambling.addField(`Trillet 100!`, `Du trillet 100 og vant ${multiplier} ganger så mye som du satset!`)
             MessageHelper.sendFormattedMessage(message, gambling);
         }
     }
@@ -252,6 +252,18 @@ export class GamblingCommands {
         const coinsToVipps = args[1];
 
         const authorBalance = Number(DatabaseHelper.getValue("dogeCoin", message.author.username, message));
+        if(authorBalance > Number(coinsToVipps)){
+            //go ahead
+            if(DatabaseHelper.findUserByUsername(userWhoGetsCoins, message)){
+                const newBalance = authorBalance - Number(coinsToVipps);
+                DatabaseHelper.setValue("dogeCoin", message.author.username, newBalance.toFixed(2))
+                DatabaseHelper.incrementValue("dogeCoin", userWhoGetsCoins, coinsToVipps, message);
+                MessageHelper.sendMessage(message,`${message.author.username} vippset ${userWhoGetsCoins} ${coinsToVipps}.`)
+
+            } else {
+                message.reply("finner ingen bruker med det navnet")
+            }
+        }
 
     }
     static dealCoins(message: Message, value: string, peopleGettingCoins: string) {
@@ -307,6 +319,14 @@ export class GamblingCommands {
 
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.payDownDebt(rawMessage, messageContent, args);
+        }
+    }
+    static readonly vippsCommand: ICommandElement = {
+        commandName: "vipps",
+        description: "Vipps til en annen bruker. <number>",
+
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            GamblingCommands.vippsCoins(rawMessage, messageContent, args);
         }
     }
     static readonly gambleCoins: ICommandElement = {
