@@ -194,11 +194,11 @@ export class GamblingCommands {
         const newDebt = (Number(totalDebt) + amountToLoan) * 1.1;
 
         DatabaseHelper.setValue("loanCounter", username, newTotalLoans.toString())
-        DatabaseHelper.setValue("debt", username, newDebt.toString())
+        DatabaseHelper.setValue("debt", username, newDebt.toFixed(2))
         const newCoinsVal = Number(userMoney) + amountToLoan;
         DatabaseHelper.setValue("dogeCoin", username, newCoinsVal.toString())
 
-        MessageHelper.sendMessage(message, `${username}, du har nå lånt ${amountToLoan} coins med 10% rente. Spend them well. Din totale gjeld er nå: ${newDebt} (${newTotalLoans} lån gjort)`)
+        MessageHelper.sendMessage(message, `${username}, du har nå lånt ${amountToLoan} coins med 10% rente. Spend them well. Din totale gjeld er nå: ${newDebt.toFixed(2)} (${newTotalLoans} lån gjort)`)
     }
 
     static payDownDebt(message: Message, content: string, args: string[]) {
