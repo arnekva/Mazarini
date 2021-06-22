@@ -126,8 +126,7 @@ async function checkForCommand(message: Message) {
                     if (Admin.isAuthorSuperAdmin(message.member)) {
                         cmd.command(message, messageContent, args)
                     } else {
-                        MessageHelper.sendMessage(message, "", true, message.author.username + " forsøkte å bruke " + cmd.commandName + " uten tilgang", "unauthorized")
-                        return;
+                        MessageHelper.sendMessage(message, "", true, message.author.username + " forsøkte å bruke " + cmd.commandName + " uten tilgang", "unauthorized")  
                     }
                 }
                 else if (cmd.isAdmin) {
