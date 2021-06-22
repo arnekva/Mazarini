@@ -133,7 +133,7 @@ export class GamblingCommands {
         if (userMoney) {
 
             if (parseInt(val) > parseInt(userMoney)) {
-                message.reply("Du har ikke nok penger til å gamble så mye")
+                message.reply("Du har ikke nok penger til å gamble så mye. Bruk <!mz lån 1000> for å låne coins fra MazariniBank")
                 return;
             } else if (parseInt(val) < 1) {
                 message.reply("Du må gamble med et positivt tall, bro")
@@ -176,8 +176,8 @@ export class GamblingCommands {
             if (isNaN(argAsNum)) {
                 message.reply("du har oppgitt et ugyldig tall")
                 return;
-            } else if (argAsNum > 1000) {
-                message.reply("du kan låne maks 1000 coins")
+            } else if (argAsNum > 5000) {
+                message.reply("du kan låne maks 5000 coins")
                 return;
             } else if (argAsNum < 1) {
                 message.reply("Kan kje låna mindre enn 1 coin")
@@ -191,14 +191,14 @@ export class GamblingCommands {
         const userMoney = DatabaseHelper.getValue("dogeCoin", message.author.username, message);
 
         const newTotalLoans = Number(totalLoans) + 1;
-        const newDebt = Number(totalDebt) + amountToLoan;
+        const newDebt = (Number(totalDebt) + amountToLoan) * 1.1;
 
         DatabaseHelper.setValue("loanCounter", username, newTotalLoans.toString())
-        DatabaseHelper.setValue("debt", username, newDebt.toString())
+        DatabaseHelper.setValue("debt", username, newDebt.toFixed(2))
         const newCoinsVal = Number(userMoney) + amountToLoan;
-        DatabaseHelper.setValue("dogeCoin", username, newCoinsVal.toString())
+        DatabaseHelper.setValue("dogeCoin", username, newCoinsVal.toFixed(2))
 
-        MessageHelper.sendMessage(message, `${username}, du har nå lånt ${amountToLoan} coins. Spend them well. Din totale gjeld er nå: ${newDebt} (${newTotalLoans} lån gjort)`)
+        MessageHelper.sendMessage(message, `${username}, du har nå lånt ${amountToLoan.toFixed(2)} coins med 10% rente. Spend them well. Din totale gjeld er nå: ${newDebt.toFixed(2)} (${newTotalLoans} lån gjort)`)
     }
 
     static payDownDebt(message: Message, content: string, args: string[]) {
@@ -252,13 +252,13 @@ export class GamblingCommands {
         const coinsToVipps = args[1];
 
         const authorBalance = Number(DatabaseHelper.getValue("dogeCoin", message.author.username, message));
-        if(authorBalance > Number(coinsToVipps)){
+        if (authorBalance > Number(coinsToVipps)) {
             //go ahead
-            if(DatabaseHelper.findUserByUsername(userWhoGetsCoins, message)){
+            if (DatabaseHelper.findUserByUsername(userWhoGetsCoins, message)) {
                 const newBalance = authorBalance - Number(coinsToVipps);
                 DatabaseHelper.setValue("dogeCoin", message.author.username, newBalance.toFixed(2))
                 DatabaseHelper.incrementValue("dogeCoin", userWhoGetsCoins, coinsToVipps, message);
-                MessageHelper.sendMessage(message,`${message.author.username} vippset ${userWhoGetsCoins} ${coinsToVipps}.`)
+                MessageHelper.sendMessage(message, `${message.author.username} vippset ${userWhoGetsCoins} ${coinsToVipps}.`)
 
             } else {
                 message.reply("finner ingen bruker med det navnet")
