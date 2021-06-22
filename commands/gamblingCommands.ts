@@ -156,7 +156,7 @@ export class GamblingCommands {
 
             const gambling = new MessageEmbed()
                 .setTitle("Gambling 🎲")
-                .setDescription(`${message.author.username} gamblet ${valAsNum} av ${userMoney} coins.\nTerningen trillet: ${roll}/100. Du ${roll >= 50 ? "vant! 💰💰" : "tapte 💸"}\nDu har nå ${newMoneyValue.toFixed(2)} coins.`)
+                .setDescription(`${message.author.username} gamblet ${valAsNum} av ${userMoney} coins.\nTerningen trillet: ${roll}/100. Du ${roll >= 50 ? "vant! 💰💰" : "tapte 💸"}\nDu har nå ${newMoneyValue.toLocaleString(undefined, {maximumFractionDigits: 2, minimumFractionDigits: 2})} coins.`)
             if (roll >= 100)
                 gambling.addField(`Trillet 100!`, `Du trillet 100 og vant ${multiplier} ganger så mye som du satset!`)
             MessageHelper.sendFormattedMessage(message, gambling);
@@ -301,7 +301,7 @@ export class GamblingCommands {
             username = args[0];
 
         const val = DatabaseHelper.getValue("dogeCoin", username, message)
-        MessageHelper.sendMessage(message, `${username} har ${val} dogecoins`)
+        MessageHelper.sendMessage(message, `${username} har ${Number(val).toLocaleString(undefined, {maximumFractionDigits: 2, minimumFractionDigits: 2})} dogecoins`)
     }
 
     static readonly addCoinsCommand: ICommandElement = {
