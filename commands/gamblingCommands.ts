@@ -142,7 +142,7 @@ export class GamblingCommands {
         }
         if (val && Number(val)) {
             const valAsNum = Number(Number(val).toFixed(2));
-            let roll = Math.floor(Math.random() * 101);
+            let roll = Math.floor(Math.random() * 100) +1;
             let newMoneyValue = 0;
             let multiplier = GamblingCommands.getMultiplier(roll, valAsNum);
             if (roll >= 50) {
