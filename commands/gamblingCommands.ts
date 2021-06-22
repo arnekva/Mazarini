@@ -248,8 +248,12 @@ export class GamblingCommands {
             return;
         }
 
-        const userWhoGetsCoins = args[0];
-        const coinsToVipps = args[1];
+        let userWhoGetsCoins = args[0];
+        let coinsToVipps = args[1];
+        if(isNaN(Number(args[1]))){
+            userWhoGetsCoins = args[0] + " " + args[1];
+            coinsToVipps = args[2];
+        }
         if(Number(coinsToVipps) < 1){
             message.reply("Må vippse minst 1 coin, bro")
             return;
