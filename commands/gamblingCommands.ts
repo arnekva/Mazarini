@@ -220,6 +220,9 @@ export class GamblingCommands {
             else
                 newMoneyValue = Number(userMoney) - valAsNum;
 
+                if(newMoneyValue > 1000000000) {
+                    DatabaseHelper.setValue("bailout", message.author.username, "true")
+                }
             DatabaseHelper.setValue("dogeCoin", message.author.username, newMoneyValue.toFixed(2))
 
             const gambling = new MessageEmbed()
@@ -234,6 +237,17 @@ export class GamblingCommands {
         if (roll >= 100)
             return 10;
         return 1;
+    }
+
+    static bailout(message: Message){
+        const canBailout = DatabaseHelper.getValue("bailout", message.author.username, message)
+        const userCoins = DatabaseHelper.getValue("dogeCoin", message.author.username, message)
+        if(canBailout === "true" && Number(userCoins) < 100000){
+            message.reply(`${message.author.username} har mottatt en redningspakke fra MazariniBank på 500,000,000.`)
+            DatabaseHelper.setValue("dogeCoin", message.author.username, "500000000");
+        } else {
+            message.reply("Beklager, MazariniBank kan ikke gi deg en redningspakke.")
+        }
     }
 
     static takeUpLoan(message: Message, content: string, args: string[]) {
@@ -396,6 +410,14 @@ export class GamblingCommands {
 
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.payDownDebt(rawMessage, messageContent, args);
+        }
+    }
+    static readonly bailoutCommand: ICommandElement = {
+        commandName: "bailout",
+        description: "Motta en bailout fra MazariniBank",
+
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            GamblingCommands.bailout(rawMessage);
         }
     }
     static readonly krigCommand: ICommandElement = {
