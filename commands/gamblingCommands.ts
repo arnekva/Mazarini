@@ -345,7 +345,7 @@ export class GamblingCommands {
         }
         
         const authorBalance = Number(DatabaseHelper.getValue("dogeCoin", message.author.username, message));
-        if (authorBalance > Number(coinsToVipps)) {
+        if (authorBalance >= Number(coinsToVipps)) {
             //go ahead
             if (DatabaseHelper.findUserByUsername(userWhoGetsCoins, message)) {
                 const newBalance = authorBalance - Number(coinsToVipps);
