@@ -52,6 +52,16 @@ mazariniClient.on('ready', () => {
         console.log("Kjører resett av mygling kl 08:00")
         DatabaseHelper.deleteSpecificPrefixValues("mygling")
     });
+    const navPenger = schedule.scheduleJob({ hour: 8, minute: 0, }, async function () {
+        console.log("Får penger av NAV kl 08:00")
+        const brukere = await DatabaseHelper.getAllUsers()
+        Object.keys(brukere).forEach((username: string) => {
+
+            const currentBalance = DatabaseHelper.getValueWithoutMessage("dogeCoin", username);
+            const newBalance = Number(currentBalance) + 200;
+            DatabaseHelper.setValue("dogeCoin", username.toString(), newBalance.toString())
+        })
+    });
 
     const reminSpinJob = schedule.scheduleJob("0 21 * * 7", function () {
         console.log("Minner om reset")
