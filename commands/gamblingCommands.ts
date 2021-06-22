@@ -356,6 +356,8 @@ export class GamblingCommands {
             } else {
                 message.reply("finner ingen bruker med det navnet")
             }
+        } else {
+            message.reply("du har ikkje råd te å vippsa så møye, bro")
         }
 
     }
