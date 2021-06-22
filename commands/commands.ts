@@ -31,6 +31,7 @@ export interface ICommandElement {
     hideFromListing?: boolean;
     isAdmin?: boolean;
     deprecated?: string;
+    isSuperAdmin?: boolean;
 }
 
 const helpCommand: ICommandElement = {

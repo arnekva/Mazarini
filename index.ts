@@ -122,7 +122,15 @@ async function checkForCommand(message: Message) {
                 //Remove '!mz <command name>' from the content to avoid repeating this process in each function. 
                 const messageContent = message.content.replace("!mz " + cmd.commandName, "").replace("!Mz " + cmd.commandName, "").replace("!MZ " + cmd.commandName, "").trim()
                 const args = !!messageContent ? messageContent.split(" ") : [];
-                if (cmd.isAdmin) {
+                if(cmd.isSuperAdmin){
+                    if (Admin.isAuthorSuperAdmin(message.member)) {
+                        cmd.command(message, messageContent, args)
+                    } else {
+                        MessageHelper.sendMessage(message, "", true, message.author.username + " forsøkte å bruke " + cmd.commandName + " uten tilgang", "unauthorized")
+                        return;
+                    }
+                }
+                else if (cmd.isAdmin) {
                     if (Admin.isAuthorAdmin(message.member)) {
                         cmd.command(message, messageContent, args)
 

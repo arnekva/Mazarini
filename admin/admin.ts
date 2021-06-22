@@ -257,4 +257,10 @@ export class Admin {
 			return member.roles.cache.has("821709203470680117");
 		return false
 	}
+	static isAuthorSuperAdmin(member: GuildMember | null) {
+		// member.roles.cache.some(role => role.name === "Mazarini-Bot-Admin")
+		if (member)
+			return member.id == "245607554254766081";
+		return false
+	}
 }
