@@ -305,6 +305,7 @@ export class GamblingCommands {
         description: "Legg til eller fjern coins fra en person. <Brukernavn> <verdi> (pluss/minus)",
         hideFromListing: true,
         isAdmin: true,
+        isSuperAdmin: true,
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.manageCoins(rawMessage, messageContent, args);
         }
