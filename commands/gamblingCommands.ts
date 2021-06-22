@@ -43,8 +43,8 @@ export class GamblingCommands {
             return;
         }
         let value = 100;
-        if (parseInt(args[0])) {
-            value = parseInt(args[0]);
+        if (!isNaN(Number(args[0]))) {
+            value = Number(args[0]);
             desc = desc.slice(args[0].length)
         }
         const betString = `${message.author.username} har startet et veddemål: ${desc} (${value} coins). Reager med 👍 for JA, 👎 for NEI. Resultat vises om 20 sek`
@@ -193,23 +193,23 @@ export class GamblingCommands {
 
     static diceGamble(message: Message, content: string, args: string[]) {
         const userMoney = DatabaseHelper.getValue("dogeCoin", message.author.username, message);
-        const val = args[0];
-        if (!val) {
+        const argumentVal = args[0];
+        if (!argumentVal || isNaN(Number(argumentVal))) {
             message.reply("Du må si hvor mye du vil gamble")
             return;
         }
         if (userMoney) {
-
-            if (parseInt(val) > parseInt(userMoney)) {
+          
+            if (Number(argumentVal) > Number(userMoney)) {
                 message.reply("Du har ikke nok penger til å gamble så mye. Bruk <!mz lån 1000> for å låne coins fra MazariniBank")
                 return;
-            } else if (parseInt(val) < 1) {
+            } else if (Number(argumentVal) < 1) {
                 message.reply("Du må gamble med et positivt tall, bro")
                 return;
             }
         }
-        if (val && Number(val)) {
-            const valAsNum = Number(Number(val).toFixed(2));
+        if (argumentVal && Number(argumentVal)) {
+            const valAsNum = Number(Number(argumentVal).toFixed(2));
             const roll = Math.floor(Math.random() * 100) +1;
             let newMoneyValue = 0;
             let multiplier = GamblingCommands.getMultiplier(roll, valAsNum);
@@ -222,6 +222,9 @@ export class GamblingCommands {
 
                 if(newMoneyValue > 1000000000) {
                     DatabaseHelper.setValue("bailout", message.author.username, "true")
+                }
+                if(newMoneyValue > Number.MAX_SAFE_INTEGER){
+                    message.reply("Du har nådd et så høyt tall at programmeringsspråket ikke lenger kan gjøre trygge operasjoner på det. Du kan fortsette å gamble, men noen funksjoner kan virke ustabile")
                 }
             DatabaseHelper.setValue("dogeCoin", message.author.username, newMoneyValue.toFixed(2))
 
@@ -360,7 +363,7 @@ export class GamblingCommands {
         const peopleCoins = peopleGettingCoins.split(",").filter(u => u !== "Mazarini Bot")
         const basePot = 50;
         let pot = basePot;
-        const val = parseInt(value);
+        const val = Number(value);
         pot += val * peopleCoins.length;
         const shareOfCoins = pot / peopleCoins.length;
         let moneyString = "";
