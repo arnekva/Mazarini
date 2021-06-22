@@ -9,7 +9,7 @@ export class PatchNotes {
 	 * Increment y for mindre oppdateringer (enkle funksjoner osv)
 	 * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
 	 */
-	public static readonly currentVersion = "2.5.1";
+	public static readonly currentVersion = "2.5.2";
 
 	/** Private, brukes kun av getCurrentPatchNotes */
 	private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -19,9 +19,10 @@ export class PatchNotes {
 	 * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv. 
 	 */
 	public static readonly currentPatchNotes: string
-		= "* Du kan nå låne opp til 5000 coins fra banken"
-		+ "\n* MazariniBank tar nå 10% rente."
-		//+ "\n*Tekniske Notes*" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
+		= "* Du får nå 200 coins i dagpenger fra NAVzarini klokken 08:00 hver dag."
+		// + "\n* Ved en senere a"
+		// + "\n*Tekniske Notes*" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
+		// + "\n Nye metoder for betaling av lån og andre uten message-objekt" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
 
 		;
 
