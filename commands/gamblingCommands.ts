@@ -231,7 +231,7 @@ export class GamblingCommands {
                 DatabaseHelper.setValue("debt", username, newTotal.toFixed(2))
                 const newDogeCoinsCOunter = Number(userMoney) - wantsToPayDownThisAmount + backToPayer;
                 DatabaseHelper.setValue("dogeCoin", username, newDogeCoinsCOunter.toFixed(2))
-                MessageHelper.sendMessage(message, `Du har nå betalt ned ${wantsToPayDownThisAmount} av lånet ditt på ${totalDebt}. Lånet er nå på ${newTotal} og du har ${newDogeCoinsCOunter} coins igjen.`)
+                MessageHelper.sendMessage(message, `Du har nå betalt ned ${wantsToPayDownThisAmount.toFixed(2)} av lånet ditt på ${totalDebt.toFixed(2)}. Lånet er nå på ${newTotal.toFixed(2)} og du har ${newDogeCoinsCOunter.toFixed(2)} coins igjen.`)
             }
         }
         else {
@@ -250,7 +250,11 @@ export class GamblingCommands {
 
         const userWhoGetsCoins = args[0];
         const coinsToVipps = args[1];
-
+        if(Number(coinsToVipps) < 1){
+            message.reply("Må vippse minst 1 coin, bro")
+            return;
+        }
+        
         const authorBalance = Number(DatabaseHelper.getValue("dogeCoin", message.author.username, message));
         if(authorBalance > Number(coinsToVipps)){
             //go ahead

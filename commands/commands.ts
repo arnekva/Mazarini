@@ -123,12 +123,10 @@ export const helperCommands = ((rawMessage: Message, messageContent: string, arg
                 if (!cmd.hideFromListing)
                     commandStringList.push(cmd.commandName);
             }
-
         })
         commandStringList.sort();
         commandStringList.forEach((str) => commandString += "\n" + str)
         commandString += "\n\n" + "*Bruk '!mz help <command>' for beskrivelse*"
         MessageHelper.sendMessage(rawMessage, commandString)
     }
-
 })
