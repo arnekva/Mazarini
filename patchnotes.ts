@@ -20,6 +20,7 @@ export class PatchNotes {
 	 */
 	public static readonly currentPatchNotes: string
 		= "* Du får nå 200 coins i dagpenger fra NAVzarini klokken 08:00 hver dag."
+		+ "\n* Du kan nå kjøre 1v1 mot andre i gambling. Bruk !mz krig <verdi> <username>."
 		// + "\n* Ved en senere a"
 		// + "\n*Tekniske Notes*" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
 		// + "\n Nye metoder for betaling av lån og andre uten message-objekt" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes

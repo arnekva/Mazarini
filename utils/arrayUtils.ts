@@ -20,4 +20,8 @@ export class ArrayUtils {
 		return arr[Math.floor(arr.length * Math.random())];
 	}
 
+    static checkArgsLength(args: string[], amountWanted: number){
+        return args.length >= amountWanted;
+    }
+
 }

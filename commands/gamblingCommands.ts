@@ -3,6 +3,7 @@ import { Message, MessageEmbed } from "discord.js";
 import { Channel, Client, DMChannel, NewsChannel, TextChannel } from "discord.js";
 import { betObject, betObjectReturned, DatabaseHelper, dbPrefix } from "../helpers/databaseHelper";
 import { MessageHelper } from "../helpers/messageHelper";
+import { ArrayUtils } from "../utils/arrayUtils";
 import { ObjectUtils } from "../utils/objectUtils";
 import { ICommandElement } from "./commands";
 
@@ -123,6 +124,73 @@ export class GamblingCommands {
         }
     }
 
+    static async krig(message: Message, content: string, args: string[]){
+        if(!ArrayUtils.checkArgsLength(args, 2)){
+            message.reply("du må oppgi mengde og person. <nummer> <username>")
+            return;
+        }
+        const username = args[1];
+        const amount = args[0];
+        
+        if(isNaN(Number(amount)) || Number(amount) <1){
+            message.reply("du må oppgi et gyldig tall")
+            return;
+        }
+          let engagerValue = Number(DatabaseHelper.getValue("dogeCoin", message.author.username, message));
+          let victimValue = Number(DatabaseHelper.getValue("dogeCoin", username, message));
+          const amountAsNum = Number(amount);
+        if(Number(engagerValue) < amountAsNum || Number(victimValue) < amountAsNum){
+            message.reply("en av dere har ikke råd til å utføre denne krigen her.")
+            return;
+        }    
+        const resolveMessage = await MessageHelper.sendMessage(message, `${message.author.username} vil gå til krig med deg, ${username}. Reager med 👍 for å godkjenne. Venter 10 sekunder. Den som starter krigen ruller for 0-49.`)
+            if (resolveMessage) {
+                resolveMessage.react("👍")
+                let positiveCounter = 0;
+
+                setTimeout(function () {
+                    const allReactions = resolveMessage.reactions.cache.forEach((reaction) => {
+                        const users = reaction.users;
+                        users.cache.forEach((us, ind) => {
+                            if (reaction.emoji.name == "👍" && us.username == username)
+                                positiveCounter++;
+                        })
+                    })
+                    if (positiveCounter > 0) {
+                        const roll = Math.floor(Math.random() * 101);
+
+                        const gambling = new MessageEmbed()
+                            .setTitle("⚔️ Krig ⚔️")
+                            .setDescription(`Terningen trillet: ${roll}/100. ${roll < 51 ? (roll == 50 ? "Bot Høie" : message.author.username) : username} vant! 💰💰`)
+
+                    if(roll < 50){
+                         engagerValue += amountAsNum;
+                        victimValue -= amountAsNum;
+                       
+                    } else if(roll > 50) {
+                         engagerValue -= amountAsNum;
+                        victimValue += amountAsNum;
+                    } else if(roll == 50){
+                         engagerValue -= amountAsNum;
+                        victimValue -= amountAsNum;
+                    }
+
+
+                gambling.addField(`${message.author.username}`, `Du har nå ${engagerValue.toLocaleString(undefined, {maximumFractionDigits: 2, minimumFractionDigits: 2})} coins`)
+                gambling.addField(`${username}`, `Du har nå ${victimValue.toLocaleString(undefined, {maximumFractionDigits: 2, minimumFractionDigits: 2})} coins`)
+                MessageHelper.sendFormattedMessage(message, gambling);
+                 DatabaseHelper.setValue("dogeCoin", message.author.username, (engagerValue).toFixed(2))
+                 DatabaseHelper.setValue("dogeCoin", username, (victimValue).toFixed(2))       
+
+                    } else {
+                        MessageHelper.sendMessage(message, `${username} godkjente ikke krigen.`)
+                        // DatabaseHelper.setValue("dogeCoin", message.author.username, (engagerValue-100).toFixed(2))
+                    }
+
+                }, 10000) //Sett til 60000
+            }
+    }
+
     static diceGamble(message: Message, content: string, args: string[]) {
         const userMoney = DatabaseHelper.getValue("dogeCoin", message.author.username, message);
         const val = args[0];
@@ -142,7 +210,7 @@ export class GamblingCommands {
         }
         if (val && Number(val)) {
             const valAsNum = Number(Number(val).toFixed(2));
-            let roll = Math.floor(Math.random() * 100) +1;
+            const roll = Math.floor(Math.random() * 100) +1;
             let newMoneyValue = 0;
             let multiplier = GamblingCommands.getMultiplier(roll, valAsNum);
             if (roll >= 50) {
@@ -328,6 +396,14 @@ export class GamblingCommands {
 
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.payDownDebt(rawMessage, messageContent, args);
+        }
+    }
+    static readonly krigCommand: ICommandElement = {
+        commandName: "krig",
+        description: "Gå til krig. <nummer> <username>",
+
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            GamblingCommands.krig(rawMessage, messageContent, args);
         }
     }
     static readonly vippsCommand: ICommandElement = {
