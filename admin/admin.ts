@@ -2,6 +2,7 @@ import { Channel, GuildMember, Message, TextChannel } from "discord.js";
 import { ICommandElement } from "../commands/commands";
 import { DatabaseHelper, dbPrefix } from "../helpers/databaseHelper";
 import { MessageHelper } from "../helpers/messageHelper";
+import { isInQuotation } from "../utils/textUtils";
 
 
 export class Admin {
@@ -135,12 +136,16 @@ export class Admin {
 	}
 
 	static async warnUser(message: Message, messageContent: string) {
-		const username = messageContent.substr(0, messageContent.indexOf(" "));
-
+        let username = messageContent.substr(0, messageContent.indexOf(" "))
+        if(messageContent.includes('"')){
+            username = isInQuotation(messageContent);
+        }
+		// const username = messageContent.substr(0, messageContent.indexOf(" "));
+        
 		const user = DatabaseHelper.findUserByUsername(username, message);// message.client.users.cache.find(user => user.username == username);
 		// const id = c[0].trim();
-
-		const replyString = messageContent.substr(messageContent.indexOf(" ") + 1);
+        
+		const replyString = messageContent.substr(messageContent.indexOf(username) + username.length+2);
 		if (user) {
 			if (user.username == message.author.username) {
 				message.reply("Du kan kje warna deg sjøl, bro")
@@ -163,7 +168,7 @@ export class Admin {
 
 			}
 		} else {
-			MessageHelper.sendMessage(message, "Feil: Du har enten skrevet feil bruker navn eller ikke inkludert en melding.")
+			MessageHelper.sendMessage(message, 'Feil: Du har enten skrevet feil bruker navn eller ikke inkludert en melding. *Hvis brukeren har mellomrom i navnet, bruk "hermetegn"*')
 		}
 	}
 

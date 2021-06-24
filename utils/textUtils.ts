@@ -27,3 +27,18 @@ export function replaceLast(mainString: string, searchString: string, replaceWit
 	a[mainString.lastIndexOf(searchString)] = replaceWith;
 	return a.join("");
 }
+
+export const isInQuotation = (content: string) => {
+
+            const matches = content.match(/"(.*?)"/);
+            return matches
+            ? matches[1]
+            : content;
+        }
+export function getUsernameInQuotationMarks(content: string) {
+    if(content.includes('"')){
+           return  isInQuotation(content);
+        } else {
+            return undefined
+        }
+}

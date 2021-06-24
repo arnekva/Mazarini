@@ -5,6 +5,7 @@ import { betObject, betObjectReturned, DatabaseHelper, dbPrefix } from "../helpe
 import { MessageHelper } from "../helpers/messageHelper";
 import { ArrayUtils } from "../utils/arrayUtils";
 import { ObjectUtils } from "../utils/objectUtils";
+import { getUsernameInQuotationMarks } from "../utils/textUtils";
 import { ICommandElement } from "./commands";
 
 
@@ -129,15 +130,16 @@ export class GamblingCommands {
             message.reply("du må oppgi mengde og person. <nummer> <username>")
             return;
         }
-        const username = args[1];
+
+        let username = getUsernameInQuotationMarks(content) ?? args[1] ;
         const amount = args[0];
         
         if(isNaN(Number(amount)) || Number(amount) <1){
             message.reply("du må oppgi et gyldig tall")
             return;
         }
-          let engagerValue = Number(DatabaseHelper.getValue("dogeCoin", message.author.username, message));
-          let victimValue = Number(DatabaseHelper.getValue("dogeCoin", username, message));
+          let engagerValue = Number(DatabaseHelper.getValue("chips", message.author.username, message));
+          let victimValue = Number(DatabaseHelper.getValue("chips", username, message));
           const amountAsNum = Number(amount);
         if(Number(engagerValue) < amountAsNum || Number(victimValue) < amountAsNum){
             message.reply("en av dere har ikke råd til å utføre denne krigen her.")
@@ -179,8 +181,8 @@ export class GamblingCommands {
                 gambling.addField(`${message.author.username}`, `Du har nå ${engagerValue.toLocaleString(undefined, {maximumFractionDigits: 2, minimumFractionDigits: 2})} coins`)
                 gambling.addField(`${username}`, `Du har nå ${victimValue.toLocaleString(undefined, {maximumFractionDigits: 2, minimumFractionDigits: 2})} coins`)
                 MessageHelper.sendFormattedMessage(message, gambling);
-                 DatabaseHelper.setValue("dogeCoin", message.author.username, (engagerValue).toFixed(2))
-                 DatabaseHelper.setValue("dogeCoin", username, (victimValue).toFixed(2))       
+                 DatabaseHelper.setValue("chips", message.author.username, (engagerValue).toFixed(2))
+                 DatabaseHelper.setValue("chips", username, (victimValue).toFixed(2))       
 
                     } else {
                         MessageHelper.sendMessage(message, `${username} godkjente ikke krigen.`)
@@ -192,7 +194,7 @@ export class GamblingCommands {
     }
 
     static diceGamble(message: Message, content: string, args: string[]) {
-        const userMoney = DatabaseHelper.getValue("dogeCoin", message.author.username, message);
+        const userMoney = DatabaseHelper.getValue("chips", message.author.username, message);
         const argumentVal = args[0];
         if (!argumentVal || isNaN(Number(argumentVal))) {
             message.reply("Du må si hvor mye du vil gamble")
@@ -226,7 +228,7 @@ export class GamblingCommands {
                 if(newMoneyValue > Number.MAX_SAFE_INTEGER){
                     message.reply("Du har nådd et så høyt tall at programmeringsspråket ikke lenger kan gjøre trygge operasjoner på det. Du kan fortsette å gamble, men noen funksjoner kan virke ustabile")
                 }
-            DatabaseHelper.setValue("dogeCoin", message.author.username, newMoneyValue.toFixed(2))
+            DatabaseHelper.setValue("chips", message.author.username, newMoneyValue.toFixed(2))
 
             const gambling = new MessageEmbed()
                 .setTitle("Gambling 🎲")
@@ -243,14 +245,14 @@ export class GamblingCommands {
     }
 
     static bailout(message: Message){
-        const canBailout = DatabaseHelper.getValue("bailout", message.author.username, message)
-        const userCoins = DatabaseHelper.getValue("dogeCoin", message.author.username, message)
-        if(canBailout === "true" && Number(userCoins) < 100000){
-            message.reply(`${message.author.username} har mottatt en redningspakke fra MazariniBank på 500,000,000.`)
-            DatabaseHelper.setValue("dogeCoin", message.author.username, "500000000");
-        } else {
-            message.reply("Beklager, MazariniBank kan ikke gi deg en redningspakke.")
-        }
+        const canBailout = false
+        const userCoins = DatabaseHelper.getValue("chips", message.author.username, message)
+        // if(canBailout === "true" && Number(userCoins) < 100000){
+        //     message.reply(`${message.author.username} har mottatt en redningspakke fra MazariniBank på 500,000,000.`)
+        //     DatabaseHelper.setValue("dogeCoin", message.author.username, "500000000");
+        // } else {
+            message.reply("Beklager, MazariniBank gir ikke ut redningspakker.")
+        // }
     }
 
     static takeUpLoan(message: Message, content: string, args: string[]) {
@@ -261,8 +263,8 @@ export class GamblingCommands {
             if (isNaN(argAsNum)) {
                 message.reply("du har oppgitt et ugyldig tall")
                 return;
-            } else if (argAsNum > 5000) {
-                message.reply("du kan låne maks 5000 coins")
+            } else if (argAsNum > 500) {
+                message.reply("du kan låne maks 500 coins")
                 return;
             } else if (argAsNum < 1) {
                 message.reply("Kan kje låna mindre enn 1 coin")
@@ -273,15 +275,18 @@ export class GamblingCommands {
         const username = message.author.username;
         const totalLoans = DatabaseHelper.getValue("loanCounter", username, message)
         const totalDebt = DatabaseHelper.getValue("debt", username, message)
-        const userMoney = DatabaseHelper.getValue("dogeCoin", message.author.username, message);
-
+        const userMoney = DatabaseHelper.getValue("chips", message.author.username, message);
+        if(totalDebt > 1500) {
+            message.reply("Du har for mye gjeld. Betal ned litt før du tar opp nytt lån.")
+            return;
+        }
         const newTotalLoans = Number(totalLoans) + 1;
         const newDebt = (Number(totalDebt) + amountToLoan) * 1.1;
 
         DatabaseHelper.setValue("loanCounter", username, newTotalLoans.toString())
         DatabaseHelper.setValue("debt", username, newDebt.toFixed(2))
         const newCoinsVal = Number(userMoney) + amountToLoan;
-        DatabaseHelper.setValue("dogeCoin", username, newCoinsVal.toFixed(2))
+        DatabaseHelper.setValue("chips", username, newCoinsVal.toFixed(2))
 
         MessageHelper.sendMessage(message, `${username}, du har nå lånt ${amountToLoan.toFixed(2)} coins med 10% rente. Spend them well. Din totale gjeld er nå: ${newDebt.toFixed(2)} (${newTotalLoans} lån gjort)`)
     }
@@ -293,7 +298,7 @@ export class GamblingCommands {
             message.reply("Du har ingen lån")
             return;
         }
-        const userMoney = DatabaseHelper.getValue("dogeCoin", message.author.username, message);
+        const userMoney = DatabaseHelper.getValue("chips", message.author.username, message);
         const wantsToPayDownThisAmount = Number(args[0]);
         if (wantsToPayDownThisAmount < 1) {
             message.reply("skriv inn et positivt tall, bro")
@@ -315,7 +320,7 @@ export class GamblingCommands {
                 newTotal += backToPayer;
                 DatabaseHelper.setValue("debt", username, newTotal.toFixed(2))
                 const newDogeCoinsCOunter = Number(userMoney) - wantsToPayDownThisAmount + backToPayer;
-                DatabaseHelper.setValue("dogeCoin", username, newDogeCoinsCOunter.toFixed(2))
+                DatabaseHelper.setValue("chips", username, newDogeCoinsCOunter.toFixed(2))
                 MessageHelper.sendMessage(message, `Du har nå betalt ned ${wantsToPayDownThisAmount.toFixed(2)} av lånet ditt på ${totalDebt}. Lånet er nå på ${newTotal.toFixed(2)} og du har ${newDogeCoinsCOunter.toFixed(2)} coins igjen.`)
             }
         }
@@ -357,7 +362,7 @@ export class GamblingCommands {
                 message.reply("finner ingen bruker med det navnet")
             }
         } else {
-            message.reply("du har ikkje råd te å vippsa så møye, bro")
+            message.reply("du har ikkje råd te å vippsa så møye, bro (Man kan ikkje vippsa chips for gambling).")
         }
 
     }
@@ -371,9 +376,9 @@ export class GamblingCommands {
         let moneyString = "";
         peopleCoins.forEach((username) => {
             const currentUser = DatabaseHelper.findUserByUsername(username, message)
-            const userCoins = DatabaseHelper.getValue("dogeCoin", username, message) as number;
+            const userCoins = DatabaseHelper.getValue("chips", username, message) as number;
             const newValue = Number(userCoins) + Number(shareOfCoins.toFixed(0));
-            DatabaseHelper.setValue("dogeCoin", username, newValue.toString());
+            DatabaseHelper.setValue("chips", username, newValue.toString());
             moneyString += `${username}: ${userCoins} -> ${newValue}`
         });
         MessageHelper.sendMessage(message, moneyString)
@@ -381,14 +386,24 @@ export class GamblingCommands {
 
 
     static async checkCoins(message: Message, messageContent: string, args: string[]) {
+        let username: string;
+        if (!args[0]) {
+            username = message.author.username;
+        } else
+            username = getUsernameInQuotationMarks(messageContent) ?? args[0] ;
+        
+        const val = DatabaseHelper.getValue("dogeCoin", username, message)
+        MessageHelper.sendMessage(message, `${username} har ${Number(val).toLocaleString(undefined, {maximumFractionDigits: 2, minimumFractionDigits: 2})} coins`)
+    }
+    static async checkChips(message: Message, messageContent: string, args: string[]) {
         let username;
         if (!args[0]) {
             username = message.author.username;
         } else
-            username = args[0];
+            username = getUsernameInQuotationMarks(messageContent) ?? args[0] ;
 
-        const val = DatabaseHelper.getValue("dogeCoin", username, message)
-        MessageHelper.sendMessage(message, `${username} har ${Number(val).toLocaleString(undefined, {maximumFractionDigits: 2, minimumFractionDigits: 2})} dogecoins`)
+        const val = DatabaseHelper.getValue("chips", username, message)
+        MessageHelper.sendMessage(message, `${username} har ${Number(val).toLocaleString(undefined, {maximumFractionDigits: 2, minimumFractionDigits: 2})} chips`)
     }
 
     static readonly addCoinsCommand: ICommandElement = {
@@ -403,7 +418,7 @@ export class GamblingCommands {
     }
     static readonly takeLoanCommand: ICommandElement = {
         commandName: "lån",
-        description: "Lån 500 coins",
+        description: "Lån chips fra banken",
 
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.takeUpLoan(rawMessage, messageContent, args);
@@ -463,6 +478,13 @@ export class GamblingCommands {
         description: "Check coins on a person",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.checkCoins(rawMessage, messageContent, args);
+        }
+    }
+    static readonly checkChipsCommand: ICommandElement = {
+        commandName: "chips",
+        description: "Check coins on a person",
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            GamblingCommands.checkChips(rawMessage, messageContent, args);
         }
     }
     static readonly createBetCommand: ICommandElement = {

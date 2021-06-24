@@ -9,7 +9,7 @@ export class PatchNotes {
 	 * Increment y for mindre oppdateringer (enkle funksjoner osv)
 	 * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
 	 */
-	public static readonly currentVersion = "2.5.2";
+	public static readonly currentVersion = "2.5.3";
 
 	/** Private, brukes kun av getCurrentPatchNotes */
 	private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -19,8 +19,8 @@ export class PatchNotes {
 	 * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv. 
 	 */
 	public static readonly currentPatchNotes: string
-		= "* Du får nå 200 coins i dagpenger fra NAVzarini klokken 08:00 hver dag."
-		+ "\n* Du kan nå kjøre 1v1 mot andre i gambling. Bruk !mz krig <verdi> <username>."
+		= "* Gamblingøkonomien er tilbakestilt. Man har nå chips i stedet for coins, og det er nå maksgrense på lån. Man kan heller ikke vippse chips. Bruk '!mz chips' for å se chips og '!mz wallet' for coins"
+		+ "\n* Du kan nå bruke noen funksjoner på folk med mellomrom i brukernavnet. Bruk da \"hermetegn\". Kommandoer som mangler denne funksjonen kan du rapportere i #bot-utvikling channelen"
 		// + "\n* Ved en senere a"
 		// + "\n*Tekniske Notes*" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
 		// + "\n Nye metoder for betaling av lån og andre uten message-objekt" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes

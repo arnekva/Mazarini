@@ -30,7 +30,7 @@ export interface dbObject {
 
 }
 
-export type dbPrefix = "spin" | "birthday" | "stock" | "mygling" | "week" | "counterSpin" | "ATHspin" | "sCounterWeeklySpin" | "bailout" | "warningCounter" | "dogeCoin" | "test" | "achievement" | "bonkCounter" | "lastFmUsername" | "loanCounter" | "debt";
+export type dbPrefix = "spin" | "birthday" | "stock" | "mygling" | "week" | "counterSpin" | "ATHspin" | "sCounterWeeklySpin" | "chips" | "bailout" | "warningCounter" | "dogeCoin" | "test" | "achievement" | "bonkCounter" | "lastFmUsername" | "loanCounter" | "debt";
 
 export interface betObject {
     discriminator: "BETOBJECT",
@@ -130,7 +130,7 @@ export class DatabaseHelper {
             if (DatabaseHelper.findUserByUsername(key, message))
                 db.push(`${folderPrefix}/${key}/${prefix}`, val)
             else {
-                message.reply("brukeren finnes ikke")
+                message.reply('brukeren finnes ikke. Hvis brukeren har mellomrom i navnet, benytt "hermetegn" rundt navnet.')
                 return undefined;
             }
             return "0";

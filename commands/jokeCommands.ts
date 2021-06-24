@@ -40,7 +40,7 @@ export class JokeCommands {
             name = args[0];
         const guild = message.channel.client.guilds.cache.get("340626855990132747");
         if (guild) {
-            const user = guild.members.cache.filter(u => u.displayName == name).first();
+            const user = guild.members.cache.filter(u => u.user.username == name).first();
             if (user) {
                 if (user.presence.clientStatus) {
                     if (user.presence.activities && user.presence.activities[0]) {
@@ -54,7 +54,7 @@ export class JokeCommands {
                     await MessageHelper.sendMessage(message, "Magnus er ikke online. Da sover han mest sannsynlig. Kødda, han får ikke sove med alt bråket fra byggeplassen kekw")
                 }
             } else {
-                await MessageHelper.sendMessage(message, "Ingen bruker med id '221739293889003520' er registrert på serveren. Har Maggi rage quitta?")
+                await MessageHelper.sendMessage(message, "Ingen bruker med er registrert med det brukernavnet på serveren. Dårlig koding?")
             }
         }
     }
