@@ -263,11 +263,11 @@ export class GamblingCommands {
             if (isNaN(argAsNum)) {
                 message.reply("du har oppgitt et ugyldig tall")
                 return;
-            } else if (argAsNum > 500) {
-                message.reply("du kan låne maks 500 coins")
+            } else if (argAsNum > 250) {
+                message.reply("du kan låne maks 250 chips")
                 return;
             } else if (argAsNum < 1) {
-                message.reply("Kan kje låna mindre enn 1 coin")
+                message.reply("Kan kje låna mindre enn 1 chip")
                 return;
             }
             amountToLoan = argAsNum;
@@ -277,7 +277,7 @@ export class GamblingCommands {
         const totalDebt = DatabaseHelper.getValue("debt", username, message)
         const userMoney = DatabaseHelper.getValue("chips", message.author.username, message);
         if(totalDebt > 1500) {
-            message.reply("Du har for mye gjeld. Betal ned litt før du tar opp nytt lån.")
+            message.reply("Du har for mye gjeld. Betal ned litt før du tar opp nytt lån. (Hvis du har 0 chips nå e du pretty fucked, for Arne har ikkje koda inn någe redning her ennå)")
             return;
         }
         const newTotalLoans = Number(totalLoans) + 1;
@@ -288,7 +288,7 @@ export class GamblingCommands {
         const newCoinsVal = Number(userMoney) + amountToLoan;
         DatabaseHelper.setValue("chips", username, newCoinsVal.toFixed(2))
 
-        MessageHelper.sendMessage(message, `${username}, du har nå lånt ${amountToLoan.toFixed(2)} coins med 10% rente. Spend them well. Din totale gjeld er nå: ${newDebt.toFixed(2)} (${newTotalLoans} lån gjort)`)
+        MessageHelper.sendMessage(message, `${username}, du har nå lånt ${amountToLoan.toFixed(2)} chips med 10% rente. Spend them well. Din totale gjeld er nå: ${newDebt.toFixed(2)} (${newTotalLoans} lån gjort)`)
     }
 
     static payDownDebt(message: Message, content: string, args: string[]) {
