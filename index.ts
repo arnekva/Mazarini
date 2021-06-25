@@ -122,11 +122,11 @@ async function checkForCommand(message: Message) {
                 //Remove '!mz <command name>' from the content to avoid repeating this process in each function. 
                 const messageContent = message.content.replace("!mz " + cmd.commandName, "").replace("!Mz " + cmd.commandName, "").replace("!MZ " + cmd.commandName, "").trim()
                 const args = !!messageContent ? messageContent.split(" ") : [];
-                if(cmd.isSuperAdmin){
+                if (cmd.isSuperAdmin) {
                     if (Admin.isAuthorSuperAdmin(message.member)) {
                         cmd.command(message, messageContent, args)
                     } else {
-                        MessageHelper.sendMessage(message, "", true, message.author.username + " forsøkte å bruke " + cmd.commandName + " uten tilgang", "unauthorized")  
+                        MessageHelper.sendMessage(message, "", true, message.author.username + " forsøkte å bruke " + cmd.commandName + " uten tilgang", "unauthorized")
                     }
                 }
                 else if (cmd.isAdmin) {
@@ -191,8 +191,8 @@ function checkMessageForJokes(message: Message) {
     }
     const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message);
     if (idJoke == "1337") {
-        message.reply("nice, id-en te meldingen din inneholde 1337. Gz, du har vonne 500 dogecoins")
-        DatabaseHelper.incrementValue("dogeCoin", message.author.username, "500", message);
+        message.reply("nice, id-en te meldingen din inneholde 1337. Gz, du har vonne 200 dogecoins")
+        DatabaseHelper.incrementValue("dogeCoin", message.author.username, "200", message);
     }
 }
 

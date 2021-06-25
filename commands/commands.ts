@@ -12,6 +12,7 @@ import { MessageHelper } from "../helpers/messageHelper";
 import { Achievements } from "./achievements";
 import { SpotifyCommands } from "./spotifyCommands";
 import { Music } from "./musicCommands";
+import { Meme } from "./memeCommands";
 
 
 
@@ -97,6 +98,7 @@ export const commands: ICommandElement[] = [
     Achievements.giveMissingAchievements,
     SpotifyCommands.currentUserIsPlaying,
     Music.musicCommands,
+    Meme.makeMemeCommand
 
 ]
 
