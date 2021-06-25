@@ -203,7 +203,7 @@ export class GamblingCommands {
         if (userMoney) {
 
             if (Number(argumentVal) > Number(userMoney)) {
-                message.reply("Du har ikke nok penger til å gamble så mye. Bruk <!mz lån 1000> for å låne coins fra MazariniBank")
+                message.reply("Du har ikke nok penger til å gamble så mye. Bruk <!mz lån 1000> for å låne chips fra MazariniBank")
                 return;
             } else if (Number(argumentVal) < 1) {
                 message.reply("Du må gamble med et positivt tall, bro")
