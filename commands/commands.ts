@@ -13,6 +13,7 @@ import { Achievements } from "./achievements";
 import { SpotifyCommands } from "./spotifyCommands";
 import { Music } from "./musicCommands";
 import { Meme } from "./memeCommands";
+import { User } from "./userCommands";
 
 
 
@@ -98,7 +99,8 @@ export const commands: ICommandElement[] = [
     Achievements.giveMissingAchievements,
     SpotifyCommands.currentUserIsPlaying,
     Music.musicCommands,
-    Meme.makeMemeCommand
+    Meme.makeMemeCommand,
+    User.seeWarningCounterCommand,
 
 ]
 
