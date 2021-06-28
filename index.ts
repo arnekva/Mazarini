@@ -151,7 +151,7 @@ async function checkForCommand(message: Message) {
                 cmdFound = true;
             }
         })
-        const kekw = await message.client.emojis.cache.find(emoji => emoji.name == "kekw");
+        const kekw = await message.client.emojis.cache.find(emoji => emoji.name == "kekw_animated");
         if (!cmdFound) {
             const commandNames: string[] = [];
             commands.forEach((el) => commandNames.push(el.commandName))
@@ -159,13 +159,13 @@ async function checkForCommand(message: Message) {
                 message.react(kekw)
             const matched = didYouMean(command, commandNames)
 
-            message.reply("lmao, commanden '" + command + "' fins ikkje <:kekw:" + kekw + "> ." + (matched ? " Mente du **" + matched + "**?" : " Prøv !mz help"))
+            message.reply("lmao, commanden '" + command + "' fins ikkje <a:kekw_animated:" + kekw?.id + "> ." + (matched ? " Mente du **" + matched + "**?" : " Prøv !mz help"))
         }
     }
 }
 /** Checks for pølse, eivindpride etc. */
 function checkMessageForJokes(message: Message) {
-
+    const kekw = message.client.emojis.cache.find(emoji => emoji.name == "kekw_animated");
     let matches;
     let polseCounter = 0;
     polseRegex.lastIndex = 0;
@@ -189,10 +189,15 @@ function checkMessageForJokes(message: Message) {
         if ((doesThisMessageNeedAnEivindPride(message.content, polseCounter)) && react)
             message.react(react)
     }
+    if (message.author.id == "733320780707790898" && message.guild && message.mentions.roles.find(e => e.name == "Jævla Drittspel")) { //"733320780707790898" joiij
+        message.react(kekw ?? "😂")
+        //check for 10% chance of eivindpriding
+        message.reply("lol")
+    }
     const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message);
     if (idJoke == "1337") {
-        message.reply("nice, id-en te meldingen din inneholde 1337. Gz, du har vonne 200 dogecoins")
-        DatabaseHelper.incrementValue("dogeCoin", message.author.username, "200", message);
+        message.reply("nice, id-en te meldingen din inneholde 1337. Gz, du har vonne 100 coins")
+        DatabaseHelper.incrementValue("dogeCoin", message.author.username, "100", message);
     }
 }
 

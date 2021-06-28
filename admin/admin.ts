@@ -100,12 +100,14 @@ export class Admin {
 
             allChannels.forEach((channel: TextChannel) => {
                 if (channel) {
-                    channel.messages.fetch(id).then(async message => {
+                    channel.messages.fetch(id).then(message => {
                         if (message.guild) {
 
-                            const reactionEmoji = await message.client.emojis.cache.find(emoji => emoji.name == emojiString)
-                            if (reactionEmoji)
+
+                            const reactionEmoji = message.client.emojis.cache.find(emoji => emoji.name == emojiString)
+                            if (reactionEmoji) {
                                 message.react(reactionEmoji)
+                            }
 
                             else {
                                 try {

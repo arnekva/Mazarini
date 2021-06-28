@@ -12,6 +12,9 @@ export class Meme {
             return await this.createMeme("322841258", content, message, args)
         if (args[0] == "timmy" || args[0] == "26433458")
             return await this.createMeme("26433458", content, message, args)
+        if (args[0] == "sjøsyk" || args[0] == "hallgeir")
+            MessageHelper.sendMessage(message, "https://i.imgur.com/ka7SslJ.jpg")
+        return;
     }
 
     static async sendMeme(message: Message, content: string, args: string[]) {
