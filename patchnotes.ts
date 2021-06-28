@@ -9,7 +9,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = "2.5.3";
+    public static readonly currentVersion = "2.5.4";
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -21,6 +21,7 @@ export class PatchNotes {
     public static readonly currentPatchNotes: string
         = "* Du kan nå se antall advarsler du har med '!mz warnings'"
         + "\n* '!mz musikk' er ikke lenger admin-only. (Krever Last.fm-bruker) - her kan du få hentet statistikk fra Last.fm, inkludert topp artist/sang/album og weekly stats"
+        + "\n* Kommandoer er nå case insensetive "
         // + "\n* Ved en senere a"
         // + "\n*Tekniske Notes*" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
         // + "\n Nye metoder for betaling av lån og andre uten message-objekt" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
