@@ -114,7 +114,7 @@ async function checkForCommand(message: Message) {
     if (message.content.toLowerCase().startsWith("!mz")) {
 
         let cmdFound = false;
-        const command = message.content.replace("!mz ", "").replace("!Mz ", "").replace("!MZ ", "").toLowerCase().split(" ")[0]
+        const command = message.content.replace("!mz ", "").replace("!Mz ", "").replace("!MZ ", "").toLowerCase().split(" ")[0].toLowerCase()
 
         commands.forEach((cmd) => {
             if (command == cmd.commandName.toLowerCase()) {
