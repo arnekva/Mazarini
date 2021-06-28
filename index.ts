@@ -120,7 +120,7 @@ async function checkForCommand(message: Message) {
             if (command == cmd.commandName.toLowerCase()) {
 
                 //Remove '!mz <command name>' from the content to avoid repeating this process in each function. 
-                const messageContent = message.content.replace("!mz " + cmd.commandName, "").replace("!Mz " + cmd.commandName, "").replace("!MZ " + cmd.commandName, "").trim()
+                const messageContent = message.content.split(" ").slice(2).join(" ");// message.content.replace("!mz " + cmd.commandName, "").replace("!Mz " + cmd.commandName, "").replace("!MZ " + cmd.commandName, "").trim()
                 const args = !!messageContent ? messageContent.split(" ") : [];
                 if (cmd.isSuperAdmin) {
                     if (Admin.isAuthorSuperAdmin(message.member)) {
