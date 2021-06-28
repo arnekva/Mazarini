@@ -19,16 +19,19 @@ export class Admin {
         }
 
     }
-    static setSpecificValue(message: Message, messageContent: string) {
+    static setSpecificValue(message: Message, messageContent: string, args: string[]) {
         //setValueObject
+        const prefix = args[0] as dbPrefix;
+        const username = args[1];
+        const val = args.slice(2).join(" ");
         const content = messageContent.split(" ");
-        const prefix = content[0] as dbPrefix;
-        const key = content[1];
+        // const prefix = content[0] as dbPrefix;
+        // const key = content[1];
 
-        let value = "";
-        const newCont = content.slice(2)
-        newCont.forEach((el) => value += el + " ")
-        DatabaseHelper.setValue(prefix, key, value);
+        // let value = "";
+        // const newCont = content.slice(2)
+        // newCont.forEach((el) => value += el + " ")
+        DatabaseHelper.setValue(prefix, username, val);
     }
     static setSpinValue(message: Message, messageContent: string) {
 
@@ -226,8 +229,8 @@ export class Admin {
         hideFromListing: true,
         isAdmin: true,
         isSuperAdmin: true,
-        command: (rawMessage: Message, messageContent: string) => {
-            Admin.setSpecificValue(rawMessage, messageContent);
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            Admin.setSpecificValue(rawMessage, messageContent, args);
         }
     }
     static readonly setSpinVal: ICommandElement = {
