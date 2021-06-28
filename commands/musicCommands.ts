@@ -202,8 +202,6 @@ Docs: https://www.last.fm/api/show/user.getInfo
     static readonly musicCommands: ICommandElement = {
         commandName: "musikk",
         description: "Bruk '!mz musikk <topp> <songs|albums|artist> <limit?>(valgfri)",
-        hideFromListing: true,
-        isAdmin: true,
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             Music.findCommand(rawMessage, messageContent, args);
         }

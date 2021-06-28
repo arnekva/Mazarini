@@ -191,7 +191,6 @@ function checkMessageForJokes(message: Message) {
     }
     if (message.author.id == "733320780707790898" && message.guild && message.mentions.roles.find(e => e.name == "Jævla Drittspel")) { //"733320780707790898" joiij
         message.react(kekw ?? "😂")
-        //check for 10% chance of eivindpriding
         message.reply("lol")
     }
     const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message);
