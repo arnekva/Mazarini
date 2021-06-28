@@ -150,7 +150,7 @@ export class Admin {
         const user = DatabaseHelper.findUserByUsername(username, message);// message.client.users.cache.find(user => user.username == username);
         // const id = c[0].trim();
 
-        const replyString = messageContent.substr(messageContent.indexOf(username) + username.length + 2);
+        const replyString = messageContent.substr(messageContent.indexOf(username) + username.length + 3);
         if (user) {
             if (user.username == message.author.username) {
                 message.reply("Du kan kje warna deg sjøl, bro")
