@@ -1,4 +1,5 @@
 node_modules
 myDataBase.json
+mazariniDb.json
 ./myDataBase.json
 client-env.ts
