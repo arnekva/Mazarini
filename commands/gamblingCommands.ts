@@ -49,7 +49,7 @@ export class GamblingCommands {
             betVal = Number(args[0]);
             desc = desc.slice(args[0].length)
         }
-        if (betVal < Number(userBalance)) {
+        if (betVal > Number(userBalance)) {
             message.reply("Du har kje råd te dette bro")
             return;
         }
