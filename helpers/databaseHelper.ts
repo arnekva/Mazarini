@@ -6,7 +6,7 @@ import { escapeString } from "../utils/textUtils";
 //https://openbase.com/js/node-json-db
 import { JsonDB } from 'node-json-db';
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
-const db = new JsonDB(new Config("mazariniDb", true, true, '/'));
+const db = new JsonDB(new Config("myDataBase", true, true, '/'));
 const folderPrefix = "/users";
 const otherFolderPreifx = "/other"
 import emojiStrip from 'emoji-strip';
