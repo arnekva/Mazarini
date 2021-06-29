@@ -53,7 +53,7 @@ export class GamblingCommands {
             message.reply("Du har kje råd te dette bro")
             return;
         }
-        const betString = `${message.author.username} har startet et veddemål: ${desc} (${betVal} coins). Reager med 👍 for JA, 👎 for NEI. Resultat vises om 20 sek`
+        const betString = `${message.author.username} har startet et veddemål: ${desc} (${betVal} chips). Reager med 👍 for JA, 👎 for NEI. Resultat vises om 60 sek`
         const startMessage = await MessageHelper.sendMessage(message, betString)
         if (startMessage) {
             startMessage.react("👍")
@@ -84,7 +84,6 @@ export class GamblingCommands {
                 MessageHelper.sendMessage(message, fullString)
 
                 const obj: betObject = {
-                    discriminator: "BETOBJECT",
                     description: desc,
                     messageId: startMessage.id,
                     positivePeople: positive,
@@ -189,8 +188,8 @@ export class GamblingCommands {
                     }
 
 
-                    gambling.addField(`${message.author.username}`, `Du har nå ${engagerValue.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })} coins`)
-                    gambling.addField(`${username}`, `Du har nå ${victimValue.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })} coins`)
+                    gambling.addField(`${message.author.username}`, `Du har nå ${engagerValue.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })} chips`)
+                    gambling.addField(`${username}`, `Du har nå ${victimValue.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })} chips`)
                     MessageHelper.sendFormattedMessage(message, gambling);
                     DatabaseHelper.setValue("chips", message.author.username, (engagerValue).toFixed(2))
                     DatabaseHelper.setValue("chips", username, (victimValue).toFixed(2))

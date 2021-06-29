@@ -33,7 +33,6 @@ export interface dbObject {
 export type dbPrefix = "spin" | "birthday" | "stock" | "mygling" | "week" | "counterSpin" | "ATHspin" | "sCounterWeeklySpin" | "chips" | "bailout" | "warningCounter" | "dogeCoin" | "test" | "achievement" | "bonkCounter" | "lastFmUsername" | "loanCounter" | "debt";
 
 export interface betObject {
-    discriminator: "BETOBJECT",
     description: string,
     value: string,
     positivePeople: string[],
