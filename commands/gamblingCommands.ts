@@ -38,6 +38,7 @@ export class GamblingCommands {
 
     static async createBet(message: Message, messageContent: string, args: string[]) {
         const hasActiveBet = DatabaseHelper.getActiveBetObject(message.author.username);
+        const userBalance = DatabaseHelper.getValue("chips", message.author.username, message);
         let desc = messageContent;
         if (hasActiveBet) {
             message.reply("Du kan bare ha ett aktivt veddemål om gangen. Gjør ferdig ditt gamle, og prøv på nytt");
@@ -47,6 +48,10 @@ export class GamblingCommands {
         if (!isNaN(Number(args[0]))) {
             value = Number(args[0]);
             desc = desc.slice(args[0].length)
+        }
+        if (value < Number(userBalance)) {
+            message.reply("Du har kje råd te dette bro")
+            return;
         }
         const betString = `${message.author.username} har startet et veddemål: ${desc} (${value} coins). Reager med 👍 for JA, 👎 for NEI. Resultat vises om 20 sek`
         const startMessage = await MessageHelper.sendMessage(message, betString)
@@ -62,11 +67,17 @@ export class GamblingCommands {
                     fullString += "Folk som reagerte med " + reaction.emoji.name + ":"
                     const users = reaction.users;
                     users.cache.forEach((us, ind) => {
-                        if (reaction.emoji.name == "👍")
-                            positive.push(us.username)
-                        else
-                            negative.push(us.username)
-                        fullString += (us.username == "Mazarini Bot" ? "" : " " + us.username + ",");
+                        const userBal = DatabaseHelper.getValue("chips", us.username, message);
+                        if (Number(userBal) < value) {
+                            fullString += us.username + "(har ikke råd og blir ikke telt med)"
+                        } else {
+                            if (reaction.emoji.name == "👍")
+                                positive.push(us.username)
+                            else
+                                negative.push(us.username)
+                            fullString += (us.username == "Mazarini Bot" ? "" : " " + us.username + ",");
+                        }
+
                     })
                     fullString += "\n";
                 })
