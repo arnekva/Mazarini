@@ -44,16 +44,16 @@ export class GamblingCommands {
             message.reply("Du kan bare ha ett aktivt veddemål om gangen. Gjør ferdig ditt gamle, og prøv på nytt");
             return;
         }
-        let value = 100;
+        let betVal = 100;
         if (!isNaN(Number(args[0]))) {
-            value = Number(args[0]);
+            betVal = Number(args[0]);
             desc = desc.slice(args[0].length)
         }
-        if (value < Number(userBalance)) {
+        if (betVal < Number(userBalance)) {
             message.reply("Du har kje råd te dette bro")
             return;
         }
-        const betString = `${message.author.username} har startet et veddemål: ${desc} (${value} coins). Reager med 👍 for JA, 👎 for NEI. Resultat vises om 20 sek`
+        const betString = `${message.author.username} har startet et veddemål: ${desc} (${betVal} coins). Reager med 👍 for JA, 👎 for NEI. Resultat vises om 20 sek`
         const startMessage = await MessageHelper.sendMessage(message, betString)
         if (startMessage) {
             startMessage.react("👍")
@@ -68,7 +68,7 @@ export class GamblingCommands {
                     const users = reaction.users;
                     users.cache.forEach((us, ind) => {
                         const userBal = DatabaseHelper.getValue("chips", us.username, message);
-                        if (Number(userBal) < value) {
+                        if (Number(userBal) < betVal) {
                             fullString += us.username + "(har ikke råd og blir ikke telt med)"
                         } else {
                             if (reaction.emoji.name == "👍")
@@ -89,7 +89,7 @@ export class GamblingCommands {
                     messageId: startMessage.id,
                     positivePeople: positive,
                     negativePeople: negative,
-                    value: "100",
+                    value: betVal.toFixed(2),
                 }
                 DatabaseHelper.setActiveBetObject(message.author.username, obj)
             }, 60000) //Sett til 60000
