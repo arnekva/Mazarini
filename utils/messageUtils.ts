@@ -8,4 +8,8 @@ export namespace MessageUtils {
             return "1337";
         return "none";
     }
+
+    export const isArgsAtleastThisLong = (args: string[], neededLength: number) => {
+        return (args.length - 1) === neededLength;
+    }
 }

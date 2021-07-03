@@ -68,14 +68,16 @@ export class GamblingCommands {
                     const users = reaction.users;
                     users.cache.forEach((us, ind) => {
                         const userBal = DatabaseHelper.getValue("chips", us.username, message);
-                        if (Number(userBal) < betVal) {
-                            fullString += us.username + "(har ikke råd og blir ikke telt med)"
+                        if (Number(userBal) < betVal && (us.username !== "Mazarini Bot")) {
+                            fullString += us.username + "(har ikke råd og blir ikke telt med),"
                         } else {
-                            if (reaction.emoji.name == "👍")
-                                positive.push(us.username)
-                            else
-                                negative.push(us.username)
-                            fullString += (us.username == "Mazarini Bot" ? "" : " " + us.username + ",");
+                            if (us.username !== "Mazarini Bot") {
+                                if (reaction.emoji.name == "👍")
+                                    positive.push(us.username)
+                                else
+                                    negative.push(us.username)
+                                fullString += (us.username == "Mazarini Bot" ? "" : " " + us.username + ",");
+                            }
                         }
 
                     })
@@ -385,11 +387,17 @@ export class GamblingCommands {
         const shareOfCoins = pot / peopleCoins.length;
         let moneyString = "";
         peopleCoins.forEach((username) => {
-            const currentUser = DatabaseHelper.findUserByUsername(username, message)
-            const userCoins = DatabaseHelper.getValue("chips", username, message) as number;
-            const newValue = Number(userCoins) + Number(shareOfCoins.toFixed(0));
-            DatabaseHelper.setValue("chips", username, newValue.toString());
-            moneyString += `${username}: ${userCoins} -> ${newValue}`
+            if (!!username.trim()) {
+                const currentUser = DatabaseHelper.findUserByUsername(username, message)
+                const userCoins = DatabaseHelper.getValue("chips", username, message) as number;
+                const newValue = Number(userCoins) + Number(shareOfCoins.toFixed(0));
+                if (isNaN(newValue) || isNaN(userCoins)) {
+                    message.reply("en av verdiene fra databasen kan ikke konverteres til et tall. newValue: '" + newValue + "', userCoins: '" + userCoins + "'. Hendelsen blir loggført slik at en nerd kan se nærmere på det.")
+                    MessageHelper.sendMessageToActionLog(message.channel as TextChannel, `En feil har oppstått i ${message.channel}. ${message.author.username} har trigget dealcoins med enten undefined eller NaN verdi på coins. `)
+                }
+                DatabaseHelper.setValue("chips", username, newValue.toString());
+                moneyString += `${username}: ${userCoins} -> ${newValue}`
+            }
         });
         MessageHelper.sendMessage(message, moneyString)
     }
@@ -485,14 +493,14 @@ export class GamblingCommands {
     }
     static readonly walletCommand: ICommandElement = {
         commandName: "wallet",
-        description: "Check coins on a person",
+        description: "Se antall coins til en person",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.checkCoins(rawMessage, messageContent, args);
         }
     }
     static readonly checkChipsCommand: ICommandElement = {
         commandName: "chips",
-        description: "Check coins on a person",
+        description: "Se antall chips en person har til gambling",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.checkChips(rawMessage, messageContent, args);
         }

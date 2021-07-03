@@ -114,7 +114,10 @@ export const helperCommands = ((rawMessage: Message, messageContent: string, arg
         let found = 0;
         commands.forEach((cmd) => {
             if (cmd.commandName == commandForHelp) {
-                MessageHelper.sendMessage(rawMessage, cmd.commandName + (cmd.isAdmin ? " (Admin) " : "") + ": " + cmd.description)
+                if (cmd.isSuperAdmin)
+                    MessageHelper.sendMessage(rawMessage, cmd.commandName + (cmd.isSuperAdmin ? " (Superadmin) " : "") + ": " + cmd.description)
+                else
+                    MessageHelper.sendMessage(rawMessage, cmd.commandName + (cmd.isAdmin ? " (Admin) " : "") + ": " + cmd.description)
                 found++;
             }
         })
@@ -126,7 +129,7 @@ export const helperCommands = ((rawMessage: Message, messageContent: string, arg
         commands.forEach((cmd) => {
 
             if (isLookingForAllAdmin) {
-                commandStringList.push(cmd.commandName + (cmd.isAdmin ? " (admin)" : (cmd.hideFromListing ? " (gjemt fra visning) " : "")));
+                commandStringList.push(cmd.commandName + (cmd.isSuperAdmin ? " (superadmin)" : "") + (cmd.isAdmin ? " (admin)" : (cmd.hideFromListing ? " (gjemt fra visning) " : "")));
             } else {
                 if (!cmd.hideFromListing)
                     commandStringList.push(cmd.commandName);
