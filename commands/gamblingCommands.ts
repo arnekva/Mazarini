@@ -72,6 +72,7 @@ export class GamblingCommands {
                             fullString += us.username + "(har ikke råd og blir ikke telt med),"
                         } else {
                             if (us.username !== "Mazarini Bot") {
+                                DatabaseHelper.setValue("chips", us.username, (Number(userBal) - betVal).toFixed(2));
                                 if (reaction.emoji.name == "👍")
                                     positive.push(us.username)
                                 else
@@ -83,6 +84,10 @@ export class GamblingCommands {
                     })
                     fullString += "\n";
                 })
+                if (positive.length == 0 && negative.length == 0) {
+                    message.reply("Ingen svarte på veddemålet. ")
+                    return;
+                }
                 MessageHelper.sendMessage(message, fullString)
 
                 const obj: betObject = {
@@ -104,6 +109,11 @@ export class GamblingCommands {
             message.reply("Du kan kun lukke veddemål du har startet selv, og du har ingen aktive.");
             return;
         }
+        if (args[0].toLocaleLowerCase() !== "nei" && args[0].toLocaleLowerCase() !== "ja") {
+            message.reply("Du må legge til om det var 'ja' eller 'nei' som var utfallet av veddemålet")
+            return;
+        }
+
         if (ObjectUtils.instanceOfBetObject(activeBet)) {
             const resolveMessage = await MessageHelper.sendMessage(message, `${username} vil gjøre opp ett veddemål: ${activeBet.description}. Reager med 👍 for å godkjenne (Trenger 3). Venter 60 sekunder. `)
             if (resolveMessage) {
@@ -396,7 +406,7 @@ export class GamblingCommands {
                     MessageHelper.sendMessageToActionLog(message.channel as TextChannel, `En feil har oppstått i ${message.channel}. ${message.author.username} har trigget dealcoins med enten undefined eller NaN verdi på coins. `)
                 }
                 DatabaseHelper.setValue("chips", username, newValue.toString());
-                moneyString += `${username}: ${userCoins} -> ${newValue}`
+                moneyString += `${username}: ${userCoins} -> ${newValue}\n`
             }
         });
         MessageHelper.sendMessage(message, moneyString)
