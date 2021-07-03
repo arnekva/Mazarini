@@ -96,6 +96,7 @@ export class GamblingCommands {
                     positivePeople: positive,
                     negativePeople: negative,
                     value: betVal.toFixed(2),
+
                 }
                 DatabaseHelper.setActiveBetObject(message.author.username, obj)
             }, 60000) //Sett til 60000
@@ -132,7 +133,7 @@ export class GamblingCommands {
                         const isPositive = args[0].toLocaleLowerCase() === "ja";
                         MessageHelper.sendMessage(message, `Veddemålsresultatet er godkjent. Beløpene blir nå lagt til på kontoene. `)
                         const value = activeBet.value;
-                        GamblingCommands.dealCoins(message, activeBet.value, isPositive ? activeBet.positivePeople : activeBet.negativePeople)
+                        GamblingCommands.dealCoins(message, activeBet.value, isPositive ? activeBet.positivePeople : activeBet.negativePeople, (activeBet.negativePeople.length + activeBet.positivePeople.length))
                         DatabaseHelper.deleteActiveBet(username);
 
                     } else {
@@ -388,12 +389,12 @@ export class GamblingCommands {
         }
 
     }
-    static dealCoins(message: Message, value: string, peopleGettingCoins: string) {
+    static dealCoins(message: Message, value: string, peopleGettingCoins: string, numP: number) {
         const peopleCoins = peopleGettingCoins.split(",").filter(u => u !== "Mazarini Bot")
         const basePot = 50;
         let pot = basePot;
         const val = Number(value);
-        pot += val * peopleCoins.length;
+        pot += val * numP;
         const shareOfCoins = pot / peopleCoins.length;
         let moneyString = "";
         peopleCoins.forEach((username) => {
