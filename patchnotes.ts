@@ -9,7 +9,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = "2.5.5";
+    public static readonly currentVersion = "2.5.6";
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -20,6 +20,9 @@ export class PatchNotes {
      */
     public static readonly currentPatchNotes: string
         = "* Fikser problemer med resolving av veddemål. Bot Høie teller heller ikke lenger med i listen."
+        + "\n* Fikser potten i veddemål. Coins blir nå korrekt trukket av deltakere i det veddemålet er startet, og pottet ganges nå korrekt. "
+        + "\n* Veddemål uten deltakere går ikke lenger gjennom."
+        + "\n* Langt til ekstra logging ved feil i gambling-kommandoer"
         // + "\n* '!mz musikk' er ikke lenger admin-only. (Krever Last.fm-bruker) - her kan du få hentet statistikk fra Last.fm, inkludert topp artist/sang/album og weekly stats"
         // + "\n* Kommandoer er nå case insensetive "
         // + "\n* Ved en senere a"
