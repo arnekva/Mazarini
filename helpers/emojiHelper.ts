@@ -18,7 +18,7 @@ export class EmojiHelper {
             animated = true;
         }
 
-        return { id: `<${animated ? "a:" : ""}${emojiType}:${emojiObj?.id}`, emojiObject: emojiObj }
+        return { id: `<${animated ? "a:" : ""}${emojiType}:${emojiObj?.id}>`, emojiObject: emojiObj }
         // message.reply("lmao, commanden '" + command + "' fins ikkje <a:kekw_animated:" + kekw?.id + "> ." + (matched ? " Mente du **" + matched + "**?" : " Prøv !mz help"))
 
     }
