@@ -27,13 +27,53 @@ export class SpotifyCommands {
         });
     }
 
+    static async currentPlayingFromDiscord(rawMessage: Message, content: string, args: string[]) {
+        let name = "";
+        if (args[0]) {
+            name = args[0];
+
+        } else {
+            rawMessage.reply("Du må spesifisera brukernavn")
+            return;
+        }
+        const guild = rawMessage.channel.client.guilds.cache.get("340626855990132747");
+        if (guild) {
+            const user = guild.members.cache.filter(u => u.user.username == name).first();
+            if (user) {
+                let replystring = "";
+                user.presence.activities.forEach((activity) => {
+                    if (activity.name === "Spotify") {
+                        replystring += `${activity.state} - ${activity.details}`;
+                    }
+
+                })
+                if (replystring === "")
+                    replystring += `${name} hører ikke på Spotify for øyeblikket`
+                await MessageHelper.sendMessage(rawMessage, replystring)
+                // if (user.presence.clientStatus) {
+                //     if (user.presence.activities && user.presence.activities[0]) {
+                //         const game = user.presence.activities[0].name == "Custom Status" ? user.presence.activities[1] : user.presence.activities[0];
+                //         await MessageHelper.sendMessage(message, `${name} e ${user.presence.clientStatus.desktop ? "på pc-en" : (user.presence.clientStatus.mobile ? "på mobilen" : "i nettleseren")} ${game ? "med aktiviteten " + game.name + "." : "uten någe aktivitet."}`)
+                //     }
+                // }
+            }
+        }
+
+    }
+
     static readonly currentUserIsPlaying: ICommandElement = {
         commandName: "spotify",
-        description: "Hent ut hva brukeren spiller av på Spotify nå. (IKKE IMPLEMENTERT)",
-        hideFromListing: true,
-        isAdmin: true,
+        description: "Hent hva brukeren spiller av på Spotify (fra Discord)",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            SpotifyCommands.getUsersCurrentSong(rawMessage, messageContent, args);
+            SpotifyCommands.currentPlayingFromDiscord(rawMessage, messageContent, args);
+        }
+    }
+    static readonly currentlyPlayingCommand: ICommandElement = {
+        commandName: "spiller",
+        description: "Se hva en bruker spiller. <brukernavn>",
+        deprecated: "spotify",
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            SpotifyCommands.currentPlayingFromDiscord(rawMessage, messageContent, args);
         }
     }
 }

@@ -98,6 +98,7 @@ export const commands: ICommandElement[] = [
     Achievements.listAchievements,
     Achievements.giveMissingAchievements,
     SpotifyCommands.currentUserIsPlaying,
+    SpotifyCommands.currentlyPlayingCommand,
     Music.musicCommands,
     Meme.makeMemeCommand,
     User.seeWarningCounterCommand,
