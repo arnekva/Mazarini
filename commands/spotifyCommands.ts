@@ -2,6 +2,7 @@ import { Message } from "discord.js";
 import { spotifyToken } from "../client-env"
 import { EmojiHelper } from "../helpers/emojiHelper";
 import { MessageHelper } from "../helpers/messageHelper";
+import { getUsernameInQuotationMarks } from "../utils/textUtils";
 import { ICommandElement } from "./commands";
 const request = require('request');
 
@@ -31,8 +32,7 @@ export class SpotifyCommands {
     static async currentPlayingFromDiscord(rawMessage: Message, content: string, args: string[]) {
         let name = "";
         if (args[0]) {
-            name = args[0];
-
+            name = getUsernameInQuotationMarks(content) ?? args[0]
         } else {
             rawMessage.reply("Du må spesifisera brukernavn")
             return;
@@ -58,6 +58,8 @@ export class SpotifyCommands {
                 //         await MessageHelper.sendMessage(message, `${name} e ${user.presence.clientStatus.desktop ? "på pc-en" : (user.presence.clientStatus.mobile ? "på mobilen" : "i nettleseren")} ${game ? "med aktiviteten " + game.name + "." : "uten någe aktivitet."}`)
                 //     }
                 // }
+            } else {
+                rawMessage.reply("Fant ingen brukere ved navn '" + name + "'.")
             }
         }
 
