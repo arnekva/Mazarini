@@ -17,7 +17,8 @@ export class EmojiHelper {
             emojiObj = await message.client.emojis.cache.find(emoji => emoji.name == "catJAM");
             animated = true;
         }
-
+        if (!emojiObj)
+            return { id: "<Fant ikke emojien>" }
         return { id: `<${animated ? "a:" : ""}${emojiType}:${emojiObj?.id}>`, emojiObject: emojiObj }
         // message.reply("lmao, commanden '" + command + "' fins ikkje <a:kekw_animated:" + kekw?.id + "> ." + (matched ? " Mente du **" + matched + "**?" : " Prøv !mz help"))
 
