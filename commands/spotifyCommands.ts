@@ -1,5 +1,6 @@
 import { Message } from "discord.js";
 import { spotifyToken } from "../client-env"
+import { EmojiHelper } from "../helpers/emojiHelper";
 import { MessageHelper } from "../helpers/messageHelper";
 import { ICommandElement } from "./commands";
 const request = require('request');
@@ -40,10 +41,11 @@ export class SpotifyCommands {
         if (guild) {
             const user = guild.members.cache.filter(u => u.user.username == name).first();
             if (user) {
+                const emoji = await EmojiHelper.getEmoji("catJAM", rawMessage);
                 let replystring = "";
                 user.presence.activities.forEach((activity) => {
                     if (activity.name === "Spotify") {
-                        replystring += `${activity.state} - ${activity.details}`;
+                        replystring += `${activity.state} - ${activity.details} ${emoji.id}`;
                     }
 
                 })
