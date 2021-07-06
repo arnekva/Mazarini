@@ -48,11 +48,11 @@ mazariniClient.on('ready', () => {
     //https://www.npmjs.com/package/node-schedule
     action_log_channel = mazariniClient.channels.cache.get("810832760364859432")
 
-    const resetMygleJob = schedule.scheduleJob({ hour: 8, minute: 0, }, function () {
+    const resetMygleJob = schedule.scheduleJob("0 8 * * 1", function () {
         console.log("Kjører resett av mygling kl 08:00")
         DatabaseHelper.deleteSpecificPrefixValues("mygling")
     });
-    const navPenger = schedule.scheduleJob({ hour: 8, minute: 0, }, async function () {
+    const navPenger = schedule.scheduleJob("0 8 * * 1", async function () {
         console.log("Får penger av NAV kl 08:00")
         const brukere = await DatabaseHelper.getAllUsers()
         Object.keys(brukere).forEach((username: string) => {

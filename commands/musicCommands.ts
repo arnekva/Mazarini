@@ -12,7 +12,7 @@ export type musicCommand = "top";
 export type topMethods = "songs" | "artist" | "album" | "tags";
 export type weeklyMethods = "songs" | "artist";
 
-export type commandTypes = "topp" | "weekly";
+export type commandTypes = "topp" | "weekly" | "siste";
 interface musicMethod {
     description: string;
     title: string;
@@ -22,6 +22,7 @@ interface musicMethod {
 export const methods: musicMethod[] = [
     { title: "Topp", description: "Hent ut en toppliste (Artist, album, sanger eller tags)", command: "topp" },
     { title: "Siste 7 dager", description: "Hent ut en toppliste (Artist, album, sanger eller tags)", command: "weekly" },
+    { title: "Siste sanger", description: "Siste X sanger avspilt", command: "siste" },
 
 ]
 
@@ -33,11 +34,12 @@ interface fetchData {
     };
     limit: string;
     includeStats: boolean;
+    silent: boolean;
 }
 
 export class Music {
     static readonly baseUrl = "http://ws.audioscrobbler.com/2.0/";
-    static findCommand(message: Message, content: string, args: string[]) {
+    static findCommand(message: Message, content: string, args: string[], silent?: boolean) {
 
         if (!args[0]) {
             message.reply("Feilformattert. Mangler du f.eks 'topp'?")
@@ -46,20 +48,32 @@ export class Music {
 
         /** CHECKS at alt eksistere */
         const method = methods.filter(e => e.command == args[0])[0];
+
         if (args[0] != "user") {
             if (!method) {
                 message.reply("Kommandoen eksisterer ikke. Bruk 'topp' eller 'weekly'")
                 return;
             }
-            const username = Music.getLastFMUsernameByDiscordUsername(message.author.username, message)
+            let username = Music.getLastFMUsernameByDiscordUsername(message.author.username, message)
+            let limit = args[2] ?? "10";
             if (!username) {
                 message.reply("Du har ikke registrert brukernavnet ditt. Bruk '!mz musikk user <discordnavn> <last.fm navn>")
                 return;
             }
             const cmd = Music.getCommand(method.command, args[1])
-
+            if (method.command === "siste" && args[2]) {
+                const nyUser = Music.getLastFMUsernameByDiscordUsername(args[2], message)
+                if (nyUser) {
+                    username = nyUser;
+                } else {
+                    if (!silent)
+                        message.reply("du har oppgitt et brukernavn, men denne brukeren har ikke knyttet Last.fm-kontoen sin ('!mz musikk user <discordnavn> <last.fm navn>')")
+                    return;
+                }
+            }
+            limit = args[1] ?? "5";
             if (!cmd) {
-                message.reply("kommandoen mangler 'artist', 'songs' eller 'album' eller  bak topp eller weekly")
+                message.reply("kommandoen mangler 'artist', 'songs' eller 'album' eller  bak 'topp', 'weekly' eller 'siste'")
                 return;
             }
 
@@ -68,11 +82,12 @@ export class Music {
             const data: fetchData = {
                 user: username,
                 method: { cmd: cmd, desc: method.title },
-                limit: args[2] ?? "10",
-                includeStats: !!args[3]
+                limit: limit,
+                includeStats: !!args[3],
+                silent: silent ?? false,
 
             }
-            this.findLastFmData(message, data);
+            return this.findLastFmData(message, data);
         } else {
             if (args[1] && args[2]) {
                 if (args[1] !== message.author.username) {
@@ -94,7 +109,19 @@ export class Music {
             case "weekly":
                 if (s as weeklyMethods)
                     return this.findWeeklyMethod(s);
+            case "siste":
+                if (s as weeklyMethods)
+                    return this.findLastPlayedSongs(s);
         }
+    }
+    //TODO: Rett metode
+    static findLastPlayedSongs(m: string) {
+        return "user." + "getrecenttracks";
+
+    }
+
+    static findLastMethod(m: string) {
+
     }
     static findTopMethod(m: string) {
         const base = "user."
@@ -127,8 +154,14 @@ export class Music {
     /*
 Docs: https://www.last.fm/api/show/user.getInfo
     */
-
+    /**
+     * Finn last FM data
+     * @param message 
+     * @param dataParam 
+     * @returns 
+     */
     static async findLastFmData(message: Message, dataParam: fetchData) {
+
         if (parseInt(dataParam.limit) > 30) {
             message.reply("Litt for høg limit, deranes. Maks 30.")
             return;
@@ -138,12 +171,10 @@ Docs: https://www.last.fm/api/show/user.getInfo
         }
         const msg = await MessageHelper.sendMessage(message, "Laster data...")
         const apiKey = lfKey;
-        /** TODO: 
-         *  Sjekk om den funker som default (sikkert ikke)
-         *  Gjøre forskjellige fetcher for weekly og topp? Eventuelt kanskje bare forskjellige attr i then-en
-         */
-        let artistString = dataParam.method.desc + " " + dataParam.limit;
-        Promise.all([
+
+        let artistString = ""
+        /**Promise.all siden vi gjør 2 fetches og trenger at begge resolves samtidig */
+        return Promise.all([
             fetch(Music.baseUrl + `?method=${dataParam.method.cmd}&user=${dataParam.user}&api_key=${apiKey}&format=json&limit=${dataParam.limit}`, {
                 method: "GET",
             }),
@@ -155,36 +186,45 @@ Docs: https://www.last.fm/api/show/user.getInfo
                     resInfo.json()
                 ])
                     .then(([topData, info]) => {
-                        const isWeekly = dataParam.method.cmd.includes("weekly")
-
+                        /** Forskjellige metoder har litt forskjellig respons, så det ligger en del boolean verdier på toppen for å sjekke dette når det skal hentes ut */
+                        const isFormattedWithHashtag = dataParam.method.cmd.includes("weekly") || dataParam.method.cmd.includes("recent")
+                        const isWeekly = dataParam.method.cmd.includes("weekly");
+                        const isNotRecent = !dataParam.method.cmd.includes("recent");
                         const totalPlaycount = info["user"].playcount ?? "1";
                         let prop;
+                        /** En metode ser ut som typ user.getrecenttrack. Her fjerner vi user.get for å finne ut hvilken metode som er brukt. */
                         const strippedMethod = dataParam.method.cmd.replace("user.get", "");
-                        const methodWithoutGet = isWeekly ? strippedMethod.replace("weekly", "").replace("chart", "") : replaceLast(strippedMethod.replace("top", ""), "s", "");
-                        artistString += " " + methodWithoutGet + "s";
-                        console.log(methodWithoutGet);
-
+                        /** Fjern unødvendige ting fra stringen for å finne kun metodenavnet */
+                        const methodWithoutGet = isWeekly ? strippedMethod.replace("weekly", "").replace("chart", "") : replaceLast(strippedMethod.replace("top", "").replace("recent", ""), "s", "");
+                        /** Prop er fulle dataen som hentes ut */
                         prop = topData[strippedMethod][methodWithoutGet] as { name: string, playcount: string, artist?: { name: string } }[];
-                        console.log(topData[strippedMethod]);
+
                         let numPlaysInTopX = 0;
                         if (prop) {
-
-                            prop.forEach((element: { name: string, playcount: string, artist?: any, }) => {
+                            prop.forEach((element: any, index) => {
                                 numPlaysInTopX += (parseInt(element.playcount));
-                                artistString += `\n${isWeekly && element.artist ? element.artist["#text"] + " - " : (element.artist ? element.artist.name + " - " : "")}${element.name} (${element.playcount} plays) ${dataParam.includeStats ? ((parseInt(element.playcount) / parseInt(totalPlaycount)) * 100).toFixed(1) + "%" : ""} `
+                                /** Denne ser kanskje lang ut, men den lager hver linje. Først ser den etter artist (hentes forskjellig fra weekly), legger til bindestrek, sjekker etter sangnavn etc.  */
+                                artistString += `\n${isFormattedWithHashtag && element.artist ? element.artist["#text"] + " - " : (element.artist ? element.artist.name + " - " : "")}`
+                                    + `${element.name} ${isNotRecent ? "(" + element.playcount + " plays)" : ""} `
+                                    + `${dataParam.includeStats ? ((parseInt(element.playcount) / parseInt(totalPlaycount)) * 100).toFixed(1) + "%" : ""} `
+                                    + `${!isNotRecent && !!element['@attr'] ? "(Spiller nå)" : ""} `
+                                    /** Silent er når botten selv trigger metoden (f.eks. fra spotify-command). Da vil man ha med datostempelet. Ikke nødvendig ellers */
+                                    + `${dataParam.silent ? "(" + new Date(Number(element.date["uts"]) * 1000).toLocaleString("nb-NO") + ")" : ""} `
                             });
-                            if (!isWeekly)
+                            /** Hvis prop-en er formattert med en # (eks. ['@attr']) så finnes ikke total plays. */
+                            if (!isFormattedWithHashtag)
                                 artistString += `\n*Totalt ${topData[strippedMethod]["@attr"].total} ${methodWithoutGet}s i biblioteket`
                         }
                         else
                             message.reply("Fant ingen data. Kanskje feilformattert?")
-                        if (!isWeekly)
+                        if (!isFormattedWithHashtag)
                             artistString += `, ${totalPlaycount} totale avspillinger.  ${dataParam.includeStats ? (numPlaysInTopX / parseInt(totalPlaycount) * 100).toFixed(1) + "% av avspillingene er fra dine topp " + dataParam.limit + "." : ""}* `
 
                         if (msg)
                             msg.edit(artistString)
                         else
                             MessageHelper.sendMessage(message, artistString);
+                        return "200"
                     });
             }).catch((error: any) => console.log(error));
 

@@ -4,6 +4,7 @@ import { EmojiHelper } from "../helpers/emojiHelper";
 import { MessageHelper } from "../helpers/messageHelper";
 import { getUsernameInQuotationMarks } from "../utils/textUtils";
 import { ICommandElement } from "./commands";
+import { Music } from "./musicCommands";
 const request = require('request');
 
 export class SpotifyCommands {
@@ -49,9 +50,12 @@ export class SpotifyCommands {
                     }
 
                 })
-                if (replystring === "")
+                if (replystring === "") {
                     replystring += `${name} hører ikke på Spotify for øyeblikket`
+                }
                 await MessageHelper.sendMessage(rawMessage, replystring)
+                if (replystring.includes("hører ikke på Spotify for øyeblikket"))
+                    Music.findCommand(rawMessage, content, ["siste", "1", name], true)
                 // if (user.presence.clientStatus) {
                 //     if (user.presence.activities && user.presence.activities[0]) {
                 //         const game = user.presence.activities[0].name == "Custom Status" ? user.presence.activities[1] : user.presence.activities[0];
