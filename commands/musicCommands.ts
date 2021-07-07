@@ -71,7 +71,7 @@ export class Music {
                     return;
                 }
             }
-            limit = Number(args[1]) ? args[1] : args[2];
+            limit = (Number(args[1]) ? args[1] : args[2]) ?? "5";
             if (!cmd) {
                 message.reply("kommandoen mangler 'artist', 'songs' eller 'album' eller  bak 'topp', 'weekly' eller 'siste'")
                 return;
@@ -209,7 +209,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
                                     + `${dataParam.includeStats ? ((parseInt(element.playcount) / parseInt(totalPlaycount)) * 100).toFixed(1) + "%" : ""} `
                                     + `${!isNotRecent && !!element['@attr'] ? "(Spiller nå)" : ""} `
                                     /** Silent er når botten selv trigger metoden (f.eks. fra spotify-command). Da vil man ha med datostempelet. Ikke nødvendig ellers */
-                                    + `${dataParam.silent ? "(" + new Date(Number(element.date["uts"]) * 1000).toLocaleString("nb-NO") + ")" : ""} `
+                                    + `${dataParam.silent ? "(" + new Date(Number(element.date["uts"]) * 1000).toLocaleString("nb-NO") + ")" : ""} \n`
                             });
                             /** Hvis prop-en er formattert med en # (eks. ['@attr']) så finnes ikke total plays. */
                             if (!isFormattedWithHashtag)
