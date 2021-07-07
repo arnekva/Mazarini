@@ -133,7 +133,8 @@ export class GamblingCommands {
                         const isPositive = args[0].toLocaleLowerCase() === "ja";
                         MessageHelper.sendMessage(message, `Veddemålsresultatet er godkjent. Beløpene blir nå lagt til på kontoene. `)
                         const value = activeBet.value;
-                        GamblingCommands.dealCoins(message, activeBet.value, isPositive ? activeBet.positivePeople : activeBet.negativePeople, (activeBet.negativePeople.length + activeBet.positivePeople.length))
+
+                        GamblingCommands.dealCoins(message, activeBet.value, isPositive ? activeBet.positivePeople : activeBet.negativePeople, (activeBet.negativePeople.split(",").length + activeBet.positivePeople.split(",").length))
                         DatabaseHelper.deleteActiveBet(username);
 
                     } else {
