@@ -35,8 +35,9 @@ export class SpotifyCommands {
         if (args[0]) {
             name = getUsernameInQuotationMarks(content) ?? args[0]
         } else {
-            rawMessage.reply("Du må spesifisera brukernavn")
-            return;
+            name = rawMessage.author.username;
+            // rawMessage.reply("Du må spesifisera brukernavn")
+            // return;
         }
         const guild = rawMessage.channel.client.guilds.cache.get("340626855990132747");
         if (guild) {

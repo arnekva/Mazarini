@@ -71,7 +71,7 @@ export class Music {
                     return;
                 }
             }
-            limit = args[1] ?? "5";
+            limit = Number(args[1]) ? args[1] : args[2];
             if (!cmd) {
                 message.reply("kommandoen mangler 'artist', 'songs' eller 'album' eller  bak 'topp', 'weekly' eller 'siste'")
                 return;
