@@ -115,13 +115,13 @@ async function checkForCommand(message: Message) {
 
         let cmdFound = false;
         const command = message.content.toLowerCase().replace("!mz ", "").split(" ")[0].toLowerCase()
-
+        const messageContent = message.content.split(" ").slice(2).join(" ");// message.content.replace("!mz " + cmd.commandName, "").replace("!Mz " + cmd.commandName, "").replace("!MZ " + cmd.commandName, "").trim()
+        const args = !!messageContent ? messageContent.split(" ") : [];
         commands.forEach((cmd) => {
             if (command == cmd.commandName.toLowerCase()) {
 
                 //Remove '!mz <command name>' from the content to avoid repeating this process in each function. 
-                const messageContent = message.content.split(" ").slice(2).join(" ");// message.content.replace("!mz " + cmd.commandName, "").replace("!Mz " + cmd.commandName, "").replace("!MZ " + cmd.commandName, "").trim()
-                const args = !!messageContent ? messageContent.split(" ") : [];
+
                 if (cmd.isSuperAdmin) {
                     if (Admin.isAuthorSuperAdmin(message.member)) {
                         cmd.command(message, messageContent, args)
@@ -158,7 +158,7 @@ async function checkForCommand(message: Message) {
             if (kekw)
                 message.react(kekw)
             const matched = didYouMean(command, commandNames)
-
+            Admin.logInncorectCommandUsage(message, messageContent, args);
             message.reply("lmao, commanden '" + command + "' fins ikkje <a:kekw_animated:" + kekw?.id + "> ." + (matched ? " Mente du **" + matched + "**?" : " Prøv !mz help"))
         }
     }

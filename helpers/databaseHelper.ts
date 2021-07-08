@@ -59,7 +59,19 @@ export class DatabaseHelper {
     }
     /** Sett en verdi i "other"-delen av databasen */
     static setNonUserValue(id: string, key: string, value: string) {
-        db.push(`${otherFolderPreifx}/${key}/${id}`, `${value}`)
+        db.push(`${otherFolderPreifx}/${id}/${key}`, `${value}`)
+    }
+    /** Hent en verdi i "other"-delen av databasen */
+    static getNonUserValue(id: string, key: string, noInsertions?: boolean) {
+        try {
+            const data = db.getData(`${otherFolderPreifx}/${id}/${key}`)
+            return data;
+        } catch (error) {
+            if (noInsertions)
+                return "";
+            db.push(`${otherFolderPreifx}/${id}/${key}`, `0`)
+            return "0";
+        }
     }
     /** Knytter et bet til en bruker */
     static setActiveBetObject(key: string, value: betObject) {

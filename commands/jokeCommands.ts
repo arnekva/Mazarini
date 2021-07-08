@@ -358,6 +358,17 @@ export class JokeCommands {
             JokeCommands.isMaggiPlaying(rawMessage, messageContent, args);
         }
     }
+    static readonly kekwCommand: ICommandElement = {
+        commandName: "kekw",
+        description: "kekw",
+        command: async (rawMessage: Message, messageContent: string, args: string[]) => {
+            const kekw = await rawMessage.client.emojis.cache.find(emoji => emoji.name == "kekw_animated");
+            if (kekw) {
+                rawMessage.react(kekw)
+                rawMessage.reply("<a: kekw_animated: " + kekw?.id + " > .")
+            }
+        }
+    }
     static readonly activityCommand: ICommandElement = {
         commandName: "aktivitet",
         description: "Går det egentlig bra med masteren te Magnus?",

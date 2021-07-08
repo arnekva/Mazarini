@@ -2,7 +2,7 @@ import { Channel, GuildMember, Message, TextChannel } from "discord.js";
 import { ICommandElement } from "../commands/commands";
 import { DatabaseHelper, dbPrefix } from "../helpers/databaseHelper";
 import { MessageHelper } from "../helpers/messageHelper";
-import { isInQuotation } from "../utils/textUtils";
+import { getUsernameInQuotationMarks, isInQuotation } from "../utils/textUtils";
 
 
 export class Admin {
@@ -176,14 +176,19 @@ export class Admin {
     }
 
     static deleteXLastMessagesByUserInChannel(message: Message, messageContent: string, args: string[]) {
-        const userToDelete = args[0];
-        const user = DatabaseHelper.findUserByUsername(userToDelete, message);
+        const userToDelete = getUsernameInQuotationMarks(messageContent);
+        console.log(userToDelete);
+
+        const user = DatabaseHelper.findUserByUsername(userToDelete ?? args[0], message);
+        console.log(user);
+
+        const reason = userToDelete ? args.slice(3).join(" ") : args.slice(2).join(" ");
         if (!user) {
             message.reply("du må oppgi et gyldig brukernavn. <brukernavn> <antall meldinger>")
             return;
         }
         const currentChannel = message.channel;
-        const maxDelete = Number(args[1]) ?? 1;
+        const maxDelete = Number(args[2]) ?? 1;
         let deleteCounter = 0;
         currentChannel.messages.fetch({ limit: 100, }, false, true).then((el) => {
             el.forEach((message) => {
@@ -192,9 +197,20 @@ export class Admin {
                     deleteCounter++;
                 }
             })
+            MessageHelper.sendMessageToActionLog(message.channel as TextChannel, `${message.author.username} slettet ${maxDelete} meldinger fra ${user.username} i channel ${message.channel} på grunn av: "${reason.length > 0 ? reason : 'ingen grunn oppgitt'}"`)
+            if (user.username !== message.author.username)
+                message.delete();
         }).catch((error: any) => {
             MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error);
         })
+    }
+
+    static logInncorectCommandUsage(message: Message, messageContent: string, args: string[]) {
+        const command = message.content.split(" ")[1];
+        const numberOfFails = DatabaseHelper.getNonUserValue("incorrectCommand", command)
+        const newFailNum = Number(numberOfFails) + 1;
+        MessageHelper.sendMessageToActionLog(message.channel as TextChannel, `${command} ble forsøkt brukt, men finnes ikke (${newFailNum})`)
+        DatabaseHelper.setNonUserValue("incorrectCommand", command, newFailNum.toString())
     }
 
     static readonly deleteValFromPrefix: ICommandElement = {
