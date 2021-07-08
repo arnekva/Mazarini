@@ -9,7 +9,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = "2.5.12";
+    public static readonly currentVersion = "2.5.13";
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -19,9 +19,8 @@ export class PatchNotes {
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv. 
      */
     public static readonly currentPatchNotes: string
-        = "Fikset en feil som gjorde at statuser ikke ble slettet daglig" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
-        + "\n Fikset mindre feil med musikk-kommandoen" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
-        + "\n Ny og forbedret logging og håndtering av feilmeldinger" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
+        = "Lagt til ny adminfunksjon for å slette en brukers X siste meldinger i en gitt channel" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
+        //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
 
         ;
 
