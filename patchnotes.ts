@@ -9,7 +9,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = "2.5.11";
+    public static readonly currentVersion = "2.5.12";
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -21,6 +21,7 @@ export class PatchNotes {
     public static readonly currentPatchNotes: string
         = "Fikset en feil som gjorde at statuser ikke ble slettet daglig" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
         + "\n Fikset mindre feil med musikk-kommandoen" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
+        + "\n Ny og forbedret logging og håndtering av feilmeldinger" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
 
         ;
 
