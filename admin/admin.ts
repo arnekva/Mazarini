@@ -175,6 +175,28 @@ export class Admin {
         }
     }
 
+    static deleteXLastMessagesByUserInChannel(message: Message, messageContent: string, args: string[]) {
+        const userToDelete = args[0];
+        const user = DatabaseHelper.findUserByUsername(userToDelete, message);
+        if (!user) {
+            message.reply("du må oppgi et gyldig brukernavn. <brukernavn> <antall meldinger>")
+            return;
+        }
+        const currentChannel = message.channel;
+        const maxDelete = Number(args[1]) ?? 1;
+        let deleteCounter = 0;
+        currentChannel.messages.fetch({ limit: 100, }, false, true).then((el) => {
+            el.forEach((message) => {
+                if (message.author.username == user.username && deleteCounter < maxDelete) {
+                    message.delete();
+                    deleteCounter++;
+                }
+            })
+        }).catch((error: any) => {
+            MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error);
+        })
+    }
+
     static readonly deleteValFromPrefix: ICommandElement = {
         commandName: "deletekeys",
         description: "Slett alle databasenøkler og tilhørende verdier for den gitte prefixen (Virker ikke)",
@@ -183,6 +205,14 @@ export class Admin {
         command: (rawMessage: Message, messageContent: string) => {
             const prefix = rawMessage.content.replace("!mz deletekeys ", "") as dbPrefix;
             DatabaseHelper.deleteSpecificPrefixValues(prefix);
+        }
+    }
+    static readonly deleteMessages: ICommandElement = {
+        commandName: "deletemessages",
+        description: "Slett X siste meldinger fra en bruker i en channel",
+        isAdmin: true,
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            Admin.deleteXLastMessagesByUserInChannel(rawMessage, messageContent, args);
         }
     }
     static readonly deleteSpecificKey: ICommandElement = {

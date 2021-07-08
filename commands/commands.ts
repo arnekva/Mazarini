@@ -70,6 +70,7 @@ export const commands: ICommandElement[] = [
     Admin.sendMsgAsBot,
     Admin.reactToMsg,
     Admin.replyToMsg,
+    Admin.deleteMessages,
     Admin.warnUserCommand,
     Spinner.setHighscoreCommand,
     Admin.deleteValFromPrefix,
