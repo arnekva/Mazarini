@@ -188,10 +188,19 @@ Docs: https://www.last.fm/api/show/user.getInfo
                 ])
                     .then(([topData, info]) => {
                         /** Forskjellige metoder har litt forskjellig respons, så det ligger en del boolean verdier på toppen for å sjekke dette når det skal hentes ut */
+                        if (!topData || !info["user"]) {
+                            if (msg)
+                                msg.edit("Fant ingen data fra Last.fm.")
+                            setTimeout(() => {
+                                if (msg)
+                                    msg.delete();
+                            }, 5000)
+                            return;
+                        }
                         const isFormattedWithHashtag = dataParam.method.cmd.includes("weekly") || dataParam.method.cmd.includes("recent")
                         const isWeekly = dataParam.method.cmd.includes("weekly");
                         const isNotRecent = !dataParam.method.cmd.includes("recent");
-                        const totalPlaycount = info["user"].playcount ?? "1";
+                        const totalPlaycount = info["user"]?.playcount ?? "1";
                         let prop;
                         /** En metode ser ut som typ user.getrecenttrack. Her fjerner vi user.get for å finne ut hvilken metode som er brukt. */
                         const strippedMethod = dataParam.method.cmd.replace("user.get", "");
@@ -228,13 +237,9 @@ Docs: https://www.last.fm/api/show/user.getInfo
                         return "200"
                     });
             }).catch((error: any) => {
-                console.log(error);
-                if (msg)
-                    msg.edit("Fant ingen data fra Last.fm")
-                setTimeout(() => {
-                    if (msg)
-                        msg.delete();
-                }, 5000)
+                console.log("whops");
+
+
             });
 
     }
