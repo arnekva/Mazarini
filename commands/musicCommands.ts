@@ -57,7 +57,8 @@ export class Music {
             let username = Music.getLastFMUsernameByDiscordUsername(message.author.username, message)
             let limit = args[2] ?? "10";
             if (!username) {
-                message.reply("Du har ikke registrert brukernavnet ditt. Bruk '!mz musikk user <discordnavn> <last.fm navn>")
+                if (!silent)
+                    message.reply("Du har ikke registrert brukernavnet ditt. Bruk '!mz musikk user <discordnavn> <last.fm navn>")
                 return;
             }
             const cmd = Music.getCommand(method.command, args[1])
@@ -226,7 +227,15 @@ Docs: https://www.last.fm/api/show/user.getInfo
                             MessageHelper.sendMessage(message, artistString);
                         return "200"
                     });
-            }).catch((error: any) => console.log(error));
+            }).catch((error: any) => {
+                console.log(error);
+                if (msg)
+                    msg.edit("Fant ingen data fra Last.fm")
+                setTimeout(() => {
+                    if (msg)
+                        msg.delete();
+                }, 5000)
+            });
 
     }
 

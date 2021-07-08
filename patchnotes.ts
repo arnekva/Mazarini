@@ -9,7 +9,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = "2.5.9";
+    public static readonly currentVersion = "2.5.10";
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -20,12 +20,12 @@ export class PatchNotes {
      */
     public static readonly currentPatchNotes: string
         = "* Bruk '!mz spotify <brukernavn' for å printe hva en bruker hører på (må ha Spotify koblet til Discord)."
-        + "\n* Hvis du har Last.fm koblet til (!mz help musikk) så sjekker den også der etter sist spilte sang"
+        // + "\n* Hvis du har Last.fm koblet til (!mz help musikk) så sjekker den også der etter sist spilte sang"
         // + "\n* '!mz musikk' er ikke lenger admin-only. (Krever Last.fm-bruker) - her kan du få hentet statistikk fra Last.fm, inkludert topp artist/sang/album og weekly stats"
         // + "\n* Kommandoer er nå case insensetive "
         // + "\n* Ved en senere a"
         + "\n*Tekniske Notes*" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
-        + "\n Fikset en feil i veddemål som førte til for høy utbetaling." //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
+        + "\n Fikset en feil som gjorde at statuser ikke ble slettet daglig" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
 
         ;
 
