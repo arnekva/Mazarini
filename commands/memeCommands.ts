@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { Message, TextChannel } from "discord.js";
 import { imgflip } from "../client-env";
 import { MessageHelper } from "../helpers/messageHelper";
 import { ICommandElement } from "./commands";
@@ -67,9 +67,13 @@ export class Meme {
                 res.json().then((el: any) => {
                     if (el.data) MessageHelper.sendMessage(message, el.data.url)
                     else console.log(el);
+                }).catch((error: any) => {
+                    MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
                 })
             }
-            );
+            ).catch((error: any) => {
+                MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
+            });
         } else {
             message.reply("Du mangler noen tekster")
         }

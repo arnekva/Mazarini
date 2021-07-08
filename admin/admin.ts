@@ -168,9 +168,7 @@ export class Admin {
                 MessageHelper.sendMessage(message, "", true, message.author.username + " ga en advarsel til " + user.username + " på grunn av: " + replyString + ". " + user.username + " har nå " + newVal + " advarsler", "warning")
 
             } else {
-                MessageHelper.sendMessageToActionLog(message.channel as TextChannel, "Verdien for warningcounter er NaN: <" + userWarnings + ">.")
-                message.reply("klarte ikke å øke warning counteren for " + user.username + ". Hendelsen er loggført.")
-
+                MessageHelper.sendMessageToActionLogWithDefaultMessage(message, "Verdien for warningcounter er NaN: <" + userWarnings + ">.")
             }
         } else {
             MessageHelper.sendMessage(message, 'Feil: Du har enten skrevet feil bruker navn eller ikke inkludert en melding. *Hvis brukeren har mellomrom i navnet, bruk "hermetegn"*')

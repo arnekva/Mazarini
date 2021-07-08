@@ -75,7 +75,8 @@ export class MessageHelper {
                     if (message.guild) {
                         messageToReturn = message;
                     }
-                }).catch((error) => {
+                }).catch((error: any) => {
+                    MessageHelper.sendMessageToActionLogWithDefaultMessage(rawMessage, error);
                 })
             }
         }
@@ -89,6 +90,12 @@ export class MessageHelper {
     static sendMessageToActionLog(channel: TextChannel, msg: string) {
         const errorChannel = channel.client.channels.cache.get("810832760364859432") as TextChannel
         errorChannel.send(msg);
+    }
+    static sendMessageToActionLogWithDefaultMessage(message: Message, error: any, ignoreReply?: boolean) {
+        const roleId = "821709203470680117";
+        message.reply(`En feil har oppstått. Feilkoden og meldingen din blir logget. <@&$${roleId}>`)
+        const errorChannel = message.channel.client.channels.cache.get("810832760364859432") as TextChannel
+        errorChannel.send(`En feil har oppstått i en melding fra ${message.author.username}. Meldingsinnhold: <${message.content}>. Channel: ${message.channel}. Feilmelding: <${error}>`);
     }
     static sendMessageToBotUtvikling(channel: TextChannel) {
         const errorChannel = channel.client.channels.cache.get("802716150484041751") as TextChannel

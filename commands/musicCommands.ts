@@ -1,5 +1,5 @@
 
-import { Message } from "discord.js";
+import { Message, TextChannel } from "discord.js";
 import { parse } from "dotenv/types";
 import { discordSecret, lfKey } from "../client-env";
 import { DatabaseHelper } from "../helpers/databaseHelper";
@@ -235,12 +235,12 @@ Docs: https://www.last.fm/api/show/user.getInfo
                         else
                             MessageHelper.sendMessage(message, artistString);
                         return "200"
+                    }).catch((error: any) => {
+                        MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error);
                     });
             }).catch((error: any) => {
-                console.log("whops");
-
-
-            });
+                MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error);
+            })
 
     }
 

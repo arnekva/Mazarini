@@ -178,6 +178,8 @@ export class JokeCommands {
                         if (react)
                             message.react(react)
                     })
+                }).catch((error: any) => {
+                    MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error);
                 })
             }
         } catch (error) {
@@ -278,8 +280,7 @@ export class JokeCommands {
                 DatabaseHelper.setValue("bonkCounter", user, cur.toString())
                 return cur;
             } catch (error) {
-                MessageHelper.sendMessageToActionLog(message.channel as TextChannel, "Noe gikk galt med incrementing totalen for " + user + ". Stacktrace: " + error)
-                message.reply("Noe gikk galt. Feilen blir loggført. Stacktrace: " + error)
+                MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
             }
         }
     }

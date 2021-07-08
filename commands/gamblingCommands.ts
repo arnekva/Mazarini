@@ -405,7 +405,7 @@ export class GamblingCommands {
                 const newValue = Number(userCoins) + Number(shareOfCoins.toFixed(0));
                 if (isNaN(newValue) || isNaN(userCoins)) {
                     message.reply("en av verdiene fra databasen kan ikke konverteres til et tall. newValue: '" + newValue + "', userCoins: '" + userCoins + "'. Hendelsen blir loggført slik at en nerd kan se nærmere på det.")
-                    MessageHelper.sendMessageToActionLog(message.channel as TextChannel, `En feil har oppstått i ${message.channel}. ${message.author.username} har trigget dealcoins med enten undefined eller NaN verdi på coins. `)
+                    MessageHelper.sendMessageToActionLogWithDefaultMessage(message, `Trigget dealcoins med enten undefined eller NaN verdi på coins. `)
                 }
                 DatabaseHelper.setValue("chips", username, newValue.toString());
                 moneyString += `${username}: ${userCoins} -> ${newValue}\n`
