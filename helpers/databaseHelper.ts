@@ -61,6 +61,16 @@ export class DatabaseHelper {
     static setNonUserValue(id: string, key: string, value: string) {
         db.push(`${otherFolderPreifx}/${id}/${key}`, `${value}`)
     }
+    static setCountdownValue(id: string, key: string, value: string) {
+        db.push(`${otherFolderPreifx}/countdown/${id}/${key}`, `${value}`)
+    }
+    static deleteCountdownValue(id: string) {
+        db.delete(`${otherFolderPreifx}/countdown/${id}/`)
+    }
+
+    static getAllCountdownValues() {
+        return db.getData(`${otherFolderPreifx}/countdown/`)
+    }
     /** Hent en verdi i "other"-delen av databasen */
     static getNonUserValue(id: string, key: string, noInsertions?: boolean) {
         try {

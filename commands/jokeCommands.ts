@@ -15,7 +15,7 @@ import { ICommandElement } from "./commands";
 export class JokeCommands {
 
     static async vaskHuset(message: Message) {
-        await MessageHelper.sendMessage(message, Math.random() < 0.75 ? "Øyvind, vask huset!" : "Satt for nærme peisen og blei ****afisert")
+        await MessageHelper.sendMessage(message, Math.random() < 0.75 ? "Øyvind, vask huset!" : "Har ei jækla fine klokka")
 
     }
 
@@ -129,43 +129,8 @@ export class JokeCommands {
         MessageHelper.sendMessage(message, myglinger)
         // const vals = await DatabaseHelper.getAllValuesFromPrefix("mygling")
     }
-    static async countdownToDate(message: Message) {
-        let sendThisText = "";
-        const maggiMaster = DateUtils.getTimeTo(new Date(2021, 5, 15, 10));
-        sendThisText += "\n" + JokeCommands.formatCountdownText(maggiMaster, "igjen av Magnus sin master", "Magnus har levert masteren sin :)")
-        const thomasJobb = DateUtils.getTimeTo(new Date(2021, 6, 29, 15));
-        sendThisText += "\n" + JokeCommands.formatCountdownText(thomasJobb, "igjen av Thomas sin sommerjobb", "Thomas e ferige med sommberjobben :)")
 
-        MessageHelper.sendMessage(message, sendThisText)
-    }
-    /**
-     * 
-     * @param dateObj Date object
-     * @param textEnding Det som skal stå etter tiden (eks 1 dag 1 time <text ending> - 1 dag og 1 time 'igjen til ferie')
-     * @param finishedText Det som printes hvis datoen/tiden har passert
-     */
-    static formatCountdownText(dateObj: countdownTime | undefined, textEnding: string, finishedText: string) {
-        if (!dateObj)
-            return finishedText;
-        const timeTab: string[] = [];
-        let timeString = "Det er";
 
-        if (dateObj.days > 0)
-            timeTab.push(" " + dateObj.days + " dager")
-        if (dateObj.hours > 0)
-            timeTab.push(" " + dateObj.hours + " timer");
-        if (dateObj.minutes > 0)
-            timeTab.push(" " + dateObj.minutes + " minutter");
-        if (dateObj.seconds > 0)
-            timeTab.push(" " + dateObj.seconds + " sekunder");
-        timeTab.forEach((text, index) => {
-            timeString += text
-            if (index <= timeTab.length - 2 && timeTab.length > 1)
-                timeString += (index == timeTab.length - 2 ? " og" : ",");
-        })
-        timeString += " " + textEnding;
-        return timeString;
-    }
 
     static async eivindprideItAll(message: Message) {
         try {
@@ -286,7 +251,8 @@ export class JokeCommands {
     }
 
     private static uwuText(t: string) {
-        return ArrayUtils.randomChoiceFromArray(globalArrays.asciiEmojies).concat(" " + t.replace(/r/g, "w").replace(/l/g, "w").concat(" ", ArrayUtils.randomChoiceFromArray(globalArrays.asciiEmojies)));
+        const firstChoice = ArrayUtils.randomChoiceFromArray(globalArrays.asciiEmojies);
+        return firstChoice.concat(" " + t.replace(/r/g, "w").replace(/l/g, "w").concat(" ", ArrayUtils.randomChoiceFromArray(globalArrays.asciiEmojies.filter(e => e !== firstChoice))));
     }
 
     /*
@@ -314,21 +280,7 @@ export class JokeCommands {
             JokeCommands.reactWithLetters(rawMessage, messageContent, args);
         }
     }
-    static readonly masterCountdown: ICommandElement = {
-        commandName: "master",
-        description: "Se hvor lenge det er igjen før Magnus og Eivind må levere masteren sin",
-        command: (rawMessage: Message, messageContent: string) => {
-            JokeCommands.countdownToDate(rawMessage);
-        },
-        deprecated: "countdown"
-    }
-    static readonly countdown: ICommandElement = {
-        commandName: "countdown",
-        description: "Se hvor lenge det er igjen",
-        command: (rawMessage: Message, messageContent: string) => {
-            JokeCommands.countdownToDate(rawMessage);
-        },
-    }
+
     static readonly mygleStatus: ICommandElement = {
         commandName: "status",
         description: "Sett din status",

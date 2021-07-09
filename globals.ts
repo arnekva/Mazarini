@@ -44,5 +44,5 @@ export namespace globalArrays {
         "den spant for fort og havnet i middagstallerkenen på nabobordet.", "Erna & Co. la all smitteskyld på fidget spinnere og den måtte kastes", "han ble den kuleste i nabolaget.", "pausen på 71 grader nord var over og han måtte følge med igjen.", "han rage quittet.", "han ble oppringt om å bli med i sesong 194 av 4 stjerners middag.", "han startet re-watch av Hotell Cæsar for tredje gang.", "han ga opp og tok en tidlig helg.", "han investerte i Gamestop-aksjer og ble søkkrik."]
 
     export const bentHoieLines = ["Husk å holde avstand", "Er det 1 meter mellom dere? *Drar frem målebånd*", "Erna ser deg!", "1 meter folkens! EIN METER!", "Holde dokk avstand nå bler det utepils te sommaren!",
-        "Jævla studenter, ødelegge for alle."]
+        "Jaja, fina vêre då", "Ka du tagge meg for?", "Klare for udepils eller?", "Gidde du sedda på Sommartid av Guddfaren?", ""]
 }

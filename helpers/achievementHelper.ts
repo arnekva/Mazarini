@@ -21,7 +21,7 @@ export class AchievementHelper {
                 if (cur >= 10000)
                     Achievements.awardAchievement(username, "10000spin", message, silent)
             } catch (error) {
-                message.reply("Noe gikk galt. Stacktrace: " + error)
+                MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
             }
         }
     }

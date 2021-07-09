@@ -14,7 +14,7 @@ import { SpotifyCommands } from "./spotifyCommands";
 import { Music } from "./musicCommands";
 import { Meme } from "./memeCommands";
 import { User } from "./userCommands";
-import { Reminder } from "./reminderCommands";
+import { DateCommands } from "./dateCommands";
 
 
 
@@ -54,8 +54,6 @@ export const commands: ICommandElement[] = [
     JokeCommands.thomasFese,
     JokeCommands.mygleStatus,
     JokeCommands.getAllMygling,
-    JokeCommands.masterCountdown,
-    JokeCommands.countdown,
     JokeCommands.elDavido,
     JokeCommands.eivndPrideCommand,
     JokeCommands.reactWithWord,
@@ -92,6 +90,8 @@ export const commands: ICommandElement[] = [
     GamblingCommands.vippsCommand,
     GamblingCommands.krigCommand,
     GamblingCommands.bailoutCommand,
+    DateCommands.remindMeCommand,
+    DateCommands.countdownCommand,
     WarzoneCommands.getWZStats,
     WarzoneCommands.getWeeklyWZStats,
     WarzoneCommands.getWeaponStats,
@@ -101,7 +101,7 @@ export const commands: ICommandElement[] = [
     Achievements.giveMissingAchievements,
     SpotifyCommands.currentUserIsPlaying,
     SpotifyCommands.currentlyPlayingCommand,
-    Reminder.remindMeCommand,
+    DateCommands.remindMeCommand,
     Music.musicCommands,
     Meme.makeMemeCommand,
     User.seeWarningCounterCommand,
