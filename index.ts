@@ -48,7 +48,7 @@ mazariniClient.on('ready', () => {
     //https://www.npmjs.com/package/node-schedule
     action_log_channel = mazariniClient.channels.cache.get("810832760364859432")
 
-    const resetMygleJob = schedule.scheduleJob("53 8 * * *", function () {
+    const resetMygleJob = schedule.scheduleJob("0 8 * * *", function () {
         console.log("Kjører resett av mygling: " + new Date().toString())
         DatabaseHelper.deleteSpecificPrefixValues("mygling")
     });
