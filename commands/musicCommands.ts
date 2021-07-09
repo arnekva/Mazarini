@@ -201,6 +201,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
                         const isWeekly = dataParam.method.cmd.includes("weekly");
                         const isNotRecent = !dataParam.method.cmd.includes("recent");
                         const totalPlaycount = info["user"]?.playcount ?? "1";
+
                         let prop;
                         /** En metode ser ut som typ user.getrecenttrack. Her fjerner vi user.get for å finne ut hvilken metode som er brukt. */
                         const strippedMethod = dataParam.method.cmd.replace("user.get", "");
@@ -212,6 +213,8 @@ Docs: https://www.last.fm/api/show/user.getInfo
                         let numPlaysInTopX = 0;
                         if (prop) {
                             prop.forEach((element: any, index) => {
+                                const hasDate = element.date;
+                                const isCurrentlyPlaying = !!element['@attr'];
                                 numPlaysInTopX += (parseInt(element.playcount));
                                 /** Denne ser kanskje lang ut, men den lager hver linje. Først ser den etter artist (hentes forskjellig fra weekly), legger til bindestrek, sjekker etter sangnavn etc.  */
                                 artistString += `\n${isFormattedWithHashtag && element.artist ? element.artist["#text"] + " - " : (element.artist ? element.artist.name + " - " : "")}`
@@ -219,7 +222,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
                                     + `${dataParam.includeStats ? ((parseInt(element.playcount) / parseInt(totalPlaycount)) * 100).toFixed(1) + "%" : ""} `
                                     + `${!isNotRecent && !!element['@attr'] ? "(Spiller nå)" : ""} `
                                     /** Silent er når botten selv trigger metoden (f.eks. fra spotify-command). Da vil man ha med datostempelet. Ikke nødvendig ellers */
-                                    + `${dataParam.silent ? "(" + new Date(Number(element.date["uts"]) * 1000).toLocaleString("nb-NO") + ")" : ""}`
+                                    + `${dataParam.silent ? "(" + (isCurrentlyPlaying ? "" : new Date(Number(element.date["uts"]) * 1000).toLocaleString("nb-NO") + ")") : ""}`
                             });
                             /** Hvis prop-en er formattert med en # (eks. ['@attr']) så finnes ikke total plays. */
                             if (!isFormattedWithHashtag)
