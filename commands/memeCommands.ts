@@ -66,7 +66,6 @@ export class Meme {
             }).then((res: any) => {
                 res.json().then((el: any) => {
                     if (el.data) MessageHelper.sendMessage(message, el.data.url)
-                    else console.log(el);
                 }).catch((error: any) => {
                     MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
                 })

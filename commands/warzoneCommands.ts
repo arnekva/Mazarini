@@ -93,17 +93,14 @@ export class WarzoneCommands {
 
         try {
             await API.login("arne.kva@gmail.com", "Mazarini332");
-            console.log("here?")
         } catch (error) {
             message.reply("Klarte ikke logge inn")
         }
 
         try {
-            console.log("next try?")
             let data = API.MWwzstats(gamertag, platform).then((response: any) => {
                 const weapons = response.lifetime.itemData;
                 let maindata;
-                console.log(response)
             }).catch((error: any) => {
                 MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error);
             })
@@ -114,7 +111,7 @@ export class WarzoneCommands {
 
             // MessageHelper.sendMessage(message.channel, responseString)
         } catch (error) {
-            message.reply(error)
+            MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error);
         }
 
     }

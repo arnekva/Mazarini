@@ -40,7 +40,6 @@ export class Admin {
         let value = "";
         const newCont = content.slice(1)
         newCont.forEach((el) => value += el.trim())
-        console.log("Setting spin <" + value + ">")
         DatabaseHelper.setValue("ATHspin", key, value)
     }
     static deleteSpecificValue(message: Message, messageContent: string) {
@@ -157,7 +156,6 @@ export class Admin {
                 return;
             }
             const userWarnings = DatabaseHelper.getValue("warningCounter", user.username, message);
-            console.log(userWarnings);
 
             if (!isNaN(userWarnings)) {
                 let newVal = parseInt(userWarnings)
@@ -177,10 +175,8 @@ export class Admin {
 
     static deleteXLastMessagesByUserInChannel(message: Message, messageContent: string, args: string[]) {
         const userToDelete = getUsernameInQuotationMarks(messageContent);
-        console.log(userToDelete);
 
         const user = DatabaseHelper.findUserByUsername(userToDelete ?? args[0], message);
-        console.log(user);
 
         const reason = userToDelete ? args.slice(3).join(" ") : args.slice(2).join(" ");
         if (!user) {

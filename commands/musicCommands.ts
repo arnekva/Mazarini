@@ -214,13 +214,13 @@ Docs: https://www.last.fm/api/show/user.getInfo
                         if (prop) {
                             prop.forEach((element: any, index) => {
                                 const hasDate = element.date;
-                                const isCurrentlyPlaying = !!element['@attr'];
+                                const isCurrentlyPlaying = !isNotRecent && !!element['@attr'];
                                 numPlaysInTopX += (parseInt(element.playcount));
                                 /** Denne ser kanskje lang ut, men den lager hver linje. Først ser den etter artist (hentes forskjellig fra weekly), legger til bindestrek, sjekker etter sangnavn etc.  */
                                 artistString += `\n${isFormattedWithHashtag && element.artist ? element.artist["#text"] + " - " : (element.artist ? element.artist.name + " - " : "")}`
                                     + `${element.name} ${isNotRecent ? "(" + element.playcount + " plays)" : ""} `
                                     + `${dataParam.includeStats ? ((parseInt(element.playcount) / parseInt(totalPlaycount)) * 100).toFixed(1) + "%" : ""} `
-                                    + `${!isNotRecent && !!element['@attr'] ? "(Spiller nå)" : ""} `
+                                    + `${isCurrentlyPlaying ? "(Spiller nå)" : ""} `
                                     /** Silent er når botten selv trigger metoden (f.eks. fra spotify-command). Da vil man ha med datostempelet. Ikke nødvendig ellers */
                                     + `${dataParam.silent ? (isCurrentlyPlaying ? "" : "(" + new Date(Number(element.date["uts"]) * 1000).toLocaleString("nb-NO") + ")") : ""}`
                             });

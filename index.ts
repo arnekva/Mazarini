@@ -16,6 +16,8 @@ import { MessageHelper } from "./helpers/messageHelper";
 import { Spinner } from "./commands/spinner";
 import { discordSecret, environment } from "./client-env";
 import { MessageUtils } from "./utils/messageUtils";
+import { ArrayUtils } from "./utils/arrayUtils";
+import { globalArrays } from "./globals";
 
 require('dotenv').config();
 
@@ -111,10 +113,11 @@ mazariniClient.on('message', async (message: Message) => {
 async function checkForCommand(message: Message) {
     if (message.author == mazariniClient.user)
         return;
-    if (message.content.toLowerCase().startsWith("!mz")) {
+    //TODO: Hvis de @mentione botte, reply med ein random tekst?
+    if (message.content.toLowerCase().startsWith("!mz ")) {
 
         let cmdFound = false;
-        const command = message.content.toLowerCase().replace("!mz ", "").split(" ")[0].toLowerCase()
+        const command = message.content.toLowerCase().replace("!mz ", "").replace("!mz", "").split(" ")[0].toLowerCase()
         const messageContent = message.content.split(" ").slice(2).join(" ");// message.content.replace("!mz " + cmd.commandName, "").replace("!Mz " + cmd.commandName, "").replace("!MZ " + cmd.commandName, "").trim()
         const args = !!messageContent ? messageContent.split(" ") : [];
         commands.forEach((cmd) => {
@@ -161,6 +164,11 @@ async function checkForCommand(message: Message) {
             Admin.logInncorectCommandUsage(message, messageContent, args);
             message.reply("lmao, commanden '" + command + "' fins ikkje <a:kekw_animated:" + kekw?.id + "> ." + (matched ? " Mente du **" + matched + "**?" : " Prøv !mz help"))
         }
+    } else if (message.content.startsWith("!mz")) {
+        message.reply("du må ha mellomrom etter '!mz' og kommandoen.")
+    }
+    else if (message.mentions.users.find(user => user.username == "Mazarini Bot")) {
+        message.reply(ArrayUtils.randomChoiceFromArray(globalArrays.bentHoieLines))
     }
 }
 /** Checks for pølse, eivindpride etc. */
@@ -282,7 +290,7 @@ mazariniClient.on("roleDelete", function (role: Role) {
 });
 
 mazariniClient.on("roleUpdate", function (oldRole: Role, newRole: Role) {
-    MessageHelper.sendMessageToActionLog(newRole.guild.channels.cache.first() as TextChannel, "Rollen " + newRole.name + " ble oppdatert.")
+    // MessageHelper.sendMessageToActionLog(newRole.guild.channels.cache.first() as TextChannel, "Rollen " + newRole.name + " ble oppdatert.")
 });
 
 mazariniClient.on("messageDelete", function (message: Message) {

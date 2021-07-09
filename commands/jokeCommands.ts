@@ -183,7 +183,7 @@ export class JokeCommands {
                 })
             }
         } catch (error) {
-            console.log(error);
+            MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error);
         }
         if (message.guild) {
             const react = message.guild.emojis.cache.find(emoji => emoji.name == "eivindpride")

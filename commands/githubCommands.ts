@@ -14,8 +14,6 @@ export class GitHubCommands {
     static async addIssue(message: Message, messageContent: string) {
         const issue = messageContent.trim()
         const titleAndBody = issue.split("-m")
-
-        console.log(issue)
         const githubToken = process.env.GITHUB_TOKEN
         const url = "https://api.github.com/repos/arnekva/Mazarini-Bot/issues"
 
