@@ -222,7 +222,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
                                     + `${dataParam.includeStats ? ((parseInt(element.playcount) / parseInt(totalPlaycount)) * 100).toFixed(1) + "%" : ""} `
                                     + `${!isNotRecent && !!element['@attr'] ? "(Spiller nå)" : ""} `
                                     /** Silent er når botten selv trigger metoden (f.eks. fra spotify-command). Da vil man ha med datostempelet. Ikke nødvendig ellers */
-                                    + `${dataParam.silent ? "(" + (isCurrentlyPlaying ? "" : new Date(Number(element.date["uts"]) * 1000).toLocaleString("nb-NO") + ")") : ""}`
+                                    + `${dataParam.silent ? (isCurrentlyPlaying ? "" : "(" + new Date(Number(element.date["uts"]) * 1000).toLocaleString("nb-NO") + ")") : ""}`
                             });
                             /** Hvis prop-en er formattert med en # (eks. ['@attr']) så finnes ikke total plays. */
                             if (!isFormattedWithHashtag)
