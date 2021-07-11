@@ -9,7 +9,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = "2.6.0";
+    public static readonly currentVersion = "2.6.1";
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -19,10 +19,8 @@ export class PatchNotes {
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv. 
      */
     public static readonly currentPatchNotes: string
-        = "* NY: Du kan nå legge til countdowns dynamisk. !mz countdown <dd-mm-yyyy> <klokkeslett (kun time)> <beskrivelse>"
-        + "\n* Fikset feil logging når roller ble oppdatert" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
-        + "\n* Lagt til ny rolle @Bot-support som tagges ved feilmeldinger" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
-        + "\n* Lagt til tilfeldige responser når Bot Høie tagges" //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
+        = "* Du kan nå slette veddemål med '!mz resolve slett'"
+
         //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
 
         ;

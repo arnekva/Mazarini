@@ -110,6 +110,19 @@ export class GamblingCommands {
             message.reply("Du kan kun lukke veddemål du har startet selv, og du har ingen aktive.");
             return;
         }
+        if (args[0] === "slett") {
+            let numP = 0;
+            const negSplit = activeBet.negativePeople.split(",");
+            const posSplit = activeBet.positivePeople.split(",");
+            if (negSplit[0] !== "")
+                numP += negSplit.length;
+            if (posSplit[0] !== "")
+                numP += posSplit.length;
+            GamblingCommands.dealCoins(message, activeBet.value, activeBet.positivePeople.concat(activeBet.negativePeople), numP, true)
+            DatabaseHelper.deleteActiveBet(username);
+            message.reply("Veddemålet er slettet, og beløp er tilbakebetalt.")
+            return;
+        }
         if (args[0].toLocaleLowerCase() !== "nei" && args[0].toLocaleLowerCase() !== "ja") {
             message.reply("Du må legge til om det var 'ja' eller 'nei' som var utfallet av veddemålet")
             return;
@@ -390,9 +403,9 @@ export class GamblingCommands {
         }
 
     }
-    static dealCoins(message: Message, value: string, peopleGettingCoins: string, numP: number) {
+    static dealCoins(message: Message, value: string, peopleGettingCoins: string, numP: number, noDefaultPott?: boolean) {
         const peopleCoins = peopleGettingCoins.split(",").filter(u => u !== "Mazarini Bot")
-        const basePot = 50;
+        const basePot = noDefaultPott ? 0 : 50;
         let pot = basePot;
         const val = Number(value);
         pot += val * numP;
