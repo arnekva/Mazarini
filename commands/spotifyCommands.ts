@@ -52,6 +52,8 @@ export class SpotifyCommands {
             }).catch((error: any) => {
                 MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
             })
+        }).catch((error: any) => {
+            MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
         })
     }
 
@@ -82,9 +84,10 @@ export class SpotifyCommands {
                 if (user) {
                     let replystring = "";
                     const spotify = user.presence.activities.filter(a => a.name === "Spotify")[0]
-                    if (args[1] == "link")
+                    if (args[1] == "link") {
                         if (spotify)
                             await this.searchForSongOnSpotifyAPI(spotify.state ?? "", spotify.details ?? "", rawMessage)
+                    }
                     user.presence.activities.forEach(async (activity) => {
                         if (activity.name === "Spotify") {
                             replystring += `${activity.state} - ${activity.details} ${emoji.id}`;
