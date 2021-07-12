@@ -149,7 +149,7 @@ export class JokeCommands {
             if (splitTab[i].length > 10 && parseInt(splitTab[i]))
                 msgId = splitTab[i];
             else {
-                const newWord = (i == 0 ? "" : " ") + splitTab[i];
+                const newWord = ((i == 0 ? "" : " ") + splitTab[i]).trim();
                 letterTab = letterTab.concat(newWord.split(""))
             }
         }
