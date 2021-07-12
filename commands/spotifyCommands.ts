@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { Message, MessageEmbed } from "discord.js";
 import { spotifyToken } from "../client-env"
 import { EmojiHelper } from "../helpers/emojiHelper";
 import { MessageHelper } from "../helpers/messageHelper";
@@ -6,7 +6,7 @@ import { getUsernameInQuotationMarks } from "../utils/textUtils";
 import { ICommandElement } from "./commands";
 import { Music } from "./musicCommands";
 const request = require('request');
-
+const fetch = require("node-fetch");
 export class SpotifyCommands {
 
     static getUsersCurrentSong(rawMessage: Message, content: string, args: string[]) {
@@ -30,41 +30,72 @@ export class SpotifyCommands {
         });
     }
 
+    static async searchForSongOnSpotifyAPI(artist: string, track: string, message: Message) {
+        const baseURL = "https://api.spotify.com/v1/search";
+        const searchString = artist.replace(/\s/g, "+").concat("+" + track.replace(/\s/g, "+")).replace(/\-/g, "+").replace(/\;/g, "+")
+        console.log(baseURL + "?query=" + searchString + "&type=track&offset=0&limit=1");
+
+        const res = fetch(baseURL + "?query=" + searchString + "&type=track&offset=0&limit=1", {
+            method: "GET",
+            headers: {
+                'Authorization': 'Bearer ' + spotifyToken,
+                "Content-type": "application/json"
+            }
+        }).then((res: any) => {
+            res.json().then((el: any) => {
+                console.log(el?.tracks?.items[0].album);
+                const song = new MessageEmbed()
+                    .setTitle(`${artist} - ${track}`)
+                    .setURL(el?.tracks?.items[0]?.external_urls?.spotify ?? "#")
+                    .setDescription(`Release: ${el?.tracks?.items[0].album?.release_date}`)
+                MessageHelper.sendFormattedMessage(message, song)
+            }).catch((error: any) => {
+                MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
+            })
+        })
+    }
+
     static async currentPlayingFromDiscord(rawMessage: Message, content: string, args: string[]) {
         let name = "";
         if (args[0]) {
             name = getUsernameInQuotationMarks(content) ?? args[0]
         } else {
             name = rawMessage.author.username;
-            // rawMessage.reply("Du må spesifisera brukernavn")
-            // return;
+
         }
         const guild = rawMessage.channel.client.guilds.cache.get("340626855990132747");
+        const emoji = await EmojiHelper.getEmoji("catJAM", rawMessage);
         if (guild) {
-            const user = guild.members.cache.filter(u => u.user.username == name).first();
-            if (user) {
-                const emoji = await EmojiHelper.getEmoji("catJAM", rawMessage);
-                let replystring = "";
-                user.presence.activities.forEach((activity) => {
-                    if (activity.name === "Spotify") {
-                        replystring += `${activity.state} - ${activity.details} ${emoji.id}`;
-                    }
+            if (args[0] === "alle") {
+                let replyString = "";
+                const users = guild.members.cache.forEach((user) => {
+                    user.presence.activities.forEach((activity) => {
 
+                        if (activity.name === "Spotify") {
+                            replyString += `(${user.user.username}) ${activity.state} - ${activity.details} ${emoji.id}\n`;
+                        }
+                    })
                 })
-                if (replystring === "") {
-                    replystring += `${name} hører ikke på Spotify for øyeblikket`
-                }
-                await MessageHelper.sendMessage(rawMessage, replystring)
-                if (replystring.includes("hører ikke på Spotify for øyeblikket"))
-                    Music.findCommand(rawMessage, content, ["siste", "1", name], true)
-                // if (user.presence.clientStatus) {
-                //     if (user.presence.activities && user.presence.activities[0]) {
-                //         const game = user.presence.activities[0].name == "Custom Status" ? user.presence.activities[1] : user.presence.activities[0];
-                //         await MessageHelper.sendMessage(message, `${name} e ${user.presence.clientStatus.desktop ? "på pc-en" : (user.presence.clientStatus.mobile ? "på mobilen" : "i nettleseren")} ${game ? "med aktiviteten " + game.name + "." : "uten någe aktivitet."}`)
-                //     }
-                // }
+                await MessageHelper.sendMessage(rawMessage, replyString)
             } else {
-                rawMessage.reply("Fant ingen brukere ved navn '" + name + "'.")
+                const user = guild.members.cache.filter(u => u.user.username == name).first();
+                if (user) {
+                    let replystring = "";
+                    const spotify = user.presence.activities.filter(a => a.name === "Spotify")[0]
+                    if (args[1] == "link")
+                        if (spotify)
+                            await this.searchForSongOnSpotifyAPI(spotify.state ?? "", spotify.details ?? "", rawMessage)
+                    user.presence.activities.forEach(async (activity) => {
+                        if (activity.name === "Spotify") {
+                            replystring += `${activity.state} - ${activity.details} ${emoji.id}`;
+                        }
+                    })
+                    if (replystring === "")
+                        replystring += `${name} hører ikke på Spotify for øyeblikket`
+                    if (replystring.includes("hører ikke på Spotify for øyeblikket"))
+                        Music.findCommand(rawMessage, content, ["siste", "1", name], true)
+                } else
+                    rawMessage.reply("Fant ingen brukere ved navn '" + name + "'.")
             }
         }
 

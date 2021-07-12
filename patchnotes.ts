@@ -9,7 +9,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = "2.6.1";
+    public static readonly currentVersion = "2.7.0";
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -19,7 +19,11 @@ export class PatchNotes {
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv. 
      */
     public static readonly currentPatchNotes: string
-        = "* Du kan nå slette veddemål med '!mz resolve slett'"
+        = "* Fikset feil i deletemessages"
+        + "\n* Botten har nå større variasjon i emojier når den reagerer på en statusoppdatering"
+        + "\n* Noen få oppdatering på svar fra @Bot Høie"
+        + "\n* Du kan nå gjøre '!mz spotify alle' for å få opp alle spotify-aktivitet (sjekker ikke last.fm)"
+        + "\n* Du kan nå gjøre '!mz spotify <brukernavn> link' for å få link til sangen personen hører på (samt release date)"
 
         //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
 

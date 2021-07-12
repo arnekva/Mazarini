@@ -75,7 +75,7 @@ export class GamblingCommands {
                                 DatabaseHelper.setValue("chips", us.username, (Number(userBal) - betVal).toFixed(2));
                                 if (reaction.emoji.name == "👍")
                                     positive.push(us.username)
-                                else
+                                else if (reaction.emoji.name == "👎")
                                     negative.push(us.username)
                                 fullString += (us.username == "Mazarini Bot" ? "" : " " + us.username + ",");
                             }

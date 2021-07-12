@@ -174,9 +174,12 @@ export class Admin {
     }
 
     static deleteXLastMessagesByUserInChannel(message: Message, messageContent: string, args: string[]) {
-        const userToDelete = getUsernameInQuotationMarks(messageContent);
+        const userToDeleteBool = getUsernameInQuotationMarks(messageContent);
+        console.log("<" + userToDeleteBool + ">");
 
-        const user = DatabaseHelper.findUserByUsername(userToDelete ?? args[0], message);
+        const userToDelete = userToDeleteBool ?? args[0]
+
+        const user = DatabaseHelper.findUserByUsername(userToDelete, message);
 
         const reason = userToDelete ? args.slice(3).join(" ") : args.slice(2).join(" ");
         if (!user) {
@@ -184,18 +187,18 @@ export class Admin {
             return;
         }
         const currentChannel = message.channel;
-        const maxDelete = Number(args[2]) ?? 1;
+        const maxDelete = userToDeleteBool ? Number(args[2]) ?? 1 : Number(args[1]) ?? 1;
         let deleteCounter = 0;
         currentChannel.messages.fetch({ limit: 100, }, false, true).then((el) => {
             el.forEach((message) => {
-                if (message.author.username == user.username && deleteCounter < maxDelete) {
+                if (message && message.author.username == user.username && deleteCounter < maxDelete) {
                     message.delete();
                     deleteCounter++;
                 }
             })
             MessageHelper.sendMessageToActionLog(message.channel as TextChannel, `${message.author.username} slettet ${maxDelete} meldinger fra ${user.username} i channel ${message.channel} på grunn av: "${reason.length > 0 ? reason : 'ingen grunn oppgitt'}"`)
-            if (user.username !== message.author.username)
-                message.delete();
+            // if (user.username !== message.author.username)
+            //     message.delete();
         }).catch((error: any) => {
             MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error);
         })

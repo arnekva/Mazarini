@@ -93,26 +93,7 @@ export class JokeCommands {
         if (content.length < 150 && content.trim().length > 0) {
             DatabaseHelper.setValue("mygling", message.author.username, content + (url ? " " + url : ""));
 
-            let emoji = "";
-            const randInt = Math.random();
-            if (randInt <= 0.3)
-                emoji = "👍"
-            else if (randInt <= 0.4)
-                emoji = "🤙"
-            else if (randInt <= 0.5)
-                emoji = "🙌"
-            else if (randInt <= 0.6)
-                emoji = "🤔"
-            else if (randInt <= 0.7)
-                emoji = "🙏"
-            else if (randInt <= 0.8)
-                emoji = "💩"
-            else if (randInt <= 0.9)
-                emoji = "👏"
-            else if (randInt > 0.9)
-                emoji = "👌"
-            else
-                emoji = "🖕" //Failsafe?
+            const emoji = ArrayUtils.randomChoiceFromArray(globalArrays.emojiesList)
 
             message.react(emoji)
 
