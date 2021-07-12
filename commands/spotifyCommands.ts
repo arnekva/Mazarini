@@ -85,8 +85,11 @@ export class SpotifyCommands {
                     let replystring = "";
                     const spotify = user.presence.activities.filter(a => a.name === "Spotify")[0]
                     if (args[1] == "link") {
-                        if (spotify)
+                        if (spotify) {
                             await this.searchForSongOnSpotifyAPI(spotify.state ?? "", spotify.details ?? "", rawMessage)
+                            return;
+                        }
+
                     }
                     user.presence.activities.forEach(async (activity) => {
                         if (activity.name === "Spotify") {
