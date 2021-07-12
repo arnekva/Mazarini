@@ -95,11 +95,11 @@ export class SpotifyCommands {
                         }
 
                     }
-                    user.presence.activities.forEach(async (activity) => {
-                        if (activity.name === "Spotify") {
-                            replystring += `${activity.state} - ${activity.details} ${emoji.id}`;
-                        }
-                    })
+
+                    if (spotify) {
+                        replystring += `${spotify.state} - ${spotify.details} ${emoji.id}`;
+                    }
+
                     if (replystring === "")
                         replystring += `${name} hører ikke på Spotify for øyeblikket`
                     if (replystring.includes("hører ikke på Spotify for øyeblikket"))
