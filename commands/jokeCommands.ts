@@ -10,58 +10,121 @@ import { countdownTime, DateUtils } from "../utils/dateUtils";
 import { findLetterEmoji } from "../utils/miscUtils";
 import { msToTime } from "../utils/textUtils";
 import { ICommandElement } from "./commands";
-
+import { EmojiHelper } from "../helpers/emojiHelper";
 
 export class JokeCommands {
-
     static async vaskHuset(message: Message) {
-        await MessageHelper.sendMessage(message, Math.random() < 0.75 ? "Øyvind, vask huset!" : "Har ei jækla fine klokka")
-
+        await MessageHelper.sendMessage(
+            message,
+            Math.random() < 0.75
+                ? "Øyvind, vask huset!"
+                : "Har ei jækla fine klokka"
+        );
     }
 
     static async kLikka(message: Message) {
-        await MessageHelper.sendMessage(message, Math.random() < 0.5 ? "Han " + (Math.random() < 0.5 ? "skaaahhæææææmmmmm" : "") + "trunte på vei te buen " : " krækka open a kold one")
-
+        await MessageHelper.sendMessage(
+            message,
+            Math.random() < 0.5
+                ? "Han " +
+                      (Math.random() < 0.5 ? "skaaahhæææææmmmmm" : "") +
+                      "trunte på vei te buen "
+                : " krækka open a kold one"
+        );
     }
 
     static async thomasTing(message: Message) {
-        await MessageHelper.sendMessage(message, Math.random() < 0.3 ? "Har fese :)" : (Math.random() < 0.5) ? "Hæ, Erlend Navle?" : "Sovna på golve :)")
+        await MessageHelper.sendMessage(
+            message,
+            Math.random() < 0.3
+                ? "Har fese :)"
+                : Math.random() < 0.5
+                ? "Hæ, Erlend Navle?"
+                : "Sovna på golve :)"
+        );
+    }
 
+    static async mordi(message: Message) {
+        const emoji = await EmojiHelper.getEmoji("eyebrows", message);
+
+        await MessageHelper.sendMessage(
+            message,
+            Math.random() > 0.05
+                ? `E nais ${emoji.id}`
+                : `E skamnais :eyebrows: ${emoji.id}`
+        );
     }
 
     static async eivind(message: Message) {
-        await MessageHelper.sendMessage(message, Math.random() < 0.7 ? "Lure på om most important news showe up på vår channel? Kan någen oppdatera han på server-bot-news-channel-fronten, faen ka" : "Spsie pistasj :3")
-
+        await MessageHelper.sendMessage(
+            message,
+            Math.random() < 0.7
+                ? "Lure på om most important news showe up på vår channel? Kan någen oppdatera han på server-bot-news-channel-fronten, faen ka"
+                : "Spsie pistasj :3"
+        );
     }
 
-    static async isMaggiPlaying(message: Message, content: string, args: string[]) {
+    static async isMaggiPlaying(
+        message: Message,
+        content: string,
+        args: string[]
+    ) {
         let name = "maggi";
-        if (args[0])
-            name = args[0];
-        const guild = message.channel.client.guilds.cache.get("340626855990132747");
+        if (args[0]) name = args[0];
+        const guild = message.channel.client.guilds.cache.get(
+            "340626855990132747"
+        );
         if (guild) {
-            const user = guild.members.cache.filter(u => u.user.username == name).first();
+            const user = guild.members.cache
+                .filter((u) => u.user.username == name)
+                .first();
             if (user) {
                 if (user.presence.clientStatus) {
-                    if (user.presence.activities && user.presence.activities[0]) {
-                        const game = user.presence.activities[0].name == "Custom Status" ? user.presence.activities[1] : user.presence.activities[0];
-                        await MessageHelper.sendMessage(message, `${name} e ${user.presence.clientStatus.desktop ? "på pc-en" : (user.presence.clientStatus.mobile ? "på mobilen" : "i nettleseren")} ${game ? "med aktiviteten " + game.name + "." : "uten någe aktivitet."}`)
-                    }
-                    else {
-                        await MessageHelper.sendMessage(message, "Ingen aktivitet registrert på Discord. Sover han? Drikker han? Begge deler samtidig? ")
+                    if (
+                        user.presence.activities &&
+                        user.presence.activities[0]
+                    ) {
+                        const game =
+                            user.presence.activities[0].name == "Custom Status"
+                                ? user.presence.activities[1]
+                                : user.presence.activities[0];
+                        await MessageHelper.sendMessage(
+                            message,
+                            `${name} e ${
+                                user.presence.clientStatus.desktop
+                                    ? "på pc-en"
+                                    : user.presence.clientStatus.mobile
+                                    ? "på mobilen"
+                                    : "i nettleseren"
+                            } ${
+                                game
+                                    ? "med aktiviteten " + game.name + "."
+                                    : "uten någe aktivitet."
+                            }`
+                        );
+                    } else {
+                        await MessageHelper.sendMessage(
+                            message,
+                            "Ingen aktivitet registrert på Discord. Sover han? Drikker han? Begge deler samtidig? "
+                        );
                     }
                 } else {
-                    await MessageHelper.sendMessage(message, "Magnus er ikke online. Da sover han mest sannsynlig. Kødda, han får ikke sove med alt bråket fra byggeplassen kekw")
+                    await MessageHelper.sendMessage(
+                        message,
+                        "Magnus er ikke online. Da sover han mest sannsynlig. Kødda, han får ikke sove med alt bråket fra byggeplassen kekw"
+                    );
                 }
             } else {
-                await MessageHelper.sendMessage(message, "Ingen bruker med er registrert med det brukernavnet på serveren. Dårlig koding?")
+                await MessageHelper.sendMessage(
+                    message,
+                    "Ingen bruker med er registrert med det brukernavnet på serveren. Dårlig koding?"
+                );
             }
         }
     }
 
-
     static async updateMygleStatus(message: Message, messageContent: string) {
-        const regex = new RegExp(/(?<=\<)(.*?)(?=\>)/ig)
+        const regex = new RegExp(/(?<=\<)(.*?)(?=\>)/gi);
         let content = messageContent;
         const matchedUsrname = content.match(regex);
         let url;
@@ -330,14 +393,31 @@ export class JokeCommands {
         isAdmin: true,
         command: (rawMessage: Message, messageContent: string) => {
             JokeCommands.eivindprideItAll(rawMessage);
-        }
-    }
+        },
+    };
     static readonly uwuMessage: ICommandElement = {
         commandName: "uwu",
         description: "UwU-ify en melding",
 
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+        command: (
+            rawMessage: Message,
+            messageContent: string,
+            args: string[]
+        ) => {
             JokeCommands.uWuIfyer(rawMessage, messageContent, args);
-        }
-    }
+        },
+    };
+
+    static readonly mordiMessage: ICommandElement = {
+        commandName: "mordi",
+        description: "Mordi e nais",
+
+        command: (
+            rawMessage: Message,
+            messageContent: string,
+            args: string[]
+        ) => {
+            JokeCommands.mordi(rawMessage);
+        },
+    };
 }

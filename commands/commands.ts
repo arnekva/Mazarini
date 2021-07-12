@@ -59,6 +59,7 @@ export const commands: ICommandElement[] = [
     JokeCommands.reactWithWord,
     JokeCommands.bonkSender,
     JokeCommands.uwuMessage,
+    JokeCommands.mordiMessage,
     Spinner.listNumberOfSpins,
     // Admin.nukeDatabase,
     Admin.setVal,
