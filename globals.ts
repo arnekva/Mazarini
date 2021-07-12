@@ -45,7 +45,7 @@ export namespace globalArrays {
 
     export const bentHoieLines = ["Husk å holde avstand", "Er det 1 meter mellom dere? *Drar frem målebånd*", "Erna ser deg!", "Holde dokk avstand nå bler det utepils te sommaren!",
         "Jaja, fina vêre då", "Ka du tagge meg for?", "Klare for udepils eller?", "Gidde du sedda på Sommartid av Guddfaren?", "Har kje tid te å svara, ska ud me mordi", "Fuck off, eg e ude å fyre",
-        "💩", "https://media.tenor.com/images/a1505c6e6d37aa2b7c5953741c0177dc/tenor.gif", "https://open.spotify.com/track/2uL4txwrgSndax69EWIN0Y?si=JMM5hEuvTJ--FncVL82s3A"]
+        "💩", "https://media.tenor.com/images/a1505c6e6d37aa2b7c5953741c0177dc/tenor.gif", "Du havna nettopp bakerst i vaksinekøen pga den taggen der", "Någen så kan oppdatera meg på tennis-fronten her, faen ka?"]
 
     export const emojiesList = ["🤬", "🤒", "💩", "🤡", "👌", "🙌", "🤜", "🖕", "🙏", "🤢", "🤠", "💀", "✌️", "🤏", "🖖",
         "🖐️", "👋", "💪", "🤲", "👐", "👏", "", "💅", "🧠", "👀", "🩸", "😉", "🤗", "😪", "🤥"]
