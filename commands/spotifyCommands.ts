@@ -33,8 +33,8 @@ export class SpotifyCommands {
     static async searchForSongOnSpotifyAPI(artist: string, track: string, message: Message) {
         const baseURL = "https://api.spotify.com/v1/search";
         const searchString = artist.replace(/\s/g, "+").concat("+" + track.replace(/\s/g, "+")).replace(/\-/g, "+").replace(/\;/g, "+")
-        console.log(baseURL + "?query=" + searchString + "&type=track&offset=0&limit=1");
 
+        const emoji = await EmojiHelper.getEmoji("catJAM", message);
         const res = fetch(baseURL + "?query=" + searchString + "&type=track&offset=0&limit=1", {
             method: "GET",
             headers: {
@@ -42,7 +42,11 @@ export class SpotifyCommands {
                 "Content-type": "application/json"
             }
         }).then((res: any) => {
+
             res.json().then((el: any) => {
+                if (!el?.tracks?.items[0]) {
+                    MessageHelper.sendMessage(message, `${artist} - ${track} ${emoji.id}`)
+                }
                 console.log(el?.tracks?.items[0].album);
                 const song = new MessageEmbed()
                     .setTitle(`${artist} - ${track}`)
