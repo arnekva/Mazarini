@@ -95,6 +95,7 @@ export class SpotifyCommands {
                         }
 
                     }
+                    console.log("Heisann");
 
                     if (spotify) {
                         replystring += `${spotify.state} - ${spotify.details} ${emoji.id}`;
@@ -102,6 +103,8 @@ export class SpotifyCommands {
 
                     if (replystring === "")
                         replystring += `${name} hører ikke på Spotify for øyeblikket`
+
+                    MessageHelper.sendMessage(rawMessage, replystring)
                     if (replystring.includes("hører ikke på Spotify for øyeblikket"))
                         Music.findCommand(rawMessage, content, ["siste", "1", name], true)
                 } else
