@@ -76,7 +76,8 @@ export class MessageHelper {
                         messageToReturn = message;
                     }
                 }).catch((error: any) => {
-                    MessageHelper.sendMessageToActionLogWithDefaultMessage(rawMessage, error);
+                    //ikke catch noe, den thrower exception hvis meldingen ikke finnes (noe den ikke skal gjøre i 9/10 channels)
+                    // MessageHelper.sendMessageToActionLogWithDefaultMessage(rawMessage, error);
                 })
             }
         }
