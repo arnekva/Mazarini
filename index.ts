@@ -118,7 +118,7 @@ async function checkForCommand(message: Message) {
     if (message.content.toLowerCase().startsWith("!mz ") || isZm) {
 
         let cmdFound = false;
-        const command = message.content.toLowerCase().replace("!mz ", "").replace("!mz", "").split(" ")[0].toLowerCase()
+        const command = message.content.toLowerCase().replace("!mz ", "").replace("!mz", "").replace("!zm ", "").split(" ")[0].toLowerCase()
         const messageContent = message.content.split(" ").slice(2).join(" ");// message.content.replace("!mz " + cmd.commandName, "").replace("!Mz " + cmd.commandName, "").replace("!MZ " + cmd.commandName, "").trim()
         const args = !!messageContent ? messageContent.split(" ") : [];
         commands.forEach((cmd) => {
