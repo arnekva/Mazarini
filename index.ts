@@ -114,7 +114,8 @@ async function checkForCommand(message: Message) {
     if (message.author == mazariniClient.user)
         return;
     //TODO: Hvis de @mentione botte, reply med ein random tekst?
-    if (message.content.toLowerCase().startsWith("!mz ")) {
+    const isZm = message.content.toLowerCase().startsWith("!zm ");
+    if (message.content.toLowerCase().startsWith("!mz ") || isZm) {
 
         let cmdFound = false;
         const command = message.content.toLowerCase().replace("!mz ", "").replace("!mz", "").split(" ")[0].toLowerCase()

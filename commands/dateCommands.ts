@@ -100,7 +100,7 @@ export class DateCommands {
 
     static readonly countdownCommand: ICommandElement = {
         commandName: "countdown",
-        description: "Se hvor lenge det er igjen til events (Legg til ny med '!mz countdown <dd-mm-yyy> <hh> <beskrivelse>",
+        description: "Se hvor lenge det er igjen til events (Legg til ny med '!mz countdown <dd-mm-yyyy> <hh> <beskrivelse>",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             DateCommands.countdownToDate(rawMessage, messageContent, args);
         },

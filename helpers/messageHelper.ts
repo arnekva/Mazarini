@@ -28,9 +28,10 @@ export class MessageHelper {
         }
 
         channel.type === "text"
+        const isZm = rawMessage.content.startsWith("!zm ");
         if (!isError) {
             try {
-                const msg = channel.send(message)
+                const msg = channel.send(isZm ? message.split("").reverse().join("") : message)
                 return msg;
             } catch (error) {
                 return undefined
