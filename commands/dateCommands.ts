@@ -42,6 +42,8 @@ export class DateCommands {
             timeTab.push(" " + dateObj.minutes + " minutter");
         if (dateObj.seconds > 0)
             timeTab.push(" " + dateObj.seconds + " sekunder");
+        if (timeTab.length < 1)
+            return undefined;
         timeTab.forEach((text, index) => {
             timeString += text
             if (index <= timeTab.length - 2 && timeTab.length > 1)
@@ -82,7 +84,8 @@ export class DateCommands {
         Object.keys(DatabaseHelper.getAllCountdownValues()).forEach((el) => {
             const e = DatabaseHelper.getNonUserValue("countdown", el)
             const daysUntil = DateUtils.getTimeTo(new Date(e.date))
-            sendThisText += `\n${DateCommands.formatCountdownText(daysUntil, "til " + e.desc)}`
+            const text = DateCommands.formatCountdownText(daysUntil, "til " + e.desc);
+            sendThisText += `${!!text ? "\n" : ""}` + `${DateCommands.formatCountdownText(daysUntil, "til " + e.desc)}`
         })
         MessageHelper.sendMessage(message, sendThisText)
     }
