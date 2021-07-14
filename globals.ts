@@ -47,6 +47,6 @@ export namespace globalArrays {
         "Jaja, fina vêre då", "Ka du tagge meg for?", "Klare for udepils eller?", "Gidde du sedda på Sommartid av Guddfaren?", "Har kje tid te å svara, ska ud me mordi", "Fuck off, eg e ude å fyre",
         "💩", "https://media.tenor.com/images/a1505c6e6d37aa2b7c5953741c0177dc/tenor.gif", "Du havna nettopp bakerst i vaksinekøen pga den taggen der", "Någen så kan oppdatera meg på tennis-fronten her, faen ka?"]
 
-    export const emojiesList = ["🤬", "🤒", "💩", "🤡", "👌", "🙌", "🤜", "🖕", "🙏", "🤢", "🤠", "💀", "✌️", "🤏", "🖖",
-        "🖐️", "👋", "💪", "🤲", "👐", "👏", "", "💅", "🧠", "👀", "🩸", "😉", "🤗", "😪", "🤥"]
+    export const emojiesList = ["🤬", "❤️‍🔥", "💩", "🤡", "👌", "🙌", "🤜", "🖕", "🙏", "🤢", "🤠", "💀", "✌️", "🤏", "🖖",
+        "🖐️", "👋", "💪", "⚰️", "🤲", "👐", "👏", "🌭", "💅", "🧠", "🛌", "👀", "🩸", "😉", "🤗", "😪", "🤥"]
 }

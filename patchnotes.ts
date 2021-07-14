@@ -19,11 +19,8 @@ export class PatchNotes {
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv. 
      */
     public static readonly currentPatchNotes: string
-        = "* Fikset feil i deletemessages"
-        + "\n* Botten har nå større variasjon i emojier når den reagerer på en statusoppdatering"
-        + "\n* Noen få oppdatering på svar fra @Bot Høie"
-        + "\n* Du kan nå gjøre '!mz spotify alle' for å få opp alle spotify-aktivitet (sjekker ikke last.fm)"
-        + "\n* Du kan nå gjøre '!mz spotify <brukernavn> link' for å få link til sangen personen hører på (samt release date)"
+        = "* Gambling har nå endret odds. Utbetaling er større jo høyere du triller."
+        + "\n* Økonomien resettes til 1000 chips per pers."
 
         //Kommenter ut denne og det under hvis det ikke er noen tekniske notes
 
