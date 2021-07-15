@@ -3,6 +3,7 @@ import { Message, TextChannel } from "discord.js";
 import { parse } from "dotenv/types";
 import { discordSecret, lfKey } from "../client-env";
 import { DatabaseHelper } from "../helpers/databaseHelper";
+import { EmojiHelper } from "../helpers/emojiHelper";
 import { MessageHelper } from "../helpers/messageHelper";
 import { replaceLast } from "../utils/textUtils";
 import { ICommandElement } from "./commands";
@@ -178,6 +179,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
             message.edit("Laster inn data fra Last.fm ...")
         const msg = editInstead ? message : await MessageHelper.sendMessage(message, "Laster data...")
         const apiKey = lfKey;
+        const emoji = await EmojiHelper.getEmoji("catJAM", message);
 
         let artistString = ""
         /**Promise.all siden vi gjør 2 fetches og trenger at begge resolves samtidig */
@@ -218,6 +220,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
 
                         let numPlaysInTopX = 0;
                         if (prop) {
+
                             prop.forEach((element: any, index) => {
                                 const hasDate = element.date;
                                 const isCurrentlyPlaying = !isNotRecent && !!element['@attr'];
@@ -228,7 +231,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
                                 artistString += `\n${isFormattedWithHashtag && element.artist ? element.artist["#text"] + " - " : (element.artist ? element.artist.name + " - " : "")}`
                                     + `${element.name} ${isNotRecent ? "(" + element.playcount + " plays)" : ""} `
                                     + `${dataParam.includeStats ? ((parseInt(element.playcount) / parseInt(totalPlaycount)) * 100).toFixed(1) + "%" : ""} `
-                                    + `${isCurrentlyPlaying ? "(Spiller nå)" : ""} `
+                                    + `${isCurrentlyPlaying ? "(Spiller nå) " + emoji.id : ""} `
                                     /** Silent er når botten selv trigger metoden (f.eks. fra spotify-command). Da vil man ha med datostempelet. Ikke nødvendig ellers */
                                     + `${dataParam.silent ? (isCurrentlyPlaying ? "" : "(" + new Date(Number(element.date["uts"]) * 1000).toLocaleString("nb-NO") + ")") : ""}`
                             });
