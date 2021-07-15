@@ -8,7 +8,7 @@ import { MessageHelper } from "../helpers/messageHelper";
 import { ArrayUtils } from "../utils/arrayUtils";
 import { countdownTime, DateUtils } from "../utils/dateUtils";
 import { findLetterEmoji } from "../utils/miscUtils";
-import { msToTime, reverseMessageString } from "../utils/textUtils";
+import { getUsernameInQuotationMarks, msToTime, reverseMessageString } from "../utils/textUtils";
 import { ICommandElement } from "./commands";
 import { EmojiHelper } from "../helpers/emojiHelper";
 
@@ -236,7 +236,7 @@ export class JokeCommands {
         })
     }
     static kanPersonen(message: Message, msgContent: string, args: string[]) {
-        MessageHelper.sendMessage(message, `${args[0]} ` + ArrayUtils.randomChoiceFromArray(globalArrays.kanIkkjeTekster))
+        MessageHelper.sendMessage(message, `${getUsernameInQuotationMarks(args[0]) ?? args[0]} ` + ArrayUtils.randomChoiceFromArray(globalArrays.kanIkkjeTekster))
     }
 
     static async uWuIfyer(message: Message, msgContent: string, args: string[]) {

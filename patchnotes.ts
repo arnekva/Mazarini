@@ -9,7 +9,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = "2.8.0";
+    public static readonly currentVersion = "2.8.1";
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -19,11 +19,8 @@ export class PatchNotes {
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv. 
      */
     public static readonly currentPatchNotes: string
-        = "* Fikset spotify-command når brukeren spiller aktivt fra telefon og har Last.fm tilknyttet"
-        + "\n* Lagt til 'kan'-kommando"
-        + "\n* !zm skal nå beholde emojier i teksten"
-        + "\n* Du kan nå spesifisere minutt, sekund og millisekund i countdownen din (se '!mz help countdown' for info)"
-        + "\n* Fikset exploit ved at man kunne resolve et bet flere ganger på rad før avstemningen var fullført."
+        = `* 'kan'-kommandoen tar nå navnet i "hermeteng" hvis du trenger mellomrom.`
+
         ;
 
     static getCurrentPatchNotes() {
