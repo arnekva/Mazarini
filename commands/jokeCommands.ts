@@ -236,7 +236,7 @@ export class JokeCommands {
         })
     }
     static kanPersonen(message: Message, msgContent: string, args: string[]) {
-        MessageHelper.sendMessage(message, `${getUsernameInQuotationMarks(args[0]) ?? args[0]} ` + ArrayUtils.randomChoiceFromArray(globalArrays.kanIkkjeTekster))
+        MessageHelper.sendMessage(message, `${getUsernameInQuotationMarks(args[0])?.replace('"', "") ?? args[0]} ` + ArrayUtils.randomChoiceFromArray(globalArrays.kanIkkjeTekster))
     }
 
     static async uWuIfyer(message: Message, msgContent: string, args: string[]) {
