@@ -45,7 +45,7 @@ export class SpotifyCommands {
 
             res.json().then((el: any) => {
                 if (!el?.tracks?.items[0]) {
-                    MessageHelper.sendMessage(message, `${artist} - ${track} ${emoji.id}`)
+                    MessageHelper.sendMessage(message, `${artist} - ${track} ${emoji.id} (fant: ${el})`)
                 }
                 console.log(el?.tracks?.items[0].album);
                 const song = new MessageEmbed()
@@ -88,15 +88,13 @@ export class SpotifyCommands {
                 if (user) {
                     let replystring = "";
                     const spotify = user.presence.activities.filter(a => a.name === "Spotify")[0]
-                    if (args[1] == "link") {
-                        if (spotify) {
-                            await this.searchForSongOnSpotifyAPI(spotify.state ?? "", spotify.details ?? "", rawMessage)
-                            return;
-                        }
+                    // if (args[1] == "link") {
+                    //     if (spotify) {
+                    //         await this.searchForSongOnSpotifyAPI(spotify.state ?? "", spotify.details ?? "", rawMessage)
+                    //         return;
+                    //     }
 
-                    }
-                    console.log("Heisann");
-
+                    // }
                     if (spotify) {
                         replystring += `${spotify.state} - ${spotify.details} ${emoji.id}`;
                     }
@@ -104,9 +102,12 @@ export class SpotifyCommands {
                     if (replystring === "")
                         replystring += `${name} hører ikke på Spotify for øyeblikket`
 
-                    MessageHelper.sendMessage(rawMessage, replystring)
-                    if (replystring.includes("hører ikke på Spotify for øyeblikket"))
-                        Music.findCommand(rawMessage, content, ["siste", "1", name], true)
+                    MessageHelper.sendMessage(rawMessage, replystring)?.then((msg) => {
+
+                        if (replystring.includes("hører ikke på Spotify for øyeblikket"))
+                            Music.findCommand(msg, content, ["siste", "1", name], true, name)
+                    })
+
                 } else
                     rawMessage.reply("Fant ingen brukere ved navn '" + name + "'.")
             }

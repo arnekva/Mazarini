@@ -10,6 +10,22 @@ export function isUpperCase(str: string) {
     return str === str.toUpperCase();
 }
 
+export function reverseMessageString(str: string) {
+    const splitOnEmojiChar = str.split(/\<([^<>]+)\>/g);
+    let retString = "";
+    if (splitOnEmojiChar.length > 1) {
+        splitOnEmojiChar.forEach((seq) => {
+            if (!seq.includes(":"))
+                retString += seq.split("").reverse().join("")
+            else
+                retString += " <".concat(seq) + ">";
+        })
+        return retString
+    }
+    else return str.split("").reverse().join("")
+
+}
+
 export function msToTime(duration: number, onlyHours?: boolean) {
     var milliseconds = Math.floor((duration % 1000) / 100),
         seconds = Math.floor((duration / 1000) % 60),

@@ -49,4 +49,10 @@ export namespace globalArrays {
 
     export const emojiesList = ["🤬", "❤️‍🔥", "💩", "🤡", "👌", "🙌", "🤜", "🖕", "🙏", "🤢", "🤠", "💀", "✌️", "🤏", "🖖",
         "🖐️", "👋", "💪", "⚰️", "🤲", "👐", "👏", "🌭", "💅", "🧠", "🛌", "👀", "🩸", "😉", "🤗", "😪", "🤥"]
+
+    export const kanIkkjeTekster = [
+        "kan ikkje, får kje lov av farsin :(", "kan ikkje, han skamtrunte på vei te buen", "kan ikkje, fekk husarrest for å leka me fyrstikker", "kan faktisk, han fekk lo... ånei kødda, mamma seie nei aligavel",
+        "kan kje, morfar e på besøg :(", "kan ikkje, han ska spisa pistasj :3", "komme seff, maen e alltid klar for smellen på quellen", "kan kje, mamma e så streng :(",
+        "får lov, men må ver hjemma før klokkå 9 hvis ikkje får han kje middag imårå"
+    ]
 }

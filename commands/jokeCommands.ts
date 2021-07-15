@@ -8,7 +8,7 @@ import { MessageHelper } from "../helpers/messageHelper";
 import { ArrayUtils } from "../utils/arrayUtils";
 import { countdownTime, DateUtils } from "../utils/dateUtils";
 import { findLetterEmoji } from "../utils/miscUtils";
-import { msToTime } from "../utils/textUtils";
+import { msToTime, reverseMessageString } from "../utils/textUtils";
 import { ICommandElement } from "./commands";
 import { EmojiHelper } from "../helpers/emojiHelper";
 
@@ -27,8 +27,8 @@ export class JokeCommands {
             message,
             Math.random() < 0.5
                 ? "Han " +
-                      (Math.random() < 0.5 ? "skaaahhæææææmmmmm" : "") +
-                      "trunte på vei te buen "
+                (Math.random() < 0.5 ? "skaaahhæææææmmmmm" : "") +
+                "trunte på vei te buen "
                 : " krækka open a kold one"
         );
     }
@@ -39,8 +39,8 @@ export class JokeCommands {
             Math.random() < 0.3
                 ? "Har fese :)"
                 : Math.random() < 0.5
-                ? "Hæ, Erlend Navle?"
-                : "Sovna på golve :)"
+                    ? "Hæ, Erlend Navle?"
+                    : "Sovna på golve :)"
         );
     }
 
@@ -90,16 +90,14 @@ export class JokeCommands {
                                 : user.presence.activities[0];
                         await MessageHelper.sendMessage(
                             message,
-                            `${name} e ${
-                                user.presence.clientStatus.desktop
-                                    ? "på pc-en"
-                                    : user.presence.clientStatus.mobile
+                            `${name} e ${user.presence.clientStatus.desktop
+                                ? "på pc-en"
+                                : user.presence.clientStatus.mobile
                                     ? "på mobilen"
                                     : "i nettleseren"
-                            } ${
-                                game
-                                    ? "med aktiviteten " + game.name + "."
-                                    : "uten någe aktivitet."
+                            } ${game
+                                ? "med aktiviteten " + game.name + "."
+                                : "uten någe aktivitet."
                             }`
                         );
                     } else {
@@ -154,6 +152,9 @@ export class JokeCommands {
         };
 
         if (content.length < 150 && content.trim().length > 0) {
+            if (message.content.includes("!zm")) [
+                content = reverseMessageString(content)
+            ]
             DatabaseHelper.setValue("mygling", message.author.username, content + (url ? " " + url : ""));
 
             const emoji = ArrayUtils.randomChoiceFromArray(globalArrays.emojiesList)
@@ -234,7 +235,9 @@ export class JokeCommands {
             messageToReactTo.react(emoji)
         })
     }
-
+    static kanPersonen(message: Message, msgContent: string, args: string[]) {
+        MessageHelper.sendMessage(message, `${args[0]} ` + ArrayUtils.randomChoiceFromArray(globalArrays.kanIkkjeTekster))
+    }
 
     static async uWuIfyer(message: Message, msgContent: string, args: string[]) {
         let fMsg;
@@ -393,6 +396,15 @@ export class JokeCommands {
         isAdmin: true,
         command: (rawMessage: Message, messageContent: string) => {
             JokeCommands.eivindprideItAll(rawMessage);
+        },
+    };
+    static readonly kanCommand: ICommandElement = {
+        commandName: "kan",
+        description: "Kan personen? Sikkert ikkje",
+        hideFromListing: true,
+        isAdmin: true,
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            JokeCommands.kanPersonen(rawMessage, messageContent, args);
         },
     };
     static readonly uwuMessage: ICommandElement = {

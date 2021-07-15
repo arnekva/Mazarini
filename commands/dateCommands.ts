@@ -70,9 +70,9 @@ export class DateCommands {
                 return;
             }
             const dateParams = args[0].split("-")
-            const hrs = args[1]
+            const hrs = args[1].split(":")
             const desc = args.slice(2).join(" ");
-            const cdDate = new Date(Number(dateParams[2]), Number(dateParams[1]) - 1, Number(dateParams[0]), Number(hrs))
+            const cdDate = new Date(Number(dateParams[2]), Number(dateParams[1]) - 1, Number(dateParams[0]), Number(hrs[0]), Number(hrs[1] ?? 0), Number(hrs[2] ?? 0), Number(hrs[3] ?? 0))
             DatabaseHelper.setCountdownValue(message.author.username, "date", cdDate.toString())
             DatabaseHelper.setCountdownValue(message.author.username, "desc", desc)
         }
@@ -100,7 +100,7 @@ export class DateCommands {
 
     static readonly countdownCommand: ICommandElement = {
         commandName: "countdown",
-        description: "Se hvor lenge det er igjen til events (Legg til ny med '!mz countdown <dd-mm-yyyy> <hh> <beskrivelse>",
+        description: "Se hvor lenge det er igjen til events (Legg til ny med '!mz countdown <dd-mm-yyyy> <hh> <beskrivelse> (klokke kan spesifiserert slik: <hh:mm:ss:SSS>. Kun time er nødvendig)",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             DateCommands.countdownToDate(rawMessage, messageContent, args);
         },

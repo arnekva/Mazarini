@@ -1,4 +1,5 @@
 import { Channel, Client, DMChannel, Message, MessageEmbed, NewsChannel, TextChannel } from "discord.js";
+import { reverseMessageString } from "../utils/textUtils";
 
 //import {client } from "./index"
 // import {action_log_channel} from "./index"
@@ -17,47 +18,30 @@ export class MessageHelper {
      * @param typeOfError - (optional) The error message will depend on this type
      * return message - Returnerer message objectet som kan brukes (.edit(), .react() etc)
      */
-    static sendMessage(rawMessage: Message, message: string, isError?: boolean, errorMsg?: string, typeOfError?: typeOfError) {
+    static sendMessage(rawMessage: Message, message: string) {
         const channel = rawMessage.channel as TextChannel;
         // channel = channel as TextChannel;
 
         if (typeof message == "object") {
             rawMessage.reply("Hmm .. her kom det en tom eller feilformattering melding. Hendelsen blir loggført så en nerd kan ta en skikk på hva som skjedde <" + message + ">");
-            MessageHelper.sendMessageToActionLog(channel, "En tom melding ble forsøkt sendt fra channel " + channel.name + ", forårsaket av en melding fra " + rawMessage.author.username + ". Meldingsinnhold: " + rawMessage.content)
+            MessageHelper.sendMessageToActionLogWithDefaultMessage(rawMessage, "En tom melding ble forsøkt sendt fra channel " + channel.name + ", forårsaket av en melding fra " + rawMessage.author.username + ". Meldingsinnhold: " + rawMessage.content)
             return;
         }
 
         channel.type === "text"
         const isZm = rawMessage.content.startsWith("!zm ");
-        if (!isError) {
-            try {
-                const msg = channel.send(isZm ? message.split("").reverse().join("") : message)
-                return msg;
-            } catch (error) {
-                return undefined
-            };
-        } else {
-            //First send message to channel it originated from
-            if (typeOfError == "unauthorized")
-                rawMessage.reply("Du er ikke autorisert til å utføre denne handlingen. Denne hendelsen blir loggført.")
-            else if (typeOfError == "error")
-                rawMessage.reply("Det har oppstått en feil. Feilkode er logget.")
 
-            //Find action_log
-            const errorChannel = channel.client.channels.cache.get("810832760364859432") as TextChannel
-            //Send message to action_log
-            if (errorChannel) {
-                if (channel.type === "text") {
-                    if (typeOfError == "warning")
-                        errorChannel.send(channel.name + ": " + errorMsg)
-                    else
-                        errorChannel.send("En feil har oppstått i channelen " + channel.name + ". " + errorMsg)
-                }
-            }
-            return undefined
-        }
+        try {
+            const msg = channel.send(isZm ? reverseMessageString(message) : message)
+            return msg;
+        } catch (error) {
+            this.sendMessageToActionLogWithDefaultMessage(rawMessage, error)
+        };
+
 
     }
+
+
     /** Reply til en gitt melding med gitt string. */
     static replyToMessage(message: Message, errormessage: string) {
         message.reply(errormessage)
@@ -98,6 +82,12 @@ export class MessageHelper {
         message.reply(`En feil har oppstått. Feilkoden og meldingen din blir logget. <@&${roleId}>`)
         const errorChannel = message.channel.client.channels.cache.get("810832760364859432") as TextChannel
         errorChannel.send(`En feil har oppstått i en melding fra ${message.author.username}. Meldingsinnhold: <${message.content}>. Channel: ${message.channel}. Feilmelding: <${error}>`);
+    }
+    static sendMessageToActionLogWithInsufficientRightsMessage(message: Message, extra?: any, ignoreReply?: boolean) {
+        const roleId = "863038817794392106"; //Bot-support
+        message.reply(`Du har ikke de nødvendige rettighetene for å bruke denne funksjonen. <@&${roleId}>`)
+        const errorChannel = message.channel.client.channels.cache.get("810832760364859432") as TextChannel
+        errorChannel.send(`${message.author.username} forsøkte å bruke en funksjon uten rettigheter. Meldingsinnhold: <${message.content}>. Channel: ${message.channel}. ${extra}`);
     }
     static sendMessageToBotUtvikling(channel: TextChannel) {
         const errorChannel = channel.client.channels.cache.get("802716150484041751") as TextChannel

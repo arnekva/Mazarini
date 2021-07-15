@@ -39,12 +39,13 @@ interface fetchData {
 
 export class Music {
     static readonly baseUrl = "http://ws.audioscrobbler.com/2.0/";
-    static findCommand(message: Message, content: string, args: string[], silent?: boolean) {
+    static findCommand(message: Message, content: string, args: string[], silent?: boolean, shouldEditRawMessageInstead?: string) {
 
         if (!args[0]) {
             message.reply("Feilformattert. Mangler du f.eks 'topp'?")
             return
         }
+        console.log(1);
 
         /** CHECKS at alt eksistere */
         const method = methods.filter(e => e.command == args[0])[0];
@@ -54,9 +55,12 @@ export class Music {
                 message.reply("Kommandoen eksisterer ikke. Bruk 'topp' eller 'weekly'")
                 return;
             }
-            let username = Music.getLastFMUsernameByDiscordUsername(message.author.username, message)
+
+            let username = Music.getLastFMUsernameByDiscordUsername((shouldEditRawMessageInstead ?? message.author.username), message)
+
             let limit = args[2] ?? "10";
             if (!username) {
+
                 if (!silent)
                     message.reply("Du har ikke registrert brukernavnet ditt. Bruk '!mz musikk user <discordnavn> <last.fm navn>")
                 return;
@@ -67,6 +71,7 @@ export class Music {
                 if (nyUser) {
                     username = nyUser;
                 } else {
+                    console.log("inne232323");
                     if (!silent)
                         message.reply("du har oppgitt et brukernavn, men denne brukeren har ikke knyttet Last.fm-kontoen sin ('!mz musikk user <discordnavn> <last.fm navn>')")
                     return;
@@ -77,7 +82,6 @@ export class Music {
                 message.reply("kommandoen mangler 'artist', 'songs' eller 'album' eller  bak 'topp', 'weekly' eller 'siste'")
                 return;
             }
-
             /** CHECKS END */
 
             const data: fetchData = {
@@ -88,7 +92,7 @@ export class Music {
                 silent: silent ?? false,
 
             }
-            return this.findLastFmData(message, data);
+            return this.findLastFmData(message, data, shouldEditRawMessageInstead);
         } else {
             if (args[1] && args[2]) {
                 if (args[1] !== message.author.username) {
@@ -161,7 +165,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
      * @param dataParam 
      * @returns 
      */
-    static async findLastFmData(message: Message, dataParam: fetchData) {
+    static async findLastFmData(message: Message, dataParam: fetchData, editInstead?: string) {
 
         if (parseInt(dataParam.limit) > 30) {
             message.reply("Litt for høg limit, deranes. Maks 30.")
@@ -170,7 +174,9 @@ Docs: https://www.last.fm/api/show/user.getInfo
             dataParam.limit = "10";
             dataParam.includeStats = true;
         }
-        const msg = await MessageHelper.sendMessage(message, "Laster data...")
+        if (editInstead)
+            message.edit("Laster inn data fra Last.fm ...")
+        const msg = editInstead ? message : await MessageHelper.sendMessage(message, "Laster data...")
         const apiKey = lfKey;
 
         let artistString = ""
@@ -215,6 +221,8 @@ Docs: https://www.last.fm/api/show/user.getInfo
                             prop.forEach((element: any, index) => {
                                 const hasDate = element.date;
                                 const isCurrentlyPlaying = !isNotRecent && !!element['@attr'];
+                                if (!!editInstead && !isCurrentlyPlaying)
+                                    return;
                                 numPlaysInTopX += (parseInt(element.playcount));
                                 /** Denne ser kanskje lang ut, men den lager hver linje. Først ser den etter artist (hentes forskjellig fra weekly), legger til bindestrek, sjekker etter sangnavn etc.  */
                                 artistString += `\n${isFormattedWithHashtag && element.artist ? element.artist["#text"] + " - " : (element.artist ? element.artist.name + " - " : "")}`
@@ -232,12 +240,12 @@ Docs: https://www.last.fm/api/show/user.getInfo
                             message.reply("Fant ingen data. Kanskje feilformattert?")
                         if (!isFormattedWithHashtag)
                             artistString += `, ${totalPlaycount} totale avspillinger.  ${dataParam.includeStats ? (numPlaysInTopX / parseInt(totalPlaycount) * 100).toFixed(1) + "% av avspillingene er fra dine topp " + dataParam.limit + "." : ""}* `
-
+                        let retMessage;
                         if (msg)
                             msg.edit(artistString)
                         else
-                            MessageHelper.sendMessage(message, artistString);
-                        return "200"
+                            retMessage = MessageHelper.sendMessage(message, artistString);
+                        return retMessage
                     }).catch((error: any) => {
                         MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error);
                     });
@@ -248,7 +256,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
     }
 
     static getLastFMUsernameByDiscordUsername(username: string, rawMessage: Message) {
-        return DatabaseHelper.getValue("lastFmUsername", username, rawMessage, true);
+        return DatabaseHelper.getValueWithoutMessage("lastFmUsername", username);
     }
     static connectLastFmUsernameToUser(username: string, lfUsername: string, rawMessage: Message) {
         return DatabaseHelper.setValue("lastFmUsername", username, lfUsername)

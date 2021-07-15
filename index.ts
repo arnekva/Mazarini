@@ -130,7 +130,7 @@ async function checkForCommand(message: Message) {
                     if (Admin.isAuthorSuperAdmin(message.member)) {
                         cmd.command(message, messageContent, args)
                     } else {
-                        MessageHelper.sendMessage(message, "", true, message.author.username + " forsøkte å bruke " + cmd.commandName + " uten tilgang", "unauthorized")
+                        MessageHelper.sendMessageToActionLogWithInsufficientRightsMessage(message)
                     }
                 }
                 else if (cmd.isAdmin) {
@@ -138,7 +138,7 @@ async function checkForCommand(message: Message) {
                         cmd.command(message, messageContent, args)
 
                     } else {
-                        MessageHelper.sendMessage(message, "", true, message.author.username + " forsøkte å bruke " + cmd.commandName + " uten tilgang", "unauthorized")
+                        MessageHelper.sendMessageToActionLogWithInsufficientRightsMessage(message)
                     }
                 } else {
                     try {
@@ -149,7 +149,7 @@ async function checkForCommand(message: Message) {
                         cmd.command(message, messageContent, args);
                     } catch (error) {
                         //!mz maggi feiler en gang i blant, så prøver å fange den og printe stacktrace i action_log.
-                        MessageHelper.sendMessage(message, "", true, message.author.username + " forsøkte å bruke " + cmd.commandName + " men en feil oppstod. Stacktrace: \n" + error, "error")
+                        MessageHelper.sendMessageToActionLogWithInsufficientRightsMessage(message)
                     }
                 }
                 cmdFound = true;

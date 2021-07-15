@@ -163,7 +163,7 @@ export class Admin {
                 DatabaseHelper.setValue("warningCounter", user.username, newVal.toString());
                 MessageHelper.sendMessage(message, user.username + ", du har fått en advarsel. Du har nå " + newVal + " advarsler.")
                 //Send msg to action-log
-                MessageHelper.sendMessage(message, "", true, message.author.username + " ga en advarsel til " + user.username + " på grunn av: " + replyString + ". " + user.username + " har nå " + newVal + " advarsler", "warning")
+                MessageHelper.sendMessageToActionLog(message.channel as TextChannel, message.author.username + " ga en advarsel til " + user.username + " på grunn av: " + replyString + ". " + user.username + " har nå " + newVal + " advarsler")
 
             } else {
                 MessageHelper.sendMessageToActionLogWithDefaultMessage(message, "Verdien for warningcounter er NaN: <" + userWarnings + ">.")

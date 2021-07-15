@@ -127,7 +127,7 @@ export class GamblingCommands {
             message.reply("Du må legge til om det var 'ja' eller 'nei' som var utfallet av veddemålet")
             return;
         }
-
+        DatabaseHelper.deleteActiveBet(username);
         if (ObjectUtils.instanceOfBetObject(activeBet)) {
             const resolveMessage = await MessageHelper.sendMessage(message, `${username} vil gjøre opp ett veddemål: ${activeBet.description}. Reager med 👍 for å godkjenne (Trenger 3). Venter 60 sekunder. `)
             if (resolveMessage) {
@@ -152,6 +152,7 @@ export class GamblingCommands {
 
                     } else {
                         MessageHelper.sendMessage(message, `Veddemålsresultatet ble ikke godkjent. Diskuter og prøv igjen.`)
+                        DatabaseHelper.setActiveBetObject(message.author.username, activeBet)
                     }
 
                 }, 60000) //Sett til 60000
@@ -281,13 +282,13 @@ export class GamblingCommands {
         if (roll >= 95)
             return 1;
         if (roll >= 85)
-            return 0.8;
+            return 0.87;
         if (roll >= 75)
-            return 0.5
+            return 0.7
         if (roll >= 60)
-            return 0.3
+            return 0.45
         if (roll >= 51)
-            return 0.1
+            return 0.25
         return 1;
     }
 

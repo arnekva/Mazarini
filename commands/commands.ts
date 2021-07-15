@@ -76,6 +76,7 @@ export const commands: ICommandElement[] = [
     GitHubCommands.issueCommand,
     JokeCommands.eivindSkyld,
     JokeCommands.activityCommand,
+    JokeCommands.kanCommand,
     GameCommands.getDropVerdansk,
     GameCommands.getDropRebirth,
     GameCommands.getDropFromGrid,
