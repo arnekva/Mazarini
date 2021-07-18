@@ -285,16 +285,16 @@ export class GamblingCommands {
 
             const gambling = new MessageEmbed()
                 .setTitle("Gambling 🎲")
-                .setDescription(`${message.author.username} gamblet ${valAsNum} av ${userMoney} chips.\nTerningen trillet: ${roll}/100. Du ${roll >= 50 ? "vant! 💰💰 (" + (Number(multiplier) + 1) + "x)" : "tapte 💸"}\nDu har nå ${newMoneyValue.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })} chips.`)
+                .setDescription(`${message.author.username} gamblet ${valAsNum} av ${userMoney} chips.\nTerningen trillet: ${roll}/100. Du ${roll >= 50 ? "vant! 💰💰 (" + multiplier + "x)" : "tapte 💸"}\nDu har nå ${newMoneyValue.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })} chips.`)
             if (roll >= 100)
-                gambling.addField(`Trillet 100!`, `Du trillet 100 og vant ${multiplier + 1} ganger så mye som du satset!`)
+                gambling.addField(`Trillet 100!`, `Du trillet 100 og vant ${multiplier} ganger så mye som du satset!`)
             MessageHelper.sendFormattedMessage(message, gambling);
         }
     }
     static getMultiplier(roll: number, amountBet: number) {
         if (roll >= 100)
             return 5;
-        return 2;
+        return 1;
     }
 
     static bailout(message: Message) {
