@@ -266,9 +266,10 @@ export class JokeCommands {
         let bkCounter;
         if (args.length > 0) {
             user = args[0];
-            if (DatabaseHelper.findUserByUsername(user, message)) {
+            const userObj = DatabaseHelper.findUserByUsername(user, message);
+            if (userObj) {
                 bkCounter = DatabaseHelper.getValue("bonkCounter", user, message);
-                this.incrementBonkCounter(message, user, bkCounter)
+                this.incrementBonkCounter(message, userObj.id, bkCounter)
                 bkCounter = parseInt(bkCounter) + 1;
                 MessageHelper.sendMessage(message, (user ? user + ", du har blitt bonket. (" + `${bkCounter} ${bkCounter == 1 ? 'gang' : 'ganger'}) ` : "") + img)
             } else {

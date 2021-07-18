@@ -30,7 +30,7 @@ export const achievements: MZAchievement[] = [
 
 
 export class Achievements {
-
+    //TODO: Fiks denne til ID
     static awardAchievement(username: string, achievementID: achievementIDs, rawMessage: Message, silent?: boolean) {
         const achiev = achievements.find((el) => el.id == achievementID);
         const hasAchievementsObj = DatabaseHelper.getValue("achievement", username, rawMessage); //FIXME: This line needs to be there to check if Achievements exist, as getValue creates Achievements if not present
@@ -49,7 +49,7 @@ export class Achievements {
     }
 
     static listUserAchievements(message: Message) {
-        const allAchievs = DatabaseHelper.getValue("achievement", message.author.username, message);
+        const allAchievs = DatabaseHelper.getValue("achievement", message.author.id, message);
 
         let printList = "**Dine achievements**";
         let totalScore = 0;

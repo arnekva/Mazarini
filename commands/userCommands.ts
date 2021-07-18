@@ -15,11 +15,29 @@ export class User {
             MessageHelper.sendMessage(message, `${(message.author.username)} har ${warningCounter} ${Number(warningCounter) === 1 ? "advarsel" : "advarsler"}`)
     }
 
+    static setDatabaseDisplayName(message: Message, content: string, args: string[]) {
+        if (!args[0]) {
+            message.reply("Du må spesifisere hva displaynavnet ditt skal være")
+            return;
+
+        }
+        const username = args[0];
+        const user = DatabaseHelper.setValue("displayName", message.author.id, username);
+        MessageHelper.sendMessage(message, `Opddaterte displaynavnet til ${message.author.username} til ${username}`)
+    }
+
     static readonly seeWarningCounterCommand: ICommandElement = {
         commandName: "warnings",
         description: "Se antall advarsler du har",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             User.getWarnings(rawMessage, messageContent, args);
+        }
+    }
+    static readonly displayNameCommand: ICommandElement = {
+        commandName: "displaynavn",
+        description: "Sett displaynavnet ditt for botten",
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            User.setDatabaseDisplayName(rawMessage, messageContent, args);
         }
     }
 }

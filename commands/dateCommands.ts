@@ -73,8 +73,8 @@ export class DateCommands {
             const hrs = args[1].split(":")
             const desc = args.slice(2).join(" ");
             const cdDate = new Date(Number(dateParams[2]), Number(dateParams[1]) - 1, Number(dateParams[0]), Number(hrs[0]), Number(hrs[1] ?? 0), Number(hrs[2] ?? 0), Number(hrs[3] ?? 0))
-            DatabaseHelper.setCountdownValue(message.author.username, "date", cdDate.toString())
-            DatabaseHelper.setCountdownValue(message.author.username, "desc", desc)
+            DatabaseHelper.setCountdownValue(message.author.id, "date", cdDate.toString())
+            DatabaseHelper.setCountdownValue(message.author.id, "desc", desc)
         }
         let sendThisText = "";
         if (Object.keys(DatabaseHelper.getAllCountdownValues()).length < 1) {

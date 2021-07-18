@@ -106,6 +106,7 @@ export const commands: ICommandElement[] = [
     Music.musicCommands,
     Meme.makeMemeCommand,
     User.seeWarningCounterCommand,
+    User.displayNameCommand,
 
 ]
 

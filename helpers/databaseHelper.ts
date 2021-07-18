@@ -30,7 +30,7 @@ export interface dbObject {
 
 }
 
-export type dbPrefix = "spin" | "birthday" | "stock" | "mygling" | "week" | "counterSpin" | "ATHspin" | "sCounterWeeklySpin" | "chips" | "bailout" | "warningCounter" | "dogeCoin" | "test" | "achievement" | "bonkCounter" | "lastFmUsername" | "loanCounter" | "debt";
+export type dbPrefix = "spin" | "birthday" | "displayName" | "stock" | "mygling" | "week" | "counterSpin" | "ATHspin" | "sCounterWeeklySpin" | "chips" | "bailout" | "warningCounter" | "dogeCoin" | "test" | "achievement" | "bonkCounter" | "lastFmUsername" | "loanCounter" | "debt";
 
 export interface betObject {
     description: string,
@@ -158,6 +158,13 @@ export class DatabaseHelper {
         }
 
     };
+    static getValueWithUsername(prefix: dbPrefix, key: string, message: Message) {
+        return this.getValueWithoutMessage(prefix, this.getDiscordIdFromDiscordUsername(message, key) ?? "0")
+    }
+
+    static getDiscordIdFromDiscordUsername(rawMessage: Message, username: string, prefix?: dbPrefix) {
+        return rawMessage.client.users.cache.find(user => user.username == username)?.id;
+    }
     /** Hent en verdi uten message objektet. Vil ikke replye med error hvis ikke funnet. */
     static getValueWithoutMessage(prefix: dbPrefix, key: string) {
         try {

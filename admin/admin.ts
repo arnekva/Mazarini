@@ -160,7 +160,7 @@ export class Admin {
             if (!isNaN(userWarnings)) {
                 let newVal = parseInt(userWarnings)
                 newVal += 1;
-                DatabaseHelper.setValue("warningCounter", user.username, newVal.toString());
+                DatabaseHelper.setValue("warningCounter", user.id, newVal.toString());
                 MessageHelper.sendMessage(message, user.username + ", du har fått en advarsel. Du har nå " + newVal + " advarsler.")
                 //Send msg to action-log
                 MessageHelper.sendMessageToActionLog(message.channel as TextChannel, message.author.username + " ga en advarsel til " + user.username + " på grunn av: " + replyString + ". " + user.username + " har nå " + newVal + " advarsler")
@@ -314,7 +314,7 @@ export class Admin {
     static isAuthorSuperAdmin(member: GuildMember | null) {
         // member.roles.cache.some(role => role.name === "Mazarini-Bot-Admin")
         if (member)
-            return member.id == "245607554254766081";
+            return member.id == "245607554254766081" || member.id === "397429060898390016";
         return false
     }
 }

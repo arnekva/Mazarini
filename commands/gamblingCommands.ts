@@ -37,8 +37,8 @@ export class GamblingCommands {
 
 
     static async createBet(message: Message, messageContent: string, args: string[]) {
-        const hasActiveBet = DatabaseHelper.getActiveBetObject(message.author.username);
-        const userBalance = DatabaseHelper.getValue("chips", message.author.username, message);
+        const hasActiveBet = DatabaseHelper.getActiveBetObject(message.author.id);
+        const userBalance = DatabaseHelper.getValue("chips", message.author.id, message);
         let desc = messageContent;
         if (hasActiveBet) {
             message.reply("Du kan bare ha ett aktivt veddemål om gangen. Gjør ferdig ditt gamle, og prøv på nytt");
@@ -67,12 +67,12 @@ export class GamblingCommands {
                     fullString += "Folk som reagerte med " + reaction.emoji.name + ":"
                     const users = reaction.users;
                     users.cache.forEach((us, ind) => {
-                        const userBal = DatabaseHelper.getValue("chips", us.username, message);
+                        const userBal = DatabaseHelper.getValue("chips", us.id, message);
                         if (Number(userBal) < betVal && (us.username !== "Mazarini Bot")) {
                             fullString += us.username + "(har ikke råd og blir ikke telt med),"
                         } else {
                             if (us.username !== "Mazarini Bot") {
-                                DatabaseHelper.setValue("chips", us.username, (Number(userBal) - betVal).toFixed(2));
+                                DatabaseHelper.setValue("chips", us.id, (Number(userBal) - betVal).toFixed(2));
                                 if (reaction.emoji.name == "👍")
                                     positive.push(us.username)
                                 else if (reaction.emoji.name == "👎")
@@ -98,14 +98,14 @@ export class GamblingCommands {
                     value: betVal.toFixed(2),
 
                 }
-                DatabaseHelper.setActiveBetObject(message.author.username, obj)
+                DatabaseHelper.setActiveBetObject(message.author.id, obj)
             }, 60000) //Sett til 60000
         }
     }
 
-    static async resolveBet(message: Message, messageContent: string, args: string[]) {
+    static async resolveBet(message: Message, messageContent: string, args: string[],) {
         const username = message.author.username;
-        const activeBet = DatabaseHelper.getActiveBetObject(message.author.username) as betObjectReturned;
+        const activeBet = DatabaseHelper.getActiveBetObject(message.author.id) as betObjectReturned;
         if (!activeBet) {
             message.reply("Du kan kun lukke veddemål du har startet selv, og du har ingen aktive.");
             return;
@@ -118,7 +118,7 @@ export class GamblingCommands {
                 numP += negSplit.length;
             if (posSplit[0] !== "")
                 numP += posSplit.length;
-            GamblingCommands.dealCoins(message, activeBet.value, activeBet.positivePeople.concat(activeBet.negativePeople), numP, true)
+            // GamblingCommands.dealCoins(message, activeBet.value, activeBet.positivePeople.concat(activeBet.negativePeople), numP, true)
             DatabaseHelper.deleteActiveBet(username);
             message.reply("Veddemålet er slettet, og beløp er tilbakebetalt.")
             return;
@@ -152,7 +152,7 @@ export class GamblingCommands {
 
                     } else {
                         MessageHelper.sendMessage(message, `Veddemålsresultatet ble ikke godkjent. Diskuter og prøv igjen.`)
-                        DatabaseHelper.setActiveBetObject(message.author.username, activeBet)
+                        DatabaseHelper.setActiveBetObject(message.author.id, activeBet)
                     }
 
                 }, 60000) //Sett til 60000
@@ -171,19 +171,23 @@ export class GamblingCommands {
 
         let username = getUsernameInQuotationMarks(content) ?? args[1];
         const amount = args[0];
-
+        const victimUser = DatabaseHelper.findUserByUsername(username, message);
+        if (!victimUser) {
+            message.reply("fant ikke bruker")
+            return;
+        }
         if (isNaN(Number(amount)) || Number(amount) < 1) {
             message.reply("du må oppgi et gyldig tall")
             return;
         }
         let engagerValue = Number(DatabaseHelper.getValue("chips", message.author.username, message));
-        let victimValue = Number(DatabaseHelper.getValue("chips", username, message));
+        let victimValue = Number(DatabaseHelper.getValue("chips", victimUser?.id, message));
         const amountAsNum = Number(amount);
         if (Number(engagerValue) < amountAsNum || Number(victimValue) < amountAsNum) {
             message.reply("en av dere har ikke råd til å utføre denne krigen her.")
             return;
         }
-        const resolveMessage = await MessageHelper.sendMessage(message, `${message.author.username} vil gå til krig med deg, ${username}. Reager med 👍 for å godkjenne. Venter 10 sekunder. Den som starter krigen ruller for 0-49.`)
+        const resolveMessage = await MessageHelper.sendMessage(message, `${message.author.username} vil gå til krig med deg, ${victimUser.username}. Reager med 👍 for å godkjenne. Venter 10 sekunder. Den som starter krigen ruller for 0-49.`)
         if (resolveMessage) {
             resolveMessage.react("👍")
             let positiveCounter = 0;
@@ -192,7 +196,7 @@ export class GamblingCommands {
                 const allReactions = resolveMessage.reactions.cache.forEach((reaction) => {
                     const users = reaction.users;
                     users.cache.forEach((us, ind) => {
-                        if (reaction.emoji.name == "👍" && us.username == username)
+                        if (reaction.emoji.name == "👍" && us.username == victimUser.username)
                             positiveCounter++;
                     })
                 })
@@ -201,7 +205,7 @@ export class GamblingCommands {
 
                     const gambling = new MessageEmbed()
                         .setTitle("⚔️ Krig ⚔️")
-                        .setDescription(`Terningen trillet: ${roll}/100. ${roll < 51 ? (roll == 50 ? "Bot Høie" : message.author.username) : username} vant! 💰💰`)
+                        .setDescription(`Terningen trillet: ${roll}/100. ${roll < 51 ? (roll == 50 ? "Bot Høie" : message.author.username) : victimUser.username} vant! 💰💰`)
 
                     if (roll < 50) {
                         engagerValue += amountAsNum;
@@ -219,8 +223,8 @@ export class GamblingCommands {
                     gambling.addField(`${message.author.username}`, `Du har nå ${engagerValue.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })} chips`)
                     gambling.addField(`${username}`, `Du har nå ${victimValue.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })} chips`)
                     MessageHelper.sendFormattedMessage(message, gambling);
-                    DatabaseHelper.setValue("chips", message.author.username, (engagerValue).toFixed(2))
-                    DatabaseHelper.setValue("chips", username, (victimValue).toFixed(2))
+                    DatabaseHelper.setValue("chips", message.author.id, (engagerValue).toFixed(2))
+                    DatabaseHelper.setValue("chips", victimUser.id, (victimValue).toFixed(2))
 
                 } else {
                     MessageHelper.sendMessage(message, `${username} godkjente ikke krigen.`)
@@ -232,7 +236,7 @@ export class GamblingCommands {
     }
 
     static diceGamble(message: Message, content: string, args: string[]) {
-        const userMoney = DatabaseHelper.getValue("chips", message.author.username, message);
+        const userMoney = DatabaseHelper.getValue("chips", message.author.id, message);
         const argumentVal = args[0];
         if (!argumentVal || isNaN(Number(argumentVal))) {
             message.reply("Du må si hvor mye du vil gamble")
@@ -266,7 +270,7 @@ export class GamblingCommands {
             if (newMoneyValue > Number.MAX_SAFE_INTEGER) {
                 message.reply("Du har nådd et så høyt tall at programmeringsspråket ikke lenger kan gjøre trygge operasjoner på det. Du kan fortsette å gamble, men noen funksjoner kan virke ustabile")
             }
-            DatabaseHelper.setValue("chips", message.author.username, newMoneyValue.toFixed(2))
+            DatabaseHelper.setValue("chips", message.author.id, newMoneyValue.toFixed(2))
 
             const gambling = new MessageEmbed()
                 .setTitle("Gambling 🎲")
@@ -294,7 +298,7 @@ export class GamblingCommands {
 
     static bailout(message: Message) {
         const canBailout = false
-        const userCoins = DatabaseHelper.getValue("chips", message.author.username, message)
+        const userCoins = DatabaseHelper.getValue("chips", message.author.id, message)
         // if(canBailout === "true" && Number(userCoins) < 100000){
         //     message.reply(`${message.author.username} har mottatt en redningspakke fra MazariniBank på 500,000,000.`)
         //     DatabaseHelper.setValue("dogeCoin", message.author.username, "500000000");
@@ -320,10 +324,10 @@ export class GamblingCommands {
             }
             amountToLoan = argAsNum;
         }
-        const username = message.author.username;
-        const totalLoans = DatabaseHelper.getValue("loanCounter", username, message)
-        const totalDebt = DatabaseHelper.getValue("debt", username, message)
-        const userMoney = DatabaseHelper.getValue("chips", message.author.username, message);
+        const userId = message.author.id;
+        const totalLoans = DatabaseHelper.getValue("loanCounter", userId, message)
+        const totalDebt = DatabaseHelper.getValue("debt", userId, message)
+        const userMoney = DatabaseHelper.getValue("chips", message.author.id, message);
         if (totalDebt > 1500) {
             message.reply("Du har for mye gjeld. Betal ned litt før du tar opp nytt lån. (Hvis du har 0 chips nå e du pretty fucked, for Arne har ikkje koda inn någe redning her ennå)")
             return;
@@ -331,22 +335,22 @@ export class GamblingCommands {
         const newTotalLoans = Number(totalLoans) + 1;
         const newDebt = (Number(totalDebt) + amountToLoan) * 1.1;
 
-        DatabaseHelper.setValue("loanCounter", username, newTotalLoans.toString())
-        DatabaseHelper.setValue("debt", username, newDebt.toFixed(2))
+        DatabaseHelper.setValue("loanCounter", userId, newTotalLoans.toString())
+        DatabaseHelper.setValue("debt", userId, newDebt.toFixed(2))
         const newCoinsVal = Number(userMoney) + amountToLoan;
-        DatabaseHelper.setValue("chips", username, newCoinsVal.toFixed(2))
+        DatabaseHelper.setValue("chips", userId, newCoinsVal.toFixed(2))
 
-        MessageHelper.sendMessage(message, `${username}, du har nå lånt ${amountToLoan.toFixed(2)} chips med 10% rente. Spend them well. Din totale gjeld er nå: ${newDebt.toFixed(2)} (${newTotalLoans} lån gjort)`)
+        MessageHelper.sendMessage(message, `${userId}, du har nå lånt ${amountToLoan.toFixed(2)} chips med 10% rente. Spend them well. Din totale gjeld er nå: ${newDebt.toFixed(2)} (${newTotalLoans} lån gjort)`)
     }
 
     static payDownDebt(message: Message, content: string, args: string[]) {
-        const username = message.author.username;
-        const totalDebt = DatabaseHelper.getValue("debt", username, message)
+        const userId = message.author.id;
+        const totalDebt = DatabaseHelper.getValue("debt", userId, message)
         if (Number(totalDebt) <= 0) {
             message.reply("Du har ingen lån")
             return;
         }
-        const userMoney = DatabaseHelper.getValue("chips", message.author.username, message);
+        const userMoney = DatabaseHelper.getValue("chips", message.author.id, message);
         const wantsToPayDownThisAmount = Number(args[0]);
         if (wantsToPayDownThisAmount < 1) {
             message.reply("skriv inn et positivt tall, bro")
@@ -366,9 +370,9 @@ export class GamblingCommands {
                     backToPayer = Math.abs(newTotal);
                 }
                 newTotal += backToPayer;
-                DatabaseHelper.setValue("debt", username, newTotal.toFixed(2))
+                DatabaseHelper.setValue("debt", userId, newTotal.toFixed(2))
                 const newDogeCoinsCOunter = Number(userMoney) - wantsToPayDownThisAmount + backToPayer;
-                DatabaseHelper.setValue("chips", username, newDogeCoinsCOunter.toFixed(2))
+                DatabaseHelper.setValue("chips", userId, newDogeCoinsCOunter.toFixed(2))
                 MessageHelper.sendMessage(message, `Du har nå betalt ned ${wantsToPayDownThisAmount.toFixed(2)} av lånet ditt på ${totalDebt}. Lånet er nå på ${newTotal.toFixed(2)} og du har ${newDogeCoinsCOunter.toFixed(2)} chips igjen.`)
             }
         }
@@ -397,14 +401,14 @@ export class GamblingCommands {
             return;
         }
 
-        const authorBalance = Number(DatabaseHelper.getValue("dogeCoin", message.author.username, message));
+        const authorBalance = Number(DatabaseHelper.getValue("dogeCoin", message.author.id, message));
         if (authorBalance >= Number(coinsToVipps)) {
             //go ahead
             if (DatabaseHelper.findUserByUsername(userWhoGetsCoins, message)) {
                 const newBalance = authorBalance - Number(coinsToVipps);
-                DatabaseHelper.setValue("dogeCoin", message.author.username, newBalance.toFixed(2))
+                DatabaseHelper.setValue("dogeCoin", message.author.id, newBalance.toFixed(2))
                 DatabaseHelper.incrementValue("dogeCoin", userWhoGetsCoins, coinsToVipps, message);
-                MessageHelper.sendMessage(message, `${message.author.username} vippset ${userWhoGetsCoins} ${coinsToVipps}.`)
+                MessageHelper.sendMessage(message, `${message.author.id} vippset ${userWhoGetsCoins} ${coinsToVipps}.`)
 
             } else {
                 message.reply("finner ingen bruker med det navnet")
@@ -425,14 +429,17 @@ export class GamblingCommands {
         peopleCoins.forEach((username) => {
             if (!!username.trim()) {
                 const currentUser = DatabaseHelper.findUserByUsername(username, message)
-                const userCoins = DatabaseHelper.getValue("chips", username, message) as number;
-                const newValue = Number(userCoins) + Number(shareOfCoins.toFixed(0));
-                if (isNaN(newValue) || isNaN(userCoins)) {
-                    message.reply("en av verdiene fra databasen kan ikke konverteres til et tall. newValue: '" + newValue + "', userCoins: '" + userCoins + "'. Hendelsen blir loggført slik at en nerd kan se nærmere på det.")
-                    MessageHelper.sendMessageToActionLogWithDefaultMessage(message, `Trigget dealcoins med enten undefined eller NaN verdi på coins. `)
+                if (currentUser) {
+
+                    const userCoins = DatabaseHelper.getValue("chips", currentUser?.id, message) as number;
+                    const newValue = Number(userCoins) + Number(shareOfCoins.toFixed(0));
+                    if (isNaN(newValue) || isNaN(userCoins)) {
+                        message.reply("en av verdiene fra databasen kan ikke konverteres til et tall. newValue: '" + newValue + "', userCoins: '" + userCoins + "'. Hendelsen blir loggført slik at en nerd kan se nærmere på det.")
+                        MessageHelper.sendMessageToActionLogWithDefaultMessage(message, `Trigget dealcoins med enten undefined eller NaN verdi på coins. `)
+                    }
+                    DatabaseHelper.setValue("chips", currentUser?.id, newValue.toString());
+                    moneyString += `${username}: ${userCoins} -> ${newValue}\n`
                 }
-                DatabaseHelper.setValue("chips", username, newValue.toString());
-                moneyString += `${username}: ${userCoins} -> ${newValue}\n`
             }
         });
         MessageHelper.sendMessage(message, moneyString)
@@ -445,8 +452,12 @@ export class GamblingCommands {
             username = message.author.username;
         } else
             username = getUsernameInQuotationMarks(messageContent) ?? args[0];
-
-        const val = DatabaseHelper.getValue("dogeCoin", username, message)
+        const user = DatabaseHelper.findUserByUsername(username, message);
+        if (!user) {
+            message.reply("Fant ikke brukeren")
+            return;
+        }
+        const val = DatabaseHelper.getValue("dogeCoin", user.id, message)
         MessageHelper.sendMessage(message, `${username} har ${Number(val).toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })} coins`)
     }
     static async checkChips(message: Message, messageContent: string, args: string[]) {
@@ -455,8 +466,12 @@ export class GamblingCommands {
             username = message.author.username;
         } else
             username = getUsernameInQuotationMarks(messageContent) ?? args[0];
-
-        const val = DatabaseHelper.getValue("chips", username, message)
+        const user = DatabaseHelper.findUserByUsername(username, message);
+        if (!user) {
+            message.reply("Fant ikke brukeren")
+            return;
+        }
+        const val = DatabaseHelper.getValue("chips", user.id, message)
         MessageHelper.sendMessage(message, `${username} har ${Number(val).toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })} chips`)
     }
 
