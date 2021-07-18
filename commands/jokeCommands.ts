@@ -268,7 +268,7 @@ export class JokeCommands {
             user = args[0];
             const userObj = DatabaseHelper.findUserByUsername(user, message);
             if (userObj) {
-                bkCounter = DatabaseHelper.getValue("bonkCounter", user, message);
+                bkCounter = DatabaseHelper.getValue("bonkCounter", userObj.id, message);
                 this.incrementBonkCounter(message, userObj.id, bkCounter)
                 bkCounter = parseInt(bkCounter) + 1;
                 MessageHelper.sendMessage(message, (user ? user + ", du har blitt bonket. (" + `${bkCounter} ${bkCounter == 1 ? 'gang' : 'ganger'}) ` : "") + img)
