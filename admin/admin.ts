@@ -199,9 +199,15 @@ export class Admin {
             MessageHelper.sendMessageToActionLog(message.channel as TextChannel, `${message.author.username} slettet ${maxDelete} meldinger fra ${user.username} i channel ${message.channel} på grunn av: "${reason.length > 0 ? reason : 'ingen grunn oppgitt'}"`)
             // if (user.username !== message.author.username)
             //     message.delete();
+            message.delete();
         }).catch((error: any) => {
             MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error);
         })
+    }
+    //TODO:
+    static changeUserNameInDataBase(message: Message, messageContent: string, args: string[]) {
+        const oldUsername = args[0];
+        const newUsername = args[1];
     }
 
     static logInncorectCommandUsage(message: Message, messageContent: string, args: string[]) {

@@ -114,6 +114,15 @@ export class Spinner {
         //FIXME: 
         const val2 = DatabaseHelper.getAllValuesFromPrefix("spin", message).filter(e => e.val != "Ugyldig verdi");
         ArrayUtils.sortUserValuePairArray(val2);
+        if (isWeeklyReset) {
+            const winner = DatabaseHelper.getValueWithoutMessage("chips", val2[0].key)
+            const loser = DatabaseHelper.getValueWithoutMessage("chips", val2[val2.length - 1].key)
+            DatabaseHelper.setValue("chips", val2[0].key, (Number(winner) + 1000).toFixed(1))
+            if (Number(loser) - 500 < 0)
+                DatabaseHelper.setValue("chips", val2[val2.length - 1].key, "0")
+            else
+                DatabaseHelper.setValue("chips", val2[val2.length - 1].key, (Number(winner) - 500).toFixed(1))
+        }
         const highscoreList = ArrayUtils.makeValuePairIntoOneString(val2, Spinner.formatValue);
         MessageHelper.sendMessage(message, highscoreList);
 

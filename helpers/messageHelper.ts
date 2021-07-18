@@ -27,8 +27,6 @@ export class MessageHelper {
             MessageHelper.sendMessageToActionLogWithDefaultMessage(rawMessage, "En tom melding ble forsøkt sendt fra channel " + channel.name + ", forårsaket av en melding fra " + rawMessage.author.username + ". Meldingsinnhold: " + rawMessage.content)
             return;
         }
-
-        channel.type === "text"
         const isZm = rawMessage.content.startsWith("!zm ");
 
         try {

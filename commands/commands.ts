@@ -92,6 +92,7 @@ export const commands: ICommandElement[] = [
     GamblingCommands.vippsCommand,
     GamblingCommands.krigCommand,
     GamblingCommands.bailoutCommand,
+    GamblingCommands.showActiveBetCommand,
     DateCommands.remindMeCommand,
     DateCommands.countdownCommand,
     WarzoneCommands.getWZStats,

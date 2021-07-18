@@ -65,16 +65,25 @@ mazariniClient.on('ready', () => {
         })
     });
 
-    const reminSpinJob = schedule.scheduleJob("0 21 * * 7", function () {
+    const reminSpinJob = schedule.scheduleJob("0 0 * * 7", function () {
         console.log("Minner om reset")
-        const las_vegas = mazariniClient.channels.cache.get("808992127249678386")
-        MessageHelper.sendMessage(las_vegas, "Husk at ukens spin resetter i morgen klokken 09:00! ")
+        const las_vegas = mazariniClient.channels.cache.get("808992127249678386") as TextChannel;
+        if (las_vegas) {
+            // MessageHelper.sendMessage(las_vegas, )
+            las_vegas.send("Husk at ukens spin resetter i morgen klokken 09:00! ")
+        } else {
+            console.log("Fant ikke channelen las_vegas i reminSpinJob")
+        }
     });
 
     const resetSpinJob = schedule.scheduleJob("0 9 * * 1", async function () {
         console.log("Kjører resett av spins, mandag 09:00")
         const las_vegas = mazariniClient.channels.cache.get("808992127249678386")
+        if (!las_vegas) {
+            console.log("Fant ikke last_vegas i resetSpinJob");
+            return;
 
+        }
         const spinnerMention = "<@&823504322213838888>"
         const message = await las_vegas.send(spinnerMention + ", ukens spin har blitt nullstilt. Her er ukens score:\n")
         await Spinner.listScores(message, true)
@@ -149,7 +158,7 @@ async function checkForCommand(message: Message) {
                         cmd.command(message, messageContent, args);
                     } catch (error) {
                         //!mz maggi feiler en gang i blant, så prøver å fange den og printe stacktrace i action_log.
-                        MessageHelper.sendMessageToActionLogWithInsufficientRightsMessage(message)
+                        MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
                     }
                 }
                 cmdFound = true;

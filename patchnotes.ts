@@ -9,7 +9,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = "2.8.1";
+    public static readonly currentVersion = "2.9.0";
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -19,7 +19,14 @@ export class PatchNotes {
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv. 
      */
     public static readonly currentPatchNotes: string
-        = `* 'kan'-kommandoen tar nå navnet i "hermeteng" hvis du trenger mellomrom.`
+        = `* ThomasW har fått superadmin-tilgang`
+        + "\n * Du kan nå se aktive bets med !mz visbet"
+        + "\n * Oddsen på gamble er økt til 2x igjen, i vente på ny algoritme"
+        + "\n * Fikset et kræsj når botten skulle minne om spin resett"
+        + "\n * '!mz deletemessage' sletter nå også trigger-meldingen"
+        + "\n * Du kan ikke lenger ha linebreaks i statusene dine (blir erstattet med mellomrom)"
+        + "\n * Ukens spinner-vinner får nå +1000 chips. Ukens taper mister 500. "
+        + "\n * Fikset en liten feil i messagehelper som kunne føre til kræsj."
 
         ;
 

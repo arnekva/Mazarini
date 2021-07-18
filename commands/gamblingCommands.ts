@@ -162,7 +162,22 @@ export class GamblingCommands {
             message.reply("object is not instance of betObject. why tho")
         }
     }
+    static showActiveBet(message: Message, content: string, args: string[]) {
+        const username = args[0] ?? message.author.username
+        const activeBet = DatabaseHelper.getActiveBetObject(username) as betObject;
+        if (!activeBet) {
+            message.reply("Du har ingen aktive veddemål")
+            return;
+        }
 
+        const betMessage = new MessageEmbed()
+            .setTitle("🍀🎰 Veddemål 🤞🎲")
+            .setDescription(`Du har et aktivt veddemål om: '${activeBet.description}'`)
+            .addField("JA", `${activeBet.positivePeople.length < 1 ? "Ingen" : activeBet.positivePeople}`)
+            .addField("NEI", `${activeBet.negativePeople.length < 1 ? "Ingen" : activeBet.negativePeople}`)
+            .addField("Verdi", `${activeBet.value.length < 1 ? "0" : activeBet.value}`)
+        MessageHelper.sendFormattedMessage(message, betMessage)
+    }
     static async krig(message: Message, content: string, args: string[]) {
         if (!ArrayUtils.checkArgsLength(args, 2)) {
             message.reply("du må oppgi mengde og person. <nummer> <username>")
@@ -279,17 +294,7 @@ export class GamblingCommands {
     static getMultiplier(roll: number, amountBet: number) {
         if (roll >= 100)
             return 5;
-        if (roll >= 95)
-            return 1;
-        if (roll >= 85)
-            return 0.87;
-        if (roll >= 75)
-            return 0.7
-        if (roll >= 60)
-            return 0.45
-        if (roll >= 51)
-            return 0.25
-        return 1;
+        return 2;
     }
 
     static bailout(message: Message) {
@@ -500,6 +505,13 @@ export class GamblingCommands {
 
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.krig(rawMessage, messageContent, args);
+        }
+    }
+    static readonly showActiveBetCommand: ICommandElement = {
+        commandName: "visbet",
+        description: "Vis en brukers aktive veddemål",
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            GamblingCommands.showActiveBet(rawMessage, messageContent, args);
         }
     }
     static readonly vippsCommand: ICommandElement = {

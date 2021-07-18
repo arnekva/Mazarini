@@ -136,7 +136,7 @@ export class JokeCommands {
             message.reply("Max ein attachment, bro")
             return;
         }
-
+        content = content.replace(/(?:\r\n|\r|\n)/g, ' ')
         if (matchedUsrname) {
             const id = matchedUsrname.forEach(
                 (el, index) => {
@@ -152,9 +152,10 @@ export class JokeCommands {
         };
 
         if (content.length < 150 && content.trim().length > 0) {
-            if (message.content.includes("!zm")) [
+            if (message.content.includes("!zm")) {
                 content = reverseMessageString(content)
-            ]
+            }
+
             DatabaseHelper.setValue("mygling", message.author.username, content + (url ? " " + url : ""));
 
             const emoji = ArrayUtils.randomChoiceFromArray(globalArrays.emojiesList)
