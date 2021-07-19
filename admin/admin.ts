@@ -1,7 +1,9 @@
 import { Channel, GuildMember, Message, TextChannel } from "discord.js";
 import { ICommandElement } from "../commands/commands";
+import { globalArrays } from "../globals";
 import { DatabaseHelper, dbPrefix } from "../helpers/databaseHelper";
 import { MessageHelper } from "../helpers/messageHelper";
+import { ArrayUtils } from "../utils/arrayUtils";
 import { getUsernameInQuotationMarks, isInQuotation } from "../utils/textUtils";
 
 
@@ -32,6 +34,7 @@ export class Admin {
         // const newCont = content.slice(2)
         // newCont.forEach((el) => value += el + " ")
         DatabaseHelper.setValue(prefix, username, val);
+        message.react(ArrayUtils.randomChoiceFromArray(globalArrays.emojiesList));
     }
     static setSpinValue(message: Message, messageContent: string) {
 
