@@ -11,6 +11,7 @@ import { findLetterEmoji } from "../utils/miscUtils";
 import { getUsernameInQuotationMarks, msToTime, reverseMessageString } from "../utils/textUtils";
 import { ICommandElement } from "./commands";
 import { EmojiHelper } from "../helpers/emojiHelper";
+import { Languages } from "../helpers/languageHelpers";
 
 export class JokeCommands {
     static async vaskHuset(message: Message) {
@@ -261,6 +262,26 @@ export class JokeCommands {
         }
     }
 
+    static async jaerskIfyer(message: Message, msgContent: string, args: string[]) {
+        let fMsg;
+        if (args && args[0] && args[0].length > 10 && parseInt(args[0])) {
+            fMsg = await MessageHelper.sendMessage(message, "Leter etter meldingen...")
+            const msgToJaersk = await <Message><unknown>MessageHelper.findMessageById(message, msgContent);
+            if (msgToJaersk) {
+                const uwuIfiedText = JokeCommands.jaerskText(msgToJaersk.content)
+                if (fMsg)
+                    fMsg.edit(uwuIfiedText)
+                else
+                    MessageHelper.sendMessage(message, uwuIfiedText)
+            }
+            if (!msgToJaersk && fMsg)
+                fMsg.edit("Fant ikke meldingen \:(")
+        } else {
+            let textToBeUwued = JokeCommands.jaerskText(args.length > 0 ? args.join(" ") : "Please skriv inn ein tekst eller id neste gang");
+            MessageHelper.sendMessage(message, textToBeUwued)
+        }
+    }
+
     static async sendBonk(message: Message, content: string, args: string[]) {
         const img = ArrayUtils.randomChoiceFromArray(globalArrays.bonkMemeUrls)
         let user;
@@ -302,6 +323,13 @@ export class JokeCommands {
     private static uwuText(t: string) {
         const firstChoice = ArrayUtils.randomChoiceFromArray(globalArrays.asciiEmojies);
         return firstChoice.concat(" " + t.replace(/r/g, "w").replace(/l/g, "w").concat(" ", ArrayUtils.randomChoiceFromArray(globalArrays.asciiEmojies.filter(e => e !== firstChoice))));
+    }
+    private static jaerskText(t: string) {
+        let reply = "";
+        t.split(" ").forEach((word) => {
+            reply += " " + Languages.translateToJaersk(word);
+        })
+        return reply;
     }
 
     /*
@@ -398,6 +426,13 @@ export class JokeCommands {
         isAdmin: true,
         command: (rawMessage: Message, messageContent: string) => {
             JokeCommands.eivindprideItAll(rawMessage);
+        },
+    };
+    static readonly jaerskCommand: ICommandElement = {
+        commandName: "jærsk",
+        description: "Gjør teksten jærsk",
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            JokeCommands.jaerskIfyer(rawMessage, messageContent, args);
         },
     };
     static readonly kanCommand: ICommandElement = {
