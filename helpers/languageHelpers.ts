@@ -48,6 +48,22 @@ export namespace Languages {
                 return "seie";
             case "samme":
                 return "same";
+            case "veldig":
+                return "grevla";
+            case "meg":
+                return "mæg";
+            case "de":
+                return "dei";
+            case "hjem":
+                return "heim";
+            case "hvor":
+                return "kor";
+            case "hvorfor":
+            case "koffor":
+                return "keffor"
+            case "de":
+                return "dei";
+
             default:
                 return word;
         }

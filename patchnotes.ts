@@ -9,7 +9,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = "2.9.3";
+    public static readonly currentVersion = "2.9.4";
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -29,6 +29,7 @@ export class PatchNotes {
         + "\n * Fikset en liten feil i messagehelper som kunne føre til kræsj."
         + "\n * Jærsk-ifyer lagt til '!mz jærsk <text|id>."
         + "\n * setvalue (superadmin) reagerer nå med emoji for feedback."
+        + "\n * Fikset feil i print på gambling"
 
         ;
 
