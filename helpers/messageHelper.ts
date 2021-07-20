@@ -28,7 +28,10 @@ export class MessageHelper {
             return;
         }
         const isZm = rawMessage.content.startsWith("!zm ");
-
+        if (!message.trim()) {
+            this.sendMessageToActionLogWithDefaultMessage(rawMessage, `Meldingen som ble forsøkt sendt er tom: <${message}>`)
+            return;
+        }
         try {
             const msg = channel.send(isZm ? reverseMessageString(message) : message)
             return msg;

@@ -46,8 +46,6 @@ export class Music {
             message.reply("Feilformattert. Mangler du f.eks 'topp'?")
             return
         }
-        console.log(1);
-
         /** CHECKS at alt eksistere */
         const method = methods.filter(e => e.command == args[0])[0];
 
@@ -244,6 +242,11 @@ Docs: https://www.last.fm/api/show/user.getInfo
                         if (!isFormattedWithHashtag)
                             artistString += `, ${totalPlaycount} totale avspillinger.  ${dataParam.includeStats ? (numPlaysInTopX / parseInt(totalPlaycount) * 100).toFixed(1) + "% av avspillingene er fra dine topp " + dataParam.limit + "." : ""}* `
                         let retMessage;
+
+                        if (!artistString.trim()) {
+                            MessageHelper.sendMessageToActionLogWithDefaultMessage(message, `Meldingen som ble forsøkt sendt er tom: <${message}>`)
+                            return;
+                        }
                         if (msg)
                             msg.edit(artistString)
                         else
