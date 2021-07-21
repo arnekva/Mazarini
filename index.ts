@@ -1,6 +1,6 @@
 
 
-import { commands } from "./commands/commands"
+import { commands, ICommandElement } from "./commands/commands"
 import { Admin } from "./admin/admin";
 
 import { Guild, GuildMember, Message, Role, TextChannel, User, Emoji } from "discord.js";
@@ -22,7 +22,7 @@ import { globalArrays } from "./globals";
 require('dotenv').config();
 
 const polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê)*(ls)(e|a|å)|(pause)|(🌭)|(hotdog)|(sausage)|(hot-dog)/ig);
-
+let lastUsedCommand = "help";
 export let action_log_channel: TextChannel;
 
 mazariniClient.on('ready', () => {
@@ -130,6 +130,17 @@ async function checkForCommand(message: Message) {
         const command = message.content.toLowerCase().replace("!mz ", "").replace("!mz", "").replace("!zm ", "").split(" ")[0].toLowerCase()
         const messageContent = message.content.split(" ").slice(2).join(" ");// message.content.replace("!mz " + cmd.commandName, "").replace("!Mz " + cmd.commandName, "").replace("!MZ " + cmd.commandName, "").trim()
         const args = !!messageContent ? messageContent.split(" ") : [];
+        if (message.content.toLowerCase().startsWith("!mz ja")) {
+
+            const lastCommand = commands.filter(cmd => cmd.commandName == lastUsedCommand)[0];
+            if (lastCommand) {
+                lastCommand.command(message, messageContent, args);
+                return;
+            } else {
+                message.reply("Kunne ikke utføre kommandoen")
+            }
+            return;
+        }
         commands.forEach((cmd) => {
             if (command == cmd.commandName.toLowerCase()) {
 
@@ -172,6 +183,8 @@ async function checkForCommand(message: Message) {
                 message.react(kekw)
             const matched = didYouMean(command, commandNames)
             Admin.logInncorectCommandUsage(message, messageContent, args);
+            if (matched)
+                lastUsedCommand = matched;
             message.reply("lmao, commanden '" + command + "' fins ikkje <a:kekw_animated:" + kekw?.id + "> ." + (matched ? " Mente du **" + matched + "**?" : " Prøv !mz help"))
         }
     } else if (message.content.startsWith("!mz")) {
@@ -354,4 +367,14 @@ function roleArraysEqual(a: any[], b: any[]) {
         }
     }
     return undefined;
+}
+
+export class Index {
+    static readonly getWZStats: ICommandElement = {
+        commandName: "ja",
+        description: "Utfør siste kommando på ny (eller utfør kommandoen fra 'mente du...'",
+        command: (rawMessage: Message, messageContent: string) => {
+
+        }
+    }
 }

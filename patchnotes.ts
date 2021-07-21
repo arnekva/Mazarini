@@ -9,7 +9,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = "2.9.5";
+    public static readonly currentVersion = "2.9.6";
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -19,9 +19,7 @@ export class PatchNotes {
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv. 
      */
     public static readonly currentPatchNotes: string
-        = `* Fikset feil i last.fm API-kall som førte til kræsj`
-        + `\n* Byttet til dev-branch på warzone-modulen for å få midlertidig fix på statistikk-kommandoene.`
-
+        = `* Du kan nå gjøre '!mz ja' for å kjøre kommandoen som blir foreslått av 'mente du ...'.`
         ;
 
     static getCurrentPatchNotes() {
