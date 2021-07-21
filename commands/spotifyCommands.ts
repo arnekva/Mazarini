@@ -105,7 +105,7 @@ export class SpotifyCommands {
                     MessageHelper.sendMessage(rawMessage, replystring)?.then((msg) => {
 
                         if (replystring.includes("hører ikke på Spotify for øyeblikket"))
-                            Music.findCommand(msg, content, ["siste", "1", name], true, name)
+                            Music.findCommand(msg, content, ["siste", "1", name], true, name, true)
                     })
 
                 } else

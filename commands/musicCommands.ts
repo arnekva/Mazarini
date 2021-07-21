@@ -40,7 +40,7 @@ interface fetchData {
 
 export class Music {
     static readonly baseUrl = "http://ws.audioscrobbler.com/2.0/";
-    static findCommand(message: Message, content: string, args: string[], silent?: boolean, shouldEditRawMessageInstead?: string) {
+    static findCommand(message: Message, content: string, args: string[], silent?: boolean, shouldEditRawMessageInstead?: string, notWeeklyOrRecent?: boolean) {
 
         if (!args[0]) {
             message.reply("Feilformattert. Mangler du f.eks 'topp'?")
@@ -91,7 +91,7 @@ export class Music {
                 silent: silent ?? false,
 
             }
-            return this.findLastFmData(message, data, shouldEditRawMessageInstead);
+            return this.findLastFmData(message, data, shouldEditRawMessageInstead, notWeeklyOrRecent);
         } else {
             if (args[1] && args[2]) {
                 if (args[1] !== message.author.username) {
@@ -164,7 +164,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
      * @param dataParam 
      * @returns 
      */
-    static async findLastFmData(message: Message, dataParam: fetchData, editInstead?: string) {
+    static async findLastFmData(message: Message, dataParam: fetchData, editInstead?: string, notWeeklyOrRecent?: boolean) {
 
         if (parseInt(dataParam.limit) > 30) {
             message.reply("Litt for høg limit, deranes. Maks 30.")
@@ -203,7 +203,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
                             }, 5000)
                             return;
                         }
-                        const isFormattedWithHashtag = dataParam.method.cmd.includes("weekly") || dataParam.method.cmd.includes("recent")
+                        const isFormattedWithHashtag = notWeeklyOrRecent ? true : (dataParam.method.cmd.includes("weekly") || dataParam.method.cmd.includes("recent"))
                         const isWeekly = dataParam.method.cmd.includes("weekly");
                         const isNotRecent = !dataParam.method.cmd.includes("recent");
                         const totalPlaycount = info["user"]?.playcount ?? "1";
@@ -220,18 +220,17 @@ Docs: https://www.last.fm/api/show/user.getInfo
                         if (prop) {
 
                             prop.forEach((element: any, index) => {
-                                const hasDate = element.date;
-                                const isCurrentlyPlaying = !isNotRecent && !!element['@attr'];
-                                if (!!editInstead && !isCurrentlyPlaying)
-                                    return;
+                                const isCurrentlyPlaying = !isNotRecent && element.hasOwnProperty('@attr');
+
                                 numPlaysInTopX += (parseInt(element.playcount));
                                 /** Denne ser kanskje lang ut, men den lager hver linje. Først ser den etter artist (hentes forskjellig fra weekly), legger til bindestrek, sjekker etter sangnavn etc.  */
-                                artistString += `\n${isFormattedWithHashtag && element.artist ? element.artist["#text"] + " - " : (element.artist ? element.artist.name + " - " : "")}`
+                                artistString += `\n${(isFormattedWithHashtag && element.artist) ? element.artist["#text"] + " - " : (element.artist ? element.artist.name + " - " : "")}`
                                     + `${element.name} ${isNotRecent ? "(" + element.playcount + " plays)" : ""} `
                                     + `${dataParam.includeStats ? ((parseInt(element.playcount) / parseInt(totalPlaycount)) * 100).toFixed(1) + "%" : ""} `
                                     + `${isCurrentlyPlaying ? "(Spiller nå) " + emoji.id : ""} `
                                     /** Silent er når botten selv trigger metoden (f.eks. fra spotify-command). Da vil man ha med datostempelet. Ikke nødvendig ellers */
                                     + `${dataParam.silent ? (isCurrentlyPlaying ? "" : "(" + new Date(Number(element.date["uts"]) * 1000).toLocaleString("nb-NO") + ")") : ""}`
+
                             });
                             /** Hvis prop-en er formattert med en # (eks. ['@attr']) så finnes ikke total plays. */
                             if (!isFormattedWithHashtag)
@@ -240,7 +239,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
                         else
                             message.reply("Fant ingen data. Kanskje feilformattert?")
                         if (!isFormattedWithHashtag)
-                            artistString += `, ${totalPlaycount} totale avspillinger.  ${dataParam.includeStats ? (numPlaysInTopX / parseInt(totalPlaycount) * 100).toFixed(1) + "% av avspillingene er fra dine topp " + dataParam.limit + "." : ""}* `
+                            artistString += `, ${totalPlaycount} totale avspillinger. ${dataParam.includeStats ? (numPlaysInTopX / parseInt(totalPlaycount) * 100).toFixed(1) + "% av avspillingene er fra dine topp " + dataParam.limit + "." : ""}* `
                         let retMessage;
 
                         if (!artistString.trim()) {
