@@ -11,16 +11,23 @@ export class WarzoneCommands {
         const content = messageContent.split(" ")
         const gamertag = content[0];
         const platform = content[1];
-
+        const bewareMessage = "**OBS!** *Bruker development-versjon av modulen (api@2.0.0-dev). Det kan medføre tregheter og ustabilitet.*\n";
+        let sentMessage = await MessageHelper.sendMessage(message, "Logger inn..." + "\n" + bewareMessage)
         try {
             await API.login("arne.kva@gmail.com", mwPw);
         } catch (Error) {
             message.reply("Klarte ikke logge inn")
         }
-
-        const sentMessage = await MessageHelper.sendMessage(message, "Henter data...")
+        let response = "";
+        //Fjern denne når modulen er fikset.
+        response += bewareMessage;
+        if (!sentMessage)
+            sentMessage = await MessageHelper.sendMessage(message, "Henter data...")
+        else
+            await sentMessage.edit("Henter data..." + "\n" + bewareMessage)
         if (isWeekly) {
-            let response = "Weekly Warzone stats for <" + gamertag + ">";
+            response += "Weekly Warzone stats for <" + gamertag + ">";
+
             try {
                 let data = await API.MWweeklystats(gamertag, platform);
 
@@ -46,7 +53,7 @@ export class WarzoneCommands {
                 response += "\nExecutions: " + stats.executions;
                 response += "\nMatches Played: " + stats.matchesPlayed;
                 response += "\nChests opened: " + stats.objectiveBrCacheOpen;
-                response += "\nEnemies down (circle 1, 2, 3, 4, 5): " + stats.objectiveBrDownEnemyCircle1 + ", " + stats.objectiveBrDownEnemyCircle2 + ", " + stats.objectiveBrDownEnemyCircle3 + ", " + stats.objectiveBrDownEnemyCircle4 + ", " + stats.objectiveBrDownEnemyCircle5 + " ";
+                response += "\nEnemies down (circle 1, 2, 3, 4, 5): " + (stats.objectiveBrDownEnemyCircle1 ?? "0") + ", " + (stats.objectiveBrDownEnemyCircle2 ?? "0") + ", " + (stats.objectiveBrDownEnemyCircle3 ?? "0") + ", " + (stats.objectiveBrDownEnemyCircle4 ?? "0") + ", " + (stats.objectiveBrDownEnemyCircle5 ?? "0") + " ";
                 if (sentMessage)
                     sentMessage.edit(response)
                 else
@@ -63,20 +70,20 @@ export class WarzoneCommands {
             try {
                 let data = await API.MWBattleData(gamertag, platform);
                 // console.log(data)
-                let responseString = "Battle Royale stats for <" + gamertag + ">:";
-                responseString += "\nWins: " + data.br.wins;
-                responseString += "\nKills: " + data.br.kills;
-                responseString += "\nDeaths: " + data.br.deaths;
-                responseString += "\nK/D Ratio: " + (data.br.kdRatio).toFixed(3);
-                responseString += "\nTop 25: " + data.br.topTwentyFive;
-                responseString += "\nTop 5: " + data.br.topFive;
-                responseString += "\nNumber of Contracts: " + data.br.contracts;
-                responseString += "\nTime Played: " + convertTime(data.br.timePlayed);
-                responseString += "\nGames Played: " + data.br.gamesPlayed;
+                response += "Battle Royale stats for <" + gamertag + ">:";
+                response += "\nWins: " + data.br.wins;
+                response += "\nKills: " + data.br.kills;
+                response += "\nDeaths: " + data.br.deaths;
+                response += "\nK/D Ratio: " + (data.br.kdRatio).toFixed(3);
+                response += "\nTop 25: " + data.br.topTwentyFive;
+                response += "\nTop 5: " + data.br.topFive;
+                response += "\nNumber of Contracts: " + data.br.contracts;
+                response += "\nTime Played: " + convertTime(data.br.timePlayed);
+                response += "\nGames Played: " + data.br.gamesPlayed;
                 if (sentMessage)
-                    sentMessage.edit(responseString)
+                    sentMessage.edit(response)
                 else
-                    MessageHelper.sendMessage(message, responseString)
+                    MessageHelper.sendMessage(message, response)
             } catch (error) {
                 message.reply(error)
             }

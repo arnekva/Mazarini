@@ -525,7 +525,14 @@ export class GamblingCommands {
     static readonly gambleCoins: ICommandElement = {
         commandName: "gamble",
         description: "Gambla coinså dine! Skriv inn mengde coins du vil gambla, så kan du vinna. Tilbakebetaling blir høyere jo høyere terningen triller (1.1x for 50 opp till 5x for 100)",
-
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            GamblingCommands.diceGamble(rawMessage, messageContent, args);
+        }
+    }
+    static readonly gambleCoinsShort: ICommandElement = {
+        commandName: "g",
+        description: "Se 'gamble'",
+        hideFromListing: true,
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.diceGamble(rawMessage, messageContent, args);
         }
