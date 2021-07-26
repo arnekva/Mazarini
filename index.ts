@@ -134,7 +134,7 @@ async function checkForCommand(message: Message) {
 
             const lastCommand = commands.filter(cmd => cmd.commandName == lastUsedCommand)[0];
             if (lastCommand) {
-                lastCommand.command(message, messageContent, args);
+                runCommandElement(lastCommand, message, messageContent, args);
                 return;
             } else {
                 message.reply("Kunne ikke utføre kommandoen")
@@ -143,36 +143,7 @@ async function checkForCommand(message: Message) {
         }
         commands.forEach((cmd) => {
             if (command == cmd.commandName.toLowerCase()) {
-
-                //Remove '!mz <command name>' from the content to avoid repeating this process in each function. 
-
-                if (cmd.isSuperAdmin) {
-                    if (Admin.isAuthorSuperAdmin(message.member)) {
-                        cmd.command(message, messageContent, args)
-                    } else {
-                        MessageHelper.sendMessageToActionLogWithInsufficientRightsMessage(message)
-                    }
-                }
-                else if (cmd.isAdmin) {
-                    if (Admin.isAuthorAdmin(message.member)) {
-                        cmd.command(message, messageContent, args)
-
-                    } else {
-                        MessageHelper.sendMessageToActionLogWithInsufficientRightsMessage(message)
-                    }
-                } else {
-                    try {
-                        if (!!cmd.deprecated)
-                            MessageHelper.sendMessage(message, "*Denne funksjoner er markert som deprecated/utfaset. Bruk **" + cmd.deprecated + "*** *i stedet*")
-                        if (environment === "dev")
-                            MessageHelper.sendMessage(message, "***Boten er for øyeblikket i utviklingsmodus**. Det betyr at commands kan virke ustabile, og at databaseverdier ikke blir lagret.*")
-                        cmd.command(message, messageContent, args);
-                    } catch (error) {
-                        //!mz maggi feiler en gang i blant, så prøver å fange den og printe stacktrace i action_log.
-                        MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
-                    }
-                }
-                cmdFound = true;
+                cmdFound = runCommandElement(cmd, message, messageContent, args);
             }
         })
         const kekw = await message.client.emojis.cache.find(emoji => emoji.name == "kekw_animated");
@@ -193,6 +164,38 @@ async function checkForCommand(message: Message) {
     else if (message.mentions.users.find(user => user.username == "Mazarini Bot")) {
         message.reply(ArrayUtils.randomChoiceFromArray(globalArrays.bentHoieLines))
     }
+}
+
+function runCommandElement(cmd: ICommandElement, message: Message, messageContent: string, args: string[]) {
+    //Remove '!mz <command name>' from the content to avoid repeating this process in each function. 
+
+    if (cmd.isSuperAdmin) {
+        if (Admin.isAuthorSuperAdmin(message.member)) {
+            cmd.command(message, messageContent, args)
+        } else {
+            MessageHelper.sendMessageToActionLogWithInsufficientRightsMessage(message)
+        }
+    }
+    else if (cmd.isAdmin) {
+        if (Admin.isAuthorAdmin(message.member)) {
+            cmd.command(message, messageContent, args)
+
+        } else {
+            MessageHelper.sendMessageToActionLogWithInsufficientRightsMessage(message)
+        }
+    } else {
+        try {
+            if (!!cmd.deprecated)
+                MessageHelper.sendMessage(message, "*Denne funksjoner er markert som deprecated/utfaset. Bruk **" + cmd.deprecated + "*** *i stedet*")
+            if (environment === "dev")
+                MessageHelper.sendMessage(message, "***Boten er for øyeblikket i utviklingsmodus**. Det betyr at commands kan virke ustabile, og at databaseverdier ikke blir lagret.*")
+            cmd.command(message, messageContent, args);
+        } catch (error) {
+            //!mz maggi feiler en gang i blant, så prøver å fange den og printe stacktrace i action_log.
+            MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
+        }
+    }
+    return true;
 }
 /** Checks for pølse, eivindpride etc. */
 function checkMessageForJokes(message: Message) {
