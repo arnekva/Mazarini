@@ -9,7 +9,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = "2.9.6";
+    public static readonly currentVersion = "2.9.7";
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -19,7 +19,8 @@ export class PatchNotes {
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv. 
      */
     public static readonly currentPatchNotes: string
-        = `* Du kan nå gjøre '!mz ja' for å kjøre kommandoen som blir foreslått av 'mente du ...'.`
+        = `*Fikset en feil som gjorde at '!mz ja' kunne kjøre admin-kommandoer uten at brukeren hadde rettighetene til det.`
+        + `\n* Fikset feil som gjorde at chips ikke ble delt ut korrekt ved ukentlig reset.`
         ;
 
     static getCurrentPatchNotes() {

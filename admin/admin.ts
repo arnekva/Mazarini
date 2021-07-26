@@ -1,5 +1,6 @@
 import { Channel, GuildMember, Message, TextChannel } from "discord.js";
 import { ICommandElement } from "../commands/commands";
+import { Spinner } from "../commands/spinner";
 import { globalArrays } from "../globals";
 import { DatabaseHelper, dbPrefix } from "../helpers/databaseHelper";
 import { MessageHelper } from "../helpers/messageHelper";
@@ -15,8 +16,7 @@ export class Admin {
         hideFromListing: true,
         isAdmin: true,
         command: async (rawMessage: Message, messageContent: string) => {
-            await DatabaseHelper.setValue("stock", rawMessage.author.id, rawMessage.content.replace("!mz debug ", ""))
-            const x = await DatabaseHelper.getValue("stock", rawMessage.author.id, rawMessage)
+            Spinner.listScores(rawMessage, true);
 
         }
 
