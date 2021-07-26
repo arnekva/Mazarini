@@ -15,6 +15,7 @@ export class Admin {
         description: "For testing. Resultat vil variere. ",
         hideFromListing: true,
         isAdmin: true,
+        isSuperAdmin: true,
         command: async (rawMessage: Message, messageContent: string) => {
             Spinner.listScores(rawMessage, true);
 
