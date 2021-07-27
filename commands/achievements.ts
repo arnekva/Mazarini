@@ -86,7 +86,7 @@ export class Achievements {
     }
     static readonly giveMissingAchievements: ICommandElement = {
         commandName: "missingach",
-        description: "Se dine achievements",
+        description: "Tildel manglende achievements til brukere. (Brukes når achievement legges til i etterkant)",
         isAdmin: true,
         hideFromListing: true,
         command: (rawMessage: Message, messageContent: string) => {
