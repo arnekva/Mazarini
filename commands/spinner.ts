@@ -83,7 +83,9 @@ export class Spinner {
                 }, 10000)
 
             } else if (min == 10 && sec == 59) {
-                MessageHelper.sendMessage(message, "gz bro")
+                MessageHelper.sendMessage(message, "gz med 10:59 bro")
+                DatabaseHelper.incrementValue("chips", message.author.username, "50000")
+                MessageHelper.sendMessage(message, "Du får 50 000 chips for det der mannen")
             }
             const formatedScore = Spinner.formatScore(min + sec);
             Spinner.compareScore(message, formatedScore);
