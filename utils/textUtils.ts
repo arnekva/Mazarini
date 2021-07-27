@@ -69,7 +69,7 @@ export function doesTextIncludeUsername(content: string) {
     return content.match(regex);
 }
 
-export function replaceAtWithTextUsername(content: string, message: Message) {
+export function replaceAtWithTextUsername(content: string, message: Message, displayName?: boolean) {
     const matchedUsrname = doesTextIncludeUsername(content);
     if (matchedUsrname) {
         const id = matchedUsrname.forEach(
@@ -79,7 +79,7 @@ export function replaceAtWithTextUsername(content: string, message: Message) {
                     (el: any) => {
                         if (mentionedId == el.id) {
                             const replaceThis = "<" + matchedUsrname[index] + ">"
-                            content = content.replace(replaceThis, el.username)
+                            content = content.replace(replaceThis, (displayName ? el.displayName : el.username))
                         }
                     })
             });

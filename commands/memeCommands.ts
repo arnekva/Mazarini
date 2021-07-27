@@ -22,7 +22,7 @@ export class Meme {
         const meme = await this.findMemeIdAndCreate(message, content, args)
     }
     static async createMeme(templateId: string, messageContent: string, message: Message, args: string[]) {
-        messageContent = replaceAtWithTextUsername(messageContent, message);
+        messageContent = replaceAtWithTextUsername(messageContent, message, true);
         const splitContent = messageContent.split(":");
         splitContent[0] = splitContent[0].split(" ").slice(1).join(" ");
         if (splitContent[0] && splitContent[1]) {

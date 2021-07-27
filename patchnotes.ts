@@ -19,7 +19,7 @@ export class PatchNotes {
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv. 
      */
     public static readonly currentPatchNotes: string
-        = `* Lagt til kategori for kommandoer (ikke funksjell i '!mz help' enda)`
+        = `* Lagt til kategori for kommandoer (ikke funksjonell i '!mz help' enda)`
         + `\n* Meme-commanden vil nå oversette @username til brukernavnet som tekst, i stedet for Discord-formatteringen`
         ;
 
