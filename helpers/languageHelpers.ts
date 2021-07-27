@@ -66,7 +66,10 @@ export namespace Languages {
                 return "dei";
             case "mellom":
                 return "mydlå";
-
+            case "ja":
+                return "jao";
+            case "jaja":
+                return "jaojao";
             default:
                 return word;
         }
