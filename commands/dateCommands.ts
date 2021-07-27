@@ -95,7 +95,9 @@ export class DateCommands {
         description: "Sett en varsling. '1d2t3m4s' for varsling om 1 dag, 2 timer, 3 minutt og 4s. Alle delene er valgfrie (Ikke implementert)",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             DateCommands.setReminder(rawMessage, messageContent, args);
-        }
+        },
+
+        category: "annet",
     }
 
     static readonly countdownCommand: ICommandElement = {
@@ -104,5 +106,6 @@ export class DateCommands {
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             DateCommands.countdownToDate(rawMessage, messageContent, args);
         },
+        category: "annet",
     }
 }

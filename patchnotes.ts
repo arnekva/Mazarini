@@ -34,7 +34,8 @@ export class PatchNotes {
         command: (rawMessage: Message, messageContent: string) => {
             const pn = PatchNotes.getCurrentPatchNotes();
             MessageHelper.sendMessage(rawMessage, pn)
-        }
+        },
+        category: "annet",
     }
 
     static readonly publishPatchNotes: ICommandElement = {
@@ -45,6 +46,7 @@ export class PatchNotes {
         command: (rawMessage: Message, messageContent: string) => {
             const pn = PatchNotes.getCurrentPatchNotes();
             MessageHelper.sendMessageToSpecificChannel("802716150484041751", pn, rawMessage.channel as TextChannel)
-        }
+        },
+        category: "annet",
     }
 }

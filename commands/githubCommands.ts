@@ -43,7 +43,8 @@ export class GitHubCommands {
         isAdmin: true,
         command: (rawMessage: Message, messageContent: string) => {
             GitHubCommands.addIssue(rawMessage, messageContent);
-        }
+        },
+        category: "admin",
     }
 }
 

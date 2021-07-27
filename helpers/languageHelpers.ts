@@ -11,8 +11,9 @@ export namespace Languages {
             case "alle":
                 return "adle";
             case "greier":
-                return "graiø";
+                return "graie";
             case "ikkje":
+            case "ikke":
                 return "kje";
             case "det":
                 return "dæ";
@@ -63,6 +64,8 @@ export namespace Languages {
                 return "keffor"
             case "de":
                 return "dei";
+            case "mellom":
+                return "mydlå";
 
             default:
                 return word;

@@ -31,16 +31,20 @@ export interface ICommandElement {
     commandName: string;
     description: string;
     command: (rawMessage: Message, messageContent: string, args: string[]) => void;
+    category: commandCategory;
     hideFromListing?: boolean;
     isAdmin?: boolean;
     deprecated?: string;
     isSuperAdmin?: boolean;
 }
 
+export type commandCategory = "musikk" | "gambling" | "gaming" | "tekst" | "annet" | "admin" | "spin";
+
 const helpCommand: ICommandElement = {
     commandName: "help",
     description: "List alle metoder. Bruk '!mz help <command>' for å finne ut mer om en spesifikk kommando",
-    command: (rawMessage, messageContent, args) => helperCommands(rawMessage, messageContent, args)
+    command: (rawMessage, messageContent, args) => helperCommands(rawMessage, messageContent, args),
+    category: "annet",
 }
 
 export const commands: ICommandElement[] = [
@@ -111,13 +115,20 @@ export const commands: ICommandElement[] = [
     User.seeWarningCounterCommand,
 
 ]
-
-export const helperCommands = ((rawMessage: Message, messageContent: string, args: string[] | undefined) => {
+function getCommandCatgeories() {
+    return ["musikk", "gambling", "gaming", "tekst", "annet", "admin", "spin"]
+}
+export const helperCommands = ((rawMessage: Message, messageContent: string, args: string[]) => {
     const isLookingForAllAdmin = !!args && args[0] === "admin" && Admin.isAuthorAdmin(rawMessage.member);
     let commandString = "Kommandoer: ";
     let commandStringList: string[] = [];
-    const commandForHelp = messageContent.replace("!mz help", "").trim()
-
+    const commandForHelp = messageContent.replace("!mz help ", "").trim()
+    // if (!args[0]) {
+    //     MessageHelper.sendMessage(rawMessage, `Du må spesifisere en av følgende kategorier: ${getCommandCatgeories().join(", ")}`)
+    //     return;
+    // }
+    let category = args[0] ?? "unspecified"
+    //spesifikk command
     if (args && args[0] !== "admin" && commandForHelp.length > 0) {
         let found = 0;
         commands.forEach((cmd) => {
@@ -133,6 +144,7 @@ export const helperCommands = ((rawMessage: Message, messageContent: string, arg
             MessageHelper.sendMessage(rawMessage, "Fant ingen kommando '" + commandForHelp + "'. ")
         }
     }
+    //List alle
     else {
         commands.forEach((cmd) => {
 

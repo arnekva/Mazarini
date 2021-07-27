@@ -234,7 +234,15 @@ export class JokeCommands {
             }
             const emoji = usedLetter.includes(letter) ? findLetterEmoji(letter, true, spaceCounter) : findLetterEmoji(letter)
             usedLetter += letter
-            messageToReactTo.react(emoji)
+            try {
+                messageToReactTo.react(emoji).catch(error => console.log(error)
+                )
+
+            } catch (error) {
+
+                console.log(error);
+            }
+
         })
     }
     static kanPersonen(message: Message, msgContent: string, args: string[]) {
@@ -341,21 +349,24 @@ export class JokeCommands {
         description: "Vask huset maen. Og husk å vask den fine klokkå",
         command: (rawMessage: Message, messageContent: string) => {
             JokeCommands.vaskHuset(rawMessage);
-        }
+        },
+        category: "annet",
     }
     static readonly bonkSender: ICommandElement = {
         commandName: "bonk",
         description: "Send en bonk. Kan brukes mot brukere.",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             JokeCommands.sendBonk(rawMessage, messageContent, args);
-        }
+        },
+        category: "annet",
     }
     static readonly reactWithWord: ICommandElement = {
         commandName: "spell",
         description: "Stav ut en setning som emojier i reactions. Syntax: <ord/setning> <(optional) message-id>. Ordet bør ikke inneholde repeterte bokstaver; kun ABCIMOPRSTVX har to versjoner og kan repeteres. Hvis ingen message id gis reagerer den på sendt melding. ",
         command: (rawMessage: Message, messageContent: string, args: string[] | undefined) => {
             JokeCommands.reactWithLetters(rawMessage, messageContent, args);
-        }
+        },
+        category: "annet",
     }
 
     static readonly mygleStatus: ICommandElement = {
@@ -363,21 +374,24 @@ export class JokeCommands {
         description: "Sett din status",
         command: (rawMessage: Message, messageContent: string) => {
             JokeCommands.updateMygleStatus(rawMessage, messageContent);
-        }
+        },
+        category: "annet",
     }
     static readonly getAllMygling: ICommandElement = {
         commandName: "statuser",
         description: "Mygles det?",
         command: (rawMessage: Message, messageContent: string) => {
             JokeCommands.getAllMygleStatus(rawMessage);
-        }
+        },
+        category: "annet",
     }
     static readonly thomasFese: ICommandElement = {
         commandName: "thomas",
         description: "Thomas svarer alltid ja",
         command: (rawMessage: Message, messageContent: string) => {
             JokeCommands.thomasTing(rawMessage);
-        }
+        },
+        category: "annet",
     }
     static readonly deadmaggi: ICommandElement = {
         commandName: "maggi",
@@ -385,7 +399,8 @@ export class JokeCommands {
         deprecated: "aktivitet",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             JokeCommands.isMaggiPlaying(rawMessage, messageContent, args);
-        }
+        },
+        category: "annet",
     }
     static readonly kekwCommand: ICommandElement = {
         commandName: "kekw",
@@ -396,28 +411,32 @@ export class JokeCommands {
                 rawMessage.react(kekw)
                 rawMessage.reply("<a: kekw_animated: " + kekw?.id + " > .")
             }
-        }
+        },
+        category: "annet",
     }
     static readonly activityCommand: ICommandElement = {
         commandName: "aktivitet",
         description: "Går det egentlig bra med masteren te Magnus?",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             JokeCommands.isMaggiPlaying(rawMessage, messageContent, args);
-        }
+        },
+        category: "annet",
     }
     static readonly eivindSkyld: ICommandElement = {
         commandName: "eivind",
         description: "Eivind sin feil",
         command: (rawMessage: Message, messageContent: string) => {
             JokeCommands.eivind(rawMessage);
-        }
+        },
+        category: "annet",
     }
     static readonly elDavido: ICommandElement = {
         commandName: "david",
         description: "nå klikke det snart",
         command: (rawMessage: Message, messageContent: string) => {
             JokeCommands.kLikka(rawMessage);
-        }
+        },
+        category: "annet",
     }
     static readonly eivndPrideCommand: ICommandElement = {
         commandName: "eivindpride",
@@ -427,6 +446,7 @@ export class JokeCommands {
         command: (rawMessage: Message, messageContent: string) => {
             JokeCommands.eivindprideItAll(rawMessage);
         },
+        category: "annet",
     };
     static readonly jaerskCommand: ICommandElement = {
         commandName: "jærsk",
@@ -434,6 +454,7 @@ export class JokeCommands {
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             JokeCommands.jaerskIfyer(rawMessage, messageContent, args);
         },
+        category: "annet",
     };
     static readonly kanCommand: ICommandElement = {
         commandName: "kan",
@@ -443,6 +464,7 @@ export class JokeCommands {
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             JokeCommands.kanPersonen(rawMessage, messageContent, args);
         },
+        category: "annet",
     };
     static readonly uwuMessage: ICommandElement = {
         commandName: "uwu",
@@ -455,6 +477,7 @@ export class JokeCommands {
         ) => {
             JokeCommands.uWuIfyer(rawMessage, messageContent, args);
         },
+        category: "annet",
     };
 
     static readonly mordiMessage: ICommandElement = {
@@ -468,5 +491,6 @@ export class JokeCommands {
         ) => {
             JokeCommands.mordi(rawMessage);
         },
+        category: "annet",
     };
 }

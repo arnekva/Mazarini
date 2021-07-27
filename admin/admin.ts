@@ -19,7 +19,8 @@ export class Admin {
         command: async (rawMessage: Message, messageContent: string) => {
             Spinner.listScores(rawMessage, true);
 
-        }
+        },
+        category: "admin"
 
     }
     static setSpecificValue(message: Message, messageContent: string, args: string[]) {
@@ -230,7 +231,8 @@ export class Admin {
         command: (rawMessage: Message, messageContent: string) => {
             const prefix = rawMessage.content.replace("!mz deletekeys ", "") as dbPrefix;
             DatabaseHelper.deleteSpecificPrefixValues(prefix);
-        }
+        },
+        category: "admin"
     }
     static readonly deleteMessages: ICommandElement = {
         commandName: "deletemessages",
@@ -238,7 +240,8 @@ export class Admin {
         isAdmin: true,
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             Admin.deleteXLastMessagesByUserInChannel(rawMessage, messageContent, args);
-        }
+        },
+        category: "admin"
     }
     static readonly deleteSpecificKey: ICommandElement = {
         commandName: "deletekey",
@@ -247,7 +250,8 @@ export class Admin {
         isAdmin: true,
         command: (rawMessage: Message, messageContent: string) => {
             Admin.deleteSpecificValue(rawMessage, messageContent);
-        }
+        },
+        category: "admin"
     }
     static readonly sendMsgAsBot: ICommandElement = {
         commandName: "send",
@@ -256,7 +260,8 @@ export class Admin {
         isAdmin: true,
         command: (rawMessage: Message, messageContent: string) => {
             Admin.sendMessageAsBotToSpecificChannel(rawMessage);
-        }
+        },
+        category: "admin"
     }
     static readonly reactToMsg: ICommandElement = {
         commandName: "react",
@@ -265,7 +270,8 @@ export class Admin {
         isAdmin: true,
         command: (rawMessage: Message, messageContent: string) => {
             Admin.reactToMsgAsBot(rawMessage, messageContent);
-        }
+        },
+        category: "admin"
     }
     static readonly replyToMsg: ICommandElement = {
         commandName: "reply",
@@ -274,7 +280,8 @@ export class Admin {
         isAdmin: true,
         command: (rawMessage: Message, messageContent: string) => {
             Admin.replyToMsgAsBot(rawMessage, messageContent);
-        }
+        },
+        category: "admin"
     }
     static readonly setVal: ICommandElement = {
         commandName: "setvalue",
@@ -284,7 +291,8 @@ export class Admin {
         isSuperAdmin: true,
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             Admin.setSpecificValue(rawMessage, messageContent, args);
-        }
+        },
+        category: "admin"
     }
     static readonly setSpinVal: ICommandElement = {
         commandName: "setspin",
@@ -293,7 +301,8 @@ export class Admin {
         isAdmin: true,
         command: (rawMessage: Message, messageContent: string) => {
             Admin.setSpinValue(rawMessage, messageContent);
-        }
+        },
+        category: "admin"
     }
     static readonly getVal: ICommandElement = {
         commandName: "getvalue",
@@ -302,7 +311,8 @@ export class Admin {
         isAdmin: true,
         command: (rawMessage: Message, messageContent: string) => {
             Admin.getSpecificValue(rawMessage, messageContent);
-        }
+        },
+        category: "admin"
     }
     static readonly warnUserCommand: ICommandElement = {
         commandName: "warn",
@@ -311,7 +321,8 @@ export class Admin {
         isAdmin: true,
         command: (rawMessage: Message, messageContent: string) => {
             Admin.warnUser(rawMessage, messageContent);
-        }
+        },
+        category: "admin"
     }
 
 

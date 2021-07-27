@@ -128,21 +128,24 @@ export class WarzoneCommands {
         description: "<gamertag> <plattform> (plattform: 'battle', 'steam', 'psn', 'xbl', 'acti', 'uno' (Activision ID som tall), 'all' (uvisst)",
         command: (rawMessage: Message, messageContent: string) => {
             WarzoneCommands.getBRContent(rawMessage, messageContent);
-        }
+        },
+        category: "gaming",
     }
     static readonly getWeeklyWZStats: ICommandElement = {
         commandName: "weekly",
         description: "<gamertag> <plattform> (plattform: 'battle', 'steam', 'psn', 'xbl', 'acti', 'uno' (Activision ID som tall), 'all' (uvisst)",
         command: (rawMessage: Message, messageContent: string) => {
             WarzoneCommands.getBRContent(rawMessage, messageContent, true);
-        }
+        },
+        category: "gaming",
     }
     static readonly getWeaponStats: ICommandElement = {
         commandName: "weapon",
         description: "<gamertag> <plattform> (plattform: 'battle', 'steam', 'psn', 'xbl', 'acti', 'uno' (Activision ID som tall), 'all' (uvisst)",
         command: (rawMessage: Message, messageContent: string) => {
             WarzoneCommands.getWeaponContent(rawMessage, messageContent);
-        }
+        },
+        category: "gaming",
     }
 
 }

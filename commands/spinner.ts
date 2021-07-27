@@ -196,7 +196,8 @@ export class Spinner {
         description: "Printer hver person sin beste spin!",
         command: (rawMessage: Message, messageContent: string) => {
             Spinner.allTimeHigh(rawMessage);
-        }
+        },
+        category: "spin",
     }
 
     static readonly command: ICommandElement = {
@@ -204,7 +205,8 @@ export class Spinner {
         description: "Spin fidgetspinneren. Beste tid per bruker registreres i databasen. Tallene er tilfeldige, men vektet. ",
         command: (rawMessage: Message, messageContent: string) => {
             Spinner.spin(rawMessage);
-        }
+        },
+        category: "spin",
     }
 
     static readonly highscoreCommand: ICommandElement = {
@@ -212,7 +214,8 @@ export class Spinner {
         description: "Highscore for fidget spinning ",
         command: (rawMessage: Message, messageContent: string) => {
             Spinner.listScores(rawMessage);
-        }
+        },
+        category: "spin",
     }
 
     static readonly listNumberOfSpins: ICommandElement = {
@@ -220,7 +223,8 @@ export class Spinner {
         description: "Antall spins per person",
         command: (rawMessage: Message, messageContent: string) => {
             Spinner.listSpinCounter(rawMessage);
-        }
+        },
+        category: "spin",
     }
 
     static readonly setHighscoreCommand: ICommandElement = {
@@ -239,6 +243,7 @@ export class Spinner {
                     MessageHelper.sendMessage(rawMessage, "Kunne ikke ppdaterte databaseverdi for nøkkel <" + newString[0] + ">. Feilkode: " + error)
                 }
             }
-        }
+        },
+        category: "admin",
     }
 }

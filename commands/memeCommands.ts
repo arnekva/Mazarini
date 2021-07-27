@@ -107,6 +107,7 @@ export class Meme {
 
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             Meme.sendMeme(rawMessage, messageContent, args);
-        }
+        },
+        category: "annet",
     }
 }

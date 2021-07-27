@@ -274,6 +274,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
         description: "Bruk '!mz musikk <topp|weekly|siste> <songs|albums|artist> <limit?>(valgfri). Koble til Last.fm med '!mz music user *discord brukernavn* *Last.fm brukernavn*'",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             Music.findCommand(rawMessage, messageContent, args);
-        }
+        },
+        category: "musikk",
     }
 }

@@ -379,5 +379,6 @@ export class Index {
         command: (rawMessage: Message, messageContent: string) => {
 
         }
+        , category: "annet"
     }
 }

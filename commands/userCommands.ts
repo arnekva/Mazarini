@@ -20,6 +20,7 @@ export class User {
         description: "Se antall advarsler du har",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             User.getWarnings(rawMessage, messageContent, args);
-        }
+        },
+        category: "annet",
     }
 }

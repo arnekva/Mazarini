@@ -120,7 +120,8 @@ export class SpotifyCommands {
         description: "Hent hva brukeren spiller av på Spotify (fra Discord)",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             SpotifyCommands.currentPlayingFromDiscord(rawMessage, messageContent, args);
-        }
+        },
+        category: "musikk",
     }
     static readonly currentlyPlayingCommand: ICommandElement = {
         commandName: "spiller",
@@ -128,6 +129,8 @@ export class SpotifyCommands {
         deprecated: "spotify",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             SpotifyCommands.currentPlayingFromDiscord(rawMessage, messageContent, args);
-        }
+        },
+
+        category: "musikk",
     }
 }

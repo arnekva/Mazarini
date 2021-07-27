@@ -82,7 +82,8 @@ export class Achievements {
         description: "Se dine achievements",
         command: (rawMessage: Message, messageContent: string) => {
             Achievements.listUserAchievements(rawMessage);
-        }
+        },
+        category: "annet",
     }
     static readonly giveMissingAchievements: ICommandElement = {
         commandName: "missingach",
@@ -91,6 +92,7 @@ export class Achievements {
         hideFromListing: true,
         command: (rawMessage: Message, messageContent: string) => {
             Achievements.awardMissing(rawMessage);
-        }
+        },
+        category: "admin",
     }
 }

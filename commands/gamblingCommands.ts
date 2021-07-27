@@ -474,6 +474,8 @@ export class GamblingCommands {
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.manageCoins(rawMessage, messageContent, args);
         }
+        ,
+        category: "gambling",
     }
     static readonly takeLoanCommand: ICommandElement = {
         commandName: "lån",
@@ -481,7 +483,8 @@ export class GamblingCommands {
 
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.takeUpLoan(rawMessage, messageContent, args);
-        }
+        },
+        category: "gambling",
     }
     static readonly payDebtCommand: ICommandElement = {
         commandName: "betal",
@@ -489,7 +492,8 @@ export class GamblingCommands {
 
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.payDownDebt(rawMessage, messageContent, args);
-        }
+        },
+        category: "gambling",
     }
     static readonly bailoutCommand: ICommandElement = {
         commandName: "bailout",
@@ -497,7 +501,8 @@ export class GamblingCommands {
 
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.bailout(rawMessage);
-        }
+        },
+        category: "gambling",
     }
     static readonly krigCommand: ICommandElement = {
         commandName: "krig",
@@ -505,14 +510,16 @@ export class GamblingCommands {
 
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.krig(rawMessage, messageContent, args);
-        }
+        },
+        category: "gambling",
     }
     static readonly showActiveBetCommand: ICommandElement = {
         commandName: "visbet",
         description: "Vis en brukers aktive veddemål",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.showActiveBet(rawMessage, messageContent, args);
-        }
+        },
+        category: "gambling",
     }
     static readonly vippsCommand: ICommandElement = {
         commandName: "vipps",
@@ -520,14 +527,16 @@ export class GamblingCommands {
 
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.vippsCoins(rawMessage, messageContent, args);
-        }
+        },
+        category: "gambling",
     }
     static readonly gambleCoins: ICommandElement = {
         commandName: "gamble",
         description: "Gambla coinså dine! Skriv inn mengde coins du vil gambla, så kan du vinna. Tilbakebetaling blir høyere jo høyere terningen triller (1.1x for 50 opp till 5x for 100)",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.diceGamble(rawMessage, messageContent, args);
-        }
+        },
+        category: "gambling",
     }
     static readonly gambleCoinsShort: ICommandElement = {
         commandName: "g",
@@ -535,7 +544,8 @@ export class GamblingCommands {
         hideFromListing: true,
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.diceGamble(rawMessage, messageContent, args);
-        }
+        },
+        category: "gambling",
     }
 
     static readonly checkCoinsCommand: ICommandElement = {
@@ -544,35 +554,40 @@ export class GamblingCommands {
         deprecated: "wallet",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.checkCoins(rawMessage, messageContent, args);
-        }
+        },
+        category: "gambling",
     }
     static readonly walletCommand: ICommandElement = {
         commandName: "wallet",
         description: "Se antall coins til en person",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.checkCoins(rawMessage, messageContent, args);
-        }
+        },
+        category: "gambling",
     }
     static readonly checkChipsCommand: ICommandElement = {
         commandName: "chips",
         description: "Se antall chips en person har til gambling",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.checkChips(rawMessage, messageContent, args);
-        }
+        },
+        category: "gambling",
     }
     static readonly createBetCommand: ICommandElement = {
         commandName: "bet",
         description: "Start et ja/nei veddemål",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.createBet(rawMessage, messageContent, args);
-        }
+        },
+        category: "gambling",
     }
     static readonly resolveBetCommand: ICommandElement = {
         commandName: "resolve",
         description: "Resolve veddemålet",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.resolveBet(rawMessage, messageContent, args);
-        }
+        },
+        category: "gambling",
     }
 
 }

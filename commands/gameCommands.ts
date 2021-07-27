@@ -99,21 +99,24 @@ export class GameCommands {
         description: "Få et tilfeldig sted å droppe i Verdansk",
         command: (rawMessage: Message, messageContent: string) => {
             GameCommands.dropVerdansk(rawMessage);
-        }
+        },
+        category: "gaming",
     }
     static readonly getDropRebirth: ICommandElement = {
         commandName: "rebirth",
         description: "Få et tilfeldig sted å droppe i Rebirth Island",
         command: (rawMessage: Message, messageContent: string) => {
             GameCommands.dropRebirth(rawMessage);
-        }
+        },
+        category: "gaming",
     }
     static readonly getDropFromGrid: ICommandElement = {
         commandName: "grid",
         description: "Få et tilfeldig sted å droppe ut fra Grid i Verdansk",
         command: (rawMessage: Message, messageContent: string) => {
             GameCommands.dropGrid(rawMessage, messageContent);
-        }
+        },
+        category: "gaming",
     }
 }
 export const dropLocations: dropLocation[] = [
