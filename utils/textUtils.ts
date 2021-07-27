@@ -79,7 +79,7 @@ export function replaceAtWithTextUsername(content: string, message: Message, dis
                     (el: any) => {
                         if (mentionedId == el.id) {
                             const replaceThis = "<" + matchedUsrname[index] + ">"
-                            content = content.replace(replaceThis, (displayName ? el.displayName : el.username))
+                            content = content.replace(replaceThis, el.username)
                         }
                     })
             });
