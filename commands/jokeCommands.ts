@@ -8,7 +8,7 @@ import { MessageHelper } from "../helpers/messageHelper";
 import { ArrayUtils } from "../utils/arrayUtils";
 import { countdownTime, DateUtils } from "../utils/dateUtils";
 import { findLetterEmoji } from "../utils/miscUtils";
-import { getUsernameInQuotationMarks, msToTime, reverseMessageString } from "../utils/textUtils";
+import { doesTextIncludeUsername, getUsernameInQuotationMarks, msToTime, replaceAtWithTextUsername, reverseMessageString } from "../utils/textUtils";
 import { ICommandElement } from "./commands";
 import { EmojiHelper } from "../helpers/emojiHelper";
 import { Languages } from "../helpers/languageHelpers";
@@ -123,9 +123,9 @@ export class JokeCommands {
     }
 
     static async updateMygleStatus(message: Message, messageContent: string) {
-        const regex = new RegExp(/(?<=\<)(.*?)(?=\>)/gi);
+
         let content = messageContent;
-        const matchedUsrname = content.match(regex);
+        const matchedUsrname = doesTextIncludeUsername(content);
         let url;
         if (message.attachments) {
             url = message.attachments.first()?.url;
@@ -138,19 +138,7 @@ export class JokeCommands {
             return;
         }
         content = content.replace(/(?:\r\n|\r|\n)/g, ' ')
-        if (matchedUsrname) {
-            const id = matchedUsrname.forEach(
-                (el, index) => {
-                    const mentionedId = el.replace("@!", "")
-                    message.mentions.users.forEach(
-                        (el) => {
-                            if (mentionedId == el.id) {
-                                const replaceThis = "<" + matchedUsrname[index] + ">"
-                                content = content.replace(replaceThis, el.username)
-                            }
-                        })
-                });
-        };
+        content = replaceAtWithTextUsername(content, message);
 
         if (content.length < 150 && content.trim().length > 0) {
             if (message.content.includes("!zm")) {

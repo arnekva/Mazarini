@@ -1,4 +1,5 @@
 import * as cleanTextUtils from 'clean-text-utils';
+import { Message } from 'discord.js';
 
 export function escapeString(text: string) {
     let cleanKey = cleanTextUtils.strip.nonASCII(text);
@@ -61,4 +62,27 @@ export function getUsernameInQuotationMarks(content: string) {
     } else {
         return undefined
     }
+}
+
+export function doesTextIncludeUsername(content: string) {
+    const regex = new RegExp(/(?<=\<)(.*?)(?=\>)/gi);
+    return content.match(regex);
+}
+
+export function replaceAtWithTextUsername(content: string, message: Message) {
+    const matchedUsrname = doesTextIncludeUsername(content);
+    if (matchedUsrname) {
+        const id = matchedUsrname.forEach(
+            (el, index) => {
+                const mentionedId = el.replace("@!", "")
+                message.mentions.users.forEach(
+                    (el: any) => {
+                        if (mentionedId == el.id) {
+                            const replaceThis = "<" + matchedUsrname[index] + ">"
+                            content = content.replace(replaceThis, el.username)
+                        }
+                    })
+            });
+    };
+    return content;
 }

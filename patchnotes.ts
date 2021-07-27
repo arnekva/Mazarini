@@ -9,7 +9,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = "2.9.10";
+    public static readonly currentVersion = "2.9.11";
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -20,7 +20,7 @@ export class PatchNotes {
      */
     public static readonly currentPatchNotes: string
         = `* Lagt til kategori for kommandoer (ikke funksjell i '!mz help' enda)`
-
+        + `\n* Meme-commanden vil nå oversette @username til brukernavnet som tekst, i stedet for Discord-formatteringen`
         ;
 
     static getCurrentPatchNotes() {

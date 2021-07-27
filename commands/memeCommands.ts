@@ -1,6 +1,7 @@
 import { Message, TextChannel } from "discord.js";
 import { imgflip } from "../client-env";
 import { MessageHelper } from "../helpers/messageHelper";
+import { replaceAtWithTextUsername } from "../utils/textUtils";
 import { ICommandElement } from "./commands";
 const fetch = require("node-fetch");
 export class Meme {
@@ -21,6 +22,7 @@ export class Meme {
         const meme = await this.findMemeIdAndCreate(message, content, args)
     }
     static async createMeme(templateId: string, messageContent: string, message: Message, args: string[]) {
+        messageContent = replaceAtWithTextUsername(messageContent, message);
         const splitContent = messageContent.split(":");
         splitContent[0] = splitContent[0].split(" ").slice(1).join(" ");
         if (splitContent[0] && splitContent[1]) {
