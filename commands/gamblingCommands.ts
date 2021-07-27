@@ -408,7 +408,7 @@ export class GamblingCommands {
             if (DatabaseHelper.findUserByUsername(userWhoGetsCoins, message)) {
                 const newBalance = authorBalance - Number(coinsToVipps);
                 DatabaseHelper.setValue("dogeCoin", message.author.username, newBalance.toFixed(2))
-                DatabaseHelper.incrementValue("dogeCoin", userWhoGetsCoins, coinsToVipps, message);
+                DatabaseHelper.incrementValue("dogeCoin", userWhoGetsCoins, coinsToVipps);
                 MessageHelper.sendMessage(message, `${message.author.username} vippset ${userWhoGetsCoins} ${coinsToVipps}.`)
 
             } else {

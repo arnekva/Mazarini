@@ -109,9 +109,14 @@ export class DatabaseHelper {
 
     }
     /** Increment verdien for en int som ligger i databasen */
-    static incrementValue(prefix: dbPrefix, key: string, increment: string, message: Message) {
-        const oldValue = DatabaseHelper.getValue(prefix, key, message)
+    static incrementValue(prefix: dbPrefix, key: string, increment: string) {
+        const oldValue = DatabaseHelper.getValueWithoutMessage(prefix, key)
         const newVal = Number(oldValue) + Number(increment);
+        DatabaseHelper.setValue(prefix, key, newVal.toFixed(2))
+    }
+    static decrementValue(prefix: dbPrefix, key: string, decrement: string) {
+        const oldValue = DatabaseHelper.getValueWithoutMessage(prefix, key)
+        const newVal = Number(oldValue) - Number(decrement);
         DatabaseHelper.setValue(prefix, key, newVal.toFixed(2))
     }
     static getAchievement(prefix: dbPrefix, key: string, achievementID: achievementIDs) {

@@ -3,6 +3,7 @@ import { Message } from "discord.js";
 import { Channel, Client, DMChannel, NewsChannel, TextChannel } from "discord.js";
 import { AchievementHelper } from "../helpers/achievementHelper";
 import { DatabaseHelper } from "../helpers/databaseHelper";
+import { EmojiHelper } from "../helpers/emojiHelper";
 import { MessageHelper } from "../helpers/messageHelper";
 import { ArrayUtils } from "../utils/arrayUtils";
 import { getWeekNumber } from "../utils/dateUtils";
@@ -69,7 +70,18 @@ export class Spinner {
         } else {
             MessageHelper.sendMessage(message, message.author.username + " spant fidget spinneren sin i " + min + " minutt og " + sec + " sekund!")
             if (min == 0 && sec == 0) {
-                MessageHelper.sendMessage(message, "lol du suge")
+
+                DatabaseHelper.incrementValue("chips", message.author.username, "500")
+                MessageHelper.sendMessage(message, "Oj, 00:00? Du får 500 chips i trøstepremie")
+                setTimeout(function () {
+                    DatabaseHelper.decrementValue("chips", message.author.username, "600")
+                    const kekw = EmojiHelper.getEmoji("kekwhoie_animated", message).then((em) => {
+                        MessageHelper.sendMessage(message, "hahaha trodde du på meg? Du suge " + "<@" + message.author.id + ">" + ", du muste 100 chips i stedet " + em.id)
+
+                    });
+
+                }, 10000)
+
             } else if (min == 10 && sec == 59) {
                 MessageHelper.sendMessage(message, "gz bro")
             }

@@ -230,7 +230,7 @@ function checkMessageForJokes(message: Message) {
     const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message);
     if (idJoke == "1337") {
         message.reply("nice, id-en te meldingen din inneholde 1337. Gz, du har vonne 100 coins")
-        DatabaseHelper.incrementValue("dogeCoin", message.author.username, "100", message);
+        DatabaseHelper.incrementValue("dogeCoin", message.author.username, "100");
     }
 }
 
