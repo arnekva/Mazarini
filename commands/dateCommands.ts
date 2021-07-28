@@ -35,15 +35,15 @@ export class DateCommands {
         let timeString = "Det er";
 
         if (dateObj.days > 0)
-            timeTab.push(" " + dateObj.days + " dager")
+            timeTab.push(" " + dateObj.days + ` ${dateObj.days == 1 ? "dag" : "dager"}`)
         if (dateObj.hours > 0)
-            timeTab.push(" " + dateObj.hours + " timer");
+            timeTab.push(" " + dateObj.hours + ` ${dateObj.hours == 1 ? "time" : "timer"}`);
         if (dateObj.minutes > 0)
-            timeTab.push(" " + dateObj.minutes + " minutter");
+            timeTab.push(" " + dateObj.minutes + ` ${dateObj.minutes == 1 ? "minutt" : "minutter"}`);
         if (dateObj.seconds > 0)
-            timeTab.push(" " + dateObj.seconds + " sekunder");
+            timeTab.push(" " + dateObj.seconds + ` ${dateObj.seconds == 1 ? "sekund" : "sekunder"}`);
         if (timeTab.length < 1)
-            return undefined;
+            return textEnding + " er ferdig!";
         timeTab.forEach((text, index) => {
             timeString += text
             if (index <= timeTab.length - 2 && timeTab.length > 1)

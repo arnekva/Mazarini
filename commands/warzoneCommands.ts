@@ -11,7 +11,7 @@ export class WarzoneCommands {
         const content = messageContent.split(" ")
         const gamertag = content[0];
         const platform = content[1];
-        const bewareMessage = "**OBS!** *Bruker development-versjon av modulen (api@2.0.0-dev). Det kan medføre tregheter og ustabilitet.*\n";
+        const bewareMessage = "**OBS!** *Bruker development-versjon av modulen (api@2.0.0-dev). Denne er ustabil, og kan bli stuck på innlogging eller henting av info.*\n";
         let sentMessage = await MessageHelper.sendMessage(message, "Logger inn..." + "\n" + bewareMessage)
         try {
             await API.login("arne.kva@gmail.com", mwPw);
@@ -66,6 +66,7 @@ export class WarzoneCommands {
             }
             // MessageHelper.sendMessage(message.channel, response)
         } else {
+            console.log("here?");
 
             try {
                 let data = await API.MWBattleData(gamertag, platform);

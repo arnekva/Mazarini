@@ -116,7 +116,7 @@ export const commands: ICommandElement[] = [
 
 ]
 function getCommandCatgeories() {
-    return ["musikk", "gambling", "gaming", "tekst", "annet", "admin", "spin"]
+    return ["lyd", "gambling", "gaming", "tekst", "annet", "admin", "spin"]
 }
 export const helperCommands = ((rawMessage: Message, messageContent: string, args: string[]) => {
     const isLookingForAllAdmin = !!args && args[0] === "admin" && Admin.isAuthorAdmin(rawMessage.member);
@@ -129,7 +129,21 @@ export const helperCommands = ((rawMessage: Message, messageContent: string, arg
     // }
     let category = args[0] ?? "unspecified"
     //spesifikk command
-    if (args && args[0] !== "admin" && commandForHelp.length > 0) {
+    if (getCommandCatgeories().includes(args[0])) {
+        console.log("entered " + args[0]);
+
+        commands.forEach((cmd) => {
+            console.log("<" + args[0] + "> <" + cmd.category + ">");
+
+            if (cmd.category == args[0])
+                commandStringList.push(cmd.commandName);
+
+        })
+        commandStringList.sort();
+        commandStringList.forEach((str) => commandString += "\n" + str)
+        MessageHelper.sendMessage(rawMessage, commandString)
+    }
+    else if (args && args[0] !== "admin" && commandForHelp.length > 0) {
         let found = 0;
         commands.forEach((cmd) => {
             if (cmd.commandName == commandForHelp) {
@@ -140,6 +154,7 @@ export const helperCommands = ((rawMessage: Message, messageContent: string, arg
                 found++;
             }
         })
+
         if (found == 0) {
             MessageHelper.sendMessage(rawMessage, "Fant ingen kommando '" + commandForHelp + "'. ")
         }
@@ -155,9 +170,14 @@ export const helperCommands = ((rawMessage: Message, messageContent: string, arg
                     commandStringList.push(cmd.commandName);
             }
         })
+
         commandStringList.sort();
         commandStringList.forEach((str) => commandString += "\n" + str)
         commandString += "\n\n" + "*Bruk '!mz help <command>' for beskrivelse*"
+        commandString += "\n*Eller bruk '!mz help <kategori>' med en av følgende kategorier for en mindre liste:* "
+        getCommandCatgeories().forEach((cat) => {
+            commandString += " *" + cat + ",*";
+        })
         MessageHelper.sendMessage(rawMessage, commandString)
     }
 })
