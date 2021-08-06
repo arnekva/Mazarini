@@ -9,7 +9,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = "2.10.0";
+    public static readonly currentVersion = "2.10.1";
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -26,6 +26,8 @@ export class PatchNotes {
         + `\n* Du kan ikke lenger gå negativt i chips når du triller 00:00`
         + `\n* Du får ikke lenger beskjed om at tall mellom 0 og 1 ikke er positive`
         + `\n* Ny funksjon 'stats' for admins som skal vise enkel statistikk for boten siden sist oppstart. Vil foreløpig ikke lagre noe verdier, så alt hentes fra minne`
+        + `\n* Fikset setvalue for brukere med mellomrom (bruk "herme tegn")`
+        + `\n* Fikset en feil i gambling med gjeld`
         ;
 
     static getCurrentPatchNotes() {
