@@ -266,14 +266,14 @@ export class GamblingCommands {
         if (argumentVal && Number(argumentVal)) {
             const valAsNum = Number(Number(argumentVal).toFixed(2));
             const roll = Math.floor(Math.random() * 100) + 1;
-            const hasDebtPenalty = DatabaseHelper.getValueWithoutMessage("debtPenalty", message.author.username)
+            const hasDebtPenalty = (DatabaseHelper.getValueWithoutMessage("debtPenalty", message.author.username) === "true")
             let rate = 185;
 
             let newMoneyValue = 0;
             let interest = 0;
             let multiplier = GamblingCommands.getMultiplier(roll, valAsNum);
             if (roll >= 50) {
-                if (hasDebtPenalty === "true") {
+                if (hasDebtPenalty) {
                     const mp = DatabaseHelper.getValue("debtMultiplier", message.author.username, message);
                     rate = ((rate - mp) / 100) - 1
 
@@ -325,7 +325,7 @@ export class GamblingCommands {
                 message.reply("du har oppgitt et ugyldig tall")
                 return;
             } else if (argAsNum > 1000) {
-                message.reply("du kan låne maks 250 chips")
+                message.reply("du kan låne maks 1000 chips")
                 return;
             } else if (argAsNum < 1) {
                 message.reply("Kan kje låna mindre enn 1 chip")

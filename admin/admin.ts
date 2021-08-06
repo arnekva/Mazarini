@@ -29,8 +29,9 @@ export class Admin {
     static setSpecificValue(message: Message, messageContent: string, args: string[]) {
         //setValueObject
         const prefix = args[0] as dbPrefix;
-        const username = args[1];
-        const val = args.slice(2).join(" ");
+        let username = getUsernameInQuotationMarks(messageContent) ?? args[1];
+        console.log(getUsernameInQuotationMarks(args[1]));
+        const val = getUsernameInQuotationMarks(args[1]) ? args.slice(3).join(" ") : args.slice(2).join(" ");
         const content = messageContent.split(" ");
         // const prefix = content[0] as dbPrefix;
         // const key = content[1];
@@ -38,6 +39,10 @@ export class Admin {
         // let value = "";
         // const newCont = content.slice(2)
         // newCont.forEach((el) => value += el + " ")
+        console.log(username);
+
+        username = username.replace('"', '').replace('"', '')
+        console.log(username);
         DatabaseHelper.setValue(prefix, username, val);
         message.react(ArrayUtils.randomChoiceFromArray(globalArrays.emojiesList));
     }
