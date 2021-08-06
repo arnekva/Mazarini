@@ -1,9 +1,14 @@
 import { Message } from "discord.js";
 import { DatabaseHelper } from "../helpers/databaseHelper";
 import { MessageHelper } from "../helpers/messageHelper";
+import { ArrayUtils } from "../utils/arrayUtils";
 import { countdownTime, dateRegex, DateUtils } from "../utils/dateUtils";
 import { ICommandElement } from "./commands";
 
+export interface dateValPair {
+    print: string;
+    date: string;
+}
 export class DateCommands {
 
     static setReminder(message: Message, content: string, args: string[]) {
@@ -81,18 +86,30 @@ export class DateCommands {
             message.reply("Det er ingen aktive countdowns")
             return;
         }
-        Object.keys(DatabaseHelper.getAllCountdownValues()).forEach((el) => {
-            const e = DatabaseHelper.getNonUserValue("countdown", el)
-            const daysUntil = DateUtils.getTimeTo(new Date(e.date))
-            const text = DateCommands.formatCountdownText(daysUntil, "til " + e.desc);
-            sendThisText += `${!!text ? "\n" : ""}` + `${DateCommands.formatCountdownText(daysUntil, "til " + e.desc)}`
+        const countdownDates = DatabaseHelper.getAllCountdownValues();
+
+        const printValues: dateValPair[] = [];
+
+        Object.keys(countdownDates).forEach((username) => {
+            const countdownElement = DatabaseHelper.getNonUserValue("countdown", username)
+            const daysUntil = DateUtils.getTimeTo(new Date(countdownElement.date))
+            const text = DateCommands.formatCountdownText(daysUntil, "te " + countdownElement.desc);
+            printValues.push({ print: `${!!text ? "\n" : ""}` + `${DateCommands.formatCountdownText(daysUntil, "te " + countdownElement.desc)}`, date: countdownElement.date });
         })
+
+        ArrayUtils.sortDateStringArray(printValues)
+        printValues.forEach((el) => {
+            sendThisText += el.print;
+        })
+        if (!sendThisText)
+            sendThisText = "Det er ingen aktive countdowner";
         MessageHelper.sendMessage(message, sendThisText)
     }
 
     static readonly remindMeCommand: ICommandElement = {
         commandName: "remind",
         description: "Sett en varsling. '1d2t3m4s' for varsling om 1 dag, 2 timer, 3 minutt og 4s. Alle delene er valgfrie (Ikke implementert)",
+        hideFromListing: true,
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             DateCommands.setReminder(rawMessage, messageContent, args);
         },

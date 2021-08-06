@@ -1,10 +1,13 @@
 import { Channel, GuildMember, Message, TextChannel } from "discord.js";
+import { startTime } from "..";
 import { ICommandElement } from "../commands/commands";
+import { DateCommands } from "../commands/dateCommands";
 import { Spinner } from "../commands/spinner";
 import { globalArrays } from "../globals";
 import { DatabaseHelper, dbPrefix } from "../helpers/databaseHelper";
 import { MessageHelper } from "../helpers/messageHelper";
 import { ArrayUtils } from "../utils/arrayUtils";
+import { DateUtils } from "../utils/dateUtils";
 import { getUsernameInQuotationMarks, isInQuotation } from "../utils/textUtils";
 
 
@@ -66,6 +69,17 @@ export class Admin {
         const prefix = content[0] as dbPrefix;
         const key = content[1];
         const val = await DatabaseHelper.getValue(prefix, key, message)
+
+    }
+
+    static getStats(message: Message, messageContent: string) {
+        const start = startTime;
+        const timeSince = DateUtils.getTimeSince(start);
+        if (timeSince) {
+            const text = DateCommands.formatCountdownText(timeSince, "siden sist oppstart");
+            MessageHelper.sendMessage(message, text);
+        } else
+            MessageHelper.sendMessage(message, "Ingen statistikk å vise");
 
     }
 
@@ -270,6 +284,16 @@ export class Admin {
         isAdmin: true,
         command: (rawMessage: Message, messageContent: string) => {
             Admin.reactToMsgAsBot(rawMessage, messageContent);
+        },
+        category: "admin"
+    }
+    static readonly statsCommand: ICommandElement = {
+        commandName: "stats",
+        description: "Se enkle statistikker",
+        hideFromListing: true,
+        isAdmin: true,
+        command: (rawMessage: Message, messageContent: string) => {
+            Admin.getStats(rawMessage, messageContent);
         },
         category: "admin"
     }

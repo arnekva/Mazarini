@@ -25,6 +25,7 @@ const polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê)*(ls)(e|a|å
 let lastUsedCommand = "help";
 export let action_log_channel: TextChannel;
 
+export const startTime = new Date();
 mazariniClient.on('ready', () => {
     const args = process.argv.slice(2);
     console.log(args)

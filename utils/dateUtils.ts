@@ -42,4 +42,17 @@ export class DateUtils {
         }
         return rDate;
     }
+
+    static getTimeSince(date: Date): countdownTime | undefined {
+        const total = new Date().getTime() - date.getTime();
+        if (total < 0)
+            return undefined;
+        const rDate: countdownTime = {
+            days: Math.floor(total / (1000 * 60 * 60 * 24)),
+            hours: Math.floor((total / (1000 * 60 * 60)) % 24),
+            minutes: Math.floor((total / 1000 / 60) % 60),
+            seconds: Math.floor((total / 1000) % 60)
+        }
+        return rDate;
+    }
 }

@@ -258,7 +258,7 @@ export class GamblingCommands {
             if (Number(argumentVal) > Number(userMoney)) {
                 message.reply("Du har ikke nok penger til å gamble så mye. Bruk <!mz lån 100> for å låne chips fra MazariniBank")
                 return;
-            } else if (Number(argumentVal) < 1) {
+            } else if (Number(argumentVal) < 0) {
                 message.reply("Du må gamble med et positivt tall, bro")
                 return;
             }
@@ -266,18 +266,24 @@ export class GamblingCommands {
         if (argumentVal && Number(argumentVal)) {
             const valAsNum = Number(Number(argumentVal).toFixed(2));
             const roll = Math.floor(Math.random() * 100) + 1;
+            const hasDebtPenalty = DatabaseHelper.getValueWithoutMessage("debtPenalty", message.author.username)
+            let rate = 185;
+
             let newMoneyValue = 0;
+            let interest = 0;
             let multiplier = GamblingCommands.getMultiplier(roll, valAsNum);
             if (roll >= 50) {
+                if (hasDebtPenalty === "true") {
+                    const mp = DatabaseHelper.getValue("debtMultiplier", message.author.username, message);
+                    rate = ((rate - mp) / 100) - 1
 
-                newMoneyValue = Number(userMoney) + (multiplier * valAsNum);
+                    interest = (multiplier * valAsNum - (valAsNum * rate));
+                }
+                newMoneyValue = Number(userMoney) + (multiplier * valAsNum) - interest;
             }
             else
                 newMoneyValue = Number(userMoney) - valAsNum;
 
-            // if (newMoneyValue > 1000000000) {
-            //     DatabaseHelper.setValue("bailout", message.author.username, "true")
-            // }
             if (newMoneyValue > Number.MAX_SAFE_INTEGER) {
                 message.reply("Du har nådd et så høyt tall at programmeringsspråket ikke lenger kan gjøre trygge operasjoner på det. Du kan fortsette å gamble, men noen funksjoner kan virke ustabile")
             }
@@ -285,9 +291,11 @@ export class GamblingCommands {
 
             const gambling = new MessageEmbed()
                 .setTitle("Gambling 🎲")
-                .setDescription(`${message.author.username} gamblet ${valAsNum} av ${userMoney} chips.\nTerningen trillet: ${roll}/100. Du ${roll >= 50 ? "vant! 💰💰 (" + (Number(multiplier) + 1) + "x)" : "tapte 💸"}\nDu har nå ${newMoneyValue.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })} chips.`)
+                .setDescription(`${message.author.username} gamblet ${valAsNum} av ${userMoney} chips.\nTerningen trillet: ${roll}/100. Du ${roll >= 50 ? "vant! 💰💰 (" + (Number(multiplier) + 1) + "x)" : "tapte 💸💸"}\nDu har nå ${newMoneyValue.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })} chips.`)
             if (roll >= 100)
                 gambling.addField(`Trillet 100!`, `Du trillet 100 og vant ${multiplier} ganger så mye som du satset!`)
+            if (hasDebtPenalty && roll >= 50)
+                gambling.addField(`Gjeld`, `Du er i høy gjeld, og banken har krevd inn ${interest.toFixed(2)} chips (${(100 - (100 - ((1 - rate) * 100))).toFixed(0)}%)`)
             MessageHelper.sendFormattedMessage(message, gambling);
         }
     }
@@ -309,14 +317,14 @@ export class GamblingCommands {
     }
 
     static takeUpLoan(message: Message, content: string, args: string[]) {
-        let amountToLoan = 500;
+        let amountToLoan = 1000;
         if (args[0]) {
             const argAsNum = Number(args[0])
 
             if (isNaN(argAsNum)) {
                 message.reply("du har oppgitt et ugyldig tall")
                 return;
-            } else if (argAsNum > 250) {
+            } else if (argAsNum > 1000) {
                 message.reply("du kan låne maks 250 chips")
                 return;
             } else if (argAsNum < 1) {
@@ -328,14 +336,22 @@ export class GamblingCommands {
         const username = message.author.username;
         const totalLoans = DatabaseHelper.getValue("loanCounter", username, message)
         const totalDebt = DatabaseHelper.getValue("debt", username, message)
+        const debtMultiplier = DatabaseHelper.getValue("debtMultiplier", username, message);
         const userMoney = DatabaseHelper.getValue("chips", message.author.username, message);
-        if (totalDebt > 1500) {
-            message.reply("Du har for mye gjeld. Betal ned litt før du tar opp nytt lån. (Hvis du har 0 chips nå e du pretty fucked, for Arne har ikkje koda inn någe redning her ennå)")
+        if (Number(debtMultiplier) > 184) {
+            message.reply("Nå e du bare 100% fucked, snakkes")
             return;
         }
         const newTotalLoans = Number(totalLoans) + 1;
         const newDebt = (Number(totalDebt) + amountToLoan) * 1.1;
+        if (newDebt > 20000) {
+            message.reply(`Du har nå mye gjeld. Banken vil nå ta ${15 + Number(debtMultiplier)}% av alle gevinster som renter. Disse vil ikke telle på nedbetaling av lånet. Dersom du fortsetter å låne nå vil rentesatsen stige ytterligere `)
+            DatabaseHelper.setValue("debtPenalty", username, "true")
+            DatabaseHelper.incrementValue("debtMultiplier", username, "1");
 
+        } else {
+            DatabaseHelper.setValue("debtPenalty", username, "false")
+        }
         DatabaseHelper.setValue("loanCounter", username, newTotalLoans.toString())
         DatabaseHelper.setValue("debt", username, newDebt.toFixed(2))
         const newCoinsVal = Number(userMoney) + amountToLoan;
@@ -347,13 +363,15 @@ export class GamblingCommands {
     static payDownDebt(message: Message, content: string, args: string[]) {
         const username = message.author.username;
         const totalDebt = DatabaseHelper.getValue("debt", username, message)
+        const hasDebtPenalty = DatabaseHelper.getValue("debtPenalty", username, message);
+        const debtMultiplier = DatabaseHelper.getValue("debtMultiplier", username, message);
         if (Number(totalDebt) <= 0) {
             message.reply("Du har ingen lån")
             return;
         }
         const userMoney = DatabaseHelper.getValue("chips", message.author.username, message);
         const wantsToPayDownThisAmount = Number(args[0]);
-        if (wantsToPayDownThisAmount < 1) {
+        if (wantsToPayDownThisAmount < 0) {
             message.reply("skriv inn et positivt tall, bro")
             return;
         }
@@ -374,6 +392,17 @@ export class GamblingCommands {
                 DatabaseHelper.setValue("debt", username, newTotal.toFixed(2))
                 const newDogeCoinsCOunter = Number(userMoney) - wantsToPayDownThisAmount + backToPayer;
                 DatabaseHelper.setValue("chips", username, newDogeCoinsCOunter.toFixed(2))
+                if (wantsToPayDownThisAmount > 1000 && hasDebtPenalty === "true" && newTotal > 20000) {
+                    if (Number(debtMultiplier) > 15) {
+                        message.reply("Du har betalt ned mer enn 1000 på lånet ditt. Banken senker strafferenten din med 0.01% :) ")
+                        DatabaseHelper.decrementValue("debtMultiplier", username, "1")
+                    }
+                }
+
+                if (hasDebtPenalty === "true" && newTotal < 20000) {
+                    message.reply("Du har senket lånet ditt til under 20.000 chips. Banken fjerner strafferenten (for nå) :)")
+                    DatabaseHelper.setValue("debtPenalty", username, "false")
+                }
                 MessageHelper.sendMessage(message, `Du har nå betalt ned ${wantsToPayDownThisAmount.toFixed(2)} av lånet ditt på ${totalDebt}. Lånet er nå på ${newTotal.toFixed(2)} og du har ${newDogeCoinsCOunter.toFixed(2)} chips igjen.`)
             }
         }

@@ -30,7 +30,8 @@ export interface dbObject {
 
 }
 
-export type dbPrefix = "spin" | "birthday" | "stock" | "mygling" | "week" | "counterSpin" | "ATHspin" | "sCounterWeeklySpin" | "chips" | "bailout" | "warningCounter" | "dogeCoin" | "test" | "achievement" | "bonkCounter" | "lastFmUsername" | "loanCounter" | "debt";
+export type dbPrefix = "spin" | "birthday" | "stock" | "mygling" | "week" | "counterSpin" | "ATHspin" | "sCounterWeeklySpin" | "chips" | "bailout" | "warningCounter" | "dogeCoin" | "test" | "achievement" | "bonkCounter" | "lastFmUsername"
+    | "loanCounter" | "debt" | "debtPenalty" | "debtMultiplier";
 
 export interface betObject {
     description: string,
@@ -117,7 +118,8 @@ export class DatabaseHelper {
     static decrementValue(prefix: dbPrefix, key: string, decrement: string) {
         const oldValue = DatabaseHelper.getValueWithoutMessage(prefix, key)
         const newVal = Number(oldValue) - Number(decrement);
-        DatabaseHelper.setValue(prefix, key, newVal.toFixed(2))
+
+        DatabaseHelper.setValue(prefix, key, newVal > 0 ? newVal.toFixed(2) : "0.00")
     }
     static getAchievement(prefix: dbPrefix, key: string, achievementID: achievementIDs) {
         let data;

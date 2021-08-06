@@ -76,6 +76,7 @@ export const commands: ICommandElement[] = [
     Admin.replyToMsg,
     Admin.deleteMessages,
     Admin.warnUserCommand,
+    Admin.statsCommand,
     Spinner.setHighscoreCommand,
     Admin.deleteValFromPrefix,
     GitHubCommands.issueCommand,
