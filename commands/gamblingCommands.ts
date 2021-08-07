@@ -299,6 +299,113 @@ export class GamblingCommands {
             MessageHelper.sendFormattedMessage(message, gambling);
         }
     }
+    static roulette(message: Message, content: string, args: string[]) {
+        const userMoney = DatabaseHelper.getValue("chips", message.author.username, message);
+        const stake = args[0];
+        const betOn = args[1];
+        if (!stake || isNaN(Number(stake))) {
+            message.reply("Du må si hvor mye du vil gamble")
+            return;
+        }
+        if (!betOn) {
+            message.reply("Så du bare setter chips på ingenting?")
+            return;
+        }
+        if (args.length > 2) {
+            message.reply("Helvedde.. Tror kanskje du må spørre om hjelp for å formattere deg riktig")
+            return;
+        }
+        if (userMoney) {
+
+            if (Number(stake) > Number(userMoney)) {
+                message.reply("Du har ikke nok penger til å gamble så mye. Bruk <!mz lån 100> for å låne chips fra MazariniBank")
+                return;
+            } else if (Number(stake) < 0) {
+                message.reply("Du må gamble med et positivt tall, bro")
+                return;
+            }
+        }
+        if (stake && Number(stake) && betOn) {
+            const red = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+            const valAsNum = Number(Number(stake).toFixed(2));
+            const roll = Math.floor(Math.random() * 37);
+            let multiplier = 1;
+            let won = false;
+            if (Number(betOn) && (Number(betOn) >= 0) && (Number(betOn) <= 37)) {
+                if (roll == Number(betOn)) {
+                    won = true;
+                    multiplier = 36;
+                }
+            } else {
+                if (["red", "rød", "raud", "røde"].includes(betOn.toLowerCase())) {
+                    if (red.includes(roll)) {
+                        won = true;
+                        multiplier = 2;
+                    }
+                } else if (["svart", "black", "sort", "sorte"].includes(betOn.toLowerCase())) {
+                    if (!red.includes(roll) && !(roll == 0)) {
+                        won = true;
+                        multiplier = 2;
+                    }
+                } else if (["green", "grønn", "grøn"].includes(betOn.toLowerCase())) {
+                    if (roll == 0) {
+                        won = true;
+                        multiplier = 36;
+                    }
+                } else if (["odd", "oddetall"].includes(betOn.toLowerCase())) {
+                    if ((roll % 2) == 1) {
+                        won = true;
+                        multiplier = 2;
+                    }
+                } else if (["par", "partall", "even"].includes(betOn.toLowerCase())) {
+                    if ((roll % 2) == 0) {
+                        won = true;
+                        multiplier = 2;
+                    }
+                } else {
+                    message.reply("Lol, kan du ikke rulett eller?")
+                    return;
+                }
+            }
+            
+            const hasDebtPenalty = (DatabaseHelper.getValueWithoutMessage("debtPenalty", message.author.username) === "true")
+            let rate = 185;
+            let newMoneyValue = 0;
+            let interest = 0;
+            
+            if (won) {
+                if (hasDebtPenalty) {
+                    const mp = DatabaseHelper.getValue("debtMultiplier", message.author.username, message);
+                    rate = ((rate - mp) / 100) - 1
+
+                    interest = (multiplier * valAsNum - (valAsNum * rate));
+                }
+                newMoneyValue = Number(userMoney) + (multiplier * valAsNum) - interest;
+            }
+            else
+                newMoneyValue = Number(userMoney) - valAsNum;
+
+            if (newMoneyValue > Number.MAX_SAFE_INTEGER) {
+                message.reply("Du har nådd et så høyt tall at programmeringsspråket ikke lenger kan gjøre trygge operasjoner på det. Du kan fortsette å gamble, men noen funksjoner kan virke ustabile")
+            }
+            DatabaseHelper.setValue("chips", message.author.username, newMoneyValue.toFixed(2))
+
+            let result = "";
+            if (roll == 0) {
+                result = roll + " grønn(!)";
+            } else if (red.includes(roll)) {
+                result = roll + " rød";
+            } else {
+                result = roll + " sort";
+            }
+            const gambling = new MessageEmbed()
+                .setTitle("Rulett 🎲")
+                .setDescription(`${message.author.username} satset ${valAsNum} av ${userMoney} chips på ${betOn}.\nBallen landet på: ${result}. Du ${won ? "vant! 💰💰 (" + (Number(multiplier)) + "x)" : "tapte 💸💸"}\nDu har nå ${newMoneyValue.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })} chips.`)
+            if (hasDebtPenalty && roll >= 50)
+                gambling.addField(`Gjeld`, `Du er i høy gjeld, og banken har krevd inn ${interest.toFixed(2)} chips (${(100 - (100 - ((1 - rate) * 100))).toFixed(0)}%)`)
+            MessageHelper.sendFormattedMessage(message, gambling);
+        }
+    }
     static getMultiplier(roll: number, amountBet: number) {
         if (roll >= 100)
             return 5;
@@ -564,6 +671,15 @@ export class GamblingCommands {
         description: "Gambla coinså dine! Skriv inn mengde coins du vil gambla, så kan du vinna. Tilbakebetaling blir høyere jo høyere terningen triller (1.1x for 50 opp till 5x for 100)",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.diceGamble(rawMessage, messageContent, args);
+        },
+        category: "gambling",
+    }
+    static readonly rulett: ICommandElement = {
+        commandName: "rulett",
+        description: "Gambla chipså dine! Skriv inn mengde coins du vil gambla og ikke minst ka du gamble de på, så kan du vinna. Tilbakebetaling blir høyere jo større risiko du tar. Lykke til!"
+        + "\nHer kan du gambla på tall, farge eller partall/oddetall. Eksempel: '!mz rulett 1000 svart",
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            GamblingCommands.roulette(rawMessage, messageContent, args);
         },
         category: "gambling",
     }
