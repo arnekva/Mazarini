@@ -9,7 +9,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = "2.10.2";
+    public static readonly currentVersion = "2.10.3";
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -19,10 +19,11 @@ export class PatchNotes {
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv. 
      */
     public static readonly currentPatchNotes: string
-        = `* Gamblernes valgmuligheter vokser..`
-        + '\n* Introducing: Rulett!'
-        + '\n\tNå kan du ta større sjanser i ditt hensynsløse bruk av chips ved å vinne opp til 36(!) ganger innsatsen.'
-        + '\n\tBare skriv: "!mz rulett <innsats> <tall|farge|odd/even> og se om hellet er med deg!'
+        = `* Du kan nå satse på tallet 0 i rulett.`
+        + "\n * Du kan ikke lenger satse 0 chips på rulett."
+        + "\n * Ukens spinner-vinner får nå tildelt forventet mengde chips."
+        + "\n * Utbetaling av premier på rulett er nå korrekt."
+        + "\n * Renteinnkrevingsnivået resetter nå etter lånet er nedbetalt, slik den starter på ny på 15% neste gang du går over grensen."
         ;
 
     static getCurrentPatchNotes() {
