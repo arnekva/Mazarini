@@ -13,6 +13,9 @@ export class MessageHelper {
      * Send message to the specified channel
      * @param rawMessage - A raw message type
      * @param message - The string to send
+     * @param isError - (optional) if this is an error message, set to true
+     * @param errorMsg - (optional) This message will be sent to the admin action log channel
+     * @param typeOfError - (optional) The error message will depend on this type
      * return message - Returnerer message objectet som kan brukes (.edit(), .react() etc)
      */
     static sendMessage(rawMessage: Message, message: string) {
@@ -49,12 +52,12 @@ export class MessageHelper {
         message.reply("du har brukt feil formattering. Bruk: " + errormessage)
     }
     static async findMessageById(rawMessage: Message, id: string) {
-        const allChannels = rawMessage.client.channels.cache.filter((channel: any) => channel instanceof TextChannel);
+        const allChannels = [...rawMessage.client.channels.cache.values()].filter(channel => channel instanceof TextChannel) as TextChannel[];
         let messageToReturn;
-        allChannels.forEach(async (channel) => {
-            const ch = channel as TextChannel;
-            if (ch) {
-                await ch.messages.fetch(id).then(message => {
+
+        for (const channel of allChannels) {
+            if (channel) {
+                await channel.messages.fetch(id).then(message => {
                     if (message.guild) {
                         messageToReturn = message;
                     }
@@ -63,7 +66,7 @@ export class MessageHelper {
                     // MessageHelper.sendMessageToActionLogWithDefaultMessage(rawMessage, error);
                 })
             }
-        })
+        }
         return messageToReturn
     }
     /** Send en embedded message (se gambling for eksempel) */

@@ -82,13 +82,12 @@ export class Admin {
 
     static async replyToMsgAsBot(rawMessage: Message, content: string) {
 
-        const allChannels = rawMessage.client.channels.cache.filter((channel: any) => channel instanceof TextChannel);
+        const allChannels = [...rawMessage.client.channels.cache.values()].filter(channel => channel instanceof TextChannel) as TextChannel[];
 
         const id = content.substr(0, content.indexOf(" "));
         // const id = c[0].trim();
         const replyString = content.substr(content.indexOf(" ") + 1);
-        allChannels.forEach((ch) => {
-            const channel = ch as TextChannel;
+        allChannels.forEach((channel: TextChannel) => {
             if (channel) {
                 channel.messages.fetch(id).then(async message => {
                     if (message.guild) {
@@ -108,7 +107,7 @@ export class Admin {
             For å sleppe å måtte sende med channel id for meldingen (kun id på selve meld) så må man loope gjennom alle channels på leting. 
         */
         //Filter out non-text channel and cast as TextChannel
-        const allChannels = rawMessage.client.channels.cache.filter((channel: any) => channel instanceof TextChannel);
+        const allChannels = [...rawMessage.client.channels.cache.values()].filter(channel => channel instanceof TextChannel) as TextChannel[];
 
 
         const c = content.split(" ");
@@ -116,8 +115,7 @@ export class Admin {
         const emojiString = c[1];
         if (!!id && !!emojiString) {
 
-            allChannels.forEach((ch) => {
-                const channel = ch as TextChannel;
+            allChannels.forEach((channel: TextChannel) => {
                 if (channel) {
                     channel.messages.fetch(id).then(message => {
                         if (message.guild) {

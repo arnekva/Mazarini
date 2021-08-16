@@ -107,8 +107,6 @@ mazariniClient.on('ready', () => {
 });
 
 mazariniClient.on('messageCreate', async (message: Message) => {
-    console.log(message.author.username + ": " + message.content);
-
     //Do not reply to own messages
     if (message.author == mazariniClient.user)
         return;
@@ -208,7 +206,6 @@ function checkMessageForJokes(message: Message) {
     let matches;
     let polseCounter = 0;
     polseRegex.lastIndex = 0;
-    console.log(message.embeds[0] + " in checkForJokes");
 
     while (matches = polseRegex.exec(message.content)) {
         if (matches) {

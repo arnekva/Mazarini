@@ -21,6 +21,7 @@ export class PatchNotes {
     public static readonly currentPatchNotes: string
         = `* Oppgradert til Discord v13`
         + `\n* Utvikling krever node versjon 16.0 eller høyere`
+        + `\n* Bot replies er nå alltid in-line, så du ser hvilken melding den replyer til`
         ;
 
     static getCurrentPatchNotes() {
