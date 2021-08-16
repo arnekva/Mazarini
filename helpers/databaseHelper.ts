@@ -31,7 +31,7 @@ export interface dbObject {
 }
 
 export type dbPrefix = "spin" | "birthday" | "stock" | "mygling" | "week" | "counterSpin" | "ATHspin" | "sCounterWeeklySpin" | "chips" | "bailout" | "warningCounter" | "dogeCoin" | "test" | "achievement" | "bonkCounter" | "lastFmUsername"
-    | "loanCounter" | "debt" | "debtPenalty" | "debtMultiplier";
+    | "loanCounter" | "debt" | "debtPenalty" | "debtMultiplier" | "shopItems";
 
 export interface betObject {
     description: string,
@@ -239,6 +239,18 @@ export class DatabaseHelper {
         const valueList: ValuePair[] = [];
         Object.keys(users).forEach((el) => {
             const val = DatabaseHelper.getValue(prefix, el, message, true);
+            //FIXME: Test this more?
+            if (val)
+                valueList.push({ key: el, val: val })
+        })
+        return valueList;
+    }
+
+    static getAllValuesFromPrefixWithoutMessage(prefix: dbPrefix) {
+        const users = db.getData(`${folderPrefix}`);
+        const valueList: ValuePair[] = [];
+        Object.keys(users).forEach((el) => {
+            const val = DatabaseHelper.getValueWithoutMessage(prefix, el);
             //FIXME: Test this more?
             if (val)
                 valueList.push({ key: el, val: val })
