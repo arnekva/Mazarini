@@ -18,11 +18,11 @@ import { DatabaseHelper } from "./helpers/databaseHelper";
 
 import { MessageHelper } from "./helpers/messageHelper";
 import { Spinner } from "./commands/spinner";
-import { discordSecret, environment } from "./client-env";
+import { actSSOCookie, discordSecret, environment } from "./client-env";
 import { MessageUtils } from "./utils/messageUtils";
 import { ArrayUtils } from "./utils/arrayUtils";
 import { globalArrays } from "./globals";
-
+const API = require('call-of-duty-api')();
 require('dotenv').config();
 
 const polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê|å|æ|ê|è|é|à|á)*(ls)(e|a|å|o|i)|(pause)|(🌭)|(hotdog)|(sausage)|(hot-dog)/ig);
@@ -30,7 +30,13 @@ let lastUsedCommand = "help";
 export let action_log_channel: TextChannel;
 
 export const startTime = new Date();
-mazariniClient.on('ready', () => {
+mazariniClient.on('ready', async () => {
+
+    try {
+        await API.loginWithSSO(actSSOCookie);
+    } catch (Error) {
+        console.log("failed to log in");
+    }
     const args = process.argv.slice(2);
 
     action_log_channel = mazariniClient.channels.cache.get("810832760364859432")

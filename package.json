@@ -17,7 +17,7 @@
     "dependencies": {
         "@replit/database": "^2.0.0",
         "@types/node": "^15.6.2",
-        "call-of-duty-api": "^2.0.0-dev",
+        "call-of-duty-api": "^2.0.0",
         "clean": "^4.0.2",
         "clean-text-utils": "^1.1.17",
         "deep-diff": "^1.0.2",

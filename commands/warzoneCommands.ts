@@ -1,10 +1,9 @@
 
 import { Channel, Client, DMChannel, Message, NewsChannel, TextChannel } from "discord.js";
-import { mwPw } from "../client-env";
+import { actSSOCookie } from "../client-env";
 import { MessageHelper } from "../helpers/messageHelper";
 import { ICommandElement } from "./commands";
 const API = require('call-of-duty-api')();
-
 export class WarzoneCommands {
 
     static async getBRContent(message: Message, messageContent: string, isWeekly?: boolean) {
@@ -13,11 +12,7 @@ export class WarzoneCommands {
         const platform = content[1];
         const bewareMessage = "";//"**OBS!** *Bruker development-versjon av modulen (api@2.0.0-dev). Denne er ustabil, og kan bli stuck på innlogging eller henting av info.*\n";
         let sentMessage = await MessageHelper.sendMessage(message, "Logger inn..." + "\n" + bewareMessage)
-        try {
-            await API.login("arne.kva@gmail.com", mwPw);
-        } catch (Error) {
-            message.reply("Klarte ikke logge inn")
-        }
+
         let response = "";
         //Fjern denne når modulen er fikset.
         response += bewareMessage;

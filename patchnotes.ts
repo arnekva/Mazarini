@@ -21,6 +21,7 @@ export class PatchNotes {
     public static readonly currentPatchNotes: string
         = `* Oppgradert til Discord v13`
         + `\n* Utvikling krever node versjon 16.0 eller høyere`
+        + `\n* Warzone statistikk er oppdatert til å bruke SSO til innlogging (v2.1)`
         + `\n* Bot replies er nå alltid in-line, så du ser hvilken melding den replyer til`
         ;
 
