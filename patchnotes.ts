@@ -9,7 +9,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = "2.10.4";
+    public static readonly currentVersion = "3.0.0";
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = "Patch notes for versjon " + PatchNotes.currentVersion;
@@ -19,9 +19,8 @@ export class PatchNotes {
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv. 
      */
     public static readonly currentPatchNotes: string
-        = `* Fikset rulett utbetaling ved gevinst.`
-        + `\n* Renter på lån gjelder nå kun beløpet som lånes. Det vil altså ikke lenger legges til +10% av den totale gjelden, kun av lånebeløpet.`
-        + `\n* Fikset utbetaling til ukens spinner-vinner.`
+        = `* Oppgradert til Discord v13`
+        + `\n* Utvikling krever node versjon 16.0 eller høyere`
         ;
 
     static getCurrentPatchNotes() {

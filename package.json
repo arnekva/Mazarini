@@ -2,7 +2,6 @@
     "name": "mazarini",
     "version": "2.2.2",
     "description": "",
-    "main": "index.js",
     "scripts": {
         "start": "nodemon index.ts --ignore myDataBase.json",
         "start:bg": "pm2 --name mazarini start npm -- run start",

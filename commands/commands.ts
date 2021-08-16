@@ -132,11 +132,7 @@ export const helperCommands = ((rawMessage: Message, messageContent: string, arg
     let category = args[0] ?? "unspecified"
     //spesifikk command
     if (getCommandCatgeories().includes(args[0])) {
-        console.log("entered " + args[0]);
-
         commands.forEach((cmd) => {
-            console.log("<" + args[0] + "> <" + cmd.category + ">");
-
             if (cmd.category == args[0])
                 commandStringList.push(cmd.commandName);
 

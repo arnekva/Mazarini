@@ -30,19 +30,10 @@ export class Admin {
         //setValueObject
         const prefix = args[0] as dbPrefix;
         let username = getUsernameInQuotationMarks(messageContent) ?? args[1];
-        console.log(getUsernameInQuotationMarks(args[1]));
         const val = getUsernameInQuotationMarks(args[1]) ? args.slice(3).join(" ") : args.slice(2).join(" ");
         const content = messageContent.split(" ");
-        // const prefix = content[0] as dbPrefix;
-        // const key = content[1];
-
-        // let value = "";
-        // const newCont = content.slice(2)
-        // newCont.forEach((el) => value += el + " ")
-        console.log(username);
 
         username = username.replace('"', '').replace('"', '')
-        console.log(username);
         DatabaseHelper.setValue(prefix, username, val);
         message.react(ArrayUtils.randomChoiceFromArray(globalArrays.emojiesList));
     }
@@ -91,12 +82,13 @@ export class Admin {
 
     static async replyToMsgAsBot(rawMessage: Message, content: string) {
 
-        const allChannels = rawMessage.client.channels.cache.array().filter(channel => channel instanceof TextChannel) as TextChannel[];
+        const allChannels = rawMessage.client.channels.cache.filter((channel: any) => channel instanceof TextChannel);
 
         const id = content.substr(0, content.indexOf(" "));
         // const id = c[0].trim();
         const replyString = content.substr(content.indexOf(" ") + 1);
-        allChannels.forEach((channel: TextChannel) => {
+        allChannels.forEach((ch) => {
+            const channel = ch as TextChannel;
             if (channel) {
                 channel.messages.fetch(id).then(async message => {
                     if (message.guild) {
@@ -116,7 +108,7 @@ export class Admin {
             For å sleppe å måtte sende med channel id for meldingen (kun id på selve meld) så må man loope gjennom alle channels på leting. 
         */
         //Filter out non-text channel and cast as TextChannel
-        const allChannels = rawMessage.client.channels.cache.array().filter(channel => channel instanceof TextChannel) as TextChannel[];
+        const allChannels = rawMessage.client.channels.cache.filter((channel: any) => channel instanceof TextChannel);
 
 
         const c = content.split(" ");
@@ -124,7 +116,8 @@ export class Admin {
         const emojiString = c[1];
         if (!!id && !!emojiString) {
 
-            allChannels.forEach((channel: TextChannel) => {
+            allChannels.forEach((ch) => {
+                const channel = ch as TextChannel;
                 if (channel) {
                     channel.messages.fetch(id).then(message => {
                         if (message.guild) {
@@ -199,8 +192,6 @@ export class Admin {
 
     static deleteXLastMessagesByUserInChannel(message: Message, messageContent: string, args: string[]) {
         const userToDeleteBool = getUsernameInQuotationMarks(messageContent);
-        console.log("<" + userToDeleteBool + ">");
-
         const userToDelete = userToDeleteBool ?? args[0]
 
         const user = DatabaseHelper.findUserByUsername(userToDelete, message);
@@ -213,7 +204,7 @@ export class Admin {
         const currentChannel = message.channel;
         const maxDelete = userToDeleteBool ? Number(args[2]) ?? 1 : Number(args[1]) ?? 1;
         let deleteCounter = 0;
-        currentChannel.messages.fetch({ limit: 100, }, false, true).then((el) => {
+        currentChannel.messages.fetch({ limit: 100, }).then((el) => {
             el.forEach((message) => {
                 if (message && message.author.username == user.username && deleteCounter < maxDelete) {
                     message.delete();
@@ -364,7 +355,7 @@ export class Admin {
     static isAuthorSuperAdmin(member: GuildMember | null) {
         // member.roles.cache.some(role => role.name === "Mazarini-Bot-Admin")
         if (member)
-            return member.id == "245607554254766081" || member.id == "221739293889003520" || member.id == "";
+            return member.id == "245607554254766081" || member.id == "221739293889003520" || member.id == "397429060898390016";
         return false
     }
 }

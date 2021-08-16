@@ -3,10 +3,14 @@
 import { commands, ICommandElement } from "./commands/commands"
 import { Admin } from "./admin/admin";
 
-import { Guild, GuildMember, Message, Role, TextChannel, User, Emoji } from "discord.js";
+import { Guild, GuildMember, Message, Role, TextChannel, User, Emoji, Intents } from "discord.js";
 import { doesThisMessageNeedAnEivindPride } from "./utils/miscUtils";
 const Discord = require('discord.js');
-const mazariniClient = new Discord.Client();
+const mazariniClient = new Discord.Client({
+    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_INVITES, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.GUILD_BANS
+        , Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.GUILD_MESSAGE_TYPING, Intents.FLAGS.GUILD_PRESENCES
+        , Intents.FLAGS.GUILD_WEBHOOKS]
+});
 const schedule = require('node-schedule');
 const diff = require('deep-diff');
 import didYouMean from 'didyoumean2'
@@ -28,7 +32,6 @@ export let action_log_channel: TextChannel;
 export const startTime = new Date();
 mazariniClient.on('ready', () => {
     const args = process.argv.slice(2);
-    console.log(args)
 
     action_log_channel = mazariniClient.channels.cache.get("810832760364859432")
     const today = new Date();
@@ -103,7 +106,7 @@ mazariniClient.on('ready', () => {
     });
 });
 
-mazariniClient.on('message', async (message: Message) => {
+mazariniClient.on('messageCreate', async (message: Message) => {
     console.log(message.author.username + ": " + message.content);
 
     //Do not reply to own messages
@@ -291,7 +294,7 @@ mazariniClient.on("guildMemberRemove", function (member: GuildMember) {
 
 //TODO: Sjekk cases og finn ut hva som er endret
 mazariniClient.on("userUpdate", function (oldUser: User, newUser: User) {
-    MessageHelper.sendMessageToActionLog(newUser.client.channels.cache.array()[0] as TextChannel, "Oppdatert bruker1:   " + (oldUser.tag ?? oldUser.username) + " -> " + (newUser.tag ?? newUser.username) + "")
+    MessageHelper.sendMessageToActionLog(newUser.client.channels.cache.first() as TextChannel, "Oppdatert bruker1:   " + (oldUser.tag ?? oldUser.username) + " -> " + (newUser.tag ?? newUser.username) + "")
 });
 
 //Emitted whenever a guild member changes - i.e. new role, removed role, nickname.
@@ -306,7 +309,7 @@ mazariniClient.on("guildMemberUpdate", function (oldMember: GuildMember, newMemb
             // console.log(change)
             changesString += change.path + (index == differences.length ? " " : ",")
         })
-        MessageHelper.sendMessageToActionLog(newMember.client.channels.cache.array()[0] as TextChannel, "Oppdatert bruker " + (oldMember.nickname ?? oldMember.displayName) + ": " + whatChanged + ".")
+        MessageHelper.sendMessageToActionLog(newMember.client.channels.cache.first() as TextChannel, "Oppdatert bruker " + (oldMember.nickname ?? oldMember.displayName) + ": " + whatChanged + ".")
 
     }
 });
@@ -346,7 +349,7 @@ function findRoleDifference() {
 
 function compareMember(oldMember: GuildMember, newMember: GuildMember) {
     const roles = oldMember.roles.cache;
-    const role = roleArraysEqual(oldMember.roles.cache.array(), newMember.roles.cache.array())
+    const role = roleArraysEqual([...oldMember.roles.cache.values()], [...newMember.roles.cache.values()])
     if (role) {
         return "role: " + role.name;
     }

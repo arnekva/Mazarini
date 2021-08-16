@@ -15,17 +15,9 @@ export class DateCommands {
         // const timeStamp = 
         const time = args[0].split("d");
         //Timer
-        if (time.length < 2) {
-            console.log("hours");
-
-        } else {
-            console.log("days");
-        }
 
         const minutt = args[0].split("m", 1);
         const sekund = args[0].split("s", 1);
-        console.log(`${time}`);
-
     }
     /**
    * 

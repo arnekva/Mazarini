@@ -70,7 +70,6 @@ export class Music {
                 if (nyUser) {
                     username = nyUser;
                 } else {
-                    console.log("inne232323");
                     if (!silent)
                         message.reply("du har oppgitt et brukernavn, men denne brukeren har ikke knyttet Last.fm-kontoen sin ('!mz musikk user <discordnavn> <last.fm navn>')")
                     return;

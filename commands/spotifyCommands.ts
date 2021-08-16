@@ -47,7 +47,6 @@ export class SpotifyCommands {
                 if (!el?.tracks?.items[0]) {
                     MessageHelper.sendMessage(message, `${artist} - ${track} ${emoji.id} (fant: ${el})`)
                 }
-                console.log(el?.tracks?.items[0].album);
                 const song = new MessageEmbed()
                     .setTitle(`${artist} - ${track}`)
                     .setURL(el?.tracks?.items[0]?.external_urls?.spotify ?? "#")
@@ -75,17 +74,18 @@ export class SpotifyCommands {
             if (args[0] === "alle") {
                 let replyString = "";
                 const users = guild.members.cache.forEach((user) => {
-                    user.presence.activities.forEach((activity) => {
+                    if (user && user.presence)
+                        user.presence.activities.forEach((activity) => {
 
-                        if (activity.name === "Spotify") {
-                            replyString += `(${user.user.username}) ${activity.state} - ${activity.details} ${emoji.id}\n`;
-                        }
-                    })
+                            if (activity.name === "Spotify") {
+                                replyString += `(${user.user.username}) ${activity.state} - ${activity.details} ${emoji.id}\n`;
+                            }
+                        })
                 })
                 await MessageHelper.sendMessage(rawMessage, replyString)
             } else {
                 const user = guild.members.cache.filter(u => u.user.username == name).first();
-                if (user) {
+                if (user && user.presence) {
                     let replystring = "";
                     const spotify = user.presence.activities.filter(a => a.name === "Spotify")[0]
                     // if (args[1] == "link") {

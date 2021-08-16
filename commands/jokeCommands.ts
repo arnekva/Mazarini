@@ -79,7 +79,7 @@ export class JokeCommands {
             const user = guild.members.cache
                 .filter((u) => u.user.username == name)
                 .first();
-            if (user) {
+            if (user && user.presence) {
                 if (user.presence.clientStatus) {
                     if (
                         user.presence.activities &&
@@ -173,7 +173,7 @@ export class JokeCommands {
             const react = message.guild?.emojis.cache.find(emoji => emoji.name == "eivindpride")
 
             if (message.client) {
-                channel.messages.fetch({ limit: 15, }, false, true).then((el) => {
+                channel.messages.fetch({ limit: 15, }).then((el) => {
                     el.forEach((message) => {
                         if (react)
                             message.react(react)
