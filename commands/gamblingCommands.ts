@@ -273,13 +273,7 @@ export class GamblingCommands {
             let interest = 0;
             let multiplier = GamblingCommands.getMultiplier(roll, valAsNum);
             if (roll >= 50) {
-                if (hasDebtPenalty) {
-                    const mp = DatabaseHelper.getValue("debtMultiplier", message.author.username, message);
-                    rate = ((rate - mp) / 100) - 1
-
-                    interest = (multiplier * valAsNum - (valAsNum * rate));
-                }
-                newMoneyValue = Number(userMoney) + (multiplier * valAsNum) - interest;
+                newMoneyValue = this.calculatedNewMoneyValue(message, multiplier, valAsNum, userMoney)
             }
             else
                 newMoneyValue = Number(userMoney) - valAsNum;
@@ -300,7 +294,7 @@ export class GamblingCommands {
         }
     }
     static roulette(message: Message, content: string, args: string[]) {
-        const userMoney = DatabaseHelper.getValue("chips", message.author.username, message);
+        let userMoney = DatabaseHelper.getValue("chips", message.author.username, message);
         const stake = args[0];
         const betOn = args[1];
         if (!stake || isNaN(Number(stake))) {
@@ -320,18 +314,20 @@ export class GamblingCommands {
             if (Number(stake) > Number(userMoney)) {
                 message.reply("Du har ikke nok penger til å gamble så mye. Bruk <!mz lån 100> for å låne chips fra MazariniBank")
                 return;
-            } else if (Number(stake) < 0) {
-                message.reply("Du må gamble med et positivt tall, bro")
+            } else if (Number(stake) < 0 || Number(stake) === 0) {
+                message.reply("Du prøver å gamble med en ulovlig verdi.")
                 return;
             }
         }
+        //FIXME: multiplier is wrong (1 instead of 2) because no money is taken before the gamble. Therefore, awarding x2 on win results in x3, as the initial bet was not drawn from the account
+        //E.g. having 1000 coins, then gambling 500 and winning should first take you down to 500 chips, and then be awarding 2x500=1000 chips for a total sum of 1500 chips. Now you would get 1000+(500x2) = 2000, since the initial 500 was never taken away.
         if (stake && Number(stake) && betOn) {
-            const red = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+            const red = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
             const valAsNum = Number(Number(stake).toFixed(2));
             const roll = Math.floor(Math.random() * 37);
             let multiplier = 1;
             let won = false;
-            if (Number(betOn) && (Number(betOn) >= 0) && (Number(betOn) <= 37)) {
+            if (!isNaN(Number(betOn)) && (Number(betOn) >= 0) && (Number(betOn) <= 37)) {
                 if (roll == Number(betOn)) {
                     won = true;
                     multiplier = 36;
@@ -340,12 +336,12 @@ export class GamblingCommands {
                 if (["red", "rød", "raud", "røde"].includes(betOn.toLowerCase())) {
                     if (red.includes(roll)) {
                         won = true;
-                        multiplier = 2;
+                        multiplier = 1;
                     }
                 } else if (["svart", "black", "sort", "sorte"].includes(betOn.toLowerCase())) {
                     if (!red.includes(roll) && !(roll == 0)) {
                         won = true;
-                        multiplier = 2;
+                        multiplier = 1;
                     }
                 } else if (["green", "grønn", "grøn"].includes(betOn.toLowerCase())) {
                     if (roll == 0) {
@@ -355,33 +351,27 @@ export class GamblingCommands {
                 } else if (["odd", "oddetall"].includes(betOn.toLowerCase())) {
                     if ((roll % 2) == 1) {
                         won = true;
-                        multiplier = 2;
+                        multiplier = 1;
                     }
                 } else if (["par", "partall", "even"].includes(betOn.toLowerCase())) {
                     if ((roll % 2) == 0) {
                         won = true;
-                        multiplier = 2;
+                        multiplier = 1;
                     }
                 } else {
                     message.reply("Lol, kan du ikke rulett eller?")
                     return;
                 }
             }
-            
+
+
             const hasDebtPenalty = (DatabaseHelper.getValueWithoutMessage("debtPenalty", message.author.username) === "true")
             let rate = 185;
             let newMoneyValue = 0;
             let interest = 0;
-            
-            if (won) {
-                if (hasDebtPenalty) {
-                    const mp = DatabaseHelper.getValue("debtMultiplier", message.author.username, message);
-                    rate = ((rate - mp) / 100) - 1
 
-                    interest = (multiplier * valAsNum - (valAsNum * rate));
-                }
-                newMoneyValue = Number(userMoney) + (multiplier * valAsNum) - interest;
-            }
+            if (won)
+                newMoneyValue = this.calculatedNewMoneyValue(message, multiplier, valAsNum, userMoney);
             else
                 newMoneyValue = Number(userMoney) - valAsNum;
 
@@ -409,9 +399,24 @@ export class GamblingCommands {
     static getMultiplier(roll: number, amountBet: number) {
         if (roll >= 100)
             return 5;
-        return 1;
+        return 2;
     }
 
+    static calculatedNewMoneyValue(message: Message, multiplier: number, valAsNum: number, userMoney: number) {
+        const hasDebtPenalty = (DatabaseHelper.getValueWithoutMessage("debtPenalty", message.author.username) === "true")
+        let rate = 185;
+        let newMoneyValue = 0;
+        let interest = 0;
+
+        if (hasDebtPenalty) {
+            const mp = DatabaseHelper.getValue("debtMultiplier", message.author.username, message);
+            rate = ((rate - mp) / 100) - 1
+
+            interest = (multiplier * valAsNum - (valAsNum * rate));
+        }
+        newMoneyValue = Number(userMoney) + (multiplier * valAsNum) - interest - valAsNum;
+        return newMoneyValue;
+    }
     static bailout(message: Message) {
         const canBailout = false
         const userCoins = DatabaseHelper.getValue("chips", message.author.username, message)
@@ -450,7 +455,7 @@ export class GamblingCommands {
             return;
         }
         const newTotalLoans = Number(totalLoans) + 1;
-        const newDebt = (Number(totalDebt) + amountToLoan) * 1.1;
+        const newDebt = (Number(totalDebt)) + (amountToLoan * 1.15);
         if (newDebt > 20000) {
             message.reply(`Du har nå mye gjeld. Banken vil nå ta ${15 + Number(debtMultiplier)}% av alle gevinster som renter. Disse vil ikke telle på nedbetaling av lånet. Dersom du fortsetter å låne nå vil rentesatsen stige ytterligere `)
             DatabaseHelper.setValue("debtPenalty", username, "true")
@@ -464,7 +469,7 @@ export class GamblingCommands {
         const newCoinsVal = Number(userMoney) + amountToLoan;
         DatabaseHelper.setValue("chips", username, newCoinsVal.toFixed(2))
 
-        MessageHelper.sendMessage(message, `${username}, du har nå lånt ${amountToLoan.toFixed(2)} chips med 10% rente. Spend them well. Din totale gjeld er nå: ${newDebt.toFixed(2)} (${newTotalLoans} lån gjort)`)
+        MessageHelper.sendMessage(message, `${username}, du har nå lånt ${amountToLoan.toFixed(2)} chips med 15% rente. Spend them well. Din totale gjeld er nå: ${newDebt.toFixed(2)} (${newTotalLoans} lån gjort)`)
     }
 
     static payDownDebt(message: Message, content: string, args: string[]) {
@@ -509,6 +514,8 @@ export class GamblingCommands {
                 if (hasDebtPenalty === "true" && newTotal < 20000) {
                     message.reply("Du har senket lånet ditt til under 20.000 chips. Banken fjerner strafferenten (for nå) :)")
                     DatabaseHelper.setValue("debtPenalty", username, "false")
+                    //Resett multiplier
+                    DatabaseHelper.setValue("debtMultiplier", username, "15")
                 }
                 MessageHelper.sendMessage(message, `Du har nå betalt ned ${wantsToPayDownThisAmount.toFixed(2)} av lånet ditt på ${totalDebt}. Lånet er nå på ${newTotal.toFixed(2)} og du har ${newDogeCoinsCOunter.toFixed(2)} chips igjen.`)
             }
@@ -677,7 +684,7 @@ export class GamblingCommands {
     static readonly rulett: ICommandElement = {
         commandName: "rulett",
         description: "Gambla chipså dine! Skriv inn mengde coins du vil gambla og ikke minst ka du gamble de på, så kan du vinna. Tilbakebetaling blir høyere jo større risiko du tar. Lykke til!"
-        + "\nHer kan du gambla på tall, farge eller partall/oddetall. Eksempel: '!mz rulett 1000 svart",
+            + "\nHer kan du gambla på tall, farge eller partall/oddetall. Eksempel: '!mz rulett 1000 svart",
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.roulette(rawMessage, messageContent, args);
         },

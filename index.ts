@@ -21,7 +21,7 @@ import { globalArrays } from "./globals";
 
 require('dotenv').config();
 
-const polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê)*(ls)(e|a|å)|(pause)|(🌭)|(hotdog)|(sausage)|(hot-dog)/ig);
+const polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê|å|æ|ê|è|é|à|á)*(ls)(e|a|å|o|i)|(pause)|(🌭)|(hotdog)|(sausage)|(hot-dog)/ig);
 let lastUsedCommand = "help";
 export let action_log_channel: TextChannel;
 
@@ -66,7 +66,7 @@ mazariniClient.on('ready', () => {
         })
     });
 
-    const reminSpinJob = schedule.scheduleJob("0 0 * * 7", function () {
+    const reminSpinJob = schedule.scheduleJob("0 21 * * 7", function () {
         console.log("Minner om reset")
         const las_vegas = mazariniClient.channels.cache.get("808992127249678386") as TextChannel;
         if (las_vegas) {
@@ -104,6 +104,7 @@ mazariniClient.on('ready', () => {
 });
 
 mazariniClient.on('message', async (message: Message) => {
+    console.log(message.author.username + ": " + message.content);
 
     //Do not reply to own messages
     if (message.author == mazariniClient.user)
@@ -204,11 +205,14 @@ function checkMessageForJokes(message: Message) {
     let matches;
     let polseCounter = 0;
     polseRegex.lastIndex = 0;
+    console.log(message.embeds[0] + " in checkForJokes");
+
     while (matches = polseRegex.exec(message.content)) {
         if (matches) {
             polseCounter++;
         }
     }
+
     if (message.attachments) {
         if (polseRegex.exec(message.attachments.first()?.name ?? ""))
             polseCounter++;

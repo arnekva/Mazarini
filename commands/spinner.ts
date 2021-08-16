@@ -138,6 +138,8 @@ export class Spinner {
                 DatabaseHelper.setValue("chips", val2[val2.length - 1].key, "0")
             else
                 DatabaseHelper.setValue("chips", val2[val2.length - 1].key, (Number(loser) - 1000).toFixed(1))
+
+            DatabaseHelper.setValue("chips", val2[0].key, (Number(winner) + 1000).toFixed(2))
             highscoreList += `\n ${val2[0].key} har vunnet 1000 chips`
             highscoreList += `\n ${val2[val2.length - 1].key} har mistet 1000 chips.`
         }
