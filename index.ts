@@ -51,9 +51,9 @@ mazariniClient.on('ready', async () => {
         } else {
             if (!lvmsg.content.includes("utviklingsmodus"))
                 las_vegas.send("*Botten er i utviklingsmodus, og denne kanelen er derfor midlertidig stengt. Hvis du tror dette er en feil, tag @Bot-support i #Bot-utvikling*")
-            las_vegas.permissionOverwrites.edit("340626855990132747", { SEND_MESSAGES: environment === "prod" })
         }
     }
+    las_vegas.permissionOverwrites.edit("340626855990132747", { SEND_MESSAGES: environment === "prod" })
     //TODO END
 
 
