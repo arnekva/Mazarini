@@ -3,10 +3,10 @@
 import { commands, ICommandElement } from "./commands/commands"
 import { Admin } from "./admin/admin";
 
-import { Guild, GuildMember, Message, Role, TextChannel, User, Emoji, Intents } from "discord.js";
+import { Guild, GuildMember, Message, Role, TextChannel, User, Emoji, Intents, Interaction, MessageSelectMenu, CommandInteraction, MessageEmbed,  MessageActionRow, MessageButton } from "discord.js";
 import { doesThisMessageNeedAnEivindPride } from "./utils/miscUtils";
 const Discord = require('discord.js');
-const mazariniClient = new Discord.Client({
+export const mazariniClient = new Discord.Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_INVITES, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.GUILD_BANS
         , Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.GUILD_MESSAGE_TYPING, Intents.FLAGS.GUILD_PRESENCES
         , Intents.FLAGS.GUILD_WEBHOOKS]
@@ -345,6 +345,204 @@ mazariniClient.on("warn", function (info: string) {
 mazariniClient.on("error", function (error: Error) {
     MessageHelper.sendMessageToActionLog(mazariniClient.channels.cache.get("810832760364859432") as TextChannel, "En feilmelding ble fanget opp. Error: \n " + error)
 });
+
+mazariniClient.on('interactionCreate', async (interaction : CommandInteraction) => {
+    console.log(interaction);
+    //commandId === /shop
+    if(interaction.commandId === "877136476045967361"){ 
+
+        //Dead Example Code
+        /* const row = new MessageActionRow()
+			.addComponents(
+				new MessageSelectMenu()
+					.setCustomId('select')
+					.setPlaceholder('Nothing selected')
+					.addOptions([
+						{
+							label: 'Select me',
+							description: 'This is a description',
+							value: 'first_option',
+						},
+						{
+							label: 'You can select me too',
+							description: 'This is also a description',
+							value: 'second_option',
+						},
+					]),
+			);
+            const row2 = new MessageActionRow()
+			.addComponents(
+				new MessageSelectMenu()
+					.setCustomId('select1')
+					.setPlaceholder('Nothing selected')
+					.addOptions([
+						{
+							label: 'Select me',
+							description: 'This is a description',
+							value: 'first_option',
+						},
+						{
+							label: 'You can select me too',
+							description: 'This is also a description',
+							value: 'second_option',
+						},
+					]),
+			);
+            const row3 = new MessageActionRow()
+			.addComponents(
+				new MessageSelectMenu()
+					.setCustomId('select2')
+					.setPlaceholder('Nothing selected')
+					.addOptions([
+						{
+							label: 'Select me',
+							description: 'This is a description',
+							value: 'first_option',
+						},
+						{
+							label: 'You can select me too',
+							description: 'This is also a description',
+							value: 'second_option',
+						},
+					]),
+			);
+            const row4 = new MessageActionRow()
+			.addComponents(
+				new MessageButton()
+					.setCustomId('primary')
+					.setLabel('Primary')
+					.setStyle('PRIMARY'),
+			).addComponents(
+				new MessageButton()
+					.setCustomId('primary2')
+					.setLabel('Primary')
+					.setStyle('SECONDARY'),
+			).addComponents(
+				new MessageButton()
+					.setCustomId('primary3')
+					.setLabel('Primary')
+					.setStyle('SUCCESS'),
+			).addComponents(
+				new MessageButton()
+					.setCustomId('primary4')
+					.setLabel('Primary')
+					.setStyle('DANGER'),
+			);
+            const row5 = new MessageActionRow()
+			.addComponents(
+				new MessageButton()
+					.setCustomId('primary6')
+					.setLabel('Primary')
+					.setStyle('PRIMARY'),
+			).addComponents(
+				new MessageButton()
+					.setCustomId('primary7')
+					.setLabel('Primary')
+					.setStyle('SECONDARY'),
+			).addComponents(
+				new MessageButton()
+					.setCustomId('primary8')
+					.setLabel('Primary')
+					.setStyle('SUCCESS'),
+			).addComponents(
+				new MessageButton()
+					.setCustomId('primary9')
+					.setLabel('Primary')
+					.setStyle('DANGER'),
+			);
+            const row6 = new MessageActionRow()
+			.addComponents(
+				new MessageSelectMenu()
+					.setCustomId('select')
+					.setPlaceholder('Nothing selected')
+					.setMinValues(2)
+					.setMaxValues(3)
+					.addOptions([
+						{
+							label: 'Select me',
+							description: 'This is a description',
+							value: 'first_option',
+						},
+						{
+							label: 'You can select me too',
+							description: 'This is also a description',
+							value: 'second_option',
+						},
+						{
+							label: 'I am also an option',
+							description: 'This is a description as well',
+							value: 'third_option',
+						},
+					]),
+			);
+            const embed = new MessageEmbed()
+			.setColor('#0099ff')
+			.setTitle('Some title')
+			.setURL('https://discord.js.org/')
+			.setDescription('Some description here');
+
+		await interaction.reply({ content: 'Pong!',ephemeral: false, embeds: [embed], components: [row6,row5, row2, row3, row4] }); */
+        
+        
+        const embed = new MessageEmbed()
+			.setColor('#FF0000')
+		 	.setTitle('Mazarini shop!')
+		 	.setDescription('Velkommen til Mazarini shop, her kan du få kjøpt leketøy til Eivinds mor!');
+        
+        const row1 = new MessageActionRow().addComponents(
+            new MessageSelectMenu()
+            .setCustomId('MenyValg')
+            .setPlaceholder('Ingen leker valgt!')
+            .addOptions([
+
+                //TODO: Legge til dynamisk Shopliste her
+                				{
+                					label: 'Select me',
+                					description: 'This is a description',
+                					value: 'first_option',
+                				},
+                				{
+                					label: 'You can select me too',
+                					description: 'This is also a description',
+                					value: 'second_option',
+                				},
+                				{
+                					label: 'I am also an option',
+                					description: 'This is a description as well',
+                					value: 'third_option',
+                				},
+                			]),);
+
+        const row2 = new MessageActionRow()
+                .addComponents(
+                
+                //TODO: Legge til pris på kjøp knapp?
+                //TODO: Skifte knapp fra PRIMARY til SUCCESS ved kjøp
+		 		new MessageButton()
+		 			.setCustomId('KJØP')
+					.setLabel('KJØP')
+	    			.setStyle('PRIMARY'),
+
+                //TODO: Bruke blank space til pris
+                new MessageButton()
+                    .setCustomId('blank')
+                    .setLabel('             ')
+                    .setStyle('SECONDARY')
+                    .setDisabled(true),
+                new MessageButton()
+                   .setCustomId('CANCEL')
+                   .setLabel('CANCEL')
+                   .setStyle('DANGER')   
+                )
+
+        await interaction.reply({embeds: [embed], components: [row1, row2]});
+
+
+
+    }
+});
+
+
 
 function findRoleDifference() {
     //TODO: Returner 
