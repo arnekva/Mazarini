@@ -14,6 +14,7 @@ import { write } from "fs";
 import { exception } from "console";
 import { achievementIDs } from "../commands/achievements";
 import { Message } from "discord.js";
+import { shopItem } from "../globals";
 
 //const db = new Database()
 /**
@@ -48,6 +49,10 @@ export interface betObjectReturned {
     negativePeople: string,
     messageId: string,
 }
+
+export interface itemsBoughtAtStore {
+    itemList: shopItem[];
+}
 export class DatabaseHelper {
 
     /**
@@ -67,6 +72,12 @@ export class DatabaseHelper {
     }
     static deleteCountdownValue(id: string) {
         db.delete(`${otherFolderPreifx}/countdown/${id}/`)
+    }
+
+    //FIXME: Denne burde i teorien funka
+    static setStoreItems(key: string, itemList: itemsBoughtAtStore) {
+        const prefix: dbPrefix = "shopItems";
+        db.push(`${folderPrefix}/${key}/${prefix}`, `${itemList}`)
     }
 
     static getAllCountdownValues() {

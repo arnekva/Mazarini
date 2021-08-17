@@ -80,8 +80,7 @@ export class WarzoneCommands {
                 else
                     MessageHelper.sendMessage(message, response)
             } catch (error) {
-                message.reply(error)
-                MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error);
+                MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error + ". Mulig API ikke er offentlig.");
             }
 
         }
