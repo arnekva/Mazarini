@@ -3,7 +3,7 @@
 import { commands, ICommandElement } from "./commands/commands"
 import { Admin } from "./admin/admin";
 
-import { Guild, GuildMember, Message, Role, TextChannel, User, Emoji, Intents, Interaction, MessageSelectMenu, CommandInteraction, MessageEmbed, MessageActionRow, MessageButton } from "discord.js";
+import { Guild, GuildMember, Message, Role, TextChannel, User, Emoji, Intents, Interaction, MessageSelectMenu, CommandInteraction, MessageEmbed, MessageActionRow, MessageButton, MessageSelectOptionData } from "discord.js";
 import { doesThisMessageNeedAnEivindPride } from "./utils/miscUtils";
 const Discord = require('discord.js');
 export const mazariniClient = new Discord.Client({
@@ -22,6 +22,7 @@ import { actSSOCookie, discordSecret, environment } from "./client-env";
 import { MessageUtils } from "./utils/messageUtils";
 import { ArrayUtils } from "./utils/arrayUtils";
 import { globalArrays } from "./globals";
+import { Shop } from "./shop/shopGlobals";
 const API = require('call-of-duty-api')();
 require('dotenv').config();
 
@@ -364,200 +365,142 @@ mazariniClient.on("error", function (error: Error) {
 });
 
 mazariniClient.on('interactionCreate', async (interaction: CommandInteraction) => {
+    
     console.log(interaction);
+
+    
+    let shopDescription = 'Velkommen til Mazarini shop, her kan du få kjøpt leketøy til Eivinds mor! \n \n Handleliste:';
+    Shop.items
+    const embed = new MessageEmbed()
+        .setColor('#FF0000')
+        .setTitle('Mazarini shop!')
+        .setDescription(shopDescription);
+
+
+    let options: MessageSelectOptionData[] = [];
+
+    Shop.items.forEach((item) => {
+
+        options.push({
+            label: `${item.name} (${item.price},-)`,
+            description: item.description,
+            value: item.name
+          })
+        }
+        
+    );
+
+    const menu = new MessageSelectMenu()
+    .setCustomId('MenyValg')
+    .setPlaceholder('Ingen leker valgt!')
+    .setMinValues(1)
+    .addOptions(options)
+
+    const row1 = new MessageActionRow().addComponents(menu);
+
+    const buyButton = new MessageButton()
+    .setCustomId('buy')
+    .setLabel('KJØP')
+    .setStyle('PRIMARY');
+
+    const priceButton = new MessageButton()
+    .setCustomId('blank')
+    .setLabel('             ')
+    .setStyle('SECONDARY')
+    .setDisabled(true) 
+
+    const row2 = new MessageActionRow();
+        
+
     //commandId === /shop
     if (interaction.commandId === "877136476045967361") {
 
-        //Dead Example Code
-        /* const row = new MessageActionRow()
-            .addComponents(
-                new MessageSelectMenu()
-                    .setCustomId('select')
-                    .setPlaceholder('Nothing selected')
-                    .addOptions([
-                        {
-                            label: 'Select me',
-                            description: 'This is a description',
-                            value: 'first_option',
-                        },
-                        {
-                            label: 'You can select me too',
-                            description: 'This is also a description',
-                            value: 'second_option',
-                        },
-                    ]),
-            );
-            const row2 = new MessageActionRow()
-            .addComponents(
-                new MessageSelectMenu()
-                    .setCustomId('select1')
-                    .setPlaceholder('Nothing selected')
-                    .addOptions([
-                        {
-                            label: 'Select me',
-                            description: 'This is a description',
-                            value: 'first_option',
-                        },
-                        {
-                            label: 'You can select me too',
-                            description: 'This is also a description',
-                            value: 'second_option',
-                        },
-                    ]),
-            );
-            const row3 = new MessageActionRow()
-            .addComponents(
-                new MessageSelectMenu()
-                    .setCustomId('select2')
-                    .setPlaceholder('Nothing selected')
-                    .addOptions([
-                        {
-                            label: 'Select me',
-                            description: 'This is a description',
-                            value: 'first_option',
-                        },
-                        {
-                            label: 'You can select me too',
-                            description: 'This is also a description',
-                            value: 'second_option',
-                        },
-                    ]),
-            );
-            const row4 = new MessageActionRow()
-            .addComponents(
-                new MessageButton()
-                    .setCustomId('primary')
-                    .setLabel('Primary')
-                    .setStyle('PRIMARY'),
-            ).addComponents(
-                new MessageButton()
-                    .setCustomId('primary2')
-                    .setLabel('Primary')
-                    .setStyle('SECONDARY'),
-            ).addComponents(
-                new MessageButton()
-                    .setCustomId('primary3')
-                    .setLabel('Primary')
-                    .setStyle('SUCCESS'),
-            ).addComponents(
-                new MessageButton()
-                    .setCustomId('primary4')
-                    .setLabel('Primary')
-                    .setStyle('DANGER'),
-            );
-            const row5 = new MessageActionRow()
-            .addComponents(
-                new MessageButton()
-                    .setCustomId('primary6')
-                    .setLabel('Primary')
-                    .setStyle('PRIMARY'),
-            ).addComponents(
-                new MessageButton()
-                    .setCustomId('primary7')
-                    .setLabel('Primary')
-                    .setStyle('SECONDARY'),
-            ).addComponents(
-                new MessageButton()
-                    .setCustomId('primary8')
-                    .setLabel('Primary')
-                    .setStyle('SUCCESS'),
-            ).addComponents(
-                new MessageButton()
-                    .setCustomId('primary9')
-                    .setLabel('Primary')
-                    .setStyle('DANGER'),
-            );
-            const row6 = new MessageActionRow()
-            .addComponents(
-                new MessageSelectMenu()
-                    .setCustomId('select')
-                    .setPlaceholder('Nothing selected')
-                    .setMinValues(2)
-                    .setMaxValues(3)
-                    .addOptions([
-                        {
-                            label: 'Select me',
-                            description: 'This is a description',
-                            value: 'first_option',
-                        },
-                        {
-                            label: 'You can select me too',
-                            description: 'This is also a description',
-                            value: 'second_option',
-                        },
-                        {
-                            label: 'I am also an option',
-                            description: 'This is a description as well',
-                            value: 'third_option',
-                        },
-                    ]),
-            );
-            const embed = new MessageEmbed()
-            .setColor('#0099ff')
-            .setTitle('Some title')
-            .setURL('https://discord.js.org/')
-            .setDescription('Some description here');
+        row2.addComponents(
+            buyButton,
+            priceButton,
+            new MessageButton()
+                .setCustomId('CANCEL')
+                .setLabel('CANCEL')
+                .setStyle('DANGER')
+        );
 
-        await interaction.reply({ content: 'Pong!',ephemeral: false, embeds: [embed], components: [row6,row5, row2, row3, row4] }); */
+        await interaction.reply({ embeds: [embed], components: [row1, row2], isMessage:true });
+        /* const r = await interaction.fetchReply() as Message;
+        console.log(r);
+        r.delete(); */
+        
 
+    }
+    
+    if(interaction.isSelectMenu()){
+        if(interaction.customId == 'MenyValg'){
+            
+            let price = 0;
+            interaction.values.forEach( value => {
+                const item = findItem(value);
+                shopDescription = shopDescription + '\n - ' + value;
+                price = price + Number(item.price);
+                
+            });
+            
+            priceButton.setLabel(String(price) + ',-');
 
-        const embed = new MessageEmbed()
-            .setColor('#FF0000')
-            .setTitle('Mazarini shop!')
-            .setDescription('Velkommen til Mazarini shop, her kan du få kjøpt leketøy til Eivinds mor!');
+            embed.setDescription(shopDescription);
 
-        const row1 = new MessageActionRow().addComponents(
-            new MessageSelectMenu()
-                .setCustomId('MenyValg')
-                .setPlaceholder('Ingen leker valgt!')
-                .addOptions([
-                    //TODO: Flytt dette i egen fil/klasse
-                    //TODO: Legge til dynamisk Shopliste her
-                    {
-                        label: 'Select me',
-                        description: 'This is a description',
-                        value: 'first_option',
-                    },
-                    {
-                        label: 'You can select me too',
-                        description: 'This is also a description',
-                        value: 'second_option',
-                    },
-                    {
-                        label: 'I am also an option',
-                        description: 'This is a description as well',
-                        value: 'third_option',
-                    },
-                ]));
+            row2.addComponents(
 
-        const row2 = new MessageActionRow()
-            .addComponents(
-
-                //TODO: Legge til pris på kjøp knapp?
-                //TODO: Skifte knapp fra PRIMARY til SUCCESS ved kjøp
-                new MessageButton()
-                    .setCustomId('KJØP')
-                    .setLabel('KJØP')
-                    .setStyle('PRIMARY'),
-
-                //TODO: Bruke blank space til pris
-                new MessageButton()
-                    .setCustomId('blank')
-                    .setLabel('             ')
-                    .setStyle('SECONDARY')
-                    .setDisabled(true),
+                buyButton,
+                priceButton,
                 new MessageButton()
                     .setCustomId('CANCEL')
                     .setLabel('CANCEL')
                     .setStyle('DANGER')
             )
 
-        await interaction.reply({ embeds: [embed], components: [row1, row2] });
-
-
-
+            await interaction.update({ embeds: [embed], components: [row1, row2] });
+        }
     }
+
+    if(interaction.isButton()){
+        if(interaction.customId == 'buy'){
+            
+
+            //TODO: Slette meldingen og utføre handlinger om bruker har nok penger
+            buyButton.setStyle('SUCCESS');
+
+            row2.addComponents(
+
+                buyButton,
+                priceButton,
+                new MessageButton()
+                    .setCustomId('CANCEL')
+                    .setLabel('CANCEL')
+                    .setStyle('DANGER')
+            )
+
+            await interaction.update({ embeds: [embed], components: [row1, row2] });
+        }
+        if(interaction.customId == 'CANCEL'){
+        
+            
+            const melding = await interaction.message as Message;
+            melding.delete();
+            //TODO: Fjerne shop meldingen
+            //await interaction.deleteReply().then((val =>{console.log(val)}));
+            //mazariniClient.channels.cache.get(interaction.id);
+            console.log("TEST!")
+            
+        
+        }
+    }
+
+
 });
+
+
+function findItem(name: string){
+    return Shop.items.filter(item => item.name === name)[0];
+}
 
 
 
