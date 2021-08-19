@@ -21,7 +21,7 @@ import { Spinner } from "./commands/spinner";
 import { actSSOCookie, discordSecret, environment } from "./client-env";
 import { MessageUtils } from "./utils/messageUtils";
 import { ArrayUtils } from "./utils/arrayUtils";
-import { globalArrays } from "./globals";
+import { globalArrays, shopItem } from "./globals";
 import { Shop } from "./shop/shopGlobals";
 const API = require('call-of-duty-api')();
 require('dotenv').config();
@@ -29,6 +29,11 @@ require('dotenv').config();
 const polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê|å|æ|ê|è|é|à|á)*(ls)(e|a|å|o|i)|(pause)|(🌭)|(hotdog)|(sausage)|(hot-dog)/ig);
 let lastUsedCommand = "help";
 export let action_log_channel: TextChannel;
+
+export interface userShoppingCart{
+    cart: shopItem[];
+    user: User;
+}
 
 export const startTime = new Date();
 mazariniClient.on('ready', async () => {
@@ -364,6 +369,10 @@ mazariniClient.on("error", function (error: Error) {
     MessageHelper.sendMessageToActionLog(mazariniClient.channels.cache.get("810832760364859432") as TextChannel, "En feilmelding ble fanget opp. Error: \n " + error)
 });
 
+
+let allShoppingCart: userShoppingCart[] = [];
+
+
 mazariniClient.on('interactionCreate', async (interaction: CommandInteraction) => {
     
     console.log(interaction);
@@ -389,6 +398,7 @@ mazariniClient.on('interactionCreate', async (interaction: CommandInteraction) =
         }
         
     );
+    
 
     const menu = new MessageSelectMenu()
     .setCustomId('MenyValg')
@@ -415,6 +425,11 @@ mazariniClient.on('interactionCreate', async (interaction: CommandInteraction) =
     //commandId === /shop
     if (interaction.commandId === "877136476045967361") {
 
+        allShoppingCart.push({
+            user: interaction.user,
+            cart: []
+        });
+
         row2.addComponents(
             buyButton,
             priceButton,
@@ -424,6 +439,7 @@ mazariniClient.on('interactionCreate', async (interaction: CommandInteraction) =
                 .setStyle('DANGER')
         );
 
+        
         await interaction.reply({ embeds: [embed], components: [row1, row2], isMessage:true });
         /* const r = await interaction.fetchReply() as Message;
         console.log(r);
@@ -432,67 +448,90 @@ mazariniClient.on('interactionCreate', async (interaction: CommandInteraction) =
 
     }
     
+
     if(interaction.isSelectMenu()){
-        if(interaction.customId == 'MenyValg'){
-            
-            let price = 0;
-            interaction.values.forEach( value => {
-                const item = findItem(value);
-                shopDescription = shopDescription + '\n - ' + value;
-                price = price + Number(item.price);
+        if(interaction.message.interaction?.user == interaction.user){
+        
+                if(interaction.customId == 'MenyValg'){
                 
-            });
-            
-            priceButton.setLabel(String(price) + ',-');
+                let shoppingList : shopItem[] = [];
 
-            embed.setDescription(shopDescription);
+                let price = 0;
+                interaction.values.forEach( value => {
+                    const item = findItem(value);
+                    shoppingList.push(item);
+                    shopDescription = shopDescription + '\n - ' + value;
+                    price = price + Number(item.price);
+                    
+                });
 
-            row2.addComponents(
+                allShoppingCart[allShoppingCart.findIndex(spesificCart => spesificCart.user === interaction.user)].cart = shoppingList;
 
-                buyButton,
-                priceButton,
-                new MessageButton()
-                    .setCustomId('CANCEL')
-                    .setLabel('CANCEL')
-                    .setStyle('DANGER')
-            )
+                priceButton.setLabel(String(price) + ',-');
 
-            await interaction.update({ embeds: [embed], components: [row1, row2] });
+                embed.setDescription(shopDescription);
+
+                if (checkAvailability(price, interaction.user.username)){
+                    buyButton.setDisabled(false);
+                    buyButton.setStyle('SUCCESS');
+                }
+                else{
+                    buyButton.setDisabled(true);
+                    buyButton.setStyle('PRIMARY');
+                }
+
+                row2.addComponents(
+
+                    buyButton,
+                    priceButton,
+                    new MessageButton()
+                        .setCustomId('CANCEL')
+                        .setLabel('CANCEL')
+                        .setStyle('DANGER')
+                )
+
+                await interaction.update({ embeds: [embed], components: [row1, row2] });
+            }
         }
+        else interaction.reply({content:"How about no?", ephemeral: true});
     }
 
     if(interaction.isButton()){
-        if(interaction.customId == 'buy'){
+        if(interaction.message.interaction?.user == interaction.user){
+
+            if(interaction.customId == 'buy'){
+                
+
+                console.log(allShoppingCart[allShoppingCart.findIndex(spesificCart => spesificCart.user === interaction.user)].cart);
+
+                
+                //TODO: Slette meldingen og utføre handlinger om bruker har nok penger
+                buyButton.setStyle('SUCCESS');
+
+                row2.addComponents(
+
+                    buyButton,
+                    priceButton,
+                    new MessageButton()
+                        .setCustomId('CANCEL')
+                        .setLabel('CANCEL')
+                        .setStyle('DANGER')
+                )
+
+                await interaction.update({ embeds: [embed], components: [row1, row2] });
+            }
+            if(interaction.customId == 'CANCEL'){
             
-
-            //TODO: Slette meldingen og utføre handlinger om bruker har nok penger
-            buyButton.setStyle('SUCCESS');
-
-            row2.addComponents(
-
-                buyButton,
-                priceButton,
-                new MessageButton()
-                    .setCustomId('CANCEL')
-                    .setLabel('CANCEL')
-                    .setStyle('DANGER')
-            )
-
-            await interaction.update({ embeds: [embed], components: [row1, row2] });
+                
+                const melding = await interaction.message as Message;
+                melding.delete();
+                
+            
+            }
         }
-        if(interaction.customId == 'CANCEL'){
-        
-            
-            const melding = await interaction.message as Message;
-            melding.delete();
-            //TODO: Fjerne shop meldingen
-            //await interaction.deleteReply().then((val =>{console.log(val)}));
-            //mazariniClient.channels.cache.get(interaction.id);
-            console.log("TEST!")
-            
-        
-        }
-    }
+        else interaction.reply({content:"How about no?", ephemeral: true});
+       // MessageHelper.sendErrorMessage('Ikke din butikk bror', interaction.channel);
+}
 
 
 });
@@ -500,6 +539,11 @@ mazariniClient.on('interactionCreate', async (interaction: CommandInteraction) =
 
 function findItem(name: string){
     return Shop.items.filter(item => item.name === name)[0];
+}
+
+//Finne ut om bruker har nok penger til kjøp
+function checkAvailability(amount: Number, username: string){
+    return amount < DatabaseHelper.getValueWithoutMessage("chips", username);
 }
 
 
