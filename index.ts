@@ -75,7 +75,7 @@ mazariniClient.on('ready', async () => {
     mazariniClient.user.setPresence({
         activity: {
             name: "for !mz commands",
-            type: 'WATCHING' //"PLAYING", "STREAMING", "WATCHING", "LISTENING"
+            type: 'STREAMING' //"PLAYING", "STREAMING", "WATCHING", "LISTENING"
         },
         status: 'online'
     })
@@ -430,6 +430,8 @@ mazariniClient.on('interactionCreate', async (interaction: CommandInteraction) =
             cart: []
         });
 
+        buyButton.setDisabled(true);
+
         row2.addComponents(
             buyButton,
             priceButton,
@@ -441,10 +443,6 @@ mazariniClient.on('interactionCreate', async (interaction: CommandInteraction) =
 
         
         await interaction.reply({ embeds: [embed], components: [row1, row2], isMessage:true });
-        /* const r = await interaction.fetchReply() as Message;
-        console.log(r);
-        r.delete(); */
-        
 
     }
     
@@ -501,24 +499,23 @@ mazariniClient.on('interactionCreate', async (interaction: CommandInteraction) =
 
             if(interaction.customId == 'buy'){
                 
+                let shoppingList : shopItem[] = [];
+                shoppingList = allShoppingCart[allShoppingCart.findIndex(spesificCart => spesificCart.user === interaction.user)].cart;
 
-                console.log(allShoppingCart[allShoppingCart.findIndex(spesificCart => spesificCart.user === interaction.user)].cart);
+                let price = 0;
+                shoppingList.forEach( value => {
+                    price = price + Number(value.price);
+                });
 
-                
-                //TODO: Slette meldingen og utføre handlinger om bruker har nok penger
-                buyButton.setStyle('SUCCESS');
+                if(checkAvailability(price, interaction.user.username)){
+                    DatabaseHelper.setValue("chips", interaction.user.username, (Number(DatabaseHelper.getValueWithoutMessage("chips", interaction.user.username)) - price).toString());
+                    
+                    DatabaseHelper.setShoppingList(interaction.user.username, shoppingList);
+                }
+               
 
-                row2.addComponents(
-
-                    buyButton,
-                    priceButton,
-                    new MessageButton()
-                        .setCustomId('CANCEL')
-                        .setLabel('CANCEL')
-                        .setStyle('DANGER')
-                )
-
-                await interaction.update({ embeds: [embed], components: [row1, row2] });
+                //TODO: Fix fjerning av melding
+                await interaction.update({content: "Kjøp utøført", embeds: [], components: []})
             }
             if(interaction.customId == 'CANCEL'){
             
@@ -530,7 +527,6 @@ mazariniClient.on('interactionCreate', async (interaction: CommandInteraction) =
             }
         }
         else interaction.reply({content:"How about no?", ephemeral: true});
-       // MessageHelper.sendErrorMessage('Ikke din butikk bror', interaction.channel);
 }
 
 

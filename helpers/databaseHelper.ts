@@ -103,6 +103,24 @@ export class DatabaseHelper {
         db.push(`${otherFolderPreifx}/activeBet/${key}/description`, `${value.description}`)
         db.push(`${otherFolderPreifx}/activeBet/${key}/messageId`, `${value.messageId}`)
     }
+
+    static setShoppingList(username: string, shopItems: shopItem[]) {
+        shopItems.forEach(item => {
+            db.push(`${folderPrefix}/${username}/shop/${item.name}/name`, `${item.name}`);
+            db.push(`${folderPrefix}/${username}/shop/${item.name}/price`, `${item.price}`);
+            db.push(`${folderPrefix}/${username}/shop/${item.name}/description`, `${item.description}`);
+            try{
+               let mengde = db.getData(`${folderPrefix}/${username}/shop/${item.name}/amount`) + 1;
+               db.push(`${folderPrefix}/${username}/shop/${item.name}/amount`, mengde);
+ 
+            }
+            catch(error){
+                db.push(`${folderPrefix}/${username}/shop/${item.name}/amount`, 1);
+            }           
+
+        });
+    }
+
     static getActiveBetObject(key: string,) {
         try {
             const data = db.getData(`${otherFolderPreifx}/activeBet/${key}`)
