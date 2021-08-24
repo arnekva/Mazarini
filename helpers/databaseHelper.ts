@@ -32,7 +32,7 @@ export interface dbObject {
 }
 
 export type dbPrefix = "spin" | "birthday" | "stock" | "mygling" | "week" | "counterSpin" | "ATHspin" | "sCounterWeeklySpin" | "chips" | "bailout" | "warningCounter" | "dogeCoin" | "test" | "achievement" | "bonkCounter" | "lastFmUsername"
-    | "loanCounter" | "debt" | "debtPenalty" | "debtMultiplier" | "shopItems";
+    | "loanCounter" | "debt" | "debtPenalty" | "debtMultiplier" | "shopItems" | "inventory";
 
 export interface betObject {
     description: string,
@@ -106,16 +106,16 @@ export class DatabaseHelper {
 
     static setShoppingList(username: string, shopItems: shopItem[]) {
         shopItems.forEach(item => {
-            db.push(`${folderPrefix}/${username}/shop/${item.name}/name`, `${item.name}`);
-            db.push(`${folderPrefix}/${username}/shop/${item.name}/price`, `${item.price}`);
-            db.push(`${folderPrefix}/${username}/shop/${item.name}/description`, `${item.description}`);
+            db.push(`${folderPrefix}/${username}/inventory/${item.name}/name`, `${item.name}`);
+            db.push(`${folderPrefix}/${username}/inventory/${item.name}/price`, `${item.price}`);
+            db.push(`${folderPrefix}/${username}/inventory/${item.name}/description`, `${item.description}`);
             try{
-               let mengde = db.getData(`${folderPrefix}/${username}/shop/${item.name}/amount`) + 1;
-               db.push(`${folderPrefix}/${username}/shop/${item.name}/amount`, mengde);
+               let mengde = db.getData(`${folderPrefix}/${username}/inventory/${item.name}/amount`) + 1;
+               db.push(`${folderPrefix}/${username}/inventory/${item.name}/amount`, mengde);
  
             }
             catch(error){
-                db.push(`${folderPrefix}/${username}/shop/${item.name}/amount`, 1);
+                db.push(`${folderPrefix}/${username}/inventory/${item.name}/amount`, 1);
             }           
 
         });
