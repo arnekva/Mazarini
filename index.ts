@@ -3,7 +3,7 @@
 import { commands, ICommandElement } from "./commands/commands"
 import { Admin } from "./admin/admin";
 
-import { Guild, GuildMember, Message, Role, TextChannel, User, Emoji, Intents, Interaction, MessageSelectMenu, CommandInteraction, MessageEmbed, MessageActionRow, MessageButton, MessageSelectOptionData } from "discord.js";
+import { Guild, GuildMember, Message, Role, TextChannel, User, Emoji, Intents, Interaction, MessageSelectMenu, CommandInteraction, MessageEmbed, MessageActionRow, MessageButton, MessageSelectOptionData, ContextMenuInteraction } from "discord.js";
 import { doesThisMessageNeedAnEivindPride } from "./utils/miscUtils";
 const Discord = require('discord.js');
 export const mazariniClient = new Discord.Client({
@@ -33,6 +33,13 @@ export let action_log_channel: TextChannel;
 export interface userShoppingCart{
     cart: shopItem[];
     user: User;
+}
+
+export interface inventoryItem{
+    name: string;
+    description: string;
+    price: string;
+    amount: Number;
 }
 
 export const startTime = new Date();
@@ -379,7 +386,7 @@ mazariniClient.on('interactionCreate', async (interaction: CommandInteraction) =
 
     
     let shopDescription = 'Velkommen til Mazarini shop, her kan du få kjøpt leketøy til Eivinds mor! \n \n Handleliste:';
-    Shop.items
+ //   Shop.items
     const embed = new MessageEmbed()
         .setColor('#FF0000')
         .setTitle('Mazarini shop!')
@@ -445,11 +452,80 @@ mazariniClient.on('interactionCreate', async (interaction: CommandInteraction) =
         await interaction.reply({ embeds: [embed], components: [row1, row2], isMessage:true });
 
     }
+
+    //commandID ==== /inventory
+    if(interaction.commandId === "879251024475467807"){
+
+        let inventoryDescription = "Whalekøm to your inventøry. You currently possess:";
+
+        let inventoryItems: inventoryItem[] = DatabaseHelper.getValueWithoutMessage("inventory", interaction.user.username);
+        Object.values(inventoryItems).forEach((item : inventoryItem) => { 
+            if(item.amount > 0){
+                inventoryDescription =  inventoryDescription + "\n" + " - " + item.name + " x"  + item.amount; 
+            } 
+        });
+
+        const inventoryEmbed = new MessageEmbed()
+        .setColor('#FFC0CB')
+        .setTitle(`Your inventøry - ${interaction.user.username}!`)
+        .setDescription(inventoryDescription);
+        await interaction.reply({ embeds: [inventoryEmbed]});
+
+    }
+
+    //commandID === Use Item -> User Command
+    if(interaction.commandId === "879333334784823316"){
+
+        
+        const menuInteraction = interaction as ContextMenuInteraction
+        const user = mazariniClient.users.cache.find((user : User) => user.id === menuInteraction.targetId); 
+
+        let itemOptions: MessageSelectOptionData[] = [];
+
+        let inventoryItems: inventoryItem[] = DatabaseHelper.getValueWithoutMessage("inventory", interaction.user.username);
+
+        Object.values(inventoryItems).forEach((item : inventoryItem) => { 
     
+            itemOptions.push({
+                label: `${item.name} x${item.amount}`,
+                description: item.description,
+                value: item.name
+              })
+            }
+            
+        );
+        
+    
+        const itemMenu = new MessageSelectMenu()
+        .setCustomId('itemMeny')
+        .setPlaceholder('Ingenting valgt!')
+        .addOptions(itemOptions);
+
+        const useEmbeded = new MessageEmbed()
+        .setColor('#00ffe7')
+        .setTitle(`Use item on - ${user.username}!`)
+        .setDescription(`Bruk noe fra lommen din på ${user.username}!`)
+        .setImage(user.avatarURL());
+
+        const rad1 = new MessageActionRow();
+        rad1.addComponents(itemMenu)
+
+        await interaction.reply({ embeds: [useEmbeded], components: [rad1]});
+
+    }
+    
+
 
     if(interaction.isSelectMenu()){
         if(interaction.message.interaction?.user == interaction.user){
         
+                if(interaction.customId == 'itemMeny'){
+                    //TODO: Fjerne en item
+                    //TODO: Legge til respons
+                    //TODO: Gi item til ønsket bruker
+                    //TODO: Opprette en inventory som ikke kan endres på en bruker
+                }
+
                 if(interaction.customId == 'MenyValg'){
                 
                 let shoppingList : shopItem[] = [];
@@ -515,7 +591,7 @@ mazariniClient.on('interactionCreate', async (interaction: CommandInteraction) =
                
 
                 //TODO: Fix fjerning av melding
-                await interaction.update({content: "Kjøp utøført", embeds: [], components: []})
+                await interaction.update({content: "https://memegenerator.net/img/instances/80586825/thank-you-come-again.jpg", embeds: [], components: []})
             }
             if(interaction.customId == 'CANCEL'){
             
