@@ -32,7 +32,7 @@ export interface dbObject {
 }
 
 export type dbPrefix = "spin" | "birthday" | "stock" | "mygling" | "week" | "counterSpin" | "ATHspin" | "sCounterWeeklySpin" | "chips" | "bailout" | "warningCounter" | "dogeCoin" | "test" | "achievement" | "bonkCounter" | "lastFmUsername"
-    | "loanCounter" | "debt" | "debtPenalty" | "debtMultiplier" | "shopItems" | "inventory";
+    | "loanCounter" | "debt" | "debtPenalty" | "debtMultiplier" | "shopItems" | "inventory" | "debuff";
 
 export interface betObject {
     description: string,
@@ -40,6 +40,11 @@ export interface betObject {
     positivePeople: string[],
     negativePeople: string[],
     messageId: string,
+}
+
+export interface debuffItem {
+    item: string,
+    amount: number,
 }
 export interface betObjectReturned {
     discriminator: "BETOBJECT",
@@ -121,6 +126,40 @@ export class DatabaseHelper {
         });
     }
 
+    static increaseDebuff(target: string, item: string ){
+
+        try{
+            const mengde = db.getData(`${folderPrefix}/${target}/debuff/${item}/amount`);
+            if(mengde <= 0 || mengde == undefined){
+
+                db.push(`${folderPrefix}/${target}/debuff/${item}/name`, `${item}`);
+                db.push(`${folderPrefix}/${target}/debuff/${item}/amount`, `1`);
+            }
+            else{
+                db.push(`${folderPrefix}/${target}/debuff/${item}/amount`, mengde + 1 );
+            }
+        }
+        catch(error){
+
+            db.push(`${folderPrefix}/${target}/debuff/${item}/name`, `${item}`);
+            db.push(`${folderPrefix}/${target}/debuff/${item}/amount`, 1 );   
+        }
+    }
+    /*    static decreaseInventoryItem(item: String, username: String){
+        try{
+            const mengde = db.getData(`${folderPrefix}/${username}/inventory/${item}/amount`) - 1;
+            if(mengde <= 0){
+                db.delete(`${folderPrefix}/${username}/inventory/${item}`);
+            }
+            else{
+                db.push(`${folderPrefix}/${username}/inventory/${item}/amount`, mengde);
+            }
+         }
+         catch(error){
+             return;
+         }  
+    } */
+
     static getActiveBetObject(key: string,) {
         try {
             const data = db.getData(`${otherFolderPreifx}/activeBet/${key}`)
@@ -149,6 +188,20 @@ export class DatabaseHelper {
         const newVal = Number(oldValue) - Number(decrement);
 
         DatabaseHelper.setValue(prefix, key, newVal > 0 ? newVal.toFixed(2) : "0.00")
+    }
+    static decreaseInventoryItem(item: String, username: String){
+        try{
+            const mengde = db.getData(`${folderPrefix}/${username}/inventory/${item}/amount`) - 1;
+            if(mengde <= 0){
+                db.delete(`${folderPrefix}/${username}/inventory/${item}`);
+            }
+            else{
+                db.push(`${folderPrefix}/${username}/inventory/${item}/amount`, mengde);
+            }
+         }
+         catch(error){
+             return;
+         }  
     }
     static getAchievement(prefix: dbPrefix, key: string, achievementID: achievementIDs) {
         let data;

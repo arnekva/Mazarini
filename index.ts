@@ -14,7 +14,7 @@ export const mazariniClient = new Discord.Client({
 const schedule = require('node-schedule');
 const diff = require('deep-diff');
 import didYouMean from 'didyoumean2'
-import { DatabaseHelper } from "./helpers/databaseHelper";
+import { DatabaseHelper, debuffItem } from "./helpers/databaseHelper";
 
 import { MessageHelper } from "./helpers/messageHelper";
 import { Spinner } from "./commands/spinner";
@@ -41,6 +41,7 @@ export interface inventoryItem{
     price: string;
     amount: Number;
 }
+
 
 export const startTime = new Date();
 mazariniClient.on('ready', async () => {
@@ -378,15 +379,14 @@ mazariniClient.on("error", function (error: Error) {
 
 
 let allShoppingCart: userShoppingCart[] = [];
+let targetBruker: string;
 
 
 mazariniClient.on('interactionCreate', async (interaction: CommandInteraction) => {
     
-    console.log(interaction);
 
     
     let shopDescription = 'Velkommen til Mazarini shop, her kan du få kjøpt leketøy til Eivinds mor! \n \n Handleliste:';
- //   Shop.items
     const embed = new MessageEmbed()
         .setColor('#FF0000')
         .setTitle('Mazarini shop!')
@@ -457,19 +457,44 @@ mazariniClient.on('interactionCreate', async (interaction: CommandInteraction) =
     if(interaction.commandId === "879251024475467807"){
 
         let inventoryDescription = "Whalekøm to your inventøry. You currently possess:";
+        let debuffDescription = "Yøur debuffs:"
 
         let inventoryItems: inventoryItem[] = DatabaseHelper.getValueWithoutMessage("inventory", interaction.user.username);
-        Object.values(inventoryItems).forEach((item : inventoryItem) => { 
-            if(item.amount > 0){
-                inventoryDescription =  inventoryDescription + "\n" + " - " + item.name + " x"  + item.amount; 
-            } 
-        });
+        console.log(inventoryItems);
+
+        if(inventoryItems){
+            Object.values(inventoryItems).forEach((item : inventoryItem) => { 
+                if(item.amount > 0){
+                    inventoryDescription =  inventoryDescription + "\n" + " - " + item.name + " x"  + item.amount; 
+                } 
+            });
+        }
+
+        
+        let debuffItems: debuffItem[] = DatabaseHelper.getValueWithoutMessage("debuff", interaction.user.username);
+        console.log(debuffItems);
+        if(debuffItems){
+            Object.values(debuffItems).forEach((debuff : debuffItem) => { 
+                if(debuff.amount > 0){
+                    debuffDescription =  debuffDescription + "\n" + " - " + debuff.item + " x"  + debuff.amount; 
+                } 
+            });
+        }
+        
 
         const inventoryEmbed = new MessageEmbed()
         .setColor('#FFC0CB')
         .setTitle(`Your inventøry - ${interaction.user.username}!`)
         .setDescription(inventoryDescription);
-        await interaction.reply({ embeds: [inventoryEmbed]});
+
+        
+        const debuffEmbed = new MessageEmbed()
+        .setColor('#800080')
+        .setTitle(`Your debuffs - ${interaction.user.username}!`)
+        .setDescription(debuffDescription);
+      
+      
+        await interaction.reply({ embeds: [inventoryEmbed, debuffEmbed]});
 
     }
 
@@ -494,8 +519,8 @@ mazariniClient.on('interactionCreate', async (interaction: CommandInteraction) =
             }
             
         );
-        
-    
+
+
         const itemMenu = new MessageSelectMenu()
         .setCustomId('itemMeny')
         .setPlaceholder('Ingenting valgt!')
@@ -510,6 +535,7 @@ mazariniClient.on('interactionCreate', async (interaction: CommandInteraction) =
         const rad1 = new MessageActionRow();
         rad1.addComponents(itemMenu)
 
+        targetBruker = user.username;
         await interaction.reply({ embeds: [useEmbeded], components: [rad1]});
 
     }
@@ -520,10 +546,12 @@ mazariniClient.on('interactionCreate', async (interaction: CommandInteraction) =
         if(interaction.message.interaction?.user == interaction.user){
         
                 if(interaction.customId == 'itemMeny'){
-                    //TODO: Fjerne en item
-                    //TODO: Legge til respons
-                    //TODO: Gi item til ønsket bruker
-                    //TODO: Opprette en inventory som ikke kan endres på en bruker
+                    
+                    DatabaseHelper.decreaseInventoryItem(interaction.values[0],interaction.user.username);
+                    
+                    DatabaseHelper.increaseDebuff(targetBruker, interaction.values[0]);
+                    
+                    await interaction.update({content: "https://i.imgflip.com/5km2hi.jpg", embeds: [], components: []});
                 }
 
                 if(interaction.customId == 'MenyValg'){
@@ -538,7 +566,7 @@ mazariniClient.on('interactionCreate', async (interaction: CommandInteraction) =
                     price = price + Number(item.price);
                     
                 });
-
+  
                 allShoppingCart[allShoppingCart.findIndex(spesificCart => spesificCart.user === interaction.user)].cart = shoppingList;
 
                 priceButton.setLabel(String(price) + ',-');
@@ -589,8 +617,6 @@ mazariniClient.on('interactionCreate', async (interaction: CommandInteraction) =
                     DatabaseHelper.setShoppingList(interaction.user.username, shoppingList);
                 }
                
-
-                //TODO: Fix fjerning av melding
                 await interaction.update({content: "https://memegenerator.net/img/instances/80586825/thank-you-come-again.jpg", embeds: [], components: []})
             }
             if(interaction.customId == 'CANCEL'){
