@@ -373,7 +373,7 @@ mazariniClient.on("reconnecting", function () {
   console.log(`client tries to reconnect to the WebSocket`);
 });
 mazariniClient.on("disconnect", function () {
-  console.log(`Disconnected`);
+  console.log(`WS disconnected`);
 });
 mazariniClient.on("error", function (error: any) {
   console.error(`client's WebSocket encountered a connection error: ${error}`);
