@@ -282,7 +282,7 @@ export class Admin {
     }
     static readonly sendMsgAsBot: ICommandElement = {
         commandName: 'send',
-        description: 'send en melding som boten. <channel id> -m <melding>',
+        description: 'send en melding som boten. <channel id> <melding>',
         hideFromListing: true,
         isAdmin: true,
         command: (rawMessage: Message, messageContent: string) => {
