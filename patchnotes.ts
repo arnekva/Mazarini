@@ -1,12 +1,4 @@
-import {
-    Channel,
-    Client,
-    DMChannel,
-    NewsChannel,
-    TextChannel,
-    Message,
-    MessageFlags,
-} from 'discord.js'
+import { Channel, Client, DMChannel, NewsChannel, TextChannel, Message, MessageFlags } from 'discord.js'
 import { ICommandElement } from './commands/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes {
@@ -15,21 +7,22 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = '3.1.0'
+    public static readonly currentVersion = '3.2.0'
 
     /** Private, brukes kun av getCurrentPatchNotes */
-    private static readonly header =
-        'Patch notes for versjon ' + PatchNotes.currentVersion
+    private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     /** Separer hver linje med \n (linebreak), og start med en stjerne (*). Skriv generelt hva som er endret
      * Eks: Senket sannsynligheten for å få høye tall på spinneren
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv.
      */
     public static readonly currentPatchNotes: string =
-        `* Botten får nå displaynavn "Bot Høie (TEST)" når den kjører i develop mode` +
-        `\n* Botten svarer nå *kun* i #Bot-utvikling når den er i TEST-modus, og botten i production modus vil *ikke* svare i #Bot-utvikling` +
-        `\n* Bedre feilhåndtering for stengt COD API.` +
-        `\n* Fikset multiplier i gambling`
+        `* Fikset kræsj på admin 'send' ved bruk av to eller flere parametersplittere` +
+        `\n* Bet multiplier er fikset (igjen)` +
+        `\n* setvalue er ikke lenger superadmin, kun admin` +
+        `\n* Fikset feil der #las_vegas ble stengt i prod` +
+        `\n* Prod-bot ignorerer nå #bot-spam i stedet for #bot-utvikling` +
+        `\n* Ny command 'fese'`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
@@ -54,11 +47,7 @@ export class PatchNotes {
         command: (rawMessage: Message, messageContent: string) => {
             MessageFlags
             const pn = PatchNotes.getCurrentPatchNotes()
-            MessageHelper.sendMessageToSpecificChannel(
-                '802716150484041751',
-                pn,
-                rawMessage.channel as TextChannel
-            )
+            MessageHelper.sendMessageToSpecificChannel('802716150484041751', pn, rawMessage.channel as TextChannel)
         },
         category: 'admin',
     }

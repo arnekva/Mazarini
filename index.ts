@@ -68,18 +68,13 @@ mazariniClient.on('ready', async () => {
     action_log_channel = mazariniClient.channels.cache.get('810832760364859432')
 
     //TODO: Move this into own function
-    const las_vegas = mazariniClient.channels.cache.get(
-        '808992127249678386'
-    ) as TextChannel
+    const las_vegas = mazariniClient.channels.cache.get('808992127249678386') as TextChannel
     las_vegas.permissionOverwrites.edit('340626855990132747', {
         SEND_MESSAGES: true,
     })
-    const lvmsg = (await las_vegas.messages.fetch({ limit: 5 })).first()
+    const lvmsg = (await las_vegas.messages.fetch({ limit: 1 })).first()
     if (lvmsg?.content) {
-        if (
-            lvmsg.content.includes('utviklingsmodus') &&
-            environment === 'prod'
-        ) {
+        if (lvmsg.content.includes('utviklingsmodus') && environment === 'prod') {
             lvmsg.delete()
         } else {
             if (!lvmsg.content.includes('utviklingsmodus'))
@@ -94,14 +89,10 @@ mazariniClient.on('ready', async () => {
     //TODO END
 
     const today = new Date()
-    const time =
-        today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()
+    const time = today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()
     console.log(`Logged in as ${mazariniClient.user.tag} ${time} !`)
     if (environment == 'prod') {
-        MessageHelper.sendMessageToActionLog(
-            action_log_channel,
-            'Boten er nå live i production mode.'
-        )
+        MessageHelper.sendMessageToActionLog(action_log_channel, 'Boten er nå live i production mode.')
     }
     if (args[0] == 'crashed') {
         MessageHelper.sendMessageToActionLog(
@@ -128,29 +119,18 @@ mazariniClient.on('ready', async () => {
         console.log('Får penger av NAV kl 08:00')
         const brukere = await DatabaseHelper.getAllUsers()
         Object.keys(brukere).forEach((username: string) => {
-            const currentBalance = DatabaseHelper.getValueWithoutMessage(
-                'dogeCoin',
-                username
-            )
+            const currentBalance = DatabaseHelper.getValueWithoutMessage('dogeCoin', username)
             const newBalance = Number(currentBalance) + 200
-            DatabaseHelper.setValue(
-                'dogeCoin',
-                username.toString(),
-                newBalance.toString()
-            )
+            DatabaseHelper.setValue('dogeCoin', username.toString(), newBalance.toString())
         })
     })
 
     const reminSpinJob = schedule.scheduleJob('0 21 * * 7', function () {
         console.log('Minner om reset')
-        const las_vegas = mazariniClient.channels.cache.get(
-            '808992127249678386'
-        ) as TextChannel
+        const las_vegas = mazariniClient.channels.cache.get('808992127249678386') as TextChannel
         if (las_vegas) {
             // MessageHelper.sendMessage(las_vegas, )
-            las_vegas.send(
-                'Husk at ukens spin resetter i morgen klokken 09:00! '
-            )
+            las_vegas.send('Husk at ukens spin resetter i morgen klokken 09:00! ')
         } else {
             console.log('Fant ikke channelen las_vegas i reminSpinJob')
         }
@@ -158,23 +138,18 @@ mazariniClient.on('ready', async () => {
 
     const resetSpinJob = schedule.scheduleJob('0 9 * * 1', async function () {
         console.log('Kjører resett av spins, mandag 09:00')
-        const las_vegas =
-            mazariniClient.channels.cache.get('808992127249678386')
+        const las_vegas = mazariniClient.channels.cache.get('808992127249678386')
         if (!las_vegas) {
             console.log('Fant ikke last_vegas i resetSpinJob')
             return
         }
         const spinnerMention = '<@&823504322213838888>'
-        const message = await las_vegas.send(
-            spinnerMention +
-                ', ukens spin har blitt nullstilt. Her er ukens score:\n'
-        )
+        const message = await las_vegas.send(spinnerMention + ', ukens spin har blitt nullstilt. Her er ukens score:\n')
         await Spinner.listScores(message, true)
         Spinner.updateATH()
         DatabaseHelper.deleteSpecificPrefixValues('spin')
 
-        const spinnerRole =
-            mazariniClient.guild.roles.fetch('823504322213838888')
+        const spinnerRole = mazariniClient.guild.roles.fetch('823504322213838888')
 
         //TODO: Pass på at dene funker. Hvis den gjør det, kan vi unngå at den logger til action_log?
         // try {
@@ -191,14 +166,10 @@ mazariniClient.on('ready', async () => {
         //     )
         // }
     })
-    const guild = mazariniClient.guilds.cache.find(
-        (g: Guild) => g.id === '340626855990132747'
-    ) as Guild
+    const guild = mazariniClient.guilds.cache.find((g: Guild) => g.id === '340626855990132747') as Guild
     guild.members.cache.find((member) => member.id === '802945796457758760')
 
-    const bot = guild.members.cache.find(
-        (member) => member.id === '802945796457758760'
-    )
+    const bot = guild.members.cache.find((member) => member.id === '802945796457758760')
     bot?.setNickname(environment === 'dev' ? 'Bot Høie (TEST)' : 'Bot Høie')
 
     //Set username to (TEST) while on dev
@@ -223,10 +194,10 @@ mazariniClient.on('messageCreate', async (message: Message) => {
 function isLegalChannel(message: Message) {
     return (
         (environment === 'dev' &&
-            (message.channel.id === '802716150484041751' ||
-                message.channel.id === '778599907933159434' ||
+            (message.channel.id === '880493116648456222' ||
+                message.channel.id === '880493116648456222' ||
                 message.channel.id === '342009170318327831')) ||
-        (environment === 'prod' && message.channel.id !== '802716150484041751')
+        (environment === 'prod' && message.channel.id !== '880493116648456222')
     )
 }
 async function checkForCommand(message: Message) {
@@ -245,9 +216,7 @@ async function checkForCommand(message: Message) {
         const messageContent = message.content.split(' ').slice(2).join(' ') // message.content.replace("!mz " + cmd.commandName, "").replace("!Mz " + cmd.commandName, "").replace("!MZ " + cmd.commandName, "").trim()
         const args = !!messageContent ? messageContent.split(' ') : []
         if (message.content.toLowerCase().startsWith('!mz ja')) {
-            const lastCommand = commands.filter(
-                (cmd) => cmd.commandName == lastUsedCommand
-            )[0]
+            const lastCommand = commands.filter((cmd) => cmd.commandName == lastUsedCommand)[0]
             if (lastCommand) {
                 runCommandElement(lastCommand, message, messageContent, args)
                 return
@@ -261,9 +230,7 @@ async function checkForCommand(message: Message) {
                 cmdFound = runCommandElement(cmd, message, messageContent, args)
             }
         })
-        const kekw = await message.client.emojis.cache.find(
-            (emoji) => emoji.name == 'kekw_animated'
-        )
+        const kekw = await message.client.emojis.cache.find((emoji) => emoji.name == 'kekw_animated')
         if (!cmdFound) {
             const commandNames: string[] = []
             commands.forEach((el) => commandNames.push(el.commandName))
@@ -277,54 +244,37 @@ async function checkForCommand(message: Message) {
                     "' fins ikkje <a:kekw_animated:" +
                     kekw?.id +
                     '> .' +
-                    (matched
-                        ? ' Mente du **' + matched + '**?'
-                        : ' Prøv !mz help')
+                    (matched ? ' Mente du **' + matched + '**?' : ' Prøv !mz help')
             )
         }
     } else if (message.content.startsWith('!mz')) {
         message.reply("du må ha mellomrom etter '!mz' og kommandoen.")
-    } else if (
-        message.mentions.users.find((user) => user.username == 'Mazarini Bot')
-    ) {
-        message.reply(
-            ArrayUtils.randomChoiceFromArray(globalArrays.bentHoieLines)
-        )
+    } else if (message.mentions.users.find((user) => user.id == '802945796457758760')) {
+        message.reply(ArrayUtils.randomChoiceFromArray(globalArrays.bentHoieLines))
     }
 }
 
-function runCommandElement(
-    cmd: ICommandElement,
-    message: Message,
-    messageContent: string,
-    args: string[]
-) {
+function runCommandElement(cmd: ICommandElement, message: Message, messageContent: string, args: string[]) {
     //Remove '!mz <command name>' from the content to avoid repeating this process in each function.
 
     if (cmd.isSuperAdmin) {
         if (Admin.isAuthorSuperAdmin(message.member)) {
             cmd.command(message, messageContent, args)
         } else {
-            MessageHelper.sendMessageToActionLogWithInsufficientRightsMessage(
-                message
-            )
+            MessageHelper.sendMessageToActionLogWithInsufficientRightsMessage(message)
         }
     } else if (cmd.isAdmin) {
         if (Admin.isAuthorAdmin(message.member)) {
             cmd.command(message, messageContent, args)
         } else {
-            MessageHelper.sendMessageToActionLogWithInsufficientRightsMessage(
-                message
-            )
+            MessageHelper.sendMessageToActionLogWithInsufficientRightsMessage(message)
         }
     } else {
         try {
             if (!!cmd.deprecated)
                 MessageHelper.sendMessage(
                     message,
-                    '*Denne funksjoner er markert som deprecated/utfaset. Bruk **' +
-                        cmd.deprecated +
-                        '*** *i stedet*'
+                    '*Denne funksjoner er markert som deprecated/utfaset. Bruk **' + cmd.deprecated + '*** *i stedet*'
                 )
             if (environment === 'dev')
                 MessageHelper.sendMessage(
@@ -334,19 +284,14 @@ function runCommandElement(
             cmd.command(message, messageContent, args)
         } catch (error) {
             //!mz maggi feiler en gang i blant, så prøver å fange den og printe stacktrace i action_log.
-            MessageHelper.sendMessageToActionLogWithDefaultMessage(
-                message,
-                error
-            )
+            MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
         }
     }
     return true
 }
 /** Checks for pølse, eivindpride etc. */
 function checkMessageForJokes(message: Message) {
-    const kekw = message.client.emojis.cache.find(
-        (emoji) => emoji.name == 'kekw_animated'
-    )
+    const kekw = message.client.emojis.cache.find((emoji) => emoji.name == 'kekw_animated')
     let matches
     let polseCounter = 0
     polseRegex.lastIndex = 0
@@ -358,30 +303,19 @@ function checkMessageForJokes(message: Message) {
     }
 
     if (message.attachments) {
-        if (polseRegex.exec(message.attachments.first()?.name ?? ''))
-            polseCounter++
+        if (polseRegex.exec(message.attachments.first()?.name ?? '')) polseCounter++
     }
 
     if (polseCounter > 0)
         message.channel.send(
-            'Hæ, ' +
-                (polseCounter > 1 ? polseCounter + ' ' : '') +
-                'pølse' +
-                (polseCounter > 1 ? 'r' : '') +
-                '?'
+            'Hæ, ' + (polseCounter > 1 ? polseCounter + ' ' : '') + 'pølse' + (polseCounter > 1 ? 'r' : '') + '?'
         )
 
     //If eivind, eivindpride him
     if (message.author.id == '239154365443604480' && message.guild) {
-        const react = message.guild.emojis.cache.find(
-            (emoji) => emoji.name == 'eivindpride'
-        )
+        const react = message.guild.emojis.cache.find((emoji) => emoji.name == 'eivindpride')
         //check for 10% chance of eivindpriding
-        if (
-            doesThisMessageNeedAnEivindPride(message.content, polseCounter) &&
-            react
-        )
-            message.react(react)
+        if (doesThisMessageNeedAnEivindPride(message.content, polseCounter) && react) message.react(react)
     }
     if (
         message.author.id == '733320780707790898' &&
@@ -394,22 +328,14 @@ function checkMessageForJokes(message: Message) {
     }
     const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message)
     if (idJoke == '1337') {
-        message.reply(
-            'nice, id-en te meldingen din inneholde 1337. Gz, du har vonne 100 coins'
-        )
-        DatabaseHelper.incrementValue(
-            'dogeCoin',
-            message.author.username,
-            '100'
-        )
+        message.reply('nice, id-en te meldingen din inneholde 1337. Gz, du har vonne 100 coins')
+        DatabaseHelper.incrementValue('dogeCoin', message.author.username, '100')
     }
 }
 
 /** Login client */
 if (discordSecret.includes('insert'))
-    throw new TypeError(
-        '**FEIL** Klienten mangler Discord Secret Token i client-env.ts'
-    )
+    throw new TypeError('**FEIL** Klienten mangler Discord Secret Token i client-env.ts')
 else mazariniClient.login(discordSecret)
 
 mazariniClient.on('reconnecting', function () {
@@ -423,23 +349,14 @@ mazariniClient.on('error', function (error: any) {
 })
 
 mazariniClient.on('channelCreate', function (channel: TextChannel) {
-    MessageHelper.sendMessageToActionLog(
-        channel,
-        'Ny channel opprettet: ' + channel.name
-    )
+    MessageHelper.sendMessageToActionLog(channel, 'Ny channel opprettet: ' + channel.name)
 })
 mazariniClient.on('channelDelete', function (channel: TextChannel) {
-    MessageHelper.sendMessageToActionLog(
-        channel,
-        'Channel slettet: ' + channel.name
-    )
+    MessageHelper.sendMessageToActionLog(channel, 'Channel slettet: ' + channel.name)
 })
 
 mazariniClient.on('guildBanAdd', function (guild: Guild, user: User) {
-    MessageHelper.sendMessageToActionLog(
-        guild.channels.cache.first() as TextChannel,
-        'Bruker ble bannet: ' + user.tag
-    )
+    MessageHelper.sendMessageToActionLog(guild.channels.cache.first() as TextChannel, 'Bruker ble bannet: ' + user.tag)
 })
 
 mazariniClient.on('guildCreate', function (guild: Guild) {
@@ -452,15 +369,12 @@ mazariniClient.on('guildCreate', function (guild: Guild) {
 mazariniClient.on('guildMemberAdd', function (member: GuildMember) {
     MessageHelper.sendMessageToSpecificChannel(
         '340626855990132747',
-        'Welcome to the Gulag, ' +
-            (member.nickname ?? member.displayName) +
-            '. Fight for your release.',
+        'Welcome to the Gulag, ' + (member.nickname ?? member.displayName) + '. Fight for your release.',
         member.guild.channels.cache.get('340626855990132747') as TextChannel
     )
     MessageHelper.sendMessageToActionLog(
         member.guild.channels.cache.first() as TextChannel,
-        'En bruker ble med i Mazarini: ' +
-            (member.nickname ?? member.displayName)
+        'En bruker ble med i Mazarini: ' + (member.nickname ?? member.displayName)
     )
 })
 mazariniClient.on('guildMemberRemove', function (member: GuildMember) {
@@ -484,42 +398,30 @@ mazariniClient.on('guildMemberRemove', function (member: GuildMember) {
 mazariniClient.on('userUpdate', function (oldUser: User, newUser: User) {
     MessageHelper.sendMessageToActionLog(
         newUser.client.channels.cache.first() as TextChannel,
-        'Oppdatert bruker1:   ' +
-            (oldUser.tag ?? oldUser.username) +
-            ' -> ' +
-            (newUser.tag ?? newUser.username) +
-            ''
+        'Oppdatert bruker1:   ' + (oldUser.tag ?? oldUser.username) + ' -> ' + (newUser.tag ?? newUser.username) + ''
     )
 })
 
 //Emitted whenever a guild member changes - i.e. new role, removed role, nickname.
-mazariniClient.on(
-    'guildMemberUpdate',
-    function (oldMember: GuildMember, newMember: GuildMember) {
-        if (newMember.id === '802945796457758760') return //Ikke gjør noe når bot oppdateres
-        if (oldMember.id === '802945796457758760') return
-        if (oldMember.user.username === 'MazariniBot') return
-        const diffCalc = diff.diff
-        const differences = diff(oldMember, newMember)
-        const whatChanged = compareMember(oldMember, newMember)
+mazariniClient.on('guildMemberUpdate', function (oldMember: GuildMember, newMember: GuildMember) {
+    if (newMember.id === '802945796457758760') return //Ikke gjør noe når bot oppdateres
+    if (oldMember.id === '802945796457758760') return
+    if (oldMember.user.username === 'MazariniBot') return
+    const diffCalc = diff.diff
+    const differences = diff(oldMember, newMember)
+    const whatChanged = compareMember(oldMember, newMember)
 
-        let changesString = ''
-        if (differences) {
-            differences.forEach((change: any, index: number) => {
-                changesString +=
-                    change.path + (index == differences.length ? ' ' : ',')
-            })
-            MessageHelper.sendMessageToActionLog(
-                newMember.client.channels.cache.first() as TextChannel,
-                'Oppdatert bruker ' +
-                    (oldMember.nickname ?? oldMember.displayName) +
-                    ': ' +
-                    whatChanged +
-                    '.'
-            )
-        }
+    let changesString = ''
+    if (differences) {
+        differences.forEach((change: any, index: number) => {
+            changesString += change.path + (index == differences.length ? ' ' : ',')
+        })
+        MessageHelper.sendMessageToActionLog(
+            newMember.client.channels.cache.first() as TextChannel,
+            'Oppdatert bruker ' + (oldMember.nickname ?? oldMember.displayName) + ': ' + whatChanged + '.'
+        )
     }
-)
+})
 
 /** TODO END */
 
@@ -543,13 +445,10 @@ mazariniClient.on('roleUpdate', function (oldRole: Role, newRole: Role) {
 mazariniClient.on('messageDelete', function (message: Message) {
     //Ikke i bruk
 })
-mazariniClient.on(
-    'messageUpdate',
-    function (oldMessage: Message, newMessage: Message) {
-        checkForCommand(newMessage)
-        checkMessageForJokes(newMessage)
-    }
-)
+mazariniClient.on('messageUpdate', function (oldMessage: Message, newMessage: Message) {
+    checkForCommand(newMessage)
+    checkMessageForJokes(newMessage)
+})
 
 mazariniClient.on('warn', function (info: string) {
     MessageHelper.sendMessageToActionLog(
@@ -569,10 +468,7 @@ function compareMember(oldMember: GuildMember, newMember: GuildMember) {
     if (oldMember.id === '802945796457758760') return
 
     const roles = oldMember.roles.cache
-    const role = roleArraysEqual(
-        [...oldMember.roles.cache.values()],
-        [...newMember.roles.cache.values()]
-    )
+    const role = roleArraysEqual([...oldMember.roles.cache.values()], [...newMember.roles.cache.values()])
     if (role) {
         return 'role: ' + role.name
     }
@@ -606,8 +502,7 @@ function roleArraysEqual(a: any[], b: any[]) {
 export class Index {
     static readonly getWZStats: ICommandElement = {
         commandName: 'ja',
-        description:
-            "Utfør siste kommando på ny (eller utfør kommandoen fra 'mente du...'",
+        description: "Utfør siste kommando på ny (eller utfør kommandoen fra 'mente du...'",
         command: (rawMessage: Message, messageContent: string) => {},
         category: 'annet',
     }

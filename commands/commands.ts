@@ -1,22 +1,20 @@
-import { Spinner } from "./spinner";
-import { Message, TextChannel } from "discord.js";
+import { Spinner } from './spinner'
+import { Message, TextChannel } from 'discord.js'
 
-import { JokeCommands } from "./jokeCommands";
-import { Admin } from "../admin/admin";
-import { GitHubCommands } from "./githubCommands";
-import { GameCommands } from "./gameCommands";
-import { GamblingCommands } from "./gamblingCommands";
-import { WarzoneCommands } from "./warzoneCommands";
-import { PatchNotes } from "../patchnotes";
-import { MessageHelper } from "../helpers/messageHelper";
-import { Achievements } from "./achievements";
-import { SpotifyCommands } from "./spotifyCommands";
-import { Music } from "./musicCommands";
-import { Meme } from "./memeCommands";
-import { User } from "./userCommands";
-import { DateCommands } from "./dateCommands";
-
-
+import { JokeCommands } from './jokeCommands'
+import { Admin } from '../admin/admin'
+import { GitHubCommands } from './githubCommands'
+import { GameCommands } from './gameCommands'
+import { GamblingCommands } from './gamblingCommands'
+import { WarzoneCommands } from './warzoneCommands'
+import { PatchNotes } from '../patchnotes'
+import { MessageHelper } from '../helpers/messageHelper'
+import { Achievements } from './achievements'
+import { SpotifyCommands } from './spotifyCommands'
+import { Music } from './musicCommands'
+import { Meme } from './memeCommands'
+import { User } from './userCommands'
+import { DateCommands } from './dateCommands'
 
 /**
  * Interface for kommandoer. Alle kommandoer må følge dette oppsettet.
@@ -28,23 +26,23 @@ import { DateCommands } from "./dateCommands";
  * @param deprecated (Optional) Hvis commanden bytter navn, sett den gamle til deprecated og la verdien være navnet på den nye commanden (eks !mz master bytter til !mz countdown -> behold !mz master og ha "countdown" i verdien på deprecated). Da vil botten legge til informasjon om deprecated og be de bruke den nye neste gang
  */
 export interface ICommandElement {
-    commandName: string;
-    description: string;
-    command: (rawMessage: Message, messageContent: string, args: string[]) => void;
-    category: commandCategory;
-    hideFromListing?: boolean;
-    isAdmin?: boolean;
-    deprecated?: string;
-    isSuperAdmin?: boolean;
+    commandName: string
+    description: string
+    command: (rawMessage: Message, messageContent: string, args: string[]) => void
+    category: commandCategory
+    hideFromListing?: boolean
+    isAdmin?: boolean
+    deprecated?: string
+    isSuperAdmin?: boolean
 }
 
-export type commandCategory = "musikk" | "gambling" | "gaming" | "tekst" | "annet" | "admin" | "spin";
+export type commandCategory = 'musikk' | 'gambling' | 'gaming' | 'tekst' | 'annet' | 'admin' | 'spin'
 
 const helpCommand: ICommandElement = {
-    commandName: "help",
+    commandName: 'help',
     description: "List alle metoder. Bruk '!mz help <command>' for å finne ut mer om en spesifikk kommando",
     command: (rawMessage, messageContent, args) => helperCommands(rawMessage, messageContent, args),
-    category: "annet",
+    category: 'annet',
 }
 
 export const commands: ICommandElement[] = [
@@ -65,6 +63,7 @@ export const commands: ICommandElement[] = [
     JokeCommands.uwuMessage,
     JokeCommands.mordiMessage,
     JokeCommands.jaerskCommand,
+    JokeCommands.pheseCommand,
     Spinner.listNumberOfSpins,
     // Admin.nukeDatabase,
     Admin.setVal,
@@ -115,41 +114,43 @@ export const commands: ICommandElement[] = [
     Music.musicCommands,
     Meme.makeMemeCommand,
     User.seeWarningCounterCommand,
-
 ]
 function getCommandCatgeories() {
-    return ["lyd", "gambling", "gaming", "tekst", "annet", "admin", "spin"]
+    return ['lyd', 'gambling', 'gaming', 'tekst', 'annet', 'admin', 'spin']
 }
-export const helperCommands = ((rawMessage: Message, messageContent: string, args: string[]) => {
-    const isLookingForAllAdmin = !!args && args[0] === "admin" && Admin.isAuthorAdmin(rawMessage.member);
-    let commandString = "Kommandoer: ";
-    let commandStringList: string[] = [];
-    const commandForHelp = messageContent.replace("!mz help ", "").trim()
+export const helperCommands = (rawMessage: Message, messageContent: string, args: string[]) => {
+    const isLookingForAllAdmin = !!args && args[0] === 'admin' && Admin.isAuthorAdmin(rawMessage.member)
+    let commandString = 'Kommandoer: '
+    let commandStringList: string[] = []
+    const commandForHelp = messageContent.replace('!mz help ', '').trim()
     // if (!args[0]) {
     //     MessageHelper.sendMessage(rawMessage, `Du må spesifisere en av følgende kategorier: ${getCommandCatgeories().join(", ")}`)
     //     return;
     // }
-    let category = args[0] ?? "unspecified"
+    let category = args[0] ?? 'unspecified'
     //spesifikk command
     if (getCommandCatgeories().includes(args[0])) {
         commands.forEach((cmd) => {
-            if (cmd.category == args[0])
-                commandStringList.push(cmd.commandName);
-
+            if (cmd.category == args[0]) commandStringList.push(cmd.commandName)
         })
-        commandStringList.sort();
-        commandStringList.forEach((str) => commandString += "\n" + str)
+        commandStringList.sort()
+        commandStringList.forEach((str) => (commandString += '\n' + str))
         MessageHelper.sendMessage(rawMessage, commandString)
-    }
-    else if (args && args[0] !== "admin" && commandForHelp.length > 0) {
-        let found = 0;
+    } else if (args && args[0] !== 'admin' && commandForHelp.length > 0) {
+        let found = 0
         commands.forEach((cmd) => {
             if (cmd.commandName == commandForHelp) {
                 if (cmd.isSuperAdmin)
-                    MessageHelper.sendMessage(rawMessage, cmd.commandName + (cmd.isSuperAdmin ? " (Superadmin) " : "") + ": " + cmd.description)
+                    MessageHelper.sendMessage(
+                        rawMessage,
+                        cmd.commandName + (cmd.isSuperAdmin ? ' (Superadmin) ' : '') + ': ' + cmd.description
+                    )
                 else
-                    MessageHelper.sendMessage(rawMessage, cmd.commandName + (cmd.isAdmin ? " (Admin) " : "") + ": " + cmd.description)
-                found++;
+                    MessageHelper.sendMessage(
+                        rawMessage,
+                        cmd.commandName + (cmd.isAdmin ? ' (Admin) ' : '') + ': ' + cmd.description
+                    )
+                found++
             }
         })
 
@@ -160,22 +161,24 @@ export const helperCommands = ((rawMessage: Message, messageContent: string, arg
     //List alle
     else {
         commands.forEach((cmd) => {
-
             if (isLookingForAllAdmin) {
-                commandStringList.push(cmd.commandName + (cmd.isSuperAdmin ? " (superadmin)" : "") + (cmd.isAdmin ? " (admin)" : (cmd.hideFromListing ? " (gjemt fra visning) " : "")));
+                commandStringList.push(
+                    cmd.commandName +
+                        (cmd.isSuperAdmin ? ' (superadmin)' : '') +
+                        (cmd.isAdmin ? ' (admin)' : cmd.hideFromListing ? ' (gjemt fra visning) ' : '')
+                )
             } else {
-                if (!cmd.hideFromListing)
-                    commandStringList.push(cmd.commandName);
+                if (!cmd.hideFromListing) commandStringList.push(cmd.commandName)
             }
         })
 
-        commandStringList.sort();
-        commandStringList.forEach((str) => commandString += "\n" + str)
-        commandString += "\n\n" + "*Bruk '!mz help <command>' for beskrivelse*"
+        commandStringList.sort()
+        commandStringList.forEach((str) => (commandString += '\n' + str))
+        commandString += '\n\n' + "*Bruk '!mz help <command>' for beskrivelse*"
         commandString += "\n*Eller bruk '!mz help <kategori>' med en av følgende kategorier for en mindre liste:* "
         getCommandCatgeories().forEach((cat) => {
-            commandString += " *" + cat + ",*";
+            commandString += ' *' + cat + ',*'
         })
         MessageHelper.sendMessage(rawMessage, commandString)
     }
-})
+}
