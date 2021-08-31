@@ -50,9 +50,7 @@ import { globalArrays } from './globals'
 const API = require('call-of-duty-api')()
 require('dotenv').config()
 
-const polseRegex = new RegExp(
-    /(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê|å|æ|ê|è|é|à|á)*(ls)(e|a|å|o|i)|(pause)|(🌭)|(hotdog)|(sausage)|(hot-dog)/gi
-)
+const polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê|å|æ|ê|è|é|à|á)*(ls)(e|a|å|o|i)|(pause)|(🌭)|(hotdog)|(sausage)|(hot-dog)/gi)
 let lastUsedCommand = 'help'
 export let action_log_channel: TextChannel
 
@@ -95,10 +93,7 @@ mazariniClient.on('ready', async () => {
         MessageHelper.sendMessageToActionLog(action_log_channel, 'Boten er nå live i production mode.')
     }
     if (args[0] == 'crashed') {
-        MessageHelper.sendMessageToActionLog(
-            action_log_channel,
-            'Boten har restartet selv etter et kræsj. Argument line: ' + args[0]
-        )
+        MessageHelper.sendMessageToActionLog(action_log_channel, 'Boten har restartet selv etter et kræsj. Argument line: ' + args[0])
     }
     mazariniClient.user.setPresence({
         activity: {
@@ -194,9 +189,7 @@ mazariniClient.on('messageCreate', async (message: Message) => {
 function isLegalChannel(message: Message) {
     return (
         (environment === 'dev' &&
-            (message.channel.id === '880493116648456222' ||
-                message.channel.id === '880493116648456222' ||
-                message.channel.id === '342009170318327831')) ||
+            (message.channel.id === '880493116648456222' || message.channel.id === '880493116648456222' || message.channel.id === '342009170318327831')) ||
         (environment === 'prod' && message.channel.id !== '880493116648456222')
     )
 }
@@ -206,13 +199,7 @@ async function checkForCommand(message: Message) {
     const isZm = message.content.toLowerCase().startsWith('!zm ')
     if (message.content.toLowerCase().startsWith('!mz ') || isZm) {
         let cmdFound = false
-        const command = message.content
-            .toLowerCase()
-            .replace('!mz ', '')
-            .replace('!mz', '')
-            .replace('!zm ', '')
-            .split(' ')[0]
-            .toLowerCase()
+        const command = message.content.toLowerCase().replace('!mz ', '').replace('!mz', '').replace('!zm ', '').split(' ')[0].toLowerCase()
         const messageContent = message.content.split(' ').slice(2).join(' ') // message.content.replace("!mz " + cmd.commandName, "").replace("!Mz " + cmd.commandName, "").replace("!MZ " + cmd.commandName, "").trim()
         const args = !!messageContent ? messageContent.split(' ') : []
         if (message.content.toLowerCase().startsWith('!mz ja')) {
@@ -249,9 +236,10 @@ async function checkForCommand(message: Message) {
         }
     } else if (message.content.startsWith('!mz')) {
         message.reply("du må ha mellomrom etter '!mz' og kommandoen.")
-    } else if (message.mentions.users.find((user) => user.id == '802945796457758760')) {
-        message.reply(ArrayUtils.randomChoiceFromArray(globalArrays.bentHoieLines))
     }
+    // else if (message.mentions.users.find((user) => user.id == '802945796457758760')) {
+    //     message.reply(ArrayUtils.randomChoiceFromArray(globalArrays.bentHoieLines))
+    // }
 }
 
 function runCommandElement(cmd: ICommandElement, message: Message, messageContent: string, args: string[]) {
@@ -272,10 +260,7 @@ function runCommandElement(cmd: ICommandElement, message: Message, messageConten
     } else {
         try {
             if (!!cmd.deprecated)
-                MessageHelper.sendMessage(
-                    message,
-                    '*Denne funksjoner er markert som deprecated/utfaset. Bruk **' + cmd.deprecated + '*** *i stedet*'
-                )
+                MessageHelper.sendMessage(message, '*Denne funksjoner er markert som deprecated/utfaset. Bruk **' + cmd.deprecated + '*** *i stedet*')
             if (environment === 'dev')
                 MessageHelper.sendMessage(
                     message,
@@ -306,10 +291,7 @@ function checkMessageForJokes(message: Message) {
         if (polseRegex.exec(message.attachments.first()?.name ?? '')) polseCounter++
     }
 
-    if (polseCounter > 0)
-        message.channel.send(
-            'Hæ, ' + (polseCounter > 1 ? polseCounter + ' ' : '') + 'pølse' + (polseCounter > 1 ? 'r' : '') + '?'
-        )
+    if (polseCounter > 0) message.channel.send('Hæ, ' + (polseCounter > 1 ? polseCounter + ' ' : '') + 'pølse' + (polseCounter > 1 ? 'r' : '') + '?')
 
     //If eivind, eivindpride him
     if (message.author.id == '239154365443604480' && message.guild) {
@@ -317,11 +299,7 @@ function checkMessageForJokes(message: Message) {
         //check for 10% chance of eivindpriding
         if (doesThisMessageNeedAnEivindPride(message.content, polseCounter) && react) message.react(react)
     }
-    if (
-        message.author.id == '733320780707790898' &&
-        message.guild &&
-        message.mentions.roles.find((e) => e.name == 'Jævla Drittspel')
-    ) {
+    if (message.author.id == '733320780707790898' && message.guild && message.mentions.roles.find((e) => e.name == 'Jævla Drittspel')) {
         //"733320780707790898" joiij
         message.react(kekw ?? '😂')
         message.reply('lol')
@@ -334,8 +312,7 @@ function checkMessageForJokes(message: Message) {
 }
 
 /** Login client */
-if (discordSecret.includes('insert'))
-    throw new TypeError('**FEIL** Klienten mangler Discord Secret Token i client-env.ts')
+if (discordSecret.includes('insert')) throw new TypeError('**FEIL** Klienten mangler Discord Secret Token i client-env.ts')
 else mazariniClient.login(discordSecret)
 
 mazariniClient.on('reconnecting', function () {
@@ -360,10 +337,7 @@ mazariniClient.on('guildBanAdd', function (guild: Guild, user: User) {
 })
 
 mazariniClient.on('guildCreate', function (guild: Guild) {
-    MessageHelper.sendMessageToActionLog(
-        guild.channels.cache.first() as TextChannel,
-        'Ukjent: on guildCreate. Wat dis do?'
-    )
+    MessageHelper.sendMessageToActionLog(guild.channels.cache.first() as TextChannel, 'Ukjent: on guildCreate. Wat dis do?')
 })
 
 mazariniClient.on('guildMemberAdd', function (member: GuildMember) {
@@ -426,16 +400,10 @@ mazariniClient.on('guildMemberUpdate', function (oldMember: GuildMember, newMemb
 /** TODO END */
 
 mazariniClient.on('roleCreate', function (role: Role) {
-    MessageHelper.sendMessageToActionLog(
-        role.guild.channels.cache.first() as TextChannel,
-        'En ny rolle er opprettet: ' + role.name
-    )
+    MessageHelper.sendMessageToActionLog(role.guild.channels.cache.first() as TextChannel, 'En ny rolle er opprettet: ' + role.name)
 })
 mazariniClient.on('roleDelete', function (role: Role) {
-    MessageHelper.sendMessageToActionLog(
-        role.guild.channels.cache.first() as TextChannel,
-        'En rolle er slettet: ' + role.name
-    )
+    MessageHelper.sendMessageToActionLog(role.guild.channels.cache.first() as TextChannel, 'En rolle er slettet: ' + role.name)
 })
 
 mazariniClient.on('roleUpdate', function (oldRole: Role, newRole: Role) {
@@ -451,10 +419,7 @@ mazariniClient.on('messageUpdate', function (oldMessage: Message, newMessage: Me
 })
 
 mazariniClient.on('warn', function (info: string) {
-    MessageHelper.sendMessageToActionLog(
-        mazariniClient.channels.cache.get('810832760364859432') as TextChannel,
-        'En advarsel ble fanget opp. Info: \n ' + info
-    )
+    MessageHelper.sendMessageToActionLog(mazariniClient.channels.cache.get('810832760364859432') as TextChannel, 'En advarsel ble fanget opp. Info: \n ' + info)
 })
 mazariniClient.on('error', function (error: Error) {
     MessageHelper.sendMessageToActionLog(
@@ -473,12 +438,7 @@ function compareMember(oldMember: GuildMember, newMember: GuildMember) {
         return 'role: ' + role.name
     }
     if (oldMember.nickname !== newMember.nickname)
-        return (
-            'nickname: ' +
-            (oldMember.nickname ?? oldMember.displayName) +
-            ' endret til ' +
-            (newMember.nickname ?? newMember.displayName)
-        )
+        return 'nickname: ' + (oldMember.nickname ?? oldMember.displayName) + ' endret til ' + (newMember.nickname ?? newMember.displayName)
     if (oldMember.user.username !== newMember.user.username) return 'username'
 
     //TODO: Sjekk etter andre ting?
