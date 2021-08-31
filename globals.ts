@@ -152,6 +152,10 @@ export namespace globalArrays {
         'har drede',
         'traff deg i fjese',
         'har blitt fese på',
+        'brukte speil, så du traff deg sjøl i fjese der',
+        'traff Thomas i fleisen',
+        'nuka dassen',
+        'slapp ein silent but deadly ein',
     ]
 }
 

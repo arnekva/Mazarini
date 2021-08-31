@@ -26,7 +26,10 @@ export class JokeCommands {
     }
 
     static async thomasTing(message: Message) {
-        await MessageHelper.sendMessage(message, Math.random() < 0.3 ? 'Har fese :)' : Math.random() < 0.5 ? 'Hæ, Erlend Navle?' : 'Sovna på golve :)')
+        await MessageHelper.sendMessage(
+            message,
+            Math.random() < 0.3 ? 'Har skamphese :)' : Math.random() < 0.5 ? 'Han hørte deg kje for han spiste jo :(' : 'Sovna på golve :)'
+        )
     }
 
     static async mordi(message: Message) {
@@ -204,13 +207,26 @@ export class JokeCommands {
 
     static harFese(message: Message, msgContent: string, args: string[]) {
         const channel = message.channel as TextChannel
-        const randomUser = channel.members.random()
+        const role = this.getRoleBasedOnChannel(message.channelId)
+
+        const randomUser = role ? channel.members.filter((m) => m.roles.cache.get(role) !== undefined).random() : channel.members.random()
 
         const name = randomUser.nickname ?? randomUser.displayName ?? randomUser.user.username
         const phese = ArrayUtils.randomChoiceFromArray(globalArrays.feseTexts)
         const reply = `${name} ${phese}`
 
         MessageHelper.sendMessage(message, reply)
+    }
+
+    static getRoleBasedOnChannel(channelId: string) {
+        switch (channelId) {
+            case '705864445338845265':
+                return '735253573025267883' //Cod
+            case '822998979943071824':
+                return '822999208445083668' //Valheim
+            default:
+                return undefined
+        }
     }
 
     static async jaerskIfyer(message: Message, msgContent: string, args: string[]) {
