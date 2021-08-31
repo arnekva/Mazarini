@@ -8,48 +8,31 @@ import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { countdownTime, DateUtils } from '../utils/dateUtils'
 import { findLetterEmoji } from '../utils/miscUtils'
-import {
-    doesTextIncludeUsername,
-    getUsernameInQuotationMarks,
-    msToTime,
-    replaceAtWithTextUsername,
-    reverseMessageString,
-} from '../utils/textUtils'
+import { doesTextIncludeUsername, getUsernameInQuotationMarks, msToTime, replaceAtWithTextUsername, reverseMessageString } from '../utils/textUtils'
 import { ICommandElement } from './commands'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { Languages } from '../helpers/languageHelpers'
 
 export class JokeCommands {
     static async vaskHuset(message: Message) {
-        await MessageHelper.sendMessage(
-            message,
-            Math.random() < 0.75 ? 'Øyvind, vask huset!' : 'Har ei jækla fine klokka'
-        )
+        await MessageHelper.sendMessage(message, Math.random() < 0.75 ? 'Øyvind, vask huset!' : 'Har ei jækla fine klokka')
     }
 
     static async kLikka(message: Message) {
         await MessageHelper.sendMessage(
             message,
-            Math.random() < 0.5
-                ? 'Han ' + (Math.random() < 0.5 ? 'skaaahhæææææmmmmm' : '') + 'trunte på vei te buen '
-                : ' krækka open a kold one'
+            Math.random() < 0.5 ? 'Han ' + (Math.random() < 0.5 ? 'skaaahhæææææmmmmm' : '') + 'trunte på vei te buen ' : ' krækka open a kold one'
         )
     }
 
     static async thomasTing(message: Message) {
-        await MessageHelper.sendMessage(
-            message,
-            Math.random() < 0.3 ? 'Har fese :)' : Math.random() < 0.5 ? 'Hæ, Erlend Navle?' : 'Sovna på golve :)'
-        )
+        await MessageHelper.sendMessage(message, Math.random() < 0.3 ? 'Har fese :)' : Math.random() < 0.5 ? 'Hæ, Erlend Navle?' : 'Sovna på golve :)')
     }
 
     static async mordi(message: Message) {
         const emoji = await EmojiHelper.getEmoji('eyebrows', message)
 
-        await MessageHelper.sendMessage(
-            message,
-            Math.random() > 0.05 ? `E nais ${emoji.id}` : `E skamnais :eyebrows: ${emoji.id}`
-        )
+        await MessageHelper.sendMessage(message, Math.random() > 0.05 ? `E nais ${emoji.id}` : `E skamnais :eyebrows: ${emoji.id}`)
     }
 
     static async eivind(message: Message) {
@@ -70,25 +53,15 @@ export class JokeCommands {
             if (user && user.presence) {
                 if (user.presence.clientStatus) {
                     if (user.presence.activities && user.presence.activities[0]) {
-                        const game =
-                            user.presence.activities[0].name == 'Custom Status'
-                                ? user.presence.activities[1]
-                                : user.presence.activities[0]
+                        const game = user.presence.activities[0].name == 'Custom Status' ? user.presence.activities[1] : user.presence.activities[0]
                         await MessageHelper.sendMessage(
                             message,
                             `${name} e ${
-                                user.presence.clientStatus.desktop
-                                    ? 'på pc-en'
-                                    : user.presence.clientStatus.mobile
-                                    ? 'på mobilen'
-                                    : 'i nettleseren'
+                                user.presence.clientStatus.desktop ? 'på pc-en' : user.presence.clientStatus.mobile ? 'på mobilen' : 'i nettleseren'
                             } ${game ? 'med aktiviteten ' + game.name + '.' : 'uten någe aktivitet.'}`
                         )
                     } else {
-                        await MessageHelper.sendMessage(
-                            message,
-                            'Ingen aktivitet registrert på Discord. Sover han? Drikker han? Begge deler samtidig? '
-                        )
+                        await MessageHelper.sendMessage(message, 'Ingen aktivitet registrert på Discord. Sover han? Drikker han? Begge deler samtidig? ')
                     }
                 } else {
                     await MessageHelper.sendMessage(
@@ -97,10 +70,7 @@ export class JokeCommands {
                     )
                 }
             } else {
-                await MessageHelper.sendMessage(
-                    message,
-                    'Ingen bruker med er registrert med det brukernavnet på serveren. Dårlig koding?'
-                )
+                await MessageHelper.sendMessage(message, 'Ingen bruker med er registrert med det brukernavnet på serveren. Dårlig koding?')
             }
         }
     }
@@ -135,9 +105,7 @@ export class JokeCommands {
         } else {
             MessageHelper.sendMessage(
                 message,
-                content.trim().length > 0
-                    ? 'Du kan kje mygla så møye. Mindre enn 150 tegn, takk'
-                    : 'Du må sei koffor du mygle, bro'
+                content.trim().length > 0 ? 'Du kan kje mygla så møye. Mindre enn 150 tegn, takk' : 'Du må sei koffor du mygle, bro'
             )
         }
     }
@@ -203,9 +171,7 @@ export class JokeCommands {
             if (usedLetter.includes(letter) && letter == ' ') {
                 spaceCounter++
             }
-            const emoji = usedLetter.includes(letter)
-                ? findLetterEmoji(letter, true, spaceCounter)
-                : findLetterEmoji(letter)
+            const emoji = usedLetter.includes(letter) ? findLetterEmoji(letter, true, spaceCounter) : findLetterEmoji(letter)
             usedLetter += letter
             try {
                 messageToReactTo.react(emoji).catch((error) => console.log(error))
@@ -231,9 +197,7 @@ export class JokeCommands {
             }
             if (!msgToUwU && fMsg) fMsg.edit('Fant ikke meldingen :(')
         } else {
-            let textToBeUwued = JokeCommands.uwuText(
-                args.length > 0 ? args.join(' ') : 'Please skriv inn ein tekst eller id neste gang'
-            )
+            let textToBeUwued = JokeCommands.uwuText(args.length > 0 ? args.join(' ') : 'Please skriv inn ein tekst eller id neste gang')
             MessageHelper.sendMessage(message, textToBeUwued)
         }
     }
@@ -261,9 +225,7 @@ export class JokeCommands {
             }
             if (!msgToJaersk && fMsg) fMsg.edit('Fant ikke meldingen :(')
         } else {
-            let textToBeUwued = JokeCommands.jaerskText(
-                args.length > 0 ? args.join(' ') : 'Please skriv inn ein tekst eller id neste gang'
-            )
+            let textToBeUwued = JokeCommands.jaerskText(args.length > 0 ? args.join(' ') : 'Please skriv inn ein tekst eller id neste gang')
             MessageHelper.sendMessage(message, textToBeUwued)
         }
     }
@@ -280,9 +242,7 @@ export class JokeCommands {
                 bkCounter = parseInt(bkCounter) + 1
                 MessageHelper.sendMessage(
                     message,
-                    (user
-                        ? user + ', du har blitt bonket. (' + `${bkCounter} ${bkCounter == 1 ? 'gang' : 'ganger'}) `
-                        : '') + img
+                    (user ? user + ', du har blitt bonket. (' + `${bkCounter} ${bkCounter == 1 ? 'gang' : 'ganger'}) ` : '') + img
                 )
             } else {
                 message.reply('du har ikke oppgitt et gyldig brukernavn')
@@ -315,10 +275,7 @@ export class JokeCommands {
                 t
                     .replace(/r/g, 'w')
                     .replace(/l/g, 'w')
-                    .concat(
-                        ' ',
-                        ArrayUtils.randomChoiceFromArray(globalArrays.asciiEmojies.filter((e) => e !== firstChoice))
-                    )
+                    .concat(' ', ArrayUtils.randomChoiceFromArray(globalArrays.asciiEmojies.filter((e) => e !== firstChoice)))
         )
     }
     private static jaerskText(t: string) {
@@ -388,15 +345,6 @@ export class JokeCommands {
         description: 'Thomas svarer alltid ja',
         command: (rawMessage: Message, messageContent: string) => {
             JokeCommands.thomasTing(rawMessage)
-        },
-        category: 'annet',
-    }
-    static readonly deadmaggi: ICommandElement = {
-        commandName: 'maggi',
-        description: 'Går det egentlig bra med masteren te Magnus?',
-        deprecated: 'aktivitet',
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            JokeCommands.isMaggiPlaying(rawMessage, messageContent, args)
         },
         category: 'annet',
     }

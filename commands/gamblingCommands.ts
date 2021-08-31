@@ -105,13 +105,7 @@ export class GamblingCommands {
             const posSplit = activeBet.positivePeople.split(',')
             if (negSplit[0] !== '') numP += negSplit.length
             if (posSplit[0] !== '') numP += posSplit.length
-            GamblingCommands.dealCoins(
-                message,
-                activeBet.value,
-                activeBet.positivePeople.concat(activeBet.negativePeople),
-                numP,
-                true
-            )
+            GamblingCommands.dealCoins(message, activeBet.value, activeBet.positivePeople.concat(activeBet.negativePeople), numP, true)
             DatabaseHelper.deleteActiveBet(username)
             message.reply('Veddemålet er slettet, og beløp er tilbakebetalt.')
             return
@@ -139,10 +133,7 @@ export class GamblingCommands {
                     })
                     if (positiveCounter > 2) {
                         const isPositive = args[0].toLocaleLowerCase() === 'ja'
-                        MessageHelper.sendMessage(
-                            message,
-                            `Veddemålsresultatet er godkjent. Beløpene blir nå lagt til på kontoene. `
-                        )
+                        MessageHelper.sendMessage(message, `Veddemålsresultatet er godkjent. Beløpene blir nå lagt til på kontoene. `)
                         const value = activeBet.value
 
                         GamblingCommands.dealCoins(
@@ -153,10 +144,7 @@ export class GamblingCommands {
                         )
                         DatabaseHelper.deleteActiveBet(username)
                     } else {
-                        MessageHelper.sendMessage(
-                            message,
-                            `Veddemålsresultatet ble ikke godkjent. Diskuter og prøv igjen.`
-                        )
+                        MessageHelper.sendMessage(message, `Veddemålsresultatet ble ikke godkjent. Diskuter og prøv igjen.`)
                         DatabaseHelper.setActiveBetObject(message.author.username, activeBet)
                     }
                 }, 60000) //Sett til 60000
@@ -222,9 +210,7 @@ export class GamblingCommands {
                     const gambling = new MessageEmbed()
                         .setTitle('⚔️ Krig ⚔️')
                         .setDescription(
-                            `Terningen trillet: ${roll}/100. ${
-                                roll < 51 ? (roll == 50 ? 'Bot Høie' : message.author.username) : username
-                            } vant! 💰💰`
+                            `Terningen trillet: ${roll}/100. ${roll < 51 ? (roll == 50 ? 'Bot Høie' : message.author.username) : username} vant! 💰💰`
                         )
 
                     if (roll < 50) {
@@ -272,9 +258,7 @@ export class GamblingCommands {
         }
         if (userMoney) {
             if (Number(argumentVal) > Number(userMoney)) {
-                message.reply(
-                    'Du har ikke nok penger til å gamble så mye. Bruk <!mz lån 100> for å låne chips fra MazariniBank'
-                )
+                message.reply('Du har ikke nok penger til å gamble så mye. Bruk <!mz lån 100> for å låne chips fra MazariniBank')
                 return
             } else if (Number(argumentVal) < 0) {
                 message.reply('Du må gamble med et positivt tall, bro')
@@ -284,8 +268,7 @@ export class GamblingCommands {
         if (argumentVal && Number(argumentVal)) {
             const valAsNum = Number(Number(argumentVal).toFixed(2))
             const roll = Math.floor(Math.random() * 100) + 1
-            const hasDebtPenalty =
-                DatabaseHelper.getValueWithoutMessage('debtPenalty', message.author.username) === 'true'
+            const hasDebtPenalty = DatabaseHelper.getValueWithoutMessage('debtPenalty', message.author.username) === 'true'
             let rate = 185
 
             let newMoneyValue = 0
@@ -303,24 +286,18 @@ export class GamblingCommands {
             DatabaseHelper.setValue('chips', message.author.username, newMoneyValue.toFixed(2))
 
             const gambling = new MessageEmbed().setTitle('Gambling 🎲').setDescription(
-                `${
-                    message.author.username
-                } gamblet ${valAsNum} av ${userMoney} chips.\nTerningen trillet: ${roll}/100. Du ${
+                `${message.author.username} gamblet ${valAsNum} av ${userMoney} chips.\nTerningen trillet: ${roll}/100. Du ${
                     roll >= 50 ? 'vant! 💰💰 (' + (Number(multiplier) + 1) + 'x)' : 'tapte 💸💸'
                 }\nDu har nå ${newMoneyValue.toLocaleString(undefined, {
                     maximumFractionDigits: 2,
                     minimumFractionDigits: 2,
                 })} chips.`
             )
-            if (roll >= 100)
-                gambling.addField(`Trillet 100!`, `Du trillet 100 og vant ${multiplier} ganger så mye som du satset!`)
+            if (roll >= 100) gambling.addField(`Trillet 100!`, `Du trillet 100 og vant ${multiplier} ganger så mye som du satset!`)
             if (hasDebtPenalty && roll >= 50)
                 gambling.addField(
                     `Gjeld`,
-                    `Du er i høy gjeld, og banken har krevd inn ${interest.toFixed(2)} chips (${(
-                        100 -
-                        (100 - (1 - rate) * 100)
-                    ).toFixed(0)}%)`
+                    `Du er i høy gjeld, og banken har krevd inn ${interest.toFixed(2)} chips (${(100 - (100 - (1 - rate) * 100)).toFixed(0)}%)`
                 )
             MessageHelper.sendFormattedMessage(message, gambling)
         }
@@ -343,9 +320,7 @@ export class GamblingCommands {
         }
         if (userMoney) {
             if (Number(stake) > Number(userMoney)) {
-                message.reply(
-                    'Du har ikke nok penger til å gamble så mye. Bruk <!mz lån 100> for å låne chips fra MazariniBank'
-                )
+                message.reply('Du har ikke nok penger til å gamble så mye. Bruk <!mz lån 100> for å låne chips fra MazariniBank')
                 return
             } else if (Number(stake) < 0 || Number(stake) === 0) {
                 message.reply('Du prøver å gamble med en ulovlig verdi.')
@@ -397,8 +372,7 @@ export class GamblingCommands {
                 }
             }
 
-            const hasDebtPenalty =
-                DatabaseHelper.getValueWithoutMessage('debtPenalty', message.author.username) === 'true'
+            const hasDebtPenalty = DatabaseHelper.getValueWithoutMessage('debtPenalty', message.author.username) === 'true'
             let rate = 185
             let newMoneyValue = 0
             let interest = 0
@@ -422,9 +396,7 @@ export class GamblingCommands {
                 result = roll + ' sort'
             }
             const gambling = new MessageEmbed().setTitle('Rulett 🎲').setDescription(
-                `${
-                    message.author.username
-                } satset ${valAsNum} av ${userMoney} chips på ${betOn}.\nBallen landet på: ${result}. Du ${
+                `${message.author.username} satset ${valAsNum} av ${userMoney} chips på ${betOn}.\nBallen landet på: ${result}. Du ${
                     won ? 'vant! 💰💰 (' + Number(multiplier) + 'x)' : 'tapte 💸💸'
                 }\nDu har nå ${newMoneyValue.toLocaleString(undefined, {
                     maximumFractionDigits: 2,
@@ -434,10 +406,7 @@ export class GamblingCommands {
             if (hasDebtPenalty && roll >= 50)
                 gambling.addField(
                     `Gjeld`,
-                    `Du er i høy gjeld, og banken har krevd inn ${interest.toFixed(2)} chips (${(
-                        100 -
-                        (100 - (1 - rate) * 100)
-                    ).toFixed(0)}%)`
+                    `Du er i høy gjeld, og banken har krevd inn ${interest.toFixed(2)} chips (${(100 - (100 - (1 - rate) * 100)).toFixed(0)}%)`
                 )
             MessageHelper.sendFormattedMessage(message, gambling)
         }
@@ -519,9 +488,7 @@ export class GamblingCommands {
 
         MessageHelper.sendMessage(
             message,
-            `${username}, du har nå lånt ${amountToLoan.toFixed(
-                2
-            )} chips med 15% rente. Spend them well. Din totale gjeld er nå: ${newDebt.toFixed(
+            `${username}, du har nå lånt ${amountToLoan.toFixed(2)} chips med 15% rente. Spend them well. Din totale gjeld er nå: ${newDebt.toFixed(
                 2
             )} (${newTotalLoans} lån gjort)`
         )
@@ -552,9 +519,7 @@ export class GamblingCommands {
             } else {
                 let backToPayer = 0
                 if (newTotal < 0) {
-                    message.reply(
-                        'du har betalt ' + Math.abs(newTotal) + ' for mye på lånet ditt. Dette blir tilbakebetalt. '
-                    )
+                    message.reply('du har betalt ' + Math.abs(newTotal) + ' for mye på lånet ditt. Dette blir tilbakebetalt. ')
                     backToPayer = Math.abs(newTotal)
                 }
                 newTotal += backToPayer
@@ -563,26 +528,20 @@ export class GamblingCommands {
                 DatabaseHelper.setValue('chips', username, newDogeCoinsCOunter.toFixed(2))
                 if (wantsToPayDownThisAmount > 1000 && hasDebtPenalty === 'true' && newTotal > 20000) {
                     if (Number(debtMultiplier) > 15) {
-                        message.reply(
-                            'Du har betalt ned mer enn 1000 på lånet ditt. Banken senker strafferenten din med 0.01% :) '
-                        )
+                        message.reply('Du har betalt ned mer enn 1000 på lånet ditt. Banken senker strafferenten din med 0.01% :) ')
                         DatabaseHelper.decrementValue('debtMultiplier', username, '1')
                     }
                 }
 
                 if (hasDebtPenalty === 'true' && newTotal < 20000) {
-                    message.reply(
-                        'Du har senket lånet ditt til under 20.000 chips. Banken fjerner strafferenten (for nå) :)'
-                    )
+                    message.reply('Du har senket lånet ditt til under 20.000 chips. Banken fjerner strafferenten (for nå) :)')
                     DatabaseHelper.setValue('debtPenalty', username, 'false')
                     //Resett multiplier
                     DatabaseHelper.setValue('debtMultiplier', username, '15')
                 }
                 MessageHelper.sendMessage(
                     message,
-                    `Du har nå betalt ned ${wantsToPayDownThisAmount.toFixed(
-                        2
-                    )} av lånet ditt på ${totalDebt}. Lånet er nå på ${newTotal.toFixed(
+                    `Du har nå betalt ned ${wantsToPayDownThisAmount.toFixed(2)} av lånet ditt på ${totalDebt}. Lånet er nå på ${newTotal.toFixed(
                         2
                     )} og du har ${newDogeCoinsCOunter.toFixed(2)} chips igjen.`
                 )
@@ -619,10 +578,7 @@ export class GamblingCommands {
                 const newBalance = authorBalance - Number(coinsToVipps)
                 DatabaseHelper.setValue('dogeCoin', message.author.username, newBalance.toFixed(2))
                 DatabaseHelper.incrementValue('dogeCoin', userWhoGetsCoins, coinsToVipps)
-                MessageHelper.sendMessage(
-                    message,
-                    `${message.author.username} vippset ${userWhoGetsCoins} ${coinsToVipps}.`
-                )
+                MessageHelper.sendMessage(message, `${message.author.username} vippset ${userWhoGetsCoins} ${coinsToVipps}.`)
             } else {
                 message.reply('finner ingen bruker med det navnet')
             }
@@ -630,13 +586,7 @@ export class GamblingCommands {
             message.reply('du har ikkje råd te å vippsa så møye, bro (Man kan ikkje vippsa chips for gambling).')
         }
     }
-    static dealCoins(
-        message: Message,
-        value: string,
-        peopleGettingCoins: string,
-        numP: number,
-        noDefaultPott?: boolean
-    ) {
+    static dealCoins(message: Message, value: string, peopleGettingCoins: string, numP: number, noDefaultPott?: boolean) {
         const peopleCoins = peopleGettingCoins.split(',').filter((u) => u !== 'Mazarini Bot')
         const basePot = noDefaultPott ? 0 : 50
         let pot = basePot
@@ -657,10 +607,7 @@ export class GamblingCommands {
                             userCoins +
                             "'. Hendelsen blir loggført slik at en nerd kan se nærmere på det."
                     )
-                    MessageHelper.sendMessageToActionLogWithDefaultMessage(
-                        message,
-                        `Trigget dealcoins med enten undefined eller NaN verdi på coins. `
-                    )
+                    MessageHelper.sendMessageToActionLogWithDefaultMessage(message, `Trigget dealcoins med enten undefined eller NaN verdi på coins. `)
                 }
                 DatabaseHelper.setValue('chips', username, newValue.toString())
                 moneyString += `${username}: ${userCoins} -> ${newValue}\n`
@@ -793,15 +740,6 @@ export class GamblingCommands {
         category: 'gambling',
     }
 
-    static readonly checkCoinsCommand: ICommandElement = {
-        commandName: 'checkcoins',
-        description: 'Check coins on a person',
-        deprecated: 'wallet',
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            GamblingCommands.checkCoins(rawMessage, messageContent, args)
-        },
-        category: 'gambling',
-    }
     static readonly walletCommand: ICommandElement = {
         commandName: 'wallet',
         description: 'Se antall coins til en person',

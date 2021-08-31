@@ -52,7 +52,6 @@ export const commands: ICommandElement[] = [
     Spinner.allTimeHighCommand,
     Admin.command,
     JokeCommands.roggaVaskHuset,
-    JokeCommands.deadmaggi,
     JokeCommands.thomasFese,
     JokeCommands.mygleStatus,
     JokeCommands.getAllMygling,
@@ -86,7 +85,6 @@ export const commands: ICommandElement[] = [
     GameCommands.getDropRebirth,
     GameCommands.getDropFromGrid,
     GamblingCommands.addCoinsCommand,
-    GamblingCommands.checkCoinsCommand,
     GamblingCommands.createBetCommand,
     GamblingCommands.resolveBetCommand,
     GamblingCommands.gambleCoins,
@@ -110,7 +108,6 @@ export const commands: ICommandElement[] = [
     Achievements.listAchievements,
     Achievements.giveMissingAchievements,
     SpotifyCommands.currentUserIsPlaying,
-    SpotifyCommands.currentlyPlayingCommand,
     Music.musicCommands,
     Meme.makeMemeCommand,
     User.seeWarningCounterCommand,
@@ -141,15 +138,8 @@ export const helperCommands = (rawMessage: Message, messageContent: string, args
         commands.forEach((cmd) => {
             if (cmd.commandName == commandForHelp) {
                 if (cmd.isSuperAdmin)
-                    MessageHelper.sendMessage(
-                        rawMessage,
-                        cmd.commandName + (cmd.isSuperAdmin ? ' (Superadmin) ' : '') + ': ' + cmd.description
-                    )
-                else
-                    MessageHelper.sendMessage(
-                        rawMessage,
-                        cmd.commandName + (cmd.isAdmin ? ' (Admin) ' : '') + ': ' + cmd.description
-                    )
+                    MessageHelper.sendMessage(rawMessage, cmd.commandName + (cmd.isSuperAdmin ? ' (Superadmin) ' : '') + ': ' + cmd.description)
+                else MessageHelper.sendMessage(rawMessage, cmd.commandName + (cmd.isAdmin ? ' (Admin) ' : '') + ': ' + cmd.description)
                 found++
             }
         })
