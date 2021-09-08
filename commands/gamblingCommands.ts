@@ -1,5 +1,6 @@
 import { Message, MessageEmbed } from 'discord.js'
 import { Channel, Client, DMChannel, NewsChannel, TextChannel } from 'discord.js'
+import { globals } from '../globals'
 import { betObject, betObjectReturned, DatabaseHelper, dbPrefix } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
@@ -46,7 +47,7 @@ export class GamblingCommands {
             message.reply('Du har kje råd te dette bro')
             return
         }
-        const betString = `${message.author.username} har startet et veddemål: ${desc} (${betVal} chips). Reager med 👍 for JA, 👎 for NEI. Resultat vises om 60 sek`
+        const betString = `${message.author.username} har startet et veddemål: ${desc} (${betVal} chips). Reager med 👍 for JA, 👎 for NEI. Resultat vises om ${globals.TIMEOUT_TIME.name}`
         const startMessage = await MessageHelper.sendMessage(message, betString)
         if (startMessage) {
             startMessage.react('👍')
@@ -88,7 +89,7 @@ export class GamblingCommands {
                     value: betVal.toFixed(2),
                 }
                 DatabaseHelper.setActiveBetObject(message.author.username, obj)
-            }, 60000) //Sett til 60000
+            }, globals.TIMEOUT_TIME.time)
         }
     }
 
@@ -118,7 +119,7 @@ export class GamblingCommands {
         if (ObjectUtils.instanceOfBetObject(activeBet)) {
             const resolveMessage = await MessageHelper.sendMessage(
                 message,
-                `${username} vil gjøre opp ett veddemål: ${activeBet.description}. Reager med 👍 for å godkjenne (Trenger 3). Venter 60 sekunder. `
+                `${username} vil gjøre opp ett veddemål: ${activeBet.description}. Reager med 👍 for å godkjenne (Trenger 3). Venter ${globals.TIMEOUT_TIME.name}. `
             )
             if (resolveMessage) {
                 resolveMessage.react('👍')
@@ -147,7 +148,7 @@ export class GamblingCommands {
                         MessageHelper.sendMessage(message, `Veddemålsresultatet ble ikke godkjent. Diskuter og prøv igjen.`)
                         DatabaseHelper.setActiveBetObject(message.author.username, activeBet)
                     }
-                }, 60000) //Sett til 60000
+                }, globals.TIMEOUT_TIME.time) //Sett til 60000
             }
         } else {
             message.reply('object is not instance of betObject. why tho')
@@ -191,19 +192,21 @@ export class GamblingCommands {
         }
         const resolveMessage = await MessageHelper.sendMessage(
             message,
-            `${message.author.username} vil gå til krig med deg, ${username}. Reager med 👍 for å godkjenne. Venter 10 sekunder. Den som starter krigen ruller for 0-49.`
+            `${message.author.username} vil gå til krig med deg, ${username}. Reager med 👍 for å godkjenne. Venter ${globals.TIMEOUT_TIME.name}. Den som starter krigen ruller for 0-49.`
         )
         if (resolveMessage) {
             resolveMessage.react('👍')
             let positiveCounter = 0
 
-            setTimeout(function () {
-                const allReactions = resolveMessage.reactions.cache.forEach((reaction) => {
-                    const users = reaction.users
-                    users.cache.forEach((us, ind) => {
-                        if (reaction.emoji.name == '👍' && us.username == username) positiveCounter++
+            setTimeout(async function () {
+                const thumbsUp = resolveMessage.reactions.cache.find((emoji) => emoji.emoji.name == '👍')
+                // console.log(reaction.users)
+                if (thumbsUp) {
+                    const users = await thumbsUp.users.fetch()
+                    users.forEach((us, ind) => {
+                        if (us.username == username) positiveCounter++
                     })
-                })
+                }
                 if (positiveCounter > 0) {
                     const roll = Math.floor(Math.random() * 101)
 
@@ -245,7 +248,7 @@ export class GamblingCommands {
                     MessageHelper.sendMessage(message, `${username} godkjente ikke krigen.`)
                     // DatabaseHelper.setValue("dogeCoin", message.author.username, (engagerValue-100).toFixed(2))
                 }
-            }, 10000) //Sett til 60000
+            }, globals.TIMEOUT_TIME.time) //Sett til 60000
         }
     }
 

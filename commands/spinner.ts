@@ -1,108 +1,115 @@
+import { Message } from 'discord.js'
+import { Channel, Client, DMChannel, NewsChannel, TextChannel } from 'discord.js'
+import { AchievementHelper } from '../helpers/achievementHelper'
+import { DatabaseHelper } from '../helpers/databaseHelper'
+import { EmojiHelper } from '../helpers/emojiHelper'
+import { MessageHelper } from '../helpers/messageHelper'
+import { ArrayUtils } from '../utils/arrayUtils'
+import { getWeekNumber } from '../utils/dateUtils'
+import { getRandomPercentage } from '../utils/randomUtils'
+import { escapeString } from '../utils/textUtils'
+import { Achievements } from './achievements'
+import { ICommandElement } from './commands'
 
-import { Message } from "discord.js";
-import { Channel, Client, DMChannel, NewsChannel, TextChannel } from "discord.js";
-import { AchievementHelper } from "../helpers/achievementHelper";
-import { DatabaseHelper } from "../helpers/databaseHelper";
-import { EmojiHelper } from "../helpers/emojiHelper";
-import { MessageHelper } from "../helpers/messageHelper";
-import { ArrayUtils } from "../utils/arrayUtils";
-import { getWeekNumber } from "../utils/dateUtils";
-import { getRandomPercentage } from "../utils/randomUtils";
-import { escapeString } from "../utils/textUtils";
-import { Achievements } from "./achievements";
-import { ICommandElement } from "./commands";
-
-
-
-const weightedRandomObject = require("weighted-random-object");
+const weightedRandomObject = require('weighted-random-object')
 
 const spinMinutes = [
     {
-        "number": "0",
-        "weight": 40
-    }, {
-        "number": "1",
-        "weight": 30
-    }, {
-        "number": "2",
-        "weight": 10
-    }, {
-        "number": "3",
-        "weight": 4
-    }, {
-        "number": "4",
-        "weight": 3
-    }, {
-        "number": "5",
-        "weight": 2
-    }, {
-        "number": "6",
-        "weight": 1
-    }, {
-        "number": "7",
-        "weight": 0.5
-    }, {
-        "number": "8",
-        "weight": 0.5
-    }, {
-        "number": "9",
-        "weight": 0.09
-    }, {
-        "number": "10",
-        "weight": 0.005
-    }
-];
+        number: '0',
+        weight: 40,
+    },
+    {
+        number: '1',
+        weight: 30,
+    },
+    {
+        number: '2',
+        weight: 10,
+    },
+    {
+        number: '3',
+        weight: 4,
+    },
+    {
+        number: '4',
+        weight: 3,
+    },
+    {
+        number: '5',
+        weight: 2,
+    },
+    {
+        number: '6',
+        weight: 1,
+    },
+    {
+        number: '7',
+        weight: 0.5,
+    },
+    {
+        number: '8',
+        weight: 0.5,
+    },
+    {
+        number: '9',
+        weight: 0.09,
+    },
+    {
+        number: '10',
+        weight: 0.005,
+    },
+]
 
 function didSpinnerBreak() {
-    return getRandomPercentage(1); //1% sjanse for å ødelegge spinneren
+    return getRandomPercentage(1) //1% sjanse for å ødelegge spinneren
 }
 
 export class Spinner {
-
     static spin(message: Message) {
-        const min = weightedRandomObject(spinMinutes).number;
-        const sec = Math.floor(Math.random() * 60);
-        const cleanUsername = escapeString(message.author.username);
+        const min = weightedRandomObject(spinMinutes).number
+        const sec = Math.floor(Math.random() * 60)
+        const cleanUsername = escapeString(message.author.username)
 
         Spinner.addSpinnerRole(message)
         if (cleanUsername.length < 2) {
-            message.reply("Det kan virke som om brukernavnet ditt inneholder for få lovlige tegn (" + cleanUsername + "). Dette må rettes opp i før du får spinne.")
+            message.reply(
+                'Det kan virke som om brukernavnet ditt inneholder for få lovlige tegn (' + cleanUsername + '). Dette må rettes opp i før du får spinne.'
+            )
         } else {
-            MessageHelper.sendMessage(message, message.author.username + " spant fidget spinneren sin i " + min + " minutt og " + sec + " sekund!")
+            MessageHelper.sendMessage(message, message.author.username + ' spant fidget spinneren sin i ' + min + ' minutt og ' + sec + ' sekund!')
             if (min == 0 && sec == 0) {
-
-                DatabaseHelper.incrementValue("chips", message.author.username, "500")
-                MessageHelper.sendMessage(message, "Oj, 00:00? Du får 500 chips i trøstepremie")
+                DatabaseHelper.incrementValue('chips', message.author.username, '500')
+                MessageHelper.sendMessage(message, 'Oj, 00:00? Du får 500 chips i trøstepremie')
                 setTimeout(function () {
-                    DatabaseHelper.decrementValue("chips", message.author.username, "600")
-                    const kekw = EmojiHelper.getEmoji("kekwhoie_animated", message).then((em) => {
-                        MessageHelper.sendMessage(message, "hahaha trodde du på meg? Du suge " + "<@" + message.author.id + ">" + ", du muste 100 chips i stedet " + em.id)
-
-                    });
-
+                    DatabaseHelper.decrementValue('chips', message.author.username, '600')
+                    const kekw = EmojiHelper.getEmoji('kekwhoie_animated', message).then((em) => {
+                        MessageHelper.sendMessage(
+                            message,
+                            'hahaha trodde du på meg? Du suge ' + '<@' + message.author.id + '>' + ', du muste 100 chips i stedet ' + em.id
+                        )
+                    })
                 }, 10000)
-
             } else if (min == 10 && sec == 59) {
-                MessageHelper.sendMessage(message, "gz med 10:59 bro")
-                DatabaseHelper.incrementValue("chips", message.author.username, "50000")
-                MessageHelper.sendMessage(message, "Du får 50 000 chips for det der mannen")
+                MessageHelper.sendMessage(message, 'gz med 10:59 bro')
+                DatabaseHelper.incrementValue('chips', message.author.username, '50000')
+                MessageHelper.sendMessage(message, 'Du får 50 000 chips for det der mannen')
             }
-            const formatedScore = Spinner.formatScore(min + sec);
-            Spinner.compareScore(message, formatedScore);
-            Spinner.incrementCounter(message);
+            const formatedScore = Spinner.formatScore(min + sec)
+            Spinner.compareScore(message, formatedScore)
+            Spinner.incrementCounter(message)
         }
     }
 
     static async incrementCounter(message: Message) {
         // const currentVal = DatabaseHelper.getValue("counterSpin", message.author.username, () => { });
-        const currentTotalspin = DatabaseHelper.getValue("counterSpin", message.author.username, message);
+        const currentTotalspin = DatabaseHelper.getValue('counterSpin', message.author.username, message)
         if (currentTotalspin) {
             try {
-                let cur = parseInt(currentTotalspin);
-                cur = cur += 1;
+                let cur = parseInt(currentTotalspin)
+                cur = cur += 1
                 AchievementHelper.awardSpinningAch(message.author.username, cur.toString(), message)
 
-                DatabaseHelper.setValue("counterSpin", message.author.username, cur.toString())
+                DatabaseHelper.setValue('counterSpin', message.author.username, cur.toString())
             } catch (error) {
                 MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
             }
@@ -110,71 +117,63 @@ export class Spinner {
     }
 
     static async compareScore(message: Message, newScore: string) {
-        const val = DatabaseHelper.getValue("spin", message.author.username, message)
+        const val = DatabaseHelper.getValue('spin', message.author.username, message)
         if (parseInt(val) < parseInt(newScore)) {
-            DatabaseHelper.setValue("spin", message.author.username, newScore);
+            DatabaseHelper.setValue('spin', message.author.username, newScore)
         }
     }
 
     static formatScore(score: string) {
-        if (score.charAt(0) + score.charAt(1) == "10" && score.length == 3)
-            return "100" + score.charAt(2);
-        return score.length === 2 ? score.charAt(0) + "0" + score.charAt(1) : score;
+        if (score.charAt(0) + score.charAt(1) == '10' && score.length == 3) return '100' + score.charAt(2)
+        return score.length === 2 ? score.charAt(0) + '0' + score.charAt(1) : score
     }
 
     static async listScores(message: Message, isWeeklyReset?: boolean) {
-        const weekNumber = getWeekNumber(new Date())[1];
-        MessageHelper.sendMessage(message, "*** HIGHSCORE *** for uke " + (isWeeklyReset ? weekNumber - 1 : getWeekNumber(new Date())[1]));
-        //FIXME: 
-        const val2 = DatabaseHelper.getAllValuesFromPrefix("spin", message).filter(e => e.val != "Ugyldig verdi");
-        ArrayUtils.sortUserValuePairArray(val2);
-        let highscoreList = ArrayUtils.makeValuePairIntoOneString(val2, Spinner.formatValue);
+        const weekNumber = getWeekNumber(new Date())[1]
+        MessageHelper.sendMessage(message, '*** HIGHSCORE *** for uke ' + (isWeeklyReset ? weekNumber - 1 : getWeekNumber(new Date())[1]))
+        //FIXME:
+        const val2 = DatabaseHelper.getAllValuesFromPrefix('spin', message).filter((e) => e.val != 'Ugyldig verdi')
+        if (val2.length < 0) return false
+        ArrayUtils.sortUserValuePairArray(val2)
+        let highscoreList = ArrayUtils.makeValuePairIntoOneString(val2, Spinner.formatValue)
         if (isWeeklyReset) {
+            const winner = DatabaseHelper.getValueWithoutMessage('chips', val2[0].key)
+            const loser = DatabaseHelper.getValueWithoutMessage('chips', val2[val2.length - 1].key)
+            DatabaseHelper.setValue('chips', val2[0].key, (Number(winner) + 1000).toFixed(1))
+            if (Number(loser) - 1000 < 0) DatabaseHelper.setValue('chips', val2[val2.length - 1].key, '0')
+            else DatabaseHelper.setValue('chips', val2[val2.length - 1].key, (Number(loser) - 1000).toFixed(1))
 
-            const winner = DatabaseHelper.getValueWithoutMessage("chips", val2[0].key)
-            const loser = DatabaseHelper.getValueWithoutMessage("chips", val2[val2.length - 1].key)
-            DatabaseHelper.setValue("chips", val2[0].key, (Number(winner) + 1000).toFixed(1))
-            if (Number(loser) - 1000 < 0)
-                DatabaseHelper.setValue("chips", val2[val2.length - 1].key, "0")
-            else
-                DatabaseHelper.setValue("chips", val2[val2.length - 1].key, (Number(loser) - 1000).toFixed(1))
-
-            DatabaseHelper.setValue("chips", val2[0].key, (Number(winner) + 1000).toFixed(2))
+            DatabaseHelper.setValue('chips', val2[0].key, (Number(winner) + 1000).toFixed(2))
             highscoreList += `\n ${val2[0].key} har vunnet 1000 chips`
             highscoreList += `\n ${val2[val2.length - 1].key} har mistet 1000 chips.`
         }
-        MessageHelper.sendMessage(message, highscoreList);
-
+        MessageHelper.sendMessage(message, highscoreList)
     }
 
     static async listSpinCounter(message: Message) {
-        const val = DatabaseHelper.getAllValuesFromPrefix("counterSpin", message);
-        ArrayUtils.sortUserValuePairArray(val);
-        const printList = ArrayUtils.makeValuePairIntoOneString(val, undefined, "Total antall spins");
+        const val = DatabaseHelper.getAllValuesFromPrefix('counterSpin', message)
+        ArrayUtils.sortUserValuePairArray(val)
+        const printList = ArrayUtils.makeValuePairIntoOneString(val, undefined, 'Total antall spins')
         MessageHelper.sendMessage(message, printList)
-
     }
 
     static formatValue(val: string) {
-        if (val.length == 2)
-            return `0${val.charAt(0)}:0${val.charAt(1)}`
+        if (val.length == 2) return `0${val.charAt(0)}:0${val.charAt(1)}`
 
-        if (val.length == 3)
-            return `0${val.charAt(0)}:${val.charAt(1)}${val.charAt(2)}`
-        if (val.length == 4)
-            return `${val.charAt(0)}${val.charAt(1)}:${val.charAt(2)}${val.charAt(3)}`
-        return "Ugyldig verdi";
+        if (val.length == 3) return `0${val.charAt(0)}:${val.charAt(1)}${val.charAt(2)}`
+        if (val.length == 4) return `${val.charAt(0)}${val.charAt(1)}:${val.charAt(2)}${val.charAt(3)}`
+        return 'Ugyldig verdi'
     }
 
     static sendWinner(message: Message, text: string) {
-        const finalMsg = "*** HIGHSCORE *** \n" + text
+        const finalMsg = '*** HIGHSCORE *** \n' + text
     }
 
     static async addSpinnerRole(message: Message) {
         if (message.guild == null || message.member == null) {
             return
         }
-        const role = await message.guild.roles.fetch("823504322213838888")
+        const role = await message.guild.roles.fetch('823504322213838888')
 
         if (role) {
             message.member.roles.add(role)
@@ -182,70 +181,69 @@ export class Spinner {
     }
 
     static updateATH() {
-        DatabaseHelper.compareAndUpdateValue("ATHspin", "spin")
+        DatabaseHelper.compareAndUpdateValue('ATHspin', 'spin')
     }
 
     static async allTimeHigh(message: Message) {
-        Spinner.updateATH();
-        const val = DatabaseHelper.getAllValuesFromPrefix("ATHspin", message);
-        ArrayUtils.sortUserValuePairArray(val);
-        const printList = ArrayUtils.makeValuePairIntoOneString(val, Spinner.formatValue);
+        Spinner.updateATH()
+        const val = DatabaseHelper.getAllValuesFromPrefix('ATHspin', message)
+        ArrayUtils.sortUserValuePairArray(val)
+        const printList = ArrayUtils.makeValuePairIntoOneString(val, Spinner.formatValue)
         MessageHelper.sendMessage(message, printList)
     }
 
     static readonly allTimeHighCommand: ICommandElement = {
-        commandName: "ATH",
-        description: "Printer hver person sin beste spin!",
+        commandName: 'ATH',
+        description: 'Printer hver person sin beste spin!',
         command: (rawMessage: Message, messageContent: string) => {
-            Spinner.allTimeHigh(rawMessage);
+            Spinner.allTimeHigh(rawMessage)
         },
-        category: "spin",
+        category: 'spin',
     }
 
     static readonly command: ICommandElement = {
-        commandName: "spin",
-        description: "Spin fidgetspinneren. Beste tid per bruker registreres i databasen. Tallene er tilfeldige, men vektet. ",
+        commandName: 'spin',
+        description: 'Spin fidgetspinneren. Beste tid per bruker registreres i databasen. Tallene er tilfeldige, men vektet. ',
         command: (rawMessage: Message, messageContent: string) => {
-            Spinner.spin(rawMessage);
+            Spinner.spin(rawMessage)
         },
-        category: "spin",
+        category: 'spin',
     }
 
     static readonly highscoreCommand: ICommandElement = {
-        commandName: "highscore",
-        description: "Highscore for fidget spinning ",
+        commandName: 'highscore',
+        description: 'Highscore for fidget spinning ',
         command: (rawMessage: Message, messageContent: string) => {
-            Spinner.listScores(rawMessage);
+            Spinner.listScores(rawMessage)
         },
-        category: "spin",
+        category: 'spin',
     }
 
     static readonly listNumberOfSpins: ICommandElement = {
-        commandName: "totalspins",
-        description: "Antall spins per person",
+        commandName: 'totalspins',
+        description: 'Antall spins per person',
         command: (rawMessage: Message, messageContent: string) => {
-            Spinner.listSpinCounter(rawMessage);
+            Spinner.listSpinCounter(rawMessage)
         },
-        category: "spin",
+        category: 'spin',
     }
 
     static readonly setHighscoreCommand: ICommandElement = {
-        commandName: "setscore",
-        description: "Sett spin score verdi manuelt med <navn> <verdi> ",
+        commandName: 'setscore',
+        description: 'Sett spin score verdi manuelt med <navn> <verdi> ',
         hideFromListing: true,
         command: (rawMessage: Message, messageContent: string) => {
-            if (rawMessage.author.id === "245607554254766081" || rawMessage.author.id === "239154365443604480") {
-
-                let mainString = rawMessage.content.replace("!mz setscore ", "");
-                let newString = mainString.split(" ");
+            if (rawMessage.author.id === '245607554254766081' || rawMessage.author.id === '239154365443604480') {
+                let mainString = rawMessage.content.replace('!mz setscore ', '')
+                let newString = mainString.split(' ')
                 try {
-                    DatabaseHelper.setValue("spin", newString[0], newString[1])
-                    MessageHelper.sendMessage(rawMessage, "Oppdaterte databaseverdi for nøkkel <" + newString[0] + "> med verdi <" + newString[1] + ">.")
+                    DatabaseHelper.setValue('spin', newString[0], newString[1])
+                    MessageHelper.sendMessage(rawMessage, 'Oppdaterte databaseverdi for nøkkel <' + newString[0] + '> med verdi <' + newString[1] + '>.')
                 } catch (error) {
-                    MessageHelper.sendMessage(rawMessage, "Kunne ikke ppdaterte databaseverdi for nøkkel <" + newString[0] + ">. Feilkode: " + error)
+                    MessageHelper.sendMessage(rawMessage, 'Kunne ikke ppdaterte databaseverdi for nøkkel <' + newString[0] + '>. Feilkode: ' + error)
                 }
             }
         },
-        category: "admin",
+        category: 'admin',
     }
 }

@@ -87,6 +87,7 @@ export class SpotifyCommands {
                             }
                         })
                 })
+                if (replyString.length === 0) replyString = 'Ingen hører på Spotify for øyeblikket'
                 await MessageHelper.sendMessage(rawMessage, replyString)
             } else {
                 const user = guild.members.cache.filter((u) => u.user.username == name).first()

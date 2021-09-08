@@ -75,7 +75,7 @@ mazariniClient.on('ready', async () => {
         if (lvmsg.content.includes('utviklingsmodus') && environment === 'prod') {
             lvmsg.delete()
         } else {
-            if (!lvmsg.content.includes('utviklingsmodus'))
+            if (!lvmsg.content.includes('utviklingsmodus') && environment === 'dev')
                 las_vegas.send(
                     '*Botten er i utviklingsmodus, og denne kanelen er derfor midlertidig stengt. Hvis du tror dette er en feil, tag @Bot-support i #Bot-utvikling*'
                 )
@@ -133,14 +133,18 @@ mazariniClient.on('ready', async () => {
 
     const resetSpinJob = schedule.scheduleJob('0 9 * * 1', async function () {
         console.log('Kjører resett av spins, mandag 09:00')
-        const las_vegas = mazariniClient.channels.cache.get('808992127249678386')
+        const las_vegas = mazariniClient.channels.cache.get('808992127249678386') as TextChannel
         if (!las_vegas) {
             console.log('Fant ikke last_vegas i resetSpinJob')
             return
         }
         const spinnerMention = '<@&823504322213838888>'
         const message = await las_vegas.send(spinnerMention + ', ukens spin har blitt nullstilt. Her er ukens score:\n')
-        await Spinner.listScores(message, true)
+        const listing = await Spinner.listScores(message, true)
+        if (!listing) {
+            if (las_vegas) las_vegas.send('Ingen har spunnet fidget spinneren denne uken. Derfor kommer denne meldingen for å forhindre at botten kræsjer :)')
+            return
+        }
         Spinner.updateATH()
         DatabaseHelper.deleteSpecificPrefixValues('spin')
 
