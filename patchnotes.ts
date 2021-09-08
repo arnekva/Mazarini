@@ -7,7 +7,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = '3.2.0'
+    public static readonly currentVersion = '3.2.1'
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
@@ -17,12 +17,10 @@ export class PatchNotes {
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv.
      */
     public static readonly currentPatchNotes: string =
-        `* Fikset kræsj på admin 'send' ved bruk av to eller flere parametersplittere` +
-        `\n* Bet multiplier er fikset (igjen)` +
-        `\n* setvalue er ikke lenger superadmin, kun admin` +
-        `\n* Fikset feil der #las_vegas ble stengt i prod` +
-        `\n* Prod-bot ignorerer nå #bot-spam i stedet for #bot-utvikling` +
-        `\n* Ny command 'fese'`
+        `* Fikset kræsj på ukens spin` +
+        `\n* Fikset krig-funksjonen` +
+        `\n* Fikset kræsj på 'spotify alle' hvis ingen hørte på spotify` +
+        `\n* Toget er nå en mulig for dropplass på 'grid'-funksjonen (8% sjanse for å overstyre grid, tar ikke sirkel i betraktning)`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
