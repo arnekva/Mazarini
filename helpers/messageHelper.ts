@@ -1,12 +1,4 @@
-import {
-    Channel,
-    Client,
-    DMChannel,
-    Message,
-    MessageEmbed,
-    NewsChannel,
-    TextChannel,
-} from 'discord.js'
+import { Channel, Client, DMChannel, Message, MessageEmbed, NewsChannel, TextChannel } from 'discord.js'
 import { reverseMessageString } from '../utils/textUtils'
 
 //import {client } from "./index"
@@ -48,16 +40,11 @@ export class MessageHelper {
         }
         const isZm = rawMessage.content.startsWith('!zm ')
         if (!message.trim()) {
-            this.sendMessageToActionLogWithDefaultMessage(
-                rawMessage,
-                `Meldingen som ble forsøkt sendt er tom: <${message}>`
-            )
+            this.sendMessageToActionLogWithDefaultMessage(rawMessage, `Meldingen som ble forsøkt sendt er tom: <${message}>`)
             return
         }
         try {
-            const msg = channel.send(
-                isZm ? reverseMessageString(message) : message
-            )
+            const msg = channel.send(isZm ? reverseMessageString(message) : message)
             return msg
         } catch (error) {
             this.sendMessageToActionLogWithDefaultMessage(rawMessage, error)
@@ -73,9 +60,7 @@ export class MessageHelper {
         message.reply('du har brukt feil formattering. Bruk: ' + errormessage)
     }
     static async findMessageById(rawMessage: Message, id: string) {
-        const allChannels = [
-            ...rawMessage.client.channels.cache.values(),
-        ].filter((channel) => channel instanceof TextChannel) as TextChannel[]
+        const allChannels = [...rawMessage.client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
         let messageToReturn
 
         for (const channel of allChannels) {
@@ -96,69 +81,40 @@ export class MessageHelper {
         return messageToReturn
     }
     /** Send en embedded message (se gambling for eksempel) */
-    static async sendFormattedMessage(
-        message: Message,
-        newMessage: MessageEmbed
-    ) {
-        message.channel.send({ embeds: [newMessage] })
+    static async sendFormattedMessage(message: Message, newMessage: MessageEmbed) {
+        return message.channel.send({ embeds: [newMessage] })
     }
 
     static sendMessageToActionLog(channel: TextChannel, msg: string) {
-        const errorChannel = channel.client.channels.cache.get(
-            '810832760364859432'
-        ) as TextChannel
+        const errorChannel = channel.client.channels.cache.get('810832760364859432') as TextChannel
         errorChannel.send(msg)
     }
-    static sendMessageToActionLogWithDefaultMessage(
-        message: Message,
-        error: any,
-        ignoreReply?: boolean
-    ) {
+    static sendMessageToActionLogWithDefaultMessage(message: Message, error: any, ignoreReply?: boolean) {
         const roleId = '863038817794392106' //Bot-support
-        message.reply(
-            `En feil har oppstått. Feilkoden og meldingen din blir logget. <@&${roleId}>`
-        )
-        const errorChannel = message.channel.client.channels.cache.get(
-            '810832760364859432'
-        ) as TextChannel
+        message.reply(`En feil har oppstått. Feilkoden og meldingen din blir logget. <@&${roleId}>`)
+        const errorChannel = message.channel.client.channels.cache.get('810832760364859432') as TextChannel
         errorChannel.send(
             `En feil har oppstått i en melding fra ${message.author.username}. Meldingsinnhold: <${message.content}>. Channel: ${message.channel}. Feilmelding: <${error}>`
         )
     }
-    static sendMessageToActionLogWithCustomMessage(
-        message: Message,
-        error: any,
-        reply: string
-    ) {
+    static sendMessageToActionLogWithCustomMessage(message: Message, error: any, reply: string) {
         const roleId = '863038817794392106' //Bot-support
         message.reply(`${reply}`)
-        const errorChannel = message.channel.client.channels.cache.get(
-            '810832760364859432'
-        ) as TextChannel
+        const errorChannel = message.channel.client.channels.cache.get('810832760364859432') as TextChannel
         errorChannel.send(
             `En feil har oppstått i en melding fra ${message.author.username}. Meldingsinnhold: <${message.content}>. Channel: ${message.channel}. Feilmelding: <${error}>`
         )
     }
-    static sendMessageToActionLogWithInsufficientRightsMessage(
-        message: Message,
-        extra?: any,
-        ignoreReply?: boolean
-    ) {
+    static sendMessageToActionLogWithInsufficientRightsMessage(message: Message, extra?: any, ignoreReply?: boolean) {
         const roleId = '863038817794392106' //Bot-support
-        message.reply(
-            `Du har ikke de nødvendige rettighetene for å bruke denne funksjonen. <@&${roleId}>`
-        )
-        const errorChannel = message.channel.client.channels.cache.get(
-            '810832760364859432'
-        ) as TextChannel
+        message.reply(`Du har ikke de nødvendige rettighetene for å bruke denne funksjonen. <@&${roleId}>`)
+        const errorChannel = message.channel.client.channels.cache.get('810832760364859432') as TextChannel
         errorChannel.send(
             `${message.author.username} forsøkte å bruke en funksjon uten rettigheter. Meldingsinnhold: <${message.content}>. Channel: ${message.channel}. ${extra}`
         )
     }
     static sendMessageToBotUtvikling(channel: TextChannel) {
-        const errorChannel = channel.client.channels.cache.get(
-            '802716150484041751'
-        ) as TextChannel
+        const errorChannel = channel.client.channels.cache.get('802716150484041751') as TextChannel
         errorChannel.send('Logget på')
     }
     static sendErrorMessage(text: string, channel?: TextChannel) {
@@ -169,22 +125,12 @@ export class MessageHelper {
     }
 
     //Oldchannel er brukt for å ha en referanse til client
-    static sendMessageToSpecificChannel(
-        channelId: string,
-        text: string,
-        oldChannel: TextChannel
-    ) {
-        const msgChannel = oldChannel.client.channels.cache.get(
-            channelId.trim()
-        ) as TextChannel
+    static sendMessageToSpecificChannel(channelId: string, text: string, oldChannel: TextChannel) {
+        const msgChannel = oldChannel.client.channels.cache.get(channelId.trim()) as TextChannel
         if (msgChannel) {
             msgChannel.send(text.trim())
         } else {
-            oldChannel.send(
-                'Ingen text channel ble funnet på oppgitt id <' +
-                    channelId +
-                    '>.'
-            )
+            oldChannel.send('Ingen text channel ble funnet på oppgitt id <' + channelId + '>.')
         }
     }
 }

@@ -111,6 +111,7 @@ export const commands: ICommandElement[] = [
     Music.musicCommands,
     Meme.makeMemeCommand,
     User.seeWarningCounterCommand,
+    User.sendRoleAssignmentCommand,
 ]
 function getCommandCatgeories() {
     return ['lyd', 'gambling', 'gaming', 'tekst', 'annet', 'admin', 'spin']

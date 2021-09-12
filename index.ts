@@ -34,6 +34,8 @@ export const mazariniClient = new Discord.Client({
         Intents.FLAGS.GUILD_WEBHOOKS,
         Intents.FLAGS.GUILDS,
         Intents.FLAGS.GUILD_INTEGRATIONS,
+        Intents.FLAGS.DIRECT_MESSAGE_TYPING,
+        Intents.FLAGS.GUILD_VOICE_STATES,
     ],
 })
 const schedule = require('node-schedule')
