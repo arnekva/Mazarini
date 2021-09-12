@@ -17,7 +17,9 @@ export class PatchNotes {
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv.
      */
     public static readonly currentPatchNotes: string =
-        `* Du kan nå gjøre '!mz role' for å bli tildelt rolle for diverse spill ` + `\n* Per nå: "Battlefield", "Warzone", "Valheim", "Insurgency"`
+        `* Du kan nå gjøre '!mz role' for å bli tildelt rolle for diverse spill ` +
+        `\n* Per nå: "Battlefield", "Warzone", "Valheim", "Insurgency"` +
+        `\n* Du skal nå få mellomrom i '!mz spell' igjen`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
