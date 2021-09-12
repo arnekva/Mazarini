@@ -19,7 +19,9 @@ export class PatchNotes {
     public static readonly currentPatchNotes: string =
         `* Du kan nå gjøre '!mz role' for å bli tildelt rolle for diverse spill ` +
         `\n* Per nå: "Battlefield", "Warzone", "Valheim", "Insurgency"` +
-        `\n* Du skal nå få mellomrom i '!mz spell' igjen`
+        `\n* Du skal nå få mellomrom i '!mz spell' igjen` +
+        `\n* Ny funksjon: !mz vær <stedsnavn>`
+
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
