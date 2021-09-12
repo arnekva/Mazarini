@@ -7,7 +7,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = '3.2.1'
+    public static readonly currentVersion = '3.3.0'
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
@@ -17,10 +17,7 @@ export class PatchNotes {
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv.
      */
     public static readonly currentPatchNotes: string =
-        `* Fikset kræsj på ukens spin` +
-        `\n* Fikset krig-funksjonen` +
-        `\n* Fikset kræsj på 'spotify alle' hvis ingen hørte på spotify` +
-        `\n* Toget er nå en mulig for dropplass på 'grid'-funksjonen (8% sjanse for å overstyre grid, tar ikke sirkel i betraktning)`
+        `* Du kan nå gjøre '!mz role' for å bli tildelt rolle for diverse spill ` + `\n* Per nå: "Battlefield", "Warzone", "Valheim", "Insurgency"`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
