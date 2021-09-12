@@ -15,6 +15,7 @@ import { Music } from './musicCommands'
 import { Meme } from './memeCommands'
 import { User } from './userCommands'
 import { DateCommands } from './dateCommands'
+import { Weather } from './weatherCommands'
 
 /**
  * Interface for kommandoer. Alle kommandoer må følge dette oppsettet.
@@ -112,6 +113,7 @@ export const commands: ICommandElement[] = [
     Meme.makeMemeCommand,
     User.seeWarningCounterCommand,
     User.sendRoleAssignmentCommand,
+    Weather.getWeatherForGivenCityCommand
 ]
 function getCommandCatgeories() {
     return ['lyd', 'gambling', 'gaming', 'tekst', 'annet', 'admin', 'spin']
