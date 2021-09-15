@@ -161,6 +161,8 @@ export namespace globalArrays {
         'feis og brukte med ein feil både speil og skjold på seg sjøl',
         'fise akkurat nå',
         '🪞',
+        'trunte rett inn i fisen te Thomas',
+        'blei eid av et speil',
     ]
 }
 

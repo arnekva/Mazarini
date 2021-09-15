@@ -45,10 +45,17 @@ const helpCommand: ICommandElement = {
     command: (rawMessage, messageContent, args) => helperCommands(rawMessage, messageContent, args),
     category: 'annet',
 }
+const helpCommand2: ICommandElement = {
+    commandName: 'hjelp',
+    description: "List alle metoder. Bruk '!mz help <command>' for å finne ut mer om en spesifikk kommando",
+    command: (rawMessage, messageContent, args) => helperCommands(rawMessage, messageContent, args),
+    category: 'annet',
+}
 
 export const commands: ICommandElement[] = [
     Spinner.command,
     helpCommand,
+    helpCommand2,
     Spinner.highscoreCommand,
     Spinner.allTimeHighCommand,
     Admin.command,
