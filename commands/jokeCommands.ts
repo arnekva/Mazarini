@@ -81,6 +81,10 @@ export class JokeCommands {
     static async updateMygleStatus(message: Message, messageContent: string) {
         let content = messageContent
         const matchedUsrname = doesTextIncludeUsername(content)
+        if (message.mentions.roles.size > 0) {
+            message.reply('Du kan kje ha roller i statusen din, bro')
+            return
+        }
         let url
         if (message.attachments) {
             url = message.attachments.first()?.url

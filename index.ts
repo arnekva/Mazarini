@@ -52,11 +52,16 @@ import { globalArrays } from './globals'
 const API = require('call-of-duty-api')()
 require('dotenv').config()
 
+/******* VARIABLES */
 const polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê|å|æ|ê|è|é|à|á)*(ls)(e|a|å|o|i)|(pause)|(🌭)|(hotdog)|(sausage)|(hot-dog)/gi)
 let lastUsedCommand = 'help'
 export let action_log_channel: TextChannel
-
 export const startTime = new Date()
+export let botLocked: boolean = false
+export let lockedUser: string[] = []
+export let lockedThread: string[] = []
+export let numMessages = 0
+/******* END */
 mazariniClient.on('ready', async () => {
     try {
         await API.loginWithSSO(actSSOCookie)
@@ -180,9 +185,14 @@ mazariniClient.on('ready', async () => {
 })
 
 mazariniClient.on('messageCreate', async (message: Message) => {
+    numMessages++
     //Do not reply to own messages
     if (message.author == mazariniClient.user) return
 
+    if (checkForLockCommand(message)) return
+    if (isThreadLocked(message)) return
+    if (isUserLocked(message)) return
+    if (isBotLocked()) return
     if (!isLegalChannel(message)) return
     /**  Check message for commands */
     await checkForCommand(message)
@@ -198,6 +208,57 @@ function isLegalChannel(message: Message) {
             (message.channel.id === '880493116648456222' || message.channel.id === '880493116648456222' || message.channel.id === '342009170318327831')) ||
         (environment === 'prod' && message.channel.id !== '880493116648456222')
     )
+}
+
+function isThreadLocked(message: Message) {
+    return lockedThread.includes(message.channelId)
+}
+
+function isBotLocked() {
+    return botLocked
+}
+
+function isUserLocked(message: Message) {
+    return lockedUser.includes(message.author.username)
+}
+
+function checkForLockCommand(message: Message) {
+    const content = message.content
+    const isBot = content.includes('bot')
+    const isUser = content.includes('user')
+    const username = message.content.split(' ')[2] ?? ''
+    let locking = true
+    if (Admin.isAuthorSuperAdmin(message.member) && content.startsWith('!lock')) {
+        if (isUser) {
+            if (lockedUser.includes(username)) {
+                lockedUser = lockedUser.filter((u) => u !== username)
+                locking = false
+            } else {
+                lockedUser.push(username)
+                locking = true
+            }
+        } else if (isBot) {
+            botLocked = !botLocked
+            locking = botLocked
+        } else {
+            if (lockedThread.includes(message.channelId)) {
+                lockedThread = lockedThread.filter((t) => t !== message.channelId)
+                locking = false
+            } else {
+                lockedThread.push(message.channelId)
+                locking = true
+            }
+        }
+        let reply = ''
+        if (isBot) reply = `Botten er nå ${locking ? 'låst' : 'åpen'}`
+        else if (isUser) reply = `${username} er nå ${locking ? 'låst' : 'åpen'} for å bruke botten`
+        else reply = `Kanalen er nå ${locking ? 'låst' : 'åpen'} for svar fra botten`
+        message.channel.send(reply)
+        return true
+    } else {
+        if (content.startsWith('!lock')) message.delete()
+        return false
+    }
 }
 async function checkForCommand(message: Message) {
     if (message.author == mazariniClient.user) return

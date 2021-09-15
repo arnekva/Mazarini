@@ -1,4 +1,4 @@
-import { Channel, Client, DMChannel, Message, MessageEmbed, NewsChannel, TextChannel } from 'discord.js'
+import { Channel, Client, DMChannel, Message, MessageEmbed, NewsChannel, TextChannel, User } from 'discord.js'
 import { reverseMessageString } from '../utils/textUtils'
 
 //import {client } from "./index"
@@ -50,6 +50,12 @@ export class MessageHelper {
         } catch (error) {
             this.sendMessageToActionLogWithDefaultMessage(rawMessage, error)
         }
+    }
+
+    static async sendDM(user: User, content: string, message: Message) {
+        user.send(content).catch((error) => {
+            message.reply('Klarte ikke sende deg en DM. Du må la servermedlemmer sende deg DM i instillingene dine for å motta DM-er.')
+        })
     }
 
     /** Reply til en gitt melding med gitt string. */

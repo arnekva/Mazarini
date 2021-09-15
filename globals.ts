@@ -156,6 +156,11 @@ export namespace globalArrays {
         'traff Thomas i fleisen',
         'nuka dassen',
         'slapp ein silent but deadly ein',
+        'feis i 32.45 sekund. Helwerre',
+        'hadde kebab i går og sidde fortsatt på dassen',
+        'feis og brukte med ein feil både speil og skjold på seg sjøl',
+        'fise akkurat nå',
+        '🪞',
     ]
 }
 

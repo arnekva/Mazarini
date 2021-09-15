@@ -53,28 +53,45 @@ export class GamblingCommands {
             startMessage.react('👍')
             startMessage.react('👎')
 
-            setTimeout(function () {
+            setTimeout(async function () {
                 let fullString = ''
                 const positive: string[] = []
                 const negative: string[] = []
-                const allReactions = startMessage.reactions.cache.forEach((reaction) => {
-                    fullString += 'Folk som reagerte med ' + reaction.emoji.name + ':'
-                    const users = reaction.users
-                    users.cache.forEach((us, ind) => {
+
+                const thumbsUp = startMessage.reactions.cache.find((emoji) => emoji.emoji.name == '👍')
+                if (thumbsUp) {
+                    const users = await thumbsUp.users.fetch()
+                    users.forEach((us, ind) => {
                         const userBal = DatabaseHelper.getValue('chips', us.username, message)
                         if (Number(userBal) < betVal && us.username !== 'Mazarini Bot') {
                             fullString += us.username + '(har ikke råd og blir ikke telt med),'
                         } else {
-                            if (us.username !== 'Mazarini Bot') {
+                            if (us.username !== 'MazariniBot') {
                                 DatabaseHelper.setValue('chips', us.username, (Number(userBal) - betVal).toFixed(2))
-                                if (reaction.emoji.name == '👍') positive.push(us.username)
-                                else if (reaction.emoji.name == '👎') negative.push(us.username)
+                                positive.push(us.username)
                                 fullString += us.username == 'Mazarini Bot' ? '' : ' ' + us.username + ','
                             }
                         }
                     })
                     fullString += '\n'
-                })
+                }
+                const thumbsDown = startMessage.reactions.cache.find((emoji) => emoji.emoji.name == '👎')
+                if (thumbsDown) {
+                    const users = await thumbsDown.users.fetch()
+                    users.forEach((us, ind) => {
+                        const userBal = DatabaseHelper.getValue('chips', us.username, message)
+                        if (Number(userBal) < betVal && us.username !== 'Mazarini Bot') {
+                            fullString += us.username + '(har ikke råd og blir ikke telt med),'
+                        } else {
+                            if (us.username !== 'MazariniBot') {
+                                DatabaseHelper.setValue('chips', us.username, (Number(userBal) - betVal).toFixed(2))
+                                negative.push(us.username)
+                                fullString += us.username == 'Mazarini Bot' ? '' : ' ' + us.username + ','
+                            }
+                        }
+                    })
+                    fullString += '\n'
+                }
                 if (positive.length == 0 && negative.length == 0) {
                     message.reply('Ingen svarte på veddemålet. ')
                     return
@@ -125,13 +142,15 @@ export class GamblingCommands {
                 resolveMessage.react('👍')
                 let positiveCounter = 0
 
-                setTimeout(function () {
-                    const allReactions = resolveMessage.reactions.cache.forEach((reaction) => {
-                        const users = reaction.users
-                        users.cache.forEach((us, ind) => {
-                            if (reaction.emoji.name == '👍') positiveCounter++
+                setTimeout(async function () {
+                    const thumbsUp = resolveMessage.reactions.cache.find((emoji) => emoji.emoji.name == '👍')
+                    // console.log(reaction.users)
+                    if (thumbsUp) {
+                        const users = await thumbsUp.users.fetch()
+                        users.forEach((us, ind) => {
+                            if (us.username == username) positiveCounter++
                         })
-                    })
+                    }
                     if (positiveCounter > 2) {
                         const isPositive = args[0].toLocaleLowerCase() === 'ja'
                         MessageHelper.sendMessage(message, `Veddemålsresultatet er godkjent. Beløpene blir nå lagt til på kontoene. `)

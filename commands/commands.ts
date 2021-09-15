@@ -113,7 +113,7 @@ export const commands: ICommandElement[] = [
     Meme.makeMemeCommand,
     User.seeWarningCounterCommand,
     User.sendRoleAssignmentCommand,
-    Weather.getWeatherForGivenCityCommand
+    Weather.getWeatherForGivenCityCommand,
 ]
 function getCommandCatgeories() {
     return ['lyd', 'gambling', 'gaming', 'tekst', 'annet', 'admin', 'spin']
@@ -135,7 +135,7 @@ export const helperCommands = (rawMessage: Message, messageContent: string, args
         })
         commandStringList.sort()
         commandStringList.forEach((str) => (commandString += '\n' + str))
-        MessageHelper.sendMessage(rawMessage, commandString)
+        MessageHelper.sendDM(rawMessage.author, commandString, rawMessage)
     } else if (args && args[0] !== 'admin' && commandForHelp.length > 0) {
         let found = 0
         commands.forEach((cmd) => {
@@ -172,6 +172,7 @@ export const helperCommands = (rawMessage: Message, messageContent: string, args
         getCommandCatgeories().forEach((cat) => {
             commandString += ' *' + cat + ',*'
         })
-        MessageHelper.sendMessage(rawMessage, commandString)
+        MessageHelper.sendMessage(rawMessage, 'Liste over kommandoer er sendt på DM.')
+        MessageHelper.sendDM(rawMessage.author, commandString, rawMessage)
     }
 }

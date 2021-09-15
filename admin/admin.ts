@@ -1,5 +1,5 @@
 import { Channel, GuildMember, Message, TextChannel } from 'discord.js'
-import { startTime } from '..'
+import { botLocked, lockedThread, lockedUser, numMessages, startTime } from '..'
 import { ICommandElement } from '../commands/commands'
 import { DateCommands } from '../commands/dateCommands'
 import { Spinner } from '../commands/spinner'
@@ -64,15 +64,16 @@ export class Admin {
         const start = startTime
         const timeSince = DateUtils.getTimeSince(start)
         if (timeSince) {
-            const text = DateCommands.formatCountdownText(timeSince, 'siden sist oppstart')
+            let text = DateCommands.formatCountdownText(timeSince, 'siden sist oppstart')
+            text += `\nAntall meldinger siden sist oppstart: ${numMessages}`
+            text += `\nLåste kanaler: ${lockedThread.length > 0 ? lockedThread.toString() : 'Ingen'}`
+            text += `\nLåste brukere: ${lockedUser.length > 0 ? lockedUser.toString() : 'Ingen'}`
             MessageHelper.sendMessage(message, text)
         } else MessageHelper.sendMessage(message, 'Ingen statistikk å vise')
     }
 
     static async replyToMsgAsBot(rawMessage: Message, content: string) {
-        const allChannels = [...rawMessage.client.channels.cache.values()].filter(
-            (channel) => channel instanceof TextChannel
-        ) as TextChannel[]
+        const allChannels = [...rawMessage.client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
 
         const id = content.substr(0, content.indexOf(' '))
         const replyString = content.substr(content.indexOf(' ') + 1)
@@ -96,9 +97,7 @@ export class Admin {
             For å sleppe å måtte sende med channel id for meldingen (kun id på selve meld) så må man loope gjennom alle channels på leting. 
         */
         //Filter out non-text channel and cast as TextChannel
-        const allChannels = [...rawMessage.client.channels.cache.values()].filter(
-            (channel) => channel instanceof TextChannel
-        ) as TextChannel[]
+        const allChannels = [...rawMessage.client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
 
         const c = content.split(' ')
         const id = c[0].trim()
@@ -110,9 +109,7 @@ export class Admin {
                         .fetch(id)
                         .then((message) => {
                             if (message.guild) {
-                                const reactionEmoji = message.client.emojis.cache.find(
-                                    (emoji) => emoji.name == emojiString
-                                )
+                                const reactionEmoji = message.client.emojis.cache.find((emoji) => emoji.name == emojiString)
                                 if (reactionEmoji) {
                                     message.react(reactionEmoji)
                                 } else {
@@ -164,10 +161,7 @@ export class Admin {
                 let newVal = parseInt(userWarnings)
                 newVal += 1
                 DatabaseHelper.setValue('warningCounter', user.username, newVal.toString())
-                MessageHelper.sendMessage(
-                    message,
-                    user.username + ', du har fått en advarsel. Du har nå ' + newVal + ' advarsler.'
-                )
+                MessageHelper.sendMessage(message, user.username + ', du har fått en advarsel. Du har nå ' + newVal + ' advarsler.')
                 //Send msg to action-log
                 MessageHelper.sendMessageToActionLog(
                     message.channel as TextChannel,
@@ -183,10 +177,7 @@ export class Admin {
                         ' advarsler'
                 )
             } else {
-                MessageHelper.sendMessageToActionLogWithDefaultMessage(
-                    message,
-                    'Verdien for warningcounter er NaN: <' + userWarnings + '>.'
-                )
+                MessageHelper.sendMessageToActionLogWithDefaultMessage(message, 'Verdien for warningcounter er NaN: <' + userWarnings + '>.')
             }
         } else {
             MessageHelper.sendMessage(
@@ -221,9 +212,9 @@ export class Admin {
                 })
                 MessageHelper.sendMessageToActionLog(
                     message.channel as TextChannel,
-                    `${message.author.username} slettet ${maxDelete} meldinger fra ${user.username} i channel ${
-                        message.channel
-                    } på grunn av: "${reason.length > 0 ? reason : 'ingen grunn oppgitt'}"`
+                    `${message.author.username} slettet ${maxDelete} meldinger fra ${user.username} i channel ${message.channel} på grunn av: "${
+                        reason.length > 0 ? reason : 'ingen grunn oppgitt'
+                    }"`
                 )
                 // if (user.username !== message.author.username)
                 //     message.delete();
@@ -243,10 +234,7 @@ export class Admin {
         const command = message.content.split(' ')[1]
         const numberOfFails = DatabaseHelper.getNonUserValue('incorrectCommand', command)
         const newFailNum = Number(numberOfFails) + 1
-        MessageHelper.sendMessageToActionLog(
-            message.channel as TextChannel,
-            `${command} ble forsøkt brukt, men finnes ikke (${newFailNum})`
-        )
+        MessageHelper.sendMessageToActionLog(message.channel as TextChannel, `${command} ble forsøkt brukt, men finnes ikke (${newFailNum})`)
         DatabaseHelper.setNonUserValue('incorrectCommand', command, newFailNum.toString())
     }
 
@@ -370,9 +358,7 @@ export class Admin {
         // member.roles.cache.some(role => role.name === "Mazarini-Bot-Admin")
         if (member)
             return (
-                member.id == '245607554254766081' ||
-                member.id == '221739293889003520' ||
-                member.id == '397429060898390016'
+                member.id == '245607554254766081' || member.id == '397429060898390016' || member.id == '239154365443604480' // Maggi: || member.id == '221739293889003520'
             )
         return false
     }
