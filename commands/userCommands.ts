@@ -4,7 +4,7 @@ import { MessageHelper } from '../helpers/messageHelper'
 import { Roles } from '../utils/roles'
 import { ICommandElement } from './commands'
 
-export class User {
+export class UserCommands {
     static getWarnings(message: Message, content: string, args: string[]) {
         const userNameToFind = args.join(' ')
         const userExists = DatabaseHelper.findUserByUsername(userNameToFind, message)
@@ -44,7 +44,7 @@ export class User {
         commandName: 'warnings',
         description: 'Se antall advarsler du har',
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            User.getWarnings(rawMessage, messageContent, args)
+            UserCommands.getWarnings(rawMessage, messageContent, args)
         },
         category: 'annet',
     }
@@ -52,7 +52,7 @@ export class User {
         commandName: 'role',
         description: 'Trigger role assignment',
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            User.roleAssignment(rawMessage, messageContent, args)
+            UserCommands.roleAssignment(rawMessage, messageContent, args)
         },
         category: 'annet',
     }

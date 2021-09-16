@@ -13,7 +13,7 @@ import { Achievements } from './achievements'
 import { SpotifyCommands } from './spotifyCommands'
 import { Music } from './musicCommands'
 import { Meme } from './memeCommands'
-import { User } from './userCommands'
+import { UserCommands } from './userCommands'
 import { DateCommands } from './dateCommands'
 import { Weather } from './weatherCommands'
 
@@ -118,8 +118,8 @@ export const commands: ICommandElement[] = [
     SpotifyCommands.currentUserIsPlaying,
     Music.musicCommands,
     Meme.makeMemeCommand,
-    User.seeWarningCounterCommand,
-    User.sendRoleAssignmentCommand,
+    UserCommands.seeWarningCounterCommand,
+    UserCommands.sendRoleAssignmentCommand,
     Weather.getWeatherForGivenCityCommand,
 ]
 function getCommandCatgeories() {

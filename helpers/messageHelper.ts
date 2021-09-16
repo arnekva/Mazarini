@@ -135,9 +135,9 @@ export class MessageHelper {
     static sendMessageToSpecificChannel(channelId: string, text: string, oldChannel: TextChannel) {
         const msgChannel = oldChannel.client.channels.cache.get(channelId.trim()) as TextChannel
         if (msgChannel) {
-            msgChannel.send(text.trim())
+            return msgChannel.send(text.trim())
         } else {
-            oldChannel.send('Ingen text channel ble funnet på oppgitt id <' + channelId + '>.')
+            return oldChannel.send('Ingen text channel ble funnet på oppgitt id <' + channelId + '>.')
         }
     }
 }

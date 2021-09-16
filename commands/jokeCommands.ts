@@ -7,7 +7,7 @@ import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { countdownTime, DateUtils } from '../utils/dateUtils'
-import { findLetterEmoji } from '../utils/miscUtils'
+import { findFeseText, findLetterEmoji } from '../utils/miscUtils'
 import { doesTextIncludeUsername, getUsernameInQuotationMarks, msToTime, replaceAtWithTextUsername, reverseMessageString } from '../utils/textUtils'
 import { ICommandElement } from './commands'
 import { EmojiHelper } from '../helpers/emojiHelper'
@@ -214,10 +214,10 @@ export class JokeCommands {
         const role = this.getRoleBasedOnChannel(message.channelId)
 
         const randomUser = role ? channel.members.filter((m) => m.roles.cache.get(role) !== undefined).random() : channel.members.random()
-
-        const name = randomUser.nickname ?? randomUser.displayName ?? randomUser.user.username
-        const phese = ArrayUtils.randomChoiceFromArray(globalArrays.feseTexts)
-        const reply = `${name} ${phese}`
+        const authorName = message.member?.nickname ?? message.member?.displayName ?? message.author.username
+        const randomName = randomUser.nickname ?? randomUser.displayName ?? randomUser.user.username
+        const phese = findFeseText(authorName, randomName) // ArrayUtils.randomChoiceFromArray(globalArrays.feseTexts)
+        const reply = `${phese}`
 
         MessageHelper.sendMessage(message, reply)
     }

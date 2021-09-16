@@ -45,6 +45,7 @@ import { DatabaseHelper } from './helpers/databaseHelper'
 
 import { MessageHelper } from './helpers/messageHelper'
 import { Spinner } from './commands/spinner'
+import { UserCommands } from './commands/userCommands'
 import { actSSOCookie, discordSecret, environment } from './client-env'
 import { MessageUtils } from './utils/messageUtils'
 import { ArrayUtils } from './utils/arrayUtils'
@@ -407,12 +408,15 @@ mazariniClient.on('guildCreate', function (guild: Guild) {
     MessageHelper.sendMessageToActionLog(guild.channels.cache.first() as TextChannel, 'Ukjent: on guildCreate. Wat dis do?')
 })
 
-mazariniClient.on('guildMemberAdd', function (member: GuildMember) {
-    MessageHelper.sendMessageToSpecificChannel(
+mazariniClient.on('guildMemberAdd', async function (member: GuildMember) {
+    const msg = await MessageHelper.sendMessageToSpecificChannel(
         '340626855990132747',
-        'Welcome to the Gulag, ' + (member.nickname ?? member.displayName) + '. Fight for your release.',
+        'Welcome to the Gulag, ' +
+            (member.nickname ?? member.displayName) +
+            '. Du kan gi deg selv roller ved å reagere med emojiene nedenfor for de spillene du ønsker.',
         member.guild.channels.cache.get('340626855990132747') as TextChannel
     )
+    UserCommands.roleAssignment(msg, '', ['args'])
     MessageHelper.sendMessageToActionLog(
         member.guild.channels.cache.first() as TextChannel,
         'En bruker ble med i Mazarini: ' + (member.nickname ?? member.displayName)
