@@ -24,7 +24,8 @@ export class WarzoneCommands {
                 let data = await API.MWweeklystats(gamertag, platform)
 
                 const stats = data.wz.mode.br_all.properties
-
+                const timePlayed = DateUtils.secondsToHoursAndMinutes(stats.timePlayed.toFixed(0))
+                const averageTime = DateUtils.secondsToMinutesAndSeconds(stats.avgLifeTime.toFixed(0))
                 response += '\nKills: ' + stats.kills
                 response += '\nDeaths: ' + stats.deaths
                 response += '\nK/D Ratio: ' + stats.kdRatio.toFixed(3)
@@ -35,8 +36,8 @@ export class WarzoneCommands {
                 response += '\nGulag Deaths: ' + stats.gulagDeaths
                 response += '\nGulag Kills: ' + stats.gulagKills
                 response += '\nGulag K/D: ' + (stats.gulagKills / stats.gulagDeaths).toFixed(3)
-                response += '\nTime played: ' + DateUtils.secondsToHours(stats.timePlayed) + ' hours'
-                response += '\nAverage Lifetime: ' + DateUtils.secondsToMinutes(stats.avgLifeTime.toFixed(3)) + ' minutes'
+                response += `\nTime played: ${timePlayed.hours} hours and ${timePlayed.minutes} minutes`
+                response += `\nAverage Lifetime: ${averageTime.minutes} minutes and ${averageTime.seconds} seconds`
                 response += '\nWall bangs: ' + stats.wallBangs
                 response += '\nHeadshots: ' + stats.headshots
                 response += '\nExecutions: ' + stats.executions

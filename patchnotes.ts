@@ -7,7 +7,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = '3.4.2'
+    public static readonly currentVersion = '3.4.3'
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
@@ -16,8 +16,7 @@ export class PatchNotes {
      * Eks: Senket sannsynligheten for å få høye tall på spinneren
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv.
      */
-    public static readonly currentPatchNotes: string =
-        `* Vær-kommandoen sender nå en mer detaljer værmelding` + `\n* Formattering for tid i warzone stats (Endelig) `
+    public static readonly currentPatchNotes: string = `* Fikset formatteringen på Average Lifetime og Time Played (Warzone weekly)`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

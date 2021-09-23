@@ -58,4 +58,23 @@ export class DateUtils {
     static secondsToHours(t: number) {
         return Math.floor(t / 3600)
     }
+
+    static secondsToHoursAndMinutes(t: number): { hours: number; minutes: number } {
+        const hours = this.secondsToHours(t)
+        const minutes = this.secondsToMinutes(t) - hours * 60
+        return {
+            hours: hours,
+            minutes: minutes,
+        }
+    }
+    static secondsToMinutesAndSeconds(t: number): { minutes: number; seconds: number } {
+        const minutes = this.secondsToMinutes(t)
+        console.log(t)
+
+        const seconds = t - minutes * 60
+        return {
+            minutes: minutes,
+            seconds: seconds,
+        }
+    }
 }
