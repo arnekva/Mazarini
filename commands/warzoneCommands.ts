@@ -1,38 +1,21 @@
-import {
-    Channel,
-    Client,
-    DMChannel,
-    Message,
-    NewsChannel,
-    TextChannel,
-} from 'discord.js'
+import { Channel, Client, DMChannel, Message, NewsChannel, TextChannel } from 'discord.js'
 import { actSSOCookie } from '../client-env'
 import { MessageHelper } from '../helpers/messageHelper'
+import { DateUtils } from '../utils/dateUtils'
 import { ICommandElement } from './commands'
 const API = require('call-of-duty-api')()
 export class WarzoneCommands {
-    static async getBRContent(
-        message: Message,
-        messageContent: string,
-        isWeekly?: boolean
-    ) {
+    static async getBRContent(message: Message, messageContent: string, isWeekly?: boolean) {
         const content = messageContent.split(' ')
         const gamertag = content[0]
         const platform = content[1]
         const bewareMessage = '' //"**OBS!** *Bruker development-versjon av modulen (api@2.0.0-dev). Denne er ustabil, og kan bli stuck på innlogging eller henting av info.*\n";
-        let sentMessage = await MessageHelper.sendMessage(
-            message,
-            'Logger inn...' + '\n' + bewareMessage
-        )
+        let sentMessage = await MessageHelper.sendMessage(message, 'Logger inn...' + '\n' + bewareMessage)
 
         let response = ''
         //Fjern denne når modulen er fikset.
         response += bewareMessage
-        if (!sentMessage)
-            sentMessage = await MessageHelper.sendMessage(
-                message,
-                'Henter data...'
-            )
+        if (!sentMessage) sentMessage = await MessageHelper.sendMessage(message, 'Henter data...')
         else await sentMessage.edit(bewareMessage + '\n' + 'Henter data...')
         if (isWeekly) {
             response += 'Weekly Warzone stats for <' + gamertag + '>'
@@ -47,32 +30,18 @@ export class WarzoneCommands {
                 response += '\nK/D Ratio: ' + stats.kdRatio.toFixed(3)
                 response += '\nKills per game: ' + stats.killsPerGame.toFixed(3)
                 response += '\nDamage Done: ' + stats.damageDone
-                response +=
-                    '\nDamage Taken: ' +
-                    stats.damageTaken +
-                    (stats.damageTaken > stats.damageDone ? ' (flaut) ' : '')
-                response += '\nHeadshots: ' + stats.headshots
-                response += '\nWall bangs: ' + stats.wallBangs
-                response +=
-                    '\nAverage Lifetime: ' + stats.avgLifeTime.toFixed(3)
-                // response += "\nDistance Traveled: " + stats.distanceTraveled;
-                response +=
-                    '\nMunition boxes used: ' +
-                        stats.objectiveMunitionsBoxTeammateUsed ?? '0'
-                response +=
-                    '\nNo. items bought at store: ' +
-                        stats.objectiveBrKioskBuy ?? '0'
+                response += '\nDamage Taken: ' + stats.damageTaken + (stats.damageTaken > stats.damageDone ? ' (flaut) ' : '')
+                response += '\nHeadshot percentage: ' + stats.headshotPercentage.toFixed(3)
                 response += '\nGulag Deaths: ' + stats.gulagDeaths
                 response += '\nGulag Kills: ' + stats.gulagKills
-                response +=
-                    '\nGulag K/D: ' +
-                    (stats.gulagKills / stats.gulagDeaths).toFixed(3)
-                response +=
-                    '\nTime played (må formaterast): ' + stats.timePlayed
-                response +=
-                    '\nHeadshot percentage: ' +
-                    stats.headshotPercentage.toFixed(3)
+                response += '\nGulag K/D: ' + (stats.gulagKills / stats.gulagDeaths).toFixed(3)
+                response += '\nTime played: ' + DateUtils.secondsToHours(stats.timePlayed) + ' hours'
+                response += '\nAverage Lifetime: ' + DateUtils.secondsToMinutes(stats.avgLifeTime.toFixed(3)) + ' minutes'
+                response += '\nWall bangs: ' + stats.wallBangs
+                response += '\nHeadshots: ' + stats.headshots
                 response += '\nExecutions: ' + stats.executions
+                response += '\nNo. items bought at store: ' + stats.objectiveBrKioskBuy ?? '0'
+                response += '\nMunition boxes used: ' + stats.objectiveMunitionsBoxTeammateUsed ?? '0'
                 response += '\nMatches Played: ' + stats.matchesPlayed
                 response += '\nChests opened: ' + stats.objectiveBrCacheOpen
                 response +=
@@ -90,15 +59,8 @@ export class WarzoneCommands {
                 if (sentMessage) sentMessage.edit(response)
                 else MessageHelper.sendMessage(message, response)
             } catch (error) {
-                if (sentMessage)
-                    sentMessage.edit(
-                        'Du har ingen statistikk for denne ukå, bro'
-                    )
-                else
-                    MessageHelper.sendMessage(
-                        message,
-                        'Du har ingen statistikk for denne ukå, bro'
-                    )
+                if (sentMessage) sentMessage.edit('Du har ingen statistikk for denne ukå, bro')
+                else MessageHelper.sendMessage(message, 'Du har ingen statistikk for denne ukå, bro')
             }
             // MessageHelper.sendMessage(message.channel, response)
         } else {
@@ -110,7 +72,9 @@ export class WarzoneCommands {
                 response += '\nKills: ' + data.br.kills
                 response += '\nDeaths: ' + data.br.deaths
                 response += '\nK/D Ratio: ' + data.br.kdRatio.toFixed(3)
+                response += '\nDowns: ' + data.br.downs
                 response += '\nTop 25: ' + data.br.topTwentyFive
+                response += '\nTop 10: ' + data.br.topTen
                 response += '\nTop 5: ' + data.br.topFive
                 response += '\nNumber of Contracts: ' + data.br.contracts
                 response += '\nTime Played: ' + convertTime(data.br.timePlayed)
@@ -126,11 +90,7 @@ export class WarzoneCommands {
             }
         }
     }
-    static async getWeaponContent(
-        message: Message,
-        messageContent: string,
-        isWeekly?: boolean
-    ) {
+    static async getWeaponContent(message: Message, messageContent: string, isWeekly?: boolean) {
         //Smurf account
         const content = messageContent.split(' ')
         const gamertag = content[0]
@@ -150,27 +110,20 @@ export class WarzoneCommands {
                     let maindata
                 })
                 .catch((error: any) => {
-                    MessageHelper.sendMessageToActionLogWithDefaultMessage(
-                        message,
-                        error
-                    )
+                    MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
                 })
             // console.log(data)
             let responseString = 'Battle Royale stats for <' + gamertag + '>:'
 
             // MessageHelper.sendMessage(message.channel, responseString)
         } catch (error) {
-            MessageHelper.sendMessageToActionLogWithDefaultMessage(
-                message,
-                error
-            )
+            MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
         }
     }
 
     static readonly getWZStats: ICommandElement = {
         commandName: 'br',
-        description:
-            "<gamertag> <plattform> (plattform: 'battle', 'steam', 'psn', 'xbl', 'acti', 'uno' (Activision ID som tall), 'all' (uvisst)",
+        description: "<gamertag> <plattform> (plattform: 'battle', 'steam', 'psn', 'xbl', 'acti', 'uno' (Activision ID som tall), 'all' (uvisst)",
         command: (rawMessage: Message, messageContent: string) => {
             WarzoneCommands.getBRContent(rawMessage, messageContent)
         },
@@ -178,8 +131,7 @@ export class WarzoneCommands {
     }
     static readonly getWeeklyWZStats: ICommandElement = {
         commandName: 'weekly',
-        description:
-            "<gamertag> <plattform> (plattform: 'battle', 'steam', 'psn', 'xbl', 'acti', 'uno' (Activision ID som tall), 'all' (uvisst)",
+        description: "<gamertag> <plattform> (plattform: 'battle', 'steam', 'psn', 'xbl', 'acti', 'uno' (Activision ID som tall), 'all' (uvisst)",
         command: (rawMessage: Message, messageContent: string) => {
             WarzoneCommands.getBRContent(rawMessage, messageContent, true)
         },
@@ -187,8 +139,7 @@ export class WarzoneCommands {
     }
     static readonly getWeaponStats: ICommandElement = {
         commandName: 'weapon',
-        description:
-            "<gamertag> <plattform> (plattform: 'battle', 'steam', 'psn', 'xbl', 'acti', 'uno' (Activision ID som tall), 'all' (uvisst)",
+        description: "<gamertag> <plattform> (plattform: 'battle', 'steam', 'psn', 'xbl', 'acti', 'uno' (Activision ID som tall), 'all' (uvisst)",
         command: (rawMessage: Message, messageContent: string) => {
             WarzoneCommands.getWeaponContent(rawMessage, messageContent)
         },

@@ -7,7 +7,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = '3.4.1'
+    public static readonly currentVersion = '3.4.2'
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
@@ -17,7 +17,7 @@ export class PatchNotes {
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv.
      */
     public static readonly currentPatchNotes: string =
-        `* Skrevet om fese-funksjonen` + `\n* Rolle-assignment skal nå trigge ('!mz role') når nye brukere blir med i serveren`
+        `* Vær-kommandoen sender nå en mer detaljer værmelding` + `\n* Formattering for tid i warzone stats (Endelig) `
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
