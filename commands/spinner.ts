@@ -133,7 +133,7 @@ export class Spinner {
         MessageHelper.sendMessage(message, '*** HIGHSCORE *** for uke ' + (isWeeklyReset ? weekNumber - 1 : getWeekNumber(new Date())[1]))
         //FIXME:
         const val2 = DatabaseHelper.getAllValuesFromPrefix('spin', message).filter((e) => e.val != 'Ugyldig verdi')
-        if (val2.length < 0) return false
+        if (val2.length < 1) return false
         ArrayUtils.sortUserValuePairArray(val2)
         let highscoreList = ArrayUtils.makeValuePairIntoOneString(val2, Spinner.formatValue)
         if (isWeeklyReset) {
@@ -147,7 +147,7 @@ export class Spinner {
             highscoreList += `\n ${val2[0].key} har vunnet 1000 chips`
             highscoreList += `\n ${val2[val2.length - 1].key} har mistet 1000 chips.`
         }
-        MessageHelper.sendMessage(message, highscoreList)
+        return MessageHelper.sendMessage(message, highscoreList)
     }
 
     static async listSpinCounter(message: Message) {
