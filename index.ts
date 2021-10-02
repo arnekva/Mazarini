@@ -150,7 +150,7 @@ mazariniClient.on('ready', async () => {
         const message = await las_vegas.send(spinnerMention + ', ukens spin har blitt nullstilt. Her er ukens score:\n')
         const listing = await Spinner.listScores(message, true)
         if (!listing) {
-            if (las_vegas) las_vegas.send('Ingen har spunnet fidget spinneren denne uken. Derfor kommer denne meldingen for å forhindre at botten kræsjer :)')
+            if (las_vegas) las_vegas.send('Hvis denne meldingen kommer har ingen spunnet denne uken, eller så har Arne failet igjen')
             return
         }
         Spinner.updateATH()

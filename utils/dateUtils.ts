@@ -51,6 +51,12 @@ export class DateUtils {
         return rDate
     }
 
+    static nextWeekdayDate(date: Date, day_in_week: number) {
+        var ret = new Date(date || new Date())
+        ret.setDate(ret.getDate() + ((day_in_week - 1 - ret.getDay() + 7) % 7) + 1)
+        return ret
+    }
+
     static secondsToMinutes(t: number) {
         return Math.floor(t / 60)
     }

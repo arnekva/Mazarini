@@ -7,7 +7,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = '3.4.4'
+    public static readonly currentVersion = '3.5.0'
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
@@ -16,7 +16,11 @@ export class PatchNotes {
      * Eks: Senket sannsynligheten for å få høye tall på spinneren
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv.
      */
-    public static readonly currentPatchNotes: string = `* Fikset reset av ukens spin.`
+    public static readonly currentPatchNotes: string =
+        `* Du kan nå sjekke hvor lenge det er til helgen med '!mz helg'.` +
+        `\n* Du kan nå sjekke last.fm statistikk for andre brukere ('!mz musikk topp songs 10 *discord-brukernavn*)` +
+        `\n* Fikset ukentlig reset av spins (igjen)` +
+        `\n* Bet skal ikke lenger telle med botten på svarene`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

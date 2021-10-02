@@ -63,7 +63,8 @@ export class GamblingCommands {
                     const users = await thumbsUp.users.fetch()
                     users.forEach((us, ind) => {
                         const userBal = DatabaseHelper.getValue('chips', us.username, message)
-                        if (Number(userBal) < betVal && us.username !== 'Mazarini Bot') {
+                        if (us.id === '802945796457758760') return
+                        if (Number(userBal) < betVal && us.id !== '802945796457758760') {
                             fullString += us.username + '(har ikke råd og blir ikke telt med),'
                         } else {
                             if (us.username !== 'MazariniBot') {
