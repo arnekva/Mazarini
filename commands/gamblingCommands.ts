@@ -369,12 +369,12 @@ export class GamblingCommands {
                 if (['red', 'rød', 'raud', 'røde'].includes(betOn.toLowerCase())) {
                     if (red.includes(roll)) {
                         won = true
-                        multiplier = 1
+                        multiplier = 2
                     }
                 } else if (['svart', 'black', 'sort', 'sorte'].includes(betOn.toLowerCase())) {
                     if (!red.includes(roll) && !(roll == 0)) {
                         won = true
-                        multiplier = 1
+                        multiplier = 2
                     }
                 } else if (['green', 'grønn', 'grøn'].includes(betOn.toLowerCase())) {
                     if (roll == 0) {
@@ -384,12 +384,12 @@ export class GamblingCommands {
                 } else if (['odd', 'oddetall'].includes(betOn.toLowerCase())) {
                     if (roll % 2 == 1) {
                         won = true
-                        multiplier = 1
+                        multiplier = 2
                     }
                 } else if (['par', 'partall', 'even'].includes(betOn.toLowerCase())) {
                     if (roll % 2 == 0) {
                         won = true
-                        multiplier = 1
+                        multiplier = 2
                     }
                 } else {
                     message.reply('Lol, kan du ikke rulett eller?')
