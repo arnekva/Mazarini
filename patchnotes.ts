@@ -7,7 +7,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = '3.6.0'
+    public static readonly currentVersion = '3.6.1'
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
@@ -16,12 +16,7 @@ export class PatchNotes {
      * Eks: Senket sannsynligheten for å få høye tall på spinneren
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv.
      */
-    public static readonly currentPatchNotes: string =
-        `* NY GAMBLING-KOMMANDO: '!mz roll' - lar deg rulle en slot machine for å vinne chips. Det koster 100 chips å spinne` +
-        `\n* Fikset feil på helg-kommandoen for fredager` +
-        `\n* Alle brukere som hadde under 5000 chips har nå blitt satt til 5000. Brukere med verdier over dette har beholdt sitt` +
-        `\n* Fikset en kræsj når man reacter med en emoji som ikke eksisterer` +
-        `\n* Nye medlemmer skal nå automatisk få tildelt 5000 chips`
+    public static readonly currentPatchNotes: string = `* Justert 'roll' payout` + `\n* Du kan nå vinne på sekvense i roll (123, 1234, 12345 og 1337)`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

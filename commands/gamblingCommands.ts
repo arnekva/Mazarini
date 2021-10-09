@@ -694,6 +694,7 @@ export class GamblingCommands {
         const msg = new MessageEmbed().setTitle('🎰 Gambling 🎰').setDescription(`${emojiString}`).setFields()
 
         const amountOfCorrectNums: { val: number; num: number }[] = []
+        const sequenceWins = ['123', '1234', '12345', '1337']
         let currentNum = randArray[0]
         let numOfOccurence = 0
         //Gå gjennom array
@@ -724,17 +725,42 @@ export class GamblingCommands {
             const newMoney = Number(currentMoney) + winnings
             DatabaseHelper.setValue('chips', message.author.username, newMoney.toFixed(0))
         } else {
-            msg.addField('Du tapte', '-100 chips')
+            const arrayAsString = randArray.join('')
+            let hasSequence = false
+            sequenceWins.forEach((seq) => {
+                if (arrayAsString.includes(seq)) {
+                    const seqWorth = this.findSequenceWinningAmount(seq)
+                    winnings += seqWorth
+                    msg.addField(`${seq}`, `Du fikk sekvensen ${seq}. Du har vunnet ${seqWorth} chips`)
+                    hasSequence = true
+                }
+            })
+            if (!hasSequence) msg.addField('Du tapte', '-100 chips')
         }
         MessageHelper.sendFormattedMessage(message, msg)
+    }
+
+    static findSequenceWinningAmount(s: string) {
+        switch (s) {
+            case '123':
+                return 550
+            case '1234':
+                return 55000
+            case '12345':
+                return 4500000
+            case '1337':
+                return 4200
+            default:
+                return 400
+        }
     }
 
     static findSlotMachineWinningAmount(numCorrect: number) {
         switch (numCorrect) {
             case 2:
-                return 350
+                return 300
             case 3:
-                return 2500
+                return 2250
             case 4:
                 return 17500
             case 5:
