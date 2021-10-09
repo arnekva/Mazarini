@@ -7,7 +7,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = '3.6.1'
+    public static readonly currentVersion = '3.6.2'
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
@@ -16,7 +16,10 @@ export class PatchNotes {
      * Eks: Senket sannsynligheten for å få høye tall på spinneren
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv.
      */
-    public static readonly currentPatchNotes: string = `* Justert 'roll' payout` + `\n* Du kan nå vinne på sekvense i roll (123, 1234, 12345 og 1337)`
+    public static readonly currentPatchNotes: string =
+        `* Justert 'roll' payout` +
+        `\n* Du kan nå vinne på sekvense i roll (123, 1234, 12345 og 1337)` +
+        `\n* Warzone Weekly stats lagres nå og du vil se differansen ved neste stats-call`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

@@ -89,9 +89,9 @@ mazariniClient.on('ready', async () => {
                 )
         }
     }
-    las_vegas.permissionOverwrites.edit('340626855990132747', {
-        SEND_MESSAGES: environment === 'prod',
-    })
+    // las_vegas.permissionOverwrites.edit('340626855990132747', {
+    //     SEND_MESSAGES: environment === 'prod',
+    // })
     //TODO END
 
     const today = new Date()

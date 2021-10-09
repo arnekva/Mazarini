@@ -50,6 +50,7 @@ export type dbPrefix =
     | 'debtPenalty'
     | 'debtMultiplier'
     | 'shopItems'
+    | 'codStats'
 
 export interface betObject {
     description: string
@@ -77,6 +78,9 @@ export class DatabaseHelper {
      * @param value - Verdi som settes i databasen
      */
     static setValue(prefix: dbPrefix, key: string, value: string) {
+        db.push(`${folderPrefix}/${key}/${prefix}`, `${value}`)
+    }
+    static setObjectValue(prefix: dbPrefix, key: string, value: any) {
         db.push(`${folderPrefix}/${key}/${prefix}`, `${value}`)
     }
     /** Sett en verdi i "other"-delen av databasen */
@@ -112,23 +116,11 @@ export class DatabaseHelper {
     }
     /** Knytter et bet til en bruker */
     static setActiveBetObject(key: string, value: betObject) {
-        db.push(
-            `${otherFolderPreifx}/activeBet/${key}/positivePeople`,
-            `${value.positivePeople}`
-        )
-        db.push(
-            `${otherFolderPreifx}/activeBet/${key}/negativePeople`,
-            `${value.negativePeople}`
-        )
+        db.push(`${otherFolderPreifx}/activeBet/${key}/positivePeople`, `${value.positivePeople}`)
+        db.push(`${otherFolderPreifx}/activeBet/${key}/negativePeople`, `${value.negativePeople}`)
         db.push(`${otherFolderPreifx}/activeBet/${key}/value`, `${value.value}`)
-        db.push(
-            `${otherFolderPreifx}/activeBet/${key}/description`,
-            `${value.description}`
-        )
-        db.push(
-            `${otherFolderPreifx}/activeBet/${key}/messageId`,
-            `${value.messageId}`
-        )
+        db.push(`${otherFolderPreifx}/activeBet/${key}/description`, `${value.description}`)
+        db.push(`${otherFolderPreifx}/activeBet/${key}/messageId`, `${value.messageId}`)
     }
     static getActiveBetObject(key: string) {
         try {
@@ -139,21 +131,10 @@ export class DatabaseHelper {
         }
     }
     static setBetObject(key: string, messageId: string, value: betObject) {
-        db.push(
-            `${otherFolderPreifx}/storedBets/${messageId}/positive`,
-            `${value.positivePeople}`
-        )
-        db.push(
-            `${otherFolderPreifx}/storedBets/${messageId}/negative`,
-            `${value.negativePeople}`
-        )
+        db.push(`${otherFolderPreifx}/storedBets/${messageId}/positive`, `${value.positivePeople}`)
+        db.push(`${otherFolderPreifx}/storedBets/${messageId}/negative`, `${value.negativePeople}`)
     }
-    static setAchievementObject(
-        prefix: dbPrefix,
-        key: string,
-        achievementID: achievementIDs,
-        value: any
-    ) {
+    static setAchievementObject(prefix: dbPrefix, key: string, achievementID: achievementIDs, value: any) {
         db.push(`${folderPrefix}/${key}/${prefix}/${achievementID}`, `${value}`)
     }
     /** Increment verdien for en int som ligger i databasen */
@@ -166,22 +147,12 @@ export class DatabaseHelper {
         const oldValue = DatabaseHelper.getValueWithoutMessage(prefix, key)
         const newVal = Number(oldValue) - Number(decrement)
 
-        DatabaseHelper.setValue(
-            prefix,
-            key,
-            newVal > 0 ? newVal.toFixed(2) : '0.00'
-        )
+        DatabaseHelper.setValue(prefix, key, newVal > 0 ? newVal.toFixed(2) : '0.00')
     }
-    static getAchievement(
-        prefix: dbPrefix,
-        key: string,
-        achievementID: achievementIDs
-    ) {
+    static getAchievement(prefix: dbPrefix, key: string, achievementID: achievementIDs) {
         let data
         try {
-            data = db.getData(
-                `${folderPrefix}/${key}/${prefix}/${achievementID}`
-            )
+            data = db.getData(`${folderPrefix}/${key}/${prefix}/${achievementID}`)
         } catch (error) {
             //No data;
         }
@@ -200,12 +171,7 @@ export class DatabaseHelper {
      * @param noInsertions FUnksjonen oppretter en tom verdi hvis den ikke eksisterer. Sett denne true dersom den IKKE skal opprette default verdi hvis den ikke finnes
      * @returns
      */
-    static getValue(
-        prefix: dbPrefix,
-        key: string,
-        message: Message,
-        noInsertions?: boolean
-    ) {
+    static getValue(prefix: dbPrefix, key: string, message: Message, noInsertions?: boolean) {
         try {
             const data = db.getData(`${folderPrefix}/${key}/${prefix}`)
             return data
@@ -213,12 +179,9 @@ export class DatabaseHelper {
             if (noInsertions) return ''
 
             const val = DatabaseHelper.valueToPush(prefix)
-            if (DatabaseHelper.findUserByUsername(key, message))
-                db.push(`${folderPrefix}/${key}/${prefix}`, val)
+            if (DatabaseHelper.findUserByUsername(key, message)) db.push(`${folderPrefix}/${key}/${prefix}`, val)
             else {
-                message.reply(
-                    'brukeren finnes ikke. Hvis brukeren har mellomrom i navnet, benytt "hermetegn" rundt navnet.'
-                )
+                message.reply('brukeren finnes ikke. Hvis brukeren har mellomrom i navnet, benytt "hermetegn" rundt navnet.')
                 return undefined
             }
             return '0'
@@ -255,9 +218,7 @@ export class DatabaseHelper {
     }
 
     static findUserByUsername(username: string, rawMessage: Message) {
-        return rawMessage.client.users.cache.find(
-            (user) => user.username == username
-        )
+        return rawMessage.client.users.cache.find((user) => user.username == username)
     }
     static findUserById(id: string, rawMessage: Message) {
         return rawMessage.client.users.cache.find((user) => user.id == id)
@@ -278,11 +239,7 @@ export class DatabaseHelper {
                     Object.keys(users[el]).forEach((el4) => {
                         if (el4 == prefix2) {
                             if (users[el][el2] < users[el][el4]) {
-                                DatabaseHelper.setValue(
-                                    prefix1,
-                                    el,
-                                    users[el][el4]
-                                )
+                                DatabaseHelper.setValue(prefix1, el, users[el][el4])
                             }
                         }
                     })

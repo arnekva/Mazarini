@@ -112,7 +112,6 @@ export const commands: ICommandElement[] = [
     DateCommands.helgCommand,
     WarzoneCommands.getWZStats,
     WarzoneCommands.getWeeklyWZStats,
-    WarzoneCommands.getWeaponStats,
     PatchNotes.getPatchNotes,
     PatchNotes.publishPatchNotes,
     Achievements.listAchievements,

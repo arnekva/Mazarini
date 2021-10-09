@@ -1,9 +1,26 @@
 import { Channel, Client, DMChannel, Message, NewsChannel, TextChannel } from 'discord.js'
 import { actSSOCookie } from '../client-env'
+import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
 import { ICommandElement } from './commands'
 const API = require('call-of-duty-api')()
+
+export interface CodStats {
+    kills: number
+    deaths: number
+    kdRatio: number
+    killsPerGame: number
+    damageDone: number
+    damageTaken: number
+    headshotPerc: number
+    gulagDeaths: number
+    gulagKills: number
+    wallBangs: number
+    executions: number
+    headshots: number
+    matchesPlayed: number
+}
 export class WarzoneCommands {
     static async getBRContent(message: Message, messageContent: string, isWeekly?: boolean) {
         const content = messageContent.split(' ')
@@ -26,24 +43,26 @@ export class WarzoneCommands {
                 const stats = data.wz.mode.br_all.properties
                 const timePlayed = DateUtils.secondsToHoursAndMinutes(stats.timePlayed.toFixed(0))
                 const averageTime = DateUtils.secondsToMinutesAndSeconds(stats.avgLifeTime.toFixed(0))
-                response += '\nKills: ' + stats.kills
-                response += '\nDeaths: ' + stats.deaths
-                response += '\nK/D Ratio: ' + stats.kdRatio.toFixed(3)
-                response += '\nKills per game: ' + stats.killsPerGame.toFixed(3)
-                response += '\nDamage Done: ' + stats.damageDone
+                const oldData = JSON.parse(this.getUserStats(message))
+
+                response += '\nKills: ' + stats.kills + this.compareOldNewStats(stats.kills, oldData.kills)
+                response += '\nDeaths: ' + stats.deaths + this.compareOldNewStats(stats.deaths, oldData.deaths)
+                response += '\nK/D Ratio: ' + stats.kdRatio.toFixed(3) + this.compareOldNewStats(stats.kdRatio, oldData.kdRatio)
+                response += '\nKills per game: ' + stats.killsPerGame.toFixed(3) + this.compareOldNewStats(stats.killsPerGame, oldData.killsPerGame)
+                response += '\nDamage Done: ' + stats.damageDone + this.compareOldNewStats(stats.damageDone, oldData.damageDone)
                 response += '\nDamage Taken: ' + stats.damageTaken + (stats.damageTaken > stats.damageDone ? ' (flaut) ' : '')
                 response += '\nHeadshot percentage: ' + stats.headshotPercentage.toFixed(3)
-                response += '\nGulag Deaths: ' + stats.gulagDeaths
-                response += '\nGulag Kills: ' + stats.gulagKills
+                response += '\nGulag Deaths: ' + stats.gulagDeaths + this.compareOldNewStats(stats.gulagDeaths, oldData.gulagDeaths)
+                response += '\nGulag Kills: ' + stats.gulagKills + this.compareOldNewStats(stats.gulagKills, oldData.gulagKills)
                 response += '\nGulag K/D: ' + (stats.gulagKills / stats.gulagDeaths).toFixed(3)
                 response += `\nTime played: ${timePlayed.hours} hours and ${timePlayed.minutes} minutes`
                 response += `\nAverage Lifetime: ${averageTime.minutes} minutes and ${averageTime.seconds} seconds`
-                response += '\nWall bangs: ' + stats.wallBangs
-                response += '\nHeadshots: ' + stats.headshots
-                response += '\nExecutions: ' + stats.executions
+                response += '\nWall bangs: ' + stats.wallBangs + this.compareOldNewStats(stats.wallBangs, oldData.wallBangs)
+                response += '\nHeadshots: ' + stats.headshots + this.compareOldNewStats(stats.headshots, oldData.headshots)
+                response += '\nExecutions: ' + stats.executions + this.compareOldNewStats(stats.executions, oldData.executions)
                 response += '\nNo. items bought at store: ' + stats.objectiveBrKioskBuy ?? '0'
                 response += '\nMunition boxes used: ' + stats.objectiveMunitionsBoxTeammateUsed ?? '0'
-                response += '\nMatches Played: ' + stats.matchesPlayed
+                response += '\nMatches Played: ' + stats.matchesPlayed + this.compareOldNewStats(stats.matchesPlayed, oldData.matchesPlayed)
                 response += '\nChests opened: ' + stats.objectiveBrCacheOpen
                 response +=
                     '\nEnemies down (circle 1, 2, 3, 4, 5): ' +
@@ -59,6 +78,23 @@ export class WarzoneCommands {
                     ' '
                 if (sentMessage) sentMessage.edit(response)
                 else MessageHelper.sendMessage(message, response)
+
+                const saveStatsObject: CodStats = {
+                    kills: Number(stats.kills),
+                    deaths: Number(stats.deaths),
+                    damageDone: Number(stats.damageDone),
+                    damageTaken: Number(stats.damageTaken),
+                    executions: Number(stats.executions),
+                    gulagDeaths: Number(stats.gulagDeaths),
+                    gulagKills: Number(stats.gulagKills),
+                    headshotPerc: Number(stats.headshotPercentage),
+                    headshots: Number(stats.headshots),
+                    kdRatio: Number(stats.kdRatio),
+                    killsPerGame: Number(stats.killsPerGame),
+                    matchesPlayed: Number(stats.matchesPlayed),
+                    wallBangs: Number(stats.wallBangs),
+                }
+                this.saveUserStats(message, messageContent, saveStatsObject)
             } catch (error) {
                 if (sentMessage) sentMessage.edit('Du har ingen statistikk for denne ukå, bro')
                 else MessageHelper.sendMessage(message, 'Du har ingen statistikk for denne ukå, bro')
@@ -67,7 +103,6 @@ export class WarzoneCommands {
         } else {
             try {
                 let data = await API.MWBattleData(gamertag, platform)
-                // console.log(data)
                 response += 'Battle Royale stats for <' + gamertag + '>:'
                 response += '\nWins: ' + data.br.wins
                 response += '\nKills: ' + data.br.kills
@@ -91,35 +126,22 @@ export class WarzoneCommands {
             }
         }
     }
-    static async getWeaponContent(message: Message, messageContent: string, isWeekly?: boolean) {
-        //Smurf account
-        const content = messageContent.split(' ')
-        const gamertag = content[0]
-        const platform = content[1]
-        const weapon = content[2]
 
-        try {
-            await API.login('arne.kva@gmail.com', 'Mazarini332')
-        } catch (error) {
-            message.reply('Klarte ikke logge inn')
-        }
+    static compareOldNewStats(old: string, newN: string | number) {
+        const oldNum = Number(old)
+        const newNum = Number(newN)
+        console.log(oldNum + ';;;' + newNum)
 
-        try {
-            let data = API.MWwzstats(gamertag, platform)
-                .then((response: any) => {
-                    const weapons = response.lifetime.itemData
-                    let maindata
-                })
-                .catch((error: any) => {
-                    MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
-                })
-            // console.log(data)
-            let responseString = 'Battle Royale stats for <' + gamertag + '>:'
-
-            // MessageHelper.sendMessage(message.channel, responseString)
-        } catch (error) {
-            MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
-        }
+        if (oldNum < newNum) return ` (+${newNum - oldNum})`
+        if (oldNum > newNum) return ` (${newNum - oldNum})`
+        return ``
+    }
+    /** Beware of stats: any */
+    static saveUserStats(message: Message, messageContent: string, stats: CodStats) {
+        DatabaseHelper.setObjectValue('codStats', message.author.username, JSON.stringify(stats))
+    }
+    static getUserStats(message: Message) {
+        return DatabaseHelper.getValue('codStats', message.author.username, message)
     }
 
     static readonly getWZStats: ICommandElement = {
@@ -135,14 +157,6 @@ export class WarzoneCommands {
         description: "<gamertag> <plattform> (plattform: 'battle', 'steam', 'psn', 'xbl', 'acti', 'uno' (Activision ID som tall), 'all' (uvisst)",
         command: (rawMessage: Message, messageContent: string) => {
             WarzoneCommands.getBRContent(rawMessage, messageContent, true)
-        },
-        category: 'gaming',
-    }
-    static readonly getWeaponStats: ICommandElement = {
-        commandName: 'weapon',
-        description: "<gamertag> <plattform> (plattform: 'battle', 'steam', 'psn', 'xbl', 'acti', 'uno' (Activision ID som tall), 'all' (uvisst)",
-        command: (rawMessage: Message, messageContent: string) => {
-            WarzoneCommands.getWeaponContent(rawMessage, messageContent)
         },
         category: 'gaming',
     }
