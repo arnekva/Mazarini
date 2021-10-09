@@ -760,9 +760,9 @@ export class GamblingCommands {
             case 2:
                 return 100
             case 3:
-                return 900
+                return 1500
             case 4:
-                return 5000
+                return 9500
             case 5:
                 return 45000
             case 6:
