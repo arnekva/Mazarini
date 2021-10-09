@@ -113,11 +113,7 @@ export class Admin {
                                 if (reactionEmoji) {
                                     message.react(reactionEmoji)
                                 } else {
-                                    try {
-                                        message.react(emojiString)
-                                    } catch (error) {
-                                        message.reply('dette gjekk te helvette. Stacktrace: ' + error)
-                                    }
+                                    MessageHelper.sendDM(message.author, 'Fant ikke emojien', message)
                                 }
                             }
                         })

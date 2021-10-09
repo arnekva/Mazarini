@@ -105,9 +105,12 @@ export class DateCommands {
         let timeUntil
         if (!isHelg) {
             const date = new Date()
-            date.setHours(18, 0, 0, 0)
-            timeUntil = DateCommands.formatCountdownText(DateUtils.getTimeTo(new Date(DateUtils.nextWeekdayDate(date, 5))), 'til helg')
-            console.log(timeUntil)
+            date.setHours(16, 0, 0, 0)
+            if (date.getDay() === 5) {
+                timeUntil = DateCommands.formatCountdownText(DateUtils.getTimeTo(date), 'til helg')
+            } else {
+                timeUntil = DateCommands.formatCountdownText(DateUtils.getTimeTo(new Date(DateUtils.nextWeekdayDate(date, 5))), 'til helg')
+            }
         }
         MessageHelper.sendMessage(message, isHelg ? `Det e helg!` : `${timeUntil}`)
     }

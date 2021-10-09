@@ -206,7 +206,10 @@ mazariniClient.on('messageCreate', async (message: Message) => {
 function isLegalChannel(message: Message) {
     return (
         (environment === 'dev' &&
-            (message.channel.id === '880493116648456222' || message.channel.id === '880493116648456222' || message.channel.id === '342009170318327831')) ||
+            (message.channel.id === '880493116648456222' ||
+                message.channel.id === '880493116648456222' ||
+                message.channel.id === '342009170318327831' ||
+                message.channel.id === '778599907933159434')) ||
         (environment === 'prod' && message.channel.id !== '880493116648456222')
     )
 }
@@ -416,6 +419,7 @@ mazariniClient.on('guildMemberAdd', async function (member: GuildMember) {
             '. Du kan gi deg selv roller ved å reagere med emojiene nedenfor for de spillene du ønsker.',
         member.guild.channels.cache.get('340626855990132747') as TextChannel
     )
+    DatabaseHelper.setValue('chips', member.user.username, '5000')
     UserCommands.roleAssignment(msg, '', ['args'])
     MessageHelper.sendMessageToActionLog(
         member.guild.channels.cache.first() as TextChannel,

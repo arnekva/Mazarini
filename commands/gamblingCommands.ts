@@ -4,7 +4,9 @@ import { globals } from '../globals'
 import { betObject, betObjectReturned, DatabaseHelper, dbPrefix } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
+import { findLetterEmoji } from '../utils/miscUtils'
 import { ObjectUtils } from '../utils/objectUtils'
+import { getRndInteger } from '../utils/randomUtils'
 import { getUsernameInQuotationMarks } from '../utils/textUtils'
 import { ICommandElement } from './commands'
 
@@ -670,6 +672,81 @@ export class GamblingCommands {
         )
     }
 
+    static rollSlotMachine(message: Message, messageContent: string, args: string[]) {
+        const userMoney = DatabaseHelper.getValue('chips', message.author.username, message)
+        if (Number(userMoney) < 100) {
+            message.reply('Det koste 100 chips for å bruga maskinen, og du har kje råd bro')
+            return
+        }
+        //Remove 100 chips
+        let emojiString = ''
+        const newMoneyVal = Number(userMoney) - 100
+        DatabaseHelper.setValue('chips', message.author.username, newMoneyVal.toFixed(0))
+
+        const randArray = []
+        for (let i = 0; i < 5; i++) {
+            randArray.push(getRndInteger(0, 9))
+        }
+        randArray.forEach((num) => {
+            emojiString += findLetterEmoji(num.toString())
+        })
+
+        const msg = new MessageEmbed().setTitle('🎰 Gambling 🎰').setDescription(`${emojiString}`).setFields()
+
+        const amountOfCorrectNums: { val: number; num: number }[] = []
+        let currentNum = randArray[0]
+        let numOfOccurence = 0
+        //Gå gjennom array
+        for (let i = 0; i < randArray.length; i++) {
+            //Hvis nåværende + neste tall er like
+            if (randArray[i + 1] == currentNum) {
+                //Oppdater antall repeats
+                numOfOccurence++
+            } else {
+                //Hvis de ikke er like, men de forrige har vært like, push te til "Funnet"-lista me antall like + tallet selv
+                if (numOfOccurence > 0) {
+                    amountOfCorrectNums.push({ val: currentNum, num: numOfOccurence })
+                }
+                //Sett nåværende like tall til 0
+                numOfOccurence = 0
+                //Bytt nåværende søke-tall
+                currentNum = randArray[i + 1]
+            }
+        }
+        let winnings = 0
+        if (amountOfCorrectNums.length > 0) {
+            amountOfCorrectNums.forEach((correctNum) => {
+                let currentWinnings = this.findSlotMachineWinningAmount(correctNum.num + 1)
+                winnings += currentWinnings
+                msg.addField(`${correctNum.val}`, `Kom ${correctNum.num + 1} ganger. Du har vunnet ${currentWinnings} chips`)
+            })
+            const currentMoney = DatabaseHelper.getValue('chips', message.author.username, message)
+            const newMoney = Number(currentMoney) + winnings
+            DatabaseHelper.setValue('chips', message.author.username, newMoney.toFixed(0))
+        } else {
+            msg.addField('Du tapte', '-100 chips')
+        }
+        MessageHelper.sendFormattedMessage(message, msg)
+    }
+
+    static findSlotMachineWinningAmount(numCorrect: number) {
+        switch (numCorrect) {
+            case 2:
+                return 350
+            case 3:
+                return 2500
+            case 4:
+                return 17500
+            case 5:
+                return 450000
+            case 6:
+                return 8500000
+            default:
+                return 100
+        }
+        return 100
+    }
+
     static readonly addCoinsCommand: ICommandElement = {
         commandName: 'coins',
         description: 'Legg til eller fjern coins fra en person. <Brukernavn> <verdi> (pluss/minus)',
@@ -792,6 +869,14 @@ export class GamblingCommands {
         description: 'Resolve veddemålet',
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.resolveBet(rawMessage, messageContent, args)
+        },
+        category: 'gambling',
+    }
+    static readonly rollCommand: ICommandElement = {
+        commandName: 'roll',
+        description: 'TODO',
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            GamblingCommands.rollSlotMachine(rawMessage, messageContent, args)
         },
         category: 'gambling',
     }

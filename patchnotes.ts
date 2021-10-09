@@ -7,7 +7,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = '3.5.0'
+    public static readonly currentVersion = '3.6.0'
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
@@ -17,10 +17,11 @@ export class PatchNotes {
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv.
      */
     public static readonly currentPatchNotes: string =
-        `* Du kan nå sjekke hvor lenge det er til helgen med '!mz helg'.` +
-        `\n* Du kan nå sjekke last.fm statistikk for andre brukere ('!mz musikk topp songs 10 *discord-brukernavn*)` +
-        `\n* Fikset ukentlig reset av spins (igjen)` +
-        `\n* Bet skal ikke lenger telle med botten på svarene`
+        `* NY GAMBLING-KOMMANDO: '!mz roll' - lar deg rulle en slot machine for å vinne chips. Det koster 100 chips å spinne` +
+        `\n* Fikset feil på helg-kommandoen for fredager` +
+        `\n* Alle brukere som hadde under 5000 chips har nå blitt satt til 5000. Brukere med verdier over dette har beholdt sitt` +
+        `\n* Fikset en kræsj når man reacter med en emoji som ikke eksisterer` +
+        `\n* Nye medlemmer skal nå automatisk få tildelt 5000 chips`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

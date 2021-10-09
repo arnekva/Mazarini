@@ -106,6 +106,7 @@ export const commands: ICommandElement[] = [
     GamblingCommands.bailoutCommand,
     GamblingCommands.showActiveBetCommand,
     GamblingCommands.gambleCoinsShort,
+    GamblingCommands.rollCommand,
     DateCommands.remindMeCommand,
     DateCommands.countdownCommand,
     DateCommands.helgCommand,
