@@ -127,13 +127,12 @@ export class WarzoneCommands {
         }
     }
 
-    static compareOldNewStats(old: string, newN: string | number) {
-        const oldNum = Number(old)
-        const newNum = Number(newN)
-        console.log(oldNum + ';;;' + newNum)
+    static compareOldNewStats(current: string, storedData: string | number) {
+        const currentStats = Number(current)
+        const oldStorageStats = Number(storedData)
 
-        if (oldNum < newNum) return ` (+${newNum - oldNum})`
-        if (oldNum > newNum) return ` (${newNum - oldNum})`
+        if (currentStats > oldStorageStats) return ` (+${(oldStorageStats - currentStats).toFixed(3)})`
+        if (currentStats < oldStorageStats) return ` (${(oldStorageStats - currentStats).toFixed(3)})`
         return ``
     }
     /** Beware of stats: any */
