@@ -47,8 +47,8 @@ export class WarzoneCommands {
 
                 response += '\nKills: ' + stats.kills + this.compareOldNewStats(stats.kills, oldData.kills)
                 response += '\nDeaths: ' + stats.deaths + this.compareOldNewStats(stats.deaths, oldData.deaths)
-                response += '\nK/D Ratio: ' + stats.kdRatio.toFixed(3) + this.compareOldNewStats(stats.kdRatio, oldData.kdRatio)
-                response += '\nKills per game: ' + stats.killsPerGame.toFixed(3) + this.compareOldNewStats(stats.killsPerGame, oldData.killsPerGame)
+                response += '\nK/D Ratio: ' + stats.kdRatio.toFixed(3) + this.compareOldNewStats(stats.kdRatio, oldData.kdRatio, true)
+                response += '\nKills per game: ' + stats.killsPerGame.toFixed(3) + this.compareOldNewStats(stats.killsPerGame, oldData.killsPerGame, true)
                 response += '\nDamage Done: ' + stats.damageDone + this.compareOldNewStats(stats.damageDone, oldData.damageDone)
                 response += '\nDamage Taken: ' + stats.damageTaken + (stats.damageTaken > stats.damageDone ? ' (flaut) ' : '')
                 response += '\nHeadshot percentage: ' + stats.headshotPercentage.toFixed(3)
@@ -96,8 +96,8 @@ export class WarzoneCommands {
                 }
                 this.saveUserStats(message, messageContent, saveStatsObject)
             } catch (error) {
-                if (sentMessage) sentMessage.edit('Du har ingen statistikk for denne ukå, bro')
-                else MessageHelper.sendMessage(message, 'Du har ingen statistikk for denne ukå, bro')
+                if (sentMessage) sentMessage.edit('Du har ingen statistikk for denne ukå, bro (eller så funke ikkje koden). Stacktrace: ' + error)
+                else MessageHelper.sendMessage(message, 'Du har ingen statistikk for denne ukå, bro (eller så funke ikkje koden). Stacktrace: ' + error)
             }
             // MessageHelper.sendMessage(message.channel, response)
         } else {
@@ -127,12 +127,12 @@ export class WarzoneCommands {
         }
     }
 
-    static compareOldNewStats(current: string, storedData: string | number) {
+    static compareOldNewStats(current: string, storedData: string | number, isFloat?: boolean) {
         const currentStats = Number(current)
         const oldStorageStats = Number(storedData)
-
-        if (currentStats > oldStorageStats) return ` (+${(oldStorageStats - currentStats).toFixed(3)})`
-        if (currentStats < oldStorageStats) return ` (${(oldStorageStats - currentStats).toFixed(3)})`
+        const value = isFloat ? (currentStats - oldStorageStats).toFixed(3) : currentStats - oldStorageStats
+        if (currentStats > oldStorageStats) return ` (+${value})`
+        if (currentStats < oldStorageStats) return ` (${value})`
         return ``
     }
     /** Beware of stats: any */
