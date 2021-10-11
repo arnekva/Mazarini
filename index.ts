@@ -153,11 +153,14 @@ mazariniClient.on('ready', async () => {
             if (las_vegas) las_vegas.send('Hvis denne meldingen kommer har ingen spunnet denne uken, eller så har Arne failet igjen')
             return
         }
+        console.log('No listing')
+
         Spinner.updateATH()
+        console.log('Updated ATH')
         DatabaseHelper.deleteSpecificPrefixValues('spin')
-
+        console.log('Deleted Spin from Spin')
         const spinnerRole = mazariniClient.guild.roles.fetch('823504322213838888')
-
+        console.log('Got spinnerrole')
         //TODO: Pass på at dene funker. Hvis den gjør det, kan vi unngå at den logger til action_log?
         // try {
         //     mazariniClient.members.forEach((member: GuildMember) => {

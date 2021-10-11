@@ -18,7 +18,24 @@ export class Admin {
         isAdmin: true,
         isSuperAdmin: true,
         command: async (rawMessage: Message, messageContent: string) => {
-            Spinner.listScores(rawMessage, true)
+            const las_vegas = rawMessage.client.channels.cache.get('808992127249678386') as TextChannel
+            if (!las_vegas) {
+                console.log('Fant ikke last_vegas i resetSpinJob')
+                return
+            }
+            const spinnerMention = '<@&823504322213838888>'
+            const message = await las_vegas.send('DEBUG TEST' + ', ukens spin har blitt nullstilt. Her er ukens score:\n')
+            const listing = await Spinner.listScores(message, true)
+            if (!listing) {
+                if (las_vegas) las_vegas.send('Hvis denne meldingen kommer har ingen spunnet denne uken, eller så har Arne failet igjen')
+                return
+            } else {
+                console.log('no crash')
+            }
+            Spinner.updateATH()
+            DatabaseHelper.deleteSpecificPrefixValues('spin')
+
+            // const spinnerRole = rawMessage.client.guild.roles.fetch('823504322213838888')
         },
         category: 'admin',
     }
