@@ -263,7 +263,7 @@ function checkForLockCommand(message: Message) {
         message.channel.send(reply)
         return true
     } else {
-        if (content.startsWith('!lock')) message.delete()
+        if (content.startsWith('!lock') && message.guild.me.permissions.has('MANAGE_MESSAGES')) message.delete()
         return false
     }
 }
