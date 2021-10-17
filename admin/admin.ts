@@ -244,10 +244,13 @@ export class Admin {
     }
 
     static logInncorectCommandUsage(message: Message, messageContent: string, args: string[]) {
-        const command = message.content.split(' ')[1]
+        let command = message.content.split(' ')[1]
+        console.log(message.content.split(' '))
+
         const numberOfFails = DatabaseHelper.getNonUserValue('incorrectCommand', command)
         let newFailNum = 1
         if (numberOfFails && Number(numberOfFails)) newFailNum = Number(numberOfFails) + 1
+        if (command === '' || command.trim() === '') command = '<tom command>'
         MessageHelper.sendMessageToActionLog(message.channel as TextChannel, `${command} ble forsøkt brukt, men finnes ikke (${newFailNum})`)
         DatabaseHelper.setNonUserValue('incorrectCommand', command, newFailNum.toString())
     }
