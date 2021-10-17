@@ -246,7 +246,8 @@ export class Admin {
     static logInncorectCommandUsage(message: Message, messageContent: string, args: string[]) {
         const command = message.content.split(' ')[1]
         const numberOfFails = DatabaseHelper.getNonUserValue('incorrectCommand', command)
-        const newFailNum = Number(numberOfFails) + 1
+        let newFailNum = 1
+        if (numberOfFails && Number(numberOfFails)) newFailNum = Number(numberOfFails) + 1
         MessageHelper.sendMessageToActionLog(message.channel as TextChannel, `${command} ble forsøkt brukt, men finnes ikke (${newFailNum})`)
         DatabaseHelper.setNonUserValue('incorrectCommand', command, newFailNum.toString())
     }
