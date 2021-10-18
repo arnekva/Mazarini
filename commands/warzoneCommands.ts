@@ -20,6 +20,10 @@ export interface CodStats {
     executions: number
     headshots: number
     matchesPlayed: number
+    gulagKd: number
+    munitionBoxUsed: number
+    chestsOpened: number
+    itemsBought: number
 }
 export class WarzoneCommands {
     static async getBRContent(message: Message, messageContent: string, isWeekly?: boolean) {
@@ -50,20 +54,23 @@ export class WarzoneCommands {
                 response += '\nK/D Ratio: ' + stats.kdRatio.toFixed(3) + this.compareOldNewStats(stats.kdRatio, oldData.kdRatio, true)
                 response += '\nKills per game: ' + stats.killsPerGame.toFixed(3) + this.compareOldNewStats(stats.killsPerGame, oldData.killsPerGame, true)
                 response += '\nDamage Done: ' + stats.damageDone + this.compareOldNewStats(stats.damageDone, oldData.damageDone)
-                response += '\nDamage Taken: ' + stats.damageTaken + (stats.damageTaken > stats.damageDone ? ' (flaut) ' : '')
+                response +=
+                    '\nDamage Taken: ' +
+                    this.compareOldNewStats(stats.damageTaken, oldData.damageTaken) +
+                    (stats.damageTaken > stats.damageDone ? ' (flaut) ' : '')
                 response += '\nHeadshot percentage: ' + stats.headshotPercentage.toFixed(3)
                 response += '\nGulag Deaths: ' + stats.gulagDeaths + this.compareOldNewStats(stats.gulagDeaths, oldData.gulagDeaths)
                 response += '\nGulag Kills: ' + stats.gulagKills + this.compareOldNewStats(stats.gulagKills, oldData.gulagKills)
-                response += '\nGulag K/D: ' + (stats.gulagKills / stats.gulagDeaths).toFixed(3)
+                response += '\nGulag K/D: ' + this.compareOldNewStats((stats.gulagKills / stats.gulagDeaths).toFixed(3), oldData.guladKd)
                 response += `\nTime played: ${timePlayed.hours} hours and ${timePlayed.minutes} minutes`
                 response += `\nAverage Lifetime: ${averageTime.minutes} minutes and ${averageTime.seconds} seconds`
                 response += '\nWall bangs: ' + stats.wallBangs + this.compareOldNewStats(stats.wallBangs, oldData.wallBangs)
                 response += '\nHeadshots: ' + stats.headshots + this.compareOldNewStats(stats.headshots, oldData.headshots)
                 response += '\nExecutions: ' + stats.executions + this.compareOldNewStats(stats.executions, oldData.executions)
-                response += '\nNo. items bought at store: ' + stats.objectiveBrKioskBuy ?? '0'
-                response += '\nMunition boxes used: ' + stats.objectiveMunitionsBoxTeammateUsed ?? '0'
+                response += '\nNo. items bought at store: ' + this.compareOldNewStats(stats.objectiveBrKioskBuy, oldData.itemsBought) ?? '0'
+                response += '\nMunition boxes used: ' + this.compareOldNewStats(stats.objectiveMunitionsBoxTeammateUsed, oldData.munitionBoxUsed) ?? '0'
                 response += '\nMatches Played: ' + stats.matchesPlayed + this.compareOldNewStats(stats.matchesPlayed, oldData.matchesPlayed)
-                response += '\nChests opened: ' + stats.objectiveBrCacheOpen
+                response += '\nChests opened: ' + this.compareOldNewStats(stats.objectiveBrCacheOpen, oldData.chestsOpened)
                 response +=
                     '\nEnemies down (circle 1, 2, 3, 4, 5): ' +
                     (stats.objectiveBrDownEnemyCircle1 ?? '0') +
@@ -93,6 +100,10 @@ export class WarzoneCommands {
                     killsPerGame: Number(stats.killsPerGame),
                     matchesPlayed: Number(stats.matchesPlayed),
                     wallBangs: Number(stats.wallBangs),
+                    chestsOpened: Number(stats.objectiveBrCacheOpen),
+                    gulagKd: Number(stats.gulagKills / Number(stats.gulagDeaths)),
+                    itemsBought: Number(stats.objectiveBrKioskBuy),
+                    munitionBoxUsed: Number(stats.objectiveMunitionsBoxTeammateUsed),
                 }
                 this.saveUserStats(message, messageContent, saveStatsObject)
             } catch (error) {

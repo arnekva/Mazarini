@@ -7,7 +7,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = '3.6.8'
+    public static readonly currentVersion = '3.6.9'
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
@@ -16,7 +16,7 @@ export class PatchNotes {
      * Eks: Senket sannsynligheten for å få høye tall på spinneren
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv.
      */
-    public static readonly currentPatchNotes: string = `* '!mz helg' skal nå (i teorien) fungere på fredager mellom 16:00-23:59, og ikke melde tid til fredag følgende uke`
+    public static readonly currentPatchNotes: string = `* Warzone stats lagrer og sammenligner nå også Damage Taken, Gulag K/D, Muniton boxes used og items bought at store`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
