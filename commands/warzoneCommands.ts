@@ -56,12 +56,16 @@ export class WarzoneCommands {
                 response += '\nDamage Done: ' + stats.damageDone + this.compareOldNewStats(stats.damageDone, oldData.damageDone)
                 response +=
                     '\nDamage Taken: ' +
+                    stats.damageTaken +
                     this.compareOldNewStats(stats.damageTaken, oldData.damageTaken) +
                     (stats.damageTaken > stats.damageDone ? ' (flaut) ' : '')
                 response += '\nHeadshot percentage: ' + stats.headshotPercentage.toFixed(3)
                 response += '\nGulag Deaths: ' + stats.gulagDeaths + this.compareOldNewStats(stats.gulagDeaths, oldData.gulagDeaths)
                 response += '\nGulag Kills: ' + stats.gulagKills + this.compareOldNewStats(stats.gulagKills, oldData.gulagKills)
-                response += '\nGulag K/D: ' + this.compareOldNewStats((stats.gulagKills / stats.gulagDeaths).toFixed(3), oldData.guladKd)
+                response +=
+                    '\nGulag K/D: ' +
+                    (stats.gulagKills / stats.gulagDeaths).toFixed(3) +
+                    this.compareOldNewStats((stats.gulagKills / stats.gulagDeaths).toString(), oldData.gulagKd, true)
                 response += `\nTime played: ${timePlayed.hours} hours and ${timePlayed.minutes} minutes`
                 response += `\nAverage Lifetime: ${averageTime.minutes} minutes and ${averageTime.seconds} seconds`
                 response += '\nWall bangs: ' + stats.wallBangs + this.compareOldNewStats(stats.wallBangs, oldData.wallBangs)
@@ -85,6 +89,12 @@ export class WarzoneCommands {
                     ' '
                 if (sentMessage) sentMessage.edit(response)
                 else MessageHelper.sendMessage(message, response)
+                console.log(
+                    '\nDamage Taken: ' +
+                        this.compareOldNewStats(stats.damageTaken, oldData.damageTaken) +
+                        '::::' +
+                        (stats.damageTaken > stats.damageDone ? ' (flaut) ' : '')
+                )
 
                 const saveStatsObject: CodStats = {
                     kills: Number(stats.kills),
