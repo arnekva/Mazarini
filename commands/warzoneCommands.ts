@@ -13,7 +13,7 @@ export interface CodStats {
     killsPerGame: number
     damageDone: number
     damageTaken: number
-    headshotPerc: number
+    headshotPercentage: number
     gulagDeaths: number
     gulagKills: number
     wallBangs: number
@@ -21,13 +21,38 @@ export interface CodStats {
     headshots: number
     matchesPlayed: number
     gulagKd: number
+    assists: number
     objectiveMunitionsBoxTeammateUsed: number //Muniton Boxes used
     objectiveBrCacheOpen: number //Chests opened
     objectiveBrKioskBuy: number //Items bought at store
+    avgLifeTime: number
+    timePlayed: number
 }
+export type CodStatsType =
+    | 'kills'
+    | 'deaths'
+    | 'kdRatio'
+    | 'killsPerGame'
+    | 'damageDone'
+    | 'damageTaken'
+    | 'headshotPercentage'
+    | 'gulagDeaths'
+    | 'gulagKills'
+    | 'gulagKd'
+    | 'headshots'
+    | 'wallBangs'
+    | 'executions'
+    | 'objectiveBrKioskBuy'
+    | 'assists'
+    | 'avgLifeTime'
+    | 'objectiveMunitionsBoxTeammateUsed'
+    | 'objectiveBrCacheOpen'
+    | 'objectiveBrKioskBuy'
+    | 'timePlayed'
+    | 'matchesPlayed'
 
 interface codStatsKeyHeader {
-    key: string
+    key: CodStatsType
     header: string
 }
 
@@ -42,6 +67,7 @@ export class WarzoneCommands {
         { key: 'headshotPercentage', header: 'Headshot Percentage' },
         { key: 'gulagDeaths', header: 'Gulag Deaths' },
         { key: 'gulagKills', header: 'Gulag Kills' },
+        { key: 'gulagKd', header: 'Gulag K/D' },
         { key: 'headshots', header: 'Headshots' },
         { key: 'wallBangs', header: 'Wallbangs' },
         { key: 'executions', header: 'Executions' },
@@ -70,15 +96,24 @@ export class WarzoneCommands {
         if (isWeekly) {
             response += 'Weekly Warzone stats for <' + gamertag + '>'
             try {
-                let data = await API.MWweeklystats(gamertag, platform)
+                const data = await API.MWweeklystats(gamertag, platform)
+                const statsTyped = data.wz.mode.br_all.properties as CodStats
 
-                const stats = data.wz.mode.br_all.properties
-                const statsTyped = stats as CodStats
+                const orderedStats: Partial<CodStats> = {}
+                for (let i = 0; i < this.statsToInclude.length; i++) {
+                    for (const [key, value] of Object.entries(statsTyped)) {
+                        if (key === this.statsToInclude[i].key) {
+                            orderedStats[this.statsToInclude[i].key] = value
+                        }
+                    }
+                    if (orderedStats.gulagDeaths && orderedStats.gulagKills)
+                        //Inject gulag KD in
+                        orderedStats['gulagKd'] = parseFloat((orderedStats?.gulagKills / orderedStats?.gulagDeaths).toFixed(3))
+                }
 
                 const oldData = JSON.parse(this.getUserStats(message))
-
-                /** Noen stats krever formattering, som f.eks time played som kommer i sekund. */
-                const getValueFormatted = (key: string, value: string) => {
+                /** Time played og average lifetime krever egen formattering for å være lesbart */
+                const getValueFormatted = (key: string, value: string | Number) => {
                     if (key === 'avgLifeTime')
                         return `${DateUtils.secondsToMinutesAndSeconds(Number(value)).minutes.toFixed(0)} minutes and ${DateUtils.secondsToMinutesAndSeconds(
                             Number(value)
@@ -89,34 +124,22 @@ export class WarzoneCommands {
                         ).minutes.toFixed(0)} minutes`
                     return parseFloat(Number(value).toFixed(3))
                 }
-
-                for (const [key, value] of Object.entries(statsTyped)) {
+                /** Gjør sammenligning og legg til i respons */
+                for (const [key, value] of Object.entries(orderedStats)) {
                     if (this.findHeaderFromKey(key))
-                        response += `\n${this.findHeaderFromKey(key)}: ${getValueFormatted(key, value)} ${this.compareOldNewStats(value, oldData[key])}`
+                        response += `\n${this.findHeaderFromKey(key)}: ${getValueFormatted(key, value)} ${this.compareOldNewStats(
+                            value,
+                            oldData[key],
+                            key === 'timePlayed' || key === 'avgLifeTime'
+                        )}`
+                    else if (key === 'gulagKd' && orderedStats.gulagDeaths && orderedStats.gulagKills)
+                        response += `\nGulag KD: ${orderedStats?.gulagKills / orderedStats?.gulagDeaths}`
                 }
+
                 if (sentMessage) sentMessage.edit(response)
                 else MessageHelper.sendMessage(message, response)
 
-                const saveStatsObject: CodStats = {
-                    kills: Number(stats.kills),
-                    deaths: Number(stats.deaths),
-                    damageDone: Number(stats.damageDone),
-                    damageTaken: Number(stats.damageTaken),
-                    executions: Number(stats.executions),
-                    gulagDeaths: Number(stats.gulagDeaths),
-                    gulagKills: Number(stats.gulagKills),
-                    headshotPerc: Number(stats.headshotPercentage),
-                    headshots: Number(stats.headshots),
-                    kdRatio: Number(stats.kdRatio),
-                    killsPerGame: Number(stats.killsPerGame),
-                    matchesPlayed: Number(stats.matchesPlayed),
-                    wallBangs: Number(stats.wallBangs),
-                    objectiveBrCacheOpen: Number(stats.objectiveBrCacheOpen),
-                    gulagKd: Number(stats.gulagKills / Number(stats.gulagDeaths)),
-                    objectiveBrKioskBuy: Number(stats.objectiveBrKioskBuy),
-                    objectiveMunitionsBoxTeammateUsed: Number(stats.objectiveMunitionsBoxTeammateUsed),
-                }
-                this.saveUserStats(message, messageContent, saveStatsObject)
+                this.saveUserStats(message, messageContent, statsTyped)
             } catch (error) {
                 if (sentMessage)
                     sentMessage.edit(
@@ -158,10 +181,18 @@ export class WarzoneCommands {
         }
     }
 
-    static compareOldNewStats(current: string, storedData: string | number, isFloat?: boolean) {
+    /**
+     *
+     * @param current Nåværende statistikk
+     * @param storedData Gammel statistikk fra DB
+     * @param ignoreCompare Noen stats skal ikke sammenliknes (e.g. time played og average lifetime)
+     * @returns
+     */
+    static compareOldNewStats(current: string | Number, storedData: string | number, ignoreCompare?: boolean) {
+        if (ignoreCompare) return ''
         const currentStats = Number(current)
         const oldStorageStats = Number(storedData)
-        const value = isFloat ? (currentStats - oldStorageStats).toFixed(3) : currentStats - oldStorageStats
+        const value = currentStats - oldStorageStats
         if (currentStats > oldStorageStats) return ` (+${parseFloat(Number(value).toFixed(3))})`
         if (currentStats < oldStorageStats) return ` (${parseFloat(Number(value).toFixed(3))})`
         return ``

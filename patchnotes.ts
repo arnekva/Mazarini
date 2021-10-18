@@ -7,7 +7,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = '3.7.0'
+    public static readonly currentVersion = '3.7.2'
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
@@ -16,7 +16,10 @@ export class PatchNotes {
      * Eks: Senket sannsynligheten for å få høye tall på spinneren
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv.
      */
-    public static readonly currentPatchNotes: string = `* Weekly stats for Warzone har blitt refaktorert. `
+    public static readonly currentPatchNotes: string =
+        `* Weekly stats skal nå bli sortert i en bedre rekkefølge ` +
+        `\n* Botten lagrer nå alle stats (uavnehgig av hva som blir vist) ` +
+        `\n* Nye stats skal nå (i teorien) enkelt kunne legges til ved å legge de til i statsToInclude[]`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
