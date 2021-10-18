@@ -107,7 +107,8 @@ export class DateCommands {
             const date = new Date()
             date.setHours(16, 0, 0, 0)
             if (date.getDay() === 5) {
-                timeUntil = DateCommands.formatCountdownText(DateUtils.getTimeTo(date), 'til helg')
+                if (new Date().getHours() < 16) timeUntil = DateCommands.formatCountdownText(DateUtils.getTimeTo(date), 'til helg')
+                else timeUntil = `Det e helg!`
             } else {
                 timeUntil = DateCommands.formatCountdownText(DateUtils.getTimeTo(new Date(DateUtils.nextWeekdayDate(date, 5))), 'til helg')
             }
