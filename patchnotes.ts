@@ -7,7 +7,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = '3.6.6'
+    public static readonly currentVersion = '3.6.7'
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
@@ -16,7 +16,7 @@ export class PatchNotes {
      * Eks: Senket sannsynligheten for å få høye tall på spinneren
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv.
      */
-    public static readonly currentPatchNotes: string = `* Fikset en feil ved bruk av dobbel space i mz som overkjørte all verdi i /incorrectCommands/-databasen. Alle countere på feil commandoer er derfor ufrivillig resatt`
+    public static readonly currentPatchNotes: string = `* Fikset en feil under spinner-score resett på mandag 09:00 som kræsjet botten`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
