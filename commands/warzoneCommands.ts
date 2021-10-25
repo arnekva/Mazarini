@@ -97,6 +97,11 @@ export class WarzoneCommands {
             response += 'Weekly Warzone stats for <' + gamertag + '>'
             try {
                 const data = await API.MWweeklystats(gamertag, platform)
+                if (!data.wz.mode.br_all) {
+                    if (sentMessage) sentMessage.edit('Her skjedde det noe galt. Statistikken kunne ikke leses. Prøv på ny ')
+                    else MessageHelper.sendMessage(message, 'Her skjedde det noe galt. Statistikken kunne ikke leses. Prøv på ny ')
+                }
+
                 const statsTyped = data.wz.mode.br_all.properties as CodStats
 
                 const orderedStats: Partial<CodStats> = {}
@@ -141,17 +146,8 @@ export class WarzoneCommands {
 
                 this.saveUserStats(message, messageContent, statsTyped)
             } catch (error) {
-                if (sentMessage)
-                    sentMessage.edit(
-                        'Du har ingen statistikk for denne ukå, bro (eller så e ikkje statistikken din offentlig. *Logg inn på https://my.callofduty.com/login og gjør den offentlig*). Stacktrace: ' +
-                            error
-                    )
-                else
-                    MessageHelper.sendMessage(
-                        message,
-                        'Du har ingen statistikk for denne ukå, bro (eller så e ikkje statistikken din offentlig. *Logg inn på https://my.callofduty.com/login og gjør den offentlig*). Stacktrace: ' +
-                            error
-                    )
+                if (sentMessage) sentMessage.edit('Enten har du ingen statistikk for ukå eller så e SSO-tokenen expired. Stacktrace: ' + error)
+                else MessageHelper.sendMessage(message, 'Enten har du ingen statistikk for ukå eller så e SSO-tokenen expired. Stacktrace: ' + error)
             }
             // MessageHelper.sendMessage(message.channel, response)
         } else {

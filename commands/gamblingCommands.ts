@@ -743,13 +743,13 @@ export class GamblingCommands {
     static findSequenceWinningAmount(s: string) {
         switch (s) {
             case '123':
-                return 900
+                return 1000
             case '1234':
-                return 7500
+                return 15500
             case '12345':
-                return 500000
+                return 3575000
             case '1337':
-                return 4200
+                return 345750
             default:
                 return 400
         }
@@ -762,11 +762,11 @@ export class GamblingCommands {
             case 3:
                 return 1500
             case 4:
-                return 9500
+                return 14500
             case 5:
-                return 45000
+                return 475000
             case 6:
-                return 8500000
+                return 35750000
             default:
                 return 100
         }
