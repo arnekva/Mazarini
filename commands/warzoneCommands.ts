@@ -220,6 +220,7 @@ export class WarzoneCommands {
 
         const saveString = gamertag + ';' + platform
         DatabaseHelper.setValue('activisionUserString', message.author.username, saveString)
+        message.react('👍')
     }
 
     static getWZUserStringFromDB(message: Message) {
