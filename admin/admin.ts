@@ -245,7 +245,6 @@ export class Admin {
 
     static logInncorectCommandUsage(message: Message, messageContent: string, args: string[]) {
         let command = message.content.split(' ')[1]
-        console.log(message.content.split(' '))
 
         const numberOfFails = DatabaseHelper.getNonUserValue('incorrectCommand', command)
         let newFailNum = 1

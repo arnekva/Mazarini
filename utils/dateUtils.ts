@@ -75,7 +75,6 @@ export class DateUtils {
     }
     static secondsToMinutesAndSeconds(t: number): { minutes: number; seconds: number } {
         const minutes = this.secondsToMinutes(t)
-        console.log(t)
 
         const seconds = t - minutes * 60
         return {

@@ -22,7 +22,6 @@ export class Weather {
                     throw new Error(res.status.toString())
                 }
                 res.json().then((el: any) => {
-                    console.log(el)
                     const temperature: string = WeatherUtils.kelvinToCelcius(el.main.temp).toFixed(1).toString()
 
                     const weatherDescription = el.weather.map((weatherObj: any) => weatherObj.description).join(', ')
