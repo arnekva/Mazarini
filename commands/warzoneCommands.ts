@@ -87,8 +87,15 @@ export class WarzoneCommands {
         const gamertag = content[0]
         const platform = content[1]
 
-        let sentMessage = await MessageHelper.sendMessage(message, 'Logger inn...')
+        let filterMode: string | undefined = content[2] ?? undefined
 
+        let noSave = false
+        if (filterMode !== 'rebirth') {
+            if (filterMode === 'nosave') noSave = true
+            else filterMode = undefined
+        }
+
+        let sentMessage = await MessageHelper.sendMessage(message, 'Logger inn...')
         let response = ''
 
         if (!sentMessage) sentMessage = await MessageHelper.sendMessage(message, 'Henter data...')
@@ -96,10 +103,31 @@ export class WarzoneCommands {
         if (isWeekly) {
             response += 'Weekly Warzone stats for <' + gamertag + '>'
             try {
-                const data = await API.MWweeklystats(gamertag, platform)
+                let data = await API.MWweeklystats(gamertag, platform)
+
                 if (!data.wz.mode.br_all) {
                     if (sentMessage) sentMessage.edit('Her skjedde det noe galt. Statistikken kunne ikke leses. Prøv på ny ')
                     else MessageHelper.sendMessage(message, 'Her skjedde det noe galt. Statistikken kunne ikke leses. Prøv på ny ')
+                }
+
+                if (filterMode) {
+                    let numKills = 0
+                    let numDeaths = 0
+                    let numDamage = 0
+                    let numDamageTaken = 0
+                    for (const [key, value] of Object.entries(data.wz.mode)) {
+                        if (key.includes('rebirth')) {
+                            const val = value as any
+                            if (val?.properties?.kills) numKills += Number(val?.properties?.kills)
+                            if (val?.properties?.deaths) numDeaths += Number(val?.properties?.deaths)
+                            if (val?.properties?.damageTaken) numDamageTaken += Number(val?.properties?.damageTaken)
+                            if (val?.properties?.damageDone) numDamage += Number(val?.properties?.damageDone)
+                        }
+                    }
+                    let rebirthResponse = ` Weekly REBIRTH ONLY Stats for <${gamertag}>\nKills: ${numKills}\nDeaths: ${numDeaths}\nDamage Done: ${numDamage}\nDamage Taken: ${numDamageTaken}`
+                    if (sentMessage) sentMessage.edit(rebirthResponse)
+                    else MessageHelper.sendMessage(message, rebirthResponse)
+                    return
                 }
 
                 const statsTyped = data.wz.mode.br_all.properties as CodStats
@@ -143,8 +171,7 @@ export class WarzoneCommands {
 
                 if (sentMessage) sentMessage.edit(response)
                 else MessageHelper.sendMessage(message, response)
-
-                this.saveUserStats(message, messageContent, statsTyped)
+                if (!noSave) this.saveUserStats(message, messageContent, statsTyped)
             } catch (error) {
                 if (sentMessage) sentMessage.edit('Enten har du ingen statistikk for ukå eller så e SSO-tokenen expired. Stacktrace: ' + error)
                 else MessageHelper.sendMessage(message, 'Enten har du ingen statistikk for ukå eller så e SSO-tokenen expired. Stacktrace: ' + error)
