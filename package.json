@@ -12,7 +12,7 @@
         "create:db": "echo {\"users\": { }} > myDataBase.json "
     },
     "keywords": [],
-    "author": "",
+    "author": "Arne Kvaleberg",
     "license": "ISC",
     "dependencies": {
         "@replit/database": "^2.0.0",
