@@ -7,7 +7,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = '3.7.4'
+    public static readonly currentVersion = '3.7.5'
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
@@ -17,8 +17,8 @@ export class PatchNotes {
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv.
      */
     public static readonly currentPatchNotes: string =
-        `* Du kan nå sjekke hvilke warzone weekly stats som kommer fra rebirth ved å inkludere "rebirth" bakerst i kommandoen ` +
-        `\n* Du kan nå la være å lagre statistikk (hvis du f.eks søker opp en annen sine stats) ved å inkludere "nosave" bakerst i kommandoen`
+        `* Du kan nå lagre gamertag og plattform på brukeren din ved å gjøre '!mz wzname <gamertag> <platform>. Du kan da gjøre '!mz weekly me' for å gjøre livet litt enklere ` +
+        `\n* Gulag K/D skal nå forhåpentligvis bli sammenliknet mot den gamle verdien`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

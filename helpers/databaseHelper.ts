@@ -51,6 +51,7 @@ export type dbPrefix =
     | 'debtMultiplier'
     | 'shopItems'
     | 'codStats'
+    | 'activisionUserString'
 
 export interface betObject {
     description: string

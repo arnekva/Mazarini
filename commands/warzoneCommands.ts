@@ -84,8 +84,16 @@ export class WarzoneCommands {
 
     static async getBRContent(message: Message, messageContent: string, isWeekly?: boolean) {
         const content = messageContent.split(' ')
-        const gamertag = content[0]
-        const platform = content[1]
+        let gamertag = ''
+        let platform = ''
+        if (content[0].toLowerCase() === 'me') {
+            const WZUser = this.getWZUserStringFromDB(message).split(';')
+            gamertag = WZUser[0]
+            platform = WZUser[1]
+        } else {
+            gamertag = content[0]
+            platform = content[1]
+        }
 
         let filterMode: string | undefined = content[2] ?? undefined
 
@@ -159,7 +167,9 @@ export class WarzoneCommands {
                 }
                 /** Gjør sammenligning og legg til i respons */
                 for (const [key, value] of Object.entries(orderedStats)) {
-                    if (this.findHeaderFromKey(key))
+                    if (key === 'gulagKd' && orderedStats.gulagDeaths && orderedStats.gulagKills)
+                        response += `\nGulag KD: ${orderedStats?.gulagKills / orderedStats?.gulagDeaths}`
+                    else if (this.findHeaderFromKey(key))
                         response += `\n${this.findHeaderFromKey(key)}: ${getValueFormatted(key, value)} ${this.compareOldNewStats(
                             value,
                             oldData[key],
@@ -204,6 +214,18 @@ export class WarzoneCommands {
         }
     }
 
+    static saveWZUsernameToDiscordUser(message: Message, content: string, args: string[]) {
+        const platform = args.pop()
+        const gamertag = args
+
+        const saveString = gamertag + ';' + platform
+        DatabaseHelper.setValue('activisionUserString', message.author.username, saveString)
+    }
+
+    static getWZUserStringFromDB(message: Message) {
+        return DatabaseHelper.getValue('activisionUserString', message.author.username, message, true)
+    }
+
     /**
      *
      * @param current Nåværende statistikk
@@ -230,7 +252,7 @@ export class WarzoneCommands {
 
     static readonly getWZStats: ICommandElement = {
         commandName: 'br',
-        description: "<gamertag> <plattform> (plattform: 'battle', 'steam', 'psn', 'xbl', 'acti', 'uno' (Activision ID som tall), 'all' (uvisst)",
+        description: "<gamertag> <plattform> (plattform: 'battle',  'psn', 'xbl'",
         command: (rawMessage: Message, messageContent: string) => {
             WarzoneCommands.getBRContent(rawMessage, messageContent)
         },
@@ -241,6 +263,14 @@ export class WarzoneCommands {
         description: "<gamertag> <plattform> (plattform: 'battle', 'steam', 'psn', 'xbl', 'acti', 'uno' (Activision ID som tall), 'all' (uvisst)",
         command: (rawMessage: Message, messageContent: string) => {
             WarzoneCommands.getBRContent(rawMessage, messageContent, true)
+        },
+        category: 'gaming',
+    }
+    static readonly saveWZUsernameCommand: ICommandElement = {
+        commandName: 'wzname',
+        description: "<gamertag> <plattform> (plattform: 'battle', 'psn', 'xbl')",
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            WarzoneCommands.saveWZUsernameToDiscordUser(rawMessage, messageContent, args)
         },
         category: 'gaming',
     }
