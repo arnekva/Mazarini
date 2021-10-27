@@ -7,7 +7,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = '3.7.7'
+    public static readonly currentVersion = '3.7.8'
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
@@ -18,7 +18,8 @@ export class PatchNotes {
      */
     public static readonly currentPatchNotes: string =
         `* Du kan nå lagre gamertag og plattform på brukeren din ved å gjøre '!mz wzname <gamertag> <platform>. Du kan da gjøre '!mz weekly me' for å gjøre livet litt enklere ` +
-        `\n* Gulag K/D skal nå forhåpentligvis bli sammenliknet mot den gamle verdien`
+        `\n* Gulag K/D skal nå forhåpentligvis bli sammenliknet mot den gamle verdien` +
+        `\n* Fikset feil som gjorde at rebirth-only stats ikke viste når 'me' ble brukt`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

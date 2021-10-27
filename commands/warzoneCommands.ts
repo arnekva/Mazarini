@@ -86,7 +86,8 @@ export class WarzoneCommands {
         const content = messageContent.split(' ')
         let gamertag = ''
         let platform = ''
-        if (content[0].toLowerCase() === 'me') {
+        const isMe = content[0].toLowerCase() === 'me'
+        if (isMe) {
             const WZUser = this.getWZUserStringFromDB(message).split(';')
             gamertag = WZUser[0]
             platform = WZUser[1]
@@ -95,7 +96,7 @@ export class WarzoneCommands {
             platform = content[1]
         }
 
-        let filterMode: string | undefined = content[2] ?? undefined
+        let filterMode: string = isMe ? content[1] : content[2]
 
         let noSave = false
         if (filterMode !== 'rebirth') {
