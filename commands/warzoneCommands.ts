@@ -96,13 +96,10 @@ export class WarzoneCommands {
             platform = content[1]
         }
 
-        let filterMode: string = isMe ? content[1] : content[2]
+        let filterMode: string = isMe ? content[1] ?? ' ' : content[2] ?? ' '
 
-        let noSave = false
-        if (filterMode !== 'rebirth') {
-            if (filterMode === 'nosave') noSave = true
-            else filterMode = undefined
-        }
+        let noSave = filterMode === 'nosave'
+        let isRebirth = filterMode === 'rebirth'
 
         let sentMessage = await MessageHelper.sendMessage(message, 'Logger inn...')
         let response = ''
@@ -119,7 +116,7 @@ export class WarzoneCommands {
                     else MessageHelper.sendMessage(message, 'Her skjedde det noe galt. Statistikken kunne ikke leses. Prøv på ny ')
                 }
 
-                if (filterMode) {
+                if (isRebirth) {
                     let numKills = 0
                     let numDeaths = 0
                     let numDamage = 0
