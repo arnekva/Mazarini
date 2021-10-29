@@ -7,7 +7,7 @@ export class PatchNotes {
      * Increment y for mindre oppdateringer (enkle funksjoner osv)
      * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
      */
-    public static readonly currentVersion = '3.7.8'
+    public static readonly currentVersion = '3.7.9'
 
     /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
@@ -17,9 +17,9 @@ export class PatchNotes {
      * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv.
      */
     public static readonly currentPatchNotes: string =
-        `* Du kan nå lagre gamertag og plattform på brukeren din ved å gjøre '!mz wzname <gamertag> <platform>. Du kan da gjøre '!mz weekly me' for å gjøre livet litt enklere ` +
-        `\n* Gulag K/D skal nå forhåpentligvis bli sammenliknet mot den gamle verdien` +
-        `\n* Fikset feil som gjorde at rebirth-only stats ikke viste når 'me' ble brukt`
+        `* Man kan nå vinne penger for å spinne fidget spinneren. Spin i mer enn 5 minutt, så får du premie jo lengre du spinner ` +
+        `\n* Ukens highscore vil ikke lenger resettes ukentlig. Premier deles i stedet for per spin` +
+        `\n* Fikset feil i roll hjelp-beskrivelse`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

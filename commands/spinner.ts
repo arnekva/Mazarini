@@ -76,7 +76,15 @@ export class Spinner {
                 'Det kan virke som om brukernavnet ditt inneholder for få lovlige tegn (' + cleanUsername + '). Dette må rettes opp i før du får spinne.'
             )
         } else {
-            MessageHelper.sendMessage(message, message.author.username + ' spant fidget spinneren sin i ' + min + ' minutt og ' + sec + ' sekund!')
+            const winnings = this.getSpinnerWinnings(min)
+            if (winnings > 0) {
+                DatabaseHelper.incrementValue('chips', message.author.username, winnings.toString())
+            }
+            const winningsText = winnings > 0 ? `Du får ${winnings} chips.` : ''
+            MessageHelper.sendMessage(
+                message,
+                message.author.username + ' spant fidget spinneren sin i ' + min + ' minutt og ' + sec + ' sekund!' + ` ${winningsText}`
+            )
             if (min == 0 && sec == 0) {
                 DatabaseHelper.incrementValue('chips', message.author.username, '500')
                 MessageHelper.sendMessage(message, 'Oj, 00:00? Du får 500 chips i trøstepremie')
@@ -91,12 +99,32 @@ export class Spinner {
                 }, 10000)
             } else if (min == 10 && sec == 59) {
                 MessageHelper.sendMessage(message, 'gz med 10:59 bro')
-                DatabaseHelper.incrementValue('chips', message.author.username, '50000')
-                MessageHelper.sendMessage(message, 'Du får 50 000 chips for det der mannen')
+                DatabaseHelper.incrementValue('chips', message.author.username, '375000000')
+                MessageHelper.sendMessage(message, 'Du får 375 000 000 chips for det der mannen')
             }
             const formatedScore = Spinner.formatScore(min + sec)
+
             Spinner.compareScore(message, formatedScore)
             Spinner.incrementCounter(message)
+        }
+    }
+
+    static getSpinnerWinnings(min: number) {
+        switch (min) {
+            case 5:
+                return 500
+            case 6:
+                return 2500
+            case 7:
+                return 3500
+            case 8:
+                return 17750
+            case 9:
+                return 125000
+            case 10:
+                return 2750000
+            default:
+                return 0
         }
     }
 

@@ -900,7 +900,7 @@ export class GamblingCommands {
     }
     static readonly rollCommand: ICommandElement = {
         commandName: 'roll',
-        description: 'TODO',
+        description: 'Rull spillemaskinen. Du vinner hvis du får 2 eller flere like tall',
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.rollSlotMachine(rawMessage, messageContent, args)
         },

@@ -128,50 +128,6 @@ mazariniClient.on('ready', async () => {
         })
     })
 
-    const reminSpinJob = schedule.scheduleJob('0 21 * * 7', function () {
-        console.log('Minner om reset')
-        const las_vegas = mazariniClient.channels.cache.get('808992127249678386') as TextChannel
-        if (las_vegas) {
-            // MessageHelper.sendMessage(las_vegas, )
-            las_vegas.send('Husk at ukens spin resetter i morgen klokken 09:00! ')
-        } else {
-            console.log('Fant ikke channelen las_vegas i reminSpinJob')
-        }
-    })
-
-    const resetSpinJob = schedule.scheduleJob('0 9 * * 1', async function () {
-        console.log('Kjører resett av spins, mandag 09:00')
-        const las_vegas = mazariniClient.channels.cache.get('808992127249678386') as TextChannel
-        if (!las_vegas) {
-            console.log('Fant ikke last_vegas i resetSpinJob')
-            return
-        }
-        const spinnerMention = '<@&823504322213838888>'
-        const message = await las_vegas.send(spinnerMention + ', ukens spin har blitt nullstilt. Her er ukens score:\n')
-        const listing = await Spinner.listScores(message, true)
-        if (!listing) {
-            if (las_vegas) las_vegas.send('Hvis denne meldingen kommer har ingen spunnet denne uken, eller så har Arne failet igjen')
-            return
-        }
-        Spinner.updateATH()
-        DatabaseHelper.deleteSpecificPrefixValues('spin')
-        // const spinnerRole = mazariniClient.guild.roles.fetch('823504322213838888')
-
-        //TODO: Pass på at dene funker. Hvis den gjør det, kan vi unngå at den logger til action_log?
-        // try {
-        //     mazariniClient.members.forEach((member: GuildMember) => {
-        //         member.roles.remove(spinnerRole)
-        //         console.log(member.nickname)
-        //     })
-        //     // DatabaseHelper.find
-        // } catch (error) {
-        //     MessageHelper.sendMessageToActionLog(
-        //         message,
-        //         'Error: Klarte ikke slette rollen spinners fra alle medlemmene. Stacktrace: ' +
-        //             error
-        //     )
-        // }
-    })
     const guild = mazariniClient.guilds.cache.find((g: Guild) => g.id === '340626855990132747') as Guild
     guild.members.cache.find((member) => member.id === '802945796457758760')
 
