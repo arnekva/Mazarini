@@ -34,8 +34,6 @@ export class Admin {
             }
             Spinner.updateATH()
             DatabaseHelper.deleteSpecificPrefixValues('spin')
-
-            // const spinnerRole = rawMessage.client.guild.roles.fetch('823504322213838888')
         },
         category: 'admin',
     }
@@ -63,11 +61,6 @@ export class Admin {
         const prefix = cmdSplit[0]
         const key = cmdSplit[1]
         const keyToDelete = prefix + '-' + key
-        //TODO:
-        // DatabaseHelper.deleteValue(keyToDelete, () => {
-        // 	MessageHelper.sendMessage(message.channel, "Slettet nøkkel <" + keyToDelete + ">.")
-
-        // })
     }
 
     static async getSpecificValue(message: Message, messageContent: string) {
@@ -110,10 +103,6 @@ export class Admin {
         })
     }
     static async reactToMsgAsBot(rawMessage: Message, content: string) {
-        /*
-            For å sleppe å måtte sende med channel id for meldingen (kun id på selve meld) så må man loope gjennom alle channels på leting. 
-        */
-        //Filter out non-text channel and cast as TextChannel
         const allChannels = [...rawMessage.client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
 
         const c = content.split(' ')
@@ -229,18 +218,12 @@ export class Admin {
                         reason.length > 0 ? reason : 'ingen grunn oppgitt'
                     }"`
                 )
-                // if (user.username !== message.author.username)
-                //     message.delete();
+
                 message.delete()
             })
             .catch((error: any) => {
                 MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
             })
-    }
-    //TODO:
-    static changeUserNameInDataBase(message: Message, messageContent: string, args: string[]) {
-        const oldUsername = args[0]
-        const newUsername = args[1]
     }
 
     static logInncorectCommandUsage(message: Message, messageContent: string, args: string[]) {

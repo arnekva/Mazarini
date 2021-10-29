@@ -132,12 +132,7 @@ export const helperCommands = (rawMessage: Message, messageContent: string, args
     let commandString = 'Kommandoer: '
     let commandStringList: string[] = []
     const commandForHelp = messageContent.replace('!mz help ', '').trim()
-    // if (!args[0]) {
-    //     MessageHelper.sendMessage(rawMessage, `Du må spesifisere en av følgende kategorier: ${getCommandCatgeories().join(", ")}`)
-    //     return;
-    // }
-    let category = args[0] ?? 'unspecified'
-    //spesifikk command
+
     if (getCommandCatgeories().includes(args[0])) {
         commands.forEach((cmd) => {
             if (cmd.category == args[0]) commandStringList.push(cmd.commandName)
@@ -159,9 +154,7 @@ export const helperCommands = (rawMessage: Message, messageContent: string, args
         if (found == 0) {
             MessageHelper.sendMessage(rawMessage, "Fant ingen kommando '" + commandForHelp + "'. ")
         }
-    }
-    //List alle
-    else {
+    } else {
         commands.forEach((cmd) => {
             if (isLookingForAllAdmin) {
                 commandStringList.push(

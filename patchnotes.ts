@@ -2,20 +2,10 @@ import { Channel, Client, DMChannel, NewsChannel, TextChannel, Message, MessageF
 import { ICommandElement } from './commands/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes {
-    /** Version x.y.z
-     * Increment x for store oppdateringer (inkl. endringer med breaking changes, større refactoring osv.)
-     * Increment y for mindre oppdateringer (enkle funksjoner osv)
-     * Increment z for bugfixes, mindre tekstendringer, sannsynlighetsendringer etc
-     */
     public static readonly currentVersion = '3.7.9'
 
-    /** Private, brukes kun av getCurrentPatchNotes */
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    /** Separer hver linje med \n (linebreak), og start med en stjerne (*). Skriv generelt hva som er endret
-     * Eks: Senket sannsynligheten for å få høye tall på spinneren
-     * Ikke: Endret sannsynligheten for å få 10 på spinner fra 0.001 til 0.0025, og 9 fra 0.002 til 0.0025 		osv.
-     */
     public static readonly currentPatchNotes: string =
         `* Man kan nå vinne penger for å spinne fidget spinneren. Spin i mer enn 5 minutt, så får du premie jo lengre du spinner ` +
         `\n* Ukens highscore vil ikke lenger resettes ukentlig. Premier deles i stedet for per spin` +

@@ -11,19 +11,11 @@ export interface dateValPair {
 }
 export class DateCommands {
     static setReminder(message: Message, content: string, args: string[]) {
-        // const timeStamp =
         const time = args[0].split('d')
-        //Timer
-
         const minutt = args[0].split('m', 1)
         const sekund = args[0].split('s', 1)
     }
-    /**
-     *
-     * @param dateObj Date object
-     * @param textEnding Det som skal stå etter tiden (eks 1 dag 1 time <text ending> - 1 dag og 1 time 'igjen til ferie')
-     * @param finishedText Det som printes hvis datoen/tiden har passert
-     */
+
     static formatCountdownText(dateObj: countdownTime | undefined, textEnding: string, finishedText?: string) {
         if (!dateObj) return finishedText ?? ''
         const timeTab: string[] = []

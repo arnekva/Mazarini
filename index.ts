@@ -133,11 +133,6 @@ mazariniClient.on('ready', async () => {
 
     const bot = guild.members.cache.find((member) => member.id === '802945796457758760')
     bot?.setNickname(environment === 'dev' ? 'Bot Høie (TEST)' : 'Bot Høie')
-
-    //Set username to (TEST) while on dev
-    // mazariniClient.channels.guild.members
-    //     .fetch('808992127249678386')
-    //     .setNickname('TEST')
 })
 
 mazariniClient.on('messageCreate', async (message: Message) => {
@@ -153,9 +148,6 @@ mazariniClient.on('messageCreate', async (message: Message) => {
     /**  Check message for commands */
     await checkForCommand(message)
 
-    /*
-    Commands below this comment are not called, but run on each sent message. 
-    */
     checkMessageForJokes(message)
 })
 function isLegalChannel(message: Message) {
@@ -215,18 +207,17 @@ function checkForLockCommand(message: Message) {
         message.channel.send(reply)
         return true
     } else {
-        // if (content.startsWith('!lock') && message?.guild?.me?.permissions?.has('MANAGE_MESSAGES')) message.delete()
         return false
     }
 }
 async function checkForCommand(message: Message) {
     if (message.author == mazariniClient.user) return
-    //TODO: Hvis de @mentione botte, reply med ein random tekst?
+
     const isZm = message.content.toLowerCase().startsWith('!zm ')
     if (message.content.toLowerCase().startsWith('!mz ') || isZm) {
         let cmdFound = false
         const command = message.content.toLowerCase().replace('!mz ', '').replace('!mz', '').replace('!zm ', '').split(' ')[0].toLowerCase()
-        const messageContent = message.content.split(' ').slice(2).join(' ') // message.content.replace("!mz " + cmd.commandName, "").replace("!Mz " + cmd.commandName, "").replace("!MZ " + cmd.commandName, "").trim()
+        const messageContent = message.content.split(' ').slice(2).join(' ')
         const args = !!messageContent ? messageContent.split(' ') : []
         if (message.content.toLowerCase().startsWith('!mz ja')) {
             const lastCommand = commands.filter((cmd) => cmd.commandName == lastUsedCommand)[0]
@@ -263,14 +254,9 @@ async function checkForCommand(message: Message) {
     } else if (message.content.startsWith('!mz')) {
         message.reply("du må ha mellomrom etter '!mz' og kommandoen.")
     }
-    // else if (message.mentions.users.find((user) => user.id == '802945796457758760')) {
-    //     message.reply(ArrayUtils.randomChoiceFromArray(globalArrays.bentHoieLines))
-    // }
 }
 
 function runCommandElement(cmd: ICommandElement, message: Message, messageContent: string, args: string[]) {
-    //Remove '!mz <command name>' from the content to avoid repeating this process in each function.
-
     if (cmd.isSuperAdmin) {
         if (Admin.isAuthorSuperAdmin(message.member)) {
             cmd.command(message, messageContent, args)
@@ -287,14 +273,9 @@ function runCommandElement(cmd: ICommandElement, message: Message, messageConten
         try {
             if (!!cmd.deprecated)
                 MessageHelper.sendMessage(message, '*Denne funksjoner er markert som deprecated/utfaset. Bruk **' + cmd.deprecated + '*** *i stedet*')
-            // if (environment === 'dev')
-            //     MessageHelper.sendMessage(
-            //         message,
-            //         '***Boten er for øyeblikket i utviklingsmodus**. Det betyr at commands kan virke ustabile, og at databaseverdier ikke blir lagret.*'
-            //     )
+
             cmd.command(message, messageContent, args)
         } catch (error) {
-            //!mz maggi feiler en gang i blant, så prøver å fange den og printe stacktrace i action_log.
             MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
         }
     }
@@ -341,16 +322,6 @@ function checkMessageForJokes(message: Message) {
 if (discordSecret.includes('insert')) throw new TypeError('**FEIL** Klienten mangler Discord Secret Token i client-env.ts')
 else mazariniClient.login(discordSecret)
 
-mazariniClient.on('reconnecting', function () {
-    console.log(`client tries to reconnect to the WebSocket`)
-})
-mazariniClient.on('disconnect', function () {
-    console.log(`WS disconnected`)
-})
-mazariniClient.on('error', function (error: any) {
-    console.error(`client's WebSocket encountered a connection error: ${error}`)
-})
-
 mazariniClient.on('channelCreate', function (channel: TextChannel) {
     MessageHelper.sendMessageToActionLog(channel, 'Ny channel opprettet: ' + channel.name)
 })
@@ -393,12 +364,6 @@ mazariniClient.on('guildMemberRemove', function (member: GuildMember) {
     )
 })
 
-/** TODO START */
-
-//User detail (brukerspesifikt, ikke i selve discordserver)
-//eksempel: Brukernavn#0001, profilbilde osv.
-
-//TODO: Sjekk cases og finn ut hva som er endret
 mazariniClient.on('userUpdate', function (oldUser: User, newUser: User) {
     MessageHelper.sendMessageToActionLog(
         newUser.client.channels.cache.first() as TextChannel,
@@ -427,8 +392,6 @@ mazariniClient.on('guildMemberUpdate', function (oldMember: GuildMember, newMemb
     }
 })
 
-/** TODO END */
-
 mazariniClient.on('roleCreate', function (role: Role) {
     MessageHelper.sendMessageToActionLog(role.guild.channels.cache.first() as TextChannel, 'En ny rolle er opprettet: ' + role.name)
 })
@@ -436,13 +399,6 @@ mazariniClient.on('roleDelete', function (role: Role) {
     MessageHelper.sendMessageToActionLog(role.guild.channels.cache.first() as TextChannel, 'En rolle er slettet: ' + role.name)
 })
 
-mazariniClient.on('roleUpdate', function (oldRole: Role, newRole: Role) {
-    // MessageHelper.sendMessageToActionLog(newRole.guild.channels.cache.first() as TextChannel, "Rollen " + newRole.name + " ble oppdatert.")
-})
-
-mazariniClient.on('messageDelete', function (message: Message) {
-    //Ikke i bruk
-})
 mazariniClient.on('messageUpdate', function (oldMessage: Message, newMessage: Message) {
     checkForCommand(newMessage)
     checkMessageForJokes(newMessage)
@@ -487,13 +443,4 @@ function roleArraysEqual(a: any[], b: any[]) {
         }
     }
     return undefined
-}
-
-export class Index {
-    static readonly getWZStats: ICommandElement = {
-        commandName: 'ja',
-        description: "Utfør siste kommando på ny (eller utfør kommandoen fra 'mente du...'",
-        command: (rawMessage: Message, messageContent: string) => {},
-        category: 'annet',
-    }
 }
