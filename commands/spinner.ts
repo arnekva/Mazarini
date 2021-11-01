@@ -76,7 +76,7 @@ export class Spinner {
                 'Det kan virke som om brukernavnet ditt inneholder for få lovlige tegn (' + cleanUsername + '). Dette må rettes opp i før du får spinne.'
             )
         } else {
-            const winnings = this.getSpinnerWinnings(min)
+            const winnings = this.getSpinnerWinnings(Number(min))
             if (winnings > 0) {
                 DatabaseHelper.incrementValue('chips', message.author.username, winnings.toString())
             }
@@ -116,13 +116,13 @@ export class Spinner {
             case 6:
                 return 2500
             case 7:
-                return 3500
+                return 17500
             case 8:
-                return 17750
+                return 95000
             case 9:
-                return 125000
+                return 550000
             case 10:
-                return 2750000
+                return 25750000
             default:
                 return 0
         }

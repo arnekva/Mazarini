@@ -312,7 +312,7 @@ export class GamblingCommands {
 
             const gambling = new MessageEmbed().setTitle('Gambling 🎲').setDescription(
                 `${message.author.username} gamblet ${valAsNum} av ${userMoney} chips.\nTerningen trillet: ${roll}/100. Du ${
-                    roll >= 50 ? 'vant! 💰💰 (' + (Number(multiplier) + 1) + 'x)' : 'tapte 💸💸'
+                    roll >= 50 ? 'vant! 💰💰 (' + Number(multiplier) + 'x)' : 'tapte 💸💸'
                 }\nDu har nå ${newMoneyValue.toLocaleString(undefined, {
                     maximumFractionDigits: 2,
                     minimumFractionDigits: 2,
