@@ -2,14 +2,15 @@ import { Channel, Client, DMChannel, NewsChannel, TextChannel, Message, MessageF
 import { ICommandElement } from './commands/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes {
-    public static readonly currentVersion = '3.7.10'
+    public static readonly currentVersion = '3.7.11'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `* Man kan nå vinne penger for å spinne fidget spinneren. Spin i mer enn 5 minutt, så får du premie jo lengre du spinner ` +
-        `\n* Ukens highscore vil ikke lenger resettes ukentlig. Premier deles i stedet for per spin` +
-        `\n* Fikset feil i roll hjelp-beskrivelse`
+        `* Fikset bonk URL-er ` +
+        `\n* Lagt til flere emojies som Bot Høie vil reagere med på diverse kommandoer` +
+        `\n* Endringer i gevinster for spin` +
+        `\n* Oppdatert hjelp-beskrivelsen for spin til å reflektere at man nå kan vinne på hver spin`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

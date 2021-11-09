@@ -116,13 +116,13 @@ export class Spinner {
             case 6:
                 return 2500
             case 7:
-                return 17500
+                return 12500
             case 8:
-                return 95000
+                return 110000
             case 9:
                 return 550000
             case 10:
-                return 25750000
+                return 65750001
             default:
                 return 0
         }
@@ -231,7 +231,8 @@ export class Spinner {
 
     static readonly command: ICommandElement = {
         commandName: 'spin',
-        description: 'Spin fidgetspinneren. Beste tid per bruker registreres i databasen. Tallene er tilfeldige, men vektet. ',
+        description:
+            'Spin fidgetspinneren. Beste tid per bruker registreres i databasen. Tallene er tilfeldige, men vektet. Du vinner chips hvis du spinner mer enn 5 minutter. (Høyeste gevinst er 100.000.000 chips for 10 min) ',
         command: (rawMessage: Message, messageContent: string) => {
             Spinner.spin(rawMessage)
         },
