@@ -34,11 +34,21 @@ interface fetchData {
     limit: string
     includeStats: boolean
     silent: boolean
+    includeNameInOutput: boolean
+    username: string
 }
 
 export class Music {
     static readonly baseUrl = 'http://ws.audioscrobbler.com/2.0/'
-    static findCommand(message: Message, content: string, args: string[], silent?: boolean, shouldEditRawMessageInstead?: string, notWeeklyOrRecent?: boolean) {
+    static findCommand(
+        message: Message,
+        content: string,
+        args: string[],
+        silent?: boolean,
+        shouldEditRawMessageInstead?: string,
+        notWeeklyOrRecent?: boolean,
+        includeUsername?: boolean
+    ) {
         if (!args[0]) {
             message.reply("Feilformattert. Mangler du f.eks 'topp'?")
             return
@@ -53,8 +63,9 @@ export class Music {
             }
 
             let username = Music.getLastFMUsernameByDiscordUsername(shouldEditRawMessageInstead ?? message.author.username, message)
+
             //Check if fourth ([3]) argument is a valid username - if so, override author.username. Otherwise, treat [3] as 'stats' option.
-            let usernameFromArgs = Music.getLastFMUsernameByDiscordUsername(args[3] ?? '', message)
+            let usernameFromArgs = Music.getLastFMUsernameByDiscordUsername(args[2] ?? '', message)
             if (usernameFromArgs) username = usernameFromArgs
             let limit = args[2] ?? '10'
             if (!username) {
@@ -62,6 +73,7 @@ export class Music {
                 return
             }
             const cmd = Music.getCommand(method.command, args[1])
+
             if (method.command === 'siste' && args[2]) {
                 const nyUser = Music.getLastFMUsernameByDiscordUsername(args[2], message)
                 if (nyUser) {
@@ -87,6 +99,8 @@ export class Music {
                 limit: limit,
                 includeStats: usernameFromArgs ? !!args[4] : !!args[3], //If overriding username, stats index is pushed back by 1 index
                 silent: silent ?? false,
+                includeNameInOutput: includeUsername ?? false,
+                username: args[2] ?? message.author.username,
             }
             return this.findLastFmData(message, data, shouldEditRawMessageInstead, notWeeklyOrRecent)
         } else {
@@ -169,6 +183,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
         const emoji = await EmojiHelper.getEmoji('catJAM', message)
 
         let artistString = ''
+
         /**Promise.all siden vi gjør 2 fetches og trenger at begge resolves samtidig */
         return Promise.all([
             fetch(Music.baseUrl + `?method=${dataParam.method.cmd}&user=${dataParam.user}&api_key=${apiKey}&format=json&limit=${dataParam.limit}`, {
@@ -187,6 +202,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
                             }, 5000)
                             return
                         }
+
                         const isFormattedWithHashtag = notWeeklyOrRecent
                             ? true
                             : dataParam.method.cmd.includes('weekly') || dataParam.method.cmd.includes('recent')
@@ -206,13 +222,17 @@ Docs: https://www.last.fm/api/show/user.getInfo
 
                         let numPlaysInTopX = 0
                         if (prop) {
+                            let hasCurrentlyPlaying = false
                             prop.forEach((element: any, index) => {
                                 const isCurrentlyPlaying = !isNotRecent && element.hasOwnProperty('@attr')
-
+                                if (hasCurrentlyPlaying && dataParam.includeNameInOutput) return
+                                if (isCurrentlyPlaying) hasCurrentlyPlaying = true
                                 numPlaysInTopX += parseInt(element.playcount)
+                                console.log(dataParam.includeNameInOutput)
+
                                 /** Denne ser kanskje lang ut, men den lager hver linje. Først ser den etter artist (hentes forskjellig fra weekly), legger til bindestrek, sjekker etter sangnavn etc.  */
                                 artistString +=
-                                    `\n${
+                                    `\n${dataParam.includeNameInOutput ? '(' + dataParam.username + ') ' : ''}${
                                         isFormattedWithHashtag && element.artist
                                             ? element.artist['#text'] + ' - '
                                             : element.artist

@@ -2,15 +2,12 @@ import { Channel, Client, DMChannel, NewsChannel, TextChannel, Message, MessageF
 import { ICommandElement } from './commands/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes {
-    public static readonly currentVersion = '3.7.11'
+    public static readonly currentVersion = '3.8.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `* Fikset bonk URL-er ` +
-        `\n* Lagt til flere emojies som Bot Høie vil reagere med på diverse kommandoer` +
-        `\n* Endringer i gevinster for spin` +
-        `\n* Oppdatert hjelp-beskrivelsen for spin til å reflektere at man nå kan vinne på hver spin`
+        `* Du kan nå bruke '!mz spotify full' for å hente siste Last.fm-data fra brukere med registrert brukernavn ` + `\n* Flere under the hood forbedringer`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

@@ -1,5 +1,6 @@
 import { Message, MessageEmbed } from 'discord.js'
 import { spotifyToken } from '../client-env'
+import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { getUsernameInQuotationMarks } from '../utils/textUtils'
@@ -89,18 +90,23 @@ export class SpotifyCommands {
                 })
                 if (replyString.length === 0) replyString = 'Ingen hører på Spotify for øyeblikket'
                 await MessageHelper.sendMessage(rawMessage, replyString)
+            } else if (args[0] === 'full') {
+                const waitMessage = await MessageHelper.sendMessage(rawMessage, 'Henter last.fm data fra brukere... dette kan ta litt tid')
+                const users = guild.members.cache.forEach(async (user) => {
+                    const lastFmName = DatabaseHelper.getValue('lastFmUsername', user.user.username, rawMessage, true)
+                    if (!!lastFmName) {
+                        if (waitMessage) {
+                            Music.findCommand(waitMessage, content, ['siste', '1', user.user.username], true, undefined, true, true)
+                        }
+                    }
+                })
+                if (waitMessage) waitMessage.delete()
             } else {
                 const user = guild.members.cache.filter((u) => u.user.username == name).first()
                 if (user && user.presence) {
                     let replystring = ''
                     const spotify = user.presence.activities.filter((a) => a.name === 'Spotify')[0]
-                    // if (args[1] == "link") {
-                    //     if (spotify) {
-                    //         await this.searchForSongOnSpotifyAPI(spotify.state ?? "", spotify.details ?? "", rawMessage)
-                    //         return;
-                    //     }
 
-                    // }
                     if (spotify) {
                         replystring += `${spotify.state} - ${spotify.details} ${emoji.id}`
                     }
