@@ -166,7 +166,7 @@ export class WarzoneCommands {
                 /** Gjør sammenligning og legg til i respons */
                 for (const [key, value] of Object.entries(orderedStats)) {
                     if (key === 'gulagKd' && orderedStats.gulagDeaths && orderedStats.gulagKills)
-                        response += `\nGulag KD: ${orderedStats?.gulagKills / orderedStats?.gulagDeaths}`
+                        response += `\nGulag KD: ${(orderedStats?.gulagKills / orderedStats?.gulagDeaths).toFixed(2)}`
                     else if (this.findHeaderFromKey(key))
                         response += `\n${this.findHeaderFromKey(key)}: ${getValueFormatted(key, value)} ${this.compareOldNewStats(
                             value,

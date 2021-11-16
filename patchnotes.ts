@@ -2,12 +2,12 @@ import { Channel, Client, DMChannel, NewsChannel, TextChannel, Message, MessageF
 import { ICommandElement } from './commands/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes {
-    public static readonly currentVersion = '3.8.0'
+    public static readonly currentVersion = '3.8.1'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string =
-        `* Du kan nå bruke '!mz spotify full' for å hente siste Last.fm-data fra brukere med registrert brukernavn ` + `\n* Flere under the hood forbedringer`
+    public static readonly currentPatchNotes: string = `* Fikset desimaler for gulag K/D `
+    //  + `\n* Flere under the hood forbedringer`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
