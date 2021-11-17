@@ -2,11 +2,11 @@ import { Channel, Client, DMChannel, NewsChannel, TextChannel, Message, MessageF
 import { ICommandElement } from './commands/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes {
-    public static readonly currentVersion = '3.8.1'
+    public static readonly currentVersion = '3.8.2'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `* Fikset desimaler for gulag K/D `
+    public static readonly currentPatchNotes: string = `* WZ Stats sin (flaut) på damage taken er nå tilbake`
     //  + `\n* Flere under the hood forbedringer`
 
     static getCurrentPatchNotes() {

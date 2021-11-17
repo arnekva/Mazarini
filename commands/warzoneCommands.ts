@@ -12,7 +12,7 @@ export interface CodStats {
     kdRatio: number
     killsPerGame: number
     damageDone: number
-    damageTaken: number
+    damageTaken: number | string
     headshotPercentage: number
     gulagDeaths: number
     gulagKills: number
@@ -142,7 +142,9 @@ export class WarzoneCommands {
                 for (let i = 0; i < this.statsToInclude.length; i++) {
                     for (const [key, value] of Object.entries(statsTyped)) {
                         if (key === this.statsToInclude[i].key) {
-                            orderedStats[this.statsToInclude[i].key] = value
+                            if (key === 'damageTaken' && Number(orderedStats['damageTaken']) > Number(orderedStats['damageDone'])) {
+                                orderedStats['damageTaken'] = value + ' (flaut)'
+                            } else orderedStats[this.statsToInclude[i].key] = value
                         }
                     }
                     if (orderedStats.gulagDeaths && orderedStats.gulagKills)
