@@ -52,6 +52,7 @@ export type dbPrefix =
     | 'shopItems'
     | 'codStats'
     | 'activisionUserString'
+    | 'cancelledCounter'
 
 export interface betObject {
     description: string
@@ -141,8 +142,21 @@ export class DatabaseHelper {
     /** Increment verdien for en int som ligger i databasen */
     static incrementValue(prefix: dbPrefix, key: string, increment: string) {
         const oldValue = DatabaseHelper.getValueWithoutMessage(prefix, key)
-        const newVal = Number(oldValue) + Number(increment)
-        DatabaseHelper.setValue(prefix, key, newVal.toFixed(2))
+        if (isNaN(oldValue)) {
+            DatabaseHelper.setValue(prefix, key, increment)
+        } else {
+            const newVal = Number(oldValue) + Number(increment)
+            DatabaseHelper.setValue(prefix, key, newVal.toFixed(2))
+        }
+    }
+    static incrementCleanValue(prefix: dbPrefix, key: string, increment: string) {
+        const oldValue = DatabaseHelper.getValueWithoutMessage(prefix, key)
+        if (isNaN(oldValue)) {
+            DatabaseHelper.setValue(prefix, key, increment)
+        } else {
+            const newVal = Number(oldValue) + Number(increment)
+            DatabaseHelper.setValue(prefix, key, newVal.toFixed(0))
+        }
     }
     static decrementValue(prefix: dbPrefix, key: string, decrement: string) {
         const oldValue = DatabaseHelper.getValueWithoutMessage(prefix, key)
@@ -217,10 +231,15 @@ export class DatabaseHelper {
             db.delete(`${folderPrefix}/${el}/${prefix}`)
         })
     }
-
+    /**
+     * @deprecated Bruk UserUtils i stedet
+     */
     static findUserByUsername(username: string, rawMessage: Message) {
         return rawMessage.client.users.cache.find((user) => user.username == username)
     }
+    /**
+     * @deprecated Bruk UserUtils i stedet
+     */
     static findUserById(id: string, rawMessage: Message) {
         return rawMessage.client.users.cache.find((user) => user.id == id)
     }

@@ -8,6 +8,9 @@ import { reverseMessageString } from '../utils/textUtils'
 export type typeOfError = 'unauthorized' | 'error' | 'warning'
 
 export class MessageHelper {
+    // private client
+
+    // constructor(s: string) {}
     /**
      * Send message to the specified channel
      * @param rawMessage - A raw message type

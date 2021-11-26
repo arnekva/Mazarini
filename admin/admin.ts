@@ -1,4 +1,4 @@
-import { Channel, GuildMember, Message, TextChannel } from 'discord.js'
+import { Channel, GuildMember, Message, TextChannel, User } from 'discord.js'
 import { botLocked, lockedThread, lockedUser, numMessages, startTime } from '..'
 import { ICommandElement } from '../commands/commands'
 import { DateCommands } from '../commands/dateCommands'
@@ -9,6 +9,7 @@ import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { DateUtils } from '../utils/dateUtils'
 import { getUsernameInQuotationMarks, isInQuotation } from '../utils/textUtils'
+import { UserUtils } from '../utils/userUtils'
 
 export class Admin {
     static readonly command: ICommandElement = {
@@ -189,6 +190,23 @@ export class Admin {
         }
     }
 
+    static cancelUser(message: Message, messageContent: string, args: string[]) {
+        const username = args[0]
+        const user = UserUtils.findMemberByUsername(username, message)
+        if (user) {
+            DatabaseHelper.incrementCleanValue('cancelledCounter', username, '1')
+            const numCancelled = DatabaseHelper.getValueWithoutMessage('cancelledCounter', username)
+            if (!message?.guild?.members?.cache.get('802945796457758760')?.permissions.has('CHANGE_NICKNAME')) {
+                message.reply(
+                    `Feilmelding: Missing permission. Eg kan 'kje endra nickname te brukere med høgere rolle enn meg sjøl dessverre. De e un-cancelable for nå`
+                )
+            } else {
+                user.setNickname(`Cancelled ${user.displayName}`)
+                message.reply(`${username} har blitt cancelled for ${numCancelled}. gang`)
+            }
+        } else message.reply(`Fant ikke bruker ved navn <${username}>`)
+    }
+
     static deleteXLastMessagesByUserInChannel(message: Message, messageContent: string, args: string[]) {
         const userToDeleteBool = getUsernameInQuotationMarks(messageContent)
         const userToDelete = userToDeleteBool ?? args[0]
@@ -254,6 +272,15 @@ export class Admin {
         isAdmin: true,
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             Admin.deleteXLastMessagesByUserInChannel(rawMessage, messageContent, args)
+        },
+        category: 'admin',
+    }
+    static readonly cancelCommand: ICommandElement = {
+        commandName: 'cancel',
+        description: 'Cancel en bruker',
+        isAdmin: true,
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            Admin.cancelUser(rawMessage, messageContent, args)
         },
         category: 'admin',
     }

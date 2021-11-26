@@ -32,7 +32,6 @@ export const mazariniClient = new Discord.Client({
         Intents.FLAGS.GUILD_MESSAGE_TYPING,
         Intents.FLAGS.GUILD_PRESENCES,
         Intents.FLAGS.GUILD_WEBHOOKS,
-        Intents.FLAGS.GUILDS,
         Intents.FLAGS.GUILD_INTEGRATIONS,
         Intents.FLAGS.DIRECT_MESSAGE_TYPING,
         Intents.FLAGS.GUILD_VOICE_STATES,
@@ -139,6 +138,7 @@ mazariniClient.on('messageCreate', async (message: Message) => {
     numMessages++
     //Do not reply to own messages
     if (message.author == mazariniClient.user) return
+    console.log(mazariniClient)
 
     if (checkForLockCommand(message)) return
     if (isThreadLocked(message)) return

@@ -142,7 +142,11 @@ export class WarzoneCommands {
                 for (let i = 0; i < this.statsToInclude.length; i++) {
                     for (const [key, value] of Object.entries(statsTyped)) {
                         if (key === this.statsToInclude[i].key) {
-                            if (key === 'damageTaken' && Number(orderedStats['damageTaken']) > Number(orderedStats['damageDone'])) {
+                            console.log(key)
+
+                            if (key === 'damageTaken' && Number(statsTyped['damageTaken']) > Number(statsTyped['damageDone'])) {
+                                console.log('yes?')
+
                                 orderedStats['damageTaken'] = value + ' (flaut)'
                             } else orderedStats[this.statsToInclude[i].key] = value
                         }
@@ -163,6 +167,7 @@ export class WarzoneCommands {
                         return `${DateUtils.secondsToHoursAndMinutes(Number(value)).hours.toFixed(0)} hours and ${DateUtils.secondsToHoursAndMinutes(
                             Number(value)
                         ).minutes.toFixed(0)} minutes`
+                    if (key === 'damageTaken') return value
                     return parseFloat(Number(value).toFixed(3))
                 }
                 /** Gjør sammenligning og legg til i respons */
