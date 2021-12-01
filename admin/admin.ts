@@ -196,7 +196,7 @@ export class Admin {
         if (user) {
             DatabaseHelper.incrementCleanValue('cancelledCounter', username, '1')
             const numCancelled = DatabaseHelper.getValueWithoutMessage('cancelledCounter', username)
-            if (!message?.guild?.members?.cache.get('802945796457758760')?.permissions.has('CHANGE_NICKNAME')) {
+            if (!message?.guild?.members?.cache.get('802945796457758760')?.permissions.has('CHANGE_NICKNAME') || user.user.username === 'PhedeSpelar') {
                 message.reply(
                     `Feilmelding: Missing permission. Eg kan 'kje endra nickname te brukere med høgere rolle enn meg sjøl dessverre. De e un-cancelable for nå`
                 )
