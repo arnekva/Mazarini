@@ -201,8 +201,12 @@ export class Admin {
                     `Feilmelding: Missing permission. Eg kan 'kje endra nickname te brukere med høgere rolle enn meg sjøl dessverre. De e un-cancelable for nå`
                 )
             } else {
-                user.setNickname(`Cancelled ${user.displayName}`)
-                message.reply(`${username} har blitt cancelled for ${numCancelled}. gang`)
+                try {
+                    user.setNickname(`Cancelled ${user.displayName}`)
+                    message.reply(`${username} har blitt cancelled for ${numCancelled}. gang`)
+                } catch (error) {
+                    message.reply(`Feilmelding: Missing permission. Denne personen e visst uncancelable for nå`)
+                }
             }
         } else message.reply(`Fant ikke bruker ved navn <${username}>`)
     }
