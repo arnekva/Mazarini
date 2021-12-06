@@ -197,7 +197,7 @@ export class Admin {
             DatabaseHelper.incrementCleanValue('cancelledCounter', username, '1')
             const numCancelled = DatabaseHelper.getValueWithoutMessage('cancelledCounter', username)
             const member = UserUtils.findMemberByUsername(user.user.username, message)
-            if (member && member.nickname.includes('Cancelled')) {
+            if (member && member.nickname && member.nickname.includes('Cancelled')) {
                 message.reply(`Denne personen e uncancellable`)
                 return
             }
