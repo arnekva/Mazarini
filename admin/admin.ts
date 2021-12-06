@@ -196,11 +196,12 @@ export class Admin {
         if (user) {
             DatabaseHelper.incrementCleanValue('cancelledCounter', username, '1')
             const numCancelled = DatabaseHelper.getValueWithoutMessage('cancelledCounter', username)
-            if (
-                !message?.guild?.members?.cache.get('802945796457758760')?.permissions.has('CHANGE_NICKNAME') ||
-                user.user.username === 'PhedeSpelar' ||
-                user.user.username.includes('Cancelled')
-            ) {
+            const member = UserUtils.findMemberByUsername(user.user.username, message)
+            if (member && member.nickname.includes('Cancelled')) {
+                message.reply(`Denne personen e uncancellable`)
+                return
+            }
+            if (!message?.guild?.members?.cache.get('802945796457758760')?.permissions.has('CHANGE_NICKNAME') || user.user.username === 'PhedeSpelar') {
                 message.reply(`Denne personen e uncancellable`)
             } else {
                 try {
