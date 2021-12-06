@@ -166,7 +166,7 @@ export class WarzoneCommands {
                     if (key === 'timePlayed')
                         return `${DateUtils.secondsToHoursAndMinutes(Number(value)).hours.toFixed(0)} hours and ${DateUtils.secondsToHoursAndMinutes(
                             Number(value)
-                        ).minutes.toFixed(0)} minutes. Debug: <${Number(value)}`
+                        ).minutes.toFixed(0)} minutes.`
                     if (key === 'damageTaken') return value
                     return parseFloat(Number(value).toFixed(3))
                 }
@@ -205,7 +205,7 @@ export class WarzoneCommands {
                 response += '\nTop 10: ' + data.br.topTen
                 response += '\nTop 5: ' + data.br.topFive
                 response += '\nNumber of Contracts: ' + data.br.contracts
-                response += '\nTime Played: ' + convertTime(data.br.timePlayed) + ` DEBUG: <${data.br.timePlayed}>`
+                response += '\nTime Played: ' + convertTime(data.br.timePlayed)
                 response += '\nGames Played: ' + data.br.gamesPlayed
                 if (sentMessage) sentMessage.edit(response)
                 else MessageHelper.sendMessage(message, response)
