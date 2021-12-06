@@ -2,14 +2,11 @@ import { Channel, Client, DMChannel, NewsChannel, TextChannel, Message, MessageF
 import { ICommandElement } from './commands/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes {
-    public static readonly currentVersion = '3.8.3'
+    public static readonly currentVersion = '3.8.4'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string =
-        `* WZ Stats sin (flaut) på damage taken er nå tilbake (for real this time)` +
-        `\n* Adminer kan nå cancelle folk med '!mz cancel brukernavn' hvis de gjør eller sier noe krenkende` +
-        `\n* Lagt til ny UserUtils for å lettere hente bruker og member objekter fra username og id`
+    public static readonly currentPatchNotes: string = `* En cancelled person kan ikke lenger cancelles på ny`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
