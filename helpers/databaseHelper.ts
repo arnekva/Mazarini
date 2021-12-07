@@ -53,6 +53,7 @@ export type dbPrefix =
     | 'codStats'
     | 'activisionUserString'
     | 'cancelledCounter'
+    | 'nickname'
 
 export interface betObject {
     description: string
