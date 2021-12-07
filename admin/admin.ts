@@ -230,6 +230,7 @@ export class Admin {
                 try {
                     const oldName = DatabaseHelper.getValue('nickname', user.user.username, message) ?? user.user.username
                     user.setNickname(`${oldName}`)
+                    message.reply(`${user.user.username} har blitt un-cancelled, og nickname er satt til '${oldName}'`)
                 } catch (error) {
                     message.reply(`Denne personen har enten ikkje vært cancelled, eller kan ikkje ble un-cancelled av ein eller aen merkelig grunn`)
                 }
