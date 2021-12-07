@@ -2,11 +2,11 @@ import { Channel, Client, DMChannel, NewsChannel, TextChannel, Message, MessageF
 import { ICommandElement } from './commands/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes {
-    public static readonly currentVersion = '3.8.6'
+    public static readonly currentVersion = '3.8.7'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `* En person kan nå bly un-cancelled og få nicknamet sitt tilbake`
+    public static readonly currentPatchNotes: string = `* Botten skal ikke lenger kræsje hvis total lengde på nickname går over 30 tegn`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

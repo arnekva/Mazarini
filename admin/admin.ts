@@ -205,7 +205,9 @@ export class Admin {
                 message.reply(`Denne personen e uncancellable`)
             } else {
                 try {
-                    user.setNickname(`Cancelled ${user.displayName}`)
+                    const nick = `Cancelled ${user.displayName}`
+                    if (nick.length < 30) user.setNickname(`Cancelled ${user.displayName}`)
+                    else user.setNickname(`Cancelled ${user.displayName.slice(0, user.displayName.length - 12)}`)
                     message.reply(`${username} har blitt cancelled for ${numCancelled}. gang`)
                     DatabaseHelper.setValue('nickname', user.user.username, user?.nickname ?? user.user.username)
                 } catch (error) {
