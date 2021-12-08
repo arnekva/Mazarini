@@ -191,53 +191,8 @@ export class Admin {
     }
 
     static cancelUser(message: Message, messageContent: string, args: string[]) {
-        const username = args[0]
-        const user = UserUtils.findMemberByUsername(username, message)
-        if (user) {
-            DatabaseHelper.incrementCleanValue('cancelledCounter', username, '1')
-            const numCancelled = DatabaseHelper.getValueWithoutMessage('cancelledCounter', username)
-            const member = UserUtils.findMemberByUsername(user.user.username, message)
-            if (member && member.nickname && member.nickname.includes('Cancelled')) {
-                message.reply(`Denne personen e uncancellable`)
-                return
-            }
-            if (!message?.guild?.members?.cache.get('802945796457758760')?.permissions.has('CHANGE_NICKNAME') || user.user.username === 'PhedeSpelar') {
-                message.reply(`Denne personen e uncancellable`)
-            } else {
-                try {
-                    const nick = `Cancelled ${user.displayName}`
-                    if (nick.length < 30) user.setNickname(`Cancelled ${user.displayName}`)
-                    else user.setNickname(`Cancelled ${user.displayName.slice(0, user.displayName.length - 12)}`)
-                    message.reply(`${username} har blitt cancelled for ${numCancelled}. gang`)
-                    DatabaseHelper.setValue('nickname', user.user.username, user?.nickname ?? user.user.username)
-                } catch (error) {
-                    message.reply(`Feilmelding: Missing permission. Denne personen e visst uncancelable for nå`)
-                }
-            }
-        } else message.reply(`Fant ikke bruker ved navn <${username}>`)
-    }
-
-    static uncancelUser(message: Message, messageContent: string, args: string[]) {
-        const username = args[0]
-        const user = UserUtils.findMemberByUsername(username, message)
-        if (user) {
-            const member = UserUtils.findMemberByUsername(user.user.username, message)
-            if (member && member.nickname && !member.nickname.includes('Cancelled')) {
-                message.reply(`Denne personen e ikkje cancelled`)
-                return
-            }
-            if (!message?.guild?.members?.cache.get('802945796457758760')?.permissions.has('CHANGE_NICKNAME') || user.user.username === 'PhedeSpelar') {
-                message.reply(`Denne personen kan ikkje ver cancelled`)
-            } else {
-                try {
-                    const oldName = DatabaseHelper.getValue('nickname', user.user.username, message) ?? user.user.username
-                    user.setNickname(`${oldName}`)
-                    message.reply(`${user.user.username} har blitt un-cancelled, og nickname er satt til '${oldName}'`)
-                } catch (error) {
-                    message.reply(`Denne personen har enten ikkje vært cancelled, eller kan ikkje ble un-cancelled av ein eller aen merkelig grunn`)
-                }
-            }
-        } else message.reply(`Fant ikke bruker ved navn '${username}'`)
+        message.reply('Me drive ikkje me sånt her lenger')
+        return
     }
 
     static deleteXLastMessagesByUserInChannel(message: Message, messageContent: string, args: string[]) {
@@ -317,15 +272,7 @@ export class Admin {
         },
         category: 'admin',
     }
-    static readonly unCancelCommand: ICommandElement = {
-        commandName: 'uncancel',
-        description: 'Un-Cancel en bruker',
-        isAdmin: true,
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            Admin.uncancelUser(rawMessage, messageContent, args)
-        },
-        category: 'admin',
-    }
+
     static readonly deleteSpecificKey: ICommandElement = {
         commandName: 'deletekey',
         description: 'Slett en gitt nøkkel med oppgitt prefix. <prefix> <nøkkel> (Virker ikke)',
