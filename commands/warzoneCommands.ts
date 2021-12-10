@@ -110,18 +110,18 @@ export class WarzoneCommands {
         { key: 'matchesPlayed', header: 'Matches Played' },
     ]
     static BRstatsToInclude: codBRStatsKeyHeader[] = [
+        { key: 'wins', header: 'Wins' },
         { key: 'kills', header: 'Kills' },
         { key: 'deaths', header: 'Deaths' },
         { key: 'kdRatio', header: 'K/D Ratio' },
-        { key: 'timePlayed', header: 'Time Played' },
         { key: 'downs', header: 'Downs' },
-        { key: 'gamesPlayed', header: 'Games Played' },
         { key: 'topTwentyFive', header: 'Top 25' },
         { key: 'topTen', header: 'Top 10' },
         { key: 'topFive', header: 'Top 5' },
-        { key: 'wins', header: 'Wins' },
-        { key: 'contracts', header: 'Number of contracts' },
+        { key: 'gamesPlayed', header: 'Games Played' },
+        { key: 'timePlayed', header: 'Time Played' },
         { key: 'winRatio', header: 'Win ratio' },
+        { key: 'contracts', header: 'Number of contracts' },
     ]
 
     static findHeaderFromKey(key: string, isBr?: boolean) {
