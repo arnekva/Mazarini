@@ -228,7 +228,6 @@ Docs: https://www.last.fm/api/show/user.getInfo
                                 if (hasCurrentlyPlaying && dataParam.includeNameInOutput) return
                                 if (isCurrentlyPlaying) hasCurrentlyPlaying = true
                                 numPlaysInTopX += parseInt(element.playcount)
-                                console.log(dataParam.includeNameInOutput)
 
                                 /** Denne ser kanskje lang ut, men den lager hver linje. Først ser den etter artist (hentes forskjellig fra weekly), legger til bindestrek, sjekker etter sangnavn etc.  */
                                 artistString +=

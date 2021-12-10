@@ -51,6 +51,7 @@ export type dbPrefix =
     | 'debtMultiplier'
     | 'shopItems'
     | 'codStats'
+    | 'codStatsBR'
     | 'activisionUserString'
     | 'cancelledCounter'
     | 'nickname'

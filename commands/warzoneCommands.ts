@@ -28,6 +28,20 @@ export interface CodStats {
     avgLifeTime: number
     timePlayed: number
 }
+export interface CodBRStats {
+    kills: number
+    deaths: number
+    kdRatio: number
+    timePlayed: number
+    wins: number
+    downs: number
+    topTwentyFive: number
+    topTen: number
+    topFive: number
+    contracts: number
+    gamesPlayed: number
+    winRatio: number
+}
 export type CodStatsType =
     | 'kills'
     | 'deaths'
@@ -51,8 +65,26 @@ export type CodStatsType =
     | 'timePlayed'
     | 'matchesPlayed'
 
+export type CodBRStatsType =
+    | 'wins'
+    | 'kills'
+    | 'deaths'
+    | 'kdRatio'
+    | 'downs'
+    | 'topTwentyFive'
+    | 'topTen'
+    | 'topFive'
+    | 'contracts'
+    | 'timePlayed'
+    | 'gamesPlayed'
+    | 'winRatio'
+
 interface codStatsKeyHeader {
     key: CodStatsType
+    header: string
+}
+interface codBRStatsKeyHeader {
+    key: CodBRStatsType
     header: string
 }
 
@@ -77,9 +109,23 @@ export class WarzoneCommands {
         { key: 'timePlayed', header: 'Time Played' },
         { key: 'matchesPlayed', header: 'Matches Played' },
     ]
+    static BRstatsToInclude: codBRStatsKeyHeader[] = [
+        { key: 'kills', header: 'Kills' },
+        { key: 'deaths', header: 'Deaths' },
+        { key: 'kdRatio', header: 'K/D Ratio' },
+        { key: 'timePlayed', header: 'Time Played' },
+        { key: 'downs', header: 'Downs' },
+        { key: 'gamesPlayed', header: 'Games Played' },
+        { key: 'topTwentyFive', header: 'Top 25' },
+        { key: 'topTen', header: 'Top 10' },
+        { key: 'topFive', header: 'Top 5' },
+        { key: 'wins', header: 'Wins' },
+        { key: 'contracts', header: 'Number of contracts' },
+        { key: 'winRatio', header: 'Win ratio' },
+    ]
 
-    static findHeaderFromKey(key: string) {
-        return this.statsToInclude.filter((el) => el.key === key).pop()?.header
+    static findHeaderFromKey(key: string, isBr?: boolean) {
+        return isBr ? this.BRstatsToInclude.filter((el) => el.key === key).pop()?.header : this.statsToInclude.filter((el) => el.key === key).pop()?.header
     }
 
     static async getBRContent(message: Message, messageContent: string, isWeekly?: boolean) {
@@ -142,11 +188,7 @@ export class WarzoneCommands {
                 for (let i = 0; i < this.statsToInclude.length; i++) {
                     for (const [key, value] of Object.entries(statsTyped)) {
                         if (key === this.statsToInclude[i].key) {
-                            console.log(key)
-
                             if (key === 'damageTaken' && Number(statsTyped['damageTaken']) > Number(statsTyped['damageDone'])) {
-                                console.log('yes?')
-
                                 orderedStats['damageTaken'] = value + ' (flaut)'
                             } else orderedStats[this.statsToInclude[i].key] = value
                         }
@@ -193,28 +235,41 @@ export class WarzoneCommands {
             }
             // MessageHelper.sendMessage(message.channel, response)
         } else {
+            /** BR */
             try {
                 let data = await API.MWBattleData(gamertag, platform)
-                response += 'Battle Royale stats for <' + gamertag + '>:'
-                response += '\nWins: ' + data.br.wins
-                response += '\nKills: ' + data.br.kills
-                response += '\nDeaths: ' + data.br.deaths
-                response += '\nK/D Ratio: ' + data.br.kdRatio.toFixed(3)
-                response += '\nDowns: ' + data.br.downs
-                response += '\nTop 25: ' + data.br.topTwentyFive
-                response += '\nTop 10: ' + data.br.topTen
-                response += '\nTop 5: ' + data.br.topFive
-                response += '\nNumber of Contracts: ' + data.br.contracts
-                response += '\nTime Played: ' + convertTime(data.br.timePlayed)
-                response += '\nGames Played: ' + data.br.gamesPlayed
+
+                let response = 'BR stats for <' + gamertag + '>'
+                const statsTyped = data.br as CodBRStatsType
+
+                const orderedStats: Partial<CodBRStats> = {}
+                for (let i = 0; i < this.BRstatsToInclude.length; i++) {
+                    for (const [key, value] of Object.entries(statsTyped)) {
+                        if (key === this.BRstatsToInclude[i].key) {
+                            orderedStats[this.BRstatsToInclude[i].key] = Number(value)
+                        }
+                    }
+                }
+                orderedStats['winRatio'] = ((orderedStats?.wins ?? 0) / (orderedStats?.gamesPlayed ?? 1)) * 100
+                const oldData = JSON.parse(this.getUserStats(message, true))
+                const getValueFormatted = (key: string, value: Number) => {
+                    if (key === 'timePlayed') return convertTime(Number(value))
+                    return value.toFixed(3).replace(/\.000$/, '')
+                }
+                /** Gjør sammenligning og legg til i respons */
+                for (const [key, value] of Object.entries(orderedStats)) {
+                    if (this.findHeaderFromKey(key, true))
+                        response += `\n${this.findHeaderFromKey(key, true)}: ${getValueFormatted(key, value)} ${this.compareOldNewStats(
+                            value,
+                            oldData[key],
+                            key === 'timePlayed'
+                        )}${key === 'winRatio' ? '%' : ''}`
+                }
                 if (sentMessage) sentMessage.edit(response)
                 else MessageHelper.sendMessage(message, response)
+                if (!noSave) this.saveUserStats(message, messageContent, statsTyped, true)
             } catch (error) {
-                MessageHelper.sendMessageToActionLogWithCustomMessage(
-                    message,
-                    error,
-                    'Du har enten skrevet feil brukernavn eller ikke gjort statistikken din offentlig. *(Logg inn på https://my.callofduty.com/login og gjør den offentlig)*'
-                )
+                message.reply(error + '')
             }
         }
     }
@@ -249,11 +304,11 @@ export class WarzoneCommands {
         return ``
     }
     /** Beware of stats: any */
-    static saveUserStats(message: Message, messageContent: string, stats: CodStats) {
-        DatabaseHelper.setObjectValue('codStats', message.author.username, JSON.stringify(stats))
+    static saveUserStats(message: Message, messageContent: string, stats: CodStats | CodBRStatsType, isBR?: boolean) {
+        DatabaseHelper.setObjectValue(isBR ? 'codStatsBR' : 'codStats', message.author.username, JSON.stringify(stats))
     }
-    static getUserStats(message: Message) {
-        return DatabaseHelper.getValue('codStats', message.author.username, message)
+    static getUserStats(message: Message, isBr?: boolean) {
+        return DatabaseHelper.getValue(isBr ? 'codStatsBR' : 'codStats', message.author.username, message)
     }
 
     static readonly getWZStats: ICommandElement = {

@@ -138,7 +138,6 @@ mazariniClient.on('messageCreate', async (message: Message) => {
     numMessages++
     //Do not reply to own messages
     if (message.author == mazariniClient.user) return
-    console.log(mazariniClient)
 
     if (checkForLockCommand(message)) return
     if (isThreadLocked(message)) return
