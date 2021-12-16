@@ -104,7 +104,7 @@ export class SpotifyCommands {
                     }
                 }
 
-                if (waitMessage) waitMessage.edit(musicRet + 'test')
+                if (waitMessage) waitMessage.edit(musicRet || 'Test')
                 else MessageHelper.sendMessage(rawMessage, musicRet)
             } else {
                 const user = guild.members.cache.filter((u) => u.user.username == name).first()
