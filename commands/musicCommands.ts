@@ -40,14 +40,15 @@ interface fetchData {
 
 export class Music {
     static readonly baseUrl = 'http://ws.audioscrobbler.com/2.0/'
-    static findCommand(
+    static async findCommand(
         message: Message,
         content: string,
         args: string[],
         silent?: boolean,
         shouldEditRawMessageInstead?: string,
         notWeeklyOrRecent?: boolean,
-        includeUsername?: boolean
+        includeUsername?: boolean,
+        isSilent?: boolean
     ) {
         if (!args[0]) {
             message.reply("Feilformattert. Mangler du f.eks 'topp'?")
@@ -102,7 +103,8 @@ export class Music {
                 includeNameInOutput: includeUsername ?? false,
                 username: args[2] ?? message.author.username,
             }
-            return this.findLastFmData(message, data, shouldEditRawMessageInstead, notWeeklyOrRecent)
+            const dataRet = await this.findLastFmData(message, data, shouldEditRawMessageInstead, notWeeklyOrRecent, isSilent)
+            return dataRet
         } else {
             if (args[1] && args[2]) {
                 if (args[1] !== message.author.username) {
@@ -169,7 +171,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
      * @param dataParam
      * @returns
      */
-    static async findLastFmData(message: Message, dataParam: fetchData, editInstead?: string, notWeeklyOrRecent?: boolean) {
+    static async findLastFmData(message: Message, dataParam: fetchData, editInstead?: string, notWeeklyOrRecent?: boolean, silent?: boolean) {
         if (parseInt(dataParam.limit) > 30) {
             message.reply('Litt for høg limit, deranes. Maks 30.')
             return
@@ -178,21 +180,23 @@ Docs: https://www.last.fm/api/show/user.getInfo
             dataParam.includeStats = true
         }
         if (editInstead) message.edit('Laster inn data fra Last.fm ...')
-        const msg = editInstead ? message : await MessageHelper.sendMessage(message, 'Laster data...')
+        let msg: Message
+        if (!silent) msg = editInstead ? message : ((await MessageHelper.sendMessage(message, 'Laster data...')) as Message)
         const apiKey = lfKey
         const emoji = await EmojiHelper.getEmoji('catJAM', message)
 
         let artistString = ''
 
         /**Promise.all siden vi gjør 2 fetches og trenger at begge resolves samtidig */
-        return Promise.all([
+        const arrayDataRet: string[] = []
+        await Promise.all([
             fetch(Music.baseUrl + `?method=${dataParam.method.cmd}&user=${dataParam.user}&api_key=${apiKey}&format=json&limit=${dataParam.limit}`, {
                 method: 'GET',
             }),
             fetch(Music.baseUrl + `?method=user.getinfo&user=${dataParam.user}&api_key=${apiKey}&format=json`),
         ])
-            .then(([resTop, resInfo]) => {
-                Promise.all([resTop.json(), resInfo.json()])
+            .then(async ([resTop, resInfo]) => {
+                await Promise.all([resTop.json(), resInfo.json()])
                     .then(([topData, info]) => {
                         /** Forskjellige metoder har litt forskjellig respons, så det ligger en del boolean verdier på toppen for å sjekke dette når det skal hentes ut */
                         if (!topData || !info['user']) {
@@ -269,9 +273,12 @@ Docs: https://www.last.fm/api/show/user.getInfo
                             MessageHelper.sendMessageToActionLogWithDefaultMessage(message, `Meldingen som ble forsøkt sendt er tom: <${message}>`)
                             return
                         }
-                        if (msg) msg.edit(artistString)
-                        else retMessage = MessageHelper.sendMessage(message, artistString)
-                        return retMessage
+                        if (!silent) {
+                            if (msg) msg.edit(artistString)
+                            else retMessage = MessageHelper.sendMessage(message, artistString)
+                        }
+                        arrayDataRet.push(artistString)
+                        // return retMessage
                     })
                     .catch((error: any) => {
                         MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
@@ -280,6 +287,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
             .catch((error: any) => {
                 MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
             })
+        return arrayDataRet
     }
 
     static getLastFMUsernameByDiscordUsername(username: string, rawMessage: Message) {

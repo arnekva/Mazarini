@@ -91,16 +91,21 @@ export class SpotifyCommands {
                 if (replyString.length === 0) replyString = 'Ingen hører på Spotify for øyeblikket'
                 await MessageHelper.sendMessage(rawMessage, replyString)
             } else if (args[0] === 'full') {
-                const waitMessage = await MessageHelper.sendMessage(rawMessage, 'Henter last.fm data fra brukere... dette kan ta litt tid')
-                const users = guild.members.cache.forEach(async (user) => {
-                    const lastFmName = DatabaseHelper.getValue('lastFmUsername', user.user.username, rawMessage, true)
+                const waitMessage = await MessageHelper.sendMessage(rawMessage, 'Henter last.fm data fra brukere')
+                let musicRet = ''
+                const users = guild.members.cache.map((u) => u.user.username)
+
+                for (let i = 0; i < users.length; i++) {
+                    const lastFmName = DatabaseHelper.getValue('lastFmUsername', users[i], rawMessage, true)
                     if (!!lastFmName) {
                         if (waitMessage) {
-                            Music.findCommand(waitMessage, content, ['siste', '1', user.user.username], true, undefined, true, true)
+                            musicRet += await Music.findCommand(waitMessage, content, ['siste', '1', users[i]], true, undefined, true, true, true)
                         }
                     }
-                })
-                if (waitMessage) waitMessage.delete()
+                }
+
+                if (waitMessage) waitMessage.edit(musicRet + 'test')
+                else MessageHelper.sendMessage(rawMessage, musicRet)
             } else {
                 const user = guild.members.cache.filter((u) => u.user.username == name).first()
                 if (user && user.presence) {
