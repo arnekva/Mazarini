@@ -49,6 +49,7 @@ import { actSSOCookie, discordSecret, environment } from './client-env'
 import { MessageUtils } from './utils/messageUtils'
 import { ArrayUtils } from './utils/arrayUtils'
 import { globalArrays } from './globals'
+import { ShopClass } from './commands/shop'
 const API = require('call-of-duty-api')()
 require('dotenv').config()
 
@@ -412,6 +413,10 @@ mazariniClient.on('error', function (error: Error) {
         mazariniClient.channels.cache.get('810832760364859432') as TextChannel,
         'En feilmelding ble fanget opp. Error: \n ' + error
     )
+})
+
+mazariniClient.on('interactionCreate', async (interaction: CommandInteraction) => {
+    ShopClass.openShop(interaction, mazariniClient)
 })
 
 function compareMember(oldMember: GuildMember, newMember: GuildMember) {

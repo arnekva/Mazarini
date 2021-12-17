@@ -12,7 +12,7 @@ import emojiStrip from 'emoji-strip'
 import { write } from 'fs'
 import { achievementIDs } from '../commands/achievements'
 import { Message } from 'discord.js'
-import { shopItem } from '../globals'
+import { shopItem } from '../commands/shop'
 
 //const db = new Database()
 /**
@@ -55,6 +55,8 @@ export type dbPrefix =
     | 'activisionUserString'
     | 'cancelledCounter'
     | 'nickname'
+    | 'inventory'
+    | 'debuff'
 
 export interface betObject {
     description: string
@@ -74,6 +76,11 @@ export interface betObjectReturned {
 
 export interface itemsBoughtAtStore {
     itemList: shopItem[]
+}
+
+export interface debuffItem {
+    item: string
+    amount: number
 }
 export class DatabaseHelper {
     /**
@@ -269,6 +276,18 @@ export class DatabaseHelper {
             })
         })
     }
+    static decreaseInventoryItem(item: String, username: String) {
+        try {
+            const mengde = db.getData(`${folderPrefix}/${username}/inventory/${item}/amount`) - 1
+            if (mengde <= 0) {
+                db.delete(`${folderPrefix}/${username}/inventory/${item}`)
+            } else {
+                db.push(`${folderPrefix}/${username}/inventory/${item}/amount`, mengde)
+            }
+        } catch (error) {
+            return
+        }
+    }
     /** Hent alle verdier for en gitt prefix */
     static getAllValuesFromPrefix(prefix: dbPrefix, message: Message) {
         const users = db.getData(`${folderPrefix}`)
@@ -299,6 +318,35 @@ export class DatabaseHelper {
     /** Fjern prefix fra en string */
     static stripPrefixFromString(text: string, prefix: dbPrefix) {
         return text.replace(prefix + '-', '')
+    }
+
+    static setShoppingList(username: string, shopItems: shopItem[]) {
+        shopItems.forEach((item) => {
+            db.push(`${folderPrefix}/${username}/inventory/${item.name}/name`, `${item.name}`)
+            db.push(`${folderPrefix}/${username}/inventory/${item.name}/price`, `${item.price}`)
+            db.push(`${folderPrefix}/${username}/inventory/${item.name}/description`, `${item.description}`)
+            try {
+                let mengde = db.getData(`${folderPrefix}/${username}/inventory/${item.name}/amount`) + 1
+                db.push(`${folderPrefix}/${username}/inventory/${item.name}/amount`, mengde)
+            } catch (error) {
+                db.push(`${folderPrefix}/${username}/inventory/${item.name}/amount`, 1)
+            }
+        })
+    }
+
+    static increaseDebuff(target: string, item: string) {
+        try {
+            const mengde = db.getData(`${folderPrefix}/${target}/debuff/${item}/amount`)
+            if (mengde <= 0 || mengde == undefined) {
+                db.push(`${folderPrefix}/${target}/debuff/${item}/name`, `${item}`)
+                db.push(`${folderPrefix}/${target}/debuff/${item}/amount`, `1`)
+            } else {
+                db.push(`${folderPrefix}/${target}/debuff/${item}/amount`, mengde + 1)
+            }
+        } catch (error) {
+            db.push(`${folderPrefix}/${target}/debuff/${item}/name`, `${item}`)
+            db.push(`${folderPrefix}/${target}/debuff/${item}/amount`, 1)
+        }
     }
 }
 export interface ValuePair {
