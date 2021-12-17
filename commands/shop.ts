@@ -84,7 +84,6 @@ export class ShopClass {
             let debuffDescription = 'Yøur debuffs:'
 
             let inventoryItems: inventoryItem[] = DatabaseHelper.getValueWithoutMessage('inventory', interaction.user.username)
-            console.log(inventoryItems)
 
             if (inventoryItems) {
                 Object.values(inventoryItems).forEach((item: inventoryItem) => {
@@ -95,7 +94,7 @@ export class ShopClass {
             }
 
             let debuffItems: debuffItem[] = DatabaseHelper.getValueWithoutMessage('debuff', interaction.user.username)
-            console.log(debuffItems)
+
             if (debuffItems) {
                 Object.values(debuffItems).forEach((debuff: debuffItem) => {
                     if (debuff.amount > 0) {
@@ -135,26 +134,28 @@ export class ShopClass {
             })
 
             const itemMenu = new MessageSelectMenu().setCustomId('itemMeny').setPlaceholder('Ingenting valgt!').addOptions(itemOptions)
+            if (user) {
+                const useEmbeded = new MessageEmbed()
+                    .setColor('#00ffe7')
+                    .setTitle(`Use item on - ${user.username}!`)
+                    .setDescription(`Bruk noe fra lommen din på ${user.username}!`)
 
-            const useEmbeded = new MessageEmbed()
-                .setColor('#00ffe7')
-                .setTitle(`Use item on - ${user.username}!`)
-                .setDescription(`Bruk noe fra lommen din på ${user.username}!`)
-                .setImage(user.avatarURL())
+                if (user.avatarURL()) useEmbeded.setImage(user.avatarURL() ?? '')
 
-            const rad1 = new MessageActionRow()
-            rad1.addComponents(itemMenu)
+                const rad1 = new MessageActionRow()
+                rad1.addComponents(itemMenu)
 
-            targetBruker = user.username
-            await interaction.reply({ embeds: [useEmbeded], components: [rad1] })
+                targetBruker = user?.username
+                await interaction.reply({ embeds: [useEmbeded], components: [rad1] })
+            }
         }
 
         if (interaction.isSelectMenu()) {
             if (interaction.message.interaction?.user == interaction.user) {
                 if (interaction.customId == 'itemMeny') {
-                    DatabaseHelper.decreaseInventoryItem(interaction.values[0], interaction.user.username)
+                    DatabaseHelper.decreaseInventoryItem(interaction.values[0], interaction.user?.username)
 
-                    DatabaseHelper.increaseDebuff(targetBruker, interaction.values[0])
+                    // DatabaseHelper.increaseDebuff(targetBruker, interaction.values[0])
 
                     await interaction.update({ content: 'https://i.imgflip.com/5km2hi.jpg', embeds: [], components: [] })
                 }
