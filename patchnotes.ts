@@ -2,13 +2,11 @@ import { Channel, Client, DMChannel, NewsChannel, TextChannel, Message, MessageF
 import { ICommandElement } from './commands/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes {
-    public static readonly currentVersion = '3.9.3'
+    public static readonly currentVersion = '3.9.4'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string =
-        `* '!mz spotify full' som inkluderer last.Fm-data sender nå én samlet melding, i stedet for en melding per bruker` +
-        `\n* Hvis meldings-iden inneholder 1337 vil brukeren nå også få 5.000 chips i tillegg til 100 coins`
+    public static readonly currentPatchNotes: string = `* Warzone stats gir nå mer detaljerte beskrivelser når feil oppstår` + `\n`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

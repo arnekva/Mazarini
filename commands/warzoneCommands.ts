@@ -157,9 +157,10 @@ export class WarzoneCommands {
             try {
                 let data = await API.MWweeklystats(gamertag, platform)
 
-                if (!data.wz.mode.br_all) {
-                    if (sentMessage) sentMessage.edit('Her skjedde det noe galt. Statistikken kunne ikke leses. Prøv på ny ')
-                    else MessageHelper.sendMessage(message, 'Her skjedde det noe galt. Statistikken kunne ikke leses. Prøv på ny ')
+                if (!data.wz.mode.br_all?.properties) {
+                    if (sentMessage) sentMessage.edit('Du har ingen statistikk denne ukå')
+                    else MessageHelper.sendMessage(message, 'Du har ingen statistikk denne ukå')
+                    return
                 }
 
                 if (isRebirth) {
@@ -181,7 +182,7 @@ export class WarzoneCommands {
                     else MessageHelper.sendMessage(message, rebirthResponse)
                     return
                 }
-
+              
                 const statsTyped = data.wz.mode.br_all.properties as CodStats
 
                 const orderedStats: Partial<CodStats> = {}
@@ -230,10 +231,9 @@ export class WarzoneCommands {
                 else MessageHelper.sendMessage(message, response)
                 if (!noSave) this.saveUserStats(message, messageContent, statsTyped)
             } catch (error) {
-                if (sentMessage) sentMessage.edit('Enten har du ingen statistikk for ukå eller så e SSO-tokenen expired. Stacktrace: ' + error)
-                else MessageHelper.sendMessage(message, 'Enten har du ingen statistikk for ukå eller så e SSO-tokenen expired. Stacktrace: ' + error)
+                if (sentMessage) sentMessage.delete()
+                MessageHelper.sendMessageToActionLogWithCustomMessage(message, error, 'SSO Token er expired. Denne må byttest før stats kan hentes', true)
             }
-            // MessageHelper.sendMessage(message.channel, response)
         } else {
             /** BR */
             try {
