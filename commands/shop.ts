@@ -38,8 +38,8 @@ export interface inventoryItem {
     amount: Number
 }
 export class ShopClass {
+    static allShoppingCart: userShoppingCart[] = []
     static async openShop(interaction: CommandInteraction, client: Client) {
-        let allShoppingCart: userShoppingCart[] = []
         let targetBruker: string
         let shopDescription = 'Velkommen til Mazarini shop, her kan du få kjøpt leketøy til Eivinds mor! \n \n Handleliste:'
         const embed = new MessageEmbed().setColor('#FF0000').setTitle('Mazarini shop!').setDescription(shopDescription)
@@ -66,7 +66,7 @@ export class ShopClass {
 
         //commandId === /shop
         if (interaction.commandId === '877136476045967361') {
-            allShoppingCart.push({
+            this.allShoppingCart.push({
                 user: interaction.user,
                 cart: [],
             })
@@ -170,8 +170,13 @@ export class ShopClass {
                         shopDescription = shopDescription + '\n - ' + value
                         price = price + Number(item.price)
                     })
-
-                    allShoppingCart[allShoppingCart.findIndex((spesificCart) => spesificCart.user === interaction.user)].cart = shoppingList
+                    if (this.allShoppingCart[this.allShoppingCart.findIndex((spesificCart) => spesificCart.user === interaction.user)])
+                        this.allShoppingCart[this.allShoppingCart.findIndex((spesificCart) => spesificCart.user === interaction.user)].cart = shoppingList
+                    else
+                        this.allShoppingCart.push({
+                            cart: shoppingList,
+                            user: interaction.user,
+                        })
 
                     priceButton.setLabel(String(price) + ',-')
 
@@ -196,7 +201,10 @@ export class ShopClass {
             if (interaction.message.interaction?.user == interaction.user) {
                 if (interaction.customId == 'buy') {
                     let shoppingList: shopItem[] = []
-                    shoppingList = allShoppingCart[allShoppingCart.findIndex((spesificCart) => spesificCart.user === interaction.user)].cart
+
+                    if (this.allShoppingCart[this.allShoppingCart.findIndex((spesificCart) => spesificCart.user.id === interaction.user.id)])
+                        shoppingList = this.allShoppingCart[this.allShoppingCart.findIndex((spesificCart) => spesificCart.user === interaction.user)].cart
+                    else shoppingList = []
 
                     let price = 0
                     shoppingList.forEach((value) => {
@@ -218,6 +226,8 @@ export class ShopClass {
                         embeds: [],
                         components: [],
                     })
+                    if (this.allShoppingCart[this.allShoppingCart.findIndex((spesificCart) => spesificCart.user.id === interaction.user.id)])
+                        shoppingList = this.allShoppingCart[this.allShoppingCart.findIndex((spesificCart) => spesificCart.user === interaction.user)].cart = []
                 }
                 if (interaction.customId == 'CANCEL') {
                     const melding = (await interaction.message) as Message

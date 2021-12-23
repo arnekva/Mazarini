@@ -416,7 +416,6 @@ mazariniClient.on('error', function (error: Error) {
 })
 
 mazariniClient.on('interactionCreate', async (interaction: CommandInteraction) => {
-    return
     ShopClass.openShop(interaction, mazariniClient)
 })
 
