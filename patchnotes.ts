@@ -2,11 +2,11 @@ import { Channel, Client, DMChannel, NewsChannel, TextChannel, Message, MessageF
 import { ICommandElement } from './commands/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes {
-    public static readonly currentVersion = '3.9.4'
+    public static readonly currentVersion = '3.10.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `* Warzone stats gir nå mer detaljerte beskrivelser når feil oppstår` + `\n`
+    public static readonly currentPatchNotes: string = `* Du kan nå sette reminders med '!mz remind'` + `\n`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

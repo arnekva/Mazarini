@@ -1,19 +1,42 @@
+import { time } from 'console'
 import { Message } from 'discord.js'
+import { globalArrays } from '../globals'
 import { DatabaseHelper } from '../helpers/databaseHelper'
+import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { countdownTime, dateRegex, DateUtils } from '../utils/dateUtils'
 import { ICommandElement } from './commands'
-
+const fetch = require('node-fetch')
 export interface dateValPair {
     print: string
     date: string
 }
+interface bankHolidayObject {
+    date: string
+    description: string
+}
 export class DateCommands {
     static setReminder(message: Message, content: string, args: string[]) {
-        const time = args[0].split('d')
-        const minutt = args[0].split('m', 1)
-        const sekund = args[0].split('s', 1)
+        const timeArray = args[0].split(':')
+        const event = args.slice(1).join(' ')
+
+        const hoursInMilli = Number(timeArray[0]) * 3600 * 1000
+        const minInMilli = Number(timeArray[1]) * 60000
+        const secInMilli = Number(timeArray[2]) * 1000
+        const timeout = hoursInMilli + minInMilli + secInMilli
+        if (timeArray.length < 3) {
+            message.reply('Formattering på tid må være HH:MM:SS')
+            return
+        }
+        if (event.length < 1) {
+            message.reply('Du må spesifisere hva påminnelsen gjelder')
+            return
+        }
+        message.react(ArrayUtils.randomChoiceFromArray(globalArrays.emojiesList))
+        setTimeout(() => {
+            message.reply(`Her e din påminnelse om *${event}*`)
+        }, timeout)
     }
 
     static formatCountdownText(dateObj: countdownTime | undefined, textEnding: string, finishedText?: string) {
@@ -92,8 +115,9 @@ export class DateCommands {
         MessageHelper.sendMessage(message, sendThisText)
     }
 
-    static checkForHelg(message: Message, messageContent: string, args: string[]) {
+    static async checkForHelg(message: Message, messageContent: string, args: string[]) {
         const isHelg = this.isItHelg()
+        const url = 'https://webapi.no/api/v1/holidays/2021'
         let timeUntil
         if (!isHelg) {
             const date = new Date()
@@ -117,7 +141,8 @@ export class DateCommands {
 
     static readonly remindMeCommand: ICommandElement = {
         commandName: 'remind',
-        description: "Sett en varsling. '1d2t3m4s' for varsling om 1 dag, 2 timer, 3 minutt og 4s. Alle delene er valgfrie (Ikke implementert)",
+        description:
+            "Sett en varsling. Formattering: '!mz remind HH:MM:SS tekst her'. Denne er ikke lagret vedvarende, så den forsvinner hvis botten restarter.",
         hideFromListing: true,
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             DateCommands.setReminder(rawMessage, messageContent, args)
