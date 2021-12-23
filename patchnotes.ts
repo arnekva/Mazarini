@@ -6,7 +6,7 @@ export class PatchNotes {
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `* Du kan nå sette reminders med '!mz remind'` + `\n`
+    public static readonly currentPatchNotes: string = `* Du kan nå sette reminders med '!mz remind'` + `\n* Fikset mellomrom ved første bokstav i 'spell'`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

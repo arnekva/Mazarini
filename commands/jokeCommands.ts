@@ -160,9 +160,13 @@ export class JokeCommands {
         let letterTab: string[] = []
 
         for (let i = 0; i < splitTab.length; i++) {
-            if (splitTab[i].length > 10 && parseInt(splitTab[i])) msgId = splitTab[i]
-            else {
-                const newWord = (i == 0 ? '' : ' ') + splitTab[i]
+            let wasPreviousIndexWord = false
+            if (splitTab[i].length > 10 && parseInt(splitTab[i])) {
+                msgId = splitTab[i]
+                wasPreviousIndexWord = false
+            } else {
+                const newWord = (i == 0 || !wasPreviousIndexWord ? '' : ' ') + splitTab[i]
+                wasPreviousIndexWord = true;
                 letterTab = letterTab.concat(newWord.split(''))
             }
         }
