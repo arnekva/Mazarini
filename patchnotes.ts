@@ -2,7 +2,7 @@ import { Channel, Client, DMChannel, NewsChannel, TextChannel, Message, MessageF
 import { ICommandElement } from './commands/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes {
-    public static readonly currentVersion = '3.11.1'
+    public static readonly currentVersion = '3.12.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
