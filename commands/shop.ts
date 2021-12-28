@@ -11,6 +11,8 @@ import {
     User,
 } from 'discord.js'
 import { DatabaseHelper, debuffItem } from '../helpers/databaseHelper'
+import { ArrayUtils } from '../utils/arrayUtils'
+import { UserUtils } from '../utils/userUtils'
 
 export interface userShoppingCart {
     cart: shopItem[]
@@ -37,10 +39,15 @@ export interface inventoryItem {
     price: string
     amount: Number
 }
+export interface useItemsList {
+    targetId: string
+    sourceId: string
+}
 export class ShopClass {
     static allShoppingCart: userShoppingCart[] = []
+    static itemsToBeUsed: useItemsList[] = []
     static async openShop(interaction: CommandInteraction, client: Client) {
-        let targetBruker: string
+        let targetBruker: string | undefined
         let shopDescription = 'Velkommen til Mazarini shop, her kan du få kjøpt leketøy til Eivinds mor! \n \n Handleliste:'
         const embed = new MessageEmbed().setColor('#FF0000').setTitle('Mazarini shop!').setDescription(shopDescription)
 
@@ -147,17 +154,36 @@ export class ShopClass {
 
                 targetBruker = user?.username
                 await interaction.reply({ embeds: [useEmbeded], components: [rad1] })
+
+                //Need to save the target id (the user we use the item on) as the later interaction does not reveal the source the command was triggered on (i.e. interaction.targetId).
+                //We save the source (user triggering) and the target, so we can wipe after use
+                const userHasTargetInList = this.itemsToBeUsed.find((id) => id.sourceId === interaction.user.id)
+                if (userHasTargetInList) this.itemsToBeUsed = ArrayUtils.removeItemOnce(this.itemsToBeUsed, userHasTargetInList)
+                this.itemsToBeUsed.push({
+                    targetId: menuInteraction.targetId,
+                    sourceId: interaction.user.id,
+                })
             }
         }
 
         if (interaction.isSelectMenu()) {
-            if (interaction.message.interaction?.user == interaction.user) {
+            if (interaction.message.interaction?.user.id == interaction.user.id) {
                 if (interaction.customId == 'itemMeny') {
-                    DatabaseHelper.decreaseInventoryItem(interaction.values[0], interaction.user?.username)
+                    const user = client.users.cache.find((user: User) => user.id === interaction.user.id)
+                    if (user) {
+                        //Check the static array in this class for a valid targetId created by the interaction user
+                        const targetId = this.itemsToBeUsed.find((id) => id.sourceId === interaction.user.id)?.targetId
+                        const targetBruker = client.users.cache.find((user: User) => user.id === targetId)
 
-                    // DatabaseHelper.increaseDebuff(targetBruker, interaction.values[0])
+                        if (targetBruker) {
+                            DatabaseHelper.decreaseInventoryItem(interaction.values[0], interaction.user?.username)
+                            DatabaseHelper.increaseDebuff(targetBruker.username, interaction.values[0])
 
-                    await interaction.update({ content: 'https://i.imgflip.com/5km2hi.jpg', embeds: [], components: [] })
+                            await interaction.update({ content: 'https://i.imgflip.com/5km2hi.jpg', embeds: [], components: [] })
+                        }
+                    } else {
+                        await interaction.update({ content: 'Fant ikke brukeren?', embeds: [], components: [] })
+                    }
                 }
 
                 if (interaction.customId == 'MenyValg') {

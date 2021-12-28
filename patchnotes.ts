@@ -2,11 +2,11 @@ import { Channel, Client, DMChannel, NewsChannel, TextChannel, Message, MessageF
 import { ICommandElement } from './commands/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes {
-    public static readonly currentVersion = '3.11.0'
+    public static readonly currentVersion = '3.11.1'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `* Interactions er nå merget inn i master, og /shop og /inventory skal nå fungere. Her bruker du coins til å handle`
+    public static readonly currentPatchNotes: string = `* Du kan nå bruke items fra inventoriet ditt på andre brukere (foreløpig kun mulig fra PC ved å høyreklikke på en bruker i høyremenyen)`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
