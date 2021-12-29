@@ -1,7 +1,7 @@
 import { ArrayUtils } from './arrayUtils'
 import { getRandomPercentage } from './randomUtils'
 
-const prideReg = new RegExp(/(penis)|(sex)|(gay)|(xD)|(:3)|(pls)|(mamma)|(porno)|(jævla)|(dritt)|(tinder)|(date)|(pølse)/gi)
+const prideReg = new RegExp(/(penis)|(sex)|(gay)|(xD)|(:3)|(pls)|(mamma)|(porno)|(jævla)|(dritt)|(tinder)|(date)|(pølse)|(eivindpride)/gi)
 export function doesThisMessageNeedAnEivindPride(content: string, polseCounter: number) {
     let needsToBePrided = false
     if (Math.random() < 0.1) needsToBePrided = true
@@ -10,6 +10,7 @@ export function doesThisMessageNeedAnEivindPride(content: string, polseCounter: 
     return needsToBePrided
 }
 
+/** Return a matching emoji for the given letter. Some letters have more than one matching emoji (set isSecond to true to get second one), and there can be up to 7 spaces */
 export function findLetterEmoji(sentLetter: string, isSecond?: boolean, spaceCounter?: number) {
     let letter = ''
     switch (sentLetter.toUpperCase()) {
