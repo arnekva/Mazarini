@@ -50,6 +50,7 @@ import { MessageUtils } from './utils/messageUtils'
 import { ArrayUtils } from './utils/arrayUtils'
 import { globalArrays } from './globals'
 import { ShopClass } from './commands/shop'
+import { IDailyPriceClaim } from './commands/gamblingCommands'
 const API = require('call-of-duty-api')()
 require('dotenv').config()
 
@@ -114,9 +115,23 @@ mazariniClient.on('ready', async () => {
     //https://www.npmjs.com/package/node-schedule
     action_log_channel = mazariniClient.channels.cache.get('810832760364859432')
 
-    const resetMygleJob = schedule.scheduleJob('0 8 * * *', function () {
-        console.log('Kjører resett av mygling: ' + new Date().toString())
+    const resetMygleJob = schedule.scheduleJob('0 8 * * *', async function () {
+        console.log('Kjører resett av mygling og daily streaks: ' + new Date().toString())
         DatabaseHelper.deleteSpecificPrefixValues('mygling')
+
+        const brukere = await DatabaseHelper.getAllUsers()
+        Object.keys(brukere).forEach((username: string) => {
+            const currentStreak = JSON.parse(DatabaseHelper.getValueWithoutMessage('dailyClaimStreak', username)) as IDailyPriceClaim
+            const streak: IDailyPriceClaim = { streak: currentStreak.streak, wasAddedToday: false }
+            if (currentStreak.wasAddedToday) {
+                streak.wasAddedToday = false
+            } else {
+                streak.wasAddedToday = false
+                streak.streak = 0
+            }
+            DatabaseHelper.setObjectValue('dailyClaimStreak', username, JSON.stringify(streak))
+        })
+
         DatabaseHelper.deleteSpecificPrefixValues('dailyClaim')
     })
     const navPenger = schedule.scheduleJob('0 8 * * 1', async function () {

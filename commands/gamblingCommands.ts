@@ -10,6 +10,10 @@ import { getRndInteger } from '../utils/randomUtils'
 import { getUsernameInQuotationMarks } from '../utils/textUtils'
 import { ICommandElement } from './commands'
 
+export interface IDailyPriceClaim {
+    streak: number
+    wasAddedToday: boolean
+}
 export class GamblingCommands {
     //Todo: Add mz startPoll
     //Todo: Add mz endPoll
@@ -744,11 +748,33 @@ export class GamblingCommands {
     static claimDailyChipsAndCoins(message: Message, messageContent: string, args: string[]) {
         const canClaim = DatabaseHelper.getValue('dailyClaim', message.author.username, message)
         const dailyPrice = { chips: '500', coins: '80' }
-        if (canClaim === '0') {
-            DatabaseHelper.incrementValue('dogeCoin', message.author.username, dailyPrice.coins)
-            DatabaseHelper.incrementValue('chips', message.author.username, dailyPrice.chips)
+        if (canClaim !== 'aldri') {
+            const oldData = DatabaseHelper.getValue('dailyClaimStreak', message.author.username, message, true)
+            const additionalCoins = { coins: 0, chips: 0 }
+            if (oldData) {
+                const oldStreak = JSON.parse(oldData) as IDailyPriceClaim
+                const streak = { streak: oldStreak?.streak + 1 ?? 1, wasAddedToday: true } as IDailyPriceClaim
+                if (streak.streak > 4) {
+                    additionalCoins.coins = 40
+                    additionalCoins.chips = 400
+                }
+                DatabaseHelper.setValue('dailyClaimStreak', message.author.username, JSON.stringify(streak))
+            } else {
+                const streak = { streak: 1, wasAddedToday: true } as IDailyPriceClaim
+                DatabaseHelper.setValue('dailyClaimStreak', message.author.username, JSON.stringify(streak))
+            }
+
+            DatabaseHelper.incrementValue('dogeCoin', message.author.username, dailyPrice.coins + additionalCoins.coins)
+            DatabaseHelper.incrementValue('chips', message.author.username, dailyPrice.chips + additionalCoins.chips)
             DatabaseHelper.setValue('dailyClaim', message.author.username, '1')
-            message.reply(`Du har hentet dine daglige ${dailyPrice.chips} chips og ${dailyPrice.coins} coins!`)
+
+            message.reply(
+                `Du har hentet dine daglige ${dailyPrice.chips} chips og ${dailyPrice.coins} coins! ${
+                    additionalCoins.chips !== 0
+                        ? 'Du har 5 dager eller mer i streak, og får derfor ' + additionalCoins.coins + ' coins og ' + additionalCoins.chips + ' chips ekstra'
+                        : ''
+                }`
+            )
         } else {
             message.reply('Du har allerede hentet dine daglige chips og coins. Prøv igjen i morgen etter klokken 08:00')
         }
