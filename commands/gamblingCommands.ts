@@ -748,7 +748,7 @@ export class GamblingCommands {
     static claimDailyChipsAndCoins(message: Message, messageContent: string, args: string[]) {
         const canClaim = DatabaseHelper.getValue('dailyClaim', message.author.username, message)
         const dailyPrice = { chips: '500', coins: '80' }
-        if (canClaim !== 'aldri') {
+        if (canClaim === '0') {
             const oldData = DatabaseHelper.getValue('dailyClaimStreak', message.author.username, message, true)
             const additionalCoins = { coins: 0, chips: 0 }
             if (oldData) {
@@ -764,8 +764,8 @@ export class GamblingCommands {
                 DatabaseHelper.setValue('dailyClaimStreak', message.author.username, JSON.stringify(streak))
             }
 
-            DatabaseHelper.incrementValue('dogeCoin', message.author.username, dailyPrice.coins + additionalCoins.coins)
-            DatabaseHelper.incrementValue('chips', message.author.username, dailyPrice.chips + additionalCoins.chips)
+            DatabaseHelper.incrementValue('dogeCoin', message.author.username, (Number(dailyPrice.coins) + Number(additionalCoins.coins)).toFixed(0))
+            DatabaseHelper.incrementValue('chips', message.author.username, (Number(dailyPrice.chips) + Number(additionalCoins.chips)).toFixed(0))
             DatabaseHelper.setValue('dailyClaim', message.author.username, '1')
 
             message.reply(
