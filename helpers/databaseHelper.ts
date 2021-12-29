@@ -57,6 +57,8 @@ export type dbPrefix =
     | 'nickname'
     | 'inventory'
     | 'debuff'
+    | 'dailyClaim'
+    | 'dailyClaimStreak'
 
 export interface betObject {
     description: string

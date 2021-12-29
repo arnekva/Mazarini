@@ -103,9 +103,10 @@ export class ShopClass {
             let debuffItems: debuffItem[] = DatabaseHelper.getValueWithoutMessage('debuff', interaction.user.username)
 
             if (debuffItems) {
-                Object.values(debuffItems).forEach((debuff: debuffItem) => {
+                //FIXME: Should type this correctly
+                Object.values(debuffItems).forEach((debuff: any) => {
                     if (debuff.amount > 0) {
-                        debuffDescription = debuffDescription + '\n' + ' - ' + debuff.item + ' x' + debuff.amount
+                        debuffDescription = debuffDescription + '\n' + ' - ' + debuff.name + ' x' + debuff.amount
                     }
                 })
             }
@@ -239,9 +240,9 @@ export class ShopClass {
 
                     if (this.checkAvailability(price, interaction.user.username)) {
                         DatabaseHelper.setValue(
-                            'chips',
+                            'dogeCoin',
                             interaction.user.username,
-                            (Number(DatabaseHelper.getValueWithoutMessage('chips', interaction.user.username)) - price).toString()
+                            (Number(DatabaseHelper.getValueWithoutMessage('dogeCoin', interaction.user.username)) - price).toString()
                         )
 
                         DatabaseHelper.setShoppingList(interaction.user.username, shoppingList)
@@ -269,6 +270,6 @@ export class ShopClass {
 
     //Finne ut om bruker har nok penger til kjøp
     static checkAvailability(amount: Number, username: string) {
-        return amount < DatabaseHelper.getValueWithoutMessage('chips', username)
+        return amount < DatabaseHelper.getValueWithoutMessage('dogeCoin', username)
     }
 }

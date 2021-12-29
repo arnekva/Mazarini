@@ -95,6 +95,7 @@ export const commands: ICommandElement[] = [
     GameCommands.getDropFromGrid,
     GamblingCommands.addCoinsCommand,
     GamblingCommands.createBetCommand,
+    GamblingCommands.dailyClaim,
     GamblingCommands.resolveBetCommand,
     GamblingCommands.gambleCoins,
     GamblingCommands.rulett,

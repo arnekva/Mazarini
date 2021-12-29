@@ -2,11 +2,14 @@ import { Channel, Client, DMChannel, NewsChannel, TextChannel, Message, MessageF
 import { ICommandElement } from './commands/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes {
-    public static readonly currentVersion = '3.12.0'
+    public static readonly currentVersion = '3.12.1'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `* Du kan nå bruke items fra inventoriet ditt på andre brukere (foreløpig kun mulig fra PC ved å høyreklikke på en bruker i høyremenyen)`
+    public static readonly currentPatchNotes: string =
+        `* Shop bruker nå coins i stedet for chips` +
+        `\n* Du kan nå hente ut daglige ekstra chips og coins ved å bruke '!mz daily'. Kan brukes en gang daglig` +
+        `\n* Slash-command inventory skal nå vise korrekt navn på debuffs`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

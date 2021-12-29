@@ -117,6 +117,7 @@ mazariniClient.on('ready', async () => {
     const resetMygleJob = schedule.scheduleJob('0 8 * * *', function () {
         console.log('Kjører resett av mygling: ' + new Date().toString())
         DatabaseHelper.deleteSpecificPrefixValues('mygling')
+        DatabaseHelper.deleteSpecificPrefixValues('dailyClaim')
     })
     const navPenger = schedule.scheduleJob('0 8 * * 1', async function () {
         console.log('Får penger av NAV kl 08:00')

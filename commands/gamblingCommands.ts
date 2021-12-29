@@ -740,6 +740,20 @@ export class GamblingCommands {
         MessageHelper.sendFormattedMessage(message, msg)
     }
 
+    /** Missing streak counter and increased reward */
+    static claimDailyChipsAndCoins(message: Message, messageContent: string, args: string[]) {
+        const canClaim = DatabaseHelper.getValue('dailyClaim', message.author.username, message)
+        const dailyPrice = { chips: '500', coins: '80' }
+        if (canClaim === '0') {
+            DatabaseHelper.incrementValue('dogeCoin', message.author.username, dailyPrice.coins)
+            DatabaseHelper.incrementValue('chips', message.author.username, dailyPrice.chips)
+            DatabaseHelper.setValue('dailyClaim', message.author.username, '1')
+            message.reply(`Du har hentet dine daglige ${dailyPrice.chips} chips og ${dailyPrice.coins} coins!`)
+        } else {
+            message.reply('Du har allerede hentet dine daglige chips og coins. Prøv igjen i morgen etter klokken 08:00')
+        }
+    }
+
     static findSequenceWinningAmount(s: string) {
         switch (s) {
             case '123':
@@ -871,6 +885,14 @@ export class GamblingCommands {
         description: 'Se antall coins til en person',
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             GamblingCommands.checkCoins(rawMessage, messageContent, args)
+        },
+        category: 'gambling',
+    }
+    static readonly dailyClaim: ICommandElement = {
+        commandName: 'daily',
+        description: 'Hent dine daglige chips og coins',
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            GamblingCommands.claimDailyChipsAndCoins(rawMessage, messageContent, args)
         },
         category: 'gambling',
     }
