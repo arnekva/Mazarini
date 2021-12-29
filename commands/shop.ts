@@ -157,7 +157,7 @@ export class ShopClass {
                 await interaction.reply({ embeds: [useEmbeded], components: [rad1] })
 
                 //Need to save the target id (the user we use the item on) as the later interaction does not reveal the source the command was triggered on (i.e. interaction.targetId).
-                //We save the source (user triggering) and the target, so we can wipe after use
+                //We save the source (user triggering) and the target, and wipe after use
                 const userHasTargetInList = this.itemsToBeUsed.find((id) => id.sourceId === interaction.user.id)
                 if (userHasTargetInList) this.itemsToBeUsed = ArrayUtils.removeItemOnce(this.itemsToBeUsed, userHasTargetInList)
                 this.itemsToBeUsed.push({
@@ -172,7 +172,7 @@ export class ShopClass {
                 if (interaction.customId == 'itemMeny') {
                     const user = client.users.cache.find((user: User) => user.id === interaction.user.id)
                     if (user) {
-                        //Check the static array in this class for a valid targetId created by the interaction user
+                        //Check the static array in this class for a valid targetId created by the interaction user (as saved above)
                         const targetId = this.itemsToBeUsed.find((id) => id.sourceId === interaction.user.id)?.targetId
                         const targetBruker = client.users.cache.find((user: User) => user.id === targetId)
 

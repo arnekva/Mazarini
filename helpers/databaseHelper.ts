@@ -107,7 +107,6 @@ export class DatabaseHelper {
         db.delete(`${otherFolderPreifx}/countdown/${id}/`)
     }
 
-    //FIXME: Denne burde i teorien funka
     static setStoreItems(key: string, itemList: itemsBoughtAtStore) {
         const prefix: dbPrefix = 'shopItems'
         db.push(`${folderPrefix}/${key}/${prefix}`, `${itemList}`)
@@ -296,7 +295,7 @@ export class DatabaseHelper {
         const valueList: ValuePair[] = []
         Object.keys(users).forEach((el) => {
             const val = DatabaseHelper.getValue(prefix, el, message, true)
-            //FIXME: Test this more?
+
             if (val) valueList.push({ key: el, val: val })
         })
         return valueList
@@ -307,7 +306,6 @@ export class DatabaseHelper {
         const valueList: ValuePair[] = []
         Object.keys(users).forEach((el) => {
             const val = DatabaseHelper.getValueWithoutMessage(prefix, el)
-            //FIXME: Test this more?
             if (val) valueList.push({ key: el, val: val })
         })
         return valueList
