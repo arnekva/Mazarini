@@ -63,6 +63,7 @@ export let botLocked: boolean = false
 export let lockedUser: string[] = []
 export let lockedThread: string[] = []
 export let numMessages = 0
+export const isTest = environment === 'dev'
 /******* END */
 mazariniClient.on('ready', async () => {
     try {
@@ -121,14 +122,15 @@ mazariniClient.on('ready', async () => {
 
         const brukere = await DatabaseHelper.getAllUsers()
         Object.keys(brukere).forEach((username: string) => {
+            const userStreak = DatabaseHelper.getValueWithoutMessage('dailyClaimStreak', username)
+            if (!userStreak) return //Verify that the user as a streak/claim, otherwise skip
             const currentStreak = JSON.parse(DatabaseHelper.getValueWithoutMessage('dailyClaimStreak', username)) as IDailyPriceClaim
+            if (!currentStreak) return
             const streak: IDailyPriceClaim = { streak: currentStreak.streak, wasAddedToday: false }
-            if (currentStreak.wasAddedToday) {
-                streak.wasAddedToday = false
-            } else {
-                streak.wasAddedToday = false
-                streak.streak = 0
-            }
+
+            streak.wasAddedToday = false //Reset check for daily claim
+            if (!currentStreak.wasAddedToday) streak.streak = 0 //If not claimed today, also reset the streak
+
             DatabaseHelper.setObjectValue('dailyClaimStreak', username, JSON.stringify(streak))
         })
 
@@ -156,14 +158,19 @@ mazariniClient.on('messageCreate', async (message: Message) => {
     //Do not reply to own messages
     if (message.author == mazariniClient.user) return
 
+    /** Check if message is calling lock commands */
     if (checkForLockCommand(message)) return
+    /** Check if message thread or channel is locked */
     if (isThreadLocked(message)) return
+    /** Check if user is locked */
     if (isUserLocked(message)) return
+    /** Check if bot is locked */
     if (isBotLocked()) return
+    /** Check if the bot is allowed to send messages in this channel */
     if (!isLegalChannel(message)) return
     /**  Check message for commands */
     await checkForCommand(message)
-
+    /** Additional non-command checks */
     checkMessageForJokes(message)
 })
 function isLegalChannel(message: Message) {

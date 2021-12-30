@@ -2,6 +2,7 @@ import { Channel, GuildMember, Message, TextChannel, User } from 'discord.js'
 import { botLocked, lockedThread, lockedUser, numMessages, startTime } from '..'
 import { ICommandElement } from '../commands/commands'
 import { DateCommands } from '../commands/dateCommands'
+import { IDailyPriceClaim } from '../commands/gamblingCommands'
 import { Spinner } from '../commands/spinner'
 import { globalArrays } from '../globals'
 import { DatabaseHelper, dbPrefix } from '../helpers/databaseHelper'
@@ -356,11 +357,8 @@ export class Admin {
         return false
     }
     static isAuthorSuperAdmin(member: GuildMember | null) {
-        // member.roles.cache.some(role => role.name === "Mazarini-Bot-Admin")
-        if (member)
-            return (
-                member.id == '245607554254766081' || member.id == '397429060898390016' || member.id == '239154365443604480' // Maggi: || member.id == '221739293889003520'
-            )
+        // TODO: Role instead of user id
+        if (member) return member.id == '245607554254766081' || member.id == '397429060898390016' || member.id == '239154365443604480'
         return false
     }
 }

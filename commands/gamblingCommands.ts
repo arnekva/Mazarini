@@ -748,36 +748,53 @@ export class GamblingCommands {
     static claimDailyChipsAndCoins(message: Message, messageContent: string, args: string[]) {
         const canClaim = DatabaseHelper.getValue('dailyClaim', message.author.username, message)
         const dailyPrice = { chips: '500', coins: '80' }
-        if (canClaim === '0') {
+        if (canClaim !== '0') {
             const oldData = DatabaseHelper.getValue('dailyClaimStreak', message.author.username, message, true)
-            const additionalCoins = { coins: 0, chips: 0 }
+
+            let streak: IDailyPriceClaim = { streak: 1, wasAddedToday: true }
             if (oldData) {
                 const oldStreak = JSON.parse(oldData) as IDailyPriceClaim
-                const streak = { streak: oldStreak?.streak + 1 ?? 1, wasAddedToday: true } as IDailyPriceClaim
-                if (streak.streak > 4) {
-                    additionalCoins.coins = 40
-                    additionalCoins.chips = 400
-                }
+                streak = { streak: oldStreak?.streak + 1 ?? 1, wasAddedToday: true }
+
                 DatabaseHelper.setValue('dailyClaimStreak', message.author.username, JSON.stringify(streak))
             } else {
-                const streak = { streak: 1, wasAddedToday: true } as IDailyPriceClaim
+                streak = { streak: 1, wasAddedToday: true }
                 DatabaseHelper.setValue('dailyClaimStreak', message.author.username, JSON.stringify(streak))
             }
 
-            DatabaseHelper.incrementValue('dogeCoin', message.author.username, (Number(dailyPrice.coins) + Number(additionalCoins.coins)).toFixed(0))
-            DatabaseHelper.incrementValue('chips', message.author.username, (Number(dailyPrice.chips) + Number(additionalCoins.chips)).toFixed(0))
+            const additionalCoins = this.findAdditionalCoins(streak.streak)
+            DatabaseHelper.incrementValue('dogeCoin', message.author.username, (Number(dailyPrice.coins) + Number(additionalCoins?.coins ?? 0)).toFixed(0))
+            DatabaseHelper.incrementValue('chips', message.author.username, (Number(dailyPrice.chips) + Number(additionalCoins?.chips ?? 0)).toFixed(0))
             DatabaseHelper.setValue('dailyClaim', message.author.username, '1')
-
             message.reply(
                 `Du har hentet dine daglige ${dailyPrice.chips} chips og ${dailyPrice.coins} coins! ${
-                    additionalCoins.chips !== 0
-                        ? 'Du har 5 dager eller mer i streak, og får derfor ' + additionalCoins.coins + ' coins og ' + additionalCoins.chips + ' chips ekstra'
+                    additionalCoins
+                        ? 'Du har ' +
+                          streak.streak +
+                          ' dager i streak, og får derfor ' +
+                          additionalCoins.coins +
+                          ' coins og ' +
+                          additionalCoins.chips +
+                          ' chips ekstra'
                         : ''
                 }`
             )
         } else {
             message.reply('Du har allerede hentet dine daglige chips og coins. Prøv igjen i morgen etter klokken 08:00')
         }
+    }
+
+    static findAdditionalCoins(streak: number): { coins: number; chips: number } | undefined {
+        if (streak > 100) return { coins: 5000, chips: 10000000 }
+
+        if (streak > 50) return { coins: 500, chips: 8000000 }
+        if (streak > 25) return { coins: 175, chips: 55000 }
+        if (streak > 15) return { coins: 125, chips: 10000 }
+        if (streak >= 10) return { coins: 80, chips: 1250 }
+        if (streak > 5) return { coins: 30, chips: 100 }
+        if (streak > 3) return { coins: 20, chips: 100 }
+        if (streak >= 2) return { coins: 10, chips: 75 }
+        return undefined
     }
 
     static findSequenceWinningAmount(s: string) {
