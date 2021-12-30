@@ -41,7 +41,7 @@ const schedule = require('node-schedule')
 const diff = require('deep-diff')
 import didYouMean from 'didyoumean2'
 import { DatabaseHelper } from './helpers/databaseHelper'
-
+import { getRandomPercentage } from './utils/randomUtils'
 import { MessageHelper } from './helpers/messageHelper'
 import { Spinner } from './commands/spinner'
 import { UserCommands } from './commands/userCommands'
@@ -238,7 +238,7 @@ async function checkForCommand(message: Message) {
     
     if (message.author == mazariniClient.user) return
     
-    if (Math.random() < shouldIgnoreMsgChance) {
+    if (getRandomPercentage(shouldIgnoreMsgChance)) {
         message.reply('Du, det orke eg ikkje akkurat nå 🤷')
         return
     }
