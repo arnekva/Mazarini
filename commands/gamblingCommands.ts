@@ -763,21 +763,13 @@ export class GamblingCommands {
             }
 
             const additionalCoins = this.findAdditionalCoins(streak.streak)
-            DatabaseHelper.incrementValue('dogeCoin', message.author.username, (Number(dailyPrice.coins) + Number(additionalCoins?.coins ?? 0)).toFixed(0))
-            DatabaseHelper.incrementValue('chips', message.author.username, (Number(dailyPrice.chips) + Number(additionalCoins?.chips ?? 0)).toFixed(0))
+            const dailyCoins = (Number(dailyPrice.coins) + Number(additionalCoins?.coins ?? 0)).toFixed(0)
+            const dailyChips = (Number(dailyPrice.chips) + Number(additionalCoins?.chips ?? 0)).toFixed(0)
+            DatabaseHelper.incrementValue('dogeCoin', message.author.username, dailyCoins)
+            DatabaseHelper.incrementValue('chips', message.author.username, dailyChips)
             DatabaseHelper.setValue('dailyClaim', message.author.username, '1')
             message.reply(
-                `Du har hentet dine daglige ${dailyPrice.chips} chips og ${dailyPrice.coins} coins! ${
-                    additionalCoins
-                        ? 'Du har ' +
-                          streak.streak +
-                          ' dager i streak, og får derfor ' +
-                          additionalCoins.coins +
-                          ' coins og ' +
-                          additionalCoins.chips +
-                          ' chips ekstra'
-                        : ''
-                }`
+                `Du har hentet dine daglige ${dailyChips} chips og ${dailyCoins} coins! ${streak.streak > 1 ? '(' + streak.streak + ' dager i streak)' : ''}`
             )
         } else {
             message.reply('Du har allerede hentet dine daglige chips og coins. Prøv igjen i morgen etter klokken 08:00')
