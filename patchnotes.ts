@@ -2,12 +2,12 @@ import { Channel, Client, DMChannel, NewsChannel, TextChannel, Message, MessageF
 import { ICommandElement } from './commands/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes {
-    public static readonly currentVersion = '3.12.5'
+    public static readonly currentVersion = '3.12.6'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `* Fikset kræsj på reset av daily price claim` + `\n* Du får nå mer i streak bonus jo høyere streak du har`
+        `* Bot Høie har nå 5% sjanse for å ignorere meldinger`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
