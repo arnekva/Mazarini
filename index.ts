@@ -238,13 +238,14 @@ async function checkForCommand(message: Message) {
     
     if (message.author == mazariniClient.user) return
     
-    if (getRandomPercentage(shouldIgnoreMsgChance)) {
-        message.reply('Du, det orke eg ikkje akkurat nå 🤷')
-        return
-    }
-
     const isZm = message.content.toLowerCase().startsWith('!zm ')
     if (message.content.toLowerCase().startsWith('!mz ') || isZm) {
+
+        if (getRandomPercentage(shouldIgnoreMsgChance)) {
+            message.reply('Du, det orke eg ikkje akkurat nå 🤷')
+            return
+        }
+
         let cmdFound = false
         const command = message.content.toLowerCase().replace('!mz ', '').replace('!mz', '').replace('!zm ', '').split(' ')[0].toLowerCase()
         const messageContent = message.content.split(' ').slice(2).join(' ')
