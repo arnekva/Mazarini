@@ -2,12 +2,12 @@ import { Channel, Client, DMChannel, NewsChannel, TextChannel, Message, MessageF
 import { ICommandElement } from './commands/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes {
-    public static readonly currentVersion = '3.12.7'
+    public static readonly currentVersion = '3.13.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `* Refaktorering`
+        `* Endelig !mz arne command`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
