@@ -748,7 +748,7 @@ export class GamblingCommands {
     static claimDailyChipsAndCoins(message: Message, messageContent: string, args: string[]) {
         const canClaim = DatabaseHelper.getValue('dailyClaim', message.author.username, message)
         const dailyPrice = { chips: '500', coins: '80' }
-        if (canClaim !== '0') {
+        if (canClaim === '0') {
             const oldData = DatabaseHelper.getValue('dailyClaimStreak', message.author.username, message, true)
 
             let streak: IDailyPriceClaim = { streak: 1, wasAddedToday: true }
