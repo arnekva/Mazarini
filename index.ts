@@ -75,26 +75,7 @@ mazariniClient.on('ready', async () => {
 
     action_log_channel = mazariniClient.channels.cache.get('810832760364859432')
 
-    //TODO: Move this into own function
-    const las_vegas = mazariniClient.channels.cache.get('808992127249678386') as TextChannel
-    las_vegas.permissionOverwrites.edit('340626855990132747', {
-        SEND_MESSAGES: true,
-    })
-    const lvmsg = (await las_vegas.messages.fetch({ limit: 1 })).first()
-    if (lvmsg?.content) {
-        if (lvmsg.content.includes('utviklingsmodus') && environment === 'prod') {
-            lvmsg.delete()
-        } else {
-            if (!lvmsg.content.includes('utviklingsmodus') && environment === 'dev')
-                las_vegas.send(
-                    '*Botten er i utviklingsmodus, og denne kanelen er derfor midlertidig stengt. Hvis du tror dette er en feil, tag @Bot-support i #Bot-utvikling*'
-                )
-        }
-    }
-    // las_vegas.permissionOverwrites.edit('340626855990132747', {
-    //     SEND_MESSAGES: environment === 'prod',
-    // })
-    //TODO END
+    closeLasVegasChannel()
 
     const today = new Date()
     const time = today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()
@@ -152,6 +133,27 @@ mazariniClient.on('ready', async () => {
     const bot = guild.members.cache.find((member) => member.id === '802945796457758760')
     bot?.setNickname(environment === 'dev' ? 'Bot Høie (TEST)' : 'Bot Høie')
 })
+
+async function closeLasVegasChannel() {
+    const las_vegas = mazariniClient.channels.cache.get('808992127249678386') as TextChannel
+    las_vegas.permissionOverwrites.edit('340626855990132747', {
+        SEND_MESSAGES: true,
+    })
+    const lvmsg = (await las_vegas.messages.fetch({ limit: 1 })).first()
+    if (lvmsg?.content) {
+        if (lvmsg.content.includes('utviklingsmodus') && environment === 'prod') {
+            lvmsg.delete()
+        } else {
+            if (!lvmsg.content.includes('utviklingsmodus') && environment === 'dev')
+                las_vegas.send(
+                    '*Botten er i utviklingsmodus, og denne kanelen er derfor midlertidig stengt. Hvis du tror dette er en feil, tag @Bot-support i #Bot-utvikling*'
+                )
+        }
+    }
+    // las_vegas.permissionOverwrites.edit('340626855990132747', {
+    //     SEND_MESSAGES: environment === 'prod',
+    // })
+}
 
 mazariniClient.on('messageCreate', async (message: Message) => {
     numMessages++
