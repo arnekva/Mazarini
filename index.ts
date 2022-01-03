@@ -1,22 +1,7 @@
 import { commands, ICommandElement } from './commands/commands'
 import { Admin } from './admin/admin'
 
-import {
-    Guild,
-    GuildMember,
-    Message,
-    Role,
-    TextChannel,
-    User,
-    Emoji,
-    Intents,
-    Interaction,
-    MessageSelectMenu,
-    CommandInteraction,
-    MessageEmbed,
-    MessageActionRow,
-    MessageButton,
-} from 'discord.js'
+import { Guild, GuildMember, Message, Role, TextChannel, User, Intents, CommandInteraction } from 'discord.js'
 import { doesThisMessageNeedAnEivindPride } from './utils/miscUtils'
 const Discord = require('discord.js')
 export const mazariniClient = new Discord.Client({
@@ -43,15 +28,11 @@ import didYouMean from 'didyoumean2'
 import { DatabaseHelper } from './helpers/databaseHelper'
 import { getRandomPercentage } from './utils/randomUtils'
 import { MessageHelper } from './helpers/messageHelper'
-import { Spinner } from './commands/spinner'
 import { UserCommands } from './commands/userCommands'
 import { actSSOCookie, discordSecret, environment } from './client-env'
 import { MessageUtils } from './utils/messageUtils'
-import { ArrayUtils } from './utils/arrayUtils'
-import { globalArrays } from './globals'
 import { ShopClass } from './commands/shop'
 import { IDailyPriceClaim } from './commands/gamblingCommands'
-import { MessageTypes } from 'discord.js/typings/enums'
 const API = require('call-of-duty-api')()
 require('dotenv').config()
 
