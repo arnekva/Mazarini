@@ -55,10 +55,6 @@ export class UserCommands {
             if (!!quoteBy && !!quoteText) {
                 message.react('👍')
                 DatabaseHelper.setQuoteObject(quoteBy, quoteText)
-                // message.createReactionCollector().on('collect', (reaction) => {
-                //     // if (reaction.emoji.name === '👍' && reaction.users.cache.size > 2) {
-                //     // }
-                // })
             }
         } else {
             const quotes = DatabaseHelper.getAllNonUserValueFromPrefix('quotes')
