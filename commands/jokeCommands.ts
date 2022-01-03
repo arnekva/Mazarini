@@ -47,6 +47,13 @@ export class JokeCommands {
         )
     }
 
+    static async arne(message: Message) {
+        await MessageHelper.sendMessage(
+            message,
+            'Det vil alltid vær aldersdifferanse mellom folk av forskjellige alder'
+        )
+    }
+
     static async isMaggiPlaying(message: Message, content: string, args: string[]) {
         let name = 'maggi'
         if (args[0]) name = args[0]
@@ -452,6 +459,16 @@ export class JokeCommands {
 
         command: (rawMessage: Message, messageContent: string, args: string[]) => {
             JokeCommands.mordi(rawMessage)
+        },
+        category: 'annet',
+    }
+
+    static readonly arneCommand: ICommandElement = {
+        commandName: 'arne',
+        description: 'Bare Arne being Arne',
+
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
+            JokeCommands.arne(rawMessage)
         },
         category: 'annet',
     }

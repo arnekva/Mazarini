@@ -88,6 +88,7 @@ export const commands: ICommandElement[] = [
     Admin.deleteValFromPrefix,
     GitHubCommands.issueCommand,
     JokeCommands.eivindSkyld,
+    JokeCommands.arneCommand,
     JokeCommands.activityCommand,
     JokeCommands.kanCommand,
     GameCommands.getDropVerdansk,
