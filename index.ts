@@ -220,18 +220,11 @@ function checkForLockCommand(message: Message) {
     }
 }
 async function checkForCommand(message: Message) {
-    const shouldIgnoreMsgChance = 0.05
-
     if (message.author == mazariniClient.user) return
-
-    if (Math.random() < shouldIgnoreMsgChance) {
-        message.reply('Du, det orke eg ikkje akkurat nå 🤷')
-        return
-    }
 
     const isZm = message.content.toLowerCase().startsWith('!zm ')
     if (message.content.toLowerCase().startsWith('!mz ') || isZm) {
-        if (getRandomPercentage(shouldIgnoreMsgChance)) {
+        if (getRandomPercentage(5)) {
             message.reply('Du, det orke eg ikkje akkurat nå 🤷')
             return
         }
