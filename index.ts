@@ -139,10 +139,11 @@ async function closeLasVegasChannel() {
 
 mazariniClient.on('messageCreate', async (message: Message) => {
     numMessages++
-    //Do not reply to own messages
-    if (message.author == mazariniClient.user) return
-    //Do not trigger on pinned messages
-    if (message.type == 'CHANNEL_PINNED_MESSAGE') return
+    //Do not reply to own messages. Do not trigger on pinned messages
+    if (message.author == mazariniClient.user || message.type == 'CHANNEL_PINNED_MESSAGE') {
+        return
+    }
+
     /** Check if message is calling lock commands */
     if (checkForLockCommand(message)) return
     /** Check if message thread or channel is locked */

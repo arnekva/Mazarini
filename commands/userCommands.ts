@@ -41,7 +41,7 @@ export class UserCommands {
         })
     }
 
-    static addQuote(message: Message, content: string, args: string[]) {
+    static async addQuote(message: Message, content: string, args: string[]) {
         const isUpperCase = (letter: string) => {
             return letter === letter.toUpperCase()
         }
@@ -54,7 +54,15 @@ export class UserCommands {
             const quoteText = args.slice(1).join(' ')
             if (!!quoteBy && !!quoteText) {
                 message.react('👍')
-                DatabaseHelper.setQuoteObject(quoteBy, quoteText)
+                const reply = await message.reply('Trenge 2 thumbs up for å godkjenne')
+                const collector = message.createReactionCollector()
+                collector.on('collect', (reaction) => {
+                    if (reaction.emoji.name === '👍' && reaction.users.cache.size > 2) {
+                        DatabaseHelper.setQuoteObject(quoteBy, quoteText)
+                        collector.stop()
+                        if (reply) reply.delete()
+                    }
+                })
             }
         } else {
             const quotes = DatabaseHelper.getAllNonUserValueFromPrefix('quotes')
