@@ -126,6 +126,14 @@ export class DatabaseHelper {
             return '0'
         }
     }
+    static getAllNonUserValueFromPrefix(id: string) {
+        try {
+            const data = db.getData(`${otherFolderPreifx}/${id}`)
+            return data
+        } catch (error) {
+            return ''
+        }
+    }
     /** Knytter et bet til en bruker */
     static setActiveBetObject(key: string, value: betObject) {
         db.push(`${otherFolderPreifx}/activeBet/${key}/positivePeople`, `${value.positivePeople}`)
@@ -134,6 +142,15 @@ export class DatabaseHelper {
         db.push(`${otherFolderPreifx}/activeBet/${key}/description`, `${value.description}`)
         db.push(`${otherFolderPreifx}/activeBet/${key}/messageId`, `${value.messageId}`)
     }
+    /**
+     * TODO: Attempt to set override to false?
+     * @param key Name of person who said the quote
+     */
+    static setQuoteObject(key: string, quote: string) {
+        //TODO: Need to push quote-object to list under key, such that we can retrive all quotes by person X.
+        db.push(`${otherFolderPreifx}/quotes/${key}[]`, quote)
+    }
+
     static getActiveBetObject(key: string) {
         try {
             const data = db.getData(`${otherFolderPreifx}/activeBet/${key}`)

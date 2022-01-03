@@ -122,6 +122,7 @@ export const commands: ICommandElement[] = [
     SpotifyCommands.currentUserIsPlaying,
     Music.musicCommands,
     Meme.makeMemeCommand,
+    UserCommands.addQuoteCommand,
     UserCommands.seeWarningCounterCommand,
     UserCommands.sendRoleAssignmentCommand,
     Weather.getWeatherForGivenCityCommand,

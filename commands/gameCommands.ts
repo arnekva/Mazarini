@@ -90,7 +90,7 @@ export class GameCommands {
                 if (el == dropLoc) dropPlaces += '\n' + dropLocations[i].name
             })
         }
-        const train = Math.random() < 0.08
+        const train = Math.random() < 0.15
         MessageHelper.sendMessage(message, 'Dere dropper på ' + (train ? 'toget 😲' : gridLetter[xDropCoordinate] + yDropCoordinate))
         if (dropPlaces && !train) MessageHelper.sendMessage(message, 'Her ligger: ' + dropPlaces)
     }

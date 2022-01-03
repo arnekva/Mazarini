@@ -8,37 +8,19 @@ const fetch = require('node-fetch')
 export class Meme {
     static readonly baseURL = 'https://api.imgflip.com/caption_image'
 
-    static async findMemeIdAndCreate(
-        message: Message,
-        content: string,
-        args: string[]
-    ) {
-        if (args[0] == 'anakin' || args[0] == '322841258')
-            return await this.createMeme('322841258', content, message, args)
-        if (args[0] == 'timmy' || args[0] == '26433458')
-            return await this.createMeme('26433458', content, message, args)
-        if (args[0] == 'sjøsyk' || args[0] == 'hallgeir')
-            MessageHelper.sendMessage(
-                message,
-                'https://i.imgur.com/ka7SslJ.jpg'
-            )
+    static async findMemeIdAndCreate(message: Message, content: string, args: string[]) {
+        const memeString = args[0].toLowerCase()
+        if (memeString == 'anakin' || memeString == '322841258') return await this.createMeme('322841258', content, message, args)
+        if (memeString == 'timmy' || memeString == '26433458') return await this.createMeme('26433458', content, message, args)
+        if (memeString == 'sjøsyk' || memeString == 'hallgeir') MessageHelper.sendMessage(message, 'https://i.imgur.com/ka7SslJ.jpg')
         return
     }
 
     static async sendMeme(message: Message, content: string, args: string[]) {
         const meme = await this.findMemeIdAndCreate(message, content, args)
     }
-    static async createMeme(
-        templateId: string,
-        messageContent: string,
-        message: Message,
-        args: string[]
-    ) {
-        messageContent = replaceAtWithTextUsername(
-            messageContent,
-            message,
-            true
-        )
+    static async createMeme(templateId: string, messageContent: string, message: Message, args: string[]) {
+        messageContent = replaceAtWithTextUsername(messageContent, message, true)
         const splitContent = messageContent.split(':')
         splitContent[0] = splitContent[0].split(' ').slice(1).join(' ')
         if (splitContent[0] && splitContent[1]) {
@@ -52,25 +34,16 @@ export class Meme {
                 text1: 'toget',
                 max_font_size: '25',
             })
-            const box0Params = Meme.getBoxCoords(templateId).filter(
-                (e) => e.boxId == '0'
-            )[0]
-            const box1Params = Meme.getBoxCoords(templateId).filter(
-                (e) => e.boxId == '1'
-            )[0]
-            const box2Params = Meme.getBoxCoords(templateId).filter(
-                (e) => e.boxId == '2'
-            )[0]
+            const box0Params = Meme.getBoxCoords(templateId).filter((e) => e.boxId == '0')[0]
+            const box1Params = Meme.getBoxCoords(templateId).filter((e) => e.boxId == '1')[0]
+            const box2Params = Meme.getBoxCoords(templateId).filter((e) => e.boxId == '2')[0]
             params.append('boxes[0][text]', splitContent[0] ?? 'Mangler tekst')
             params.append('boxes[0][x]', box0Params.x)
             params.append('boxes[0][y]', box0Params.y)
             params.append('boxes[0][width]', box0Params.width)
             params.append('boxes[0][height]', box0Params.height)
             if (splitContent[1] && box1Params) {
-                params.append(
-                    'boxes[1][text]',
-                    splitContent[1] ?? 'Mangler tekst'
-                )
+                params.append('boxes[1][text]', splitContent[1] ?? 'Mangler tekst')
                 params.append('boxes[1][x]', box1Params.x)
                 params.append('boxes[1][y]', box1Params.y)
                 params.append('boxes[1][width]', box1Params.width)
@@ -78,10 +51,7 @@ export class Meme {
             }
 
             if (splitContent[2] && box2Params) {
-                params.append(
-                    'boxes[2][text]',
-                    splitContent[2] ?? 'Mangler tekst'
-                )
+                params.append('boxes[2][text]', splitContent[2] ?? 'Mangler tekst')
                 params.append('boxes[2][x]', box2Params.x)
                 params.append('boxes[2][y]', box2Params.y)
                 params.append('boxes[2][width]', box2Params.width)
@@ -91,29 +61,21 @@ export class Meme {
             fetch(fetchUrl, {
                 method: 'POST',
                 headers: {
-                    'Content-Type':
-                        'application/x-www-form-urlencoded;charset=UTF-8',
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
                 },
                 body: params,
             })
                 .then((res: any) => {
                     res.json()
                         .then((el: any) => {
-                            if (el.data)
-                                MessageHelper.sendMessage(message, el.data.url)
+                            if (el.data) MessageHelper.sendMessage(message, el.data.url)
                         })
                         .catch((error: any) => {
-                            MessageHelper.sendMessageToActionLogWithDefaultMessage(
-                                message,
-                                error
-                            )
+                            MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
                         })
                 })
                 .catch((error: any) => {
-                    MessageHelper.sendMessageToActionLogWithDefaultMessage(
-                        message,
-                        error
-                    )
+                    MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
                 })
         } else {
             message.reply('Du mangler noen tekster')
@@ -181,14 +143,9 @@ export class Meme {
 
     static readonly makeMemeCommand: ICommandElement = {
         commandName: 'meme',
-        description:
-            "Lag et meme. '!mz meme <anakin|timmy> text1:text2:text3:text4'",
+        description: "Lag et meme. '!mz meme <anakin|timmy> text1:text2:text3:text4'",
 
-        command: (
-            rawMessage: Message,
-            messageContent: string,
-            args: string[]
-        ) => {
+        command: (rawMessage: Message, messageContent: string, args: string[]) => {
             Meme.sendMeme(rawMessage, messageContent, args)
         },
         category: 'annet',

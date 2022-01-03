@@ -51,6 +51,7 @@ import { ArrayUtils } from './utils/arrayUtils'
 import { globalArrays } from './globals'
 import { ShopClass } from './commands/shop'
 import { IDailyPriceClaim } from './commands/gamblingCommands'
+import { MessageTypes } from 'discord.js/typings/enums'
 const API = require('call-of-duty-api')()
 require('dotenv').config()
 
@@ -157,7 +158,8 @@ mazariniClient.on('messageCreate', async (message: Message) => {
     numMessages++
     //Do not reply to own messages
     if (message.author == mazariniClient.user) return
-
+    //Do not trigger on pinned messages
+    if (message.type == 'CHANNEL_PINNED_MESSAGE') return
     /** Check if message is calling lock commands */
     if (checkForLockCommand(message)) return
     /** Check if message thread or channel is locked */
@@ -235,9 +237,9 @@ function checkForLockCommand(message: Message) {
 }
 async function checkForCommand(message: Message) {
     const shouldIgnoreMsgChance = 0.05
-    
+
     if (message.author == mazariniClient.user) return
-    
+
     if (Math.random() < shouldIgnoreMsgChance) {
         message.reply('Du, det orke eg ikkje akkurat nå 🤷')
         return
@@ -317,7 +319,6 @@ function checkMessageForJokes(message: Message) {
     let matches
     let polseCounter = 0
     polseRegex.lastIndex = 0
-
     while ((matches = polseRegex.exec(message.content))) {
         if (matches) {
             polseCounter++

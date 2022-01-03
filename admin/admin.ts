@@ -229,6 +229,7 @@ export class Admin {
         MessageHelper.sendMessageToActionLog(message.channel as TextChannel, `${command} ble forsøkt brukt, men finnes ikke (${newFailNum})`)
         DatabaseHelper.setNonUserValue('incorrectCommand', command, newFailNum.toString())
     }
+    
 
     static readonly deleteValFromPrefix: ICommandElement = {
         commandName: 'deletekeys',
