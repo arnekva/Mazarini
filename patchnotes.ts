@@ -2,12 +2,11 @@ import { Channel, Client, DMChannel, NewsChannel, TextChannel, Message, MessageF
 import { ICommandElement } from './commands/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes {
-    public static readonly currentVersion = '3.13.2'
+    public static readonly currentVersion = '3.13.3'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string =
-        `*  Quotes trenger nå 2 thumbs up (uten Høie) for å legges til` + `\n* Botten skal ikke lenger reagere på pinned meldinger`
+    public static readonly currentPatchNotes: string = `*  Fikset crash på /Use Item hvis inventory var tom`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
