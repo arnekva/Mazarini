@@ -133,6 +133,11 @@ export class ShopClass {
 
             let inventoryItems: inventoryItem[] = DatabaseHelper.getValueWithoutMessage('inventory', interaction.user.username)
 
+            if (!inventoryItems || Object.values(inventoryItems).length === 0) {
+                await interaction.reply('Du har ingenting i inventory. Kjøba någe fysst kanskje?')
+                return
+            }
+
             Object.values(inventoryItems).forEach((item: inventoryItem) => {
                 itemOptions.push({
                     label: `${item.name} x${item.amount}`,
