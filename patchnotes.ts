@@ -15,7 +15,8 @@ export class PatchNotes {
         `\n* Gjort en større refaktorering av index.ts` +
         `\n* Opprettet CommandRunner, DailyJobs og WeeklyJobs klasser` +
         `\n* Laget flere hjelpemetoder i MessageHelper for å reagere med emojies` +
-        `\n* Lagt til ekstra feilhåndtering for deletemessages når det når fetch/cache limit`
+        `\n* Lagt til ekstra feilhåndtering for deletemessages når det når fetch/cache limit` +
+        `\n* Botten stenger ikke lenger las vegas i utviklingsmodus`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
