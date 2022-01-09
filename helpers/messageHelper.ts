@@ -1,4 +1,6 @@
 import { Channel, Client, DMChannel, Message, MessageEmbed, NewsChannel, TextChannel, User } from 'discord.js'
+import { globalArrays } from '../globals'
+import { ArrayUtils } from '../utils/arrayUtils'
 import { reverseMessageString } from '../utils/textUtils'
 
 //import {client } from "./index"
@@ -6,7 +8,7 @@ import { reverseMessageString } from '../utils/textUtils'
 // const Discord = require('discord.js');
 // const client = new Discord.Client();
 export type typeOfError = 'unauthorized' | 'error' | 'warning'
-
+export type thumbsReact = 'up' | 'down'
 export class MessageHelper {
     // private client
 
@@ -59,6 +61,14 @@ export class MessageHelper {
         user.send(content).catch((error) => {
             message.reply('Klarte ikke sende deg en DM. Du må la servermedlemmer sende deg DM i instillingene dine for å motta DM-er.')
         })
+    }
+
+    static reactWithThumbs(message: Message, reaction: thumbsReact) {
+        message.react(reaction === 'up' ? '👍' : '👎')
+    }
+
+    static reactWithRandomEmoji(message: Message) {
+        message.react(ArrayUtils.randomChoiceFromArray(globalArrays.emojiesList))
     }
 
     /** Reply til en gitt melding med gitt string. */

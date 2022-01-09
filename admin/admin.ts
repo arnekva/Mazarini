@@ -1,9 +1,10 @@
 import { Channel, GuildMember, Message, TextChannel, User } from 'discord.js'
-import { botLocked, lockedThread, lockedUser, numMessages, startTime } from '..'
+import { numMessages, startTime } from '..'
 import { ICommandElement } from '../commands/commands'
 import { DateCommands } from '../commands/dateCommands'
 import { IDailyPriceClaim } from '../commands/gamblingCommands'
 import { Spinner } from '../commands/spinner'
+import { CommandRunner } from '../General/commandRunner'
 import { globalArrays } from '../globals'
 import { DatabaseHelper, dbPrefix } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -34,7 +35,7 @@ export class Admin {
 
         username = username.replace('"', '').replace('"', '')
         DatabaseHelper.setValue(prefix, username, val)
-        message.react(ArrayUtils.randomChoiceFromArray(globalArrays.emojiesList))
+        MessageHelper.reactWithRandomEmoji(message)
     }
     static setSpinValue(message: Message, messageContent: string) {
         const content = messageContent.split(' ')
@@ -64,8 +65,8 @@ export class Admin {
         if (timeSince) {
             let text = DateCommands.formatCountdownText(timeSince, 'siden sist oppstart')
             text += `\nAntall meldinger siden sist oppstart: ${numMessages}`
-            text += `\nLåste kanaler: ${lockedThread.length > 0 ? lockedThread.toString() : 'Ingen'}`
-            text += `\nLåste brukere: ${lockedUser.length > 0 ? lockedUser.toString() : 'Ingen'}`
+            text += `\nLåste kanaler: ${CommandRunner.lockedThread.length > 0 ? CommandRunner.lockedThread.toString() : 'Ingen'}`
+            text += `\nLåste brukere: ${CommandRunner.lockedUser.length > 0 ? CommandRunner.lockedUser.toString() : 'Ingen'}`
             MessageHelper.sendMessage(message, text)
         } else MessageHelper.sendMessage(message, 'Ingen statistikk å vise')
     }
@@ -134,12 +135,9 @@ export class Admin {
         if (messageContent.includes('"')) {
             username = isInQuotation(messageContent)
         }
-        // const username = messageContent.substr(0, messageContent.indexOf(" "));
+        const user = DatabaseHelper.findUserByUsername(username, message)
 
-        const user = DatabaseHelper.findUserByUsername(username, message) // message.client.users.cache.find(user => user.username == username);
-        // const id = c[0].trim();
-
-        const replyString = messageContent.replace(username, '').replace('""', '').trim() //substr(messageContent.indexOf(username) + username.length + 1);
+        const replyString = messageContent.replace(username, '').replace('""', '').trim()
         if (user) {
             if (user.username == message.author.username) {
                 message.reply('Du kan kje warna deg sjøl, bro')
@@ -197,12 +195,17 @@ export class Admin {
         const maxDelete = userToDeleteBool ? Number(args[2]) ?? 1 : Number(args[1]) ?? 1
         let deleteCounter = 0
         currentChannel.messages
-            .fetch({ limit: 100 })
+            .fetch({ limit: 200 })
             .then((el) => {
                 el.forEach((message) => {
                     if (message && message.author.username == user.username && deleteCounter < maxDelete) {
-                        message.delete()
-                        deleteCounter++
+                        try {
+                            message.delete()
+                            deleteCounter++
+                        } catch (error) {
+                            MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
+                            return
+                        }
                     }
                 })
                 MessageHelper.sendMessageToActionLog(
@@ -229,7 +232,6 @@ export class Admin {
         MessageHelper.sendMessageToActionLog(message.channel as TextChannel, `${command} ble forsøkt brukt, men finnes ikke (${newFailNum})`)
         DatabaseHelper.setNonUserValue('incorrectCommand', command, newFailNum.toString())
     }
-    
 
     static readonly deleteValFromPrefix: ICommandElement = {
         commandName: 'deletekeys',

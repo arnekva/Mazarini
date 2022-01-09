@@ -122,7 +122,7 @@ export class SpotifyCommands {
                         if (replystring.includes('hører ikke på Spotify for øyeblikket'))
                             Music.findCommand(msg, content, ['siste', '1', name], true, name, true)
                     })
-                } else rawMessage.reply("Fant ingen brukere ved navn '" + name + "'.")
+                } else rawMessage.reply("Fant ingen brukere ved navn '" + name + "'. Bruk username og ikke displayname")
             }
         }
     }

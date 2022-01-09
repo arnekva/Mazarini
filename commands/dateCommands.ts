@@ -33,7 +33,7 @@ export class DateCommands {
             message.reply('Du må spesifisere hva påminnelsen gjelder')
             return
         }
-        message.react(ArrayUtils.randomChoiceFromArray(globalArrays.emojiesList))
+        MessageHelper.reactWithRandomEmoji(message)
         setTimeout(() => {
             message.reply(`Her e din påminnelse om *${event}*`)
         }, timeout)

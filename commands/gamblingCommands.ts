@@ -56,8 +56,8 @@ export class GamblingCommands {
         const betString = `${message.author.username} har startet et veddemål: ${desc} (${betVal} chips). Reager med 👍 for JA, 👎 for NEI. Resultat vises om ${globals.TIMEOUT_TIME.name}`
         const startMessage = await MessageHelper.sendMessage(message, betString)
         if (startMessage) {
-            startMessage.react('👍')
-            startMessage.react('👎')
+            MessageHelper.reactWithThumbs(startMessage, 'up')
+            MessageHelper.reactWithThumbs(startMessage, 'down')
 
             setTimeout(async function () {
                 let fullString = ''
@@ -143,22 +143,13 @@ export class GamblingCommands {
         if (ObjectUtils.instanceOfBetObject(activeBet)) {
             const resolveMessage = await MessageHelper.sendMessage(
                 message,
-                `${username} vil gjøre opp ett veddemål: ${activeBet.description}. Reager med 👍 for å godkjenne (Trenger 3). Venter ${globals.TIMEOUT_TIME.name}. `
+                `${username} vil gjøre opp ett veddemål: ${activeBet.description}. Reager med 👍 for å godkjenne (Trenger 3).`
             )
             if (resolveMessage) {
-                resolveMessage.react('👍')
-                let positiveCounter = 0
-
-                setTimeout(async function () {
-                    const thumbsUp = resolveMessage.reactions.cache.find((emoji) => emoji.emoji.name == '👍')
-                    // console.log(reaction.users)
-                    if (thumbsUp) {
-                        const users = await thumbsUp.users.fetch()
-                        users.forEach((us, ind) => {
-                            if (us.username == username) positiveCounter++
-                        })
-                    }
-                    if (positiveCounter > 2) {
+                MessageHelper.reactWithThumbs(resolveMessage, 'up')
+                const collector = resolveMessage.createReactionCollector()
+                collector.on('collect', (reaction) => {
+                    if (reaction.emoji.name === '👍' && reaction.users.cache.size > 2) {
                         const isPositive = args[0].toLocaleLowerCase() === 'ja'
                         MessageHelper.sendMessage(message, `Veddemålsresultatet er godkjent. Beløpene blir nå lagt til på kontoene. `)
                         const value = activeBet.value
@@ -170,14 +161,12 @@ export class GamblingCommands {
                             activeBet.negativePeople.split(',').length + activeBet.positivePeople.split(',').length
                         )
                         DatabaseHelper.deleteActiveBet(username)
-                    } else {
-                        MessageHelper.sendMessage(message, `Veddemålsresultatet ble ikke godkjent. Diskuter og prøv igjen.`)
-                        DatabaseHelper.setActiveBetObject(message.author.username, activeBet)
+                        collector.stop()
                     }
-                }, globals.TIMEOUT_TIME.time) //Sett til 60000
+                })
             }
         } else {
-            message.reply('object is not instance of betObject. why tho')
+            message.reply('object is not instance of betObject')
         }
     }
     static showActiveBet(message: Message, content: string, args: string[]) {
@@ -218,30 +207,20 @@ export class GamblingCommands {
         }
         const resolveMessage = await MessageHelper.sendMessage(
             message,
-            `${message.author.username} vil gå til krig med deg, ${username}. Reager med 👍 for å godkjenne. Venter ${globals.TIMEOUT_TIME.name}. Den som starter krigen ruller for 0-49.`
+            `${message.author.username} vil gå til krig med deg, ${username}. Reager med 👍 for å godkjenne. Den som starter krigen ruller for 0-49.`
         )
         if (resolveMessage) {
-            resolveMessage.react('👍')
-            let positiveCounter = 0
+            MessageHelper.reactWithThumbs(resolveMessage, 'up')
 
-            setTimeout(async function () {
-                const thumbsUp = resolveMessage.reactions.cache.find((emoji) => emoji.emoji.name == '👍')
-                // console.log(reaction.users)
-                if (thumbsUp) {
-                    const users = await thumbsUp.users.fetch()
-                    users.forEach((us, ind) => {
-                        if (us.username == username) positiveCounter++
-                    })
-                }
-                if (positiveCounter > 0) {
-                    const roll = Math.floor(Math.random() * 101)
-
+            const collector = resolveMessage.createReactionCollector()
+            collector.on('collect', (reaction) => {
+                if (reaction.emoji.name === '👍' && reaction.users.cache.find((u) => u.username === username)) {
+                    const roll = getRndInteger(0, 101)
                     const gambling = new MessageEmbed()
                         .setTitle('⚔️ Krig ⚔️')
                         .setDescription(
                             `Terningen trillet: ${roll}/100. ${roll < 51 ? (roll == 50 ? 'Bot Høie' : message.author.username) : username} vant! 💰💰`
                         )
-
                     if (roll < 50) {
                         engagerValue += amountAsNum
                         victimValue -= amountAsNum
@@ -270,11 +249,9 @@ export class GamblingCommands {
                     MessageHelper.sendFormattedMessage(message, gambling)
                     DatabaseHelper.setValue('chips', message.author.username, engagerValue.toFixed(2))
                     DatabaseHelper.setValue('chips', username, victimValue.toFixed(2))
-                } else {
-                    MessageHelper.sendMessage(message, `${username} godkjente ikke krigen.`)
-                    // DatabaseHelper.setValue("dogeCoin", message.author.username, (engagerValue-100).toFixed(2))
+                    collector.stop()
                 }
-            }, globals.TIMEOUT_TIME.time) //Sett til 60000
+            })
         }
     }
 

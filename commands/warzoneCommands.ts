@@ -182,7 +182,7 @@ export class WarzoneCommands {
                     else MessageHelper.sendMessage(message, rebirthResponse)
                     return
                 }
-              
+
                 const statsTyped = data.wz.mode.br_all.properties as CodStats
 
                 const orderedStats: Partial<CodStats> = {}
@@ -280,7 +280,7 @@ export class WarzoneCommands {
 
         const saveString = gamertag + ';' + platform
         DatabaseHelper.setValue('activisionUserString', message.author.username, saveString)
-        message.react('👍')
+        MessageHelper.reactWithThumbs(message, 'up')
     }
 
     static getWZUserStringFromDB(message: Message) {

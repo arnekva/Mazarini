@@ -48,39 +48,30 @@ export class JokeCommands {
     }
 
     static async arne(message: Message) {
-        await MessageHelper.sendMessage(
-            message,
-            'Det vil alltid vær aldersdifferanse mellom folk av forskjellige alder'
-        )
+        await MessageHelper.sendMessage(message, 'Det vil alltid vær aldersdifferanse mellom folk av forskjellige alder')
     }
 
     static async isMaggiPlaying(message: Message, content: string, args: string[]) {
-        let name = 'maggi'
+        let name = message.author.username
         if (args[0]) name = args[0]
         const guild = message.channel.client.guilds.cache.get('340626855990132747')
         if (guild) {
-            const user = guild.members.cache.filter((u) => u.user.username == name).first()
+            const user = guild.members.cache.filter((u) => u.user.username.toLowerCase() === name.toLowerCase()).first()
             if (user && user.presence) {
                 if (user.presence.clientStatus) {
                     if (user.presence.activities && user.presence.activities[0]) {
-                        const game = user.presence.activities[0].name == 'Custom Status' ? user.presence.activities[1] : user.presence.activities[0]
+                        const activities = user.presence.activities.map((act) => act.name)
+
                         await MessageHelper.sendMessage(
                             message,
-                            `${name} e ${
-                                user.presence.clientStatus.desktop ? 'på pc-en' : user.presence.clientStatus.mobile ? 'på mobilen' : 'i nettleseren'
-                            } ${game ? 'med aktiviteten ' + game.name + '.' : 'uten någe aktivitet.'}`
+                            `${name} drive me ${activities.length > 1 ? 'disse aktivitene' : 'aktiviteten'}: ${activities.join(', ')}`
                         )
                     } else {
-                        await MessageHelper.sendMessage(message, 'Ingen aktivitet registrert på Discord. Sover han? Drikker han? Begge deler samtidig? ')
+                        await MessageHelper.sendMessage(message, 'Ingen aktivitet registrert på Discord.')
                     }
-                } else {
-                    await MessageHelper.sendMessage(
-                        message,
-                        'Magnus er ikke online. Da sover han mest sannsynlig. Kødda, han får ikke sove med alt bråket fra byggeplassen kekw'
-                    )
                 }
             } else {
-                await MessageHelper.sendMessage(message, 'Ingen bruker med er registrert med det brukernavnet på serveren. Dårlig koding?')
+                await MessageHelper.sendMessage(message, 'Fant ikke brukeren. Husk at du må bruker brukernavn og *ikke* display name')
             }
         }
     }
@@ -110,12 +101,8 @@ export class JokeCommands {
             if (message.content.includes('!zm')) {
                 content = reverseMessageString(content)
             }
-
             DatabaseHelper.setValue('mygling', message.author.username, content + (url ? ' ' + url : ''))
-
-            const emoji = ArrayUtils.randomChoiceFromArray(globalArrays.emojiesList)
-
-            message.react(emoji)
+            MessageHelper.reactWithRandomEmoji(message)
         } else {
             MessageHelper.sendMessage(
                 message,
@@ -173,7 +160,7 @@ export class JokeCommands {
                 wasPreviousIndexWord = false
             } else {
                 const newWord = (i == 0 || !wasPreviousIndexWord ? '' : ' ') + splitTab[i]
-                wasPreviousIndexWord = true;
+                wasPreviousIndexWord = true
                 letterTab = letterTab.concat(newWord.split(''))
             }
         }
@@ -227,7 +214,7 @@ export class JokeCommands {
         const randomUser = role ? channel.members.filter((m) => m.roles.cache.get(role) !== undefined).random() : channel.members.random()
         const authorName = message.member?.nickname ?? message.member?.displayName ?? message.author.username
         const randomName = randomUser.nickname ?? randomUser.displayName ?? randomUser.user.username
-        const phese = findFeseText(authorName, randomName) // ArrayUtils.randomChoiceFromArray(globalArrays.feseTexts)
+        const phese = findFeseText(authorName, randomName)
         const reply = `${phese}`
 
         MessageHelper.sendMessage(message, reply)
