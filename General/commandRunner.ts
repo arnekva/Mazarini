@@ -152,7 +152,7 @@ export class CommandRunner {
         if (message.content.startsWith('!get')) {
             if (args[0] === 'username') {
                 const searchName = args.slice(0, 1).join(' ')
-                const user = message.guild.members.cache.find((member) => member.displayName === searchName)
+                const user = message.guild.members.cache.find((member) => member?.displayName === searchName)
                 if (user) message.reply(user.user.username)
             }
         }
