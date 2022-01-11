@@ -16,6 +16,23 @@ export class CommandRunner {
     static lastUsedCommand = 'help'
     static polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê|å|æ|ê|è|é|à|á)*(ls)(e|a|å|o|i)|(pause)|(🌭)|(hotdog)|(sausage)|(hot-dog)/gi)
 
+    static async runCommands(message: Message) {
+        /** Check if message is calling lock commands */
+        if (CommandRunner.checkForLockCommand(message)) return
+        /** Check if message thread or channel is locked */
+        if (CommandRunner.isThreadLocked(message)) return
+        /** Check if user is locked */
+        if (CommandRunner.isUserLocked(message)) return
+        /** Check if bot is locked */
+        if (CommandRunner.isBotLocked()) return
+        /** Check if the bot is allowed to send messages in this channel */
+        if (!CommandRunner.isLegalChannel(message)) return
+        /**  Check message for commands */
+        await CommandRunner.checkForCommand(message)
+        /** Additional non-command checks */
+        CommandRunner.checkMessageForJokes(message)
+    }
+
     static checkForLockCommand(message: Message) {
         const content = message.content
         const isBot = content.includes('bot')

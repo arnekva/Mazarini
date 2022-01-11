@@ -219,33 +219,47 @@ export class GamblingCommands {
                     const gambling = new MessageEmbed()
                         .setTitle('⚔️ Krig ⚔️')
                         .setDescription(
-                            `Terningen trillet: ${roll}/100. ${roll < 51 ? (roll == 50 ? 'Bot Høie' : message.author.username) : username} vant! 💰💰`
+                            `Terningen trillet: ${roll}/100. ${
+                                roll < 51 ? (roll == 50 || username === message.author.username ? 'Bot Høie' : message.author.username) : username
+                            } vant! 💰💰`
                         )
-                    if (roll < 50) {
+                    if (roll == 50 || username === message.author.username) {
+                        engagerValue -= amountAsNum
+                        victimValue -= amountAsNum
+                    } else if (roll < 50) {
                         engagerValue += amountAsNum
                         victimValue -= amountAsNum
                     } else if (roll > 50) {
                         engagerValue -= amountAsNum
                         victimValue += amountAsNum
-                    } else if (roll == 50) {
-                        engagerValue -= amountAsNum
-                        victimValue -= amountAsNum
                     }
-
-                    gambling.addField(
-                        `${message.author.username}`,
-                        `Du har nå ${engagerValue.toLocaleString(undefined, {
-                            maximumFractionDigits: 2,
-                            minimumFractionDigits: 2,
-                        })} chips`
-                    )
-                    gambling.addField(
-                        `${username}`,
-                        `Du har nå ${victimValue.toLocaleString(undefined, {
-                            maximumFractionDigits: 2,
-                            minimumFractionDigits: 2,
-                        })} chips`
-                    )
+                    if (username === message.author.username) {
+                        gambling.addField(
+                            `${message.author.username}`,
+                            `Du valgte å gå til krig mot deg selv. Derfor vinner Bot Høie og tar alle chipsene du satsen. Du har nå ${engagerValue.toLocaleString(
+                                undefined,
+                                {
+                                    maximumFractionDigits: 2,
+                                    minimumFractionDigits: 2,
+                                }
+                            )} chips`
+                        )
+                    } else {
+                        gambling.addField(
+                            `${message.author.username}`,
+                            `Du har nå ${engagerValue.toLocaleString(undefined, {
+                                maximumFractionDigits: 2,
+                                minimumFractionDigits: 2,
+                            })} chips`
+                        )
+                        gambling.addField(
+                            `${username}`,
+                            `Du har nå ${victimValue.toLocaleString(undefined, {
+                                maximumFractionDigits: 2,
+                                minimumFractionDigits: 2,
+                            })} chips`
+                        )
+                    }
                     MessageHelper.sendFormattedMessage(message, gambling)
                     DatabaseHelper.setValue('chips', message.author.username, engagerValue.toFixed(2))
                     DatabaseHelper.setValue('chips', username, victimValue.toFixed(2))

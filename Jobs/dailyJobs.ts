@@ -1,5 +1,6 @@
 import { IDailyPriceClaim } from '../commands/gamblingCommands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
+import { MessageHelper } from '../helpers/messageHelper'
 
 export class DailyJobs {
     static async validateAndResetDailyClaims() {
@@ -25,6 +26,9 @@ export class DailyJobs {
     }
 
     static logEvent() {
-        console.log('Daily job ran at 08:00')
+        const today = new Date()
+        const timeString = `${today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()}`
+        MessageHelper.SendMessageWithoutMessageObject(`Daglige jobber kjørte ${timeString} (Resett status, resett daily price claim)`, '810832760364859432')
+        console.log(`Daily jobs ran at ${timeString}`)
     }
 }

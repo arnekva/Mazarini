@@ -60,7 +60,7 @@ export class JokeCommands {
             if (user && user.presence) {
                 if (user.presence.clientStatus) {
                     if (user.presence.activities && user.presence.activities[0]) {
-                        const activities = user.presence.activities.map((act) => act.name)
+                        const activities = user.presence.activities.filter((a) => a.name.toLowerCase() !== 'custom status').map((act) => act.name)
 
                         await MessageHelper.sendMessage(
                             message,
@@ -71,7 +71,7 @@ export class JokeCommands {
                     }
                 }
             } else {
-                await MessageHelper.sendMessage(message, 'Fant ikke brukeren. Husk at du må bruker brukernavn og *ikke* display name')
+                await MessageHelper.sendMessage(message, 'Fant ikke brukeren. Husk at du må bruke **brukernavn** og *ikke* display name')
             }
         }
     }

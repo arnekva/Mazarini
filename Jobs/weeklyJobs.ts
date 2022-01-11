@@ -1,4 +1,5 @@
 import { DatabaseHelper } from '../helpers/databaseHelper'
+import { MessageHelper } from '../helpers/messageHelper'
 
 export class WeeklyJobs {
     static async awardWeeklyCoins() {
@@ -10,6 +11,9 @@ export class WeeklyJobs {
         })
     }
     static logEvent() {
-        console.log('Weekly jobs ran at 08:00')
+        const today = new Date()
+        const timeString = `${today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()}`
+        MessageHelper.SendMessageWithoutMessageObject(`Ukentlige jobber kjørte ${timeString} (NAV-penger)`, '810832760364859432')
+        console.log(`Weekly jobs ran at ${timeString}`)
     }
 }

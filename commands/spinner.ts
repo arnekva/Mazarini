@@ -70,7 +70,6 @@ export class Spinner {
         const sec = Math.floor(Math.random() * 60)
         const cleanUsername = escapeString(message.author.username)
 
-        Spinner.addSpinnerRole(message)
         if (cleanUsername.length < 2) {
             message.reply(
                 'Det kan virke som om brukernavnet ditt inneholder for få lovlige tegn (' + cleanUsername + '). Dette må rettes opp i før du får spinne.'
@@ -156,28 +155,6 @@ export class Spinner {
         return score.length === 2 ? score.charAt(0) + '0' + score.charAt(1) : score
     }
 
-    static async listScores(message: Message, isWeeklyReset?: boolean) {
-        const weekNumber = getWeekNumber(new Date())[1]
-        MessageHelper.sendMessage(message, '*** HIGHSCORE *** for uke ' + (isWeeklyReset ? weekNumber - 1 : getWeekNumber(new Date())[1]))
-        //FIXME:
-        const val2 = DatabaseHelper.getAllValuesFromPrefix('spin', message).filter((e) => e.val != 'Ugyldig verdi')
-        if (val2.length < 1) return false
-        ArrayUtils.sortUserValuePairArray(val2)
-        let highscoreList = ArrayUtils.makeValuePairIntoOneString(val2, Spinner.formatValue)
-        if (isWeeklyReset) {
-            const winner = DatabaseHelper.getValueWithoutMessage('chips', val2[0].key)
-            const loser = DatabaseHelper.getValueWithoutMessage('chips', val2[val2.length - 1].key)
-            DatabaseHelper.setValue('chips', val2[0].key, (Number(winner) + 1000).toFixed(1))
-            if (Number(loser) - 1000 < 0) DatabaseHelper.setValue('chips', val2[val2.length - 1].key, '0')
-            else DatabaseHelper.setValue('chips', val2[val2.length - 1].key, (Number(loser) - 1000).toFixed(1))
-
-            DatabaseHelper.setValue('chips', val2[0].key, (Number(winner) + 1000).toFixed(2))
-            highscoreList += `\n ${val2[0].key} har vunnet 1000 chips`
-            highscoreList += `\n ${val2[val2.length - 1].key} har mistet 1000 chips.`
-        }
-        return MessageHelper.sendMessage(message, highscoreList)
-    }
-
     static async listSpinCounter(message: Message) {
         const val = DatabaseHelper.getAllValuesFromPrefix('counterSpin', message)
         ArrayUtils.sortUserValuePairArray(val)
@@ -191,10 +168,6 @@ export class Spinner {
         if (val.length == 3) return `0${val.charAt(0)}:${val.charAt(1)}${val.charAt(2)}`
         if (val.length == 4) return `${val.charAt(0)}${val.charAt(1)}:${val.charAt(2)}${val.charAt(3)}`
         return 'Ugyldig verdi'
-    }
-
-    static sendWinner(message: Message, text: string) {
-        const finalMsg = '*** HIGHSCORE *** \n' + text
     }
 
     static async addSpinnerRole(message: Message) {
@@ -235,15 +208,6 @@ export class Spinner {
             'Spin fidgetspinneren. Beste tid per bruker registreres i databasen. Tallene er tilfeldige, men vektet. Du vinner chips hvis du spinner mer enn 5 minutter. (Høyeste gevinst er 100.000.000 chips for 10 min) ',
         command: (rawMessage: Message, messageContent: string) => {
             Spinner.spin(rawMessage)
-        },
-        category: 'spin',
-    }
-
-    static readonly highscoreCommand: ICommandElement = {
-        commandName: 'highscore',
-        description: 'Highscore for fidget spinning ',
-        command: (rawMessage: Message, messageContent: string) => {
-            Spinner.listScores(rawMessage)
         },
         category: 'spin',
     }

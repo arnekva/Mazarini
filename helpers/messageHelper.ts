@@ -1,4 +1,5 @@
 import { Channel, Client, DMChannel, Message, MessageEmbed, NewsChannel, TextChannel, User } from 'discord.js'
+import { mazariniClient } from '..'
 import { globalArrays } from '../globals'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { reverseMessageString } from '../utils/textUtils'
@@ -10,12 +11,9 @@ import { reverseMessageString } from '../utils/textUtils'
 export type typeOfError = 'unauthorized' | 'error' | 'warning'
 export type thumbsReact = 'up' | 'down'
 export class MessageHelper {
-    // private client
-
-    // constructor(s: string) {}
     /**
-     * Send message to the specified channel
-     * @param rawMessage - A raw message type
+     * Send message to the specified channel.
+     * @param rawMessage - This is needed to find the right channel. If you cant supply this or want to specify channel, use SendMessageWithoutMessageObject
      * @param message - The string to send
      * @param isError - (optional) if this is an error message, set to true
      * @param errorMsg - (optional) This message will be sent to the admin action log channel
@@ -34,7 +32,7 @@ export class MessageHelper {
             )
             MessageHelper.sendMessageToActionLogWithDefaultMessage(
                 rawMessage,
-                'En tom melding ble forsøkt sendt fra channel ' +
+                'En tom eller feilformattert melding ble forsøkt sendt fra channel ' +
                     channel.name +
                     ', forårsaket av en melding fra ' +
                     rawMessage.author.username +
@@ -55,6 +53,15 @@ export class MessageHelper {
         } catch (error) {
             this.sendMessageToActionLogWithDefaultMessage(rawMessage, error)
         }
+    }
+    /**
+     *
+     * @param message Text to be sent
+     * @param channelId Channel message is to be sent to
+     */
+    static SendMessageWithoutMessageObject(message: string, channelId: string) {
+        const channel = mazariniClient.channels.cache.get(channelId) as TextChannel
+        channel.send(`${message}`)
     }
 
     static async sendDM(user: User, content: string, message: Message) {

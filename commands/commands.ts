@@ -56,7 +56,6 @@ export const commands: ICommandElement[] = [
     Spinner.command,
     helpCommand,
     helpCommand2,
-    Spinner.highscoreCommand,
     Spinner.allTimeHighCommand,
     Admin.command,
     JokeCommands.roggaVaskHuset,

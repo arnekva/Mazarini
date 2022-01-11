@@ -94,20 +94,7 @@ mazariniClient.on('messageCreate', async (message: Message) => {
     //Do not reply to own messages. Do not trigger on pinned messages
     if (message.author == mazariniClient.user || message.type == 'CHANNEL_PINNED_MESSAGE') return
 
-    /** Check if message is calling lock commands */
-    if (CommandRunner.checkForLockCommand(message)) return
-    /** Check if message thread or channel is locked */
-    if (CommandRunner.isThreadLocked(message)) return
-    /** Check if user is locked */
-    if (CommandRunner.isUserLocked(message)) return
-    /** Check if bot is locked */
-    if (CommandRunner.isBotLocked()) return
-    /** Check if the bot is allowed to send messages in this channel */
-    if (!CommandRunner.isLegalChannel(message)) return
-    /**  Check message for commands */
-    await CommandRunner.checkForCommand(message)
-    /** Additional non-command checks */
-    CommandRunner.checkMessageForJokes(message)
+    CommandRunner.runCommands(message)
 })
 
 /** For interactions (slash-commands and user-commands) */
