@@ -27,6 +27,7 @@ export class CommandRunner {
         if (CommandRunner.isBotLocked()) return
         /** Check if the bot is allowed to send messages in this channel */
         if (!CommandRunner.isLegalChannel(message)) return
+        if (this.checkForGetCommands(message)) return
         /**  Check message for commands */
         await CommandRunner.checkForCommand(message)
         /** Additional non-command checks */
@@ -155,6 +156,7 @@ export class CommandRunner {
                 const user = message?.guild?.members?.cache?.find((member) => (member?.displayName ?? 'undefined') == (searchName ?? 'tester'))
                 if (user) message.reply(user.user.username)
             }
+            return true
         }
     }
 
