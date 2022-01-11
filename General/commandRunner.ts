@@ -1,5 +1,5 @@
 import didYouMean from 'didyoumean2'
-import { Message } from 'discord.js'
+import { Message, User } from 'discord.js'
 import { Admin } from '../admin/admin'
 import { environment } from '../client-env'
 import { commands, ICommandElement } from '../commands/commands'
@@ -145,6 +145,17 @@ export class CommandRunner {
             }
         }
         return true
+    }
+
+    static checkForGetCommands(message: Message) {
+        const args = message.content.split(' ')
+        if (message.content.startsWith('!get')) {
+            if (args[0] === 'username') {
+                const searchName = args.slice(0, 1).join(' ')
+                const user = message.guild.members.cache.find((member) => member.displayName === searchName)
+                if (user) message.reply(user.user.username)
+            }
+        }
     }
 
     /** Checks for pølse, eivindpride etc. */

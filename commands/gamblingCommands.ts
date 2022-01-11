@@ -236,7 +236,7 @@ export class GamblingCommands {
                     if (username === message.author.username) {
                         gambling.addField(
                             `${message.author.username}`,
-                            `Du valgte å gå til krig mot deg selv. Derfor vinner Bot Høie og tar alle chipsene du satsen. Du har nå ${engagerValue.toLocaleString(
+                            `Du valgte å gå til krig mot deg selv. Derfor vinner Bot Høie og tar alle chipsene du satset. Du har nå ${engagerValue.toLocaleString(
                                 undefined,
                                 {
                                     maximumFractionDigits: 2,
