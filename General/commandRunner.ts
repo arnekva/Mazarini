@@ -152,7 +152,9 @@ export class CommandRunner {
         const args = message.content.split(' ')
         if (message.content.startsWith('!get')) {
             if (args[1] === 'username') {
-                const searchName = args.slice(1, 2).join(' ')
+                const searchName = args.slice(0, 2).join(' ')
+                console.log(searchName)
+
                 const user = message?.guild?.members?.cache?.find((member) => (member?.displayName ?? 'undefined') == (searchName ?? 'tester'))
                 if (user) message.reply(user.user.username)
             }
