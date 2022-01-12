@@ -11,9 +11,8 @@ export class WeeklyJobs {
         })
     }
     static logEvent() {
-        const today = new Date()
-        const timeString = `${today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()}`
-        MessageHelper.SendMessageWithoutMessageObject(`Ukentlige jobber kjørte ${timeString} (NAV-penger)`, '810832760364859432')
-        console.log(`Weekly jobs ran at ${timeString}`)
+        const todaysTime = new Date().toLocaleTimeString()
+        MessageHelper.SendMessageWithoutMessageObject(`Ukentlige jobber kjørte ${todaysTime} (NAV-penger)`, '810832760364859432')
+        console.log(`Weekly jobs ran at ${todaysTime}`)
     }
 }

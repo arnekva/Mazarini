@@ -26,9 +26,8 @@ export class DailyJobs {
     }
 
     static logEvent() {
-        const today = new Date()
-        const timeString = `${today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()}`
-        MessageHelper.SendMessageWithoutMessageObject(`Daglige jobber kjørte ${timeString} (Resett status, resett daily price claim)`, '810832760364859432')
-        console.log(`Daily jobs ran at ${timeString}`)
+        const todaysTime = new Date().toLocaleTimeString()
+        MessageHelper.SendMessageWithoutMessageObject(`Daglige jobber kjørte ${todaysTime} (Resett status, resett daily price claim)`, '810832760364859432')
+        console.log(`Daily jobs ran at ${todaysTime}`)
     }
 }
