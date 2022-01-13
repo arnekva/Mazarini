@@ -19,9 +19,9 @@ export class Admin {
         const prefix = args[0] as dbPrefix
         let username = splitUsername(args[1])
         let oldValue = DatabaseHelper.getValue(prefix, username, message, true)
-
-        if (!UserUtils.findUserByUsername(username, message) || !oldValue) {
-            const incorrectPart = !oldValue ? `Prefixen '${prefix}' er feil` : `Brukeren '${username}' eksisterer ikke`
+        const user = UserUtils.findUserByUsername(username, message)
+        if (!user || !oldValue) {
+            const incorrectPart = user ? `Prefixen '${prefix}' er feil` : `Brukeren '${username}' eksisterer ikke`
             MessageHelper.sendMessageToActionLogWithCustomMessage(
                 message,
                 `${message.author.username} brukte feil syntax i setvalue.` + incorrectPart,
