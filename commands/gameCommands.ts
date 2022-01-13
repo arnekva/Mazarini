@@ -128,18 +128,20 @@ export class GameCommands {
         const platform = user[0]
         const url = `https://api.tracker.gg/api/v2/rocket-league/standard/profile/${platform}/${name}`
         let browser: any
-        if (environment === 'prod')
+        if (environment === 'dev') {
             browser = await puppeteer.launch({
                 args: ['--no-sandbox', '--disabled-setupid-sandbox', '--disable-extensions'],
-                dumpio: true,
+                executablePath: './node_modules/chromium/lib/chromium/chrome-win/chrome',
                 // executablePath: './node_modules/puppeteer/.local-chromium/win64-656675/chrome-win/chrome.exe',
             })
-        else
+        } else {
             browser = await puppeteer.launch({
                 args: ['--no-sandbox', '--disabled-setupid-sandbox', '--disable-extensions'],
+                executablePath: './node_modules/chromium/lib/chromium/chrome-linux/chrome',
                 // executablePath: './node_modules/puppeteer/.local-chromium/win64-656675/chrome-win/chrome.exe',
-                // executablePath: '/usr/bin/chromium-browser',
             })
+        }
+
         const page = await browser.newPage()
         const headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
