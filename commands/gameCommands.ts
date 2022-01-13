@@ -137,7 +137,7 @@ export class GameCommands {
         } else {
             browser = await puppeteer.launch({
                 args: ['--no-sandbox', '--disabled-setupid-sandbox', '--disable-extensions'],
-                executablePath: './node_modules/chromium/lib/chromium/chrome-linux/chrome',
+                executablePath: './node_modules/puppeteer/.local-chromium/linux-938248/chrome-linux/chrome',
                 // executablePath: './node_modules/puppeteer/.local-chromium/win64-656675/chrome-win/chrome.exe',
             })
         }
