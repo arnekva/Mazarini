@@ -119,6 +119,8 @@ export class GameCommands {
         const userValue = DatabaseHelper.getValue('rocketLeagueUserString', rawMessage.author.username, rawMessage, true)
         let user
         if (userValue) user = userValue.split(';')
+        rawMessage.reply('Denne funker ikke :)')
+        return
         if (!user) {
             rawMessage.reply("Du må linke Rocket League kontoen din. Bruk '!mz link rocket <psn|xbl|steam|epic> <brukernavn>'")
             return
@@ -127,74 +129,58 @@ export class GameCommands {
         const name = user[1]
         const platform = user[0]
         const url = `https://api.tracker.gg/api/v2/rocket-league/standard/profile/${platform}/${name}`
-        let browser: any
-        if (environment === 'dev') {
-            browser = await puppeteer.launch({
-                args: ['--no-sandbox', '--disabled-setupid-sandbox', '--disable-extensions'],
-                executablePath: './node_modules/chromium/lib/chromium/chrome-win/chrome',
-                // executablePath: './node_modules/puppeteer/.local-chromium/win64-656675/chrome-win/chrome.exe',
-            })
-        } else {
-            browser = await puppeteer.launch({
-                args: ['--no-sandbox', '--disabled-setupid-sandbox', '--disable-extensions'],
-                executablePath: './node_modules/puppeteer/.local-chromium/linux-938248/chrome-linux/chrome',
-                // executablePath: './node_modules/puppeteer/.local-chromium/win64-656675/chrome-win/chrome.exe',
-            })
-        }
 
-        const page = await browser.newPage()
         const headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
         }
-        await this.gotoExtended(page, { url: url, method: 'GET', headers: headers })
-        const data = await page.content()
 
-        const response = JSON.parse(striptags(data))
-        const segments = response.data.segments
-        let threeVthree: rocketLeagueStats = {}
-        let twoVtwo: rocketLeagueStats = {}
-        let lifetimeStats: rocketLeagueLifetime = {}
-        if (!segments) {
-            MessageHelper.sendMessageToActionLogWithCustomMessage(rawMessage, 'Fetch til Rocket League API feilet', 'Her har noe gått galt', true)
-            return
-        }
-        for (const segment of segments) {
-            if (!segment) {
-                MessageHelper.sendMessageToActionLogWithCustomMessage(rawMessage, 'Fetch til Rocket League API feilet', 'Her har noe gått galt', true)
-                break
-            }
-            if (segment.metadata.name === 'Lifetime') {
-                //Lifetime stats
-                lifetimeStats.goals = segment.stats.goals.value
-                lifetimeStats.mvp = segment.stats.mVPs.value
-                lifetimeStats.assists = segment.stats.assists.value
-                lifetimeStats.saves = segment.stats.saves.value
-                lifetimeStats.wins = segment.stats.wins.value
-                lifetimeStats.shots = segment.stats.shots.value
-            } else if (segment.metadata.name === 'Ranked Doubles 2v2') {
-                twoVtwo.rank = segment?.stats?.tier?.metadata?.name
-                twoVtwo.division = segment?.stats?.division?.metadata?.name
-                twoVtwo.modeName = segment?.metadata?.name
-                twoVtwo.iconURL = segment.stats?.tier?.metadata?.iconUrl
-            } else if (segment.metadata.name === 'Ranked Standard 3v3') {
-                threeVthree.rank = segment?.stats?.tier?.metadata?.name
-                threeVthree.division = segment?.stats?.division?.metadata?.name
-                threeVthree.modeName = segment?.metadata?.name
-                threeVthree.iconURL = segment.stats?.tier?.metadata?.iconUrl
-            }
-        }
-        const msgContent = new MessageEmbed().setTitle(`Rocket League - ${name}`)
-        if (args[0] === '3v3') {
-            msgContent.addField(`${threeVthree.modeName}`, `${threeVthree.rank} ${threeVthree.division}`)
-            if (threeVthree.iconURL) msgContent.setThumbnail(threeVthree.iconURL)
-        } else if (args[0] === '2v2') {
-            msgContent.addField(`${twoVtwo.modeName}`, `${twoVtwo.rank} ${twoVtwo.division}`)
-            if (twoVtwo.iconURL) msgContent.setThumbnail(twoVtwo.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
-        } else {
-            msgContent.addField(`Lifetime stats:`, `${lifetimeStats.goals} mål\n${lifetimeStats.wins} wins\n${lifetimeStats.shots} skudd`)
-        }
-        if (waitMsg) waitMsg.delete()
-        MessageHelper.sendFormattedMessage(rawMessage, msgContent)
+        // const response = JSON.parse(striptags(data))
+        // const segments = response.data.segments
+
+        // let threeVthree: rocketLeagueStats = {}
+        // let twoVtwo: rocketLeagueStats = {}
+        // let lifetimeStats: rocketLeagueLifetime = {}
+        // if (!segments) {
+        //     MessageHelper.sendMessageToActionLogWithCustomMessage(rawMessage, 'Fetch til Rocket League API feilet', 'Her har noe gått galt', true)
+        //     return
+        // }
+        // for (const segment of segments) {
+        //     if (!segment) {
+        //         MessageHelper.sendMessageToActionLogWithCustomMessage(rawMessage, 'Fetch til Rocket League API feilet', 'Her har noe gått galt', true)
+        //         break
+        //     }
+        //     if (segment.metadata.name === 'Lifetime') {
+        //         //Lifetime stats
+        //         lifetimeStats.goals = segment.stats.goals.value
+        //         lifetimeStats.mvp = segment.stats.mVPs.value
+        //         lifetimeStats.assists = segment.stats.assists.value
+        //         lifetimeStats.saves = segment.stats.saves.value
+        //         lifetimeStats.wins = segment.stats.wins.value
+        //         lifetimeStats.shots = segment.stats.shots.value
+        //     } else if (segment.metadata.name === 'Ranked Doubles 2v2') {
+        //         twoVtwo.rank = segment?.stats?.tier?.metadata?.name
+        //         twoVtwo.division = segment?.stats?.division?.metadata?.name
+        //         twoVtwo.modeName = segment?.metadata?.name
+        //         twoVtwo.iconURL = segment.stats?.tier?.metadata?.iconUrl
+        //     } else if (segment.metadata.name === 'Ranked Standard 3v3') {
+        //         threeVthree.rank = segment?.stats?.tier?.metadata?.name
+        //         threeVthree.division = segment?.stats?.division?.metadata?.name
+        //         threeVthree.modeName = segment?.metadata?.name
+        //         threeVthree.iconURL = segment.stats?.tier?.metadata?.iconUrl
+        //     }
+        // }
+        // const msgContent = new MessageEmbed().setTitle(`Rocket League - ${name}`)
+        // if (args[0] === '3v3') {
+        //     msgContent.addField(`${threeVthree.modeName}`, `${threeVthree.rank} ${threeVthree.division}`)
+        //     if (threeVthree.iconURL) msgContent.setThumbnail(threeVthree.iconURL)
+        // } else if (args[0] === '2v2') {
+        //     msgContent.addField(`${twoVtwo.modeName}`, `${twoVtwo.rank} ${twoVtwo.division}`)
+        //     if (twoVtwo.iconURL) msgContent.setThumbnail(twoVtwo.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
+        // } else {
+        //     msgContent.addField(`Lifetime stats:`, `${lifetimeStats.goals} mål\n${lifetimeStats.wins} wins\n${lifetimeStats.shots} skudd`)
+        // }
+        // if (waitMsg) waitMsg.delete()
+        // MessageHelper.sendFormattedMessage(rawMessage, msgContent)
     }
 
     static async gotoExtended(page: any, request: any) {
