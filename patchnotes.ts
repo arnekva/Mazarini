@@ -2,13 +2,12 @@ import { Channel, Client, DMChannel, NewsChannel, TextChannel, Message, MessageF
 import { ICommandElement } from './commands/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes {
-    public static readonly currentVersion = '4.2.0'
+    public static readonly currentVersion = '4.2.1'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `* Du kan nå hente rocket league stats og/eller rank med '!mz rocket <2v2|3v3|stats>'` +
-        `\n* Fikset tekst når du går til krig mot deg selv eller botten` +
+        `* Fikset tekst når du går til krig mot deg selv eller botten` +
         `\n* Wallet viser nå både chips og coins, og '!mz chips' er markert deprecated` +
         `\n* Du kan nå gamble alt du har med '!mz gamble all/alt'` +
         `\n* setvalue skal nå gi beskjed hvis en prøver å sette en verdi på en bruker som ikke eksisterer. Inluderer logging til Action Log og @Bot-support tag slik at vi kan le av vedkommende` +
