@@ -280,13 +280,11 @@ export class WarzoneCommands {
         const gamertag = args[2]
         let saveString = '' // gamertag + ';' + platform
         if (game === 'wz') {
-            saveString = gamertag + ';' + platform
+            saveString = platform + ';' + gamertag
             DatabaseHelper.setValue('activisionUserString', message.author.username, saveString)
             MessageHelper.reactWithThumbs(message, 'up')
         } else if (game === 'rocket') {
-            saveString = gamertag + ';' + platform
-            console.log(saveString)
-
+            saveString = platform + ';' + gamertag
             DatabaseHelper.setValue('rocketLeagueUserString', message.author.username, saveString)
             MessageHelper.reactWithThumbs(message, 'up')
         }
@@ -339,7 +337,7 @@ export class WarzoneCommands {
         },
         {
             commandName: 'link',
-            description: "<gamertag> <plattform> (plattform: 'battle', 'psn', 'xbl', 'epic')",
+            description: "<plattform> <gamertag> (plattform: 'battle', 'psn', 'xbl', 'epic')",
             command: (rawMessage: Message, messageContent: string, args: string[]) => {
                 WarzoneCommands.saveGameUsernameToDiscordUser(rawMessage, messageContent, args)
             },
