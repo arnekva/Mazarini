@@ -127,7 +127,8 @@ export class GameCommands {
         const url = `https://api.tracker.gg/api/v2/rocket-league/standard/profile/${platform}/${name}`
 
         const browser = await puppeteer.launch({
-            args: ['--no-sandbox', '--disabled-setupid-sandbox'],
+            args: ['--no-sandbox', '--disabled-setupid-sandbox', '--disable-extensions'],
+            headless: false,
         })
         const page = await browser.newPage()
         const headers = {
