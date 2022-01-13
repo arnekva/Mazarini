@@ -274,13 +274,22 @@ export class WarzoneCommands {
         }
     }
 
-    static saveWZUsernameToDiscordUser(message: Message, content: string, args: string[]) {
-        const platform = args.pop()
-        const gamertag = args
+    static saveGameUsernameToDiscordUser(message: Message, content: string, args: string[]) {
+        const game = args[0]
+        const platform = args[1]
+        const gamertag = args[2]
+        let saveString = '' // gamertag + ';' + platform
+        if (game === 'wz') {
+            saveString = gamertag + ';' + platform
+            DatabaseHelper.setValue('activisionUserString', message.author.username, saveString)
+            MessageHelper.reactWithThumbs(message, 'up')
+        } else if (game === 'rocket') {
+            saveString = gamertag + ';' + platform
+            console.log(saveString)
 
-        const saveString = gamertag + ';' + platform
-        DatabaseHelper.setValue('activisionUserString', message.author.username, saveString)
-        MessageHelper.reactWithThumbs(message, 'up')
+            DatabaseHelper.setValue('rocketLeagueUserString', message.author.username, saveString)
+            MessageHelper.reactWithThumbs(message, 'up')
+        }
     }
 
     static getWZUserStringFromDB(message: Message) {
@@ -311,30 +320,32 @@ export class WarzoneCommands {
         return DatabaseHelper.getValue(isBr ? 'codStatsBR' : 'codStats', message.author.username, message)
     }
 
-    static readonly getWZStats: ICommandElement = {
-        commandName: 'br',
-        description: "<gamertag> <plattform> (plattform: 'battle',  'psn', 'xbl'",
-        command: (rawMessage: Message, messageContent: string) => {
-            WarzoneCommands.getBRContent(rawMessage, messageContent)
+    static WZCommands: ICommandElement[] = [
+        {
+            commandName: 'br',
+            description: "<gamertag> <plattform> (plattform: 'battle',  'psn', 'xbl'",
+            command: (rawMessage: Message, messageContent: string) => {
+                WarzoneCommands.getBRContent(rawMessage, messageContent)
+            },
+            category: 'gaming',
         },
-        category: 'gaming',
-    }
-    static readonly getWeeklyWZStats: ICommandElement = {
-        commandName: 'weekly',
-        description: "<gamertag> <plattform> (plattform: 'battle', 'steam', 'psn', 'xbl', 'acti', 'uno' (Activision ID som tall), 'all' (uvisst)",
-        command: (rawMessage: Message, messageContent: string) => {
-            WarzoneCommands.getBRContent(rawMessage, messageContent, true)
+        {
+            commandName: 'weekly',
+            description: "<gamertag> <plattform> (plattform: 'battle', 'steam', 'psn', 'xbl', 'acti', 'uno' (Activision ID som tall), 'all' (uvisst)",
+            command: (rawMessage: Message, messageContent: string) => {
+                WarzoneCommands.getBRContent(rawMessage, messageContent, true)
+            },
+            category: 'gaming',
         },
-        category: 'gaming',
-    }
-    static readonly saveWZUsernameCommand: ICommandElement = {
-        commandName: 'wzname',
-        description: "<gamertag> <plattform> (plattform: 'battle', 'psn', 'xbl')",
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            WarzoneCommands.saveWZUsernameToDiscordUser(rawMessage, messageContent, args)
+        {
+            commandName: 'link',
+            description: "<gamertag> <plattform> (plattform: 'battle', 'psn', 'xbl', 'epic')",
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                WarzoneCommands.saveGameUsernameToDiscordUser(rawMessage, messageContent, args)
+            },
+            category: 'gaming',
         },
-        category: 'gaming',
-    }
+    ]
 }
 
 function convertTime(seconds: number) {

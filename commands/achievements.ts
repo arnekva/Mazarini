@@ -78,23 +78,24 @@ export class Achievements {
             AchievementHelper.awardSpinningAch(username, currentTotalspin, message, true)
         })
     }
-
-    static readonly listAchievements: ICommandElement = {
-        commandName: 'achievements',
-        description: 'Se dine achievements',
-        command: (rawMessage: Message, messageContent: string) => {
-            Achievements.listUserAchievements(rawMessage)
+    static AchievementCommands: ICommandElement[] = [
+        {
+            commandName: 'achievements',
+            description: 'Se dine achievements',
+            command: (rawMessage: Message, messageContent: string) => {
+                Achievements.listUserAchievements(rawMessage)
+            },
+            category: 'annet',
         },
-        category: 'annet',
-    }
-    static readonly giveMissingAchievements: ICommandElement = {
-        commandName: 'missingach',
-        description: 'Tildel manglende achievements til brukere. (Brukes når achievement legges til i etterkant)',
-        isAdmin: true,
-        hideFromListing: true,
-        command: (rawMessage: Message, messageContent: string) => {
-            Achievements.awardMissing(rawMessage)
+        {
+            commandName: 'missingach',
+            description: 'Tildel manglende achievements til brukere. (Brukes når achievement legges til i etterkant)',
+            isAdmin: true,
+            hideFromListing: true,
+            command: (rawMessage: Message, messageContent: string) => {
+                Achievements.awardMissing(rawMessage)
+            },
+            category: 'admin',
         },
-        category: 'admin',
-    }
+    ]
 }

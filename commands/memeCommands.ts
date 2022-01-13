@@ -140,14 +140,15 @@ export class Meme {
         }
         return [{ boxId: '0', x: '10', y: '300', width: '300', height: '100' }]
     }
+    static MemeCommands: ICommandElement[] = [
+        {
+            commandName: 'meme',
+            description: "Lag et meme. '!mz meme <anakin|timmy> text1:text2:text3:text4'",
 
-    static readonly makeMemeCommand: ICommandElement = {
-        commandName: 'meme',
-        description: "Lag et meme. '!mz meme <anakin|timmy> text1:text2:text3:text4'",
-
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            Meme.sendMeme(rawMessage, messageContent, args)
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                Meme.sendMeme(rawMessage, messageContent, args)
+            },
+            category: 'annet',
         },
-        category: 'annet',
-    }
+    ]
 }

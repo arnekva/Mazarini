@@ -8,6 +8,7 @@ import { MessageHelper } from '../helpers/messageHelper'
 import { MessageUtils } from '../utils/messageUtils'
 import { doesThisMessageNeedAnEivindPride } from '../utils/miscUtils'
 import { getRandomPercentage } from '../utils/randomUtils'
+import { splitUsername } from '../utils/textUtils'
 
 export class CommandRunner {
     static botLocked: boolean = false
@@ -38,7 +39,7 @@ export class CommandRunner {
         const content = message.content
         const isBot = content.includes('bot')
         const isUser = content.includes('user')
-        const username = message.content.split(' ')[2] ?? ''
+        const username = splitUsername(message.content.split(' ')[2]) ?? ''
         let locking = true
         if (Admin.isAuthorSuperAdmin(message.member) && content.startsWith('!lock')) {
             if (isUser) {

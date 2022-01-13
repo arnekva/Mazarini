@@ -8,7 +8,14 @@ import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { countdownTime, DateUtils } from '../utils/dateUtils'
 import { findFeseText, findLetterEmoji } from '../utils/miscUtils'
-import { doesTextIncludeUsername, getUsernameInQuotationMarks, msToTime, replaceAtWithTextUsername, reverseMessageString } from '../utils/textUtils'
+import {
+    doesTextIncludeUsername,
+    getUsernameInQuotationMarks,
+    msToTime,
+    replaceAtWithTextUsername,
+    reverseMessageString,
+    splitUsername,
+} from '../utils/textUtils'
 import { ICommandElement } from './commands'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { Languages } from '../helpers/languageHelpers'
@@ -186,7 +193,7 @@ export class JokeCommands {
         })
     }
     static kanPersonen(message: Message, msgContent: string, args: string[]) {
-        const name = getUsernameInQuotationMarks(msgContent) ?? args[0]
+        const name = splitUsername(args[0])
         MessageHelper.sendMessage(message, `${name} ` + ArrayUtils.randomChoiceFromArray(globalArrays.kanIkkjeTekster))
     }
 
@@ -308,155 +315,154 @@ export class JokeCommands {
     COMMAND ELEMENTS START
 
     */
-    static readonly roggaVaskHuset: ICommandElement = {
-        commandName: 'øyvind',
-        description: 'Vask huset maen. Og husk å vask den fine klokkå',
-        command: (rawMessage: Message, messageContent: string) => {
-            JokeCommands.vaskHuset(rawMessage)
+    static jokeCommands: ICommandElement[] = [
+        {
+            commandName: 'øyvind',
+            description: 'Vask huset maen. Og husk å vask den fine klokkå',
+            command: (rawMessage: Message, messageContent: string) => {
+                JokeCommands.vaskHuset(rawMessage)
+            },
+            category: 'annet',
         },
-        category: 'annet',
-    }
-    static readonly pheseCommand: ICommandElement = {
-        commandName: 'fese',
-        description: 'Har någen fese?',
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            JokeCommands.harFese(rawMessage, messageContent, args)
+        {
+            commandName: 'fese',
+            description: 'Har någen fese?',
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                JokeCommands.harFese(rawMessage, messageContent, args)
+            },
+            category: 'annet',
         },
-        category: 'annet',
-    }
-    static readonly bonkSender: ICommandElement = {
-        commandName: 'bonk',
-        description: 'Send en bonk. Kan brukes mot brukere.',
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            JokeCommands.sendBonk(rawMessage, messageContent, args)
+        {
+            commandName: 'bonk',
+            description: 'Send en bonk. Kan brukes mot brukere.',
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                JokeCommands.sendBonk(rawMessage, messageContent, args)
+            },
+            category: 'annet',
         },
-        category: 'annet',
-    }
-    static readonly reactWithWord: ICommandElement = {
-        commandName: 'spell',
-        description:
-            'Stav ut en setning som emojier i reactions. Syntax: <ord/setning> <(optional) message-id>. Ordet bør ikke inneholde repeterte bokstaver; kun ABCIMOPRSTVX har to versjoner og kan repeteres. Hvis ingen message id gis reagerer den på sendt melding. ',
-        command: (rawMessage: Message, messageContent: string, args: string[] | undefined) => {
-            JokeCommands.reactWithLetters(rawMessage, messageContent, args)
+        {
+            commandName: 'spell',
+            description:
+                'Stav ut en setning som emojier i reactions. Syntax: <ord/setning> <(optional) message-id>. Ordet bør ikke inneholde repeterte bokstaver; kun ABCIMOPRSTVX har to versjoner og kan repeteres. Hvis ingen message id gis reagerer den på sendt melding. ',
+            command: (rawMessage: Message, messageContent: string, args: string[] | undefined) => {
+                JokeCommands.reactWithLetters(rawMessage, messageContent, args)
+            },
+            category: 'annet',
         },
-        category: 'annet',
-    }
+        {
+            commandName: 'status',
+            description: 'Sett din status',
+            command: (rawMessage: Message, messageContent: string) => {
+                JokeCommands.updateMygleStatus(rawMessage, messageContent)
+            },
+            category: 'annet',
+        },
+        {
+            commandName: 'statuser',
+            description: 'Mygles det?',
+            command: (rawMessage: Message, messageContent: string) => {
+                JokeCommands.getAllMygleStatus(rawMessage)
+            },
+            category: 'annet',
+        },
+        {
+            commandName: 'thomas',
+            description: 'Thomas svarer alltid ja',
+            command: (rawMessage: Message, messageContent: string) => {
+                JokeCommands.thomasTing(rawMessage)
+            },
+            category: 'annet',
+        },
+        {
+            commandName: 'kekw',
+            description: 'kekw',
+            command: async (rawMessage: Message, messageContent: string, args: string[]) => {
+                const kekw = await rawMessage.client.emojis.cache.find((emoji) => emoji.name == 'kekw_animated')
+                if (kekw) {
+                    rawMessage.react(kekw)
+                    rawMessage.reply('<a: kekw_animated: ' + kekw?.id + ' > .')
+                }
+            },
+            category: 'annet',
+        },
+        {
+            commandName: 'aktivitet',
+            description: 'Går det egentlig bra med masteren te Magnus?',
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                JokeCommands.isMaggiPlaying(rawMessage, messageContent, args)
+            },
+            category: 'annet',
+        },
+        {
+            commandName: 'eivind',
+            description: 'Eivind sin feil',
+            command: (rawMessage: Message, messageContent: string) => {
+                JokeCommands.eivind(rawMessage)
+            },
+            category: 'annet',
+        },
+        {
+            commandName: 'david',
+            description: 'nå klikke det snart',
+            command: (rawMessage: Message, messageContent: string) => {
+                JokeCommands.kLikka(rawMessage)
+            },
+            category: 'annet',
+        },
+        {
+            commandName: 'eivindpride',
+            description: 'Eivindpride it. Eivindpride it ALL.',
+            hideFromListing: true,
+            isAdmin: true,
+            command: (rawMessage: Message, messageContent: string) => {
+                JokeCommands.eivindprideItAll(rawMessage)
+            },
+            category: 'annet',
+        },
+        {
+            commandName: 'jærsk',
+            description: 'Gjør teksten jærsk',
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                JokeCommands.jaerskIfyer(rawMessage, messageContent, args)
+            },
+            category: 'annet',
+        },
+        {
+            commandName: 'kan',
+            description: 'Kan personen? Sikkert ikkje',
+            hideFromListing: true,
+            isAdmin: true,
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                JokeCommands.kanPersonen(rawMessage, messageContent, args)
+            },
+            category: 'annet',
+        },
+        {
+            commandName: 'uwu',
+            description: 'UwU-ify en melding',
 
-    static readonly mygleStatus: ICommandElement = {
-        commandName: 'status',
-        description: 'Sett din status',
-        command: (rawMessage: Message, messageContent: string) => {
-            JokeCommands.updateMygleStatus(rawMessage, messageContent)
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                JokeCommands.uWuIfyer(rawMessage, messageContent, args)
+            },
+            category: 'annet',
         },
-        category: 'annet',
-    }
-    static readonly getAllMygling: ICommandElement = {
-        commandName: 'statuser',
-        description: 'Mygles det?',
-        command: (rawMessage: Message, messageContent: string) => {
-            JokeCommands.getAllMygleStatus(rawMessage)
-        },
-        category: 'annet',
-    }
-    static readonly thomasFese: ICommandElement = {
-        commandName: 'thomas',
-        description: 'Thomas svarer alltid ja',
-        command: (rawMessage: Message, messageContent: string) => {
-            JokeCommands.thomasTing(rawMessage)
-        },
-        category: 'annet',
-    }
-    static readonly kekwCommand: ICommandElement = {
-        commandName: 'kekw',
-        description: 'kekw',
-        command: async (rawMessage: Message, messageContent: string, args: string[]) => {
-            const kekw = await rawMessage.client.emojis.cache.find((emoji) => emoji.name == 'kekw_animated')
-            if (kekw) {
-                rawMessage.react(kekw)
-                rawMessage.reply('<a: kekw_animated: ' + kekw?.id + ' > .')
-            }
-        },
-        category: 'annet',
-    }
-    static readonly activityCommand: ICommandElement = {
-        commandName: 'aktivitet',
-        description: 'Går det egentlig bra med masteren te Magnus?',
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            JokeCommands.isMaggiPlaying(rawMessage, messageContent, args)
-        },
-        category: 'annet',
-    }
-    static readonly eivindSkyld: ICommandElement = {
-        commandName: 'eivind',
-        description: 'Eivind sin feil',
-        command: (rawMessage: Message, messageContent: string) => {
-            JokeCommands.eivind(rawMessage)
-        },
-        category: 'annet',
-    }
-    static readonly elDavido: ICommandElement = {
-        commandName: 'david',
-        description: 'nå klikke det snart',
-        command: (rawMessage: Message, messageContent: string) => {
-            JokeCommands.kLikka(rawMessage)
-        },
-        category: 'annet',
-    }
-    static readonly eivndPrideCommand: ICommandElement = {
-        commandName: 'eivindpride',
-        description: 'Eivindpride it. Eivindpride it ALL.',
-        hideFromListing: true,
-        isAdmin: true,
-        command: (rawMessage: Message, messageContent: string) => {
-            JokeCommands.eivindprideItAll(rawMessage)
-        },
-        category: 'annet',
-    }
-    static readonly jaerskCommand: ICommandElement = {
-        commandName: 'jærsk',
-        description: 'Gjør teksten jærsk',
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            JokeCommands.jaerskIfyer(rawMessage, messageContent, args)
-        },
-        category: 'annet',
-    }
-    static readonly kanCommand: ICommandElement = {
-        commandName: 'kan',
-        description: 'Kan personen? Sikkert ikkje',
-        hideFromListing: true,
-        isAdmin: true,
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            JokeCommands.kanPersonen(rawMessage, messageContent, args)
-        },
-        category: 'annet',
-    }
-    static readonly uwuMessage: ICommandElement = {
-        commandName: 'uwu',
-        description: 'UwU-ify en melding',
+        {
+            commandName: 'mordi',
+            description: 'Mordi e nais',
 
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            JokeCommands.uWuIfyer(rawMessage, messageContent, args)
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                JokeCommands.mordi(rawMessage)
+            },
+            category: 'annet',
         },
-        category: 'annet',
-    }
+        {
+            commandName: 'arne',
+            description: 'Bare Arne being Arne',
 
-    static readonly mordiMessage: ICommandElement = {
-        commandName: 'mordi',
-        description: 'Mordi e nais',
-
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            JokeCommands.mordi(rawMessage)
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                JokeCommands.arne(rawMessage)
+            },
+            category: 'annet',
         },
-        category: 'annet',
-    }
-
-    static readonly arneCommand: ICommandElement = {
-        commandName: 'arne',
-        description: 'Bare Arne being Arne',
-
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            JokeCommands.arne(rawMessage)
-        },
-        category: 'annet',
-    }
+    ]
 }

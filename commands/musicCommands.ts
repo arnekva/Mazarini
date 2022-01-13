@@ -4,7 +4,7 @@ import { discordSecret, lfKey } from '../client-env'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { replaceLast } from '../utils/textUtils'
+import { replaceLast, splitUsername } from '../utils/textUtils'
 import { ICommandElement } from './commands'
 const fetch = require('node-fetch')
 export type musicCommand = 'top'
@@ -66,7 +66,7 @@ export class Music {
             let username = Music.getLastFMUsernameByDiscordUsername(shouldEditRawMessageInstead ?? message.author.username, message)
 
             //Check if fourth ([3]) argument is a valid username - if so, override author.username. Otherwise, treat [3] as 'stats' option.
-            let usernameFromArgs = Music.getLastFMUsernameByDiscordUsername(args[2] ?? '', message)
+            let usernameFromArgs = Music.getLastFMUsernameByDiscordUsername(splitUsername(args[2]) ?? '', message)
             if (usernameFromArgs) username = usernameFromArgs
             let limit = args[2] ?? '10'
             if (!username) {
@@ -297,13 +297,15 @@ Docs: https://www.last.fm/api/show/user.getInfo
         return DatabaseHelper.setValue('lastFmUsername', username, lfUsername)
     }
 
-    static readonly musicCommands: ICommandElement = {
-        commandName: 'musikk',
-        description:
-            "Bruk '!mz musikk <topp|weekly|siste> <songs|albums|artist> <limit?>(valgfri). Koble til Last.fm med '!mz music user *discord brukernavn* *Last.fm brukernavn*'",
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            Music.findCommand(rawMessage, messageContent, args)
+    static musicCommands: ICommandElement[] = [
+        {
+            commandName: 'musikk',
+            description:
+                "Bruk '!mz musikk <topp|weekly|siste> <songs|albums|artist> <limit?>(valgfri). Koble til Last.fm med '!mz music user *discord brukernavn* *Last.fm brukernavn*'",
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                Music.findCommand(rawMessage, messageContent, args)
+            },
+            category: 'musikk',
         },
-        category: 'musikk',
-    }
+    ]
 }

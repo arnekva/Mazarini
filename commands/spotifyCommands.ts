@@ -3,7 +3,7 @@ import { spotifyToken } from '../client-env'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { getUsernameInQuotationMarks } from '../utils/textUtils'
+import { getUsernameInQuotationMarks, splitUsername } from '../utils/textUtils'
 import { ICommandElement } from './commands'
 import { Music } from './musicCommands'
 const request = require('request')
@@ -71,7 +71,7 @@ export class SpotifyCommands {
     static async currentPlayingFromDiscord(rawMessage: Message, content: string, args: string[]) {
         let name = ''
         if (args[0]) {
-            name = getUsernameInQuotationMarks(content) ?? args[0]
+            name = splitUsername(args[0])
         } else {
             name = rawMessage.author.username
         }
@@ -126,13 +126,14 @@ export class SpotifyCommands {
             }
         }
     }
-
-    static readonly currentUserIsPlaying: ICommandElement = {
-        commandName: 'spotify',
-        description: 'Hent hva brukeren spiller av på Spotify (fra Discord)',
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            SpotifyCommands.currentPlayingFromDiscord(rawMessage, messageContent, args)
+    static SpotifyCommands: ICommandElement[] = [
+        {
+            commandName: 'spotify',
+            description: 'Hent hva brukeren spiller av på Spotify (fra Discord)',
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                SpotifyCommands.currentPlayingFromDiscord(rawMessage, messageContent, args)
+            },
+            category: 'musikk',
         },
-        category: 'musikk',
-    }
+    ]
 }

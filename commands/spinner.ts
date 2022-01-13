@@ -193,50 +193,31 @@ export class Spinner {
         MessageHelper.sendMessage(message, printList)
     }
 
-    static readonly allTimeHighCommand: ICommandElement = {
-        commandName: 'ATH',
-        description: 'Printer hver person sin beste spin!',
-        command: (rawMessage: Message, messageContent: string) => {
-            Spinner.allTimeHigh(rawMessage)
+    static SpinnerCommands: ICommandElement[] = [
+        {
+            commandName: 'ATH',
+            description: 'Printer hver person sin beste spin!',
+            command: (rawMessage: Message, messageContent: string) => {
+                Spinner.allTimeHigh(rawMessage)
+            },
+            category: 'spin',
         },
-        category: 'spin',
-    }
-
-    static readonly command: ICommandElement = {
-        commandName: 'spin',
-        description:
-            'Spin fidgetspinneren. Beste tid per bruker registreres i databasen. Tallene er tilfeldige, men vektet. Du vinner chips hvis du spinner mer enn 5 minutter. (Høyeste gevinst er 100.000.000 chips for 10 min) ',
-        command: (rawMessage: Message, messageContent: string) => {
-            Spinner.spin(rawMessage)
+        {
+            commandName: 'spin',
+            description:
+                'Spin fidgetspinneren. Beste tid per bruker registreres i databasen. Tallene er tilfeldige, men vektet. Du vinner chips hvis du spinner mer enn 5 minutter. (Høyeste gevinst er 100.000.000 chips for 10 min) ',
+            command: (rawMessage: Message, messageContent: string) => {
+                Spinner.spin(rawMessage)
+            },
+            category: 'spin',
         },
-        category: 'spin',
-    }
-
-    static readonly listNumberOfSpins: ICommandElement = {
-        commandName: 'totalspins',
-        description: 'Antall spins per person',
-        command: (rawMessage: Message, messageContent: string) => {
-            Spinner.listSpinCounter(rawMessage)
+        {
+            commandName: 'totalspins',
+            description: 'Antall spins per person',
+            command: (rawMessage: Message, messageContent: string) => {
+                Spinner.listSpinCounter(rawMessage)
+            },
+            category: 'spin',
         },
-        category: 'spin',
-    }
-
-    static readonly setHighscoreCommand: ICommandElement = {
-        commandName: 'setscore',
-        description: 'Sett spin score verdi manuelt med <navn> <verdi> ',
-        hideFromListing: true,
-        command: (rawMessage: Message, messageContent: string) => {
-            if (rawMessage.author.id === '245607554254766081' || rawMessage.author.id === '239154365443604480') {
-                let mainString = rawMessage.content.replace('!mz setscore ', '')
-                let newString = mainString.split(' ')
-                try {
-                    DatabaseHelper.setValue('spin', newString[0], newString[1])
-                    MessageHelper.sendMessage(rawMessage, 'Oppdaterte databaseverdi for nøkkel <' + newString[0] + '> med verdi <' + newString[1] + '>.')
-                } catch (error) {
-                    MessageHelper.sendMessage(rawMessage, 'Kunne ikke ppdaterte databaseverdi for nøkkel <' + newString[0] + '>. Feilkode: ' + error)
-                }
-            }
-        },
-        category: 'admin',
-    }
+    ]
 }

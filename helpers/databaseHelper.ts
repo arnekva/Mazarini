@@ -53,6 +53,7 @@ export type dbPrefix =
     | 'codStats'
     | 'codStatsBR'
     | 'activisionUserString'
+    | 'rocketLeagueUserString'
     | 'cancelledCounter'
     | 'nickname'
     | 'inventory'
@@ -223,7 +224,7 @@ export class DatabaseHelper {
             const val = DatabaseHelper.valueToPush(prefix)
             if (DatabaseHelper.findUserByUsername(key, message)) db.push(`${folderPrefix}/${key}/${prefix}`, val)
             else {
-                message.reply('brukeren finnes ikke. Hvis brukeren har mellomrom i navnet, benytt "hermetegn" rundt navnet.')
+                message.reply('brukeren finnes ikke. Hvis brukeren har mellomrom i navnet, bruk under_strek')
                 return undefined
             }
             return '0'

@@ -5,9 +5,9 @@ import { betObject, betObjectReturned, DatabaseHelper, dbPrefix } from '../helpe
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { findLetterEmoji } from '../utils/miscUtils'
-import { ObjectUtils } from '../utils/objectUtils'
 import { getRndInteger } from '../utils/randomUtils'
-import { getUsernameInQuotationMarks } from '../utils/textUtils'
+import { getUsernameInQuotationMarks, splitUsername } from '../utils/textUtils'
+import { UserUtils } from '../utils/userUtils'
 import { ICommandElement } from './commands'
 
 export interface IDailyPriceClaim {
@@ -140,33 +140,29 @@ export class GamblingCommands {
             return
         }
         DatabaseHelper.deleteActiveBet(username)
-        if (ObjectUtils.instanceOfBetObject(activeBet)) {
-            const resolveMessage = await MessageHelper.sendMessage(
-                message,
-                `${username} vil gjøre opp ett veddemål: ${activeBet.description}. Reager med 👍 for å godkjenne (Trenger 3).`
-            )
-            if (resolveMessage) {
-                MessageHelper.reactWithThumbs(resolveMessage, 'up')
-                const collector = resolveMessage.createReactionCollector()
-                collector.on('collect', (reaction) => {
-                    if (reaction.emoji.name === '👍' && reaction.users.cache.size > 2) {
-                        const isPositive = args[0].toLocaleLowerCase() === 'ja'
-                        MessageHelper.sendMessage(message, `Veddemålsresultatet er godkjent. Beløpene blir nå lagt til på kontoene. `)
-                        const value = activeBet.value
+        const resolveMessage = await MessageHelper.sendMessage(
+            message,
+            `${username} vil gjøre opp ett veddemål: ${activeBet.description}. Reager med 👍 for å godkjenne (Trenger 3).`
+        )
+        if (resolveMessage) {
+            MessageHelper.reactWithThumbs(resolveMessage, 'up')
+            const collector = resolveMessage.createReactionCollector()
+            collector.on('collect', (reaction) => {
+                if (reaction.emoji.name === '👍' && reaction.users.cache.size > 2) {
+                    const isPositive = args[0].toLocaleLowerCase() === 'ja'
+                    MessageHelper.sendMessage(message, `Veddemålsresultatet er godkjent. Beløpene blir nå lagt til på kontoene. `)
+                    const value = activeBet.value
 
-                        GamblingCommands.dealCoins(
-                            message,
-                            activeBet.value,
-                            isPositive ? activeBet.positivePeople : activeBet.negativePeople,
-                            activeBet.negativePeople.split(',').length + activeBet.positivePeople.split(',').length
-                        )
-                        DatabaseHelper.deleteActiveBet(username)
-                        collector.stop()
-                    }
-                })
-            }
-        } else {
-            message.reply('object is not instance of betObject')
+                    GamblingCommands.dealCoins(
+                        message,
+                        activeBet.value,
+                        isPositive ? activeBet.positivePeople : activeBet.negativePeople,
+                        activeBet.negativePeople.split(',').length + activeBet.positivePeople.split(',').length
+                    )
+                    DatabaseHelper.deleteActiveBet(username)
+                    collector.stop()
+                }
+            })
         }
     }
     static showActiveBet(message: Message, content: string, args: string[]) {
@@ -191,7 +187,7 @@ export class GamblingCommands {
             return
         }
 
-        let username = getUsernameInQuotationMarks(content) ?? args[1]
+        let username = splitUsername(content)
         const amount = args[0]
 
         if (isNaN(Number(amount)) || Number(amount) < 1) {
@@ -215,15 +211,18 @@ export class GamblingCommands {
             const collector = resolveMessage.createReactionCollector()
             collector.on('collect', (reaction) => {
                 if (reaction.emoji.name === '👍' && reaction.users.cache.find((u) => u.username === username)) {
+                    const shouldAlwaysLose = username === message.author.username || username === 'MazariniBot'
                     const roll = getRndInteger(0, 101)
-                    const gambling = new MessageEmbed()
-                        .setTitle('⚔️ Krig ⚔️')
-                        .setDescription(
-                            `Terningen trillet: ${roll}/100. ${
-                                roll < 51 ? (roll == 50 || username === message.author.username ? 'Bot Høie' : message.author.username) : username
-                            } vant! 💰💰`
-                        )
-                    if (roll == 50 || username === message.author.username) {
+                    let description = `Terningen trillet: ${roll}/100. ${roll < 51 ? (roll == 50 ? 'Bot Høie' : message.author.username) : username} vant! 💰💰`
+                    if (shouldAlwaysLose) {
+                        description = `${
+                            username === message.author.username
+                                ? 'Du gikk til krig mot deg selv. Dette liker ikke Bot Høie, og tar derfor pengene dine.'
+                                : 'Huset vinner alltid'
+                        }`
+                    }
+                    const gambling = new MessageEmbed().setTitle('⚔️ Krig ⚔️').setDescription(description)
+                    if (roll == 50 || shouldAlwaysLose) {
                         engagerValue -= amountAsNum
                         victimValue -= amountAsNum
                     } else if (roll < 50) {
@@ -233,16 +232,13 @@ export class GamblingCommands {
                         engagerValue -= amountAsNum
                         victimValue += amountAsNum
                     }
-                    if (username === message.author.username) {
+                    if (shouldAlwaysLose) {
                         gambling.addField(
                             `${message.author.username}`,
-                            `Du valgte å gå til krig mot deg selv. Derfor vinner Bot Høie og tar alle chipsene du satset. Du har nå ${engagerValue.toLocaleString(
-                                undefined,
-                                {
-                                    maximumFractionDigits: 2,
-                                    minimumFractionDigits: 2,
-                                }
-                            )} chips`
+                            `Du har nå ${engagerValue.toLocaleString(undefined, {
+                                maximumFractionDigits: 2,
+                                minimumFractionDigits: 2,
+                            })} chips`
                         )
                     } else {
                         gambling.addField(
@@ -271,22 +267,23 @@ export class GamblingCommands {
 
     static diceGamble(message: Message, content: string, args: string[]) {
         const userMoney = DatabaseHelper.getValue('chips', message.author.username, message)
-        const argumentVal = args[0]
-        if (!argumentVal || isNaN(Number(argumentVal))) {
+        let value = args[0]
+        if (value === 'alt' || value === 'all') value = userMoney
+        if (!value || isNaN(Number(value))) {
             message.reply('Du må si hvor mye du vil gamble')
             return
         }
         if (userMoney) {
-            if (Number(argumentVal) > Number(userMoney)) {
+            if (Number(value) > Number(userMoney)) {
                 message.reply('Du har ikke nok penger til å gamble så mye. Bruk <!mz lån 100> for å låne chips fra MazariniBank')
                 return
-            } else if (Number(argumentVal) < 0) {
+            } else if (Number(value) < 0) {
                 message.reply('Du må gamble med et positivt tall, bro')
                 return
             }
         }
-        if (argumentVal && Number(argumentVal)) {
-            const valAsNum = Number(Number(argumentVal).toFixed(2))
+        if (value && Number(value)) {
+            const valAsNum = Number(Number(value).toFixed(2))
             const roll = Math.floor(Math.random() * 100) + 1
             const hasDebtPenalty = DatabaseHelper.getValueWithoutMessage('debtPenalty', message.author.username) === 'true'
             let rate = 185
@@ -640,22 +637,24 @@ export class GamblingCommands {
         let username: string
         if (!args[0]) {
             username = message.author.username
-        } else username = getUsernameInQuotationMarks(messageContent) ?? args[0]
-
-        const val = DatabaseHelper.getValue('dogeCoin', username, message)
-        MessageHelper.sendMessage(
-            message,
-            `${username} har ${Number(val).toLocaleString(undefined, {
-                maximumFractionDigits: 2,
-                minimumFractionDigits: 2,
-            })} coins`
-        )
+        } else username = splitUsername(args[0])
+        if (!UserUtils.findUserByUsername(username, message)) {
+            message.reply('Brukeren finnes ikke')
+            return
+        }
+        const coins = DatabaseHelper.getValue('dogeCoin', username, message)
+        const chips = DatabaseHelper.getValue('chips', username, message)
+        MessageHelper.sendMessage(message, `${username} har ${Number(coins).toFixed(0)} coins og ${Number(chips).toFixed(0)} chips`)
     }
+
+    /** TODO: Remove this when deprecated phase is over
+     *  @deprecated this is now under checkcoins
+     */
     static async checkChips(message: Message, messageContent: string, args: string[]) {
-        let username
+        let username: string
         if (!args[0]) {
             username = message.author.username
-        } else username = getUsernameInQuotationMarks(messageContent) ?? args[0]
+        } else username = splitUsername(args[0])
 
         const val = DatabaseHelper.getValue('chips', username, message)
         MessageHelper.sendMessage(
@@ -813,145 +812,148 @@ export class GamblingCommands {
         return 100
     }
 
-    static readonly addCoinsCommand: ICommandElement = {
-        commandName: 'coins',
-        description: 'Legg til eller fjern coins fra en person. <Brukernavn> <verdi> (pluss/minus)',
-        hideFromListing: true,
-        isAdmin: true,
-        isSuperAdmin: true,
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            GamblingCommands.manageCoins(rawMessage, messageContent, args)
+    /** ALl commands from this class. Automatically imported to Commands when added here */
+    static gamblingCommands: ICommandElement[] = [
+        {
+            commandName: 'coins',
+            description: 'Legg til eller fjern coins fra en person. <Brukernavn> <verdi> (pluss/minus)',
+            hideFromListing: true,
+            isAdmin: true,
+            isSuperAdmin: true,
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                GamblingCommands.manageCoins(rawMessage, messageContent, args)
+            },
+            category: 'gambling',
         },
-        category: 'gambling',
-    }
-    static readonly takeLoanCommand: ICommandElement = {
-        commandName: 'lån',
-        description: 'Lån chips fra banken',
+        {
+            commandName: 'lån',
+            description: 'Lån chips fra banken',
 
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            GamblingCommands.takeUpLoan(rawMessage, messageContent, args)
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                GamblingCommands.takeUpLoan(rawMessage, messageContent, args)
+            },
+            category: 'gambling',
         },
-        category: 'gambling',
-    }
-    static readonly payDebtCommand: ICommandElement = {
-        commandName: 'betal',
-        description: 'Betal på lånet ditt. <number>',
+        {
+            commandName: 'betal',
+            description: 'Betal på lånet ditt. <number>',
 
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            GamblingCommands.payDownDebt(rawMessage, messageContent, args)
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                GamblingCommands.payDownDebt(rawMessage, messageContent, args)
+            },
+            category: 'gambling',
         },
-        category: 'gambling',
-    }
-    static readonly bailoutCommand: ICommandElement = {
-        commandName: 'bailout',
-        description: 'Motta en bailout fra MazariniBank',
+        {
+            commandName: 'bailout',
+            description: 'Motta en bailout fra MazariniBank',
 
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            GamblingCommands.bailout(rawMessage)
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                GamblingCommands.bailout(rawMessage)
+            },
+            category: 'gambling',
         },
-        category: 'gambling',
-    }
-    static readonly krigCommand: ICommandElement = {
-        commandName: 'krig',
-        description: 'Gå til krig. <nummer> <username>',
+        {
+            commandName: 'krig',
+            description: 'Gå til krig. <nummer> <username>',
 
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            GamblingCommands.krig(rawMessage, messageContent, args)
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                GamblingCommands.krig(rawMessage, messageContent, args)
+            },
+            category: 'gambling',
         },
-        category: 'gambling',
-    }
-    static readonly showActiveBetCommand: ICommandElement = {
-        commandName: 'visbet',
-        description: 'Vis en brukers aktive veddemål',
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            GamblingCommands.showActiveBet(rawMessage, messageContent, args)
+        {
+            commandName: 'visbet',
+            description: 'Vis en brukers aktive veddemål',
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                GamblingCommands.showActiveBet(rawMessage, messageContent, args)
+            },
+            category: 'gambling',
         },
-        category: 'gambling',
-    }
-    static readonly vippsCommand: ICommandElement = {
-        commandName: 'vipps',
-        description: 'Vipps til en annen bruker. <number>',
+        {
+            commandName: 'vipps',
+            description: 'Vipps til en annen bruker. <number>',
 
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            GamblingCommands.vippsCoins(rawMessage, messageContent, args)
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                GamblingCommands.vippsCoins(rawMessage, messageContent, args)
+            },
+            category: 'gambling',
         },
-        category: 'gambling',
-    }
-    static readonly gambleCoins: ICommandElement = {
-        commandName: 'gamble',
-        description:
-            'Gambla coinså dine! Skriv inn mengde coins du vil gambla, så kan du vinna. Tilbakebetaling blir høyere jo høyere terningen triller (1.1x for 50 opp till 5x for 100)',
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            GamblingCommands.diceGamble(rawMessage, messageContent, args)
+        {
+            commandName: 'gamble',
+            description:
+                'Gambla coinså dine! Skriv inn mengde coins du vil gambla, så kan du vinna. Tilbakebetaling blir høyere jo høyere terningen triller (1.1x for 50 opp till 5x for 100)',
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                GamblingCommands.diceGamble(rawMessage, messageContent, args)
+            },
+            category: 'gambling',
         },
-        category: 'gambling',
-    }
-    static readonly rulett: ICommandElement = {
-        commandName: 'rulett',
-        description:
-            'Gambla chipså dine! Skriv inn mengde coins du vil gambla og ikke minst ka du gamble de på, så kan du vinna. Tilbakebetaling blir høyere jo større risiko du tar. Lykke til!' +
-            "\nHer kan du gambla på tall, farge eller partall/oddetall. Eksempel: '!mz rulett 1000 svart",
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            GamblingCommands.roulette(rawMessage, messageContent, args)
+        {
+            commandName: 'rulett',
+            description:
+                'Gambla chipså dine! Skriv inn mengde coins du vil gambla og ikke minst ka du gamble de på, så kan du vinna. Tilbakebetaling blir høyere jo større risiko du tar. Lykke til!' +
+                "\nHer kan du gambla på tall, farge eller partall/oddetall. Eksempel: '!mz rulett 1000 svart",
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                GamblingCommands.roulette(rawMessage, messageContent, args)
+            },
+            category: 'gambling',
         },
-        category: 'gambling',
-    }
-    static readonly gambleCoinsShort: ICommandElement = {
-        commandName: 'g',
-        description: "Se 'gamble'",
-        hideFromListing: true,
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            GamblingCommands.diceGamble(rawMessage, messageContent, args)
+        {
+            commandName: 'g',
+            description: "Se 'gamble'",
+            hideFromListing: true,
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                GamblingCommands.diceGamble(rawMessage, messageContent, args)
+            },
+            category: 'gambling',
         },
-        category: 'gambling',
-    }
-
-    static readonly walletCommand: ICommandElement = {
-        commandName: 'wallet',
-        description: 'Se antall coins til en person',
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            GamblingCommands.checkCoins(rawMessage, messageContent, args)
+        {
+            commandName: 'wallet',
+            description: 'Se antall coins til en person',
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                GamblingCommands.checkCoins(rawMessage, messageContent, args)
+            },
+            category: 'gambling',
         },
-        category: 'gambling',
-    }
-    static readonly dailyClaim: ICommandElement = {
-        commandName: 'daily',
-        description: 'Hent dine daglige chips og coins',
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            GamblingCommands.claimDailyChipsAndCoins(rawMessage, messageContent, args)
+        {
+            commandName: 'daily',
+            description: 'Hent dine daglige chips og coins',
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                GamblingCommands.claimDailyChipsAndCoins(rawMessage, messageContent, args)
+            },
+            category: 'gambling',
         },
-        category: 'gambling',
-    }
-    static readonly checkChipsCommand: ICommandElement = {
-        commandName: 'chips',
-        description: 'Se antall chips en person har til gambling',
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            GamblingCommands.checkChips(rawMessage, messageContent, args)
+        {
+            commandName: 'chips',
+            description: 'Se antall chips en person har til gambling',
+            deprecated: 'wallet',
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                GamblingCommands.checkChips(rawMessage, messageContent, args)
+            },
+            category: 'gambling',
         },
-        category: 'gambling',
-    }
-    static readonly createBetCommand: ICommandElement = {
-        commandName: 'bet',
-        description: 'Start et ja/nei veddemål',
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            GamblingCommands.createBet(rawMessage, messageContent, args)
+        {
+            commandName: 'bet',
+            description: 'Start et ja/nei veddemål',
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                GamblingCommands.createBet(rawMessage, messageContent, args)
+            },
+            category: 'gambling',
         },
-        category: 'gambling',
-    }
-    static readonly resolveBetCommand: ICommandElement = {
-        commandName: 'resolve',
-        description: 'Resolve veddemålet',
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            GamblingCommands.resolveBet(rawMessage, messageContent, args)
+        {
+            commandName: 'resolve',
+            description: 'Resolve veddemålet',
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                GamblingCommands.resolveBet(rawMessage, messageContent, args)
+            },
+            category: 'gambling',
         },
-        category: 'gambling',
-    }
-    static readonly rollCommand: ICommandElement = {
-        commandName: 'roll',
-        description: 'Rull spillemaskinen. Du vinner hvis du får 2 eller flere like tall',
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            GamblingCommands.rollSlotMachine(rawMessage, messageContent, args)
+        {
+            commandName: 'roll',
+            description: 'Rull spillemaskinen. Du vinner hvis du får 2 eller flere like tall',
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                GamblingCommands.rollSlotMachine(rawMessage, messageContent, args)
+            },
+            category: 'gambling',
         },
-        category: 'gambling',
-    }
+    ]
 }

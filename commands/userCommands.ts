@@ -74,29 +74,30 @@ export class UserCommands {
             MessageHelper.sendMessage(message, `*" ${randomQuote} "*\n- ${name}`)
         }
     }
-
-    static readonly addQuoteCommand: ICommandElement = {
-        commandName: 'quote',
-        description: 'Legg til eller hent et tilfeldig quote',
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            UserCommands.addQuote(rawMessage, messageContent, args)
+    static UserCommands: ICommandElement[] = [
+        {
+            commandName: 'quote',
+            description: 'Legg til eller hent et tilfeldig quote',
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                UserCommands.addQuote(rawMessage, messageContent, args)
+            },
+            category: 'annet',
         },
-        category: 'annet',
-    }
-    static readonly seeWarningCounterCommand: ICommandElement = {
-        commandName: 'warnings',
-        description: 'Se antall advarsler du har',
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            UserCommands.getWarnings(rawMessage, messageContent, args)
+        {
+            commandName: 'warnings',
+            description: 'Se antall advarsler du har',
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                UserCommands.getWarnings(rawMessage, messageContent, args)
+            },
+            category: 'annet',
         },
-        category: 'annet',
-    }
-    static readonly sendRoleAssignmentCommand: ICommandElement = {
-        commandName: 'role',
-        description: 'Trigger role assignment',
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            UserCommands.roleAssignment(rawMessage, messageContent, args)
+        {
+            commandName: 'role',
+            description: 'Trigger role assignment',
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                UserCommands.roleAssignment(rawMessage, messageContent, args)
+            },
+            category: 'annet',
         },
-        category: 'annet',
-    }
+    ]
 }

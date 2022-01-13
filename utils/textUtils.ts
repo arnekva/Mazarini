@@ -51,11 +51,15 @@ export const isInQuotation = (content: string) => {
     return matches ? matches[1] : content
 }
 export function getUsernameInQuotationMarks(content: string) {
-    if (content.includes('"')) {
+    if (content.includes('_')) {
         return isInQuotation(content)
     } else {
         return undefined
     }
+}
+
+export function splitUsername(u: string) {
+    return u ? u.replace('_', ' ') : u
 }
 
 export function doesTextIncludeUsername(content: string) {

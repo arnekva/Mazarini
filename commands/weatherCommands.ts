@@ -48,13 +48,14 @@ export class Weather {
                 MessageHelper.sendMessage(message, 'Fant ikke byen')
             })
     }
-
-    static readonly getWeatherForGivenCityCommand: ICommandElement = {
-        commandName: 'vær',
-        description: 'Sjekk været på et gitt sted',
-        command: (rawMessage: Message, messageContent: string, args: string[]) => {
-            Weather.getWeatherForGivenCity(rawMessage, messageContent)
+    static WeatherCommands: ICommandElement[] = [
+        {
+            commandName: 'vær',
+            description: 'Sjekk været på et gitt sted',
+            command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                Weather.getWeatherForGivenCity(rawMessage, messageContent)
+            },
+            category: 'annet',
         },
-        category: 'annet',
-    }
+    ]
 }
