@@ -126,7 +126,9 @@ export class GameCommands {
         const platform = user[0]
         const url = `https://api.tracker.gg/api/v2/rocket-league/standard/profile/${platform}/${name}`
 
-        const browser = await puppeteer.launch()
+        const browser = await puppeteer.launch({
+            args: ['--no-sandbox', '--disabled-setupid-sandbox'],
+        })
         const page = await browser.newPage()
         const headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
