@@ -155,9 +155,11 @@ export function findLetterEmoji(sentLetter: string, isSecond?: boolean, spaceCou
     return letter
 }
 
-export function findFeseText(author: string, randomName: string) {
+export function findFeseText(author: string | undefined, randomName: string | undefined) {
     const isAuthorVictim = getRandomPercentage(50)
-    return ArrayUtils.randomChoiceFromArray(isAuthorVictim ? feseArray(randomName, author) : feseArray(author, randomName))
+    return ArrayUtils.randomChoiceFromArray(
+        isAuthorVictim ? feseArray(randomName ?? 'Thomas', author ?? 'Thomas') : feseArray(author ?? 'Thomas', randomName ?? 'Thomas')
+    )
 }
 
 export function feseArray(user1: string, user2: string) {

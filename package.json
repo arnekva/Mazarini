@@ -15,7 +15,6 @@
     "author": "Arne Kvaleberg",
     "license": "ISC",
     "dependencies": {
-        "@replit/database": "^2.0.0",
         "@types/node": "^15.6.2",
         "call-of-duty-api": "^2.0.0",
         "clean": "^4.0.2",
@@ -33,7 +32,6 @@
         "nodemon": "^2.0.7",
         "npm": "latest",
         "puppeteer": "^13.0.1",
-        "puppeteer-core": "^1.11.0",
         "request": "^2.88.2",
         "rimraf": "^3.0.2",
         "striptags": "^3.2.0",

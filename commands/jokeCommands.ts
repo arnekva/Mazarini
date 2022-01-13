@@ -1,6 +1,5 @@
 import { time } from 'console'
 import { Message, User, TextChannel } from 'discord.js'
-import { parse } from 'dotenv/types'
 import { globalArrays } from '../globals'
 import { AchievementHelper } from '../helpers/achievementHelper'
 import { DatabaseHelper } from '../helpers/databaseHelper'
@@ -220,7 +219,7 @@ export class JokeCommands {
 
         const randomUser = role ? channel.members.filter((m) => m.roles.cache.get(role) !== undefined).random() : channel.members.random()
         const authorName = message.member?.nickname ?? message.member?.displayName ?? message.author.username
-        const randomName = randomUser.nickname ?? randomUser.displayName ?? randomUser.user.username
+        const randomName = randomUser?.nickname ?? randomUser?.displayName ?? randomUser?.user?.username
         const phese = findFeseText(authorName, randomName)
         const reply = `${phese}`
 
