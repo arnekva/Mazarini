@@ -197,29 +197,6 @@ export class GameCommands {
     static async gotoExtended(page: any, request: any) {
         const { url, method, headers, postData } = request
 
-        if (method !== 'GET' || postData || headers) {
-            let wasCalled = false
-            await page.setRequestInterception(true)
-            const interceptRequestHandler = async (request: any) => {
-                try {
-                    if (wasCalled) {
-                        return await request.continue()
-                    }
-
-                    wasCalled = true
-                    const requestParams: any = {}
-
-                    if (method !== 'GET') requestParams.method = method
-                    if (postData) requestParams.postData = postData
-                    if (headers) requestParams.headers = headers
-                    await request.continue(requestParams)
-                    await page.setRequestInterception(false)
-                } catch (error) {}
-            }
-
-            await page.on('request', interceptRequestHandler)
-        }
-
         return page.goto(url)
     }
 
