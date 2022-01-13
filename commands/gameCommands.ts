@@ -1,4 +1,6 @@
 import { Message, MessageEmbed } from 'discord.js'
+import { env } from 'process'
+import { environment } from '../client-env'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { getRndInteger } from '../utils/randomUtils'
@@ -125,10 +127,16 @@ export class GameCommands {
         const name = user[1]
         const platform = user[0]
         const url = `https://api.tracker.gg/api/v2/rocket-league/standard/profile/${platform}/${name}`
-
-        const browser = await puppeteer.launch({
-            args: ['--no-sandbox', '--disabled-setupid-sandbox', '--disable-extensions'],
-        })
+        let browser: any
+        if (environment === 'prod')
+            browser = await puppeteer.launch({
+                args: ['--no-sandbox', '--disabled-setupid-sandbox', '--disable-extensions'],
+                executablePath: '/usr/bin/chromium-browser',
+            })
+        else
+            browser = await puppeteer.launch({
+                args: ['--no-sandbox', '--disabled-setupid-sandbox', '--disable-extensions'],
+            })
         const page = await browser.newPage()
         const headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
