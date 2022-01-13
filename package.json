@@ -17,7 +17,6 @@
     "dependencies": {
         "@types/node": "^15.6.2",
         "call-of-duty-api": "^2.0.0",
-        "chromium": "^3.0.3",
         "clean": "^4.0.2",
         "clean-text-utils": "^1.1.17",
         "deep-diff": "^1.0.2",
@@ -32,7 +31,6 @@
         "node-schedule": "^2.0.0",
         "nodemon": "^2.0.7",
         "npm": "latest",
-        "puppeteer": "^13.0.1",
         "request": "^2.88.2",
         "rimraf": "^3.0.2",
         "striptags": "^3.2.0",
