@@ -128,7 +128,6 @@ export class GameCommands {
 
         const browser = await puppeteer.launch({
             args: ['--no-sandbox', '--disabled-setupid-sandbox', '--disable-extensions'],
-            headless: false,
         })
         const page = await browser.newPage()
         const headers = {
