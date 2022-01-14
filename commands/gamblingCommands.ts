@@ -297,6 +297,9 @@ export class GamblingCommands {
             } else if (Number(value) < 0) {
                 message.reply('Du må gamble med et positivt tall, bro')
                 return
+            } else if (Number(value) === 0) {
+                message.reply('Du må satsa minst 1 chip')
+                return
             }
         }
         if (value && Number(value)) {
