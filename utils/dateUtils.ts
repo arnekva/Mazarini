@@ -27,6 +27,11 @@ export interface countdownTime {
     seconds: number
 }
 export class DateUtils {
+    /**
+     * Get time untill a given date
+     * @param date The date
+     * @returns An object with days, hours, minutes and seconds
+     */
     static getTimeTo(date: Date): countdownTime | undefined {
         const total = date.getTime() - new Date().getTime()
         if (total < 0) return undefined
@@ -39,6 +44,11 @@ export class DateUtils {
         return rDate
     }
 
+    /**
+     * Get time since a date
+     * @param date The date
+     * @returns An object with days, hours, minutes and seconds
+     */
     static getTimeSince(date: Date): countdownTime | undefined {
         const total = new Date().getTime() - date.getTime()
         if (total < 0) return undefined

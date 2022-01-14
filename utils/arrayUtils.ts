@@ -16,9 +16,8 @@ export class ArrayUtils {
      * Splitter et Valuepair til "key value" med line break på splutten.
      * @param valuePair Paret som skal splittes opp
      * @param formatValue Hvis value skal formatteres, legg ved format funksjonen her (Se ATH Spinner for eksempel)
-     * @returns
+     * @returns the string
      */
-
     static makeValuePairIntoOneString(valuePair: ValuePair[], formatValue?: (val: string) => string, header?: string) {
         let str = header ? '***' + header + '***\n' : ''
         valuePair.forEach((val) => (str += val.key + ' ' + (formatValue ? formatValue(val.val) : val.val) + '\n'))

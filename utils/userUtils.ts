@@ -4,17 +4,42 @@ import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 const diff = require('deep-diff')
 export namespace UserUtils {
+    /**
+     * Get a Member object by supplying a user id
+     * @param userId User ID of Member
+     * @param message needed to find the guild
+     * @returns Member Object (undefined if none)
+     */
     export const findMemberByUserID = (userId: string, message: Message) => {
         return message.guild?.members?.cache.find((m) => m.id === userId)
     }
 
+    /**
+     * Get a user object by supplying a username
+     * @param username Username of user
+     * @param rawMessage needed to find the guild
+     * @returns User object or undefined
+     */
     export const findUserByUsername = (username: string, rawMessage: Message) => {
         return rawMessage.client.users.cache.find((user) => user.username == username)
     }
+
+    /**
+     * Get a user object by supplying a user id
+     * @param id User ID
+     * @param rawMessage needed to find the guild
+     * @returns User object or undefined
+     */
     export const findUserById = (id: string, rawMessage: Message) => {
         return rawMessage.client.users.cache.find((user) => user.id == id)
     }
 
+    /**
+     * Get a Member object from a username
+     * @param username Username of user
+     * @param rawMessage needed to find the guild
+     * @returns Member object or undefined
+     */
     export const findMemberByUsername = (username: string, rawMessage: Message) => {
         const user = UserUtils.findUserByUsername(username, rawMessage)
         if (user) return UserUtils.findMemberByUserID(user.id, rawMessage)

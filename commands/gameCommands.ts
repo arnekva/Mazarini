@@ -148,9 +148,6 @@ export class GameCommands {
         const page = await browser.newPage()
         await page.goto(url)
         const content = await page.content()
-        // await page.hover('.playableTile__artwork')
-        // await page.screenshot({ path: 'hover.png' })
-        // console.log(content)
 
         await browser.close()
 
