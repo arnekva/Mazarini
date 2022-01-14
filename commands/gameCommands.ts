@@ -30,8 +30,8 @@ interface rocketLeagueLifetime {
     shots?: string
 }
 const fetch = require('node-fetch')
-const puppeteer = require('puppeteer')
 const striptags = require('striptags')
+const puppeteer = require('puppeteer')
 function getValidDropCoordinate(xCircleCenter: number, yCircleCenter: number): dropCoordinate {
     // -2
     const width: number = getRndInteger(-3, 3)
@@ -130,32 +130,28 @@ export class GameCommands {
         const platform = user[0]
         const url = `https://api.tracker.gg/api/v2/rocket-league/standard/profile/${platform}/${name}`
 
-        let browser = await puppeteer.launch({
-            args: ['--no-sandbox', '--disabled-setupid-sandbox', '--disable-extensions'],
-            // executablePath: './node_modules/puppeteer/.local-chromium/win64-656675/chrome-win/chrome.exe',
-        })
-        if (environment === 'prod') {
-            browser = await puppeteer.launch({
-                args: ['--no-sandbox', '--disabled-setupid-sandbox', '--disable-extensions'],
-                product: 'firefox',
-                executablePath: '/usr/bin/firefox',
-            })
-        }
-        const page = await browser.newPage()
-        await page.goto(url)
-        const data = await page.content()
         const headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
         }
 
-        const response = JSON.parse(striptags(data))
+        const browser = await puppeteer.launch()
+        const page = await browser.newPage()
+        await page.goto(url)
+        const content = await page.content()
+        // await page.hover('.playableTile__artwork')
+        // await page.screenshot({ path: 'hover.png' })
+        // console.log(content)
+
+        await browser.close()
+
+        const response = JSON.parse(striptags(content))
         const segments = response.data.segments
 
         let threeVthree: rocketLeagueStats = {}
         let twoVtwo: rocketLeagueStats = {}
         let lifetimeStats: rocketLeagueLifetime = {}
         if (!segments) {
-            MessageHelper.sendMessageToActionLogWithCustomMessage(rawMessage, 'Fetch til Rocket League API feilet', 'Her har noe gått galt', true)
+            MessageHelper.sendMessageToActionLogWithCustomMessage(rawMessage, 'Fetch til Rocket League API feilet', 'Her har noe gått galt', false)
             return
         }
         for (const segment of segments) {
@@ -194,7 +190,7 @@ export class GameCommands {
             msgContent.addField(`Lifetime stats:`, `${lifetimeStats.goals} mål\n${lifetimeStats.wins} wins\n${lifetimeStats.shots} skudd`)
         }
         if (waitMsg) waitMsg.delete()
-        browser.close()
+
         MessageHelper.sendFormattedMessage(rawMessage, msgContent)
     }
 
