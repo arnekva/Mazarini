@@ -187,7 +187,7 @@ export class GamblingCommands {
             return
         }
 
-        let username = splitUsername(content)
+        let username = splitUsername(args[1])
         const amount = args[0]
 
         if (isNaN(Number(amount)) || Number(amount) < 1) {
