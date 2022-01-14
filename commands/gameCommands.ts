@@ -153,6 +153,10 @@ export class GameCommands {
         await browser.close()
 
         const response = JSON.parse(striptags(content))
+        if (!response.data) {
+            MessageHelper.sendMessageToActionLogWithCustomMessage(rawMessage, 'Fant ikke data', 'Fant ikke data for brukeren. Her har en error skjedd', true)
+            return
+        }
         const segments = response.data.segments
 
         let threeVthree: rocketLeagueStats = {}
@@ -182,7 +186,7 @@ export class GameCommands {
                 oneVone.modeName = segment?.metadata?.name
                 oneVone.iconURL = segment.stats?.tier?.metadata?.iconUrl
                 oneVone.mmr = segment?.stats?.rating?.value
-            }else if (segment.metadata.name === 'Ranked Doubles 2v2') {
+            } else if (segment.metadata.name === 'Ranked Doubles 2v2') {
                 twoVtwo.rank = segment?.stats?.tier?.metadata?.name
                 twoVtwo.division = segment?.stats?.division?.metadata?.name
                 twoVtwo.modeName = segment?.metadata?.name
@@ -206,7 +210,7 @@ export class GameCommands {
         } else if (args[0] === '1v1') {
             msgContent.addField(`${oneVone.modeName}`, `${oneVone.rank} ${oneVone.division} (${oneVone.mmr})`)
             if (oneVone.iconURL) msgContent.setThumbnail(oneVone.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
-        }else {
+        } else {
             msgContent.addField(`Lifetime stats:`, `${lifetimeStats.goals} mål\n${lifetimeStats.wins} wins\n${lifetimeStats.shots} skudd`)
         }
         if (waitMsg) waitMsg.delete()
