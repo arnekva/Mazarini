@@ -20,6 +20,7 @@ interface rocketLeagueStats {
     rank?: string
     division?: string
     iconURL?: string
+    mmr?: string
 }
 interface rocketLeagueLifetime {
     wins?: string
@@ -156,6 +157,7 @@ export class GameCommands {
 
         let threeVthree: rocketLeagueStats = {}
         let twoVtwo: rocketLeagueStats = {}
+        let oneVone: rocketLeagueStats = {}
         let lifetimeStats: rocketLeagueLifetime = {}
         if (!segments) {
             MessageHelper.sendMessageToActionLogWithCustomMessage(rawMessage, 'Fetch til Rocket League API feilet', 'Her har noe gått galt', false)
@@ -174,26 +176,37 @@ export class GameCommands {
                 lifetimeStats.saves = segment.stats.saves.value
                 lifetimeStats.wins = segment.stats.wins.value
                 lifetimeStats.shots = segment.stats.shots.value
-            } else if (segment.metadata.name === 'Ranked Doubles 2v2') {
+            } else if (segment.metadata.name === 'Ranked Duel 1v1') {
+                oneVone.rank = segment?.stats?.tier?.metadata?.name
+                oneVone.division = segment?.stats?.division?.metadata?.name
+                oneVone.modeName = segment?.metadata?.name
+                oneVone.iconURL = segment.stats?.tier?.metadata?.iconUrl
+                oneVone.mmr = segment?.stats?.rating?.value
+            }else if (segment.metadata.name === 'Ranked Doubles 2v2') {
                 twoVtwo.rank = segment?.stats?.tier?.metadata?.name
                 twoVtwo.division = segment?.stats?.division?.metadata?.name
                 twoVtwo.modeName = segment?.metadata?.name
                 twoVtwo.iconURL = segment.stats?.tier?.metadata?.iconUrl
+                twoVtwo.mmr = segment?.stats?.rating?.value
             } else if (segment.metadata.name === 'Ranked Standard 3v3') {
                 threeVthree.rank = segment?.stats?.tier?.metadata?.name
                 threeVthree.division = segment?.stats?.division?.metadata?.name
                 threeVthree.modeName = segment?.metadata?.name
                 threeVthree.iconURL = segment.stats?.tier?.metadata?.iconUrl
+                threeVthree.mmr = segment?.stats?.rating?.value
             }
         }
         const msgContent = new MessageEmbed().setTitle(`Rocket League - ${name}`)
         if (args[0] === '3v3') {
-            msgContent.addField(`${threeVthree.modeName}`, `${threeVthree.rank} ${threeVthree.division}`)
+            msgContent.addField(`${threeVthree.modeName}`, `${threeVthree.rank} ${threeVthree.division} (${threeVthree.mmr})`)
             if (threeVthree.iconURL) msgContent.setThumbnail(threeVthree.iconURL)
         } else if (args[0] === '2v2') {
-            msgContent.addField(`${twoVtwo.modeName}`, `${twoVtwo.rank} ${twoVtwo.division}`)
+            msgContent.addField(`${twoVtwo.modeName}`, `${twoVtwo.rank} ${twoVtwo.division} (${twoVtwo.mmr})`)
             if (twoVtwo.iconURL) msgContent.setThumbnail(twoVtwo.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
-        } else {
+        } else if (args[0] === '1v1') {
+            msgContent.addField(`${oneVone.modeName}`, `${oneVone.rank} ${oneVone.division} (${oneVone.mmr})`)
+            if (oneVone.iconURL) msgContent.setThumbnail(oneVone.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
+        }else {
             msgContent.addField(`Lifetime stats:`, `${lifetimeStats.goals} mål\n${lifetimeStats.wins} wins\n${lifetimeStats.shots} skudd`)
         }
         if (waitMsg) waitMsg.delete()
