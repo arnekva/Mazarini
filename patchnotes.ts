@@ -2,11 +2,11 @@ import { Channel, Client, DMChannel, NewsChannel, TextChannel, Message, MessageF
 import { ICommandElement } from './commands/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes {
-    public static readonly currentVersion = '4.3.2'
+    public static readonly currentVersion = '4.3.3'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `* Fikset krig cache problem` + `\n* Du kan ikke lenger gamble 0 chips`
+    public static readonly currentPatchNotes: string = `* Lagt til !mz rocket 1v1` + `\n* Alle Rocket playlists viser nå MMR i parantes`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
