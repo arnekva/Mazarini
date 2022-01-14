@@ -134,10 +134,17 @@ export class GameCommands {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
         }
 
-        const browser = await puppeteer.launch({
-            headless: true,
-            executablePath: '/usr/bin/chromium-browser',
-        })
+        //Need to specify executable path on Raspberry Pi, as it for some reason doesn't like the Puppeteer-supplied chromium version. Should work on Windows/Mac.
+        let browser
+        if (environment === 'prod')
+            browser = await puppeteer.launch({
+                headless: true,
+                executablePath: '/usr/bin/chromium-browser',
+            })
+        else
+            browser = await puppeteer.launch({
+                headless: true,
+            })
         const page = await browser.newPage()
         await page.goto(url)
         const content = await page.content()
