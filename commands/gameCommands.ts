@@ -138,6 +138,7 @@ export class GameCommands {
             browser = await puppeteer.launch({
                 args: ['--no-sandbox', '--disabled-setupid-sandbox', '--disable-extensions'],
                 product: 'firefox',
+                executablePath: '/usr/bin/firefox',
             })
         }
         const page = await browser.newPage()
@@ -193,6 +194,7 @@ export class GameCommands {
             msgContent.addField(`Lifetime stats:`, `${lifetimeStats.goals} mål\n${lifetimeStats.wins} wins\n${lifetimeStats.shots} skudd`)
         }
         if (waitMsg) waitMsg.delete()
+        browser.close()
         MessageHelper.sendFormattedMessage(rawMessage, msgContent)
     }
 
