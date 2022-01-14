@@ -130,10 +130,16 @@ export class GameCommands {
         const platform = user[0]
         const url = `https://api.tracker.gg/api/v2/rocket-league/standard/profile/${platform}/${name}`
 
-        const browser = await puppeteer.launch({
+        let browser = await puppeteer.launch({
             args: ['--no-sandbox', '--disabled-setupid-sandbox', '--disable-extensions'],
             // executablePath: './node_modules/puppeteer/.local-chromium/win64-656675/chrome-win/chrome.exe',
         })
+        if (environment === 'prod') {
+            browser = await puppeteer.launch({
+                args: ['--no-sandbox', '--disabled-setupid-sandbox', '--disable-extensions'],
+                product: 'firefox',
+            })
+        }
         const page = await browser.newPage()
         await page.goto(url)
         const data = await page.content()
