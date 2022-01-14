@@ -194,8 +194,17 @@ export class GamblingCommands {
             message.reply('du må oppgi et gyldig tall')
             return
         }
-        let engagerValue = Number(DatabaseHelper.getValue('chips', message.author.username, message))
-        let victimValue = Number(DatabaseHelper.getValue('chips', username, message))
+        const getUserWallets = (engagerUsername: string, victimUsername: string): { engagerChips: number; victimChips: number } => {
+            const engagerValue = Number(DatabaseHelper.getValue('chips', message.author.username, message))
+            const victimValue = Number(DatabaseHelper.getValue('chips', username, message))
+            return {
+                engagerChips: engagerValue,
+                victimChips: victimValue,
+            }
+        }
+        const userWallets = getUserWallets(message.author.username, username)
+        let engagerValue = userWallets.engagerChips
+        let victimValue = userWallets.victimChips
         const amountAsNum = Number(amount)
         if (Number(engagerValue) < amountAsNum || Number(victimValue) < amountAsNum) {
             message.reply('en av dere har ikke råd til å utføre denne krigen her.')
@@ -210,6 +219,14 @@ export class GamblingCommands {
 
             const collector = resolveMessage.createReactionCollector()
             collector.on('collect', (reaction) => {
+                const currentValue = getUserWallets(message.author.username, username)
+                engagerValue = currentValue.engagerChips
+                victimValue = currentValue.victimChips
+                if (Number(engagerValue) < amountAsNum || Number(victimValue) < amountAsNum) {
+                    message.reply('en av dere har ikke råd til å utføre denne krigen her.')
+                    collector.stop()
+                    return
+                }
                 if (reaction.emoji.name === '👍' && reaction.users.cache.find((u) => u.username === username)) {
                     const shouldAlwaysLose = username === message.author.username || username === 'MazariniBot'
                     const roll = getRndInteger(0, 101)
