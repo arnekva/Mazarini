@@ -1,11 +1,17 @@
-import { Message, MessageEmbed } from 'discord.js'
+import { Client, Message, MessageEmbed } from 'discord.js'
+import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { Roles } from '../utils/roles'
 import { ICommandElement } from './commands'
 
-export class UserCommands {
+export class UserCommands extends AbstractCommands {
+
+    constructor(client: Client) {
+        super(client)
+    }
+    
     static getWarnings(message: Message, content: string, args: string[]) {
         const userNameToFind = args.join(' ')
         const userExists = DatabaseHelper.findUserByUsername(userNameToFind, message)
@@ -54,10 +60,10 @@ export class UserCommands {
             const quoteText = args.slice(1).join(' ')
             if (!!quoteBy && !!quoteText) {
                 MessageHelper.reactWithThumbs(message, 'up')
-                const reply = await message.reply('Trenge 3 thumbs up for å godkjenne')
+                const reply = await message.reply('Trenge 4 thumbs up for å godkjenne')
                 const collector = message.createReactionCollector()
                 collector.on('collect', (reaction) => {
-                    if (reaction.emoji.name === '👍' && reaction.users.cache.size > 2) {
+                    if (reaction.emoji.name === '👍' && reaction.users.cache.size > 3) {
                         DatabaseHelper.setQuoteObject(quoteBy, quoteText)
                         collector.stop()
                         if (reply) reply.delete()
@@ -74,30 +80,32 @@ export class UserCommands {
             MessageHelper.sendMessage(message, `*" ${randomQuote} "*\n- ${name}`)
         }
     }
-    static UserCommands: ICommandElement[] = [
-        {
-            commandName: 'quote',
-            description: 'Legg til eller hent et tilfeldig quote',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                UserCommands.addQuote(rawMessage, messageContent, args)
+    public getAllCommands(): ICommandElement[] {
+        return [
+            {
+                commandName: 'quote',
+                description: 'Legg til eller hent et tilfeldig quote',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    UserCommands.addQuote(rawMessage, messageContent, args)
+                },
+                category: 'annet',
             },
-            category: 'annet',
-        },
-        {
-            commandName: 'warnings',
-            description: 'Se antall advarsler du har',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                UserCommands.getWarnings(rawMessage, messageContent, args)
+            {
+                commandName: 'warnings',
+                description: 'Se antall advarsler du har',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    UserCommands.getWarnings(rawMessage, messageContent, args)
+                },
+                category: 'annet',
             },
-            category: 'annet',
-        },
-        {
-            commandName: 'role',
-            description: 'Trigger role assignment',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                UserCommands.roleAssignment(rawMessage, messageContent, args)
+            {
+                commandName: 'role',
+                description: 'Trigger role assignment',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    UserCommands.roleAssignment(rawMessage, messageContent, args)
+                },
+                category: 'annet',
             },
-            category: 'annet',
-        },
-    ]
+        ]
+    }
 }

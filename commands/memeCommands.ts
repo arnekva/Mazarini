@@ -1,11 +1,15 @@
-import { Message, TextChannel } from 'discord.js'
+import { Client, Message, TextChannel } from 'discord.js'
 import { imgflip } from '../client-env'
 import { MessageHelper } from '../helpers/messageHelper'
 import { replaceAtWithTextUsername } from '../utils/textUtils'
 import { ICommandElement } from './commands'
 import { URLSearchParams } from 'url'
+import { AbstractCommands } from '../Abstracts/AbstractCommand'
 const fetch = require('node-fetch')
-export class Meme {
+export class Meme extends AbstractCommands {
+    constructor(client: Client) {
+        super(client)
+    }
     static readonly baseURL = 'https://api.imgflip.com/caption_image'
 
     static async findMemeIdAndCreate(message: Message, content: string, args: string[]) {
@@ -140,15 +144,17 @@ export class Meme {
         }
         return [{ boxId: '0', x: '10', y: '300', width: '300', height: '100' }]
     }
-    static MemeCommands: ICommandElement[] = [
-        {
-            commandName: 'meme',
-            description: "Lag et meme. '!mz meme <anakin|timmy> text1:text2:text3:text4'",
+    public getAllCommands(): ICommandElement[] {
+        return [
+            {
+                commandName: 'meme',
+                description: "Lag et meme. '!mz meme <anakin|timmy> text1:text2:text3:text4'",
 
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                Meme.sendMeme(rawMessage, messageContent, args)
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    Meme.sendMeme(rawMessage, messageContent, args)
+                },
+                category: 'annet',
             },
-            category: 'annet',
-        },
-    ]
+        ]
+    }
 }

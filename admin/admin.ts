@@ -1,5 +1,5 @@
-import { Channel, GuildMember, Message, TextChannel, User } from 'discord.js'
-import { numMessages, startTime } from '..'
+import { Channel, Client, GuildMember, Message, TextChannel, User } from 'discord.js'
+import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement } from '../commands/commands'
 import { DateCommands } from '../commands/dateCommands'
 import { IDailyPriceClaim } from '../commands/gamblingCommands'
@@ -13,7 +13,10 @@ import { DateUtils } from '../utils/dateUtils'
 import { getUsernameInQuotationMarks, isInQuotation, splitUsername } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
 
-export class Admin {
+export class Admin extends AbstractCommands {
+    constructor(client: Client) {
+        super(client)
+    }
     static setSpecificValue(message: Message, messageContent: string, args: string[]) {
         //setValueObject
         const prefix = args[0] as dbPrefix
@@ -60,15 +63,15 @@ export class Admin {
     }
 
     static getStats(message: Message, messageContent: string) {
-        const start = startTime
-        const timeSince = DateUtils.getTimeSince(start)
-        if (timeSince) {
-            let text = DateCommands.formatCountdownText(timeSince, 'siden sist oppstart')
-            text += `\nAntall meldinger siden sist oppstart: ${numMessages}`
-            text += `\nLåste kanaler: ${CommandRunner.lockedThread.length > 0 ? CommandRunner.lockedThread.toString() : 'Ingen'}`
-            text += `\nLåste brukere: ${CommandRunner.lockedUser.length > 0 ? CommandRunner.lockedUser.toString() : 'Ingen'}`
-            MessageHelper.sendMessage(message, text)
-        } else MessageHelper.sendMessage(message, 'Ingen statistikk å vise')
+        // const start = startTime
+        // const timeSince = DateUtils.getTimeSince(start)
+        // if (timeSince) {
+        //     let text = DateCommands.formatCountdownText(timeSince, 'siden sist oppstart')
+        //     // text += `\nAntall meldinger siden sist oppstart: ${numMessages}`
+        //     // text += `\nLåste kanaler: ${CommandRunner.lockedThread.length > 0 ? CommandRunner.lockedThread.toString() : 'Ingen'}`
+        //     // text += `\nLåste brukere: ${CommandRunner.lockedUser.length > 0 ? CommandRunner.lockedUser.toString() : 'Ingen'}`
+        //     MessageHelper.sendMessage(message, text)
+        // } else MessageHelper.sendMessage(message, 'Ingen statistikk å vise')
     }
 
     static async replyToMsgAsBot(rawMessage: Message, content: string) {
@@ -231,139 +234,141 @@ export class Admin {
         DatabaseHelper.setNonUserValue('incorrectCommand', command, newFailNum.toString())
     }
 
-    static adminCommands: ICommandElement[] = [
-        {
-            commandName: 'debug',
-            description: 'For testing. Resultat vil variere. ',
-            hideFromListing: true,
-            command: async (rawMessage: Message, messageContent: string) => {
-                rawMessage.reply('Slettet alle coins og chips for bruker <' + rawMessage.author.username + '>.')
-                setTimeout(() => {
-                    rawMessage.reply('Bare kødda, ingenting har skjedd.')
-                }, 7000)
+    public getAllCommands(): ICommandElement[] {
+        return [
+            {
+                commandName: 'debug',
+                description: 'For testing. Resultat vil variere. ',
+                hideFromListing: true,
+                command: async (rawMessage: Message, messageContent: string) => {
+                    rawMessage.reply('Slettet alle coins og chips for bruker <' + rawMessage.author.username + '>.')
+                    setTimeout(() => {
+                        rawMessage.reply('Bare kødda, ingenting har skjedd.')
+                    }, 7000)
+                },
+                category: 'admin',
             },
-            category: 'admin',
-        },
-        {
-            commandName: 'deletekeys',
-            description: 'Slett alle databasenøkler og tilhørende verdier for den gitte prefixen (Virker ikke)',
-            hideFromListing: true,
-            isAdmin: true,
-            command: (rawMessage: Message, messageContent: string) => {
-                const prefix = rawMessage.content.replace('!mz deletekeys ', '') as dbPrefix
-                DatabaseHelper.deleteSpecificPrefixValues(prefix)
+            {
+                commandName: 'deletekeys',
+                description: 'Slett alle databasenøkler og tilhørende verdier for den gitte prefixen (Virker ikke)',
+                hideFromListing: true,
+                isAdmin: true,
+                command: (rawMessage: Message, messageContent: string) => {
+                    const prefix = rawMessage.content.replace('!mz deletekeys ', '') as dbPrefix
+                    DatabaseHelper.deleteSpecificPrefixValues(prefix)
+                },
+                category: 'admin',
             },
-            category: 'admin',
-        },
-        {
-            commandName: 'deletemessages',
-            description: 'Slett X siste meldinger fra en bruker i en channel',
-            isAdmin: true,
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                Admin.deleteXLastMessagesByUserInChannel(rawMessage, messageContent, args)
+            {
+                commandName: 'deletemessages',
+                description: 'Slett X siste meldinger fra en bruker i en channel',
+                isAdmin: true,
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    Admin.deleteXLastMessagesByUserInChannel(rawMessage, messageContent, args)
+                },
+                category: 'admin',
             },
-            category: 'admin',
-        },
-        {
-            commandName: 'cancel',
-            description: 'Cancel en bruker',
-            isAdmin: true,
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                Admin.cancelUser(rawMessage, messageContent, args)
+            {
+                commandName: 'cancel',
+                description: 'Cancel en bruker',
+                isAdmin: true,
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    Admin.cancelUser(rawMessage, messageContent, args)
+                },
+                category: 'admin',
             },
-            category: 'admin',
-        },
-        {
-            commandName: 'deletekey',
-            description: 'Slett en gitt nøkkel med oppgitt prefix. <prefix> <nøkkel> (Virker ikke)',
-            hideFromListing: true,
-            isAdmin: true,
-            command: (rawMessage: Message, messageContent: string) => {
-                Admin.deleteSpecificValue(rawMessage, messageContent)
+            {
+                commandName: 'deletekey',
+                description: 'Slett en gitt nøkkel med oppgitt prefix. <prefix> <nøkkel> (Virker ikke)',
+                hideFromListing: true,
+                isAdmin: true,
+                command: (rawMessage: Message, messageContent: string) => {
+                    Admin.deleteSpecificValue(rawMessage, messageContent)
+                },
+                category: 'admin',
             },
-            category: 'admin',
-        },
-        {
-            commandName: 'send',
-            description: 'send en melding som boten. <channel id> <melding>',
-            hideFromListing: true,
-            isAdmin: true,
-            command: (rawMessage: Message, messageContent: string) => {
-                Admin.sendMessageAsBotToSpecificChannel(rawMessage)
+            {
+                commandName: 'send',
+                description: 'send en melding som boten. <channel id> <melding>',
+                hideFromListing: true,
+                isAdmin: true,
+                command: (rawMessage: Message, messageContent: string) => {
+                    Admin.sendMessageAsBotToSpecificChannel(rawMessage)
+                },
+                category: 'admin',
             },
-            category: 'admin',
-        },
-        {
-            commandName: 'react',
-            description: 'reager på en melding som botten. <message id> <emoji>',
-            hideFromListing: true,
-            isAdmin: true,
-            command: (rawMessage: Message, messageContent: string) => {
-                Admin.reactToMsgAsBot(rawMessage, messageContent)
+            {
+                commandName: 'react',
+                description: 'reager på en melding som botten. <message id> <emoji>',
+                hideFromListing: true,
+                isAdmin: true,
+                command: (rawMessage: Message, messageContent: string) => {
+                    Admin.reactToMsgAsBot(rawMessage, messageContent)
+                },
+                category: 'admin',
             },
-            category: 'admin',
-        },
-        {
-            commandName: 'stats',
-            description: 'Se enkle statistikker',
-            hideFromListing: true,
-            isAdmin: true,
-            command: (rawMessage: Message, messageContent: string) => {
-                Admin.getStats(rawMessage, messageContent)
+            {
+                commandName: 'stats',
+                description: 'Se enkle statistikker',
+                hideFromListing: true,
+                isAdmin: true,
+                command: (rawMessage: Message, messageContent: string) => {
+                    Admin.getStats(rawMessage, messageContent)
+                },
+                category: 'admin',
             },
-            category: 'admin',
-        },
-        {
-            commandName: 'reply',
-            description: 'reager på en melding som botten.',
-            hideFromListing: true,
-            isAdmin: true,
-            command: (rawMessage: Message, messageContent: string) => {
-                Admin.replyToMsgAsBot(rawMessage, messageContent)
+            {
+                commandName: 'reply',
+                description: 'reager på en melding som botten.',
+                hideFromListing: true,
+                isAdmin: true,
+                command: (rawMessage: Message, messageContent: string) => {
+                    Admin.replyToMsgAsBot(rawMessage, messageContent)
+                },
+                category: 'admin',
             },
-            category: 'admin',
-        },
-        {
-            commandName: 'setvalue',
-            description: 'Sett en spesifikk verdi i databasen. <prefix> <nøkkel> <verdi>',
-            hideFromListing: true,
-            isAdmin: true,
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                Admin.setSpecificValue(rawMessage, messageContent, args)
+            {
+                commandName: 'setvalue',
+                description: 'Sett en spesifikk verdi i databasen. <prefix> <nøkkel> <verdi>',
+                hideFromListing: true,
+                isAdmin: true,
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    Admin.setSpecificValue(rawMessage, messageContent, args)
+                },
+                category: 'admin',
             },
-            category: 'admin',
-        },
-        {
-            commandName: 'setspin',
-            description: 'Sett en spin score for en bruker. <nøkkel> <verdi>',
-            hideFromListing: true,
-            isAdmin: true,
-            command: (rawMessage: Message, messageContent: string) => {
-                Admin.setSpinValue(rawMessage, messageContent)
+            {
+                commandName: 'setspin',
+                description: 'Sett en spin score for en bruker. <nøkkel> <verdi>',
+                hideFromListing: true,
+                isAdmin: true,
+                command: (rawMessage: Message, messageContent: string) => {
+                    Admin.setSpinValue(rawMessage, messageContent)
+                },
+                category: 'admin',
             },
-            category: 'admin',
-        },
-        {
-            commandName: 'getvalue',
-            description: 'Hent en spesifikk verdi i databasen. <prefix> <nøkkel> ',
-            hideFromListing: true,
-            isAdmin: true,
-            command: (rawMessage: Message, messageContent: string) => {
-                Admin.getSpecificValue(rawMessage, messageContent)
+            {
+                commandName: 'getvalue',
+                description: 'Hent en spesifikk verdi i databasen. <prefix> <nøkkel> ',
+                hideFromListing: true,
+                isAdmin: true,
+                command: (rawMessage: Message, messageContent: string) => {
+                    Admin.getSpecificValue(rawMessage, messageContent)
+                },
+                category: 'admin',
             },
-            category: 'admin',
-        },
-        {
-            commandName: 'warn',
-            description: 'Gi en advarsel til en bruker. <nøkkel> <grunn> ',
-            hideFromListing: true,
-            isAdmin: true,
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                Admin.warnUser(rawMessage, messageContent, args)
+            {
+                commandName: 'warn',
+                description: 'Gi en advarsel til en bruker. <nøkkel> <grunn> ',
+                hideFromListing: true,
+                isAdmin: true,
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    Admin.warnUser(rawMessage, messageContent, args)
+                },
+                category: 'admin',
             },
-            category: 'admin',
-        },
-    ]
+        ]
+    }
 
     static isAuthorAdmin(member: GuildMember | null) {
         if (member) return member.roles.cache.has('821709203470680117')

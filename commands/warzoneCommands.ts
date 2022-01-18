@@ -1,4 +1,5 @@
 import { Channel, Client, DMChannel, Message, NewsChannel, TextChannel } from 'discord.js'
+import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { actSSOCookie } from '../client-env'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -88,7 +89,11 @@ interface codBRStatsKeyHeader {
     header: string
 }
 
-export class WarzoneCommands {
+export class WarzoneCommands extends AbstractCommands {
+    constructor(client: Client) {
+        super(client)
+    }
+
     static statsToInclude: codStatsKeyHeader[] = [
         { key: 'kills', header: 'Kills' },
         { key: 'deaths', header: 'Deaths' },
@@ -124,11 +129,13 @@ export class WarzoneCommands {
         { key: 'contracts', header: 'Number of contracts' },
     ]
 
-    static findHeaderFromKey(key: string, isBr?: boolean) {
-        return isBr ? this.BRstatsToInclude.filter((el) => el.key === key).pop()?.header : this.statsToInclude.filter((el) => el.key === key).pop()?.header
+    private findHeaderFromKey(key: string, isBr?: boolean) {
+        return isBr
+            ? WarzoneCommands.BRstatsToInclude.filter((el) => el.key === key).pop()?.header
+            : WarzoneCommands.statsToInclude.filter((el) => el.key === key).pop()?.header
     }
 
-    static async getBRContent(message: Message, messageContent: string, isWeekly?: boolean) {
+    private async getBRContent(message: Message, messageContent: string, isWeekly?: boolean) {
         const content = messageContent.split(' ')
         let gamertag = ''
         let platform = ''
@@ -186,12 +193,12 @@ export class WarzoneCommands {
                 const statsTyped = data.wz.mode.br_all.properties as CodStats
 
                 const orderedStats: Partial<CodStats> = {}
-                for (let i = 0; i < this.statsToInclude.length; i++) {
+                for (let i = 0; i < WarzoneCommands.statsToInclude.length; i++) {
                     for (const [key, value] of Object.entries(statsTyped)) {
-                        if (key === this.statsToInclude[i].key) {
+                        if (key === WarzoneCommands.statsToInclude[i].key) {
                             if (key === 'damageTaken' && Number(statsTyped['damageTaken']) > Number(statsTyped['damageDone'])) {
                                 orderedStats['damageTaken'] = value + ' (flaut)'
-                            } else orderedStats[this.statsToInclude[i].key] = value
+                            } else orderedStats[WarzoneCommands.statsToInclude[i].key] = value
                         }
                     }
                     if (orderedStats.gulagDeaths && orderedStats.gulagKills)
@@ -243,10 +250,10 @@ export class WarzoneCommands {
                 const statsTyped = data.br as CodBRStatsType
 
                 const orderedStats: Partial<CodBRStats> = {}
-                for (let i = 0; i < this.BRstatsToInclude.length; i++) {
+                for (let i = 0; i < WarzoneCommands.BRstatsToInclude.length; i++) {
                     for (const [key, value] of Object.entries(statsTyped)) {
-                        if (key === this.BRstatsToInclude[i].key) {
-                            orderedStats[this.BRstatsToInclude[i].key] = Number(value)
+                        if (key === WarzoneCommands.BRstatsToInclude[i].key) {
+                            orderedStats[WarzoneCommands.BRstatsToInclude[i].key] = Number(value)
                         }
                     }
                 }
@@ -274,7 +281,7 @@ export class WarzoneCommands {
         }
     }
 
-    static saveGameUsernameToDiscordUser(message: Message, content: string, args: string[]) {
+    private saveGameUsernameToDiscordUser(message: Message, content: string, args: string[]) {
         const game = args[0]
         const platform = args[1]
         const gamertag = args[2]
@@ -290,7 +297,7 @@ export class WarzoneCommands {
         }
     }
 
-    static getWZUserStringFromDB(message: Message) {
+    private getWZUserStringFromDB(message: Message) {
         return DatabaseHelper.getValue('activisionUserString', message.author.username, message, true)
     }
 
@@ -301,7 +308,7 @@ export class WarzoneCommands {
      * @param ignoreCompare Noen stats skal ikke sammenliknes (e.g. time played og average lifetime)
      * @returns
      */
-    static compareOldNewStats(current: string | Number, storedData: string | number, ignoreCompare?: boolean) {
+    private compareOldNewStats(current: string | Number, storedData: string | number, ignoreCompare?: boolean) {
         if (ignoreCompare) return ''
         const currentStats = Number(current)
         const oldStorageStats = Number(storedData)
@@ -311,39 +318,41 @@ export class WarzoneCommands {
         return ``
     }
     /** Beware of stats: any */
-    static saveUserStats(message: Message, messageContent: string, stats: CodStats | CodBRStatsType, isBR?: boolean) {
+    private saveUserStats(message: Message, messageContent: string, stats: CodStats | CodBRStatsType, isBR?: boolean) {
         DatabaseHelper.setObjectValue(isBR ? 'codStatsBR' : 'codStats', message.author.username, JSON.stringify(stats))
     }
-    static getUserStats(message: Message, isBr?: boolean) {
+    private getUserStats(message: Message, isBr?: boolean) {
         return DatabaseHelper.getValue(isBr ? 'codStatsBR' : 'codStats', message.author.username, message)
     }
 
-    static WZCommands: ICommandElement[] = [
-        {
-            commandName: 'br',
-            description: "<gamertag> <plattform> (plattform: 'battle',  'psn', 'xbl'",
-            command: (rawMessage: Message, messageContent: string) => {
-                WarzoneCommands.getBRContent(rawMessage, messageContent)
+    public getAllCommands(): ICommandElement[] {
+        return [
+            {
+                commandName: 'br',
+                description: "<gamertag> <plattform> (plattform: 'battle',  'psn', 'xbl'",
+                command: (rawMessage: Message, messageContent: string) => {
+                    this.getBRContent(rawMessage, messageContent)
+                },
+                category: 'gaming',
             },
-            category: 'gaming',
-        },
-        {
-            commandName: 'weekly',
-            description: "<gamertag> <plattform> (plattform: 'battle', 'steam', 'psn', 'xbl', 'acti', 'uno' (Activision ID som tall), 'all' (uvisst)",
-            command: (rawMessage: Message, messageContent: string) => {
-                WarzoneCommands.getBRContent(rawMessage, messageContent, true)
+            {
+                commandName: 'weekly',
+                description: "<gamertag> <plattform> (plattform: 'battle', 'steam', 'psn', 'xbl', 'acti', 'uno' (Activision ID som tall), 'all' (uvisst)",
+                command: (rawMessage: Message, messageContent: string) => {
+                    this.getBRContent(rawMessage, messageContent, true)
+                },
+                category: 'gaming',
             },
-            category: 'gaming',
-        },
-        {
-            commandName: 'link',
-            description: "<plattform> <gamertag> (plattform: 'battle', 'psn', 'xbl', 'epic')",
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                WarzoneCommands.saveGameUsernameToDiscordUser(rawMessage, messageContent, args)
+            {
+                commandName: 'link',
+                description: "<plattform> <gamertag> (plattform: 'battle', 'psn', 'xbl', 'epic')",
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.saveGameUsernameToDiscordUser(rawMessage, messageContent, args)
+                },
+                category: 'gaming',
             },
-            category: 'gaming',
-        },
-    ]
+        ]
+    }
 }
 
 function convertTime(seconds: number) {
@@ -354,34 +363,4 @@ function convertTime(seconds: number) {
     let minutes = Math.floor(remainingSeconds2 / 60)
     let timeString = days + 'D ' + hours + 'H ' + minutes + 'M'
     return timeString
-}
-
-function getMode(mode: string) {
-    let gameMode = ''
-    switch (mode) {
-        case 'br':
-        case 'battleroyale':
-        case 'battle':
-            gameMode = 'br'
-            break
-
-        case 'pl':
-        case 'plunder':
-            gameMode = 'plunder'
-            break
-
-        case 'mr':
-        case 'mini':
-            gameMode = 'mini'
-            break
-
-        case 'resurgence':
-        case 'rebirth':
-        case 'rs':
-            gameMode = 'resurgence'
-            break
-        default:
-            gameMode = 'ugyldig'
-            return gameMode
-    }
 }

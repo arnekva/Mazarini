@@ -1,4 +1,5 @@
-import { Message, MessageEmbed } from 'discord.js'
+import { Client, Message, MessageEmbed } from 'discord.js'
+import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { spotifyToken } from '../client-env'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
@@ -8,7 +9,11 @@ import { ICommandElement } from './commands'
 import { Music } from './musicCommands'
 const request = require('request')
 const fetch = require('node-fetch')
-export class SpotifyCommands {
+export class SpotifyCommands extends AbstractCommands {
+    constructor(client: Client) {
+        super(client)
+    }
+
     static getUsersCurrentSong(rawMessage: Message, content: string, args: string[]) {
         const user = args[0] ?? undefined
 
@@ -126,14 +131,16 @@ export class SpotifyCommands {
             }
         }
     }
-    static SpotifyCommands: ICommandElement[] = [
-        {
-            commandName: 'spotify',
-            description: 'Hent hva brukeren spiller av på Spotify (fra Discord)',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                SpotifyCommands.currentPlayingFromDiscord(rawMessage, messageContent, args)
+    public getAllCommands(): ICommandElement[] {
+        return [
+            {
+                commandName: 'spotify',
+                description: 'Hent hva brukeren spiller av på Spotify (fra Discord)',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    SpotifyCommands.currentPlayingFromDiscord(rawMessage, messageContent, args)
+                },
+                category: 'musikk',
             },
-            category: 'musikk',
-        },
-    ]
+        ]
+    }
 }

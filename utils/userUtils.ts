@@ -1,4 +1,4 @@
-import { GuildMember, Message, Role, TextChannel, User } from 'discord.js'
+import { GuildMember, Message, PartialGuildMember, PartialUser, Role, TextChannel, User } from 'discord.js'
 import { UserCommands } from '../commands/userCommands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -46,7 +46,7 @@ export namespace UserUtils {
         return undefined
     }
 
-    export const compareMember = (oldMember: GuildMember, newMember: GuildMember) => {
+    export const compareMember = (oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) => {
         if (newMember.id === '802945796457758760') return //Ikke gjør noe når bot oppdateres
         if (oldMember.id === '802945796457758760') return
 
@@ -93,7 +93,7 @@ export namespace UserUtils {
         )
     }
 
-    export const onMemberLeave = async (member: GuildMember) => {
+    export const onMemberLeave = async (member: GuildMember | PartialGuildMember) => {
         MessageHelper.sendMessageToSpecificChannel(
             '340626855990132747',
             'Farvell, ' + (member.nickname ?? member.displayName),
@@ -105,14 +105,14 @@ export namespace UserUtils {
         )
     }
 
-    export const onUserUpdate = (oldUser: User, newUser: User) => {
+    export const onUserUpdate = (oldUser: User | PartialUser, newUser: User | PartialUser) => {
         if (oldUser.id === '802945796457758760') return
         MessageHelper.sendMessageToActionLog(
             newUser.client.channels.cache.first() as TextChannel,
             'Oppdatert bruker:   ' + oldUser.username + ' -> ' + newUser.username + ''
         )
     }
-    export const onMemberUpdate = (oldMember: GuildMember, newMember: GuildMember) => {
+    export const onMemberUpdate = (oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) => {
         if (newMember.id === '802945796457758760') return //Ikke gjør noe når bot oppdateres
         if (oldMember.id === '802945796457758760') return
         if (oldMember.user.username === 'MazariniBot') return

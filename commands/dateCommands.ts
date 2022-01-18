@@ -1,5 +1,6 @@
 import { time } from 'console'
-import { Message } from 'discord.js'
+import { Client, Message } from 'discord.js'
+import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { globalArrays } from '../globals'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
@@ -16,7 +17,10 @@ interface bankHolidayObject {
     date: string
     description: string
 }
-export class DateCommands {
+export class DateCommands extends AbstractCommands {
+    constructor(client: Client) {
+        super(client)
+    }
     static setReminder(message: Message, content: string, args: string[]) {
         const timeArray = args[0].split(':')
         const event = args.slice(1).join(' ')
@@ -139,36 +143,38 @@ export class DateCommands {
         return false
     }
 
-    static DateCommands: ICommandElement[] = [
-        {
-            commandName: 'remind',
-            description:
-                "Sett en varsling. Formattering: '!mz remind HH:MM:SS tekst her'. Denne er ikke lagret vedvarende, så den forsvinner hvis botten restarter.",
-            hideFromListing: true,
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                DateCommands.setReminder(rawMessage, messageContent, args)
-            },
+    public getAllCommands(): ICommandElement[] {
+        return [
+            {
+                commandName: 'remind',
+                description:
+                    "Sett en varsling. Formattering: '!mz remind HH:MM:SS tekst her'. Denne er ikke lagret vedvarende, så den forsvinner hvis botten restarter.",
+                hideFromListing: true,
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    DateCommands.setReminder(rawMessage, messageContent, args)
+                },
 
-            category: 'annet',
-        },
-        {
-            commandName: 'helg',
-            description: 'Sjekk hvor lenge det er til helg',
-            hideFromListing: true,
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                DateCommands.checkForHelg(rawMessage, messageContent, args)
+                category: 'annet',
             },
+            {
+                commandName: 'helg',
+                description: 'Sjekk hvor lenge det er til helg',
+                hideFromListing: true,
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    DateCommands.checkForHelg(rawMessage, messageContent, args)
+                },
 
-            category: 'annet',
-        },
-        {
-            commandName: 'countdown',
-            description:
-                "Se hvor lenge det er igjen til events (Legg til ny med '!mz countdown <dd-mm-yyyy> <hh> <beskrivelse> (klokke kan spesifiserert slik: <hh:mm:ss:SSS>. Kun time er nødvendig)",
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                DateCommands.countdownToDate(rawMessage, messageContent, args)
+                category: 'annet',
             },
-            category: 'annet',
-        },
-    ]
+            {
+                commandName: 'countdown',
+                description:
+                    "Se hvor lenge det er igjen til events (Legg til ny med '!mz countdown <dd-mm-yyyy> <hh> <beskrivelse> (klokke kan spesifiserert slik: <hh:mm:ss:SSS>. Kun time er nødvendig)",
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    DateCommands.countdownToDate(rawMessage, messageContent, args)
+                },
+                category: 'annet',
+            },
+        ]
+    }
 }

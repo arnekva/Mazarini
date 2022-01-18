@@ -1,4 +1,5 @@
-import { Message } from 'discord.js'
+import { Client, Message } from 'discord.js'
+import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { AchievementHelper } from '../helpers/achievementHelper'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -24,7 +25,11 @@ export const achievements: MZAchievement[] = [
     { id: 'bonk100', title: '100 bonks', description: 'Bli bonket 100 ganger', points: 15 },
 ]
 
-export class Achievements {
+export class Achievements extends AbstractCommands {
+    constructor(client: Client) {
+        super(client)
+    }
+
     static awardAchievement(username: string, achievementID: achievementIDs, rawMessage: Message, silent?: boolean) {
         const achiev = achievements.find((el) => el.id == achievementID)
         const hasAchievementsObj = DatabaseHelper.getValue('achievement', username, rawMessage) //FIXME: This line needs to be there to check if Achievements exist, as getValue creates Achievements if not present
@@ -78,24 +83,26 @@ export class Achievements {
             AchievementHelper.awardSpinningAch(username, currentTotalspin, message, true)
         })
     }
-    static AchievementCommands: ICommandElement[] = [
-        {
-            commandName: 'achievements',
-            description: 'Se dine achievements',
-            command: (rawMessage: Message, messageContent: string) => {
-                Achievements.listUserAchievements(rawMessage)
+    public getAllCommands(): ICommandElement[] {
+        return [
+            {
+                commandName: 'achievements',
+                description: 'Se dine achievements',
+                command: (rawMessage: Message, messageContent: string) => {
+                    Achievements.listUserAchievements(rawMessage)
+                },
+                category: 'annet',
             },
-            category: 'annet',
-        },
-        {
-            commandName: 'missingach',
-            description: 'Tildel manglende achievements til brukere. (Brukes når achievement legges til i etterkant)',
-            isAdmin: true,
-            hideFromListing: true,
-            command: (rawMessage: Message, messageContent: string) => {
-                Achievements.awardMissing(rawMessage)
+            {
+                commandName: 'missingach',
+                description: 'Tildel manglende achievements til brukere. (Brukes når achievement legges til i etterkant)',
+                isAdmin: true,
+                hideFromListing: true,
+                command: (rawMessage: Message, messageContent: string) => {
+                    Achievements.awardMissing(rawMessage)
+                },
+                category: 'admin',
             },
-            category: 'admin',
-        },
-    ]
+        ]
+    }
 }

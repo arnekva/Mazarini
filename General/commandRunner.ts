@@ -1,8 +1,8 @@
 import didYouMean from 'didyoumean2'
-import { Message, User } from 'discord.js'
+import { Client, Message, PartialMessage, User } from 'discord.js'
 import { Admin } from '../admin/admin'
 import { environment } from '../client-env'
-import { commands, ICommandElement } from '../commands/commands'
+import { Commands, ICommandElement } from '../commands/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MessageUtils } from '../utils/messageUtils'
@@ -11,31 +11,35 @@ import { getRandomPercentage } from '../utils/randomUtils'
 import { splitUsername } from '../utils/textUtils'
 
 export class CommandRunner {
-    static botLocked: boolean = false
-    static lockedUser: string[] = []
-    static lockedThread: string[] = []
-    static lastUsedCommand = 'help'
-    static polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê|å|æ|ê|è|é|à|á)*(ls)(e|a|å|o|i)|(pause)|(🌭)|(hotdog)|(sausage)|(hot-dog)/gi)
+    private commands: Commands
+    botLocked: boolean = false
+    lockedUser: string[] = []
+    lockedThread: string[] = []
+    lastUsedCommand = 'help'
+    polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê|å|æ|ê|è|é|à|á)*(ls)(e|a|å|o|i)|(pause)|(🌭)|(hotdog)|(sausage)|(hot-dog)/gi)
 
-    static async runCommands(message: Message) {
+    constructor(client: Client) {
+        this.commands = new Commands(client)
+    }
+    async runCommands(message: Message) {
         /** Check if message is calling lock commands */
-        if (CommandRunner.checkForLockCommand(message)) return
+        if (this.checkForLockCommand(message)) return
         /** Check if message thread or channel is locked */
-        if (CommandRunner.isThreadLocked(message)) return
+        if (this.isThreadLocked(message)) return
         /** Check if user is locked */
-        if (CommandRunner.isUserLocked(message)) return
+        if (this.isUserLocked(message)) return
         /** Check if bot is locked */
-        if (CommandRunner.isBotLocked()) return
+        if (this.isBotLocked()) return
         /** Check if the bot is allowed to send messages in this channel */
-        if (!CommandRunner.isLegalChannel(message)) return
+        if (!this.isLegalChannel(message)) return
         if (this.checkForGetCommands(message)) return
         /**  Check message for commands */
-        await CommandRunner.checkForCommand(message)
+        await this.checkForCommand(message)
         /** Additional non-command checks */
-        CommandRunner.checkMessageForJokes(message)
+        this.checkMessageForJokes(message)
     }
 
-    static checkForLockCommand(message: Message) {
+    checkForLockCommand(message: Message) {
         const content = message.content
         const isBot = content.includes('bot')
         const isUser = content.includes('user')
@@ -72,7 +76,7 @@ export class CommandRunner {
             return false
         }
     }
-    static async checkForCommand(message: Message) {
+    async checkForCommand(message: Message) {
         if (message.author.id === '802945796457758760') return
 
         const isZm = message.content.toLowerCase().startsWith('!zm ')
@@ -86,6 +90,7 @@ export class CommandRunner {
             const command = message.content.toLowerCase().replace('!mz ', '').replace('!mz', '').replace('!zm ', '').split(' ')[0].toLowerCase()
             const messageContent = message.content.split(' ').slice(2).join(' ')
             const args = !!messageContent ? messageContent.split(' ') : []
+            const commands = this.commands.getAllCommands()
             if (message.content.toLowerCase().startsWith('!mz ja')) {
                 const lastCommand = commands.filter((cmd) => cmd.commandName == this.lastUsedCommand)[0]
                 if (lastCommand) {
@@ -123,7 +128,7 @@ export class CommandRunner {
         }
     }
 
-    static runCommandElement(cmd: ICommandElement, message: Message, messageContent: string, args: string[]) {
+    runCommandElement(cmd: ICommandElement, message: Message, messageContent: string, args: string[]) {
         if (cmd.isSuperAdmin) {
             if (Admin.isAuthorSuperAdmin(message.member)) {
                 cmd.command(message, messageContent, args)
@@ -149,7 +154,7 @@ export class CommandRunner {
         return true
     }
 
-    static checkForGetCommands(message: Message) {
+    checkForGetCommands(message: Message) {
         const args = message.content.split(' ')
         if (message.content.startsWith('!get')) {
             if (args[1] === 'username') {
@@ -164,7 +169,7 @@ export class CommandRunner {
     }
 
     /** Checks for pølse, eivindpride etc. */
-    static checkMessageForJokes(message: Message) {
+    checkMessageForJokes(message: Message) {
         const kekw = message.client.emojis.cache.find((emoji) => emoji.name == 'kekw_animated')
         let matches
         let polseCounter = 0
@@ -200,19 +205,19 @@ export class CommandRunner {
         }
     }
 
-    static isThreadLocked(message: Message) {
+    isThreadLocked(message: Message) {
         return this.lockedThread.includes(message.channelId)
     }
 
-    static isBotLocked() {
+    isBotLocked() {
         return this.botLocked
     }
 
-    static isUserLocked(message: Message) {
+    isUserLocked(message: Message) {
         return this.lockedUser.includes(message.author.username)
     }
 
-    static isLegalChannel(message: Message) {
+    isLegalChannel(message: Message) {
         return (
             (environment === 'dev' &&
                 (message.channel.id === '880493116648456222' ||

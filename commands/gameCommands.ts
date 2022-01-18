@@ -1,5 +1,6 @@
-import { Message, MessageEmbed } from 'discord.js'
+import { Client, Message, MessageEmbed } from 'discord.js'
 import { env } from 'process'
+import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -69,7 +70,11 @@ function getValidDropCoordinate(xCircleCenter: number, yCircleCenter: number): d
     return { xDropCoordinate: xCoordinate, yDropCoordinate: yCoordinate }
 }
 
-export class GameCommands {
+export class GameCommands extends AbstractCommands {
+    constructor(client: Client) {
+        super(client)
+    }
+
     static dropVerdansk(message: Message) {
         const randomElement = verdansk[Math.floor(Math.random() * verdansk.length)]
         MessageHelper.sendMessage(message, 'Dere dropper i ' + randomElement)
@@ -224,40 +229,42 @@ export class GameCommands {
         return page.goto(url)
     }
 
-    static GameCommands: ICommandElement[] = [
-        {
-            commandName: 'rocket',
-            description: 'Få Rocket League stats. <2v2|3v3|stats>',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GameCommands.rocketLeagueRanks(rawMessage, messageContent, args)
+    public getAllCommands(): ICommandElement[] {
+        return [
+            {
+                commandName: 'rocket',
+                description: 'Få Rocket League stats. <2v2|3v3|stats>',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    GameCommands.rocketLeagueRanks(rawMessage, messageContent, args)
+                },
+                category: 'gaming',
             },
-            category: 'gaming',
-        },
-        {
-            commandName: 'verdansk',
-            description: 'Få et tilfeldig sted å droppe i Verdansk',
-            command: (rawMessage: Message, messageContent: string) => {
-                GameCommands.dropVerdansk(rawMessage)
+            {
+                commandName: 'verdansk',
+                description: 'Få et tilfeldig sted å droppe i Verdansk',
+                command: (rawMessage: Message, messageContent: string) => {
+                    GameCommands.dropVerdansk(rawMessage)
+                },
+                category: 'gaming',
             },
-            category: 'gaming',
-        },
-        {
-            commandName: 'rebirth',
-            description: 'Få et tilfeldig sted å droppe i Rebirth Island',
-            command: (rawMessage: Message, messageContent: string) => {
-                GameCommands.dropRebirth(rawMessage)
+            {
+                commandName: 'rebirth',
+                description: 'Få et tilfeldig sted å droppe i Rebirth Island',
+                command: (rawMessage: Message, messageContent: string) => {
+                    GameCommands.dropRebirth(rawMessage)
+                },
+                category: 'gaming',
             },
-            category: 'gaming',
-        },
-        {
-            commandName: 'grid',
-            description: 'Få et tilfeldig sted å droppe ut fra Grid i Verdansk',
-            command: (rawMessage: Message, messageContent: string) => {
-                GameCommands.dropGrid(rawMessage, messageContent)
+            {
+                commandName: 'grid',
+                description: 'Få et tilfeldig sted å droppe ut fra Grid i Verdansk',
+                command: (rawMessage: Message, messageContent: string) => {
+                    GameCommands.dropGrid(rawMessage, messageContent)
+                },
+                category: 'gaming',
             },
-            category: 'gaming',
-        },
-    ]
+        ]
+    }
 }
 export const dropLocations: dropLocation[] = [
     { name: 'Summit', coord: ['C2', 'D2', 'C3'] },

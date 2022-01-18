@@ -1,13 +1,8 @@
-import { Channel, Client, DMChannel, Message, MessageEmbed, NewsChannel, TextChannel, User } from 'discord.js'
-import { mazariniClient } from '..'
+import { Message, MessageEmbed, TextChannel, User } from 'discord.js'
 import { globalArrays } from '../globals'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { reverseMessageString } from '../utils/textUtils'
 
-//import {client } from "./index"
-// import {action_log_channel} from "./index"
-// const Discord = require('discord.js');
-// const client = new Discord.Client();
 export type typeOfError = 'unauthorized' | 'error' | 'warning'
 export type thumbsReact = 'up' | 'down'
 export class MessageHelper {
@@ -60,8 +55,9 @@ export class MessageHelper {
      * @param channelId Channel message is to be sent to
      */
     static SendMessageWithoutMessageObject(message: string, channelId: string) {
-        const channel = mazariniClient.channels.cache.get(channelId) as TextChannel
-        channel.send(`${message}`)
+        return ''
+        // const channel = maza.channels.cache.get(channelId) as TextChannel
+        // channel.send(`${message}`)
     }
 
     static async sendDM(user: User, content: string, message: Message) {

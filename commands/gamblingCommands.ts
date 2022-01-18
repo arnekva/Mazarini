@@ -1,5 +1,6 @@
-import { Message, MessageEmbed } from 'discord.js'
+import { Message, MessageEmbed, User } from 'discord.js'
 import { Channel, Client, DMChannel, NewsChannel, TextChannel } from 'discord.js'
+import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { globals } from '../globals'
 import { betObject, betObjectReturned, DatabaseHelper, dbPrefix } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -14,11 +15,10 @@ export interface IDailyPriceClaim {
     streak: number
     wasAddedToday: boolean
 }
-export class GamblingCommands {
-    //Todo: Add mz startPoll
-    //Todo: Add mz endPoll
-    //TOdo: Fikse coins converter
-    //Todo: Add Butikk
+export class GamblingCommands extends AbstractCommands {
+    constructor(client: Client) {
+        super(client)
+    }
 
     static async manageCoins(message: Message, messageContent: string, args: string[]) {
         if (!args[0] && !args[1]) {
@@ -40,6 +40,7 @@ export class GamblingCommands {
         const hasActiveBet = DatabaseHelper.getActiveBetObject(message.author.username)
         const userBalance = DatabaseHelper.getValue('chips', message.author.username, message)
         let desc = messageContent
+        this
         if (hasActiveBet) {
             message.reply('Du kan bare ha ett aktivt veddemål om gangen. Gjør ferdig ditt gamle, og prøv på nytt')
             return
@@ -183,15 +184,26 @@ export class GamblingCommands {
     }
     static async krig(message: Message, content: string, args: string[]) {
         if (!ArrayUtils.checkArgsLength(args, 2)) {
-            message.reply('du må oppgi mengde og person. <nummer> <username>')
+            message.reply('du må oppgi mengde og person')
             return
         }
+        let username = ''
+        let username1 = splitUsername(args[0])
+        let username2 = splitUsername(args[1])
 
-        let username = splitUsername(args[1])
-        const amount = args[0]
+        const user0Exists = UserUtils.findUserByUsername(username1, message)
+        const user1Exists = UserUtils.findUserByUsername(username2, message)
+        const amount = user0Exists ? args[1] : args[0]
 
+        if (user0Exists) username = user0Exists.username
+        if (user1Exists) username = user1Exists.username
+
+        if (!user0Exists && !user1Exists) {
+            message.reply('Du må skrive inn et gyldig brukernavn')
+            return
+        }
         if (isNaN(Number(amount)) || Number(amount) < 1) {
-            message.reply('du må oppgi et gyldig tall')
+            message.reply('Tallet du har skrevet inn er ikke gyldig')
             return
         }
         const getUserWallets = (engagerUsername: string, victimUsername: string): { engagerChips: number; victimChips: number } => {
@@ -234,7 +246,7 @@ export class GamblingCommands {
                     if (shouldAlwaysLose) {
                         description = `${
                             username === message.author.username
-                                ? 'Du gikk til krig mot deg selv. Dette liker ikke Bot Høie, og tar derfor pengene dine.'
+                                ? 'Du gikk til krig mot deg selv. Dette liker ikke Bot Høie, og tar derfor pengene.'
                                 : 'Huset vinner alltid'
                         }`
                     }
@@ -832,148 +844,149 @@ export class GamblingCommands {
         return 100
     }
 
-    /** ALl commands from this class. Automatically imported to Commands when added here */
-    static gamblingCommands: ICommandElement[] = [
-        {
-            commandName: 'coins',
-            description: 'Legg til eller fjern coins fra en person. <Brukernavn> <verdi> (pluss/minus)',
-            hideFromListing: true,
-            isAdmin: true,
-            isSuperAdmin: true,
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.manageCoins(rawMessage, messageContent, args)
+    public getAllCommands(): ICommandElement[] {
+        return [
+            {
+                commandName: 'coins',
+                description: 'Legg til eller fjern coins fra en person. <Brukernavn> <verdi> (pluss/minus)',
+                hideFromListing: true,
+                isAdmin: true,
+                isSuperAdmin: true,
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    GamblingCommands.manageCoins(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'lån',
-            description: 'Lån chips fra banken',
+            {
+                commandName: 'lån',
+                description: 'Lån chips fra banken',
 
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.takeUpLoan(rawMessage, messageContent, args)
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    GamblingCommands.takeUpLoan(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'betal',
-            description: 'Betal på lånet ditt. <number>',
+            {
+                commandName: 'betal',
+                description: 'Betal på lånet ditt. <number>',
 
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.payDownDebt(rawMessage, messageContent, args)
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    GamblingCommands.payDownDebt(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'bailout',
-            description: 'Motta en bailout fra MazariniBank',
+            {
+                commandName: 'bailout',
+                description: 'Motta en bailout fra MazariniBank',
 
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.bailout(rawMessage)
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    GamblingCommands.bailout(rawMessage)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'krig',
-            description: 'Gå til krig. <nummer> <username>',
+            {
+                commandName: 'krig',
+                description: 'Gå til krig. <nummer> <username>',
 
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.krig(rawMessage, messageContent, args)
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    GamblingCommands.krig(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'visbet',
-            description: 'Vis en brukers aktive veddemål',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.showActiveBet(rawMessage, messageContent, args)
+            {
+                commandName: 'visbet',
+                description: 'Vis en brukers aktive veddemål',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    GamblingCommands.showActiveBet(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'vipps',
-            description: 'Vipps til en annen bruker. <number>',
+            {
+                commandName: 'vipps',
+                description: 'Vipps til en annen bruker. <number>',
 
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.vippsCoins(rawMessage, messageContent, args)
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    GamblingCommands.vippsCoins(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'gamble',
-            description:
-                'Gambla coinså dine! Skriv inn mengde coins du vil gambla, så kan du vinna. Tilbakebetaling blir høyere jo høyere terningen triller (1.1x for 50 opp till 5x for 100)',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.diceGamble(rawMessage, messageContent, args)
+            {
+                commandName: 'gamble',
+                description:
+                    'Gambla coinså dine! Skriv inn mengde coins du vil gambla, så kan du vinna. Tilbakebetaling blir høyere jo høyere terningen triller (1.1x for 50 opp till 5x for 100)',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    GamblingCommands.diceGamble(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'rulett',
-            description:
-                'Gambla chipså dine! Skriv inn mengde coins du vil gambla og ikke minst ka du gamble de på, så kan du vinna. Tilbakebetaling blir høyere jo større risiko du tar. Lykke til!' +
-                "\nHer kan du gambla på tall, farge eller partall/oddetall. Eksempel: '!mz rulett 1000 svart",
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.roulette(rawMessage, messageContent, args)
+            {
+                commandName: 'rulett',
+                description:
+                    'Gambla chipså dine! Skriv inn mengde coins du vil gambla og ikke minst ka du gamble de på, så kan du vinna. Tilbakebetaling blir høyere jo større risiko du tar. Lykke til!' +
+                    "\nHer kan du gambla på tall, farge eller partall/oddetall. Eksempel: '!mz rulett 1000 svart",
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    GamblingCommands.roulette(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'g',
-            description: "Se 'gamble'",
-            hideFromListing: true,
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.diceGamble(rawMessage, messageContent, args)
+            {
+                commandName: 'g',
+                description: "Se 'gamble'",
+                hideFromListing: true,
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    GamblingCommands.diceGamble(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'wallet',
-            description: 'Se antall coins til en person',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.checkCoins(rawMessage, messageContent, args)
+            {
+                commandName: 'wallet',
+                description: 'Se antall coins til en person',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    GamblingCommands.checkCoins(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'daily',
-            description: 'Hent dine daglige chips og coins',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.claimDailyChipsAndCoins(rawMessage, messageContent, args)
+            {
+                commandName: 'daily',
+                description: 'Hent dine daglige chips og coins',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    GamblingCommands.claimDailyChipsAndCoins(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'chips',
-            description: 'Se antall chips en person har til gambling',
-            deprecated: 'wallet',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.checkChips(rawMessage, messageContent, args)
+            {
+                commandName: 'chips',
+                description: 'Se antall chips en person har til gambling',
+                deprecated: 'wallet',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    GamblingCommands.checkChips(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'bet',
-            description: 'Start et ja/nei veddemål',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.createBet(rawMessage, messageContent, args)
+            {
+                commandName: 'bet',
+                description: 'Start et ja/nei veddemål',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    GamblingCommands.createBet(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'resolve',
-            description: 'Resolve veddemålet',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.resolveBet(rawMessage, messageContent, args)
+            {
+                commandName: 'resolve',
+                description: 'Resolve veddemålet',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    GamblingCommands.resolveBet(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'roll',
-            description: 'Rull spillemaskinen. Du vinner hvis du får 2 eller flere like tall',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.rollSlotMachine(rawMessage, messageContent, args)
+            {
+                commandName: 'roll',
+                description: 'Rull spillemaskinen. Du vinner hvis du får 2 eller flere like tall',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    GamblingCommands.rollSlotMachine(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-    ]
+        ]
+    }
 }

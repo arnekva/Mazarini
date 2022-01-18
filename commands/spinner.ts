@@ -1,5 +1,6 @@
 import { Message } from 'discord.js'
 import { Channel, Client, DMChannel, NewsChannel, TextChannel } from 'discord.js'
+import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { AchievementHelper } from '../helpers/achievementHelper'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
@@ -60,11 +61,10 @@ const spinMinutes = [
     },
 ]
 
-function didSpinnerBreak() {
-    return getRandomPercentage(1) //1% sjanse for å ødelegge spinneren
-}
-
-export class Spinner {
+export class Spinner extends AbstractCommands {
+    constructor(client: Client) {
+        super(client)
+    }
     static spin(message: Message) {
         const min = weightedRandomObject(spinMinutes).number
         const sec = Math.floor(Math.random() * 60)
@@ -193,31 +193,33 @@ export class Spinner {
         MessageHelper.sendMessage(message, printList)
     }
 
-    static SpinnerCommands: ICommandElement[] = [
-        {
-            commandName: 'ATH',
-            description: 'Printer hver person sin beste spin!',
-            command: (rawMessage: Message, messageContent: string) => {
-                Spinner.allTimeHigh(rawMessage)
+    public getAllCommands(): ICommandElement[] {
+        return [
+            {
+                commandName: 'ATH',
+                description: 'Printer hver person sin beste spin!',
+                command: (rawMessage: Message, messageContent: string) => {
+                    Spinner.allTimeHigh(rawMessage)
+                },
+                category: 'spin',
             },
-            category: 'spin',
-        },
-        {
-            commandName: 'spin',
-            description:
-                'Spin fidgetspinneren. Beste tid per bruker registreres i databasen. Tallene er tilfeldige, men vektet. Du vinner chips hvis du spinner mer enn 5 minutter. (Høyeste gevinst er 100.000.000 chips for 10 min) ',
-            command: (rawMessage: Message, messageContent: string) => {
-                Spinner.spin(rawMessage)
+            {
+                commandName: 'spin',
+                description:
+                    'Spin fidgetspinneren. Beste tid per bruker registreres i databasen. Tallene er tilfeldige, men vektet. Du vinner chips hvis du spinner mer enn 5 minutter. (Høyeste gevinst er 100.000.000 chips for 10 min) ',
+                command: (rawMessage: Message, messageContent: string) => {
+                    Spinner.spin(rawMessage)
+                },
+                category: 'spin',
             },
-            category: 'spin',
-        },
-        {
-            commandName: 'totalspins',
-            description: 'Antall spins per person',
-            command: (rawMessage: Message, messageContent: string) => {
-                Spinner.listSpinCounter(rawMessage)
+            {
+                commandName: 'totalspins',
+                description: 'Antall spins per person',
+                command: (rawMessage: Message, messageContent: string) => {
+                    Spinner.listSpinCounter(rawMessage)
+                },
+                category: 'spin',
             },
-            category: 'spin',
-        },
-    ]
+        ]
+    }
 }

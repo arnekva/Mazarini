@@ -1,5 +1,6 @@
-import { Message, TextChannel } from 'discord.js'
+import { Client, Message, TextChannel } from 'discord.js'
 import { parse } from 'dotenv/types'
+import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { discordSecret, lfKey } from '../client-env'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
@@ -38,7 +39,10 @@ interface fetchData {
     username: string
 }
 
-export class Music {
+export class Music extends AbstractCommands {
+    constructor(client: Client) {
+        super(client)
+    }
     static readonly baseUrl = 'http://ws.audioscrobbler.com/2.0/'
     static async findCommand(
         message: Message,
@@ -297,15 +301,17 @@ Docs: https://www.last.fm/api/show/user.getInfo
         return DatabaseHelper.setValue('lastFmUsername', username, lfUsername)
     }
 
-    static musicCommands: ICommandElement[] = [
-        {
-            commandName: 'musikk',
-            description:
-                "Bruk '!mz musikk <topp|weekly|siste> <songs|albums|artist> <limit?>(valgfri). Koble til Last.fm med '!mz music user *discord brukernavn* *Last.fm brukernavn*'",
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                Music.findCommand(rawMessage, messageContent, args)
+    public getAllCommands(): ICommandElement[] {
+        return [
+            {
+                commandName: 'musikk',
+                description:
+                    "Bruk '!mz musikk <topp|weekly|siste> <songs|albums|artist> <limit?>(valgfri). Koble til Last.fm med '!mz music user *discord brukernavn* *Last.fm brukernavn*'",
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    Music.findCommand(rawMessage, messageContent, args)
+                },
+                category: 'musikk',
             },
-            category: 'musikk',
-        },
-    ]
+        ]
+    }
 }

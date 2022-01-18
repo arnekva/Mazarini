@@ -1,10 +1,15 @@
-import { Message, MessageEmbed } from 'discord.js'
+import { Client, Message, MessageEmbed } from 'discord.js'
 import { MessageHelper } from '../helpers/messageHelper'
-import { ICommandElement } from './commands'
+import { Commands, ICommandElement } from './commands'
 const fetch = require('node-fetch')
 import { WeatherUtils } from '../utils/weatherUtils'
+import { AbstractCommands } from '../Abstracts/AbstractCommand'
 
-export class Weather {
+export class Weather extends AbstractCommands {
+    constructor(client: Client) {
+        super(client)
+    }
+
     static getWeatherForGivenCity(message: Message, city: string) {
         const APIkey = 'fc7f85d19367afda9a6a3839919a820a'
         const rootUrl = 'https://api.openweathermap.org/data/2.5/weather?'
@@ -48,14 +53,16 @@ export class Weather {
                 MessageHelper.sendMessage(message, 'Fant ikke byen')
             })
     }
-    static WeatherCommands: ICommandElement[] = [
-        {
-            commandName: 'vær',
-            description: 'Sjekk været på et gitt sted',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                Weather.getWeatherForGivenCity(rawMessage, messageContent)
+    public getAllCommands(): ICommandElement[] {
+        return [
+            {
+                commandName: 'vær',
+                description: 'Sjekk været på et gitt sted',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    Weather.getWeatherForGivenCity(rawMessage, messageContent)
+                },
+                category: 'annet',
             },
-            category: 'annet',
-        },
-    ]
+        ]
+    }
 }

@@ -2,11 +2,18 @@ import { Channel, Client, DMChannel, NewsChannel, TextChannel, Message, MessageF
 import { ICommandElement } from './commands/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes {
-    public static readonly currentVersion = '4.3.3'
+    public static readonly currentVersion = '5.0.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `* Lagt til !mz rocket 1v1` + `\n* Alle Rocket playlists viser nå MMR i parantes`
+    public static readonly currentPatchNotes: string =
+        `* Refaktorert hele kodebasen` +
+        `\n* Flyttet alt fra index til main` +
+        `\n* Flyttet alt fra index til main` +
+        `\n* Flyttet alt fra index til main` +
+        `\n* Flyttet alt fra index til main` +
+        `\n* Flyttet alt fra index til main` +
+        `\n* Github commands fjernet`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
