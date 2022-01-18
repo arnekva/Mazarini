@@ -65,9 +65,9 @@ export class MazariniClient {
         this.isTest = environment === 'dev'
     }
 
-    initClient() {
+    async initClient() {
         /** Login client */
-        this.client.login(discordSecret)
+        await this.client.login(discordSecret)
         this.setupClient(this.client)
     }
 

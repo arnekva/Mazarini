@@ -95,7 +95,9 @@ export class CommandRunner {
             const args = !!messageContent ? messageContent.split(' ') : []
             const commands = this.commands.getAllCommands()
             if (message.content.toLowerCase().startsWith('!mz ja')) {
-                const lastCommand = commands.filter((cmd) => cmd.commandName == this.lastUsedCommand)[0]
+                const lastCommand = commands.filter((cmd) =>
+                    Array.isArray(cmd.commandName) ? cmd.commandName.find((c) => c === this.lastUsedCommand) : cmd.commandName == this.lastUsedCommand
+                )[0]
                 if (lastCommand) {
                     this.runCommandElement(lastCommand, message, messageContent, args)
                     return
