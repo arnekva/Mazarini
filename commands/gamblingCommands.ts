@@ -1,5 +1,6 @@
-import { Message, MessageEmbed } from 'discord.js'
+import { Message, MessageEmbed, User } from 'discord.js'
 import { Channel, Client, DMChannel, NewsChannel, TextChannel } from 'discord.js'
+import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { globals } from '../globals'
 import { betObject, betObjectReturned, DatabaseHelper, dbPrefix } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -14,15 +15,14 @@ export interface IDailyPriceClaim {
     streak: number
     wasAddedToday: boolean
 }
-export class GamblingCommands {
-    //Todo: Add mz startPoll
-    //Todo: Add mz endPoll
-    //TOdo: Fikse coins converter
-    //Todo: Add Butikk
+export class GamblingCommands extends AbstractCommands {
+    constructor(client: Client, messageHelper: MessageHelper) {
+        super(client, messageHelper)
+    }
 
-    static async manageCoins(message: Message, messageContent: string, args: string[]) {
+    private async manageCoins(message: Message, messageContent: string, args: string[]) {
         if (!args[0] && !args[1]) {
-            MessageHelper.sendMessage(message, `Feil formattering. <brukernavn> <coins>`)
+            this.messageHelper.sendMessage(message.channelId, `Feil formattering. <brukernavn> <coins>`)
             return
         }
         const user = args[0]
@@ -32,14 +32,15 @@ export class GamblingCommands {
             const currentVal = DatabaseHelper.getValue(prefix, user, message)
             if (Number(currentVal)) val = Number(val) + Number(currentVal)
             DatabaseHelper.setValue(prefix, user, val.toString())
-            MessageHelper.sendMessage(message, `${user} har nå ${val} dogecoins.`)
-        } else MessageHelper.sendMessage(message, `Du må bruke et tall som verdi`)
+            this.messageHelper.sendMessage(message.channelId, `${user} har nå ${val} dogecoins.`)
+        } else this.messageHelper.sendMessage(message.channelId, `Du må bruke et tall som verdi`)
     }
 
-    static async createBet(message: Message, messageContent: string, args: string[]) {
+    private async createBet(message: Message, messageContent: string, args: string[]) {
         const hasActiveBet = DatabaseHelper.getActiveBetObject(message.author.username)
         const userBalance = DatabaseHelper.getValue('chips', message.author.username, message)
         let desc = messageContent
+        this
         if (hasActiveBet) {
             message.reply('Du kan bare ha ett aktivt veddemål om gangen. Gjør ferdig ditt gamle, og prøv på nytt')
             return
@@ -54,11 +55,11 @@ export class GamblingCommands {
             return
         }
         const betString = `${message.author.username} har startet et veddemål: ${desc} (${betVal} chips). Reager med 👍 for JA, 👎 for NEI. Resultat vises om ${globals.TIMEOUT_TIME.name}`
-        const startMessage = await MessageHelper.sendMessage(message, betString)
+        const startMessage = await this.messageHelper.sendMessage(message.channelId, betString)
         if (startMessage) {
-            MessageHelper.reactWithThumbs(startMessage, 'up')
-            MessageHelper.reactWithThumbs(startMessage, 'down')
-
+            this.messageHelper.reactWithThumbs(startMessage, 'up')
+            this.messageHelper.reactWithThumbs(startMessage, 'down')
+            const _msg = this.messageHelper
             setTimeout(async function () {
                 let fullString = ''
                 const positive: string[] = []
@@ -103,7 +104,7 @@ export class GamblingCommands {
                     message.reply('Ingen svarte på veddemålet. ')
                     return
                 }
-                MessageHelper.sendMessage(message, fullString)
+                _msg.sendMessage(message.channelId, fullString)
 
                 const obj: betObject = {
                     description: desc,
@@ -117,7 +118,7 @@ export class GamblingCommands {
         }
     }
 
-    static async resolveBet(message: Message, messageContent: string, args: string[]) {
+    private async resolveBet(message: Message, messageContent: string, args: string[]) {
         const username = message.author.username
         const activeBet = DatabaseHelper.getActiveBetObject(message.author.username) as betObjectReturned
         if (!activeBet) {
@@ -130,7 +131,7 @@ export class GamblingCommands {
             const posSplit = activeBet.positivePeople.split(',')
             if (negSplit[0] !== '') numP += negSplit.length
             if (posSplit[0] !== '') numP += posSplit.length
-            GamblingCommands.dealCoins(message, activeBet.value, activeBet.positivePeople.concat(activeBet.negativePeople), numP, true)
+            this.dealCoins(message, activeBet.value, activeBet.positivePeople.concat(activeBet.negativePeople), numP, true)
             DatabaseHelper.deleteActiveBet(username)
             message.reply('Veddemålet er slettet, og beløp er tilbakebetalt.')
             return
@@ -140,20 +141,19 @@ export class GamblingCommands {
             return
         }
         DatabaseHelper.deleteActiveBet(username)
-        const resolveMessage = await MessageHelper.sendMessage(
-            message,
+        const resolveMessage = await this.messageHelper.sendMessage(
+            message.channelId,
             `${username} vil gjøre opp ett veddemål: ${activeBet.description}. Reager med 👍 for å godkjenne (Trenger 3).`
         )
         if (resolveMessage) {
-            MessageHelper.reactWithThumbs(resolveMessage, 'up')
+            this.messageHelper.reactWithThumbs(resolveMessage, 'up')
             const collector = resolveMessage.createReactionCollector()
             collector.on('collect', (reaction) => {
                 if (reaction.emoji.name === '👍' && reaction.users.cache.size > 2) {
                     const isPositive = args[0].toLocaleLowerCase() === 'ja'
-                    MessageHelper.sendMessage(message, `Veddemålsresultatet er godkjent. Beløpene blir nå lagt til på kontoene. `)
-                    const value = activeBet.value
+                    this.messageHelper.sendMessage(message.channelId, `Veddemålsresultatet er godkjent. Beløpene blir nå lagt til på kontoene. `)
 
-                    GamblingCommands.dealCoins(
+                    this.dealCoins(
                         message,
                         activeBet.value,
                         isPositive ? activeBet.positivePeople : activeBet.negativePeople,
@@ -165,7 +165,7 @@ export class GamblingCommands {
             })
         }
     }
-    static showActiveBet(message: Message, content: string, args: string[]) {
+    private showActiveBet(message: Message, content: string, args: string[]) {
         const username = args[0] ?? message.author.username
         const activeBet = DatabaseHelper.getActiveBetObject(username) as betObject
         if (!activeBet) {
@@ -179,19 +179,31 @@ export class GamblingCommands {
             .addField('JA', `${activeBet.positivePeople.length < 1 ? 'Ingen' : activeBet.positivePeople}`)
             .addField('NEI', `${activeBet.negativePeople.length < 1 ? 'Ingen' : activeBet.negativePeople}`)
             .addField('Verdi', `${activeBet.value.length < 1 ? '0' : activeBet.value}`)
-        MessageHelper.sendFormattedMessage(message, betMessage)
+        this.messageHelper.sendFormattedMessage(message.channel as TextChannel, betMessage)
     }
-    static async krig(message: Message, content: string, args: string[]) {
+
+    private async krig(message: Message, content: string, args: string[]) {
         if (!ArrayUtils.checkArgsLength(args, 2)) {
-            message.reply('du må oppgi mengde og person. <nummer> <username>')
+            message.reply('du må oppgi mengde og person')
             return
         }
+        let username = ''
+        let username1 = splitUsername(args[0])
+        let username2 = splitUsername(args[1])
 
-        let username = splitUsername(args[1])
-        const amount = args[0]
+        const user0Exists = UserUtils.findUserByUsername(username1, message)
+        const user1Exists = UserUtils.findUserByUsername(username2, message)
+        const amount = user0Exists ? args[1] : args[0]
 
+        if (user0Exists) username = user0Exists.username
+        if (user1Exists) username = user1Exists.username
+
+        if (!user0Exists && !user1Exists) {
+            message.reply('Du må skrive inn et gyldig brukernavn')
+            return
+        }
         if (isNaN(Number(amount)) || Number(amount) < 1) {
-            message.reply('du må oppgi et gyldig tall')
+            message.reply('Tallet du har skrevet inn er ikke gyldig')
             return
         }
         const getUserWallets = (engagerUsername: string, victimUsername: string): { engagerChips: number; victimChips: number } => {
@@ -210,12 +222,12 @@ export class GamblingCommands {
             message.reply('en av dere har ikke råd til å utføre denne krigen her.')
             return
         }
-        const resolveMessage = await MessageHelper.sendMessage(
-            message,
+        const resolveMessage = await this.messageHelper.sendMessage(
+            message.channelId,
             `${message.author.username} vil gå til krig med deg, ${username}. Reager med 👍 for å godkjenne. Den som starter krigen ruller for 0-49.`
         )
         if (resolveMessage) {
-            MessageHelper.reactWithThumbs(resolveMessage, 'up')
+            this.messageHelper.reactWithThumbs(resolveMessage, 'up')
 
             const collector = resolveMessage.createReactionCollector()
             collector.on('collect', (reaction) => {
@@ -227,14 +239,14 @@ export class GamblingCommands {
                     collector.stop()
                     return
                 }
-                if (reaction.emoji.name === '👍' && reaction.users.cache.find((u) => u.username === username)) {
+                if (reaction.emoji.name === '👍' && reaction.users.cache.find((u) => u.username.toLowerCase() === username.toLowerCase())) {
                     const shouldAlwaysLose = username === message.author.username || username === 'MazariniBot'
                     const roll = getRndInteger(0, 101)
                     let description = `Terningen trillet: ${roll}/100. ${roll < 51 ? (roll == 50 ? 'Bot Høie' : message.author.username) : username} vant! 💰💰`
                     if (shouldAlwaysLose) {
                         description = `${
                             username === message.author.username
-                                ? 'Du gikk til krig mot deg selv. Dette liker ikke Bot Høie, og tar derfor pengene dine.'
+                                ? 'Du gikk til krig mot deg selv. Dette liker ikke Bot Høie, og tar derfor pengene.'
                                 : 'Huset vinner alltid'
                         }`
                     }
@@ -273,7 +285,7 @@ export class GamblingCommands {
                             })} chips`
                         )
                     }
-                    MessageHelper.sendFormattedMessage(message, gambling)
+                    this.messageHelper.sendFormattedMessage(message.channel as TextChannel, gambling)
                     DatabaseHelper.setValue('chips', message.author.username, engagerValue.toFixed(2))
                     DatabaseHelper.setValue('chips', username, victimValue.toFixed(2))
                     collector.stop()
@@ -282,7 +294,7 @@ export class GamblingCommands {
         }
     }
 
-    static diceGamble(message: Message, content: string, args: string[]) {
+    private diceGamble(message: Message, content: string, args: string[]) {
         const userMoney = DatabaseHelper.getValue('chips', message.author.username, message)
         let value = args[0]
         if (value === 'alt' || value === 'all') value = userMoney
@@ -310,7 +322,7 @@ export class GamblingCommands {
 
             let newMoneyValue = 0
             let interest = 0
-            let multiplier = GamblingCommands.getMultiplier(roll, valAsNum)
+            let multiplier = this.getMultiplier(roll, valAsNum)
             if (roll >= 50) {
                 newMoneyValue = this.calculatedNewMoneyValue(message, multiplier, valAsNum, userMoney)
             } else newMoneyValue = Number(userMoney) - valAsNum
@@ -336,10 +348,11 @@ export class GamblingCommands {
                     `Gjeld`,
                     `Du er i høy gjeld, og banken har krevd inn ${interest.toFixed(2)} chips (${(100 - (100 - (1 - rate) * 100)).toFixed(0)}%)`
                 )
-            MessageHelper.sendFormattedMessage(message, gambling)
+            this.messageHelper.sendFormattedMessage(message.channel as TextChannel, gambling)
         }
     }
-    static roulette(message: Message, content: string, args: string[]) {
+
+    private roulette(message: Message, content: string, args: string[]) {
         let userMoney = DatabaseHelper.getValue('chips', message.author.username, message)
         const stake = args[0]
         const betOn = args[1]
@@ -445,15 +458,15 @@ export class GamblingCommands {
                     `Gjeld`,
                     `Du er i høy gjeld, og banken har krevd inn ${interest.toFixed(2)} chips (${(100 - (100 - (1 - rate) * 100)).toFixed(0)}%)`
                 )
-            MessageHelper.sendFormattedMessage(message, gambling)
+            this.messageHelper.sendFormattedMessage(message.channel as TextChannel, gambling)
         }
     }
-    static getMultiplier(roll: number, amountBet: number) {
+    private getMultiplier(roll: number, amountBet: number) {
         if (roll >= 100) return 5
         return 2
     }
 
-    static calculatedNewMoneyValue(message: Message, multiplier: number, valAsNum: number, userMoney: number) {
+    private calculatedNewMoneyValue(message: Message, multiplier: number, valAsNum: number, userMoney: number) {
         const hasDebtPenalty = DatabaseHelper.getValueWithoutMessage('debtPenalty', message.author.username) === 'true'
         let rate = 185
         let newMoneyValue = 0
@@ -468,18 +481,8 @@ export class GamblingCommands {
         newMoneyValue = Number(userMoney) + multiplier * valAsNum - interest - valAsNum
         return newMoneyValue
     }
-    static bailout(message: Message) {
-        const canBailout = false
-        const userCoins = DatabaseHelper.getValue('chips', message.author.username, message)
-        // if(canBailout === "true" && Number(userCoins) < 100000){
-        //     message.reply(`${message.author.username} har mottatt en redningspakke fra MazariniBank på 500,000,000.`)
-        //     DatabaseHelper.setValue("dogeCoin", message.author.username, "500000000");
-        // } else {
-        message.reply('Beklager, MazariniBank gir ikke ut redningspakker.')
-        // }
-    }
 
-    static takeUpLoan(message: Message, content: string, args: string[]) {
+    private takeUpLoan(message: Message, content: string, args: string[]) {
         let amountToLoan = 1000
         if (args[0]) {
             const argAsNum = Number(args[0])
@@ -523,15 +526,15 @@ export class GamblingCommands {
         const newCoinsVal = Number(userMoney) + amountToLoan
         DatabaseHelper.setValue('chips', username, newCoinsVal.toFixed(2))
 
-        MessageHelper.sendMessage(
-            message,
+        this.messageHelper.sendMessage(
+            message.channelId,
             `${username}, du har nå lånt ${amountToLoan.toFixed(2)} chips med 15% rente. Spend them well. Din totale gjeld er nå: ${newDebt.toFixed(
                 2
             )} (${newTotalLoans} lån gjort)`
         )
     }
 
-    static payDownDebt(message: Message, content: string, args: string[]) {
+    private payDownDebt(message: Message, content: string, args: string[]) {
         const username = message.author.username
         const totalDebt = DatabaseHelper.getValue('debt', username, message)
         const hasDebtPenalty = DatabaseHelper.getValue('debtPenalty', username, message)
@@ -576,8 +579,8 @@ export class GamblingCommands {
                     //Resett multiplier
                     DatabaseHelper.setValue('debtMultiplier', username, '15')
                 }
-                MessageHelper.sendMessage(
-                    message,
+                this.messageHelper.sendMessage(
+                    message.channelId,
                     `Du har nå betalt ned ${wantsToPayDownThisAmount.toFixed(2)} av lånet ditt på ${totalDebt}. Lånet er nå på ${newTotal.toFixed(
                         2
                     )} og du har ${newDogeCoinsCOunter.toFixed(2)} chips igjen.`
@@ -587,7 +590,8 @@ export class GamblingCommands {
             message.reply('Du har ikke skrevet inn et tall')
         }
     }
-    static vippsCoins(message: Message, content: string, args: string[]) {
+
+    private vippsCoins(message: Message, content: string, args: string[]) {
         if (!args[0]) {
             message.reply('du må sei kem du ska vippsa, bro')
             return
@@ -615,7 +619,7 @@ export class GamblingCommands {
                 const newBalance = authorBalance - Number(coinsToVipps)
                 DatabaseHelper.setValue('dogeCoin', message.author.username, newBalance.toFixed(2))
                 DatabaseHelper.incrementValue('dogeCoin', userWhoGetsCoins, coinsToVipps)
-                MessageHelper.sendMessage(message, `${message.author.username} vippset ${userWhoGetsCoins} ${coinsToVipps}.`)
+                this.messageHelper.sendMessage(message.channelId, `${message.author.username} vippset ${userWhoGetsCoins} ${coinsToVipps}.`)
             } else {
                 message.reply('finner ingen bruker med det navnet')
             }
@@ -623,7 +627,8 @@ export class GamblingCommands {
             message.reply('du har ikkje råd te å vippsa så møye, bro (Man kan ikkje vippsa chips for gambling).')
         }
     }
-    static dealCoins(message: Message, value: string, peopleGettingCoins: string, numP: number, noDefaultPott?: boolean) {
+
+    private dealCoins(message: Message, value: string, peopleGettingCoins: string, numP: number, noDefaultPott?: boolean) {
         const peopleCoins = peopleGettingCoins.split(',').filter((u) => u !== 'Mazarini Bot')
         const basePot = noDefaultPott ? 0 : 50
         let pot = basePot
@@ -644,16 +649,16 @@ export class GamblingCommands {
                             userCoins +
                             "'. Hendelsen blir loggført slik at en nerd kan se nærmere på det."
                     )
-                    MessageHelper.sendMessageToActionLogWithDefaultMessage(message, `Trigget dealcoins med enten undefined eller NaN verdi på coins. `)
+                    this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, `Trigget dealcoins med enten undefined eller NaN verdi på coins. `)
                 }
                 DatabaseHelper.setValue('chips', username, newValue.toString())
                 moneyString += `${username}: ${userCoins} -> ${newValue}\n`
             }
         })
-        MessageHelper.sendMessage(message, moneyString)
+        this.messageHelper.sendMessage(message.channelId, moneyString)
     }
 
-    static async checkCoins(message: Message, messageContent: string, args: string[]) {
+    private async checkCoins(message: Message, messageContent: string, args: string[]) {
         let username: string
         if (!args[0]) {
             username = message.author.username
@@ -664,21 +669,21 @@ export class GamblingCommands {
         }
         const coins = DatabaseHelper.getValue('dogeCoin', username, message)
         const chips = DatabaseHelper.getValue('chips', username, message)
-        MessageHelper.sendMessage(message, `${username} har ${Number(coins).toFixed(0)} coins og ${Number(chips).toFixed(0)} chips`)
+        this.messageHelper.sendMessage(message.channelId, `${username} har ${Number(coins).toFixed(0)} coins og ${Number(chips).toFixed(0)} chips`)
     }
 
     /** TODO: Remove this when deprecated phase is over
      *  @deprecated this is now under checkcoins
      */
-    static async checkChips(message: Message, messageContent: string, args: string[]) {
+    private async checkChips(message: Message, messageContent: string, args: string[]) {
         let username: string
         if (!args[0]) {
             username = message.author.username
         } else username = splitUsername(args[0])
 
         const val = DatabaseHelper.getValue('chips', username, message)
-        MessageHelper.sendMessage(
-            message,
+        this.messageHelper.sendMessage(
+            message.channelId,
             `${username} har ${Number(val).toLocaleString(undefined, {
                 maximumFractionDigits: 2,
                 minimumFractionDigits: 2,
@@ -686,7 +691,7 @@ export class GamblingCommands {
         )
     }
 
-    static rollSlotMachine(message: Message, messageContent: string, args: string[]) {
+    private rollSlotMachine(message: Message, messageContent: string, args: string[]) {
         const userMoney = DatabaseHelper.getValue('chips', message.author.username, message)
         if (Number(userMoney) < 100) {
             message.reply('Det koste 100 chips for å bruga maskinen, og du har kje råd bro')
@@ -751,11 +756,11 @@ export class GamblingCommands {
             })
             if (!hasSequence) msg.addField('Du tapte', '-100 chips')
         }
-        MessageHelper.sendFormattedMessage(message, msg)
+        this.messageHelper.sendFormattedMessage(message.channel as TextChannel, msg)
     }
 
     /** Missing streak counter and increased reward */
-    static claimDailyChipsAndCoins(message: Message, messageContent: string, args: string[]) {
+    private claimDailyChipsAndCoins(message: Message, messageContent: string, args: string[]) {
         const canClaim = DatabaseHelper.getValue('dailyClaim', message.author.username, message)
         const dailyPrice = { chips: '500', coins: '80' }
         if (canClaim === '0') {
@@ -786,7 +791,7 @@ export class GamblingCommands {
         }
     }
 
-    static findAdditionalCoins(streak: number): { coins: number; chips: number } | undefined {
+    private findAdditionalCoins(streak: number): { coins: number; chips: number } | undefined {
         if (streak > 100) return { coins: 5000, chips: 10000000 }
 
         if (streak > 50) return { coins: 500, chips: 8000000 }
@@ -799,7 +804,7 @@ export class GamblingCommands {
         return undefined
     }
 
-    static findSequenceWinningAmount(s: string) {
+    private findSequenceWinningAmount(s: string) {
         switch (s) {
             case '123':
                 return 1000
@@ -814,7 +819,7 @@ export class GamblingCommands {
         }
     }
 
-    static findSlotMachineWinningAmount(numCorrect: number) {
+    private findSlotMachineWinningAmount(numCorrect: number) {
         switch (numCorrect) {
             case 2:
                 return 100
@@ -829,151 +834,133 @@ export class GamblingCommands {
             default:
                 return 100
         }
-        return 100
     }
 
-    /** ALl commands from this class. Automatically imported to Commands when added here */
-    static gamblingCommands: ICommandElement[] = [
-        {
-            commandName: 'coins',
-            description: 'Legg til eller fjern coins fra en person. <Brukernavn> <verdi> (pluss/minus)',
-            hideFromListing: true,
-            isAdmin: true,
-            isSuperAdmin: true,
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.manageCoins(rawMessage, messageContent, args)
+    public getAllCommands(): ICommandElement[] {
+        return [
+            {
+                commandName: 'coins',
+                description: 'Legg til eller fjern coins fra en person. <Brukernavn> <verdi> (pluss/minus)',
+                hideFromListing: true,
+                isAdmin: true,
+                isSuperAdmin: true,
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.manageCoins(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'lån',
-            description: 'Lån chips fra banken',
+            {
+                commandName: 'lån',
+                description: 'Lån chips fra banken',
 
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.takeUpLoan(rawMessage, messageContent, args)
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.takeUpLoan(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'betal',
-            description: 'Betal på lånet ditt. <number>',
+            {
+                commandName: 'betal',
+                description: 'Betal på lånet ditt. <number>',
 
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.payDownDebt(rawMessage, messageContent, args)
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.payDownDebt(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'bailout',
-            description: 'Motta en bailout fra MazariniBank',
+            {
+                commandName: 'krig',
+                description: 'Gå til krig. <nummer> <username>',
 
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.bailout(rawMessage)
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.krig(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'krig',
-            description: 'Gå til krig. <nummer> <username>',
+            {
+                commandName: 'visbet',
+                description: 'Vis en brukers aktive veddemål',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.showActiveBet(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
+            },
+            {
+                commandName: 'vipps',
+                description: 'Vipps til en annen bruker. <number>',
 
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.krig(rawMessage, messageContent, args)
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.vippsCoins(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'visbet',
-            description: 'Vis en brukers aktive veddemål',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.showActiveBet(rawMessage, messageContent, args)
+            {
+                commandName: ['gamble', 'g'],
+                description:
+                    'Gambla coinså dine! Skriv inn mengde coins du vil gambla, så kan du vinna. Tilbakebetaling blir høyere jo høyere terningen triller (1.1x for 50 opp till 5x for 100)',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.diceGamble(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'vipps',
-            description: 'Vipps til en annen bruker. <number>',
-
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.vippsCoins(rawMessage, messageContent, args)
+            {
+                commandName: 'rulett',
+                description:
+                    'Gambla chipså dine! Skriv inn mengde coins du vil gambla og ikke minst ka du gamble de på, så kan du vinna. Tilbakebetaling blir høyere jo større risiko du tar. Lykke til!' +
+                    "\nHer kan du gambla på tall, farge eller partall/oddetall. Eksempel: '!mz rulett 1000 svart",
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.roulette(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'gamble',
-            description:
-                'Gambla coinså dine! Skriv inn mengde coins du vil gambla, så kan du vinna. Tilbakebetaling blir høyere jo høyere terningen triller (1.1x for 50 opp till 5x for 100)',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.diceGamble(rawMessage, messageContent, args)
+            {
+                commandName: 'wallet',
+                description: 'Se antall coins til en person',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.checkCoins(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'rulett',
-            description:
-                'Gambla chipså dine! Skriv inn mengde coins du vil gambla og ikke minst ka du gamble de på, så kan du vinna. Tilbakebetaling blir høyere jo større risiko du tar. Lykke til!' +
-                "\nHer kan du gambla på tall, farge eller partall/oddetall. Eksempel: '!mz rulett 1000 svart",
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.roulette(rawMessage, messageContent, args)
+            {
+                commandName: 'daily',
+                description: 'Hent dine daglige chips og coins',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.claimDailyChipsAndCoins(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'g',
-            description: "Se 'gamble'",
-            hideFromListing: true,
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.diceGamble(rawMessage, messageContent, args)
+            {
+                commandName: 'chips',
+                description: 'Se antall chips en person har til gambling',
+                deprecated: 'wallet',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.checkChips(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'wallet',
-            description: 'Se antall coins til en person',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.checkCoins(rawMessage, messageContent, args)
+            {
+                commandName: 'bet',
+                description: 'Start et ja/nei veddemål',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.createBet(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'daily',
-            description: 'Hent dine daglige chips og coins',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.claimDailyChipsAndCoins(rawMessage, messageContent, args)
+            {
+                commandName: 'resolve',
+                description: 'Resolve veddemålet',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.resolveBet(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'chips',
-            description: 'Se antall chips en person har til gambling',
-            deprecated: 'wallet',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.checkChips(rawMessage, messageContent, args)
+            {
+                commandName: 'roll',
+                description: 'Rull spillemaskinen. Du vinner hvis du får 2 eller flere like tall',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.rollSlotMachine(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
             },
-            category: 'gambling',
-        },
-        {
-            commandName: 'bet',
-            description: 'Start et ja/nei veddemål',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.createBet(rawMessage, messageContent, args)
-            },
-            category: 'gambling',
-        },
-        {
-            commandName: 'resolve',
-            description: 'Resolve veddemålet',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.resolveBet(rawMessage, messageContent, args)
-            },
-            category: 'gambling',
-        },
-        {
-            commandName: 'roll',
-            description: 'Rull spillemaskinen. Du vinner hvis du får 2 eller flere like tall',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                GamblingCommands.rollSlotMachine(rawMessage, messageContent, args)
-            },
-            category: 'gambling',
-        },
-    ]
+        ]
+    }
 }

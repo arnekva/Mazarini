@@ -1,21 +1,33 @@
-import { Message, MessageEmbed } from 'discord.js'
+import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
+import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { Roles } from '../utils/roles'
 import { ICommandElement } from './commands'
 
-export class UserCommands {
-    static getWarnings(message: Message, content: string, args: string[]) {
+export class UserCommands extends AbstractCommands {
+    constructor(client: Client, messageHelper: MessageHelper) {
+        super(client, messageHelper)
+    }
+
+    private getWarnings(message: Message, content: string, args: string[]) {
         const userNameToFind = args.join(' ')
         const userExists = DatabaseHelper.findUserByUsername(userNameToFind, message)
         const warningCounter = DatabaseHelper.getValue('warningCounter', userExists?.username ?? message.author.username, message)
         if (userExists)
-            MessageHelper.sendMessage(message, `${userExists?.username} har ${warningCounter} ${Number(warningCounter) === 1 ? 'advarsel' : 'advarsler'}`)
-        else MessageHelper.sendMessage(message, `${message.author.username} har ${warningCounter} ${Number(warningCounter) === 1 ? 'advarsel' : 'advarsler'}`)
+            this.messageHelper.sendMessage(
+                message.channelId,
+                `${userExists?.username} har ${warningCounter} ${Number(warningCounter) === 1 ? 'advarsel' : 'advarsler'}`
+            )
+        else
+            this.messageHelper.sendMessage(
+                message.channelId,
+                `${message.author.username} har ${warningCounter} ${Number(warningCounter) === 1 ? 'advarsel' : 'advarsler'}`
+            )
     }
 
-    static async roleAssignment(message: Message, content: string, args: string[]) {
+    private async roleAssignment(message: Message, content: string, args: string[]) {
         const roles = Roles.allRoles
 
         const msg = new MessageEmbed().setTitle('Rolle').setDescription(`Reager med emojiene nedenfor for å få tildelt roller`)
@@ -24,7 +36,7 @@ export class UserCommands {
             msg.addField(`${role.name}`, `${role.emoji}`, true)
         })
 
-        const sentMessage = await MessageHelper.sendFormattedMessage(message, msg)
+        const sentMessage = await this.messageHelper.sendFormattedMessage(message.channel as TextChannel, msg)
         roles.forEach((r) => sentMessage.react(r.emoji))
         sentMessage.createReactionCollector().on('collect', (reaction) => {
             const users = reaction.users.cache.filter((u) => u.id !== '802945796457758760')
@@ -41,7 +53,7 @@ export class UserCommands {
         })
     }
 
-    static async addQuote(message: Message, content: string, args: string[]) {
+    private async addQuote(message: Message, content: string, args: string[]) {
         const isUpperCase = (letter: string) => {
             return letter === letter.toUpperCase()
         }
@@ -53,11 +65,11 @@ export class UserCommands {
             }
             const quoteText = args.slice(1).join(' ')
             if (!!quoteBy && !!quoteText) {
-                MessageHelper.reactWithThumbs(message, 'up')
-                const reply = await message.reply('Trenge 3 thumbs up for å godkjenne')
+                this.messageHelper.reactWithThumbs(message, 'up')
+                const reply = await message.reply('Trenge 4 thumbs up for å godkjenne')
                 const collector = message.createReactionCollector()
                 collector.on('collect', (reaction) => {
-                    if (reaction.emoji.name === '👍' && reaction.users.cache.size > 2) {
+                    if (reaction.emoji.name === '👍' && reaction.users.cache.size > 3) {
                         DatabaseHelper.setQuoteObject(quoteBy, quoteText)
                         collector.stop()
                         if (reply) reply.delete()
@@ -71,33 +83,36 @@ export class UserCommands {
             if (!!args[0] && isUpperCase(args[0][0]) && quotes[args[0]]) name = args[0]
 
             const randomQuote = ArrayUtils.randomChoiceFromArray(quotes[name])
-            MessageHelper.sendMessage(message, `*" ${randomQuote} "*\n- ${name}`)
+            this.messageHelper.sendMessage(message.channelId, `*" ${randomQuote} "*\n- ${name}`)
         }
     }
-    static UserCommands: ICommandElement[] = [
-        {
-            commandName: 'quote',
-            description: 'Legg til eller hent et tilfeldig quote',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                UserCommands.addQuote(rawMessage, messageContent, args)
+
+    public getAllCommands(): ICommandElement[] {
+        return [
+            {
+                commandName: 'quote',
+                description: 'Legg til eller hent et tilfeldig quote',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.addQuote(rawMessage, messageContent, args)
+                },
+                category: 'annet',
             },
-            category: 'annet',
-        },
-        {
-            commandName: 'warnings',
-            description: 'Se antall advarsler du har',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                UserCommands.getWarnings(rawMessage, messageContent, args)
+            {
+                commandName: 'warnings',
+                description: 'Se antall advarsler du har',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.getWarnings(rawMessage, messageContent, args)
+                },
+                category: 'annet',
             },
-            category: 'annet',
-        },
-        {
-            commandName: 'role',
-            description: 'Trigger role assignment',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                UserCommands.roleAssignment(rawMessage, messageContent, args)
+            {
+                commandName: 'role',
+                description: 'Trigger role assignment',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.roleAssignment(rawMessage, messageContent, args)
+                },
+                category: 'annet',
             },
-            category: 'annet',
-        },
-    ]
+        ]
+    }
 }

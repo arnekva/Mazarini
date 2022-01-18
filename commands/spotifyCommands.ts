@@ -1,4 +1,5 @@
-import { Message, MessageEmbed } from 'discord.js'
+import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
+import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { spotifyToken } from '../client-env'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
@@ -8,11 +9,16 @@ import { ICommandElement } from './commands'
 import { Music } from './musicCommands'
 const request = require('request')
 const fetch = require('node-fetch')
-export class SpotifyCommands {
-    static getUsersCurrentSong(rawMessage: Message, content: string, args: string[]) {
+export class SpotifyCommands extends AbstractCommands {
+    constructor(client: Client, messageHelper: MessageHelper) {
+        super(client, messageHelper)
+    }
+
+    private getUsersCurrentSong(rawMessage: Message, content: string, args: string[]) {
         const user = args[0] ?? undefined
 
         const url = `https://api.spotify.com/v1/me/player/currently-playing?market=NO`
+        const _msg = this.messageHelper
         request(
             {
                 url: url,
@@ -25,13 +31,13 @@ export class SpotifyCommands {
                 if (err) {
                     rawMessage.reply('Fant ingen Spotify-bruker ved navn <' + user + '>')
                 } else {
-                    MessageHelper.sendMessage(rawMessage, res)
+                    _msg.sendMessage(rawMessage.channelId, res)
                 }
             }
         )
     }
 
-    static async searchForSongOnSpotifyAPI(artist: string, track: string, message: Message) {
+    private async searchForSongOnSpotifyAPI(artist: string, track: string, message: Message) {
         const baseURL = 'https://api.spotify.com/v1/search'
         const searchString = artist
             .replace(/\s/g, '+')
@@ -51,24 +57,25 @@ export class SpotifyCommands {
                 res.json()
                     .then((el: any) => {
                         if (!el?.tracks?.items[0]) {
-                            MessageHelper.sendMessage(message, `${artist} - ${track} ${emoji.id} (fant: ${el})`)
+                            this.messageHelper.sendMessage(message.channelId, `${artist} - ${track} ${emoji.id} (fant: ${el})`)
                         }
                         const song = new MessageEmbed()
                             .setTitle(`${artist} - ${track}`)
                             .setURL(el?.tracks?.items[0]?.external_urls?.spotify ?? '#')
                             .setDescription(`Release: ${el?.tracks?.items[0].album?.release_date}`)
-                        MessageHelper.sendFormattedMessage(message, song)
+                        this.messageHelper.sendFormattedMessage(message.channel as TextChannel, song)
                     })
                     .catch((error: any) => {
-                        MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
+                        this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
                     })
             })
             .catch((error: any) => {
-                MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
+                this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
             })
     }
 
-    static async currentPlayingFromDiscord(rawMessage: Message, content: string, args: string[]) {
+    private async currentPlayingFromDiscord(rawMessage: Message, content: string, args: string[]) {
+        const _music = new Music(this.client, this.messageHelper)
         let name = ''
         if (args[0]) {
             name = splitUsername(args[0])
@@ -89,9 +96,9 @@ export class SpotifyCommands {
                         })
                 })
                 if (replyString.length === 0) replyString = 'Ingen hører på Spotify for øyeblikket'
-                await MessageHelper.sendMessage(rawMessage, replyString)
+                await this.messageHelper.sendMessage(rawMessage.channelId, replyString)
             } else if (args[0] === 'full') {
-                const waitMessage = await MessageHelper.sendMessage(rawMessage, 'Henter last.fm data fra brukere')
+                const waitMessage = await this.messageHelper.sendMessage(rawMessage.channelId, 'Henter last.fm data fra brukere')
                 let musicRet = ''
                 const users = guild.members.cache.map((u) => u.user.username)
 
@@ -99,13 +106,13 @@ export class SpotifyCommands {
                     const lastFmName = DatabaseHelper.getValue('lastFmUsername', users[i], rawMessage, true)
                     if (!!lastFmName) {
                         if (waitMessage) {
-                            musicRet += await Music.findCommand(waitMessage, content, ['siste', '1', users[i]], true, undefined, true, true, true)
+                            musicRet += await _music.findCommand(waitMessage, content, ['siste', '1', users[i]], true, undefined, true, true, true)
                         }
                     }
                 }
 
                 if (waitMessage) waitMessage.edit(musicRet || 'Test')
-                else MessageHelper.sendMessage(rawMessage, musicRet)
+                else this.messageHelper.sendMessage(rawMessage.channelId, musicRet)
             } else {
                 const user = guild.members.cache.filter((u) => u.user.username == name).first()
                 if (user && user.presence) {
@@ -118,22 +125,25 @@ export class SpotifyCommands {
 
                     if (replystring === '') replystring += `${name} hører ikke på Spotify for øyeblikket`
 
-                    MessageHelper.sendMessage(rawMessage, replystring)?.then((msg) => {
+                    this.messageHelper.sendMessage(rawMessage.channelId, replystring)?.then((msg) => {
                         if (replystring.includes('hører ikke på Spotify for øyeblikket'))
-                            Music.findCommand(msg, content, ['siste', '1', name], true, name, true)
+                            _music.findCommand(msg, content, ['siste', '1', name], true, name, true)
                     })
                 } else rawMessage.reply("Fant ingen brukere ved navn '" + name + "'. Bruk username og ikke displayname")
             }
         }
     }
-    static SpotifyCommands: ICommandElement[] = [
-        {
-            commandName: 'spotify',
-            description: 'Hent hva brukeren spiller av på Spotify (fra Discord)',
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                SpotifyCommands.currentPlayingFromDiscord(rawMessage, messageContent, args)
+
+    public getAllCommands(): ICommandElement[] {
+        return [
+            {
+                commandName: 'spotify',
+                description: 'Hent hva brukeren spiller av på Spotify (fra Discord)',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.currentPlayingFromDiscord(rawMessage, messageContent, args)
+                },
+                category: 'musikk',
             },
-            category: 'musikk',
-        },
-    ]
+        ]
+    }
 }

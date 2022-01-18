@@ -1,31 +1,35 @@
-import { Message, TextChannel } from 'discord.js'
+import { Client, Message, TextChannel } from 'discord.js'
 import { imgflip } from '../client-env'
 import { MessageHelper } from '../helpers/messageHelper'
 import { replaceAtWithTextUsername } from '../utils/textUtils'
 import { ICommandElement } from './commands'
 import { URLSearchParams } from 'url'
+import { AbstractCommands } from '../Abstracts/AbstractCommand'
 const fetch = require('node-fetch')
-export class Meme {
-    static readonly baseURL = 'https://api.imgflip.com/caption_image'
+export class Meme extends AbstractCommands {
+    constructor(client: Client, messageHelper: MessageHelper) {
+        super(client, messageHelper)
+    }
+    private readonly baseURL = 'https://api.imgflip.com/caption_image'
 
-    static async findMemeIdAndCreate(message: Message, content: string, args: string[]) {
+    private async findMemeIdAndCreate(message: Message, content: string, args: string[]) {
         const memeString = args[0].toLowerCase()
         if (memeString == 'anakin' || memeString == '322841258') return await this.createMeme('322841258', content, message, args)
         if (memeString == 'timmy' || memeString == '26433458') return await this.createMeme('26433458', content, message, args)
-        if (memeString == 'sjøsyk' || memeString == 'hallgeir') MessageHelper.sendMessage(message, 'https://i.imgur.com/ka7SslJ.jpg')
+        if (memeString == 'sjøsyk' || memeString == 'hallgeir') this.messageHelper.sendMessage(message.channelId, 'https://i.imgur.com/ka7SslJ.jpg')
         return
     }
 
-    static async sendMeme(message: Message, content: string, args: string[]) {
+    private async sendMeme(message: Message, content: string, args: string[]) {
         const meme = await this.findMemeIdAndCreate(message, content, args)
     }
-    static async createMeme(templateId: string, messageContent: string, message: Message, args: string[]) {
+    private async createMeme(templateId: string, messageContent: string, message: Message, args: string[]) {
         messageContent = replaceAtWithTextUsername(messageContent, message, true)
         const splitContent = messageContent.split(':')
         splitContent[0] = splitContent[0].split(' ').slice(1).join(' ')
         if (splitContent[0] && splitContent[1]) {
             const id = templateId
-            const fetchUrl = Meme.baseURL + ``
+            const fetchUrl = this.baseURL + ``
             const params = new URLSearchParams({
                 username: imgflip.u,
                 password: imgflip.p,
@@ -34,9 +38,9 @@ export class Meme {
                 text1: 'toget',
                 max_font_size: '25',
             })
-            const box0Params = Meme.getBoxCoords(templateId).filter((e) => e.boxId == '0')[0]
-            const box1Params = Meme.getBoxCoords(templateId).filter((e) => e.boxId == '1')[0]
-            const box2Params = Meme.getBoxCoords(templateId).filter((e) => e.boxId == '2')[0]
+            const box0Params = this.getBoxCoords(templateId).filter((e) => e.boxId == '0')[0]
+            const box1Params = this.getBoxCoords(templateId).filter((e) => e.boxId == '1')[0]
+            const box2Params = this.getBoxCoords(templateId).filter((e) => e.boxId == '2')[0]
             params.append('boxes[0][text]', splitContent[0] ?? 'Mangler tekst')
             params.append('boxes[0][x]', box0Params.x)
             params.append('boxes[0][y]', box0Params.y)
@@ -68,21 +72,21 @@ export class Meme {
                 .then((res: any) => {
                     res.json()
                         .then((el: any) => {
-                            if (el.data) MessageHelper.sendMessage(message, el.data.url)
+                            if (el.data) this.messageHelper.sendMessage(message.channelId, el.data.url)
                         })
                         .catch((error: any) => {
-                            MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
+                            this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
                         })
                 })
                 .catch((error: any) => {
-                    MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
+                    this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
                 })
         } else {
             message.reply('Du mangler noen tekster')
         }
     }
 
-    static getBoxCoords(id: string): {
+    private getBoxCoords(id: string): {
         boxId: string
         x: string
         y: string
@@ -140,15 +144,18 @@ export class Meme {
         }
         return [{ boxId: '0', x: '10', y: '300', width: '300', height: '100' }]
     }
-    static MemeCommands: ICommandElement[] = [
-        {
-            commandName: 'meme',
-            description: "Lag et meme. '!mz meme <anakin|timmy> text1:text2:text3:text4'",
 
-            command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                Meme.sendMeme(rawMessage, messageContent, args)
+    public getAllCommands(): ICommandElement[] {
+        return [
+            {
+                commandName: 'meme',
+                description: "Lag et meme. '!mz meme <anakin|timmy> text1:text2:text3:text4'",
+
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.sendMeme(rawMessage, messageContent, args)
+                },
+                category: 'annet',
             },
-            category: 'annet',
-        },
-    ]
+        ]
+    }
 }

@@ -1,4 +1,4 @@
-import { GuildMember, Message, Role, TextChannel, User } from 'discord.js'
+import { GuildMember, Message, PartialGuildMember, PartialUser, Role, TextChannel, User } from 'discord.js'
 import { UserCommands } from '../commands/userCommands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -46,7 +46,7 @@ export namespace UserUtils {
         return undefined
     }
 
-    export const compareMember = (oldMember: GuildMember, newMember: GuildMember) => {
+    export const compareMember = (oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) => {
         if (newMember.id === '802945796457758760') return //Ikke gjør noe når bot oppdateres
         if (oldMember.id === '802945796457758760') return
 
@@ -77,42 +77,34 @@ export namespace UserUtils {
         return undefined
     }
 
-    export const onAddedMember = async (member: GuildMember) => {
-        const msg = await MessageHelper.sendMessageToSpecificChannel(
+    export const onAddedMember = async (member: GuildMember, msgHelper: MessageHelper) => {
+        const msg = await msgHelper.sendMessage(
             '340626855990132747',
-            'Welcome to the Gulag, ' +
-                (member.nickname ?? member.displayName) +
-                '. Du kan gi deg selv roller ved å reagere med emojiene nedenfor for de spillene du ønsker.',
-            member.guild.channels.cache.get('340626855990132747') as TextChannel
+            'Welcome to the Gulag, ' + (member.nickname ?? member.displayName) + '. Bruk commanden "!mz role" for å gi deg selv roller for å komme i gang'
         )
         DatabaseHelper.setValue('chips', member.user.username, '5000')
-        UserCommands.roleAssignment(msg, '', ['args'])
-        MessageHelper.sendMessageToActionLog(
+        msgHelper.sendMessageToActionLog(
             member.guild.channels.cache.first() as TextChannel,
             'En bruker ble med i Mazarini: ' + (member.nickname ?? member.displayName)
         )
     }
 
-    export const onMemberLeave = async (member: GuildMember) => {
-        MessageHelper.sendMessageToSpecificChannel(
-            '340626855990132747',
-            'Farvell, ' + (member.nickname ?? member.displayName),
-            member.guild.channels.cache.get('340626855990132747') as TextChannel
-        )
-        MessageHelper.sendMessageToActionLog(
+    export const onMemberLeave = async (member: GuildMember | PartialGuildMember, msgHelper: MessageHelper) => {
+        msgHelper.sendMessage('340626855990132747', 'Farvell, ' + (member.nickname ?? member.displayName))
+        msgHelper.sendMessageToActionLog(
             member.guild.channels.cache.first() as TextChannel,
             'En bruker forlot Mazarini: ' + (member.nickname ?? member.displayName)
         )
     }
 
-    export const onUserUpdate = (oldUser: User, newUser: User) => {
+    export const onUserUpdate = (oldUser: User | PartialUser, newUser: User | PartialUser, msgHelper: MessageHelper) => {
         if (oldUser.id === '802945796457758760') return
-        MessageHelper.sendMessageToActionLog(
+        msgHelper.sendMessageToActionLog(
             newUser.client.channels.cache.first() as TextChannel,
             'Oppdatert bruker:   ' + oldUser.username + ' -> ' + newUser.username + ''
         )
     }
-    export const onMemberUpdate = (oldMember: GuildMember, newMember: GuildMember) => {
+    export const onMemberUpdate = (oldMember: GuildMember | PartialGuildMember, newMember: GuildMember, msgHelper: MessageHelper) => {
         if (newMember.id === '802945796457758760') return //Ikke gjør noe når bot oppdateres
         if (oldMember.id === '802945796457758760') return
         if (oldMember.user.username === 'MazariniBot') return
@@ -124,7 +116,7 @@ export namespace UserUtils {
             differences.forEach((change: any, index: number) => {
                 changesString += change.path + (index == differences.length ? ' ' : ',')
             })
-            MessageHelper.sendMessageToActionLog(
+            msgHelper.sendMessageToActionLog(
                 newMember.client.channels.cache.first() as TextChannel,
                 'Oppdatert bruker ' + (oldMember.nickname ?? oldMember.displayName) + ': ' + whatChanged + '.'
             )
