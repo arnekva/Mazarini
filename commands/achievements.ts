@@ -26,11 +26,11 @@ export const achievements: MZAchievement[] = [
 ]
 
 export class Achievements extends AbstractCommands {
-    constructor(client: Client) {
-        super(client)
+    constructor(client: Client, messageHelper: MessageHelper) {
+        super(client, messageHelper)
     }
 
-    static awardAchievement(username: string, achievementID: achievementIDs, rawMessage: Message, silent?: boolean) {
+    private awardAchievement(username: string, achievementID: achievementIDs, rawMessage: Message, silent?: boolean) {
         const achiev = achievements.find((el) => el.id == achievementID)
         const hasAchievementsObj = DatabaseHelper.getValue('achievement', username, rawMessage) //FIXME: This line needs to be there to check if Achievements exist, as getValue creates Achievements if not present
         let hasThisAch = DatabaseHelper.getAchievement('achievement', username, achievementID)
@@ -38,8 +38,8 @@ export class Achievements extends AbstractCommands {
         if (!hasThisAch) {
             DatabaseHelper.setAchievementObject('achievement', username, achievementID, achiev?.points)
             if (!silent)
-                MessageHelper.sendMessage(
-                    rawMessage,
+                this.messageHelper.sendMessage(
+                    rawMessage.channelId,
                     'Gratulerer, ' +
                         username +
                         '! Du har låst opp et achievement: ' +
@@ -53,29 +53,29 @@ export class Achievements extends AbstractCommands {
         }
     }
 
-    static findAchievementById(id: string) {
+    private findAchievementById(id: string) {
         return achievements.find((el) => el.id == id)
     }
 
-    static listUserAchievements(message: Message) {
+    private listUserAchievements(message: Message) {
         const allAchievs = DatabaseHelper.getValue('achievement', message.author.username, message)
 
         let printList = '**Dine achievements**'
         let totalScore = 0
         if (!!allAchievs) {
             Object.keys(allAchievs).forEach((achievement, index) => {
-                const currentAch = Achievements.findAchievementById(achievement)
+                const currentAch = this.findAchievementById(achievement)
                 printList += `\n${index + 1}: ${currentAch?.title} - ${currentAch?.description} (${currentAch?.points}) `
                 totalScore += currentAch?.points ?? 0
             })
             printList += '\n*Achievement Score: ' + totalScore + '*'
             if (totalScore == 0)
                 printList = 'Du har ikke opplåst noen achievements enda. Bruk !mz listachievements for å se en liste over alle (Ikke implementert)'
-            MessageHelper.sendMessage(message, printList)
+            this.messageHelper.sendMessage(message.channelId, printList)
         }
     }
 
-    static async awardMissing(message: Message) {
+    private async awardMissing(message: Message) {
         const users = await DatabaseHelper.getAllUsers()
 
         Object.keys(users).forEach((username) => {
@@ -89,7 +89,7 @@ export class Achievements extends AbstractCommands {
                 commandName: 'achievements',
                 description: 'Se dine achievements',
                 command: (rawMessage: Message, messageContent: string) => {
-                    Achievements.listUserAchievements(rawMessage)
+                    this.listUserAchievements(rawMessage)
                 },
                 category: 'annet',
             },
@@ -99,7 +99,7 @@ export class Achievements extends AbstractCommands {
                 isAdmin: true,
                 hideFromListing: true,
                 command: (rawMessage: Message, messageContent: string) => {
-                    Achievements.awardMissing(rawMessage)
+                    this.awardMissing(rawMessage)
                 },
                 category: 'admin',
             },

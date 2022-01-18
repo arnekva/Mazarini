@@ -14,10 +14,11 @@ import { getUsernameInQuotationMarks, isInQuotation, splitUsername } from '../ut
 import { UserUtils } from '../utils/userUtils'
 
 export class Admin extends AbstractCommands {
-    constructor(client: Client) {
-        super(client)
+    constructor(client: Client, messageHelper: MessageHelper) {
+        super(client, messageHelper)
     }
-    static setSpecificValue(message: Message, messageContent: string, args: string[]) {
+
+    private setSpecificValue(message: Message, messageContent: string, args: string[]) {
         //setValueObject
         const prefix = args[0] as dbPrefix
         let username = splitUsername(args[1])
@@ -25,7 +26,7 @@ export class Admin extends AbstractCommands {
         const user = UserUtils.findUserByUsername(username, message)
         if (!user || !oldValue) {
             const incorrectPart = user ? `Prefixen '${prefix}' er feil` : `Brukeren '${username}' eksisterer ikke`
-            MessageHelper.sendMessageToActionLogWithCustomMessage(
+            this.messageHelper.sendMessageToActionLogWithCustomMessage(
                 message,
                 `${message.author.username} brukte feil syntax i setvalue.` + incorrectPart,
                 `${incorrectPart}. Husk at syntaxen er <prefix> <brukernavn> <verdi>`,
@@ -38,9 +39,9 @@ export class Admin extends AbstractCommands {
 
         username = username.replace('"', '').replace('"', '')
         DatabaseHelper.setValue(prefix, username, val)
-        MessageHelper.reactWithRandomEmoji(message)
+        this.messageHelper.reactWithRandomEmoji(message)
     }
-    static setSpinValue(message: Message, messageContent: string) {
+    private setSpinValue(message: Message, messageContent: string) {
         const content = messageContent.split(' ')
         const key = content[0] as dbPrefix
         let value = ''
@@ -48,33 +49,21 @@ export class Admin extends AbstractCommands {
         newCont.forEach((el) => (value += el.trim()))
         DatabaseHelper.setValue('ATHspin', key, value)
     }
-    static deleteSpecificValue(message: Message, messageContent: string) {
+    private deleteSpecificValue(message: Message, messageContent: string) {
         const cmdSplit = messageContent.split(' ')
         const prefix = cmdSplit[0]
         const key = cmdSplit[1]
         const keyToDelete = prefix + '-' + key
     }
 
-    static async getSpecificValue(message: Message, messageContent: string) {
+    private async getSpecificValue(message: Message, messageContent: string) {
         const content = messageContent.split(' ')
         const prefix = content[0] as dbPrefix
         const key = content[1]
         const val = await DatabaseHelper.getValue(prefix, key, message)
     }
 
-    static getStats(message: Message, messageContent: string) {
-        // const start = startTime
-        // const timeSince = DateUtils.getTimeSince(start)
-        // if (timeSince) {
-        //     let text = DateCommands.formatCountdownText(timeSince, 'siden sist oppstart')
-        //     // text += `\nAntall meldinger siden sist oppstart: ${numMessages}`
-        //     // text += `\nLåste kanaler: ${CommandRunner.lockedThread.length > 0 ? CommandRunner.lockedThread.toString() : 'Ingen'}`
-        //     // text += `\nLåste brukere: ${CommandRunner.lockedUser.length > 0 ? CommandRunner.lockedUser.toString() : 'Ingen'}`
-        //     MessageHelper.sendMessage(message, text)
-        // } else MessageHelper.sendMessage(message, 'Ingen statistikk å vise')
-    }
-
-    static async replyToMsgAsBot(rawMessage: Message, content: string) {
+    private async replyToMsgAsBot(rawMessage: Message, content: string) {
         const allChannels = [...rawMessage.client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
 
         const id = content.substr(0, content.indexOf(' '))
@@ -94,7 +83,7 @@ export class Admin extends AbstractCommands {
             }
         })
     }
-    static async reactToMsgAsBot(rawMessage: Message, content: string) {
+    private async reactToMsgAsBot(rawMessage: Message, content: string) {
         const allChannels = [...rawMessage.client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
 
         const c = content.split(' ')
@@ -111,7 +100,7 @@ export class Admin extends AbstractCommands {
                                 if (reactionEmoji) {
                                     message.react(reactionEmoji)
                                 } else {
-                                    MessageHelper.sendDM(message.author, 'Fant ikke emojien', message)
+                                    this.messageHelper.sendDM(message.author, 'Fant ikke emojien')
                                 }
                             }
                         })
@@ -121,10 +110,10 @@ export class Admin extends AbstractCommands {
                 }
             })
         } else {
-            MessageHelper.replyFormattingError(rawMessage, '<message id> <emoji navn>')
+            this.messageHelper.replyFormattingError(rawMessage, '<message id> <emoji navn>')
         }
     }
-    static async sendMessageAsBotToSpecificChannel(message: Message) {
+    private async sendMessageAsBotToSpecificChannel(message: Message) {
         const content = message.content.replace('!mz send ', '')
 
         const id = content.substr(0, content.indexOf(' ')).trim()
@@ -133,7 +122,7 @@ export class Admin extends AbstractCommands {
         if (channel) channel.send(replyString)
     }
 
-    static async warnUser(message: Message, messageContent: string, args: string[]) {
+    private async warnUser(message: Message, messageContent: string, args: string[]) {
         const username = splitUsername(args[0])
 
         const user = DatabaseHelper.findUserByUsername(username, message)
@@ -150,9 +139,9 @@ export class Admin extends AbstractCommands {
                 let newVal = parseInt(userWarnings)
                 newVal += 1
                 DatabaseHelper.setValue('warningCounter', user.username, newVal.toString())
-                MessageHelper.sendMessage(message, user.username + ', du har fått en advarsel. Du har nå ' + newVal + ' advarsler.')
+                this.messageHelper.sendMessage(message.channelId, user.username + ', du har fått en advarsel. Du har nå ' + newVal + ' advarsler.')
                 //Send msg to action-log
-                MessageHelper.sendMessageToActionLog(
+                this.messageHelper.sendMessageToActionLog(
                     message.channel as TextChannel,
                     message.author.username +
                         ' ga en advarsel til ' +
@@ -166,22 +155,22 @@ export class Admin extends AbstractCommands {
                         ' advarsler'
                 )
             } else {
-                MessageHelper.sendMessageToActionLogWithDefaultMessage(message, 'Verdien for warningcounter er NaN: <' + userWarnings + '>.')
+                this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, 'Verdien for warningcounter er NaN: <' + userWarnings + '>.')
             }
         } else {
-            MessageHelper.sendMessage(
-                message,
+            this.messageHelper.sendMessage(
+                message.channelId,
                 'Feil: Du har enten skrevet feil bruker navn eller ikke inkludert en melding. *Hvis brukeren har mellomrom i navnet, bruk under_strek*'
             )
         }
     }
 
-    static cancelUser(message: Message, messageContent: string, args: string[]) {
+    private cancelUser(message: Message, messageContent: string, args: string[]) {
         message.reply('Me drive ikkje me sånt her lenger')
         return
     }
 
-    static deleteXLastMessagesByUserInChannel(message: Message, messageContent: string, args: string[]) {
+    private deleteXLastMessagesByUserInChannel(message: Message, messageContent: string, args: string[]) {
         const userToDeleteBool = getUsernameInQuotationMarks(messageContent)
         const userToDelete = userToDeleteBool ?? args[0]
 
@@ -204,12 +193,12 @@ export class Admin extends AbstractCommands {
                             message.delete()
                             deleteCounter++
                         } catch (error) {
-                            MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
+                            this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
                             return
                         }
                     }
                 })
-                MessageHelper.sendMessageToActionLog(
+                this.messageHelper.sendMessageToActionLog(
                     message.channel as TextChannel,
                     `${message.author.username} slettet ${maxDelete} meldinger fra ${user.username} i channel ${message.channel} på grunn av: "${
                         reason.length > 0 ? reason : 'ingen grunn oppgitt'
@@ -219,19 +208,8 @@ export class Admin extends AbstractCommands {
                 message.delete()
             })
             .catch((error: any) => {
-                MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
+                this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
             })
-    }
-
-    static logInncorectCommandUsage(message: Message, messageContent: string, args: string[]) {
-        let command = message.content.split(' ')[1]
-
-        const numberOfFails = DatabaseHelper.getNonUserValue('incorrectCommand', command)
-        let newFailNum = 1
-        if (numberOfFails && Number(numberOfFails)) newFailNum = Number(numberOfFails) + 1
-        if (command === '' || command.trim() === '') command = '<tom command>'
-        MessageHelper.sendMessageToActionLog(message.channel as TextChannel, `${command} ble forsøkt brukt, men finnes ikke (${newFailNum})`)
-        DatabaseHelper.setNonUserValue('incorrectCommand', command, newFailNum.toString())
     }
 
     public getAllCommands(): ICommandElement[] {
@@ -264,7 +242,7 @@ export class Admin extends AbstractCommands {
                 description: 'Slett X siste meldinger fra en bruker i en channel',
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    Admin.deleteXLastMessagesByUserInChannel(rawMessage, messageContent, args)
+                    this.deleteXLastMessagesByUserInChannel(rawMessage, messageContent, args)
                 },
                 category: 'admin',
             },
@@ -273,7 +251,7 @@ export class Admin extends AbstractCommands {
                 description: 'Cancel en bruker',
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    Admin.cancelUser(rawMessage, messageContent, args)
+                    this.cancelUser(rawMessage, messageContent, args)
                 },
                 category: 'admin',
             },
@@ -283,7 +261,7 @@ export class Admin extends AbstractCommands {
                 hideFromListing: true,
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string) => {
-                    Admin.deleteSpecificValue(rawMessage, messageContent)
+                    this.deleteSpecificValue(rawMessage, messageContent)
                 },
                 category: 'admin',
             },
@@ -293,7 +271,7 @@ export class Admin extends AbstractCommands {
                 hideFromListing: true,
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string) => {
-                    Admin.sendMessageAsBotToSpecificChannel(rawMessage)
+                    this.sendMessageAsBotToSpecificChannel(rawMessage)
                 },
                 category: 'admin',
             },
@@ -303,17 +281,7 @@ export class Admin extends AbstractCommands {
                 hideFromListing: true,
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string) => {
-                    Admin.reactToMsgAsBot(rawMessage, messageContent)
-                },
-                category: 'admin',
-            },
-            {
-                commandName: 'stats',
-                description: 'Se enkle statistikker',
-                hideFromListing: true,
-                isAdmin: true,
-                command: (rawMessage: Message, messageContent: string) => {
-                    Admin.getStats(rawMessage, messageContent)
+                    this.reactToMsgAsBot(rawMessage, messageContent)
                 },
                 category: 'admin',
             },
@@ -323,7 +291,7 @@ export class Admin extends AbstractCommands {
                 hideFromListing: true,
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string) => {
-                    Admin.replyToMsgAsBot(rawMessage, messageContent)
+                    this.replyToMsgAsBot(rawMessage, messageContent)
                 },
                 category: 'admin',
             },
@@ -333,7 +301,7 @@ export class Admin extends AbstractCommands {
                 hideFromListing: true,
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    Admin.setSpecificValue(rawMessage, messageContent, args)
+                    this.setSpecificValue(rawMessage, messageContent, args)
                 },
                 category: 'admin',
             },
@@ -343,7 +311,7 @@ export class Admin extends AbstractCommands {
                 hideFromListing: true,
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string) => {
-                    Admin.setSpinValue(rawMessage, messageContent)
+                    this.setSpinValue(rawMessage, messageContent)
                 },
                 category: 'admin',
             },
@@ -353,7 +321,7 @@ export class Admin extends AbstractCommands {
                 hideFromListing: true,
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string) => {
-                    Admin.getSpecificValue(rawMessage, messageContent)
+                    this.getSpecificValue(rawMessage, messageContent)
                 },
                 category: 'admin',
             },
@@ -363,7 +331,7 @@ export class Admin extends AbstractCommands {
                 hideFromListing: true,
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    Admin.warnUser(rawMessage, messageContent, args)
+                    this.warnUser(rawMessage, messageContent, args)
                 },
                 category: 'admin',
             },

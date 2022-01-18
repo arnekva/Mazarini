@@ -90,8 +90,8 @@ interface codBRStatsKeyHeader {
 }
 
 export class WarzoneCommands extends AbstractCommands {
-    constructor(client: Client) {
-        super(client)
+    constructor(client: Client, messageHelper: MessageHelper) {
+        super(client, messageHelper)
     }
 
     static statsToInclude: codStatsKeyHeader[] = [
@@ -154,10 +154,10 @@ export class WarzoneCommands extends AbstractCommands {
         let noSave = filterMode === 'nosave'
         let isRebirth = filterMode === 'rebirth'
 
-        let sentMessage = await MessageHelper.sendMessage(message, 'Logger inn...')
+        let sentMessage = await this.messageHelper.sendMessage(message.channelId, 'Logger inn...')
         let response = ''
 
-        if (!sentMessage) sentMessage = await MessageHelper.sendMessage(message, 'Henter data...')
+        if (!sentMessage) sentMessage = await this.messageHelper.sendMessage(message.channelId, 'Henter data...')
         else await sentMessage.edit('Henter data...')
         if (isWeekly) {
             response += 'Weekly Warzone stats for <' + gamertag + '>'
@@ -166,7 +166,7 @@ export class WarzoneCommands extends AbstractCommands {
 
                 if (!data.wz.mode.br_all?.properties) {
                     if (sentMessage) sentMessage.edit('Du har ingen statistikk denne ukå')
-                    else MessageHelper.sendMessage(message, 'Du har ingen statistikk denne ukå')
+                    else this.messageHelper.sendMessage(message.channelId, 'Du har ingen statistikk denne ukå')
                     return
                 }
 
@@ -186,7 +186,7 @@ export class WarzoneCommands extends AbstractCommands {
                     }
                     let rebirthResponse = ` Weekly REBIRTH ONLY Stats for <${gamertag}>\nKills: ${numKills}\nDeaths: ${numDeaths}\nDamage Done: ${numDamage}\nDamage Taken: ${numDamageTaken}`
                     if (sentMessage) sentMessage.edit(rebirthResponse)
-                    else MessageHelper.sendMessage(message, rebirthResponse)
+                    else this.messageHelper.sendMessage(message.channelId, rebirthResponse)
                     return
                 }
 
@@ -235,11 +235,11 @@ export class WarzoneCommands extends AbstractCommands {
                 }
 
                 if (sentMessage) sentMessage.edit(response)
-                else MessageHelper.sendMessage(message, response)
+                else this.messageHelper.sendMessage(message.channelId, response)
                 if (!noSave) this.saveUserStats(message, messageContent, statsTyped)
             } catch (error) {
                 if (sentMessage) sentMessage.delete()
-                MessageHelper.sendMessageToActionLogWithCustomMessage(message, error, 'SSO Token er expired. Denne må byttest før stats kan hentes', true)
+                this.messageHelper.sendMessageToActionLogWithCustomMessage(message, error, 'SSO Token er expired. Denne må byttest før stats kan hentes', true)
             }
         } else {
             /** BR */
@@ -273,7 +273,7 @@ export class WarzoneCommands extends AbstractCommands {
                         )}${key === 'winRatio' ? '%' : ''}`
                 }
                 if (sentMessage) sentMessage.edit(response)
-                else MessageHelper.sendMessage(message, response)
+                else this.messageHelper.sendMessage(message.channelId, response)
                 if (!noSave) this.saveUserStats(message, messageContent, statsTyped, true)
             } catch (error) {
                 message.reply(error + '')
@@ -289,11 +289,11 @@ export class WarzoneCommands extends AbstractCommands {
         if (game === 'wz') {
             saveString = platform + ';' + gamertag
             DatabaseHelper.setValue('activisionUserString', message.author.username, saveString)
-            MessageHelper.reactWithThumbs(message, 'up')
+            this.messageHelper.reactWithThumbs(message, 'up')
         } else if (game === 'rocket') {
             saveString = platform + ';' + gamertag
             DatabaseHelper.setValue('rocketLeagueUserString', message.author.username, saveString)
-            MessageHelper.reactWithThumbs(message, 'up')
+            this.messageHelper.reactWithThumbs(message, 'up')
         }
     }
 

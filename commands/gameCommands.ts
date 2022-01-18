@@ -1,4 +1,4 @@
-import { Client, Message, MessageEmbed } from 'discord.js'
+import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
 import { env } from 'process'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'
@@ -71,20 +71,21 @@ function getValidDropCoordinate(xCircleCenter: number, yCircleCenter: number): d
 }
 
 export class GameCommands extends AbstractCommands {
-    constructor(client: Client) {
-        super(client)
+    constructor(client: Client, messageHelper: MessageHelper) {
+        super(client, messageHelper)
     }
 
-    static dropVerdansk(message: Message) {
+    private dropVerdansk(message: Message) {
         const randomElement = verdansk[Math.floor(Math.random() * verdansk.length)]
-        MessageHelper.sendMessage(message, 'Dere dropper i ' + randomElement)
+        this.messageHelper.sendMessage(message.channelId, 'Dere dropper i ' + randomElement)
     }
 
-    static dropRebirth(message: Message) {
+    private dropRebirth(message: Message) {
         const randomElement = rebirthIsland[Math.floor(Math.random() * rebirthIsland.length)]
-        MessageHelper.sendMessage(message, 'Dere dropper i ' + randomElement)
+        this.messageHelper.sendMessage(message.channelId, 'Dere dropper i ' + randomElement)
     }
-    static dropGrid(message: Message, messageContent: string) {
+
+    private dropGrid(message: Message, messageContent: string) {
         const gridLetter = 'ABCDEFGHIJ'
         const validNumbers = '2345678'
         const illegalCenterCoordinates = ['A0', 'J0']
@@ -95,12 +96,15 @@ export class GameCommands extends AbstractCommands {
         const gridNumber = parseInt(grid.charAt(1))
 
         if (!gridLetter.includes(letter) || !validNumbers.includes(validNumbers) || grid == '' || Number.isNaN(gridNumber)) {
-            MessageHelper.sendMessage(message, 'Kan du ikkje i det minsta velga kor sirkelen e?')
+            this.messageHelper.sendMessage(message.channelId, 'Kan du ikkje i det minsta velga kor sirkelen e?')
             return
         }
 
         if (illegalCenterCoordinates.includes(grid)) {
-            MessageHelper.sendMessage(message, 'E det sirkelen din? Dokker e fucked... \n(Botten klare ikkje å regna ud koordinater for så små grids)')
+            this.messageHelper.sendMessage(
+                message.channelId,
+                'E det sirkelen din? Dokker e fucked... \n(Botten klare ikkje å regna ud koordinater for så små grids)'
+            )
             return
         }
 
@@ -117,11 +121,11 @@ export class GameCommands extends AbstractCommands {
             })
         }
         const train = Math.random() < 0.15
-        MessageHelper.sendMessage(message, 'Dere dropper på ' + (train ? 'toget 😲' : gridLetter[xDropCoordinate] + yDropCoordinate))
-        if (dropPlaces && !train) MessageHelper.sendMessage(message, 'Her ligger: ' + dropPlaces)
+        this.messageHelper.sendMessage(message.channelId, 'Dere dropper på ' + (train ? 'toget 😲' : gridLetter[xDropCoordinate] + yDropCoordinate))
+        if (dropPlaces && !train) this.messageHelper.sendMessage(message.channelId, 'Her ligger: ' + dropPlaces)
     }
 
-    static async rocketLeagueRanks(rawMessage: Message, messageContent: string, args: string[]) {
+    private async rocketLeagueRanks(rawMessage: Message, messageContent: string, args: string[]) {
         const userValue = DatabaseHelper.getValue('rocketLeagueUserString', rawMessage.author.username, rawMessage, true)
         let user
         if (userValue) user = userValue.split(';')
@@ -131,7 +135,7 @@ export class GameCommands extends AbstractCommands {
             rawMessage.reply("Du må linke Rocket League kontoen din. Bruk '!mz link rocket <psn|xbl|steam|epic> <brukernavn>'")
             return
         }
-        const waitMsg = await MessageHelper.sendMessage(rawMessage, 'Laster data...')
+        const waitMsg = await this.messageHelper.sendMessage(rawMessage.channelId, 'Laster data...')
         const name = user[1]
         const platform = user[0]
         const url = `https://api.tracker.gg/api/v2/rocket-league/standard/profile/${platform}/${name}`
@@ -159,7 +163,12 @@ export class GameCommands extends AbstractCommands {
 
         const response = JSON.parse(striptags(content))
         if (!response.data) {
-            MessageHelper.sendMessageToActionLogWithCustomMessage(rawMessage, 'Fant ikke data', 'Fant ikke data for brukeren. Her har en error skjedd', true)
+            this.messageHelper.sendMessageToActionLogWithCustomMessage(
+                rawMessage,
+                'Fant ikke data',
+                'Fant ikke data for brukeren. Her har en error skjedd',
+                true
+            )
             return
         }
         const segments = response.data.segments
@@ -169,12 +178,12 @@ export class GameCommands extends AbstractCommands {
         let oneVone: rocketLeagueStats = {}
         let lifetimeStats: rocketLeagueLifetime = {}
         if (!segments) {
-            MessageHelper.sendMessageToActionLogWithCustomMessage(rawMessage, 'Fetch til Rocket League API feilet', 'Her har noe gått galt', false)
+            this.messageHelper.sendMessageToActionLogWithCustomMessage(rawMessage, 'Fetch til Rocket League API feilet', 'Her har noe gått galt', false)
             return
         }
         for (const segment of segments) {
             if (!segment) {
-                MessageHelper.sendMessageToActionLogWithCustomMessage(rawMessage, 'Fetch til Rocket League API feilet', 'Her har noe gått galt', true)
+                this.messageHelper.sendMessageToActionLogWithCustomMessage(rawMessage, 'Fetch til Rocket League API feilet', 'Her har noe gått galt', true)
                 break
             }
             if (segment.metadata.name === 'Lifetime') {
@@ -220,10 +229,10 @@ export class GameCommands extends AbstractCommands {
         }
         if (waitMsg) waitMsg.delete()
 
-        MessageHelper.sendFormattedMessage(rawMessage, msgContent)
+        this.messageHelper.sendFormattedMessage(rawMessage.channel as TextChannel, msgContent)
     }
 
-    static async gotoExtended(page: any, request: any) {
+    private async gotoExtended(page: any, request: any) {
         const { url, method, headers, postData } = request
 
         return page.goto(url)
@@ -235,7 +244,7 @@ export class GameCommands extends AbstractCommands {
                 commandName: 'rocket',
                 description: 'Få Rocket League stats. <2v2|3v3|stats>',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    GameCommands.rocketLeagueRanks(rawMessage, messageContent, args)
+                    this.rocketLeagueRanks(rawMessage, messageContent, args)
                 },
                 category: 'gaming',
             },
@@ -243,7 +252,7 @@ export class GameCommands extends AbstractCommands {
                 commandName: 'verdansk',
                 description: 'Få et tilfeldig sted å droppe i Verdansk',
                 command: (rawMessage: Message, messageContent: string) => {
-                    GameCommands.dropVerdansk(rawMessage)
+                    this.dropVerdansk(rawMessage)
                 },
                 category: 'gaming',
             },
@@ -251,7 +260,7 @@ export class GameCommands extends AbstractCommands {
                 commandName: 'rebirth',
                 description: 'Få et tilfeldig sted å droppe i Rebirth Island',
                 command: (rawMessage: Message, messageContent: string) => {
-                    GameCommands.dropRebirth(rawMessage)
+                    this.dropRebirth(rawMessage)
                 },
                 category: 'gaming',
             },
@@ -259,7 +268,7 @@ export class GameCommands extends AbstractCommands {
                 commandName: 'grid',
                 description: 'Få et tilfeldig sted å droppe ut fra Grid i Verdansk',
                 command: (rawMessage: Message, messageContent: string) => {
-                    GameCommands.dropGrid(rawMessage, messageContent)
+                    this.dropGrid(rawMessage, messageContent)
                 },
                 category: 'gaming',
             },

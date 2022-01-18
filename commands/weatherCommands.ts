@@ -1,4 +1,4 @@
-import { Client, Message, MessageEmbed } from 'discord.js'
+import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
 import { MessageHelper } from '../helpers/messageHelper'
 import { Commands, ICommandElement } from './commands'
 const fetch = require('node-fetch')
@@ -6,11 +6,11 @@ import { WeatherUtils } from '../utils/weatherUtils'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 
 export class Weather extends AbstractCommands {
-    constructor(client: Client) {
-        super(client)
+    constructor(client: Client, messageHelper: MessageHelper) {
+        super(client, messageHelper)
     }
 
-    static getWeatherForGivenCity(message: Message, city: string) {
+    private getWeatherForGivenCity(message: Message, city: string) {
         const APIkey = 'fc7f85d19367afda9a6a3839919a820a'
         const rootUrl = 'https://api.openweathermap.org/data/2.5/weather?'
 
@@ -46,11 +46,11 @@ export class Weather extends AbstractCommands {
                         .addField(`Forhold`, `Det er ${weatherDescription}`)
                         .addField(`Vind`, `${el.wind.speed} m/s`)
 
-                    MessageHelper.sendFormattedMessage(message, gambling)
+                    this.messageHelper.sendFormattedMessage(message.channel as TextChannel, gambling)
                 })
             })
             .catch((error: Error) => {
-                MessageHelper.sendMessage(message, 'Fant ikke byen')
+                this.messageHelper.sendMessage(message.channelId, 'Fant ikke byen')
             })
     }
     public getAllCommands(): ICommandElement[] {
@@ -59,7 +59,7 @@ export class Weather extends AbstractCommands {
                 commandName: 'vær',
                 description: 'Sjekk været på et gitt sted',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    Weather.getWeatherForGivenCity(rawMessage, messageContent)
+                    this.getWeatherForGivenCity(rawMessage, messageContent)
                 },
                 category: 'annet',
             },

@@ -1,10 +1,11 @@
 import didYouMean from 'didyoumean2'
-import { Client, Message, PartialMessage, User } from 'discord.js'
+import { Client, Message, PartialMessage, TextChannel, User } from 'discord.js'
 import { Admin } from '../admin/admin'
 import { environment } from '../client-env'
 import { Commands, ICommandElement } from '../commands/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { ArrayUtils } from '../utils/arrayUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { doesThisMessageNeedAnEivindPride } from '../utils/miscUtils'
 import { getRandomPercentage } from '../utils/randomUtils'
@@ -12,14 +13,16 @@ import { splitUsername } from '../utils/textUtils'
 
 export class CommandRunner {
     private commands: Commands
+    private messageHelper: MessageHelper
     botLocked: boolean = false
     lockedUser: string[] = []
     lockedThread: string[] = []
     lastUsedCommand = 'help'
     polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê|å|æ|ê|è|é|à|á)*(ls)(e|a|å|o|i)|(pause)|(🌭)|(hotdog)|(sausage)|(hot-dog)/gi)
 
-    constructor(client: Client) {
-        this.commands = new Commands(client)
+    constructor(client: Client, messageHelper: MessageHelper) {
+        this.messageHelper = messageHelper
+        this.commands = new Commands(client, messageHelper)
     }
     async runCommands(message: Message) {
         /** Check if message is calling lock commands */
@@ -102,17 +105,17 @@ export class CommandRunner {
                 return
             }
             commands.forEach((cmd) => {
-                if (command == cmd.commandName.toLowerCase()) {
+                if (cmd.commandName.includes(command.toLowerCase())) {
                     cmdFound = this.runCommandElement(cmd, message, messageContent, args)
                 }
             })
             const kekw = await message.client.emojis.cache.find((emoji) => emoji.name == 'kekw_animated')
             if (!cmdFound) {
                 const commandNames: string[] = []
-                commands.forEach((el) => commandNames.push(el.commandName))
+                commands.forEach((el) => commandNames.push(Array.isArray(el.commandName) ? el.commandName[0] : el.commandName))
                 if (kekw) message.react(kekw)
                 const matched = didYouMean(command, commandNames)
-                Admin.logInncorectCommandUsage(message, messageContent, args)
+                this.logInncorectCommandUsage(message, messageContent, args)
                 if (matched) this.lastUsedCommand = matched
                 message.reply(
                     "lmao, commanden '" +
@@ -133,22 +136,25 @@ export class CommandRunner {
             if (Admin.isAuthorSuperAdmin(message.member)) {
                 cmd.command(message, messageContent, args)
             } else {
-                MessageHelper.sendMessageToActionLogWithInsufficientRightsMessage(message)
+                this.messageHelper.sendMessageToActionLogWithInsufficientRightsMessage(message)
             }
         } else if (cmd.isAdmin) {
             if (Admin.isAuthorAdmin(message.member)) {
                 cmd.command(message, messageContent, args)
             } else {
-                MessageHelper.sendMessageToActionLogWithInsufficientRightsMessage(message)
+                this.messageHelper.sendMessageToActionLogWithInsufficientRightsMessage(message)
             }
         } else {
             try {
                 if (!!cmd.deprecated)
-                    MessageHelper.sendMessage(message, '*Denne funksjoner er markert som deprecated/utfaset. Bruk **' + cmd.deprecated + '*** *i stedet*')
+                    this.messageHelper.sendMessage(
+                        message.channelId,
+                        '*Denne funksjoner er markert som deprecated/utfaset. Bruk **' + cmd.deprecated + '*** *i stedet*'
+                    )
 
                 cmd.command(message, messageContent, args)
             } catch (error) {
-                MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
+                this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
             }
         }
         return true
@@ -166,6 +172,17 @@ export class CommandRunner {
             }
             return true
         }
+    }
+
+    logInncorectCommandUsage(message: Message, messageContent: string, args: string[]) {
+        let command = message.content.split(' ')[1]
+
+        const numberOfFails = DatabaseHelper.getNonUserValue('incorrectCommand', command)
+        let newFailNum = 1
+        if (numberOfFails && Number(numberOfFails)) newFailNum = Number(numberOfFails) + 1
+        if (command === '' || command.trim() === '') command = '<tom command>'
+        this.messageHelper.sendMessageToActionLog(message.channel as TextChannel, `${command} ble forsøkt brukt, men finnes ikke (${newFailNum})`)
+        DatabaseHelper.setNonUserValue('incorrectCommand', command, newFailNum.toString())
     }
 
     /** Checks for pølse, eivindpride etc. */

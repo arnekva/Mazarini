@@ -8,20 +8,16 @@ import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { countdownTime, dateRegex, DateUtils } from '../utils/dateUtils'
 import { ICommandElement } from './commands'
-const fetch = require('node-fetch')
 export interface dateValPair {
     print: string
     date: string
 }
-interface bankHolidayObject {
-    date: string
-    description: string
-}
+
 export class DateCommands extends AbstractCommands {
-    constructor(client: Client) {
-        super(client)
+    constructor(client: Client, messageHelper: MessageHelper) {
+        super(client, messageHelper)
     }
-    static setReminder(message: Message, content: string, args: string[]) {
+    private setReminder(message: Message, content: string, args: string[]) {
         const timeArray = args[0].split(':')
         const event = args.slice(1).join(' ')
 
@@ -37,13 +33,13 @@ export class DateCommands extends AbstractCommands {
             message.reply('Du må spesifisere hva påminnelsen gjelder')
             return
         }
-        MessageHelper.reactWithRandomEmoji(message)
+        this.messageHelper.reactWithRandomEmoji(message)
         setTimeout(() => {
             message.reply(`Her e din påminnelse om *${event}*`)
         }, timeout)
     }
 
-    static formatCountdownText(dateObj: countdownTime | undefined, textEnding: string, finishedText?: string) {
+    private formatCountdownText(dateObj: countdownTime | undefined, textEnding: string, finishedText?: string) {
         if (!dateObj) return finishedText ?? ''
         const timeTab: string[] = []
         let timeString = 'Det er'
@@ -60,7 +56,7 @@ export class DateCommands extends AbstractCommands {
         timeString += ' ' + textEnding
         return timeString
     }
-    static async countdownToDate(message: Message, messageContent: string, args: string[]) {
+    private async countdownToDate(message: Message, messageContent: string, args: string[]) {
         if (args[0] == 'fjern') {
             DatabaseHelper.deleteCountdownValue(message.author.username)
             return
@@ -104,9 +100,9 @@ export class DateCommands extends AbstractCommands {
         Object.keys(countdownDates).forEach((username) => {
             const countdownElement = DatabaseHelper.getNonUserValue('countdown', username)
             const daysUntil = DateUtils.getTimeTo(new Date(countdownElement.date))
-            const text = DateCommands.formatCountdownText(daysUntil, 'te ' + countdownElement.desc)
+            const text = this.formatCountdownText(daysUntil, 'te ' + countdownElement.desc)
             printValues.push({
-                print: `${!!text ? '\n' : ''}` + `${DateCommands.formatCountdownText(daysUntil, 'te ' + countdownElement.desc)}`,
+                print: `${!!text ? '\n' : ''}` + `${this.formatCountdownText(daysUntil, 'te ' + countdownElement.desc)}`,
                 date: countdownElement.date,
             })
         })
@@ -116,10 +112,10 @@ export class DateCommands extends AbstractCommands {
             sendThisText += el.print
         })
         if (!sendThisText) sendThisText = 'Det er ingen aktive countdowner'
-        MessageHelper.sendMessage(message, sendThisText)
+        this.messageHelper.sendMessage(message.channelId, sendThisText)
     }
 
-    static async checkForHelg(message: Message, messageContent: string, args: string[]) {
+    private async checkForHelg(message: Message, messageContent: string, args: string[]) {
         const isHelg = this.isItHelg()
         const url = 'https://webapi.no/api/v1/holidays/2021'
         let timeUntil
@@ -127,16 +123,16 @@ export class DateCommands extends AbstractCommands {
             const date = new Date()
             date.setHours(16, 0, 0, 0)
             if (date.getDay() === 5) {
-                if (new Date().getHours() < 16) timeUntil = DateCommands.formatCountdownText(DateUtils.getTimeTo(date), 'til helg')
+                if (new Date().getHours() < 16) timeUntil = this.formatCountdownText(DateUtils.getTimeTo(date), 'til helg')
                 else timeUntil = `Det e helg!`
             } else {
-                timeUntil = DateCommands.formatCountdownText(DateUtils.getTimeTo(new Date(DateUtils.nextWeekdayDate(date, 5))), 'til helg')
+                timeUntil = this.formatCountdownText(DateUtils.getTimeTo(new Date(DateUtils.nextWeekdayDate(date, 5))), 'til helg')
             }
         }
-        MessageHelper.sendMessage(message, isHelg ? `Det e helg!` : `${timeUntil}`)
+        this.messageHelper.sendMessage(message.channelId, isHelg ? `Det e helg!` : `${timeUntil}`)
     }
 
-    static isItHelg() {
+    private isItHelg() {
         const today = new Date()
         if (today.getDay() == 6 || today.getDay() == 0) return true
         else if (today.getDay() == 5 && today.getHours() > 16) return true
@@ -151,7 +147,7 @@ export class DateCommands extends AbstractCommands {
                     "Sett en varsling. Formattering: '!mz remind HH:MM:SS tekst her'. Denne er ikke lagret vedvarende, så den forsvinner hvis botten restarter.",
                 hideFromListing: true,
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    DateCommands.setReminder(rawMessage, messageContent, args)
+                    this.setReminder(rawMessage, messageContent, args)
                 },
 
                 category: 'annet',
@@ -161,7 +157,7 @@ export class DateCommands extends AbstractCommands {
                 description: 'Sjekk hvor lenge det er til helg',
                 hideFromListing: true,
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    DateCommands.checkForHelg(rawMessage, messageContent, args)
+                    this.checkForHelg(rawMessage, messageContent, args)
                 },
 
                 category: 'annet',
@@ -171,7 +167,7 @@ export class DateCommands extends AbstractCommands {
                 description:
                     "Se hvor lenge det er igjen til events (Legg til ny med '!mz countdown <dd-mm-yyyy> <hh> <beskrivelse> (klokke kan spesifiserert slik: <hh:mm:ss:SSS>. Kun time er nødvendig)",
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    DateCommands.countdownToDate(rawMessage, messageContent, args)
+                    this.countdownToDate(rawMessage, messageContent, args)
                 },
                 category: 'annet',
             },

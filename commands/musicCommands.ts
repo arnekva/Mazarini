@@ -40,11 +40,13 @@ interface fetchData {
 }
 
 export class Music extends AbstractCommands {
-    constructor(client: Client) {
-        super(client)
+    constructor(client: Client, messageHelper: MessageHelper) {
+        super(client, messageHelper)
     }
-    static readonly baseUrl = 'http://ws.audioscrobbler.com/2.0/'
-    static async findCommand(
+
+    private readonly baseUrl = 'http://ws.audioscrobbler.com/2.0/'
+
+    async findCommand(
         message: Message,
         content: string,
         args: string[],
@@ -67,20 +69,20 @@ export class Music extends AbstractCommands {
                 return
             }
 
-            let username = Music.getLastFMUsernameByDiscordUsername(shouldEditRawMessageInstead ?? message.author.username, message)
+            let username = this.getLastFMUsernameByDiscordUsername(shouldEditRawMessageInstead ?? message.author.username, message)
 
             //Check if fourth ([3]) argument is a valid username - if so, override author.username. Otherwise, treat [3] as 'stats' option.
-            let usernameFromArgs = Music.getLastFMUsernameByDiscordUsername(splitUsername(args[2]) ?? '', message)
+            let usernameFromArgs = this.getLastFMUsernameByDiscordUsername(splitUsername(args[2]) ?? '', message)
             if (usernameFromArgs) username = usernameFromArgs
             let limit = args[2] ?? '10'
             if (!username) {
                 if (!silent) message.reply("Du har ikke registrert brukernavnet ditt. Bruk '!mz musikk user <discordnavn> <last.fm navn>")
                 return
             }
-            const cmd = Music.getCommand(method.command, args[1])
+            const cmd = this.getCommand(method.command, args[1])
 
             if (method.command === 'siste' && args[2]) {
-                const nyUser = Music.getLastFMUsernameByDiscordUsername(args[2], message)
+                const nyUser = this.getLastFMUsernameByDiscordUsername(args[2], message)
                 if (nyUser) {
                     username = nyUser
                 } else {
@@ -115,14 +117,15 @@ export class Music extends AbstractCommands {
                     message.reply('du kan kun knytte ditt eget brukernavn')
                     return
                 }
-                Music.connectLastFmUsernameToUser(args[1], args[2], message)
+                this.connectLastFmUsernameToUser(args[1], args[2], message)
                 message.reply('Knyttet bruker ' + args[1] + ' til Last.fm brukernavnet ' + args[2])
             } else {
                 message.reply("formattering skal være '!mz music user *DISCORDNAVN* *LAST.FMNAVN*")
             }
         }
     }
-    static getCommand(c: commandTypes, s: string) {
+
+    private getCommand(c: commandTypes, s: string) {
         switch (c) {
             case 'topp':
                 if (s as topMethods) return this.findTopMethod(s)
@@ -132,13 +135,14 @@ export class Music extends AbstractCommands {
                 if (s as weeklyMethods) return this.findLastPlayedSongs(s)
         }
     }
-    //TODO: Rett metode
-    static findLastPlayedSongs(m: string) {
+
+    private findLastPlayedSongs(m: string) {
         return 'user.' + 'getrecenttracks'
     }
 
-    static findLastMethod(m: string) {}
-    static findTopMethod(m: string) {
+    private findLastMethod(m: string) {}
+
+    private findTopMethod(m: string) {
         const base = 'user.'
         switch (m) {
             case 'album':
@@ -155,7 +159,8 @@ export class Music extends AbstractCommands {
                 return undefined
         }
     }
-    static findWeeklyMethod(m: string) {
+
+    private findWeeklyMethod(m: string) {
         const base = 'user.'
         switch (m) {
             case 'artist':
@@ -175,7 +180,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
      * @param dataParam
      * @returns
      */
-    static async findLastFmData(message: Message, dataParam: fetchData, editInstead?: string, notWeeklyOrRecent?: boolean, silent?: boolean) {
+    private async findLastFmData(message: Message, dataParam: fetchData, editInstead?: string, notWeeklyOrRecent?: boolean, silent?: boolean) {
         if (parseInt(dataParam.limit) > 30) {
             message.reply('Litt for høg limit, deranes. Maks 30.')
             return
@@ -185,7 +190,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
         }
         if (editInstead) message.edit('Laster inn data fra Last.fm ...')
         let msg: Message
-        if (!silent) msg = editInstead ? message : ((await MessageHelper.sendMessage(message, 'Laster data...')) as Message)
+        if (!silent) msg = editInstead ? message : ((await this.messageHelper.sendMessage(message.channelId, 'Laster data...')) as Message)
         const apiKey = lfKey
         const emoji = await EmojiHelper.getEmoji('catJAM', message)
 
@@ -194,10 +199,10 @@ Docs: https://www.last.fm/api/show/user.getInfo
         /**Promise.all siden vi gjør 2 fetches og trenger at begge resolves samtidig */
         const arrayDataRet: string[] = []
         await Promise.all([
-            fetch(Music.baseUrl + `?method=${dataParam.method.cmd}&user=${dataParam.user}&api_key=${apiKey}&format=json&limit=${dataParam.limit}`, {
+            fetch(this.baseUrl + `?method=${dataParam.method.cmd}&user=${dataParam.user}&api_key=${apiKey}&format=json&limit=${dataParam.limit}`, {
                 method: 'GET',
             }),
-            fetch(Music.baseUrl + `?method=user.getinfo&user=${dataParam.user}&api_key=${apiKey}&format=json`),
+            fetch(this.baseUrl + `?method=user.getinfo&user=${dataParam.user}&api_key=${apiKey}&format=json`),
         ])
             .then(async ([resTop, resInfo]) => {
                 await Promise.all([resTop.json(), resInfo.json()])
@@ -274,30 +279,30 @@ Docs: https://www.last.fm/api/show/user.getInfo
                         let retMessage
 
                         if (!artistString.trim()) {
-                            MessageHelper.sendMessageToActionLogWithDefaultMessage(message, `Meldingen som ble forsøkt sendt er tom: <${message}>`)
+                            this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, `Meldingen som ble forsøkt sendt er tom: <${message}>`)
                             return
                         }
                         if (!silent) {
                             if (msg) msg.edit(artistString)
-                            else retMessage = MessageHelper.sendMessage(message, artistString)
+                            else retMessage = this.messageHelper.sendMessage(message.channelId, artistString)
                         }
                         arrayDataRet.push(artistString)
                         // return retMessage
                     })
                     .catch((error: any) => {
-                        MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
+                        this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
                     })
             })
             .catch((error: any) => {
-                MessageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
+                this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
             })
         return arrayDataRet
     }
 
-    static getLastFMUsernameByDiscordUsername(username: string, rawMessage: Message) {
+    private getLastFMUsernameByDiscordUsername(username: string, rawMessage: Message) {
         return DatabaseHelper.getValueWithoutMessage('lastFmUsername', username)
     }
-    static connectLastFmUsernameToUser(username: string, lfUsername: string, rawMessage: Message) {
+    private connectLastFmUsernameToUser(username: string, lfUsername: string, rawMessage: Message) {
         return DatabaseHelper.setValue('lastFmUsername', username, lfUsername)
     }
 
@@ -308,7 +313,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
                 description:
                     "Bruk '!mz musikk <topp|weekly|siste> <songs|albums|artist> <limit?>(valgfri). Koble til Last.fm med '!mz music user *discord brukernavn* *Last.fm brukernavn*'",
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    Music.findCommand(rawMessage, messageContent, args)
+                    this.findCommand(rawMessage, messageContent, args)
                 },
                 category: 'musikk',
             },

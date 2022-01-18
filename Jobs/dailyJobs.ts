@@ -3,7 +3,19 @@ import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 
 export class DailyJobs {
-    static async validateAndResetDailyClaims() {
+    private messageHelper: MessageHelper
+
+    constructor(messageHelper: MessageHelper) {
+        this.messageHelper = messageHelper
+    }
+
+    runJobs() {
+        this.validateAndResetDailyClaims()
+        this.resetStatuses()
+        this.logEvent()
+    }
+
+    private async validateAndResetDailyClaims() {
         const brukere = await DatabaseHelper.getAllUsers()
         Object.keys(brukere).forEach((username: string) => {
             const userStreak = DatabaseHelper.getValueWithoutMessage('dailyClaimStreak', username)
@@ -21,13 +33,13 @@ export class DailyJobs {
         DatabaseHelper.deleteSpecificPrefixValues('dailyClaim')
     }
 
-    static async resetStatuses() {
+    private async resetStatuses() {
         DatabaseHelper.deleteSpecificPrefixValues('mygling')
     }
 
-    static logEvent() {
+    private logEvent() {
         const todaysTime = new Date().toLocaleTimeString()
-        MessageHelper.SendMessageWithoutMessageObject(`Daglige jobber kjørte ${todaysTime} (Resett status, resett daily price claim)`, '810832760364859432')
+        this.messageHelper.sendMessage('810832760364859432', `Daglige jobber kjørte ${todaysTime} (Resett status, resett daily price claim)`)
         console.log(`Daily jobs ran at ${todaysTime}`)
     }
 }

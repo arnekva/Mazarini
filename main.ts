@@ -34,6 +34,7 @@ require('dotenv').config()
 export class MazariniClient {
     private client: Client
     private commandRunner: CommandRunner
+    private messageHelper: MessageHelper
     private numMessages: number
     private isTest: boolean
     private startTime: Date
@@ -57,7 +58,8 @@ export class MazariniClient {
                 Intents.FLAGS.GUILD_VOICE_STATES,
             ],
         })
-        this.commandRunner = new CommandRunner(this.client)
+        this.messageHelper = new MessageHelper(this.client)
+        this.commandRunner = new CommandRunner(this.client, this.messageHelper)
         this.startTime = new Date()
         this.numMessages = 0
         this.isTest = environment === 'dev'
@@ -71,6 +73,7 @@ export class MazariniClient {
 
     setupClient(client: Client) {
         const _client = this
+        const _msgHelper = this.messageHelper
         client.on('ready', async () => {
             try {
                 await API.loginWithSSO(actSSOCookie)
@@ -81,10 +84,7 @@ export class MazariniClient {
             console.log(`Logged in as ${_client.client.user?.tag} ${today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()} !`)
 
             if (environment == 'prod')
-                MessageHelper.sendMessageToActionLog(
-                    _client.client.channels.cache.get('810832760364859432') as TextChannel,
-                    'Boten er nå live i production mode.'
-                )
+                _msgHelper.sendMessageToActionLog(_client.client.channels.cache.get('810832760364859432') as TextChannel, 'Boten er nå live i production mode.')
 
             _client.client?.user?.setPresence({
                 activities: [
@@ -101,14 +101,13 @@ export class MazariniClient {
             //https://www.npmjs.com/package/node-schedule
             /** Runs every day at 08:00 */
             const dailyJob = schedule.scheduleJob('0 8 * * *', async function () {
-                DailyJobs.resetStatuses()
-                DailyJobs.logEvent()
-                DailyJobs.validateAndResetDailyClaims()
+                const jobs = new DailyJobs(_msgHelper)
+                jobs.runJobs()
             })
             /** Runs once a week at mondays 08:00 */
             const weeklyJob = schedule.scheduleJob('0 8 * * 1', async function () {
-                WeeklyJobs.awardWeeklyCoins()
-                WeeklyJobs.logEvent()
+                const jobs = new WeeklyJobs(_msgHelper)
+                jobs.runJobs()
             })
 
             const guild = client.guilds.cache.find((g: Guild) => g.id === '340626855990132747') as Guild
@@ -127,45 +126,48 @@ export class MazariniClient {
 
         /** For interactions (slash-commands and user-commands) */
         client.on('interactionCreate', async (interaction: Interaction<CacheType>) => {
-            return
+            _msgHelper.sendMessage(
+                interaction?.channelId ?? '810832760364859432',
+                'Interaksjoner er for øyeblikket skrudd av, da det trenger en oppdatering av utfaset funksjonalitet. Mas på Maggi'
+            )
             // ShopClass.openShop(interaction, client)
         })
 
         client.on('channelDelete', (channel: DMChannel | NonThreadGuildBasedChannel) => {
             const id = '810832760364859432'
-            MessageHelper.SendMessageWithoutMessageObject(`Channel med ID ${channel.id} ble slettet`, id)
+            _msgHelper.sendMessage(id, `Channel med ID ${channel.id} ble slettet`)
         })
 
         client.on('guildBanAdd', (ban: GuildBan) => {
             const id = '810832760364859432'
-            MessageHelper.SendMessageWithoutMessageObject(`${ban.user.username} ble bannet pga ${ban?.reason}`, id)
+            _msgHelper.sendMessage(id, `${ban.user.username} ble bannet pga ${ban?.reason}`)
         })
 
         client.on('guildCreate', (guild: Guild) => {
-            MessageHelper.sendMessageToActionLog(guild.channels.cache.first() as TextChannel, 'Ukjent: on guildCreate. Wat dis do?')
+            _msgHelper.sendMessageToActionLog(guild.channels.cache.first() as TextChannel, 'Ukjent: on guildCreate. Wat dis do?')
         })
 
         client.on('guildMemberAdd', async (member: GuildMember) => {
-            UserUtils.onAddedMember(member)
+            UserUtils.onAddedMember(member, _msgHelper)
         })
         client.on('guildMemberRemove', (member: GuildMember | PartialGuildMember) => {
-            UserUtils.onMemberLeave(member)
+            UserUtils.onMemberLeave(member, _msgHelper)
         })
 
         client.on('userUpdate', function (oldUser: User | PartialUser, newUser: User) {
-            UserUtils.onUserUpdate(oldUser, newUser)
+            UserUtils.onUserUpdate(oldUser, newUser, _msgHelper)
         })
 
         //Emitted whenever a guild member changes - i.e. new role, removed role, nickname.
         client.on('guildMemberUpdate', function (oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) {
-            UserUtils.onMemberUpdate(oldMember, newMember)
+            UserUtils.onMemberUpdate(oldMember, newMember, _msgHelper)
         })
 
         client.on('roleCreate', function (role: Role) {
-            MessageHelper.sendMessageToActionLog(role.guild.channels.cache.first() as TextChannel, 'En ny rolle er opprettet: ' + role.name)
+            _msgHelper.sendMessageToActionLog(role.guild.channels.cache.first() as TextChannel, 'En ny rolle er opprettet: ' + role.name)
         })
         client.on('roleDelete', function (role: Role) {
-            MessageHelper.sendMessageToActionLog(role.guild.channels.cache.first() as TextChannel, 'En rolle er slettet: ' + role.name)
+            _msgHelper.sendMessageToActionLog(role.guild.channels.cache.first() as TextChannel, 'En rolle er slettet: ' + role.name)
         })
 
         client.on('messageUpdate', function (oldMessage: Message | PartialMessage, newMessage: Message | PartialMessage) {
@@ -174,10 +176,10 @@ export class MazariniClient {
         })
 
         client.on('warn', function (info: string) {
-            MessageHelper.sendMessageToActionLog(client.channels.cache.get('810832760364859432') as TextChannel, 'En advarsel ble fanget opp. Info: \n ' + info)
+            _msgHelper.sendMessageToActionLog(client.channels.cache.get('810832760364859432') as TextChannel, 'En advarsel ble fanget opp. Info: \n ' + info)
         })
         client.on('error', function (error: Error) {
-            MessageHelper.sendMessageToActionLog(
+            _msgHelper.sendMessageToActionLog(
                 client.channels.cache.get('810832760364859432') as TextChannel,
                 'En feilmelding ble fanget opp. Error: \n ' + error
             )
