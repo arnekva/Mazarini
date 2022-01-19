@@ -90,7 +90,7 @@ export class MazariniClient {
                 activities: [
                     {
                         type: 'COMPETING',
-                        name: 'For Morå Di',
+                        name: 'Morå Di',
                     },
                 ],
                 afk: false,
