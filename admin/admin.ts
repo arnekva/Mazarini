@@ -34,10 +34,7 @@ export class Admin extends AbstractCommands {
             )
             return
         }
-        const val = getUsernameInQuotationMarks(args[1]) ? args.slice(3).join(' ') : args.slice(2).join(' ')
-        const content = messageContent.split(' ')
-
-        username = username.replace('"', '').replace('"', '')
+        const val = args[2]
         DatabaseHelper.setValue(prefix, username, val)
         this.messageHelper.reactWithRandomEmoji(message)
     }

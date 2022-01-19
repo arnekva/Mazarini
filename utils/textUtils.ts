@@ -59,7 +59,7 @@ export function getUsernameInQuotationMarks(content: string) {
 }
 
 export function splitUsername(u: string) {
-    return u ? u.replace('_', ' ') : u
+    return u.replace('_', ' ')
 }
 
 export function doesTextIncludeUsername(content: string) {
