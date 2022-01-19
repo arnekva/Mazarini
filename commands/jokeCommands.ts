@@ -15,10 +15,11 @@ import {
     reverseMessageString,
     splitUsername,
 } from '../utils/textUtils'
-import { ICommandElement } from './commands'
+import { ICommandElement } from '../General/commands'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { Languages } from '../helpers/languageHelpers'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { getRandomPercentage } from '../utils/randomUtils'
 
 export class JokeCommands extends AbstractCommands {
     constructor(client: Client, messageHelper: MessageHelper) {
@@ -63,7 +64,10 @@ export class JokeCommands extends AbstractCommands {
     }
 
     private async geggien(message: Message) {
-        await this.messageHelper.sendMessage(message.channelId, 'Knuse maggi i Rocket League')
+        await this.messageHelper.sendMessage(
+            message.channelId,
+            getRandomPercentage(50) ? `Knuse maggi i Rocket League` : `Bler knust av maggi i Rocket League :(`
+        )
     }
 
     private async isMaggiPlaying(message: Message, content: string, args: string[]) {

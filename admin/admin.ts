@@ -1,6 +1,6 @@
 import { Channel, Client, GuildMember, Message, TextChannel, User } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { ICommandElement } from '../commands/commands'
+import { ICommandElement } from '../General/commands'
 import { DateCommands } from '../commands/dateCommands'
 import { IDailyPriceClaim } from '../commands/gamblingCommands'
 import { Spinner } from '../commands/spinner'

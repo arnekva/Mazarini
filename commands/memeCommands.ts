@@ -2,7 +2,7 @@ import { Client, Message, TextChannel } from 'discord.js'
 import { imgflip } from '../client-env'
 import { MessageHelper } from '../helpers/messageHelper'
 import { replaceAtWithTextUsername } from '../utils/textUtils'
-import { ICommandElement } from './commands'
+import { ICommandElement } from '../General/commands'
 import { URLSearchParams } from 'url'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 const fetch = require('node-fetch')

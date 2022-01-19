@@ -4,7 +4,7 @@ import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { Roles } from '../utils/roles'
-import { ICommandElement } from './commands'
+import { ICommandElement } from '../General/commands'
 
 export class UserCommands extends AbstractCommands {
     constructor(client: Client, messageHelper: MessageHelper) {

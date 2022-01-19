@@ -6,7 +6,7 @@ import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { replaceLast, splitUsername } from '../utils/textUtils'
-import { ICommandElement } from './commands'
+import { ICommandElement } from '../General/commands'
 const fetch = require('node-fetch')
 export type musicCommand = 'top'
 

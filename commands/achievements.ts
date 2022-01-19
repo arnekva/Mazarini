@@ -3,7 +3,7 @@ import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { AchievementHelper } from '../helpers/achievementHelper'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { ICommandElement } from './commands'
+import { ICommandElement } from '../General/commands'
 
 export type achievementIDs = 'firstSpin' | '100spin' | '1000spin' | '5000spin' | '10000spin' | 'bonkOnce' | 'bonk50' | 'bonk100'
 

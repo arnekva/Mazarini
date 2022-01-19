@@ -10,7 +10,7 @@ import { getWeekNumber } from '../utils/dateUtils'
 import { getRandomPercentage } from '../utils/randomUtils'
 import { escapeString } from '../utils/textUtils'
 import { Achievements } from './achievements'
-import { ICommandElement } from './commands'
+import { ICommandElement } from '../General/commands'
 
 const weightedRandomObject = require('weighted-random-object')
 

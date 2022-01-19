@@ -4,7 +4,7 @@ import { actSSOCookie } from '../client-env'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
-import { ICommandElement } from './commands'
+import { ICommandElement } from '../General/commands'
 const API = require('call-of-duty-api')()
 
 export interface CodStats {

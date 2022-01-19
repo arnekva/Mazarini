@@ -9,7 +9,7 @@ import { findLetterEmoji } from '../utils/miscUtils'
 import { getRndInteger } from '../utils/randomUtils'
 import { getUsernameInQuotationMarks, splitUsername } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
-import { ICommandElement } from './commands'
+import { ICommandElement } from '../General/commands'
 
 export interface IDailyPriceClaim {
     streak: number

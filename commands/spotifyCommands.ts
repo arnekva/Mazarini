@@ -5,7 +5,7 @@ import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { getUsernameInQuotationMarks, splitUsername } from '../utils/textUtils'
-import { ICommandElement } from './commands'
+import { ICommandElement } from '../General/commands'
 import { Music } from './musicCommands'
 const request = require('request')
 const fetch = require('node-fetch')

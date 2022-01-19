@@ -72,7 +72,7 @@ export class MazariniClient {
     }
 
     setupClient(client: Client) {
-        const _client = this
+        const _mzClient = this
         const _msgHelper = this.messageHelper
         client.on('ready', async () => {
             try {
@@ -81,12 +81,12 @@ export class MazariniClient {
                 console.log('Failed to log in to activision with sso cookie')
             }
             const today = new Date()
-            console.log(`Logged in as ${_client.client.user?.tag} ${today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()} !`)
+            console.log(`Logged in as ${_mzClient.client.user?.tag} ${today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()} !`)
 
             if (environment == 'prod')
-                _msgHelper.sendMessageToActionLog(_client.client.channels.cache.get('810832760364859432') as TextChannel, 'Boten er nå live i production mode.')
+                _msgHelper.sendMessageToActionLog(_mzClient.client.channels.cache.get('810832760364859432') as TextChannel, 'Boten er nå live i production mode.')
 
-            _client.client?.user?.setPresence({
+            _mzClient.client?.user?.setPresence({
                 activities: [
                     {
                         type: 'COMPETING',
@@ -117,11 +117,11 @@ export class MazariniClient {
 
         /** For all sent messages */
         client.on('messageCreate', async (message: Message) => {
-            _client.numMessages++
+            _mzClient.numMessages++
             //Do not reply to own messages. Do not trigger on pinned messages
             if (message.author == client.user || message.type == 'CHANNEL_PINNED_MESSAGE') return
 
-            _client.commandRunner.runCommands(message)
+            _mzClient.commandRunner.runCommands(message)
         })
 
         /** For interactions (slash-commands and user-commands) */
@@ -171,8 +171,8 @@ export class MazariniClient {
         })
 
         client.on('messageUpdate', function (oldMessage: Message | PartialMessage, newMessage: Message | PartialMessage) {
-            _client.commandRunner.checkForCommand(newMessage as Message)
-            _client.commandRunner.checkMessageForJokes(newMessage as Message)
+            _mzClient.commandRunner.checkForCommand(newMessage as Message)
+            _mzClient.commandRunner.checkMessageForJokes(newMessage as Message)
         })
 
         client.on('warn', function (info: string) {

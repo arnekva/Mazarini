@@ -2,10 +2,10 @@ import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
 import { env } from 'process'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'
+import { ICommandElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { getRndInteger } from '../utils/randomUtils'
-import { ICommandElement } from './commands'
 
 interface dropCoordinate {
     xDropCoordinate: number

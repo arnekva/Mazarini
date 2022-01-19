@@ -7,7 +7,7 @@ import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { countdownTime, dateRegex, DateUtils } from '../utils/dateUtils'
-import { ICommandElement } from './commands'
+import { ICommandElement } from '../General/commands'
 export interface dateValPair {
     print: string
     date: string

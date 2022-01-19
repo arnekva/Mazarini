@@ -1,6 +1,6 @@
 import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
 import { MessageHelper } from '../helpers/messageHelper'
-import { Commands, ICommandElement } from './commands'
+import { ICommandElement } from '../General/commands'
 const fetch = require('node-fetch')
 import { WeatherUtils } from '../utils/weatherUtils'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
@@ -28,11 +28,8 @@ export class Weather extends AbstractCommands {
                 }
                 res.json().then((el: any) => {
                     const temperature: string = WeatherUtils.kelvinToCelcius(el.main.temp).toFixed(1).toString()
-
                     const weatherDescription = el.weather.map((weatherObj: any) => weatherObj.description).join(', ')
-                    const response = 'Været i ' + el.name + ' er nå ' + weatherDescription + ' med ' + temperature + '°.'
-
-                    const gambling = new MessageEmbed()
+                    const weather = new MessageEmbed()
                         .setTitle(`☁️ Vær - ${el.name} ☀️`)
                         .setDescription(``)
                         .addField(
@@ -46,7 +43,7 @@ export class Weather extends AbstractCommands {
                         .addField(`Forhold`, `Det er ${weatherDescription}`)
                         .addField(`Vind`, `${el.wind.speed} m/s`)
 
-                    this.messageHelper.sendFormattedMessage(message.channel as TextChannel, gambling)
+                    this.messageHelper.sendFormattedMessage(message.channel as TextChannel, weather)
                 })
             })
             .catch((error: Error) => {

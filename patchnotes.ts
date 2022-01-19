@@ -1,9 +1,9 @@
 import { Channel, Client, DMChannel, NewsChannel, TextChannel, Message, MessageFlags } from 'discord.js'
 import { AbstractCommands } from './Abstracts/AbstractCommand'
-import { ICommandElement } from './commands/commands'
+import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '5.0.2'
+    public static readonly currentVersion = '5.0.3'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
