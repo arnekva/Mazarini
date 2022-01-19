@@ -25,21 +25,25 @@ export class CommandRunner {
         this.commands = new Commands(client, messageHelper)
     }
     async runCommands(message: Message) {
-        /** Check if message is calling lock commands */
-        if (this.checkForLockCommand(message)) return
-        /** Check if message thread or channel is locked */
-        if (this.isThreadLocked(message)) return
-        /** Check if user is locked */
-        if (this.isUserLocked(message)) return
-        /** Check if bot is locked */
-        if (this.isBotLocked()) return
-        /** Check if the bot is allowed to send messages in this channel */
-        if (!this.isLegalChannel(message)) return
-        if (this.checkForGetCommands(message)) return
-        /**  Check message for commands */
-        await this.checkForCommand(message)
-        /** Additional non-command checks */
-        this.checkMessageForJokes(message)
+        try {
+            /** Check if message is calling lock commands */
+            if (this.checkForLockCommand(message)) return
+            /** Check if message thread or channel is locked */
+            if (this.isThreadLocked(message)) return
+            /** Check if user is locked */
+            if (this.isUserLocked(message)) return
+            /** Check if bot is locked */
+            if (this.isBotLocked()) return
+            /** Check if the bot is allowed to send messages in this channel */
+            if (!this.isLegalChannel(message)) return
+            if (this.checkForGetCommands(message)) return
+            /**  Check message for commands */
+            await this.checkForCommand(message)
+            /** Additional non-command checks */
+            this.checkMessageForJokes(message)
+        } catch (error) {
+            this.messageHelper.sendMessageToActionLogWithCustomMessage(message, error, 'Her har det skjedd en feil', true)
+        }
     }
 
     checkForLockCommand(message: Message) {
