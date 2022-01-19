@@ -107,7 +107,9 @@ export class CommandRunner {
                 return
             }
             commands.forEach((cmd) => {
-                if (cmd.commandName.includes(command.toLowerCase())) {
+                if (
+                    Array.isArray(cmd.commandName) ? cmd.commandName.includes(command.toLowerCase()) : cmd.commandName.toLowerCase() === command.toLowerCase()
+                ) {
                     cmdFound = this.runCommandElement(cmd, message, messageContent, args)
                 }
             })

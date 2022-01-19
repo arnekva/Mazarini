@@ -89,8 +89,8 @@ export class MazariniClient {
             _client.client?.user?.setPresence({
                 activities: [
                     {
-                        type: 'STREAMING',
-                        name: 'Test',
+                        type: 'COMPETING',
+                        name: 'For Morå Di',
                     },
                 ],
                 afk: false,

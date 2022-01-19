@@ -3,21 +3,12 @@ import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement } from './commands/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '5.0.1'
+    public static readonly currentVersion = '5.0.2'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `* Refaktorert hvordan commands er satt opp` +
-        `\n* En command kan nå ha flere triggere ved å legge commandName som en array (eks trigger "sivert", "geggien", "trackpad" og "steve" alle samme commanden)` +
-        `\n* Ingen klasser er lenger statiske (utenom hjelpeklasser)` +
-        `\n* Refaktorert MessageHelper til å ikke lenger være avhengig av Message-objekter` +
-        `\n* Alle klasser har nå tilgang til client og messageHelper via this` +
-        `\n* 'krig' kan nå trigges med tall og brukernavn i begge argument-plasser` +
-        `\n* Midlertidig skrudd av interaksjoner` +
-        `\n* Lagt til command for Sivert` +
-        `\n* !zm support er midlertidig fjernet noen steder` +
-        `\n* Github commands fjernet`
+        `* Endret tekst i Activity for bot` + `\n* Fikset en feil på kjøring av commands som kunne trigge flere enn valgte command`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
