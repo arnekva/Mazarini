@@ -1,5 +1,4 @@
 import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
-import { env } from 'process'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'
 import { ICommandElement } from '../General/commands'
@@ -126,7 +125,11 @@ export class GameCommands extends AbstractCommands {
     }
 
     private async rocketLeagueRanks(rawMessage: Message, messageContent: string, args: string[]) {
-        const userValue = DatabaseHelper.getValue('rocketLeagueUserString', rawMessage.author.username, rawMessage, true)
+        const wantsToLookUpUser = DatabaseHelper.getValueWithoutMessage('rocketLeagueUserString', args[1])
+
+        const userValue = wantsToLookUpUser
+            ? wantsToLookUpUser
+            : DatabaseHelper.getValue('rocketLeagueUserString', rawMessage.author.username, rawMessage, true)
         let user
         if (userValue) user = userValue.split(';')
 

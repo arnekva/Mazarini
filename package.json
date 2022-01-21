@@ -1,6 +1,6 @@
 {
     "name": "mazarini",
-    "version": "2.2.2",
+    "version": "5.0.0",
     "description": "",
     "scripts": {
         "start": "nodemon index.ts --ignore myDataBase.json",
@@ -40,6 +40,13 @@
         "weighted-random-object": "^1.0.8"
     },
     "devDependencies": {
-        "@types/emoji-strip": "^1.0.0"
+        "@types/emoji-strip": "^1.0.0",
+        "@typescript-eslint/eslint-plugin": "^4.15.1",
+        "@typescript-eslint/parser": "^4.15.1",
+        "eslint": "^7.20.0",
+        "eslint-config-airbnb": "^18.2.1",
+        "eslint-import-resolver-typescript": "^2.4.0",
+        "prettier": "^2.3.0",
+        "prettier-plugin-organize-imports": "^2.0.0"
     }
 }

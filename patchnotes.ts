@@ -1,14 +1,17 @@
-import { Channel, Client, DMChannel, NewsChannel, TextChannel, Message, MessageFlags } from 'discord.js'
+import { Client, Message } from 'discord.js'
 import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '5.0.3'
+    public static readonly currentVersion = '5.1.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `* Endret tekst i Activity for bot` + `\n* Fikset en feil på kjøring av commands som kunne trigge flere enn valgte command`
+        `* Midlertidig fjernet at botten ikke "orker" å gjøre commands` +
+        `\n* Du kan nå sjekke Rocket League stats for andre spillere ved eks. '!mz rocket 2v2 Eivind'. (Hvis brukeren har linket brukernavn)` +
+        `\n* Fikset en feil på kjøring av commands som kunne trigge flere enn valgte command` +
+        `\n* Oppdatert eivindpride-algoritmen`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

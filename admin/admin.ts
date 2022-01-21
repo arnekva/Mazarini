@@ -163,7 +163,7 @@ export class Admin extends AbstractCommands {
     }
 
     private cancelUser(message: Message, messageContent: string, args: string[]) {
-        message.reply('Me drive ikkje me sånt her lenger')
+        message.reply('Det går dessverre ikkje an å cancella folk lenger :(')
         return
     }
 
