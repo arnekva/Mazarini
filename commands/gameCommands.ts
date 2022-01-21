@@ -5,6 +5,7 @@ import { ICommandElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { getRndInteger } from '../utils/randomUtils'
+import { splitUsername } from '../utils/textUtils'
 
 interface dropCoordinate {
     xDropCoordinate: number
@@ -125,7 +126,7 @@ export class GameCommands extends AbstractCommands {
     }
 
     private async rocketLeagueRanks(rawMessage: Message, messageContent: string, args: string[]) {
-        const wantsToLookUpUser = DatabaseHelper.getValueWithoutMessage('rocketLeagueUserString', args[1])
+        const wantsToLookUpUser = DatabaseHelper.getValueWithoutMessage('rocketLeagueUserString', splitUsername(args[1]))
 
         const userValue = wantsToLookUpUser
             ? wantsToLookUpUser
