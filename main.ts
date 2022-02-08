@@ -128,11 +128,6 @@ export class MazariniClient {
 
         /** For interactions (slash-commands and user-commands) */
         client.on('interactionCreate', async (interaction: Interaction<CacheType>) => {
-            // _msgHelper.sendMessage(
-            //     interaction?.channelId ?? '810832760364859432',
-            //     'Interaksjoner er for øyeblikket skrudd av, da det trenger en oppdatering av utfaset funksjonalitet. Mas på Maggi'
-            // )
-
             ShopClass.openShop(interaction, client)
         })
 
@@ -174,8 +169,10 @@ export class MazariniClient {
         })
 
         client.on('messageUpdate', function (oldMessage: Message | PartialMessage, newMessage: Message | PartialMessage) {
-            _mzClient.commandRunner.checkForCommand(newMessage as Message)
-            _mzClient.commandRunner.checkMessageForJokes(newMessage as Message)
+            if (!newMessage.pinned && !oldMessage.pinned) {
+                _mzClient.commandRunner.checkForCommand(newMessage as Message)
+                _mzClient.commandRunner.checkMessageForJokes(newMessage as Message)
+            }
         })
 
         client.on('warn', function (info: string) {
