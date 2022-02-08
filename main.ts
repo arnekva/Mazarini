@@ -1,33 +1,32 @@
 import {
+    CacheType,
+    Client,
+    DMChannel,
     Guild,
+    GuildBan,
     GuildMember,
+    Intents,
+    Interaction,
     Message,
+    NonThreadGuildBasedChannel,
+    PartialGuildMember,
+    PartialMessage,
+    PartialUser,
     Role,
     TextChannel,
     User,
-    Intents,
-    CommandInteraction,
-    Client,
-    Interaction,
-    CacheType,
-    DMChannel,
-    NonThreadGuildBasedChannel,
-    GuildBan,
-    PartialGuildMember,
-    PartialUser,
-    PartialMessage,
 } from 'discord.js'
+import { actSSOCookie, discordSecret, environment } from './client-env'
+import { ShopClass } from './commands/shop'
+import { CommandRunner } from './General/commandRunner'
+import { MessageHelper } from './helpers/messageHelper'
+import { DailyJobs } from './Jobs/dailyJobs'
+import { WeeklyJobs } from './Jobs/weeklyJobs'
+import { UserUtils } from './utils/userUtils'
 
 const Discord = require('discord.js')
 
 const schedule = require('node-schedule')
-import { MessageHelper } from './helpers/messageHelper'
-import { actSSOCookie, discordSecret, environment } from './client-env'
-import { ShopClass } from './commands/shop'
-import { DailyJobs } from './Jobs/dailyJobs'
-import { WeeklyJobs } from './Jobs/weeklyJobs'
-import { CommandRunner } from './General/commandRunner'
-import { UserUtils } from './utils/userUtils'
 const API = require('call-of-duty-api')()
 require('dotenv').config()
 
@@ -84,7 +83,10 @@ export class MazariniClient {
             console.log(`Logged in as ${_mzClient.client.user?.tag} ${today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()} !`)
 
             if (environment == 'prod')
-                _msgHelper.sendMessageToActionLog(_mzClient.client.channels.cache.get('810832760364859432') as TextChannel, 'Boten er nå live i production mode.')
+                _msgHelper.sendMessageToActionLog(
+                    _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
+                    'Boten er nå live i production mode.'
+                )
 
             _mzClient.client?.user?.setPresence({
                 activities: [
@@ -126,11 +128,12 @@ export class MazariniClient {
 
         /** For interactions (slash-commands and user-commands) */
         client.on('interactionCreate', async (interaction: Interaction<CacheType>) => {
-            _msgHelper.sendMessage(
-                interaction?.channelId ?? '810832760364859432',
-                'Interaksjoner er for øyeblikket skrudd av, da det trenger en oppdatering av utfaset funksjonalitet. Mas på Maggi'
-            )
-            // ShopClass.openShop(interaction, client)
+            // _msgHelper.sendMessage(
+            //     interaction?.channelId ?? '810832760364859432',
+            //     'Interaksjoner er for øyeblikket skrudd av, da det trenger en oppdatering av utfaset funksjonalitet. Mas på Maggi'
+            // )
+
+            ShopClass.openShop(interaction, client)
         })
 
         client.on('channelDelete', (channel: DMChannel | NonThreadGuildBasedChannel) => {

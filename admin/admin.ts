@@ -1,16 +1,9 @@
-import { Channel, Client, GuildMember, Message, TextChannel, User } from 'discord.js'
+import { Client, GuildMember, Message, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement } from '../General/commands'
-import { DateCommands } from '../commands/dateCommands'
-import { IDailyPriceClaim } from '../commands/gamblingCommands'
-import { Spinner } from '../commands/spinner'
-import { CommandRunner } from '../General/commandRunner'
-import { globalArrays } from '../globals'
 import { DatabaseHelper, dbPrefix } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { ArrayUtils } from '../utils/arrayUtils'
-import { DateUtils } from '../utils/dateUtils'
-import { getUsernameInQuotationMarks, isInQuotation, splitUsername } from '../utils/textUtils'
+import { splitUsername } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
 
 export class Admin extends AbstractCommands {
@@ -168,9 +161,7 @@ export class Admin extends AbstractCommands {
     }
 
     private deleteXLastMessagesByUserInChannel(message: Message, messageContent: string, args: string[]) {
-        const userToDeleteBool = getUsernameInQuotationMarks(messageContent)
-        const userToDelete = userToDeleteBool ?? args[0]
-
+        const userToDelete = splitUsername(args[0])
         const user = DatabaseHelper.findUserByUsername(userToDelete, message)
 
         const reason = userToDelete ? args.slice(3).join(' ') : args.slice(2).join(' ')
@@ -179,7 +170,7 @@ export class Admin extends AbstractCommands {
             return
         }
         const currentChannel = message.channel
-        const maxDelete = userToDeleteBool ? Number(args[2]) ?? 1 : Number(args[1]) ?? 1
+        const maxDelete = Number(args[1]) ?? 1
         let deleteCounter = 0
         currentChannel.messages
             .fetch({ limit: 200 })

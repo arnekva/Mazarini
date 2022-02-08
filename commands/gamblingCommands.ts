@@ -1,15 +1,14 @@
-import { Message, MessageEmbed, User } from 'discord.js'
-import { Channel, Client, DMChannel, NewsChannel, TextChannel } from 'discord.js'
+import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { ICommandElement } from '../General/commands'
 import { globals } from '../globals'
-import { betObject, betObjectReturned, DatabaseHelper, dbPrefix } from '../helpers/databaseHelper'
+import { betObject, betObjectReturned, DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { findLetterEmoji } from '../utils/miscUtils'
 import { getRndInteger } from '../utils/randomUtils'
-import { getUsernameInQuotationMarks, splitUsername } from '../utils/textUtils'
+import { splitUsername } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
-import { ICommandElement } from '../General/commands'
 
 export interface IDailyPriceClaim {
     streak: number
@@ -222,9 +221,12 @@ export class GamblingCommands extends AbstractCommands {
             message.reply('en av dere har ikke råd til å utføre denne krigen her.')
             return
         }
+        const user = UserUtils.findUserByUsername(username, message)
         const resolveMessage = await this.messageHelper.sendMessage(
             message.channelId,
-            `${message.author.username} vil gå til krig med deg, ${username}. Reager med 👍 for å godkjenne. Den som starter krigen ruller for 0-49.`
+            `${message.author.username} vil gå til krig med deg, ${
+                user ? '<@' + user.id + '>' : username
+            }. Reager med 👍 for å godkjenne. Den som starter krigen ruller for 0-49.`
         )
         if (resolveMessage) {
             this.messageHelper.reactWithThumbs(resolveMessage, 'up')

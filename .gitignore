@@ -4,3 +4,4 @@ mazariniDb.json
 ./myDataBase.json
 client-env.ts
 .VSCodeCounter/
+node_modules

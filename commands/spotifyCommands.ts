@@ -1,11 +1,11 @@
 import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { spotifyToken } from '../client-env'
+import { ICommandElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { getUsernameInQuotationMarks, splitUsername } from '../utils/textUtils'
-import { ICommandElement } from '../General/commands'
+import { splitUsername } from '../utils/textUtils'
 import { Music } from './musicCommands'
 const request = require('request')
 const fetch = require('node-fetch')

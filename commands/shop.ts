@@ -1,7 +1,9 @@
 import {
+    CacheType,
     Client,
     CommandInteraction,
     ContextMenuInteraction,
+    Interaction,
     Message,
     MessageActionRow,
     MessageButton,
@@ -12,7 +14,6 @@ import {
 } from 'discord.js'
 import { DatabaseHelper, debuffItem } from '../helpers/databaseHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
-import { UserUtils } from '../utils/userUtils'
 
 export interface userShoppingCart {
     cart: shopItem[]
@@ -46,7 +47,9 @@ export interface useItemsList {
 export class ShopClass {
     static allShoppingCart: userShoppingCart[] = []
     static itemsToBeUsed: useItemsList[] = []
-    static async openShop(interaction: CommandInteraction, client: Client) {
+    static async openShop(interaction: Interaction<CacheType>, client: Client) {
+        const commandInteraction = interaction as CommandInteraction
+
         let targetBruker: string | undefined
         let shopDescription = 'Velkommen til Mazarini shop, her kan du få kjøpt leketøy til Eivinds mor! \n \n Handleliste:'
         const embed = new MessageEmbed().setColor('#FF0000').setTitle('Mazarini shop!').setDescription(shopDescription)
@@ -72,21 +75,21 @@ export class ShopClass {
         const row2 = new MessageActionRow()
 
         //commandId === /shop
-        if (interaction.commandId === '877136476045967361') {
+        if (commandInteraction.commandId == '877136476045967361') {
             this.allShoppingCart.push({
                 user: interaction.user,
                 cart: [],
             })
 
             buyButton.setDisabled(true)
-
             row2.addComponents(buyButton, priceButton, new MessageButton().setCustomId('CANCEL').setLabel('CANCEL').setStyle('DANGER'))
-
-            await interaction.reply({ embeds: [embed], components: [row1, row2], isMessage: true })
+            await commandInteraction.reply({ embeds: [embed], components: [row1, row2], isMessage: true })
         }
 
         //commandID ==== /inventory
-        if (interaction.commandId === '879251024475467807') {
+        console.log(commandInteraction.commandId)
+
+        if (commandInteraction.commandId == '879251024475467807') {
             let inventoryDescription = 'Whalekøm to your inventøry. You currently possess:'
             let debuffDescription = 'Yøur debuffs:'
 
@@ -121,11 +124,11 @@ export class ShopClass {
                 .setTitle(`Your debuffs - ${interaction.user.username}!`)
                 .setDescription(debuffDescription)
 
-            await interaction.reply({ embeds: [inventoryEmbed, debuffEmbed] })
+            await commandInteraction.reply({ embeds: [inventoryEmbed, debuffEmbed] })
         }
 
         //commandID === Use Item -> User Command
-        if (interaction.commandId === '879333334784823316') {
+        if (commandInteraction.commandId == '879333334784823316') {
             const menuInteraction = interaction as ContextMenuInteraction
             const user = client.users.cache.find((user: User) => user.id === menuInteraction.targetId)
 
@@ -134,7 +137,7 @@ export class ShopClass {
             let inventoryItems: inventoryItem[] = DatabaseHelper.getValueWithoutMessage('inventory', interaction.user.username)
 
             if (!inventoryItems || Object.values(inventoryItems).length === 0) {
-                await interaction.reply('Du har ingenting i inventory. Kjøba någe fysst kanskje?')
+                await commandInteraction.reply('Du har ingenting i inventory. Kjøba någe fysst kanskje?')
                 return
             }
 
@@ -159,7 +162,7 @@ export class ShopClass {
                 rad1.addComponents(itemMenu)
 
                 targetBruker = user?.username
-                await interaction.reply({ embeds: [useEmbeded], components: [rad1] })
+                await commandInteraction.reply({ embeds: [useEmbeded], components: [rad1] })
 
                 //Need to save the target id (the user we use the item on) as the later interaction does not reveal the source the command was triggered on (i.e. interaction.targetId).
                 //We save the source (user triggering) and the target, and wipe after use
