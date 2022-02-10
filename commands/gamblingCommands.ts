@@ -201,7 +201,7 @@ export class GamblingCommands extends AbstractCommands {
             message.reply('Du må skrive inn et gyldig brukernavn')
             return
         }
-        if (isNaN(Number(amount)) || Number(amount) < 1) {
+        if ((isNaN(Number(amount)) || Number(amount) < 1) && amount !== 'alt') {
             message.reply('Tallet du har skrevet inn er ikke gyldig')
             return
         }
@@ -216,9 +216,14 @@ export class GamblingCommands extends AbstractCommands {
         const userWallets = getUserWallets(message.author.username, username)
         let engagerValue = userWallets.engagerChips
         let victimValue = userWallets.victimChips
-        const amountAsNum = Number(amount)
-        if (Number(engagerValue) < amountAsNum || Number(victimValue) < amountAsNum) {
-            message.reply('en av dere har ikke råd til å utføre denne krigen her.')
+        const amountIsAll = amount === 'alt'
+        const largestPossibleValue = Math.min(engagerValue, victimValue)
+        let amountAsNum = amountIsAll ? largestPossibleValue : Number(amount)
+        if (Number(engagerValue) < amountAsNum) {
+            message.reply('Dette har du ikke råd til.')
+            return
+        } else if (Number(victimValue) < amountAsNum) {
+            message.reply('Dette har ikke motstanderen din råd til.')
             return
         }
         const user = UserUtils.findUserByUsername(username, message)
@@ -236,8 +241,11 @@ export class GamblingCommands extends AbstractCommands {
                 const currentValue = getUserWallets(message.author.username, username)
                 engagerValue = currentValue.engagerChips
                 victimValue = currentValue.victimChips
-                if (Number(engagerValue) < amountAsNum || Number(victimValue) < amountAsNum) {
-                    message.reply('en av dere har ikke råd til å utføre denne krigen her.')
+                if (amountIsAll) {
+                    amountAsNum = Math.min(engagerValue, victimValue)
+                }
+                if (engagerValue < amountAsNum || victimValue < amountAsNum) {
+                    message.reply('En av deltakerene har ikke lenger råd til å fullføre krigen. ')
                     collector.stop()
                     return
                 }

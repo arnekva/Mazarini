@@ -1,8 +1,6 @@
 import { Client, DMChannel, Message, MessageEmbed, TextChannel, User } from 'discord.js'
 import { globalArrays } from '../globals'
 import { ArrayUtils } from '../utils/arrayUtils'
-import { reverseMessageString } from '../utils/textUtils'
-import { UserUtils } from '../utils/userUtils'
 
 export type typeOfError = 'unauthorized' | 'error' | 'warning'
 export type thumbsReact = 'up' | 'down'
@@ -18,7 +16,7 @@ export class MessageHelper {
         this.client = client
     }
 
-    sendMessage(channelId: string, message: string, author?: string) {
+    sendMessage(channelId: string, message: string) {
         if (!this.checkForEmptyMessage(message)) {
             this.sendMessageToActionLogWithSimpleError('En melding som ble forsøkt sendt var tom', channelId)
             return

@@ -1,15 +1,13 @@
 import didYouMean from 'didyoumean2'
-import { Client, Message, PartialMessage, TextChannel, User } from 'discord.js'
+import { Client, Message, TextChannel } from 'discord.js'
 import { Admin } from '../admin/admin'
 import { environment } from '../client-env'
-import { Commands, ICommandElement } from './commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { ArrayUtils } from '../utils/arrayUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { doesThisMessageNeedAnEivindPride } from '../utils/miscUtils'
-import { getRandomPercentage } from '../utils/randomUtils'
 import { splitUsername } from '../utils/textUtils'
+import { Commands, ICommandElement } from './commands'
 
 export class CommandRunner {
     private commands: Commands
@@ -103,6 +101,9 @@ export class CommandRunner {
                 } else {
                     message.reply('Kunne ikke utføre kommandoen')
                 }
+                return
+            } else if (message.content.toLowerCase().startsWith('!mz nei')) {
+                message.reply('Neivel då?')
                 return
             }
             commands.forEach((cmd) => {

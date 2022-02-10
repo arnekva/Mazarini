@@ -12,7 +12,7 @@ export class DailyJobs {
     runJobs() {
         this.validateAndResetDailyClaims()
         this.resetStatuses()
-        this.logEvent()
+        // this.logEvent()
     }
 
     private async validateAndResetDailyClaims() {

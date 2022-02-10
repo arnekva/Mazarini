@@ -3,13 +3,14 @@ import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '5.2.0'
+    public static readonly currentVersion = '5.2.1'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `* /Shop og /inventory skal nå tilgjengelig igjen` +
-        `\n* Du kan nå sjekke Rocket League stats for andre spillere ved eks. '!mz rocket 2v2 Eivind'. (Hvis brukeren har linket brukernavn)`
+        `* Du kan nå krige med høyest mulige sum mot noen ved å bruke '!mz krig <person> alt` +
+        `\n* /Use Item skal nå si hvilken item som ble brukt` +
+        `\n* Weekly og daily jobs vil ikke lenger logges i action_log`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

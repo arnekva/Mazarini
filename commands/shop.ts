@@ -188,7 +188,11 @@ export class ShopClass {
                             DatabaseHelper.decreaseInventoryItem(interaction.values[0], interaction.user?.username)
                             DatabaseHelper.increaseDebuff(targetBruker.username, interaction.values[0])
 
-                            await interaction.update({ content: 'https://i.imgflip.com/5km2hi.jpg', embeds: [], components: [] })
+                            await interaction.update({
+                                content: `Brukte ${interaction.values[0]} på ${targetBruker.username} https://i.imgflip.com/5km2hi.jpg`,
+                                embeds: [],
+                                components: [],
+                            })
                         }
                     } else {
                         await interaction.update({ content: 'Fant ikke brukeren?', embeds: [], components: [] })

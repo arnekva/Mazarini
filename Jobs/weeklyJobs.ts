@@ -9,7 +9,7 @@ export class WeeklyJobs {
     }
     runJobs() {
         this.awardWeeklyCoins()
-        this.logEvent()
+        // this.logEvent()
     }
     private async awardWeeklyCoins() {
         const brukere = await DatabaseHelper.getAllUsers()
