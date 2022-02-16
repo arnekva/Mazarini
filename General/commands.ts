@@ -1,21 +1,20 @@
-import { Spinner } from '../commands/spinner'
-import { Client, Message, TextChannel, User } from 'discord.js'
-
-import { JokeCommands } from '../commands/jokeCommands'
+import { Client, Message } from 'discord.js'
 import { Admin } from '../admin/admin'
-import { GameCommands } from '../commands/gameCommands'
-import { GamblingCommands } from '../commands/gamblingCommands'
-import { WarzoneCommands } from '../commands/warzoneCommands'
-import { PatchNotes } from '../patchnotes'
-import { MessageHelper } from '../helpers/messageHelper'
 import { Achievements } from '../commands/achievements'
-import { SpotifyCommands } from '../commands/spotifyCommands'
-import { Music } from '../commands/musicCommands'
-import { Meme } from '../commands/memeCommands'
-import { UserCommands } from '../commands/userCommands'
 import { DateCommands } from '../commands/dateCommands'
+import { GamblingCommands } from '../commands/gamblingCommands'
+import { GameCommands } from '../commands/gameCommands'
+import { JokeCommands } from '../commands/jokeCommands'
+import { Meme } from '../commands/memeCommands'
+import { Music } from '../commands/musicCommands'
+import { SoundCommands } from '../commands/soundCommands'
+import { Spinner } from '../commands/spinner'
+import { SpotifyCommands } from '../commands/spotifyCommands'
+import { UserCommands } from '../commands/userCommands'
+import { WarzoneCommands } from '../commands/warzoneCommands'
 import { Weather } from '../commands/weatherCommands'
-import { ArrayUtils } from '../utils/arrayUtils'
+import { MessageHelper } from '../helpers/messageHelper'
+import { PatchNotes } from '../patchnotes'
 
 /**
  * Interface for kommandoer. Alle kommandoer må følge dette oppsettet.
@@ -56,6 +55,7 @@ export class Commands {
     private memeCommands: Meme
     private userCommands: UserCommands
     private patchNotes: PatchNotes
+    private soundCommands: SoundCommands
 
     constructor(client: Client, messageHelper: MessageHelper) {
         this.client = client
@@ -75,6 +75,7 @@ export class Commands {
         this.userCommands = new UserCommands(this.client, this.messageHelper)
         this.weatherCommands = new Weather(this.client, this.messageHelper)
         this.patchNotes = new PatchNotes(this.client, this.messageHelper)
+        this.soundCommands = new SoundCommands(this.client, this.messageHelper)
     }
 
     getAllCommands() {
@@ -95,6 +96,7 @@ export class Commands {
             ...this.memeCommands.getAllCommands(),
             ...this.userCommands.getAllCommands(),
             ...this.weatherCommands.getAllCommands(),
+            ...this.soundCommands.getAllCommands(),
         ]
     }
 
