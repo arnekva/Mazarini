@@ -90,7 +90,7 @@ export class Admin extends AbstractCommands {
                                 if (reactionEmoji) {
                                     message.react(reactionEmoji)
                                 } else {
-                                    this.messageHelper.sendDM(message.author, 'Fant ikke emojien')
+                                    // this.messageHelper.sendDM(message.author, 'Fant ikke emojien')
                                 }
                             }
                         })

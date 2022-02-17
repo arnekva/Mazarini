@@ -7,6 +7,7 @@ import { MessageHelper } from '../helpers/messageHelper'
 const say = require('say')
 const FS = require('fs')
 const voice = require('@discordjs/voice')
+
 export class SoundCommands extends AbstractCommands {
     constructor(client: Client, messageHelper: MessageHelper) {
         super(client, messageHelper)
@@ -56,6 +57,7 @@ export class SoundCommands extends AbstractCommands {
                         // connection.disconnect()
                     }
                 })
+                
             }
         })
     }

@@ -304,6 +304,10 @@ export class GamblingCommands extends AbstractCommands {
         }
     }
 
+    private isLegalWar(engager: string, victim: string){
+        
+    }
+
     private diceGamble(message: Message, content: string, args: string[]) {
         const userMoney = DatabaseHelper.getValue('chips', message.author.username, message)
         let value = args[0]
