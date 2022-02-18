@@ -1,25 +1,16 @@
-import { time } from 'console'
-import { Message, User, TextChannel, Client } from 'discord.js'
+import { Client, Message, TextChannel } from 'discord.js'
+import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { ICommandElement } from '../General/commands'
 import { globalArrays } from '../globals'
 import { AchievementHelper } from '../helpers/achievementHelper'
 import { DatabaseHelper } from '../helpers/databaseHelper'
-import { MessageHelper } from '../helpers/messageHelper'
-import { ArrayUtils } from '../utils/arrayUtils'
-import { countdownTime, DateUtils } from '../utils/dateUtils'
-import { findFeseText, findLetterEmoji } from '../utils/miscUtils'
-import {
-    doesTextIncludeUsername,
-    getUsernameInQuotationMarks,
-    msToTime,
-    replaceAtWithTextUsername,
-    reverseMessageString,
-    splitUsername,
-} from '../utils/textUtils'
-import { ICommandElement } from '../General/commands'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { Languages } from '../helpers/languageHelpers'
-import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { MessageHelper } from '../helpers/messageHelper'
+import { ArrayUtils } from '../utils/arrayUtils'
+import { findFeseText, findLetterEmoji } from '../utils/miscUtils'
 import { getRandomPercentage } from '../utils/randomUtils'
+import { doesTextIncludeUsername, replaceAtWithTextUsername, reverseMessageString, splitUsername } from '../utils/textUtils'
 
 export class JokeCommands extends AbstractCommands {
     constructor(client: Client, messageHelper: MessageHelper) {
@@ -41,6 +32,13 @@ export class JokeCommands extends AbstractCommands {
         await this.messageHelper.sendMessage(
             message.channelId,
             Math.random() < 0.3 ? 'Har skamphese :)' : Math.random() < 0.5 ? 'Han hørte deg kje for han spiste jo :(' : 'Sovna på golve :)'
+        )
+    }
+
+    private async darri(message: Message) {
+        await this.messageHelper.sendMessage(
+            message.channelId,
+            Math.random() < 0.3 ? 'Chatte me indere om prodtilgang' : Math.random() < 0.5 ? 'E på jobb på ein lørdag' : 'Han kuge i prod'
         )
     }
 
@@ -385,6 +383,14 @@ export class JokeCommands extends AbstractCommands {
                 description: 'Thomas svarer alltid ja',
                 command: (rawMessage: Message, messageContent: string) => {
                     this.thomasTing(rawMessage)
+                },
+                category: 'annet',
+            },
+            {
+                commandName: 'darri',
+                description: 'Hæ, darri?',
+                command: (rawMessage: Message, messageContent: string) => {
+                    this.darri(rawMessage)
                 },
                 category: 'annet',
             },
