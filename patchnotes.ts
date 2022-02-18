@@ -3,14 +3,11 @@ import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '5.4.0'
+    public static readonly currentVersion = '5.4.3'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string =
-        `* Du kan nå få botten til å si noe i en voicechannel ved å bruk '!mz say' eller '!mz si Trackpad Steve er ikke særlig god i rocket league'` +
-        `\n* Du kan disconnecte botten fra voice channel ved å bruke '!mz disconnect'` +
-        `\n* SoundUtils er flyttet til SoundCommands`
+    public static readonly currentPatchNotes: string = `* Darri added` + `\n* 'Say' virker ikke likevel :(`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
