@@ -1,6 +1,7 @@
 node_modules
 myDataBase.json
 mazariniDb.json
+package-lock.json
 ./myDataBase.json
 client-env.ts
 .VSCodeCounter/
