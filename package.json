@@ -26,6 +26,7 @@
         "dotenv": "^8.2.0",
         "emoji-strip": "^1.0.1",
         "express": "^4.17.1",
+        "festival": "^1.0.1",
         "ffmpeg-static": "^4.4.1",
         "imgflip": "^3.0.0",
         "node-fetch": "^2.6.7",
