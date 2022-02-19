@@ -76,7 +76,17 @@ export class SpotifyCommands extends AbstractCommands {
 
         const trackName = messageContent
 
-        const data = await spotifyApi.searchTracks(trackName)
+        const cleanTrackname = (tn: string) => {
+            let cleanString = ''
+            if (tn.includes(';')) {
+                cleanString += tn.slice(0, tn.indexOf(';'))
+            }
+            cleanString += tn.slice(tn.indexOf('-'))
+            cleanString.replace('-', '')
+            return cleanString
+        }
+        const data = await spotifyApi.searchTracks(cleanTrackname(trackName))
+
         if (data) {
             const firstResult = data.body.tracks.items[0]
 
