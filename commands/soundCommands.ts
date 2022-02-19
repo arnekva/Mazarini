@@ -61,7 +61,7 @@ export class SoundCommands extends AbstractCommands {
                 }
             })
         } catch (error) {
-            message.reply(error)
+            message.reply('Error: ' + error)
         }
     }
 
