@@ -1,12 +1,16 @@
-import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
+import { Client, Message } from 'discord.js'
+import { Headers } from 'node-fetch'
+import { URLSearchParams } from 'url'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { spotifyToken } from '../client-env'
+import { spotifyClientID, spotifyClientSecret } from '../client-env'
 import { ICommandElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { splitUsername } from '../utils/textUtils'
 import { Music } from './musicCommands'
+const SpotifyWebApi = require('spotify-web-api-node')
+const base64 = require('base-64')
 const request = require('request')
 const fetch = require('node-fetch')
 export class SpotifyCommands extends AbstractCommands {
@@ -17,13 +21,13 @@ export class SpotifyCommands extends AbstractCommands {
     private getUsersCurrentSong(rawMessage: Message, content: string, args: string[]) {
         const user = args[0] ?? undefined
 
-        const url = `https://api.spotify.com/v1/me/player/currently-playing?market=NO`
+        const url = `https://api.spotify.com/v1/search?type=track&include_external=audio`
         const _msg = this.messageHelper
         request(
             {
                 url: url,
                 headers: {
-                    Authorization: 'Bearer ' + spotifyToken,
+                    Authorization: 'Bearer ' + spotifyClientID,
                 },
                 rejectUnauthorized: false,
             },
@@ -37,41 +41,48 @@ export class SpotifyCommands extends AbstractCommands {
         )
     }
 
-    private async searchForSongOnSpotifyAPI(artist: string, track: string, message: Message) {
-        const baseURL = 'https://api.spotify.com/v1/search'
-        const searchString = artist
-            .replace(/\s/g, '+')
-            .concat('+' + track.replace(/\s/g, '+'))
-            .replace(/\-/g, '+')
-            .replace(/\;/g, '+')
+    /** Autorisere appen hos spotify
+     *  @returns Access Token for API-et
+     */
+    private async authorize() {
+        let myHeaders = new Headers()
+        myHeaders.append('Authorization', `Basic ${base64.encode(spotifyClientID + ':' + spotifyClientSecret)}`)
+        myHeaders.append('Content-Type', 'application/x-www-form-urlencoded')
 
-        const emoji = await EmojiHelper.getEmoji('catJAM', message)
-        const res = fetch(baseURL + '?query=' + searchString + '&type=track&offset=0&limit=1', {
-            method: 'GET',
-            headers: {
-                Authorization: 'Bearer ' + spotifyToken,
-                'Content-type': 'application/json',
-            },
+        var urlencoded = new URLSearchParams()
+        urlencoded.append('grant_type', 'client_credentials')
+
+        const requestOptions = {
+            method: 'POST',
+            headers: myHeaders,
+            body: urlencoded,
+            redirect: 'follow',
+        }
+
+        let res = await fetch('https://accounts.spotify.com/api/token', requestOptions)
+        res = await res.json()
+        return res.access_token
+    }
+
+    private async searchForSongOnSpotifyAPI(message: Message, messageContent: string, args: string[], wantURLinReturn?: boolean) {
+        const _msgHelper = this.messageHelper
+        const auth = await this.authorize() //Autoriser appen
+        const spotifyApi = new SpotifyWebApi({
+            clientId: spotifyClientID,
+            clientSecret: spotifyClientSecret,
+            redirectUri: 'http://www.example.com/callback',
         })
-            .then((res: any) => {
-                res.json()
-                    .then((el: any) => {
-                        if (!el?.tracks?.items[0]) {
-                            this.messageHelper.sendMessage(message.channelId, `${artist} - ${track} ${emoji.id} (fant: ${el})`)
-                        }
-                        const song = new MessageEmbed()
-                            .setTitle(`${artist} - ${track}`)
-                            .setURL(el?.tracks?.items[0]?.external_urls?.spotify ?? '#')
-                            .setDescription(`Release: ${el?.tracks?.items[0].album?.release_date}`)
-                        this.messageHelper.sendFormattedMessage(message.channel as TextChannel, song)
-                    })
-                    .catch((error: any) => {
-                        this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
-                    })
-            })
-            .catch((error: any) => {
-                this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
-            })
+        spotifyApi.setAccessToken(auth)
+
+        const trackName = messageContent
+
+        const data = await spotifyApi.searchTracks(trackName)
+        if (data) {
+            const firstResult = data.body.tracks.items[0]
+            const result = `${firstResult.name} av ${firstResult.artists[0].name}. Utgitt ${firstResult.album.release_date}. ${firstResult.external_urls.spotify}`
+            if (wantURLinReturn) return firstResult.external_urls.spotify
+            else _msgHelper.sendMessage(message.channelId, result)
+        }
     }
 
     private async currentPlayingFromDiscord(rawMessage: Message, content: string, args: string[]) {
@@ -122,6 +133,9 @@ export class SpotifyCommands extends AbstractCommands {
                     if (spotify) {
                         replystring += `${spotify.state} - ${spotify.details} ${emoji.id}`
                     }
+                    if (spotify.state) {
+                        replystring += await this.searchForSongOnSpotifyAPI(rawMessage, `${spotify.state} - ${spotify.details}`, [], true)
+                    }
 
                     if (replystring === '') replystring += `${name} hører ikke på Spotify for øyeblikket`
 
@@ -141,6 +155,14 @@ export class SpotifyCommands extends AbstractCommands {
                 description: 'Hent hva brukeren spiller av på Spotify (fra Discord)',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.currentPlayingFromDiscord(rawMessage, messageContent, args)
+                },
+                category: 'musikk',
+            },
+            {
+                commandName: 'sang',
+                description: 'Søk etter en sang på Spotify. Returnerer første resultat med link',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.searchForSongOnSpotifyAPI(rawMessage, messageContent, args)
                 },
                 category: 'musikk',
             },
