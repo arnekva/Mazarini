@@ -80,7 +80,7 @@ export class SpotifyCommands extends AbstractCommands {
         if (data) {
             const firstResult = data.body.tracks.items[0]
 
-            const result = `${firstResult?.name} av ${firstResult?.artists[0]?.name}. Utgitt ${firstResult?.album?.release_date}. ${firstResult.external_urls.spotify}`
+            const result = `${firstResult?.name} av ${firstResult?.artists[0]?.name}. Utgitt ${firstResult?.album?.release_date}. ${firstResult?.external_urls?.spotify}`
             if (wantURLinReturn && firstResult) return firstResult?.external_urls.spotify
             else _msgHelper.sendMessage(message.channelId, result)
         }
