@@ -26,40 +26,43 @@ export class SoundCommands extends AbstractCommands {
         const voiceChannel = message.channel.client.channels.cache.get(channel) as VoiceChannel
         const textToSay = messageContent.trim() || `${message.author.username}, you fool, you have to write some text for me to say`
 
-        this.tts(voiceChannel, textToSay)
+        this.tts(voiceChannel, textToSay, message)
     }
     // @ts-ignore
-    private tts(voiceChannel: VoiceChannel, text: string) {
+    private tts(voiceChannel: VoiceChannel, text: string, message: Message) {
         if (!FS.existsSync('./temp')) {
             FS.mkdirSync('./temp')
         }
         const timestamp = new Date().getTime()
         const soundPath = `./temp/${timestamp}.wav`
-        say.export(text, null, 1, soundPath, (err: any) => {
-            if (err) {
-                console.error(err)
-                return
-            } else {
-                const connection = joinVoiceChannel({
-                    channelId: voiceChannel.id,
-                    adapterCreator: voiceChannel.guild.voiceAdapterCreator,
-                    guildId: voiceChannel.guild.id,
-                })
-                const player = createAudioPlayer()
-                const resource = createAudioResource(soundPath)
-                player.play(resource)
-                connection.subscribe(player)
+        try {
+            say.export(text, null, 1, soundPath, (err: any) => {
+                if (err) {
+                    console.error(err)
+                    return
+                } else {
+                    const connection = joinVoiceChannel({
+                        channelId: voiceChannel.id,
+                        adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+                        guildId: voiceChannel.guild.id,
+                    })
+                    const player = createAudioPlayer()
+                    const resource = createAudioResource(soundPath)
+                    player.play(resource)
+                    connection.subscribe(player)
 
-                player.on('stateChange', (oldState, newState) => {
-                    if (oldState.status === 'playing' && newState.status === 'idle') {
-                        FS.unlinkSync(soundPath)
-                        //Den burde disconnecte av seg selv etter ca. 2 minutter uten aktivitet
-                        // connection.disconnect()
-                    }
-                })
-                
-            }
-        })
+                    player.on('stateChange', (oldState, newState) => {
+                        if (oldState.status === 'playing' && newState.status === 'idle') {
+                            FS.unlinkSync(soundPath)
+                            //Den burde disconnecte av seg selv etter ca. 2 minutter uten aktivitet
+                            // connection.disconnect()
+                        }
+                    })
+                }
+            })
+        } catch (error) {
+            message.reply(error)
+        }
     }
 
     getAllCommands(): ICommandElement[] {
