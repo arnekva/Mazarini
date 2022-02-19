@@ -39,6 +39,7 @@ export class SoundCommands extends AbstractCommands {
             say.export(text, null, 1, soundPath, (err: any) => {
                 if (err) {
                     console.error(err)
+                    message.reply('Error: ' + err)
                     return
                 } else {
                     const connection = joinVoiceChannel({
