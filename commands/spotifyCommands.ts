@@ -142,9 +142,9 @@ export class SpotifyCommands extends AbstractCommands {
                     const spotify = user.presence.activities.filter((a) => a.name === 'Spotify')[0]
 
                     if (spotify) {
-                        replystring += `${spotify.state} - ${spotify.details} ${emoji.id}`
+                        replystring += `${spotify?.state} - ${spotify?.details} ${emoji.id}`
                     }
-                    if (spotify.state) {
+                    if (spotify?.state) {
                         replystring += await this.searchForSongOnSpotifyAPI(rawMessage, `${spotify.state} - ${spotify.details}`, [], true)
                     }
 
