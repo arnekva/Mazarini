@@ -77,7 +77,9 @@ export class JokeCommands extends AbstractCommands {
             if (user && user.presence) {
                 if (user.presence.clientStatus) {
                     if (user.presence.activities && user.presence.activities[0]) {
-                        const activities = user.presence.activities.filter((a) => a.name.toLowerCase() !== 'custom status').map((act) => act.name)
+                        const activities = user.presence.activities
+                            .filter((a) => (user.user.username.toLowerCase() === 'mazarinibot' ? a : a.name.toLowerCase() !== 'custom status'))
+                            .map((act) => act.name)
 
                         await this.messageHelper.sendMessage(
                             message.channelId,

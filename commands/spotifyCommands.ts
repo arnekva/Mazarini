@@ -77,14 +77,15 @@ export class SpotifyCommands extends AbstractCommands {
         const trackName = messageContent
 
         const cleanTrackname = (tn: string) => {
-            let cleanString = ''
+            let cleanString = tn
             if (tn.includes(';')) {
-                cleanString += tn.slice(0, tn.indexOf(';'))
+                cleanString += cleanString.slice(0, cleanString.indexOf(';'))
             }
-            cleanString += tn.slice(tn.indexOf('-'))
-            cleanString.replace('-', '')
+            cleanString = cleanString.replace(' -', '')
+            // cleanString += tn.slice(tn.indexOf('-'))
             return cleanString
         }
+
         const data = await spotifyApi.searchTracks(cleanTrackname(trackName))
 
         if (data) {
@@ -92,7 +93,7 @@ export class SpotifyCommands extends AbstractCommands {
 
             const result = `${firstResult?.name} av ${firstResult?.artists[0]?.name}. Utgitt ${firstResult?.album?.release_date}. ${firstResult?.external_urls?.spotify}`
             if (wantURLinReturn && firstResult) return firstResult?.external_urls.spotify
-            else _msgHelper.sendMessage(message.channelId, result)
+            else if (firstResult) _msgHelper.sendMessage(message.channelId, result)
         }
     }
 
@@ -145,7 +146,8 @@ export class SpotifyCommands extends AbstractCommands {
                         replystring += `${spotify?.state} - ${spotify?.details} ${emoji.id}`
                     }
                     if (spotify?.state) {
-                        replystring += await this.searchForSongOnSpotifyAPI(rawMessage, `${spotify.state} - ${spotify.details}`, [], true)
+                        const url = await this.searchForSongOnSpotifyAPI(rawMessage, `${spotify.state} - ${spotify.details}`, [], true)
+                        if (url) replystring += url
                     }
 
                     if (replystring === '') replystring += `${name} hører ikke på Spotify for øyeblikket`

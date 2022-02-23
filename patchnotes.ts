@@ -3,15 +3,11 @@ import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '5.5.0'
+    public static readonly currentVersion = '5.5.1'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string =
-        `* 'spotify' vil nå inkludere en link til sangen (som forhåpentligvis er riktig)` +
-        `\n* Du kan nå søke etter sangen på spotify ved å bruke f.eks '!mz sang champagne problems taylor swift` +
-        `\n* 'Say' fjernet` +
-        `\n* Darri added`
+    public static readonly currentPatchNotes: string = `* Forbedret søket for Spotify-sanger` + `\n* Forbedringer av 'aktivitet'`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
