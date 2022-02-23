@@ -1,4 +1,4 @@
-import { Client, Message } from 'discord.js'
+import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
 import { Headers } from 'node-fetch'
 import { URLSearchParams } from 'url'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
@@ -64,7 +64,16 @@ export class SpotifyCommands extends AbstractCommands {
         return res.access_token
     }
 
-    private async searchForSongOnSpotifyAPI(message: Message, messageContent: string, args: string[], wantURLinReturn?: boolean) {
+    cleanSearchString(s: string) {
+        let cleanString = s
+        if (s.includes(';')) {
+            cleanString += cleanString.slice(0, cleanString.indexOf(';'))
+        }
+        cleanString = cleanString.replace(' -', '')
+        return cleanString
+    }
+
+    private async searchForSongOnSpotifyAPI(searchString: string) {
         const _msgHelper = this.messageHelper
         const auth = await this.authorize() //Autoriser appen
         const spotifyApi = new SpotifyWebApi({
@@ -74,33 +83,25 @@ export class SpotifyCommands extends AbstractCommands {
         })
         spotifyApi.setAccessToken(auth)
 
-        const trackName = messageContent
+        const trackName = searchString
 
-        const cleanTrackname = (tn: string) => {
-            let cleanString = tn
-            if (tn.includes(';')) {
-                cleanString += cleanString.slice(0, cleanString.indexOf(';'))
-            }
-            cleanString = cleanString.replace(' -', '')
-            // cleanString += tn.slice(tn.indexOf('-'))
-            return cleanString
-        }
+        return await spotifyApi.searchTracks(this.cleanSearchString(trackName))
+    }
 
-        const data = await spotifyApi.searchTracks(cleanTrackname(trackName))
-
+    private async printSongFromSpotify(message: Message, messageContent: string, args: string[]) {
+        const data = await this.searchForSongOnSpotifyAPI(messageContent)
         if (data) {
             const firstResult = data.body.tracks.items[0]
 
             const result = `${firstResult?.name} av ${firstResult?.artists[0]?.name}. Utgitt ${firstResult?.album?.release_date}. ${firstResult?.external_urls?.spotify}`
-            if (wantURLinReturn && firstResult) return firstResult?.external_urls.spotify
-            else if (firstResult) _msgHelper.sendMessage(message.channelId, result)
+            this.messageHelper.sendMessage(message.channelId, result)
         }
     }
 
     private async currentPlayingFromDiscord(rawMessage: Message, content: string, args: string[]) {
         const _music = new Music(this.client, this.messageHelper)
         let name = ''
-        if (args[0]) {
+        if (args[0] && args[0] !== 'mer') {
             name = splitUsername(args[0])
         } else {
             name = rawMessage.author.username
@@ -129,7 +130,11 @@ export class SpotifyCommands extends AbstractCommands {
                     const lastFmName = DatabaseHelper.getValue('lastFmUsername', users[i], rawMessage, true)
                     if (!!lastFmName) {
                         if (waitMessage) {
-                            musicRet += await _music.findCommand(waitMessage, content, ['siste', '1', users[i]], true, undefined, true, true, true)
+                            musicRet += await _music.findCommand(waitMessage, content, ['siste', '1', users[i]], {
+                                isSilent: true,
+                                notWeeklyOrRecent: true,
+                                includeUsername: true,
+                            })
                         }
                     }
                 }
@@ -138,25 +143,47 @@ export class SpotifyCommands extends AbstractCommands {
                 else this.messageHelper.sendMessage(rawMessage.channelId, musicRet)
             } else {
                 const user = guild.members.cache.filter((u) => u.user.username == name).first()
+
+                if (!user) {
+                    rawMessage.reply("Fant ingen brukere ved navn '" + name + "'. Bruk username og ikke displayname")
+                    return
+                }
                 if (user && user.presence) {
-                    let replystring = ''
                     const spotify = user.presence.activities.filter((a) => a.name === 'Spotify')[0]
 
-                    if (spotify) {
-                        replystring += `${spotify?.state} - ${spotify?.details} ${emoji.id}`
-                    }
-                    if (spotify?.state) {
-                        const url = await this.searchForSongOnSpotifyAPI(rawMessage, `${spotify.state} - ${spotify.details}`, [], true)
-                        if (url) replystring += url
-                    }
+                    if (spotify?.state && spotify.details) {
+                        const data = await this.searchForSongOnSpotifyAPI(`${spotify.state} - ${spotify.details}`)
+                        const items = data.body.tracks.items[0]
 
-                    if (replystring === '') replystring += `${name} hører ikke på Spotify for øyeblikket`
+                        const embed = new MessageEmbed()
+                            .setTitle(`${spotify?.details} `)
+                            .setDescription(`${spotify?.state}`)
 
-                    this.messageHelper.sendMessage(rawMessage.channelId, replystring)?.then((msg) => {
-                        if (replystring.includes('hører ikke på Spotify for øyeblikket'))
-                            _music.findCommand(msg, content, ['siste', '1', name], true, name, true)
+                            .addField('Album', items.album.name ?? 'Ukjent', true)
+                            .addField('Utgitt', items.album.release_date ?? 'Ukjent', true)
+                        if (items.album.external_urls.spotify) embed.setURL(items.album.external_urls.spotify ?? '#')
+                        if (args[0] === 'mer') {
+                            embed.setImage(items.album.images[0].url)
+                            embed.setTimestamp()
+                            embed.setFooter({
+                                text: `Funnet ved søk av '${this.cleanSearchString(spotify.state + ' - ' + spotify.details)}'`,
+                                iconURL: items.album.preview_url,
+                            })
+                        }
+
+                        if (items.album.images[0].url) embed.setThumbnail(items.album.images[0].url)
+
+                        const msg = this.messageHelper.sendFormattedMessage(rawMessage.channel as TextChannel, embed)
+                    }
+                } else {
+                    console.log('enters the else')
+
+                    _music.findCommand(rawMessage, content, ['siste', '1', name], {
+                        isSilent: true,
+                        usernameToLookup: name,
+                        notWeeklyOrRecent: true,
                     })
-                } else rawMessage.reply("Fant ingen brukere ved navn '" + name + "'. Bruk username og ikke displayname")
+                }
             }
         }
     }
@@ -175,7 +202,7 @@ export class SpotifyCommands extends AbstractCommands {
                 commandName: 'sang',
                 description: 'Søk etter en sang på Spotify. Returnerer første resultat med link',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.searchForSongOnSpotifyAPI(rawMessage, messageContent, args)
+                    this.printSongFromSpotify(rawMessage, messageContent, args)
                 },
                 category: 'musikk',
             },

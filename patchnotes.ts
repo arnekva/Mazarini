@@ -3,11 +3,15 @@ import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '5.5.1'
+    public static readonly currentVersion = '5.6.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `* Forbedret søket for Spotify-sanger` + `\n* Forbedringer av 'aktivitet'`
+    public static readonly currentPatchNotes: string = 
+    
+    `* Spotify sender nå finere meldinger med mer informasjon`
+    + `\n* Forbedret søket for Spotify-sanger'`
+    + `\n* Forbedringer av 'aktivitet'`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

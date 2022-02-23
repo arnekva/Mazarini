@@ -1,12 +1,11 @@
-import { Client, Message, TextChannel } from 'discord.js'
-import { parse } from 'dotenv/types'
+import { Client, Message } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { discordSecret, lfKey } from '../client-env'
+import { lfKey } from '../client-env'
+import { ICommandElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { replaceLast, splitUsername } from '../utils/textUtils'
-import { ICommandElement } from '../General/commands'
 const fetch = require('node-fetch')
 export type musicCommand = 'top'
 
@@ -39,6 +38,13 @@ interface fetchData {
     username: string
 }
 
+export interface IFindCommand {
+    isSilent?: boolean
+    usernameToLookup?: string
+    notWeeklyOrRecent?: boolean
+    includeUsername?: boolean
+}
+
 export class Music extends AbstractCommands {
     constructor(client: Client, messageHelper: MessageHelper) {
         super(client, messageHelper)
@@ -46,16 +52,7 @@ export class Music extends AbstractCommands {
 
     private readonly baseUrl = 'http://ws.audioscrobbler.com/2.0/'
 
-    async findCommand(
-        message: Message,
-        content: string,
-        args: string[],
-        silent?: boolean,
-        shouldEditRawMessageInstead?: string,
-        notWeeklyOrRecent?: boolean,
-        includeUsername?: boolean,
-        isSilent?: boolean
-    ) {
+    async findCommand(message: Message, content: string, args: string[], params?: IFindCommand) {
         if (!args[0]) {
             message.reply("Feilformattert. Mangler du f.eks 'topp'?")
             return
@@ -69,14 +66,15 @@ export class Music extends AbstractCommands {
                 return
             }
 
-            let username = this.getLastFMUsernameByDiscordUsername(shouldEditRawMessageInstead ?? message.author.username, message)
+            let username = this.getLastFMUsernameByDiscordUsername(params?.usernameToLookup ?? message.author.username, message)
+            console.log(username)
 
             //Check if fourth ([3]) argument is a valid username - if so, override author.username. Otherwise, treat [3] as 'stats' option.
             let usernameFromArgs = this.getLastFMUsernameByDiscordUsername(splitUsername(args[2]) ?? '', message)
             if (usernameFromArgs) username = usernameFromArgs
             let limit = args[2] ?? '10'
             if (!username) {
-                if (!silent) message.reply("Du har ikke registrert brukernavnet ditt. Bruk '!mz musikk user <discordnavn> <last.fm navn>")
+                if (!params?.isSilent) message.reply("Du har ikke registrert brukernavnet ditt. Bruk '!mz musikk user <discordnavn> <last.fm navn>")
                 return
             }
             const cmd = this.getCommand(method.command, args[1])
@@ -86,7 +84,7 @@ export class Music extends AbstractCommands {
                 if (nyUser) {
                     username = nyUser
                 } else {
-                    if (!silent)
+                    if (!params?.isSilent)
                         message.reply(
                             "du har oppgitt et brukernavn som ikke har tilknyttet Last.fm-kontoen sin ('!mz musikk user <discordnavn> <last.fm navn>')"
                         )
@@ -105,11 +103,13 @@ export class Music extends AbstractCommands {
                 method: { cmd: cmd, desc: method.title },
                 limit: limit,
                 includeStats: usernameFromArgs ? !!args[4] : !!args[3], //If overriding username, stats index is pushed back by 1 index
-                silent: silent ?? false,
-                includeNameInOutput: includeUsername ?? false,
+                silent: params?.isSilent ?? false,
+                includeNameInOutput: params?.includeUsername ?? false,
                 username: args[2] ?? message.author.username,
             }
-            const dataRet = await this.findLastFmData(message, data, shouldEditRawMessageInstead, notWeeklyOrRecent, isSilent)
+            console.log(data)
+
+            const dataRet = await this.findLastFmData(message, data, params?.notWeeklyOrRecent)
             return dataRet
         } else {
             if (args[1] && args[2]) {
@@ -180,7 +180,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
      * @param dataParam
      * @returns
      */
-    private async findLastFmData(message: Message, dataParam: fetchData, editInstead?: string, notWeeklyOrRecent?: boolean, silent?: boolean) {
+    private async findLastFmData(message: Message, dataParam: fetchData, notWeeklyOrRecent?: boolean, silent?: boolean) {
         if (parseInt(dataParam.limit) > 30) {
             message.reply('Litt for høg limit, deranes. Maks 30.')
             return
@@ -188,9 +188,8 @@ Docs: https://www.last.fm/api/show/user.getInfo
             dataParam.limit = '10'
             dataParam.includeStats = true
         }
-        if (editInstead) message.edit('Laster inn data fra Last.fm ...')
         let msg: Message
-        if (!silent) msg = editInstead ? message : ((await this.messageHelper.sendMessage(message.channelId, 'Laster data...')) as Message)
+        if (!silent) msg = (await this.messageHelper.sendMessage(message.channelId, 'Laster data fra Last.FM ...')) as Message
         const apiKey = lfKey
         const emoji = await EmojiHelper.getEmoji('catJAM', message)
 
