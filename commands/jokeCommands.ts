@@ -9,7 +9,7 @@ import { Languages } from '../helpers/languageHelpers'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { findFeseText, findLetterEmoji } from '../utils/miscUtils'
-import { getRandomPercentage } from '../utils/randomUtils'
+import { getRandomPercentage, getRndInteger } from '../utils/randomUtils'
 import { doesTextIncludeUsername, replaceAtWithTextUsername, reverseMessageString, splitUsername } from '../utils/textUtils'
 
 export class JokeCommands extends AbstractCommands {
@@ -66,6 +66,11 @@ export class JokeCommands extends AbstractCommands {
             message.channelId,
             getRandomPercentage(50) ? `Knuse maggi i Rocket League` : `Bler knust av maggi i Rocket League :(`
         )
+    }
+    private async joiij(message: Message) {
+        const hr = getRndInteger(0, 3)
+        const min = getRndInteger(1, 59)
+        await this.messageHelper.sendMessage(message.channelId, `Joiij e der om ${hr === 0 ? '' : hr + ' timer og '}${min} minutt!`)
     }
 
     private async isMaggiPlaying(message: Message, content: string, args: string[]) {
@@ -484,6 +489,15 @@ export class JokeCommands extends AbstractCommands {
 
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.arne(rawMessage)
+                },
+                category: 'annet',
+            },
+            {
+                commandName: 'joiij',
+                description: 'Kor lenge e det te Joiij e der?',
+
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.joiij(rawMessage)
                 },
                 category: 'annet',
             },

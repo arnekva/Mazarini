@@ -148,7 +148,7 @@ export class SpotifyCommands extends AbstractCommands {
                     rawMessage.reply("Fant ingen brukere ved navn '" + name + "'. Bruk username og ikke displayname")
                     return
                 }
-                if (user && user.presence) {
+                if (user && user.presence && user.presence.activities.find((a) => a.name === 'Spotify')) {
                     const spotify = user.presence.activities.filter((a) => a.name === 'Spotify')[0]
 
                     if (spotify?.state && spotify.details) {
@@ -176,10 +176,8 @@ export class SpotifyCommands extends AbstractCommands {
                         const msg = this.messageHelper.sendFormattedMessage(rawMessage.channel as TextChannel, embed)
                     }
                 } else {
-                    console.log('enters the else')
-
                     _music.findCommand(rawMessage, content, ['siste', '1', name], {
-                        isSilent: true,
+                        isSilent: false,
                         usernameToLookup: name,
                         notWeeklyOrRecent: true,
                     })

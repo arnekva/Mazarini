@@ -109,7 +109,7 @@ export class Music extends AbstractCommands {
             }
             console.log(data)
 
-            const dataRet = await this.findLastFmData(message, data, params?.notWeeklyOrRecent)
+            const dataRet = await this.findLastFmData(message, data, params?.notWeeklyOrRecent, params?.isSilent)
             return dataRet
         } else {
             if (args[1] && args[2]) {
