@@ -159,7 +159,7 @@ export class SpotifyCommands extends AbstractCommands {
                         if (items) {
                             embed.addField('Album', items.album?.name ?? 'Ukjent', true).addField('Utgitt', items.album?.release_date ?? 'Ukjent', true)
                             if (items.album?.external_urls?.spotify) embed.setURL(items.album?.external_urls?.spotify ?? '#')
-                            if (args[0] === 'mer') {
+                            if (args[0] === 'mer' || args[1] === 'mer') {
                                 embed.setImage(items.album?.images[0]?.url)
                                 embed.setTimestamp()
                                 embed.setFooter({
