@@ -73,7 +73,7 @@ export class SpotifyCommands extends AbstractCommands {
         return cleanString
     }
 
-    private async searchForSongOnSpotifyAPI(searchString: string) {
+    private async searchForSongOnSpotifyAPI(track: string, artist?: string) {
         const _msgHelper = this.messageHelper
         const auth = await this.authorize() //Autoriser appen
         const spotifyApi = new SpotifyWebApi({
@@ -83,9 +83,9 @@ export class SpotifyCommands extends AbstractCommands {
         })
         spotifyApi.setAccessToken(auth)
 
-        const trackName = searchString
+        const searchString = artist ? `${track} ${artist}` : track
 
-        return await spotifyApi.searchTracks(this.cleanSearchString(trackName))
+        return await spotifyApi.searchTracks(searchString)
     }
 
     private async printSongFromSpotify(message: Message, messageContent: string, args: string[]) {
@@ -150,9 +150,8 @@ export class SpotifyCommands extends AbstractCommands {
                 }
                 if (user && user.presence && user.presence.activities.find((a) => a.name === 'Spotify')) {
                     const spotify = user.presence.activities.filter((a) => a.name === 'Spotify')[0]
-
                     if (spotify?.state && spotify.details) {
-                        const data = await this.searchForSongOnSpotifyAPI(`${spotify.state} - ${spotify.details}`)
+                        const data = await this.searchForSongOnSpotifyAPI(spotify.details, spotify.state)
                         const items = data.body.tracks.items[0]
 
                         const embed = new MessageEmbed().setTitle(`${spotify?.details} `).setDescription(`${spotify?.state}`)
@@ -167,7 +166,7 @@ export class SpotifyCommands extends AbstractCommands {
                         }
                         if (args[0] === 'mer' || args[1] === 'mer')
                             embed.setFooter({
-                                text: `Funnet ved søk av '${this.cleanSearchString(spotify.state + ' - ' + spotify.details)}'`,
+                                text: `Funnet ved søk av 'track:${spotify.details} artist:${spotify?.state}'`,
                             })
 
                         const msg = this.messageHelper.sendFormattedMessage(rawMessage.channel as TextChannel, embed)
