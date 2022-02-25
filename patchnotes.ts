@@ -3,7 +3,7 @@ import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '5.8.2'
+    public static readonly currentVersion = '5.8.4'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
@@ -11,7 +11,8 @@ export class PatchNotes extends AbstractCommands {
         `* Du kan nå vippse chips og coins med '!mz vipps Eivind 6 chips` +
         `\n* All bruk av setvalue logges nå til Action Log <#810832760364859432> ` +
         `\n* Fikset bug i Spotify-command når den ikke finner album på Spotify ` +
-        `\n* La til invasjon av Putin `
+        `\n* La til invasjon av Putin ` +
+        `\n* La til '!mz putinpride' `
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
