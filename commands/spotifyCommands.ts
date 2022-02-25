@@ -167,9 +167,8 @@ export class SpotifyCommands extends AbstractCommands {
                                     iconURL: items.album.preview_url,
                                 })
                             }
+                            if (items.album?.images[0]?.url) embed.setThumbnail(items.album.images[0].url)
                         }
-
-                        if (items.album.images[0].url) embed.setThumbnail(items.album.images[0].url)
 
                         const msg = this.messageHelper.sendFormattedMessage(rawMessage.channel as TextChannel, embed)
                     }
