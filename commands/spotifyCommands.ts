@@ -162,12 +162,13 @@ export class SpotifyCommands extends AbstractCommands {
                             if (args[0] === 'mer' || args[1] === 'mer') {
                                 if (items.album?.images[0]?.url) embed.setImage(items.album?.images[0]?.url)
                                 embed.setTimestamp()
-                                embed.setFooter({
-                                    text: `Funnet ved søk av '${this.cleanSearchString(spotify.state + ' - ' + spotify.details)}'`,
-                                })
                             }
                             if (items.album?.images[0]?.url) embed.setThumbnail(items.album.images[0].url)
                         }
+                        if (args[0] === 'mer' || args[1] === 'mer')
+                            embed.setFooter({
+                                text: `Funnet ved søk av '${this.cleanSearchString(spotify.state + ' - ' + spotify.details)}'`,
+                            })
 
                         const msg = this.messageHelper.sendFormattedMessage(rawMessage.channel as TextChannel, embed)
                     }
