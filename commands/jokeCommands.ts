@@ -143,10 +143,10 @@ export class JokeCommands extends AbstractCommands {
         // const vals = await DatabaseHelper.getAllValuesFromPrefix("mygling")
     }
 
-    private async eivindprideItAll(message: Message) {
+    private async reactToManyMessages(message: Message, emojiName: string) {
         try {
             const channel = message.channel as TextChannel
-            const react = message.guild?.emojis.cache.find((emoji) => emoji.name == 'eivindpride')
+            const react = message.guild?.emojis.cache.find((emoji) => emoji.name == emojiName)
 
             if (message.client) {
                 channel.messages
@@ -443,7 +443,17 @@ export class JokeCommands extends AbstractCommands {
                 hideFromListing: true,
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string) => {
-                    this.eivindprideItAll(rawMessage)
+                    this.reactToManyMessages(rawMessage, 'eivindpride')
+                },
+                category: 'annet',
+            },
+            {
+                commandName: 'putinpride',
+                description: 'Eivindpride it. Eivindpride it ALL.',
+                hideFromListing: true,
+                isAdmin: true,
+                command: (rawMessage: Message, messageContent: string) => {
+                    this.reactToManyMessages(rawMessage, 'putinpride')
                 },
                 category: 'annet',
             },
