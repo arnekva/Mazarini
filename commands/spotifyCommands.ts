@@ -155,20 +155,18 @@ export class SpotifyCommands extends AbstractCommands {
                         const data = await this.searchForSongOnSpotifyAPI(`${spotify.state} - ${spotify.details}`)
                         const items = data.body.tracks.items[0]
 
-                        const embed = new MessageEmbed()
-                            .setTitle(`${spotify?.details} `)
-                            .setDescription(`${spotify?.state}`)
-
-                            .addField('Album', items.album.name ?? 'Ukjent', true)
-                            .addField('Utgitt', items.album.release_date ?? 'Ukjent', true)
-                        if (items.album.external_urls.spotify) embed.setURL(items.album.external_urls.spotify ?? '#')
-                        if (args[0] === 'mer') {
-                            embed.setImage(items.album.images[0].url)
-                            embed.setTimestamp()
-                            embed.setFooter({
-                                text: `Funnet ved søk av '${this.cleanSearchString(spotify.state + ' - ' + spotify.details)}'`,
-                                iconURL: items.album.preview_url,
-                            })
+                        const embed = new MessageEmbed().setTitle(`${spotify?.details} `).setDescription(`${spotify?.state}`)
+                        if (items) {
+                            embed.addField('Album', items.album?.name ?? 'Ukjent', true).addField('Utgitt', items.album?.release_date ?? 'Ukjent', true)
+                            if (items.album?.external_urls?.spotify) embed.setURL(items.album?.external_urls?.spotify ?? '#')
+                            if (args[0] === 'mer') {
+                                embed.setImage(items.album?.images[0]?.url)
+                                embed.setTimestamp()
+                                embed.setFooter({
+                                    text: `Funnet ved søk av '${this.cleanSearchString(spotify.state + ' - ' + spotify.details)}'`,
+                                    iconURL: items.album.preview_url,
+                                })
+                            }
                         }
 
                         if (items.album.images[0].url) embed.setThumbnail(items.album.images[0].url)

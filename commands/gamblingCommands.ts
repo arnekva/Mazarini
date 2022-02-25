@@ -2,7 +2,7 @@ import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement } from '../General/commands'
 import { globals } from '../globals'
-import { betObject, betObjectReturned, DatabaseHelper } from '../helpers/databaseHelper'
+import { betObject, betObjectReturned, DatabaseHelper, dbPrefix } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { findLetterEmoji } from '../utils/miscUtils'
@@ -304,9 +304,7 @@ export class GamblingCommands extends AbstractCommands {
         }
     }
 
-    private isLegalWar(engager: string, victim: string){
-        
-    }
+    private isLegalWar(engager: string, victim: string) {}
 
     private diceGamble(message: Message, content: string, args: string[]) {
         const userMoney = DatabaseHelper.getValue('chips', message.author.username, message)
@@ -605,40 +603,50 @@ export class GamblingCommands extends AbstractCommands {
         }
     }
 
+    private userHasEnoughBalance(username: string, balance: number) {}
+
     private vippsCoins(message: Message, content: string, args: string[]) {
-        if (!args[0]) {
-            message.reply('du må sei kem du ska vippsa, bro')
+        if (args.length < 3) {
+            message.reply('Feil formattering. Det er <brukernavn> <antall> <chips|coins>')
             return
         }
-        if (!args[1]) {
-            message.reply('du må sei kor møye du ska vippsa, bro')
+        const targetUser = UserUtils.findUserByUsername(splitUsername(args[0]), message)
+
+        if (!targetUser) {
+            message.reply('Brukeren eksisterer ikke')
             return
         }
 
-        let userWhoGetsCoins = args[0]
-        let coinsToVipps = args[1]
-        if (isNaN(Number(args[1]))) {
-            userWhoGetsCoins = args[0] + ' ' + args[1]
-            coinsToVipps = args[2]
-        }
-        if (Number(coinsToVipps) < 1) {
-            message.reply('Må vippse minst 1 coin, bro')
+        const transactionAmount = Number(args[1])
+
+        if (isNaN(transactionAmount) || transactionAmount < 1) {
+            message.reply('Du må skriva inn et gyldig tegn. Det må være større enn 0')
             return
         }
 
-        const authorBalance = Number(DatabaseHelper.getValue('dogeCoin', message.author.username, message))
-        if (authorBalance >= Number(coinsToVipps)) {
-            //go ahead
-            if (DatabaseHelper.findUserByUsername(userWhoGetsCoins, message)) {
-                const newBalance = authorBalance - Number(coinsToVipps)
-                DatabaseHelper.setValue('dogeCoin', message.author.username, newBalance.toFixed(2))
-                DatabaseHelper.incrementValue('dogeCoin', userWhoGetsCoins, coinsToVipps)
-                this.messageHelper.sendMessage(message.channelId, `${message.author.username} vippset ${userWhoGetsCoins} ${coinsToVipps}.`)
-            } else {
-                message.reply('finner ingen bruker med det navnet')
-            }
+        const transactionType = args[2]
+        let trType: dbPrefix
+        if (transactionType === 'coins') {
+            trType = 'dogeCoin'
+        } else if (transactionType === 'chips') {
+            trType = transactionType
         } else {
-            message.reply('du har ikkje råd te å vippsa så møye, bro (Man kan ikkje vippsa chips for gambling).')
+            message.reply('Du må spesifisere om du vil vippse "coins" eller "chips"')
+            return
+        }
+
+        const userBalance = DatabaseHelper.getValueWithoutMessage(trType, message.author.username)
+
+        if (userBalance >= transactionAmount) {
+            DatabaseHelper.decrementValue(trType, message.author.username, transactionAmount.toString())
+            DatabaseHelper.incrementValue(trType, targetUser.username, transactionAmount.toString())
+            this.messageHelper.sendMessage(
+                message.channelId,
+                `${message.author.username} vippset ${targetUser.username} ${transactionAmount} ${transactionType}.`
+            )
+        } else {
+            message.reply('du har ikkje råd te å vippsa så møye, bro.')
+            return
         }
     }
 

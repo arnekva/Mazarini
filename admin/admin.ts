@@ -30,6 +30,11 @@ export class Admin extends AbstractCommands {
         const val = args[2]
         DatabaseHelper.setValue(prefix, username, val)
         this.messageHelper.reactWithRandomEmoji(message)
+        if (args[3] !== 'silent')
+            this.messageHelper.sendMessageToActionLog(
+                message.channel as TextChannel,
+                `Setvalue ble brukt av ${message.author.username} i kanalen ${message.channel}. Prefix: ${prefix}, nøkkel: ${username}, verdi: ${val}. Gammel verdi for objektet var: ${oldValue} `
+            )
     }
     private setSpinValue(message: Message, messageContent: string) {
         const content = messageContent.split(' ')
