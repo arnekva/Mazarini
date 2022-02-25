@@ -160,11 +160,10 @@ export class SpotifyCommands extends AbstractCommands {
                             embed.addField('Album', items.album?.name ?? 'Ukjent', true).addField('Utgitt', items.album?.release_date ?? 'Ukjent', true)
                             if (items.album?.external_urls?.spotify) embed.setURL(items.album?.external_urls?.spotify ?? '#')
                             if (args[0] === 'mer' || args[1] === 'mer') {
-                                embed.setImage(items.album?.images[0]?.url)
+                                if (items.album?.images[0]?.url) embed.setImage(items.album?.images[0]?.url)
                                 embed.setTimestamp()
                                 embed.setFooter({
                                     text: `Funnet ved søk av '${this.cleanSearchString(spotify.state + ' - ' + spotify.details)}'`,
-                                    iconURL: items.album.preview_url,
                                 })
                             }
                             if (items.album?.images[0]?.url) embed.setThumbnail(items.album.images[0].url)
