@@ -5,7 +5,7 @@ import { environment } from '../client-env'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MessageUtils } from '../utils/messageUtils'
-import { doesThisMessageNeedAnEivindPride } from '../utils/miscUtils'
+import { doesThisMessageNeedAnEivindPride, doesThisMessageNeedAPutinPride } from '../utils/miscUtils'
 import { splitUsername } from '../utils/textUtils'
 import { Commands, ICommandElement } from './commands'
 
@@ -212,6 +212,12 @@ export class CommandRunner {
             const react = message.guild.emojis.cache.find((emoji) => emoji.name == 'eivindpride')
             //check for 10% chance of eivindpriding
             if (doesThisMessageNeedAnEivindPride(message.content, polseCounter) && react) message.react(react)
+        }
+
+        if (message.guild) {
+            const react = message.guild.emojis.cache.find((emoji) => emoji.name == 'putinpride')
+            //check for 10% chance of eivindpriding
+            if (doesThisMessageNeedAPutinPride(message.content, polseCounter) && react) message.react(react)
         }
         if (message.author.id == '733320780707790898' && message.guild && message.mentions.roles.find((e) => e.name == 'Jævla Drittspel')) {
             //"733320780707790898" joiij
