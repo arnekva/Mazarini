@@ -162,7 +162,7 @@ export class WarzoneCommands extends AbstractCommands {
         if (isWeekly) {
             response += 'Weekly Warzone stats for <' + gamertag + '>'
             try {
-                let data = await API.MWweeklystats(gamertag, platform)
+                const data = await API.MWweeklystats(gamertag, platform)
 
                 if (!data.wz.mode.br_all?.properties) {
                     if (sentMessage) sentMessage.edit('Du har ingen statistikk denne ukå')
