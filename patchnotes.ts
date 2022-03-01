@@ -8,10 +8,10 @@ export class PatchNotes extends AbstractCommands {
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `* Oppgradert til Call-of-Duty-API 3.0` +
-        `* Refaktorert koden i WarzoneCommands` +
-        `* Oppdatert fra '!mz verdansk' til '!mz caldera'` +
-        `* Oppdatert grid-koordinater i '!mz grid'`
+        `\n* Oppgradert til Call-of-Duty-API 3.0` +
+        `\n* Refaktorert koden i WarzoneCommands` +
+        `\n* Oppdatert fra '!mz verdansk' til '!mz caldera'` +
+        `\n* Oppdatert grid-koordinater i '!mz grid'`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
