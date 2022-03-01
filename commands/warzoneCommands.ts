@@ -1,11 +1,11 @@
-import { Channel, Client, DMChannel, Message, NewsChannel, TextChannel } from 'discord.js'
+import { login, platforms, Warzone } from 'call-of-duty-api'
+import { Client, Message } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { actSSOCookie } from '../client-env'
+import { ICommandElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
-import { ICommandElement } from '../General/commands'
-const API = require('call-of-duty-api')()
 
 export interface CodStats {
     kills: number
@@ -89,9 +89,16 @@ interface codBRStatsKeyHeader {
     header: string
 }
 
+interface BRDataOptions {
+    rebirth?: boolean
+    noSave?: boolean
+}
+
 export class WarzoneCommands extends AbstractCommands {
     constructor(client: Client, messageHelper: MessageHelper) {
         super(client, messageHelper)
+
+        login(actSSOCookie)
     }
 
     static statsToInclude: codStatsKeyHeader[] = [
@@ -135,24 +142,38 @@ export class WarzoneCommands extends AbstractCommands {
             : WarzoneCommands.statsToInclude.filter((el) => el.key === key).pop()?.header
     }
 
+    private translatePlatform(s: string) {
+        switch (s) {
+            case 'battle':
+                return platforms.Battlenet
+            case 'psn':
+                return platforms.PSN
+            case 'xbl':
+                return platforms.XBOX
+            default:
+                return platforms.All
+        }
+    }
+
     private async getBRContent(message: Message, messageContent: string, isWeekly?: boolean) {
         const content = messageContent.split(' ')
         let gamertag = ''
-        let platform = ''
+        let platform: platforms
         const isMe = content[0].toLowerCase() === 'me'
+
         if (isMe) {
             const WZUser = this.getWZUserStringFromDB(message).split(';')
             gamertag = WZUser[0]
-            platform = WZUser[1]
+            platform = this.translatePlatform(WZUser[1])
         } else {
             gamertag = content[0]
-            platform = content[1]
+            platform = this.translatePlatform(content[1])
         }
 
-        let filterMode: string = isMe ? content[1] ?? ' ' : content[2] ?? ' '
+        const filterMode: string = isMe ? content[1] ?? ' ' : content[2] ?? ' '
 
-        let noSave = filterMode === 'nosave'
-        let isRebirth = filterMode === 'rebirth'
+        const noSave = filterMode === 'nosave'
+        const isRebirth = filterMode === 'rebirth'
 
         let sentMessage = await this.messageHelper.sendMessage(message.channelId, 'Logger inn...')
         let response = ''
@@ -160,125 +181,137 @@ export class WarzoneCommands extends AbstractCommands {
         if (!sentMessage) sentMessage = await this.messageHelper.sendMessage(message.channelId, 'Henter data...')
         else await sentMessage.edit('Henter data...')
         if (isWeekly) {
-            response += 'Weekly Warzone stats for <' + gamertag + '>'
-            try {
-                const data = await API.MWweeklystats(gamertag, platform)
-
-                if (!data.wz.mode.br_all?.properties) {
-                    if (sentMessage) sentMessage.edit('Du har ingen statistikk denne ukå')
-                    else this.messageHelper.sendMessage(message.channelId, 'Du har ingen statistikk denne ukå')
-                    return
-                }
-
-                if (isRebirth) {
-                    let numKills = 0
-                    let numDeaths = 0
-                    let numDamage = 0
-                    let numDamageTaken = 0
-                    for (const [key, value] of Object.entries(data.wz.mode)) {
-                        if (key.includes('rebirth')) {
-                            const val = value as any
-                            if (val?.properties?.kills) numKills += Number(val?.properties?.kills)
-                            if (val?.properties?.deaths) numDeaths += Number(val?.properties?.deaths)
-                            if (val?.properties?.damageTaken) numDamageTaken += Number(val?.properties?.damageTaken)
-                            if (val?.properties?.damageDone) numDamage += Number(val?.properties?.damageDone)
-                        }
-                    }
-                    let rebirthResponse = ` Weekly REBIRTH ONLY Stats for <${gamertag}>\nKills: ${numKills}\nDeaths: ${numDeaths}\nDamage Done: ${numDamage}\nDamage Taken: ${numDamageTaken}`
-                    if (sentMessage) sentMessage.edit(rebirthResponse)
-                    else this.messageHelper.sendMessage(message.channelId, rebirthResponse)
-                    return
-                }
-
-                const statsTyped = data.wz.mode.br_all.properties as CodStats
-
-                const orderedStats: Partial<CodStats> = {}
-                for (let i = 0; i < WarzoneCommands.statsToInclude.length; i++) {
-                    for (const [key, value] of Object.entries(statsTyped)) {
-                        if (key === WarzoneCommands.statsToInclude[i].key) {
-                            if (key === 'damageTaken' && Number(statsTyped['damageTaken']) > Number(statsTyped['damageDone'])) {
-                                orderedStats['damageTaken'] = value + ' (flaut)'
-                            } else orderedStats[WarzoneCommands.statsToInclude[i].key] = value
-                        }
-                    }
-                    if (orderedStats.gulagDeaths && orderedStats.gulagKills)
-                        //Inject gulag KD in
-                        orderedStats['gulagKd'] = parseFloat((orderedStats?.gulagKills / orderedStats?.gulagDeaths).toFixed(3))
-                }
-
-                const oldData = JSON.parse(this.getUserStats(message))
-                /** Time played og average lifetime krever egen formattering for å være lesbart */
-                const getValueFormatted = (key: string, value: string | Number) => {
-                    if (key === 'avgLifeTime')
-                        return `${DateUtils.secondsToMinutesAndSeconds(Number(value)).minutes.toFixed(0)} minutes and ${DateUtils.secondsToMinutesAndSeconds(
-                            Number(value)
-                        ).seconds.toFixed(0)} seconds`
-                    if (key === 'timePlayed')
-                        return `${DateUtils.secondsToHoursAndMinutes(Number(value)).hours.toFixed(0)} hours and ${DateUtils.secondsToHoursAndMinutes(
-                            Number(value)
-                        ).minutes.toFixed(0)} minutes.`
-                    if (key === 'damageTaken') return value
-                    return parseFloat(Number(value).toFixed(3))
-                }
-                /** Gjør sammenligning og legg til i respons */
-                for (const [key, value] of Object.entries(orderedStats)) {
-                    if (key === 'gulagKd' && orderedStats.gulagDeaths && orderedStats.gulagKills)
-                        response += `\nGulag KD: ${(orderedStats?.gulagKills / orderedStats?.gulagDeaths).toFixed(2)}`
-                    else if (this.findHeaderFromKey(key))
-                        response += `\n${this.findHeaderFromKey(key)}: ${getValueFormatted(key, value)} ${this.compareOldNewStats(
-                            value,
-                            oldData[key],
-                            key === 'timePlayed' || key === 'avgLifeTime'
-                        )}`
-                    else if (key === 'gulagKd' && orderedStats.gulagDeaths && orderedStats.gulagKills)
-                        response += `\nGulag KD: ${orderedStats?.gulagKills / orderedStats?.gulagDeaths}`
-                }
-
-                if (sentMessage) sentMessage.edit(response)
-                else this.messageHelper.sendMessage(message.channelId, response)
-                if (!noSave) this.saveUserStats(message, messageContent, statsTyped)
-            } catch (error) {
-                if (sentMessage) sentMessage.delete()
-                this.messageHelper.sendMessageToActionLogWithCustomMessage(message, error, 'SSO Token er expired. Denne må byttest før stats kan hentes', true)
-            }
+            this.findWeeklyData(gamertag, platform, message, sentMessage, { noSave: noSave, rebirth: isRebirth })
         } else {
             /** BR */
-            try {
-                let data = await API.MWBattleData(gamertag, platform)
+            this.findOverallBRData(gamertag, platform, message, sentMessage, { noSave: noSave, rebirth: isRebirth })
+        }
+    }
 
-                let response = 'BR stats for <' + gamertag + '>'
-                const statsTyped = data.br as CodBRStatsType
+    private async findOverallBRData(gamertag: string, platform: platforms, message: Message, editableMessage?: Message, options?: BRDataOptions) {
+        try {
+            const data = await Warzone.fullData(gamertag, platform)
+            let response = 'BR stats for <' + gamertag + '>'
 
-                const orderedStats: Partial<CodBRStats> = {}
-                for (let i = 0; i < WarzoneCommands.BRstatsToInclude.length; i++) {
-                    for (const [key, value] of Object.entries(statsTyped)) {
-                        if (key === WarzoneCommands.BRstatsToInclude[i].key) {
-                            orderedStats[WarzoneCommands.BRstatsToInclude[i].key] = Number(value)
-                        }
+            const statsTyped = data.data.lifetime.mode.br_all.properties as CodBRStatsType
+            const orderedStats: Partial<CodBRStats> = {}
+            for (let i = 0; i < WarzoneCommands.BRstatsToInclude.length; i++) {
+                for (const [key, value] of Object.entries(statsTyped)) {
+                    if (key === WarzoneCommands.BRstatsToInclude[i].key) {
+                        orderedStats[WarzoneCommands.BRstatsToInclude[i].key] = Number(value)
                     }
                 }
-                orderedStats['winRatio'] = ((orderedStats?.wins ?? 0) / (orderedStats?.gamesPlayed ?? 1)) * 100
-                const oldData = JSON.parse(this.getUserStats(message, true))
-                const getValueFormatted = (key: string, value: Number) => {
-                    if (key === 'timePlayed') return convertTime(Number(value))
-                    return value.toFixed(3).replace(/\.000$/, '')
+            }
+            orderedStats['winRatio'] = ((orderedStats?.wins ?? 0) / (orderedStats?.gamesPlayed ?? 1)) * 100
+            const oldData = JSON.parse(this.getUserStats(message, true))
+            const getValueFormatted = (key: string, value: number) => {
+                if (key === 'timePlayed') return convertTime(value)
+                return value.toFixed(3).replace(/\.000$/, '')
+            }
+            /** Gjør sammenligning og legg til i respons */
+            for (const [key, value] of Object.entries(orderedStats)) {
+                if (this.findHeaderFromKey(key, true))
+                    response += `\n${this.findHeaderFromKey(key, true)}: ${getValueFormatted(key, value)} ${this.compareOldNewStats(
+                        value,
+                        oldData[key],
+                        key === 'timePlayed'
+                    )}${key === 'winRatio' ? '%' : ''}`
+            }
+            if (editableMessage) editableMessage.edit(response)
+            else this.messageHelper.sendMessage(message.channelId, response)
+            if (!options?.noSave) this.saveUserStats(message, statsTyped, true)
+        } catch (error) {
+            message.reply(error + '')
+        }
+    }
+
+    private async findWeeklyData(gamertag: string, platform: platforms, message: Message, editableMessage?: Message, options?: BRDataOptions) {
+        try {
+            const data = await Warzone.fullData(gamertag, platform)
+            let response = 'Weekly Warzone stats for <' + gamertag + '>'
+
+            if (!data?.data?.weekly) {
+                if (editableMessage) editableMessage.edit('Du har ingen statistikk denne ukå')
+                else this.messageHelper.sendMessage(message.channelId, 'Du har ingen statistikk denne ukå')
+                return
+            }
+
+            if (options?.rebirth && data.data.weekly.mode) {
+                this.findWeeklyRebirthOnly(gamertag, data, message, editableMessage)
+                return
+            }
+
+            const statsTyped = data?.data?.weekly?.all?.properties as CodStats
+
+            const orderedStats: Partial<CodStats> = {}
+            for (let i = 0; i < WarzoneCommands.statsToInclude.length; i++) {
+                for (const [key, value] of Object.entries(statsTyped)) {
+                    if (key === WarzoneCommands.statsToInclude[i].key) {
+                        if (key === 'damageTaken' && Number(statsTyped['damageTaken']) > Number(statsTyped['damageDone'])) {
+                            orderedStats['damageTaken'] = value + ' (flaut)'
+                        } else orderedStats[WarzoneCommands.statsToInclude[i].key] = value
+                    }
                 }
-                /** Gjør sammenligning og legg til i respons */
-                for (const [key, value] of Object.entries(orderedStats)) {
-                    if (this.findHeaderFromKey(key, true))
-                        response += `\n${this.findHeaderFromKey(key, true)}: ${getValueFormatted(key, value)} ${this.compareOldNewStats(
-                            value,
-                            oldData[key],
-                            key === 'timePlayed'
-                        )}${key === 'winRatio' ? '%' : ''}`
-                }
-                if (sentMessage) sentMessage.edit(response)
-                else this.messageHelper.sendMessage(message.channelId, response)
-                if (!noSave) this.saveUserStats(message, messageContent, statsTyped, true)
-            } catch (error) {
-                message.reply(error + '')
+                if (orderedStats.gulagDeaths && orderedStats.gulagKills)
+                    //Inject gulag KD in
+                    orderedStats['gulagKd'] = parseFloat((orderedStats?.gulagKills / orderedStats?.gulagDeaths).toFixed(3))
+            }
+
+            const oldData = JSON.parse(this.getUserStats(message))
+            /** Time played og average lifetime krever egen formattering for å være lesbart */
+            const getValueFormatted = (key: string, value: string | Number) => {
+                if (key === 'avgLifeTime')
+                    return `${DateUtils.secondsToMinutesAndSeconds(Number(value)).minutes.toFixed(0)} minutes and ${DateUtils.secondsToMinutesAndSeconds(
+                        Number(value)
+                    ).seconds.toFixed(0)} seconds`
+                if (key === 'timePlayed')
+                    return `${DateUtils.secondsToHoursAndMinutes(Number(value)).hours.toFixed(0)} hours and ${DateUtils.secondsToHoursAndMinutes(
+                        Number(value)
+                    ).minutes.toFixed(0)} minutes.`
+                if (key === 'damageTaken') return value
+                return parseFloat(Number(value).toFixed(3))
+            }
+            /** Gjør sammenligning og legg til i respons */
+            for (const [key, value] of Object.entries(orderedStats)) {
+                if (key === 'gulagKd' && orderedStats.gulagDeaths && orderedStats.gulagKills)
+                    response += `\nGulag KD: ${(orderedStats?.gulagKills / orderedStats?.gulagDeaths).toFixed(2)}`
+                else if (this.findHeaderFromKey(key))
+                    response += `\n${this.findHeaderFromKey(key)}: ${getValueFormatted(key, value)} ${this.compareOldNewStats(
+                        value,
+                        oldData[key],
+                        key === 'timePlayed' || key === 'avgLifeTime'
+                    )}`
+                else if (key === 'gulagKd' && orderedStats.gulagDeaths && orderedStats.gulagKills)
+                    response += `\nGulag KD: ${orderedStats?.gulagKills / orderedStats?.gulagDeaths}`
+            }
+
+            if (editableMessage) editableMessage.edit(response)
+            else this.messageHelper.sendMessage(message.channelId, response)
+            if (!options?.noSave) this.saveUserStats(message, statsTyped)
+        } catch (error) {
+            if (editableMessage) editableMessage.delete()
+            this.messageHelper.sendMessageToActionLogWithCustomMessage(message, error, 'Dataen kunne ikke hentes', true)
+        }
+    }
+
+    private findWeeklyRebirthOnly(gamertag: string, data: any, message: Message, editableMessage?: Message) {
+        let numKills = 0
+        let numDeaths = 0
+        let numDamage = 0
+        let numDamageTaken = 0
+        for (const [key, value] of Object.entries(data.data.weekly.mode)) {
+            if (key.includes('rebirth')) {
+                const val = value as any
+                if (val?.properties?.kills) numKills += Number(val?.properties?.kills)
+                if (val?.properties?.deaths) numDeaths += Number(val?.properties?.deaths)
+                if (val?.properties?.damageTaken) numDamageTaken += Number(val?.properties?.damageTaken)
+                if (val?.properties?.damageDone) numDamage += Number(val?.properties?.damageDone)
             }
         }
+        let rebirthResponse = ` Weekly REBIRTH ONLY Stats for <${gamertag}>\nKills: ${numKills}\nDeaths: ${numDeaths}\nDamage Done: ${numDamage}\nDamage Taken: ${numDamageTaken}`
+        if (editableMessage) editableMessage.edit(rebirthResponse)
+        else this.messageHelper.sendMessage(message.channelId, rebirthResponse)
+        return
     }
 
     private saveGameUsernameToDiscordUser(message: Message, content: string, args: string[]) {
@@ -318,7 +351,7 @@ export class WarzoneCommands extends AbstractCommands {
         return ``
     }
     /** Beware of stats: any */
-    private saveUserStats(message: Message, messageContent: string, stats: CodStats | CodBRStatsType, isBR?: boolean) {
+    private saveUserStats(message: Message, stats: CodStats | CodBRStatsType, isBR?: boolean) {
         DatabaseHelper.setObjectValue(isBR ? 'codStatsBR' : 'codStats', message.author.username, JSON.stringify(stats))
     }
     private getUserStats(message: Message, isBr?: boolean) {

@@ -75,8 +75,8 @@ export class GameCommands extends AbstractCommands {
         super(client, messageHelper)
     }
 
-    private dropVerdansk(message: Message) {
-        const randomElement = verdansk[Math.floor(Math.random() * verdansk.length)]
+    private dropCaldera(message: Message) {
+        const randomElement = calderaPoints[Math.floor(Math.random() * calderaPoints.length)]
         this.messageHelper.sendMessage(message.channelId, 'Dere dropper i ' + randomElement)
     }
 
@@ -120,9 +120,9 @@ export class GameCommands extends AbstractCommands {
                 if (el == dropLoc) dropPlaces += '\n' + dropLocations[i].name
             })
         }
-        const train = Math.random() < 0.15
-        this.messageHelper.sendMessage(message.channelId, 'Dere dropper på ' + (train ? 'toget 😲' : gridLetter[xDropCoordinate] + yDropCoordinate))
-        if (dropPlaces && !train) this.messageHelper.sendMessage(message.channelId, 'Her ligger: ' + dropPlaces)
+
+        this.messageHelper.sendMessage(message.channelId, 'Dere dropper på ' + gridLetter[xDropCoordinate] + yDropCoordinate)
+        if (dropPlaces) this.messageHelper.sendMessage(message.channelId, 'Her ligger: ' + dropPlaces)
     }
 
     private async rocketLeagueRanks(rawMessage: Message, messageContent: string, args: string[]) {
@@ -236,12 +236,6 @@ export class GameCommands extends AbstractCommands {
         this.messageHelper.sendFormattedMessage(rawMessage.channel as TextChannel, msgContent)
     }
 
-    private async gotoExtended(page: any, request: any) {
-        const { url, method, headers, postData } = request
-
-        return page.goto(url)
-    }
-
     public getAllCommands(): ICommandElement[] {
         return [
             {
@@ -253,10 +247,10 @@ export class GameCommands extends AbstractCommands {
                 category: 'gaming',
             },
             {
-                commandName: 'verdansk',
-                description: 'Få et tilfeldig sted å droppe i Verdansk',
+                commandName: 'caldera',
+                description: 'Få et tilfeldig sted å droppe i Caldera',
                 command: (rawMessage: Message, messageContent: string) => {
-                    this.dropVerdansk(rawMessage)
+                    this.dropCaldera(rawMessage)
                 },
                 category: 'gaming',
             },
@@ -280,49 +274,40 @@ export class GameCommands extends AbstractCommands {
     }
 }
 export const dropLocations: dropLocation[] = [
-    { name: 'Summit', coord: ['C2', 'D2', 'C3'] },
-    { name: 'Military Base', coord: ['E2', 'F2'] },
-    { name: 'Salt Mine', coord: ['G2', 'H2', 'G3', 'H3'] },
-    { name: 'Airport', coord: ['C4', 'D4', 'E4'] },
-    { name: 'Storage Town', coord: ['C5'] },
-    { name: 'Superstore', coord: ['D5'] },
-    { name: 'Factory', coord: ['D5', 'E5'] },
-    { name: 'Boneyard', coord: ['C6'] },
-    { name: 'Array', coord: ['F4', 'G4'] },
-    { name: 'Train Station', coord: ['D6', 'D7', 'E6'] },
-    { name: 'Promenade West', coord: ['C7', 'D7', 'E6'] },
-    { name: 'Promenade East', coord: ['E7', 'F7'] },
-    { name: 'Hills', coord: ['D8', 'E8', 'D7'] },
-    { name: 'Park', coord: ['F7', 'F8', 'G7'] },
-    { name: 'Hospital', coord: ['E6', 'F6'] },
-    { name: 'Downtown', coord: ['F5', 'F6', 'F7', 'G7', 'G6'] },
-    { name: 'Stadium', coord: ['G5'] },
-    { name: 'Port', coord: ['G7', 'G8', 'H7'] },
-    { name: 'Lumber', coord: ['H5', 'H7'] },
-    { name: 'Prison', coord: ['H8', 'I8'] },
+    { name: 'Arsenal', coord: ['C1', 'D1', 'E1', 'D2'] },
+    { name: 'Docks', coord: ['F0', 'G0', 'F1', 'G1'] },
+    { name: 'Runway', coord: ['I1', 'H1', 'I2', 'H2'] },
+    { name: 'Beachhead', coord: ['I2', 'I3', 'H2', 'H3'] },
+    { name: 'Peak', coord: ['F3', 'G3', 'G4', 'F4'] },
+    { name: 'Mines', coord: ['E2', 'E3', 'E4', 'D3', 'D4'] },
+    { name: 'Ruins', coord: ['C2', 'B3', 'C3'] },
+    { name: 'Village', coord: ['B3', 'B4', 'C4', 'C5'] },
+    { name: 'Fields', coord: ['F5', 'G5', 'H5', 'E6', 'F6', 'G6', 'H5', 'H6'] },
+    { name: 'Sub Pen', coord: ['I5', 'I6', 'I7', 'H6'] },
+    { name: 'Resort', coord: ['H7', 'I7', 'H8', 'I8'] },
+    { name: 'Capital', coord: ['H9', 'G9', 'H8', 'G8', 'F8', 'F9'] },
+    { name: 'Power Plant', coord: ['D7', 'E7', 'F7', 'D8', 'E8', 'F8'] },
+    { name: 'Airfield', coord: ['D5', 'C6', 'C7', 'D6', 'D7', 'E6'] },
+    { name: 'Lagoon', coord: ['B5', 'B6', 'C6', 'C5'] },
 ]
-export const verdansk = [
-    'Summit',
-    'Military Base',
-    'Salt Mine',
-    'Airport',
-    'TV Station',
-    'Lumber',
-    'Stadium',
-    'Downtown',
-    'Farmland',
-    'Prison',
-    'Park',
-    'Hills',
-    'Hospital',
-    'Train Station',
-    'Promenade East',
-    'Promenade West',
-    'Boneyard',
-    'Storage Town',
-    'Superstore',
+export const calderaPoints = [
+    'Arsenal',
+    'Docks',
+    'Runway',
+    'Beachhead',
+    'Peak',
+    'Peak (men ikkje den sidetunnelen)',
+    'Mines',
+    'Ruins',
+    'Village',
+    'Fields',
+    'Sub Pen',
+    'Resort',
+    'Capital',
+    'Power Plant',
+    'Airfield',
+    'Lagoon',
     'en plass squad leader bestemmer',
-    'Array',
 ]
 
 export const rebirthIsland = [

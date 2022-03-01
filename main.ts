@@ -16,7 +16,7 @@ import {
     TextChannel,
     User,
 } from 'discord.js'
-import { actSSOCookie, discordSecret, environment } from './client-env'
+import { discordSecret, environment } from './client-env'
 import { ShopClass } from './commands/shop'
 import { CommandRunner } from './General/commandRunner'
 import { MessageHelper } from './helpers/messageHelper'
@@ -27,7 +27,6 @@ import { UserUtils } from './utils/userUtils'
 const Discord = require('discord.js')
 
 const schedule = require('node-schedule')
-const API = require('call-of-duty-api')()
 require('dotenv').config()
 
 export class MazariniClient {
@@ -74,11 +73,6 @@ export class MazariniClient {
         const _mzClient = this
         const _msgHelper = this.messageHelper
         client.on('ready', async () => {
-            try {
-                await API.loginWithSSO(actSSOCookie)
-            } catch (Error) {
-                console.log('Failed to log in to activision with sso cookie')
-            }
             const today = new Date()
             console.log(`Logged in as ${_mzClient.client.user?.tag} ${today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()} !`)
 
