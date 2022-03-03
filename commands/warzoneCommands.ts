@@ -193,7 +193,8 @@ export class WarzoneCommands extends AbstractCommands {
             const data = await Warzone.fullData(gamertag, platform)
             let response = 'BR stats for <' + gamertag + '>'
 
-            const statsTyped = data.data.lifetime.mode.br_all.properties as CodBRStatsType
+            const statsTyped = data.data.lifetime.mode.br.properties as CodBRStatsType
+
             const orderedStats: Partial<CodBRStats> = {}
             for (let i = 0; i < WarzoneCommands.BRstatsToInclude.length; i++) {
                 for (const [key, value] of Object.entries(statsTyped)) {
