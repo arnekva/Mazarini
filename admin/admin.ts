@@ -178,7 +178,7 @@ export class Admin extends AbstractCommands {
         const maxDelete = Number(args[1]) ?? 1
         let deleteCounter = 0
         currentChannel.messages
-            .fetch({ limit: 200 })
+            .fetch({ limit: 100 })
             .then((el) => {
                 el.forEach((message) => {
                     if (message && message.author.username == user.username && deleteCounter < maxDelete) {

@@ -1,18 +1,13 @@
-import { MessageHelper } from './messageHelper'
-import * as cleanTextUtils from 'clean-text-utils'
-import { escapeString } from '../utils/textUtils'
-
+import { Message } from 'discord.js'
 //https://openbase.com/js/node-json-db
 import { JsonDB } from 'node-json-db'
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
+import { achievementIDs } from '../commands/achievements'
+import { shopItem } from '../commands/shop'
+
 const db = new JsonDB(new Config('myDataBase', true, true, '/'))
 const folderPrefix = '/users'
 const otherFolderPreifx = '/other'
-import emojiStrip from 'emoji-strip'
-import { write } from 'fs'
-import { achievementIDs } from '../commands/achievements'
-import { Message } from 'discord.js'
-import { shopItem } from '../commands/shop'
 
 //const db = new Database()
 /**
@@ -60,6 +55,7 @@ export type dbPrefix =
     | 'debuff'
     | 'dailyClaim'
     | 'dailyClaimStreak'
+    | 'prestige'
 
 export interface betObject {
     description: string

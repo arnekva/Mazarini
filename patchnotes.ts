@@ -3,15 +3,11 @@ import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '5.9.0'
+    public static readonly currentVersion = '5.9.1'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string =
-        `\n* Oppgradert til Call-of-Duty-API 3.0` +
-        `\n* Refaktorert koden i WarzoneCommands` +
-        `\n* Oppdatert fra '!mz verdansk' til '!mz caldera'` +
-        `\n* Oppdatert grid-koordinater i '!mz grid'`
+    public static readonly currentPatchNotes: string = `\n* Gjort kule, hemmelige endringer for 'daily'`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

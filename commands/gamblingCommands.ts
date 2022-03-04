@@ -792,31 +792,59 @@ export class GamblingCommands extends AbstractCommands {
             if (oldData) {
                 const oldStreak = JSON.parse(oldData) as IDailyPriceClaim
                 streak = { streak: oldStreak?.streak + 1 ?? 1, wasAddedToday: true }
-
-                DatabaseHelper.setValue('dailyClaimStreak', message.author.username, JSON.stringify(streak))
             } else {
                 streak = { streak: 1, wasAddedToday: true }
-                DatabaseHelper.setValue('dailyClaimStreak', message.author.username, JSON.stringify(streak))
             }
 
-            const additionalCoins = this.findAdditionalCoins(streak.streak)
-            const dailyCoins = (Number(dailyPrice.coins) + Number(additionalCoins?.coins ?? 0)).toFixed(0)
-            const dailyChips = (Number(dailyPrice.chips) + Number(additionalCoins?.chips ?? 0)).toFixed(0)
-            DatabaseHelper.incrementValue('dogeCoin', message.author.username, dailyCoins)
-            DatabaseHelper.incrementValue('chips', message.author.username, dailyChips)
-            DatabaseHelper.setValue('dailyClaim', message.author.username, '1')
+            const daily = this.findAndIncrementValue(streak.streak, dailyPrice, message)
+
+            const prestige = DatabaseHelper.getValueWithoutMessage('prestige', message.author.username)
             message.reply(
-                `Du har hentet dine daglige ${dailyChips} chips og ${dailyCoins} coins! ${streak.streak > 1 ? '(' + streak.streak + ' dager i streak)' : ''}`
+                `Du har hentet dine daglige ${daily.dailyChips} chips og ${daily.dailyCoins} coins! ${
+                    streak.streak > 1 ? '(' + streak.streak + ' dager i streak)' : ''
+                } ${prestige ? '(' + prestige + ' prestige)' : ''}`
             )
+
+            if (streak.streak >= 100) {
+                DatabaseHelper.incrementValue('prestige', message.author.username, '1')
+                const prestige = DatabaseHelper.getValueWithoutMessage('prestige', message.author.username)
+                streak = { streak: 1, wasAddedToday: true }
+                const congrats = `Dægårten! Du har henta daglige chips i 100 dager i strekk! Gz dude, nå prestige du. Du e nå prestige ${prestige} og får ${this.findPrestigeMultiplier(
+                    prestige
+                )}x i multiplier på alle daily's framøve! \n\n*Streaken din resettes nå te 1, så du kan ta ein pause hvis du vil*`
+                message.reply(congrats)
+            }
+            DatabaseHelper.setValue('dailyClaimStreak', message.author.username, JSON.stringify(streak))
         } else {
             message.reply('Du har allerede hentet dine daglige chips og coins. Prøv igjen i morgen etter klokken 08:00')
         }
     }
 
-    private findAdditionalCoins(streak: number): { coins: number; chips: number } | undefined {
-        if (streak > 100) return { coins: 5000, chips: 10000000 }
+    private findAndIncrementValue(streak: number, dailyPrice: { chips: string; coins: string }, message: Message): { dailyCoins: string; dailyChips: string } {
+        const additionalCoins = this.findAdditionalCoins(streak)
+        const prestigeMultiplier = this.findPrestigeMultiplier(DatabaseHelper.getValueWithoutMessage('prestige', message.author.username))
 
-        if (streak > 50) return { coins: 500, chips: 8000000 }
+        const dailyCoins = ((Number(dailyPrice.coins) + Number(additionalCoins?.coins ?? 0)) * prestigeMultiplier).toFixed(0)
+        const dailyChips = ((Number(dailyPrice.chips) + Number(additionalCoins?.chips ?? 0)) * prestigeMultiplier).toFixed(0)
+        DatabaseHelper.incrementValue('dogeCoin', message.author.username, dailyCoins)
+        DatabaseHelper.incrementValue('chips', message.author.username, dailyChips)
+        DatabaseHelper.setValue('dailyClaim', message.author.username, '1')
+
+        return { dailyChips: dailyChips, dailyCoins: dailyCoins }
+    }
+
+    private findPrestigeMultiplier(p: number | undefined) {
+        if (p && !isNaN(p) && p > 0) {
+            return 1.15
+        }
+        return 1
+    }
+
+    private findAdditionalCoins(streak: number): { coins: number; chips: number } | undefined {
+        if (streak == 69) return { coins: 6889, chips: 69696469 }
+        if (streak >= 100) return { coins: 5000, chips: 200000000 }
+        if (streak > 75) return { coins: 565, chips: 2475000 }
+        if (streak > 50) return { coins: 500, chips: 455000 }
         if (streak > 25) return { coins: 175, chips: 55000 }
         if (streak > 15) return { coins: 125, chips: 10000 }
         if (streak >= 10) return { coins: 80, chips: 1250 }
@@ -944,7 +972,7 @@ export class GamblingCommands extends AbstractCommands {
             },
             {
                 commandName: 'daily',
-                description: 'Hent dine daglige chips og coins',
+                description: 'Hent dine daglige chips og coins. Hvis det gjøres i flere dager sammenhengene vil du få større og større rewards',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.claimDailyChipsAndCoins(rawMessage, messageContent, args)
                 },
