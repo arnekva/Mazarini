@@ -224,6 +224,28 @@ export class CommandRunner {
             message.react(kekw ?? '😂')
             message.reply('lol')
         }
+        if (message.author.id == '733320780707790898' && message.guild) {
+            //"733320780707790898" joiij
+            const numbers = MessageUtils.doesMessageContainNumber(message);
+            let arg1;
+            let arg2;
+            if (numbers.length == 1 ) {
+                arg1 = numbers[0];
+                arg2 = numbers[0] * 5;
+            } else if (numbers.length == 2) {
+                arg1 = numbers[0] + "-" + numbers[1];
+                arg2 = (numbers[0] * 5) + "-" + (numbers[1] * 5)
+            }
+            if (numbers.length > 0 && !message.content.includes("!mz")) {
+                message.react(kekw ?? '😂')
+                message.reply("lmao, estimatet '" +  
+                    arg1 + 
+                    "' stemmer ikkje <a:kekw_animated:" +
+                    kekw?.id +
+                    '> .' +
+                    'Mente du **' + arg2 + '**?')
+            }
+        }
         const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message)
         if (idJoke == '1337') {
             message.reply('nice, id-en te meldingen din inneholde 1337. Gz, du har vonne 100 coins og 5.000 chips')
