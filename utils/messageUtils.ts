@@ -12,4 +12,30 @@ export namespace MessageUtils {
     export const isArgsAtleastThisLong = (args: string[], neededLength: number) => {
         return (args.length - 1) === neededLength;
     }
+
+    export const doesMessageContainNumber = (message: Message) => {
+        let arr = new Array<number>();
+        const content = message.content;
+        if (/\d/.test(content)) {
+            const words = content.split(" ");
+            words.forEach(function (value) {
+                if (/^(\d+-?)+\d+$/.test(value)) {
+                    const numbers = value.split("-");
+                    numbers.forEach(function (number) {
+                        let num = Number(number);
+                        arr.push(num);
+                    })
+                    return arr;
+                } else {
+                    let num = Number(value);
+                    if (!isNaN(num)) {
+                        arr.push(num);
+                        return arr;
+                    }
+                }
+                
+            });
+        }
+        return arr;
+    }
 }
