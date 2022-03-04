@@ -236,7 +236,7 @@ export class CommandRunner {
                 arg1 = numbers[0] + "-" + numbers[1];
                 arg2 = (numbers[0] * 5) + "-" + (numbers[1] * 5)
             }
-            if (numbers.length > 0 && !message.content.includes("!mz")) {
+            if (numbers.length > 0 && numbers.length < 3 && !message.content.includes("!mz")) {
                 message.react(kekw ?? '😂')
                 message.reply("lmao, estimatet '" +  
                     arg1 + 
