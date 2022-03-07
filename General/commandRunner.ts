@@ -222,16 +222,13 @@ export class CommandRunner {
         //     //check for 10% chance of eivindpriding
         //     if (doesThisMessageNeedAPutinPride(message.content, polseCounter) && react) message.react(react)
         // }
-        if (message.author.id == '733320780707790898' && message.guild && message.mentions.roles.find((e) => e.name == 'Jævla Drittspel')) {
-            //"733320780707790898" joiij
-            message.react(kekw ?? '😂')
-            message.reply('lol')
-        }
+
         if (message.author.id == '733320780707790898' && message.guild) {
             //"733320780707790898" joiij
             const numbers = MessageUtils.doesMessageContainNumber(message)
             let arg1
             let arg2
+
             if (numbers.length == 1) {
                 arg1 = numbers[0]
                 arg2 = numbers[0] * 5
@@ -239,9 +236,22 @@ export class CommandRunner {
                 arg1 = numbers[0] + '-' + numbers[1]
                 arg2 = numbers[0] * 5 + '-' + numbers[1] * 5
             }
+            const responses = [
+                'hahaha, du mener ' + arg2 + ', sant?',
+                arg2 + '*',
+                'det var vel litt ambisiøst.. ' + arg2 + ' høres mer riktig ut',
+                'hmm.. føler jeg har hørt den før 🤔',
+                'hva får deg til å tro at det stemmer denne gangen?',
+                arg1 + ' ja.. vi lyger vel alle litt på CVen, hæ?',
+                arg1 + '? komman Joiij',
+            ]
             if (numbers.length > 0 && numbers.length < 3 && !message.content.includes('!mz')) {
                 message.react(kekw ?? '😂')
-                message.reply("lmao, estimatet '" + arg1 + "' stemmer ikkje <a:kekw_animated:" + kekw?.id + '> .' + 'Mente du **' + arg2 + '**?')
+                const randomnumber = Math.floor(Math.random() * 7)
+                message.reply(responses[randomnumber])
+            } else if (message.mentions.roles.find((e) => e.name == 'Jævla Drittspel')) {
+                message.react(kekw ?? '😂')
+                message.reply('lol')
             }
         }
         const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message)
