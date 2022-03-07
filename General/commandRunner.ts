@@ -185,7 +185,10 @@ export class CommandRunner {
         let newFailNum = 1
         if (numberOfFails && Number(numberOfFails)) newFailNum = Number(numberOfFails) + 1
         if (command === '' || command.trim() === '') command = '<tom command>'
-        this.messageHelper.sendMessageToActionLog(message.channel as TextChannel, `${command} ble forsøkt brukt, men finnes ikke (${newFailNum})`)
+        this.messageHelper.sendMessageToActionLog(
+            message.channel as TextChannel,
+            `${command} ble forsøkt brukt av ${message.author.username}, men finnes ikke (${newFailNum})`
+        )
         DatabaseHelper.setNonUserValue('incorrectCommand', command, newFailNum.toString())
     }
 
@@ -226,24 +229,19 @@ export class CommandRunner {
         }
         if (message.author.id == '733320780707790898' && message.guild) {
             //"733320780707790898" joiij
-            const numbers = MessageUtils.doesMessageContainNumber(message);
-            let arg1;
-            let arg2;
-            if (numbers.length == 1 ) {
-                arg1 = numbers[0];
-                arg2 = numbers[0] * 5;
+            const numbers = MessageUtils.doesMessageContainNumber(message)
+            let arg1
+            let arg2
+            if (numbers.length == 1) {
+                arg1 = numbers[0]
+                arg2 = numbers[0] * 5
             } else if (numbers.length == 2) {
-                arg1 = numbers[0] + "-" + numbers[1];
-                arg2 = (numbers[0] * 5) + "-" + (numbers[1] * 5)
+                arg1 = numbers[0] + '-' + numbers[1]
+                arg2 = numbers[0] * 5 + '-' + numbers[1] * 5
             }
-            if (numbers.length > 0 && numbers.length < 3 && !message.content.includes("!mz")) {
+            if (numbers.length > 0 && numbers.length < 3 && !message.content.includes('!mz')) {
                 message.react(kekw ?? '😂')
-                message.reply("lmao, estimatet '" +  
-                    arg1 + 
-                    "' stemmer ikkje <a:kekw_animated:" +
-                    kekw?.id +
-                    '> .' +
-                    'Mente du **' + arg2 + '**?')
+                message.reply("lmao, estimatet '" + arg1 + "' stemmer ikkje <a:kekw_animated:" + kekw?.id + '> .' + 'Mente du **' + arg2 + '**?')
             }
         }
         const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message)

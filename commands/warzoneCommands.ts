@@ -377,6 +377,7 @@ export class WarzoneCommands extends AbstractCommands {
                 },
                 category: 'gaming',
             },
+
             {
                 commandName: 'link',
                 description: "<plattform> <gamertag> (plattform: 'battle', 'psn', 'xbl', 'epic')",
