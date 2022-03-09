@@ -1,11 +1,13 @@
 import { login, platforms, Warzone } from 'call-of-duty-api'
 import { Client, Message } from 'discord.js'
+import { Response } from 'node-fetch'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { actSSOCookie } from '../client-env'
 import { ICommandElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
+const fetch = require('node-fetch')
 
 export interface CodStats {
     kills: number
@@ -315,6 +317,39 @@ export class WarzoneCommands extends AbstractCommands {
         return
     }
 
+    private async findWeeklyPlaylist(message: Message, content: String, args: String[]) {
+        let found = false;
+        let i = 0;
+        const now = new Date();
+        let sentMessage = await this.messageHelper.sendMessage(message.channelId, 'Henter data...')
+        fetch('https://api.trello.com/1/boards/ZgSjnGba/cards')
+            .then((response: Response) => response.json())
+            .then((data: any) => {
+                while (!found && i < data.length) {
+                    if (data[i].name == 'Playlist Update') {
+                        let start = new Date(data[i].start);
+                        let end = new Date(data[i].due);
+                        if (now > start && now < end) {
+                            found = true;
+                            let cardId = data[i].id;
+                            let attachmentId = data[i].idAttachmentCover;
+                            fetch('https://api.trello.com/1/cards/'+cardId+'/attachments/'+attachmentId)
+                                .then((response: Response) => response.json())
+                                .then((data: any) => {
+                                    if (sentMessage) sentMessage.edit(data.url)
+                                    else this.messageHelper.sendMessage(message.channelId, data.url)
+                                })
+                        }
+                    }
+                    i += 1;
+                }
+                if (!found) {
+                    if (sentMessage) sentMessage.edit("Fant ikke playlist")
+                    else this.messageHelper.sendMessage(message.channelId, "Fant ikke playlist")
+                }
+            })
+    }
+
     private saveGameUsernameToDiscordUser(message: Message, content: string, args: string[]) {
         const game = args[0]
         const platform = args[1]
@@ -383,6 +418,14 @@ export class WarzoneCommands extends AbstractCommands {
                 description: "<plattform> <gamertag> (plattform: 'battle', 'psn', 'xbl', 'epic')",
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.saveGameUsernameToDiscordUser(rawMessage, messageContent, args)
+                },
+                category: 'gaming',
+            },
+            {
+                commandName: 'playlist',
+                description: "playlist",
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.findWeeklyPlaylist(rawMessage, messageContent, args)
                 },
                 category: 'gaming',
             },
