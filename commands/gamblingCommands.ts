@@ -251,7 +251,7 @@ export class GamblingCommands extends AbstractCommands {
                 }
                 if (reaction.emoji.name === '👍' && reaction.users.cache.find((u) => u.username.toLowerCase() === username.toLowerCase())) {
                     const shouldAlwaysLose = username === message.author.username || username === 'MazariniBot'
-                    const roll = getRndInteger(0, 101)
+                    const roll = getRndInteger(0, 100)
                     let description = `Terningen trillet: ${roll}/100. ${roll < 51 ? (roll == 50 ? 'Bot Høie' : message.author.username) : username} vant! 💰💰`
                     if (shouldAlwaysLose) {
                         description = `${
