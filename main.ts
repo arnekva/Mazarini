@@ -113,11 +113,34 @@ export class MazariniClient {
 
         /** For all sent messages */
         client.on('messageCreate', async (message: Message) => {
-            _mzClient.numMessages++
+            this.numMessages++
             //Do not reply to own messages. Do not trigger on pinned messages
             if (message.author == client.user || message.type == 'CHANNEL_PINNED_MESSAGE') return
 
             _mzClient.commandRunner.runCommands(message)
+        })
+
+        client.on('messageDelete', async (message: Message<boolean> | PartialMessage) => {
+            if (!message.guild) return
+            const fetchedLogs = await message.guild.fetchAuditLogs({
+                limit: 1,
+                type: 'MESSAGE_DELETE',
+            })
+            const actionLogId = '810832760364859432'
+
+            const deletionLog = fetchedLogs.entries.first()
+
+            if (!deletionLog) {
+                // _msgHelper.sendMessage(actionLogId, `En melding av ${message.author.tag} ble slettet, men ingen audit logs ble funnet knyttet til meldingen.`)
+                return
+            }
+            const { executor, target } = deletionLog
+
+            if (target.id === message.author.id) {
+                _msgHelper.sendMessage(actionLogId, `En melding av ${message.author.tag} ble slettet av ${executor.tag}. Innhold: ${message.content}`)
+            } else {
+                console.log(`En melding av ${message.author.tag} ble slettet. `)
+            }
         })
 
         /** For interactions (slash-commands and user-commands) */

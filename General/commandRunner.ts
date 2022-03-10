@@ -187,7 +187,7 @@ export class CommandRunner {
         if (command === '' || command.trim() === '') command = '<tom command>'
         this.messageHelper.sendMessageToActionLog(
             message.channel as TextChannel,
-            `${command} ble forsøkt brukt av ${message.author.username}, men finnes ikke (${newFailNum})`
+            `Kommandoen '${command}' ble forsøkt brukt av ${message.author.username}, men den finnes ikke. Denne kommandoen er forsøkt brukt ${newFailNum} ganger`
         )
         DatabaseHelper.setNonUserValue('incorrectCommand', command, newFailNum.toString())
     }

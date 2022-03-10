@@ -123,6 +123,13 @@ export class WarzoneCommands extends AbstractCommands {
         { key: 'timePlayed', header: 'Time Played' },
         { key: 'matchesPlayed', header: 'Matches Played' },
     ]
+    static statsToIncludeInSave: codStatsKeyHeader[] = [
+        { key: 'kdRatio', header: 'K/D Ratio' },
+        { key: 'killsPerGame', header: 'Kills per game' },
+        { key: 'headshotPercentage', header: 'Headshot Percentage' },
+        { key: 'gulagKd', header: 'Gulag K/D' },
+        { key: 'matchesPlayed', header: 'Matches Played' },
+    ]
     static BRstatsToInclude: codBRStatsKeyHeader[] = [
         { key: 'wins', header: 'Wins' },
         { key: 'kills', header: 'Kills' },
@@ -141,7 +148,7 @@ export class WarzoneCommands extends AbstractCommands {
     private findHeaderFromKey(key: string, isBr?: boolean) {
         return isBr
             ? WarzoneCommands.BRstatsToInclude.filter((el) => el.key === key).pop()?.header
-            : WarzoneCommands.statsToInclude.filter((el) => el.key === key).pop()?.header
+            : WarzoneCommands.statsToIncludeInSave.filter((el) => el.key === key).pop()?.header
     }
 
     private translatePlatform(s: string) {
@@ -318,22 +325,22 @@ export class WarzoneCommands extends AbstractCommands {
     }
 
     private async findWeeklyPlaylist(message: Message, content: String, args: String[]) {
-        let found = false;
-        let i = 0;
-        const now = new Date();
+        let found = false
+        let i = 0
+        const now = new Date()
         let sentMessage = await this.messageHelper.sendMessage(message.channelId, 'Henter data...')
         fetch('https://api.trello.com/1/boards/ZgSjnGba/cards')
             .then((response: Response) => response.json())
             .then((data: any) => {
                 while (!found && i < data.length) {
                     if (data[i].name == 'Playlist Update') {
-                        let start = new Date(data[i].start);
-                        let end = new Date(data[i].due);
+                        let start = new Date(data[i].start)
+                        let end = new Date(data[i].due)
                         if (now > start && now < end) {
-                            found = true;
-                            let cardId = data[i].id;
-                            let attachmentId = data[i].idAttachmentCover;
-                            fetch('https://api.trello.com/1/cards/'+cardId+'/attachments/'+attachmentId)
+                            found = true
+                            let cardId = data[i].id
+                            let attachmentId = data[i].idAttachmentCover
+                            fetch('https://api.trello.com/1/cards/' + cardId + '/attachments/' + attachmentId)
                                 .then((response: Response) => response.json())
                                 .then((data: any) => {
                                     if (sentMessage) sentMessage.edit(data.url)
@@ -341,11 +348,11 @@ export class WarzoneCommands extends AbstractCommands {
                                 })
                         }
                     }
-                    i += 1;
+                    i += 1
                 }
                 if (!found) {
-                    if (sentMessage) sentMessage.edit("Fant ikke playlist")
-                    else this.messageHelper.sendMessage(message.channelId, "Fant ikke playlist")
+                    if (sentMessage) sentMessage.edit('Fant ikke playlist')
+                    else this.messageHelper.sendMessage(message.channelId, 'Fant ikke playlist')
                 }
             })
     }
@@ -423,7 +430,7 @@ export class WarzoneCommands extends AbstractCommands {
             },
             {
                 commandName: 'playlist',
-                description: "playlist",
+                description: 'playlist',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.findWeeklyPlaylist(rawMessage, messageContent, args)
                 },

@@ -502,8 +502,8 @@ export class GamblingCommands extends AbstractCommands {
             if (isNaN(argAsNum)) {
                 message.reply('du har oppgitt et ugyldig tall')
                 return
-            } else if (argAsNum > 1000) {
-                message.reply('du kan låne maks 1000 chips')
+            } else if (argAsNum > 1500) {
+                message.reply('du kan låne maks 1500 chips')
                 return
             } else if (argAsNum < 1) {
                 message.reply('Kan kje låna mindre enn 1 chip')
@@ -516,8 +516,8 @@ export class GamblingCommands extends AbstractCommands {
         const totalDebt = DatabaseHelper.getValue('debt', username, message)
         const debtMultiplier = DatabaseHelper.getValue('debtMultiplier', username, message)
         const userMoney = DatabaseHelper.getValue('chips', message.author.username, message)
-        if (Number(debtMultiplier) > 184) {
-            message.reply('Nå e du bare 100% fucked, snakkes')
+        if (Number(debtMultiplier) > 75) {
+            message.reply('Du har kje lov å ta opp lån når rentå di e over 90%. Du får gambla, ble vippsa eller bruka "!mz daily" for å få mer chips')
             return
         }
         const newTotalLoans = Number(totalLoans) + 1
