@@ -327,16 +327,16 @@ export class GamblingCommands extends AbstractCommands {
             }
         }
         if (value && Number(value)) {
-            const valAsNum = Number(Number(value).toFixed(2))
+            const valAsNum = Number(Number(value).toFixed(0))
             const roll = Math.floor(Math.random() * 100) + 1
             const hasDebtPenalty = DatabaseHelper.getValueWithoutMessage('debtPenalty', message.author.username) === 'true'
-            let rate = 185
 
             let newMoneyValue = 0
-            let interest = 0
             let multiplier = this.getMultiplier(roll, valAsNum)
+            const calculatedValue = this.calculatedNewMoneyValue(message, multiplier, valAsNum, userMoney)
+            let interest = calculatedValue.interestAmount
             if (roll >= 50) {
-                newMoneyValue = this.calculatedNewMoneyValue(message, multiplier, valAsNum, userMoney)
+                newMoneyValue = calculatedValue.newMoneyValue
             } else newMoneyValue = Number(userMoney) - valAsNum
 
             if (newMoneyValue > Number.MAX_SAFE_INTEGER) {
@@ -347,19 +347,22 @@ export class GamblingCommands extends AbstractCommands {
             DatabaseHelper.setValue('chips', message.author.username, newMoneyValue.toFixed(2))
 
             const gambling = new MessageEmbed().setTitle('Gambling 🎲').setDescription(
-                `${message.author.username} gamblet ${valAsNum} av ${userMoney} chips.\nTerningen trillet: ${roll}/100. Du ${
+                `${message.author.username} gamblet ${valAsNum.toLocaleString('nb', {
+                    maximumFractionDigits: 2,
+                    minimumFractionDigits: 2,
+                })} av ${Number(userMoney).toLocaleString('nb', {
+                    maximumFractionDigits: 2,
+                    minimumFractionDigits: 2,
+                })} chips.\nTerningen trillet: ${roll}/100. Du ${
                     roll >= 50 ? 'vant! 💰💰 (' + Number(multiplier) + 'x)' : 'tapte 💸💸'
-                }\nDu har nå ${newMoneyValue.toLocaleString(undefined, {
+                }\nDu har nå ${newMoneyValue.toLocaleString('nb', {
                     maximumFractionDigits: 2,
                     minimumFractionDigits: 2,
                 })} chips.`
             )
             if (roll >= 100) gambling.addField(`Trillet 100!`, `Du trillet 100 og vant ${multiplier} ganger så mye som du satset!`)
             if (hasDebtPenalty && roll >= 50)
-                gambling.addField(
-                    `Gjeld`,
-                    `Du er i høy gjeld, og banken har krevd inn ${interest.toFixed(2)} chips (${(100 - (100 - (1 - rate) * 100)).toFixed(0)}%)`
-                )
+                gambling.addField(`Gjeld`, `Du er i høy gjeld, og banken har krevd inn ${interest.toFixed(2)} chips (${calculatedValue.rate.toFixed(2)}%)`)
             this.messageHelper.sendFormattedMessage(message.channel as TextChannel, gambling)
         }
     }
@@ -439,7 +442,7 @@ export class GamblingCommands extends AbstractCommands {
             let newMoneyValue = 0
             let interest = 0
 
-            if (won) newMoneyValue = this.calculatedNewMoneyValue(message, multiplier, valAsNum, userMoney)
+            if (won) newMoneyValue = this.calculatedNewMoneyValue(message, multiplier, valAsNum, userMoney).newMoneyValue
             else newMoneyValue = Number(userMoney) - valAsNum
 
             if (newMoneyValue > Number.MAX_SAFE_INTEGER) {
@@ -478,20 +481,29 @@ export class GamblingCommands extends AbstractCommands {
         return 2
     }
 
-    private calculatedNewMoneyValue(message: Message, multiplier: number, valAsNum: number, userMoney: number) {
+    private calculatedNewMoneyValue(
+        message: Message,
+        multiplier: number,
+        valAsNum: number,
+        userMoney: number
+    ): { newMoneyValue: number; interestAmount: number; rate: number } {
         const hasDebtPenalty = DatabaseHelper.getValueWithoutMessage('debtPenalty', message.author.username) === 'true'
-        let rate = 185
         let newMoneyValue = 0
         let interest = 0
-
+        let rate = 0
         if (hasDebtPenalty) {
-            const mp = DatabaseHelper.getValue('debtMultiplier', message.author.username, message)
-            rate = (rate - mp) / 100 - 1
+            const mp = Number(DatabaseHelper.getValue('debtMultiplier', message.author.username, message))
+            console.log('multi' + mp)
 
-            interest = multiplier * valAsNum - valAsNum * rate
+            rate = 1 - (100 - mp) / 100
+            console.log('RATE: ' + rate)
+
+            interest = valAsNum * rate
         }
         newMoneyValue = Number(userMoney) + multiplier * valAsNum - interest - valAsNum
-        return newMoneyValue
+        console.log(newMoneyValue, userMoney)
+
+        return { newMoneyValue: newMoneyValue, interestAmount: interest, rate: rate }
     }
 
     private takeUpLoan(message: Message, content: string, args: string[]) {

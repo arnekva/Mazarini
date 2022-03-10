@@ -3,12 +3,16 @@ import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '5.9.5'
+    public static readonly currentVersion = '5.9.6'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Hendelseslog til #action_log hvis en melding blir slettet som ikke var authoren` + `\n* Du kan nå ikke gå over 90% i renter ved lån`
+        `\n* Hendelseslog til #action_log hvis en melding blir slettet som ikke var authoren` +
+        `\n* Du kan nå ikke gå over 90% i renter ved lån` +
+        `\n* Kalkulering av gjeld skal nå skje korrekt` +
+        `\n* Kalkulering av renter skal nå skje korrekt` +
+        `\n* Lagt til bedre tallformattering i gambling`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
