@@ -122,7 +122,7 @@ export class MazariniClient {
 
         client.on('messageDelete', async (message: Message<boolean> | PartialMessage) => {
             if (!message.guild) return
-            const fetchedLogs = await message.guild.fetchAuditLogs({
+            const fetchedLogs = await message?.guild.fetchAuditLogs({
                 limit: 1,
                 type: 'MESSAGE_DELETE',
             })
@@ -136,10 +136,10 @@ export class MazariniClient {
             }
             const { executor, target } = deletionLog
 
-            if (target.id === message.author.id) {
-                _msgHelper.sendMessage(actionLogId, `En melding av ${message.author.tag} ble slettet av ${executor.tag}. Innhold: ${message.content}`)
+            if (target?.id === message?.author?.id) {
+                _msgHelper.sendMessage(actionLogId, `En melding av ${message?.author?.tag} ble slettet av ${executor?.tag}. Innhold: ${message?.content}`)
             } else {
-                console.log(`En melding av ${message.author.tag} ble slettet. `)
+                console.log(`En melding av ${message?.author?.tag} ble slettet. `)
             }
         })
 
