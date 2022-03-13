@@ -30,7 +30,6 @@ export class PatchNotes extends AbstractCommands {
             {
                 commandName: 'patch',
                 description: 'Vis nyligste patch notes',
-
                 command: (rawMessage: Message, messageContent: string) => {
                     const pn = PatchNotes.getCurrentPatchNotes()
                     this.messageHelper.sendMessage(rawMessage.channelId, pn)
