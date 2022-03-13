@@ -8,6 +8,7 @@ import { shopItem } from '../commands/shop'
 const db = new JsonDB(new Config('myDataBase', true, true, '/'))
 const folderPrefix = '/users'
 const otherFolderPreifx = '/other'
+const botFolder = '/bot'
 
 //const db = new Database()
 /**
@@ -22,6 +23,8 @@ export interface userValPair {
 export interface dbObject {
     name: string
 }
+
+export type botDataPrefix = 'status' | 'statusType'
 
 export type dbPrefix =
     | 'spin'
@@ -56,6 +59,7 @@ export type dbPrefix =
     | 'dailyClaim'
     | 'dailyClaimStreak'
     | 'prestige'
+    | 'dailyFreezeCounter'
 
 export interface betObject {
     description: string
@@ -200,6 +204,20 @@ export class DatabaseHelper {
     /** For missing folders, like achievement, you can add them using this */
     static addUserFolder(key: string, prefix: dbPrefix) {
         db.push(`${folderPrefix}/${key}/${prefix}`, {})
+    }
+
+    static getBotData(prefix: botDataPrefix) {
+        let data
+        try {
+            data = db.getData(`${botFolder}/${prefix}`)
+        } catch (error) {
+            //No data;
+        }
+        return data
+    }
+
+    static setBotData(prefix: botDataPrefix, value: any) {
+        db.push(`${botFolder}/${prefix}`, value)
     }
 
     /**

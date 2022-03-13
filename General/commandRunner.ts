@@ -155,8 +155,15 @@ export class CommandRunner {
                         message.channelId,
                         '*Denne funksjoner er markert som deprecated/utfaset. Bruk **' + cmd.deprecated + '*** *i stedet*'
                     )
-
-                cmd.command(message, messageContent, args)
+                //Ignorer kanal-spesifikt hvis i bot-testing
+                if (cmd.canOnlyBeUsedInSpecificChannel && message.channelId !== '880493116648456222') {
+                    if (!cmd.canOnlyBeUsedInSpecificChannel.includes(message.channelId)) {
+                        const channelList = cmd.canOnlyBeUsedInSpecificChannel.map((c) => `<#${c}>`)
+                        message.reply(`Denne kommandoen kan kun brukes i følgende kanaler: ${channelList.join(' ')}`)
+                    }
+                } else {
+                    cmd.command(message, messageContent, args)
+                }
             } catch (error) {
                 this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
             }

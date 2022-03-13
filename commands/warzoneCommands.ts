@@ -148,7 +148,7 @@ export class WarzoneCommands extends AbstractCommands {
     private findHeaderFromKey(key: string, isBr?: boolean) {
         return isBr
             ? WarzoneCommands.BRstatsToInclude.filter((el) => el.key === key).pop()?.header
-            : WarzoneCommands.statsToIncludeInSave.filter((el) => el.key === key).pop()?.header
+            : WarzoneCommands.statsToInclude.filter((el) => el.key === key).pop()?.header
     }
 
     private translatePlatform(s: string) {
@@ -185,7 +185,6 @@ export class WarzoneCommands extends AbstractCommands {
         const isRebirth = filterMode === 'rebirth'
 
         let sentMessage = await this.messageHelper.sendMessage(message.channelId, 'Logger inn...')
-        let response = ''
 
         if (!sentMessage) sentMessage = await this.messageHelper.sendMessage(message.channelId, 'Henter data...')
         else await sentMessage.edit('Henter data...')
@@ -281,6 +280,7 @@ export class WarzoneCommands extends AbstractCommands {
                 if (key === 'damageTaken') return value
                 return parseFloat(Number(value).toFixed(3))
             }
+
             /** Gjør sammenligning og legg til i respons */
             for (const [key, value] of Object.entries(orderedStats)) {
                 if (key === 'gulagKd' && orderedStats.gulagDeaths && orderedStats.gulagKills)
@@ -289,7 +289,7 @@ export class WarzoneCommands extends AbstractCommands {
                     response += `\n${this.findHeaderFromKey(key)}: ${getValueFormatted(key, value)} ${this.compareOldNewStats(
                         value,
                         oldData[key],
-                        key === 'timePlayed' || key === 'avgLifeTime'
+                        !this.isCorrectHeader({ key: key as CodStatsType, header: 'none' })
                     )}`
                 else if (key === 'gulagKd' && orderedStats.gulagDeaths && orderedStats.gulagKills)
                     response += `\nGulag KD: ${orderedStats?.gulagKills / orderedStats?.gulagDeaths}`
@@ -302,6 +302,11 @@ export class WarzoneCommands extends AbstractCommands {
             if (editableMessage) editableMessage.delete()
             this.messageHelper.sendMessageToActionLogWithCustomMessage(message, error, 'Dataen kunne ikke hentes', true)
         }
+    }
+
+    /** Sjekk om headeren finnes i stats som skal sammenlignes */
+    private isCorrectHeader(key: codStatsKeyHeader) {
+        return !!WarzoneCommands.statsToIncludeInSave.find((k) => k?.key === key?.key)?.header
     }
 
     private findWeeklyRebirthOnly(gamertag: string, data: any, message: Message, editableMessage?: Message) {

@@ -34,6 +34,7 @@ export interface ICommandElement {
     isAdmin?: boolean
     deprecated?: string
     isSuperAdmin?: boolean
+    canOnlyBeUsedInSpecificChannel?: string[]
 }
 
 export type commandCategory = 'musikk' | 'gambling' | 'gaming' | 'tekst' | 'annet' | 'admin' | 'spin'

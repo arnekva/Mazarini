@@ -1,8 +1,11 @@
-import { Client, GuildMember, Message, TextChannel } from 'discord.js'
+import { Client, ExcludeEnum, GuildMember, Message, TextChannel } from 'discord.js'
+import { ActivityTypes } from 'discord.js/typings/enums'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement } from '../General/commands'
+import { ClientHelper } from '../helpers/clientHelper'
 import { DatabaseHelper, dbPrefix } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { MazariniClient } from '../main'
 import { splitUsername } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
 
@@ -78,6 +81,34 @@ export class Admin extends AbstractCommands {
             }
         })
     }
+
+    private setBotStatus(message: Message, messageContent: string, args: string[]) {
+        const activity = this.translateActivityType(args[0])
+        const status = args.slice(1).join(' ')
+        DatabaseHelper.setBotData('status', status)
+        DatabaseHelper.setBotData('statusType', activity)
+        this.messageHelper.reactWithThumbs(message, 'up')
+        this.messageHelper.sendMessageToActionLog(message.channel as TextChannel, `Bottens aktivitet er satt til '${activity}' med teksten '${status}'`)
+        ClientHelper.updateStatus(this.client, activity, status)
+    }
+
+    private translateActivityType(type: string): ExcludeEnum<typeof ActivityTypes, 'CUSTOM'> {
+        switch (type.toUpperCase()) {
+            case 'COMPETING':
+                return 'COMPETING'
+            case 'LISTENING':
+                return 'LISTENING'
+            case 'PLAYING':
+                return 'PLAYING'
+            case 'STREAMING':
+                return 'STREAMING'
+            case 'WATCHING':
+                return 'WATCHING'
+            default:
+                return 'PLAYING'
+        }
+    }
+
     private async reactToMsgAsBot(rawMessage: Message, content: string) {
         const allChannels = [...rawMessage.client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
 
@@ -115,6 +146,12 @@ export class Admin extends AbstractCommands {
         const replyString = content.substr(content.indexOf(' ') + 1)
         const channel = [...message.client.channels.cache.values()].find((channel) => channel.id === id) as TextChannel
         if (channel) channel.send(replyString)
+    }
+
+    private getBotStatistics(message: Message, messageContent: string, args: string[]) {
+        const numMessages = MazariniClient.numMessages
+        const statsReply = `Statistikk:\nAntall meldinger siden sist oppstart: ${numMessages}`
+        this.messageHelper.sendMessage(message.channelId, statsReply)
     }
 
     private async warnUser(message: Message, messageContent: string, args: string[]) {
@@ -212,6 +249,7 @@ export class Admin extends AbstractCommands {
                 description: 'For testing. Resultat vil variere. ',
                 hideFromListing: true,
                 command: async (rawMessage: Message, messageContent: string) => {
+                    // DailyJobs.validateAndResetDailyClaims()
                     rawMessage.reply('Slettet alle coins og chips for bruker <' + rawMessage.author.username + '>.')
                     setTimeout(() => {
                         rawMessage.reply('Bare kødda, ingenting har skjedd.')
@@ -325,6 +363,24 @@ export class Admin extends AbstractCommands {
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.warnUser(rawMessage, messageContent, args)
+                },
+                category: 'admin',
+            },
+            {
+                commandName: 'botstatus',
+                description: 'Sett botten sin status. Lovlige aktiviteter: watching, streaming, playing, listening og competing. Defaulter til playing',
+                hideFromListing: true,
+                isAdmin: true,
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.setBotStatus(rawMessage, messageContent, args)
+                },
+                category: 'admin',
+            },
+            {
+                commandName: 'stats',
+                description: 'Hent enkle stats om botten',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.getBotStatistics(rawMessage, messageContent, args)
                 },
                 category: 'admin',
             },

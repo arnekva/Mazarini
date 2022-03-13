@@ -225,6 +225,9 @@ export class GamblingCommands extends AbstractCommands {
         } else if (Number(victimValue) < amountAsNum) {
             message.reply('Dette har ikke motstanderen din råd til.')
             return
+        } else if (amountAsNum === 0) {
+            message.reply('Du kan kje gå te krig over 0 chips')
+            return
         }
         const user = UserUtils.findUserByUsername(username, message)
         const resolveMessage = await this.messageHelper.sendMessage(
@@ -318,13 +321,13 @@ export class GamblingCommands extends AbstractCommands {
             if (Number(value) > Number(userMoney)) {
                 message.reply('Du har ikke nok penger til å gamble så mye. Bruk <!mz lån 100> for å låne chips fra MazariniBank')
                 return
-            } else if (Number(value) < 0) {
-                message.reply('Du må gamble med et positivt tall, bro')
-                return
-            } else if (Number(value) === 0) {
+            } else if (Number(value) < 1) {
                 message.reply('Du må satsa minst 1 chip')
                 return
             }
+        } else {
+            message.reply('Du har nok ikkje råd te dette')
+            return
         }
         if (value && Number(value)) {
             const valAsNum = Number(Number(value).toFixed(0))
@@ -344,7 +347,7 @@ export class GamblingCommands extends AbstractCommands {
                     'Du har nådd et så høyt tall at programmeringsspråket ikke lenger kan gjøre trygge operasjoner på det. Du kan fortsette å gamble, men noen funksjoner kan virke ustabile'
                 )
             }
-            DatabaseHelper.setValue('chips', message.author.username, newMoneyValue.toFixed(2))
+            DatabaseHelper.setValue('chips', message.author.username, newMoneyValue.toFixed(0))
 
             const gambling = new MessageEmbed().setTitle('Gambling 🎲').setDescription(
                 `${message.author.username} gamblet ${valAsNum.toLocaleString('nb', {
@@ -362,7 +365,7 @@ export class GamblingCommands extends AbstractCommands {
             )
             if (roll >= 100) gambling.addField(`Trillet 100!`, `Du trillet 100 og vant ${multiplier} ganger så mye som du satset!`)
             if (hasDebtPenalty && roll >= 50)
-                gambling.addField(`Gjeld`, `Du er i høy gjeld, og banken har krevd inn ${interest.toFixed(2)} chips (${calculatedValue.rate.toFixed(2)}%)`)
+                gambling.addField(`Gjeld`, `Du er i høy gjeld, og banken har krevd inn ${interest.toFixed(0)} chips (${calculatedValue.rate.toFixed(0)}%)`)
             this.messageHelper.sendFormattedMessage(message.channel as TextChannel, gambling)
         }
     }
@@ -797,6 +800,11 @@ export class GamblingCommands extends AbstractCommands {
     private claimDailyChipsAndCoins(message: Message, messageContent: string, args: string[]) {
         const canClaim = DatabaseHelper.getValue('dailyClaim', message.author.username, message)
         const dailyPrice = { chips: '500', coins: '80' }
+        const hasFreeze = Number(DatabaseHelper.getValueWithoutMessage('dailyFreezeCounter', message.author.username))
+        if (!isNaN(hasFreeze) && hasFreeze > 0) {
+            message.reply('Du har frosset daily claimet ditt i ' + hasFreeze + ' dager til. Vent til da og prøv igjen')
+            return
+        }
         if (canClaim === '0') {
             const oldData = DatabaseHelper.getValue('dailyClaimStreak', message.author.username, message, true)
 
@@ -832,6 +840,25 @@ export class GamblingCommands extends AbstractCommands {
         }
     }
 
+    private freezeDailyClaim(message: Message, messageContent: string, args: string[]) {
+        const numDays = Number(args[0])
+        if (isNaN(numDays) || numDays > 4) {
+            message.reply('Du må skrive inn et gyldig tall lavere enn 4')
+            return
+        }
+        const hasFreeze = Number(DatabaseHelper.getValueWithoutMessage('dailyFreezeCounter', message.author.username))
+        if (hasFreeze && hasFreeze > 0) {
+            message.reply('Du har allerede frosset daily claimet ditt i ' + hasFreeze + ' dager til')
+            return
+        }
+        DatabaseHelper.setValue('dailyFreezeCounter', message.author.username, numDays.toString())
+        message.reply(
+            'Du har frosset daily claimen din i ' +
+                numDays +
+                ' dager. Du får ikke hente ut daily chips og coins før da, men streaken din vil heller ikke forsvinne. Denne kan ikke overskrives eller fjernes'
+        )
+    }
+
     private findAndIncrementValue(streak: number, dailyPrice: { chips: string; coins: string }, message: Message): { dailyCoins: string; dailyChips: string } {
         const additionalCoins = this.findAdditionalCoins(streak)
         const prestigeMultiplier = this.findPrestigeMultiplier(DatabaseHelper.getValueWithoutMessage('prestige', message.author.username))
@@ -853,16 +880,16 @@ export class GamblingCommands extends AbstractCommands {
     }
 
     private findAdditionalCoins(streak: number): { coins: number; chips: number } | undefined {
-        if (streak == 69) return { coins: 6889, chips: 69696469 }
+        if (streak == 69) return { coins: 6889, chips: 696469 }
         if (streak >= 100) return { coins: 5000, chips: 200000000 }
-        if (streak > 75) return { coins: 565, chips: 2475000 }
-        if (streak > 50) return { coins: 500, chips: 455000 }
-        if (streak > 25) return { coins: 175, chips: 55000 }
-        if (streak > 15) return { coins: 125, chips: 10000 }
-        if (streak >= 10) return { coins: 80, chips: 1250 }
+        if (streak > 75) return { coins: 565, chips: 125000 }
+        if (streak > 50) return { coins: 500, chips: 25000 }
+        if (streak > 25) return { coins: 175, chips: 7500 }
+        if (streak > 15) return { coins: 125, chips: 1250 }
+        if (streak >= 10) return { coins: 80, chips: 1000 }
         if (streak > 5) return { coins: 30, chips: 100 }
-        if (streak > 3) return { coins: 20, chips: 100 }
-        if (streak >= 2) return { coins: 10, chips: 75 }
+        if (streak > 3) return { coins: 20, chips: 75 }
+        if (streak >= 2) return { coins: 10, chips: 25 }
         return undefined
     }
 
@@ -963,6 +990,7 @@ export class GamblingCommands extends AbstractCommands {
                     this.diceGamble(rawMessage, messageContent, args)
                 },
                 category: 'gambling',
+                canOnlyBeUsedInSpecificChannel: ['808992127249678386'],
             },
             {
                 commandName: 'rulett',
@@ -987,6 +1015,14 @@ export class GamblingCommands extends AbstractCommands {
                 description: 'Hent dine daglige chips og coins. Hvis det gjøres i flere dager sammenhengene vil du få større og større rewards',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.claimDailyChipsAndCoins(rawMessage, messageContent, args)
+                },
+                category: 'gambling',
+            },
+            {
+                commandName: 'freezedaily',
+                description: 'Frys daily rewarden din i X antall dager (maks 4)',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.freezeDailyClaim(rawMessage, messageContent, args)
                 },
                 category: 'gambling',
             },

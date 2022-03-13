@@ -19,6 +19,7 @@ import {
 import { discordSecret, environment } from './client-env'
 import { ShopClass } from './commands/shop'
 import { CommandRunner } from './General/commandRunner'
+import { ClientHelper } from './helpers/clientHelper'
 import { MessageHelper } from './helpers/messageHelper'
 import { DailyJobs } from './Jobs/dailyJobs'
 import { WeeklyJobs } from './Jobs/weeklyJobs'
@@ -33,9 +34,10 @@ export class MazariniClient {
     private client: Client
     private commandRunner: CommandRunner
     private messageHelper: MessageHelper
-    private numMessages: number
+    static numMessages: number
     private isTest: boolean
     private startTime: Date
+    mazarini: any
 
     constructor() {
         this.client = new Discord.Client({
@@ -59,7 +61,7 @@ export class MazariniClient {
         this.messageHelper = new MessageHelper(this.client)
         this.commandRunner = new CommandRunner(this.client, this.messageHelper)
         this.startTime = new Date()
-        this.numMessages = 0
+        MazariniClient.numMessages = 0
         this.isTest = environment === 'dev'
     }
 
@@ -82,16 +84,7 @@ export class MazariniClient {
                     'Boten er nå live i production mode.'
                 )
 
-            _mzClient.client?.user?.setPresence({
-                activities: [
-                    {
-                        type: 'COMPETING',
-                        name: 'Morå Di',
-                    },
-                ],
-                afk: false,
-                status: 'online',
-            })
+            ClientHelper.setStatusFromStorage(client)
 
             /** SCHEDULED JOBS */
             //https://www.npmjs.com/package/node-schedule
@@ -113,7 +106,7 @@ export class MazariniClient {
 
         /** For all sent messages */
         client.on('messageCreate', async (message: Message) => {
-            this.numMessages++
+            MazariniClient.numMessages++
             //Do not reply to own messages. Do not trigger on pinned messages
             if (message.author == client.user || message.type == 'CHANNEL_PINNED_MESSAGE') return
 
@@ -137,7 +130,7 @@ export class MazariniClient {
             const { executor, target } = deletionLog
 
             if (target?.id === message?.author?.id) {
-                _msgHelper.sendMessage(actionLogId, `En melding av ${message?.author?.tag} ble slettet av ${executor?.tag}. Innhold: ${message?.content}`)
+                _msgHelper.sendMessage(actionLogId, `En melding av ${message?.author?.tag} ble slettet av ${executor?.tag}. Innhold: '*${message?.content}*'`)
             } else {
                 console.log(`En melding av ${message?.author?.tag} ble slettet. `)
             }
@@ -201,5 +194,11 @@ export class MazariniClient {
                 'En feilmelding ble fanget opp. Error: \n ' + error
             )
         })
+    }
+
+    testContext() {
+        return {
+            client: this.client,
+        }
     }
 }

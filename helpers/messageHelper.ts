@@ -114,8 +114,17 @@ export class MessageHelper {
         )
     }
 
-    sendMessageToActionLogWithCustomMessage(message: Message, error: any, reply: string, includeSupportTag?: boolean) {
-        message.reply(`${reply} ${includeSupportTag ? '<@&863038817794392106>' : ''}`)
+    async sendMessageToActionLogWithCustomMessage(message: Message, error: any, reply: string, includeSupportTag?: boolean) {
+        //Arne
+        const replyMsg = await message.reply(`${reply} ${includeSupportTag ? '(Reager med tommel opp for å tagge Bot-support)' : ''}`)
+        this.reactWithThumbs(replyMsg, 'up')
+        const collector = replyMsg.createReactionCollector()
+        collector.on('collect', (reaction) => {
+            if (reaction.emoji.name === '👍' && reaction.users.cache.find((u) => u.username === message.author.username)) {
+                replyMsg.edit(`${reply} ${includeSupportTag ? '<@&863038817794392106>' : ''}`)
+                collector.stop()
+            }
+        })
         const errorChannel = message.channel.client.channels.cache.get('810832760364859432') as TextChannel
         errorChannel.send(
             `En feil har oppstått i en melding fra ${message.author.username}. Meldingsinnhold: <${message.content}>. Channel: ${message.channel}. Feilmelding: <${error}>`
