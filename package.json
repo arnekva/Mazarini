@@ -1,6 +1,6 @@
 {
     "name": "mazarini",
-    "version": "5.0.0",
+    "version": "6.0.0",
     "description": "",
     "scripts": {
         "start": "nodemon index.ts --ignore myDataBase.json",
