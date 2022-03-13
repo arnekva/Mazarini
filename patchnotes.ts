@@ -11,6 +11,7 @@ export class PatchNotes extends AbstractCommands {
         `\n* Botten bruker nå Mocha for unit testing` +
         `\n* Opprettet test-mappe for testfiler` +
         `\n* Fikset en feil som gjorde at du kunne ende opp med desimaltall som chips-verdier når banken tok renter` +
+        `\n* Lagt til workflow i Git som vil kjøre tester ved åpning av PR` +
         `\n* Du kan nå fryse daily streaken din hvis du vet at du skal være uten nettilgang i opp til 4 dager. Bruk '!mz freezedaily 4' for å fryse i 4 dager. Du kan se hvor mange dager du har igjen ved å prøve '!Mz daily'. Denne kan ikke fjernes eller overskrives` +
         `\n* Adminer kan nå sette statusen til botten dynamisk ved å bruke '!mz botstatus watching kaptein sabeltann'. Bruk help for å se lovlige aktivitetstyper` +
         `\n* Kommandoer kan nå låses til å kun brukes i spesifikke kanaler. "Gamble" er først ut og blir låst til kun <#808992127249678386>` +
