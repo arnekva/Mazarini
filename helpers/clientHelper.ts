@@ -4,16 +4,20 @@ import { DatabaseHelper } from './databaseHelper'
 
 export class ClientHelper {
     static updateStatus(client: Client, type: ExcludeEnum<typeof ActivityTypes, 'CUSTOM'>, status: string) {
-        client.user?.setPresence({
-            activities: [
-                {
-                    type: type,
-                    name: status,
-                },
-            ],
-            afk: false,
-            status: 'online',
-        })
+        try {
+            client.user?.setPresence({
+                activities: [
+                    {
+                        type: type,
+                        name: status,
+                    },
+                ],
+                afk: false,
+                status: 'online',
+            })
+        } catch (error) {
+            console.log(error)
+        }
     }
 
     static setStatusFromStorage(client: Client) {
