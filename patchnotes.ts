@@ -7,7 +7,8 @@ export class PatchNotes extends AbstractCommands {
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `\n* Inkluderer nå hvem som satt bot status i action log` + `\n* Fikset daily claim resett`
+    public static readonly currentPatchNotes: string =
+        `\n* Inkluderer nå hvem som satt bot status i action log` + `\n* Fikset daily claim resett` + `\n* Wallet formatterer tallene litt finere`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
