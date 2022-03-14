@@ -1,6 +1,7 @@
 import { Client, Message } from 'discord.js'
 import { Admin } from '../admin/admin'
 import { Achievements } from '../commands/achievements'
+import { CardCommands } from '../commands/cardCommands'
 import { DateCommands } from '../commands/dateCommands'
 import { GamblingCommands } from '../commands/gamblingCommands'
 import { GameCommands } from '../commands/gameCommands'
@@ -57,6 +58,7 @@ export class Commands {
     private userCommands: UserCommands
     private patchNotes: PatchNotes
     private soundCommands: SoundCommands
+    private cardCommands: CardCommands
 
     constructor(client: Client, messageHelper: MessageHelper) {
         this.client = client
@@ -77,6 +79,7 @@ export class Commands {
         this.weatherCommands = new Weather(this.client, this.messageHelper)
         this.patchNotes = new PatchNotes(this.client, this.messageHelper)
         this.soundCommands = new SoundCommands(this.client, this.messageHelper)
+        this.cardCommands = new CardCommands(this.client, this.messageHelper)
     }
 
     getAllCommands() {
@@ -98,6 +101,7 @@ export class Commands {
             ...this.userCommands.getAllCommands(),
             ...this.weatherCommands.getAllCommands(),
             ...this.soundCommands.getAllCommands(),
+            ...this.cardCommands.getAllCommands(),
         ]
     }
 
