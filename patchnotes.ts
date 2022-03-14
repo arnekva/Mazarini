@@ -3,12 +3,12 @@ import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '6.0.2'
+    public static readonly currentVersion = '6.1.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Inkluderer nå hvem som satt bot status i action log` + `\n* Fikset daily claim resett` + `\n* Wallet formatterer tallene litt finere`
+        `\n* Har lagt til en kortstokk og diverse funksjonaliteter på denne \n* Prøv "!mz kort" for mer info`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
