@@ -88,7 +88,10 @@ export class Admin extends AbstractCommands {
         DatabaseHelper.setBotData('status', status)
         DatabaseHelper.setBotData('statusType', activity)
         this.messageHelper.reactWithThumbs(message, 'up')
-        this.messageHelper.sendMessageToActionLog(message.channel as TextChannel, `Bottens aktivitet er satt til '${activity}' med teksten '${status}'`)
+        this.messageHelper.sendMessageToActionLog(
+            message.channel as TextChannel,
+            `Bottens aktivitet er satt til '${activity}' med teksten '${status}' av ${message.author.username}`
+        )
         ClientHelper.updateStatus(this.client, activity, status)
     }
 
