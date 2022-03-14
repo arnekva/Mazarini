@@ -260,7 +260,7 @@ export class DatabaseHelper {
         else return '0'
     }
     /** Hent alle brukere */
-    static async getAllUsers() {
+    static getAllUsers() {
         return db.getData('/users')
     }
     /** Slett et aktivt bet */

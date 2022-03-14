@@ -277,7 +277,7 @@ export class GamblingCommands extends AbstractCommands {
                     if (shouldAlwaysLose) {
                         gambling.addField(
                             `${message.author.username}`,
-                            `Du har nå ${engagerValue.toLocaleString(undefined, {
+                            `Du har nå ${engagerValue.toLocaleString('nb', {
                                 maximumFractionDigits: 2,
                                 minimumFractionDigits: 2,
                             })} chips`
@@ -285,14 +285,14 @@ export class GamblingCommands extends AbstractCommands {
                     } else {
                         gambling.addField(
                             `${message.author.username}`,
-                            `Du har nå ${engagerValue.toLocaleString(undefined, {
+                            `Du har nå ${engagerValue.toLocaleString('nb', {
                                 maximumFractionDigits: 2,
                                 minimumFractionDigits: 2,
                             })} chips`
                         )
                         gambling.addField(
                             `${username}`,
-                            `Du har nå ${victimValue.toLocaleString(undefined, {
+                            `Du har nå ${victimValue.toLocaleString('nb', {
                                 maximumFractionDigits: 2,
                                 minimumFractionDigits: 2,
                             })} chips`
@@ -706,7 +706,16 @@ export class GamblingCommands extends AbstractCommands {
         }
         const coins = DatabaseHelper.getValue('dogeCoin', username, message)
         const chips = DatabaseHelper.getValue('chips', username, message)
-        this.messageHelper.sendMessage(message.channelId, `${username} har ${Number(coins).toFixed(0)} coins og ${Number(chips).toFixed(0)} chips`)
+        this.messageHelper.sendMessage(
+            message.channelId,
+            `${username} har ${Number(coins).toLocaleString('nb', {
+                maximumFractionDigits: 0,
+                minimumFractionDigits: 0,
+            })} coins og ${Number(chips).toLocaleString('nb', {
+                maximumFractionDigits: 0,
+                minimumFractionDigits: 0,
+            })} chips`
+        )
     }
 
     /** TODO: Remove this when deprecated phase is over
@@ -721,7 +730,7 @@ export class GamblingCommands extends AbstractCommands {
         const val = DatabaseHelper.getValue('chips', username, message)
         this.messageHelper.sendMessage(
             message.channelId,
-            `${username} har ${Number(val).toLocaleString(undefined, {
+            `${username} har ${Number(val).toLocaleString('nb', {
                 maximumFractionDigits: 2,
                 minimumFractionDigits: 2,
             })} chips`

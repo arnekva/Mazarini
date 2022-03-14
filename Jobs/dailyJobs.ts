@@ -10,13 +10,13 @@ export class DailyJobs {
     }
 
     runJobs() {
-        // this.validateAndResetDailyClaims()
+        this.validateAndResetDailyClaims()
         this.resetStatuses()
         // this.logEvent()
     }
 
-    static async validateAndResetDailyClaims() {
-        const brukere = await DatabaseHelper.getAllUsers()
+    private validateAndResetDailyClaims() {
+        const brukere = DatabaseHelper.getAllUsers()
         Object.keys(brukere).forEach((username: string) => {
             const userStreak = DatabaseHelper.getValueWithoutMessage('dailyClaimStreak', username)
             if (!userStreak) return //Verify that the user as a streak/claim, otherwise skip
