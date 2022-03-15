@@ -26,45 +26,45 @@ export class CardCommands extends AbstractCommands {
         ["Q","Q"],
         ["K","K"],
         ["A","A"],
-        ["S","spades"],
-        ["C","clubs"],
-        ["H","hearts"],
-        ["D","diamonds"]
+        ["S"," ♤ "],
+        ["C"," ♧ "],
+        ["H"," ♡ "],
+        ["D"," ♢ "]
     ])
 
-    private getTranslation(param: string) {
+    public getTranslation(param: string) {
         let value = CardCommands.cardTranslations.get(param)
         return value ? value : ""
     }
 
-    private drawCard(message: Message) {
+    public drawCard(message: Message, sendMessage: boolean) {
         let card = this.deck.draw()
         if (card === undefined) {
-            this.messageHelper.sendMessage(message.channelId, "Kortstokken er tom for kort")
-            return false
+            sendMessage ? this.messageHelper.sendMessage(message.channelId, "Kortstokken er tom for kort") : {}
+            return card
         }
         let number = CardCommands.cardTranslations.get(card.toString().substring(0,1))
         let suite: string = this.getTranslation(card.toString().substring(1,2))
-        this.messageHelper.sendMessage(message.channelId, ":" + suite + ":" + number + ":" + suite + ":")
-        return true
+        sendMessage ? this.messageHelper.sendMessage(message.channelId, suite + number + suite) : {}
+        return card.toString()
     }
 
-    private resetDeck(message: Message) {
+    public resetDeck(message: Message, sendMessage: boolean) {
         this.deck.reset();
-        this.messageHelper.sendMessage(message.channelId, "Kortstokken er nullstilt og stokket")
+        sendMessage ? this.messageHelper.sendMessage(message.channelId, "Kortstokken er nullstilt og stokket") : {}
     }
 
-    private shuffleDeck(message: Message) {
+    public shuffleDeck(message: Message, sendMessage: boolean) {
         this.deck.shuffle();
-        this.messageHelper.sendMessage(message.channelId, "Kortstokken er stokket")
+        sendMessage ? this.messageHelper.sendMessage(message.channelId, "Kortstokken er stokket") : {}
     }
 
-    private remainingCards(message: Message) {
+    public remainingCards(message: Message, sendMessage: boolean) {
         let remaining = this.getRemainingCards()
         if (remaining > 0) {
-            this.messageHelper.sendMessage(message.channelId, "Det er " + remaining + " kort igjen i kortstokken")
+            sendMessage ? this.messageHelper.sendMessage(message.channelId, "Det er " + remaining + " kort igjen i kortstokken") : {}
         } else {
-            this.messageHelper.sendMessage(message.channelId, "Kortstokken er tom for kort")
+            sendMessage ? this.messageHelper.sendMessage(message.channelId, "Kortstokken er tom for kort") : {}
         }
     }
 
@@ -93,7 +93,7 @@ export class CardCommands extends AbstractCommands {
                             }
                             if (amount > 0 && amount <= remaining) {
                                 for (let i = 0; i < amount; i++) {
-                                    this.drawCard(message)
+                                    this.drawCard(message, true)
                                 }
                             } else if (amount < 0) {
                                 this.messageHelper.sendMessage(message.channelId, 
@@ -110,20 +110,20 @@ export class CardCommands extends AbstractCommands {
                                 "Kom gjerne med et tall etter 'trekk'")
                         }
                     } else {
-                        this.drawCard(message)
+                        this.drawCard(message, true)
                     }
                     break
                 }
                 case "resett": {
-                    this.resetDeck(message)
+                    this.resetDeck(message, true)
                     break
                 }
                 case "stokk": {
-                    this.shuffleDeck(message)
+                    this.shuffleDeck(message, true)
                     break
                 }
                 case "gjenstår": {
-                    this.remainingCards(message)
+                    this.remainingCards(message, true)
                     break
                 }
                 default: {
