@@ -1,105 +1,114 @@
-import { Client, Collector, Message } from 'discord.js'
+import { Client, Message, ReactionCollector } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement } from '../General/commands'
 import { MessageHelper } from '../helpers/messageHelper'
 import { CardCommands } from './cardCommands'
 import { globals } from '../globals'
 
+interface IUserObject {
+    name: string;
+    id: number;
+    card: ICardObject;
+}
+
+interface ICardObject {
+    number: string;
+    suite: string;
+    printString: string;
+}
+
 export class DrinksCommands extends AbstractCommands {
-    private playerMap: Map<string, number>
-    private playerMapReversed: Map<number, string>
-    private playerCard: Map<number, string>
+    private playerList: IUserObject[]
     private activeGame: boolean
     private deck: CardCommands
-    private numberOfSips: number
     private id: number
+    private reactor: any
 
     constructor(client: Client, messageHelper: MessageHelper) {
         super(client, messageHelper)
         this.activeGame = false
-        this.playerMap = new Map<string, number>()
-        this.playerMapReversed = new Map<number, string>()
-        this.playerCard = new Map<number, string>()
+        this.playerList = new Array<IUserObject>()
         this.deck = new CardCommands(client, messageHelper)
-        this.numberOfSips = 0
         this.id = 0
+        this.reactor = undefined
     }
 
+    private setCardOnUser(username: string, card: string) {
+        let userObject = this.getUserObject(username)
+        let cardObject = this.createCardObject(card)
+        userObject.card = cardObject
+        this.playerList[this.getUserIndex(username)] = userObject
+        return cardObject
+    }
 
+    private getUserObject(username: string) {
+        return this.playerList[this.getUserIndex(username)]
+    }
+
+    private getUserIndex(username: string) {
+        return this.playerList.map(function(e) { return e.name; }).indexOf(username);
+    }
+
+    private getUserObjectById(id: number) {
+        const index = this.playerList.map(function(e) { return e.id; }).indexOf(id);
+        return this.playerList[index]
+    }
+
+    private cardsMatch(card1: ICardObject, card2: ICardObject) {
+        return (card1.number === card2.number || card1.suite === card2.suite) ? true : false
+    }
 
     private checkWhoMustDrink(author: string, card: string) {
-        let drinkString: string = ""
         let drinkList: string[] = [author]
         let done = false
         let all = false
-        let currentId = this.playerMap.get(author)
-        if (!currentId) {
-            return
-        }
-        let currentCard = card
+        let authorPlayerObject = this.getUserObject(author)
+        let currentPlayer = authorPlayerObject
         while (!done && !all) {
-            const leftNeighbor: number = (currentId - 1) % this.playerMap.size
-            let neighborCard = this.playerCard.get(leftNeighbor)
-            if (!neighborCard) {
-                done = true
-            } else {
-                if ((currentCard.substring(0,1) === neighborCard.substring(0,1)) || (currentCard.substring(1,2) === neighborCard.substring(1,2))) {
-                    const name = this.playerMapReversed.get(leftNeighbor)
-                    if (!name) {
-                        return
-                    }
-                    drinkList[drinkList.length] = name
-                    currentId = leftNeighbor
-                    currentCard = neighborCard
-                    if (drinkList.length === this.playerMap.size) {
-                        all = true
-                    }
-                } else {
-                    done = true
+            let leftNeighborId: number = (currentPlayer.id - 1) % this.playerList.length
+            let leftNeighbor = this.getUserObjectById(leftNeighborId)
+            if (this.cardsMatch(currentPlayer.card, leftNeighbor.card)) {
+                drinkList.push(leftNeighbor.name)
+                currentPlayer = leftNeighbor
+                if (drinkList.length === this.playerList.length) {
+                    all = true
                 }
+            } else {
+                done = true
             }
         }
         done = false
-        currentId = this.playerMap.get(author)
-        if (!currentId) {
-            return
-        }
-        currentCard = card
+        currentPlayer = authorPlayerObject
         while (!done && !all) {
-            const rightNeighbor: number = (currentId + 1) % this.playerMap.size
-            let neighborCard = this.playerCard.get(rightNeighbor)
-            if (!neighborCard) {
-                done = true
+            let rightNeighborId: number = (currentPlayer.id + 1) % this.playerList.length
+            let rightNeighbor = this.getUserObjectById(rightNeighborId)
+            if (this.cardsMatch(currentPlayer.card, rightNeighbor.card)) {
+                drinkList.push(rightNeighbor.name)
+                currentPlayer = rightNeighbor
             } else {
-                if ((currentCard.substring(0,1) === neighborCard.substring(0,1)) || (currentCard.substring(1,2) === neighborCard.substring(1,2))) {
-                    const name = this.playerMapReversed.get(rightNeighbor)
-                    if (!name) {
-                        return
-                    }
-                    drinkList[drinkList.length] = name
-                    currentId = rightNeighbor
-                    currentCard = neighborCard
-                } else {
-                    done = true
-                }
+                done = true
             }
         }
         if (drinkList.length < 2) {
-            this.numberOfSips = 0
-            return "Ingen"
+            return "Ingen må drikke"
         } else {
-            this.numberOfSips = drinkList.length
+            let drinkString: string = ""
             for (let i = 0; i < drinkList.length; i++) {
                 drinkString = drinkString + drinkList[i] + ", "
             }
-            return drinkString.substring(0, (drinkString.length - 2))
+            return drinkString.substring(0, (drinkString.length - 2)) 
+            + " må drikke " + drinkList.length
         }
     }
 
-    private getCardString(card: string) {
-        let number = this.deck.getTranslation(card.substring(0,1))
-        let suite = this.deck.getTranslation(card.substring(1,2))
-        return suite + number + suite
+    private createCardObject(card: string) {
+        let number = card.substring(0,1)
+        let suite = card.substring(1,2)
+        let printNumber = this.deck.getTranslation(number)
+        let printSuite = this.deck.getTranslation(suite)
+        let printString = suite + number + suite
+        const cardObject: ICardObject = { number: number, suite: suite, printString: printString}
+        return cardObject
     }
 
     private drawCard(message: Message) {
@@ -109,21 +118,16 @@ export class DrinksCommands extends AbstractCommands {
             return
         }
         const author = message.author.username
-        const id = this.playerMap.get(author)
-        if (!id) {
-            return
-        }
-        this.playerCard.set(id, card)
+        const cardObject = this.setCardOnUser(author, card)
         const mustDrink = this.checkWhoMustDrink(author, card)
-        let sips = this.numberOfSips === 0 ? "" : this.numberOfSips + " slurker hver"
-        this.messageHelper.sendMessage(message.channelId, author + " trakk " + this.getCardString(card) 
-        + "\n" + mustDrink + " må drikke " + sips)
+        this.messageHelper.sendMessage(message.channelId, author + " trakk " + cardObject.printString 
+        + "\n" + mustDrink)
     }
 
-    private getPlayersString(seperator: string) {
+    private getPlayersString() {
         let players = "Da starter vi en ny runde electricity med "
-        for (let key of this.playerMap.keys()) {
-            players = players + key + seperator
+        for (let player of this.playerList) {
+            players = players + player.name + ", "
         }
         return players.substring(0, players.length-2)
     }
@@ -133,73 +137,68 @@ export class DrinksCommands extends AbstractCommands {
             message.reply('Du kan bare ha ett aktivt spill om gangen. For å avslutte spillet, bruk "!mz electricity stopp"')
             return
         }
+        if (this.reactor) {
+            this.reactor.stop()
+        }
         const author = message.author.username
-        const betString = `${author} har startet en runde med electricity: Reager med 👍 for å bli med. Spillet starter når noen reagerer med ✅`
+        const betString = `${author} ønsker å starte en runde med electricity: Reager med 👍 for å bli med. Spillet starter når noen reagerer med ✅`
         const startMessage = await this.messageHelper.sendMessage(message.channelId, betString)
         if (startMessage) {
             this.messageHelper.reactWithThumbs(startMessage, 'up')
             startMessage.react('✅')
             const _msg = this.messageHelper
-            const reactor = startMessage.createReactionCollector().on('collect', async (reaction) => {
+            this.reactor = startMessage.createReactionCollector().on('collect', async (reaction) => {
                 const users = reaction.users.cache.filter((u) => u.id !== '802945796457758760')
                 if (reaction.emoji.name == '👍') {
                     users.forEach((us, ind) => {
-                        if (!(us.id === '802945796457758760')) {
-                            const idCopy = this.id
-                            this.id = this.id + 1
-                            this.playerMap.set(us.username, idCopy)
-                            this.playerMapReversed.set(idCopy, us.username)
+                        if (!(this.getUserObject(us.username))) {
+                            const userCard: ICardObject = { number: "", suite: "", printString: ""}
+                            const user: IUserObject = { name: us.username, id: this.id, card: userCard}
+                            this.playerList.push(user)
+                            this.id++
                         }
                     })
                 } else if (reaction.emoji.name == '✅' && (users.size > 0)) {
-                    reactor.stop()
-                    if (this.playerMap.size < 2) {
-                        message.reply('Ingen som vil drikke eller?')
-                        return
+                    if (this.playerList.length < 2) {
+                        message.reply('Det trengs minst 2 deltakere for å starte spillet.')
+                    } else {
+                        this.activeGame = true
+                        this.messageHelper.sendMessage(message.channelId, this.getPlayersString())
+                        this.reactor.stop()
                     }
-                    this.activeGame = true
-                    this.messageHelper.sendMessage(message.channelId, this.getPlayersString(", "))
+                    
                 }
             })
         }
     }
 
     private stopElectricity(message: Message) {
-        this.playerMap = new Map<string, number>()
-        this.playerMapReversed = new Map<number, string>()
-        this.playerCard = new Map<number, string>()
+        this.playerList = new Array<IUserObject>()
         this.deck.resetDeck(message, false)
-        this.numberOfSips = 0
         this.id = 0
         this.activeGame = false
+        this.reactor = undefined
         this.messageHelper.sendMessage(message.channelId, 
             "Spillet er stoppet")
     }
 
     private getMyCard(message: Message) {
         const author = message.author.username
-        const id = this.playerMap.get(author)
-        if (!id) {
-            return
-        }
-        const card = this.playerCard.get(id)
-        if (!card) {
-            return
-        }
-        if (card === "") {
+        const user = this.getUserObject(author)
+        if (!user.card.number) {
             this.messageHelper.sendMessage(message.channelId, 
                 author + " har ikke trukket et kort enda")
         } else {
             this.messageHelper.sendMessage(message.channelId, 
-                author + ", med id {" + id + "} sitt gjeldende kort: " + this.getCardString(card))
+                author + " sitt gjeldende kort: " + user.card.printString)
         } 
     }
 
     private elSwitch(message: Message, messageContent: string, args: string[]) {
         const author = message.author.username
         let activePlayer = false
-        for (let key of this.playerMap.keys()) {
-            if (key === author) {
+        for (let player of this.playerList) {
+            if (player.name === author) {
                 activePlayer = true
             }
         }
@@ -224,7 +223,7 @@ export class DrinksCommands extends AbstractCommands {
                     break
                 }
                 case "stopp": {
-                    if (!this.activeGame) {
+                    if (!this.activeGame || !this.reactor) {
                         this.messageHelper.sendMessage(message.channelId, 
                             "Det er ingenting å stoppe")
                     } else {
@@ -259,7 +258,7 @@ export class DrinksCommands extends AbstractCommands {
     public getAllCommands(): ICommandElement[] {
         return [
             {
-                commandName: 'el',
+                commandName: ['el', 'electricity'],
                 description:
                     "Nu ska d drekkjast",
                 hideFromListing: false,
