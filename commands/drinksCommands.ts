@@ -23,6 +23,7 @@ export class DrinksCommands extends AbstractCommands {
     private deck: CardCommands
     private id: number
     private reactor: any
+    private turn: number
 
     constructor(client: Client, messageHelper: MessageHelper) {
         super(client, messageHelper)
@@ -31,6 +32,7 @@ export class DrinksCommands extends AbstractCommands {
         this.deck = new CardCommands(client, messageHelper)
         this.id = 0
         this.reactor = undefined
+        this.turn = 0
     }
 
     private setCardOnUser(username: string, card: string) {
@@ -49,8 +51,8 @@ export class DrinksCommands extends AbstractCommands {
         return this.playerList.map(function(e) { return e.name; }).indexOf(username);
     }
 
-    private getUserObjectById(id: number) {
-        const index = this.playerList.map(function(e) { return e.id; }).indexOf(id);
+    private getUserObjectById(id2: number) {
+        const index = this.playerList.map(e => e.id).indexOf(id2);
         return this.playerList[index]
     }
 
@@ -58,14 +60,16 @@ export class DrinksCommands extends AbstractCommands {
         return (card1.number === card2.number || card1.suite === card2.suite) ? true : false
     }
 
-    private checkWhoMustDrink(author: string, card: string) {
+    private checkWhoMustDrink(author: string) {
         let drinkList: string[] = [author]
         let done = false
         let all = false
-        let authorPlayerObject = this.getUserObject(author)
-        let currentPlayer = authorPlayerObject
+        let currentPlayer = this.getUserObject(author)
         while (!done && !all) {
-            let leftNeighborId: number = (currentPlayer.id - 1) % this.playerList.length
+            let leftNeighborId: number = currentPlayer.id - 1
+            if (leftNeighborId < 0) {
+                leftNeighborId = this.playerList.length
+            }
             let leftNeighbor = this.getUserObjectById(leftNeighborId)
             if (this.cardsMatch(currentPlayer.card, leftNeighbor.card)) {
                 drinkList.push(leftNeighbor.name)
@@ -78,9 +82,12 @@ export class DrinksCommands extends AbstractCommands {
             }
         }
         done = false
-        currentPlayer = authorPlayerObject
+        currentPlayer = this.getUserObject(author)
         while (!done && !all) {
-            let rightNeighborId: number = (currentPlayer.id + 1) % this.playerList.length
+            let rightNeighborId: number = currentPlayer.id + 1
+            if (rightNeighborId > this.playerList.length) {
+                rightNeighborId = 0
+            }
             let rightNeighbor = this.getUserObjectById(rightNeighborId)
             if (this.cardsMatch(currentPlayer.card, rightNeighbor.card)) {
                 drinkList.push(rightNeighbor.name)
@@ -106,7 +113,7 @@ export class DrinksCommands extends AbstractCommands {
         let suite = card.substring(1,2)
         let printNumber = this.deck.getTranslation(number)
         let printSuite = this.deck.getTranslation(suite)
-        let printString = suite + number + suite
+        let printString = printSuite + printNumber + printSuite
         const cardObject: ICardObject = { number: number, suite: suite, printString: printString}
         return cardObject
     }
@@ -117,17 +124,18 @@ export class DrinksCommands extends AbstractCommands {
             this.messageHelper.sendMessage(message.channelId, "Kortstokken er tom. Dersom dere vil fortsette, bruk '!mz el resett'")
             return
         }
-        const author = message.author.username
-        const cardObject = this.setCardOnUser(author, card)
-        const mustDrink = this.checkWhoMustDrink(author, card)
-        this.messageHelper.sendMessage(message.channelId, author + " trakk " + cardObject.printString 
+        const currentPlayer = this.getUserObjectById(this.turn)
+        this.turn = ((this.turn + 1) % this.playerList.length)
+        const cardObject = this.setCardOnUser(currentPlayer.name, card)
+        const mustDrink = this.checkWhoMustDrink(currentPlayer.name)
+        this.messageHelper.sendMessage(message.channelId, currentPlayer.name + " trakk " + cardObject.printString 
         + "\n" + mustDrink)
     }
 
     private getPlayersString() {
         let players = "Da starter vi en ny runde electricity med "
         for (let player of this.playerList) {
-            players = players + player.name + ", "
+            players = players + player.name + "(id:" + player.id + "), "
         }
         return players.substring(0, players.length-2)
     }
