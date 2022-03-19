@@ -3,6 +3,7 @@ import { Admin } from '../admin/admin'
 import { Achievements } from '../commands/achievements'
 import { CardCommands } from '../commands/cardCommands'
 import { DateCommands } from '../commands/dateCommands'
+import { DrinksCommands } from '../commands/drinksCommands'
 import { GamblingCommands } from '../commands/gamblingCommands'
 import { GameCommands } from '../commands/gameCommands'
 import { JokeCommands } from '../commands/jokeCommands'
@@ -59,6 +60,7 @@ export class Commands {
     private patchNotes: PatchNotes
     private soundCommands: SoundCommands
     private cardCommands: CardCommands
+    private drinksCommands: DrinksCommands
 
     constructor(client: Client, messageHelper: MessageHelper) {
         this.client = client
@@ -80,6 +82,7 @@ export class Commands {
         this.patchNotes = new PatchNotes(this.client, this.messageHelper)
         this.soundCommands = new SoundCommands(this.client, this.messageHelper)
         this.cardCommands = new CardCommands(this.client, this.messageHelper)
+        this.drinksCommands = new DrinksCommands(this.client, this.messageHelper)
     }
 
     getAllCommands() {
@@ -102,6 +105,7 @@ export class Commands {
             ...this.weatherCommands.getAllCommands(),
             ...this.soundCommands.getAllCommands(),
             ...this.cardCommands.getAllCommands(),
+            ...this.drinksCommands.getAllCommands(),
         ]
     }
 

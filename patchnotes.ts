@@ -3,12 +3,11 @@ import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '6.1.0'
+    public static readonly currentVersion = '6.1.2'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string =
-        `\n* Har lagt til en kortstokk og diverse funksjonaliteter på denne \n* Prøv "!mz kort" for mer info`
+    public static readonly currentPatchNotes: string = `\n* Du kan nå spele electricity med '!mz electricity start'`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
