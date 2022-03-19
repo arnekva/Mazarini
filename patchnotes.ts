@@ -3,11 +3,11 @@ import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '6.1.2'
+    public static readonly currentVersion = '6.1.3'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `\n* Du kan nå spele electricity med '!mz electricity start'`
+    public static readonly currentPatchNotes: string = `\n* Darri har endelig laga en PR \n* Du kan gambla med slurker med !mz drikk'`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
