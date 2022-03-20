@@ -2,8 +2,8 @@ import { Client, Message } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement } from '../General/commands'
 import { MessageHelper } from '../helpers/messageHelper'
-import { CardCommands } from './cardCommands'
 import { getRndBetween0and100 } from '../utils/randomUtils'
+import { CardCommands } from './cardCommands'
 
 interface IUserObject {
     name: string
@@ -266,32 +266,31 @@ export class DrinksCommands extends AbstractCommands {
         let antallSlurks = Number(args[0])
         if (!antallSlurks) {
             if (getRndBetween0and100() === 69) {
-                this.messageHelper.sendMessage(message.channelId, "Damn bro, du skulle ikke ha latt meg bestemme. Chug sjæl!")
+                this.messageHelper.sendMessage(message.channelId, 'Damn bro, du skulle ikke ha latt meg bestemme. Chug sjæl!')
                 return
             }
-            antallSlurks = Math.ceil((getRndBetween0and100()/10))
+            antallSlurks = Math.ceil(getRndBetween0and100() / 10)
         }
         let roll = getRndBetween0and100()
         if (antallSlurks > 10) {
-            this.messageHelper.sendMessage(message.channelId, "Nå roer vi oss ned 2 hakk her")
-            antallSlurks = Math.ceil((getRndBetween0and100()/10))
+            this.messageHelper.sendMessage(message.channelId, 'Nå roer vi oss ned 2 hakk her')
+            antallSlurks = Math.ceil(getRndBetween0and100() / 10)
             roll = 1
         }
 
         if (roll === 69) {
-            this.messageHelper.sendMessage(message.channelId, "Cracking open a cold one with the boys? Men da utbringer eg en skål, og alle kan chugge")
+            this.messageHelper.sendMessage(message.channelId, 'Cracking open a cold one with the boys? Men da utbringer eg en skål, og alle kan chugge')
             return
         } else if (roll <= 33) {
-            this.messageHelper.sendMessage(message.channelId, "Drikk selv " + antallSlurks + " slurker")
+            this.messageHelper.sendMessage(message.channelId, 'Drikk selv ' + antallSlurks + ' slurker')
             return
         } else if (roll <= 66) {
-            this.messageHelper.sendMessage(message.channelId, "Ta selv, og gi vekk " + antallSlurks + " slurker")
+            this.messageHelper.sendMessage(message.channelId, 'Ta selv, og gi vekk ' + antallSlurks + ' slurker')
             return
         } else {
-            this.messageHelper.sendMessage(message.channelId, "Gi vekk " + antallSlurks + " slurker")
+            this.messageHelper.sendMessage(message.channelId, 'Gi vekk ' + antallSlurks + ' slurker')
             return
         }
-
     }
 
     public getAllCommands(): ICommandElement[] {
@@ -299,23 +298,21 @@ export class DrinksCommands extends AbstractCommands {
             {
                 commandName: ['el', 'electricity', 'elektrisitet'],
                 description: 'Nu ska d drekkjast',
-                hideFromListing: false,
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.elSwitch(rawMessage, messageContent, args)
                 },
 
-                category: 'annet',
+                category: 'drink',
             },
             {
                 commandName: ['drikk', 'drink'],
                 description: 'Drikking + Gambling, name a more iconic duo',
-                hideFromListing: false,
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.drinkBitch(rawMessage, messageContent, args)
                 },
 
-                category: 'annet'
-            }
+                category: 'drink',
+            },
         ]
     }
 }

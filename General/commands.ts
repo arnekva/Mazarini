@@ -20,26 +20,28 @@ import { PatchNotes } from '../patchnotes'
 
 /**
  * Interface for kommandoer. Alle kommandoer må følge dette oppsettet.
- * @param commandName Stringen som trigger kommandoen (kommer etter !mz)  - her kan man ha flere ved å legge det i en array
- * @param description Beskrivelse av kommandoen. Vises i !mz help <kommando>.
- * @param command Funksjon som skal kjøres
- * @param hideFromListing (Optional) Sett til true for å gjemme funksjonen fra !mz help listen.
- * @param isAdmin (Optional) Sett til true for å kun la admins kjøre.
- * @param deprecated (Optional) Hvis commanden bytter navn, sett den gamle til deprecated og la verdien være navnet på den nye commanden (eks !mz master bytter til !mz countdown -> behold !mz master og ha "countdown" i verdien på deprecated). Da vil botten legge til informasjon om deprecated og be de bruke den nye neste gang
  */
 export interface ICommandElement {
+    /** Stringen som trigger kommandoen (kommer etter !mz)  - her kan man ha flere ved å legge det i en array */
     commandName: string | string[]
+    /**  Beskrivelse av kommandoen. Vises i !mz help <kommando>. */
     description: string
+    /** Funksjon som skal kjøres. */
     command: (rawMessage: Message, messageContent: string, args: string[]) => void
     category: commandCategory
+    /**  Sett til true for å gjemme funksjonen fra !mz help listen. Default false */
     hideFromListing?: boolean
+    /**   Sett til true for å kun la admins kjøre. Default false  */
     isAdmin?: boolean
+    /**  Hvis commanden bytter navn, sett den gamle til deprecated og la verdien være navnet på den nye commanden (eks !mz master bytter til !mz countdown -> behold !mz master og ha "countdown" i verdien på deprecated). Da vil botten legge til informasjon om deprecated og be de bruke den nye neste gang */
     deprecated?: string
+    /** Kun la super admins kjøre commanden */
     isSuperAdmin?: boolean
+    /** Oppgi channel-IDer i en array her hvis commanden kun kan brukes i de channelene */
     canOnlyBeUsedInSpecificChannel?: string[]
 }
 
-export type commandCategory = 'musikk' | 'gambling' | 'gaming' | 'tekst' | 'annet' | 'admin' | 'spin'
+export type commandCategory = 'musikk' | 'gambling' | 'gaming' | 'tekst' | 'annet' | 'admin' | 'spin' | 'drink'
 
 export class Commands {
     private client: Client
