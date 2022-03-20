@@ -6,8 +6,8 @@ import { betObject, betObjectReturned, DatabaseHelper, dbPrefix } from '../helpe
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { findLetterEmoji } from '../utils/miscUtils'
-import { getRndInteger } from '../utils/randomUtils'
-import { splitUsername } from '../utils/textUtils'
+import { RandomUtils } from '../utils/randomUtils'
+import { formatMoney, splitUsername } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
 
 export interface IDailyPriceClaim {
@@ -254,7 +254,7 @@ export class GamblingCommands extends AbstractCommands {
                 }
                 if (reaction.emoji.name === '👍' && reaction.users.cache.find((u) => u.username.toLowerCase() === username.toLowerCase())) {
                     const shouldAlwaysLose = username === message.author.username || username === 'MazariniBot'
-                    const roll = getRndInteger(0, 100)
+                    const roll = RandomUtils.getRndInteger(0, 100)
                     let description = `Terningen trillet: ${roll}/100. ${roll < 51 ? (roll == 50 ? 'Bot Høie' : message.author.username) : username} vant! 💰💰`
                     if (shouldAlwaysLose) {
                         description = `${
@@ -275,29 +275,12 @@ export class GamblingCommands extends AbstractCommands {
                         victimValue += amountAsNum
                     }
                     if (shouldAlwaysLose) {
-                        gambling.addField(
-                            `${message.author.username}`,
-                            `Du har nå ${engagerValue.toLocaleString('nb', {
-                                maximumFractionDigits: 2,
-                                minimumFractionDigits: 2,
-                            })} chips`
-                        )
+                        gambling.addField(`${message.author.username}`, `Du har nå ${formatMoney(engagerValue, 2, 2)} chips`)
                     } else {
-                        gambling.addField(
-                            `${message.author.username}`,
-                            `Du har nå ${engagerValue.toLocaleString('nb', {
-                                maximumFractionDigits: 2,
-                                minimumFractionDigits: 2,
-                            })} chips`
-                        )
-                        gambling.addField(
-                            `${username}`,
-                            `Du har nå ${victimValue.toLocaleString('nb', {
-                                maximumFractionDigits: 2,
-                                minimumFractionDigits: 2,
-                            })} chips`
-                        )
+                        gambling.addField(`${message.author.username}`, `Du har nå ${formatMoney(engagerValue, 2, 2)} chips`)
+                        gambling.addField(`${username}`, `Du har nå ${formatMoney(victimValue, 2, 2)} chips`)
                     }
+                    this.messageHelper.sendMessage(message.channelId, `<@${user?.id}> <@${message.author.id}>`)
                     this.messageHelper.sendFormattedMessage(message.channel as TextChannel, gambling)
                     DatabaseHelper.setValue('chips', message.author.username, engagerValue.toFixed(2))
                     DatabaseHelper.setValue('chips', username, victimValue.toFixed(2))
@@ -349,20 +332,17 @@ export class GamblingCommands extends AbstractCommands {
             }
             DatabaseHelper.setValue('chips', message.author.username, newMoneyValue.toFixed(0))
 
-            const gambling = new MessageEmbed().setTitle('Gambling 🎲').setDescription(
-                `${message.author.username} gamblet ${valAsNum.toLocaleString('nb', {
-                    maximumFractionDigits: 2,
-                    minimumFractionDigits: 2,
-                })} av ${Number(userMoney).toLocaleString('nb', {
-                    maximumFractionDigits: 2,
-                    minimumFractionDigits: 2,
-                })} chips.\nTerningen trillet: ${roll}/100. Du ${
-                    roll >= 50 ? 'vant! 💰💰 (' + Number(multiplier) + 'x)' : 'tapte 💸💸'
-                }\nDu har nå ${newMoneyValue.toLocaleString('nb', {
-                    maximumFractionDigits: 2,
-                    minimumFractionDigits: 2,
-                })} chips.`
-            )
+            const gambling = new MessageEmbed()
+                .setTitle('Gambling 🎲')
+                .setDescription(
+                    `${message.author.username} gamblet ${formatMoney(valAsNum, 2, 2)} av ${formatMoney(
+                        Number(userMoney),
+                        2,
+                        2
+                    )}} chips.\nTerningen trillet: ${roll}/100. Du ${
+                        roll >= 50 ? 'vant! 💰💰 (' + Number(multiplier) + 'x)' : 'tapte 💸💸'
+                    }\nDu har nå ${formatMoney(newMoneyValue, 2, 2)} chips.`
+                )
             if (roll >= 100) gambling.addField(`Trillet 100!`, `Du trillet 100 og vant ${multiplier} ganger så mye som du satset!`)
             if (hasDebtPenalty && roll >= 50)
                 gambling.addField(`Gjeld`, `Du er i høy gjeld, og banken har krevd inn ${interest.toFixed(0)} chips (${calculatedValue.rate.toFixed(0)}%)`)
@@ -463,14 +443,13 @@ export class GamblingCommands extends AbstractCommands {
             } else {
                 result = roll + ' sort'
             }
-            const gambling = new MessageEmbed().setTitle('Rulett 🎲').setDescription(
-                `${message.author.username} satset ${valAsNum} av ${userMoney} chips på ${betOn}.\nBallen landet på: ${result}. Du ${
-                    won ? 'vant! 💰💰 (' + Number(multiplier) + 'x)' : 'tapte 💸💸'
-                }\nDu har nå ${newMoneyValue.toLocaleString(undefined, {
-                    maximumFractionDigits: 2,
-                    minimumFractionDigits: 2,
-                })} chips.`
-            )
+            const gambling = new MessageEmbed()
+                .setTitle('Rulett 🎲')
+                .setDescription(
+                    `${message.author.username} satset ${valAsNum} av ${userMoney} chips på ${betOn}.\nBallen landet på: ${result}. Du ${
+                        won ? 'vant! 💰💰 (' + Number(multiplier) + 'x)' : 'tapte 💸💸'
+                    }\nDu har nå ${formatMoney(newMoneyValue, 2, 2)}} chips.`
+                )
             if (hasDebtPenalty && roll >= 50)
                 gambling.addField(
                     `Gjeld`,
@@ -708,13 +687,7 @@ export class GamblingCommands extends AbstractCommands {
         const chips = DatabaseHelper.getValue('chips', username, message)
         this.messageHelper.sendMessage(
             message.channelId,
-            `${username} har ${Number(coins).toLocaleString('nb', {
-                maximumFractionDigits: 0,
-                minimumFractionDigits: 0,
-            })} coins og ${Number(chips).toLocaleString('nb', {
-                maximumFractionDigits: 0,
-                minimumFractionDigits: 0,
-            })} chips`
+            `${username} har ${formatMoney(Number(coins), 2, 2)} coins og ${formatMoney(Number(chips), 2, 2)}} chips`
         )
     }
 
@@ -728,13 +701,7 @@ export class GamblingCommands extends AbstractCommands {
         } else username = splitUsername(args[0])
 
         const val = DatabaseHelper.getValue('chips', username, message)
-        this.messageHelper.sendMessage(
-            message.channelId,
-            `${username} har ${Number(val).toLocaleString('nb', {
-                maximumFractionDigits: 2,
-                minimumFractionDigits: 2,
-            })} chips`
-        )
+        this.messageHelper.sendMessage(message.channelId, `${username} har ${formatMoney(Number(val), 2, 2)}chips`)
     }
 
     private rollSlotMachine(message: Message, messageContent: string, args: string[]) {
@@ -750,7 +717,7 @@ export class GamblingCommands extends AbstractCommands {
 
         const randArray = []
         for (let i = 0; i < 5; i++) {
-            randArray.push(getRndInteger(0, 9))
+            randArray.push(RandomUtils.getRndInteger(0, 9))
         }
         randArray.forEach((num) => {
             emojiString += findLetterEmoji(num.toString())

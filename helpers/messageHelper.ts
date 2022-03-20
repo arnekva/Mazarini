@@ -106,8 +106,17 @@ export class MessageHelper {
         if (replyChannel) replyChannel.send(`${errorMessageToSend} <@&${this.botSupport}>`)
     }
 
-    sendMessageToActionLogWithDefaultMessage(message: Message, error: any, ignoreReply?: boolean) {
-        if (!ignoreReply) message.reply(`En feil har oppstått. Feilkoden og meldingen din blir logget. <@&${this.botSupport}>`)
+    async sendMessageToActionLogWithDefaultMessage(message: Message, error: any) {
+        // if (!ignoreReply) message.reply(`En feil har oppstått. Feilkoden og meldingen din blir logget. <@&${this.botSupport}>`)
+        const replyMsg = await message.reply(`En feil har oppstått. Feilkoden og meldingen din blir logget. (Reager med tommel opp for å tagge Bot-support)`)
+        this.reactWithThumbs(replyMsg, 'up')
+        const collector = replyMsg.createReactionCollector()
+        collector.on('collect', (reaction) => {
+            if (reaction.emoji.name === '👍' && reaction.users.cache.find((u) => u.username === message.author.username)) {
+                replyMsg.edit(`En feil har oppstått. Feilkoden og meldingen din blir logget. '<@&863038817794392106>`)
+                collector.stop()
+            }
+        })
         const errorChannel = message.channel.client.channels.cache.get('810832760364859432') as TextChannel
         errorChannel.send(
             `En feil har oppstått i en melding fra ${message.author.username}. Meldingsinnhold: <${message.content}>. Channel: ${message.channel}. Feilmelding: <${error}>`

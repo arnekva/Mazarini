@@ -83,3 +83,10 @@ export function replaceAtWithTextUsername(content: string, message: Message, dis
     }
     return content
 }
+
+export function formatMoney(n: number, maxDigit?: number, minDigit?: number) {
+    return n.toLocaleString('nb', {
+        maximumFractionDigits: maxDigit,
+        minimumFractionDigits: minDigit,
+    })
+}

@@ -2,7 +2,7 @@ import { Client, Message } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement } from '../General/commands'
 import { MessageHelper } from '../helpers/messageHelper'
-import { getRndBetween0and100 } from '../utils/randomUtils'
+import { RandomUtils } from '../utils/randomUtils'
 import { CardCommands } from './cardCommands'
 
 interface IUserObject {
@@ -264,17 +264,18 @@ export class DrinksCommands extends AbstractCommands {
 
     private drinkBitch(message: Message, messageContent: string, args: string[]) {
         let antallSlurks = Number(args[0])
+
         if (!antallSlurks) {
-            if (getRndBetween0and100() === 69) {
+            if (RandomUtils.getRndBetween0and100() === 69) {
                 this.messageHelper.sendMessage(message.channelId, 'Damn bro, du skulle ikke ha latt meg bestemme. Chug sjæl!')
                 return
             }
-            antallSlurks = Math.ceil(getRndBetween0and100() / 10)
+            antallSlurks = Math.ceil(RandomUtils.getRndBetween0and100() / 10)
         }
-        let roll = getRndBetween0and100()
+        let roll = RandomUtils.getRndBetween0and100()
         if (antallSlurks > 10) {
             this.messageHelper.sendMessage(message.channelId, 'Nå roer vi oss ned 2 hakk her')
-            antallSlurks = Math.ceil(getRndBetween0and100() / 10)
+            antallSlurks = Math.ceil(RandomUtils.getRndBetween0and100() / 10)
             roll = 1
         }
 

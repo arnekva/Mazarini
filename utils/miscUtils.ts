@@ -1,5 +1,5 @@
 import { ArrayUtils } from './arrayUtils'
-import { getRandomPercentage } from './randomUtils'
+import { RandomUtils } from './randomUtils'
 
 const prideReg = new RegExp(/(penis)|(sex)|(gay)|(xD)|(:3)|(pls)|(mamma)|(porno)|(jævla)|(dritt)|(komme)|(tinder)|(date)|(pølse)|(eivindpride)/gi)
 const putinReg = new RegExp(
@@ -158,7 +158,7 @@ export function findLetterEmoji(sentLetter: string, isSecond?: boolean, spaceCou
 }
 
 export function findFeseText(author: string | undefined, randomName: string | undefined) {
-    const isAuthorVictim = getRandomPercentage(50)
+    const isAuthorVictim = RandomUtils.getRandomPercentage(50)
     return ArrayUtils.randomChoiceFromArray(
         isAuthorVictim ? feseArray(randomName ?? 'Thomas', author ?? 'Thomas') : feseArray(author ?? 'Thomas', randomName ?? 'Thomas')
     )

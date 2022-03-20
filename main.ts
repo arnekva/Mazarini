@@ -89,12 +89,12 @@ export class MazariniClient {
             /** SCHEDULED JOBS */
             //https://www.npmjs.com/package/node-schedule
             /** Runs every day at 08:00 */
-            const dailyJob = schedule.scheduleJob('0 8 * * *', async function () {
+            const dailyJob = schedule.scheduleJob('0 6 * * *', async function () {
                 const jobs = new DailyJobs(_msgHelper)
                 jobs.runJobs()
             })
             /** Runs once a week at mondays 08:00 */
-            const weeklyJob = schedule.scheduleJob('0 8 * * 1', async function () {
+            const weeklyJob = schedule.scheduleJob('0 6 * * 1', async function () {
                 const jobs = new WeeklyJobs(_msgHelper)
                 jobs.runJobs()
             })

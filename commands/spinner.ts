@@ -1,16 +1,12 @@
-import { Message } from 'discord.js'
-import { Channel, Client, DMChannel, NewsChannel, TextChannel } from 'discord.js'
+import { Client, Message } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { ICommandElement } from '../General/commands'
 import { AchievementHelper } from '../helpers/achievementHelper'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
-import { getWeekNumber } from '../utils/dateUtils'
-import { getRandomPercentage } from '../utils/randomUtils'
 import { escapeString } from '../utils/textUtils'
-import { Achievements } from './achievements'
-import { ICommandElement } from '../General/commands'
 
 const weightedRandomObject = require('weighted-random-object')
 

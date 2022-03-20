@@ -4,7 +4,7 @@ import { environment } from '../client-env'
 import { ICommandElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { getRndInteger } from '../utils/randomUtils'
+import { RandomUtils } from '../utils/randomUtils'
 import { splitUsername } from '../utils/textUtils'
 
 interface dropCoordinate {
@@ -36,7 +36,7 @@ const striptags = require('striptags')
 const puppeteer = require('puppeteer')
 function getValidDropCoordinate(xCircleCenter: number, yCircleCenter: number): dropCoordinate {
     // -2
-    const width: number = getRndInteger(-3, 3)
+    const width: number = RandomUtils.getRndInteger(-3, 3)
     const isIllegal = (xCoordinate: number, yCoordinate: number) => {
         // A, B, I, J
         const illegalXCoordinates = [0, 1, 8, 9]
@@ -59,7 +59,7 @@ function getValidDropCoordinate(xCircleCenter: number, yCircleCenter: number): d
     // -2 + 5 = 3, C
     const xCoordinate: number = width + xCircleCenter
 
-    const height: number = getRndInteger(-heightToTravel, heightToTravel)
+    const height: number = RandomUtils.getRndInteger(-heightToTravel, heightToTravel)
     // yCoordinate + 1 eller - 1
     const yCoordinate = yCircleCenter + height
 

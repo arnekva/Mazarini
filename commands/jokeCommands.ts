@@ -9,7 +9,7 @@ import { Languages } from '../helpers/languageHelpers'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { findFeseText, findLetterEmoji } from '../utils/miscUtils'
-import { getRandomPercentage, getRndInteger } from '../utils/randomUtils'
+import { RandomUtils } from '../utils/randomUtils'
 import { doesTextIncludeUsername, replaceAtWithTextUsername, reverseMessageString, splitUsername } from '../utils/textUtils'
 
 export class JokeCommands extends AbstractCommands {
@@ -64,12 +64,12 @@ export class JokeCommands extends AbstractCommands {
     private async geggien(message: Message) {
         await this.messageHelper.sendMessage(
             message.channelId,
-            getRandomPercentage(50) ? `Knuse maggi i Rocket League` : `Bler knust av maggi i Rocket League :(`
+            RandomUtils.getRandomPercentage(50) ? `Knuse maggi i Rocket League` : `Bler knust av maggi i Rocket League :(`
         )
     }
     private async joiij(message: Message) {
-        const hr = getRndInteger(0, 3)
-        const min = getRndInteger(1, 59)
+        const hr = RandomUtils.getRndInteger(0, 3)
+        const min = RandomUtils.getRndInteger(1, 59)
         await this.messageHelper.sendMessage(message.channelId, `Joiij e der om ${hr === 0 ? '' : hr + ' timer og '}${min} minutt!`)
     }
 
