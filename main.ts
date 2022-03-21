@@ -185,9 +185,10 @@ export class MazariniClient {
             }
         })
 
-        client.on('warn', function (info: string) {
-            _msgHelper.sendMessageToActionLog(client.channels.cache.get('810832760364859432') as TextChannel, 'En advarsel ble fanget opp. Info: \n ' + info)
-        })
+        // client.on('warn', function (info: string) {
+        //     _msgHelper.sendMessageToActionLog(client.channels.cache.get('810832760364859432') as TextChannel, 'En advarsel ble fanget opp. Info: \n ' + info)
+        // })
+
         client.on('error', function (error: Error) {
             _msgHelper.sendMessageToActionLog(
                 client.channels.cache.get('810832760364859432') as TextChannel,
