@@ -339,7 +339,7 @@ export class GamblingCommands extends AbstractCommands {
                         Number(userMoney),
                         2,
                         2
-                    )}} chips.\nTerningen trillet: ${roll}/100. Du ${
+                    )} chips.\nTerningen trillet: ${roll}/100. Du ${
                         roll >= 50 ? 'vant! 💰💰 (' + Number(multiplier) + 'x)' : 'tapte 💸💸'
                     }\nDu har nå ${formatMoney(newMoneyValue, 2, 2)} chips.`
                 )
@@ -687,7 +687,7 @@ export class GamblingCommands extends AbstractCommands {
         const chips = DatabaseHelper.getValue('chips', username, message)
         this.messageHelper.sendMessage(
             message.channelId,
-            `${username} har ${formatMoney(Number(coins), 2, 2)} coins og ${formatMoney(Number(chips), 2, 2)}} chips`
+            `${username} har ${formatMoney(Number(coins), 2, 2)} coins og ${formatMoney(Number(chips), 2, 2)} chips`
         )
     }
 
