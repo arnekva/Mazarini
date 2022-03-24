@@ -120,9 +120,9 @@ export class MazariniClient {
                 bus.on('log:err', function (data: any) {
                     _msgHelper.sendMessageToActionLog(
                         _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
-                        'pm2 logget en error til konsollen. Melding: ' + data
+                        'pm2 logget en error til konsollen. \nMelding: ' +
+                            `\nName: ${data?.name ?? 'NONE'}\nMessage: ${data?.message ?? 'NONE'}\nStacktrace: ${data?.stacktrace ?? data?.data ?? 'NONE'}`
                     )
-                    console.log(data)
                 })
 
                 // Listen for PM2 kill
@@ -140,9 +140,9 @@ export class MazariniClient {
                     _msgHelper.sendMessageToActionLog(
                         _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
 
-                        'pm2 logget en melding til konsollen. Process:exception. Melding: ' + data
+                        'pm2 logget en melding til konsollen. Process:exception. Melding: ' +
+                            `\nName: ${data?.name ?? 'NONE'}\nMessage: ${data?.message ?? 'NONE'}\nStacktrace: ${data?.stacktrace ?? data?.data ?? 'NONE'}`
                     )
-                    console.log(data)
                 })
             })
             sub.on('log:*', function (e: any, d: any) {
