@@ -28,8 +28,8 @@ import { UserUtils } from './utils/userUtils'
 const Discord = require('discord.js')
 
 const schedule = require('node-schedule')
-const ipm2 = require('pm2-interface')()
-require('dotenv').config()
+const axon = require('pm2-axon')
+const sub = axon.socket('sub-emitter')
 
 export class MazariniClient {
     private client: Client
@@ -89,12 +89,12 @@ export class MazariniClient {
 
             /** SCHEDULED JOBS */
             //https://www.npmjs.com/package/node-schedule
-            /** Runs every day at 08:00 */
+            /** Runs every day at 06:00 */
             const dailyJob = schedule.scheduleJob('0 6 * * *', async function () {
                 const jobs = new DailyJobs(_msgHelper)
                 jobs.runJobs()
             })
-            /** Runs once a week at mondays 08:00 */
+            /** Runs once a week at mondays 06:00 */
             const weeklyJob = schedule.scheduleJob('0 6 * * 1', async function () {
                 const jobs = new WeeklyJobs(_msgHelper)
                 jobs.runJobs()
@@ -104,17 +104,15 @@ export class MazariniClient {
             const bot = guild.members.cache.find((member) => member.id === '802945796457758760')
             bot?.setNickname(environment === 'dev' ? 'Bot Høie (TEST)' : 'Bot Høie')
 
-            ipm2.on('ready', function () {
-                console.log('pm2 connected')
-
-                ipm2.bus.on('process:exception', function (e: any) {
+            sub.on('process:*', function (e: any, d: any) {
+                if (d.event == 'restart' || d.event == 'exit') {
                     console.error(`En feil skjedde ${today.getHours() + ':' + today.getMinutes()}: ` + e)
 
                     _msgHelper.sendMessageToActionLog(
                         _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
                         'En feil har oppstått. Feilkode: ' + e
                     )
-                })
+                }
             })
         })
 
