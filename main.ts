@@ -102,6 +102,16 @@ export class MazariniClient {
             const guild = client.guilds.cache.find((g: Guild) => g.id === '340626855990132747') as Guild
             const bot = guild.members.cache.find((member) => member.id === '802945796457758760')
             bot?.setNickname(environment === 'dev' ? 'Bot Høie (TEST)' : 'Bot Høie')
+
+            process.on('uncaughtException', function (e) {
+                console.error(`En feil skjedde ${today.getHours() + ':' + today.getMinutes()}: ` + e)
+                //I like using new Error() for my errors (1)
+                _msgHelper.sendMessageToActionLog(
+                    _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
+                    'En feil har oppstått. Feilkode: ' + e
+                )
+                process.exit(1)
+            })
         })
 
         /** For all sent messages */
