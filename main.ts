@@ -123,6 +123,8 @@ export class MazariniClient {
                         'pm2 logget en error til konsollen. \nMelding: ' +
                             `\nName: ${data?.name ?? 'NONE'}\nMessage: ${data?.message ?? 'NONE'}\nStacktrace: ${data?.stacktrace ?? data?.data ?? 'NONE'}`
                     )
+                    console.log('FROM LOG:ERR')
+                    console.log(data)
                 })
 
                 // Listen for PM2 kill
@@ -143,6 +145,8 @@ export class MazariniClient {
                         'pm2 logget en melding til konsollen. Process:exception. Melding: ' +
                             `\nName: ${data?.name ?? 'NONE'}\nMessage: ${data?.message ?? 'NONE'}\nStacktrace: ${data?.stacktrace ?? data?.data ?? 'NONE'}`
                     )
+                    console.log('FROM PROC:EXCEPT')
+                    console.log(data)
                 })
             })
             sub.on('log:*', function (e: any, d: any) {
