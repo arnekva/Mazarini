@@ -106,15 +106,6 @@ export class MazariniClient {
             bot?.setNickname(environment === 'dev' ? 'Bot Høie (TEST)' : 'Bot Høie')
 
             pm2.launchBus(function (err: any, bus: any) {
-                // Listen for process logs
-
-                // bus.on('log:out', function (data: any) {
-                //     _msgHelper.sendMessageToActionLog(
-                //         _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
-                //         'pm2 logget en melding til konsollen. Melding: ' + data
-                //     )
-                // })
-
                 // Listen for process errors
 
                 bus.on('log:err', function (data: any) {
@@ -148,22 +139,6 @@ export class MazariniClient {
                             }\nContext: ${data?.data?.context ?? 'NONE'}\nStacktrace: ${data?.data?.stack ?? 'NONE'}`
                     )
                 })
-            })
-            sub.on('log:*', function (e: any, d: any) {
-                if (d.event == 'err') {
-                    console.error(`Feil ${today.getHours() + ':' + today.getMinutes()}: ` + e)
-                    _msgHelper.sendMessageToActionLog(
-                        _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
-                        'pm2 logget en error til console. Melding: ' + e
-                    )
-                }
-                if (d.event == 'out') {
-                    console.error(`Feil ${today.getHours() + ':' + today.getMinutes()}: ` + e)
-                    _msgHelper.sendMessageToActionLog(
-                        _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
-                        'pm2 logget en error til console out. Melding: ' + e
-                    )
-                }
             })
         })
 
