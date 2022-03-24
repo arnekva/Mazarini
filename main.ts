@@ -107,7 +107,7 @@ export class MazariniClient {
             ipm2.on('ready', function () {
                 console.log('pm2 connected')
 
-                ipm2.bus.on('process:exception', function (e) {
+                ipm2.bus.on('process:exception', function (e: any) {
                     console.error(`En feil skjedde ${today.getHours() + ':' + today.getMinutes()}: ` + e)
 
                     _msgHelper.sendMessageToActionLog(
