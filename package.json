@@ -4,7 +4,7 @@
     "description": "",
     "scripts": {
         "start": "nodemon index.ts --ignore myDataBase.json",
-        "start:bg": "pm2 --name mazarini start index.ts --watch",
+        "start:bg": "pm2 --name mazarini start index.ts ",
         "start:crashed": "pm2 delete mazarini  && pm2 --name mazarini start index.ts -a crashed",
         "stop:bg": "pm2 delete mazarini",
         "test": "mocha -r ts-node/register 'tests/**/*.ts'",
