@@ -34,6 +34,7 @@
         "npm": "latest",
         "pm2": "^5.2.0",
         "pm2-axon": "^4.0.1",
+        "puppeteer": "^13.5.1",
         "request": "^2.88.2",
         "rimraf": "^3.0.2",
         "spotify-web-api-node": "^5.0.2",
