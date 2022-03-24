@@ -127,6 +127,22 @@ export class MazariniClient {
                     )
                 }
             })
+            sub.on('log:*', function (e: any, d: any) {
+                if (d.event == 'err') {
+                    console.error(`Feil ${today.getHours() + ':' + today.getMinutes()}: ` + e)
+                    _msgHelper.sendMessageToActionLog(
+                        _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
+                        'pm2 logget en error til console. Melding: ' + e
+                    )
+                }
+                if (d.event == 'out') {
+                    console.error(`Feil ${today.getHours() + ':' + today.getMinutes()}: ` + e)
+                    _msgHelper.sendMessageToActionLog(
+                        _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
+                        'pm2 logget en error til console out. Melding: ' + e
+                    )
+                }
+            })
         })
 
         /** For all sent messages */
