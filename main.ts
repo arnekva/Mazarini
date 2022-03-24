@@ -30,6 +30,7 @@ const Discord = require('discord.js')
 const schedule = require('node-schedule')
 const axon = require('pm2-axon')
 const sub = axon.socket('sub-emitter')
+const pm2 = require('pm2')
 
 export class MazariniClient {
     private client: Client
@@ -104,28 +105,30 @@ export class MazariniClient {
             const bot = guild.members.cache.find((member) => member.id === '802945796457758760')
             bot?.setNickname(environment === 'dev' ? 'Bot Høie (TEST)' : 'Bot Høie')
 
-            sub.on('process:*', function (e: any, d: any) {
-                if (d.event == 'restart' || d.event == 'exit') {
-                    console.error(`Restartet ${today.getHours() + ':' + today.getMinutes()}: ` + e)
-                    _msgHelper.sendMessageToActionLog(
-                        _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
-                        'pm2: Botten har restartet. Feilkode: ' + e
-                    )
-                }
-                if (d.event == 'exception') {
-                    console.error(`En feil skjedde ${today.getHours() + ':' + today.getMinutes()}: ` + e)
-                    _msgHelper.sendMessageToActionLog(
-                        _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
-                        'pm2: En feil skjedde. Feilkode: ' + e
-                    )
-                }
-                if (d.event == 'event') {
-                    console.error(`En hendelse skjedde ${today.getHours() + ':' + today.getMinutes()}: ` + e)
-                    _msgHelper.sendMessageToActionLog(
-                        _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
-                        'pm2: En hendelse har skjedd. Feilkode: ' + e
-                    )
-                }
+            pm2.launchBus(function (err, bus) {
+                // Listen for process logs
+
+                bus.on('log:out', function (data) {
+                    console.log('1')
+                })
+
+                // Listen for process errors
+
+                bus.on('log:err', function (data) {
+                    console.log('2')
+                })
+
+                // Listen for PM2 kill
+
+                bus.on('pm2:kill', function (data) {
+                    console.log('3')
+                })
+
+                // Listen for process exceptions
+
+                bus.on('process:exception', function (data) {
+                    console.log('4')
+                })
             })
             sub.on('log:*', function (e: any, d: any) {
                 if (d.event == 'err') {
