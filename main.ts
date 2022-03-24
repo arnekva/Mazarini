@@ -28,6 +28,7 @@ import { UserUtils } from './utils/userUtils'
 const Discord = require('discord.js')
 
 const schedule = require('node-schedule')
+const ipm2 = require('pm2-interface')()
 require('dotenv').config()
 
 export class MazariniClient {
@@ -103,14 +104,17 @@ export class MazariniClient {
             const bot = guild.members.cache.find((member) => member.id === '802945796457758760')
             bot?.setNickname(environment === 'dev' ? 'Bot Høie (TEST)' : 'Bot Høie')
 
-            process.on('uncaughtException', function (e) {
-                console.error(`En feil skjedde ${today.getHours() + ':' + today.getMinutes()}: ` + e)
-                //I like using new Error() for my errors (1)
-                _msgHelper.sendMessageToActionLog(
-                    _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
-                    'En feil har oppstått. Feilkode: ' + e
-                )
-                process.exit(1)
+            ipm2.on('ready', function () {
+                console.log('pm2 connected')
+
+                ipm2.bus.on('process:exception', function (e) {
+                    console.error(`En feil skjedde ${today.getHours() + ':' + today.getMinutes()}: ` + e)
+
+                    _msgHelper.sendMessageToActionLog(
+                        _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
+                        'En feil har oppstått. Feilkode: ' + e
+                    )
+                })
             })
         })
 
