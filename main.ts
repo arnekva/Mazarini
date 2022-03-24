@@ -105,28 +105,28 @@ export class MazariniClient {
             const bot = guild.members.cache.find((member) => member.id === '802945796457758760')
             bot?.setNickname(environment === 'dev' ? 'Bot Høie (TEST)' : 'Bot Høie')
 
-            pm2.launchBus(function (err, bus) {
+            pm2.launchBus(function (err: any, bus: any) {
                 // Listen for process logs
 
-                bus.on('log:out', function (data) {
+                bus.on('log:out', function (data: any) {
                     console.log('1')
                 })
 
                 // Listen for process errors
 
-                bus.on('log:err', function (data) {
+                bus.on('log:err', function (data: any) {
                     console.log('2')
                 })
 
                 // Listen for PM2 kill
 
-                bus.on('pm2:kill', function (data) {
+                bus.on('pm2:kill', function (data: any) {
                     console.log('3')
                 })
 
                 // Listen for process exceptions
 
-                bus.on('process:exception', function (data) {
+                bus.on('process:exception', function (data: any) {
                     console.log('4')
                 })
             })
