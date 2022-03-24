@@ -108,26 +108,38 @@ export class MazariniClient {
             pm2.launchBus(function (err: any, bus: any) {
                 // Listen for process logs
 
-                bus.on('log:out', function (data: any) {
-                    console.log('1')
-                })
+                // bus.on('log:out', function (data: any) {
+                //     _msgHelper.sendMessageToActionLog(
+                //         _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
+                //         'pm2 logget en melding til konsollen. Melding: ' + data
+                //     )
+                // })
 
                 // Listen for process errors
 
                 bus.on('log:err', function (data: any) {
-                    console.log('2')
+                    _msgHelper.sendMessageToActionLog(
+                        _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
+                        'pm2 logget en error til konsollen. Melding: ' + data
+                    )
                 })
 
                 // Listen for PM2 kill
 
                 bus.on('pm2:kill', function (data: any) {
-                    console.log('3')
+                    _msgHelper.sendMessageToActionLog(
+                        _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
+                        'pm2 logget en melding til konsollen. pm2:kill. Melding: ' + data
+                    )
                 })
 
                 // Listen for process exceptions
 
                 bus.on('process:exception', function (data: any) {
-                    console.log('4')
+                    _msgHelper.sendMessageToActionLog(
+                        _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
+                        'pm2 logget en melding til konsollen. Process:exception. Melding: ' + data
+                    )
                 })
             })
             sub.on('log:*', function (e: any, d: any) {
