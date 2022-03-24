@@ -1,5 +1,1 @@
-{
-    "events": {
-        "crash": "npm run start:crashed"
-    }
-}
+{}
