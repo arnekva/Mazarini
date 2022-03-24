@@ -106,11 +106,24 @@ export class MazariniClient {
 
             sub.on('process:*', function (e: any, d: any) {
                 if (d.event == 'restart' || d.event == 'exit') {
-                    console.error(`En feil skjedde ${today.getHours() + ':' + today.getMinutes()}: ` + e)
-
+                    console.error(`Restartet ${today.getHours() + ':' + today.getMinutes()}: ` + e)
                     _msgHelper.sendMessageToActionLog(
                         _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
-                        'En feil har oppstått. Feilkode: ' + e
+                        'pm2: Botten har restartet. Feilkode: ' + e
+                    )
+                }
+                if (d.event == 'exception') {
+                    console.error(`En feil skjedde ${today.getHours() + ':' + today.getMinutes()}: ` + e)
+                    _msgHelper.sendMessageToActionLog(
+                        _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
+                        'pm2: En feil skjedde. Feilkode: ' + e
+                    )
+                }
+                if (d.event == 'event') {
+                    console.error(`En hendelse skjedde ${today.getHours() + ':' + today.getMinutes()}: ` + e)
+                    _msgHelper.sendMessageToActionLog(
+                        _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
+                        'pm2: En hendelse har skjedd. Feilkode: ' + e
                     )
                 }
             })
