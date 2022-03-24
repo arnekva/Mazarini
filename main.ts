@@ -120,8 +120,8 @@ export class MazariniClient {
                 bus.on('log:err', function (data: any) {
                     _msgHelper.sendMessageToActionLog(
                         _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
-                        'pm2 logget en error til konsollen. \nMelding: ' +
-                            `\nName: ${data?.name ?? 'NONE'}\nMessage: ${data?.message ?? 'NONE'}\nStacktrace: ${data?.stacktrace ?? data?.data ?? 'NONE'}`
+                        'log:err - pm2 logget en error til konsollen. \nMelding: ' +
+                            `\nName: ${data?.name ?? 'NONE'}\nMessage: ${data?.message ?? 'NONE'}\nUnix timestamp: ${data?.at ?? 'NONE'}`
                     )
                     console.log('FROM LOG:ERR')
                     console.log(data)
@@ -143,10 +143,10 @@ export class MazariniClient {
                         _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
 
                         'pm2 logget en melding til konsollen. Process:exception. Melding: ' +
-                            `\nName: ${data?.name ?? 'NONE'}\nMessage: ${data?.message ?? 'NONE'}\nStacktrace: ${data?.stacktrace ?? data?.data ?? 'NONE'}`
+                            `\nMessage: ${data?.data?.message ?? 'NONE'}\nError Name: ${data?.data?.name ?? 'NONE'}\Callsite: ${
+                                data?.data?.callsite ?? 'NONE'
+                            }\nContext: ${data?.data?.context ?? 'NONE'}\nStacktrace: ${data?.data?.stack ?? 'NONE'}`
                     )
-                    console.log('FROM PROC:EXCEPT')
-                    console.log(data)
                 })
             })
             sub.on('log:*', function (e: any, d: any) {
