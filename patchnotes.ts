@@ -3,11 +3,16 @@ import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '6.2.1'
+    public static readonly currentVersion = '6.3.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `\n* Skrudd av client.on(Warn) da det ble trigget av skriving i voice chats (wtf)`
+    public static readonly currentPatchNotes: string =
+        `\n* Kjører nå kun pm2 i prod` +
+        `\n* Alle feilmeldinger burde nå logges til #action_log. Det skal inkludere feilmelding, stacktrace, callsite og context` +
+        `\n* Botten skal nå være mye mer stabil, og restarte seg selv hvis den skulle kræsje` +
+        `\n* Der nodemon før kræsjet skal pm2 powere through, så det burde resultere i mye færre kræsjer` +
+        `\n* For devs: Må kjøre npm install på ny`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
