@@ -1,6 +1,7 @@
 import { IDailyPriceClaim } from '../commands/gamblingCommands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { DateUtils } from '../utils/dateUtils'
 
 export class DailyJobs {
     private messageHelper: MessageHelper
@@ -12,6 +13,7 @@ export class DailyJobs {
     runJobs() {
         this.validateAndResetDailyClaims()
         this.resetStatuses()
+        this.checkForUserBirthdays()
         // this.logEvent()
     }
 
@@ -33,6 +35,24 @@ export class DailyJobs {
                 if (!currentStreak.wasAddedToday) streak.streak = 0 //If not claimed today, also reset the streak
 
                 DatabaseHelper.setObjectValue('dailyClaimStreak', username, JSON.stringify(streak))
+            }
+        })
+
+        DatabaseHelper.deleteSpecificPrefixValues('dailyClaim')
+    }
+
+    private checkForUserBirthdays() {
+        const brukere = DatabaseHelper.getAllUsers()
+        Object.keys(brukere).forEach((username: string) => {
+            const birthday: string = DatabaseHelper.getValueWithoutMessage('birthday', username)
+
+            if (!birthday) return
+            const bdTab = birthday.split('-').map((d) => Number(d))
+            const date = new Date(bdTab[2], bdTab[1], bdTab[0])
+            const isBirthdayToday = DateUtils.isToday(new Date(date))
+
+            if (isBirthdayToday) {
+                this.messageHelper.sendMessage('340626855990132747', `Gratulerer med dagen ${username}!`)
             }
         })
 

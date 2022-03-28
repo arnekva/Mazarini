@@ -13,7 +13,7 @@ const weightedRandomObject = require('weighted-random-object')
 const spinMinutes = [
     {
         number: '0',
-        weight: 40,
+        weight: 30,
     },
     {
         number: '1',
@@ -21,39 +21,39 @@ const spinMinutes = [
     },
     {
         number: '2',
-        weight: 10,
+        weight: 17,
     },
     {
         number: '3',
-        weight: 4,
+        weight: 7,
     },
     {
         number: '4',
-        weight: 3,
+        weight: 6,
     },
     {
         number: '5',
-        weight: 2,
+        weight: 5,
     },
     {
         number: '6',
-        weight: 1,
+        weight: 2.75,
     },
     {
         number: '7',
-        weight: 0.5,
+        weight: 1.3,
     },
     {
         number: '8',
-        weight: 0.5,
+        weight: 0.75,
     },
     {
         number: '9',
-        weight: 0.09,
+        weight: 0.11,
     },
     {
         number: '10',
-        weight: 0.005,
+        weight: 0.06,
     },
 ]
 
@@ -96,8 +96,12 @@ export class Spinner extends AbstractCommands {
                 }, 10000)
             } else if (min == 10 && sec == 59) {
                 this.messageHelper.sendMessage(message.channelId, 'gz med 10:59 bro')
-                DatabaseHelper.incrementValue('chips', message.author.username, '375000000')
-                this.messageHelper.sendMessage(message.channelId, 'Du får 375 000 000 chips for det der mannen')
+                DatabaseHelper.incrementValue('chips', message.author.username, '975000000')
+                this.messageHelper.sendMessage(message.channelId, 'Du får 975 000 000 chips for det der mannen')
+            } else if (min == 10) {
+                this.messageHelper.sendMessage(message.channelId, 'gz med 10 min bro')
+                DatabaseHelper.incrementValue('chips', message.author.username, '95000000')
+                this.messageHelper.sendMessage(message.channelId, 'Du får 95 000 000 chips for det der mannen')
             }
             const formatedScore = this.formatScore(min + sec)
 

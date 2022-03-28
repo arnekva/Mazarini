@@ -1,13 +1,10 @@
-import { time } from 'console'
 import { Client, Message } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { globalArrays } from '../globals'
+import { ICommandElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
-import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { countdownTime, dateRegex, DateUtils } from '../utils/dateUtils'
-import { ICommandElement } from '../General/commands'
 export interface dateValPair {
     print: string
     date: string
@@ -118,7 +115,7 @@ export class DateCommands extends AbstractCommands {
     private async checkForHelg(message: Message, messageContent: string, args: string[]) {
         const isHelg = this.isItHelg()
         const url = 'https://webapi.no/api/v1/holidays/2021'
-        let timeUntil
+        let timeUntil: string = ''
         if (!isHelg) {
             const date = new Date()
             date.setHours(16, 0, 0, 0)
@@ -130,6 +127,22 @@ export class DateCommands extends AbstractCommands {
             }
         }
         this.messageHelper.sendMessage(message.channelId, isHelg ? `Det e helg!` : `${timeUntil}`)
+    }
+
+    private addUserBirthday(message: Message, messageContent: string, args: string[]) {
+        const birthday = DatabaseHelper.getValueWithoutMessage('birthday', message.author.username)
+        if (birthday && !args[0]) {
+            const timeUntilBirthday = this.formatCountdownText(DateUtils.getTimeTo(birthday), `til ${message.author.username} sin bursdag.`)
+            this.messageHelper.sendMessage(message.channelId, timeUntilBirthday)
+            return
+        }
+        const dateString = args[0]
+        if (dateString.split('-').length < 2) {
+            message.reply('Datoen er feilformattert. dd-mm-yyyy')
+            return
+        }
+        DatabaseHelper.setValue('birthday', message.author.username, dateString)
+        this.messageHelper.reactWithThumbs(message, 'up')
     }
 
     private isItHelg() {
@@ -168,6 +181,14 @@ export class DateCommands extends AbstractCommands {
                     "Se hvor lenge det er igjen til events (Legg til ny med '!mz countdown <dd-mm-yyyy> <hh> <beskrivelse> (klokke kan spesifiserert slik: <hh:mm:ss:SSS>. Kun time er nødvendig)",
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.countdownToDate(rawMessage, messageContent, args)
+                },
+                category: 'annet',
+            },
+            {
+                commandName: 'bursdag',
+                description: 'Legg til bursdagen din, så får du en gratulasjon av Høie på dagen',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.addUserBirthday(rawMessage, messageContent, args)
                 },
                 category: 'annet',
             },

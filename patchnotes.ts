@@ -3,16 +3,14 @@ import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '6.3.0'
+    public static readonly currentVersion = '6.4.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Kjører nå kun pm2 i prod` +
-        `\n* Alle feilmeldinger burde nå logges til #action_log. Det skal inkludere feilmelding, stacktrace, callsite og context` +
-        `\n* Botten skal nå være mye mer stabil, og restarte seg selv hvis den skulle kræsje` +
-        `\n* Der nodemon før kræsjet skal pm2 powere through, så det burde resultere i mye færre kræsjer` +
-        `\n* For devs: Må kjøre npm install på ny`
+        `\n* Du kan nå registrere bursdagen din igjen med '!mz bursdag 01-01-1990'. Høie vil da gratulere deg på dagen din (kall funksjonen igjen for å sjekke dager til bursdag)` +
+        `\n* Det er nå en 95.000.000 chips premie for å spinne fidget spinneren i 10 min, og 975.000.000 hvis du skulle klare 10:59` +
+        `\n* Liten økning i sannsynlighetene for å spinne høyt. `
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

@@ -1,5 +1,3 @@
-import { DatabaseHelper } from '../helpers/databaseHelper'
-
 export const dateRegex = new RegExp(/^(0[1-9]|[12][0-9]|3[01])[-](0[1-9]|1[012])[-](19|20)\d\d$/) ///^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\d\d$/ old
 export function getWeekNumber(d: Date) {
     // Copy date so don't modify original
@@ -61,6 +59,10 @@ export class DateUtils {
         return rDate
     }
 
+    static isValidDate(date: Date | number) {
+        return date instanceof Date && !isNaN(Number(date))
+    }
+
     static nextWeekdayDate(date: Date, day_in_week: number) {
         var ret = new Date(date || new Date())
         ret.setDate(ret.getDate() + ((day_in_week - 1 - ret.getDay() + 7) % 7) + 1)
@@ -91,5 +93,12 @@ export class DateUtils {
             minutes: minutes,
             seconds: seconds,
         }
+    }
+
+    static isToday(compareDate: Date) {
+        const today = new Date()
+        console.log(compareDate.getDate(), today.getDate(), compareDate.getMonth(), today.getMonth())
+
+        return compareDate.getDate() == today.getDate() && compareDate.getMonth() == today.getMonth() + 1
     }
 }

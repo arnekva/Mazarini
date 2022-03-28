@@ -5,6 +5,7 @@ import { ICommandElement } from '../General/commands'
 import { ClientHelper } from '../helpers/clientHelper'
 import { DatabaseHelper, dbPrefix } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { DailyJobs } from '../Jobs/dailyJobs'
 import { MazariniClient } from '../main'
 import { splitUsername } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
@@ -253,11 +254,12 @@ export class Admin extends AbstractCommands {
                 hideFromListing: true,
                 command: async (rawMessage: Message, messageContent: string) => {
                     // rawMessage.reply('')
-                    // DailyJobs.validateAndResetDailyClaims()
-                    rawMessage.reply('Slettet alle coins og chips for bruker <' + rawMessage.author.username + '>.')
-                    setTimeout(() => {
-                        rawMessage.reply('Bare kødda, ingenting har skjedd.')
-                    }, 7000)
+                    const dj = new DailyJobs(this.messageHelper)
+                    dj.runJobs()
+                    // rawMessage.reply('Slettet alle coins og chips for bruker <' + rawMessage.author.username + '>.')
+                    // setTimeout(() => {
+                    //     rawMessage.reply('Bare kødda, ingenting har skjedd.')
+                    // }, 7000)
                 },
                 category: 'admin',
             },

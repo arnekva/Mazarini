@@ -60,6 +60,7 @@ export type dbPrefix =
     | 'dailyClaimStreak'
     | 'prestige'
     | 'dailyFreezeCounter'
+    | 'birthday'
 
 export interface betObject {
     description: string
