@@ -134,13 +134,13 @@ export class DateCommands extends AbstractCommands {
         if (birthday && !args[0]) {
             const bdTab = birthday.split('-').map((d: any) => Number(d))
             const today = new Date()
-            let date = new Date(new Date().getFullYear(), bdTab[1] - 1, bdTab[0] + 1)
+            let date = new Date(new Date().getFullYear(), bdTab[1] - 1, bdTab[0])
 
             if (bdTab[1] < today.getMonth() + 1) {
-                date = new Date(new Date().getFullYear() + 1, bdTab[1] - 1, bdTab[0] + 1)
+                date = new Date(new Date().getFullYear() + 1, bdTab[1] - 1, bdTab[0])
             }
             if (bdTab[1] == today.getMonth() + 1 && today.getDate() > bdTab[0]) {
-                date = new Date(new Date().getFullYear() + 1, bdTab[1] - 1, bdTab[0] + 1)
+                date = new Date(new Date().getFullYear() + 1, bdTab[1] - 1, bdTab[0])
             }
 
             if (DateUtils.isToday(date)) {
