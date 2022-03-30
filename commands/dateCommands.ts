@@ -135,7 +135,6 @@ export class DateCommands extends AbstractCommands {
             const bdTab = birthday.split('-').map((d: any) => Number(d))
             const today = new Date()
             let date = new Date(new Date().getFullYear(), bdTab[1] - 1, bdTab[0] + 1)
-            console.log(date, bdTab[1], bdTab[0])
 
             if (bdTab[1] < today.getMonth() + 1) {
                 date = new Date(new Date().getFullYear() + 1, bdTab[1] - 1, bdTab[0] + 1)
@@ -143,7 +142,6 @@ export class DateCommands extends AbstractCommands {
             if (bdTab[1] == today.getMonth() + 1 && today.getDate() > bdTab[0]) {
                 date = new Date(new Date().getFullYear() + 1, bdTab[1] - 1, bdTab[0] + 1)
             }
-            console.log(date)
 
             if (DateUtils.isToday(date)) {
                 this.messageHelper.sendMessage(message.channelId, 'Du har bursdag i dag! gz')
