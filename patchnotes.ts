@@ -3,14 +3,11 @@ import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '6.4.0'
+    public static readonly currentVersion = '6.4.1'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string =
-        `\n* Du kan nå registrere bursdagen din igjen med '!mz bursdag 01-01-1990'. Høie vil da gratulere deg på dagen din (kall funksjonen igjen for å sjekke dager til bursdag)` +
-        `\n* Det er nå en 95.000.000 chips premie for å spinne fidget spinneren i 10 min, og 975.000.000 hvis du skulle klare 10:59` +
-        `\n* Liten økning i sannsynlighetene for å spinne høyt. `
+    public static readonly currentPatchNotes: string = `\n* '!Mz bursdag' skal nå telle ned til din neste bursdag hvis du har registrert en dato`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

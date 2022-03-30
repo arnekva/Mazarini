@@ -36,7 +36,7 @@ export class DateCommands extends AbstractCommands {
         }, timeout)
     }
 
-    private formatCountdownText(dateObj: countdownTime | undefined, textEnding: string, finishedText?: string) {
+    private formatCountdownText(dateObj: countdownTime | undefined, textEnding: string, finishedText?: string, noTextEnding?: boolean) {
         if (!dateObj) return finishedText ?? ''
         const timeTab: string[] = []
         let timeString = 'Det er'
@@ -45,7 +45,7 @@ export class DateCommands extends AbstractCommands {
         if (dateObj.hours > 0) timeTab.push(' ' + dateObj.hours + ` ${dateObj.hours == 1 ? 'time' : 'timer'}`)
         if (dateObj.minutes > 0) timeTab.push(' ' + dateObj.minutes + ` ${dateObj.minutes == 1 ? 'minutt' : 'minutter'}`)
         if (dateObj.seconds > 0) timeTab.push(' ' + dateObj.seconds + ` ${dateObj.seconds == 1 ? 'sekund' : 'sekunder'}`)
-        if (timeTab.length < 1) return textEnding + ' er ferdig!'
+        if (timeTab.length < 1) return noTextEnding ? '' : textEnding + ' er ferdig!'
         timeTab.forEach((text, index) => {
             timeString += text
             if (index <= timeTab.length - 2 && timeTab.length > 1) timeString += index == timeTab.length - 2 ? ' og' : ','
@@ -132,12 +132,30 @@ export class DateCommands extends AbstractCommands {
     private addUserBirthday(message: Message, messageContent: string, args: string[]) {
         const birthday = DatabaseHelper.getValueWithoutMessage('birthday', message.author.username)
         if (birthday && !args[0]) {
-            const timeUntilBirthday = this.formatCountdownText(DateUtils.getTimeTo(birthday), `til ${message.author.username} sin bursdag.`)
-            this.messageHelper.sendMessage(message.channelId, timeUntilBirthday)
-            return
+            const bdTab = birthday.split('-').map((d: any) => Number(d))
+            const today = new Date()
+            let date = new Date(new Date().getFullYear(), bdTab[1] - 1, bdTab[0] + 1)
+            console.log(date, bdTab[1], bdTab[0])
+
+            if (bdTab[1] < today.getMonth() + 1) {
+                date = new Date(new Date().getFullYear() + 1, bdTab[1] - 1, bdTab[0] + 1)
+            }
+            if (bdTab[1] == today.getMonth() + 1 && today.getDate() > bdTab[0]) {
+                date = new Date(new Date().getFullYear() + 1, bdTab[1] - 1, bdTab[0] + 1)
+            }
+            console.log(date)
+
+            if (DateUtils.isToday(date)) {
+                this.messageHelper.sendMessage(message.channelId, 'Du har bursdag i dag! gz')
+            } else {
+                const timeUntilBirthday = this.formatCountdownText(DateUtils.getTimeTo(date), `til ${message.author.username} sin bursdag.`, undefined, true)
+                this.messageHelper.sendMessage(message.channelId, timeUntilBirthday ?? 'Klarte ikke regne ut')
+                return
+            }
         }
         const dateString = args[0]
-        if (dateString.split('-').length < 2) {
+        if (dateString.split('-').length < 2 || (!(new Date(dateString) instanceof Date) && !isNaN(new Date(dateString).getTime()))) {
+            //TODO: Must be tested
             message.reply('Datoen er feilformattert. dd-mm-yyyy')
             return
         }

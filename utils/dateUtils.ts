@@ -97,7 +97,6 @@ export class DateUtils {
 
     static isToday(compareDate: Date) {
         const today = new Date()
-        console.log(compareDate.getDate(), today.getDate(), compareDate.getMonth(), today.getMonth())
 
         return compareDate.getDate() == today.getDate() && compareDate.getMonth() == today.getMonth() + 1
     }
