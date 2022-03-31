@@ -52,7 +52,13 @@ export class NameCommands extends AbstractCommands {
     }
 
     private getTextFromCommand(message: Message) {
-        return ArrayUtils.randomChoiceFromArray(DatabaseHelper.getTextCommandValueArray(this.findCommandName(message)) ?? []) || 'Ingen tekst lagt til'
+        let commandName = this.findCommandName(message)
+        const cmdName = this.getAllCommands().find((c) =>
+            Array.isArray(c.commandName) ? c.commandName.includes(commandName) : c.commandName == commandName
+        )?.commandName
+
+        commandName = Array.isArray(cmdName) ? cmdName[0] : commandName
+        return ArrayUtils.randomChoiceFromArray(DatabaseHelper.getTextCommandValueArray(commandName) ?? []) || 'Ingen tekst lagt til'
     }
 
     private async addTextValue(message: Message, messageContent: string, args: string[]) {
