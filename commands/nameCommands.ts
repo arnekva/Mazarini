@@ -56,9 +56,15 @@ export class NameCommands extends AbstractCommands {
     }
 
     private async addTextValue(message: Message, messageContent: string, args: string[]) {
-        const commandName = args[0]
+        let commandName = args[0]
         const textToAdd = args.slice(1).join(' ')
         if (this.getAllCommands().find((c) => (Array.isArray(c.commandName) ? c.commandName.includes(commandName) : c.commandName == commandName))) {
+            const cmdName = this.getAllCommands().find((c) =>
+                Array.isArray(c.commandName) ? c.commandName.includes(commandName) : c.commandName == commandName
+            )?.commandName
+            console.log(cmdName)
+
+            commandName = Array.isArray(cmdName) ? cmdName[0] : commandName
             DatabaseHelper.setTextCommandValue(commandName, textToAdd)
             message.reply(`La til teksten ${textToAdd} for kommandoen ${commandName}`)
         } else {
@@ -104,7 +110,7 @@ export class NameCommands extends AbstractCommands {
                 category: 'annet',
             },
             {
-                commandName: 'øyvind',
+                commandName: ['oyvind', 'røgga', 'øyvind'],
                 description: 'Vask huset maen. Og husk å vask den fine klokkå',
                 command: (rawMessage: Message, messageContent: string) => {
                     this.oyvindText(rawMessage)

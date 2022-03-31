@@ -1,5 +1,4 @@
 import { GuildMember, Message, PartialGuildMember, PartialUser, Role, TextChannel, User } from 'discord.js'
-import { UserCommands } from '../commands/userCommands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 const diff = require('deep-diff')
