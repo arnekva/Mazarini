@@ -51,6 +51,7 @@ export class NameCommands extends AbstractCommands {
         await this.messageHelper.sendMessage(message.channelId, this.getTextFromCommand(message))
     }
 
+    //TODO / FIXME: Refactor å finne første command name hvis array til en egen funksjon. BLir brukt 2 steder atm
     private getTextFromCommand(message: Message) {
         let commandName = this.findCommandName(message)
         const cmdName = this.getAllCommands().find((c) =>
