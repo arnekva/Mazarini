@@ -56,13 +56,12 @@ export class NameCommands extends AbstractCommands {
     }
 
     private async addTextValue(message: Message, messageContent: string, args: string[]) {
-        let commandName = args[0]
+        let commandName = args[0].toLowerCase()
         const textToAdd = args.slice(1).join(' ')
         if (this.getAllCommands().find((c) => (Array.isArray(c.commandName) ? c.commandName.includes(commandName) : c.commandName == commandName))) {
             const cmdName = this.getAllCommands().find((c) =>
                 Array.isArray(c.commandName) ? c.commandName.includes(commandName) : c.commandName == commandName
             )?.commandName
-            console.log(cmdName)
 
             commandName = Array.isArray(cmdName) ? cmdName[0] : commandName
             DatabaseHelper.setTextCommandValue(commandName, textToAdd)
@@ -76,7 +75,7 @@ export class NameCommands extends AbstractCommands {
         const textToDelete = Number(args[1])
         const texts = DatabaseHelper.getTextCommandValueArray(commandName) as string[]
         if (texts) {
-            if (!textToDelete || isNaN(textToDelete)) {
+            if (isNaN(textToDelete) || textToDelete < 0 || textToDelete >= texts.length) {
                 message.reply('Du må spesifisere indeksen til teksten du vil slette. Velg en av disse:\n' + texts.map((t, i) => `${i}: ${t}`).join('\n'))
                 return
             }
