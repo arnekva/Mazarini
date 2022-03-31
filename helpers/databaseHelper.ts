@@ -9,6 +9,7 @@ const db = new JsonDB(new Config('myDataBase', true, true, '/'))
 const folderPrefix = '/users'
 const otherFolderPreifx = '/other'
 const botFolder = '/bot'
+const textCommandFolder = '/textCommand'
 
 //const db = new Database()
 /**
@@ -219,6 +220,22 @@ export class DatabaseHelper {
 
     static setBotData(prefix: botDataPrefix, value: any) {
         db.push(`${botFolder}/${prefix}`, value)
+    }
+
+    static setTextCommandValue(commandName: string, value: any) {
+        db.push(`${textCommandFolder}/${commandName}[]`, value)
+    }
+    static nukeTextCommand(commandName: string, value: any) {
+        db.delete(`${textCommandFolder}/${commandName}`)
+    }
+    static getTextCommandValueArray(commandName: string) {
+        let data
+        try {
+            data = db.getData(`${textCommandFolder}/${commandName}`)
+        } catch (error) {
+            //No data;
+        }
+        return data
     }
 
     /**

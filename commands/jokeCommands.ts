@@ -9,7 +9,6 @@ import { Languages } from '../helpers/languageHelpers'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { findFeseText, findLetterEmoji } from '../utils/miscUtils'
-import { RandomUtils } from '../utils/randomUtils'
 import { doesTextIncludeUsername, replaceAtWithTextUsername, reverseMessageString, splitUsername } from '../utils/textUtils'
 
 export class JokeCommands extends AbstractCommands {
@@ -17,60 +16,10 @@ export class JokeCommands extends AbstractCommands {
         super(client, messageHelper)
     }
 
-    private async vaskHuset(message: Message) {
-        await this.messageHelper.sendMessage(message.channelId, Math.random() < 0.75 ? 'Øyvind, vask huset!' : 'Har ei jækla fine klokka')
-    }
-
-    private async kLikka(message: Message) {
-        await this.messageHelper.sendMessage(
-            message.channelId,
-            Math.random() < 0.5 ? 'Han ' + (Math.random() < 0.5 ? 'skaaahhæææææmmmmm' : '') + 'trunte på vei te buen ' : ' krækka open a kold one'
-        )
-    }
-
-    private async thomasTing(message: Message) {
-        await this.messageHelper.sendMessage(
-            message.channelId,
-            Math.random() < 0.3 ? 'Har skamphese :)' : Math.random() < 0.5 ? 'Han hørte deg kje for han spiste jo :(' : 'Sovna på golve :)'
-        )
-    }
-
-    private async darri(message: Message) {
-        await this.messageHelper.sendMessage(
-            message.channelId,
-            Math.random() < 0.3 ? 'Chatte me indere om prodtilgang' : Math.random() < 0.5 ? 'E på jobb på ein lørdag' : 'Han kuge i prod'
-        )
-    }
-
     private async mordi(message: Message) {
         const emoji = await EmojiHelper.getEmoji('eyebrows', message)
 
         await this.messageHelper.sendMessage(message.channelId, Math.random() > 0.05 ? `E nais ${emoji.id}` : `E skamnais :eyebrows: ${emoji.id}`)
-    }
-
-    private async eivind(message: Message) {
-        await this.messageHelper.sendMessage(
-            message.channelId,
-            Math.random() < 0.7
-                ? 'Lure på om most important news showe up på vår channel? Kan någen oppdatera han på server-bot-news-channel-fronten, faen ka'
-                : 'Spsie pistasj :3'
-        )
-    }
-
-    private async arne(message: Message) {
-        await this.messageHelper.sendMessage(message.channelId, 'Det vil alltid vær aldersdifferanse mellom folk av forskjellige alder')
-    }
-
-    private async geggien(message: Message) {
-        await this.messageHelper.sendMessage(
-            message.channelId,
-            RandomUtils.getRandomPercentage(50) ? `Knuse maggi i Rocket League` : `Bler knust av maggi i Rocket League :(`
-        )
-    }
-    private async joiij(message: Message) {
-        const hr = RandomUtils.getRndInteger(0, 3)
-        const min = RandomUtils.getRndInteger(1, 59)
-        await this.messageHelper.sendMessage(message.channelId, `Joiij e der om ${hr === 0 ? '' : hr + ' timer og '}${min} minutt!`)
     }
 
     private async isMaggiPlaying(message: Message, content: string, args: string[]) {
@@ -329,14 +278,6 @@ export class JokeCommands extends AbstractCommands {
     public getAllCommands(): ICommandElement[] {
         return [
             {
-                commandName: 'øyvind',
-                description: 'Vask huset maen. Og husk å vask den fine klokkå',
-                command: (rawMessage: Message, messageContent: string) => {
-                    this.vaskHuset(rawMessage)
-                },
-                category: 'annet',
-            },
-            {
                 commandName: 'fese',
                 description: 'Har någen fese?',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
@@ -377,30 +318,7 @@ export class JokeCommands extends AbstractCommands {
                 },
                 category: 'annet',
             },
-            {
-                commandName: ['sivert', 'geggien', 'trackpad', 'steve'],
-                description: 'Geggien e på an igjen',
-                command: (rawMessage: Message, messageContent: string) => {
-                    this.geggien(rawMessage)
-                },
-                category: 'annet',
-            },
-            {
-                commandName: 'thomas',
-                description: 'Thomas svarer alltid ja',
-                command: (rawMessage: Message, messageContent: string) => {
-                    this.thomasTing(rawMessage)
-                },
-                category: 'annet',
-            },
-            {
-                commandName: 'darri',
-                description: 'Hæ, darri?',
-                command: (rawMessage: Message, messageContent: string) => {
-                    this.darri(rawMessage)
-                },
-                category: 'annet',
-            },
+
             {
                 commandName: 'kekw',
                 description: 'kekw',
@@ -421,22 +339,7 @@ export class JokeCommands extends AbstractCommands {
                 },
                 category: 'annet',
             },
-            {
-                commandName: 'eivind',
-                description: 'Eivind sin feil',
-                command: (rawMessage: Message, messageContent: string) => {
-                    this.eivind(rawMessage)
-                },
-                category: 'annet',
-            },
-            {
-                commandName: 'david',
-                description: 'nå klikke det snart',
-                command: (rawMessage: Message, messageContent: string) => {
-                    this.kLikka(rawMessage)
-                },
-                category: 'annet',
-            },
+
             {
                 commandName: 'eivindpride',
                 description: 'Eivindpride it. Eivindpride it ALL.',
@@ -490,24 +393,6 @@ export class JokeCommands extends AbstractCommands {
 
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.mordi(rawMessage)
-                },
-                category: 'annet',
-            },
-            {
-                commandName: 'arne',
-                description: 'Bare Arne being Arne',
-
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.arne(rawMessage)
-                },
-                category: 'annet',
-            },
-            {
-                commandName: 'joiij',
-                description: 'Kor lenge e det te Joiij e der?',
-
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.joiij(rawMessage)
                 },
                 category: 'annet',
             },

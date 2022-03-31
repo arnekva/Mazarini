@@ -3,11 +3,11 @@ import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '6.4.1'
+    public static readonly currentVersion = '6.5.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `\n* '!Mz bursdag' skal nå telle ned til din neste bursdag hvis du har registrert en dato`
+    public static readonly currentPatchNotes: string = `\n* Alle tekster for tekstkommandoer ('!mz eivind', '!mz david' osv.) settes nå dynamisk med '!mz add <kommandonavn> <tekst>. Det kan også fjernes med '!mz remove eivind <index>' (Gjør kallet uten index for liste)`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
