@@ -3,7 +3,7 @@ import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '6.5.0'
+    public static readonly currentVersion = '6.5.1'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
