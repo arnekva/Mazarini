@@ -16,6 +16,7 @@ export interface CodStats {
     killsPerGame: number
     damageDone: number
     damageTaken: number | string
+    damageDoneTakenRatio: number | string
     headshotPercentage: number
     gulagDeaths: number
     gulagKills: number
@@ -52,6 +53,7 @@ export type CodStatsType =
     | 'killsPerGame'
     | 'damageDone'
     | 'damageTaken'
+    | 'damageDoneTakenRatio'
     | 'headshotPercentage'
     | 'gulagDeaths'
     | 'gulagKills'
@@ -110,6 +112,7 @@ export class WarzoneCommands extends AbstractCommands {
         { key: 'killsPerGame', header: 'Kills per game' },
         { key: 'damageDone', header: 'Damage Done' },
         { key: 'damageTaken', header: 'Damage Taken' },
+        { key: 'damageDoneTakenRatio', header: 'Damage Done/Taken Ratio' },
         { key: 'headshotPercentage', header: 'Headshot Percentage' },
         { key: 'gulagDeaths', header: 'Gulag Deaths' },
         { key: 'gulagKills', header: 'Gulag Kills' },
@@ -125,6 +128,7 @@ export class WarzoneCommands extends AbstractCommands {
     ]
     static statsToIncludeInSave: codStatsKeyHeader[] = [
         { key: 'kdRatio', header: 'K/D Ratio' },
+        { key: 'damageDoneTakenRatio', header: 'Damage Done/Taken ratio' },
         { key: 'killsPerGame', header: 'Kills per game' },
         { key: 'headshotPercentage', header: 'Headshot Percentage' },
         { key: 'gulagKd', header: 'Gulag K/D' },
@@ -258,12 +262,18 @@ export class WarzoneCommands extends AbstractCommands {
                     if (key === WarzoneCommands.statsToInclude[i].key) {
                         if (key === 'damageTaken' && Number(statsTyped['damageTaken']) > Number(statsTyped['damageDone'])) {
                             orderedStats['damageTaken'] = value + ' (flaut)'
-                        } else orderedStats[WarzoneCommands.statsToInclude[i].key] = value
+                        } else {
+                            orderedStats[WarzoneCommands.statsToInclude[i].key] = value
+                        }
                     }
                 }
-                if (orderedStats.gulagDeaths && orderedStats.gulagKills)
+                if (orderedStats.gulagDeaths && orderedStats.gulagKills) {
                     //Inject gulag KD in
                     orderedStats['gulagKd'] = parseFloat((orderedStats?.gulagKills / orderedStats?.gulagDeaths).toFixed(3))
+                }
+                if (orderedStats.damageDone && orderedStats.damageTaken) {
+                    orderedStats['damageDoneTakenRatio'] = Number(orderedStats.damageDone) / Number(orderedStats.damageTaken)
+                }
             }
 
             const oldData = JSON.parse(this.getUserStats(message))
@@ -283,16 +293,25 @@ export class WarzoneCommands extends AbstractCommands {
 
             /** Gjør sammenligning og legg til i respons */
             for (const [key, value] of Object.entries(orderedStats)) {
-                if (key === 'gulagKd' && orderedStats.gulagDeaths && orderedStats.gulagKills)
-                    response += `\nGulag KD: ${(orderedStats?.gulagKills / orderedStats?.gulagDeaths).toFixed(2)}`
-                else if (this.findHeaderFromKey(key))
+                if (key === 'gulagKd' && orderedStats.gulagDeaths && orderedStats.gulagKills) {
+                    response += `\nGulag KD: ${(orderedStats?.gulagKills / orderedStats?.gulagDeaths).toFixed(2)} ${this.compareOldNewStats(
+                        orderedStats['gulagKd'],
+                        oldData[key]
+                    )}`
+                    statsTyped['gulagKd'] = orderedStats['gulagKd'] ?? 0
+                }
+                if (key === 'damageDoneTakenRatio' && orderedStats.damageDone && orderedStats.damageTaken) {
+                    response += `\nDamage Done/Taken ratio: ${(Number(orderedStats?.damageDone) / Number(orderedStats?.damageTaken)).toFixed(
+                        3
+                    )} ${this.compareOldNewStats(orderedStats['damageDoneTakenRatio'], oldData[key])}`
+
+                    statsTyped['damageDoneTakenRatio'] = orderedStats['damageDoneTakenRatio'] ?? 0
+                } else if (this.findHeaderFromKey(key))
                     response += `\n${this.findHeaderFromKey(key)}: ${getValueFormatted(key, value)} ${this.compareOldNewStats(
                         value,
                         oldData[key],
                         !this.isCorrectHeader({ key: key as CodStatsType, header: 'none' })
                     )}`
-                else if (key === 'gulagKd' && orderedStats.gulagDeaths && orderedStats.gulagKills)
-                    response += `\nGulag KD: ${orderedStats?.gulagKills / orderedStats?.gulagDeaths}`
             }
 
             if (editableMessage) editableMessage.edit(response)
@@ -389,7 +408,7 @@ export class WarzoneCommands extends AbstractCommands {
      * @param ignoreCompare Noen stats skal ikke sammenliknes (e.g. time played og average lifetime)
      * @returns
      */
-    private compareOldNewStats(current: string | Number, storedData: string | number, ignoreCompare?: boolean) {
+    private compareOldNewStats(current: string | Number | undefined, storedData: string | number | undefined, ignoreCompare?: boolean) {
         if (ignoreCompare) return ''
         const currentStats = Number(current)
         const oldStorageStats = Number(storedData)

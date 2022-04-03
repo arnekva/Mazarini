@@ -3,11 +3,13 @@ import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '6.5.1'
+    public static readonly currentVersion = '6.5.2'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `\n* Alle tekster for tekstkommandoer ('!mz eivind', '!mz david' osv.) settes nå dynamisk med '!mz add <kommandonavn> <tekst>. Det kan også fjernes med '!mz remove eivind <index>' (Gjør kallet uten index for liste)`
+    public static readonly currentPatchNotes: string =
+        `\n* '!mz weekly' skal nå legge til en damage done/taken ratio` +
+        `\n* Gulag K/D og Damage Done/Taken ratio skal nå lagres og sammenliknes på lik måte som andre stats`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
