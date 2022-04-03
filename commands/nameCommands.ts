@@ -40,6 +40,10 @@ export class NameCommands extends AbstractCommands {
     private async joiijText(message: Message) {
         const hr = RandomUtils.getRndInteger(0, 3)
         const min = RandomUtils.getRndInteger(1, 59)
+        const getHrLine = (h: number) => {
+            return h === 1 ? 'time' : 'timer'
+        }
+        const joiij = 
         await this.messageHelper.sendMessage(message.channelId, `Joiij e der om ${hr === 0 ? '' : hr + ' timer og '}${min} minutt!`)
     }
 

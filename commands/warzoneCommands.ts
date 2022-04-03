@@ -294,10 +294,10 @@ export class WarzoneCommands extends AbstractCommands {
             /** Gjør sammenligning og legg til i respons */
             for (const [key, value] of Object.entries(orderedStats)) {
                 if (key === 'gulagKd' && orderedStats.gulagDeaths && orderedStats.gulagKills) {
-                    response += `\nGulag KD: ${(orderedStats?.gulagKills / orderedStats?.gulagDeaths).toFixed(2)} ${this.compareOldNewStats(
-                        orderedStats['gulagKd'],
-                        oldData[key]
-                    )}`
+                    // response += `\nGulag KD: ${(orderedStats?.gulagKills / orderedStats?.gulagDeaths).toFixed(2)} ${this.compareOldNewStats(
+                    //     orderedStats['gulagKd'],
+                    //     oldData[key]
+                    // )}`
                     statsTyped['gulagKd'] = orderedStats['gulagKd'] ?? 0
                 }
                 if (key === 'damageDoneTakenRatio' && orderedStats.damageDone && orderedStats.damageTaken) {

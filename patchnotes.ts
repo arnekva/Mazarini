@@ -3,13 +3,12 @@ import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '6.5.2'
+    public static readonly currentVersion = '6.5.3'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string =
-        `\n* '!mz weekly' skal nå legge til en damage done/taken ratio` +
-        `\n* Gulag K/D og Damage Done/Taken ratio skal nå lagres og sammenliknes på lik måte som andre stats`
+    public static readonly currentPatchNotes: string = `\n* Gulag K/D skal ikke lenger komme dobbelt opp`
+    // `\n* Gulag K/D og Damage Done/Taken ratio skal nå lagres og sammenliknes på lik måte som andre stats`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
