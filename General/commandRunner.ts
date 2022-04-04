@@ -4,6 +4,7 @@ import { Admin } from '../admin/admin'
 import { environment } from '../client-env'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { ArrayUtils } from '../utils/arrayUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { doesThisMessageNeedAnEivindPride } from '../utils/miscUtils'
 import { splitUsername } from '../utils/textUtils'
@@ -226,12 +227,7 @@ export class CommandRunner {
             if (doesThisMessageNeedAnEivindPride(message.content, polseCounter) && react) message.react(react)
         }
 
-        // if (message.guild) {
-        //     const react = message.guild.emojis.cache.find((emoji) => emoji.name == 'putinpride')
-        //     //check for 10% chance of eivindpriding
-        //     if (doesThisMessageNeedAPutinPride(message.content, polseCounter) && react) message.react(react)
-        // }
-
+        //TODO: Refactor this
         if (message.author.id == '733320780707790898' && message.guild) {
             //"733320780707790898" joiij
             const numbers = MessageUtils.doesMessageContainNumber(message)
@@ -254,10 +250,9 @@ export class CommandRunner {
                 arg1 + ' ja.. vi lyger vel alle litt på CVen, hæ?',
                 arg1 + '? komman Joiij',
             ]
-            if (numbers.length > 0 && numbers.length < 3 && !message.content.includes('!mz')) {
+            if (numbers.length > 0 && numbers.length < 3 && !MessageUtils.messageHasCommand(message)) {
                 message.react(kekw ?? '😂')
-                const randomnumber = Math.floor(Math.random() * 7)
-                message.reply(responses[randomnumber])
+                message.reply(ArrayUtils.randomChoiceFromArray(responses))
             } else if (message.mentions.roles.find((e) => e.name == 'Jævla Drittspel')) {
                 message.react(kekw ?? '😂')
                 message.reply('lol')

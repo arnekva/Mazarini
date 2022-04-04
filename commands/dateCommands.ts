@@ -62,6 +62,10 @@ export class DateCommands extends AbstractCommands {
             message.reply('du mangler beskrivelse eller time (!mz countdown <dd-mm-yyyy> <HH> <beskrivelse>')
             return
         }
+        if (isNaN(Number(args[1])) || !(Number(args[1]) < 25 && Number(args[1]) >= 0)) {
+            message.reply('Parameter 2 må være et tall som representerer klokkeslettet for countdownen')
+            return
+        }
 
         if (args.length >= 2) {
             //dd-mm-yyyy

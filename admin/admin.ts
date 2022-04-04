@@ -3,10 +3,10 @@ import { ActivityTypes } from 'discord.js/typings/enums'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement } from '../General/commands'
 import { ClientHelper } from '../helpers/clientHelper'
-import { DatabaseHelper, dbPrefix } from '../helpers/databaseHelper'
+import { DatabaseHelper, dbPrefix, prefixList, ValuePair } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { DailyJobs } from '../Jobs/dailyJobs'
 import { MazariniClient } from '../main'
+import { ObjectUtils } from '../utils/objectUtils'
 import { splitUsername } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
 
@@ -205,6 +205,70 @@ export class Admin extends AbstractCommands {
         message.reply('Det går dessverre ikkje an å cancella folk lenger :(')
         return
     }
+    private runScript(message: Message, messageContent: string, args: string[]) {
+        switch (args[0].toLowerCase()) {
+            case 'dbget':
+                this.dbGet(message, messageContent, args)
+                break
+            case 'listprefix':
+                message.reply(prefixList.join(', '))
+                break
+            default:
+                message.reply('Fant ikke funksjonen ' + (args[0] ?? '<tom>'))
+                break
+        }
+    }
+
+    private dbGet(message: Message, messageContent: string, args: string[]) {
+        const p = args[1]
+
+        const validatePath = (p: string): boolean => {
+            switch (p.split('/')[0]) {
+                case 'other':
+                case 'bot':
+                case 'textCommand':
+                    return true
+                default:
+                    return false
+            }
+        }
+
+        if (p) {
+            if (validatePath(p)) {
+                //Vil hente fra verdier som ikke er knyttet til bruker
+                const data = DatabaseHelper.getAllValuesFromPath(`/${p}`)
+                if (!data) {
+                    message.reply(`Pathen ${p} inneholder ingen data.`)
+                    return
+                }
+                const values: ValuePair[] = []
+                Object.keys(data).forEach((el) => {
+                    let x = DatabaseHelper.getAllValuesFromPath(`/${p}/${el}`)
+                    if (ObjectUtils.isObject(x)) {
+                        //Hvis på root av et object, så man slipper å spesifisere hele pathen
+                        x = JSON.stringify(x)
+                    }
+
+                    values.push({ key: el, val: x })
+                })
+                const formatted = values.map((d: ValuePair) => `${d.key} - ${d.val}`).join('\n')
+                if (formatted) this.messageHelper.sendMessage(message.channelId, formatted)
+            } else {
+                //Vil hente brukerverdier
+                if (ObjectUtils.isObjectOfTypeDbPrefix(p)) {
+                    const dataArray = DatabaseHelper.getAllValuesFromPrefix(p)
+                    const formatted = dataArray.map((d) => `${d.key} - ${d.val}`).join('\n')
+                    if (formatted) this.messageHelper.sendMessage(message.channelId, formatted)
+                    else message.reply('Fant ingen data')
+                } else {
+                    message.reply('Du har skrevet en ugyldig prefix')
+                }
+            }
+        } else {
+            message.reply('Du må spesifisere path eller prefix')
+            return
+        }
+    }
 
     private deleteXLastMessagesByUserInChannel(message: Message, messageContent: string, args: string[]) {
         const userToDelete = splitUsername(args[0])
@@ -253,13 +317,9 @@ export class Admin extends AbstractCommands {
                 description: 'For testing. Resultat vil variere. ',
                 hideFromListing: true,
                 command: async (rawMessage: Message, messageContent: string) => {
-                    // rawMessage.reply('')
-                    const dj = new DailyJobs(this.messageHelper)
-                    dj.runJobs()
-                    // rawMessage.reply('Slettet alle coins og chips for bruker <' + rawMessage.author.username + '>.')
-                    // setTimeout(() => {
-                    //     rawMessage.reply('Bare kødda, ingenting har skjedd.')
-                    // }, 7000)
+                    rawMessage.reply('disabled')
+                    // const dj = new DailyJobs(this.messageHelper)
+                    // dj.runJobs()
                 },
                 category: 'admin',
             },
@@ -388,6 +448,17 @@ export class Admin extends AbstractCommands {
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.getBotStatistics(rawMessage, messageContent, args)
                 },
+                category: 'admin',
+            },
+            {
+                commandName: 'run',
+                description:
+                    'Kjør admin funksjon. \ndbget - Hent ut verdier direkte fra databasen. dbget <prefix> for brukerobjekter. dbget <prefix> <folder> for verdier utenfor brukere\nlistprefix - List alle prefixer',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.runScript(rawMessage, messageContent, args)
+                },
+                isAdmin: true,
+                hideFromListing: true,
                 category: 'admin',
             },
         ]

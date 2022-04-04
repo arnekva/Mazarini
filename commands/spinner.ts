@@ -158,7 +158,7 @@ export class Spinner extends AbstractCommands {
     }
 
     private async listSpinCounter(message: Message) {
-        const val = DatabaseHelper.getAllValuesFromPrefix('counterSpin', message)
+        const val = DatabaseHelper.getAllValuesFromPrefix('counterSpin')
         ArrayUtils.sortUserValuePairArray(val)
         const printList = ArrayUtils.makeValuePairIntoOneString(val, undefined, 'Total antall spins')
         this.messageHelper.sendMessage(message.channelId, printList)
@@ -178,7 +178,7 @@ export class Spinner extends AbstractCommands {
 
     private async allTimeHigh(message: Message) {
         this.updateATH()
-        const val = DatabaseHelper.getAllValuesFromPrefix('ATHspin', message)
+        const val = DatabaseHelper.getAllValuesFromPrefix('ATHspin')
         ArrayUtils.sortUserValuePairArray(val)
         const printList = ArrayUtils.makeValuePairIntoOneString(val, this.formatValue)
         this.messageHelper.sendMessage(message.channelId, printList)

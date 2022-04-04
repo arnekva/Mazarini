@@ -340,15 +340,25 @@ export class DatabaseHelper {
         }
     }
     /** Hent alle verdier for en gitt prefix */
-    static getAllValuesFromPrefix(prefix: dbPrefix, message: Message) {
+    static getAllValuesFromPrefix(prefix: dbPrefix) {
         const users = db.getData(`${folderPrefix}`)
         const valueList: ValuePair[] = []
         Object.keys(users).forEach((el) => {
-            const val = DatabaseHelper.getValue(prefix, el, message, true)
+            const val = DatabaseHelper.getValueWithoutMessage(prefix, el)
 
             if (val) valueList.push({ key: el, val: val })
         })
         return valueList
+    }
+    static getAllValuesFromPath(path: string) {
+        try {
+            return db.getData(`${path}`)
+        } catch (error) {
+            //nothing yet
+        }
+    }
+    static getValueFromPath(path: string) {
+        return db.getData(`${path}`)
     }
 
     static getAllValuesFromPrefixWithoutMessage(prefix: dbPrefix) {
@@ -410,3 +420,40 @@ export interface ValuePair {
 export interface prefixVal {
     anyName: string
 }
+
+export const prefixList: dbPrefix[] = [
+    'spin',
+    'birthday',
+    'stock',
+    'mygling',
+    'week',
+    'counterSpin',
+    'ATHspin',
+    'sCounterWeeklySpin',
+    'chips',
+    'bailout',
+    'warningCounter',
+    'dogeCoin',
+    'test',
+    'achievement',
+    'bonkCounter',
+    'lastFmUsername',
+    'loanCounter',
+    'debt',
+    'debtPenalty',
+    'debtMultiplier',
+    'shopItems',
+    'codStats',
+    'codStatsBR',
+    'activisionUserString',
+    'rocketLeagueUserString',
+    'cancelledCounter',
+    'nickname',
+    'inventory',
+    'debuff',
+    'dailyClaim',
+    'dailyClaimStreak',
+    'prestige',
+    'dailyFreezeCounter',
+    'birthday',
+]

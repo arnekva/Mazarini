@@ -38,4 +38,14 @@ export namespace MessageUtils {
         }
         return arr;
     }
+
+    export const findCommandName = (message: Message): string | undefined =>{
+        if(message.content.includes("!mz"))
+        return  message.content.split(" ")[1]
+        return undefined
+    }
+
+    export const messageHasCommand = (message: Message) => {
+        return (message.content.includes("!mz"))
+    }
 }
