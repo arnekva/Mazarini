@@ -18,6 +18,10 @@ export function getWeekNumber(d: Date) {
 
     return [d.getUTCFullYear(), weekNo, weekStartDate, weekEndDate] as const
 }
+
+export const isValidDate = (o: any) => {
+    return new Date(o).toString() !== 'Invalid Date'
+}
 export interface countdownTime {
     days: number
     hours: number
