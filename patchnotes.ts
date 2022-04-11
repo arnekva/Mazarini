@@ -8,7 +8,7 @@ export class PatchNotes extends AbstractCommands {
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Ny gamblingkommando - !mz verdenskrig. Gå til krig mot alle som reagerer med tommel opp innen 60 sekund. Én person tar hele potten` +
+        `\n* Ny gamblingkommando - !mz krig alle. Gå til krig mot alle som reagerer med tommel opp innen 60 sekund. Én person tar hele potten` +
         `\n* Du kan nå også starte en krig mot hvem som helst - '!Mz krig 100' vil starte en krig for 100 chips med førstemann som reagerer med tommel opp` +
         `\n* Superadmins får nå en rolle i stedet for å ha bruker-ID hardkodet inn` +
         `\n* Weekly og BR defaulter nå til 'me' hvis du ikke sender med parametere` +
