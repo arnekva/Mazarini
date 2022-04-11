@@ -2,8 +2,9 @@ import { Client, Message } from 'discord.js'
 import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
+import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '6.7.0'
+    public static readonly currentVersion = '6.7.1'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
@@ -41,7 +42,7 @@ export class PatchNotes extends AbstractCommands {
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string) => {
                     const pn = PatchNotes.getCurrentPatchNotes()
-                    this.messageHelper.sendMessage('802716150484041751', pn)
+                    this.messageHelper.sendMessage(MessageUtils.CHANNEL_IDs.BOT_UTVIKLING, pn)
                 },
                 category: 'admin',
             },

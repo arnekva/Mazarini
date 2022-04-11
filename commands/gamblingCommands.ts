@@ -5,6 +5,7 @@ import { ICommandElement } from '../General/commands'
 import { globals } from '../globals'
 import { betObject, betObjectReturned, DatabaseHelper, dbPrefix } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { MessageUtils } from '../utils/messageUtils'
 import { findLetterEmoji } from '../utils/miscUtils'
 import { RandomUtils } from '../utils/randomUtils'
 import { formatMoney, splitUsername } from '../utils/textUtils'
@@ -209,10 +210,12 @@ export class GamblingCommands extends AbstractCommands {
             message.reply('Du har skrevet inn et ugyldig tall')
             return
         }
+        const timer = !isNaN(Number(args[2])) ? Number(args[2]) * 1000 : 120000
+        console.log(args[2])
 
         const resolveMessage = await this.messageHelper.sendMessage(
             message.channelId,
-            `${message.author.username} har startet en verdenskrig! Reager med 👍 for å bli med. Krigen starter om 1 minutt`
+            `${message.author.username} har startet en verdenskrig! Reager med 👍 for å bli med. Krigen starter om ${timer / 1000} sekund`
         )
         if (resolveMessage) {
             this.messageHelper.reactWithThumbs(resolveMessage, 'up')
@@ -238,7 +241,7 @@ export class GamblingCommands extends AbstractCommands {
                     _msgHelper.sendMessage(message.channelId, `Terningen trillet ${roll + 1}. ${people[roll]} vant! Du får ${totalAmount} chips`)
                     DatabaseHelper.incrementValue('chips', people[roll], totalAmount.toString())
                 },
-                environment === 'dev' ? 10000 : 60000 //For testing
+                environment === 'dev' ? 10000 : timer //For testing
             )
         }
     }
@@ -1088,7 +1091,7 @@ export class GamblingCommands extends AbstractCommands {
                     this.diceGamble(rawMessage, messageContent, args)
                 },
                 category: 'gambling',
-                canOnlyBeUsedInSpecificChannel: ['808992127249678386'],
+                canOnlyBeUsedInSpecificChannel: [MessageUtils.CHANNEL_IDs.LAS_VEGAS],
             },
             {
                 commandName: 'rulett',
