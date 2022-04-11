@@ -1037,6 +1037,7 @@ export class GamblingCommands extends AbstractCommands {
                     this.takeUpLoan(rawMessage, messageContent, args)
                 },
                 category: 'gambling',
+                canOnlyBeUsedInSpecificChannel: [MessageUtils.CHANNEL_IDs.LAS_VEGAS],
             },
             {
                 commandName: 'betal',
@@ -1046,6 +1047,7 @@ export class GamblingCommands extends AbstractCommands {
                     this.payDownDebt(rawMessage, messageContent, args)
                 },
                 category: 'gambling',
+                canOnlyBeUsedInSpecificChannel: [MessageUtils.CHANNEL_IDs.LAS_VEGAS],
             },
             {
                 commandName: 'krig',
@@ -1092,6 +1094,7 @@ export class GamblingCommands extends AbstractCommands {
                 category: 'gambling',
                 canOnlyBeUsedInSpecificChannel: [MessageUtils.CHANNEL_IDs.LAS_VEGAS],
             },
+
             {
                 commandName: 'rulett',
                 description:
@@ -1101,6 +1104,7 @@ export class GamblingCommands extends AbstractCommands {
                     this.roulette(rawMessage, messageContent, args)
                 },
                 category: 'gambling',
+                canOnlyBeUsedInSpecificChannel: [MessageUtils.CHANNEL_IDs.LAS_VEGAS],
             },
             {
                 commandName: 'wallet',
@@ -1158,6 +1162,7 @@ export class GamblingCommands extends AbstractCommands {
                     this.rollSlotMachine(rawMessage, messageContent, args)
                 },
                 category: 'gambling',
+                canOnlyBeUsedInSpecificChannel: [MessageUtils.CHANNEL_IDs.LAS_VEGAS],
             },
         ]
     }
