@@ -85,15 +85,20 @@ export class Admin extends AbstractCommands {
 
     private setBotStatus(message: Message, messageContent: string, args: string[]) {
         const activity = this.translateActivityType(args[0])
-        const status = args.slice(1).join(' ')
+        const hasUrl = args[1].includes('www.')
+        const status = hasUrl ? args.slice(2).join(' ') : args.slice(1).join(' ')
         DatabaseHelper.setBotData('status', status)
         DatabaseHelper.setBotData('statusType', activity)
         this.messageHelper.reactWithThumbs(message, 'up')
         this.messageHelper.sendMessageToActionLog(
             message.channel as TextChannel,
-            `Bottens aktivitet er satt til '${activity}' med teksten '${status}' av ${message.author.username}`
+            `Bottens aktivitet er satt til '${activity}' med teksten '${status}' av ${message.author.username}. ${
+                activity === 'STREAMING'
+                    ? 'Du kan ikke sette status til streaming uten å ha en URL som parameter 1. "!mz botstatus streaming www.twitch.tv/Deadmaggi Deadmaggis Tips n tricks". Den er derfor satt til Playing '
+                    : ''
+            }`
         )
-        ClientHelper.updateStatus(this.client, activity, status)
+        ClientHelper.updatePresence(this.client, activity, status, hasUrl ? args[1] : undefined)
     }
 
     private translateActivityType(type: string): ExcludeEnum<typeof ActivityTypes, 'CUSTOM'> {
@@ -108,6 +113,7 @@ export class Admin extends AbstractCommands {
                 return 'STREAMING'
             case 'WATCHING':
                 return 'WATCHING'
+
             default:
                 return 'PLAYING'
         }
@@ -469,8 +475,7 @@ export class Admin extends AbstractCommands {
         return false
     }
     static isAuthorSuperAdmin(member: GuildMember | null) {
-        // TODO: Role instead of user id
-        if (member) return member.id == '245607554254766081' || member.id == '397429060898390016' || member.id == '239154365443604480'
+        if (member) return member.roles.cache.has('963017545647030272')
         return false
     }
 }

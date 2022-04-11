@@ -93,8 +93,7 @@ export class Music extends AbstractCommands {
             }
             limit = (Number(args[1]) ? args[1] : args[2]) ?? '5'
             if (!cmd) {
-                message.reply("kommandoen mangler 'artist', 'songs' eller 'album' eller  bak 'topp', 'weekly' eller 'siste'")
-                return
+                return message.reply("kommandoen mangler 'artist', 'songs' eller 'album' eller  bak 'topp', 'weekly' eller 'siste'")
             }
             /** CHECKS END */
 
@@ -243,7 +242,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
 
                                 /** Denne ser kanskje lang ut, men den lager hver linje. Først ser den etter artist (hentes forskjellig fra weekly), legger til bindestrek, sjekker etter sangnavn etc.  */
                                 artistString +=
-                                    `\n${dataParam.includeNameInOutput ? '(' + dataParam.username + ') ' : ''}${
+                                    ` \n ${dataParam.includeNameInOutput ? '(' + dataParam.username + ') ' : ''}${
                                         isFormattedWithHashtag && element.artist
                                             ? element.artist['#text'] + ' - '
                                             : element.artist

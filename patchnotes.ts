@@ -3,18 +3,18 @@ import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '6.6.1'
+    public static readonly currentVersion = '6.7.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Ny adminfunksjon: '!mz run'` +
-        `\n*    - 'dbget' som vil hente verdier fra databasen basert på prefix eller mappe. Du kan spesifisere path også` +
-        `\n*    - 'listprefix' som lister alle prefixer for brukerverdier som finnes` +
-        `\n*    Eksempel: '!mz run dbget codStats' printe lagret codStats for alle brukere som har verdier der` +
-        `\n*    Eksempel: vil '!mz run other/activeBet' finne alle aktive bets (som ligger lagret i /other/) og printe de. ` +
-        `\n* Fikset en feil som gjorde at countdown ikke verifiserte at klokkeslett ble tatt med`
-    // `\n* Gulag K/D og Damage Done/Taken ratio skal nå lagres og sammenliknes på lik måte som andre stats`
+        `\n* Ny gamblingkommando - !mz verdenskrig. Gå til krig mot alle som reagerer med tommel opp innen 60 sekund. Én person tar hele potten` +
+        `\n* Du kan nå også starte en krig mot hvem som helst - '!Mz krig 100' vil starte en krig for 100 chips med førstemann som reagerer med tommel opp` +
+        `\n* Superadmins får nå en rolle i stedet for å ha bruker-ID hardkodet inn` +
+        `\n* Weekly og BR defaulter nå til 'me' hvis du ikke sender med parametere` +
+        `\n* Du får nå en forklaring på hvorfor bot status ikke kan settes til streaming hvis du mangler en url som parameter 1` +
+        `\n* Fikset en bug som førte til en infinite loop med logging til #action_log` +
+        `\n* Senket utbetalingen for spins under 10 minutt`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

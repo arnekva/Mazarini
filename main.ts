@@ -128,14 +128,16 @@ export class MazariniClient {
                 // Listen for process exceptions
 
                 bus.on('process:exception', function (data: any) {
-                    _msgHelper.sendMessageToActionLog(
-                        _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
+                    if (!data?.data?.stack?.includes('fewer in length')) {
+                        _msgHelper.sendMessageToActionLog(
+                            _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
 
-                        'pm2 logget en melding til konsollen. Process:exception. Melding: ' +
-                            `\n* **Message**: ${data?.data?.message ?? 'NONE'}\n* **Error** name: ${data?.data?.name ?? 'NONE'}\n* **Callsite**: ${
-                                data?.data?.callsite ?? 'NONE'
-                            }\n* **Context**: ${data?.data?.context ?? 'NONE'}\n* **Stacktrace**: ${data?.data?.stack ?? 'NONE'}`
-                    )
+                            'pm2 logget en melding til konsollen. Process:exception. Melding: ' +
+                                `\n* **Message**: ${data?.data?.message ?? 'NONE'}\n* **Error** name: ${data?.data?.name ?? 'NONE'}\n* **Callsite**: ${
+                                    data?.data?.callsite ?? 'NONE'
+                                }\n* **Context**: ${data?.data?.context ?? 'NONE'}\n* **Stacktrace**: ${data?.data?.stack ?? 'NONE'}`
+                        )
+                    }
                 })
             })
         })
@@ -166,7 +168,10 @@ export class MazariniClient {
             const { executor, target } = deletionLog
 
             if (target?.id === message?.author?.id) {
-                _msgHelper.sendMessage(actionLogId, `En melding av ${message?.author?.tag} ble slettet av ${executor?.tag}. Innhold: '*${message?.content}*'`)
+                _msgHelper.sendMessage(
+                    actionLogId,
+                    `**En melding av** *${message?.author?.tag}* **ble slettet av** *${executor?.tag}*. **Innhold**: '*${message?.content}*'`
+                )
             } else {
                 console.log(`En melding av ${message?.author?.tag} ble slettet. `)
             }

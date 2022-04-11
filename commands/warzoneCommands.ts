@@ -168,22 +168,21 @@ export class WarzoneCommands extends AbstractCommands {
         }
     }
 
-    private async getBRContent(message: Message, messageContent: string, isWeekly?: boolean) {
-        const content = messageContent.split(' ')
+    private async getBRContent(message: Message, messageContent: string, args: string[], isWeekly?: boolean) {
         let gamertag = ''
         let platform: platforms
-        const isMe = content[0].toLowerCase() === 'me'
+        const isMe = args[0].toLowerCase() === 'me' ?? args.length < 0
 
         if (isMe) {
             const WZUser = this.getWZUserStringFromDB(message).split(';')
             gamertag = WZUser[0]
             platform = this.translatePlatform(WZUser[1])
         } else {
-            gamertag = content[0]
-            platform = this.translatePlatform(content[1])
+            gamertag = args[0]
+            platform = this.translatePlatform(args[1])
         }
 
-        const filterMode: string = isMe ? content[1] ?? ' ' : content[2] ?? ' '
+        const filterMode: string = isMe ? args[1] ?? ' ' : args[2] ?? ' '
 
         const noSave = filterMode === 'nosave'
         const isRebirth = filterMode === 'rebirth'
@@ -301,7 +300,7 @@ export class WarzoneCommands extends AbstractCommands {
                     statsTyped['gulagKd'] = orderedStats['gulagKd'] ?? 0
                 }
                 if (key === 'damageDoneTakenRatio' && orderedStats.damageDone && orderedStats.damageTaken) {
-                    response += `\nDamage Done/Taken ratio: ${(Number(orderedStats?.damageDone) / Number(orderedStats?.damageTaken)).toFixed(
+                    response += `\nDamage Done/Taken ratio: ${(Number(orderedStats?.damageDone) / parseInt(orderedStats?.damageTaken.toString())).toFixed(
                         3
                     )} ${this.compareOldNewStats(orderedStats['damageDoneTakenRatio'], oldData[key])}`
 
@@ -430,16 +429,16 @@ export class WarzoneCommands extends AbstractCommands {
             {
                 commandName: 'br',
                 description: "<gamertag> <plattform> (plattform: 'battle',  'psn', 'xbl'",
-                command: (rawMessage: Message, messageContent: string) => {
-                    this.getBRContent(rawMessage, messageContent)
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.getBRContent(rawMessage, messageContent, args)
                 },
                 category: 'gaming',
             },
             {
                 commandName: 'weekly',
                 description: "<gamertag> <plattform> (plattform: 'battle', 'steam', 'psn', 'xbl', 'acti', 'uno' (Activision ID som tall), 'all' (uvisst)",
-                command: (rawMessage: Message, messageContent: string) => {
-                    this.getBRContent(rawMessage, messageContent, true)
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.getBRContent(rawMessage, messageContent, args, true)
                 },
                 category: 'gaming',
             },

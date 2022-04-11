@@ -3,15 +3,14 @@ import { ActivityTypes } from 'discord.js/typings/enums'
 import { DatabaseHelper } from './databaseHelper'
 
 export class ClientHelper {
-    static updateStatus(client: Client, type: ExcludeEnum<typeof ActivityTypes, 'CUSTOM'>, status: string) {
+    static updatePresence(client: Client, type: ExcludeEnum<typeof ActivityTypes, 'CUSTOM'>, status: string, twitchUrl?: string) {
         try {
+            client.user?.setActivity({
+                type: type,
+                name: status,
+                url: twitchUrl,
+            })
             client.user?.setPresence({
-                activities: [
-                    {
-                        type: type,
-                        name: status,
-                    },
-                ],
                 afk: false,
                 status: 'online',
             })
@@ -30,6 +29,7 @@ export class ClientHelper {
                     name: status,
                 },
             ],
+
             afk: false,
             status: 'online',
         })
