@@ -210,7 +210,7 @@ export class GamblingCommands extends AbstractCommands {
             message.reply('Du har skrevet inn et ugyldig tall')
             return
         }
-        const timer = !isNaN(Number(args[2])) && Number(args[2]) > 1000 ? Number(args[2]) * 1000 : 120000
+        const timer = !isNaN(Number(args[2])) && Number(args[2]) < 800 ? Number(args[2]) * 1000 : 120000
 
         const resolveMessage = await this.messageHelper.sendMessage(
             message.channelId,
