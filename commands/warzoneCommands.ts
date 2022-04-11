@@ -171,7 +171,8 @@ export class WarzoneCommands extends AbstractCommands {
     private async getBRContent(message: Message, messageContent: string, args: string[], isWeekly?: boolean) {
         let gamertag = ''
         let platform: platforms
-        const isMe = args.length < 0 ? true : args[0].toLowerCase() === 'me'
+
+        const isMe = args.length === 0 || args[0].toLowerCase() === 'me'
 
         if (isMe) {
             const WZUser = this.getWZUserStringFromDB(message).split(';')
