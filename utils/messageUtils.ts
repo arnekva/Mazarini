@@ -47,7 +47,7 @@ export namespace MessageUtils {
     }
 
     export const getRoleTagString = (roleId: string) => {
-        return `<@&${roleId}`
+        return `<@&${roleId}>`
     }
 
     export const CHANNEL_IDs = {
