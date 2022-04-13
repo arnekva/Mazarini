@@ -168,7 +168,7 @@ export class Admin extends AbstractCommands {
     private botDownTime(message: Message, messageContent: string, args: string[]) {
         const scheduledTimeBackUp = args[0]
         const reason = args.slice(1)
-        const mainMsg = `Planlagt nedetid for botten frem til ${scheduledTimeBackUp}. ${reason}`
+        const mainMsg = `Planlagt nedetid for botten ${scheduledTimeBackUp ? 'frem til ' + scheduledTimeBackUp : ' i ca. 30 minutter.'}. ${reason ?? ''}`
 
         this.messageHelper.sendMessage(MessageUtils.CHANNEL_IDs.BOT_UTVIKLING, mainMsg)
     }
