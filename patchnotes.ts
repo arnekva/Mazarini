@@ -3,19 +3,20 @@ import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
+import { UserUtils } from './utils/userUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '6.7.1'
+    public static readonly currentVersion = '6.7.2'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Ny gamblingkommando - !mz krig alle. Gå til krig mot alle som reagerer med tommel opp innen 60 sekund. Én person tar hele potten` +
-        `\n* Du kan nå også starte en krig mot hvem som helst - '!Mz krig 100' vil starte en krig for 100 chips med førstemann som reagerer med tommel opp` +
-        `\n* Superadmins får nå en rolle i stedet for å ha bruker-ID hardkodet inn` +
-        `\n* Weekly og BR defaulter nå til 'me' hvis du ikke sender med parametere` +
-        `\n* Du får nå en forklaring på hvorfor bot status ikke kan settes til streaming hvis du mangler en url som parameter 1` +
-        `\n* Fikset en bug som førte til en infinite loop med logging til #action_log` +
-        `\n* Senket utbetalingen for spins under 10 minutt`
+        `\n* Verdenskrig pinger nå ${MessageUtils.getRoleTagString(
+            UserUtils.ROLE_IDs.NATO
+        )} når en krig starter og når resultatene er klare. Assign deg selv rollen hvis du vil.` +
+        `\n* Verdenskrig skal nå vise balansen til alle deltakere ved slutten` +
+        `\n* Lagt til nye hjelpemetoder i MessageUtils og UserUtils for å finne og tagge roller` +
+        `\n* Det logges nå en feilmelding hvis en admin setter bottens status til streaming uten å sette url.` +
+        `\n* Brukeren som starten krigen (eller andre kommandoer som krever en tommel opp reaksjon) kan nå stoppe den med å reagere med tommel ned. Superadminer kan også stoppe disse`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

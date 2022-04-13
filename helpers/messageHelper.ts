@@ -1,6 +1,9 @@
 import { Client, DMChannel, Message, MessageEmbed, TextChannel, User } from 'discord.js'
 import { globalArrays } from '../globals'
 import { ArrayUtils } from '../utils/arrayUtils'
+import { CollectorUtils } from '../utils/collectorUtils'
+import { MessageUtils } from '../utils/messageUtils'
+import { UserUtils } from '../utils/userUtils'
 
 export type typeOfError = 'unauthorized' | 'error' | 'warning'
 export type thumbsReact = 'up' | 'down'
@@ -103,7 +106,7 @@ export class MessageHelper {
         const errorChannel = this.client.channels.cache.get('810832760364859432') as TextChannel
         errorChannel.send(`En tom melding ble forsøkt sendt`)
         const replyChannel = this.client.channels.cache.get(channelId) as TextChannel
-        if (replyChannel) replyChannel.send(`${errorMessageToSend} <@&${this.botSupport}>`)
+        if (replyChannel) replyChannel.send(`${errorMessageToSend} ${MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.BUT_SUPPORT)}`)
     }
 
     async sendMessageToActionLogWithDefaultMessage(message: Message, error: any) {
@@ -112,8 +115,10 @@ export class MessageHelper {
         this.reactWithThumbs(replyMsg, 'up')
         const collector = replyMsg.createReactionCollector()
         collector.on('collect', (reaction) => {
+            if (CollectorUtils.shouldStopCollector(reaction, message)) collector.stop()
+
             if (reaction.emoji.name === '👍' && reaction.users.cache.find((u) => u.username === message.author.username)) {
-                replyMsg.edit(`En feil har oppstått. Feilkoden og meldingen din blir logget. '<@&863038817794392106>`)
+                replyMsg.edit(`En feil har oppstått. Feilkoden og meldingen din blir logget.  ${MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.BUT_SUPPORT)}`)
                 collector.stop()
             }
         })
@@ -129,8 +134,10 @@ export class MessageHelper {
         this.reactWithThumbs(replyMsg, 'up')
         const collector = replyMsg.createReactionCollector()
         collector.on('collect', (reaction) => {
+            if (CollectorUtils.shouldStopCollector(reaction, message)) collector.stop()
+
             if (reaction.emoji.name === '👍' && reaction.users.cache.find((u) => u.username === message.author.username)) {
-                replyMsg.edit(`${reply} ${includeSupportTag ? '<@&863038817794392106>' : ''}`)
+                replyMsg.edit(`${reply} ${includeSupportTag ? MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.BUT_SUPPORT) : ''}`)
                 collector.stop()
             }
         })
@@ -141,7 +148,7 @@ export class MessageHelper {
     }
 
     sendMessageToActionLogWithInsufficientRightsMessage(message: Message, extra?: any, ignoreReply?: boolean) {
-        message.reply(`Du har ikke de nødvendige rettighetene for å bruke denne funksjonen. <@&${this.botSupport}>`)
+        message.reply(`Du har ikke de nødvendige rettighetene for å bruke denne funksjonen. ${MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.BUT_SUPPORT)}`)
         const errorChannel = message.channel.client.channels.cache.get('810832760364859432') as TextChannel
         errorChannel.send(
             `${message.author.username} forsøkte å bruke en funksjon uten rettigheter. Meldingsinnhold: <${message.content}>. Channel: ${message.channel}. ${extra}`

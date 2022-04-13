@@ -1,10 +1,11 @@
 import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { ICommandElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
+import { CollectorUtils } from '../utils/collectorUtils'
 import { Roles } from '../utils/roles'
-import { ICommandElement } from '../General/commands'
 
 export class UserCommands extends AbstractCommands {
     constructor(client: Client, messageHelper: MessageHelper) {
@@ -69,6 +70,8 @@ export class UserCommands extends AbstractCommands {
                 const reply = await message.reply('Trenge 4 thumbs up for å godkjenne')
                 const collector = message.createReactionCollector()
                 collector.on('collect', (reaction) => {
+                    if (CollectorUtils.shouldStopCollector(reaction, message)) collector.stop()
+
                     if (reaction.emoji.name === '👍' && reaction.users.cache.size > 3) {
                         DatabaseHelper.setQuoteObject(quoteBy, quoteText)
                         collector.stop()

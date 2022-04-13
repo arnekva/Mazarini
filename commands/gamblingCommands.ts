@@ -5,6 +5,7 @@ import { ICommandElement } from '../General/commands'
 import { globals } from '../globals'
 import { betObject, betObjectReturned, DatabaseHelper, dbPrefix } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { CollectorUtils } from '../utils/collectorUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { findLetterEmoji } from '../utils/miscUtils'
 import { RandomUtils } from '../utils/randomUtils'
@@ -149,6 +150,9 @@ export class GamblingCommands extends AbstractCommands {
             this.messageHelper.reactWithThumbs(resolveMessage, 'up')
             const collector = resolveMessage.createReactionCollector()
             collector.on('collect', (reaction) => {
+                if (CollectorUtils.shouldStopCollector(reaction, message)) {
+                    collector.stop()
+                }
                 if (reaction.emoji.name === '👍' && reaction.users.cache.size > 2) {
                     const isPositive = args[0].toLocaleLowerCase() === 'ja'
                     this.messageHelper.sendMessage(message.channelId, `Veddemålsresultatet er godkjent. Beløpene blir nå lagt til på kontoene. `)
@@ -187,10 +191,10 @@ export class GamblingCommands extends AbstractCommands {
     private doesUserHaveValidBalance(username: string) {}
 
     private checkBalance(users: { username: string }[], amountAsNumber: number): string | undefined {
-        let user = undefined
+        let user: string | undefined = undefined
         users.forEach((u) => {
             const balance = DatabaseHelper.getValueWithoutMessage('chips', u.username)
-            if (Number(balance) < amountAsNumber) user = u
+            if (Number(balance) < amountAsNumber) user = u.username
         })
         return user
     }
@@ -210,11 +214,13 @@ export class GamblingCommands extends AbstractCommands {
             message.reply('Du har skrevet inn et ugyldig tall')
             return
         }
-        const timer = !isNaN(Number(args[2])) && Number(args[2]) < 800 ? Number(args[2]) * 1000 : 120000
+        const timer = !isNaN(Number(args[2])) && Number(args[2]) <= 800 ? Number(args[2]) * 1000 : 120000
 
         const resolveMessage = await this.messageHelper.sendMessage(
             message.channelId,
-            `${message.author.username} har startet en verdenskrig! Reager med 👍 for å bli med. Krigen starter om ${timer / 1000} sekund`
+            `${message.author.username} har startet en verdenskrig! Reager med 👍 for å bli med. Krigen starter om ${
+                timer / 1000
+            } sekund. ${MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.NATO)}`
         )
         if (resolveMessage) {
             this.messageHelper.reactWithThumbs(resolveMessage, 'up')
@@ -237,7 +243,13 @@ export class GamblingCommands extends AbstractCommands {
                     if (people) people.forEach((p) => DatabaseHelper.decrementValue('chips', p, amount.toString()))
                     const roll = RandomUtils.getRndInteger(0, people.length - 1)
                     const totalAmount = Number(amount) * people.length
-                    _msgHelper.sendMessage(message.channelId, `Terningen trillet ${roll + 1}. ${people[roll]} vant! Du får ${totalAmount} chips`)
+
+                    _msgHelper.sendMessage(
+                        message.channelId,
+                        `Terningen trillet ${roll + 1} av ${people.length}. ${people[roll]} vant! Du får ${totalAmount} chips. ${MessageUtils.getRoleTagString(
+                            UserUtils.ROLE_IDs.NATO
+                        )}.\n ` + people.map((u) => ` \n${u} - ${DatabaseHelper.getValueWithoutMessage('chips', u)}`)
+                    )
                     DatabaseHelper.incrementValue('chips', people[roll], totalAmount.toString())
                 },
                 environment === 'dev' ? 10000 : timer //For testing
@@ -271,6 +283,8 @@ export class GamblingCommands extends AbstractCommands {
             const collector = resolveMessage.createReactionCollector()
             const nonValidAttempts: string[] = []
             collector.on('collect', (reaction) => {
+                if (CollectorUtils.shouldStopCollector(reaction, message)) collector.stop()
+
                 if (reaction.emoji.name === '👍') {
                     const victim = reaction.users.cache
                         .filter((u: User) => u.id !== '802945796457758760' && u.id !== message.author.id && !nonValidAttempts.includes(u.id))
@@ -357,7 +371,7 @@ export class GamblingCommands extends AbstractCommands {
         let amountAsNum = amountIsAll ? largestPossibleValue : Number(amount)
         const notEnoughChips = this.checkBalance([{ username: message.author.username }, { username: username }], amountAsNum)
         if (notEnoughChips) {
-            return message.reply(`${notEnoughChips} har ikke råd`)
+            return message.reply(`${notEnoughChips} har ikke råd. Krigen står fortsatt åpen`)
         }
 
         const user = UserUtils.findUserByUsername(username, message)
@@ -372,6 +386,8 @@ export class GamblingCommands extends AbstractCommands {
 
             const collector = resolveMessage.createReactionCollector()
             collector.on('collect', (reaction) => {
+                if (CollectorUtils.shouldStopCollector(reaction, message)) collector.stop()
+
                 const currentValue = this.getUserWallets(message.author.username, username)
                 let engagerValue = currentValue.engagerChips
                 let victimValue = currentValue.victimChips
@@ -380,7 +396,10 @@ export class GamblingCommands extends AbstractCommands {
                 }
                 const notEnoughChips = this.checkBalance([{ username: message.author.username }, { username: username }], amountAsNum)
                 if (notEnoughChips) {
-                    return message.reply(`${notEnoughChips} har ikke råd`)
+                    return this.messageHelper.sendMessage(
+                        message.channelId,
+                        `<@${UserUtils.findUserByUsername(notEnoughChips, message)?.id}>, du har kje råd te det`
+                    )
                 }
                 if (reaction.emoji.name === '👍' && reaction.users.cache.find((u: User) => u.username.toLowerCase() === username.toLowerCase())) {
                     const shouldAlwaysLose = username === message.author.username || username === 'MazariniBot'
@@ -568,7 +587,7 @@ export class GamblingCommands extends AbstractCommands {
                 .setDescription(
                     `${message.author.username} satset ${valAsNum} av ${userMoney} chips på ${betOn}.\nBallen landet på: ${result}. Du ${
                         won ? 'vant! 💰💰 (' + Number(multiplier) + 'x)' : 'tapte 💸💸'
-                    }\nDu har nå ${formatMoney(newMoneyValue, 2, 2)}} chips.`
+                    }\nDu har nå ${formatMoney(newMoneyValue, 2, 2)} chips.`
                 )
             //TODO: Legg inn debt-penalty igjen
             this.messageHelper.sendFormattedMessage(message.channel as TextChannel, gambling)

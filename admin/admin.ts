@@ -93,7 +93,7 @@ export class Admin extends AbstractCommands {
         this.messageHelper.sendMessageToActionLog(
             message.channel as TextChannel,
             `Bottens aktivitet er satt til '${activity}' med teksten '${status}' av ${message.author.username}. ${
-                activity === 'STREAMING'
+                activity === 'STREAMING' && !hasUrl
                     ? 'Du kan ikke sette status til streaming uten å ha en URL som parameter 1. "!mz botstatus streaming www.twitch.tv/Deadmaggi Deadmaggis Tips n tricks". Den er derfor satt til Playing '
                     : ''
             }`
@@ -207,10 +207,6 @@ export class Admin extends AbstractCommands {
         }
     }
 
-    private cancelUser(message: Message, messageContent: string, args: string[]) {
-        message.reply('Det går dessverre ikkje an å cancella folk lenger :(')
-        return
-    }
     private runScript(message: Message, messageContent: string, args: string[]) {
         switch (args[0].toLowerCase()) {
             case 'dbget':
@@ -350,15 +346,6 @@ export class Admin extends AbstractCommands {
                 category: 'admin',
             },
             {
-                commandName: 'cancel',
-                description: 'Cancel en bruker',
-                isAdmin: true,
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.cancelUser(rawMessage, messageContent, args)
-                },
-                category: 'admin',
-            },
-            {
                 commandName: 'deletekey',
                 description: 'Slett en gitt nøkkel med oppgitt prefix. <prefix> <nøkkel> (Virker ikke)',
                 hideFromListing: true,
@@ -474,7 +461,7 @@ export class Admin extends AbstractCommands {
         if (member) return member.roles.cache.has('821709203470680117')
         return false
     }
-    static isAuthorSuperAdmin(member: GuildMember | null) {
+    static isAuthorSuperAdmin(member: GuildMember | null | undefined) {
         if (member) return member.roles.cache.has('963017545647030272')
         return false
     }

@@ -46,6 +46,10 @@ export namespace MessageUtils {
         return message.content.includes('!mz')
     }
 
+    export const getRoleTagString = (roleId: string) => {
+        return `<@&${roleId}`
+    }
+
     export const CHANNEL_IDs = {
         LAS_VEGAS: '808992127249678386',
         BOT_UTVIKLING: '802716150484041751',
