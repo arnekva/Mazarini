@@ -6,6 +6,7 @@ import { ClientHelper } from '../helpers/clientHelper'
 import { DatabaseHelper, dbPrefix, prefixList, ValuePair } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniClient } from '../main'
+import { MessageUtils } from '../utils/messageUtils'
 import { ObjectUtils } from '../utils/objectUtils'
 import { splitUsername } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
@@ -162,6 +163,14 @@ export class Admin extends AbstractCommands {
         const numMessages = MazariniClient.numMessages
         const statsReply = `Statistikk:\nAntall meldinger siden sist oppstart: ${numMessages}`
         this.messageHelper.sendMessage(message.channelId, statsReply)
+    }
+
+    private botDownTime(message: Message, messageContent: string, args: string[]) {
+        const scheduledTimeBackUp = args[0]
+        const reason = args.slice(1)
+        const mainMsg = `Planlagt nedetid for botten frem til ${scheduledTimeBackUp}. ${reason}`
+
+        this.messageHelper.sendMessage(MessageUtils.CHANNEL_IDs.BOT_UTVIKLING, mainMsg)
     }
 
     private async warnUser(message: Message, messageContent: string, args: string[]) {
@@ -449,6 +458,16 @@ export class Admin extends AbstractCommands {
                     'Kjør admin funksjon. \ndbget - Hent ut verdier direkte fra databasen. dbget <prefix> for brukerobjekter. dbget <prefix> <folder> for verdier utenfor brukere\nlistprefix - List alle prefixer',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.runScript(rawMessage, messageContent, args)
+                },
+                isAdmin: true,
+                hideFromListing: true,
+                category: 'admin',
+            },
+            {
+                commandName: 'downtime',
+                description: 'Send melding om downtime. <klokkeslett den skal være tilbake (string)> <grunn>',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.botDownTime(rawMessage, messageContent, args)
                 },
                 isAdmin: true,
                 hideFromListing: true,

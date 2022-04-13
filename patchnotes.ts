@@ -16,6 +16,7 @@ export class PatchNotes extends AbstractCommands {
         `\n* Verdenskrig skal nå vise balansen til alle deltakere ved slutten` +
         `\n* Lagt til nye hjelpemetoder i MessageUtils og UserUtils for å finne og tagge roller` +
         `\n* Det logges nå en feilmelding hvis en admin setter bottens status til streaming uten å sette url.` +
+        `\n* Ny adminfunksjon <downtime> som sender en melding til #bot-utvikling som varsler om downtime` +
         `\n* Brukeren som starten krigen (eller andre kommandoer som krever en tommel opp reaksjon) kan nå stoppe den med å reagere med tommel ned. Superadminer kan også stoppe disse`
 
     static getCurrentPatchNotes() {
