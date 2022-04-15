@@ -234,7 +234,8 @@ export class WarzoneCommands extends AbstractCommands {
             else this.messageHelper.sendMessage(message.channelId, response)
             if (!options?.noSave) this.saveUserStats(message, statsTyped, true)
         } catch (error) {
-            message.reply(error + '')
+            if (editableMessage) editableMessage.edit(`Fant ingen data for ${gamertag}. Er profildataen din åpen? Hvis ja, prøv igjen om ca. ett minutt.`)
+            else this.messageHelper.sendMessage(message.channelId, `Fant ingen data for ${gamertag}.`)
         }
     }
 
@@ -318,8 +319,11 @@ export class WarzoneCommands extends AbstractCommands {
             else this.messageHelper.sendMessage(message.channelId, response)
             if (!options?.noSave) this.saveUserStats(message, statsTyped)
         } catch (error) {
-            if (editableMessage) editableMessage.delete()
-            this.messageHelper.sendMessageToActionLogWithCustomMessage(message, error, 'Dataen kunne ikke hentes', true)
+            if (editableMessage) {
+                editableMessage.edit(`Klarte ikke finne data for ${gamertag}. Hvis du vet at du ikke mangler data denne uken, prøv på ny om ca. ett minutt.`)
+            } else {
+                this.messageHelper.sendMessageToActionLogWithCustomMessage(message, error, 'Dataen kunne ikke hentes', true)
+            }
         }
     }
 
