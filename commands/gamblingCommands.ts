@@ -296,7 +296,11 @@ export class GamblingCommands extends AbstractCommands {
 
                         const notEnoughChips = this.checkBalance([{ username: message.author.username }, { username: victim.username }], amount)
                         if (notEnoughChips) {
-                            return message.reply(`${notEnoughChips} har ikke råd`)
+                            nonValidAttempts.push(victim.id)
+                            return this.messageHelper.sendMessage(
+                                message.channelId,
+                                `${notEnoughChips} har ikke råd til å delta i ${message.author.username} sin krig for ${amount}`
+                            )
                         }
 
                         const roll = RandomUtils.getRndInteger(0, 100)

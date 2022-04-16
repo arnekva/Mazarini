@@ -4,11 +4,13 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '6.7.3'
+    public static readonly currentVersion = '6.7.4'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `\n* Warzone stats skal nå (forhåpentligvis) gi litt bedre feilmelding hvis dataen ikke kan hentes`
+    public static readonly currentPatchNotes: string =
+        `\n* Krig mot hvem som helst skal nå si riktig brukernavn når personen ikke har råd.` +
+        `\n* Du kan nå stoppe en reaction collector med alle versjoner av tommel ned emojien (tidligere kun gul)`
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
     }

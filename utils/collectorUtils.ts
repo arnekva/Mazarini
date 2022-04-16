@@ -5,10 +5,14 @@ import { UserUtils } from './userUtils'
 export namespace CollectorUtils {
     export const shouldStopCollector = (reaction: MessageReaction, message: Message) => {
         return (
-            reaction.emoji.name === '👎' &&
+            CollectorUtils.isThumbsDown(reaction.emoji.name) &&
             reaction.users.cache.find(
                 (u) => u.username === message.author.username || Admin.isAuthorSuperAdmin(UserUtils.findMemberByUsername(u.username, message))
             )
         )
+    }
+
+    export const isThumbsDown = (emoji: string) => {
+        return emoji === '👎🏻' || emoji === '👎' || emoji === '👎🏻' || emoji === '👎🏽' || emoji === '👎🏿' || emoji === '👎🏼'
     }
 }
