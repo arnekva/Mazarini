@@ -12,7 +12,7 @@ export namespace CollectorUtils {
         )
     }
 
-    export const isThumbsDown = (emoji: string) => {
+    export const isThumbsDown = (emoji: string | null | undefined) => {
         return emoji === '👎🏻' || emoji === '👎' || emoji === '👎🏻' || emoji === '👎🏽' || emoji === '👎🏿' || emoji === '👎🏼'
     }
 }
