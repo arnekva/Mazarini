@@ -67,7 +67,6 @@ export class Music extends AbstractCommands {
             }
 
             let username = this.getLastFMUsernameByDiscordUsername(params?.usernameToLookup ?? message.author.username, message)
-            console.log(username)
 
             //Check if fourth ([3]) argument is a valid username - if so, override author.username. Otherwise, treat [3] as 'stats' option.
             let usernameFromArgs = this.getLastFMUsernameByDiscordUsername(splitUsername(args[2]) ?? '', message)
@@ -106,7 +105,6 @@ export class Music extends AbstractCommands {
                 includeNameInOutput: params?.includeUsername ?? false,
                 username: args[2] ?? message.author.username,
             }
-            console.log(data)
 
             const dataRet = await this.findLastFmData(message, data, params?.notWeeklyOrRecent, params?.isSilent)
             return dataRet

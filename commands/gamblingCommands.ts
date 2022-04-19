@@ -622,10 +622,8 @@ export class GamblingCommands extends AbstractCommands {
         let rate = 0
         if (hasDebtPenalty) {
             const mp = Number(DatabaseHelper.getValue('debtMultiplier', message.author.username, message))
-            console.log('multi' + mp)
 
             rate = 1 - (100 - mp) / 100
-            console.log('RATE: ' + rate)
 
             interest = valAsNum * rate
         }

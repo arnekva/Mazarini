@@ -87,7 +87,6 @@ export class ShopClass {
         }
 
         //commandID ==== /inventory
-        console.log(commandInteraction.commandId)
 
         if (commandInteraction.commandId == '879251024475467807') {
             let inventoryDescription = 'Whalekøm to your inventøry. You currently possess:'
