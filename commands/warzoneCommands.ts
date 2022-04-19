@@ -172,18 +172,14 @@ export class WarzoneCommands extends AbstractCommands {
         let gamertag = ''
         let platform: platforms
 
-        const isMe = args.length === 0 || args.includes('me')
-
-        if (isMe) {
-            const WZUser = this.getWZUserStringFromDB(message).split(';')
-            gamertag = WZUser[0]
-            platform = this.translatePlatform(WZUser[1])
-        } else {
-            gamertag = args[0]
-            platform = this.translatePlatform(args[1])
+        const WZUser = this.getWZUserStringFromDB(message).split(';')
+        if (!WZUser) {
+            return message.reply('Du må knytta brukernavn te brukeren din fysste')
         }
+        gamertag = WZUser[0]
+        platform = this.translatePlatform(WZUser[1])
 
-        const filterMode: string = isMe ? args[0] ?? ' ' : args[1] ?? ' '
+        const filterMode: string = args[0] ?? ' '
 
         const noSave = filterMode === 'nosave'
         const isRebirth = filterMode === 'rebirth'
