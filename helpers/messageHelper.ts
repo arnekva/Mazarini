@@ -52,6 +52,10 @@ export class MessageHelper {
         message.react(reaction === 'up' ? '👍' : '👎')
     }
 
+    reactWithCheckmark(message: Message) {
+        message.react('✅')
+    }
+
     findChannelById(id: string) {
         return this.client.channels.cache.find((c) => c.id === id)
     }

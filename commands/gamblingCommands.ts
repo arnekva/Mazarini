@@ -283,7 +283,10 @@ export class GamblingCommands extends AbstractCommands {
             const collector = resolveMessage.createReactionCollector()
             const nonValidAttempts: string[] = []
             collector.on('collect', (reaction) => {
-                if (CollectorUtils.shouldStopCollector(reaction, message)) collector.stop()
+                if (CollectorUtils.shouldStopCollector(reaction, message)) {
+                    if (resolveMessage) resolveMessage.edit(`${resolveMessage.content} (STANSET MED TOMMEL NED)`)
+                    collector.stop()
+                }
 
                 if (reaction.emoji.name === '👍') {
                     const victim = reaction.users.cache
@@ -321,13 +324,18 @@ export class GamblingCommands extends AbstractCommands {
                         this.sendKrigMessage(
                             message.channel as TextChannel,
                             [
-                                { username: message.author.username, balance: engagerValue },
-                                { username: victim.username, balance: victimValue },
+                                { username: message.author.username, balance: engagerValue, oldBalance: currentValue.engagerChips },
+                                { username: victim.username, balance: victimValue, oldBalance: currentValue.victimChips },
                             ],
                             description
                         )
                         DatabaseHelper.setValue('chips', message.author.username, engagerValue.toFixed(2))
                         DatabaseHelper.setValue('chips', victim.id, victimValue.toFixed(2))
+                        this.messageHelper.reactWithCheckmark(resolveMessage)
+                        if (resolveMessage) {
+                            const oldContent = resolveMessage.content
+                            resolveMessage.edit(`${oldContent} (Fullført)`)
+                        }
                         collector.stop()
                     }
                 }
@@ -335,10 +343,10 @@ export class GamblingCommands extends AbstractCommands {
         }
     }
 
-    private sendKrigMessage(channel: TextChannel, users: { username: string; balance: number }[], winningText: string) {
+    private sendKrigMessage(channel: TextChannel, users: { username: string; balance: number; oldBalance: number }[], winningText: string) {
         const gambling = new MessageEmbed().setTitle('⚔️ Krig ⚔️').setDescription(`Terningen trillet ${winningText}`)
         users.forEach((user) => {
-            gambling.addField(`${user.username}`, `Har nå ${formatMoney(user.balance, 2, 2)} chips`)
+            gambling.addField(`${user.username}`, `Har nå ${formatMoney(user.balance, 2, 2)} chips (hadde ${formatMoney(user.oldBalance, 2, 2)})`)
         })
 
         this.messageHelper.sendFormattedMessage(channel, gambling)
@@ -429,10 +437,10 @@ export class GamblingCommands extends AbstractCommands {
                     }
 
                     const users = shouldAlwaysLose
-                        ? [{ username: message.author.username, balance: engagerValue }]
+                        ? [{ username: message.author.username, balance: engagerValue, oldBalance: currentValue.engagerChips }]
                         : [
-                              { username: message.author.username, balance: engagerValue },
-                              { username: username, balance: victimValue },
+                              { username: message.author.username, balance: engagerValue, oldBalance: currentValue.engagerChips },
+                              { username: username, balance: victimValue, oldBalance: currentValue.victimChips },
                           ]
 
                     this.messageHelper.sendMessage(message.channelId, `<@${user?.id}> <@${message.author.id}>`)
@@ -994,11 +1002,11 @@ export class GamblingCommands extends AbstractCommands {
     }
 
     private findAdditionalCoins(streak: number): { coins: number; chips: number } | undefined {
-        if (streak == 69) return { coins: 6889, chips: 68820 }
-        if (streak >= 100) return { coins: 5000, chips: 200000000 }
-        if (streak > 75) return { coins: 565, chips: 8500 }
-        if (streak > 50) return { coins: 500, chips: 5800 }
-        if (streak > 25) return { coins: 175, chips: 2700 }
+        if (streak == 69) return { coins: 6889, chips: 4000 }
+        if (streak >= 100) return { coins: 5000, chips: 50000 }
+        if (streak > 75) return { coins: 565, chips: 5500 }
+        if (streak > 50) return { coins: 500, chips: 2400 }
+        if (streak > 25) return { coins: 175, chips: 1500 }
         if (streak > 15) return { coins: 125, chips: 980 }
         if (streak >= 10) return { coins: 80, chips: 600 }
         if (streak > 5) return { coins: 30, chips: 100 }

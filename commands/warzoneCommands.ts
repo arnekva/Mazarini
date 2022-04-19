@@ -172,7 +172,7 @@ export class WarzoneCommands extends AbstractCommands {
         let gamertag = ''
         let platform: platforms
 
-        const isMe = args.length === 0 || args[0].toLowerCase() === 'me'
+        const isMe = args.length === 0 || args.includes('me')
 
         if (isMe) {
             const WZUser = this.getWZUserStringFromDB(message).split(';')
@@ -183,7 +183,7 @@ export class WarzoneCommands extends AbstractCommands {
             platform = this.translatePlatform(args[1])
         }
 
-        const filterMode: string = isMe ? args[1] ?? ' ' : args[2] ?? ' '
+        const filterMode: string = isMe ? args[0] ?? ' ' : args[1] ?? ' '
 
         const noSave = filterMode === 'nosave'
         const isRebirth = filterMode === 'rebirth'

@@ -3,6 +3,7 @@ import { Admin } from '../admin/admin'
 import { UserUtils } from './userUtils'
 
 export namespace CollectorUtils {
+    /** La brukeren selv og superadmins stoppe collectoren med en thumbs down */
     export const shouldStopCollector = (reaction: MessageReaction, message: Message) => {
         return (
             CollectorUtils.isThumbsDown(reaction.emoji.name) &&

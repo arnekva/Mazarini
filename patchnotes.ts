@@ -4,13 +4,14 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '6.7.4'
+    public static readonly currentVersion = '6.7.5'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Krig mot hvem som helst skal nå si riktig brukernavn når personen ikke har råd.` +
-        `\n* Du kan nå stoppe en reaction collector med alle versjoner av tommel ned emojien (tidligere kun gul)`
+        `\n* Weekly stats for kun rebirth stats ('!mz weekly rebirth') (samt nosave) krever ikke lenger 'me'` +
+        `\n* Krig mot hvem som helst skal nå vise hvis krigen er fullført` +
+        `\n* Krig mot hvem som helst skal nå også vise hvor mye chips deltakerene hadde før krigen`
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
     }
