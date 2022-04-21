@@ -108,7 +108,11 @@ export class MessageHelper {
     logEmptyMessage(errorMessageToSend: string, channelId: string) {
         const errorChannel = this.client.channels.cache.get('810832760364859432') as TextChannel
         const replyChannel = this.client.channels.cache.get(channelId)
-        errorChannel.send(`En tom melding ble forsøkt sendt. Forsøkte å sende til channel-ID ${channelId}. Channel-object er: ${replyChannel.toString()}.`)
+        errorChannel.send(
+            `En tom melding ble forsøkt sendt. Forsøkte å sende til channel-ID ${channelId}. Channel-object er: ${
+                replyChannel ? replyChannel.toString() : 'ingen'
+            }.`
+        )
         if (replyChannel && replyChannel.isText())
             return replyChannel.send(`${errorMessageToSend} ${MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.BUT_SUPPORT)}`)
     }
