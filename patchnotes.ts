@@ -4,14 +4,14 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '6.7.5'
+    public static readonly currentVersion = '6.7.6'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Weekly stats for kun rebirth stats ('!mz weekly rebirth') (samt nosave) krever ikke lenger 'me'` +
-        `\n* Krig mot hvem som helst skal nå vise hvis krigen er fullført` +
-        `\n* Krig mot hvem som helst skal nå også vise hvor mye chips deltakerene hadde før krigen`
+        `\n* Den som starter en verdenskrig blir nå automatisk med i krigen. Krigen starter ikke hvis starteren ikke har råd til å delta` +
+        `\n* Tommel ned for å stoppe en collector skal nå fungere bedre` +
+        `\n* Det skal logges bedre feilmelding når en tom melding blir forsøkt sendt`
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
     }

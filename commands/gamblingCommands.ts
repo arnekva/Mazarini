@@ -210,11 +210,11 @@ export class GamblingCommands extends AbstractCommands {
 
     private async startVerdensKrig(message: Message, content: string, args: string[]) {
         const amount = this.findKrigValue(args[0], message.author.username)
-        if (!amount) {
-            message.reply('Du har skrevet inn et ugyldig tall')
-            return
-        }
-        const timer = !isNaN(Number(args[2])) && Number(args[2]) <= 800 ? Number(args[2]) * 1000 : 120000
+        const userBalance = Number(DatabaseHelper.getValueWithoutMessage('chips', message.author.username) ?? 0)
+        if (!amount) return message.reply('Du har skrevet inn et ugyldig tall')
+        if (userBalance < amount) return message.reply(`Du kan kje starta ein krig for ${amount} når du bare har ${userBalance} chips sjøl`)
+
+        const timer = !isNaN(Number(args[2])) && Number(args[2]) <= 800 ? Number(args[2]) * 1000 : 240000
 
         const resolveMessage = await this.messageHelper.sendMessage(
             message.channelId,
@@ -233,6 +233,7 @@ export class GamblingCommands extends AbstractCommands {
                             people = reaction.users.cache.filter((u: User) => u.id !== '802945796457758760').map((u: User) => u.username)
                         }
                     })
+                    people.push(message.author.username)
                     people = people.filter((p) => {
                         const userWallet = DatabaseHelper.getValueWithoutMessage('chips', p)
                         return Number(userWallet) >= amount

@@ -21,8 +21,7 @@ export class MessageHelper {
 
     sendMessage(channelId: string, message: string) {
         if (!this.checkForEmptyMessage(message)) {
-            this.sendMessageToActionLogWithSimpleError('En melding som ble forsøkt sendt var tom', channelId)
-            return
+            return this.logEmptyMessage('En melding som ble forsøkt sendt var tom', channelId)
         }
         const channel = this.findChannelById(channelId) as TextChannel
         if (channel) return channel.send(message)
@@ -35,7 +34,7 @@ export class MessageHelper {
 
     sendMessageToChannel(channel: TextChannel | DMChannel, message: string) {
         if (!this.checkForEmptyMessage(message)) {
-            this.sendMessageToActionLogWithSimpleError('En melding som ble forsøkt sendt var tom', channel.id)
+            this.logEmptyMessage('En melding som ble forsøkt sendt var tom', channel.id)
             return
         }
         return channel.send(message)
@@ -106,11 +105,12 @@ export class MessageHelper {
         errorChannel.send(msg)
     }
 
-    sendMessageToActionLogWithSimpleError(errorMessageToSend: string, channelId: string) {
+    logEmptyMessage(errorMessageToSend: string, channelId: string) {
         const errorChannel = this.client.channels.cache.get('810832760364859432') as TextChannel
-        errorChannel.send(`En tom melding ble forsøkt sendt`)
-        const replyChannel = this.client.channels.cache.get(channelId) as TextChannel
-        if (replyChannel) replyChannel.send(`${errorMessageToSend} ${MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.BUT_SUPPORT)}`)
+        const replyChannel = this.client.channels.cache.get(channelId)
+        errorChannel.send(`En tom melding ble forsøkt sendt. Forsøkte å sende til channel-ID ${channelId}. Channel-object er: ${replyChannel.toString()}.`)
+        if (replyChannel && replyChannel.isText())
+            return replyChannel.send(`${errorMessageToSend} ${MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.BUT_SUPPORT)}`)
     }
 
     async sendMessageToActionLogWithDefaultMessage(message: Message, error: any) {
