@@ -10,7 +10,8 @@ export class PatchNotes extends AbstractCommands {
 
     public static readonly currentPatchNotes: string =
         `\n* Endret User Agent for Puppeteer når den fetcher Rocket League data for å komme rundt CoudFlare-sperre` +
-        `\n* Rocket-kommandoen skal nå gi bedre feilmelding hvis dataen ikke laster`
+        `\n* Rocket-kommandoen skal nå gi bedre feilmelding hvis dataen ikke laster` +
+        `\n* Slettede Bot-meldinger skal ikke lenger logges til #action_log`
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
     }

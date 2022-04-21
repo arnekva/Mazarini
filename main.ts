@@ -167,13 +167,11 @@ export class MazariniClient {
             }
             const { executor, target } = deletionLog
 
-            if (target?.id === message?.author?.id) {
+            if (target?.id === message?.author?.id && !message?.author?.tag.includes('Mazarini')) {
                 _msgHelper.sendMessage(
                     actionLogId,
                     `**En melding av** *${message?.author?.tag}* **ble slettet av** *${executor?.tag}*. **Innhold**: '*${message?.content}*'`
                 )
-            } else {
-                console.log(`En melding av ${message?.author?.tag} ble slettet. `)
             }
         })
 
