@@ -4,14 +4,13 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '6.7.6'
+    public static readonly currentVersion = '6.7.7'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Den som starter en verdenskrig blir nå automatisk med i krigen. Krigen starter ikke hvis starteren ikke har råd til å delta` +
-        `\n* Tommel ned for å stoppe en collector skal nå fungere bedre` +
-        `\n* Det skal logges bedre feilmelding når en tom melding blir forsøkt sendt`
+        `\n* Endret User Agent for Puppeteer når den fetcher Rocket League data for å komme rundt CoudFlare-sperre` +
+        `\n* Rocket-kommandoen skal nå gi bedre feilmelding hvis dataen ikke laster`
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
     }

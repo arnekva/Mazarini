@@ -160,10 +160,22 @@ export class GameCommands extends AbstractCommands {
                 headless: true,
             })
         const page = await browser.newPage()
+        page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36')
         await page.goto(url)
         const content = await page.content()
 
         await browser.close()
+        const contentString = content as string
+        if (contentString.includes('Access denied')) {
+            this.messageHelper.sendMessage(rawMessage.channelId, `Access denied.`)
+            this.messageHelper.sendMessageToActionLog(
+                rawMessage.channel as TextChannel,
+                `api.tracker.gg for Rocket League gir Access Denied. Melding stammer fra ${rawMessage.author.username} i ${
+                    (rawMessage.channel as TextChannel).name
+                }`
+            )
+            if (waitMsg) waitMsg.delete()
+        }
 
         const response = JSON.parse(striptags(content))
         if (!response.data) {
