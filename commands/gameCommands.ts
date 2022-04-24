@@ -140,8 +140,8 @@ export class GameCommands extends AbstractCommands {
             return
         }
         const waitMsg = await this.messageHelper.sendMessage(rawMessage.channelId, 'Laster data...')
-        const name = user[1]
         const platform = user[0]
+        const name = user[1]
         const url = `https://api.tracker.gg/api/v2/rocket-league/standard/profile/${platform}/${name}`
 
         const headers = {

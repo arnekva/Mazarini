@@ -179,28 +179,40 @@ export class WarzoneCommands extends AbstractCommands {
         const gamertag = WZUser[0]
         const platform = this.translatePlatform(WZUser[1])
 
-        const data = await Warzone.combatHistory(gamertag, platform)
+        try {
+            const waitMsg = this.messageHelper.sendMessage(message.channelId, 'Laster data ...')
+            const data = await Warzone.combatHistory(gamertag, platform)
+            if (!data?.data?.matches) {
+                return message.reply('Fant ingen matches. Matches: ' + data?.data?.matches)
+            }
+            const matchStart = Number(data?.data?.matches[0]?.utcStartSeconds) * 1000
+            const matchStartDate = new Date(matchStart) // The 0 there is the key, which sets the date to the epoch
 
-        const embedMsg = new MessageEmbed()
-            .setTitle(`Siste match for ${gamertag} (Rank ${data?.data?.matches[0]?.player?.rank ?? 'Ukjent'})`)
-            .setDescription(`${data?.data?.matches[0]?.playerStats?.teamPlacement ?? 'Ukjent'}. plass`)
+            const embedMsg = new MessageEmbed()
+                .setTitle(`Siste match for ${gamertag}: ${data?.data?.matches[0]?.playerStats?.teamPlacement ?? 'Ukjent'}. plass `)
+                .setDescription(`${matchStartDate ?? 'Ukjent dato og tid'}`)
 
-        embedMsg.addField(`Kills:`, `${data?.data?.matches[0]?.playerStats?.kills ?? 'Ukjent'}`, true)
-        embedMsg.addField(`Deaths:`, `${data?.data?.matches[0]?.playerStats?.deaths ?? 'Ukjent'}`, true)
-        embedMsg.addField(`K/D Ratio:`, `${data?.data?.matches[0]?.playerStats?.kdRatio ?? 'Ukjent'}`, true)
-        embedMsg.addField(`Assists:`, `${data?.data?.matches[0]?.playerStats?.assists ?? 'Ukjent'}`, true)
-        embedMsg.addField(`Headshots:`, `${data?.data?.matches[0]?.playerStats?.headshots ?? 'Ukjent'}`, true)
-        embedMsg.addField(`Longest streak:`, `${data?.data?.matches[0]?.playerStats?.longestStreak ?? 'Ukjent'}`, true)
-        embedMsg.addField(`Damage done:`, `${data?.data?.matches[0]?.playerStats?.damageDone ?? 'Ukjent'}`, true)
-        embedMsg.addField(`Damage taken:`, `${data?.data?.matches[0]?.playerStats?.damageTaken ?? 'Ukjent'}`, true)
-        embedMsg.addField(`Distance traveled:`, `${data?.data?.matches[0]?.playerStats?.distanceTraveled ?? 'Ukjent'}`, true)
-        embedMsg.addField(`Gulag kills:`, `${data?.data?.matches[0]?.playerStats?.gulagKills ?? 'Ukjent'}`, true)
-        embedMsg.addField(`Gulag deaths:`, `${data?.data?.matches[0]?.playerStats?.gulagDeaths ?? 'Ukjent'}`, true)
-        embedMsg.addField(`Mode:`, `${data?.data?.matches[0]?.mode ?? 'Ukjent'}`, true)
-        embedMsg.addField(`Score XP:`, `${data?.data?.matches[0]?.playerStats?.scoreXp ?? 'Ukjent'}`, true)
-        embedMsg.addField(`Players in match:`, `${data?.data?.matches[0]?.playerCount}`, true)
+            embedMsg.addField(`Kills:`, `${data?.data?.matches[0]?.playerStats?.kills ?? 'Ukjent'}`, true)
+            embedMsg.addField(`Deaths:`, `${data?.data?.matches[0]?.playerStats?.deaths ?? 'Ukjent'}`, true)
+            embedMsg.addField(`K/D Ratio:`, `${data?.data?.matches[0]?.playerStats?.kdRatio ?? 'Ukjent'}`, true)
+            embedMsg.addField(`Assists:`, `${data?.data?.matches[0]?.playerStats?.assists ?? 'Ukjent'}`, true)
+            embedMsg.addField(`Headshots:`, `${data?.data?.matches[0]?.playerStats?.headshots ?? 'Ukjent'}`, true)
+            embedMsg.addField(`Longest streak:`, `${data?.data?.matches[0]?.playerStats?.longestStreak ?? 'Ukjent'}`, true)
+            embedMsg.addField(`Damage done:`, `${data?.data?.matches[0]?.playerStats?.damageDone ?? 'Ukjent'}`, true)
+            embedMsg.addField(`Damage taken:`, `${data?.data?.matches[0]?.playerStats?.damageTaken ?? 'Ukjent'}`, true)
+            embedMsg.addField(`Distance traveled:`, `${data?.data?.matches[0]?.playerStats?.distanceTraveled ?? 'Ukjent'}`, true)
+            embedMsg.addField(`Gulag kills:`, `${data?.data?.matches[0]?.playerStats?.gulagKills ?? 'Ukjent'}`, true)
+            embedMsg.addField(`Gulag deaths:`, `${data?.data?.matches[0]?.playerStats?.gulagDeaths ?? 'Ukjent'}`, true)
+            embedMsg.addField(`Mode:`, `${data?.data?.matches[0]?.mode ?? 'Ukjent'}`, true)
+            embedMsg.addField(`Score XP:`, `${data?.data?.matches[0]?.playerStats?.scoreXp ?? 'Ukjent'}`, true)
+            embedMsg.addField(`Players in match:`, `${data?.data?.matches[0]?.playerCount}`, true)
+            embedMsg.addField(`Rank:`, `${data?.data?.matches[0]?.player?.rank ?? 'Ukjent'}`, true)
 
-        this.messageHelper.sendFormattedMessage(message.channel as TextChannel, embedMsg)
+            this.messageHelper.sendFormattedMessage(message.channel as TextChannel, embedMsg)
+            if (waitMsg) (await waitMsg).delete()
+        } catch (error: any) {
+            return message.reply('Klarte ikke hente data: ' + error)
+        }
     }
 
     private async getBRContent(message: Message, messageContent: string, args: string[], isWeekly?: boolean) {
