@@ -70,7 +70,10 @@ export class UserCommands extends AbstractCommands {
                 const reply = await message.reply('Trenge 4 thumbs up for å godkjenne')
                 const collector = message.createReactionCollector()
                 collector.on('collect', (reaction) => {
-                    if (CollectorUtils.shouldStopCollector(reaction, message)) collector.stop()
+                    if (CollectorUtils.shouldStopCollector(reaction, message)) {
+                        if (message) message.edit(`${message.content} (STANSET MED TOMMEL NED)`)
+                        collector.stop()
+                    }
 
                     if (reaction.emoji.name === '👍' && reaction.users.cache.size > 3) {
                         DatabaseHelper.setQuoteObject(quoteBy, quoteText)

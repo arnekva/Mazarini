@@ -1,5 +1,5 @@
 import { login, platforms, Warzone } from 'call-of-duty-api'
-import { Client, Message } from 'discord.js'
+import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
 import { Response } from 'node-fetch'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { actSSOCookie } from '../client-env'
@@ -31,6 +31,7 @@ export interface CodStats {
     objectiveBrKioskBuy: number //Items bought at store
     avgLifeTime: number
     timePlayed: number
+    distanceTraveled: number
 }
 export interface CodBRStats {
     kills: number
@@ -69,6 +70,7 @@ export type CodStatsType =
     | 'objectiveBrKioskBuy'
     | 'timePlayed'
     | 'matchesPlayed'
+    | 'distanceTraveled'
 
 export type CodBRStatsType =
     | 'wins'
@@ -124,6 +126,7 @@ export class WarzoneCommands extends AbstractCommands {
         { key: 'assists', header: 'Assists' },
         { key: 'avgLifeTime', header: 'Average Lifetime' },
         { key: 'timePlayed', header: 'Time Played' },
+        { key: 'distanceTraveled', header: 'Distance Traveled' },
         { key: 'matchesPlayed', header: 'Matches Played' },
     ]
     static statsToIncludeInSave: codStatsKeyHeader[] = [
@@ -168,10 +171,47 @@ export class WarzoneCommands extends AbstractCommands {
         }
     }
 
+    private async getLastMatchData(message: Message, messageContent: string, args: string[]) {
+        const num = Number(args[1]) || 1
+        const WZUser = this.getWZUserStringFromDB(message).split(';')
+        if (!WZUser) return message.reply('Du må knytta brukernavn te brukeren din fysste')
+
+        const gamertag = WZUser[0]
+        const platform = this.translatePlatform(WZUser[1])
+
+        const sentMessage = await this.messageHelper.sendMessage(message.channelId, 'Henter data...')
+
+        const data = await Warzone.combatHistory(gamertag, platform)
+
+        const embedMsg = new MessageEmbed()
+            .setTitle(`Siste match for ${gamertag} (Rank ${data?.data?.matches[0]?.player?.rank ?? 'Ukjent'})`)
+            .setDescription(`${data?.data?.matches[0]?.playerStats?.teamPlacement ?? 'Ukjent'}. plass`)
+
+        embedMsg.addField(`Kills:`, `${data?.data?.matches[0]?.playerStats?.kills ?? 'Ukjent'}`, true)
+        embedMsg.addField(`Deaths:`, `${data?.data?.matches[0]?.playerStats?.deaths ?? 'Ukjent'}`, true)
+        embedMsg.addField(`K/D Ratio:`, `${data?.data?.matches[0]?.playerStats?.kdRatio ?? 'Ukjent'}`, true)
+        embedMsg.addField(`Assists:`, `${data?.data?.matches[0]?.playerStats?.assists ?? 'Ukjent'}`, true)
+        embedMsg.addField(`Headshots:`, `${data?.data?.matches[0]?.playerStats?.headshots ?? 'Ukjent'}`, true)
+        embedMsg.addField(`Longest streak:`, `${data?.data?.matches[0]?.playerStats?.longestStreak ?? 'Ukjent'}`, true)
+        embedMsg.addField(`Damage done:`, `${data?.data?.matches[0]?.playerStats?.damageDone ?? 'Ukjent'}`, true)
+        embedMsg.addField(`Damage taken:`, `${data?.data?.matches[0]?.playerStats?.damageTaken ?? 'Ukjent'}`, true)
+        embedMsg.addField(`Distance traveled:`, `${data?.data?.matches[0]?.playerStats?.distanceTraveled ?? 'Ukjent'}`, true)
+        embedMsg.addField(`Gulag kills:`, `${data?.data?.matches[0]?.playerStats?.gulagKills ?? 'Ukjent'}`, true)
+        embedMsg.addField(`Gulag deaths:`, `${data?.data?.matches[0]?.playerStats?.gulagDeaths ?? 'Ukjent'}`, true)
+        embedMsg.addField(`Mode:`, `${data?.data?.matches[0]?.mode ?? 'Ukjent'}`, true)
+        embedMsg.addField(`Score XP:`, `${data?.data?.matches[0]?.playerStats?.scoreXp ?? 'Ukjent'}`, true)
+        embedMsg.addField(`Players in match:`, `${data?.data?.matches[0]?.playerCount}`, true)
+
+        this.messageHelper.sendFormattedMessage(message.channel as TextChannel, embedMsg)
+    }
+
     private async getBRContent(message: Message, messageContent: string, args: string[], isWeekly?: boolean) {
         let gamertag = ''
         let platform: platforms
 
+        if (args[0] === 'siste') {
+            return this.getLastMatchData(message, messageContent, args)
+        }
         const WZUser = this.getWZUserStringFromDB(message).split(';')
         if (!WZUser) {
             return message.reply('Du må knytta brukernavn te brukeren din fysste')
@@ -189,10 +229,10 @@ export class WarzoneCommands extends AbstractCommands {
         if (!sentMessage) sentMessage = await this.messageHelper.sendMessage(message.channelId, 'Henter data...')
         else await sentMessage.edit('Henter data...')
         if (isWeekly) {
-            this.findWeeklyData(gamertag, platform, message, sentMessage, { noSave: noSave, rebirth: isRebirth })
+            return this.findWeeklyData(gamertag, platform, message, sentMessage, { noSave: noSave, rebirth: isRebirth })
         } else {
             /** BR */
-            this.findOverallBRData(gamertag, platform, message, sentMessage, { noSave: noSave, rebirth: isRebirth })
+            return this.findOverallBRData(gamertag, platform, message, sentMessage, { noSave: noSave, rebirth: isRebirth })
         }
     }
 
@@ -230,6 +270,7 @@ export class WarzoneCommands extends AbstractCommands {
             else this.messageHelper.sendMessage(message.channelId, response)
             if (!options?.noSave) this.saveUserStats(message, statsTyped, true)
         } catch (error) {
+            message.reply(error + '.')
             if (editableMessage) editableMessage.edit(`Fant ingen data for ${gamertag}. Er profildataen din åpen? Hvis ja, prøv igjen om ca. ett minutt.`)
             else this.messageHelper.sendMessage(message.channelId, `Fant ingen data for ${gamertag}.`)
         }
@@ -241,14 +282,12 @@ export class WarzoneCommands extends AbstractCommands {
             let response = 'Weekly Warzone stats for <' + gamertag + '>'
 
             if (!data?.data?.weekly) {
-                if (editableMessage) editableMessage.edit('Du har ingen statistikk denne ukå')
-                else this.messageHelper.sendMessage(message.channelId, 'Du har ingen statistikk denne ukå')
-                return
+                if (editableMessage) return editableMessage.edit('Du har ingen statistikk denne ukå, bro')
+                return this.messageHelper.sendMessage(message.channelId, 'Du har ingen statistikk denne ukå, bro')
             }
 
             if (options?.rebirth && data.data.weekly.mode) {
-                this.findWeeklyRebirthOnly(gamertag, data, message, editableMessage)
-                return
+                return this.findWeeklyRebirthOnly(gamertag, data, message, editableMessage)
             }
 
             const statsTyped = data?.data?.weekly?.all?.properties as CodStats
@@ -443,7 +482,6 @@ export class WarzoneCommands extends AbstractCommands {
                 },
                 category: 'gaming',
             },
-
             {
                 commandName: 'link',
                 description: "<plattform> <gamertag> (plattform: 'battle', 'psn', 'xbl', 'epic')",

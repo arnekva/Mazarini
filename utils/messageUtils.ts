@@ -49,6 +49,9 @@ export namespace MessageUtils {
     export const getRoleTagString = (roleId: string) => {
         return `<@&${roleId}>`
     }
+    export const getUserTagString = (userID: string | undefined) => {
+        return userID ? `<@${userID}>` : ''
+    }
 
     export const CHANNEL_IDs = {
         LAS_VEGAS: '808992127249678386',

@@ -151,6 +151,7 @@ export class GamblingCommands extends AbstractCommands {
             const collector = resolveMessage.createReactionCollector()
             collector.on('collect', (reaction) => {
                 if (CollectorUtils.shouldStopCollector(reaction, message)) {
+                    if (resolveMessage) resolveMessage.edit(`${resolveMessage.content} (STANSET MED TOMMEL NED)`)
                     collector.stop()
                 }
                 if (reaction.emoji.name === '👍' && reaction.users.cache.size > 2) {
@@ -225,7 +226,11 @@ export class GamblingCommands extends AbstractCommands {
         if (resolveMessage) {
             this.messageHelper.reactWithThumbs(resolveMessage, 'up')
             const _msgHelper = this.messageHelper
-            setTimeout(
+
+            const collector = resolveMessage.createReactionCollector()
+            const nonValidAttempts: string[] = []
+
+            const krigTimeout = setTimeout(
                 async function () {
                     let people: string[] = []
                     resolveMessage.reactions.cache.forEach((reaction) => {
@@ -233,6 +238,7 @@ export class GamblingCommands extends AbstractCommands {
                             people = reaction.users.cache.filter((u: User) => u.id !== '802945796457758760').map((u: User) => u.username)
                         }
                     })
+
                     people.push(message.author.username)
                     people = people.filter((p) => {
                         const userWallet = DatabaseHelper.getValueWithoutMessage('chips', p)
@@ -245,16 +251,26 @@ export class GamblingCommands extends AbstractCommands {
                     const roll = RandomUtils.getRndInteger(0, people.length - 1)
                     const totalAmount = Number(amount) * people.length
 
+                    DatabaseHelper.incrementValue('chips', people[roll], totalAmount.toString())
+                    const pingMap = people.map((p) => MessageUtils.getUserTagString(UserUtils.findUserByUsername(p, message)?.id) + ' ')
                     _msgHelper.sendMessage(
                         message.channelId,
-                        `Terningen trillet ${roll + 1} av ${people.length}. ${people[roll]} vant! Du får ${totalAmount} chips. ${MessageUtils.getRoleTagString(
-                            UserUtils.ROLE_IDs.NATO
-                        )}.\n ` + people.map((u) => ` \n${u} - ${DatabaseHelper.getValueWithoutMessage('chips', u)}`)
+                        `Terningen trillet ${roll + 1} av ${people.length}. ${people[roll]} vant! Du får ${totalAmount} chips. ${pingMap}.\n ` +
+                            people.map((u) => ` \n${u} - ${DatabaseHelper.getValueWithoutMessage('chips', u)}`)
                     )
-                    DatabaseHelper.incrementValue('chips', people[roll], totalAmount.toString())
+
+                    collector.stop()
                 },
                 environment === 'dev' ? 10000 : timer //For testing
             )
+
+            collector.on('collect', (reaction) => {
+                if (CollectorUtils.shouldStopCollector(reaction, message)) {
+                    if (resolveMessage) resolveMessage.edit(`${resolveMessage.content} (STANSET MED TOMMEL NED)`)
+                    clearTimeout(krigTimeout)
+                    collector.stop()
+                }
+            })
         }
     }
 
@@ -399,7 +415,10 @@ export class GamblingCommands extends AbstractCommands {
 
             const collector = resolveMessage.createReactionCollector()
             collector.on('collect', (reaction) => {
-                if (CollectorUtils.shouldStopCollector(reaction, message)) collector.stop()
+                if (CollectorUtils.shouldStopCollector(reaction, message)) {
+                    if (resolveMessage) resolveMessage.edit(`${resolveMessage.content} (STANSET MED TOMMEL NED)`)
+                    collector.stop()
+                }
 
                 const currentValue = this.getUserWallets(message.author.username, username)
                 let engagerValue = currentValue.engagerChips

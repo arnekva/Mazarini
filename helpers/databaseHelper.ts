@@ -370,11 +370,7 @@ export class DatabaseHelper {
         })
         return valueList
     }
-    static async nukeDatabase() {
-        /*await db.empty().then(() => {
-            console.log("Database slettet. Alle verdier er fjernet.")
-        })*/
-    }
+
     /** Fjern prefix fra en string */
     static stripPrefixFromString(text: string, prefix: dbPrefix) {
         return text.replace(prefix + '-', '')

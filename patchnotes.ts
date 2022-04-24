@@ -4,14 +4,17 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '6.7.7'
+    public static readonly currentVersion = '6.8.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Endret User Agent for Puppeteer når den fetcher Rocket League data for å komme rundt CoudFlare-sperre` +
-        `\n* Rocket-kommandoen skal nå gi bedre feilmelding hvis dataen ikke laster` +
-        `\n* Slettede Bot-meldinger skal ikke lenger logges til #action_log`
+        `\n* Du kan nå se statistikk for siste WZ match med '!mz br siste'` +
+        `\n* Distance Travelled er nå inkludert i stats for weekly og siste match` +
+        `\n* En verdenskrig kan nå stoppes av brukeren som startet eller en admin med en tommel ned (lik andre reaction collectors)` +
+        `\n* Verdenskrig printer nå vinnerens chips etter at verdien er oppdatert` +
+        `\n* En verdenskrig kan nå stoppes av brukeren som startet eller en admin med en tommel ned (lik andre reaction collectors)` +
+        `\n* Verdenskrigen skal nå kun pinge deltakere ved slutt`
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
     }
