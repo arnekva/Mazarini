@@ -179,8 +179,6 @@ export class WarzoneCommands extends AbstractCommands {
         const gamertag = WZUser[0]
         const platform = this.translatePlatform(WZUser[1])
 
-        const sentMessage = await this.messageHelper.sendMessage(message.channelId, 'Henter data...')
-
         const data = await Warzone.combatHistory(gamertag, platform)
 
         const embedMsg = new MessageEmbed()
