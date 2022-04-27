@@ -479,6 +479,7 @@ export class Admin extends AbstractCommands {
                 description: 'Stopp PM2-prosessen som kjører botten. Den vil ikke restarte når den stoppes på denne måten',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.messageHelper.sendMessageToActionLog(rawMessage.channel as TextChannel, 'STANSET PM2-PROSESSEN')
+                    pm2?.killDaemon()
                     pm2?.disconnect()
                 },
                 isSuperAdmin: true,
