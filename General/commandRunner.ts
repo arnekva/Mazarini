@@ -6,8 +6,8 @@ import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { MessageUtils } from '../utils/messageUtils'
-import { doesThisMessageNeedAnEivindPride } from '../utils/miscUtils'
-import { splitUsername } from '../utils/textUtils'
+import { MiscUtils } from '../utils/miscUtils'
+import { TextUtils } from '../utils/textUtils'
 import { Commands, ICommandElement } from './commands'
 
 export class CommandRunner {
@@ -49,7 +49,7 @@ export class CommandRunner {
         const content = message.content
         const isBot = content.includes('bot')
         const isUser = content.includes('user')
-        const username = splitUsername(message.content.split(' ')[2]) ?? ''
+        const username = TextUtils.splitUsername(message.content.split(' ')[2]) ?? ''
         let locking = true
         if (Admin.isAuthorSuperAdmin(message.member) && content.startsWith('!lock')) {
             if (isUser) {
@@ -223,7 +223,7 @@ export class CommandRunner {
         if (message.author.id == '239154365443604480' && message.guild) {
             const react = message.guild.emojis.cache.find((emoji) => emoji.name == 'eivindpride')
             //check for 10% chance of eivindpriding
-            if (doesThisMessageNeedAnEivindPride(message.content, polseCounter) && react) message.react(react)
+            if (MiscUtils.doesThisMessageNeedAnEivindPride(message.content, polseCounter) && react) message.react(react)
         }
 
         //TODO: Refactor this

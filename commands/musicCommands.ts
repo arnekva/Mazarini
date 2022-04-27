@@ -5,7 +5,7 @@ import { ICommandElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { replaceLast, splitUsername } from '../utils/textUtils'
+import { TextUtils } from '../utils/textUtils'
 const fetch = require('node-fetch')
 export type musicCommand = 'top'
 
@@ -69,7 +69,7 @@ export class Music extends AbstractCommands {
             let username = this.getLastFMUsernameByDiscordUsername(params?.usernameToLookup ?? message.author.username, message)
 
             //Check if fourth ([3]) argument is a valid username - if so, override author.username. Otherwise, treat [3] as 'stats' option.
-            let usernameFromArgs = this.getLastFMUsernameByDiscordUsername(splitUsername(args[2]) ?? '', message)
+            let usernameFromArgs = this.getLastFMUsernameByDiscordUsername(TextUtils.splitUsername(args[2]) ?? '', message)
             if (usernameFromArgs) username = usernameFromArgs
             let limit = args[2] ?? '10'
             if (!username) {
@@ -225,7 +225,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
                         /** Fjern unødvendige ting fra stringen for å finne kun metodenavnet */
                         const methodWithoutGet = isWeekly
                             ? strippedMethod.replace('weekly', '').replace('chart', '')
-                            : replaceLast(strippedMethod.replace('top', '').replace('recent', ''), 's', '')
+                            : TextUtils.replaceLast(strippedMethod.replace('top', '').replace('recent', ''), 's', '')
                         /** Prop er fulle dataen som hentes ut */
                         prop = topData[strippedMethod][methodWithoutGet] as { name: string; playcount: string; artist?: { name: string } }[]
 

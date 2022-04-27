@@ -4,7 +4,8 @@ import { ICommandElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
-import { countdownTime, dateRegex, DateUtils, isValidDate } from '../utils/dateUtils'
+import { countdownTime, dateRegex, DateUtils } from '../utils/dateUtils'
+
 export interface dateValPair {
     print: string
     date: string
@@ -82,7 +83,7 @@ export class DateCommands extends AbstractCommands {
                 Number(hrs[2] ?? 0),
                 Number(hrs[3] ?? 0)
             )
-            if (!isValidDate(cdDate)) {
+            if (!DateUtils.isValidDate(cdDate)) {
                 message.reply(
                     'Du har skrevet inn en ugyldig dato eller klokkeslett. !mz countdown <dd-mm-yyyy> <HH> <beskrivelse>. Husk at time er nødvendig, minutt og sekund frivillig (HH:MM:SS)'
                 )

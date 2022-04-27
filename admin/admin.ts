@@ -8,8 +8,9 @@ import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniClient } from '../main'
 import { MessageUtils } from '../utils/messageUtils'
 import { ObjectUtils } from '../utils/objectUtils'
-import { splitUsername } from '../utils/textUtils'
+import { TextUtils } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
+const pm2 = require('pm2')
 
 export class Admin extends AbstractCommands {
     constructor(client: Client, messageHelper: MessageHelper) {
@@ -19,7 +20,7 @@ export class Admin extends AbstractCommands {
     private setSpecificValue(message: Message, messageContent: string, args: string[]) {
         //setValueObject
         const prefix = args[0] as dbPrefix
-        let username = splitUsername(args[1])
+        let username = TextUtils.splitUsername(args[1])
         let oldValue = DatabaseHelper.getValue(prefix, username, message, true)
         const user = UserUtils.findUserByUsername(username, message)
         if (!user || !oldValue) {
@@ -174,7 +175,7 @@ export class Admin extends AbstractCommands {
     }
 
     private async warnUser(message: Message, messageContent: string, args: string[]) {
-        const username = splitUsername(args[0])
+        const username = TextUtils.splitUsername(args[0])
 
         const user = DatabaseHelper.findUserByUsername(username, message)
 
@@ -282,7 +283,7 @@ export class Admin extends AbstractCommands {
     }
 
     private deleteXLastMessagesByUserInChannel(message: Message, messageContent: string, args: string[]) {
-        const userToDelete = splitUsername(args[0])
+        const userToDelete = TextUtils.splitUsername(args[0])
         const user = DatabaseHelper.findUserByUsername(userToDelete, message)
 
         const reason = userToDelete ? args.slice(3).join(' ') : args.slice(2).join(' ')
@@ -470,6 +471,17 @@ export class Admin extends AbstractCommands {
                     this.botDownTime(rawMessage, messageContent, args)
                 },
                 isAdmin: true,
+                hideFromListing: true,
+                category: 'admin',
+            },
+            {
+                commandName: 'stopprocess',
+                description: 'Stopp PM2-prosessen som kjører botten. Den vil ikke restarte når den stoppes på denne måten',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.messageHelper.sendMessageToActionLog(rawMessage.channel as TextChannel, 'STANSET PM2-PROSESSEN')
+                    pm2?.disconnect()
+                },
+                isSuperAdmin: true,
                 hideFromListing: true,
                 category: 'admin',
             },

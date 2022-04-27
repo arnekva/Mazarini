@@ -163,8 +163,8 @@ export class MessageHelper {
         )
     }
 
-    sendMessageToBotUtvikling(channel: TextChannel) {
+    sendMessageToBotUtvikling(channel: TextChannel, message: string) {
         const errorChannel = channel.client.channels.cache.get('802716150484041751') as TextChannel
-        errorChannel.send('Logget på')
+        errorChannel.send(message)
     }
 }

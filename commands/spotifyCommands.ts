@@ -7,7 +7,7 @@ import { ICommandElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { splitUsername } from '../utils/textUtils'
+import { TextUtils } from '../utils/textUtils'
 import { Music } from './musicCommands'
 const SpotifyWebApi = require('spotify-web-api-node')
 const base64 = require('base-64')
@@ -102,7 +102,7 @@ export class SpotifyCommands extends AbstractCommands {
         const _music = new Music(this.client, this.messageHelper)
         let name = ''
         if (args[0] && args[0] !== 'mer') {
-            name = splitUsername(args[0])
+            name = TextUtils.splitUsername(args[0])
         } else {
             name = rawMessage.author.username
         }

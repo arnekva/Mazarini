@@ -7,9 +7,9 @@ import { betObject, betObjectReturned, DatabaseHelper, dbPrefix } from '../helpe
 import { MessageHelper } from '../helpers/messageHelper'
 import { CollectorUtils } from '../utils/collectorUtils'
 import { MessageUtils } from '../utils/messageUtils'
-import { findLetterEmoji } from '../utils/miscUtils'
+import { MiscUtils } from '../utils/miscUtils'
 import { RandomUtils } from '../utils/randomUtils'
-import { formatMoney, splitUsername } from '../utils/textUtils'
+import { TextUtils } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
 
 export interface IDailyPriceClaim {
@@ -235,7 +235,9 @@ export class GamblingCommands extends AbstractCommands {
                     let people: string[] = []
                     resolveMessage.reactions.cache.forEach((reaction) => {
                         if (reaction.emoji.name === '👍') {
-                            people = reaction.users.cache.filter((u: User) => u.id !== '802945796457758760').map((u: User) => u.username)
+                            people = reaction.users.cache
+                                .filter((u: User) => u.id !== '802945796457758760' && u.id !== message.author.id)
+                                .map((u: User) => u.username)
                         }
                     })
 
@@ -338,6 +340,8 @@ export class GamblingCommands extends AbstractCommands {
                             engagerValue -= amount
                             victimValue += amount
                         }
+
+                        this.messageHelper.sendMessage(message.channelId, `<@${victim?.id}> <@${message.author.id}>`)
                         this.sendKrigMessage(
                             message.channel as TextChannel,
                             [
@@ -363,7 +367,10 @@ export class GamblingCommands extends AbstractCommands {
     private sendKrigMessage(channel: TextChannel, users: { username: string; balance: number; oldBalance: number }[], winningText: string) {
         const gambling = new MessageEmbed().setTitle('⚔️ Krig ⚔️').setDescription(`Terningen trillet ${winningText}`)
         users.forEach((user) => {
-            gambling.addField(`${user.username}`, `Har nå ${formatMoney(user.balance, 2, 2)} chips (hadde ${formatMoney(user.oldBalance, 2, 2)})`)
+            gambling.addField(
+                `${user.username}`,
+                `Har nå ${TextUtils.formatMoney(user.balance, 2, 2)} chips (hadde ${TextUtils.formatMoney(user.oldBalance, 2, 2)})`
+            )
         })
 
         this.messageHelper.sendFormattedMessage(channel, gambling)
@@ -376,8 +383,8 @@ export class GamblingCommands extends AbstractCommands {
         }
 
         let username = ''
-        let username1 = splitUsername(args[0])
-        let username2 = splitUsername(args[1])
+        let username1 = TextUtils.splitUsername(args[0])
+        let username2 = TextUtils.splitUsername(args[1])
 
         const user0Exists = UserUtils.findUserByUsername(username1, message)
         const user1Exists = UserUtils.findUserByUsername(username2, message)
@@ -511,13 +518,13 @@ export class GamblingCommands extends AbstractCommands {
             const gambling = new MessageEmbed()
                 .setTitle('Gambling 🎲')
                 .setDescription(
-                    `${message.author.username} gamblet ${formatMoney(valAsNum, 2, 2)} av ${formatMoney(
+                    `${message.author.username} gamblet ${TextUtils.formatMoney(valAsNum, 2, 2)} av ${TextUtils.formatMoney(
                         Number(userMoney),
                         2,
                         2
                     )} chips.\nTerningen trillet: ${roll}/100. Du ${
                         roll >= 50 ? 'vant! 💰💰 (' + Number(multiplier) + 'x)' : 'tapte 💸💸'
-                    }\nDu har nå ${formatMoney(newMoneyValue, 2, 2)} chips.`
+                    }\nDu har nå ${TextUtils.formatMoney(newMoneyValue, 2, 2)} chips.`
                 )
             if (roll >= 100) gambling.addField(`Trillet 100!`, `Du trillet 100 og vant ${multiplier} ganger så mye som du satset!`)
             if (hasDebtPenalty && roll >= 50)
@@ -619,7 +626,7 @@ export class GamblingCommands extends AbstractCommands {
                 .setDescription(
                     `${message.author.username} satset ${valAsNum} av ${userMoney} chips på ${betOn}.\nBallen landet på: ${result}. Du ${
                         won ? 'vant! 💰💰 (' + Number(multiplier) + 'x)' : 'tapte 💸💸'
-                    }\nDu har nå ${formatMoney(newMoneyValue, 2, 2)} chips.`
+                    }\nDu har nå ${TextUtils.formatMoney(newMoneyValue, 2, 2)} chips.`
                 )
             //TODO: Legg inn debt-penalty igjen
             this.messageHelper.sendFormattedMessage(message.channel as TextChannel, gambling)
@@ -768,7 +775,7 @@ export class GamblingCommands extends AbstractCommands {
             message.reply('Feil formattering. Det er <brukernavn> <antall> <chips|coins>')
             return
         }
-        const targetUser = UserUtils.findUserByUsername(splitUsername(args[0]), message)
+        const targetUser = UserUtils.findUserByUsername(TextUtils.splitUsername(args[0]), message)
 
         if (!targetUser) {
             message.reply('Brukeren eksisterer ikke')
@@ -842,7 +849,7 @@ export class GamblingCommands extends AbstractCommands {
         let username: string
         if (!args[0]) {
             username = message.author.username
-        } else username = splitUsername(args[0])
+        } else username = TextUtils.splitUsername(args[0])
         if (!UserUtils.findUserByUsername(username, message)) {
             message.reply('Brukeren finnes ikke')
             return
@@ -851,7 +858,7 @@ export class GamblingCommands extends AbstractCommands {
         const chips = DatabaseHelper.getValue('chips', username, message)
         this.messageHelper.sendMessage(
             message.channelId,
-            `${username} har ${formatMoney(Number(coins), 2, 2)} coins og ${formatMoney(Number(chips), 2, 2)} chips`
+            `${username} har ${TextUtils.formatMoney(Number(coins), 2, 2)} coins og ${TextUtils.formatMoney(Number(chips), 2, 2)} chips`
         )
     }
 
@@ -862,10 +869,10 @@ export class GamblingCommands extends AbstractCommands {
         let username: string
         if (!args[0]) {
             username = message.author.username
-        } else username = splitUsername(args[0])
+        } else username = TextUtils.splitUsername(args[0])
 
         const val = DatabaseHelper.getValue('chips', username, message)
-        this.messageHelper.sendMessage(message.channelId, `${username} har ${formatMoney(Number(val), 2, 2)}chips`)
+        this.messageHelper.sendMessage(message.channelId, `${username} har ${TextUtils.formatMoney(Number(val), 2, 2)}chips`)
     }
 
     private rollSlotMachine(message: Message, messageContent: string, args: string[]) {
@@ -884,7 +891,7 @@ export class GamblingCommands extends AbstractCommands {
             randArray.push(RandomUtils.getRndInteger(0, 9))
         }
         randArray.forEach((num) => {
-            emojiString += findLetterEmoji(num.toString())
+            emojiString += MiscUtils.findLetterEmoji(num.toString())
         })
 
         const msg = new MessageEmbed().setTitle('🎰 Gambling 🎰').setDescription(`${emojiString}`).setFields()

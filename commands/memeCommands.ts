@@ -1,10 +1,10 @@
-import { Client, Message, TextChannel } from 'discord.js'
-import { imgflip } from '../client-env'
-import { MessageHelper } from '../helpers/messageHelper'
-import { replaceAtWithTextUsername } from '../utils/textUtils'
-import { ICommandElement } from '../General/commands'
+import { Client, Message } from 'discord.js'
 import { URLSearchParams } from 'url'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { imgflip } from '../client-env'
+import { ICommandElement } from '../General/commands'
+import { MessageHelper } from '../helpers/messageHelper'
+import { TextUtils } from '../utils/textUtils'
 const fetch = require('node-fetch')
 export class Meme extends AbstractCommands {
     constructor(client: Client, messageHelper: MessageHelper) {
@@ -24,7 +24,7 @@ export class Meme extends AbstractCommands {
         const meme = await this.findMemeIdAndCreate(message, content, args)
     }
     private async createMeme(templateId: string, messageContent: string, message: Message, args: string[]) {
-        messageContent = replaceAtWithTextUsername(messageContent, message, true)
+        messageContent = TextUtils.replaceAtWithTextUsername(messageContent, message, true)
         const splitContent = messageContent.split(':')
         splitContent[0] = splitContent[0].split(' ').slice(1).join(' ')
         if (splitContent[0] && splitContent[1]) {

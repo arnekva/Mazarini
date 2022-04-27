@@ -8,8 +8,8 @@ import { EmojiHelper } from '../helpers/emojiHelper'
 import { Languages } from '../helpers/languageHelpers'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
-import { findFeseText, findLetterEmoji } from '../utils/miscUtils'
-import { doesTextIncludeUsername, replaceAtWithTextUsername, reverseMessageString, splitUsername } from '../utils/textUtils'
+import { MiscUtils } from '../utils/miscUtils'
+import { TextUtils } from '../utils/textUtils'
 
 export class JokeCommands extends AbstractCommands {
     constructor(client: Client, messageHelper: MessageHelper) {
@@ -51,7 +51,7 @@ export class JokeCommands extends AbstractCommands {
 
     private async updateMygleStatus(message: Message, messageContent: string) {
         let content = messageContent
-        const matchedUsrname = doesTextIncludeUsername(content)
+        const matchedUsrname = TextUtils.doesTextIncludeUsername(content)
         if (message.mentions.roles.size > 0) {
             message.reply('Du kan kje ha roller i statusen din, bro')
             return
@@ -68,11 +68,11 @@ export class JokeCommands extends AbstractCommands {
             return
         }
         content = content.replace(/(?:\r\n|\r|\n)/g, ' ')
-        content = replaceAtWithTextUsername(content, message)
+        content = TextUtils.replaceAtWithTextUsername(content, message)
 
         if (content.length < 150 && content.trim().length > 0) {
             if (message.content.includes('!zm')) {
-                content = reverseMessageString(content)
+                content = TextUtils.reverseMessageString(content)
             }
             DatabaseHelper.setValue('mygling', message.author.username, content + (url ? ' ' + url : ''))
             this.messageHelper.reactWithRandomEmoji(message)
@@ -147,7 +147,7 @@ export class JokeCommands extends AbstractCommands {
             if (usedLetter.includes(letter) && letter == ' ') {
                 spaceCounter++
             }
-            const emoji = usedLetter.includes(letter) ? findLetterEmoji(letter, true, spaceCounter) : findLetterEmoji(letter)
+            const emoji = usedLetter.includes(letter) ? MiscUtils.findLetterEmoji(letter, true, spaceCounter) : MiscUtils.findLetterEmoji(letter)
             usedLetter += letter
             try {
                 messageToReactTo.react(emoji).catch((error) => console.log(error))
@@ -158,7 +158,7 @@ export class JokeCommands extends AbstractCommands {
     }
 
     private kanPersonen(message: Message, msgContent: string, args: string[]) {
-        const name = splitUsername(args[0])
+        const name = TextUtils.splitUsername(args[0])
         this.messageHelper.sendMessage(message.channelId, `${name} ` + ArrayUtils.randomChoiceFromArray(globalArrays.kanIkkjeTekster))
     }
 
@@ -186,7 +186,7 @@ export class JokeCommands extends AbstractCommands {
         const randomUser = role ? channel.members.filter((m) => m.roles.cache.get(role) !== undefined).random() : channel.members.random()
         const authorName = message.member?.nickname ?? message.member?.displayName ?? message.author.username
         const randomName = randomUser?.nickname ?? randomUser?.displayName ?? randomUser?.user?.username
-        const phese = findFeseText(authorName, randomName)
+        const phese = MiscUtils.findFeseText(authorName, randomName)
         const reply = `${phese}`
 
         this.messageHelper.sendMessage(message.channelId, reply)

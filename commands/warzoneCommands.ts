@@ -180,13 +180,20 @@ export class WarzoneCommands extends AbstractCommands {
         const platform = this.translatePlatform(WZUser[1])
 
         try {
-            const waitMsg = this.messageHelper.sendMessage(message.channelId, 'Laster data ...')
-            const data = await Warzone.combatHistory(gamertag, platform)
+            const waitMsg = await this.messageHelper.sendMessage(message.channelId, 'Laster data ...')
+            let data = await Warzone.combatHistory(gamertag, platform)
+            let tries = 1
+            while (!data?.data?.matches && tries < 3) {
+                tries++
+                if (waitMsg) waitMsg.edit('Fant ingen data. Forsøker på ny ... (' + tries + '/' + '3)')
+                data = await Warzone.combatHistory(gamertag, platform)
+            }
             if (!data?.data?.matches) {
-                return message.reply('Fant ingen matches. Matches: ' + data?.data?.matches)
+                if (waitMsg) return waitMsg.edit(`Fant ingen data for ${gamertag} på ${platform} etter ${tries}/${tries} forsøk. Prøv igjen senere`)
+                else return this.messageHelper.sendMessage(message.channelId, 'Fant ingen matches.')
             }
             const matchStart = Number(data?.data?.matches[0]?.utcStartSeconds) * 1000
-            const matchStartDate = new Date(matchStart) // The 0 there is the key, which sets the date to the epoch
+            const matchStartDate = new Date(matchStart)
 
             const embedMsg = new MessageEmbed()
                 .setTitle(`Siste match for ${gamertag}: ${data?.data?.matches[0]?.playerStats?.teamPlacement ?? 'Ukjent'}. plass `)
@@ -209,7 +216,7 @@ export class WarzoneCommands extends AbstractCommands {
             embedMsg.addField(`Rank:`, `${data?.data?.matches[0]?.player?.rank ?? 'Ukjent'}`, true)
 
             this.messageHelper.sendFormattedMessage(message.channel as TextChannel, embedMsg)
-            if (waitMsg) (await waitMsg).delete()
+            if (waitMsg) waitMsg.delete()
         } catch (error: any) {
             return message.reply('Klarte ikke hente data: ' + error)
         }

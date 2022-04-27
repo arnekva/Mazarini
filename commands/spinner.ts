@@ -6,7 +6,7 @@ import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
-import { escapeString } from '../utils/textUtils'
+import { TextUtils } from '../utils/textUtils'
 
 const weightedRandomObject = require('weighted-random-object')
 
@@ -64,7 +64,7 @@ export class Spinner extends AbstractCommands {
     private spin(message: Message) {
         const min = weightedRandomObject(spinMinutes).number
         const sec = Math.floor(Math.random() * 60)
-        const cleanUsername = escapeString(message.author.username)
+        const cleanUsername = TextUtils.escapeString(message.author.username)
 
         if (cleanUsername.length < 2) {
             message.reply(
