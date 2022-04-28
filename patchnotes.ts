@@ -4,17 +4,11 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '6.8.1'
+    public static readonly currentVersion = '6.8.2'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string =
-        `\n* WZ siste match skal nå forsøke å fetche siste match opp til 3 ganger hvis den feiler` +
-        `\n* Krig med hvem som helst pinger nå deltakere når krigen er ferdig` +
-        `\n* Hvis den som starter verdenskrigen reagerer med tommel opp skal han ikke lenger komme i printen dobbelt opp` +
-        `\n* MiscUtils og TextUtils er nå namespaces` +
-        `\n* Oppdatert eivindpride-algoritmen for å ta høyde for nye pride-emojier` +
-        `\n* Superadminer kan nå stanse bot-prosessen ved å kjøre '!Mz stoppprocess'`
+    public static readonly currentPatchNotes: string = `\n* Fikset formattering for 'musikk' kommandoen på iOS. `
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
     }

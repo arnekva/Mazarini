@@ -227,7 +227,10 @@ Docs: https://www.last.fm/api/show/user.getInfo
 
                         let numPlaysInTopX = 0
                         if (prop) {
+                            const zeroWidthSpace = '\u200B'
+                            const lineSeperator = `${zeroWidthSpace}\n${zeroWidthSpace}`
                             let hasCurrentlyPlaying = false
+
                             prop.forEach((element: any, index) => {
                                 const isCurrentlyPlaying = !isNotRecent && element.hasOwnProperty('@attr')
                                 if (hasCurrentlyPlaying && dataParam.includeNameInOutput) return
@@ -236,7 +239,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
 
                                 /** Denne ser kanskje lang ut, men den lager hver linje. Først ser den etter artist (hentes forskjellig fra weekly), legger til bindestrek, sjekker etter sangnavn etc.  */
                                 artistString +=
-                                    ` \n ${dataParam.includeNameInOutput ? '(' + dataParam.username + ') ' : ''}${
+                                    `${dataParam.includeNameInOutput ? '(' + dataParam.username + ') ' : ''}${
                                         isFormattedWithHashtag && element.artist
                                             ? element.artist['#text'] + ' - '
                                             : element.artist
@@ -254,6 +257,8 @@ Docs: https://www.last.fm/api/show/user.getInfo
                                                 : '(' + new Date(Number(element.date['uts']) * 1000).toLocaleString('nb-NO') + ')'
                                             : ''
                                     }`
+
+                                artistString += lineSeperator
                             })
                             /** Hvis prop-en er formattert med en # (eks. ['@attr']) så finnes ikke total plays. */
                             if (!isFormattedWithHashtag)
