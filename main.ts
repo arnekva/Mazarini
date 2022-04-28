@@ -23,6 +23,7 @@ import { ClientHelper } from './helpers/clientHelper'
 import { MessageHelper } from './helpers/messageHelper'
 import { DailyJobs } from './Jobs/dailyJobs'
 import { WeeklyJobs } from './Jobs/weeklyJobs'
+import { MessageUtils } from './utils/messageUtils'
 import { UserUtils } from './utils/userUtils'
 
 const Discord = require('discord.js')
@@ -167,7 +168,7 @@ export class MazariniClient {
             }
             const { executor, target } = deletionLog
 
-            if (target?.id === message?.author?.id && !message?.author?.tag.includes('Mazarini')) {
+            if (target?.id === message?.author?.id && message.channelId !== MessageUtils.CHANNEL_IDs.ACTION_LOG) {
                 _msgHelper.sendMessage(
                     actionLogId,
                     `**En melding av** *${message?.author?.tag}* **ble slettet av** *${executor?.tag}*. **Innhold**: '*${message?.content}*'`
