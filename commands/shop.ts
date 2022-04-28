@@ -136,8 +136,7 @@ export class ShopClass {
             let inventoryItems: inventoryItem[] = DatabaseHelper.getValueWithoutMessage('inventory', interaction.user.username)
 
             if (!inventoryItems || Object.values(inventoryItems).length === 0) {
-                await commandInteraction.reply('Du har ingenting i inventory. Kjøba någe fysst kanskje?')
-                return
+                return await commandInteraction.reply('Du har ingenting i inventory. Kjøba någe fysst kanskje?')
             }
 
             Object.values(inventoryItems).forEach((item: inventoryItem) => {

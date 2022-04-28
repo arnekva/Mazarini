@@ -83,7 +83,7 @@ export class CommandRunner {
         }
     }
     async checkForCommand(message: Message) {
-        if (message.author.id === '802945796457758760') return
+        if (message.author.id === '802945796457758760') return undefined
 
         const isZm = message.content.toLowerCase().startsWith('!zm ')
         if (message.content.toLowerCase().startsWith('!mz ') || isZm) {
@@ -97,15 +97,13 @@ export class CommandRunner {
                     Array.isArray(cmd.commandName) ? cmd.commandName.find((c) => c === this.lastUsedCommand) : cmd.commandName == this.lastUsedCommand
                 )[0]
                 if (lastCommand) {
-                    this.runCommandElement(lastCommand, message, messageContent, args)
-                    return
+                    return this.runCommandElement(lastCommand, message, messageContent, args)
                 } else {
-                    message.reply('Kunne ikke utføre kommandoen')
+                    return message.reply('Kunne ikke utføre kommandoen')
                 }
-                return
             } else if (message.content.toLowerCase().startsWith('!mz nei')) {
-                message.reply('Neivel då?')
-                return
+                this.lastUsedCommand = 'help'
+                return message.reply('Neivel då?')
             }
             commands.forEach((cmd) => {
                 if (
@@ -132,7 +130,7 @@ export class CommandRunner {
                 )
             }
         } else if (message.content.startsWith('!mz')) {
-            message.reply("du må ha mellomrom etter '!mz' og kommandoen.")
+            return message.reply("du må ha mellomrom etter '!mz' og kommandoen.")
         }
     }
 

@@ -34,15 +34,14 @@ export class MessageHelper {
 
     sendMessageToChannel(channel: TextChannel | DMChannel, message: string) {
         if (!this.checkForEmptyMessage(message)) {
-            this.logEmptyMessage('En melding som ble forsøkt sendt var tom', channel.id)
-            return
+            return this.logEmptyMessage('En melding som ble forsøkt sendt var tom', channel.id)
         }
         return channel.send(message)
     }
 
     sendDM(user: User, message: string) {
         if (!this.checkForEmptyMessage(message)) {
-            return
+            return undefined
         }
         user.send(message)
     }

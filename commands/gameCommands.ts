@@ -96,16 +96,14 @@ export class GameCommands extends AbstractCommands {
         const gridNumber = parseInt(grid.charAt(1))
 
         if (!gridLetter.includes(letter) || !validNumbers.includes(validNumbers) || grid == '' || Number.isNaN(gridNumber)) {
-            this.messageHelper.sendMessage(message.channelId, 'Kan du ikkje i det minsta velga kor sirkelen e?')
-            return
+            return this.messageHelper.sendMessage(message.channelId, 'Kan du ikkje i det minsta velga kor sirkelen e?')
         }
 
         if (illegalCenterCoordinates.includes(grid)) {
-            this.messageHelper.sendMessage(
+            return this.messageHelper.sendMessage(
                 message.channelId,
                 'E det sirkelen din? Dokker e fucked... \n(Botten klare ikkje å regna ud koordinater for så små grids)'
             )
-            return
         }
 
         // E5 = 5,5
@@ -136,8 +134,7 @@ export class GameCommands extends AbstractCommands {
 
         // return
         if (!user) {
-            rawMessage.reply("Du må linke Rocket League kontoen din. Bruk '!mz link rocket <psn|xbl|steam|epic> <brukernavn>'")
-            return
+            return rawMessage.reply("Du må linke Rocket League kontoen din. Bruk '!mz link rocket <psn|xbl|steam|epic> <brukernavn>'")
         }
         const waitMsg = await this.messageHelper.sendMessage(rawMessage.channelId, 'Laster data...')
         const platform = user[0]
@@ -179,13 +176,12 @@ export class GameCommands extends AbstractCommands {
 
         const response = JSON.parse(striptags(content))
         if (!response.data) {
-            this.messageHelper.sendMessageToActionLogWithCustomMessage(
+            return this.messageHelper.sendMessageToActionLogWithCustomMessage(
                 rawMessage,
                 'Fant ikke data',
                 'Fant ikke data for brukeren. Her har en error skjedd',
                 true
             )
-            return
         }
         const segments = response.data.segments
 
@@ -194,8 +190,7 @@ export class GameCommands extends AbstractCommands {
         let oneVone: rocketLeagueStats = {}
         let lifetimeStats: rocketLeagueLifetime = {}
         if (!segments) {
-            this.messageHelper.sendMessageToActionLogWithCustomMessage(rawMessage, 'Fetch til Rocket League API feilet', 'Her har noe gått galt', false)
-            return
+            return this.messageHelper.sendMessageToActionLogWithCustomMessage(rawMessage, 'Fetch til Rocket League API feilet', 'Her har noe gått galt', false)
         }
         for (const segment of segments) {
             if (!segment) {

@@ -61,8 +61,7 @@ export class UserCommands extends AbstractCommands {
         if (args.length > 1) {
             const quoteBy = args[0]
             if (!isUpperCase(quoteBy[0])) {
-                message.reply(`Argument 1 (${args[0]}) må ha stor forbokstav. Dette er navnet på personen som sa quotet.`)
-                return
+                return message.reply(`Argument 1 (${args[0]}) må ha stor forbokstav. Dette er navnet på personen som sa quotet.`)
             }
             const quoteText = args.slice(1).join(' ')
             if (!!quoteBy && !!quoteText) {

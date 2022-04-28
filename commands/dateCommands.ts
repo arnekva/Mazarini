@@ -24,12 +24,10 @@ export class DateCommands extends AbstractCommands {
         const secInMilli = Number(timeArray[2]) * 1000
         const timeout = hoursInMilli + minInMilli + secInMilli
         if (timeArray.length < 3) {
-            message.reply('Formattering på tid må være HH:MM:SS')
-            return
+            return message.reply('Formattering på tid må være HH:MM:SS')
         }
         if (event.length < 1) {
-            message.reply('Du må spesifisere hva påminnelsen gjelder')
-            return
+            return message.reply('Du må spesifisere hva påminnelsen gjelder')
         }
         this.messageHelper.reactWithRandomEmoji(message)
         setTimeout(() => {
@@ -56,20 +54,17 @@ export class DateCommands extends AbstractCommands {
     }
     private async countdownToDate(message: Message, messageContent: string, args: string[]) {
         if (args[0] == 'fjern') {
-            DatabaseHelper.deleteCountdownValue(message.author.username)
-            return
+            return DatabaseHelper.deleteCountdownValue(message.author.username)
         }
         if (args[0] && (!args[1] || !args[2])) {
-            message.reply('du mangler beskrivelse eller time (!mz countdown <dd-mm-yyyy> <HH> <beskrivelse>')
-            return
+            return message.reply('du mangler beskrivelse eller time (!mz countdown <dd-mm-yyyy> <HH> <beskrivelse>')
         }
 
         if (args.length >= 2) {
             //dd-mm-yyyy
             const isLegal = dateRegex.test(args[0])
             if (!isLegal) {
-                message.reply('du må formattere datoen ordentlig (dd-mm-yyyy)')
-                return
+                return message.reply('du må formattere datoen ordentlig (dd-mm-yyyy)')
             }
             const dateParams = args[0].split('-')
             const hrs = args[1].split(':')
@@ -84,18 +79,16 @@ export class DateCommands extends AbstractCommands {
                 Number(hrs[3] ?? 0)
             )
             if (!DateUtils.isValidDate(cdDate)) {
-                message.reply(
+                return message.reply(
                     'Du har skrevet inn en ugyldig dato eller klokkeslett. !mz countdown <dd-mm-yyyy> <HH> <beskrivelse>. Husk at time er nødvendig, minutt og sekund frivillig (HH:MM:SS)'
                 )
-                return
             }
             DatabaseHelper.setCountdownValue(message.author.username, 'date', cdDate.toString())
             DatabaseHelper.setCountdownValue(message.author.username, 'desc', desc)
         }
         let sendThisText = ''
         if (Object.keys(DatabaseHelper.getAllCountdownValues()).length < 1) {
-            message.reply('Det er ingen aktive countdowns')
-            return
+            return message.reply('Det er ingen aktive countdowns')
         }
         const countdownDates = DatabaseHelper.getAllCountdownValues()
 
@@ -154,15 +147,13 @@ export class DateCommands extends AbstractCommands {
                 this.messageHelper.sendMessage(message.channelId, 'Du har bursdag i dag! gz')
             } else {
                 const timeUntilBirthday = this.formatCountdownText(DateUtils.getTimeTo(date), `til ${message.author.username} sin bursdag.`, undefined, true)
-                this.messageHelper.sendMessage(message.channelId, timeUntilBirthday ?? 'Klarte ikke regne ut')
-                return
+                return this.messageHelper.sendMessage(message.channelId, timeUntilBirthday ?? 'Klarte ikke regne ut')
             }
         }
         const dateString = args[0]
         if (dateString.split('-').length < 2 || (!(new Date(dateString) instanceof Date) && !isNaN(new Date(dateString).getTime()))) {
             //TODO: Must be tested
-            message.reply('Datoen er feilformattert. dd-mm-yyyy')
-            return
+            return message.reply('Datoen er feilformattert. dd-mm-yyyy')
         }
         DatabaseHelper.setValue('birthday', message.author.username, dateString)
         this.messageHelper.reactWithThumbs(message, 'up')

@@ -182,8 +182,7 @@ export class Admin extends AbstractCommands {
         const replyString = messageContent.replace(username, '').replace('""', '').trim()
         if (user) {
             if (user.username == message.author.username) {
-                message.reply('Du kan kje warna deg sjøl, bro')
-                return
+                return message.reply('Du kan kje warna deg sjøl, bro')
             }
             const userWarnings = DatabaseHelper.getValue('warningCounter', user.username, message)
 
@@ -250,8 +249,7 @@ export class Admin extends AbstractCommands {
                 //Vil hente fra verdier som ikke er knyttet til bruker
                 const data = DatabaseHelper.getAllValuesFromPath(`/${p}`)
                 if (!data) {
-                    message.reply(`Pathen ${p} inneholder ingen data.`)
-                    return
+                    return message.reply(`Pathen ${p} inneholder ingen data.`)
                 }
                 const values: ValuePair[] = []
                 Object.keys(data).forEach((el) => {
@@ -277,8 +275,7 @@ export class Admin extends AbstractCommands {
                 }
             }
         } else {
-            message.reply('Du må spesifisere path eller prefix')
-            return
+            return message.reply('Du må spesifisere path eller prefix')
         }
     }
 
@@ -288,8 +285,7 @@ export class Admin extends AbstractCommands {
 
         const reason = userToDelete ? args.slice(3).join(' ') : args.slice(2).join(' ')
         if (!user) {
-            message.reply('du må oppgi et gyldig brukernavn. <brukernavn> <antall meldinger>')
-            return
+            return message.reply('du må oppgi et gyldig brukernavn. <brukernavn> <antall meldinger>')
         }
         const currentChannel = message.channel
         const maxDelete = Number(args[1]) ?? 1
@@ -303,8 +299,7 @@ export class Admin extends AbstractCommands {
                             message.delete()
                             deleteCounter++
                         } catch (error) {
-                            this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
-                            return
+                            return this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
                         }
                     }
                 })

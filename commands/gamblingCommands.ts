@@ -23,8 +23,7 @@ export class GamblingCommands extends AbstractCommands {
 
     private async manageCoins(message: Message, messageContent: string, args: string[]) {
         if (!args[0] && !args[1]) {
-            this.messageHelper.sendMessage(message.channelId, `Feil formattering. <brukernavn> <coins>`)
-            return
+            return this.messageHelper.sendMessage(message.channelId, `Feil formattering. <brukernavn> <coins>`)
         }
         const user = args[0]
         const prefix = 'dogeCoin'
@@ -43,8 +42,7 @@ export class GamblingCommands extends AbstractCommands {
         let desc = messageContent
         this
         if (hasActiveBet) {
-            message.reply('Du kan bare ha ett aktivt veddemål om gangen. Gjør ferdig ditt gamle, og prøv på nytt')
-            return
+            return message.reply('Du kan bare ha ett aktivt veddemål om gangen. Gjør ferdig ditt gamle, og prøv på nytt')
         }
         let betVal = 100
         if (!isNaN(Number(args[0]))) {
@@ -52,8 +50,7 @@ export class GamblingCommands extends AbstractCommands {
             desc = desc.slice(args[0].length)
         }
         if (betVal > Number(userBalance)) {
-            message.reply('Du har kje råd te dette bro')
-            return
+            return message.reply('Du har kje råd te dette bro')
         }
         const betString = `${message.author.username} har startet et veddemål: ${desc} (${betVal} chips). Reager med 👍 for JA, 👎 for NEI. Resultat vises om ${globals.TIMEOUT_TIME.name}`
         const startMessage = await this.messageHelper.sendMessage(message.channelId, betString)
@@ -102,8 +99,7 @@ export class GamblingCommands extends AbstractCommands {
                     fullString += '\n'
                 }
                 if (positive.length == 0 && negative.length == 0) {
-                    message.reply('Ingen svarte på veddemålet. ')
-                    return
+                    return message.reply('Ingen svarte på veddemålet. ')
                 }
                 _msg.sendMessage(message.channelId, fullString)
 
@@ -123,8 +119,7 @@ export class GamblingCommands extends AbstractCommands {
         const username = message.author.username
         const activeBet = DatabaseHelper.getActiveBetObject(message.author.username) as betObjectReturned
         if (!activeBet) {
-            message.reply('Du kan kun lukke veddemål du har startet selv, og du har ingen aktive.')
-            return
+            return message.reply('Du kan kun lukke veddemål du har startet selv, og du har ingen aktive.')
         }
         if (args[0] === 'slett') {
             let numP = 0
@@ -134,12 +129,10 @@ export class GamblingCommands extends AbstractCommands {
             if (posSplit[0] !== '') numP += posSplit.length
             this.dealCoins(message, activeBet.value, activeBet.positivePeople.concat(activeBet.negativePeople), numP, true)
             DatabaseHelper.deleteActiveBet(username)
-            message.reply('Veddemålet er slettet, og beløp er tilbakebetalt.')
-            return
+            return message.reply('Veddemålet er slettet, og beløp er tilbakebetalt.')
         }
         if (args[0].toLocaleLowerCase() !== 'nei' && args[0].toLocaleLowerCase() !== 'ja') {
-            message.reply("Du må legge til om det var 'ja' eller 'nei' som var utfallet av veddemålet")
-            return
+            return message.reply("Du må legge til om det var 'ja' eller 'nei' som var utfallet av veddemålet")
         }
         DatabaseHelper.deleteActiveBet(username)
         const resolveMessage = await this.messageHelper.sendMessage(
@@ -174,8 +167,7 @@ export class GamblingCommands extends AbstractCommands {
         const username = args[0] ?? message.author.username
         const activeBet = DatabaseHelper.getActiveBetObject(username) as betObject
         if (!activeBet) {
-            message.reply('Du har ingen aktive veddemål')
-            return
+            return message.reply('Du har ingen aktive veddemål')
         }
 
         const betMessage = new MessageEmbed()
@@ -288,8 +280,7 @@ export class GamblingCommands extends AbstractCommands {
     private async krigWithAnyone(message: Message, content: string, args: string[]) {
         const amount = Number(this.findKrigValue(args[0], message.author.username))
         if (!amount) {
-            message.reply('Du har skrevet inn et ugyldig tall')
-            return
+            return message.reply('Du har skrevet inn et ugyldig tall')
         }
 
         const resolveMessage = await this.messageHelper.sendMessage(
@@ -378,8 +369,7 @@ export class GamblingCommands extends AbstractCommands {
 
     private async krig(message: Message, content: string, args: string[]) {
         if (args[1] === 'alle') {
-            this.startVerdensKrig(message, content, args)
-            return
+            return this.startVerdensKrig(message, content, args)
         }
 
         let username = ''
@@ -485,20 +475,16 @@ export class GamblingCommands extends AbstractCommands {
         let value = args[0]
         if (value === 'alt' || value === 'all') value = userMoney
         if (!value || isNaN(Number(value))) {
-            message.reply('Du må si hvor mye du vil gamble')
-            return
+            return message.reply('Du må si hvor mye du vil gamble')
         }
         if (userMoney) {
             if (Number(value) > Number(userMoney)) {
-                message.reply('Du har ikke nok penger til å gamble så mye. Bruk <!mz lån 100> for å låne chips fra MazariniBank')
-                return
+                return message.reply('Du har ikke nok penger til å gamble så mye. Bruk <!mz lån 100> for å låne chips fra MazariniBank')
             } else if (Number(value) < 1) {
-                message.reply('Du må satsa minst 1 chip')
-                return
+                return message.reply('Du må satsa minst 1 chip')
             }
         } else {
-            message.reply('Du har nok ikkje råd te dette')
-            return
+            return message.reply('Du har nok ikkje råd te dette')
         }
         if (value && Number(value)) {
             const valAsNum = Number(Number(value).toFixed(0))
@@ -538,24 +524,19 @@ export class GamblingCommands extends AbstractCommands {
         const stake = args[0]
         const betOn = args[1]
         if (!stake || isNaN(Number(stake))) {
-            message.reply('Du må si hvor mye du vil gamble')
-            return
+            return message.reply('Du må si hvor mye du vil gamble')
         }
         if (!betOn) {
-            message.reply('Så du bare setter chips på ingenting?')
-            return
+            return message.reply('Så du bare setter chips på ingenting?')
         }
         if (args.length > 2) {
-            message.reply('Helvedde.. Tror kanskje du må spørre om hjelp for å formattere deg riktig')
-            return
+            return message.reply('Helvedde.. Tror kanskje du må spørre om hjelp for å formattere deg riktig')
         }
         if (userMoney) {
             if (Number(stake) > Number(userMoney)) {
-                message.reply('Du har ikke nok penger til å gamble så mye. Bruk <!mz lån 100> for å låne chips fra MazariniBank')
-                return
+                return message.reply('Du har ikke nok penger til å gamble så mye. Bruk <!mz lån 100> for å låne chips fra MazariniBank')
             } else if (Number(stake) < 0 || Number(stake) === 0) {
-                message.reply('Du prøver å gamble med en ulovlig verdi.')
-                return
+                return message.reply('Du prøver å gamble med en ulovlig verdi.')
             }
         }
         //FIXME: multiplier is wrong (1 instead of 2) because no money is taken before the gamble. Therefore, awarding x2 on win results in x3, as the initial bet was not drawn from the account
@@ -598,8 +579,7 @@ export class GamblingCommands extends AbstractCommands {
                         multiplier = 2
                     }
                 } else {
-                    message.reply('Lol, kan du ikke rulett eller?')
-                    return
+                    return message.reply('Lol, kan du ikke rulett eller?')
                 }
             }
 
@@ -665,14 +645,11 @@ export class GamblingCommands extends AbstractCommands {
             const argAsNum = Number(args[0])
 
             if (isNaN(argAsNum)) {
-                message.reply('du har oppgitt et ugyldig tall')
-                return
+                return message.reply('du har oppgitt et ugyldig tall')
             } else if (argAsNum > 1500) {
-                message.reply('du kan låne maks 1500 chips')
-                return
+                return message.reply('du kan låne maks 1500 chips')
             } else if (argAsNum < 1) {
-                message.reply('Kan kje låna mindre enn 1 chip')
-                return
+                return message.reply('Kan kje låna mindre enn 1 chip')
             }
             amountToLoan = argAsNum
         }
@@ -682,8 +659,7 @@ export class GamblingCommands extends AbstractCommands {
         const debtMultiplier = DatabaseHelper.getValue('debtMultiplier', username, message)
         const userMoney = DatabaseHelper.getValue('chips', message.author.username, message)
         if (Number(debtMultiplier) > 75) {
-            message.reply('Du har kje lov å ta opp lån når rentå di e over 90%. Du får gambla, ble vippsa eller bruka "!mz daily" for å få mer chips')
-            return
+            return message.reply('Du har kje lov å ta opp lån når rentå di e over 90%. Du får gambla, ble vippsa eller bruka "!mz daily" for å få mer chips')
         }
         const newTotalLoans = Number(totalLoans) + 1
         const newDebt = Number(totalDebt) + amountToLoan * 1.15
@@ -717,22 +693,19 @@ export class GamblingCommands extends AbstractCommands {
         const hasDebtPenalty = DatabaseHelper.getValue('debtPenalty', username, message)
         const debtMultiplier = DatabaseHelper.getValue('debtMultiplier', username, message)
         if (Number(totalDebt) <= 0) {
-            message.reply('Du har ingen lån')
-            return
+            return message.reply('Du har ingen lån')
         }
         const userMoney = DatabaseHelper.getValue('chips', message.author.username, message)
         const wantsToPayDownThisAmount = Number(args[0])
         if (wantsToPayDownThisAmount < 0) {
-            message.reply('skriv inn et positivt tall, bro')
-            return
+            return message.reply('skriv inn et positivt tall, bro')
         }
         if (!isNaN(wantsToPayDownThisAmount)) {
             let newTotal = Number(totalDebt) - Number(args[0])
 
             const userMasNumber = Number(userMoney)
             if (userMasNumber < wantsToPayDownThisAmount) {
-                message.reply('du har ikke råd til dette.')
-                return
+                return message.reply('du har ikke råd til dette.')
             } else {
                 let backToPayer = 0
                 if (newTotal < 0) {
@@ -772,21 +745,18 @@ export class GamblingCommands extends AbstractCommands {
 
     private vippsCoins(message: Message, content: string, args: string[]) {
         if (args.length < 3) {
-            message.reply('Feil formattering. Det er <brukernavn> <antall> <chips|coins>')
-            return
+            return message.reply('Feil formattering. Det er <brukernavn> <antall> <chips|coins>')
         }
         const targetUser = UserUtils.findUserByUsername(TextUtils.splitUsername(args[0]), message)
 
         if (!targetUser) {
-            message.reply('Brukeren eksisterer ikke')
-            return
+            return message.reply('Brukeren eksisterer ikke')
         }
 
         const transactionAmount = Number(args[1])
 
         if (isNaN(transactionAmount) || transactionAmount < 1) {
-            message.reply('Du må skriva inn et gyldig tegn. Det må være større enn 0')
-            return
+            return message.reply('Du må skriva inn et gyldig tegn. Det må være større enn 0')
         }
 
         const transactionType = args[2]
@@ -796,8 +766,7 @@ export class GamblingCommands extends AbstractCommands {
         } else if (transactionType === 'chips') {
             trType = transactionType
         } else {
-            message.reply('Du må spesifisere om du vil vippse "coins" eller "chips"')
-            return
+            return message.reply('Du må spesifisere om du vil vippse "coins" eller "chips"')
         }
 
         const userBalance = DatabaseHelper.getValueWithoutMessage(trType, message.author.username)
@@ -810,8 +779,7 @@ export class GamblingCommands extends AbstractCommands {
                 `${message.author.username} vippset ${targetUser.username} ${transactionAmount} ${transactionType}.`
             )
         } else {
-            message.reply('du har ikkje råd te å vippsa så møye, bro.')
-            return
+            return message.reply('du har ikkje råd te å vippsa så møye, bro.')
         }
     }
 
@@ -851,8 +819,7 @@ export class GamblingCommands extends AbstractCommands {
             username = message.author.username
         } else username = TextUtils.splitUsername(args[0])
         if (!UserUtils.findUserByUsername(username, message)) {
-            message.reply('Brukeren finnes ikke')
-            return
+            return message.reply('Brukeren finnes ikke')
         }
         const coins = DatabaseHelper.getValue('dogeCoin', username, message)
         const chips = DatabaseHelper.getValue('chips', username, message)
@@ -878,8 +845,7 @@ export class GamblingCommands extends AbstractCommands {
     private rollSlotMachine(message: Message, messageContent: string, args: string[]) {
         const userMoney = DatabaseHelper.getValue('chips', message.author.username, message)
         if (Number(userMoney) < 100) {
-            message.reply('Det koste 100 chips for å bruga maskinen, og du har kje råd bro')
-            return
+            return message.reply('Det koste 100 chips for å bruga maskinen, og du har kje råd bro')
         }
         //Remove 100 chips
         let emojiString = ''
@@ -949,8 +915,7 @@ export class GamblingCommands extends AbstractCommands {
         const dailyPrice = { chips: '300', coins: '80' }
         const hasFreeze = Number(DatabaseHelper.getValueWithoutMessage('dailyFreezeCounter', message.author.username))
         if (!isNaN(hasFreeze) && hasFreeze > 0) {
-            message.reply('Du har frosset daily claimet ditt i ' + hasFreeze + ' dager til. Vent til da og prøv igjen')
-            return
+            return message.reply('Du har frosset daily claimet ditt i ' + hasFreeze + ' dager til. Vent til da og prøv igjen')
         }
         if (canClaim === '0') {
             const oldData = DatabaseHelper.getValue('dailyClaimStreak', message.author.username, message, true)
@@ -990,13 +955,11 @@ export class GamblingCommands extends AbstractCommands {
     private freezeDailyClaim(message: Message, messageContent: string, args: string[]) {
         const numDays = Number(args[0])
         if (isNaN(numDays) || numDays > 8) {
-            message.reply('Du må skrive inn et gyldig tall lavere enn 8')
-            return
+            return message.reply('Du må skrive inn et gyldig tall lavere enn 8')
         }
         const hasFreeze = Number(DatabaseHelper.getValueWithoutMessage('dailyFreezeCounter', message.author.username))
         if (hasFreeze && hasFreeze > 0) {
-            message.reply('Du har allerede frosset daily claimet ditt i ' + hasFreeze + ' dager til')
-            return
+            return message.reply('Du har allerede frosset daily claimet ditt i ' + hasFreeze + ' dager til')
         }
         DatabaseHelper.setValue('dailyFreezeCounter', message.author.username, numDays.toString())
         message.reply(

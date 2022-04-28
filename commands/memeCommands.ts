@@ -16,8 +16,8 @@ export class Meme extends AbstractCommands {
         const memeString = args[0].toLowerCase()
         if (memeString == 'anakin' || memeString == '322841258') return await this.createMeme('322841258', content, message, args)
         if (memeString == 'timmy' || memeString == '26433458') return await this.createMeme('26433458', content, message, args)
-        if (memeString == 'sjøsyk' || memeString == 'hallgeir') this.messageHelper.sendMessage(message.channelId, 'https://i.imgur.com/ka7SslJ.jpg')
-        return
+        if (memeString == 'sjøsyk' || memeString == 'hallgeir')
+            return await this.messageHelper.sendMessage(message.channelId, 'https://i.imgur.com/ka7SslJ.jpg')
     }
 
     private async sendMeme(message: Message, content: string, args: string[]) {

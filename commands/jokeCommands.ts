@@ -53,8 +53,7 @@ export class JokeCommands extends AbstractCommands {
         let content = messageContent
         const matchedUsrname = TextUtils.doesTextIncludeUsername(content)
         if (message.mentions.roles.size > 0) {
-            message.reply('Du kan kje ha roller i statusen din, bro')
-            return
+            return message.reply('Du kan kje ha roller i statusen din, bro')
         }
         let url
         if (message.attachments) {
@@ -64,8 +63,7 @@ export class JokeCommands extends AbstractCommands {
         const count = messageContent.split('://')
         const count2 = messageContent.split('www')
         if (count.length > 2 || count2.length > 2) {
-            message.reply('Max ein attachment, bro')
-            return
+            return message.reply('Max ein attachment, bro')
         }
         content = content.replace(/(?:\r\n|\r|\n)/g, ' ')
         content = TextUtils.replaceAtWithTextUsername(content, message)

@@ -127,8 +127,7 @@ export class DrinksCommands extends AbstractCommands {
     private drawCard(message: Message) {
         let card: string = this.deck.drawCard(message, false)
         if (!card) {
-            this.messageHelper.sendMessage(message.channelId, "Kortstokken er tom. Dersom dere vil fortsette, bruk '!mz el resett'")
-            return
+            return this.messageHelper.sendMessage(message.channelId, "Kortstokken er tom. Dersom dere vil fortsette, bruk '!mz el resett'")
         }
         const currentPlayer = this.getUserObjectById(this.turn)
         this.turn = (this.turn + 1) % this.playerList.length
@@ -151,8 +150,7 @@ export class DrinksCommands extends AbstractCommands {
 
     private async startElectricity(message: Message) {
         if (this.activeGame) {
-            message.reply('Du kan bare ha ett aktivt spill om gangen. For å avslutte spillet, bruk "!mz electricity stopp"')
-            return
+            return message.reply('Du kan bare ha ett aktivt spill om gangen. For å avslutte spillet, bruk "!mz electricity stopp"')
         }
         if (this.reactor) {
             this.reactor.stop()
@@ -216,8 +214,7 @@ export class DrinksCommands extends AbstractCommands {
             }
         }
         if (!activePlayer && this.activeGame) {
-            this.messageHelper.sendMessage(message.channelId, 'Bro du skulle gitt en tommel opp før spillet begynte hvis du ville være med')
-            return
+            return this.messageHelper.sendMessage(message.channelId, 'Bro du skulle gitt en tommel opp før spillet begynte hvis du ville være med')
         }
         if (args[0]) {
             switch (args[0].toLowerCase()) {
@@ -267,8 +264,7 @@ export class DrinksCommands extends AbstractCommands {
 
         if (!antallSlurks) {
             if (RandomUtils.getRndBetween0and100() === 69) {
-                this.messageHelper.sendMessage(message.channelId, 'Damn bro, du skulle ikke ha latt meg bestemme. Chug sjæl!')
-                return
+                return this.messageHelper.sendMessage(message.channelId, 'Damn bro, du skulle ikke ha latt meg bestemme. Chug sjæl!')
             }
             antallSlurks = Math.ceil(RandomUtils.getRndBetween0and100() / 10)
         }
@@ -280,17 +276,13 @@ export class DrinksCommands extends AbstractCommands {
         }
 
         if (roll === 69) {
-            this.messageHelper.sendMessage(message.channelId, 'Cracking open a cold one with the boys? Men da utbringer eg en skål, og alle kan chugge')
-            return
+            return this.messageHelper.sendMessage(message.channelId, 'Cracking open a cold one with the boys? Men da utbringer eg en skål, og alle kan chugge')
         } else if (roll <= 33) {
-            this.messageHelper.sendMessage(message.channelId, 'Drikk selv ' + antallSlurks + ' slurker')
-            return
+            return this.messageHelper.sendMessage(message.channelId, 'Drikk selv ' + antallSlurks + ' slurker')
         } else if (roll <= 66) {
-            this.messageHelper.sendMessage(message.channelId, 'Ta selv, og gi vekk ' + antallSlurks + ' slurker')
-            return
+            return this.messageHelper.sendMessage(message.channelId, 'Ta selv, og gi vekk ' + antallSlurks + ' slurker')
         } else {
-            this.messageHelper.sendMessage(message.channelId, 'Gi vekk ' + antallSlurks + ' slurker')
-            return
+            return this.messageHelper.sendMessage(message.channelId, 'Gi vekk ' + antallSlurks + ' slurker')
         }
     }
 

@@ -54,16 +54,14 @@ export class Music extends AbstractCommands {
 
     async findCommand(message: Message, content: string, args: string[], params?: IFindCommand) {
         if (!args[0]) {
-            message.reply("Feilformattert. Mangler du f.eks 'topp'?")
-            return
+            return message.reply("Feilformattert. Mangler du f.eks 'topp'?")
         }
         /** CHECKS at alt eksistere */
         const method = methods.filter((e) => e.command == args[0])[0]
 
         if (args[0] != 'user') {
             if (!method) {
-                message.reply("Kommandoen eksisterer ikke. Bruk 'topp' eller 'weekly'")
-                return
+                return message.reply("Kommandoen eksisterer ikke. Bruk 'topp' eller 'weekly'")
             }
 
             let username = this.getLastFMUsernameByDiscordUsername(params?.usernameToLookup ?? message.author.username, message)
@@ -74,7 +72,7 @@ export class Music extends AbstractCommands {
             let limit = args[2] ?? '10'
             if (!username) {
                 if (!params?.isSilent) message.reply("Du har ikke registrert brukernavnet ditt. Bruk '!mz musikk user <discordnavn> <last.fm navn>")
-                return
+                return undefined
             }
             const cmd = this.getCommand(method.command, args[1])
 
@@ -87,7 +85,7 @@ export class Music extends AbstractCommands {
                         message.reply(
                             "du har oppgitt et brukernavn som ikke har tilknyttet Last.fm-kontoen sin ('!mz musikk user <discordnavn> <last.fm navn>')"
                         )
-                    return
+                    return undefined
                 }
             }
             limit = (Number(args[1]) ? args[1] : args[2]) ?? '5'
@@ -111,8 +109,7 @@ export class Music extends AbstractCommands {
         } else {
             if (args[1] && args[2]) {
                 if (args[1] !== message.author.username) {
-                    message.reply('du kan kun knytte ditt eget brukernavn')
-                    return
+                    return message.reply('du kan kun knytte ditt eget brukernavn')
                 }
                 this.connectLastFmUsernameToUser(args[1], args[2], message)
                 message.reply('Knyttet bruker ' + args[1] + ' til Last.fm brukernavnet ' + args[2])
@@ -179,8 +176,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
      */
     private async findLastFmData(message: Message, dataParam: fetchData, notWeeklyOrRecent?: boolean, silent?: boolean) {
         if (parseInt(dataParam.limit) > 30) {
-            message.reply('Litt for høg limit, deranes. Maks 30.')
-            return
+            return message.reply('Litt for høg limit, deranes. Maks 30.')
         } else if (!parseInt(dataParam.limit)) {
             dataParam.limit = '10'
             dataParam.includeStats = true
@@ -209,7 +205,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
                             setTimeout(() => {
                                 if (msg) msg.delete()
                             }, 5000)
-                            return
+                            return undefined
                         }
 
                         const isFormattedWithHashtag = notWeeklyOrRecent
@@ -275,8 +271,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
                         let retMessage
 
                         if (!artistString.trim()) {
-                            this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, `Meldingen som ble forsøkt sendt er tom: <${message}>`)
-                            return
+                            return this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, `Meldingen som ble forsøkt sendt er tom: <${message}>`)
                         }
                         if (!silent) {
                             if (msg) msg.edit(artistString)

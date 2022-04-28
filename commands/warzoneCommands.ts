@@ -399,9 +399,8 @@ export class WarzoneCommands extends AbstractCommands {
             }
         }
         let rebirthResponse = ` Weekly REBIRTH ONLY Stats for <${gamertag}>\nKills: ${numKills}\nDeaths: ${numDeaths}\nDamage Done: ${numDamage}\nDamage Taken: ${numDamageTaken}`
-        if (editableMessage) editableMessage.edit(rebirthResponse)
-        else this.messageHelper.sendMessage(message.channelId, rebirthResponse)
-        return
+        if (editableMessage) return editableMessage.edit(rebirthResponse)
+        else return this.messageHelper.sendMessage(message.channelId, rebirthResponse)
     }
 
     private async findWeeklyPlaylist(message: Message, content: String, args: String[]) {

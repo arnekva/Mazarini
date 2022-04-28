@@ -145,8 +145,7 @@ export class SpotifyCommands extends AbstractCommands {
                 const user = guild.members.cache.filter((u) => u.user.username == name).first()
 
                 if (!user) {
-                    rawMessage.reply("Fant ingen brukere ved navn '" + name + "'. Bruk username og ikke displayname")
-                    return
+                    return rawMessage.reply("Fant ingen brukere ved navn '" + name + "'. Bruk username og ikke displayname")
                 }
                 if (user && user.presence && user.presence.activities.find((a) => a.name === 'Spotify')) {
                     const spotify = user.presence.activities.filter((a) => a.name === 'Spotify')[0]

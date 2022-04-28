@@ -43,8 +43,7 @@ export class NameCommands extends AbstractCommands {
         const getHrLine = (h: number) => {
             return h === 1 ? 'time' : 'timer'
         }
-        const joiij = 
-        await this.messageHelper.sendMessage(message.channelId, `Joiij e der om ${hr === 0 ? '' : hr + ' timer og '}${min} minutt!`)
+        const joiij = await this.messageHelper.sendMessage(message.channelId, `Joiij e der om ${hr === 0 ? '' : hr + ' timer og '}${min} minutt!`)
     }
 
     private findCommandName(message: Message, needsIndex?: number) {
@@ -87,8 +86,7 @@ export class NameCommands extends AbstractCommands {
         const texts = DatabaseHelper.getTextCommandValueArray(commandName) as string[]
         if (texts) {
             if (isNaN(textToDelete) || textToDelete < 0 || textToDelete >= texts.length) {
-                message.reply('Du må spesifisere indeksen til teksten du vil slette. Velg en av disse:\n' + texts.map((t, i) => `${i}: ${t}`).join('\n'))
-                return
+                return message.reply('Du må spesifisere indeksen til teksten du vil slette. Velg en av disse:\n' + texts.map((t, i) => `${i}: ${t}`).join('\n'))
             }
             const index = texts.indexOf(texts[textToDelete])
             message.reply(`Sletter ${texts[textToDelete]} fra tekstlisten`)

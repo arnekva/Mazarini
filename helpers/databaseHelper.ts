@@ -336,7 +336,7 @@ export class DatabaseHelper {
                 db.push(`${folderPrefix}/${username}/inventory/${item}/amount`, mengde)
             }
         } catch (error) {
-            return
+            return undefined
         }
     }
     /** Hent alle verdier for en gitt prefix */
