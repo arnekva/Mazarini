@@ -7,6 +7,7 @@ import { ICommandElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
+import { MessageUtils } from '../utils/messageUtils'
 const fetch = require('node-fetch')
 
 export interface CodStats {
@@ -489,6 +490,7 @@ export class WarzoneCommands extends AbstractCommands {
                     this.getBRContent(rawMessage, messageContent, args)
                 },
                 category: 'gaming',
+                canOnlyBeUsedInSpecificChannel: [MessageUtils.CHANNEL_IDs.STATS_SPAM],
             },
             {
                 commandName: 'weekly',
@@ -497,6 +499,7 @@ export class WarzoneCommands extends AbstractCommands {
                     this.getBRContent(rawMessage, messageContent, args, true)
                 },
                 category: 'gaming',
+                canOnlyBeUsedInSpecificChannel: [MessageUtils.CHANNEL_IDs.STATS_SPAM],
             },
             {
                 commandName: 'link',
