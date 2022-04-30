@@ -72,7 +72,7 @@ export class MessageHelper {
         message.reply('du har brukt feil formattering. Bruk: ' + errormessage)
     }
 
-    static async findMessageById(rawMessage: Message, id: string) {
+    static async findMessageById(rawMessage: Message, id: string): Promise<Message<boolean> | undefined> {
         const allChannels = [...rawMessage.client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
         let messageToReturn
 

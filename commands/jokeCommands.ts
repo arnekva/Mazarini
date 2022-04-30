@@ -164,7 +164,7 @@ export class JokeCommands extends AbstractCommands {
         let fMsg
         if (args && args[0] && args[0].length > 10 && parseInt(args[0])) {
             fMsg = await this.messageHelper.sendMessage(message.channelId, 'Leter etter meldingen...')
-            const msgToUwU = <Message>(<unknown>MessageHelper.findMessageById(message, msgContent))
+            const msgToUwU = await MessageHelper.findMessageById(message, msgContent)
             if (msgToUwU) {
                 const uwuIfiedText = JokeCommands.uwuText(msgToUwU.content)
                 if (fMsg) fMsg.edit(uwuIfiedText)
