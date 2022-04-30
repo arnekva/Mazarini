@@ -129,6 +129,12 @@ export class MazariniClient {
                 // Listen for process exceptions
 
                 bus.on('process:exception', function (data: any) {
+                    if (!data?.data?.stack?.includes('ENOTFOUND') || !data?.data?.stack?.includes('discord.com')) {
+                        _msgHelper.sendMessageToActionLog(
+                            _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
+                            'PM2 logget en feil. Process:exception. Dette er en DISCORD.COM feilmelding: ENOTFOUND.'
+                        )
+                    }
                     if (!data?.data?.stack?.includes('fewer in length')) {
                         _msgHelper.sendMessageToActionLog(
                             _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
