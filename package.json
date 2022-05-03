@@ -10,7 +10,8 @@
         "test": "mocha -r ts-node/register 'tests/**/*.ts'",
         "create:env": "echo export type env = 'dev' ^| 'prod';export const environment: env = 'dev';export const discordSecret = 'discSecret';export const spotifyClientID  = 'spotifyId';export const spotifyClientSecret = 'spotifyCS';export const mwPw  = 'mwPw';export const lfKey = 'lfKey';export const imgflip = {u: 'user', p: 'pw'};export const actSSOCookie  = 'actSSOCookie ';export const weatherAPIKey = 'weatherAPIKey' > client-env.ts ",
         "create:db": "echo {\"users\": { }} > myDataBase.json ",
-        "build": "npm run create:env && npm test"
+        "build": "npm run create:env && npm test",
+        "postinstall": "$(yarn bin)/pm2 install typescript"
     },
     "keywords": [],
     "author": "Arne Kvaleberg",
