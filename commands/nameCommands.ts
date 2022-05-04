@@ -75,7 +75,7 @@ export class NameCommands extends AbstractCommands {
 
             commandName = Array.isArray(cmdName) ? cmdName[0] : commandName
             DatabaseHelper.setTextCommandValue(commandName, textToAdd)
-            message.reply(`La til teksten ${textToAdd} for kommandoen ${commandName}`)
+            message.reply(`La til teksten ***${textToAdd}*** for kommandoen **${commandName}**`)
         } else {
             message.reply(`Fant ikke kommandoen ved navn ${commandName}. Du kan kun knytte tekster til kommandoer i NameCommands`)
         }

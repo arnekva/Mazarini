@@ -175,9 +175,9 @@ export class MazariniClient {
             const { executor, target } = deletionLog
 
             if (
-                (target?.id === message?.author?.id &&
-                    message.channelId !== MessageUtils.CHANNEL_IDs.ACTION_LOG &&
-                    !message?.content?.includes('Laster data')) ||
+                target?.id === message?.author?.id &&
+                message.channelId !== MessageUtils.CHANNEL_IDs.ACTION_LOG &&
+                !message?.content?.includes('Laster data') &&
                 !message?.content?.includes('Henter data')
             ) {
                 _msgHelper.sendMessage(
