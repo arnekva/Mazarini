@@ -58,7 +58,7 @@ export class NameCommands extends AbstractCommands {
     private getTextFromCommand(message: Message) {
         let commandName = this.findCommandName(message)
         const cmdName = this.getAllCommands().find((c) =>
-            Array.isArray(c.commandName) ? c.commandName.includes(commandName) : c.commandName.toLowerCase() == commandName.toLowerCase()
+            Array.isArray(c.commandName) ? c.commandName.includes(commandName.toLowerCase()) : c.commandName.toLowerCase() == commandName.toLowerCase()
         )?.commandName
 
         commandName = Array.isArray(cmdName) ? cmdName[0] : commandName
