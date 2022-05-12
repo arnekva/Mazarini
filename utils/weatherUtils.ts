@@ -1,7 +1,5 @@
-
-
 export namespace WeatherUtils {
-    export const kelvinToCelcius = (tempInKelvin : number) => {
+    export const kelvinToCelcius = (tempInKelvin: number) => {
         return tempInKelvin - 273.15
     }
 }

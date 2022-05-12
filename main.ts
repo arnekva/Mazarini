@@ -22,6 +22,7 @@ import { CommandRunner } from './General/commandRunner'
 import { ClientHelper } from './helpers/clientHelper'
 import { MessageHelper } from './helpers/messageHelper'
 import { DailyJobs } from './Jobs/dailyJobs'
+import { DayJob } from './Jobs/dayJobs'
 import { WeeklyJobs } from './Jobs/weeklyJobs'
 import { MessageUtils } from './utils/messageUtils'
 import { UserUtils } from './utils/userUtils'
@@ -99,6 +100,10 @@ export class MazariniClient {
             /** Runs once a week at mondays 06:00 */
             const weeklyJob = schedule.scheduleJob('0 6 * * 1', async function () {
                 const jobs = new WeeklyJobs(_msgHelper)
+                jobs.runJobs()
+            })
+            const fridayJob = schedule.scheduleJob('0 16 * * 5', async function () {
+                const jobs = new DayJob(_msgHelper, 'friday')
                 jobs.runJobs()
             })
 

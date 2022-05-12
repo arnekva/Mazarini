@@ -4,11 +4,11 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '6.8.4'
+    public static readonly currentVersion = '6.8.6'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `\n* Fix uwu`
+    public static readonly currentPatchNotes: string = `\n* Nye daglige jobber fra botten kjører nå`
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
     }

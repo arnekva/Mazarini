@@ -183,6 +183,7 @@ export class WarzoneCommands extends AbstractCommands {
         try {
             const waitMsg = await this.messageHelper.sendMessage(message.channelId, 'Laster data ...')
             let data = await Warzone.combatHistory(gamertag, platform)
+
             let tries = 1
             while (!data?.data?.matches && tries < 3) {
                 tries++
@@ -298,6 +299,7 @@ export class WarzoneCommands extends AbstractCommands {
         try {
             const data = await Warzone.fullData(gamertag, platform)
             let response = 'Weekly Warzone stats for <' + gamertag + '>'
+            console.log(data)
 
             if (!data?.data?.weekly) {
                 if (editableMessage) return editableMessage.edit('Du har ingen statistikk denne ukå, bro')
