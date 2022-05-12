@@ -62,7 +62,7 @@ export class NameCommands extends AbstractCommands {
         )?.commandName
 
         commandName = Array.isArray(cmdName) ? cmdName[0] : commandName
-        return ArrayUtils.randomChoiceFromArray(DatabaseHelper.getTextCommandValueArray(commandName) ?? []) || 'Ingen tekst lagt til'
+        return ArrayUtils.randomChoiceFromArray(DatabaseHelper.getTextCommandValueArray(commandName.toLowerCase()) ?? []) || 'Ingen tekst lagt til'
     }
 
     private async addTextValue(message: Message, messageContent: string, args: string[]) {
