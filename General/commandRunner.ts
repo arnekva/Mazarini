@@ -8,6 +8,7 @@ import { ArrayUtils } from '../utils/arrayUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { TextUtils } from '../utils/textUtils'
+import { UserUtils } from '../utils/userUtils'
 import { Commands, ICommandElement } from './commands'
 
 export class CommandRunner {
@@ -84,7 +85,7 @@ export class CommandRunner {
     }
     async checkForCommand(message: Message) {
         if (message.author.id === '802945796457758760') return undefined
-
+        const isAdmin = Admin.isAuthorAdmin(UserUtils.findMemberByUsername(message.author.username, message))
         const isZm = message.content.toLowerCase().startsWith('!zm ')
         if (message.content.toLowerCase().startsWith('!mz ') || isZm) {
             let cmdFound = false
@@ -115,7 +116,8 @@ export class CommandRunner {
             const kekw = await message.client.emojis.cache.find((emoji) => emoji.name == 'kekw_animated')
             if (!cmdFound) {
                 const commandNames: string[] = []
-                commands.forEach((el) => commandNames.push(Array.isArray(el.commandName) ? el.commandName[0] : el.commandName))
+                const filteredCommands = commands.filter((cmd) => (isAdmin ? true : !cmd.isAdmin && !cmd.isSuperAdmin))
+                filteredCommands.forEach((el) => commandNames.push(Array.isArray(el.commandName) ? el.commandName[0] : el.commandName))
                 if (kekw) message.react(kekw)
                 const matched = didYouMean(command, commandNames)
                 this.logInncorectCommandUsage(message, messageContent, args)

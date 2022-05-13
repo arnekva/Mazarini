@@ -9,7 +9,9 @@ export class PatchNotes extends AbstractCommands {
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Fikset feil på '!mz add' når man ikke sender med argumenter` + `\n* 'deletekey' og 'deletekeys' er nå fjernet`
+        `\n* Fikset feil på '!mz add' når man ikke sender med argumenter` +
+        `\n* 'deletekey' og 'deletekeys' er nå fjernet` +
+        `\n* Du får nå kun admin-commands i "mente du" hvis du er admin`
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
     }

@@ -463,7 +463,7 @@ export class Admin extends AbstractCommands {
         ]
     }
 
-    static isAuthorAdmin(member: GuildMember | null) {
+    static isAuthorAdmin(member: GuildMember | null | undefined) {
         if (member) return member.roles.cache.has('821709203470680117')
         return false
     }
