@@ -4,14 +4,11 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '6.9.0'
+    public static readonly currentVersion = '6.9.1'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string =
-        `\n* Fikset feil på '!mz add' når man ikke sender med argumenter` +
-        `\n* 'deletekey' og 'deletekeys' er nå fjernet` +
-        `\n* Du får nå kun admin-commands i "mente du" hvis du er admin`
+    public static readonly currentPatchNotes: string = `\n* Det er nå flere meldinger som kan sendes fredag når det er helg i stedet for standarden "Det er helg"`
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
     }
