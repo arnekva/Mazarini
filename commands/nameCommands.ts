@@ -68,6 +68,9 @@ export class NameCommands extends AbstractCommands {
     private async addTextValue(message: Message, messageContent: string, args: string[]) {
         let commandName = args[0].toLowerCase()
         const textToAdd = args.slice(1).join(' ')
+        if (!textToAdd.trim()) {
+            return message.reply('Du kan ikke legge til tom tekst')
+        }
         if (this.getAllCommands().find((c) => (Array.isArray(c.commandName) ? c.commandName.includes(commandName) : c.commandName == commandName))) {
             const cmdName = this.getAllCommands().find((c) =>
                 Array.isArray(c.commandName) ? c.commandName.includes(commandName) : c.commandName == commandName

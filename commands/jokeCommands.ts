@@ -34,11 +34,13 @@ export class JokeCommands extends AbstractCommands {
                         const activities = user.presence.activities
                             .filter((a) => (user.user.username.toLowerCase() === 'mazarinibot' ? a : a.name.toLowerCase() !== 'custom status'))
                             .map((act) => act.name)
-
-                        await this.messageHelper.sendMessage(
-                            message.channelId,
-                            `${name} drive me ${activities.length > 1 ? 'disse aktivitene' : 'aktiviteten'}: ${activities.join(', ')}`
-                        )
+                        console.log(activities)
+                        if (activities.length > 0)
+                            await this.messageHelper.sendMessage(
+                                message.channelId,
+                                `${name} drive me ${activities.length > 1 ? 'disse aktivitene' : 'aktiviteten'}: ${activities.join(', ')}`
+                            )
+                        else await this.messageHelper.sendMessage(message.channelId, `Drive ikkje me någe spess`)
                     } else {
                         await this.messageHelper.sendMessage(message.channelId, 'Ingen aktivitet registrert på Discord.')
                     }

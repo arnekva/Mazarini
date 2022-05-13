@@ -4,11 +4,12 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '6.8.7'
+    public static readonly currentVersion = '6.9.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `\n* Fiks case sensitivity på text commands`
+    public static readonly currentPatchNotes: string =
+        `\n* Fikset feil på '!mz add' når man ikke sender med argumenter` + `\n* 'deletekey' og 'deletekeys' er nå fjernet`
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
     }

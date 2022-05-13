@@ -331,32 +331,11 @@ export class Admin extends AbstractCommands {
                 category: 'admin',
             },
             {
-                commandName: 'deletekeys',
-                description: 'Slett alle databasenøkler og tilhørende verdier for den gitte prefixen (Virker ikke)',
-                hideFromListing: true,
-                isAdmin: true,
-                command: (rawMessage: Message, messageContent: string) => {
-                    const prefix = rawMessage.content.replace('!mz deletekeys ', '') as dbPrefix
-                    DatabaseHelper.deleteSpecificPrefixValues(prefix)
-                },
-                category: 'admin',
-            },
-            {
                 commandName: 'deletemessages',
                 description: 'Slett X siste meldinger fra en bruker i en channel',
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.deleteXLastMessagesByUserInChannel(rawMessage, messageContent, args)
-                },
-                category: 'admin',
-            },
-            {
-                commandName: 'deletekey',
-                description: 'Slett en gitt nøkkel med oppgitt prefix. <prefix> <nøkkel> (Virker ikke)',
-                hideFromListing: true,
-                isAdmin: true,
-                command: (rawMessage: Message, messageContent: string) => {
-                    this.deleteSpecificValue(rawMessage, messageContent)
                 },
                 category: 'admin',
             },
