@@ -1,0 +1,814 @@
+{
+    "users": {
+        "40758": {
+            "PhedeSpelar": "",
+            "dogeCoin": "NaN"
+        },
+        "10550000": {
+            "ThomasW": "",
+            "dogeCoin": "NaN"
+        },
+        "PhedeSpelar": {
+            "ATHspin": "957",
+            "counterSpin": "3844",
+            "dogeCoin": "54607.99",
+            "achievement": {
+                "firstSpin": "5",
+                "100spin": "15",
+                "1000spin": "25",
+                "bonkOnce": "5"
+            },
+            "bonkCounter": "18",
+            "warningCounter": "3",
+            "lastFmUsername": "lordarne",
+            "loanCounter": "297",
+            "debt": "21074.00",
+            "bailout": "true",
+            "chips": "0",
+            "lån": "0",
+            "lan": "0",
+            "debtMultiplier": "16.00",
+            "debtPenalty": "true",
+            "codStats": "{\"kills\":295,\"kdRatio\":1.6480446927374302,\"wallBangs\":0,\"avgLifeTime\":484.8031496062992,\"gulagDeaths\":9,\"score\":335289,\"timePlayed\":123140,\"headshotPercentage\":0.19322033898305085,\"headshots\":57,\"executions\":3,\"matchesPlayed\":75,\"assists\":97,\"gulagKills\":7,\"nearmisses\":0,\"killsPerGame\":3.933333333333333,\"scorePerMinute\":163.36966054896865,\"distanceTraveled\":11456300.584999997,\"damageDone\":126572,\"deaths\":179,\"damageTaken\":45738,\"damageDoneTakenRatio\":2.767326949145131,\"gulagKd\":0.778}",
+            "activisionUserString": "Arne#22482;battle",
+            "spin": "957",
+            "cancelledCounter": "5",
+            "codStatsBR": "{\"wins\":99,\"kills\":6007,\"kdRatio\":1.3806021604228913,\"downs\":5980,\"topTwentyFive\":1484,\"objTime\":0,\"topTen\":791,\"contracts\":2783,\"revives\":733,\"topFive\":426,\"score\":8957410,\"timePlayed\":2129331,\"gamesPlayed\":1932,\"tokens\":0,\"scorePerMinute\":252.4006835949883,\"cash\":0,\"deaths\":4351}",
+            "inventory": {
+                "Chug": {
+                    "name": "Chug",
+                    "price": "299",
+                    "description": "Minst 0,4l",
+                    "amount": 2
+                },
+                "Shot (sterk)": {
+                    "name": "Shot (sterk)",
+                    "price": "99",
+                    "description": "Minst 32%",
+                    "amount": 2
+                },
+                "Shot (svak)": {
+                    "name": "Shot (svak)",
+                    "price": "199",
+                    "description": "Minst 12%",
+                    "amount": 1
+                }
+            },
+            "debuff": {
+                "Shot (sterk)": {
+                    "name": "Shot (sterk)",
+                    "amount": 1
+                },
+                "Shot (svak)": {
+                    "name": "Shot (svak)",
+                    "amount": 2
+                }
+            },
+            "dailyClaimStreak": "{\"streak\":11,\"wasAddedToday\":true}",
+            "rocketLeagueUserString": "epic;PhedeSpelar",
+            "birthday": "10-12-1996",
+            "prestige": "1",
+            "dailyClaim": "1",
+            "mygling": "guddan med ein enkel dag på jobb og spare ein feriedag :maggicoffee:"
+        },
+        "ThomasW": {
+            "ATHspin": "947",
+            "counterSpin": "2138",
+            "dogeCoin": "81236.00",
+            "warningCounter": "14",
+            "achievement": {
+                "firstSpin": "5",
+                "100spin": "15",
+                "bonkOnce": "5",
+                "1000spin": "25"
+            },
+            "bonkCounter": "14",
+            "lastFmUsername": "sirwalmsley",
+            "loanCounter": "114",
+            "debt": "0.00",
+            "bailout": "true",
+            "chips": "4284.00",
+            "lån": "0",
+            "debtMultiplier": "0",
+            "debtPenalty": "false",
+            "spin": "831",
+            "dailyClaimStreak": "{\"streak\":2,\"wasAddedToday\":true}",
+            "inventory": {
+                "Shot (sterk)": {
+                    "name": "Shot (sterk)",
+                    "price": "99",
+                    "description": "Minst 32%",
+                    "amount": 2
+                },
+                "Chug": {
+                    "name": "Chug",
+                    "price": "299",
+                    "description": "Minst 0,4l",
+                    "amount": 1
+                }
+            },
+            "rocketLeagueUserString": "psn;sirwalmsley",
+            "dailyFreezeCounter": "0.00",
+            "birthday": "01-04-1996",
+            "prestige": "1",
+            "dailyClaim": "1"
+        },
+        "Eivind": {
+            "ATHspin": "921",
+            "counterSpin": "2853",
+            "dogeCoin": "48516.00",
+            "achievement": {
+                "firstSpin": "5",
+                "100spin": "15",
+                "1000spin": "25",
+                "bonkOnce": "5"
+            },
+            "bonkCounter": "27",
+            "warningCounter": "42",
+            "lastFmUsername": "Eivinddh",
+            "loanCounter": "62",
+            "debt": "3450.00",
+            "bailout": "true",
+            "chips": "2990",
+            "status": "jobbe med presentasjon <:pepeCoffee:801403475451314176> ",
+            "codStats": "{\"kills\":12,\"kdRatio\":0.631578947368421,\"wallBangs\":0,\"avgLifeTime\":698.6206896551724,\"gulagDeaths\":1,\"score\":14150,\"timePlayed\":20260,\"headshotPercentage\":0.16666666666666666,\"headshots\":2,\"executions\":0,\"matchesPlayed\":10,\"assists\":12,\"gulagKills\":2,\"nearmisses\":0,\"killsPerGame\":1.2,\"scorePerMinute\":41.90523198420534,\"distanceTraveled\":2343564.92,\"damageDone\":5629,\"deaths\":19,\"damageTaken\":5903,\"damageDoneTakenRatio\":null,\"gulagKd\":2}",
+            "debtMultiplier": "15",
+            "debtPenalty": "false",
+            "activisionUserString": "CookieSlice#2972;battle",
+            "spin": "812",
+            "cancelledCounter": "11",
+            "nickname": "Eivind",
+            "inventory": {},
+            "dailyClaimStreak": "{\"streak\":10,\"wasAddedToday\":true}",
+            "debuff": {
+                "Chug": {
+                    "name": "Chug",
+                    "amount": 7
+                },
+                "Shot (svak)": {
+                    "name": "Shot (svak)",
+                    "amount": 1
+                },
+                "Eivinds dildo": {
+                    "name": "Eivinds dildo",
+                    "amount": 2
+                }
+            },
+            "rocketLeagueUserString": "epic;CookieSlice",
+            "codStatsBR": "{\"wins\":6,\"kills\":135,\"kdRatio\":0.3221957040572792,\"downs\":85,\"topTwentyFive\":130,\"objTime\":0,\"topTen\":66,\"contracts\":222,\"revives\":88,\"topFive\":29,\"score\":272525,\"timePlayed\":176641,\"gamesPlayed\":151,\"tokens\":0,\"scorePerMinute\":92.569109096982,\"cash\":0,\"deaths\":419}",
+            "birthday": "26-06-1996",
+            "prestige": "1",
+            "dailyClaim": "1",
+            "mygling": "guddan hjemma med fri <:pepeCoffee:801403475451314176>"
+        },
+        "Deadmaggi": {
+            "ATHspin": "303",
+            "counterSpin": "6",
+            "dogeCoin": "13290.01",
+            "achievement": {
+                "firstSpin": "5",
+                "bonkOnce": "5",
+                "bonk50": "10",
+                "bonk100": "15"
+            },
+            "bonkCounter": "140",
+            "warningCounter": "13",
+            "lastFmUsername": "Deadmaggi",
+            "loanCounter": "0",
+            "debt": "0",
+            "chips": "300.00",
+            "cancelledCounter": "12",
+            "nickname": "cancelled ancelled :re",
+            "inventory": {},
+            "debuff": {
+                "Chug": {
+                    "name": "Chug",
+                    "amount": 4
+                },
+                "Eivinds dildo": {
+                    "name": "Eivinds dildo",
+                    "amount": 6
+                },
+                "Shot (sterk)": {
+                    "name": "Shot (sterk)",
+                    "amount": 2
+                },
+                "Shot (svak)": {
+                    "name": "Shot (svak)",
+                    "amount": 2
+                },
+                "Timeout": {
+                    "name": "Timeout",
+                    "amount": 3
+                }
+            },
+            "dailyClaimStreak": "{\"streak\":0,\"wasAddedToday\":false}",
+            "rocketLeagueUserString": "epic;Deadmaggi"
+        },
+        "Brzeczyszczykiewicz": {
+            "ATHspin": "952",
+            "counterSpin": "2319",
+            "dogeCoin": "34925",
+            "achievement": {
+                "firstSpin": "5",
+                "100spin": "15",
+                "1000spin": "25",
+                "bonkOnce": "5"
+            },
+            "warningCounter": "9",
+            "bonkCounter": "6",
+            "loanCounter": "140",
+            "debt": "3450.00",
+            "bailout": "true",
+            "chips": "1200",
+            "dogecoin": "620 ",
+            "spin": "836",
+            "cancelledCounter": "3",
+            "nickname": "Morå di",
+            "lastFmUsername": "Granden96",
+            "debtMultiplier": "15",
+            "debtPenalty": "false",
+            "dailyClaimStreak": "{\"streak\":0,\"wasAddedToday\":false}",
+            "birthday": "21-04-1996"
+        },
+        "Rogster": {
+            "counterSpin": "3",
+            "achievement": {
+                "firstSpin": "5",
+                "bonkOnce": "5"
+            },
+            "ATHspin": "650",
+            "bonkCounter": "1",
+            "dogeCoin": "16220",
+            "lastFmUsername": "steenslando",
+            "chips": "5000.00"
+        },
+        "spookz": {
+            "counterSpin": "3",
+            "achievement": {
+                "firstSpin": "5"
+            },
+            "ATHspin": "256",
+            "dogeCoin": "11220",
+            "bailout": "true",
+            "chips": "5000.00",
+            "loanCounter": "1",
+            "debt": "275.00"
+        },
+        "Mads R": {
+            "dogeCoin": "11460",
+            "loanCounter": "26",
+            "debt": "0",
+            "bailout": "0",
+            "chips": "0.00",
+            "warningCounter": "3",
+            "counterSpin": "96",
+            "achievement": {
+                "firstSpin": "5"
+            },
+            "spin": "534",
+            "dailyClaimStreak": "{\"streak\":0,\"wasAddedToday\":false}"
+        },
+        "Joiij": {
+            "dogeCoin": "12020",
+            "warningCounter": "8",
+            "loanCounter": "20",
+            "debt": "0.00",
+            "bailout": "true",
+            "chips": "549800.00",
+            "warning": "1 ",
+            "ATHspin": "956",
+            "counterSpin": "1316",
+            "achievement": {
+                "firstSpin": "5",
+                "100spin": "15",
+                "1000spin": "25"
+            },
+            "activisionUserString": "psn;joiij96"
+        },
+        "TrackpadSteve": {
+            "dogeCoin": "12529",
+            "loanCounter": "3",
+            "debt": "0.00",
+            "ATHspin": "905",
+            "counterSpin": "300",
+            "lastFmUsername": "Sivertlunde",
+            "achievement": {
+                "firstSpin": "5",
+                "100spin": "15"
+            },
+            "chips": "369.00",
+            "codStats": "{\"kills\":172,\"kdRatio\":1.6538461538461537,\"wallBangs\":0,\"avgLifeTime\":505.503355704698,\"gulagDeaths\":6,\"score\":148800,\"timePlayed\":75320,\"headshotPercentage\":0.18604651162790697,\"headshots\":32,\"executions\":2,\"matchesPlayed\":45,\"assists\":53,\"gulagKills\":4,\"nearmisses\":0,\"killsPerGame\":3.8222222222222224,\"scorePerMinute\":118.53425385023898,\"distanceTraveled\":6157383.1839999985,\"damageDone\":71348,\"deaths\":104,\"damageTaken\":24711,\"damageDoneTakenRatio\":2.8872971551131075,\"gulagKd\":0.667}",
+            "activisionUserString": "TrackpadSteve;psn",
+            "codStatsBR": "{\"wins\":71,\"kills\":5129,\"kdRatio\":1.249756335282651,\"downs\":5255,\"topTwentyFive\":1149,\"objTime\":0,\"topTen\":600,\"contracts\":2356,\"revives\":731,\"topFive\":333,\"score\":6591845,\"timePlayed\":1737689,\"gamesPlayed\":1664,\"tokens\":0,\"scorePerMinute\":227.60729911969287,\"cash\":0,\"deaths\":4104}",
+            "debuff": {
+                "Eivinds dildo": {
+                    "name": "Eivinds dildo",
+                    "amount": 1
+                }
+            },
+            "rocketLeagueUserString": "epic;sivertolundo",
+            "dailyClaimStreak": "{\"streak\":0,\"wasAddedToday\":false}",
+            "birthday": "04-12-1997",
+            "spin": "653"
+        },
+        "Siqve": {
+            "dogeCoin": "11420",
+            "dogeCoins": "20",
+            "counterSpin": "0"
+        },
+        "Finn": {
+            "dogeCoin": "11420",
+            "counterSpin": "0"
+        },
+        "Mazarini Bot": {
+            "chips": "Infinity",
+            "dogeCoin": "Infinity"
+        },
+        "Niadl": {
+            "dogeCoin": "11400",
+            "counterSpin": "0"
+        },
+        "Arne": {
+            "debt": "1000",
+            "dogeCoin": "8750",
+            "chips": "12000"
+        },
+        "Kubomi": {
+            "dogeCoin": "9040",
+            "loanCounter": "1",
+            "debt": "1100.00",
+            "debtMultiplier": "0",
+            "chips": "1000",
+            "debtPenalty": "false",
+            "counterSpin": "40",
+            "achievement": {
+                "firstSpin": "5"
+            },
+            "spin": "300",
+            "dailyClaimStreak": "{\"streak\":0,\"wasAddedToday\":false}"
+        },
+        "DarioSnow": {
+            "chips": "0",
+            "loanCounter": "10",
+            "debt": "0.00",
+            "debtMultiplier": "0",
+            "debtPenalty": "false",
+            "counterSpin": "127",
+            "achievement": {
+                "firstSpin": "5"
+            },
+            "dogeCoin": "17844.00",
+            "codStats": "{\"kills\":54,\"kdRatio\":0.7941176470588235,\"wallBangs\":0,\"avgLifeTime\":526.2626262626262,\"gulagDeaths\":3,\"score\":86975,\"timePlayed\":52100,\"headshotPercentage\":0.14814814814814814,\"headshots\":8,\"executions\":0,\"matchesPlayed\":31,\"assists\":55,\"gulagKills\":4,\"nearmisses\":0,\"killsPerGame\":1.7419354838709677,\"scorePerMinute\":100.16314779270633,\"distanceTraveled\":4361323.034,\"damageDone\":36926,\"deaths\":68,\"damageTaken\":17452,\"damageDoneTakenRatio\":2.1158606463442586,\"gulagKd\":1.333}",
+            "activisionUserString": "Dirtysloot#2922;battle",
+            "spin": "805",
+            "dailyClaimStreak": "{\"streak\":1,\"wasAddedToday\":true}",
+            "inventory": {
+                "Timeout": {
+                    "name": "Timeout",
+                    "price": "1337",
+                    "description": "Mute-hammer en valgfri person",
+                    "amount": 1
+                }
+            },
+            "debuff": {
+                "Shot (sterk)": {
+                    "name": "Shot (sterk)",
+                    "amount": 1
+                }
+            },
+            "rocketLeagueUserString": "epic;Dirtysloot96",
+            "codStatsBR": "{\"wins\":15,\"kills\":605,\"kdRatio\":0.8002645502645502,\"downs\":601,\"topTwentyFive\":233,\"objTime\":0,\"topTen\":127,\"contracts\":442,\"revives\":130,\"topFive\":66,\"score\":901650,\"timePlayed\":335870,\"gamesPlayed\":273,\"tokens\":0,\"scorePerMinute\":161.07124780420997,\"cash\":0,\"deaths\":756}",
+            "warningCounter": "2",
+            "dailyClaim": "1"
+        },
+        "BelialBaldie": {
+            "warningCounter": "2",
+            "dogeCoin": "NaN",
+            "chips": "5000",
+            "bonkCounter": "1",
+            "achievement": {
+                "bonkOnce": "5"
+            },
+            "activisionUserString": "christolini#2118;battle",
+            "codStats": "{\"kills\":36,\"objectiveTeamWiped\":9,\"objectiveLastStandKill\":24,\"wallBangs\":0,\"avgLifeTime\":863.45,\"score\":37925,\"headshots\":12,\"assists\":18,\"killsPerGame\":2.5714285714285716,\"scorePerMinute\":65.88395390584283,\"distanceTraveled\":4157655.0600000005,\"deaths\":26,\"objectiveMunitionsBoxTeammateUsed\":2,\"objectiveBrDownEnemyCircle4\":7,\"objectiveBrDownEnemyCircle3\":5,\"objectiveBrDownEnemyCircle2\":6,\"kdRatio\":1.3846153846153846,\"objectiveBrDownEnemyCircle1\":15,\"objectiveBrMissionPickupTablet\":22,\"objectiveReviver\":5,\"objectiveBrKioskBuy\":14,\"gulagDeaths\":11,\"objectiveBrDownEnemyCircle6\":4,\"objectiveBrDownEnemyCircle5\":1,\"timePlayed\":34538,\"headshotPercentage\":0.3333333333333333,\"executions\":0,\"matchesPlayed\":14,\"gulagKills\":5,\"nearmisses\":0,\"objectiveBrCacheOpen\":48,\"damageDone\":16231,\"damageTaken\":4971}",
+            "counterSpin": "0"
+        },
+        "MazariniBot": {
+            "dogeCoin": "7650",
+            "chips": "9999433496718.00",
+            "coins": "100",
+            "bonkCounter": "1",
+            "achievement": {
+                "bonkOnce": "5"
+            },
+            "cancelledCounter": "3",
+            "nickname": "Bot Høie",
+            "debuff": {
+                "Shot (sterk)": {
+                    "name": "Shot (sterk)",
+                    "amount": 1
+                }
+            },
+            "counterSpin": "0",
+            "ATHspin": "101"
+        },
+        "Thomas": {
+            "chips": "10000000",
+            "dogeCoin": "NaN"
+        },
+        "TomasTheGrate": {
+            "spin": "701",
+            "counterSpin": "13",
+            "achievement": {
+                "firstSpin": "5"
+            },
+            "chips": "12500",
+            "dogeCoin": "NaN"
+        },
+        "deadmaggi junior": {
+            "chips": "5000",
+            "dogeCoin": "NaN",
+            "counterSpin": "0"
+        },
+        "arne junior": {
+            "chips": "5000",
+            "dogeCoin": "NaN"
+        },
+        "chips": {
+            "PhedeSpelar": "500",
+            "dogeCoin": "NaN"
+        },
+        "": {
+            "ATHspin": "",
+            "dogeCoin": "NaN"
+        },
+        "zaldro": {
+            "dogeCoin": "1700",
+            "chips": "5000"
+        },
+        "239154365443604480": {
+            "chips": "785.00",
+            "dogeCoin": "NaN"
+        },
+        "397429060898390016": {
+            "chips": "200000749.00",
+            "dogeCoin": "NaN"
+        },
+        "264135797215723520": {
+            "chips": "5544.00",
+            "dogeCoin": "NaN"
+        },
+        "245607554254766081": {
+            "chips": "0.00",
+            "dogeCoin": "NaN"
+        },
+        "253238701109280769": {
+            "chips": "12493.00",
+            "dogeCoin": "NaN"
+        }
+    },
+    "other": {
+        "bet": {
+            "855147874873770034": {
+                "positive": "Mazarini Bot",
+                "negative": "Mazarini Bot,Arne"
+            },
+            "855379027635601408": {
+                "positive": "Mazarini Bot",
+                "negative": "Mazarini Bot"
+            },
+            "855379873517797406": {
+                "positive": "Mazarini Bot,Eivind",
+                "negative": "Mazarini Bot"
+            },
+            "855381611326603264": {
+                "positive": "Mazarini Bot,Arne",
+                "negative": "Mazarini Bot"
+            }
+        },
+        "activeBet": {
+            "Deadmaggi": {
+                "positivePeople": "Deadmaggi",
+                "negativePeople": "",
+                "value": "100.00",
+                "description": "eivind våkne ikke før 10",
+                "messageId": "893365729523556372"
+            },
+            "Eivind": {
+                "positivePeople": "",
+                "negativePeople": "Eivind",
+                "value": "100.00",
+                "description": "klare Magnus å lage en bet",
+                "messageId": "909132964854648912"
+            }
+        },
+        "incorrectCommand": {
+            "20": "1",
+            "300": "1",
+            "3000": "1",
+            "250000": "1",
+            "1200000": "1",
+            "feil": "3",
+            "<tom command>": "1",
+            "!mz": "1",
+            "countdowb": "1",
+            "skaaamtidlig": "1",
+            "debt": "1",
+            "gjeld": "1",
+            "beral": "1",
+            "roll?": "1",
+            "jul": "3",
+            "weeky": "1",
+            "asdf": "1",
+            "tomas": "3",
+            "guddan": "2",
+            "antallspins": "1",
+            "helg??": "2",
+            "play": "2",
+            "hewp": "1",
+            "owo": "2",
+            "mygle": "4",
+            "spon": "1",
+            "weekøy": "1",
+            "for": "1",
+            "nei": "5",
+            "feE": "1",
+            "fse": "1",
+            "friendly": "1",
+            "arne": "3",
+            "sadge": "1",
+            "fant": "1",
+            "cancel": "5",
+            "føle": "3",
+            "rulette": "1",
+            "trøtt": "1",
+            "samma": "1",
+            "google": "1",
+            "oppskrift": "1",
+            "helg*": "1",
+            "gratuler": "1",
+            "unbonk": "1",
+            "utsett": "1",
+            "lockdown": "1",
+            "deletebet": "1",
+            "slettbet": "1",
+            "give": "2",
+            "shots": "1",
+            "waterfall": "2",
+            "busstur": "1",
+            "minus": "1",
+            "lunsj": "1",
+            "maggi": "5",
+            "ha": "1",
+            "rate": "1",
+            "24min": "1",
+            "då": "1",
+            "magnius": "1",
+            "arn": "1",
+            "darn": "1",
+            "bø": "1",
+            "fest": "1",
+            "setValuePhedeSpelar": "1",
+            "deadmaggi": "2",
+            "graude": "1",
+            "statys": "1",
+            "svolten": "1",
+            "liveleak": "1",
+            "ler": "1",
+            "quotes": "2",
+            "reminder": "1",
+            "amen": "1",
+            "fri": "1",
+            "rocket": "3",
+            "dice": "1",
+            "sug": "1",
+            "setvalie": "1",
+            "support": "2",
+            "allin": "1",
+            "walmet": "1",
+            "achievement": "1",
+            "top": "1",
+            "angre": "1",
+            "rank": "1",
+            "stats": "2",
+            "bailout": "1",
+            "eurojackpot": "1",
+            "PR": "1",
+            "ban": "2",
+            "status<:tomas:811518790235324466>": "1",
+            "baguetta": "2",
+            "anne": "1",
+            "music": "1",
+            "waller": "1",
+            "har": "1",
+            "beg": "1",
+            "svært": "1",
+            "say": "1",
+            "Emil": "1",
+            "darri": "4",
+            "feedback": "1",
+            "putin": "3",
+            "Joiij": "1",
+            "putinpride": "1",
+            "spotigy": "1",
+            "betalt": "2",
+            "jobber": "1",
+            "dialy": "1",
+            "playlist": "3",
+            "pray": "1",
+            "Dario": "1",
+            "sår": "1",
+            "kort": "1",
+            "dailt": "1",
+            "el": "2",
+            "magnus": "1",
+            "freeze": "1",
+            "pils": "1",
+            "helgejobbing": "1",
+            "playlisr": "1",
+            "eivind?": "1",
+            "prøver": "1",
+            "highscore": "2",
+            "dsily": "1",
+            "akivitet": "1",
+            "hel": "1",
+            "geir": "2",
+            "f": "2",
+            "død": "2",
+            "skambank": "1",
+            "totoalspins": "1",
+            "mor": "1",
+            "spin\n!mz": "1",
+            "remove": "1",
+            "matte": "1",
+            "ctrl+z": "1",
+            "skru": "1",
+            "whatismybattlepasslevel": "1",
+            "glede": "1",
+            "hehe": "2",
+            "funke": "1",
+            "verdansk": "1",
+            "spin\n!Mz": "1",
+            "frifrajobb": "1",
+            "dail": "2",
+            "guetta": "1",
+            "teleporter": "1",
+            "Kongsberg": "1",
+            "pr": "1",
+            "qoute": "1",
+            "pølse": "1",
+            "dbget": "2",
+            "walley": "1",
+            "påskeferie": "1",
+            "rolig": "1",
+            "rullett": "1",
+            "weekyl": "1",
+            "deilig": "1",
+            "heat": "2",
+            "weeklym": "1",
+            "Høie": "1",
+            "mr": "1",
+            "spotifu": "1",
+            "spotifufane": "1",
+            "hapl": "1",
+            "unwarn": "1",
+            "e": "1",
+            "invite": "1",
+            "delete": "2",
+            "gjør": "1",
+            "dailly": "3",
+            "spania": "1",
+            "velferdssjekk": "1",
+            "mads": "2",
+            "vigå?": "1",
+            "leaked": "1",
+            "drop": "1",
+            "chug": "1",
+            "set": "1"
+        },
+        "countdown": {
+            "Arne": {
+                "date": "Fri Jul 16 2021 15:00:00 GMT+0200 (Central European Summer Time)",
+                "desc": "Arne har sommerferie"
+            },
+            "ThomasW": {
+                "date": "Mon Apr 11 2022 12:00:00 GMT+0200 (Central European Summer Time)",
+                "desc": "te Thomas e i buen"
+            },
+            "Deadmaggi": {
+                "date": "Tue Feb 08 2022 15:30:00 GMT+0100 (Central European Standard Time)",
+                "desc": "Eivind skal på fjellet"
+            },
+            "Eivind": {
+                "date": "Fri Dec 17 2021 23:13:00 GMT+0100 (Central European Standard Time)",
+                "desc": "te Eivind e i Stavanger <:pepoDrink:826026446422147092>"
+            },
+            "PhedeSpelar": {
+                "date": "Tue Mar 01 2022 13:45:55 GMT+0100 (Central European Standard Time)",
+                "desc": "Ukraina bler russisk"
+            },
+            "Rogster": {
+                "date": "Mon Aug 23 2021 08:00:00 GMT+0200 (Central European Summer Time)",
+                "desc": "røgga miste friheten"
+            },
+            "Brzeczyszczykiewicz": {
+                "date": "Thu May 19 2022 23:59:00 GMT+0200 (Central European Summer Time)",
+                "desc": "David må levere masteren <:maggishower:822493178896187392>"
+            },
+            "TomasTheGrate": {
+                "date": "Wed Dec 15 2021 16:40:00 GMT+0100 (Central European Standard Time)",
+                "desc": "Thomas komme te Stavanger <:polse:344211246301577227>"
+            }
+        },
+        "quotes": {
+            "Thomas": [
+                "<a:catJAM:799686793125036032>",
+                "\"suseluden\""
+            ],
+            "Magnus": [
+                "Alle ting er tre",
+                "Jævla SS",
+                "Någen stjal moskéen min",
+                "Jeg hvem jeg",
+                "Jeg hvem jeg møtte?",
+                "Gutta gutta, jeg hvem jeg møtte?",
+                "Andre folk > Oss\nDa er oss > deg",
+                "I hvilket undervers har jeg sammenkobla kirke og vin?"
+            ],
+            "Ramsdal": [
+                "Nekrofili er den eneste forbrytelsen uten et offer"
+            ]
+        }
+    },
+    "bot": {
+        "status": "Sandnes Trenches",
+        "statusType": "PLAYING"
+    },
+    "textCommand": {
+        "darri": [
+            "kuker i prod",
+            "hacker flytårnet på flesland",
+            "dør i gulagen",
+            "blir cancelled for bruken av forbudte ord"
+        ],
+        "eivind": [
+            "får kjeft av morsi :(",
+            "grine øve å ver syk",
+            "Lure på om det blir mat"
+        ],
+        "david": [
+            "skamtrunte på vei te buen",
+            "trunte i trekket",
+            "mygle på jobb",
+            "lure på ka det der cum hump greiene e??",
+            "aøøe"
+        ],
+        "oyvind": [
+            "har ei skamphine klokka",
+            "Vask huset"
+        ],
+        "sivert": [
+            "bler skameid i rocket league",
+            "Slite me å rendra bakken",
+            "lagger",
+            "må dobbeltsjekke excel-filen sin før han velger loadout"
+        ],
+        "thomas": [
+            "spise OreOkaka, firkanta",
+            "dail",
+            "han spise nå, så han hørre deg ikkje"
+        ],
+        "arne": [
+            "Ingen tekst lagt til",
+            "jobber med å slå \"distance traveled\" rekorden sin",
+            "pølse",
+            "<:arne:860282686605230130>",
+            "har flere executions enn deg"
+        ],
+        "maggi": [
+            "<:maggi:854685709729792040>",
+            "<:maggialiens:867478749598842920>",
+            "<:maggichamp:913538294673993818>",
+            "<:maggi_not_amused:974294526468436018>",
+            "<:maggicomfort:974365930677207040>",
+            "<:maggicringe:974294527235997716>",
+            "<:maggicryhands:974293580699025408>",
+            "<:maggidead:690196412713009222>",
+            "<:maggifeels:974294526577475634>",
+            "<:maggiglasses:974293581609205790>",
+            "<:maggihappy:974293581617565746>",
+            "<:maggihype:974293580699025509>",
+            "<:maggipride:968843821859340298>",
+            "<:maggiretard:974293580598353990>",
+            "<:maggisadge:974293581609205791>",
+            "<:maggisadge2:974293580682256425>",
+            "<:maggishower:822493178896187392>",
+            "<:maggistare:974293580619345981>",
+            "<:maggistare2:974293580858396732>",
+            "<:maggistare3:974294526493589524>",
+            "<:maggismile:876789130066030632>",
+            "<:maggipeek:963349961829933166>"
+        ]
+    }
+}
