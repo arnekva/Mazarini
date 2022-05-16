@@ -2,7 +2,6 @@ import { Message } from 'discord.js'
 //https://openbase.com/js/node-json-db
 import { JsonDB } from 'node-json-db'
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
-import { achievementIDs } from '../commands/achievements'
 import { shopItem } from '../commands/shop'
 
 const db = new JsonDB(new Config('myDataBase', true, true, '/'))
@@ -21,12 +20,57 @@ export interface userValPair {
     opt?: any
 }
 
-export interface dbObject {
-    name: string
-}
-
 export type botDataPrefix = 'status' | 'statusType'
 
+export interface MazariniUser {
+    /** User id */
+    id: string
+
+    /** Bursdagsdato dd-mm-yyyy */
+    birthday?: string
+    /** Dagens status. Slettes hver dag 06:00 */
+    status?: string
+    week?: any //TODO?
+    /** Total antall spins */
+    spinCounter: any //TODO?
+    /** Høyeste spin tid */
+    ATHspin?: string
+    /** Antall chips */
+    chips: number
+    /** Antall coins */
+    coins: number
+    /** Antall warnings */
+    warningCounter: number
+    /** Antall bonks */
+    bonkCounter: number
+    /** Brukernavn for last.fm */
+    lastFMUsername?: string
+    /** Antall lån gjort */
+    loanCounter: number
+    /** Nåværende gjeld */
+    debt: number
+    /** Gjeld */
+    debtPenalty: number | string
+    debtMultiplier: number
+    /** Gjenstander fra shopen */
+    shopItems?: any //TODO Cast this
+    /** Lagrede stats for Cod weekly stats */
+    codStats?: any
+    /** Lagrede stats for Cod BR */
+    codStatsBR?: any
+    /** Brukernavn for activision. username;platform */
+    activisionUserString?: string
+    /** Brukernavn for rocket league. username;platform */
+    rocketLeagueUserString?: string
+    /** Brukernavn */
+    displayName: string
+    inventory?: any //TODO Cast this
+    debuff?: any //TODO Cast this
+    dailyClaim?: number
+    dailyClaimStreak?: any
+    dailyFreezeCounter?: number
+    prestige?: number
+}
 export type dbPrefix =
     | 'spin'
     | 'birthday'
@@ -87,15 +131,24 @@ export interface debuffItem {
     item: string
     amount: number
 }
+
 export class DatabaseHelper {
-    /**
-     * @param prefix - Databaseprefix. Må være av type dbprefix. Nye prefixer MÅ legges til i typen på toppen av databaseHelper.
-     * @param key - Nøkkel: Her bruker du vanligvis brukernavn (message.author.username)
-     * @param value - Verdi som settes i databasen
-     */
-    static setValue(prefix: dbPrefix, key: string, value: string) {
-        db.push(`${folderPrefix}/${key}/${prefix}`, `${value}`)
+    /** Merk at de fleste verdier kan være undefined. Returnes som et typet object */
+    static getUser(userID: string): MazariniUser {
+        try {
+            return JSON.parse(db.getData(`${folderPrefix}/${userID}/`)) as MazariniUser
+        } catch (error: any) {
+            this.updateUser(this.defaultUser(userID, 'Ingen navn'))
+            return JSON.parse(db.getData(`${folderPrefix}/${userID}/`)) as MazariniUser
+        }
     }
+
+    /** Oppdater brukerobjektet i databasen */
+    static updateUser(userObject: MazariniUser) {
+        const objToPush = JSON.stringify(userObject)
+        db.push(`${folderPrefix}/${userObject.id}/`, `${objToPush}`)
+    }
+
     static setObjectValue(prefix: dbPrefix, key: string, value: any) {
         db.push(`${folderPrefix}/${key}/${prefix}`, `${value}`)
     }
@@ -166,43 +219,7 @@ export class DatabaseHelper {
         db.push(`${otherFolderPreifx}/storedBets/${messageId}/positive`, `${value.positivePeople}`)
         db.push(`${otherFolderPreifx}/storedBets/${messageId}/negative`, `${value.negativePeople}`)
     }
-    static setAchievementObject(prefix: dbPrefix, key: string, achievementID: achievementIDs, value: any) {
-        db.push(`${folderPrefix}/${key}/${prefix}/${achievementID}`, `${value}`)
-    }
-    /** Increment verdien for en int som ligger i databasen */
-    static incrementValue(prefix: dbPrefix, key: string, increment: string) {
-        const oldValue = DatabaseHelper.getValueWithoutMessage(prefix, key)
-        if (isNaN(oldValue)) {
-            DatabaseHelper.setValue(prefix, key, increment)
-        } else {
-            const newVal = Number(oldValue) + Number(increment)
-            DatabaseHelper.setValue(prefix, key, newVal.toFixed(2))
-        }
-    }
-    static incrementCleanValue(prefix: dbPrefix, key: string, increment: string) {
-        const oldValue = DatabaseHelper.getValueWithoutMessage(prefix, key)
-        if (isNaN(oldValue)) {
-            DatabaseHelper.setValue(prefix, key, increment)
-        } else {
-            const newVal = Number(oldValue) + Number(increment)
-            DatabaseHelper.setValue(prefix, key, newVal.toFixed(0))
-        }
-    }
-    static decrementValue(prefix: dbPrefix, key: string, decrement: string) {
-        const oldValue = DatabaseHelper.getValueWithoutMessage(prefix, key)
-        const newVal = Number(oldValue) - Number(decrement)
 
-        DatabaseHelper.setValue(prefix, key, newVal > 0 ? newVal.toFixed(2) : '0.00')
-    }
-    static getAchievement(prefix: dbPrefix, key: string, achievementID: achievementIDs) {
-        let data
-        try {
-            data = db.getData(`${folderPrefix}/${key}/${prefix}/${achievementID}`)
-        } catch (error) {
-            //No data;
-        }
-        return data
-    }
     /** For missing folders, like achievement, you can add them using this */
     static addUserFolder(key: string, prefix: dbPrefix) {
         db.push(`${folderPrefix}/${key}/${prefix}`, {})
@@ -238,41 +255,8 @@ export class DatabaseHelper {
         return data
     }
 
-    /**
-     *
-     * @param prefix Databaseprefix - Verdien fra brukeren du er ute etter
-     * @param key Brukernavn
-     * @param message Message objekt er nødvendig for å kunne gi finne brukere
-     * @param noInsertions FUnksjonen oppretter en tom verdi hvis den ikke eksisterer. Sett denne true dersom den IKKE skal opprette default verdi hvis den ikke finnes
-     * @returns
-     */
-    static getValue(prefix: dbPrefix, key: string, message: Message, noInsertions?: boolean) {
-        try {
-            const data = db.getData(`${folderPrefix}/${key}/${prefix}`)
-            return data
-        } catch (error) {
-            if (noInsertions) return ''
-
-            const val = DatabaseHelper.valueToPush(prefix)
-            if (DatabaseHelper.findUserByUsername(key, message)) db.push(`${folderPrefix}/${key}/${prefix}`, val)
-            else {
-                message.reply('brukeren finnes ikke. Hvis brukeren har mellomrom i navnet, bruk under_strek')
-                return undefined
-            }
-            return '0'
-        }
-    }
-    /** Hent en verdi uten message objektet. Vil ikke replye med error hvis ikke funnet. */
-    static getValueWithoutMessage(prefix: dbPrefix, key: string) {
-        try {
-            const data = db.getData(`${folderPrefix}/${key}/${prefix}`)
-            return data
-        } catch (error) {
-            return undefined
-        }
-    }
     /** Finn default verdi å sette i databasen hvis det ikke eksisterer.  */
-    static valueToPush(prefix: dbPrefix) {
+    static getDefaultPrefixValue(prefix: dbPrefix) {
         if (prefix === 'achievement') return {}
         else if (prefix === 'spin' || prefix == 'ATHspin') return '00'
         else return '0'
@@ -304,29 +288,6 @@ export class DatabaseHelper {
         return rawMessage.client.users.cache.find((user) => user.id == id)
     }
 
-    /**
-     * FIXME: This abomination
-     * Ser gjennom alle brukere og sammenligner 1 med 2. Hvis 2 er større, setter funksjonen 1 = 2;
-     * Unnskyld fremtidige mennesker som ska prøva å tyda dette her.
-     * @param prefix1 Compare
-     * @param prefix2 Compare
-     */
-    static compareAndUpdateValue(prefix1: dbPrefix, prefix2: dbPrefix) {
-        const users = db.getData(`${folderPrefix}`)
-        Object.keys(users).forEach((el) => {
-            Object.keys(users[el]).forEach((el2) => {
-                if (el2 == prefix1) {
-                    Object.keys(users[el]).forEach((el4) => {
-                        if (el4 == prefix2) {
-                            if (users[el][el2] < users[el][el4]) {
-                                DatabaseHelper.setValue(prefix1, el, users[el][el4])
-                            }
-                        }
-                    })
-                }
-            })
-        })
-    }
     static decreaseInventoryItem(item: String, username: String) {
         try {
             const mengde = db.getData(`${folderPrefix}/${username}/inventory/${item}/amount`) - 1
@@ -339,17 +300,7 @@ export class DatabaseHelper {
             return undefined
         }
     }
-    /** Hent alle verdier for en gitt prefix */
-    static getAllValuesFromPrefix(prefix: dbPrefix) {
-        const users = db.getData(`${folderPrefix}`)
-        const valueList: ValuePair[] = []
-        Object.keys(users).forEach((el) => {
-            const val = DatabaseHelper.getValueWithoutMessage(prefix, el)
 
-            if (val) valueList.push({ key: el, val: val })
-        })
-        return valueList
-    }
     static getAllValuesFromPath(path: string) {
         try {
             return db.getData(`${path}`)
@@ -359,16 +310,6 @@ export class DatabaseHelper {
     }
     static getValueFromPath(path: string) {
         return db.getData(`${path}`)
-    }
-
-    static getAllValuesFromPrefixWithoutMessage(prefix: dbPrefix) {
-        const users = db.getData(`${folderPrefix}`)
-        const valueList: ValuePair[] = []
-        Object.keys(users).forEach((el) => {
-            const val = DatabaseHelper.getValueWithoutMessage(prefix, el)
-            if (val) valueList.push({ key: el, val: val })
-        })
-        return valueList
     }
 
     /** Fjern prefix fra en string */
@@ -402,6 +343,37 @@ export class DatabaseHelper {
         } catch (error) {
             db.push(`${folderPrefix}/${target}/debuff/${item}/name`, `${item}`)
             db.push(`${folderPrefix}/${target}/debuff/${item}/amount`, 1)
+        }
+    }
+
+    static defaultUser(id: string, name: string): MazariniUser {
+        return {
+            bonkCounter: 0,
+            chips: 5000,
+            coins: 150,
+            debt: 0,
+            debtMultiplier: 0,
+            debtPenalty: 0,
+            id: id,
+            loanCounter: 0,
+            spinCounter: 0,
+            warningCounter: 0,
+            displayName: name,
+            ATHspin: '00',
+            activisionUserString: undefined,
+            birthday: undefined,
+            codStats: undefined,
+            codStatsBR: undefined,
+            dailyClaim: 0,
+            dailyClaimStreak: undefined,
+            dailyFreezeCounter: 0,
+            debuff: undefined,
+            inventory: undefined,
+            lastFMUsername: undefined,
+            rocketLeagueUserString: undefined,
+            shopItems: undefined,
+            status: undefined,
+            prestige: 0,
         }
     }
 }

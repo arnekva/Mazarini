@@ -6,6 +6,7 @@ import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { RandomUtils } from '../utils/randomUtils'
 import { TextUtils } from '../utils/textUtils'
+import { UserUtils } from '../utils/userUtils'
 
 interface dropCoordinate {
     xDropCoordinate: number
@@ -124,11 +125,9 @@ export class GameCommands extends AbstractCommands {
     }
 
     private async rocketLeagueRanks(rawMessage: Message, messageContent: string, args: string[]) {
-        const wantsToLookUpUser = DatabaseHelper.getValueWithoutMessage('rocketLeagueUserString', TextUtils.splitUsername(args[1]))
+        const _user = UserUtils.findUserByUsername(TextUtils.splitUsername(args[1]), rawMessage)
 
-        const userValue = wantsToLookUpUser
-            ? wantsToLookUpUser
-            : DatabaseHelper.getValue('rocketLeagueUserString', rawMessage.author.username, rawMessage, true)
+        const userValue = _user ? DatabaseHelper.getUser(_user.id).rocketLeagueUserString : DatabaseHelper.getUser(rawMessage.author.id).rocketLeagueUserString
         let user
         if (userValue) user = userValue.split(';')
 

@@ -3,7 +3,7 @@ import { ActivityTypes } from 'discord.js/typings/enums'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement } from '../General/commands'
 import { ClientHelper } from '../helpers/clientHelper'
-import { DatabaseHelper, dbPrefix, prefixList, ValuePair } from '../helpers/databaseHelper'
+import { DatabaseHelper, MazariniUser, prefixList, ValuePair } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniClient } from '../main'
 import { MessageUtils } from '../utils/messageUtils'
@@ -18,50 +18,30 @@ export class Admin extends AbstractCommands {
     }
 
     private setSpecificValue(message: Message, messageContent: string, args: string[]) {
-        //setValueObject
-        const prefix = args[0] as dbPrefix
-        let username = TextUtils.splitUsername(args[1])
-        let oldValue = DatabaseHelper.getValue(prefix, username, message, true)
-        const user = UserUtils.findUserByUsername(username, message)
-        if (!user || !oldValue) {
-            const incorrectPart = user ? `Prefixen '${prefix}' er feil` : `Brukeren '${username}' eksisterer ikke`
-            this.messageHelper.sendMessageToActionLogWithCustomMessage(
-                message,
-                `${message.author.username} brukte feil syntax i setvalue.` + incorrectPart,
-                `${incorrectPart}. Husk at syntaxen er <prefix> <brukernavn> <verdi>`,
-                true
-            )
-            return
-        }
-        const val = args[2]
-        DatabaseHelper.setValue(prefix, username, val)
-        this.messageHelper.reactWithRandomEmoji(message)
-        if (args[3] !== 'silent')
-            this.messageHelper.sendMessageToActionLog(
-                message.channel as TextChannel,
-                `Setvalue ble brukt av ${message.author.username} i kanalen ${message.channel}. Prefix: ${prefix}, nøkkel: ${username}, verdi: ${val}. Gammel verdi for objektet var: ${oldValue} `
-            )
-    }
-    private setSpinValue(message: Message, messageContent: string) {
-        const content = messageContent.split(' ')
-        const key = content[0] as dbPrefix
-        let value = ''
-        const newCont = content.slice(1)
-        newCont.forEach((el) => (value += el.trim()))
-        DatabaseHelper.setValue('ATHspin', key, value)
-    }
-    private deleteSpecificValue(message: Message, messageContent: string) {
-        const cmdSplit = messageContent.split(' ')
-        const prefix = cmdSplit[0]
-        const key = cmdSplit[1]
-        const keyToDelete = prefix + '-' + key
-    }
-
-    private async getSpecificValue(message: Message, messageContent: string) {
-        const content = messageContent.split(' ')
-        const prefix = content[0] as dbPrefix
-        const key = content[1]
-        const val = await DatabaseHelper.getValue(prefix, key, message)
+        // //setValueObject
+        // const prefix = args[0] as keyof MazariniUser
+        // let username = TextUtils.splitUsername(args[1])
+        // const user = DatabaseHelper.getUser(username)
+        // if (user) {
+        //     if (!user[prefix] || user[prefix] === 'undefined') {
+        //         const incorrectPart = user ? `Prefixen '${prefix}' er feil` : `Brukeren '${username}' eksisterer ikke`
+        //         return this.messageHelper.sendMessageToActionLogWithCustomMessage(
+        //             message,
+        //             `${message.author.username} brukte feil syntax i setvalue.` + incorrectPart,
+        //             `${incorrectPart}. Husk at syntaxen er <prefix> <brukernavn> <verdi>`,
+        //             true
+        //         )
+        //     }
+        //     const oldVal = user[prefix]
+        //     const val = ((user[prefix] as Record<typeof prefix, typeof prefix>)[prefix] = prefix)
+        //     user[prefix] = (val as unknown as Record<typeof prefix, typeof prefix>)[prefix]
+        //     DatabaseHelper.updateUser(user)
+        //     if (args[3] !== 'silent')
+        //         this.messageHelper.sendMessageToActionLog(
+        //             message.channel as TextChannel,
+        //             `Setvalue ble brukt av ${message.author.username} i kanalen ${message.channel}. Prefix: ${prefix}, nøkkel: ${username}, verdi: ${args[2]}. Gammel verdi for objektet var: ${oldVal} `
+        //         )
+        // }
     }
 
     private async replyToMsgAsBot(rawMessage: Message, content: string) {
@@ -169,7 +149,9 @@ export class Admin extends AbstractCommands {
     private botDownTime(message: Message, messageContent: string, args: string[]) {
         const scheduledTimeBackUp = args[0]
         const reason = args.slice(1)
-        const mainMsg = `Planlagt nedetid for botten ${scheduledTimeBackUp ? 'frem til ' + scheduledTimeBackUp : ' i ca. 30 minutter.'}. ${reason ?? ''}`
+        const mainMsg = `Planlagt nedetid for botten fra nå ${scheduledTimeBackUp ? 'frem til ca. ' + scheduledTimeBackUp : 'i ca. 30 minutter.'}. ${
+            reason ?? ''
+        }`
 
         this.messageHelper.sendMessage(MessageUtils.CHANNEL_IDs.BOT_UTVIKLING, mainMsg)
     }
@@ -177,32 +159,35 @@ export class Admin extends AbstractCommands {
     private async warnUser(message: Message, messageContent: string, args: string[]) {
         const username = TextUtils.splitUsername(args[0])
 
-        const user = DatabaseHelper.findUserByUsername(username, message)
+        const user = UserUtils.findUserByUsername(username, message)
 
         const replyString = messageContent.replace(username, '').replace('""', '').trim()
         if (user) {
-            if (user.username == message.author.username) {
+            if (user.id == message.author.id) {
                 return message.reply('Du kan kje warna deg sjøl, bro')
             }
-            const userWarnings = DatabaseHelper.getValue('warningCounter', user.username, message)
+            const warnedUser = DatabaseHelper.getUser(user.id)
+            let userWarnings = warnedUser.warningCounter
 
             if (!isNaN(userWarnings)) {
-                let newVal = parseInt(userWarnings)
-                newVal += 1
-                DatabaseHelper.setValue('warningCounter', user.username, newVal.toString())
-                this.messageHelper.sendMessage(message.channelId, user.username + ', du har fått en advarsel. Du har nå ' + newVal + ' advarsler.')
+                warnedUser.warningCounter = ++userWarnings
+                DatabaseHelper.updateUser(warnedUser)
+                this.messageHelper.sendMessage(
+                    message.channelId,
+                    warnedUser.displayName + ', du har fått en advarsel. Du har nå ' + userWarnings + ' advarsler.'
+                )
                 //Send msg to action-log
                 this.messageHelper.sendMessageToActionLog(
                     message.channel as TextChannel,
                     message.author.username +
                         ' ga en advarsel til ' +
-                        user.username +
+                        warnedUser.displayName +
                         ' på grunn av: ' +
                         replyString +
                         '. ' +
-                        user.username +
+                        warnedUser.displayName +
                         ' har nå ' +
-                        newVal +
+                        userWarnings +
                         ' advarsler'
                 )
             } else {
@@ -265,14 +250,15 @@ export class Admin extends AbstractCommands {
                 if (formatted) this.messageHelper.sendMessage(message.channelId, formatted)
             } else {
                 //Vil hente brukerverdier
-                if (ObjectUtils.isObjectOfTypeDbPrefix(p)) {
-                    const dataArray = DatabaseHelper.getAllValuesFromPrefix(p)
-                    const formatted = dataArray.map((d) => `${d.key} - ${d.val}`).join('\n')
-                    if (formatted) this.messageHelper.sendMessage(message.channelId, formatted)
-                    else message.reply('Fant ingen data')
-                } else {
-                    message.reply('Du har skrevet en ugyldig prefix')
-                }
+                message.reply('Du kan ikke hente ut brukerverdier for øyeblikket. Denne delen refaktoreres enda')
+                // if (ObjectUtils.isObjectOfTypeDbPrefix(p)) {
+                //     const dataArray = DatabaseHelper.getAllValuesFromPrefix(p)
+                //     const formatted = dataArray.map((d) => `${d.key} - ${d.val}`).join('\n')
+                //     if (formatted) this.messageHelper.sendMessage(message.channelId, formatted)
+                //     else message.reply('Fant ingen data')
+                // } else {
+                //     message.reply('Du har skrevet en ugyldig prefix')
+                // }
             }
         } else {
             return message.reply('Du må spesifisere path eller prefix')
@@ -317,16 +303,47 @@ export class Admin extends AbstractCommands {
             })
     }
 
+    private debugMethod(message: Message, messageContent: string, args: string[]) {
+        const defaultUser: MazariniUser = {
+            bonkCounter: 0,
+            chips: 5000,
+            coins: 150,
+            debt: 0,
+            debtMultiplier: 0,
+            debtPenalty: 0,
+            id: message.author.id,
+            loanCounter: 0,
+            spinCounter: 0,
+            warningCounter: 0,
+            displayName: message.author.username,
+            ATHspin: '00',
+            activisionUserString: 'undefined',
+            birthday: 'undefined',
+            codStats: 'undefined',
+            codStatsBR: 'undefined',
+            dailyClaim: 0,
+            dailyClaimStreak: 'undefined',
+            dailyFreezeCounter: 0,
+            debuff: 'undefined',
+            inventory: 'undefined',
+            lastFMUsername: 'undefined',
+            rocketLeagueUserString: 'undefined',
+            shopItems: 'undefined',
+            status: 'undefined',
+            prestige: 0,
+        }
+        DatabaseHelper.updateUser(defaultUser)
+    }
+
     public getAllCommands(): ICommandElement[] {
         return [
             {
                 commandName: 'debug',
                 description: 'For testing. Resultat vil variere. ',
                 hideFromListing: true,
-                command: async (rawMessage: Message, messageContent: string) => {
+                command: async (rawMessage: Message, messageContent: string, args: string[]) => {
                     rawMessage.reply('disabled')
-                    // const dj = new DailyJobs(this.messageHelper)
-                    // dj.runJobs()
+                    this.debugMethod(rawMessage, messageContent, args)
                 },
                 category: 'admin',
             },
@@ -375,27 +392,8 @@ export class Admin extends AbstractCommands {
                 hideFromListing: true,
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.setSpecificValue(rawMessage, messageContent, args)
-                },
-                category: 'admin',
-            },
-            {
-                commandName: 'setspin',
-                description: 'Sett en spin score for en bruker. <nøkkel> <verdi>',
-                hideFromListing: true,
-                isAdmin: true,
-                command: (rawMessage: Message, messageContent: string) => {
-                    this.setSpinValue(rawMessage, messageContent)
-                },
-                category: 'admin',
-            },
-            {
-                commandName: 'getvalue',
-                description: 'Hent en spesifikk verdi i databasen. <prefix> <nøkkel> ',
-                hideFromListing: true,
-                isAdmin: true,
-                command: (rawMessage: Message, messageContent: string) => {
-                    this.getSpecificValue(rawMessage, messageContent)
+                    rawMessage.reply('Denne fungerer ikke for øyeblikket.')
+                    // this.setSpecificValue(rawMessage, messageContent, args)
                 },
                 category: 'admin',
             },

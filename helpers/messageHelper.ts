@@ -19,6 +19,7 @@ export class MessageHelper {
         this.client = client
     }
 
+    /** Sender en melding. Returner Promise av en meldingen hvis meldingen ble sendt, ellers undefined. Logger feilmelding hvis teksten er tom. */
     sendMessage(channelId: string, message: string) {
         if (!this.checkForEmptyMessage(message)) {
             return this.logEmptyMessage('En melding som ble forsøkt sendt var tom', channelId)
@@ -32,6 +33,10 @@ export class MessageHelper {
         return !!s.trim()
     }
 
+    /**
+     *
+     * @deprecated Bruker sendMessage
+     */
     sendMessageToChannel(channel: TextChannel | DMChannel, message: string) {
         if (!this.checkForEmptyMessage(message)) {
             return this.logEmptyMessage('En melding som ble forsøkt sendt var tom', channel.id)

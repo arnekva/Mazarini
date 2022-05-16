@@ -81,7 +81,7 @@ export namespace UserUtils {
             '340626855990132747',
             'Welcome to the Gulag, ' + (member.nickname ?? member.displayName) + '. Bruk commanden "!mz role" for å gi deg selv roller for å komme i gang'
         )
-        DatabaseHelper.setValue('chips', member.user.username, '5000')
+        DatabaseHelper.getUser(member.id)
         msgHelper.sendMessageToActionLog(
             member.guild.channels.cache.first() as TextChannel,
             'En bruker ble med i Mazarini: ' + (member.nickname ?? member.displayName)

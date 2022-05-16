@@ -13,10 +13,10 @@ export class WeeklyJobs {
     }
     private async awardWeeklyCoins() {
         const brukere = await DatabaseHelper.getAllUsers()
-        Object.keys(brukere).forEach((username: string) => {
-            const currentBalance = DatabaseHelper.getValueWithoutMessage('dogeCoin', username)
-            const newBalance = Number(currentBalance) + 200
-            DatabaseHelper.setValue('dogeCoin', username.toString(), newBalance.toString())
+        Object.keys(brukere).forEach((userID: string) => {
+            const currUser = DatabaseHelper.getUser(userID)
+            currUser.chips += 200
+            DatabaseHelper.updateUser(currUser)
         })
     }
     private logEvent() {

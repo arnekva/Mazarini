@@ -1,472 +1,51 @@
 {
     "users": {
-        "40758": {
-            "PhedeSpelar": "",
-            "dogeCoin": "NaN"
-        },
-        "10550000": {
-            "ThomasW": "",
-            "dogeCoin": "NaN"
-        },
-        "PhedeSpelar": {
-            "ATHspin": "957",
-            "counterSpin": "3844",
-            "dogeCoin": "54607.99",
-            "achievement": {
-                "firstSpin": "5",
-                "100spin": "15",
-                "1000spin": "25",
-                "bonkOnce": "5"
-            },
-            "bonkCounter": "18",
-            "warningCounter": "3",
-            "lastFmUsername": "lordarne",
-            "loanCounter": "297",
-            "debt": "21074.00",
-            "bailout": "true",
-            "chips": "0",
-            "lån": "0",
-            "lan": "0",
-            "debtMultiplier": "16.00",
-            "debtPenalty": "true",
-            "codStats": "{\"kills\":295,\"kdRatio\":1.6480446927374302,\"wallBangs\":0,\"avgLifeTime\":484.8031496062992,\"gulagDeaths\":9,\"score\":335289,\"timePlayed\":123140,\"headshotPercentage\":0.19322033898305085,\"headshots\":57,\"executions\":3,\"matchesPlayed\":75,\"assists\":97,\"gulagKills\":7,\"nearmisses\":0,\"killsPerGame\":3.933333333333333,\"scorePerMinute\":163.36966054896865,\"distanceTraveled\":11456300.584999997,\"damageDone\":126572,\"deaths\":179,\"damageTaken\":45738,\"damageDoneTakenRatio\":2.767326949145131,\"gulagKd\":0.778}",
-            "activisionUserString": "Arne#22482;battle",
-            "spin": "957",
-            "cancelledCounter": "5",
-            "codStatsBR": "{\"wins\":99,\"kills\":6007,\"kdRatio\":1.3806021604228913,\"downs\":5980,\"topTwentyFive\":1484,\"objTime\":0,\"topTen\":791,\"contracts\":2783,\"revives\":733,\"topFive\":426,\"score\":8957410,\"timePlayed\":2129331,\"gamesPlayed\":1932,\"tokens\":0,\"scorePerMinute\":252.4006835949883,\"cash\":0,\"deaths\":4351}",
-            "inventory": {
-                "Chug": {
-                    "name": "Chug",
-                    "price": "299",
-                    "description": "Minst 0,4l",
-                    "amount": 2
-                },
-                "Shot (sterk)": {
-                    "name": "Shot (sterk)",
-                    "price": "99",
-                    "description": "Minst 32%",
-                    "amount": 2
-                },
-                "Shot (svak)": {
-                    "name": "Shot (svak)",
-                    "price": "199",
-                    "description": "Minst 12%",
-                    "amount": 1
-                }
-            },
-            "debuff": {
-                "Shot (sterk)": {
-                    "name": "Shot (sterk)",
-                    "amount": 1
-                },
-                "Shot (svak)": {
-                    "name": "Shot (svak)",
-                    "amount": 2
-                }
-            },
-            "dailyClaimStreak": "{\"streak\":11,\"wasAddedToday\":true}",
-            "rocketLeagueUserString": "epic;PhedeSpelar",
-            "birthday": "10-12-1996",
-            "prestige": "1",
-            "dailyClaim": "1",
-            "mygling": "guddan med ein enkel dag på jobb og spare ein feriedag :maggicoffee:"
-        },
-        "ThomasW": {
-            "ATHspin": "947",
-            "counterSpin": "2138",
-            "dogeCoin": "81236.00",
-            "warningCounter": "14",
-            "achievement": {
-                "firstSpin": "5",
-                "100spin": "15",
-                "bonkOnce": "5",
-                "1000spin": "25"
-            },
-            "bonkCounter": "14",
-            "lastFmUsername": "sirwalmsley",
-            "loanCounter": "114",
-            "debt": "0.00",
-            "bailout": "true",
-            "chips": "4284.00",
-            "lån": "0",
-            "debtMultiplier": "0",
-            "debtPenalty": "false",
-            "spin": "831",
-            "dailyClaimStreak": "{\"streak\":2,\"wasAddedToday\":true}",
-            "inventory": {
-                "Shot (sterk)": {
-                    "name": "Shot (sterk)",
-                    "price": "99",
-                    "description": "Minst 32%",
-                    "amount": 2
-                },
-                "Chug": {
-                    "name": "Chug",
-                    "price": "299",
-                    "description": "Minst 0,4l",
-                    "amount": 1
-                }
-            },
-            "rocketLeagueUserString": "psn;sirwalmsley",
-            "dailyFreezeCounter": "0.00",
-            "birthday": "01-04-1996",
-            "prestige": "1",
-            "dailyClaim": "1"
-        },
-        "Eivind": {
-            "ATHspin": "921",
-            "counterSpin": "2853",
-            "dogeCoin": "48516.00",
-            "achievement": {
-                "firstSpin": "5",
-                "100spin": "15",
-                "1000spin": "25",
-                "bonkOnce": "5"
-            },
-            "bonkCounter": "27",
-            "warningCounter": "42",
-            "lastFmUsername": "Eivinddh",
-            "loanCounter": "62",
-            "debt": "3450.00",
-            "bailout": "true",
-            "chips": "2990",
-            "status": "jobbe med presentasjon <:pepeCoffee:801403475451314176> ",
-            "codStats": "{\"kills\":12,\"kdRatio\":0.631578947368421,\"wallBangs\":0,\"avgLifeTime\":698.6206896551724,\"gulagDeaths\":1,\"score\":14150,\"timePlayed\":20260,\"headshotPercentage\":0.16666666666666666,\"headshots\":2,\"executions\":0,\"matchesPlayed\":10,\"assists\":12,\"gulagKills\":2,\"nearmisses\":0,\"killsPerGame\":1.2,\"scorePerMinute\":41.90523198420534,\"distanceTraveled\":2343564.92,\"damageDone\":5629,\"deaths\":19,\"damageTaken\":5903,\"damageDoneTakenRatio\":null,\"gulagKd\":2}",
-            "debtMultiplier": "15",
-            "debtPenalty": "false",
-            "activisionUserString": "CookieSlice#2972;battle",
-            "spin": "812",
-            "cancelledCounter": "11",
-            "nickname": "Eivind",
-            "inventory": {},
-            "dailyClaimStreak": "{\"streak\":10,\"wasAddedToday\":true}",
-            "debuff": {
-                "Chug": {
-                    "name": "Chug",
-                    "amount": 7
-                },
-                "Shot (svak)": {
-                    "name": "Shot (svak)",
-                    "amount": 1
-                },
-                "Eivinds dildo": {
-                    "name": "Eivinds dildo",
-                    "amount": 2
-                }
-            },
-            "rocketLeagueUserString": "epic;CookieSlice",
-            "codStatsBR": "{\"wins\":6,\"kills\":135,\"kdRatio\":0.3221957040572792,\"downs\":85,\"topTwentyFive\":130,\"objTime\":0,\"topTen\":66,\"contracts\":222,\"revives\":88,\"topFive\":29,\"score\":272525,\"timePlayed\":176641,\"gamesPlayed\":151,\"tokens\":0,\"scorePerMinute\":92.569109096982,\"cash\":0,\"deaths\":419}",
-            "birthday": "26-06-1996",
-            "prestige": "1",
-            "dailyClaim": "1",
-            "mygling": "guddan hjemma med fri <:pepeCoffee:801403475451314176>"
-        },
-        "Deadmaggi": {
-            "ATHspin": "303",
-            "counterSpin": "6",
-            "dogeCoin": "13290.01",
-            "achievement": {
-                "firstSpin": "5",
-                "bonkOnce": "5",
-                "bonk50": "10",
-                "bonk100": "15"
-            },
-            "bonkCounter": "140",
-            "warningCounter": "13",
-            "lastFmUsername": "Deadmaggi",
-            "loanCounter": "0",
-            "debt": "0",
-            "chips": "300.00",
-            "cancelledCounter": "12",
-            "nickname": "cancelled ancelled :re",
-            "inventory": {},
-            "debuff": {
-                "Chug": {
-                    "name": "Chug",
-                    "amount": 4
-                },
-                "Eivinds dildo": {
-                    "name": "Eivinds dildo",
-                    "amount": 6
-                },
-                "Shot (sterk)": {
-                    "name": "Shot (sterk)",
-                    "amount": 2
-                },
-                "Shot (svak)": {
-                    "name": "Shot (svak)",
-                    "amount": 2
-                },
-                "Timeout": {
-                    "name": "Timeout",
-                    "amount": 3
-                }
-            },
-            "dailyClaimStreak": "{\"streak\":0,\"wasAddedToday\":false}",
-            "rocketLeagueUserString": "epic;Deadmaggi"
-        },
-        "Brzeczyszczykiewicz": {
-            "ATHspin": "952",
-            "counterSpin": "2319",
-            "dogeCoin": "34925",
-            "achievement": {
-                "firstSpin": "5",
-                "100spin": "15",
-                "1000spin": "25",
-                "bonkOnce": "5"
-            },
-            "warningCounter": "9",
-            "bonkCounter": "6",
-            "loanCounter": "140",
-            "debt": "3450.00",
-            "bailout": "true",
-            "chips": "1200",
-            "dogecoin": "620 ",
-            "spin": "836",
-            "cancelledCounter": "3",
-            "nickname": "Morå di",
-            "lastFmUsername": "Granden96",
-            "debtMultiplier": "15",
-            "debtPenalty": "false",
-            "dailyClaimStreak": "{\"streak\":0,\"wasAddedToday\":false}",
-            "birthday": "21-04-1996"
-        },
-        "Rogster": {
-            "counterSpin": "3",
-            "achievement": {
-                "firstSpin": "5",
-                "bonkOnce": "5"
-            },
-            "ATHspin": "650",
-            "bonkCounter": "1",
-            "dogeCoin": "16220",
-            "lastFmUsername": "steenslando",
-            "chips": "5000.00"
-        },
-        "spookz": {
-            "counterSpin": "3",
-            "achievement": {
-                "firstSpin": "5"
-            },
-            "ATHspin": "256",
-            "dogeCoin": "11220",
-            "bailout": "true",
-            "chips": "5000.00",
-            "loanCounter": "1",
-            "debt": "275.00"
-        },
-        "Mads R": {
-            "dogeCoin": "11460",
-            "loanCounter": "26",
-            "debt": "0",
-            "bailout": "0",
-            "chips": "0.00",
-            "warningCounter": "3",
-            "counterSpin": "96",
-            "achievement": {
-                "firstSpin": "5"
-            },
-            "spin": "534",
-            "dailyClaimStreak": "{\"streak\":0,\"wasAddedToday\":false}"
-        },
-        "Joiij": {
-            "dogeCoin": "12020",
-            "warningCounter": "8",
-            "loanCounter": "20",
-            "debt": "0.00",
-            "bailout": "true",
-            "chips": "549800.00",
-            "warning": "1 ",
-            "ATHspin": "956",
-            "counterSpin": "1316",
-            "achievement": {
-                "firstSpin": "5",
-                "100spin": "15",
-                "1000spin": "25"
-            },
-            "activisionUserString": "psn;joiij96"
-        },
-        "TrackpadSteve": {
-            "dogeCoin": "12529",
-            "loanCounter": "3",
-            "debt": "0.00",
-            "ATHspin": "905",
-            "counterSpin": "300",
-            "lastFmUsername": "Sivertlunde",
-            "achievement": {
-                "firstSpin": "5",
-                "100spin": "15"
-            },
-            "chips": "369.00",
-            "codStats": "{\"kills\":172,\"kdRatio\":1.6538461538461537,\"wallBangs\":0,\"avgLifeTime\":505.503355704698,\"gulagDeaths\":6,\"score\":148800,\"timePlayed\":75320,\"headshotPercentage\":0.18604651162790697,\"headshots\":32,\"executions\":2,\"matchesPlayed\":45,\"assists\":53,\"gulagKills\":4,\"nearmisses\":0,\"killsPerGame\":3.8222222222222224,\"scorePerMinute\":118.53425385023898,\"distanceTraveled\":6157383.1839999985,\"damageDone\":71348,\"deaths\":104,\"damageTaken\":24711,\"damageDoneTakenRatio\":2.8872971551131075,\"gulagKd\":0.667}",
-            "activisionUserString": "TrackpadSteve;psn",
-            "codStatsBR": "{\"wins\":71,\"kills\":5129,\"kdRatio\":1.249756335282651,\"downs\":5255,\"topTwentyFive\":1149,\"objTime\":0,\"topTen\":600,\"contracts\":2356,\"revives\":731,\"topFive\":333,\"score\":6591845,\"timePlayed\":1737689,\"gamesPlayed\":1664,\"tokens\":0,\"scorePerMinute\":227.60729911969287,\"cash\":0,\"deaths\":4104}",
-            "debuff": {
-                "Eivinds dildo": {
-                    "name": "Eivinds dildo",
-                    "amount": 1
-                }
-            },
-            "rocketLeagueUserString": "epic;sivertolundo",
-            "dailyClaimStreak": "{\"streak\":0,\"wasAddedToday\":false}",
-            "birthday": "04-12-1997",
-            "spin": "653"
-        },
-        "Siqve": {
-            "dogeCoin": "11420",
-            "dogeCoins": "20",
-            "counterSpin": "0"
-        },
-        "Finn": {
-            "dogeCoin": "11420",
-            "counterSpin": "0"
-        },
-        "Mazarini Bot": {
-            "chips": "Infinity",
-            "dogeCoin": "Infinity"
-        },
-        "Niadl": {
-            "dogeCoin": "11400",
-            "counterSpin": "0"
-        },
-        "Arne": {
-            "debt": "1000",
-            "dogeCoin": "8750",
-            "chips": "12000"
-        },
-        "Kubomi": {
-            "dogeCoin": "9040",
-            "loanCounter": "1",
-            "debt": "1100.00",
-            "debtMultiplier": "0",
-            "chips": "1000",
-            "debtPenalty": "false",
-            "counterSpin": "40",
-            "achievement": {
-                "firstSpin": "5"
-            },
-            "spin": "300",
-            "dailyClaimStreak": "{\"streak\":0,\"wasAddedToday\":false}"
-        },
-        "DarioSnow": {
-            "chips": "0",
-            "loanCounter": "10",
-            "debt": "0.00",
-            "debtMultiplier": "0",
-            "debtPenalty": "false",
-            "counterSpin": "127",
-            "achievement": {
-                "firstSpin": "5"
-            },
-            "dogeCoin": "17844.00",
-            "codStats": "{\"kills\":54,\"kdRatio\":0.7941176470588235,\"wallBangs\":0,\"avgLifeTime\":526.2626262626262,\"gulagDeaths\":3,\"score\":86975,\"timePlayed\":52100,\"headshotPercentage\":0.14814814814814814,\"headshots\":8,\"executions\":0,\"matchesPlayed\":31,\"assists\":55,\"gulagKills\":4,\"nearmisses\":0,\"killsPerGame\":1.7419354838709677,\"scorePerMinute\":100.16314779270633,\"distanceTraveled\":4361323.034,\"damageDone\":36926,\"deaths\":68,\"damageTaken\":17452,\"damageDoneTakenRatio\":2.1158606463442586,\"gulagKd\":1.333}",
-            "activisionUserString": "Dirtysloot#2922;battle",
-            "spin": "805",
-            "dailyClaimStreak": "{\"streak\":1,\"wasAddedToday\":true}",
-            "inventory": {
-                "Timeout": {
-                    "name": "Timeout",
-                    "price": "1337",
-                    "description": "Mute-hammer en valgfri person",
-                    "amount": 1
-                }
-            },
-            "debuff": {
-                "Shot (sterk)": {
-                    "name": "Shot (sterk)",
-                    "amount": 1
-                }
-            },
-            "rocketLeagueUserString": "epic;Dirtysloot96",
-            "codStatsBR": "{\"wins\":15,\"kills\":605,\"kdRatio\":0.8002645502645502,\"downs\":601,\"topTwentyFive\":233,\"objTime\":0,\"topTen\":127,\"contracts\":442,\"revives\":130,\"topFive\":66,\"score\":901650,\"timePlayed\":335870,\"gamesPlayed\":273,\"tokens\":0,\"scorePerMinute\":161.07124780420997,\"cash\":0,\"deaths\":756}",
-            "warningCounter": "2",
-            "dailyClaim": "1"
-        },
-        "BelialBaldie": {
-            "warningCounter": "2",
-            "dogeCoin": "NaN",
-            "chips": "5000",
-            "bonkCounter": "1",
-            "achievement": {
-                "bonkOnce": "5"
-            },
-            "activisionUserString": "christolini#2118;battle",
-            "codStats": "{\"kills\":36,\"objectiveTeamWiped\":9,\"objectiveLastStandKill\":24,\"wallBangs\":0,\"avgLifeTime\":863.45,\"score\":37925,\"headshots\":12,\"assists\":18,\"killsPerGame\":2.5714285714285716,\"scorePerMinute\":65.88395390584283,\"distanceTraveled\":4157655.0600000005,\"deaths\":26,\"objectiveMunitionsBoxTeammateUsed\":2,\"objectiveBrDownEnemyCircle4\":7,\"objectiveBrDownEnemyCircle3\":5,\"objectiveBrDownEnemyCircle2\":6,\"kdRatio\":1.3846153846153846,\"objectiveBrDownEnemyCircle1\":15,\"objectiveBrMissionPickupTablet\":22,\"objectiveReviver\":5,\"objectiveBrKioskBuy\":14,\"gulagDeaths\":11,\"objectiveBrDownEnemyCircle6\":4,\"objectiveBrDownEnemyCircle5\":1,\"timePlayed\":34538,\"headshotPercentage\":0.3333333333333333,\"executions\":0,\"matchesPlayed\":14,\"gulagKills\":5,\"nearmisses\":0,\"objectiveBrCacheOpen\":48,\"damageDone\":16231,\"damageTaken\":4971}",
-            "counterSpin": "0"
-        },
-        "MazariniBot": {
-            "dogeCoin": "7650",
-            "chips": "9999433496718.00",
-            "coins": "100",
-            "bonkCounter": "1",
-            "achievement": {
-                "bonkOnce": "5"
-            },
-            "cancelledCounter": "3",
-            "nickname": "Bot Høie",
-            "debuff": {
-                "Shot (sterk)": {
-                    "name": "Shot (sterk)",
-                    "amount": 1
-                }
-            },
-            "counterSpin": "0",
-            "ATHspin": "101"
-        },
-        "Thomas": {
-            "chips": "10000000",
-            "dogeCoin": "NaN"
-        },
-        "TomasTheGrate": {
-            "spin": "701",
-            "counterSpin": "13",
-            "achievement": {
-                "firstSpin": "5"
-            },
-            "chips": "12500",
-            "dogeCoin": "NaN"
-        },
-        "deadmaggi junior": {
-            "chips": "5000",
-            "dogeCoin": "NaN",
-            "counterSpin": "0"
-        },
-        "arne junior": {
-            "chips": "5000",
-            "dogeCoin": "NaN"
-        },
-        "chips": {
-            "PhedeSpelar": "500",
-            "dogeCoin": "NaN"
-        },
-        "": {
-            "ATHspin": "",
-            "dogeCoin": "NaN"
-        },
-        "zaldro": {
-            "dogeCoin": "1700",
-            "chips": "5000"
-        },
-        "239154365443604480": {
-            "chips": "785.00",
-            "dogeCoin": "NaN"
-        },
-        "397429060898390016": {
-            "chips": "200000749.00",
-            "dogeCoin": "NaN"
-        },
-        "264135797215723520": {
-            "chips": "5544.00",
-            "dogeCoin": "NaN"
-        },
-        "245607554254766081": {
-            "chips": "0.00",
-            "dogeCoin": "NaN"
-        },
-        "253238701109280769": {
-            "chips": "12493.00",
-            "dogeCoin": "NaN"
-        }
+        "245607554254766081": "{\"bonkCounter\":18,\"chips\":5300,\"coins\":54607,\"prestige\":1,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"245607554254766081\",\"loanCounter\":0,\"spinCounter\":3852,\"warningCounter\":0,\"displayName\":\"PhedeSpelar\",\"ATHspin\":\"957\",\"activisionUserString\":\"Arne#22482;battle\",\"birthday\":\"10-12-1996\",\"codStats\":\"undefined\",\"codStatsBR\":\"undefined\",\"dailyClaim\":0,\"dailyClaimStreak\":{\"streak\":11,\"wasAddedToday\":true},\"dailyFreezeCounter\":0,\"debuff\":\"undefined\",\"inventory\":\"undefined\",\"lastFMUsername\":\"lordarne\",\"rocketLeagueUserString\":\"epic;PhedeSpelar\",\"shopItems\":\"undefined\",\"status\":\"undefined\"}",
+        "397429060898390016": "{\"bonkCounter\":14,\"chips\":5000,\"coins\":81236,\"prestige\":1,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"397429060898390016\",\"loanCounter\":0,\"spinCounter\":2138,\"warningCounter\":0,\"displayName\":\"ThomasW\",\"ATHspin\":\"947\",\"activisionUserString\":\"sirwalmsley;psn\",\"birthday\":\"01-04-1996\",\"codStats\":\"undefined\",\"codStatsBR\":\"undefined\",\"dailyClaim\":0,\"dailyClaimStreak\":{\"streak\":2,\"wasAddedToday\":true},\"dailyFreezeCounter\":0,\"debuff\":\"undefined\",\"inventory\":\"undefined\",\"lastFMUsername\":\"sirwalmsley\",\"rocketLeagueUserString\":\"psn;sirwalmsley\",\"shopItems\":\"undefined\",\"status\":\"undefined\"}",
+        "239154365443604480": "{\"bonkCounter\":14,\"chips\":5000,\"coins\":48516,\"prestige\":1,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"239154365443604480\",\"loanCounter\":0,\"spinCounter\":2853,\"warningCounter\":0,\"displayName\":\"Eivind\",\"ATHspin\":\"921\",\"activisionUserString\":\"CookieSlice#2972;battle\",\"birthday\":\"26-06-1996\",\"codStats\":\"undefined\",\"codStatsBR\":\"undefined\",\"dailyClaim\":0,\"dailyClaimStreak\":{\"streak\":10,\"wasAddedToday\":true},\"dailyFreezeCounter\":0,\"debuff\":\"undefined\",\"inventory\":\"undefined\",\"lastFMUsername\":\"Eivinddh\",\"rocketLeagueUserString\":\"epic;CookieSlice\",\"shopItems\":\"undefined\",\"status\":\"undefined\"}",
+        "221739293889003520": "{\"bonkCounter\":140,\"chips\":5000,\"coins\":13290,\"prestige\":0,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"221739293889003520\",\"loanCounter\":0,\"spinCounter\":6,\"warningCounter\":0,\"displayName\":\"Deadmaggi\",\"ATHspin\":\"303\",\"codStats\":\"undefined\",\"codStatsBR\":\"undefined\",\"dailyClaim\":0,\"dailyClaimStreak\":{\"streak\":10,\"wasAddedToday\":true},\"dailyFreezeCounter\":0,\"debuff\":\"undefined\",\"inventory\":\"undefined\",\"lastFMUsername\":\"Deadmaggi\",\"rocketLeagueUserString\":\"epic;Deadmaggi\",\"shopItems\":\"undefined\",\"status\":\"undefined\"}",
+        "264135797215723520": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":620,\"prestige\":1,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"264135797215723520\",\"loanCounter\":0,\"spinCounter\":2319,\"warningCounter\":0,\"displayName\":\"David\",\"ATHspin\":\"952\",\"birthday\":\"21-04-1996\",\"codStats\":\"undefined\",\"codStatsBR\":\"undefined\",\"dailyClaim\":0,\"dailyClaimStreak\":{\"streak\":10,\"wasAddedToday\":true},\"dailyFreezeCounter\":0,\"debuff\":\"undefined\",\"inventory\":\"undefined\",\"lastFMUsername\":\"Granden96\",\"shopItems\":\"undefined\",\"status\":\"undefined\"}",
+        "340838450255364096": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":16220,\"prestige\":0,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"340838450255364096\",\"loanCounter\":0,\"spinCounter\":3,\"warningCounter\":0,\"displayName\":\"Rogster\",\"ATHspin\":\"650\",\"codStats\":\"undefined\",\"codStatsBR\":\"undefined\",\"dailyClaim\":0,\"dailyClaimStreak\":{\"streak\":10,\"wasAddedToday\":true},\"dailyFreezeCounter\":0,\"debuff\":\"undefined\",\"inventory\":\"undefined\",\"lastFMUsername\":\"steenslando\",\"shopItems\":\"undefined\",\"status\":\"undefined\"}",
+        "728356987720433786": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":11460,\"prestige\":0,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"728356987720433786\",\"loanCounter\":0,\"spinCounter\":96,\"warningCounter\":0,\"displayName\":\"Mads R\",\"ATHspin\":\"534\",\"codStats\":\"undefined\",\"codStatsBR\":\"undefined\",\"dailyClaim\":0,\"dailyClaimStreak\":{\"streak\":10,\"wasAddedToday\":true},\"dailyFreezeCounter\":0,\"debuff\":\"undefined\",\"inventory\":\"undefined\",\"shopItems\":\"undefined\",\"status\":\"undefined\"}",
+        "733320780707790898": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":12020,\"prestige\":0,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"728356987720433786\",\"loanCounter\":0,\"spinCounter\":1316,\"warningCounter\":0,\"displayName\":\"Mads R\",\"ATHspin\":\"956\",\"codStats\":\"undefined\",\"codStatsBR\":\"undefined\",\"dailyClaim\":0,\"dailyClaimStreak\":{\"streak\":10,\"wasAddedToday\":true},\"dailyFreezeCounter\":0,\"debuff\":\"undefined\",\"inventory\":\"undefined\",\"shopItems\":\"undefined\",\"status\":\"undefined\"}",
+        "293489109048229888": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":12529,\"prestige\":0,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"728356987720433786\",\"loanCounter\":0,\"spinCounter\":300,\"warningCounter\":0,\"displayName\":\"Trackpad Steve\",\"ATHspin\":\"905\",\"birthday\":\"04-12-1997\",\"activisionUserString\":\"TrackpadSteve;psn\",\"codStats\":\"undefined\",\"codStatsBR\":\"undefined\",\"dailyClaim\":0,\"dailyClaimStreak\":{\"streak\":10,\"wasAddedToday\":true},\"dailyFreezeCounter\":0,\"debuff\":\"undefined\",\"inventory\":\"undefined\",\"lastFMUsername\":\"Sivertlunde\",\"rocketLeagueUserString\":\"epic;sivertolundo\",\"shopItems\":\"undefined\",\"status\":\"undefined\"}",
+        "253238701109280769": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":17844,\"prestige\":0,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"728356987720433786\",\"loanCounter\":0,\"spinCounter\":300,\"warningCounter\":0,\"displayName\":\"Dario\",\"ATHspin\":\"905\",\"birthday\":\"04-12-1997\",\"activisionUserString\":\"Dirtysloot#2922;battle\",\"codStats\":\"undefined\",\"codStatsBR\":\"undefined\",\"dailyClaim\":0,\"dailyClaimStreak\":{\"streak\":10,\"wasAddedToday\":true},\"dailyFreezeCounter\":0,\"debuff\":\"undefined\",\"inventory\":\"undefined\",\"rocketLeagueUserString\":\"epic;Dirtysloot96\",\"shopItems\":\"undefined\",\"status\":\"undefined\"}",
+        "381835930287210498": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"381835930287210498\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "245619159541612554": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"245619159541612554\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "209075311596273664": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"209075311596273664\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "917472317389570150": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"917472317389570150\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "160518757909790721": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"160518757909790721\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "228210283053711360": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"228210283053711360\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "203240951001382912": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"203240951001382912\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "426824392157298716": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"426824392157298716\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "138279795493437440": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"138279795493437440\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "118393249000980482": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"118393249000980482\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "173855451333656577": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"173855451333656577\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "366655648227917836": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"366655648227917836\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "802945796457758760": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"802945796457758760\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "194175760968318977": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"194175760968318977\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "706918023017005147": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"706918023017005147\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "239050353415290896": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"239050353415290896\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "271309657056739328": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"271309657056739328\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "878259570500321311": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"878259570500321311\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "286319416470274048": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"286319416470274048\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "855167821330907156": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"855167821330907156\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "877901887637176361": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"877901887637176361\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "406064113811193856": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"406064113811193856\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "290473475250978817": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"290473475250978817\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "756957712297754684": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"756957712297754684\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "201382060408045568": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"201382060408045568\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "601861199084126219": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"601861199084126219\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "119499503287009280": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"119499503287009280\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "264147388959162379": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"264147388959162379\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "169816197565644802": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"169816197565644802\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "855147712033718303": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"855147712033718303\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "198441038832992258": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"198441038832992258\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "372804713554640908": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"372804713554640908\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "180756731226357761": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"180756731226357761\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "878261765782245406": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"878261765782245406\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "125440102854950912": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"125440102854950912\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}",
+        "803280380416753695": "{\"bonkCounter\":0,\"chips\":5000,\"coins\":150,\"debt\":0,\"debtMultiplier\":0,\"debtPenalty\":0,\"id\":\"803280380416753695\",\"loanCounter\":0,\"spinCounter\":0,\"warningCounter\":0,\"displayName\":\"Ingen navn\",\"ATHspin\":\"00\",\"dailyClaim\":0,\"dailyFreezeCounter\":0,\"prestige\":0}"
     },
     "other": {
         "bet": {
@@ -735,9 +314,6 @@
                 "Gutta gutta, jeg hvem jeg møtte?",
                 "Andre folk > Oss\nDa er oss > deg",
                 "I hvilket undervers har jeg sammenkobla kirke og vin?"
-            ],
-            "Ramsdal": [
-                "Nekrofili er den eneste forbrytelsen uten et offer"
             ]
         }
     },

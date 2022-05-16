@@ -174,7 +174,7 @@ export class WarzoneCommands extends AbstractCommands {
 
     private async getLastMatchData(message: Message, messageContent: string, args: string[]) {
         const num = Number(args[1]) || 1
-        const WZUser = this.getWZUserStringFromDB(message).split(';')
+        const WZUser = this.getWZUserStringFromDB(message)?.split(';')
         if (!WZUser) return message.reply('Du må knytta brukernavn te brukeren din fysste')
 
         const gamertag = WZUser[0]
@@ -231,7 +231,7 @@ export class WarzoneCommands extends AbstractCommands {
         if (args[0] === 'siste') {
             return this.getLastMatchData(message, messageContent, args)
         }
-        const WZUser = this.getWZUserStringFromDB(message).split(';')
+        const WZUser = this.getWZUserStringFromDB(message)?.split(';')
         if (!WZUser) {
             return message.reply('Du må knytta brukernavn te brukeren din fysste')
         }
@@ -443,20 +443,24 @@ export class WarzoneCommands extends AbstractCommands {
         const game = args[0]
         const platform = args[1]
         const gamertag = args[2]
-        let saveString = '' // gamertag + ';' + platform
+        let saveString = platform + ';' + gamertag
         if (game === 'wz') {
-            saveString = platform + ';' + gamertag
-            DatabaseHelper.setValue('activisionUserString', message.author.username, saveString)
+            const user = DatabaseHelper.getUser(message.author.id)
+            user.activisionUserString = saveString
+            DatabaseHelper.updateUser(user)
+
             this.messageHelper.reactWithThumbs(message, 'up')
         } else if (game === 'rocket') {
-            saveString = platform + ';' + gamertag
-            DatabaseHelper.setValue('rocketLeagueUserString', message.author.username, saveString)
+            const user = DatabaseHelper.getUser(message.author.id)
+            user.rocketLeagueUserString = saveString
+            DatabaseHelper.updateUser(user)
+
             this.messageHelper.reactWithThumbs(message, 'up')
         }
     }
 
     private getWZUserStringFromDB(message: Message) {
-        return DatabaseHelper.getValue('activisionUserString', message.author.username, message, true)
+        return DatabaseHelper.getUser(message.author.id)?.activisionUserString
     }
 
     /**
@@ -477,10 +481,14 @@ export class WarzoneCommands extends AbstractCommands {
     }
     /** Beware of stats: any */
     private saveUserStats(message: Message, stats: CodStats | CodBRStatsType, isBR?: boolean) {
-        DatabaseHelper.setObjectValue(isBR ? 'codStatsBR' : 'codStats', message.author.username, JSON.stringify(stats))
+        const user = DatabaseHelper.getUser(message.author.id)
+        if (isBR) user.codStatsBR = JSON.stringify(stats)
+        else user.codStats = JSON.stringify(stats)
+        DatabaseHelper.updateUser(user)
     }
     private getUserStats(message: Message, isBr?: boolean) {
-        return DatabaseHelper.getValue(isBr ? 'codStatsBR' : 'codStats', message.author.username, message)
+        const user = DatabaseHelper.getUser(message.author.id)
+        return isBr ? user.codStatsBR : user.codStats
     }
 
     public getAllCommands(): ICommandElement[] {

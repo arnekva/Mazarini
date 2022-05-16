@@ -1,6 +1,5 @@
 import { Client, Message } from 'discord.js'
 import { Admin } from '../admin/admin'
-import { Achievements } from '../commands/achievements'
 import { CardCommands } from '../commands/cardCommands'
 import { DateCommands } from '../commands/dateCommands'
 import { DrinksCommands } from '../commands/drinksCommands'
@@ -53,7 +52,6 @@ export class Commands {
     private gamblingCommands: GamblingCommands
     private dateCommands: DateCommands
     private weatherCommands: Weather
-    private achievementCommands: Achievements
     private jokeCommands: JokeCommands
     private warzoneCommands: WarzoneCommands
     private spotifyCommands: SpotifyCommands
@@ -75,7 +73,6 @@ export class Commands {
         this.gamblingCommands = new GamblingCommands(this.client, this.messageHelper)
         this.dateCommands = new DateCommands(this.client, this.messageHelper)
         this.weatherCommands = new Weather(this.client, this.messageHelper)
-        this.achievementCommands = new Achievements(this.client, this.messageHelper)
         this.jokeCommands = new JokeCommands(this.client, this.messageHelper)
         this.warzoneCommands = new WarzoneCommands(this.client, this.messageHelper)
         this.spotifyCommands = new SpotifyCommands(this.client, this.messageHelper)
@@ -102,7 +99,6 @@ export class Commands {
             ...this.dateCommands.getAllCommands(),
             ...this.warzoneCommands.getAllCommands(),
             ...this.patchNotes.getAllCommands(),
-            ...this.achievementCommands.getAllCommands(),
             ...this.spotifyCommands.getAllCommands(),
             ...this.musicCommands.getAllCommands(),
             ...this.memeCommands.getAllCommands(),

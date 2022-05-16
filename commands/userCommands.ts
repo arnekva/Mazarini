@@ -15,7 +15,8 @@ export class UserCommands extends AbstractCommands {
     private getWarnings(message: Message, content: string, args: string[]) {
         const userNameToFind = args.join(' ')
         const userExists = DatabaseHelper.findUserByUsername(userNameToFind, message)
-        const warningCounter = DatabaseHelper.getValue('warningCounter', userExists?.username ?? message.author.username, message)
+        const user = DatabaseHelper.getUser(userExists?.id ?? message.author.id)
+        const warningCounter = user.warningCounter
         if (userExists)
             this.messageHelper.sendMessage(
                 message.channelId,

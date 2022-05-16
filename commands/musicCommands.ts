@@ -6,6 +6,7 @@ import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { TextUtils } from '../utils/textUtils'
+import { UserUtils } from '../utils/userUtils'
 const fetch = require('node-fetch')
 export type musicCommand = 'top'
 
@@ -296,10 +297,24 @@ Docs: https://www.last.fm/api/show/user.getInfo
     }
 
     private getLastFMUsernameByDiscordUsername(username: string, rawMessage: Message) {
-        return DatabaseHelper.getValueWithoutMessage('lastFmUsername', username)
+        const uname = UserUtils.findUserByUsername(username, rawMessage)
+        if (uname) {
+            const user = DatabaseHelper.getUser(uname?.id)
+            if (user) return user.lastFMUsername
+        }
+        return undefined
     }
     private connectLastFmUsernameToUser(username: string, lfUsername: string, rawMessage: Message) {
-        return DatabaseHelper.setValue('lastFmUsername', username, lfUsername)
+        const uname = UserUtils.findUserByUsername(username, rawMessage)
+        if (uname) {
+            const user = DatabaseHelper.getUser(uname.id)
+            if (user) {
+                user.lastFMUsername = lfUsername
+                DatabaseHelper.updateUser(user)
+                return true
+            }
+        }
+        return false
     }
 
     public getAllCommands(): ICommandElement[] {

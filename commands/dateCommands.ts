@@ -130,7 +130,8 @@ export class DateCommands extends AbstractCommands {
     }
 
     private addUserBirthday(message: Message, messageContent: string, args: string[]) {
-        const birthday = DatabaseHelper.getValueWithoutMessage('birthday', message.author.username)
+        const user = DatabaseHelper.getUser(message.author.id)
+        const birthday = user.birthday
         if (birthday && !args[0]) {
             const bdTab = birthday.split('-').map((d: any) => Number(d))
             const today = new Date()
@@ -155,7 +156,8 @@ export class DateCommands extends AbstractCommands {
             //TODO: Must be tested
             return message.reply('Datoen er feilformattert. dd-mm-yyyy')
         }
-        DatabaseHelper.setValue('birthday', message.author.username, dateString)
+        user.birthday = dateString
+        DatabaseHelper.updateUser(user)
         this.messageHelper.reactWithThumbs(message, 'up')
     }
 

@@ -49,7 +49,7 @@ export class ShopClass {
     static itemsToBeUsed: useItemsList[] = []
     static async openShop(interaction: Interaction<CacheType>, client: Client) {
         const commandInteraction = interaction as CommandInteraction
-
+        const _user = DatabaseHelper.getUser(interaction.user.id)
         let targetBruker: string | undefined
         let shopDescription = 'Velkommen til Mazarini shop, her kan du få kjøpt leketøy til Eivinds mor! \n \n Handleliste:'
         const embed = new MessageEmbed().setColor('#FF0000').setTitle('Mazarini shop!').setDescription(shopDescription)
@@ -92,7 +92,7 @@ export class ShopClass {
             let inventoryDescription = 'Whalekøm to your inventøry. You currently possess:'
             let debuffDescription = 'Yøur debuffs:'
 
-            let inventoryItems: inventoryItem[] = DatabaseHelper.getValueWithoutMessage('inventory', interaction.user.username)
+            let inventoryItems: inventoryItem[] = _user.inventory
 
             if (inventoryItems) {
                 Object.values(inventoryItems).forEach((item: inventoryItem) => {
@@ -102,7 +102,7 @@ export class ShopClass {
                 })
             }
 
-            let debuffItems: debuffItem[] = DatabaseHelper.getValueWithoutMessage('debuff', interaction.user.username)
+            let debuffItems: debuffItem[] = _user.debuff
 
             if (debuffItems) {
                 //FIXME: Should type this correctly
@@ -133,7 +133,7 @@ export class ShopClass {
 
             let itemOptions: MessageSelectOptionData[] = []
 
-            let inventoryItems: inventoryItem[] = DatabaseHelper.getValueWithoutMessage('inventory', interaction.user.username)
+            let inventoryItems: inventoryItem[] = _user.inventory
 
             if (!inventoryItems || Object.values(inventoryItems).length === 0) {
                 return await commandInteraction.reply('Du har ingenting i inventory. Kjøba någe fysst kanskje?')
@@ -219,7 +219,7 @@ export class ShopClass {
 
                     embed.setDescription(shopDescription)
 
-                    if (this.checkAvailability(price, interaction.user.username)) {
+                    if (this.checkAvailability(price, interaction.user.id)) {
                         buyButton.setDisabled(false)
                         buyButton.setStyle('SUCCESS')
                     } else {
@@ -248,14 +248,10 @@ export class ShopClass {
                         price = price + Number(value.price)
                     })
 
-                    if (this.checkAvailability(price, interaction.user.username)) {
-                        DatabaseHelper.setValue(
-                            'dogeCoin',
-                            interaction.user.username,
-                            (Number(DatabaseHelper.getValueWithoutMessage('dogeCoin', interaction.user.username)) - price).toString()
-                        )
-
-                        DatabaseHelper.setShoppingList(interaction.user.username, shoppingList)
+                    if (this.checkAvailability(price, interaction.user.id)) {
+                        _user.chips -= price
+                        _user.inventory = JSON.stringify(shoppingList)
+                        DatabaseHelper.updateUser(_user)
                     }
 
                     await interaction.update({
@@ -279,7 +275,7 @@ export class ShopClass {
     }
 
     //Finne ut om bruker har nok penger til kjøp
-    static checkAvailability(amount: Number, username: string) {
-        return amount < DatabaseHelper.getValueWithoutMessage('dogeCoin', username)
+    static checkAvailability(amount: Number, userID: string) {
+        return amount < DatabaseHelper.getUser(userID).chips
     }
 }

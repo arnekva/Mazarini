@@ -124,13 +124,19 @@ export class SpotifyCommands extends AbstractCommands {
             } else if (args[0] === 'full') {
                 const waitMessage = await this.messageHelper.sendMessage(rawMessage.channelId, 'Henter last.fm data fra brukere')
                 let musicRet = ''
-                const users = guild.members.cache.map((u) => u.user.username)
+                const users = guild.members.cache.map((u) => {
+                    return {
+                        id: u.user.id,
+                        name: u.user.username,
+                    }
+                })
 
                 for (let i = 0; i < users.length; i++) {
-                    const lastFmName = DatabaseHelper.getValue('lastFmUsername', users[i], rawMessage, true)
-                    if (!!lastFmName) {
+                    const user = DatabaseHelper.getUser(users[i].id)
+                    const lastFmName = user?.lastFMUsername
+                    if (lastFmName) {
                         if (waitMessage) {
-                            musicRet += await _music.findCommand(waitMessage, content, ['siste', '1', users[i]], {
+                            musicRet += await _music.findCommand(waitMessage, content, ['siste', '1', users[i].name], {
                                 isSilent: true,
                                 notWeeklyOrRecent: true,
                                 includeUsername: true,

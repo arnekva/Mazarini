@@ -20,32 +20,33 @@ export class DailyJobs {
 
     private validateAndResetDailyClaims() {
         const brukere = DatabaseHelper.getAllUsers()
-        Object.keys(brukere).forEach((username: string) => {
-            const userStreak = DatabaseHelper.getValueWithoutMessage('dailyClaimStreak', username)
+        Object.keys(brukere).forEach((userID: string) => {
+            const user = DatabaseHelper.getUser(userID)
+            const userStreak = user.dailyClaimStreak
             if (!userStreak) return //Verify that the user as a streak/claim, otherwise skip
-            const currentStreak = JSON.parse(DatabaseHelper.getValueWithoutMessage('dailyClaimStreak', username)) as IDailyPriceClaim
+            const currentStreak = JSON.parse(user.dailyClaimStreak)
             if (!currentStreak) return
             const streak: IDailyPriceClaim = { streak: currentStreak.streak, wasAddedToday: false }
 
             //Check if user has frozen their streak
-            const hasFrozenStreak = Number(DatabaseHelper.getValueWithoutMessage('dailyFreezeCounter', username))
-            if (!isNaN(hasFrozenStreak) && hasFrozenStreak > 0) {
-                DatabaseHelper.decrementValue('dailyFreezeCounter', username, '1')
+            const hasFrozenStreak = user.dailyFreezeCounter
+            if (hasFrozenStreak && !isNaN(hasFrozenStreak) && hasFrozenStreak > 0) {
+                user.dailyFreezeCounter = user.dailyFreezeCounter ? user.dailyFreezeCounter-- : 0
             } else {
                 streak.wasAddedToday = false //Reset check for daily claim
                 if (!currentStreak.wasAddedToday) streak.streak = 0 //If not claimed today, also reset the streak
-
-                DatabaseHelper.setObjectValue('dailyClaimStreak', username, JSON.stringify(streak))
+                user.dailyClaimStreak = JSON.stringify(streak)
             }
+            user.dailyClaim = 0
+            DatabaseHelper.updateUser(user)
         })
-
-        DatabaseHelper.deleteSpecificPrefixValues('dailyClaim')
     }
 
     private checkForUserBirthdays() {
         const brukere = DatabaseHelper.getAllUsers()
-        Object.keys(brukere).forEach((username: string) => {
-            const birthday: string = DatabaseHelper.getValueWithoutMessage('birthday', username)
+        Object.keys(brukere).forEach((userID: string) => {
+            const user = DatabaseHelper.getUser(userID)
+            const birthday: string | undefined = user?.birthday
 
             if (!birthday) return
             const bdTab = birthday.split('-').map((d) => Number(d))
@@ -53,7 +54,7 @@ export class DailyJobs {
             const isBirthdayToday = DateUtils.isToday(new Date(date))
 
             if (isBirthdayToday) {
-                this.messageHelper.sendMessage(MessageUtils.CHANNEL_IDs.GENERAL, `Gratulerer med dagen ${username}!`)
+                this.messageHelper.sendMessage(MessageUtils.CHANNEL_IDs.GENERAL, `Gratulerer med dagen ${user.displayName}!`)
             }
         })
 

@@ -1,12 +1,8 @@
 import { Client, Message } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement } from '../General/commands'
-import { AchievementHelper } from '../helpers/achievementHelper'
 import { DatabaseHelper } from '../helpers/databaseHelper'
-import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { ArrayUtils } from '../utils/arrayUtils'
-import { TextUtils } from '../utils/textUtils'
 
 const weightedRandomObject = require('weighted-random-object')
 
@@ -62,52 +58,34 @@ export class Spinner extends AbstractCommands {
         super(client, messageHelper)
     }
     private spin(message: Message) {
+        const user = DatabaseHelper.getUser(message.author.id)
         const min = weightedRandomObject(spinMinutes).number
         const sec = Math.floor(Math.random() * 60)
-        const cleanUsername = TextUtils.escapeString(message.author.username)
 
-        if (cleanUsername.length < 2) {
-            message.reply(
-                'Det kan virke som om brukernavnet ditt inneholder for få lovlige tegn (' + cleanUsername + '). Dette må rettes opp i før du får spinne.'
-            )
-        } else {
-            const winnings = this.getSpinnerWinnings(Number(min))
-            if (winnings > 0) {
-                DatabaseHelper.incrementValue('chips', message.author.username, winnings.toString())
-            }
-            const winningsText = winnings > 0 ? `Du får ${winnings} chips.` : ''
-            this.messageHelper.sendMessage(
-                message.channelId,
-                message.author.username + ' spant fidget spinneren sin i ' + min + ' minutt og ' + sec + ' sekund!' + ` ${winningsText}`
-            )
-            if (min == 0 && sec == 0) {
-                DatabaseHelper.incrementValue('chips', message.author.username, '500')
-                const _msg = this.messageHelper
-                this.messageHelper.sendMessage(message.channelId, 'Oj, 00:00? Du får 500 chips i trøstepremie')
-                setTimeout(function () {
-                    DatabaseHelper.decrementValue('chips', message.author.username, '600')
-
-                    const kekw = EmojiHelper.getEmoji('kekwhoie_animated', message).then((em) => {
-                        _msg.sendMessage(
-                            message.channelId,
-                            'hahaha trodde du på meg? Du suge ' + '<@' + message.author.id + '>' + ', du muste 100 chips i stedet ' + em.id
-                        )
-                    })
-                }, 10000)
-            } else if (min == 10 && sec == 59) {
-                this.messageHelper.sendMessage(message.channelId, 'gz med 10:59 bro')
-                DatabaseHelper.incrementValue('chips', message.author.username, '975000000')
-                this.messageHelper.sendMessage(message.channelId, 'Du får 975 000 000 chips for det der mannen')
-            } else if (min == 10) {
-                this.messageHelper.sendMessage(message.channelId, 'gz med 10 min bro')
-                DatabaseHelper.incrementValue('chips', message.author.username, '95000000')
-                this.messageHelper.sendMessage(message.channelId, 'Du får 95 000 000 chips for det der mannen')
-            }
-            const formatedScore = this.formatScore(min + sec)
-
-            this.compareScore(message, formatedScore)
-            this.incrementCounter(message)
+        const winnings = this.getSpinnerWinnings(Number(min))
+        if (winnings > 0) {
+            user.chips += winnings
         }
+        const winningsText = winnings > 0 ? `Du får ${winnings} chips.` : ''
+        this.messageHelper.sendMessage(
+            message.channelId,
+            message.author.username + ' spant fidget spinneren sin i ' + min + ' minutt og ' + sec + ' sekund!' + ` ${winningsText}`
+        )
+        if (min == 10 && sec == 59) {
+            this.messageHelper.sendMessage(message.channelId, 'gz med 10:59 bro')
+            user.chips += 975000000
+
+            this.messageHelper.sendMessage(message.channelId, 'Du får 975 000 000 chips for det der mannen')
+        } else if (min == 10) {
+            this.messageHelper.sendMessage(message.channelId, 'gz med 10 min bro')
+            user.chips += 95000000
+
+            this.messageHelper.sendMessage(message.channelId, 'Du får 95 000 000 chips for det der mannen')
+        }
+        const formatedScore = this.formatScore(min + sec)
+        DatabaseHelper.updateUser(user)
+        // this.compareScore(message, formatedScore)
+        this.incrementCounter(message)
     }
 
     private getSpinnerWinnings(min: number) {
@@ -131,25 +109,9 @@ export class Spinner extends AbstractCommands {
 
     private async incrementCounter(message: Message) {
         // const currentVal = DatabaseHelper.getValue("counterSpin", message.author.username, () => { });
-        const currentTotalspin = DatabaseHelper.getValue('counterSpin', message.author.username, message)
-        if (currentTotalspin) {
-            try {
-                let cur = parseInt(currentTotalspin)
-                cur = cur += 1
-                AchievementHelper.awardSpinningAch(message.author.username, cur.toString(), message)
-
-                DatabaseHelper.setValue('counterSpin', message.author.username, cur.toString())
-            } catch (error) {
-                this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
-            }
-        }
-    }
-
-    private async compareScore(message: Message, newScore: string) {
-        const val = DatabaseHelper.getValue('spin', message.author.username, message)
-        if (parseInt(val) < parseInt(newScore)) {
-            DatabaseHelper.setValue('spin', message.author.username, newScore)
-        }
+        const user = DatabaseHelper.getUser(message.author.id)
+        user.spinCounter++
+        DatabaseHelper.updateUser(user)
     }
 
     private formatScore(score: string) {
@@ -158,10 +120,16 @@ export class Spinner extends AbstractCommands {
     }
 
     private async listSpinCounter(message: Message) {
-        const val = DatabaseHelper.getAllValuesFromPrefix('counterSpin')
-        ArrayUtils.sortUserValuePairArray(val)
-        const printList = ArrayUtils.makeValuePairIntoOneString(val, undefined, 'Total antall spins')
-        this.messageHelper.sendMessage(message.channelId, printList)
+        const val = DatabaseHelper.getAllUsers()
+        if (Array.isArray(val)) {
+            let totalSpins = ''
+            val.forEach((id) => {
+                const user = DatabaseHelper.getUser(id)
+                totalSpins += `\n${user.displayName} - ${user.spinCounter}`
+            })
+            totalSpins = totalSpins.trim() ? totalSpins : 'Ingen har satt statusen sin i dag'
+            this.messageHelper.sendMessage(message.channelId, totalSpins)
+        }
     }
 
     private formatValue(val: string) {
@@ -173,15 +141,15 @@ export class Spinner extends AbstractCommands {
     }
 
     private updateATH() {
-        DatabaseHelper.compareAndUpdateValue('ATHspin', 'spin')
+        // DatabaseHelper.compareAndUpdateValue('ATHspin', 'spin')
     }
 
     private async allTimeHigh(message: Message) {
-        this.updateATH()
-        const val = DatabaseHelper.getAllValuesFromPrefix('ATHspin')
-        ArrayUtils.sortUserValuePairArray(val)
-        const printList = ArrayUtils.makeValuePairIntoOneString(val, this.formatValue)
-        this.messageHelper.sendMessage(message.channelId, printList)
+        // this.updateATH()
+        // const val = DatabaseHelper.getAllValuesFromPrefix('ATHspin')
+        // ArrayUtils.sortUserValuePairArray(val)
+        // const printList = ArrayUtils.makeValuePairIntoOneString(val, this.formatValue)
+        // this.messageHelper.sendMessage(message.channelId, printList)
     }
 
     public getAllCommands(): ICommandElement[] {

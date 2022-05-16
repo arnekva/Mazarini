@@ -2,7 +2,6 @@ import { Client, Message, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement } from '../General/commands'
 import { globalArrays } from '../globals'
-import { AchievementHelper } from '../helpers/achievementHelper'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { Languages } from '../helpers/languageHelpers'
@@ -53,7 +52,7 @@ export class JokeCommands extends AbstractCommands {
 
     private async updateMygleStatus(message: Message, messageContent: string) {
         let content = messageContent
-        const matchedUsrname = TextUtils.doesTextIncludeUsername(content)
+
         if (message.mentions.roles.size > 0) {
             return message.reply('Du kan kje ha roller i statusen din, bro')
         }
@@ -74,7 +73,9 @@ export class JokeCommands extends AbstractCommands {
             if (message.content.includes('!zm')) {
                 content = TextUtils.reverseMessageString(content)
             }
-            DatabaseHelper.setValue('mygling', message.author.username, content + (url ? ' ' + url : ''))
+            const user = DatabaseHelper.getUser(message.author.id)
+            user.status = content + (url ? ' ' + url : '')
+            DatabaseHelper.updateUser(user)
             this.messageHelper.reactWithRandomEmoji(message)
         } else {
             this.messageHelper.sendMessage(
@@ -84,11 +85,16 @@ export class JokeCommands extends AbstractCommands {
         }
     }
     private async getAllMygleStatus(message: Message) {
-        const mygling = await DatabaseHelper.getAllValuesFromPrefix('mygling')
-        let myglinger = ''
-        mygling.forEach((status) => (myglinger += status.val ? status.key + ' ' + status.val + '\n' : ''))
-        myglinger = myglinger.trim() ? myglinger : 'Ingen har satt statusen sin i dag'
-        this.messageHelper.sendMessage(message.channelId, myglinger)
+        const val = DatabaseHelper.getAllUsers()
+        if (Array.isArray(val)) {
+            let statuser = ''
+            val.forEach((id) => {
+                statuser += DatabaseHelper.getUser(id)?.status ?? ''
+            })
+            statuser = statuser.trim() ? statuser : 'Ingen har satt statusen sin i dag'
+            this.messageHelper.sendMessage(message.channelId, statuser)
+        }
+
         // const vals = await DatabaseHelper.getAllValuesFromPrefix("mygling")
     }
 
@@ -227,33 +233,24 @@ export class JokeCommands extends AbstractCommands {
         if (args.length > 0) {
             user = args[0]
             if (DatabaseHelper.findUserByUsername(user, message)) {
-                bkCounter = DatabaseHelper.getValue('bonkCounter', user, message)
-                this.incrementBonkCounter(message, user, bkCounter)
-                bkCounter = parseInt(bkCounter) + 1
-                this.messageHelper.sendMessage(
-                    message.channelId,
-                    (user ? user + ', du har blitt bonket. (' + `${bkCounter} ${bkCounter == 1 ? 'gang' : 'ganger'}) ` : '') + img
-                )
+                const foundUser = DatabaseHelper.findUserByUsername(args[0], message)
+                if (foundUser) {
+                    const user = DatabaseHelper.getUser(foundUser.id)
+                    bkCounter = user.bonkCounter
+                    user.bonkCounter++
+                    DatabaseHelper.updateUser(user)
+
+                    bkCounter++
+                    this.messageHelper.sendMessage(
+                        message.channelId,
+                        (user ? user + ', du har blitt bonket. (' + `${bkCounter} ${bkCounter == 1 ? 'gang' : 'ganger'}) ` : '') + img
+                    )
+                }
             } else {
                 message.reply('du har ikke oppgitt et gyldig brukernavn')
             }
         } else {
             this.messageHelper.sendMessage(message.channelId, img)
-        }
-    }
-
-    private incrementBonkCounter(message: Message, user: string, counter: string) {
-        if (counter) {
-            try {
-                let cur = parseInt(counter)
-                cur = cur += 1
-                AchievementHelper.awardBonkingAch(user, cur.toString(), message)
-
-                DatabaseHelper.setValue('bonkCounter', user, cur.toString())
-                return cur
-            } catch (error) {
-                this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
-            }
         }
     }
 
