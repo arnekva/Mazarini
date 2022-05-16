@@ -135,6 +135,7 @@ export interface debuffItem {
 export class DatabaseHelper {
     /** Merk at de fleste verdier kan være undefined. Returnes som et typet object */
     static getUser(userID: string): MazariniUser {
+        // { [key: string]: MazariniUser }
         try {
             return JSON.parse(db.getData(`${folderPrefix}/${userID}/`)) as MazariniUser
         } catch (error: any) {
@@ -269,11 +270,22 @@ export class DatabaseHelper {
     static deleteActiveBet(username: string) {
         db.delete(`${otherFolderPreifx}/activeBet/${username}`)
     }
-    static deleteSpecificPrefixValues(prefix: dbPrefix) {
-        const users = db.getData(`${folderPrefix}`)
-        Object.keys(users).forEach((el) => {
-            db.delete(`${folderPrefix}/${el}/${prefix}`)
+    static deleteSpecificPrefixValues(prefix: keyof MazariniUser) {
+        const users = this.getAllUsers()
+        Object.keys(users).forEach((key) => {
+            const user = this.getUser(key)
+
+            if (prefix === 'status') {
+                user[prefix] = undefined
+            } else if (prefix === 'dailyClaim') {
+                user[prefix] = 0
+            }
+            DatabaseHelper.updateUser(user)
         })
+    }
+
+    static getProperty<T>(o: MazariniUser, name: keyof MazariniUser) {
+        return o[name]
     }
     /**
      * @deprecated Bruk UserUtils i stedet

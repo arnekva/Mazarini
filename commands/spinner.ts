@@ -121,15 +121,14 @@ export class Spinner extends AbstractCommands {
 
     private async listSpinCounter(message: Message) {
         const val = DatabaseHelper.getAllUsers()
-        if (Array.isArray(val)) {
-            let totalSpins = ''
-            val.forEach((id) => {
-                const user = DatabaseHelper.getUser(id)
-                totalSpins += `\n${user.displayName} - ${user.spinCounter}`
-            })
-            totalSpins = totalSpins.trim() ? totalSpins : 'Ingen har satt statusen sin i dag'
-            this.messageHelper.sendMessage(message.channelId, totalSpins)
-        }
+        let statuser = ''
+        Object.keys(val).forEach((key) => {
+            const user = DatabaseHelper.getUser(key)
+            const spins = user?.spinCounter
+            if (spins && spins !== 'undefined') statuser += `${user.displayName} ${user.spinCounter} \n `
+        })
+        statuser = statuser.trim() ? statuser : 'Ingen har satt statusen sin i dag'
+        this.messageHelper.sendMessage(message.channelId, statuser)
     }
 
     private formatValue(val: string) {

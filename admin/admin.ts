@@ -17,32 +17,7 @@ export class Admin extends AbstractCommands {
         super(client, messageHelper)
     }
 
-    private setSpecificValue(message: Message, messageContent: string, args: string[]) {
-        // //setValueObject
-        // const prefix = args[0] as keyof MazariniUser
-        // let username = TextUtils.splitUsername(args[1])
-        // const user = DatabaseHelper.getUser(username)
-        // if (user) {
-        //     if (!user[prefix] || user[prefix] === 'undefined') {
-        //         const incorrectPart = user ? `Prefixen '${prefix}' er feil` : `Brukeren '${username}' eksisterer ikke`
-        //         return this.messageHelper.sendMessageToActionLogWithCustomMessage(
-        //             message,
-        //             `${message.author.username} brukte feil syntax i setvalue.` + incorrectPart,
-        //             `${incorrectPart}. Husk at syntaxen er <prefix> <brukernavn> <verdi>`,
-        //             true
-        //         )
-        //     }
-        //     const oldVal = user[prefix]
-        //     const val = ((user[prefix] as Record<typeof prefix, typeof prefix>)[prefix] = prefix)
-        //     user[prefix] = (val as unknown as Record<typeof prefix, typeof prefix>)[prefix]
-        //     DatabaseHelper.updateUser(user)
-        //     if (args[3] !== 'silent')
-        //         this.messageHelper.sendMessageToActionLog(
-        //             message.channel as TextChannel,
-        //             `Setvalue ble brukt av ${message.author.username} i kanalen ${message.channel}. Prefix: ${prefix}, nøkkel: ${username}, verdi: ${args[2]}. Gammel verdi for objektet var: ${oldVal} `
-        //         )
-        // }
-    }
+    private setSpecificValue(message: Message, messageContent: string, args: string[]) {}
 
     private async replyToMsgAsBot(rawMessage: Message, content: string) {
         const allChannels = [...rawMessage.client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]

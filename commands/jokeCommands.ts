@@ -84,16 +84,16 @@ export class JokeCommands extends AbstractCommands {
             )
         }
     }
-    private async getAllMygleStatus(message: Message) {
+    private async getAllStatuses(message: Message) {
         const val = DatabaseHelper.getAllUsers()
-        if (Array.isArray(val)) {
-            let statuser = ''
-            val.forEach((id) => {
-                statuser += DatabaseHelper.getUser(id)?.status ?? ''
-            })
-            statuser = statuser.trim() ? statuser : 'Ingen har satt statusen sin i dag'
-            this.messageHelper.sendMessage(message.channelId, statuser)
-        }
+        let statuser = ''
+        Object.keys(val).forEach((key) => {
+            const user = DatabaseHelper.getUser(key)
+            const status = user?.status
+            if (status && status !== 'undefined') statuser += `${user.displayName} ${user.status} \n `
+        })
+        statuser = statuser.trim() ? statuser : 'Ingen har satt statusen sin i dag'
+        this.messageHelper.sendMessage(message.channelId, statuser)
 
         // const vals = await DatabaseHelper.getAllValuesFromPrefix("mygling")
     }
@@ -311,7 +311,7 @@ export class JokeCommands extends AbstractCommands {
                 commandName: 'statuser',
                 description: 'Mygles det?',
                 command: (rawMessage: Message, messageContent: string) => {
-                    this.getAllMygleStatus(rawMessage)
+                    this.getAllStatuses(rawMessage)
                 },
                 category: 'annet',
             },

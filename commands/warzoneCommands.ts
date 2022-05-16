@@ -271,7 +271,9 @@ export class WarzoneCommands extends AbstractCommands {
                 }
             }
             orderedStats['winRatio'] = ((orderedStats?.wins ?? 0) / (orderedStats?.gamesPlayed ?? 1)) * 100
-            const oldData = JSON.parse(this.getUserStats(message, true))
+            const userStats = this.getUserStats(message) !== 'undefined' ? this.getUserStats(message) : '{}'
+            const oldData = JSON.parse(userStats)
+
             const getValueFormatted = (key: string, value: number) => {
                 if (key === 'timePlayed') return convertTime(value)
                 return value.toFixed(3).replace(/\.000$/, '')
@@ -331,8 +333,9 @@ export class WarzoneCommands extends AbstractCommands {
                     orderedStats['damageDoneTakenRatio'] = Number(orderedStats.damageDone) / Number(orderedStats.damageTaken)
                 }
             }
+            const userStats = this.getUserStats(message) !== 'undefined' ? this.getUserStats(message) : '{}'
+            const oldData = JSON.parse(userStats)
 
-            const oldData = JSON.parse(this.getUserStats(message))
             /** Time played og average lifetime krever egen formattering for å være lesbart */
             const getValueFormatted = (key: string, value: string | Number) => {
                 if (key === 'avgLifeTime')
@@ -375,7 +378,9 @@ export class WarzoneCommands extends AbstractCommands {
             if (!options?.noSave) this.saveUserStats(message, statsTyped)
         } catch (error) {
             if (editableMessage) {
-                editableMessage.edit(`Klarte ikke finne data for ${gamertag}. Hvis du vet at du ikke mangler data denne uken, prøv på ny om ca. ett minutt.`)
+                editableMessage.edit(
+                    `Klarte ikke finne data for ${gamertag}. Hvis du vet at du ikke mangler data denne uken, prøv på ny om ca. ett minutt.` + error
+                )
             } else {
                 this.messageHelper.sendMessageToActionLogWithCustomMessage(message, error, 'Dataen kunne ikke hentes', true)
             }
@@ -488,6 +493,7 @@ export class WarzoneCommands extends AbstractCommands {
     }
     private getUserStats(message: Message, isBr?: boolean) {
         const user = DatabaseHelper.getUser(message.author.id)
+
         return isBr ? user.codStatsBR : user.codStats
     }
 

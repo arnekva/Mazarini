@@ -4,28 +4,17 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '7.0.0'
+    public static readonly currentVersion = '7.0.1'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Stor rework av databasen:` +
-        `\n    * Brukere settes og hentes nå som objekt i stedet for å kun hente ut enkle verdier` +
-        `\n    * Brukere types til en MazariniUser, så du kan hente brukeren en gang og ta user.coins i stedet for å kalle en getValue for hver verdi, eks. getValue(username, "coins")` +
-        `\n    * Du setter nå også verdier ved å oppdatere objektet og kalle DatabaseHelper.updateUser(userobject)` +
-        `\n    * Databasen lagrer nå på ID i stedet for brukernavn` +
-        `\n    * Alle nåværende objekt er oppdatert til den nye stilen` +
-        `\n    * Fjernet flere ugyldige innlegg i databasen` +
-        `\n* Oppgradert flere npm moduler, deriblant Cod Stats modulen som forhåpentligvis gir litt raskere lastetider` +
-        `\n* Action_log skal nå fange opp flere slettede meldinger (hvis de ikke ble slettet av author selv)` +
-        `\n* Achievements er fjernet` +
-        `\n* Fikset en feil som førte til at noen admin-kommandoer ikke ville kjøre` +
-        `\n* Følgende kommandoer er foreløpig ikke fungerende:` +
-        `\n    * setvalue` +
-        `\n    * totalspins` +
-        `\n    * ath` +
-        `\n    * getvalue` +
-        `\n    * run (dbget)`
+        `\n* Fikset BR og Weekly stats. (Stats lagret i databasen er wipet)` +
+        `\n* Statuser vises igjen` +
+        `\n* Daily og statuser skal nå resettes korrekt kl 06:00` +
+        `\n* totalspins virker igjen` +
+        `\n* run, setvalue, ath og getvalue mangler fortsatt`
+
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
     }

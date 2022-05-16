@@ -62,7 +62,7 @@ export class DailyJobs {
     }
 
     private async resetStatuses() {
-        DatabaseHelper.deleteSpecificPrefixValues('mygling')
+        DatabaseHelper.deleteSpecificPrefixValues('status')
     }
 
     private logEvent() {
