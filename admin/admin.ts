@@ -3,7 +3,7 @@ import { ActivityTypes } from 'discord.js/typings/enums'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement } from '../General/commands'
 import { ClientHelper } from '../helpers/clientHelper'
-import { DatabaseHelper, MazariniUser, prefixList, ValuePair } from '../helpers/databaseHelper'
+import { DatabaseHelper, prefixList, ValuePair } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniClient } from '../main'
 import { MessageUtils } from '../utils/messageUtils'
@@ -306,24 +306,14 @@ export class Admin extends AbstractCommands {
     }
 
     private debugMethod(message: Message, messageContent: string, args: string[]) {
-        const defaultUser: MazariniUser = {
-            bonkCounter: 0,
-            chips: 5000,
-            coins: 150,
-            debt: 0,
-            debtMultiplier: 0,
-            debtPenalty: 0,
-            id: message.author.id,
-            loanCounter: 0,
-            spinCounter: 0,
-            warningCounter: 0,
-            displayName: message.author.username,
-            ATHspin: '00',
-            dailyClaim: 0,
-            dailyFreezeCounter: 0,
-            prestige: 0,
-        }
-        DatabaseHelper.updateUser(defaultUser)
+        Object.keys(DatabaseHelper.getAllUsers()).forEach((key) => {
+            const u = DatabaseHelper.getUser(key)
+            const us = UserUtils.findUserById(key, message)
+            if (u && us) {
+                u.displayName = us.username
+                DatabaseHelper.updateUser(u)
+            }
+        })
     }
 
     public getAllCommands(): ICommandElement[] {

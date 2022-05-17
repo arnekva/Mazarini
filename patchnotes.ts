@@ -13,6 +13,7 @@ export class PatchNotes extends AbstractCommands {
         `\n* BR og Weekly lagres ikke lenger som stringifyet JSON` +
         `\n* BR og Weekly lagres ikke lenger som stringifyet JSON` +
         `\n* Daily Claim lagret ikke lenger som stringifyet JSON` +
+        `\n* Du kan oppdatere displaynavnet ditt i databasen med 'name'-kommandoen` +
         `\n* Daily kan nå kun brukes en gang daglig` +
         `\n* Daily resettes nå korrekt 06:00` +
         `\n* Bot-support role id er oppdatert, og taggen skal nå fungere igjen` +

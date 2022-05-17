@@ -132,7 +132,7 @@ export class NameCommands extends AbstractCommands {
                 commandName: 'maggi',
                 description: 'E han ude å fyre?',
                 command: (rawMessage: Message, messageContent: string) => {
-                    this.oyvindText(rawMessage)
+                    this.maggiText(rawMessage)
                 },
                 category: 'annet',
             },

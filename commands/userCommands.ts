@@ -1,11 +1,13 @@
 import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { Admin } from '../admin/admin'
 import { ICommandElement } from '../General/commands'
-import { DatabaseHelper } from '../helpers/databaseHelper'
+import { DatabaseHelper, MazariniUser } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { CollectorUtils } from '../utils/collectorUtils'
 import { Roles } from '../utils/roles'
+import { UserUtils } from '../utils/userUtils'
 
 export class UserCommands extends AbstractCommands {
     constructor(client: Client, messageHelper: MessageHelper) {
@@ -93,6 +95,23 @@ export class UserCommands extends AbstractCommands {
         }
     }
 
+    private updateDisplayName(message: Message, messageContent: string, args: string[]) {
+        const updateOtherUSer = UserUtils.findUserById(args[1], message)
+        let user: MazariniUser
+        let name: string
+        if (updateOtherUSer) {
+            if (Admin.isAuthorAdmin(UserUtils.findMemberByUsername(message.author.username, message))) user = DatabaseHelper.getUser(updateOtherUSer.id)
+            else return message.reply('Kun administratorer kan endre displaynavnet til andre brukere')
+            name = args.slice(1).join(' ')
+        } else {
+            user = DatabaseHelper.getUser(message.author.id)
+            name = args.slice(0).join(' ')
+        }
+        user.displayName = name ?? message.author.username
+        DatabaseHelper.updateUser(user)
+        this.messageHelper.reactWithThumbs(message, 'up')
+    }
+
     public getAllCommands(): ICommandElement[] {
         return [
             {
@@ -116,6 +135,14 @@ export class UserCommands extends AbstractCommands {
                 description: 'Trigger role assignment',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.roleAssignment(rawMessage, messageContent, args)
+                },
+                category: 'annet',
+            },
+            {
+                commandName: 'name',
+                description: 'Endre displaynavnet ditt i databasen',
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.updateDisplayName(rawMessage, messageContent, args)
                 },
                 category: 'annet',
             },
