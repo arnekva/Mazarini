@@ -17,7 +17,34 @@ export class Admin extends AbstractCommands {
         super(client, messageHelper)
     }
 
-    private setSpecificValue(message: Message, messageContent: string, args: string[]) {}
+    private setSpecificValue(message: Message, messageContent: string, args: string[]) {
+        const username = args[0]
+        const prefix = args[1]
+        const value = args.slice(2).join(' ')
+        if (!username && !prefix && !value) {
+            return message.reply('Du mangler argumenter')
+        }
+        const discordUser = UserUtils.findUserByUsername(username, message)
+        if (discordUser) {
+            const user = DatabaseHelper.getUntypedUser(discordUser.id)
+            if (user) {
+                const prop = user[prefix]
+                if (prop) {
+                    if (typeof prop === 'object') return message.reply('Du kan ikke sette en primitiv type på et objekt. setvalue støtter ikke objekter')
+                    else if (typeof prop === 'number') user[prefix] = Number(value)
+                    else user[prefix] = value
+                    DatabaseHelper.updateUser(user)
+                    this.messageHelper.reactWithThumbs(message, 'up')
+                } else {
+                    return message.reply(`${prefix} eksisterer ikke på ${discordUser.username}`)
+                }
+            } else {
+                return message.reply('Fant ikke brukeren i databasen')
+            }
+        } else {
+            return message.reply('Fant ikke brukeren fra args[1] <' + username + '>')
+        }
+    }
 
     private async replyToMsgAsBot(rawMessage: Message, content: string) {
         const allChannels = [...rawMessage.client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
@@ -356,8 +383,7 @@ export class Admin extends AbstractCommands {
                 hideFromListing: true,
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    rawMessage.reply('Denne fungerer ikke for øyeblikket.')
-                    // this.setSpecificValue(rawMessage, messageContent, args)
+                    this.setSpecificValue(rawMessage, messageContent, args)
                 },
                 category: 'admin',
             },

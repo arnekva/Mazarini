@@ -969,6 +969,16 @@ export class GamblingCommands extends AbstractCommands {
                 )}x i multiplier på alle daily's framøve! \n\n*Streaken din resettes nå te 1, så du kan ta ein pause hvis du vil*`
                 message.reply(congrats)
             }
+            if (!user.dailyClaimStreak) {
+                user.dailyClaimStreak = {
+                    streak: 1,
+                    wasAddedToday: true,
+                }
+            } else {
+                user.dailyClaimStreak.streak = streak?.streak ?? 1
+                user.dailyClaimStreak.wasAddedToday = streak?.wasAddedToday ?? true
+            }
+            user.dailyClaim = 1
             DatabaseHelper.updateUser(user)
         } else {
             message.reply('Du har allerede hentet dine daglige chips og coins. Prøv igjen i morgen etter klokken 06:00')

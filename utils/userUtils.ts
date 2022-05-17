@@ -123,7 +123,7 @@ export namespace UserUtils {
     }
 
     export const ROLE_IDs = {
-        BUT_SUPPORT: '963397733463498802',
+        BOT_SUPPORT: '863038817794392106',
         NATO: '963396965947801630',
     }
 }

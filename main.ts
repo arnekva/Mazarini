@@ -17,7 +17,6 @@ import {
     User,
 } from 'discord.js'
 import { discordSecret, environment } from './client-env'
-import { ShopClass } from './commands/shop'
 import { CommandRunner } from './General/commandRunner'
 import { ClientHelper } from './helpers/clientHelper'
 import { MessageHelper } from './helpers/messageHelper'
@@ -194,7 +193,10 @@ export class MazariniClient {
 
         /** For interactions (slash-commands and user-commands) */
         client.on('interactionCreate', async (interaction: Interaction<CacheType>) => {
-            ShopClass.openShop(interaction, client)
+            if (interaction.channelId)
+                _msgHelper.sendMessage(interaction.channelId, 'Shoppen er dessverre stengt. Her må du masa på Maggi for at han ska fiksa an')
+
+            // ShopClass.openShop(interaction, client)
         })
 
         client.on('channelDelete', (channel: DMChannel | NonThreadGuildBasedChannel) => {

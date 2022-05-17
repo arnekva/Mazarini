@@ -33,9 +33,9 @@ export class DayJob {
             'Det e mådderfåkkings heeeeelg',
             'HEEEEEEEEEEEEEEEEEEEEEEEEELG',
             'Komma dokk hjem folkens, det e helg',
-            'omw dirr hjem for å krækka åpen a cold one, det e helg boys',
-            'ud å fyra elle? Ejo helg',
+            'Ud å fyra elle? Ejo helg',
             'Helg folkens. Skru av maskinane og komma seg hjem asap',
+            'Komma dokk hjemøve, eg hoste fest. Helg forfaen',
             'Någen så e down for et glass rødt? Ejo helg. Eg hoste',
             'Har inva Kevin Lauren på vors i quell, ejo tross alt helg NÅ',
         ]

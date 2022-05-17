@@ -4,16 +4,19 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '7.0.1'
+    public static readonly currentVersion = '7.0.2'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Fikset BR og Weekly stats. (Stats lagret i databasen er wipet)` +
-        `\n* Statuser vises igjen` +
-        `\n* Daily og statuser skal nå resettes korrekt kl 06:00` +
-        `\n* totalspins virker igjen` +
-        `\n* run, setvalue, ath og getvalue mangler fortsatt`
+        `\n* setvalue er tilbake for admins. Du vil nå få bedre feilmeldinger hvis du gjør noe galt` +
+        `\n* BR og Weekly lagres ikke lenger som stringifyet JSON` +
+        `\n* BR og Weekly lagres ikke lenger som stringifyet JSON` +
+        `\n* Daily Claim lagret ikke lenger som stringifyet JSON` +
+        `\n* Daily kan nå kun brukes en gang daglig` +
+        `\n* Daily resettes nå korrekt 06:00` +
+        `\n* Bot-support role id er oppdatert, og taggen skal nå fungere igjen` +
+        `\n* Shoppen stenges (igjen). Trenger en større refactor av Maggi`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

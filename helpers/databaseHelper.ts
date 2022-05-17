@@ -144,6 +144,14 @@ export class DatabaseHelper {
             return JSON.parse(db.getData(`${folderPrefix}/${userID}/`)) as MazariniUser
         }
     }
+    static getUntypedUser(userID: string): any | undefined {
+        // { [key: string]: MazariniUser }
+        try {
+            return JSON.parse(db.getData(`${folderPrefix}/${userID}/`)) as MazariniUser
+        } catch (error: any) {
+            return undefined
+        }
+    }
 
     /** Oppdater brukerobjektet i databasen */
     static updateUser(userObject: MazariniUser) {

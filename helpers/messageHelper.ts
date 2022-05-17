@@ -118,7 +118,7 @@ export class MessageHelper {
             }.`
         )
         if (replyChannel && replyChannel.isText())
-            return replyChannel.send(`${errorMessageToSend} ${MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.BUT_SUPPORT)}`)
+            return replyChannel.send(`${errorMessageToSend} ${MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.BOT_SUPPORT)}`)
     }
 
     async sendMessageToActionLogWithDefaultMessage(message: Message, error: any) {
@@ -130,7 +130,7 @@ export class MessageHelper {
             if (CollectorUtils.shouldStopCollector(reaction, message)) collector.stop()
 
             if (reaction.emoji.name === '👍' && reaction.users.cache.find((u) => u.username === message.author.username)) {
-                replyMsg.edit(`En feil har oppstått. Feilkoden og meldingen din blir logget.  ${MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.BUT_SUPPORT)}`)
+                replyMsg.edit(`En feil har oppstått. Feilkoden og meldingen din blir logget.  ${MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.BOT_SUPPORT)}`)
                 collector.stop()
             }
         })
@@ -149,7 +149,7 @@ export class MessageHelper {
             if (CollectorUtils.shouldStopCollector(reaction, message)) collector.stop()
 
             if (reaction.emoji.name === '👍' && reaction.users.cache.find((u) => u.username === message.author.username)) {
-                replyMsg.edit(`${reply} ${includeSupportTag ? MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.BUT_SUPPORT) : ''}`)
+                replyMsg.edit(`${reply} ${includeSupportTag ? MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.BOT_SUPPORT) : ''}`)
                 collector.stop()
             }
         })
@@ -160,7 +160,7 @@ export class MessageHelper {
     }
 
     sendMessageToActionLogWithInsufficientRightsMessage(message: Message, extra?: any, ignoreReply?: boolean) {
-        message.reply(`Du har ikke de nødvendige rettighetene for å bruke denne funksjonen. ${MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.BUT_SUPPORT)}`)
+        message.reply(`Du har ikke de nødvendige rettighetene for å bruke denne funksjonen. ${MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.BOT_SUPPORT)}`)
         const errorChannel = message.channel.client.channels.cache.get('810832760364859432') as TextChannel
         errorChannel.send(
             `${message.author.username} forsøkte å bruke en funksjon uten rettigheter. Meldingsinnhold: <${message.content}>. Channel: ${message.channel}. ${extra}`
