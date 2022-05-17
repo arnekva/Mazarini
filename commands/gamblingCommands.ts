@@ -944,7 +944,7 @@ export class GamblingCommands extends AbstractCommands {
 
             let streak: IDailyPriceClaim = { streak: 1, wasAddedToday: true }
             if (oldData) {
-                const oldStreak = JSON.parse(oldData) as IDailyPriceClaim
+                const oldStreak = oldData
                 streak = { streak: oldStreak?.streak + 1 ?? 1, wasAddedToday: true }
             } else {
                 streak = { streak: 1, wasAddedToday: true }

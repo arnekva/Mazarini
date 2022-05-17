@@ -16,16 +16,12 @@ import { DatabaseHelper, debuffItem } from '../helpers/databaseHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 
 export interface userShoppingCart {
-    cart: shopItem[]
+    cart: inventoryItem[]
     user: User
 }
-export interface shopItem {
-    name: string
-    description: string
-    price: number
-}
+
 export namespace ShopItems {
-    export const items: shopItem[] = [
+    export const items: inventoryItem[] = [
         { name: 'Eivinds dildo', description: 'Dennne vil du ikkje røra', price: 6969 },
         { name: 'Shot (sterk)', description: 'Minst 32%', price: 99 },
         { name: 'Shot (svak)', description: 'Minst 12%', price: 199 },
@@ -37,8 +33,8 @@ export namespace ShopItems {
 export interface inventoryItem {
     name: string
     description: string
-    price: string
-    amount: Number
+    price: number
+    amount?: number
 }
 export interface useItemsList {
     targetId: string
@@ -92,11 +88,11 @@ export class ShopClass {
             let inventoryDescription = 'Whalekøm to your inventøry. You currently possess:'
             let debuffDescription = 'Yøur debuffs:'
 
-            let inventoryItems: inventoryItem[] = _user.inventory
+            let inventoryItems: inventoryItem[] = _user.inventory ?? []
 
             if (inventoryItems) {
                 Object.values(inventoryItems).forEach((item: inventoryItem) => {
-                    if (item.amount > 0) {
+                    if ((item.amount ?? 0) > 0) {
                         inventoryDescription = inventoryDescription + '\n' + ' - ' + item.name + ' x' + item.amount
                     }
                 })
@@ -133,7 +129,7 @@ export class ShopClass {
 
             let itemOptions: MessageSelectOptionData[] = []
 
-            let inventoryItems: inventoryItem[] = _user.inventory
+            let inventoryItems: inventoryItem[] = _user.inventory ?? []
 
             if (!inventoryItems || Object.values(inventoryItems).length === 0) {
                 return await commandInteraction.reply('Du har ingenting i inventory. Kjøba någe fysst kanskje?')
@@ -198,7 +194,7 @@ export class ShopClass {
                 }
 
                 if (interaction.customId == 'MenyValg') {
-                    let shoppingList: shopItem[] = []
+                    let shoppingList: inventoryItem[] = []
 
                     let price = 0
                     interaction.values.forEach((value) => {
@@ -237,7 +233,7 @@ export class ShopClass {
         if (interaction.isButton()) {
             if (interaction.message.interaction?.user == interaction.user) {
                 if (interaction.customId == 'buy') {
-                    let shoppingList: shopItem[] = []
+                    let shoppingList: inventoryItem[] = []
 
                     if (this.allShoppingCart[this.allShoppingCart.findIndex((spesificCart) => spesificCart.user.id === interaction.user.id)])
                         shoppingList = this.allShoppingCart[this.allShoppingCart.findIndex((spesificCart) => spesificCart.user === interaction.user)].cart
@@ -250,7 +246,7 @@ export class ShopClass {
 
                     if (this.checkAvailability(price, interaction.user.id)) {
                         _user.chips -= price
-                        _user.inventory = JSON.stringify(shoppingList)
+                        _user.inventory = shoppingList
                         DatabaseHelper.updateUser(_user)
                     }
 

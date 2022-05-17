@@ -2,7 +2,9 @@ import { Message } from 'discord.js'
 //https://openbase.com/js/node-json-db
 import { JsonDB } from 'node-json-db'
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
-import { shopItem } from '../commands/shop'
+import { IDailyPriceClaim } from '../commands/gamblingCommands'
+import { inventoryItem } from '../commands/shop'
+import { CodBRStatsType, CodStats } from '../commands/warzoneCommands'
 
 const db = new JsonDB(new Config('myDataBase', true, true, '/'))
 const folderPrefix = '/users'
@@ -30,9 +32,8 @@ export interface MazariniUser {
     birthday?: string
     /** Dagens status. Slettes hver dag 06:00 */
     status?: string
-    week?: any //TODO?
     /** Total antall spins */
-    spinCounter: any //TODO?
+    spinCounter: number //TODO?
     /** Høyeste spin tid */
     ATHspin?: string
     /** Antall chips */
@@ -55,19 +56,19 @@ export interface MazariniUser {
     /** Gjenstander fra shopen */
     shopItems?: any //TODO Cast this
     /** Lagrede stats for Cod weekly stats */
-    codStats?: any
+    codStats?: CodStats | CodBRStatsType
     /** Lagrede stats for Cod BR */
-    codStatsBR?: any
+    codStatsBR?: CodBRStatsType | CodStats
     /** Brukernavn for activision. username;platform */
     activisionUserString?: string
     /** Brukernavn for rocket league. username;platform */
     rocketLeagueUserString?: string
     /** Brukernavn */
     displayName: string
-    inventory?: any //TODO Cast this
+    inventory?: inventoryItem[] //TODO Cast this
     debuff?: any //TODO Cast this
     dailyClaim?: number
-    dailyClaimStreak?: any
+    dailyClaimStreak?: IDailyPriceClaim
     dailyFreezeCounter?: number
     prestige?: number
 }
@@ -124,7 +125,7 @@ export interface betObjectReturned {
 }
 
 export interface itemsBoughtAtStore {
-    itemList: shopItem[]
+    itemList: inventoryItem[]
 }
 
 export interface debuffItem {
@@ -329,7 +330,7 @@ export class DatabaseHelper {
         return text.replace(prefix + '-', '')
     }
 
-    static setShoppingList(username: string, shopItems: shopItem[]) {
+    static setShoppingList(username: string, shopItems: inventoryItem[]) {
         shopItems.forEach((item) => {
             db.push(`${folderPrefix}/${username}/inventory/${item.name}/name`, `${item.name}`)
             db.push(`${folderPrefix}/${username}/inventory/${item.name}/price`, `${item.price}`)

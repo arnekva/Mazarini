@@ -8,6 +8,7 @@ import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
 import { MessageUtils } from '../utils/messageUtils'
+import { ObjectUtils } from '../utils/objectUtils'
 const fetch = require('node-fetch')
 
 export interface CodStats {
@@ -16,8 +17,8 @@ export interface CodStats {
     kdRatio: number
     killsPerGame: number
     damageDone: number
-    damageTaken: number | string
-    damageDoneTakenRatio: number | string
+    damageTaken: number
+    damageDoneTakenRatio: number
     headshotPercentage: number
     gulagDeaths: number
     gulagKills: number
@@ -271,21 +272,24 @@ export class WarzoneCommands extends AbstractCommands {
                 }
             }
             orderedStats['winRatio'] = ((orderedStats?.wins ?? 0) / (orderedStats?.gamesPlayed ?? 1)) * 100
-            const userStats = this.getUserStats(message) !== 'undefined' ? this.getUserStats(message) : '{}'
-            const oldData = JSON.parse(userStats)
+            const userStats = this.getUserStats(message) ? this.getUserStats(message) : '{}'
+            const oldData = userStats
 
             const getValueFormatted = (key: string, value: number) => {
                 if (key === 'timePlayed') return convertTime(value)
                 return value.toFixed(3).replace(/\.000$/, '')
             }
+
             /** Gjør sammenligning og legg til i respons */
             for (const [key, value] of Object.entries(orderedStats)) {
+                const compareDataString = () => {
+                    if (oldData && ObjectUtils.isObjKey(key, oldData) && !!oldData[key]) {
+                        return `${this.compareOldNewStats(value, oldData[key], key === 'timePlayed')}`
+                    }
+                    return ''
+                }
                 if (this.findHeaderFromKey(key, true))
-                    response += `\n${this.findHeaderFromKey(key, true)}: ${getValueFormatted(key, value)} ${this.compareOldNewStats(
-                        value,
-                        oldData[key],
-                        key === 'timePlayed'
-                    )}${key === 'winRatio' ? '%' : ''}`
+                    response += `\n${this.findHeaderFromKey(key, true)}: ${getValueFormatted(key, value)} ${compareDataString()}`
             }
             if (editableMessage) editableMessage.edit(response)
             else this.messageHelper.sendMessage(message.channelId, response)
@@ -301,7 +305,6 @@ export class WarzoneCommands extends AbstractCommands {
         try {
             const data = await Warzone.fullData(gamertag, platform)
             let response = 'Weekly Warzone stats for <' + gamertag + '>'
-            console.log(data)
 
             if (!data?.data?.weekly) {
                 if (editableMessage) return editableMessage.edit('Du har ingen statistikk denne ukå, bro')
@@ -319,7 +322,7 @@ export class WarzoneCommands extends AbstractCommands {
                 for (const [key, value] of Object.entries(statsTyped)) {
                     if (key === WarzoneCommands.statsToInclude[i].key) {
                         if (key === 'damageTaken' && Number(statsTyped['damageTaken']) > Number(statsTyped['damageDone'])) {
-                            orderedStats['damageTaken'] = value + ' (flaut)'
+                            orderedStats['damageTaken'] = value
                         } else {
                             orderedStats[WarzoneCommands.statsToInclude[i].key] = value
                         }
@@ -333,8 +336,8 @@ export class WarzoneCommands extends AbstractCommands {
                     orderedStats['damageDoneTakenRatio'] = Number(orderedStats.damageDone) / Number(orderedStats.damageTaken)
                 }
             }
-            const userStats = this.getUserStats(message) !== 'undefined' ? this.getUserStats(message) : '{}'
-            const oldData = JSON.parse(userStats)
+            const userStats = this.getUserStats(message)
+            const oldData = userStats
 
             /** Time played og average lifetime krever egen formattering for å være lesbart */
             const getValueFormatted = (key: string, value: string | Number) => {
@@ -353,24 +356,31 @@ export class WarzoneCommands extends AbstractCommands {
             /** Gjør sammenligning og legg til i respons */
             for (const [key, value] of Object.entries(orderedStats)) {
                 if (key === 'gulagKd' && orderedStats.gulagDeaths && orderedStats.gulagKills) {
-                    // response += `\nGulag KD: ${(orderedStats?.gulagKills / orderedStats?.gulagDeaths).toFixed(2)} ${this.compareOldNewStats(
-                    //     orderedStats['gulagKd'],
-                    //     oldData[key]
-                    // )}`
                     statsTyped['gulagKd'] = orderedStats['gulagKd'] ?? 0
                 }
                 if (key === 'damageDoneTakenRatio' && orderedStats.damageDone && orderedStats.damageTaken) {
+                    const compareDataString = () => {
+                        if (oldData && ObjectUtils.isObjKey(key, oldData) && !!oldData[key]) {
+                            return `${this.compareOldNewStats(value, oldData[key], key === 'timePlayed')}`
+                        }
+                        return ''
+                    }
+                    if (this.findHeaderFromKey(key, true))
+                        response += `\n${this.findHeaderFromKey(key, true)}: ${getValueFormatted(key, value)} ${compareDataString()}`
                     response += `\nDamage Done/Taken ratio: ${(Number(orderedStats?.damageDone) / parseInt(orderedStats?.damageTaken.toString())).toFixed(
                         3
-                    )} ${this.compareOldNewStats(orderedStats['damageDoneTakenRatio'], oldData[key])}`
+                    )} ${compareDataString()}`
 
                     statsTyped['damageDoneTakenRatio'] = orderedStats['damageDoneTakenRatio'] ?? 0
-                } else if (this.findHeaderFromKey(key))
-                    response += `\n${this.findHeaderFromKey(key)}: ${getValueFormatted(key, value)} ${this.compareOldNewStats(
-                        value,
-                        oldData[key],
-                        !this.isCorrectHeader({ key: key as CodStatsType, header: 'none' })
-                    )}`
+                } else if (this.findHeaderFromKey(key)) {
+                    const compareDataString = () => {
+                        if (oldData && ObjectUtils.isObjKey(key, oldData) && !!oldData[key]) {
+                            return `${this.compareOldNewStats(value, oldData[key], !this.isCorrectHeader({ key: key as CodStatsType, header: 'none' }))}`
+                        }
+                        return ''
+                    }
+                    response += `\n${this.findHeaderFromKey(key)}: ${getValueFormatted(key, value)} ${compareDataString()}`
+                }
             }
 
             if (editableMessage) editableMessage.edit(response)
@@ -475,7 +485,8 @@ export class WarzoneCommands extends AbstractCommands {
      * @param ignoreCompare Noen stats skal ikke sammenliknes (e.g. time played og average lifetime)
      * @returns
      */
-    private compareOldNewStats(current: string | Number | undefined, storedData: string | number | undefined, ignoreCompare?: boolean) {
+    private compareOldNewStats(current?: string | Number | undefined, storedData?: string | number | undefined, ignoreCompare?: boolean) {
+        if (!current || !storedData) return ''
         if (ignoreCompare) return ''
         const currentStats = Number(current)
         const oldStorageStats = Number(storedData)
@@ -487,8 +498,8 @@ export class WarzoneCommands extends AbstractCommands {
     /** Beware of stats: any */
     private saveUserStats(message: Message, stats: CodStats | CodBRStatsType, isBR?: boolean) {
         const user = DatabaseHelper.getUser(message.author.id)
-        if (isBR) user.codStatsBR = JSON.stringify(stats)
-        else user.codStats = JSON.stringify(stats)
+        if (isBR) user.codStatsBR = stats
+        else user.codStats = stats
         DatabaseHelper.updateUser(user)
     }
     private getUserStats(message: Message, isBr?: boolean) {

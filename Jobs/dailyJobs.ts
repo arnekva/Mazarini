@@ -24,7 +24,7 @@ export class DailyJobs {
             const user = DatabaseHelper.getUser(userID)
             const userStreak = user.dailyClaimStreak
             if (!userStreak) return //Verify that the user as a streak/claim, otherwise skip
-            const currentStreak = JSON.parse(user.dailyClaimStreak)
+            const currentStreak = user.dailyClaimStreak
             if (!currentStreak) return
             const streak: IDailyPriceClaim = { streak: currentStreak.streak, wasAddedToday: false }
 
@@ -35,7 +35,7 @@ export class DailyJobs {
             } else {
                 streak.wasAddedToday = false //Reset check for daily claim
                 if (!currentStreak.wasAddedToday) streak.streak = 0 //If not claimed today, also reset the streak
-                user.dailyClaimStreak = JSON.stringify(streak)
+                user.dailyClaimStreak = streak
             }
             user.dailyClaim = 0
             DatabaseHelper.updateUser(user)

@@ -125,7 +125,7 @@ export class Spinner extends AbstractCommands {
         Object.keys(val).forEach((key) => {
             const user = DatabaseHelper.getUser(key)
             const spins = user?.spinCounter
-            if (spins && spins !== 'undefined') statuser += `${user.displayName} ${user.spinCounter} \n `
+            if (spins) statuser += `${user.displayName} ${user.spinCounter} \n `
         })
         statuser = statuser.trim() ? statuser : 'Ingen har satt statusen sin i dag'
         this.messageHelper.sendMessage(message.channelId, statuser)
