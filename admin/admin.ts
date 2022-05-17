@@ -305,16 +305,7 @@ export class Admin extends AbstractCommands {
             })
     }
 
-    private debugMethod(message: Message, messageContent: string, args: string[]) {
-        Object.keys(DatabaseHelper.getAllUsers()).forEach((key) => {
-            const u = DatabaseHelper.getUser(key)
-            const us = UserUtils.findUserById(key, message)
-            if (u && us) {
-                u.displayName = us.username
-                DatabaseHelper.updateUser(u)
-            }
-        })
-    }
+    private debugMethod(message: Message, messageContent: string, args: string[]) {}
 
     public getAllCommands(): ICommandElement[] {
         return [
