@@ -178,8 +178,8 @@ export class WarzoneCommands extends AbstractCommands {
         const WZUser = this.getWZUserStringFromDB(message)?.split(';')
         if (!WZUser) return message.reply('Du må knytta brukernavn te brukeren din fysste')
 
-        const gamertag = WZUser[0]
-        const platform = this.translatePlatform(WZUser[1])
+        const gamertag = WZUser[1]
+        const platform = this.translatePlatform(WZUser[0])
 
         try {
             const waitMsg = await this.messageHelper.sendMessage(message.channelId, 'Laster data ...')

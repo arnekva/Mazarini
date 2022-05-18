@@ -932,7 +932,7 @@ export class GamblingCommands extends AbstractCommands {
 
     /** Missing streak counter and increased reward */
     private claimDailyChipsAndCoins(message: Message, messageContent: string, args: string[]) {
-        const user = DatabaseHelper.getUser(message.author.username)
+        const user = DatabaseHelper.getUser(message.author.id)
         const canClaim = user.dailyClaim
         const dailyPrice = { chips: '300', coins: '80' }
         const hasFreeze = user.dailyFreezeCounter

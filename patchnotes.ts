@@ -4,20 +4,11 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '7.0.2'
+    public static readonly currentVersion = '7.0.3'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string =
-        `\n* setvalue er tilbake for admins. Du vil nå få bedre feilmeldinger hvis du gjør noe galt` +
-        `\n* BR og Weekly lagres ikke lenger som stringifyet JSON` +
-        `\n* BR og Weekly lagres ikke lenger som stringifyet JSON` +
-        `\n* Daily Claim lagret ikke lenger som stringifyet JSON` +
-        `\n* Du kan oppdatere displaynavnet ditt i databasen med 'name'-kommandoen` +
-        `\n* Daily kan nå kun brukes en gang daglig` +
-        `\n* Daily resettes nå korrekt 06:00` +
-        `\n* Bot-support role id er oppdatert, og taggen skal nå fungere igjen` +
-        `\n* Shoppen stenges (igjen). Trenger en større refactor av Maggi`
+    public static readonly currentPatchNotes: string = `\n* Fikset en feil som gjorde at Warzone link og Rocket League link brukte forskjellig rekkefølge på platform/gamertag`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
