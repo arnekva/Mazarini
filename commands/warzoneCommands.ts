@@ -236,8 +236,8 @@ export class WarzoneCommands extends AbstractCommands {
         if (!WZUser) {
             return message.reply('Du må knytta brukernavn te brukeren din fysste')
         }
-        gamertag = WZUser[0]
-        platform = this.translatePlatform(WZUser[1])
+        gamertag = WZUser[1]
+        platform = this.translatePlatform(WZUser[0])
 
         const filterMode: string = args[0] ?? ' '
 
