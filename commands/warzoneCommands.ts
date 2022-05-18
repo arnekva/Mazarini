@@ -272,7 +272,7 @@ export class WarzoneCommands extends AbstractCommands {
                 }
             }
             orderedStats['winRatio'] = ((orderedStats?.wins ?? 0) / (orderedStats?.gamesPlayed ?? 1)) * 100
-            const userStats = this.getUserStats(message) ? this.getUserStats(message) : '{}'
+            const userStats = this.getUserStats(message)
             const oldData = userStats
 
             const getValueFormatted = (key: string, value: number) => {
