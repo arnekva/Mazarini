@@ -134,7 +134,7 @@ export interface debuffItem {
 }
 
 export class DatabaseHelper {
-    /** Merk at de fleste verdier kan være undefined. Returnes som et typet object */
+    /** Hent et brukerobjekt på ID. De fleste verdier kan være undefined. Hvis brukeren ikke finnes så opprettes det et objekt med default verdier */
     static getUser(userID: string): MazariniUser {
         // { [key: string]: MazariniUser }
         try {
@@ -144,6 +144,8 @@ export class DatabaseHelper {
             return JSON.parse(db.getData(`${folderPrefix}/${userID}/`)) as MazariniUser
         }
     }
+
+    /** Hent et untyped User objekt. Brukes kun i admin.setSpecificValue() */
     static getUntypedUser(userID: string): any | undefined {
         // { [key: string]: MazariniUser }
         try {

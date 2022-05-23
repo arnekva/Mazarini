@@ -1,10 +1,13 @@
 import { Client, Message } from 'discord.js'
+import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { countdownTime, dateRegex, DateUtils } from '../utils/dateUtils'
+
+const holidays = require('holidays-norway').default
 
 export interface dateValPair {
     print: string
@@ -31,7 +34,7 @@ export class DateCommands extends AbstractCommands {
         }
         this.messageHelper.reactWithRandomEmoji(message)
         setTimeout(() => {
-            message.reply(`Her e din påminnelse om *${event}*`)
+            message.reply(`*Påminnelse for ${message.author.username}*\n *${event}*`)
         }, timeout)
     }
 
@@ -112,21 +115,87 @@ export class DateCommands extends AbstractCommands {
         this.messageHelper.sendMessage(message.channelId, sendThisText)
     }
 
-    private async checkForHelg(message: Message, messageContent: string, args: string[]) {
-        const isHelg = this.isItHelg()
-        const url = 'https://webapi.no/api/v1/holidays/2021'
-        let timeUntil: string = ''
-        if (!isHelg) {
-            const date = new Date()
-            date.setHours(16, 0, 0, 0)
-            if (date.getDay() === 5) {
-                if (new Date().getHours() < 16) timeUntil = this.formatCountdownText(DateUtils.getTimeTo(date), 'til helg')
-                else timeUntil = `Det e helg!`
-            } else {
-                timeUntil = this.formatCountdownText(DateUtils.getTimeTo(new Date(DateUtils.nextWeekdayDate(date, 5))), 'til helg')
+    private findHolidaysInThisWeek() {
+        const holidaysFromYear = holidays(new Date().getFullYear())
+        // holidaysFromYear.push({ name: 'Testdagen', date: '2022-05.27' })
+        const holidaysThisWeek: { name: string; date: string }[] = []
+        holidaysFromYear.forEach((day: { name: string; date: string }) => {
+            const date = new Date(day.date)
+            if (day.name.includes('Himmelsprettsdag')) day.name = 'Kristi himmelfartsdag'
+            if (moment(date).isSame(new Date(), 'week')) {
+                if (!this.isInWeekend(date)) holidaysThisWeek.push(day)
+            }
+        })
+        return holidaysThisWeek
+    }
+
+    private isInWeekend(date: Date) {
+        const dayOfWeek = date.getDay()
+        return dayOfWeek === 6 || dayOfWeek === 0
+    }
+
+    private findWeekendStart(): Date | undefined {
+        const holidays = this.findHolidaysInThisWeek()
+        const allDates: Date[] = []
+        holidays.forEach((day) => {
+            allDates.push(new Date(day.date))
+        })
+        const allDays = allDates.map((d) => d.getDay())
+        allDays.sort()
+        let weekendStart = 6
+        for (let i = 5; i > 0; i--) {
+            if (!allDays.includes(i)) {
+                weekendStart = i + 1
+                break
             }
         }
-        this.messageHelper.sendMessage(message.channelId, isHelg ? `Det e helg!` : `${timeUntil}`)
+        return allDates.find((d) => d.getDay() === weekendStart)
+    }
+
+    private isTodayHoliday() {
+        const h = this.findHolidaysInThisWeek()
+        return !!h.find((d) => new Date(d.date).getDay() === new Date().getDay())
+    }
+
+    private getTimeUntilHelgString() {
+        const isHelg = this.isItHelg()
+        const holidays = this.findHolidaysInThisWeek()
+        let timeUntil = ''
+        if (!isHelg) {
+            let hasFoundWeekendStart = false
+            holidays.forEach((day) => {
+                if (!hasFoundWeekendStart) {
+                    if (new Date(day.date).getDay() === this.findWeekendStart()?.getDay()) {
+                        hasFoundWeekendStart = true
+                        timeUntil += `${this.formatCountdownText(DateUtils.getTimeTo(new Date(day.date)), `til helgå så starte med ${day.name}`)}\n`
+                    } else timeUntil += `${this.formatCountdownText(DateUtils.getTimeTo(new Date(day.date)), `til ${day.name}`)}\n`
+                }
+            })
+            if (!hasFoundWeekendStart) {
+                const possibleWeekendStart = this.findWeekendStart()
+                if (possibleWeekendStart) {
+                    timeUntil += this.formatCountdownText(DateUtils.getTimeTo(possibleWeekendStart), 'til helg')
+                } else {
+                    const date = new Date()
+                    date.setHours(16, 0, 0, 0)
+                    if (this.isTodayHoliday()) {
+                        timeUntil = 'Det e helg'
+                    } else if (date.getDay() === 5) {
+                        if (new Date().getHours() < 16) timeUntil += this.formatCountdownText(DateUtils.getTimeTo(date), 'til helg')
+                        else timeUntil = `Det e helg!`
+                    } else {
+                        timeUntil += this.formatCountdownText(DateUtils.getTimeTo(new Date(DateUtils.nextWeekdayDate(date, 5))), 'til helg')
+                    }
+                }
+            }
+        }
+        return timeUntil
+    }
+
+    private async checkForHelg(message: Message, messageContent: string, args: string[]) {
+        const isHelg = this.isItHelg()
+
+        this.messageHelper.sendMessage(message.channelId, isHelg ? `Det e helg!` : `${this.getTimeUntilHelgString()}`)
     }
 
     private addUserBirthday(message: Message, messageContent: string, args: string[]) {
