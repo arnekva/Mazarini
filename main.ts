@@ -177,12 +177,17 @@ export class MazariniClient {
                 return
             }
             const { executor, target } = deletionLog
-
+            const createdAt = { hours: new Date(deletionLog.createdAt).getHours(), min: new Date(deletionLog.createdAt).getMinutes() }
+            const now = { hours: new Date().getHours(), min: new Date().getMinutes() }
+            const timeMatches = (): boolean => {
+                return createdAt.hours === now.hours && createdAt.min === now.min
+            }
             if (
                 target?.id === message?.author?.id &&
                 message.channelId !== MessageUtils.CHANNEL_IDs.ACTION_LOG &&
                 !message?.content?.includes('Laster data') &&
-                !message?.content?.includes('Henter data')
+                !message?.content?.includes('Henter data') &&
+                timeMatches()
             ) {
                 _msgHelper.sendMessage(
                     actionLogId,
@@ -237,6 +242,20 @@ export class MazariniClient {
         })
 
         client.on('messageUpdate', function (oldMessage: Message | PartialMessage, newMessage: Message | PartialMessage) {
+            const commandContent = newMessage?.content?.slice(0, 2)
+            if (commandContent) {
+                newMessage.channel.messages
+                    .fetch({ limit: 15 })
+                    .then((el) => {
+                        const arr = el.map((msg) => msg)
+                        const ind = arr.findIndex((msg) => msg.content.includes(commandContent) && msg.author.id === newMessage.author?.id)
+                        const msg = arr[ind - 1]
+                        if (msg.author.id === '802945796457758760') msg.delete()
+                    })
+                    .catch((error: any) => {
+                        // this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
+                    })
+            }
             if (!newMessage.pinned && !oldMessage.pinned) {
                 _mzClient.commandRunner.checkForCommand(newMessage as Message)
                 _mzClient.commandRunner.checkMessageForJokes(newMessage as Message)

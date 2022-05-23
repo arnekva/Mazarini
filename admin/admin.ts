@@ -3,7 +3,7 @@ import { ActivityTypes } from 'discord.js/typings/enums'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement } from '../General/commands'
 import { ClientHelper } from '../helpers/clientHelper'
-import { DatabaseHelper, prefixList, ValuePair } from '../helpers/databaseHelper'
+import { DatabaseHelper, dbPrefix, prefixList, ValuePair } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniClient } from '../main'
 import { MessageUtils } from '../utils/messageUtils'
@@ -24,26 +24,33 @@ export class Admin extends AbstractCommands {
         if (!username && !prefix && !value) {
             return message.reply('Du mangler argumenter')
         }
+        let logMsg = ''
         const discordUser = UserUtils.findUserByUsername(username, message)
         if (discordUser) {
             const user = DatabaseHelper.getUntypedUser(discordUser.id)
             if (user) {
                 const prop = user[prefix]
-                if (prop) {
+                if (prefixList.includes(prefix as dbPrefix) || prop) {
+                    const oldVal = user[prefix] //Brukt til logging
                     if (typeof prop === 'object') return message.reply('Du kan ikke sette en primitiv type på et objekt. setvalue støtter ikke objekter')
                     else if (typeof prop === 'number') user[prefix] = Number(value)
                     else user[prefix] = value
                     DatabaseHelper.updateUser(user)
                     this.messageHelper.reactWithThumbs(message, 'up')
+                    logMsg = `Setvalue ble brukt av ${message.author.username} for å sette verdi for bruker ${user.displayName} sin ${prefix}. Gammel verdi var ${oldVal}, ny verdi er ${value}`
                 } else {
-                    return message.reply(`${prefix} eksisterer ikke på ${discordUser.username}`)
+                    logMsg = `Setvalue ble brukt av ${message.author.username} for å sette verdi for bruker ${user.displayName} men brukte feil prefix. Prefix forsøkt brukt var ${prefix}`
+                    message.reply(`${prefix} eksisterer ikke på ${discordUser.username}`)
                 }
             } else {
+                logMsg = `Setvalue ble brukt av ${message.author.username} for å sette verdi for bruker som ikke eksisterer i Databasen`
                 return message.reply('Fant ikke brukeren i databasen')
             }
         } else {
+            logMsg = `Setvalue ble brukt av ${message.author.username} for å sette verdi for bruker som ikke eksisterer`
             return message.reply('Fant ikke brukeren fra args[1] <' + username + '>')
         }
+        this.messageHelper.sendMessageToActionLog(message.channel as TextChannel, logMsg)
     }
 
     private async replyToMsgAsBot(rawMessage: Message, content: string) {

@@ -1,4 +1,4 @@
-import { dbPrefix } from '../helpers/databaseHelper'
+import { dbPrefix, MazariniUser } from '../helpers/databaseHelper'
 
 export namespace ObjectUtils {
     export const isObjectOfTypeDbPrefix = (o: string): o is dbPrefix => {

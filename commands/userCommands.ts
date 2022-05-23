@@ -96,7 +96,7 @@ export class UserCommands extends AbstractCommands {
     }
 
     private updateDisplayName(message: Message, messageContent: string, args: string[]) {
-        const updateOtherUSer = UserUtils.findUserById(args[1], message)
+        const updateOtherUSer = UserUtils.findUserById(args[0], message)
         let user: MazariniUser
         let name: string
         if (updateOtherUSer) {
