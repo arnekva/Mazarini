@@ -4,7 +4,7 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '7.0.6'
+    public static readonly currentVersion = '7.0.7'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
@@ -22,7 +22,7 @@ export class PatchNotes extends AbstractCommands {
             {
                 commandName: 'patch',
                 description: 'Vis patch notes for ' + PatchNotes.currentVersion,
-                command: (rawMessage: Message, messageContent: string) => {
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     const pn = PatchNotes.getCurrentPatchNotes()
                     this.messageHelper.sendMessage(rawMessage.channelId, pn)
                 },
