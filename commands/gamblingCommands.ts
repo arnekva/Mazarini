@@ -1086,7 +1086,7 @@ export class GamblingCommands extends AbstractCommands {
         return [
             {
                 commandName: 'lån',
-                description: 'Lån chips fra banken',
+                description: 'Lån chips fra banken. Maks 1500. ',
 
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.takeUpLoan(rawMessage, messageContent, args)
@@ -1096,7 +1096,7 @@ export class GamblingCommands extends AbstractCommands {
             },
             {
                 commandName: 'betal',
-                description: 'Betal på lånet ditt. <number>',
+                description: 'Betal på lånet ditt. <tall>',
 
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.payDownDebt(rawMessage, messageContent, args)
@@ -1106,7 +1106,7 @@ export class GamblingCommands extends AbstractCommands {
             },
             {
                 commandName: 'krig',
-                description: 'Gå til krig mot noen. <nummer> <username>',
+                description: 'Gå til krig mot noen. <nummer> <brukernavn>',
 
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.krig(rawMessage, messageContent, args)
@@ -1123,7 +1123,7 @@ export class GamblingCommands extends AbstractCommands {
             },
             {
                 commandName: 'vipps',
-                description: 'Vipps til en annen bruker. <number>',
+                description: 'Vipps til en annen bruker. <brukernavn> <tall>',
 
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.vippsCoins(rawMessage, messageContent, args)
@@ -1141,8 +1141,7 @@ export class GamblingCommands extends AbstractCommands {
             },
             {
                 commandName: ['gamble', 'g'],
-                description:
-                    'Gambla coinså dine! Skriv inn mengde coins du vil gambla, så kan du vinna. Tilbakebetaling blir høyere jo høyere terningen triller (1.1x for 50 opp till 5x for 100)',
+                description: 'Gambla coinså dine! Skriv inn mengde coins du vil gambla, så kan du vinna.',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.diceGamble(rawMessage, messageContent, args)
                 },
@@ -1163,7 +1162,7 @@ export class GamblingCommands extends AbstractCommands {
             },
             {
                 commandName: 'wallet',
-                description: 'Se antall coins til en person',
+                description: 'Se antall coins og chips til en person',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.checkCoins(rawMessage, messageContent, args)
                 },

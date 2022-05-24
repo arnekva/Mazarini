@@ -290,7 +290,7 @@ export class DrinksCommands extends AbstractCommands {
         return [
             {
                 commandName: ['el', 'electricity', 'elektrisitet'],
-                description: 'Nu ska d drekkjast',
+                description: 'Start drikkeleken electricity. Nu ska d drekkjast',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.elSwitch(rawMessage, messageContent, args)
                 },
@@ -299,7 +299,7 @@ export class DrinksCommands extends AbstractCommands {
             },
             {
                 commandName: ['drikk', 'drink'],
-                description: 'Drikking + Gambling, name a more iconic duo',
+                description: 'Drikkelek: Drikking + Gambling, name a more iconic duo',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.drinkBitch(rawMessage, messageContent, args)
                 },

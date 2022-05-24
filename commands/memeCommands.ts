@@ -149,7 +149,7 @@ export class Meme extends AbstractCommands {
         return [
             {
                 commandName: 'meme',
-                description: "Lag et meme. '!mz meme <anakin|timmy> text1:text2:text3:text4'",
+                description: "Lag et meme. '!mz meme <anakin|timmy|sjøsyk> text1:text2:text3:text4'",
 
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.sendMeme(rawMessage, messageContent, args)

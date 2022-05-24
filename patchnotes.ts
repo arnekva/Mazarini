@@ -8,7 +8,7 @@ export class PatchNotes extends AbstractCommands {
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `\n* Krig mot spesifikk person skal nå fungere igjen. `
+    public static readonly currentPatchNotes: string = `\n* Oppdatert beskrivelse for help på kommandoer `
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
@@ -21,7 +21,7 @@ export class PatchNotes extends AbstractCommands {
         return [
             {
                 commandName: 'patch',
-                description: 'Vis nyligste patch notes',
+                description: 'Vis patch notes for ' + PatchNotes.currentVersion,
                 command: (rawMessage: Message, messageContent: string) => {
                     const pn = PatchNotes.getCurrentPatchNotes()
                     this.messageHelper.sendMessage(rawMessage.channelId, pn)
@@ -30,7 +30,7 @@ export class PatchNotes extends AbstractCommands {
             },
             {
                 commandName: 'publishnotes',
-                description: 'Vis nyligste patch notes',
+                description: 'Publiser nyeste patch notes til Bot-utvikling',
                 hideFromListing: true,
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string) => {

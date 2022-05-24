@@ -301,7 +301,7 @@ export class JokeCommands extends AbstractCommands {
             },
             {
                 commandName: 'status',
-                description: 'Sett din status',
+                description: 'Sett din status. Resettes 06:00 hver dag',
                 command: (rawMessage: Message, messageContent: string) => {
                     this.updateMygleStatus(rawMessage, messageContent)
                 },
@@ -309,7 +309,7 @@ export class JokeCommands extends AbstractCommands {
             },
             {
                 commandName: 'statuser',
-                description: 'Mygles det?',
+                description: 'Se alle satte statuser.Mygles det?',
                 command: (rawMessage: Message, messageContent: string) => {
                     this.getAllStatuses(rawMessage)
                 },

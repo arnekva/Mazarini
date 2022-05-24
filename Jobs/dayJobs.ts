@@ -30,14 +30,12 @@ export class DayJob {
     private getHelgMessage() {
         return [
             'Aellen, det e helg gutta',
-            'Det e mådderfåkkings heeeeelg',
-            'HEEEEEEEEEEEEEEEEEEEEEEEEELG',
+            'Heeeeelg',
+            'HEEEEEEEEEEEELG',
             'Komma dokk hjem folkens, det e helg',
-            'Ud å fyra elle? Ejo helg',
+            'Ekje lenge te helg nå folkens. Faktisk så det e nå',
             'Helg folkens. Skru av maskinane og komma seg hjem asap',
-            'Komma dokk hjemøve, eg hoste fest. Helg forfaen',
-            'Någen så e down for et glass rødt? Ejo helg. Eg hoste',
-            'Har inva Kevin Lauren på vors i quell, ejo tross alt helg NÅ',
+            'Någen så e down for et glass rødt? Ejo helg nå',
         ]
     }
 }

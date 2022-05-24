@@ -293,9 +293,7 @@ export class Admin extends AbstractCommands {
                         try {
                             message.delete()
                             deleteCounter++
-                        } catch (error) {
-                            return this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
-                        }
+                        } catch (error) {}
                     }
                 })
                 this.messageHelper.sendMessageToActionLog(
@@ -312,17 +310,22 @@ export class Admin extends AbstractCommands {
             })
     }
 
-    private debugMethod(message: Message, messageContent: string, args: string[]) {}
+    private debugMethod(message: Message, messageContent: string, args: string[]) {
+        message.reply('empty function')
+    }
 
     public getAllCommands(): ICommandElement[] {
         return [
             {
                 commandName: 'debug',
-                description: 'For testing. Resultat vil variere. ',
+                description: 'Superadminer kan kjøre denne for å kjøre funksjonen definert i debugMethod',
                 hideFromListing: true,
                 command: async (rawMessage: Message, messageContent: string, args: string[]) => {
-                    rawMessage.reply('disabled')
-                    this.debugMethod(rawMessage, messageContent, args)
+                    if (Admin.isAuthorSuperAdmin(UserUtils.findMemberByUserID(rawMessage.author.id, rawMessage))) {
+                        this.debugMethod(rawMessage, messageContent, args)
+                    } else {
+                        rawMessage.reply('Kun superadminer kan bruke denne')
+                    }
                 },
                 category: 'admin',
             },
@@ -337,7 +340,7 @@ export class Admin extends AbstractCommands {
             },
             {
                 commandName: 'send',
-                description: 'send en melding som boten. <channel id> <melding>',
+                description: 'Send en melding som boten. <channel id> <melding>',
                 hideFromListing: true,
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string) => {
@@ -347,7 +350,7 @@ export class Admin extends AbstractCommands {
             },
             {
                 commandName: 'react',
-                description: 'reager på en melding som botten. <message id> <emoji>',
+                description: 'Reager på en melding som botten. <message id> <emoji>',
                 hideFromListing: true,
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string) => {
@@ -357,7 +360,7 @@ export class Admin extends AbstractCommands {
             },
             {
                 commandName: 'reply',
-                description: 'reager på en melding som botten.',
+                description: 'Svar på en melding som botten. <melding-ID> <melding>',
                 hideFromListing: true,
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string) => {
@@ -367,7 +370,7 @@ export class Admin extends AbstractCommands {
             },
             {
                 commandName: 'setvalue',
-                description: 'Sett en spesifikk verdi i databasen. <prefix> <nøkkel> <verdi>',
+                description: 'Sett en spesifikk verdi i databasen. <brukernavn> <prefix> <verdi>. Sender feilmelding hvis verdi ikke kan settes',
                 hideFromListing: true,
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
@@ -377,7 +380,7 @@ export class Admin extends AbstractCommands {
             },
             {
                 commandName: 'warn',
-                description: 'Gi en advarsel til en bruker. <nøkkel> <grunn> ',
+                description: 'Gi en advarsel til en bruker. <Brukernavn> <grunn> ',
                 hideFromListing: true,
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
