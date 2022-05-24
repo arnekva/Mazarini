@@ -4,12 +4,11 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '7.0.5'
+    public static readonly currentVersion = '7.0.6'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string =
-        `\n* 'helg' kommandoen sjekker nå etter helligdager` + `\n* Påminnelser formatteres på en ny måte. Det vil nå komme 'Påminnelse for <navn> \\n <event>'`
+    public static readonly currentPatchNotes: string = `\n* Krig mot spesifikk person skal nå fungere igjen. `
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

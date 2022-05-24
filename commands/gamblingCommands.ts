@@ -387,7 +387,6 @@ export class GamblingCommands extends AbstractCommands {
 
         if (user0Exists) userID = user0Exists.id
         if (user1Exists) userID = user1Exists.id
-        console.log(userID)
 
         if (!user0Exists && !user1Exists) {
             return this.krigWithAnyone(message, content, args)
@@ -411,7 +410,7 @@ export class GamblingCommands extends AbstractCommands {
             const resolveMessage = await this.messageHelper.sendMessage(
                 message.channelId,
                 `${message.author.username} vil gå til krig med deg, ${
-                    user?.id ? '<@' + user.id + '>' : userID
+                    user?.id ? '<@' + user.id + '>' : user.username
                 }. Reager med 👍 for å godkjenne. Den som starter krigen ruller for 0-49.`
             )
             if (resolveMessage) {
@@ -424,28 +423,28 @@ export class GamblingCommands extends AbstractCommands {
                         collector.stop()
                     }
 
-                    const currentValue = this.getUserWallets(message.author.username, userID)
+                    const currentValue = this.getUserWallets(message.author.id, user.id)
                     let engagerValue = currentValue.engagerChips
                     let victimValue = currentValue.victimChips
                     if (amountIsAll) {
                         amountAsNum = Math.min(engagerValue, victimValue)
                     }
-                    const notEnoughChips = this.checkBalance([{ userID: message.author.id }, { userID: userID }], amountAsNum)
+                    const notEnoughChips = this.checkBalance([{ userID: message.author.id }, { userID: user.id }], amountAsNum)
                     if (notEnoughChips) {
                         return this.messageHelper.sendMessage(
                             message.channelId,
                             `<@${UserUtils.findUserByUsername(notEnoughChips, message)?.id}>, du har kje råd te det`
                         )
                     }
-                    if (reaction.emoji.name === '👍' && reaction.users.cache.find((u: User) => u.username.toLowerCase() === userID.toLowerCase())) {
-                        const shouldAlwaysLose = userID === message.author.username || userID === 'MazariniBot'
+                    if (reaction.emoji.name === '👍' && reaction.users.cache.find((u: User) => u.id === user.id)) {
+                        const shouldAlwaysLose = user.id === message.author.id || user.id === '802945796457758760'
                         const roll = RandomUtils.getRndInteger(0, 100)
                         let description = `Terningen trillet: ${roll}/100. ${
-                            roll < 51 ? (roll == 50 ? 'Bot Høie' : message.author.username) : userID
+                            roll < 51 ? (roll == 50 ? 'Bot Høie' : message.author.username) : user.username
                         } vant! 💰💰`
                         if (shouldAlwaysLose) {
                             description = `${
-                                userID === message.author.username
+                                user.id === message.author.id
                                     ? 'Du gikk til krig mot deg selv. Dette liker ikke Bot Høie, og tar derfor pengene.'
                                     : 'Huset vinner alltid'
                             }`
@@ -466,7 +465,7 @@ export class GamblingCommands extends AbstractCommands {
                             ? [{ username: message.author.username, balance: engagerValue, oldBalance: currentValue.engagerChips }]
                             : [
                                   { username: message.author.username, balance: engagerValue, oldBalance: currentValue.engagerChips },
-                                  { username: userID, balance: victimValue, oldBalance: currentValue.victimChips },
+                                  { username: user.username, balance: victimValue, oldBalance: currentValue.victimChips },
                               ]
 
                         this.messageHelper.sendMessage(message.channelId, `<@${user?.id}> <@${message.author.id}>`)
