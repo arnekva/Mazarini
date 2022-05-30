@@ -179,7 +179,7 @@ export class DateCommands extends AbstractCommands {
                     const date = new Date()
                     date.setHours(16, 0, 0, 0)
                     if (this.isTodayHoliday()) {
-                        timeUntil = 'Det e helg'
+                        timeUntil = 'Det e fridag!'
                     } else if (date.getDay() === 5) {
                         if (new Date().getHours() < 16) timeUntil += this.formatCountdownText(DateUtils.getTimeTo(date), 'til helg')
                         else timeUntil = `Det e helg!`

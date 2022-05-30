@@ -21,6 +21,9 @@ export class Meme extends AbstractCommands {
     }
 
     private async sendMeme(message: Message, content: string, args: string[]) {
+        if (args.length < 1) {
+            return message.reply('Du må velge en meme')
+        }
         const meme = await this.findMemeIdAndCreate(message, content, args)
     }
     private async createMeme(templateId: string, messageContent: string, message: Message, args: string[]) {
