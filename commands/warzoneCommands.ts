@@ -389,7 +389,7 @@ export class WarzoneCommands extends AbstractCommands {
         } catch (error) {
             if (editableMessage) {
                 editableMessage.edit(
-                    `Klarte ikke finne data for ${gamertag}. Hvis du vet at du ikke mangler data denne uken, prøv på ny om ca. ett minutt.` + error
+                    `Klarte ikke finne data for gamertagen ${gamertag} på plattformen ${platform}. Hvis du vet at du ikke mangler data denne uken, prøv på ny om ca. ett minutt.`
                 )
             } else {
                 this.messageHelper.sendMessageToActionLogWithCustomMessage(message, error, 'Dataen kunne ikke hentes', true)
@@ -504,8 +504,12 @@ export class WarzoneCommands extends AbstractCommands {
     }
     private getUserStats(message: Message, isBr?: boolean) {
         const user = DatabaseHelper.getUser(message.author.id)
-
-        return isBr ? user.codStatsBR : user.codStats
+        if (isBr) {
+            if ((user.codStatsBR as any) === 'undefined') return {}
+            return user.codStatsBR
+        }
+        if ((user.codStats as any) === 'undefined') return {}
+        return user.codStats
     }
 
     public getAllCommands(): ICommandElement[] {
