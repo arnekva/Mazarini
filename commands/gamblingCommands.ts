@@ -177,7 +177,7 @@ export class GamblingCommands extends AbstractCommands {
         let user: string | undefined = undefined
         users.forEach((u) => {
             const balance = DatabaseHelper.getUser(u.userID).chips
-            if (Number(balance) < amountAsNumber) user = DatabaseHelper.getUser(u.userID).displayName
+            if (Number(balance) < amountAsNumber || Number(balance) === 0) user = DatabaseHelper.getUser(u.userID).displayName
         })
         return user
     }
@@ -197,7 +197,7 @@ export class GamblingCommands extends AbstractCommands {
         const userBalance = user.chips
         if (!amount) return message.reply('Du har skrevet inn et ugyldig tall')
         if (userBalance < amount) return message.reply(`Du kan kje starta ein krig for ${amount} når du bare har ${userBalance} chips sjøl`)
-
+        if (userBalance <= 0) return message.reply(`Du kan kje gå te krig når du bare har ${userBalance} i walleten`)
         const timer = !isNaN(Number(args[2])) && Number(args[2]) <= 800 ? Number(args[2]) * 1000 : 240000
 
         const resolveMessage = await this.messageHelper.sendMessage(
@@ -402,7 +402,7 @@ export class GamblingCommands extends AbstractCommands {
         let amountAsNum = amountIsAll ? largestPossibleValue : Number(amount)
         const notEnoughChips = this.checkBalance([{ userID: message.author.id }, { userID: userID }], amountAsNum)
         if (notEnoughChips) {
-            return message.reply(`${notEnoughChips} har ikke råd. Krigen står fortsatt åpen`)
+            return message.reply(`${notEnoughChips} har ikke råd til å gå til krig.`)
         }
 
         const user = UserUtils.findUserById(userID, message)

@@ -115,15 +115,22 @@ export class DateCommands extends AbstractCommands {
         this.messageHelper.sendMessage(message.channelId, sendThisText)
     }
 
-    private findHolidaysInThisWeek() {
+    private findHolidaysInThisWeek(checkForNextWeeksMonday?: boolean) {
         const holidaysFromYear = holidays(new Date().getFullYear())
         // holidaysFromYear.push({ name: 'Testdagen', date: '2022-05.27' })
         const holidaysThisWeek: { name: string; date: string }[] = []
+        const startNextWeek = moment().add(1, 'weeks').startOf('isoWeek')
         holidaysFromYear.forEach((day: { name: string; date: string }) => {
             const date = new Date(day.date)
             if (day.name.includes('Himmelsprettsdag')) day.name = 'Kristi himmelfartsdag'
-            if (moment(date).isSame(new Date(), 'week')) {
-                if (!this.isInWeekend(date)) holidaysThisWeek.push(day)
+            if (checkForNextWeeksMonday) {
+                if (moment(date).isSame(startNextWeek, 'week')) {
+                    holidaysThisWeek.push(day)
+                }
+            } else {
+                if (moment(date).isSame(new Date(), 'week')) {
+                    if (!this.isInWeekend(date)) holidaysThisWeek.push(day)
+                }
             }
         })
         return holidaysThisWeek
@@ -157,6 +164,11 @@ export class DateCommands extends AbstractCommands {
         return !!h.find((d) => new Date(d.date).getDay() === new Date().getDay())
     }
 
+    private nextWeekHasHolidayOnMonday() {
+        const mondayHoliday = this.findHolidaysInThisWeek(true)
+        return !!mondayHoliday
+    }
+
     private getTimeUntilHelgString() {
         const isHelg = this.isItHelg()
         const holidays = this.findHolidaysInThisWeek()
@@ -167,14 +179,14 @@ export class DateCommands extends AbstractCommands {
                 if (!hasFoundWeekendStart) {
                     if (new Date(day.date).getDay() === this.findWeekendStart()?.getDay()) {
                         hasFoundWeekendStart = true
-                        timeUntil += `${this.formatCountdownText(DateUtils.getTimeTo(new Date(day.date)), `til helgå så starte med ${day.name}`)}\n`
+                        timeUntil += `${this.formatCountdownText(DateUtils.getTimeTo(new Date(day.date)), `til langhelgå så starte med ${day.name}`)}\n`
                     } else timeUntil += `${this.formatCountdownText(DateUtils.getTimeTo(new Date(day.date)), `til ${day.name}`)}\n`
                 }
             })
             if (!hasFoundWeekendStart) {
                 const possibleWeekendStart = this.findWeekendStart()
                 if (possibleWeekendStart) {
-                    timeUntil += this.formatCountdownText(DateUtils.getTimeTo(possibleWeekendStart), 'til helg')
+                    timeUntil += this.formatCountdownText(DateUtils.getTimeTo(possibleWeekendStart), 'til langhelg')
                 } else {
                     const date = new Date()
                     date.setHours(16, 0, 0, 0)
@@ -184,7 +196,10 @@ export class DateCommands extends AbstractCommands {
                         if (new Date().getHours() < 16) timeUntil += this.formatCountdownText(DateUtils.getTimeTo(date), 'til helg')
                         else timeUntil = `Det e helg!`
                     } else {
-                        timeUntil += this.formatCountdownText(DateUtils.getTimeTo(new Date(DateUtils.nextWeekdayDate(date, 5))), 'til helg')
+                        timeUntil += this.formatCountdownText(
+                            DateUtils.getTimeTo(new Date(DateUtils.nextWeekdayDate(date, 5))),
+                            `til ${this.nextWeekHasHolidayOnMonday() ? 'langhelg' : 'helg'}!`
+                        )
                     }
                 }
             }

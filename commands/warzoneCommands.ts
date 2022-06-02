@@ -17,7 +17,7 @@ export interface CodStats {
     kdRatio: number
     killsPerGame: number
     damageDone: number
-    damageTaken: number
+    damageTaken: number | string
     damageDoneTakenRatio: number
     headshotPercentage: number
     gulagDeaths: number
@@ -201,7 +201,9 @@ export class WarzoneCommands extends AbstractCommands {
             const embedMsg = new MessageEmbed()
                 .setTitle(`Siste match for ${gamertag}: ${data?.data?.matches[0]?.playerStats?.teamPlacement ?? 'Ukjent'}. plass `)
                 .setDescription(`${matchStartDate ?? 'Ukjent dato og tid'}`)
-
+            const isFlaut = () => {
+                return Number(data?.data?.matches[0]?.playerStats?.damageDone) / Number(data?.data?.matches[0]?.playerStats?.damageTaken) < 1 ? '(flaut)' : ''
+            }
             embedMsg.addField(`Kills:`, `${data?.data?.matches[0]?.playerStats?.kills ?? 'Ukjent'}`, true)
             embedMsg.addField(`Deaths:`, `${data?.data?.matches[0]?.playerStats?.deaths ?? 'Ukjent'}`, true)
             embedMsg.addField(`K/D Ratio:`, `${data?.data?.matches[0]?.playerStats?.kdRatio ?? 'Ukjent'}`, true)
@@ -209,7 +211,7 @@ export class WarzoneCommands extends AbstractCommands {
             embedMsg.addField(`Headshots:`, `${data?.data?.matches[0]?.playerStats?.headshots ?? 'Ukjent'}`, true)
             embedMsg.addField(`Longest streak:`, `${data?.data?.matches[0]?.playerStats?.longestStreak ?? 'Ukjent'}`, true)
             embedMsg.addField(`Damage done:`, `${data?.data?.matches[0]?.playerStats?.damageDone ?? 'Ukjent'}`, true)
-            embedMsg.addField(`Damage taken:`, `${data?.data?.matches[0]?.playerStats?.damageTaken ?? 'Ukjent'}`, true)
+            embedMsg.addField(`Damage taken:`, `${data?.data?.matches[0]?.playerStats?.damageTaken ?? 'Ukjent'} ${isFlaut()}`, true)
             embedMsg.addField(`Distance traveled:`, `${data?.data?.matches[0]?.playerStats?.distanceTraveled ?? 'Ukjent'}`, true)
             embedMsg.addField(`Gulag kills:`, `${data?.data?.matches[0]?.playerStats?.gulagKills ?? 'Ukjent'}`, true)
             embedMsg.addField(`Gulag deaths:`, `${data?.data?.matches[0]?.playerStats?.gulagDeaths ?? 'Ukjent'}`, true)
@@ -322,7 +324,7 @@ export class WarzoneCommands extends AbstractCommands {
                 for (const [key, value] of Object.entries(statsTyped)) {
                     if (key === WarzoneCommands.statsToInclude[i].key) {
                         if (key === 'damageTaken' && Number(statsTyped['damageTaken']) > Number(statsTyped['damageDone'])) {
-                            orderedStats['damageTaken'] = value
+                            orderedStats['damageTaken'] = value + ' (flaut)'
                         } else {
                             orderedStats[WarzoneCommands.statsToInclude[i].key] = value
                         }
@@ -330,7 +332,7 @@ export class WarzoneCommands extends AbstractCommands {
                 }
                 if (orderedStats.gulagDeaths && orderedStats.gulagKills) {
                     //Inject gulag KD in
-                    orderedStats['gulagKd'] = parseFloat((orderedStats?.gulagKills / orderedStats?.gulagDeaths).toFixed(3))
+                    orderedStats['gulagKd'] = parseFloat((orderedStats?.gulagKills / orderedStats?.gulagDeaths).toFixed(3)) 
                 }
                 if (orderedStats.damageDone && orderedStats.damageTaken) {
                     orderedStats['damageDoneTakenRatio'] = Number(orderedStats.damageDone) / Number(orderedStats.damageTaken)
