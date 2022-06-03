@@ -16,6 +16,7 @@ import {
     TextChannel,
     User,
 } from 'discord.js'
+import moment from 'moment'
 import { discordSecret, environment } from './client-env'
 import { CommandRunner } from './General/commandRunner'
 import { ClientHelper } from './helpers/clientHelper'
@@ -77,6 +78,11 @@ export class MazariniClient {
     setupClient(client: Client) {
         const _mzClient = this
         const _msgHelper = this.messageHelper
+        moment.updateLocale('no', {
+            week: {
+                dow: 1,
+            },
+        })
         client.on('ready', async () => {
             const today = new Date()
             console.log(`Logged in as ${_mzClient.client.user?.tag} ${today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()} !`)

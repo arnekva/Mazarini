@@ -119,7 +119,7 @@ export class DateCommands extends AbstractCommands {
         const holidaysFromYear = holidays(new Date().getFullYear())
         // holidaysFromYear.push({ name: 'Testdagen', date: '2022-05.27' })
         const holidaysThisWeek: { name: string; date: string }[] = []
-        const startNextWeek = moment().add(1, 'weeks').startOf('isoWeek')
+        const startNextWeek = moment().add(1, 'weeks').startOf('week')
         holidaysFromYear.forEach((day: { name: string; date: string }) => {
             const date = new Date(day.date)
             if (day.name.includes('Himmelsprettsdag')) day.name = 'Kristi himmelfartsdag'
@@ -188,8 +188,10 @@ export class DateCommands extends AbstractCommands {
                 if (possibleWeekendStart) {
                     timeUntil += this.formatCountdownText(DateUtils.getTimeTo(possibleWeekendStart), 'til langhelg')
                 } else {
-                    const doesNextWeekHaveHolidayOnMonday = this.nextWeekHasHolidayOnMonday()
+                    const doesNextWeekHaveHolidayOnMonday = this.nextWeekHasHolidayOnMonday()[0]
                     const date = new Date()
+                    console.log(doesNextWeekHaveHolidayOnMonday)
+
                     date.setHours(16, 0, 0, 0)
                     if (this.isTodayHoliday()) {
                         timeUntil = 'Det e fridag!'
@@ -197,13 +199,13 @@ export class DateCommands extends AbstractCommands {
                         if (new Date().getHours() < 16)
                             timeUntil += this.formatCountdownText(
                                 DateUtils.getTimeTo(date),
-                                `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday})` : 'helg!'}`
+                                `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg!'}`
                             )
                         else timeUntil = `Det e helg!`
                     } else {
                         timeUntil += this.formatCountdownText(
                             DateUtils.getTimeTo(new Date(DateUtils.nextWeekdayDate(date, 5))),
-                            `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday})` : 'helg!'}`
+                            `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg!'}`
                         )
                     }
                 }

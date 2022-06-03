@@ -8,7 +8,8 @@ export class PatchNotes extends AbstractCommands {
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `\n* Helg skal nå si hvilken merkedag som gir langhelg på mandager`
+    public static readonly currentPatchNotes: string =
+        `\n* Helg skal nå si hvilken merkedag som gir langhelg på mandager` + `\n* moment er nå satt til korrekt locale og ukestartdag`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
