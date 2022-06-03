@@ -4,15 +4,11 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '7.0.8'
+    public static readonly currentVersion = '7.0.9'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string =
-        `\n* Weekly stats for WZ skal nå si flaut igjen hvis du har mer damage taken enn done` +
-        `\n* !Mz helg skal nå si "langhelg" i stedet for "helg" også hvis det er fridag på mandagen` +
-        `\n* Tom !mz meme skal ikke lenger gi error` +
-        `\n* Krig for 0 chips skal ikke lenger være mulig`
+    public static readonly currentPatchNotes: string = `\n* Botten skal varsle om langhelg også når du kjører '!mz helg' på en fredag`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
