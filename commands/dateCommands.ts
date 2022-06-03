@@ -193,7 +193,8 @@ export class DateCommands extends AbstractCommands {
                     if (this.isTodayHoliday()) {
                         timeUntil = 'Det e fridag!'
                     } else if (date.getDay() === 5) {
-                        if (new Date().getHours() < 16) timeUntil += this.formatCountdownText(DateUtils.getTimeTo(date), 'til helg')
+                        if (new Date().getHours() < 16)
+                            timeUntil += this.formatCountdownText(DateUtils.getTimeTo(date), `til ${this.nextWeekHasHolidayOnMonday() ? 'langhelg' : 'helg'}!`)
                         else timeUntil = `Det e helg!`
                     } else {
                         timeUntil += this.formatCountdownText(
