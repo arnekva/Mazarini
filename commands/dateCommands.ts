@@ -166,7 +166,7 @@ export class DateCommands extends AbstractCommands {
 
     private nextWeekHasHolidayOnMonday() {
         const mondayHoliday = this.findHolidaysInThisWeek(true)
-        return !!mondayHoliday
+        return mondayHoliday
     }
 
     private getTimeUntilHelgString() {
@@ -188,18 +188,22 @@ export class DateCommands extends AbstractCommands {
                 if (possibleWeekendStart) {
                     timeUntil += this.formatCountdownText(DateUtils.getTimeTo(possibleWeekendStart), 'til langhelg')
                 } else {
+                    const doesNextWeekHaveHolidayOnMonday = this.nextWeekHasHolidayOnMonday()
                     const date = new Date()
                     date.setHours(16, 0, 0, 0)
                     if (this.isTodayHoliday()) {
                         timeUntil = 'Det e fridag!'
                     } else if (date.getDay() === 5) {
                         if (new Date().getHours() < 16)
-                            timeUntil += this.formatCountdownText(DateUtils.getTimeTo(date), `til ${this.nextWeekHasHolidayOnMonday() ? 'langhelg' : 'helg'}!`)
+                            timeUntil += this.formatCountdownText(
+                                DateUtils.getTimeTo(date),
+                                `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday})` : 'helg!'}`
+                            )
                         else timeUntil = `Det e helg!`
                     } else {
                         timeUntil += this.formatCountdownText(
                             DateUtils.getTimeTo(new Date(DateUtils.nextWeekdayDate(date, 5))),
-                            `til ${this.nextWeekHasHolidayOnMonday() ? 'langhelg' : 'helg'}!`
+                            `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday})` : 'helg!'}`
                         )
                     }
                 }

@@ -4,11 +4,11 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '7.0.9'
+    public static readonly currentVersion = '7.0.10'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `\n* Botten skal varsle om langhelg også når du kjører '!mz helg' på en fredag`
+    public static readonly currentPatchNotes: string = `\n* Helg skal nå si hvilken merkedag som gir langhelg på mandager`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
