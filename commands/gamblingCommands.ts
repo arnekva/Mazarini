@@ -490,6 +490,7 @@ export class GamblingCommands extends AbstractCommands {
         const userMoney = user.chips
         let value = args[0]
         if (value === 'alt' || value === 'all') value = userMoney.toString()
+        if (value === 'halv' || value === 'halvparten') value = (userMoney * 0.5).toFixed(0)
         if (!value || isNaN(Number(value))) {
             return message.reply('Du må si hvor mye du vil gamble')
         }
@@ -1020,7 +1021,7 @@ export class GamblingCommands extends AbstractCommands {
         const dailyCoins = ((Number(dailyPrice.coins) + Number(additionalCoins?.coins ?? 0)) * prestigeMultiplier).toFixed(0)
         const dailyChips = ((Number(dailyPrice.chips) + Number(additionalCoins?.chips ?? 0)) * prestigeMultiplier).toFixed(0)
         user.chips = user.chips + Number(dailyChips)
-        user.coins += user.coins + Number(dailyCoins)
+        user.coins = user.coins + Number(dailyCoins)
         console.log(user)
 
         user.dailyClaim = 1

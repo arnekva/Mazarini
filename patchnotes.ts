@@ -4,12 +4,13 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '7.0.10'
+    public static readonly currentVersion = '7.0.11'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Helg skal nå si hvilken merkedag som gir langhelg på mandager` + `\n* moment er nå satt til korrekt locale og ukestartdag`
+        `\n* Fikset at coins dobles ved daily. Alle har fått tilbakestilt coins til maks 35.000` +
+        `\n* Du kan nå gamble halvparten av chipsene dine med '!mz gamble halv|halvparten'`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
