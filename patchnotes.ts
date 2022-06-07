@@ -10,7 +10,8 @@ export class PatchNotes extends AbstractCommands {
 
     public static readonly currentPatchNotes: string =
         `\n* Fikset at coins dobles ved daily. Alle har fått tilbakestilt coins til maks 35.000` +
-        `\n* Du kan nå gamble halvparten av chipsene dine med '!mz gamble halv|halvparten'`
+        `\n* Du kan nå gamble halvparten av chipsene dine med '!mz gamble halv|halvparten'` +
+        `\n* Du kan nå sette database displaynavn uten parameter nr. 2 (!mz name <displayname>)`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

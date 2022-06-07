@@ -99,7 +99,7 @@ export class UserCommands extends AbstractCommands {
         const updateOtherUSer = UserUtils.findUserByUsername(args[0], message)
         let user: MazariniUser
         let name: string
-        if (updateOtherUSer) {
+        if (updateOtherUSer && !!args[1]) {
             if (Admin.isAuthorAdmin(UserUtils.findMemberByUsername(message.author.username, message))) user = DatabaseHelper.getUser(updateOtherUSer.id)
             else return message.reply('Kun administratorer kan endre displaynavnet til andre brukere')
             name = args.slice(1).join(' ')
