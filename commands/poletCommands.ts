@@ -35,7 +35,7 @@ export class PoletCommands extends AbstractCommands {
         super(client, messageHelper)
     }
 
-    static async fetchPoletData(rawMessage?: Message, storeId?: string) {
+    static async fetchPoletData(rawMessage?: Message, storeId?: string, checkExistance?: boolean) {
         let id = '416'
         if (storeId) id = storeId
         if (rawMessage) {
@@ -80,9 +80,11 @@ export class PoletCommands extends AbstractCommands {
         this.messageHelper.sendFormattedMessage(rawMessage?.channel as TextChannel, fmMessage)
     }
 
-    private setFavoritePol(message: Message, content: string, args: string[]) {
+    private async setFavoritePol(message: Message, content: string, args: string[]) {
         const storeId = parseInt(args[0])
         if (!isNaN(storeId) && storeId < 1000) {
+            const store = await PoletCommands.fetchPoletData(undefined, storeId.toString(), true)
+            if (!store) return message.reply('Det finnes ingen butikk med id ' + storeId)
             const user = DatabaseHelper.getUser(message.author.id)
             user.favoritePol = storeId.toString()
             DatabaseHelper.updateUser(user)
