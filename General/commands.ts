@@ -9,6 +9,7 @@ import { JokeCommands } from '../commands/jokeCommands'
 import { Meme } from '../commands/memeCommands'
 import { Music } from '../commands/musicCommands'
 import { NameCommands } from '../commands/nameCommands'
+import { PoletCommands } from '../commands/poletCommands'
 import { SoundCommands } from '../commands/soundCommands'
 import { Spinner } from '../commands/spinner'
 import { SpotifyCommands } from '../commands/spotifyCommands'
@@ -63,6 +64,7 @@ export class Commands {
     private cardCommands: CardCommands
     private drinksCommands: DrinksCommands
     private nameCommands: NameCommands
+    private poletCommands: PoletCommands
 
     constructor(client: Client, messageHelper: MessageHelper) {
         this.client = client
@@ -85,6 +87,7 @@ export class Commands {
         this.cardCommands = new CardCommands(this.client, this.messageHelper)
         this.drinksCommands = new DrinksCommands(this.client, this.messageHelper)
         this.nameCommands = new NameCommands(this.client, this.messageHelper)
+        this.poletCommands = new PoletCommands(this.client, this.messageHelper)
     }
 
     getAllCommands() {
@@ -108,6 +111,7 @@ export class Commands {
             ...this.cardCommands.getAllCommands(),
             ...this.drinksCommands.getAllCommands(),
             ...this.nameCommands.getAllCommands(),
+            ...this.poletCommands.getAllCommands(),
         ]
     }
 

@@ -297,8 +297,7 @@ export class WarzoneCommands extends AbstractCommands {
             else this.messageHelper.sendMessage(message.channelId, response)
             if (!options?.noSave) this.saveUserStats(message, statsTyped, true)
         } catch (error) {
-            message.reply(error + '.')
-            if (editableMessage) editableMessage.edit(`Fant ingen data for ${gamertag}. Er profildataen din åpen? Hvis ja, prøv igjen om ca. ett minutt.`)
+            if (editableMessage) editableMessage.edit(`Fant ingen data for ${gamertag}.`)
             else this.messageHelper.sendMessage(message.channelId, `Fant ingen data for ${gamertag}.`)
         }
     }
@@ -332,7 +331,7 @@ export class WarzoneCommands extends AbstractCommands {
                 }
                 if (orderedStats.gulagDeaths && orderedStats.gulagKills) {
                     //Inject gulag KD in
-                    orderedStats['gulagKd'] = parseFloat((orderedStats?.gulagKills / orderedStats?.gulagDeaths).toFixed(3)) 
+                    orderedStats['gulagKd'] = parseFloat((orderedStats?.gulagKills / orderedStats?.gulagDeaths).toFixed(3))
                 }
                 if (orderedStats.damageDone && orderedStats.damageTaken) {
                     orderedStats['damageDoneTakenRatio'] = Number(orderedStats.damageDone) / Number(orderedStats.damageTaken)
@@ -390,9 +389,7 @@ export class WarzoneCommands extends AbstractCommands {
             if (!options?.noSave) this.saveUserStats(message, statsTyped)
         } catch (error) {
             if (editableMessage) {
-                editableMessage.edit(
-                    `Klarte ikke finne data for gamertagen ${gamertag} på plattformen ${platform}. Hvis du vet at du ikke mangler data denne uken, prøv på ny om ca. ett minutt.`
-                )
+                editableMessage.edit(`Fant ingen data (${gamertag} ${platform}). Hvis du vet at du ikke mangler data denne uken, prøv på ny om ca. ett minutt.`)
             } else {
                 this.messageHelper.sendMessageToActionLogWithCustomMessage(message, error, 'Dataen kunne ikke hentes', true)
             }

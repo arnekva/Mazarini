@@ -71,6 +71,7 @@ export interface MazariniUser {
     dailyClaimStreak?: IDailyPriceClaim
     dailyFreezeCounter?: number
     prestige?: number
+    favoritePol?: string
 }
 export type dbPrefix =
     | 'spin'
@@ -107,6 +108,7 @@ export type dbPrefix =
     | 'prestige'
     | 'dailyFreezeCounter'
     | 'birthday'
+    | 'favoritePol'
 
 export interface betObject {
     description: string
@@ -447,4 +449,5 @@ export const prefixList: dbPrefix[] = [
     'prestige',
     'dailyFreezeCounter',
     'birthday',
+    'favoritePol',
 ]

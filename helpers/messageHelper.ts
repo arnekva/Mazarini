@@ -100,8 +100,11 @@ export class MessageHelper {
     }
     /** Send en embedded message (se gambling for eksempel) */
 
-    async sendFormattedMessage(channel: TextChannel, newMessage: MessageEmbed) {
-        return channel.send({ embeds: [newMessage] })
+    async sendFormattedMessage(channel: TextChannel | string, newMessage: MessageEmbed) {
+        if (typeof channel === 'string') {
+            const textCh = this.findChannelById(channel) as TextChannel
+            if (textCh) return textCh.send({ embeds: [newMessage] })
+        } else return channel.send({ embeds: [newMessage] })
     }
 
     sendMessageToActionLog(channel: TextChannel, msg: string) {

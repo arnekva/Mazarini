@@ -4,14 +4,14 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '7.0.11'
+    public static readonly currentVersion = '7.1.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Fikset at coins dobles ved daily. Alle har fått tilbakestilt coins til maks 35.000` +
-        `\n* Du kan nå gamble halvparten av chipsene dine med '!mz gamble halv|halvparten'` +
-        `\n* Du kan nå sette database displaynavn uten parameter nr. 2 (!mz name <displayname>)`
+        `\n* Du kan nå sjekke åpningstidene på polet med '!mz polet'` +
+        `\n* Den defaulter til Madla Amfi, Stavanger, men du kan sette ditt eget pol med '!mz mittpol <id>'. ID-en må hentes fra vinmonopolet.no` +
+        `\n* Botten sjekker nå i ukesjobben polets åpningstider, og sender melding til #vinmonopolet hvis den oppdager endringer`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

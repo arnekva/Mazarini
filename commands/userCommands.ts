@@ -41,8 +41,8 @@ export class UserCommands extends AbstractCommands {
         })
 
         const sentMessage = await this.messageHelper.sendFormattedMessage(message.channel as TextChannel, msg)
-        roles.forEach((r) => sentMessage.react(r.emoji))
-        sentMessage.createReactionCollector().on('collect', (reaction) => {
+        roles.forEach((r) => sentMessage?.react(r.emoji))
+        sentMessage?.createReactionCollector().on('collect', (reaction) => {
             const users = reaction.users.cache.filter((u) => u.id !== '802945796457758760')
             const roleId = roles.find((rEmoji) => rEmoji.emoji === reaction.emoji.name)
             if (roleId) {
