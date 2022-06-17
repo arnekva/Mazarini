@@ -101,7 +101,14 @@ export class DateUtils {
 
     static isToday(compareDate: Date) {
         const today = new Date()
-
         return compareDate.getDate() == today.getDate() && compareDate.getMonth() == today.getMonth() + 1
+    }
+
+    /** Checks the string supplied  */
+    static isStringToday(day: string) {
+        const dateName = new Date().toLocaleDateString('no', { weekday: 'long' })
+        console.log(dateName, day)
+
+        return dateName.toLowerCase() === day.toLowerCase()
     }
 }

@@ -72,4 +72,14 @@ export namespace Languages {
                 return word
         }
     }
+
+    export const weekdayTranslate = (day: string): string => {
+        if (day === 'Monday') return 'Mandag'
+        if (day === 'Tuesday') return 'Tirsdag'
+        if (day === 'Wednesday') return 'Onsdag'
+        if (day === 'Thursdag') return 'Torsdag'
+        if (day === 'Friday') return 'Fredag'
+        if (day === 'Saturday') return 'Lørdag'
+        return 'Søndag'
+    }
 }

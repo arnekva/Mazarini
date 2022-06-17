@@ -4,7 +4,7 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '7.1.1'
+    public static readonly currentVersion = '7.1.2'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 

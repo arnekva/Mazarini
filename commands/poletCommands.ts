@@ -3,7 +3,9 @@ import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { vinmonopoletKey } from '../client-env'
 import { ICommandElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
+import { Languages } from '../helpers/languageHelpers'
 import { MessageHelper } from '../helpers/messageHelper'
+import { DateUtils } from '../utils/dateUtils'
 const fetch = require('node-fetch')
 interface openingHours {
     validFromDate: string
@@ -74,7 +76,10 @@ export class PoletCommands extends AbstractCommands {
         }
         if (poletData.openingHours.regularHours) {
             poletData.openingHours.regularHours.forEach((rh) => {
-                fmMessage.addField(rh.dayOfTheWeek, rh.closed ? 'Stengt' : `${rh.openingTime} - ${rh.closingTime}`)
+                const day = Languages.weekdayTranslate(rh.dayOfTheWeek)
+                const isToday = DateUtils.isStringToday(day)
+                const dayHeader = `${day} ${isToday ? ' (i dag)' : ''}`
+                fmMessage.addField(dayHeader, rh.closed ? 'Stengt' : `${rh.openingTime} - ${rh.closingTime}`)
             })
         }
         this.messageHelper.sendFormattedMessage(rawMessage?.channel as TextChannel, fmMessage)
@@ -84,10 +89,14 @@ export class PoletCommands extends AbstractCommands {
         const storeId = parseInt(args[0])
         if (!isNaN(storeId) && storeId < 1000) {
             const store = await PoletCommands.fetchPoletData(undefined, storeId.toString(), true)
-            if (!store) return message.reply('Det finnes ingen butikk med id ' + storeId)
+            if (!store) {
+                this.messageHelper.reactWithThumbs(message, 'down')
+                return message.reply('Det finnes ingen butikk med id ' + storeId)
+            }
             const user = DatabaseHelper.getUser(message.author.id)
             user.favoritePol = storeId.toString()
             DatabaseHelper.updateUser(user)
+            this.messageHelper.reactWithThumbs(message, 'up')
         } else {
             message.reply('ID-en er ikke gyldig')
         }
