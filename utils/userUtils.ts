@@ -46,8 +46,8 @@ export namespace UserUtils {
     }
 
     export const compareMember = (oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) => {
-        if (newMember.id === '802945796457758760') return //Ikke gjør noe når bot oppdateres
-        if (oldMember.id === '802945796457758760') return
+        if (newMember.id === '802945796457758760') return '' //Ikke gjør noe når bot oppdateres
+        if (oldMember.id === '802945796457758760') return ''
 
         const roles = oldMember.roles.cache
         const role = roleArraysEqual([...oldMember.roles.cache.values()], [...newMember.roles.cache.values()])
@@ -61,6 +61,7 @@ export namespace UserUtils {
         //TODO: Sjekk etter andre ting?
         if (oldMember.nickname !== newMember.nickname) return 'nickname'
         if (oldMember.nickname !== newMember.nickname) return 'nickname'
+        return ''
     }
 
     export const roleArraysEqual = (a: any[], b: any[]) => {

@@ -50,7 +50,7 @@ export class Admin extends AbstractCommands {
             logMsg = `Setvalue ble brukt av ${message.author.username} for å sette verdi for bruker som ikke eksisterer`
             return message.reply('Fant ikke brukeren fra args[1] <' + username + '>')
         }
-        this.messageHelper.sendMessageToActionLog(message.channel as TextChannel, logMsg)
+        return this.messageHelper.sendMessageToActionLog(message.channel as TextChannel, logMsg)
     }
 
     private async replyToMsgAsBot(rawMessage: Message, content: string) {
@@ -186,7 +186,7 @@ export class Admin extends AbstractCommands {
                     warnedUser.displayName + ', du har fått en advarsel. Du har nå ' + userWarnings + ' advarsler.'
                 )
                 //Send msg to action-log
-                this.messageHelper.sendMessageToActionLog(
+                return this.messageHelper.sendMessageToActionLog(
                     message.channel as TextChannel,
                     message.author.username +
                         ' ga en advarsel til ' +
@@ -200,10 +200,10 @@ export class Admin extends AbstractCommands {
                         ' advarsler'
                 )
             } else {
-                this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, 'Verdien for warningcounter er NaN: <' + userWarnings + '>.')
+                return this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, 'Verdien for warningcounter er NaN: <' + userWarnings + '>.')
             }
         } else {
-            this.messageHelper.sendMessage(
+            return this.messageHelper.sendMessage(
                 message.channelId,
                 'Feil: Du har enten skrevet feil bruker navn eller ikke inkludert en melding. *Hvis brukeren har mellomrom i navnet, bruk under_strek*'
             )
@@ -256,10 +256,11 @@ export class Admin extends AbstractCommands {
                     values.push({ key: el, val: x })
                 })
                 const formatted = values.map((d: ValuePair) => `${d.key} - ${d.val}`).join('\n')
-                if (formatted) this.messageHelper.sendMessage(message.channelId, formatted)
+                if (formatted) return this.messageHelper.sendMessage(message.channelId, formatted)
+                return undefined
             } else {
                 //Vil hente brukerverdier
-                message.reply('Du kan ikke hente ut brukerverdier for øyeblikket. Denne delen refaktoreres enda')
+                return message.reply('Du kan ikke hente ut brukerverdier for øyeblikket. Denne delen refaktoreres enda')
                 // if (ObjectUtils.isObjectOfTypeDbPrefix(p)) {
                 //     const dataArray = DatabaseHelper.getAllValuesFromPrefix(p)
                 //     const formatted = dataArray.map((d) => `${d.key} - ${d.val}`).join('\n')
@@ -280,34 +281,35 @@ export class Admin extends AbstractCommands {
 
         const reason = userToDelete ? args.slice(3).join(' ') : args.slice(2).join(' ')
         if (!user) {
-            return message.reply('du må oppgi et gyldig brukernavn. <brukernavn> <antall meldinger>')
-        }
-        const currentChannel = message.channel
-        const maxDelete = Number(args[1]) ?? 1
-        let deleteCounter = 0
-        currentChannel.messages
-            .fetch({ limit: 100 })
-            .then((el) => {
-                el.forEach((message) => {
-                    if (message && message.author.username == user.username && deleteCounter < maxDelete) {
-                        try {
-                            message.delete()
-                            deleteCounter++
-                        } catch (error) {}
-                    }
-                })
-                this.messageHelper.sendMessageToActionLog(
-                    message.channel as TextChannel,
-                    `${message.author.username} slettet ${maxDelete} meldinger fra ${user.username} i channel ${message.channel} på grunn av: "${
-                        reason.length > 0 ? reason : 'ingen grunn oppgitt'
-                    }"`
-                )
+            message.reply('du må oppgi et gyldig brukernavn. <brukernavn> <antall meldinger>')
+        } else {
+            const currentChannel = message.channel
+            const maxDelete = Number(args[1]) ?? 1
+            let deleteCounter = 0
+            currentChannel.messages
+                .fetch({ limit: 100 })
+                .then((el) => {
+                    el.forEach((message) => {
+                        if (message && message.author.username == user.username && deleteCounter < maxDelete) {
+                            try {
+                                message.delete()
+                                deleteCounter++
+                            } catch (error) {}
+                        }
+                    })
+                    this.messageHelper.sendMessageToActionLog(
+                        message.channel as TextChannel,
+                        `${message.author.username} slettet ${maxDelete} meldinger fra ${user.username} i channel ${message.channel} på grunn av: "${
+                            reason.length > 0 ? reason : 'ingen grunn oppgitt'
+                        }"`
+                    )
 
-                message.delete()
-            })
-            .catch((error: any) => {
-                this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
-            })
+                    message.delete()
+                })
+                .catch((error: any) => {
+                    this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
+                })
+        }
     }
 
     private debugMethod(message: Message, messageContent: string, args: string[]) {

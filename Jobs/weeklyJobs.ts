@@ -19,13 +19,13 @@ export class WeeklyJobs {
         const brukere = await DatabaseHelper.getAllUsers()
         Object.keys(brukere).forEach((userID: string) => {
             const currUser = DatabaseHelper.getUser(userID)
-            currUser.chips += 200
+            currUser.chips += 1000
             DatabaseHelper.updateUser(currUser)
         })
     }
     private async checkPoletHours() {
         const data = await PoletCommands.fetchPoletData(undefined, '416')
-        if (data && data.openingHours.exceptionHours) {
+        if (data && data?.openingHours?.exceptionHours?.length > 0) {
             const fmMessage = new MessageEmbed()
                 .setTitle(`Det er endrede åpningstider på polet denne uken `)
                 .setDescription(`Bruker ${data.storeName} (${data.address.postalCode}, ${data.address.city}) som utgangspunkt`)

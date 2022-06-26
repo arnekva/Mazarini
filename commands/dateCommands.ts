@@ -27,15 +27,15 @@ export class DateCommands extends AbstractCommands {
         const secInMilli = Number(timeArray[2]) * 1000
         const timeout = hoursInMilli + minInMilli + secInMilli
         if (timeArray.length < 3) {
-            return message.reply('Formattering på tid må være HH:MM:SS')
+            message.reply('Formattering på tid må være HH:MM:SS')
+        } else if (event.length < 1) {
+            message.reply('Du må spesifisere hva påminnelsen gjelder')
+        } else {
+            this.messageHelper.reactWithRandomEmoji(message)
+            setTimeout(() => {
+                message.reply(`*Påminnelse for ${message.author.username}*\n *${event}*`)
+            }, timeout)
         }
-        if (event.length < 1) {
-            return message.reply('Du må spesifisere hva påminnelsen gjelder')
-        }
-        this.messageHelper.reactWithRandomEmoji(message)
-        setTimeout(() => {
-            message.reply(`*Påminnelse for ${message.author.username}*\n *${event}*`)
-        }, timeout)
     }
 
     private formatCountdownText(dateObj: countdownTime | undefined, textEnding: string, finishedText?: string, noTextEnding?: boolean) {
@@ -190,7 +190,6 @@ export class DateCommands extends AbstractCommands {
                 } else {
                     const doesNextWeekHaveHolidayOnMonday = this.nextWeekHasHolidayOnMonday()[0]
                     const date = new Date()
-                    console.log(doesNextWeekHaveHolidayOnMonday)
 
                     date.setHours(16, 0, 0, 0)
                     if (this.isTodayHoliday()) {
@@ -239,17 +238,19 @@ export class DateCommands extends AbstractCommands {
                 this.messageHelper.sendMessage(message.channelId, 'Du har bursdag i dag! gz')
             } else {
                 const timeUntilBirthday = this.formatCountdownText(DateUtils.getTimeTo(date), `til ${message.author.username} sin bursdag.`, undefined, true)
-                return this.messageHelper.sendMessage(message.channelId, timeUntilBirthday ?? 'Klarte ikke regne ut')
+                this.messageHelper.sendMessage(message.channelId, timeUntilBirthday ?? 'Klarte ikke regne ut')
+            }
+        } else {
+            const dateString = args[0]
+            if (dateString.split('-').length < 2 || (!(new Date(dateString) instanceof Date) && !isNaN(new Date(dateString).getTime()))) {
+                //TODO: Must be tested
+                message.reply('Datoen er feilformattert. dd-mm-yyyy')
+            } else {
+                user.birthday = dateString
+                DatabaseHelper.updateUser(user)
+                this.messageHelper.reactWithThumbs(message, 'up')
             }
         }
-        const dateString = args[0]
-        if (dateString.split('-').length < 2 || (!(new Date(dateString) instanceof Date) && !isNaN(new Date(dateString).getTime()))) {
-            //TODO: Must be tested
-            return message.reply('Datoen er feilformattert. dd-mm-yyyy')
-        }
-        user.birthday = dateString
-        DatabaseHelper.updateUser(user)
-        this.messageHelper.reactWithThumbs(message, 'up')
     }
 
     private isItHelg() {

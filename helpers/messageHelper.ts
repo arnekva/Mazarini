@@ -105,6 +105,7 @@ export class MessageHelper {
             const textCh = this.findChannelById(channel) as TextChannel
             if (textCh) return textCh.send({ embeds: [newMessage] })
         } else return channel.send({ embeds: [newMessage] })
+        return undefined
     }
 
     sendMessageToActionLog(channel: TextChannel, msg: string) {
@@ -120,8 +121,7 @@ export class MessageHelper {
                 replyChannel ? replyChannel.toString() : 'ingen'
             }.`
         )
-        if (replyChannel && replyChannel.isText())
-            return replyChannel.send(`${errorMessageToSend} ${MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.BOT_SUPPORT)}`)
+        if (replyChannel && replyChannel.isText()) replyChannel.send(`${errorMessageToSend} ${MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.BOT_SUPPORT)}`)
     }
 
     async sendMessageToActionLogWithDefaultMessage(message: Message, error: any) {

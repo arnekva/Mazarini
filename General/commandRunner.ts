@@ -120,9 +120,9 @@ export class CommandRunner {
                 filteredCommands.forEach((el) => commandNames.push(Array.isArray(el.commandName) ? el.commandName[0] : el.commandName))
                 if (kekw) message.react(kekw)
                 const matched = didYouMean(command, commandNames)
-                this.logInncorectCommandUsage(message, messageContent, args)
+                this.logIncorectCommandUsage(message, messageContent, args)
                 if (matched) this.lastUsedCommand = matched
-                message.reply(
+                return message.reply(
                     "lmao, commanden '" +
                         command +
                         "' fins ikkje <a:kekw_animated:" +
@@ -131,9 +131,10 @@ export class CommandRunner {
                         (matched ? ' Mente du **' + matched + '**?' : ' Prøv !mz help')
                 )
             }
+            return undefined
         } else if (message.content.startsWith('!mz')) {
             return message.reply("du må ha mellomrom etter '!mz' og kommandoen.")
-        }
+        } else return undefined
     }
 
     runCommandElement(cmd: ICommandElement, message: Message, messageContent: string, args: string[]) {
@@ -185,20 +186,22 @@ export class CommandRunner {
             }
             return true
         }
+        return false
     }
 
-    logInncorectCommandUsage(message: Message, messageContent: string, args: string[]) {
+    logIncorectCommandUsage(message: Message, messageContent: string, args: string[]) {
         let command = message.content.split(' ')[1]
-
-        const numberOfFails = DatabaseHelper.getNonUserValue('incorrectCommand', command)
-        let newFailNum = 1
-        if (numberOfFails && Number(numberOfFails)) newFailNum = Number(numberOfFails) + 1
-        if (command === '' || command.trim() === '') command = '<tom command>'
-        this.messageHelper.sendMessageToActionLog(
-            message.channel as TextChannel,
-            `Kommandoen '${command}' ble forsøkt brukt av ${message.author.username}, men den finnes ikke. Denne kommandoen er forsøkt brukt ${newFailNum} ganger`
-        )
-        DatabaseHelper.setNonUserValue('incorrectCommand', command, newFailNum.toString())
+        if (environment === 'prod') {
+            const numberOfFails = DatabaseHelper.getNonUserValue('incorrectCommand', command)
+            let newFailNum = 1
+            if (numberOfFails && Number(numberOfFails)) newFailNum = Number(numberOfFails) + 1
+            if (command === '' || command.trim() === '') command = '<tom command>'
+            this.messageHelper.sendMessageToActionLog(
+                message.channel as TextChannel,
+                `Kommandoen '${command}' ble forsøkt brukt av ${message.author.username}, men den finnes ikke. Denne kommandoen er forsøkt brukt ${newFailNum} ganger`
+            )
+            DatabaseHelper.setNonUserValue('incorrectCommand', command, newFailNum.toString())
+        }
     }
 
     /** Checks for pølse, eivindpride etc. */
@@ -227,7 +230,7 @@ export class CommandRunner {
         }
 
         //TODO: Refactor this
-        if (message.author.id == '733320780707790898' && message.guild) {
+        if (message.author.id == '245607554254766081' && message.guild) {
             //"733320780707790898" joiij
             const numbers = MessageUtils.doesMessageContainNumber(message)
             let arg1

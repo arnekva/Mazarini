@@ -127,17 +127,18 @@ export class DrinksCommands extends AbstractCommands {
     private drawCard(message: Message) {
         let card: string = this.deck.drawCard(message, false)
         if (!card) {
-            return this.messageHelper.sendMessage(message.channelId, "Kortstokken er tom. Dersom dere vil fortsette, bruk '!mz el resett'")
+            this.messageHelper.sendMessage(message.channelId, "Kortstokken er tom. Dersom dere vil fortsette, bruk '!mz el resett'")
+        } else {
+            const currentPlayer = this.getUserObjectById(this.turn)
+            this.turn = (this.turn + 1) % this.playerList.length
+            const cardObject = this.setCardOnUser(currentPlayer.name, card)
+            const mustDrink = this.checkWhoMustDrink(currentPlayer.name, currentPlayer.id, currentPlayer.card)
+            let gameState = '\n'
+            this.playerList.forEach((player) => {
+                gameState += `\n${player.name} (${player.id}) - ${player.card.printString}`
+            })
+            this.messageHelper.sendMessage(message.channelId, currentPlayer.name + ' trakk ' + cardObject.printString + '\n' + mustDrink + gameState)
         }
-        const currentPlayer = this.getUserObjectById(this.turn)
-        this.turn = (this.turn + 1) % this.playerList.length
-        const cardObject = this.setCardOnUser(currentPlayer.name, card)
-        const mustDrink = this.checkWhoMustDrink(currentPlayer.name, currentPlayer.id, currentPlayer.card)
-        let gameState = '\n'
-        this.playerList.forEach((player) => {
-            gameState += `\n${player.name} (${player.id}) - ${player.card.printString}`
-        })
-        this.messageHelper.sendMessage(message.channelId, currentPlayer.name + ' trakk ' + cardObject.printString + '\n' + mustDrink + gameState)
     }
 
     private getPlayersString() {
@@ -150,39 +151,40 @@ export class DrinksCommands extends AbstractCommands {
 
     private async startElectricity(message: Message) {
         if (this.activeGame) {
-            return message.reply('Du kan bare ha ett aktivt spill om gangen. For å avslutte spillet, bruk "!mz electricity stopp"')
-        }
-        if (this.reactor) {
-            this.reactor.stop()
-        }
-        const author = message.author.username
-        const betString = `${author} ønsker å starte en runde med electricity: Reager med 👍 for å bli med. Spillet starter når noen reagerer med ✅`
-        const startMessage = await this.messageHelper.sendMessage(message.channelId, betString)
-        if (startMessage) {
-            this.messageHelper.reactWithThumbs(startMessage, 'up')
-            startMessage.react('✅')
-            const _msg = this.messageHelper
-            this.reactor = startMessage.createReactionCollector().on('collect', async (reaction) => {
-                const users = reaction.users.cache.filter((u) => u.id !== '802945796457758760')
-                if (reaction.emoji.name == '👍') {
-                    users.forEach((us, ind) => {
-                        if (!this.getUserObject(us.username)) {
-                            const userCard: ICardObject = { number: '', suite: '', printString: '' }
-                            const user: IUserObject = { name: us.username, id: this.id, card: userCard }
-                            this.playerList.push(user)
-                            this.id++
+            message.reply('Du kan bare ha ett aktivt spill om gangen. For å avslutte spillet, bruk "!mz electricity stopp"')
+        } else {
+            if (this.reactor) {
+                this.reactor.stop()
+            }
+            const author = message.author.username
+            const betString = `${author} ønsker å starte en runde med electricity: Reager med 👍 for å bli med. Spillet starter når noen reagerer med ✅`
+            const startMessage = await this.messageHelper.sendMessage(message.channelId, betString)
+            if (startMessage) {
+                this.messageHelper.reactWithThumbs(startMessage, 'up')
+                startMessage.react('✅')
+                const _msg = this.messageHelper
+                this.reactor = startMessage.createReactionCollector().on('collect', async (reaction) => {
+                    const users = reaction.users.cache.filter((u) => u.id !== '802945796457758760')
+                    if (reaction.emoji.name == '👍') {
+                        users.forEach((us, ind) => {
+                            if (!this.getUserObject(us.username)) {
+                                const userCard: ICardObject = { number: '', suite: '', printString: '' }
+                                const user: IUserObject = { name: us.username, id: this.id, card: userCard }
+                                this.playerList.push(user)
+                                this.id++
+                            }
+                        })
+                    } else if (reaction.emoji.name == '✅' && users.size > 0) {
+                        if (this.playerList.length < 2) {
+                            message.reply('Det trengs minst 2 deltakere for å starte spillet.')
+                        } else {
+                            this.activeGame = true
+                            this.messageHelper.sendMessage(message.channelId, this.getPlayersString())
+                            this.reactor.stop()
                         }
-                    })
-                } else if (reaction.emoji.name == '✅' && users.size > 0) {
-                    if (this.playerList.length < 2) {
-                        message.reply('Det trengs minst 2 deltakere for å starte spillet.')
-                    } else {
-                        this.activeGame = true
-                        this.messageHelper.sendMessage(message.channelId, this.getPlayersString())
-                        this.reactor.stop()
                     }
-                }
-            })
+                })
+            }
         }
     }
 
@@ -214,48 +216,49 @@ export class DrinksCommands extends AbstractCommands {
             }
         }
         if (!activePlayer && this.activeGame) {
-            return this.messageHelper.sendMessage(message.channelId, 'Bro du skulle gitt en tommel opp før spillet begynte hvis du ville være med')
-        }
-        if (args[0]) {
-            switch (args[0].toLowerCase()) {
-                case 'start': {
-                    this.startElectricity(message)
-                    break
-                }
-                case 'trekk': {
-                    if (!this.activeGame) {
-                        this.messageHelper.sendMessage(message.channelId, 'Du må starte et spill først')
-                    } else {
-                        this.drawCard(message)
-                    }
-                    break
-                }
-                case 'stopp': {
-                    if (!this.activeGame || !this.reactor) {
-                        this.messageHelper.sendMessage(message.channelId, 'Det er ingenting å stoppe')
-                    } else {
-                        this.stopElectricity(message)
-                    }
-                    break
-                }
-                case 'mitt': {
-                    if (!this.activeGame) {
-                        this.messageHelper.sendMessage(message.channelId, 'Du må nesten ha et aktivt spill for å kunne ha et kort')
-                    } else {
-                        this.getMyCard(message)
-                    }
-                    break
-                }
-                case 'resett': {
-                    this.deck.resetDeck(message, true)
-                    break
-                }
-                default: {
-                    this.messageHelper.sendMessage(message.channelId, "Tilgjengelige kommandoer er: 'start', 'trekk', 'mitt', 'resett' og 'stopp'")
-                }
-            }
+            this.messageHelper.sendMessage(message.channelId, 'Bro du skulle gitt en tommel opp før spillet begynte hvis du ville være med')
         } else {
-            this.messageHelper.sendMessage(message.channelId, "Du må inkludere en av følgende etter 'el': 'start', 'trekk', 'mitt', 'resett' eller 'stopp'")
+            if (args[0]) {
+                switch (args[0].toLowerCase()) {
+                    case 'start': {
+                        this.startElectricity(message)
+                        break
+                    }
+                    case 'trekk': {
+                        if (!this.activeGame) {
+                            this.messageHelper.sendMessage(message.channelId, 'Du må starte et spill først')
+                        } else {
+                            this.drawCard(message)
+                        }
+                        break
+                    }
+                    case 'stopp': {
+                        if (!this.activeGame || !this.reactor) {
+                            this.messageHelper.sendMessage(message.channelId, 'Det er ingenting å stoppe')
+                        } else {
+                            this.stopElectricity(message)
+                        }
+                        break
+                    }
+                    case 'mitt': {
+                        if (!this.activeGame) {
+                            this.messageHelper.sendMessage(message.channelId, 'Du må nesten ha et aktivt spill for å kunne ha et kort')
+                        } else {
+                            this.getMyCard(message)
+                        }
+                        break
+                    }
+                    case 'resett': {
+                        this.deck.resetDeck(message, true)
+                        break
+                    }
+                    default: {
+                        this.messageHelper.sendMessage(message.channelId, "Tilgjengelige kommandoer er: 'start', 'trekk', 'mitt', 'resett' og 'stopp'")
+                    }
+                }
+            } else {
+                this.messageHelper.sendMessage(message.channelId, "Du må inkludere en av følgende etter 'el': 'start', 'trekk', 'mitt', 'resett' eller 'stopp'")
+            }
         }
     }
 

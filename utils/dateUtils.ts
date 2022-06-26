@@ -1,3 +1,5 @@
+import moment from 'moment'
+
 export const dateRegex = new RegExp(/^(0[1-9]|[12][0-9]|3[01])[-](0[1-9]|1[012])[-](19|20)\d\d$/) ///^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\d\d$/ old
 export function getWeekNumber(d: Date) {
     // Copy date so don't modify original
@@ -107,8 +109,12 @@ export class DateUtils {
     /** Checks the string supplied  */
     static isStringToday(day: string) {
         const dateName = new Date().toLocaleDateString('no', { weekday: 'long' })
-        console.log(dateName, day)
 
         return dateName.toLowerCase() === day.toLowerCase()
+    }
+
+    /** Sjekk om en gitt tid (eks. 16:00) har passert i dag. Må formatteres hh:mm */
+    static hasHourMinutePassed(hour: number, minute: number) {
+        return moment().isBefore(moment({ hour: hour, minute: minute }))
     }
 }

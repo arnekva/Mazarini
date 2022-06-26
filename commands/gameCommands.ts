@@ -97,31 +97,29 @@ export class GameCommands extends AbstractCommands {
         const gridNumber = parseInt(grid.charAt(1))
 
         if (!gridLetter.includes(letter) || !validNumbers.includes(validNumbers) || grid == '' || Number.isNaN(gridNumber)) {
-            return this.messageHelper.sendMessage(message.channelId, 'Kan du ikkje i det minsta velga kor sirkelen e?')
-        }
-
-        if (illegalCenterCoordinates.includes(grid)) {
-            return this.messageHelper.sendMessage(
+            this.messageHelper.sendMessage(message.channelId, 'Kan du ikkje i det minsta velga kor sirkelen e?')
+        } else if (illegalCenterCoordinates.includes(grid)) {
+            this.messageHelper.sendMessage(
                 message.channelId,
                 'E det sirkelen din? Dokker e fucked... \n(Botten klare ikkje å regna ud koordinater for så små grids)'
             )
+        } else {
+            // E5 = 5,5
+            const xCircleCenter = gridLetter.indexOf(letter)
+            const yCircleCenter = gridNumber
+
+            const { xDropCoordinate, yDropCoordinate }: dropCoordinate = getValidDropCoordinate(xCircleCenter, yCircleCenter)
+            const dropLoc = gridLetter[xDropCoordinate] + '' + yDropCoordinate + ''
+            let dropPlaces = ''
+            for (let i = 0; i < dropLocations.length; i++) {
+                dropLocations[i].coord.forEach((el) => {
+                    if (el == dropLoc) dropPlaces += '\n' + dropLocations[i].name
+                })
+            }
+
+            this.messageHelper.sendMessage(message.channelId, 'Dere dropper på ' + gridLetter[xDropCoordinate] + yDropCoordinate)
+            if (dropPlaces) this.messageHelper.sendMessage(message.channelId, 'Her ligger: ' + dropPlaces)
         }
-
-        // E5 = 5,5
-        const xCircleCenter = gridLetter.indexOf(letter)
-        const yCircleCenter = gridNumber
-
-        const { xDropCoordinate, yDropCoordinate }: dropCoordinate = getValidDropCoordinate(xCircleCenter, yCircleCenter)
-        const dropLoc = gridLetter[xDropCoordinate] + '' + yDropCoordinate + ''
-        let dropPlaces = ''
-        for (let i = 0; i < dropLocations.length; i++) {
-            dropLocations[i].coord.forEach((el) => {
-                if (el == dropLoc) dropPlaces += '\n' + dropLocations[i].name
-            })
-        }
-
-        this.messageHelper.sendMessage(message.channelId, 'Dere dropper på ' + gridLetter[xDropCoordinate] + yDropCoordinate)
-        if (dropPlaces) this.messageHelper.sendMessage(message.channelId, 'Her ligger: ' + dropPlaces)
     }
 
     private async rocketLeagueRanks(rawMessage: Message, messageContent: string, args: string[]) {

@@ -33,7 +33,7 @@ export class JokeCommands extends AbstractCommands {
                         const activities = user.presence.activities
                             .filter((a) => (user.user.username.toLowerCase() === 'mazarinibot' ? a : a.name.toLowerCase() !== 'custom status'))
                             .map((act) => act.name)
-                        console.log(activities)
+
                         if (activities.length > 0)
                             await this.messageHelper.sendMessage(
                                 message.channelId,
@@ -52,36 +52,38 @@ export class JokeCommands extends AbstractCommands {
 
     private async updateMygleStatus(message: Message, messageContent: string) {
         let content = messageContent
+        let url: string = ''
 
         if (message.mentions.roles.size > 0) {
-            return message.reply('Du kan kje ha roller i statusen din, bro')
-        }
-        let url
-        if (message.attachments) {
-            url = message.attachments.first()?.url
-        }
-
-        const count = messageContent.split('://')
-        const count2 = messageContent.split('www')
-        if (count.length > 2 || count2.length > 2) {
-            return message.reply('Max ein attachment, bro')
-        }
-        content = content.replace(/(?:\r\n|\r|\n)/g, ' ')
-        content = TextUtils.replaceAtWithTextUsername(content, message)
-
-        if (content.length < 150 && content.trim().length > 0) {
-            if (message.content.includes('!zm')) {
-                content = TextUtils.reverseMessageString(content)
-            }
-            const user = DatabaseHelper.getUser(message.author.id)
-            user.status = content + (url ? ' ' + url : '')
-            DatabaseHelper.updateUser(user)
-            this.messageHelper.reactWithRandomEmoji(message)
+            message.reply('Du kan kje ha roller i statusen din, bro')
         } else {
-            this.messageHelper.sendMessage(
-                message.channelId,
-                content.trim().length > 0 ? 'Du kan kje mygla så møye. Mindre enn 150 tegn, takk' : 'Du må sei koffor du mygle, bro'
-            )
+            if (message.attachments) {
+                url = message.attachments.first()?.url
+            }
+
+            const count = messageContent.split('://')
+            const count2 = messageContent.split('www')
+            if (count.length > 2 || count2.length > 2) {
+                message.reply('Max ein attachment, bro')
+            } else {
+                content = content.replace(/(?:\r\n|\r|\n)/g, ' ')
+                content = TextUtils.replaceAtWithTextUsername(content, message)
+
+                if (content.length < 150 && content.trim().length > 0) {
+                    if (message.content.includes('!zm')) {
+                        content = TextUtils.reverseMessageString(content)
+                    }
+                    const user = DatabaseHelper.getUser(message.author.id)
+                    user.status = content + (url ? ' ' + url : '')
+                    DatabaseHelper.updateUser(user)
+                    this.messageHelper.reactWithRandomEmoji(message)
+                } else {
+                    this.messageHelper.sendMessage(
+                        message.channelId,
+                        content.trim().length > 0 ? 'Du kan kje mygla så møye. Mindre enn 150 tegn, takk' : 'Du må sei koffor du mygle, bro'
+                    )
+                }
+            }
         }
     }
     private async getAllStatuses(message: Message) {
@@ -165,8 +167,8 @@ export class JokeCommands extends AbstractCommands {
 
     private kanPersonen(message: Message, msgContent: string, args: string[]) {
         const name = TextUtils.splitUsername(args[0])
-        if (!args[0] || !name) return message.reply('Du kan jaffal ikkje skriva denne kommandoen rett')
-        this.messageHelper.sendMessage(message.channelId, `${name} ` + ArrayUtils.randomChoiceFromArray(globalArrays.kanIkkjeTekster))
+        if (!args[0] || !name) message.reply('Du kan jaffal ikkje skriva denne kommandoen rett')
+        else this.messageHelper.sendMessage(message.channelId, `${name} ` + ArrayUtils.randomChoiceFromArray(globalArrays.kanIkkjeTekster))
     }
 
     private async uWuIfyer(message: Message, msgContent: string, args: string[]) {

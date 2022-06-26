@@ -4,14 +4,15 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '7.1.2'
+    public static readonly currentVersion = '8.0.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Du kan nå sjekke åpningstidene på polet med '!mz polet'` +
-        `\n* Den defaulter til Madla Amfi, Stavanger, men du kan sette ditt eget pol med '!mz mittpol <id>'. ID-en må hentes fra vinmonopolet.no` +
-        `\n* Botten sjekker nå i ukesjobben polets åpningstider, og sender melding til #vinmonopolet hvis den oppdager endringer`
+        `\n* Større refaktorering av koden` +
+        `\n* Polet skal nå vise om det er åpent eller ikke når kommandoen gjøres` +
+        `\n* Polet viser nå "torsdag" i stedet for "søndag" to ganger` +
+        `\n* Feil kommandoer gjort i test-modus vil ikke lenger logges til #action_log`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

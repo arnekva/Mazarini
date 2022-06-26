@@ -88,18 +88,19 @@ export class CardCommands extends AbstractCommands {
                             let amount = Math.floor(Number(args[1]))
                             let remaining = this.getRemainingCards()
                             if (remaining == 0) {
-                                return this.messageHelper.sendMessage(message.channelId, 'Kortstokken er tom for kort')
-                            }
-                            if (amount > 0 && amount <= remaining) {
-                                for (let i = 0; i < amount; i++) {
-                                    this.drawCard(message, true)
-                                }
-                            } else if (amount < 0) {
-                                this.messageHelper.sendMessage(message.channelId, 'Det er en fordel å komme med et positivt tall')
-                            } else if (amount == 0) {
-                                this.messageHelper.sendMessage(message.channelId, 'Desimaltall rundes ned')
+                                this.messageHelper.sendMessage(message.channelId, 'Kortstokken er tom for kort')
                             } else {
-                                this.messageHelper.sendMessage(message.channelId, 'Det er bare ' + remaining + ' kort igjen i kortstokken')
+                                if (amount > 0 && amount <= remaining) {
+                                    for (let i = 0; i < amount; i++) {
+                                        this.drawCard(message, true)
+                                    }
+                                } else if (amount < 0) {
+                                    this.messageHelper.sendMessage(message.channelId, 'Det er en fordel å komme med et positivt tall')
+                                } else if (amount == 0) {
+                                    this.messageHelper.sendMessage(message.channelId, 'Desimaltall rundes ned')
+                                } else {
+                                    this.messageHelper.sendMessage(message.channelId, 'Det er bare ' + remaining + ' kort igjen i kortstokken')
+                                }
                             }
                         } else {
                             this.messageHelper.sendMessage(message.channelId, "Kom gjerne med et tall etter 'trekk'")

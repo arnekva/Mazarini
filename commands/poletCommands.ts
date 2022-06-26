@@ -55,13 +55,8 @@ export class PoletCommands extends AbstractCommands {
     /** Brukerens pol fra DB overstyrer storeId som sendes inn */
     private async getOpeningHours(rawMessage?: Message, storeId?: string) {
         const poletData = await PoletCommands.fetchPoletData(rawMessage, storeId)
-        const translateStatus = (s: string) => {
-            if (s === 'Open') return 'Åpent'
-            else return 'Stengt'
-        }
-        const fmMessage = new MessageEmbed()
-            .setTitle(`${poletData.storeName} (${poletData.address.postalCode}, ${poletData.address.city}) `)
-            .setDescription(`${translateStatus(poletData.status)}`)
+
+        const fmMessage = new MessageEmbed().setTitle(`${poletData.storeName} (${poletData.address.postalCode}, ${poletData.address.city}) `)
 
         if (poletData.openingHours.exceptionHours.length) {
             fmMessage.addField('Endre åpningstider', 'Det er endrede åpningstider denne uken')
@@ -74,15 +69,27 @@ export class PoletCommands extends AbstractCommands {
         } else {
             fmMessage.addField('Åpningstider', 'Polet holder åpent som normalt denne uken')
         }
+        let todayClosing: string = ''
         if (poletData.openingHours.regularHours) {
             poletData.openingHours.regularHours.forEach((rh) => {
                 const day = Languages.weekdayTranslate(rh.dayOfTheWeek)
                 const isToday = DateUtils.isStringToday(day)
                 const dayHeader = `${day} ${isToday ? ' (i dag)' : ''}`
                 fmMessage.addField(dayHeader, rh.closed ? 'Stengt' : `${rh.openingTime} - ${rh.closingTime}`)
+                if (isToday) todayClosing = rh.closingTime
             })
         }
+        fmMessage.setDescription(`${this.isStoreOpen(todayClosing)}`)
         this.messageHelper.sendFormattedMessage(rawMessage?.channel as TextChannel, fmMessage)
+    }
+
+    private isStoreOpen(closingTime: string) {
+        let split = closingTime.split(':')
+        if (split.length === 2) {
+            const hourMin: number[] = split.map((t) => Number(t))
+            if (!DateUtils.hasHourMinutePassed(hourMin[0], hourMin[1])) return 'Åpent'
+        }
+        return 'Stengt'
     }
 
     private async setFavoritePol(message: Message, content: string, args: string[]) {
@@ -91,12 +98,13 @@ export class PoletCommands extends AbstractCommands {
             const store = await PoletCommands.fetchPoletData(undefined, storeId.toString(), true)
             if (!store) {
                 this.messageHelper.reactWithThumbs(message, 'down')
-                return message.reply('Det finnes ingen butikk med id ' + storeId)
+                message.reply('Det finnes ingen butikk med id ' + storeId)
+            } else {
+                const user = DatabaseHelper.getUser(message.author.id)
+                user.favoritePol = storeId.toString()
+                DatabaseHelper.updateUser(user)
+                this.messageHelper.reactWithThumbs(message, 'up')
             }
-            const user = DatabaseHelper.getUser(message.author.id)
-            user.favoritePol = storeId.toString()
-            DatabaseHelper.updateUser(user)
-            this.messageHelper.reactWithThumbs(message, 'up')
         } else {
             message.reply('ID-en er ikke gyldig')
         }

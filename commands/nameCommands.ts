@@ -69,9 +69,8 @@ export class NameCommands extends AbstractCommands {
         let commandName = args[0].toLowerCase()
         const textToAdd = args.slice(1).join(' ')
         if (!textToAdd.trim()) {
-            return message.reply('Du kan ikke legge til tom tekst')
-        }
-        if (this.getAllCommands().find((c) => (Array.isArray(c.commandName) ? c.commandName.includes(commandName) : c.commandName == commandName))) {
+            message.reply('Du kan ikke legge til tom tekst')
+        } else if (this.getAllCommands().find((c) => (Array.isArray(c.commandName) ? c.commandName.includes(commandName) : c.commandName == commandName))) {
             const cmdName = this.getAllCommands().find((c) =>
                 Array.isArray(c.commandName) ? c.commandName.includes(commandName) : c.commandName == commandName
             )?.commandName
@@ -89,14 +88,15 @@ export class NameCommands extends AbstractCommands {
         const texts = DatabaseHelper.getTextCommandValueArray(commandName) as string[]
         if (texts) {
             if (isNaN(textToDelete) || textToDelete < 0 || textToDelete >= texts.length) {
-                return message.reply('Du må spesifisere indeksen til teksten du vil slette. Velg en av disse:\n' + texts.map((t, i) => `${i}: ${t}`).join('\n'))
+                message.reply('Du må spesifisere indeksen til teksten du vil slette. Velg en av disse:\n' + texts.map((t, i) => `${i}: ${t}`).join('\n'))
+            } else {
+                const index = texts.indexOf(texts[textToDelete])
+                message.reply(`Sletter ${texts[textToDelete]} fra tekstlisten`)
+                texts.splice(index, 1)
+                DatabaseHelper.nukeTextCommand(commandName, texts)
+                //FIXME: Hvorfor må det settes individuelt?
+                texts.forEach((t) => DatabaseHelper.setTextCommandValue(commandName, t))
             }
-            const index = texts.indexOf(texts[textToDelete])
-            message.reply(`Sletter ${texts[textToDelete]} fra tekstlisten`)
-            texts.splice(index, 1)
-            DatabaseHelper.nukeTextCommand(commandName, texts)
-            //FIXME: Hvorfor må det settes individuelt?
-            texts.forEach((t) => DatabaseHelper.setTextCommandValue(commandName, t))
         } else {
             message.reply('Det er ingen tekster lagt til her enda')
         }

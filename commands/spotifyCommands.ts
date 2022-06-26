@@ -151,37 +151,38 @@ export class SpotifyCommands extends AbstractCommands {
                 const user = guild.members.cache.filter((u) => u.user.username == name).first()
 
                 if (!user) {
-                    return rawMessage.reply("Fant ingen brukere ved navn '" + name + "'. Bruk username og ikke displayname")
-                }
-                if (user && user.presence && user.presence.activities.find((a) => a.name === 'Spotify')) {
-                    const spotify = user.presence.activities.filter((a) => a.name === 'Spotify')[0]
-                    if (spotify?.state && spotify.details) {
-                        const data = await this.searchForSongOnSpotifyAPI(spotify.details, spotify.state)
-                        const items = data.body.tracks.items[0]
-
-                        const embed = new MessageEmbed().setTitle(`${spotify?.details} `).setDescription(`${spotify?.state}`)
-                        if (items) {
-                            embed.addField('Album', items.album?.name ?? 'Ukjent', true).addField('Utgitt', items.album?.release_date ?? 'Ukjent', true)
-                            if (items.album?.external_urls?.spotify) embed.setURL(items.album?.external_urls?.spotify ?? '#')
-                            if (args[0] === 'mer' || args[1] === 'mer') {
-                                if (items.album?.images[0]?.url) embed.setImage(items.album?.images[0]?.url)
-                                embed.setTimestamp()
-                            }
-                            if (items.album?.images[0]?.url) embed.setThumbnail(items.album.images[0].url)
-                        }
-                        if (args[0] === 'mer' || args[1] === 'mer')
-                            embed.setFooter({
-                                text: `Funnet ved søk av 'track:${spotify.details} artist:${spotify?.state}'`,
-                            })
-
-                        const msg = this.messageHelper.sendFormattedMessage(rawMessage.channel as TextChannel, embed)
-                    }
+                    rawMessage.reply("Fant ingen brukere ved navn '" + name + "'. Bruk username og ikke displayname")
                 } else {
-                    _music.findCommand(rawMessage, content, ['siste', '1', name], {
-                        isSilent: false,
-                        usernameToLookup: name,
-                        notWeeklyOrRecent: true,
-                    })
+                    if (user && user.presence && user.presence.activities.find((a) => a.name === 'Spotify')) {
+                        const spotify = user.presence.activities.filter((a) => a.name === 'Spotify')[0]
+                        if (spotify?.state && spotify.details) {
+                            const data = await this.searchForSongOnSpotifyAPI(spotify.details, spotify.state)
+                            const items = data.body.tracks.items[0]
+
+                            const embed = new MessageEmbed().setTitle(`${spotify?.details} `).setDescription(`${spotify?.state}`)
+                            if (items) {
+                                embed.addField('Album', items.album?.name ?? 'Ukjent', true).addField('Utgitt', items.album?.release_date ?? 'Ukjent', true)
+                                if (items.album?.external_urls?.spotify) embed.setURL(items.album?.external_urls?.spotify ?? '#')
+                                if (args[0] === 'mer' || args[1] === 'mer') {
+                                    if (items.album?.images[0]?.url) embed.setImage(items.album?.images[0]?.url)
+                                    embed.setTimestamp()
+                                }
+                                if (items.album?.images[0]?.url) embed.setThumbnail(items.album.images[0].url)
+                            }
+                            if (args[0] === 'mer' || args[1] === 'mer')
+                                embed.setFooter({
+                                    text: `Funnet ved søk av 'track:${spotify.details} artist:${spotify?.state}'`,
+                                })
+
+                            const msg = this.messageHelper.sendFormattedMessage(rawMessage.channel as TextChannel, embed)
+                        }
+                    } else {
+                        _music.findCommand(rawMessage, content, ['siste', '1', name], {
+                            isSilent: false,
+                            usernameToLookup: name,
+                            notWeeklyOrRecent: true,
+                        })
+                    }
                 }
             }
         }

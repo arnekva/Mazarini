@@ -24,12 +24,10 @@ export namespace MessageUtils {
                         let num = Number(number)
                         arr.push(num)
                     })
-                    return arr
                 } else {
                     let num = Number(value)
                     if (!isNaN(num)) {
                         arr.push(num)
-                        return arr
                     }
                 }
             })

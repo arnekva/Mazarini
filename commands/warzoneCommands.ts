@@ -174,56 +174,59 @@ export class WarzoneCommands extends AbstractCommands {
     }
 
     private async getLastMatchData(message: Message, messageContent: string, args: string[]) {
-        const num = Number(args[1]) || 1
         const WZUser = this.getWZUserStringFromDB(message)?.split(';')
-        if (!WZUser) return message.reply('Du må knytta brukernavn te brukeren din fysste')
+        if (!WZUser) message.reply('Du må knytta brukernavn te brukeren din fysste')
+        else {
+            const gamertag = WZUser[1]
+            const platform = this.translatePlatform(WZUser[0])
 
-        const gamertag = WZUser[1]
-        const platform = this.translatePlatform(WZUser[0])
+            try {
+                const waitMsg = await this.messageHelper.sendMessage(message.channelId, 'Laster data ...')
+                let data = await Warzone.combatHistory(gamertag, platform)
 
-        try {
-            const waitMsg = await this.messageHelper.sendMessage(message.channelId, 'Laster data ...')
-            let data = await Warzone.combatHistory(gamertag, platform)
+                let tries = 1
+                while (!data?.data?.matches && tries < 3) {
+                    tries++
+                    if (waitMsg) waitMsg.edit('Fant ingen data. Forsøker på ny ... (' + tries + '/' + '3)')
+                    data = await Warzone.combatHistory(gamertag, platform)
+                }
+                if (!data?.data?.matches) {
+                    if (waitMsg) waitMsg.edit(`Fant ingen data for ${gamertag} på ${platform} etter ${tries}/${tries} forsøk. Prøv igjen senere`)
+                    else this.messageHelper.sendMessage(message.channelId, 'Fant ingen matches.')
+                } else {
+                    const matchStart = Number(data?.data?.matches[0]?.utcStartSeconds) * 1000
+                    const matchStartDate = new Date(matchStart)
 
-            let tries = 1
-            while (!data?.data?.matches && tries < 3) {
-                tries++
-                if (waitMsg) waitMsg.edit('Fant ingen data. Forsøker på ny ... (' + tries + '/' + '3)')
-                data = await Warzone.combatHistory(gamertag, platform)
+                    const embedMsg = new MessageEmbed()
+                        .setTitle(`Siste match for ${gamertag}: ${data?.data?.matches[0]?.playerStats?.teamPlacement ?? 'Ukjent'}. plass `)
+                        .setDescription(`${matchStartDate ?? 'Ukjent dato og tid'}`)
+                    const isFlaut = () => {
+                        return Number(data?.data?.matches[0]?.playerStats?.damageDone) / Number(data?.data?.matches[0]?.playerStats?.damageTaken) < 1
+                            ? '(flaut)'
+                            : ''
+                    }
+                    embedMsg.addField(`Kills:`, `${data?.data?.matches[0]?.playerStats?.kills ?? 'Ukjent'}`, true)
+                    embedMsg.addField(`Deaths:`, `${data?.data?.matches[0]?.playerStats?.deaths ?? 'Ukjent'}`, true)
+                    embedMsg.addField(`K/D Ratio:`, `${data?.data?.matches[0]?.playerStats?.kdRatio ?? 'Ukjent'}`, true)
+                    embedMsg.addField(`Assists:`, `${data?.data?.matches[0]?.playerStats?.assists ?? 'Ukjent'}`, true)
+                    embedMsg.addField(`Headshots:`, `${data?.data?.matches[0]?.playerStats?.headshots ?? 'Ukjent'}`, true)
+                    embedMsg.addField(`Longest streak:`, `${data?.data?.matches[0]?.playerStats?.longestStreak ?? 'Ukjent'}`, true)
+                    embedMsg.addField(`Damage done:`, `${data?.data?.matches[0]?.playerStats?.damageDone ?? 'Ukjent'}`, true)
+                    embedMsg.addField(`Damage taken:`, `${data?.data?.matches[0]?.playerStats?.damageTaken ?? 'Ukjent'} ${isFlaut()}`, true)
+                    embedMsg.addField(`Distance traveled:`, `${data?.data?.matches[0]?.playerStats?.distanceTraveled ?? 'Ukjent'}`, true)
+                    embedMsg.addField(`Gulag kills:`, `${data?.data?.matches[0]?.playerStats?.gulagKills ?? 'Ukjent'}`, true)
+                    embedMsg.addField(`Gulag deaths:`, `${data?.data?.matches[0]?.playerStats?.gulagDeaths ?? 'Ukjent'}`, true)
+                    embedMsg.addField(`Mode:`, `${data?.data?.matches[0]?.mode ?? 'Ukjent'}`, true)
+                    embedMsg.addField(`Score XP:`, `${data?.data?.matches[0]?.playerStats?.scoreXp ?? 'Ukjent'}`, true)
+                    embedMsg.addField(`Players in match:`, `${data?.data?.matches[0]?.playerCount}`, true)
+                    embedMsg.addField(`Rank:`, `${data?.data?.matches[0]?.player?.rank ?? 'Ukjent'}`, true)
+
+                    this.messageHelper.sendFormattedMessage(message.channel as TextChannel, embedMsg)
+                    if (waitMsg) waitMsg.delete()
+                }
+            } catch (error: any) {
+                message.reply('Klarte ikke hente data: ' + error)
             }
-            if (!data?.data?.matches) {
-                if (waitMsg) return waitMsg.edit(`Fant ingen data for ${gamertag} på ${platform} etter ${tries}/${tries} forsøk. Prøv igjen senere`)
-                else return this.messageHelper.sendMessage(message.channelId, 'Fant ingen matches.')
-            }
-            const matchStart = Number(data?.data?.matches[0]?.utcStartSeconds) * 1000
-            const matchStartDate = new Date(matchStart)
-
-            const embedMsg = new MessageEmbed()
-                .setTitle(`Siste match for ${gamertag}: ${data?.data?.matches[0]?.playerStats?.teamPlacement ?? 'Ukjent'}. plass `)
-                .setDescription(`${matchStartDate ?? 'Ukjent dato og tid'}`)
-            const isFlaut = () => {
-                return Number(data?.data?.matches[0]?.playerStats?.damageDone) / Number(data?.data?.matches[0]?.playerStats?.damageTaken) < 1 ? '(flaut)' : ''
-            }
-            embedMsg.addField(`Kills:`, `${data?.data?.matches[0]?.playerStats?.kills ?? 'Ukjent'}`, true)
-            embedMsg.addField(`Deaths:`, `${data?.data?.matches[0]?.playerStats?.deaths ?? 'Ukjent'}`, true)
-            embedMsg.addField(`K/D Ratio:`, `${data?.data?.matches[0]?.playerStats?.kdRatio ?? 'Ukjent'}`, true)
-            embedMsg.addField(`Assists:`, `${data?.data?.matches[0]?.playerStats?.assists ?? 'Ukjent'}`, true)
-            embedMsg.addField(`Headshots:`, `${data?.data?.matches[0]?.playerStats?.headshots ?? 'Ukjent'}`, true)
-            embedMsg.addField(`Longest streak:`, `${data?.data?.matches[0]?.playerStats?.longestStreak ?? 'Ukjent'}`, true)
-            embedMsg.addField(`Damage done:`, `${data?.data?.matches[0]?.playerStats?.damageDone ?? 'Ukjent'}`, true)
-            embedMsg.addField(`Damage taken:`, `${data?.data?.matches[0]?.playerStats?.damageTaken ?? 'Ukjent'} ${isFlaut()}`, true)
-            embedMsg.addField(`Distance traveled:`, `${data?.data?.matches[0]?.playerStats?.distanceTraveled ?? 'Ukjent'}`, true)
-            embedMsg.addField(`Gulag kills:`, `${data?.data?.matches[0]?.playerStats?.gulagKills ?? 'Ukjent'}`, true)
-            embedMsg.addField(`Gulag deaths:`, `${data?.data?.matches[0]?.playerStats?.gulagDeaths ?? 'Ukjent'}`, true)
-            embedMsg.addField(`Mode:`, `${data?.data?.matches[0]?.mode ?? 'Ukjent'}`, true)
-            embedMsg.addField(`Score XP:`, `${data?.data?.matches[0]?.playerStats?.scoreXp ?? 'Ukjent'}`, true)
-            embedMsg.addField(`Players in match:`, `${data?.data?.matches[0]?.playerCount}`, true)
-            embedMsg.addField(`Rank:`, `${data?.data?.matches[0]?.player?.rank ?? 'Ukjent'}`, true)
-
-            this.messageHelper.sendFormattedMessage(message.channel as TextChannel, embedMsg)
-            if (waitMsg) waitMsg.delete()
-        } catch (error: any) {
-            return message.reply('Klarte ikke hente data: ' + error)
         }
     }
 
@@ -250,11 +253,15 @@ export class WarzoneCommands extends AbstractCommands {
 
         if (!sentMessage) sentMessage = await this.messageHelper.sendMessage(message.channelId, 'Henter data...')
         else await sentMessage.edit('Henter data...')
-        if (isWeekly) {
-            return this.findWeeklyData(gamertag, platform, message, sentMessage, { noSave: noSave, rebirth: isRebirth })
+        if (sentMessage) {
+            if (isWeekly) {
+                return this.findWeeklyData(gamertag, platform, message, sentMessage, { noSave: noSave, rebirth: isRebirth })
+            } else {
+                /** BR */
+                return this.findOverallBRData(gamertag, platform, message, sentMessage, { noSave: noSave, rebirth: isRebirth })
+            }
         } else {
-            /** BR */
-            return this.findOverallBRData(gamertag, platform, message, sentMessage, { noSave: noSave, rebirth: isRebirth })
+            message.reply('En feil har oppstått')
         }
     }
 
@@ -308,85 +315,83 @@ export class WarzoneCommands extends AbstractCommands {
             let response = 'Weekly Warzone stats for <' + gamertag + '>'
 
             if (!data?.data?.weekly) {
-                if (editableMessage) return editableMessage.edit('Du har ingen statistikk denne ukå, bro')
-                return this.messageHelper.sendMessage(message.channelId, 'Du har ingen statistikk denne ukå, bro')
-            }
+                if (editableMessage) editableMessage.edit('Du har ingen statistikk denne ukå, bro')
+                else this.messageHelper.sendMessage(message.channelId, 'Du har ingen statistikk denne ukå, bro')
+            } else if (options?.rebirth && data.data.weekly.mode) {
+                this.findWeeklyRebirthOnly(gamertag, data, message, editableMessage)
+            } else {
+                const statsTyped = data?.data?.weekly?.all?.properties as CodStats
 
-            if (options?.rebirth && data.data.weekly.mode) {
-                return this.findWeeklyRebirthOnly(gamertag, data, message, editableMessage)
-            }
-
-            const statsTyped = data?.data?.weekly?.all?.properties as CodStats
-
-            const orderedStats: Partial<CodStats> = {}
-            for (let i = 0; i < WarzoneCommands.statsToInclude.length; i++) {
-                for (const [key, value] of Object.entries(statsTyped)) {
-                    if (key === WarzoneCommands.statsToInclude[i].key) {
-                        if (key === 'damageTaken' && Number(statsTyped['damageTaken']) > Number(statsTyped['damageDone'])) {
-                            orderedStats['damageTaken'] = value + ' (flaut)'
-                        } else {
-                            orderedStats[WarzoneCommands.statsToInclude[i].key] = value
+                const orderedStats: Partial<CodStats> = {}
+                for (let i = 0; i < WarzoneCommands.statsToInclude.length; i++) {
+                    for (const [key, value] of Object.entries(statsTyped)) {
+                        if (key === WarzoneCommands.statsToInclude[i].key) {
+                            if (key === 'damageTaken' && Number(statsTyped['damageTaken']) > Number(statsTyped['damageDone'])) {
+                                orderedStats['damageTaken'] = value + ' (flaut)'
+                            } else {
+                                orderedStats[WarzoneCommands.statsToInclude[i].key] = value
+                            }
                         }
                     }
-                }
-                if (orderedStats.gulagDeaths && orderedStats.gulagKills) {
-                    //Inject gulag KD in
-                    orderedStats['gulagKd'] = parseFloat((orderedStats?.gulagKills / orderedStats?.gulagDeaths).toFixed(3))
-                }
-                if (orderedStats.damageDone && orderedStats.damageTaken) {
-                    orderedStats['damageDoneTakenRatio'] = Number(orderedStats.damageDone) / Number(orderedStats.damageTaken)
-                }
-            }
-            const userStats = this.getUserStats(message)
-            const oldData = userStats
-
-            /** Time played og average lifetime krever egen formattering for å være lesbart */
-            const getValueFormatted = (key: string, value: string | Number) => {
-                if (key === 'avgLifeTime')
-                    return `${DateUtils.secondsToMinutesAndSeconds(Number(value)).minutes.toFixed(0)} minutes and ${DateUtils.secondsToMinutesAndSeconds(
-                        Number(value)
-                    ).seconds.toFixed(0)} seconds`
-                if (key === 'timePlayed')
-                    return `${DateUtils.secondsToHoursAndMinutes(Number(value)).hours.toFixed(0)} hours and ${DateUtils.secondsToHoursAndMinutes(
-                        Number(value)
-                    ).minutes.toFixed(0)} minutes.`
-                if (key === 'damageTaken') return value
-                return parseFloat(Number(value).toFixed(3))
-            }
-
-            /** Gjør sammenligning og legg til i respons */
-            for (const [key, value] of Object.entries(orderedStats)) {
-                if (key === 'gulagKd' && orderedStats.gulagDeaths && orderedStats.gulagKills) {
-                    statsTyped['gulagKd'] = orderedStats['gulagKd'] ?? 0
-                }
-                if (key === 'damageDoneTakenRatio' && orderedStats.damageDone && orderedStats.damageTaken) {
-                    const compareDataString = () => {
-                        if (oldData && ObjectUtils.isObjKey(key, oldData) && !!oldData[key]) {
-                            return `${this.compareOldNewStats(value, oldData[key], key === 'timePlayed')}`
-                        }
-                        return ''
+                    if (orderedStats.gulagDeaths && orderedStats.gulagKills) {
+                        //Inject gulag KD in
+                        orderedStats['gulagKd'] = parseFloat((orderedStats?.gulagKills / orderedStats?.gulagDeaths).toFixed(3))
                     }
-                    if (this.findHeaderFromKey(key, true))
-                        response += `\n${this.findHeaderFromKey(key, true)}: ${getValueFormatted(key, value)} ${compareDataString()}`
-                    response += `\nDamage Done/Taken ratio: ${(Number(orderedStats?.damageDone) / parseInt(orderedStats?.damageTaken.toString())).toFixed(
-                        3
-                    )} ${compareDataString()}`
-
-                    statsTyped['damageDoneTakenRatio'] = orderedStats['damageDoneTakenRatio'] ?? 0
-                } else if (this.findHeaderFromKey(key)) {
-                    const compareDataString = () => {
-                        if (oldData && ObjectUtils.isObjKey(key, oldData) && !!oldData[key]) {
-                            return `${this.compareOldNewStats(value, oldData[key], !this.isCorrectHeader({ key: key as CodStatsType, header: 'none' }))}`
-                        }
-                        return ''
+                    if (orderedStats.damageDone && orderedStats.damageTaken) {
+                        orderedStats['damageDoneTakenRatio'] = Number(orderedStats.damageDone) / Number(orderedStats.damageTaken)
                     }
-                    response += `\n${this.findHeaderFromKey(key)}: ${getValueFormatted(key, value)} ${compareDataString()}`
                 }
-            }
+                const userStats = this.getUserStats(message)
+                const oldData = userStats
 
-            if (editableMessage) editableMessage.edit(response)
-            else this.messageHelper.sendMessage(message.channelId, response)
-            if (!options?.noSave) this.saveUserStats(message, statsTyped)
+                /** Time played og average lifetime krever egen formattering for å være lesbart */
+                const getValueFormatted = (key: string, value: string | Number) => {
+                    if (key === 'avgLifeTime')
+                        return `${DateUtils.secondsToMinutesAndSeconds(Number(value)).minutes.toFixed(0)} minutes and ${DateUtils.secondsToMinutesAndSeconds(
+                            Number(value)
+                        ).seconds.toFixed(0)} seconds`
+                    if (key === 'timePlayed')
+                        return `${DateUtils.secondsToHoursAndMinutes(Number(value)).hours.toFixed(0)} hours and ${DateUtils.secondsToHoursAndMinutes(
+                            Number(value)
+                        ).minutes.toFixed(0)} minutes.`
+                    if (key === 'damageTaken') return value
+                    return parseFloat(Number(value).toFixed(3))
+                }
+
+                /** Gjør sammenligning og legg til i respons */
+                for (const [key, value] of Object.entries(orderedStats)) {
+                    if (key === 'gulagKd' && orderedStats.gulagDeaths && orderedStats.gulagKills) {
+                        statsTyped['gulagKd'] = orderedStats['gulagKd'] ?? 0
+                    }
+                    if (key === 'damageDoneTakenRatio' && orderedStats.damageDone && orderedStats.damageTaken) {
+                        const compareDataString = () => {
+                            if (oldData && ObjectUtils.isObjKey(key, oldData) && !!oldData[key]) {
+                                return `${this.compareOldNewStats(value, oldData[key], key === 'timePlayed')}`
+                            }
+                            return ''
+                        }
+                        if (this.findHeaderFromKey(key, true))
+                            response += `\n${this.findHeaderFromKey(key, true)}: ${getValueFormatted(key, value)} ${compareDataString()}`
+                        response += `\nDamage Done/Taken ratio: ${(Number(orderedStats?.damageDone) / parseInt(orderedStats?.damageTaken.toString())).toFixed(
+                            3
+                        )} ${compareDataString()}`
+
+                        statsTyped['damageDoneTakenRatio'] = orderedStats['damageDoneTakenRatio'] ?? 0
+                    } else if (this.findHeaderFromKey(key)) {
+                        const compareDataString = () => {
+                            if (oldData && ObjectUtils.isObjKey(key, oldData) && !!oldData[key]) {
+                                return `${this.compareOldNewStats(value, oldData[key], !this.isCorrectHeader({ key: key as CodStatsType, header: 'none' }))}`
+                            }
+                            return ''
+                        }
+                        response += `\n${this.findHeaderFromKey(key)}: ${getValueFormatted(key, value)} ${compareDataString()}`
+                    }
+                }
+
+                if (editableMessage) editableMessage.edit(response)
+                else this.messageHelper.sendMessage(message.channelId, response)
+                if (!options?.noSave) this.saveUserStats(message, statsTyped)
+            }
         } catch (error) {
             if (editableMessage) {
                 editableMessage.edit(`Fant ingen data (${gamertag} ${platform}). Hvis du vet at du ikke mangler data denne uken, prøv på ny om ca. ett minutt.`)
