@@ -230,7 +230,7 @@ export class CommandRunner {
         }
 
         //TODO: Refactor this
-        if (message.author.id == '245607554254766081' && message.guild) {
+        if (message.author.id == '733320780707790898' && message.guild) {
             //"733320780707790898" joiij
             const numbers = MessageUtils.doesMessageContainNumber(message)
             let arg1

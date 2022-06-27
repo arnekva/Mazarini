@@ -114,7 +114,7 @@ export class DateUtils {
     }
 
     /** Sjekk om en gitt tid (eks. 16:00) har passert i dag. Må formatteres hh:mm */
-    static hasHourMinutePassed(hour: number, minute: number) {
+    static isHourMinuteBefore(hour: number, minute: number) {
         return moment().isBefore(moment({ hour: hour, minute: minute }))
     }
 }

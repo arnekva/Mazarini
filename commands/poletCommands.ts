@@ -87,8 +87,9 @@ export class PoletCommands extends AbstractCommands {
         let split = closingTime.split(':')
         if (split.length === 2) {
             const hourMin: number[] = split.map((t) => Number(t))
-            if (!DateUtils.hasHourMinutePassed(hourMin[0], hourMin[1])) return 'Åpent'
+            if (DateUtils.isHourMinuteBefore(hourMin[0], hourMin[1])) return 'Åpent'
         }
+
         return 'Stengt'
     }
 

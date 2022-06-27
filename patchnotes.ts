@@ -4,15 +4,12 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '8.0.0'
+    public static readonly currentVersion = '8.0.1'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Større refaktorering av koden` +
-        `\n* Polet skal nå vise om det er åpent eller ikke når kommandoen gjøres` +
-        `\n* Polet viser nå "torsdag" i stedet for "søndag" to ganger` +
-        `\n* Feil kommandoer gjort i test-modus vil ikke lenger logges til #action_log`
+        `\n* Polet viser nå (forhåpentligvis) korrekt om det er åpent eller ikke` + `\n* Ukepengene er økt til 1000 (fra 200)`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
