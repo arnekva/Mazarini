@@ -106,8 +106,12 @@ export class DateUtils {
         return compareDate.getDate() == today.getDate() && compareDate.getMonth() == today.getMonth() + 1
     }
 
-    /** Checks the string supplied  */
-    static isStringToday(day: string) {
+    static dateHasPassed(d: Date) {
+        return moment(d).isBefore(moment(), 'day')
+    }
+
+    /** Checks if the string supplied is today (e.g. "monday")  */
+    static isDateNameToday(day: string) {
         const dateName = new Date().toLocaleDateString('no', { weekday: 'long' })
 
         return dateName.toLowerCase() === day.toLowerCase()

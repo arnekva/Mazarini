@@ -73,7 +73,7 @@ export class PoletCommands extends AbstractCommands {
         if (poletData.openingHours.regularHours) {
             poletData.openingHours.regularHours.forEach((rh) => {
                 const day = Languages.weekdayTranslate(rh.dayOfTheWeek)
-                const isToday = DateUtils.isStringToday(day)
+                const isToday = DateUtils.isDateNameToday(day)
                 const dayHeader = `${day} ${isToday ? ' (i dag)' : ''}`
                 fmMessage.addField(dayHeader, rh.closed ? 'Stengt' : `${rh.openingTime} - ${rh.closingTime}`)
                 if (isToday) todayClosing = rh.closingTime

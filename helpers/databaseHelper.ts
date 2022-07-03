@@ -135,6 +135,10 @@ export interface debuffItem {
     amount: number
 }
 
+export interface ferieItem {
+    fromDate: Date
+    toDate: Date
+}
 export class DatabaseHelper {
     /** Hent et brukerobjekt på ID. De fleste verdier kan være undefined. Hvis brukeren ikke finnes så opprettes det et objekt med default verdier */
     static getUser(userID: string): MazariniUser {
@@ -176,6 +180,12 @@ export class DatabaseHelper {
     static deleteCountdownValue(id: string) {
         db.delete(`${otherFolderPreifx}/countdown/${id}/`)
     }
+    static setFerieValue(id: string, key: string, value: string) {
+        db.push(`${otherFolderPreifx}/ferie/${id}/${key}`, `${value}`)
+    }
+    static deleteFerieValue(id: string) {
+        db.delete(`${otherFolderPreifx}/ferie/${id}/`)
+    }
 
     static setStoreItems(key: string, itemList: itemsBoughtAtStore) {
         const prefix: dbPrefix = 'shopItems'
@@ -184,6 +194,9 @@ export class DatabaseHelper {
 
     static getAllCountdownValues() {
         return db.getData(`${otherFolderPreifx}/countdown/`)
+    }
+    static getAllFerieValues() {
+        return db.getData(`${otherFolderPreifx}/ferie/`)
     }
     /** Hent en verdi i "other"-delen av databasen */
     static getNonUserValue(id: string, key: string, noInsertions?: boolean) {

@@ -2,7 +2,7 @@ import { Client, Message } from 'discord.js'
 import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement } from '../General/commands'
-import { DatabaseHelper } from '../helpers/databaseHelper'
+import { DatabaseHelper, ferieItem } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { countdownTime, dateRegex, DateUtils } from '../utils/dateUtils'
@@ -54,6 +54,53 @@ export class DateCommands extends AbstractCommands {
         })
         timeString += ' ' + textEnding
         return timeString
+    }
+
+    private registerFerie(message: Message, messageContent: string, args: string[]) {
+        if (args[0] == 'fjern') {
+            return DatabaseHelper.deleteFerieValue(message.author.username)
+        }
+        if (args[0] && !args[1]) {
+            return message.reply('Du mangler til eller fra dato')
+        }
+        /** Registrer ferier */
+        if (args.length >= 2) {
+            //dd-mm-yyyy
+            const isLegal = dateRegex.test(args[0]) && dateRegex.test(args[1])
+            if (!isLegal) {
+                return message.reply('du må formattere datoene som dd-mm-yyyy')
+            }
+            moment.locale('nb')
+            const date1 = moment(args[0], 'DD-MM-YYYY').toDate() // new Date(args[0])
+            const date2 = moment(args[1], 'DD-MM-YYYY').toDate()
+            const feireObj: ferieItem = {
+                fromDate: date1,
+                toDate: date2,
+            }
+            DatabaseHelper.setFerieValue(message.author.username, 'date', JSON.stringify(feireObj))
+        }
+        if (Object.keys(DatabaseHelper.getAllFerieValues()).length < 1) {
+            return message.reply('Ingen har ferie')
+        }
+        let sendThisText = ''
+        const ferieDates = DatabaseHelper.getAllFerieValues()
+        /** Finn alle ferier og print dem hvis de er gyldige */
+        Object.keys(ferieDates).forEach((username) => {
+            if (DatabaseHelper.getNonUserValue('ferie', username)?.date) {
+                const ferieEle = JSON.parse(DatabaseHelper.getNonUserValue('ferie', username).date) as ferieItem
+                const date1 = moment(new Date(ferieEle.fromDate), 'DD/MM/YYYY').toDate()
+                const date2 = moment(new Date(ferieEle.toDate), 'DD/MM/YYYY').toDate()
+                if (!DateUtils.dateHasPassed(date2)) {
+                    const timeRemaining = DateUtils.dateHasPassed(date1)
+                        ? `(${DateUtils.getTimeTo(date2).days} dager igjen av ferien)`
+                        : `(${DateUtils.getTimeTo(date1).days} dager igjen til ferien starter)`
+                    sendThisText += `\n${username} har ferie mellom ${moment(date1).format('ll')} og ${moment(date2).format('ll')} ${timeRemaining}`
+                }
+            }
+        })
+
+        if (!sendThisText) sendThisText = 'Ingen har ferie lenger :('
+        this.messageHelper.sendMessage(message.channelId, sendThisText)
     }
     private async countdownToDate(message: Message, messageContent: string, args: string[]) {
         if (args[0] == 'fjern') {
@@ -289,6 +336,14 @@ export class DateCommands extends AbstractCommands {
                     "Se hvor lenge det er igjen til events (Legg til ny med '!mz countdown <dd-mm-yyyy> <hh> <beskrivelse> (klokke kan spesifiserert slik: <hh:mm:ss:SSS>. Kun time er nødvendig)",
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     this.countdownToDate(rawMessage, messageContent, args)
+                },
+                category: 'annet',
+            },
+            {
+                commandName: 'ferie',
+                description: "Registrer ferien din ('!mz ferie <fra-dato> <til-dato> (dd-mm-yyyy)",
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {
+                    this.registerFerie(rawMessage, messageContent, args)
                 },
                 category: 'annet',
             },

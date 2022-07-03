@@ -4,12 +4,14 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '8.0.1'
+    public static readonly currentVersion = '8.1.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Polet viser nå (forhåpentligvis) korrekt om det er åpent eller ikke` + `\n* Ukepengene er økt til 1000 (fra 200)`
+        `\n* Du kan nå registrere ferien din med '!mz ferie <fra-dato> <til-dato> (dd-mm-yyyy) (Siden Eivind nekte å bruka countdown)` +
+        `\n* 'ferie' teller ned til starten av ferien (og deretter hvor mange dager som er igjen av den)` +
+        `\n* Liten refaktorering av countdown`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
