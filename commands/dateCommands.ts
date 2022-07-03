@@ -88,12 +88,12 @@ export class DateCommands extends AbstractCommands {
         Object.keys(ferieDates).forEach((username) => {
             if (DatabaseHelper.getNonUserValue('ferie', username)?.date) {
                 const ferieEle = JSON.parse(DatabaseHelper.getNonUserValue('ferie', username).date) as ferieItem
-                const date1 = moment(new Date(ferieEle.fromDate), 'DD/MM/YYYY').toDate()
-                const date2 = moment(new Date(ferieEle.toDate), 'DD/MM/YYYY').toDate()
+                const date1 = moment(new Date(ferieEle.fromDate), 'DD-MM-YYYY').toDate()
+                const date2 = moment(new Date(ferieEle.toDate), 'DD-MM-YYYY').toDate()
                 if (!DateUtils.dateHasPassed(date2)) {
                     const timeRemaining = DateUtils.dateHasPassed(date1)
-                        ? `(${DateUtils.getTimeTo(date2).days} dager igjen av ferien)`
-                        : `(${DateUtils.getTimeTo(date1).days} dager igjen til ferien starter)`
+                        ? `(${DateUtils.getTimeTo(date2)?.days} dager igjen av ferien)`
+                        : `(${DateUtils.getTimeTo(date1)?.days} dager igjen til ferien starter)`
                     sendThisText += `\n${username} har ferie mellom ${moment(date1).format('ll')} og ${moment(date2).format('ll')} ${timeRemaining}`
                 }
             }

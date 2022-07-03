@@ -101,13 +101,13 @@ export class DateUtils {
         }
     }
 
-    static isToday(compareDate: Date) {
+    static isToday(compareDate: Date, ignoreMonthOffset?: boolean) {
         const today = new Date()
-        return compareDate.getDate() == today.getDate() && compareDate.getMonth() == today.getMonth() + 1
+        return compareDate.getDate() == today.getDate() && compareDate.getMonth() == today.getMonth() + (ignoreMonthOffset ? 0 : 1)
     }
 
     static dateHasPassed(d: Date) {
-        return moment(d).isBefore(moment(), 'day')
+        return moment(d).isBefore(moment(), 'day') || DateUtils.isToday(d, true)
     }
 
     /** Checks if the string supplied is today (e.g. "monday")  */
