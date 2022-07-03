@@ -117,6 +117,10 @@ export class DateUtils {
         return dateName.toLowerCase() === day.toLowerCase()
     }
 
+    static isDateBefore(date1: Date, date2: Date) {
+        return moment(date1).isBefore(moment(date2))
+    }
+
     /** Sjekk om en gitt tid (eks. 16:00) har passert i dag. Må formatteres hh:mm */
     static isHourMinuteBefore(hour: number, minute: number) {
         return moment().isBefore(moment({ hour: hour, minute: minute }))

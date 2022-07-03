@@ -77,7 +77,11 @@ export class DateCommands extends AbstractCommands {
                 fromDate: date1,
                 toDate: date2,
             }
-            DatabaseHelper.setFerieValue(message.author.username, 'date', JSON.stringify(feireObj))
+            if (DateUtils.isDateBefore(date1, date2)) {
+                DatabaseHelper.setFerieValue(message.author.username, 'date', JSON.stringify(feireObj))
+            } else {
+                message.reply('Dato 1 må være før dato 2')
+            }
         }
         if (Object.keys(DatabaseHelper.getAllFerieValues()).length < 1) {
             return message.reply('Ingen har ferie')
