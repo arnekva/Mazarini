@@ -78,15 +78,11 @@ export class MazariniClient {
     setupClient(client: Client) {
         const _mzClient = this
         const _msgHelper = this.messageHelper
-        moment.updateLocale('nb', {
-            week: {
-                dow: 1,
-            },
-        })
+        moment.updateLocale('nb', {})
         client.on('ready', async () => {
             const today = new Date()
             console.log(`Logged in as ${_mzClient.client.user?.tag} ${today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()} !`)
-            moment.locale('nb')
+           
             if (environment == 'prod')
                 _msgHelper.sendMessageToActionLog(
                     _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
