@@ -4,14 +4,11 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '8.1.0'
+    public static readonly currentVersion = '8.1.1'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string =
-        `\n* Du kan nå registrere ferien din med '!mz ferie <fra-dato> <til-dato> (dd-mm-yyyy) (Siden Eivind nekte å bruka countdown)` +
-        `\n* 'ferie' teller ned til starten av ferien (og deretter hvor mange dager som er igjen av den)` +
-        `\n* Liten refaktorering av countdown`
+    public static readonly currentPatchNotes: string = `\n* Du kan nå bruke '!mz run dbget' for brukerverdier`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

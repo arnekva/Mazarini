@@ -259,16 +259,24 @@ export class Admin extends AbstractCommands {
                 if (formatted) return this.messageHelper.sendMessage(message.channelId, formatted)
                 return undefined
             } else {
-                //Vil hente brukerverdier
-                return message.reply('Du kan ikke hente ut brukerverdier for øyeblikket. Denne delen refaktoreres enda')
-                // if (ObjectUtils.isObjectOfTypeDbPrefix(p)) {
-                //     const dataArray = DatabaseHelper.getAllValuesFromPrefix(p)
-                //     const formatted = dataArray.map((d) => `${d.key} - ${d.val}`).join('\n')
-                //     if (formatted) this.messageHelper.sendMessage(message.channelId, formatted)
-                //     else message.reply('Fant ingen data')
-                // } else {
-                //     message.reply('Du har skrevet en ugyldig prefix')
-                // }
+                const username = args[1]
+                const user = UserUtils.findUserByUsername(username, message)
+                if (user) {
+                    const prop = args[2] as dbPrefix
+                    if (ObjectUtils.isObjectOfTypeDbPrefix(prop)) {
+                        const dbUser = DatabaseHelper.getUser(user.id)
+                        const value = dbUser[prop]
+                        if (value) {
+                            this.messageHelper.sendMessage(message.channelId, `Verdi er <${value}> (prop: ${prop}, bruker: ${user.username})`)
+                        } else {
+                            message.reply('Fant ingen verdi')
+                        }
+                    } else {
+                        message.reply('Fant ikke egenskapen')
+                    }
+                } else {
+                    message.reply('Fant ikke bruker')
+                }
             }
         } else {
             return message.reply('Du må spesifisere path eller prefix')
