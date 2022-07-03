@@ -193,7 +193,7 @@ export class GamblingCommands extends AbstractCommands {
     }
 
     private async startVerdensKrig(message: Message, content: string, args: string[]) {
-        const amount = this.findKrigValue(args[0], message.author.username)
+        const amount = this.findKrigValue(args[0], message.author.id)
         const user = DatabaseHelper.getUser(message.author.id)
         const userBalance = user.chips
         if (!amount) message.reply('Du har skrevet inn et ugyldig tall')
@@ -280,7 +280,7 @@ export class GamblingCommands extends AbstractCommands {
     }
 
     private async krigWithAnyone(message: Message, content: string, args: string[]) {
-        const amount = Number(this.findKrigValue(args[0], message.author.username))
+        const amount = Number(this.findKrigValue(args[0], message.author.id))
         if (!amount) {
             message.reply('Du har skrevet inn et ugyldig tall')
         } else {

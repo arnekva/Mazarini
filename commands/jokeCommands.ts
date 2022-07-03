@@ -246,7 +246,7 @@ export class JokeCommands extends AbstractCommands {
                     bkCounter++
                     this.messageHelper.sendMessage(
                         message.channelId,
-                        (user ? user + ', du har blitt bonket. (' + `${bkCounter} ${bkCounter == 1 ? 'gang' : 'ganger'}) ` : '') + img
+                        (user ? user.displayName + ', du har blitt bonket. (' + `${bkCounter} ${bkCounter == 1 ? 'gang' : 'ganger'}) ` : '') + img
                     )
                 }
             } else {
