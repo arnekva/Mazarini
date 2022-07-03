@@ -121,6 +121,10 @@ export class DateUtils {
         return moment(date1).isBefore(moment(date2))
     }
 
+    static dateIsMaxXDaysInFuture(date: Date, numDays: number) {
+        return moment(date).isBefore(moment().add(numDays, 'days'))
+    }
+
     /** Sjekk om en gitt tid (eks. 16:00) har passert i dag. Må formatteres hh:mm */
     static isHourMinuteBefore(hour: number, minute: number) {
         return moment().isBefore(moment({ hour: hour, minute: minute }))

@@ -77,10 +77,11 @@ export class DateCommands extends AbstractCommands {
                 fromDate: date1,
                 toDate: date2,
             }
-            if (DateUtils.isDateBefore(date1, date2)) {
+            const maxNumDays = 200
+            if (DateUtils.isDateBefore(date1, date2) && DateUtils.dateIsMaxXDaysInFuture(date2, maxNumDays)) {
                 DatabaseHelper.setFerieValue(message.author.username, 'date', JSON.stringify(feireObj))
             } else {
-                message.reply('Dato 1 må være før dato 2')
+                message.reply(`Dato 1 må være før dato 2, og ferie kan maks settes til ${maxNumDays} dager frem i tid fra nåværende dato`)
             }
         }
         if (Object.keys(DatabaseHelper.getAllFerieValues()).length < 1) {
