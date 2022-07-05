@@ -324,6 +324,10 @@ export class Admin extends AbstractCommands {
         message.reply('empty function')
     }
 
+    private timeoutUser(message: Message, messageContent: string, args: string[]){
+        
+    }
+
     public getAllCommands(): ICommandElement[] {
         return [
             {

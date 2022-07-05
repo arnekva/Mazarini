@@ -4,11 +4,11 @@ import { ICommandElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '8.1.1'
+    public static readonly currentVersion = '8.2.02'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `\n* Du kan nå bruke '!mz run dbget' for brukerverdier`
+    public static readonly currentPatchNotes: string = `\n* Det loggest nå til #action_log når en bruker blir timeout-et`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

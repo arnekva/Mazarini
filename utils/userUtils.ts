@@ -49,7 +49,6 @@ export namespace UserUtils {
         if (newMember.id === '802945796457758760') return '' //Ikke gjør noe når bot oppdateres
         if (oldMember.id === '802945796457758760') return ''
 
-        const roles = oldMember.roles.cache
         const role = roleArraysEqual([...oldMember.roles.cache.values()], [...newMember.roles.cache.values()])
         if (role) {
             return 'role: ' + role.name
@@ -59,8 +58,16 @@ export namespace UserUtils {
         if (oldMember.user.username !== newMember.user.username) return 'username'
 
         //TODO: Sjekk etter andre ting?
+        if (oldMember.isCommunicationDisabled() !== newMember.isCommunicationDisabled()) {
+            const date = newMember.communicationDisabledUntil
+            return `Timeout ${
+                newMember.isCommunicationDisabled()
+                    ? `${date.getDate()}.${date.getMonth()}.${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}`
+                    : 'er ferdig'
+            }`
+        }
         if (oldMember.nickname !== newMember.nickname) return 'nickname'
-        if (oldMember.nickname !== newMember.nickname) return 'nickname'
+
         return ''
     }
 
