@@ -8,7 +8,8 @@ export class PatchNotes extends AbstractCommands {
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `\n* Det loggest nå til #action_log når en bruker blir timeout-et`
+    public static readonly currentPatchNotes: string =
+        `\n* Det loggest nå til #action_log når en bruker blir timeout-et` + `\n* Du kan nå gjøre '!mz fortune for å drop i Fortune's Keep`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
