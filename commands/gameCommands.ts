@@ -85,6 +85,10 @@ export class GameCommands extends AbstractCommands {
         const randomElement = rebirthIsland[Math.floor(Math.random() * rebirthIsland.length)]
         this.messageHelper.sendMessage(message.channelId, 'Dere dropper i ' + randomElement)
     }
+    private dropFortune(message: Message) {
+        const randomElement = fortunesKeep[Math.floor(Math.random() * rebirthIsland.length)]
+        this.messageHelper.sendMessage(message.channelId, 'Dere dropper i ' + randomElement)
+    }
 
     private dropGrid(message: Message, messageContent: string) {
         const gridLetter = 'ABCDEFGHIJ'
@@ -267,6 +271,14 @@ export class GameCommands extends AbstractCommands {
                 category: 'gaming',
             },
             {
+                commandName: 'fortune',
+                description: "Få et tilfeldig sted å droppe i Fortune's Keep",
+                command: (rawMessage: Message, messageContent: string) => {
+                    this.dropFortune(rawMessage)
+                },
+                category: 'gaming',
+            },
+            {
                 commandName: 'grid',
                 description: 'Få et tilfeldig sted å droppe ut fra Grid i Verdansk',
                 command: (rawMessage: Message, messageContent: string) => {
@@ -327,4 +339,18 @@ export const rebirthIsland = [
     'Living Quarters',
     'Security Area',
     'en plass squad leader bestemmer',
+]
+export const fortunesKeep = [
+    'Town',
+    'Overlook',
+    'Graveyard',
+    'Terraces',
+    'Keep',
+    'Gatehouse',
+    'Grotto',
+    "Smuggler's Cove",
+    'Bay',
+    'Winery',
+    'Lighthouse',
+    'Camp',
 ]
