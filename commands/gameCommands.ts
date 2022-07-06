@@ -250,7 +250,8 @@ export class GameCommands extends AbstractCommands {
                 commandName: 'rocket',
                 description: 'Få Rocket League stats. <2v2|3v3|stats>',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.rocketLeagueRanks(rawMessage, messageContent, args)
+                    rawMessage.reply('Denne funksjonen er midlertidig skrudd av grunnet Puppeteer-krøll')
+                    // this.rocketLeagueRanks(rawMessage, messageContent, args)
                 },
                 category: 'gaming',
             },
@@ -271,7 +272,7 @@ export class GameCommands extends AbstractCommands {
                 category: 'gaming',
             },
             {
-                commandName: 'fortune',
+                commandName: ['fortune', "Fortune's Keep"],
                 description: "Få et tilfeldig sted å droppe i Fortune's Keep",
                 command: (rawMessage: Message, messageContent: string) => {
                     this.dropFortune(rawMessage)
