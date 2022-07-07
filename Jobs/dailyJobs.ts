@@ -47,8 +47,6 @@ export class DailyJobs {
     private checkForUserBirthdays() {
         const brukere = DatabaseHelper.getAllUsers()
         Object.keys(brukere).forEach((userID: string) => {
-            console.log(userID)
-
             const user = DatabaseHelper.getUser(userID)
             const birthday: string | undefined = user?.birthday
 
