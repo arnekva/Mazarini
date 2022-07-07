@@ -298,16 +298,17 @@ export class DateCommands extends AbstractCommands {
                 const timeUntilBirthday = this.formatCountdownText(DateUtils.getTimeTo(date), `til ${message.author.username} sin bursdag.`, undefined, true)
                 this.messageHelper.sendMessage(message.channelId, timeUntilBirthday ?? 'Klarte ikke regne ut')
             }
-        } else {
+        } else if (args[0]) {
             const dateString = args[0]
             if (dateString.split('-').length < 2 || (!(new Date(dateString) instanceof Date) && !isNaN(new Date(dateString).getTime()))) {
-                //TODO: Must be tested
                 message.reply('Datoen er feilformattert. dd-mm-yyyy')
             } else {
                 user.birthday = dateString
                 DatabaseHelper.updateUser(user)
                 this.messageHelper.reactWithThumbs(message, 'up')
             }
+        } else {
+            message.reply('Du må legge ved dato formattert dd-mm-yyyy')
         }
     }
 

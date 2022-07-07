@@ -42,20 +42,20 @@ export class UserCommands extends AbstractCommands {
 
         const sentMessage = await this.messageHelper.sendFormattedMessage(message.channel as TextChannel, msg)
         roles.forEach((r) => sentMessage?.react(r.emoji))
-        if(sentMessage)
-        sentMessage?.createReactionCollector().on('collect', (reaction) => {
-            const users = reaction.users.cache.filter((u) => u.id !== '802945796457758760')
-            const roleId = roles.find((rEmoji) => rEmoji.emoji === reaction.emoji.name)
-            if (roleId) {
-                const role = message.guild?.roles?.cache.find((r) => r.id === roleId.id)
-                users.forEach((u) => {
-                    const userAsMember = message.guild?.members?.cache.find((m) => m.id === u.id)
-                    if (role && userAsMember) {
-                        userAsMember.roles.add(role)
-                    }
-                })
-            }
-        })
+        if (sentMessage)
+            sentMessage?.createReactionCollector().on('collect', (reaction) => {
+                const users = reaction.users.cache.filter((u) => u.id !== '802945796457758760')
+                const roleId = roles.find((rEmoji) => rEmoji.emoji === reaction.emoji.name)
+                if (roleId) {
+                    const role = message.guild?.roles?.cache.find((r) => r.id === roleId.id)
+                    users.forEach((u) => {
+                        const userAsMember = message.guild?.members?.cache.find((m) => m.id === u.id)
+                        if (role && userAsMember) {
+                            userAsMember.roles.add(role)
+                        }
+                    })
+                }
+            })
     }
 
     private async addQuote(message: Message, content: string, args: string[]) {
