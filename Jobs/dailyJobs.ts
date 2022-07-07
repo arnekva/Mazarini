@@ -2,6 +2,7 @@ import { IDailyPriceClaim } from '../commands/gamblingCommands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
+import { MessageUtils } from '../utils/messageUtils'
 
 export class DailyJobs {
     private messageHelper: MessageHelper
@@ -57,9 +58,7 @@ export class DailyJobs {
             const isBirthdayToday = DateUtils.isToday(new Date(date))
 
             if (isBirthdayToday) {
-                console.log('bd: ' + user.id, user.displayName, birthday)
-
-                // this.messageHelper.sendMessage(MessageUtils.CHANNEL_IDs.GENERAL, `Gratulerer med dagen ${user.displayName}!`)
+                this.messageHelper.sendMessage(MessageUtils.CHANNEL_IDs.GENERAL, `Gratulerer med dagen ${user.displayName}!`)
             }
         })
 
