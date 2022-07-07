@@ -324,12 +324,10 @@ export class Admin extends AbstractCommands {
     private debugMethod(message: Message, messageContent: string, args: string[]) {
         message.reply('empty function')
         const jobs = new DailyJobs(this.messageHelper)
-        jobs.runJobs()
+        jobs.runJobs(true)
     }
 
-    private timeoutUser(message: Message, messageContent: string, args: string[]){
-        
-    }
+    private timeoutUser(message: Message, messageContent: string, args: string[]) {}
 
     public getAllCommands(): ICommandElement[] {
         return [

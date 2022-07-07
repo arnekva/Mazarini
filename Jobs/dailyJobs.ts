@@ -10,9 +10,11 @@ export class DailyJobs {
         this.messageHelper = messageHelper
     }
 
-    runJobs() {
-        // this.validateAndResetDailyClaims()
-        // this.resetStatuses()
+    runJobs(onlyBd?: boolean) {
+        if (!onlyBd) {
+            this.validateAndResetDailyClaims()
+            this.resetStatuses()
+        }
         this.checkForUserBirthdays()
         // this.logEvent()
     }
