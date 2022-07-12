@@ -16,6 +16,7 @@
     "author": "Arne Kvaleberg",
     "license": "ISC",
     "dependencies": {
+        "@discordjs/rest": "^0.5.0",
         "@discordjs/voice": "^0.8.0",
         "@types/node": "^15.6.2",
         "base-64": "^1.0.0",
@@ -24,6 +25,7 @@
         "deckofcards": "^1.2.2",
         "deep-diff": "^1.0.2",
         "didyoumean2": "^5.0.0",
+        "discord-api-types": "^0.36.1",
         "discord.js": "^13.0.0",
         "emoji-strip": "^1.0.1",
         "holidays-norway": "^1.1.0",

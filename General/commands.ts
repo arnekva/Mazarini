@@ -1,4 +1,4 @@
-import { Client, Message } from 'discord.js'
+import { CacheType, Client, Interaction, Message } from 'discord.js'
 import { Admin } from '../admin/admin'
 import { CardCommands } from '../commands/cardCommands'
 import { DateCommands } from '../commands/dateCommands'
@@ -40,6 +40,14 @@ export interface ICommandElement {
     isSuperAdmin?: boolean
     /** Oppgi channel-IDer i en array her hvis commanden kun kan brukes i de channelene */
     canOnlyBeUsedInSpecificChannel?: string[]
+}
+
+export interface IInteractionElement {
+    /** Oppgi interaction ID for interactionen som skal kjøre denne commanden */
+    commandName: string
+    category: commandCategory
+    isAdmin?: boolean
+    command: (rawMessage: Interaction<CacheType>) => void
 }
 
 export type commandCategory = 'musikk' | 'gambling' | 'gaming' | 'tekst' | 'annet' | 'admin' | 'spin' | 'drink'
@@ -112,6 +120,29 @@ export class Commands {
             ...this.drinksCommands.getAllCommands(),
             ...this.nameCommands.getAllCommands(),
             ...this.poletCommands.getAllCommands(),
+        ]
+    }
+
+    getAllInteractionCommands() {
+        return [
+            ...this.gameCommands.getAllInteractions(),
+            ...this.spinner.getAllInteractions(),
+            ...this.jokeCommands.getAllInteractions(),
+            ...this.adminCommands.getAllInteractions(),
+            ...this.gamblingCommands.getAllInteractions(),
+            ...this.dateCommands.getAllInteractions(),
+            ...this.warzoneCommands.getAllInteractions(),
+            ...this.patchNotes.getAllInteractions(),
+            ...this.spotifyCommands.getAllInteractions(),
+            ...this.musicCommands.getAllInteractions(),
+            ...this.memeCommands.getAllInteractions(),
+            ...this.userCommands.getAllInteractions(),
+            ...this.weatherCommands.getAllInteractions(),
+            ...this.soundCommands.getAllInteractions(),
+            ...this.cardCommands.getAllInteractions(),
+            ...this.drinksCommands.getAllInteractions(),
+            ...this.nameCommands.getAllInteractions(),
+            ...this.poletCommands.getAllInteractions(),
         ]
     }
 

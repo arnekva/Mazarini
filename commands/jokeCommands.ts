@@ -1,6 +1,6 @@
 import { Client, Message, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { ICommandElement } from '../General/commands'
+import { ICommandElement, IInteractionElement } from '../General/commands'
 import { globalArrays } from '../globals'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
@@ -385,5 +385,8 @@ export class JokeCommands extends AbstractCommands {
                 category: 'annet',
             },
         ]
+    }
+    getAllInteractions(): IInteractionElement[] {
+        return []
     }
 }

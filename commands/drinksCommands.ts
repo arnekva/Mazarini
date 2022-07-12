@@ -1,6 +1,6 @@
 import { Client, Message } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { ICommandElement } from '../General/commands'
+import { ICommandElement, IInteractionElement } from '../General/commands'
 import { MessageHelper } from '../helpers/messageHelper'
 import { RandomUtils } from '../utils/randomUtils'
 import { CardCommands } from './cardCommands'
@@ -310,5 +310,9 @@ export class DrinksCommands extends AbstractCommands {
                 category: 'drink',
             },
         ]
+    }
+
+    getAllInteractions(): IInteractionElement[] {
+        return []
     }
 }

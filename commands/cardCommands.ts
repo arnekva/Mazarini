@@ -1,6 +1,6 @@
 import { Client, Message } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { ICommandElement } from '../General/commands'
+import { ICommandElement, IInteractionElement } from '../General/commands'
 import { MessageHelper } from '../helpers/messageHelper'
 const deckOfCards = require('deckofcards')
 
@@ -150,5 +150,9 @@ export class CardCommands extends AbstractCommands {
                 category: 'annet',
             },
         ]
+    }
+
+    getAllInteractions(): IInteractionElement[] {
+        return []
     }
 }

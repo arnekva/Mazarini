@@ -1,9 +1,10 @@
-import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
+import { CacheType, Client, CommandInteraction, Interaction, Message, MessageEmbed, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'
-import { ICommandElement } from '../General/commands'
+import { ICommandElement, IInteractionElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { ArrayUtils } from '../utils/arrayUtils'
 import { RandomUtils } from '../utils/randomUtils'
 import { TextUtils } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
@@ -76,18 +77,26 @@ export class GameCommands extends AbstractCommands {
         super(client, messageHelper)
     }
 
-    private dropCaldera(message: Message) {
-        const randomElement = calderaPoints[Math.floor(Math.random() * calderaPoints.length)]
-        this.messageHelper.sendMessage(message.channelId, 'Dere dropper i ' + randomElement)
-    }
+    private async findDropLocation(interaction: Interaction<CacheType>) {
+        let mapArray = []
+        let mapName = ''
+        if (interaction.isCommand()) {
+            const map = interaction.options.getString('map')
 
-    private dropRebirth(message: Message) {
-        const randomElement = rebirthIsland[Math.floor(Math.random() * rebirthIsland.length)]
-        this.messageHelper.sendMessage(message.channelId, 'Dere dropper i ' + randomElement)
-    }
-    private dropFortune(message: Message) {
-        const randomElement = fortunesKeep[Math.floor(Math.random() * rebirthIsland.length)]
-        this.messageHelper.sendMessage(message.channelId, 'Dere dropper i ' + randomElement)
+            if (map === 'caldera') {
+                mapArray = calderaPoints
+                mapName = 'Caldera'
+            } else if (map === 'rebirth') {
+                mapArray = rebirthIsland
+                mapName = 'Rebirth Island'
+            } else if (map === 'fortune') {
+                mapArray = fortunesKeep
+                mapName = "Fortune's Keep"
+            }
+        }
+
+        const commandInteraction = interaction as CommandInteraction
+        await commandInteraction.reply(`Dere dropper i ${ArrayUtils.randomChoiceFromArray(mapArray)} (${mapName})`)
     }
 
     private dropGrid(message: Message, messageContent: string) {
@@ -251,34 +260,10 @@ export class GameCommands extends AbstractCommands {
                 description: 'Få Rocket League stats. <2v2|3v3|stats>',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
                     rawMessage.reply('Denne funksjonen er midlertidig skrudd av grunnet Puppeteer-krøll')
-                    // this.rocketLeagueRanks(rawMessage, messageContent, args)
                 },
                 category: 'gaming',
             },
-            {
-                commandName: 'caldera',
-                description: 'Få et tilfeldig sted å droppe i Caldera',
-                command: (rawMessage: Message, messageContent: string) => {
-                    this.dropCaldera(rawMessage)
-                },
-                category: 'gaming',
-            },
-            {
-                commandName: 'rebirth',
-                description: 'Få et tilfeldig sted å droppe i Rebirth Island',
-                command: (rawMessage: Message, messageContent: string) => {
-                    this.dropRebirth(rawMessage)
-                },
-                category: 'gaming',
-            },
-            {
-                commandName: ['fortune', "Fortune's Keep"],
-                description: "Få et tilfeldig sted å droppe i Fortune's Keep",
-                command: (rawMessage: Message, messageContent: string) => {
-                    this.dropFortune(rawMessage)
-                },
-                category: 'gaming',
-            },
+
             {
                 commandName: 'grid',
                 description: 'Få et tilfeldig sted å droppe ut fra Grid i Verdansk',
@@ -287,9 +272,29 @@ export class GameCommands extends AbstractCommands {
                 },
                 category: 'gaming',
             },
+            {
+                commandName: ['fortune', 'caldera', 'rebirth'],
+                description: 'Deprecated, bruk slash-command i stedet',
+                command: (rawMessage: Message, messageContent: string) => {
+                    rawMessage.reply('Denne commanden er deprecated. Bruk /drop i stedet')
+                },
+                category: 'gaming',
+            },
+        ]
+    }
+    public getAllInteractions(): IInteractionElement[] {
+        return [
+            {
+                commandName: 'drop',
+                command: (interaction: Interaction<CacheType>) => {
+                    this.findDropLocation(interaction)
+                },
+                category: 'gaming',
+            },
         ]
     }
 }
+
 export const dropLocations: dropLocation[] = [
     { name: 'Arsenal', coord: ['C1', 'D1', 'E1', 'D2'] },
     { name: 'Docks', coord: ['F0', 'G0', 'F1', 'G1'] },

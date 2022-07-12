@@ -1,6 +1,6 @@
 import { Client } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { ICommandElement } from '../General/commands'
+import { ICommandElement, IInteractionElement } from '../General/commands'
 import { MessageHelper } from '../helpers/messageHelper'
 
 export class SoundCommands extends AbstractCommands {
@@ -9,6 +9,9 @@ export class SoundCommands extends AbstractCommands {
     }
 
     getAllCommands(): ICommandElement[] {
+        return []
+    }
+    getAllInteractions(): IInteractionElement[] {
         return []
     }
 }

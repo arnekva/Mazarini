@@ -1,7 +1,7 @@
 import { Client, Message } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { lfKey } from '../client-env'
-import { ICommandElement } from '../General/commands'
+import { ICommandElement, IInteractionElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -335,5 +335,8 @@ Docs: https://www.last.fm/api/show/user.getInfo
                 category: 'musikk',
             },
         ]
+    }
+    getAllInteractions(): IInteractionElement[] {
+        return []
     }
 }

@@ -1,15 +1,15 @@
 import { Client, Message } from 'discord.js'
 import { AbstractCommands } from './Abstracts/AbstractCommand'
-import { ICommandElement } from './General/commands'
+import { ICommandElement, IInteractionElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '8.2.02'
+    public static readonly currentVersion = '8.3.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Det loggest nå til #action_log når en bruker blir timeout-et` + `\n* Du kan nå gjøre '!mz fortune for å drop i Fortune's Keep`
+        `\n* Det er nå lagt til rette for /slash commands i koden` + `\n* Første slash command ut er /drop for tilfeldig drop location i Warzone`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
@@ -41,5 +41,8 @@ export class PatchNotes extends AbstractCommands {
                 category: 'admin',
             },
         ]
+    }
+    getAllInteractions(): IInteractionElement[] {
+        return []
     }
 }

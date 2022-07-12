@@ -1,7 +1,7 @@
 import { Client, Message } from 'discord.js'
 import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { ICommandElement } from '../General/commands'
+import { ICommandElement, IInteractionElement } from '../General/commands'
 import { DatabaseHelper, ferieItem } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
@@ -368,5 +368,9 @@ export class DateCommands extends AbstractCommands {
                 category: 'annet',
             },
         ]
+    }
+
+    getAllInteractions(): IInteractionElement[] {
+        return []
     }
 }

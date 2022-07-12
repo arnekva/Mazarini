@@ -1,6 +1,6 @@
 import { Client, Message } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { ICommandElement } from '../General/commands'
+import { ICommandElement, IInteractionElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
@@ -195,5 +195,9 @@ export class NameCommands extends AbstractCommands {
                 category: 'annet',
             },
         ]
+    }
+
+    getAllInteractions(): IInteractionElement[] {
+        return []
     }
 }

@@ -82,7 +82,7 @@ export class MazariniClient {
         client.on('ready', async () => {
             const today = new Date()
             console.log(`Logged in as ${_mzClient.client.user?.tag} ${today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()} !`)
-           
+
             if (environment == 'prod')
                 _msgHelper.sendMessageToActionLog(
                     _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
@@ -200,9 +200,9 @@ export class MazariniClient {
 
         /** For interactions (slash-commands and user-commands) */
         client.on('interactionCreate', async (interaction: Interaction<CacheType>) => {
-            if (interaction.channelId)
-                _msgHelper.sendMessage(interaction.channelId, 'Shoppen er dessverre stengt. Her må du masa på Maggi for at han ska fiksa an')
-
+            // SlashCommandHelper.buildCommands()
+            _mzClient.commandRunner.checkForCommandInInteraction(interaction)
+            // _mzClient.commandRunner.checkMessageForJokes(newMessage as Message)
             // ShopClass.openShop(interaction, client)
         })
 

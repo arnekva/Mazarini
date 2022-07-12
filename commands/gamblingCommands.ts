@@ -1,7 +1,7 @@
 import { Client, Message, MessageEmbed, TextChannel, User } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'
-import { ICommandElement } from '../General/commands'
+import { ICommandElement, IInteractionElement } from '../General/commands'
 import { globals } from '../globals'
 import { betObject, betObjectReturned, DatabaseHelper, dbPrefix, MazariniUser } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -1201,5 +1201,9 @@ export class GamblingCommands extends AbstractCommands {
                 canOnlyBeUsedInSpecificChannel: [MessageUtils.CHANNEL_IDs.LAS_VEGAS],
             },
         ]
+    }
+
+    getAllInteractions(): IInteractionElement[] {
+        return []
     }
 }

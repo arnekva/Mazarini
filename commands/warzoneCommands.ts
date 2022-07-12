@@ -3,7 +3,7 @@ import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
 import { Response } from 'node-fetch'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { actSSOCookie } from '../client-env'
-import { ICommandElement } from '../General/commands'
+import { ICommandElement, IInteractionElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
@@ -553,6 +553,9 @@ export class WarzoneCommands extends AbstractCommands {
                 category: 'gaming',
             },
         ]
+    }
+    getAllInteractions(): IInteractionElement[] {
+        return []
     }
 }
 

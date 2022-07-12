@@ -2,7 +2,7 @@ import { Client, Message } from 'discord.js'
 import { URLSearchParams } from 'url'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { imgflip } from '../client-env'
-import { ICommandElement } from '../General/commands'
+import { ICommandElement, IInteractionElement } from '../General/commands'
 import { MessageHelper } from '../helpers/messageHelper'
 import { TextUtils } from '../utils/textUtils'
 const fetch = require('node-fetch')
@@ -161,5 +161,8 @@ export class Meme extends AbstractCommands {
                 category: 'annet',
             },
         ]
+    }
+    getAllInteractions(): IInteractionElement[] {
+        return []
     }
 }

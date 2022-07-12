@@ -1,9 +1,9 @@
 import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
-import { MessageHelper } from '../helpers/messageHelper'
-import { ICommandElement } from '../General/commands'
-const fetch = require('node-fetch')
-import { WeatherUtils } from '../utils/weatherUtils'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { ICommandElement, IInteractionElement } from '../General/commands'
+import { MessageHelper } from '../helpers/messageHelper'
+import { WeatherUtils } from '../utils/weatherUtils'
+const fetch = require('node-fetch')
 
 export class Weather extends AbstractCommands {
     constructor(client: Client, messageHelper: MessageHelper) {
@@ -61,5 +61,8 @@ export class Weather extends AbstractCommands {
                 category: 'annet',
             },
         ]
+    }
+    getAllInteractions(): IInteractionElement[] {
+        return []
     }
 }

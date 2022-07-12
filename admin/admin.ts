@@ -1,7 +1,7 @@
 import { Client, ExcludeEnum, GuildMember, Message, TextChannel } from 'discord.js'
 import { ActivityTypes } from 'discord.js/typings/enums'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { ICommandElement } from '../General/commands'
+import { ICommandElement, IInteractionElement } from '../General/commands'
 import { ClientHelper } from '../helpers/clientHelper'
 import { DatabaseHelper, dbPrefix, prefixList, ValuePair } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -455,6 +455,9 @@ export class Admin extends AbstractCommands {
                 category: 'admin',
             },
         ]
+    }
+    getAllInteractions(): IInteractionElement[] {
+        return []
     }
 
     static isAuthorAdmin(member: GuildMember | null | undefined) {
