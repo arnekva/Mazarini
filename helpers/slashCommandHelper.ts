@@ -1,3 +1,4 @@
+import { CacheType, CommandInteraction, Interaction } from 'discord.js'
 import { discordSecret } from '../client-env'
 
 const { REST } = require('@discordjs/rest')
@@ -21,5 +22,10 @@ export class SlashCommandHelper {
             )
 
         // await rest.put(Routes.applicationCommands(''), { body: [dropCommand] })
+    }
+
+    /** Get the interaction typed as CommandInteraction */
+    static getTypedInteraction(interaction: Interaction<CacheType>) {
+        return interaction as CommandInteraction<CacheType>
     }
 }

@@ -4,6 +4,7 @@ import { environment } from '../client-env'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { SlashCommandHelper } from '../helpers/slashCommandHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { RandomUtils } from '../utils/randomUtils'
 import { TextUtils } from '../utils/textUtils'
@@ -77,22 +78,22 @@ export class GameCommands extends AbstractCommands {
         super(client, messageHelper)
     }
 
-    private async findDropLocation(interaction: Interaction<CacheType>) {
+    private async findDropLocation(rawInteraction: Interaction<CacheType>) {
         let mapArray = []
         let mapName = ''
-        if (interaction.isCommand()) {
-            const map = interaction.options.getString('map')
+        const interaction = SlashCommandHelper.getTypedInteraction(rawInteraction)
 
-            if (map === 'caldera') {
-                mapArray = calderaPoints
-                mapName = 'Caldera'
-            } else if (map === 'rebirth') {
-                mapArray = rebirthIsland
-                mapName = 'Rebirth Island'
-            } else if (map === 'fortune') {
-                mapArray = fortunesKeep
-                mapName = "Fortune's Keep"
-            }
+        const map = interaction.options.getString('map')
+
+        if (map === 'caldera') {
+            mapArray = calderaPoints
+            mapName = 'Caldera'
+        } else if (map === 'rebirth') {
+            mapArray = rebirthIsland
+            mapName = 'Rebirth Island'
+        } else if (map === 'fortune') {
+            mapArray = fortunesKeep
+            mapName = "Fortune's Keep"
         }
 
         const commandInteraction = interaction as CommandInteraction

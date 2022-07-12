@@ -87,37 +87,14 @@ export class CommandRunner {
         // const isAdmin = Admin.isAuthorAdmin(UserUtils.findMemberByUsername(interaction.user.username, message))
 
         const commands = this.commands.getAllInteractionCommands()
-        console.log(interaction.id)
+
         if (interaction.isCommand()) {
             commands.forEach((cmd) => {
-                console.log(cmd.commandName, interaction.commandName)
-
                 if (cmd.commandName === interaction.commandName) {
                     this.runInteractionElement(cmd, interaction)
                 }
-                // if (Array.isArray(cmd.commandName) ? cmd.commandName.includes(command.toLowerCase()) : cmd.commandName.toLowerCase() === command.toLowerCase()) {
-                //     cmdFound = this.runCommandElement(cmd, message, messageContent, args)
-                // }
             })
         }
-        // const kekw = await message.client.emojis.cache.find((emoji) => emoji.name == 'kekw_animated')
-        // if (!cmdFound) {
-        //     const commandNames: string[] = []
-        //     const filteredCommands = commands.filter((cmd) => (isAdmin ? true : !cmd.isAdmin && !cmd.isSuperAdmin))
-        //     filteredCommands.forEach((el) => commandNames.push(Array.isArray(el.commandName) ? el.commandName[0] : el.commandName))
-        //     if (kekw) message.react(kekw)
-        //     const matched = didYouMean(command, commandNames)
-        //     this.logIncorectCommandUsage(message, messageContent, args)
-        //     if (matched) this.lastUsedCommand = matched
-        //     return message.reply(
-        //         "lmao, commanden '" +
-        //             command +
-        //             "' fins ikkje <a:kekw_animated:" +
-        //             kekw?.id +
-        //             '> .' +
-        //             (matched ? ' Mente du **' + matched + '**?' : ' Prøv !mz help')
-        //     )
-        // }
         return undefined
     }
     async checkForCommand(message: Message) {
