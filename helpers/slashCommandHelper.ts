@@ -1,8 +1,8 @@
 import { CacheType, CommandInteraction, Interaction } from 'discord.js'
 
-const { REST } = require('@discordjs/rest')
-const { Routes } = require('discord-api-types/v9')
-const { SlashCommandBuilder } = require('@discordjs/builders')
+// const { REST } = require('@discordjs/rest')
+// const { Routes } = require('discord-api-types/v9')
+// const { SlashCommandBuilder } = require('@discordjs/builders')
 export class SlashCommandHelper {
     static async buildCommands() {
         // const rest = new REST({ version: '9' }).setToken(discordSecret)
