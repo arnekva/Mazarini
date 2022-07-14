@@ -200,10 +200,7 @@ export class MazariniClient {
 
         /** For interactions (slash-commands and user-commands) */
         client.on('interactionCreate', async (interaction: Interaction<CacheType>) => {
-            // SlashCommandHelper.buildCommands()
             _mzClient.commandRunner.checkForCommandInInteraction(interaction)
-            // _mzClient.commandRunner.checkMessageForJokes(newMessage as Message)
-            // ShopClass.openShop(interaction, client)
         })
 
         client.on('channelDelete', (channel: DMChannel | NonThreadGuildBasedChannel) => {

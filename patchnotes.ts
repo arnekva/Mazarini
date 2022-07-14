@@ -2,14 +2,20 @@ import { Client, Message } from 'discord.js'
 import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
+import { MentionUtils } from './utils/mentionUtils'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '8.3.0'
+    public static readonly currentVersion = '9.0.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Det er nå lagt til rette for /slash commands i koden` + `\n* Første slash command ut er /drop for tilfeldig drop location i Warzone`
+        `\n* Warzone command for stats er nå gjort om til slash-command` +
+        `\n* Spotify er nå gjort om til slash-command` +
+        `\n* Musikk er nå gjort om til slash-command` +
+        `\n* Musikk er nå gjort om til slash-command` +
+        `\n* Har shufflet drop point arrayene for Warzone (værsågod ${MentionUtils.mentionUser('293489109048229888')})` +
+        `\n* Opprett mentionUtils med hjelpemetoder for å enkelt tagge brukere, roller og kanaler (flaut hvis taggen over ikke fungerer nå)`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

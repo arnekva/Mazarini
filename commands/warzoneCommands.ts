@@ -1,11 +1,12 @@
 import { login, platforms, Warzone } from 'call-of-duty-api'
-import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
+import { CacheType, Client, Interaction, Message, MessageEmbed } from 'discord.js'
 import { Response } from 'node-fetch'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { actSSOCookie } from '../client-env'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { SlashCommandHelper } from '../helpers/slashCommandHelper'
 import { DateUtils } from '../utils/dateUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { ObjectUtils } from '../utils/objectUtils'
@@ -173,26 +174,24 @@ export class WarzoneCommands extends AbstractCommands {
         }
     }
 
-    private async getLastMatchData(message: Message, messageContent: string, args: string[]) {
-        const WZUser = this.getWZUserStringFromDB(message)?.split(';')
-        if (!WZUser) message.reply('Du må knytta brukernavn te brukeren din fysste')
+    private async getLastMatchData(interaction: Interaction<CacheType>): Promise<string | MessageEmbed> {
+        const WZUser = this.getWZUserStringFromDB(interaction)?.split(';')
+        if (!WZUser) return 'Du må knytta brukernavn te brukeren din fysste'
         else {
             const gamertag = WZUser[1]
             const platform = this.translatePlatform(WZUser[0])
 
             try {
-                const waitMsg = await this.messageHelper.sendMessage(message.channelId, 'Laster data ...')
                 let data = await Warzone.combatHistory(gamertag, platform)
 
                 let tries = 1
                 while (!data?.data?.matches && tries < 3) {
                     tries++
-                    if (waitMsg) waitMsg.edit('Fant ingen data. Forsøker på ny ... (' + tries + '/' + '3)')
+
                     data = await Warzone.combatHistory(gamertag, platform)
                 }
                 if (!data?.data?.matches) {
-                    if (waitMsg) waitMsg.edit(`Fant ingen data for ${gamertag} på ${platform} etter ${tries}/${tries} forsøk. Prøv igjen senere`)
-                    else this.messageHelper.sendMessage(message.channelId, 'Fant ingen matches.')
+                    return 'Fant ingen data på 3/3 forsøk. Prøv igjen senere.'
                 } else {
                     const matchStart = Number(data?.data?.matches[0]?.utcStartSeconds) * 1000
                     const matchStartDate = new Date(matchStart)
@@ -221,51 +220,39 @@ export class WarzoneCommands extends AbstractCommands {
                     embedMsg.addField(`Players in match:`, `${data?.data?.matches[0]?.playerCount}`, true)
                     embedMsg.addField(`Rank:`, `${data?.data?.matches[0]?.player?.rank ?? 'Ukjent'}`, true)
 
-                    this.messageHelper.sendFormattedMessage(message.channel as TextChannel, embedMsg)
-                    if (waitMsg) waitMsg.delete()
+                    return embedMsg
                 }
             } catch (error: any) {
-                message.reply('Klarte ikke hente data: ' + error)
+                return 'Klarte ikke hente noe data'
             }
         }
     }
 
-    private async getBRContent(message: Message, messageContent: string, args: string[], isWeekly?: boolean) {
+    private async getBRContent(rawInteraction: Interaction<CacheType>, isWeekly?: boolean) {
         let gamertag = ''
         let platform: platforms
 
-        if (args[0] === 'siste') {
-            return this.getLastMatchData(message, messageContent, args)
-        }
-        const WZUser = this.getWZUserStringFromDB(message)?.split(';')
+        const WZUser = this.getWZUserStringFromDB(rawInteraction)?.split(';')
         if (!WZUser) {
-            return message.reply('Du må knytta brukernavn te brukeren din fysste')
+            return 'Du må knytta brukernavn te brukeren din fysste'
         }
         gamertag = WZUser[1]
         platform = this.translatePlatform(WZUser[0])
 
-        const filterMode: string = args[0] ?? ' '
+        const filterMode: string = ' ' //TODO: Legg til support for dette igjen
 
         const noSave = filterMode === 'nosave'
         const isRebirth = filterMode === 'rebirth'
 
-        let sentMessage = await this.messageHelper.sendMessage(message.channelId, 'Logger inn...')
-
-        if (!sentMessage) sentMessage = await this.messageHelper.sendMessage(message.channelId, 'Henter data...')
-        else await sentMessage.edit('Henter data...')
-        if (sentMessage) {
-            if (isWeekly) {
-                return this.findWeeklyData(gamertag, platform, message, sentMessage, { noSave: noSave, rebirth: isRebirth })
-            } else {
-                /** BR */
-                return this.findOverallBRData(gamertag, platform, message, sentMessage, { noSave: noSave, rebirth: isRebirth })
-            }
+        if (isWeekly) {
+            return this.findWeeklyData(gamertag, platform, rawInteraction, { noSave: noSave, rebirth: isRebirth })
         } else {
-            message.reply('En feil har oppstått')
+            /** BR */
+            return this.findOverallBRData(gamertag, platform, rawInteraction, { noSave: noSave, rebirth: isRebirth })
         }
     }
 
-    private async findOverallBRData(gamertag: string, platform: platforms, message: Message, editableMessage?: Message, options?: BRDataOptions) {
+    private async findOverallBRData(gamertag: string, platform: platforms, interaction: Interaction<CacheType>, options?: BRDataOptions) {
         try {
             const data = await Warzone.fullData(gamertag, platform)
             let response = 'BR stats for <' + gamertag + '>'
@@ -280,8 +267,9 @@ export class WarzoneCommands extends AbstractCommands {
                     }
                 }
             }
+
             orderedStats['winRatio'] = ((orderedStats?.wins ?? 0) / (orderedStats?.gamesPlayed ?? 1)) * 100
-            const userStats = this.getUserStats(message)
+            const userStats = this.getUserStats(interaction)
             const oldData = userStats
 
             const getValueFormatted = (key: string, value: number) => {
@@ -300,25 +288,22 @@ export class WarzoneCommands extends AbstractCommands {
                 if (this.findHeaderFromKey(key, true))
                     response += `\n${this.findHeaderFromKey(key, true)}: ${getValueFormatted(key, value)} ${compareDataString()}`
             }
-            if (editableMessage) editableMessage.edit(response)
-            else this.messageHelper.sendMessage(message.channelId, response)
-            if (!options?.noSave) this.saveUserStats(message, statsTyped, true)
+            if (!options?.noSave) this.saveUserStats(interaction, statsTyped, true)
+            return response
         } catch (error) {
-            if (editableMessage) editableMessage.edit(`Fant ingen data for ${gamertag}.`)
-            else this.messageHelper.sendMessage(message.channelId, `Fant ingen data for ${gamertag}.`)
+            return `Fant ingen data for ${gamertag}.`
         }
     }
 
-    private async findWeeklyData(gamertag: string, platform: platforms, message: Message, editableMessage?: Message, options?: BRDataOptions) {
+    private async findWeeklyData(gamertag: string, platform: platforms, interaction: Interaction<CacheType>, options?: BRDataOptions) {
         try {
             const data = await Warzone.fullData(gamertag, platform)
             let response = 'Weekly Warzone stats for <' + gamertag + '>'
 
             if (!data?.data?.weekly) {
-                if (editableMessage) editableMessage.edit('Du har ingen statistikk denne ukå, bro')
-                else this.messageHelper.sendMessage(message.channelId, 'Du har ingen statistikk denne ukå, bro')
+                return 'Ingen data funnet for denne uken'
             } else if (options?.rebirth && data.data.weekly.mode) {
-                this.findWeeklyRebirthOnly(gamertag, data, message, editableMessage)
+                return this.findWeeklyRebirthOnly(gamertag, data)
             } else {
                 const statsTyped = data?.data?.weekly?.all?.properties as CodStats
 
@@ -341,7 +326,7 @@ export class WarzoneCommands extends AbstractCommands {
                         orderedStats['damageDoneTakenRatio'] = Number(orderedStats.damageDone) / Number(orderedStats.damageTaken)
                     }
                 }
-                const userStats = this.getUserStats(message)
+                const userStats = this.getUserStats(interaction)
                 const oldData = userStats
 
                 /** Time played og average lifetime krever egen formattering for å være lesbart */
@@ -388,16 +373,11 @@ export class WarzoneCommands extends AbstractCommands {
                     }
                 }
 
-                if (editableMessage) editableMessage.edit(response)
-                else this.messageHelper.sendMessage(message.channelId, response)
-                if (!options?.noSave) this.saveUserStats(message, statsTyped)
+                if (!options?.noSave) this.saveUserStats(interaction, statsTyped)
+                return response
             }
         } catch (error) {
-            if (editableMessage) {
-                editableMessage.edit(`Fant ingen data (${gamertag} ${platform}). Hvis du vet at du ikke mangler data denne uken, prøv på ny om ca. ett minutt.`)
-            } else {
-                this.messageHelper.sendMessageToActionLogWithCustomMessage(message, error, 'Dataen kunne ikke hentes', true)
-            }
+            return `Fant ingen data (${gamertag} ${platform}). Hvis du vet at du ikke mangler data denne uken, prøv på ny om ca. ett minutt.`
         }
     }
 
@@ -406,7 +386,8 @@ export class WarzoneCommands extends AbstractCommands {
         return !!WarzoneCommands.statsToIncludeInSave.find((k) => k?.key === key?.key)?.header
     }
 
-    private findWeeklyRebirthOnly(gamertag: string, data: any, message: Message, editableMessage?: Message) {
+    //TODO: Get this properly
+    private findWeeklyRebirthOnly(gamertag: string, data: any): string {
         let numKills = 0
         let numDeaths = 0
         let numDamage = 0
@@ -420,9 +401,7 @@ export class WarzoneCommands extends AbstractCommands {
                 if (val?.properties?.damageDone) numDamage += Number(val?.properties?.damageDone)
             }
         }
-        let rebirthResponse = ` Weekly REBIRTH ONLY Stats for <${gamertag}>\nKills: ${numKills}\nDeaths: ${numDeaths}\nDamage Done: ${numDamage}\nDamage Taken: ${numDamageTaken}`
-        if (editableMessage) return editableMessage.edit(rebirthResponse)
-        else return this.messageHelper.sendMessage(message.channelId, rebirthResponse)
+        return ` Weekly REBIRTH ONLY Stats for <${gamertag}>\nKills: ${numKills}\nDeaths: ${numDeaths}\nDamage Done: ${numDamage}\nDamage Taken: ${numDamageTaken}`
     }
 
     private async findWeeklyPlaylist(message: Message, content: String, args: String[]) {
@@ -478,8 +457,28 @@ export class WarzoneCommands extends AbstractCommands {
         }
     }
 
-    private getWZUserStringFromDB(message: Message) {
-        return DatabaseHelper.getUser(message.author.id)?.activisionUserString
+    private async handleWZInteraction(rawInteraction: Interaction<CacheType>) {
+        const interaction = SlashCommandHelper.getTypedInteraction(rawInteraction)
+        if (interaction) {
+            const wantedType = interaction.options.getString('mode') //"br", "weekly" eller "siste"
+            if (wantedType === 'br' || wantedType === 'weekly') {
+                const content = await this.getBRContent(interaction, wantedType === 'weekly')
+                interaction.reply(content)
+            } else if (wantedType === 'siste') {
+                const content = await this.getLastMatchData(interaction)
+                if (content instanceof MessageEmbed)
+                    interaction.reply({
+                        embeds: [content],
+                    })
+                else interaction.reply(content)
+            }
+        } else {
+            interaction.reply('Kunne ikke finne data på valgte modus')
+        }
+    }
+
+    private getWZUserStringFromDB(interaction: Interaction<CacheType>) {
+        return DatabaseHelper.getUser(interaction.user.id)?.activisionUserString
     }
 
     /**
@@ -500,14 +499,15 @@ export class WarzoneCommands extends AbstractCommands {
         return ``
     }
     /** Beware of stats: any */
-    private saveUserStats(message: Message, stats: CodStats | CodBRStatsType, isBR?: boolean) {
-        const user = DatabaseHelper.getUser(message.author.id)
+    private saveUserStats(interaction: Interaction<CacheType>, stats: CodStats | CodBRStatsType, isBR?: boolean) {
+        const user = DatabaseHelper.getUser(interaction.user.id)
         if (isBR) user.codStatsBR = stats
         else user.codStats = stats
         DatabaseHelper.updateUser(user)
     }
-    private getUserStats(message: Message, isBr?: boolean) {
-        const user = DatabaseHelper.getUser(message.author.id)
+
+    private getUserStats(interaction: Interaction<CacheType>, isBr?: boolean) {
+        const user = DatabaseHelper.getUser(interaction.user.id)
         if (isBr) {
             if ((user.codStatsBR as any) === 'undefined') return {}
             return user.codStatsBR
@@ -521,20 +521,18 @@ export class WarzoneCommands extends AbstractCommands {
             {
                 commandName: 'br',
                 description: "<gamertag> <plattform> (plattform: 'battle',  'psn', 'xbl'",
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.getBRContent(rawMessage, messageContent, args)
-                },
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
                 category: 'gaming',
                 canOnlyBeUsedInSpecificChannel: [MessageUtils.CHANNEL_IDs.STATS_SPAM],
+                isReplacedWithSlashCommand: 'stats br',
             },
             {
                 commandName: 'weekly',
                 description: "<gamertag> <plattform> (plattform: 'battle', 'steam', 'psn', 'xbl', 'acti', 'uno' (Activision ID som tall), 'all' (uvisst)",
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.getBRContent(rawMessage, messageContent, args, true)
-                },
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
                 category: 'gaming',
                 canOnlyBeUsedInSpecificChannel: [MessageUtils.CHANNEL_IDs.STATS_SPAM],
+                isReplacedWithSlashCommand: 'stats weekly',
             },
             {
                 commandName: 'link',
@@ -555,7 +553,15 @@ export class WarzoneCommands extends AbstractCommands {
         ]
     }
     getAllInteractions(): IInteractionElement[] {
-        return []
+        return [
+            {
+                commandName: 'stats',
+                command: (rawInteraction: Interaction<CacheType>) => {
+                    this.handleWZInteraction(rawInteraction)
+                },
+                category: 'gaming',
+            },
+        ]
     }
 }
 

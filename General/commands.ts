@@ -40,6 +40,7 @@ export interface ICommandElement {
     isSuperAdmin?: boolean
     /** Oppgi channel-IDer i en array her hvis commanden kun kan brukes i de channelene */
     canOnlyBeUsedInSpecificChannel?: string[]
+    isReplacedWithSlashCommand?: string
 }
 
 export interface IInteractionElement {

@@ -5,7 +5,6 @@ import { ICommandElement, IInteractionElement } from '../General/commands'
 import { ClientHelper } from '../helpers/clientHelper'
 import { DatabaseHelper, dbPrefix, prefixList, ValuePair } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { DailyJobs } from '../Jobs/dailyJobs'
 import { MazariniClient } from '../main'
 import { MessageUtils } from '../utils/messageUtils'
 import { ObjectUtils } from '../utils/objectUtils'
@@ -322,9 +321,7 @@ export class Admin extends AbstractCommands {
     }
 
     private debugMethod(message: Message, messageContent: string, args: string[]) {
-        message.reply('empty function')
-        const jobs = new DailyJobs(this.messageHelper)
-        jobs.runJobs(true)
+        // SlashCommandHelper.buildCommands()
     }
 
     private timeoutUser(message: Message, messageContent: string, args: string[]) {}

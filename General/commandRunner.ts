@@ -170,21 +170,27 @@ export class CommandRunner {
             }
         } else {
             try {
-                if (!!cmd.deprecated)
-                    this.messageHelper.sendMessage(
-                        message.channelId,
-                        '*Denne funksjoner er markert som deprecated/utfaset. Bruk **' + cmd.deprecated + '*** *i stedet*'
+                if (cmd.isReplacedWithSlashCommand) {
+                    message.reply(
+                        `Denne kommandoen er erstattet med en slash-command. Bruk '/${cmd.isReplacedWithSlashCommand}' for å utføre denne kommandoen.`
                     )
-                //Ignorer kanal-spesifikt hvis i bot-testing
-                if (
-                    cmd.canOnlyBeUsedInSpecificChannel &&
-                    message.channelId !== '880493116648456222' &&
-                    !cmd.canOnlyBeUsedInSpecificChannel.includes(message.channelId)
-                ) {
-                    const channelList = cmd.canOnlyBeUsedInSpecificChannel.map((c) => `<#${c}>`)
-                    message.reply(`Denne kommandoen kan kun brukes i følgende kanaler: ${channelList.join(' ')}`)
                 } else {
-                    cmd.command(message, messageContent, args)
+                    if (!!cmd.deprecated)
+                        this.messageHelper.sendMessage(
+                            message.channelId,
+                            '*Denne funksjoner er markert som deprecated/utfaset. Bruk **' + cmd.deprecated + '*** *i stedet*'
+                        )
+                    //Ignorer kanal-spesifikt hvis i bot-testing
+                    if (
+                        cmd.canOnlyBeUsedInSpecificChannel &&
+                        message.channelId !== '880493116648456222' &&
+                        !cmd.canOnlyBeUsedInSpecificChannel.includes(message.channelId)
+                    ) {
+                        const channelList = cmd.canOnlyBeUsedInSpecificChannel.map((c) => `<#${c}>`)
+                        message.reply(`Denne kommandoen kan kun brukes i følgende kanaler: ${channelList.join(' ')}`)
+                    } else {
+                        cmd.command(message, messageContent, args)
+                    }
                 }
             } catch (error) {
                 this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)

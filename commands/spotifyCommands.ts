@@ -1,4 +1,4 @@
-import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
+import { CacheType, Client, Interaction, Message, MessageEmbed, User } from 'discord.js'
 import { Headers } from 'node-fetch'
 import { URLSearchParams } from 'url'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
@@ -7,7 +7,8 @@ import { ICommandElement, IInteractionElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { TextUtils } from '../utils/textUtils'
+import { SlashCommandHelper } from '../helpers/slashCommandHelper'
+import { UserUtils } from '../utils/userUtils'
 import { Music } from './musicCommands'
 const SpotifyWebApi = require('spotify-web-api-node')
 const base64 = require('base-64')
@@ -98,92 +99,109 @@ export class SpotifyCommands extends AbstractCommands {
         }
     }
 
-    private async currentPlayingFromDiscord(rawMessage: Message, content: string, args: string[]) {
+    private async currentPlayingFromDiscord(interaction: Interaction<CacheType>, mode?: string, user?: User): Promise<string | MessageEmbed> {
         const _music = new Music(this.client, this.messageHelper)
-        let name = ''
-        if (args[0] && args[0] !== 'mer') {
-            name = TextUtils.splitUsername(args[0])
-        } else {
-            name = rawMessage.author.username
+
+        const isAllActive = mode === 'active'
+        const isFull = mode === 'full'
+        const emoji = await EmojiHelper.getEmoji('catJAM', interaction)
+        if (isAllActive) {
+            let replyString = ''
+            interaction.guild.members.cache.forEach((localMember) => {
+                if (localMember?.presence)
+                    localMember.presence.activities.forEach((activity) => {
+                        if (activity.name === 'Spotify') {
+                            replyString += `(${localMember.user.username}) ${activity.state} - ${activity.details} ${emoji?.id ?? ''}\n`
+                        }
+                    })
+            })
+
+            if (replyString.length === 0) replyString = 'Ingen hører på Spotify for øyeblikket'
+            return replyString
         }
-        const guild = rawMessage.channel.client.guilds.cache.get('340626855990132747')
-        const emoji = await EmojiHelper.getEmoji('catJAM', rawMessage)
-        if (guild) {
-            if (args[0] === 'alle') {
-                let replyString = ''
-                const users = guild.members.cache.forEach((user) => {
-                    if (user && user.presence)
-                        user.presence.activities.forEach((activity) => {
-                            if (activity.name === 'Spotify') {
-                                replyString += `(${user.user.username}) ${activity.state} - ${activity.details} ${emoji.id}\n`
-                            }
-                        })
-                })
-                if (replyString.length === 0) replyString = 'Ingen hører på Spotify for øyeblikket'
-                await this.messageHelper.sendMessage(rawMessage.channelId, replyString)
-            } else if (args[0] === 'full') {
-                const waitMessage = await this.messageHelper.sendMessage(rawMessage.channelId, 'Henter last.fm data fra brukere')
-                let musicRet = ''
-                const users = guild.members.cache.map((u) => {
-                    return {
-                        id: u.user.id,
-                        name: u.user.username,
-                    }
-                })
 
-                for (let i = 0; i < users.length; i++) {
-                    const user = DatabaseHelper.getUser(users[i].id)
-                    const lastFmName = user?.lastFMUsername
-                    if (lastFmName) {
-                        if (waitMessage) {
-                            musicRet += await _music.findCommand(waitMessage, content, ['siste', '1', users[i].name], {
-                                isSilent: true,
-                                notWeeklyOrRecent: true,
-                                includeUsername: true,
-                            })
-                        }
-                    }
+        if (isFull) {
+            let musicRet = ''
+            const users = interaction.guild.members.cache.map((u) => {
+                return {
+                    id: u.user.id,
+                    name: u.user.username,
+                }
+            })
+
+            for (let i = 0; i < users.length; i++) {
+                const user = DatabaseHelper.getUser(users[i].id)
+                const lastFmName = user?.lastFMUsername
+
+                if (lastFmName) {
+                    musicRet +=
+                        `(${users[i].name}) ` +
+                        (await _music.findLastFmData({
+                            user: lastFmName,
+                            includeNameInOutput: false,
+                            includeStats: false,
+                            limit: '1',
+                            method: { cmd: _music.getCommand('siste', '1'), desc: 'Siste 1' },
+                            silent: false,
+                            username: users[i].name,
+                        }))
+                }
+            }
+            if (musicRet.length < 1) musicRet = 'Fant ingen data'
+            return musicRet
+        }
+
+        const member = UserUtils.findMemberByUserID(user ? user.id : interaction.user.id, interaction)
+        if (member && member.presence && member.presence.activities.find((a) => a.name === 'Spotify')) {
+            const spotify = member.presence.activities.filter((a) => a.name === 'Spotify')[0]
+            if (spotify?.state && spotify.details) {
+                const data = await this.searchForSongOnSpotifyAPI(spotify.details, spotify.state)
+                const items = data.body.tracks.items[0]
+
+                const embed = new MessageEmbed()
+                    .setTitle(`${user ? `${user.username} hører på: ` : ''}${spotify?.details} `)
+                    .setDescription(`${spotify?.state}`)
+                if (items) {
+                    embed.addField('Album', items.album?.name ?? 'Ukjent', true).addField('Utgitt', items.album?.release_date ?? 'Ukjent', true)
+                    if (items.album?.external_urls?.spotify) embed.setURL(items.album?.external_urls?.spotify ?? '#')
+
+                    if (items.album?.images[0]?.url) embed.setThumbnail(items.album.images[0].url)
                 }
 
-                if (waitMessage) waitMessage.edit(musicRet || 'Test')
-                else this.messageHelper.sendMessage(rawMessage.channelId, musicRet)
+                return embed
+            }
+        } else {
+            const dbUser = DatabaseHelper.getUser(user?.id ?? interaction.user.id)
+            const lastFmName = dbUser.lastFMUsername
+            if (lastFmName) {
+                const lastFMData = await _music.findLastFmData({
+                    user: lastFmName,
+                    includeNameInOutput: false,
+                    includeStats: false,
+                    limit: '1',
+                    method: { cmd: _music.getCommand('siste', '10'), desc: 'test' },
+                    silent: false,
+                    username: dbUser.displayName ?? (user ? user.username : interaction.user.username),
+                })
+
+                return (user ? `*${user.username}:* ` : '') + lastFMData.join(' ') ?? `${user} hører ikke på Spotify nå, og har heller ikke koblet til Last.fm`
+            }
+        }
+        return `${user} hører ikke på Spotify nå, og har heller ikke koblet til Last.fm`
+    }
+
+    private async handleSpotifyInteractions(rawInteraction: Interaction<CacheType>) {
+        const interaction = SlashCommandHelper.getTypedInteraction(rawInteraction)
+        if (interaction) {
+            await interaction.deferReply() //Må defere reply siden botter har maks 3 sekund å svare på en interaction
+            const mode = interaction.options.get('mode')?.value as string
+            const user = interaction.options.get('user')?.user
+            const data = await this.currentPlayingFromDiscord(interaction, mode, user instanceof User ? user : undefined)
+
+            if (data instanceof MessageEmbed) {
+                interaction.editReply({ embeds: [data] })
             } else {
-                const user = guild.members.cache.filter((u) => u.user.username == name).first()
-
-                if (!user) {
-                    rawMessage.reply("Fant ingen brukere ved navn '" + name + "'. Bruk username og ikke displayname")
-                } else {
-                    if (user && user.presence && user.presence.activities.find((a) => a.name === 'Spotify')) {
-                        const spotify = user.presence.activities.filter((a) => a.name === 'Spotify')[0]
-                        if (spotify?.state && spotify.details) {
-                            const data = await this.searchForSongOnSpotifyAPI(spotify.details, spotify.state)
-                            const items = data.body.tracks.items[0]
-
-                            const embed = new MessageEmbed().setTitle(`${spotify?.details} `).setDescription(`${spotify?.state}`)
-                            if (items) {
-                                embed.addField('Album', items.album?.name ?? 'Ukjent', true).addField('Utgitt', items.album?.release_date ?? 'Ukjent', true)
-                                if (items.album?.external_urls?.spotify) embed.setURL(items.album?.external_urls?.spotify ?? '#')
-                                if (args[0] === 'mer' || args[1] === 'mer') {
-                                    if (items.album?.images[0]?.url) embed.setImage(items.album?.images[0]?.url)
-                                    embed.setTimestamp()
-                                }
-                                if (items.album?.images[0]?.url) embed.setThumbnail(items.album.images[0].url)
-                            }
-                            if (args[0] === 'mer' || args[1] === 'mer')
-                                embed.setFooter({
-                                    text: `Funnet ved søk av 'track:${spotify.details} artist:${spotify?.state}'`,
-                                })
-
-                            const msg = this.messageHelper.sendFormattedMessage(rawMessage.channel as TextChannel, embed)
-                        }
-                    } else {
-                        _music.findCommand(rawMessage, content, ['siste', '1', name], {
-                            isSilent: false,
-                            usernameToLookup: name,
-                            notWeeklyOrRecent: true,
-                        })
-                    }
-                }
+                interaction.editReply(data)
             }
         }
     }
@@ -194,9 +212,10 @@ export class SpotifyCommands extends AbstractCommands {
                 commandName: 'spotify',
                 description: 'Hent hva brukeren spiller av på Spotify (fra Discord)',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.currentPlayingFromDiscord(rawMessage, messageContent, args)
+                    // this.currentPlayingFromDiscord(rawMessage, messageContent, args)
                 },
                 category: 'musikk',
+                isReplacedWithSlashCommand: 'spotify',
             },
             {
                 commandName: 'sang',
@@ -209,6 +228,14 @@ export class SpotifyCommands extends AbstractCommands {
         ]
     }
     getAllInteractions(): IInteractionElement[] {
-        return []
+        return [
+            {
+                commandName: 'spotify',
+                command: (rawInteraction: Interaction<CacheType>) => {
+                    this.handleSpotifyInteractions(rawInteraction)
+                },
+                category: 'musikk',
+            },
+        ]
     }
 }

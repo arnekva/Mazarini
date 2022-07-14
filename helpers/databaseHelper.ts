@@ -140,7 +140,7 @@ export interface ferieItem {
     toDate: Date
 }
 export class DatabaseHelper {
-    /** Hent et brukerobjekt på ID. De fleste verdier kan være undefined. Hvis brukeren ikke finnes så opprettes det et objekt med default verdier */
+    /** Hent et brukerobjekt på ID. De fleste verdier kan være undefined. Hvis brukeren ikke finnes så opprettes det et objekt med default verdier. Oppdater verdier med å kalle DatabaseHelper.updateUser(user) */
     static getUser(userID: string): MazariniUser {
         // { [key: string]: MazariniUser }
         try {
