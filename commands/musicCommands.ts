@@ -186,7 +186,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
 
         const apiKey = lfKey
 
-        let artistString = ''
+        let musicData = ''
 
         /**Promise.all siden vi gjør 2 fetches og trenger at begge resolves samtidig */
         const arrayDataRet: string[] = []
@@ -225,14 +225,15 @@ Docs: https://www.last.fm/api/show/user.getInfo
                             let hasCurrentlyPlaying = false
 
                             prop.forEach((element: any, index) => {
-                                const isCurrentlyPlaying = !isNotRecent && element.hasOwnProperty('@attr')
-                                if (hasCurrentlyPlaying && dataParam.includeNameInOutput) {
-                                } else {
+                                if (index === 0) {
+                                    const isCurrentlyPlaying = !isNotRecent && element.hasOwnProperty('@attr')
+                                    // if (hasCurrentlyPlaying && dataParam.includeNameInOutput) {
+                                    // }
                                     if (isCurrentlyPlaying) hasCurrentlyPlaying = true
                                     numPlaysInTopX += parseInt(element.playcount)
 
                                     /** Denne ser kanskje lang ut, men den lager hver linje. Først ser den etter artist (hentes forskjellig fra weekly), legger til bindestrek, sjekker etter sangnavn etc.  */
-                                    artistString +=
+                                    musicData +=
                                         `${dataParam.includeNameInOutput ? '(' + dataParam.username + ') ' : ''}${
                                             isFormattedWithHashtag && element.artist
                                                 ? element.artist['#text'] + ' - '
@@ -240,26 +241,20 @@ Docs: https://www.last.fm/api/show/user.getInfo
                                                 ? element.artist.name + ' - '
                                                 : ''
                                         }` +
-                                        `${element.name} ${isNotRecent ? '(' + element.playcount + ' plays)' : ''} ` +
+                                        `${element?.name} ${isNotRecent ? '(' + element.playcount + ' plays)' : ''} ` +
                                         `${dataParam.includeStats ? ((parseInt(element.playcount) / parseInt(totalPlaycount)) * 100).toFixed(1) + '%' : ''} ` +
-                                        `${isCurrentlyPlaying ? '(spiller nå)' : ''} ` +
-                                        /** Silent er når botten selv trigger metoden (f.eks. fra spotify-command). Da vil man ha med datostempelet. Ikke nødvendig ellers */
-                                        `${
-                                            dataParam.silent
-                                                ? isCurrentlyPlaying
-                                                    ? ''
-                                                    : '(' + new Date(Number(element.date['uts']) * 1000).toLocaleString('nb-NO') + ')'
-                                                : ''
-                                        }`
-                                    artistString += lineSeperator
+                                        `${isCurrentlyPlaying ? '(spiller nå)' : ''} `
+                                    /** Silent er når botten selv trigger metoden (f.eks. fra spotify-command). Da vil man ha med datostempelet. Ikke nødvendig ellers */
+                                    if (!isCurrentlyPlaying) musicData += `${'(' + new Date(Number(element.date['uts']) * 1000).toLocaleString('nb-NO') + ')'}`
+
+                                    musicData += lineSeperator
                                 }
                             })
                             /** Hvis prop-en er formattert med en # (eks. ['@attr']) så finnes ikke total plays. */
-                            if (!isFormattedWithHashtag)
-                                artistString += `\n*Totalt ${topData[strippedMethod]['@attr'].total} ${methodWithoutGet}s i biblioteket`
+                            if (!isFormattedWithHashtag) musicData += `\n*Totalt ${topData[strippedMethod]['@attr'].total} ${methodWithoutGet}s i biblioteket`
                         }
                         if (!isFormattedWithHashtag)
-                            artistString += `, ${totalPlaycount} totale avspillinger. ${
+                            musicData += `, ${totalPlaycount} totale avspillinger. ${
                                 dataParam.includeStats
                                     ? ((numPlaysInTopX / parseInt(totalPlaycount)) * 100).toFixed(1) +
                                       '% av avspillingene er fra dine topp ' +
@@ -268,7 +263,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
                                     : ''
                             }* `
 
-                        arrayDataRet.push(artistString)
+                        arrayDataRet.push(musicData)
 
                         // return retMessage
                     })
