@@ -269,7 +269,7 @@ export class WarzoneCommands extends AbstractCommands {
             }
 
             orderedStats['winRatio'] = ((orderedStats?.wins ?? 0) / (orderedStats?.gamesPlayed ?? 1)) * 100
-            const userStats = this.getUserStats(interaction)
+            const userStats = this.getUserStats(interaction, true)
             const oldData = userStats
 
             const getValueFormatted = (key: string, value: number) => {
@@ -288,7 +288,7 @@ export class WarzoneCommands extends AbstractCommands {
                 if (this.findHeaderFromKey(key, true))
                     response += `\n${this.findHeaderFromKey(key, true)}: ${getValueFormatted(key, value)} ${compareDataString()}`
             }
-            if (!options?.noSave) this.saveUserStats(interaction, statsTyped, true)
+            this.saveUserStats(interaction, statsTyped, true)
             return response
         } catch (error) {
             return `Fant ingen data for ${gamertag}.`
@@ -498,6 +498,7 @@ export class WarzoneCommands extends AbstractCommands {
         if (currentStats < oldStorageStats) return ` (${parseFloat(Number(value).toFixed(3))})`
         return ``
     }
+
     /** Beware of stats: any */
     private saveUserStats(interaction: Interaction<CacheType>, stats: CodStats | CodBRStatsType, isBR?: boolean) {
         const user = DatabaseHelper.getUser(interaction.user.id)

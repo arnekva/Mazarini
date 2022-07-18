@@ -5,17 +5,14 @@ import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '9.0.1'
+    public static readonly currentVersion = '9.1.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Warzone command for stats er nå gjort om til slash-command` +
-        `\n* Spotify er nå gjort om til slash-command` +
-        `\n     * Spotify er splittet i 2 kommandoer: /spotify (gruppe) og /spotify (bruker). På den måten kan man ikke sende både gruppe og bruker inn i samme kommando (9.0.1)` +
-        `\n* Musikk er nå gjort om til slash-command` +
-        `\n* Har shufflet drop point arrayene for Warzone (værsågod ${MentionUtils.mentionUser('293489109048229888')})` +
-        `\n* Opprett mentionUtils med hjelpemetoder for å enkelt tagge brukere, roller og kanaler (flaut hvis taggen over ikke fungerer nå)`
+        `\n* Alle navn-kommandoer (!Mz eivind, !mz david, osv.) er nå slash-kommandoer` +
+        `\n* Stats br skal nå sammenligne dataene korrekt igjen` +
+        `\n     * Spotify er splittet i 2 kommandoer: /spotify (gruppe) og /spotify (bruker). På den måten kan man ikke sende både gruppe og bruker inn i samme kommando (9.0.1)`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
