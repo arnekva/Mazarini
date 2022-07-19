@@ -156,7 +156,7 @@ export class Commands {
         let commandString = 'Kommandoer: '
         let commandStringList: string[] = []
         const commandForHelp = messageContent.replace('!mz help ', '').trim()
-        const commands = this.getAllCommands()
+        const commands = this.getAllCommands().filter((c) => !c.isReplacedWithSlashCommand)
         if (this.getCommandCatgeories().includes(args[0])) {
             commands.forEach((cmd) => {
                 if (cmd.category == args[0]) commandStringList.push(Array.isArray(cmd.commandName) ? cmd.commandName[0] : cmd.commandName)

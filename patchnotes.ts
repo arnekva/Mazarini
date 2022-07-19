@@ -2,17 +2,16 @@ import { Client, Message } from 'discord.js'
 import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
-import { MentionUtils } from './utils/mentionUtils'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '9.1.0'
+    public static readonly currentVersion = '9.1.1'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Alle navn-kommandoer (!Mz eivind, !mz david, osv.) er nå slash-kommandoer` +
-        `\n* Stats br skal nå sammenligne dataene korrekt igjen` +
-        `\n     * Spotify er splittet i 2 kommandoer: /spotify (gruppe) og /spotify (bruker). På den måten kan man ikke sende både gruppe og bruker inn i samme kommando (9.0.1)`
+        `\n* Daily og daily freeze er nå slash commands` +
+        `\n* /navn inkluderer nå navnet på kommandoen` +
+        `\n* Kommandoer som har blitt erstattet med slash-kommandoer (men som fortsatt eksisterer i en grace-periode) vil ikke lenger vises i listen som sendes ved '!mz hjelp'`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

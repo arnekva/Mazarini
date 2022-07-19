@@ -63,7 +63,9 @@ export class NameCommands extends AbstractCommands {
     }
 
     private getTextFromCommand(username: string) {
-        return ArrayUtils.randomChoiceFromArray(DatabaseHelper.getTextCommandValueArray(username.toLowerCase()) ?? []) || 'Ingen tekst lagt til'
+        return (
+            username + ' ' + ArrayUtils.randomChoiceFromArray(DatabaseHelper.getTextCommandValueArray(username.toLowerCase()) ?? []) || 'Ingen tekst lagt til'
+        )
     }
 
     private addTextValueFromInteraction(text: string, username: string): boolean {

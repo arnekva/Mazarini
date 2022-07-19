@@ -1,10 +1,11 @@
-import { Client, Message, MessageEmbed, TextChannel, User } from 'discord.js'
+import { CacheType, Client, Interaction, Message, MessageEmbed, TextChannel, User } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { globals } from '../globals'
 import { betObject, betObjectReturned, DatabaseHelper, dbPrefix, MazariniUser } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { SlashCommandHelper } from '../helpers/slashCommandHelper'
 import { CollectorUtils } from '../utils/collectorUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
@@ -928,74 +929,93 @@ export class GamblingCommands extends AbstractCommands {
     }
 
     /** Missing streak counter and increased reward */
-    private claimDailyChipsAndCoins(message: Message, messageContent: string, args: string[]) {
-        const user = DatabaseHelper.getUser(message.author.id)
-        const canClaim = user.dailyClaim
-        const dailyPrice = { chips: '300', coins: '80' }
-        const hasFreeze = user.dailyFreezeCounter
-        if (hasFreeze && !isNaN(hasFreeze) && hasFreeze > 0) {
-            message.reply('Du har frosset daily claimet ditt i ' + hasFreeze + ' dager til. Vent til da og prøv igjen')
-        } else if (canClaim === 0) {
-            const oldData = user.dailyClaimStreak
+    private handleDailyClaimInteraction(rawInteraction: Interaction<CacheType>) {
+        const interaction = SlashCommandHelper.getTypedInteraction(rawInteraction)
+        if (interaction) {
+            const numDays = Number(interaction.options.get('dager')?.value)
 
-            let streak: IDailyPriceClaim = { streak: 1, wasAddedToday: true }
-            if (oldData) {
-                const oldStreak = oldData
-                streak = { streak: oldStreak?.streak + 1 ?? 1, wasAddedToday: true }
+            if (!numDays) {
+                const reply = this.claimDailyChipsAndCoins(rawInteraction)
+                interaction.reply(reply)
+            } else if (numDays) {
+                const reply = this.freezeDailyClaim(interaction, numDays)
+                interaction.reply(reply)
             } else {
-                streak = { streak: 1, wasAddedToday: true }
+                //Usikker på om dager er obligatorisk, så håndter en eventuell feil intill bekreftet oblig.
+                SlashCommandHelper.handleInteractionParameterError(interaction)
             }
-
-            const daily = this.findAndIncrementValue(streak.streak, dailyPrice, user)
-
-            const prestige = user.prestige
-            message.reply(
-                `Du har hentet dine daglige ${daily.dailyChips} chips og ${daily.dailyCoins} coins! ${
-                    streak.streak > 1 ? '(' + streak.streak + ' dager i streak)' : ''
-                } ${prestige ? '(' + prestige + ' prestige)' : ''}`
-            )
-
-            if (streak.streak >= 100) {
-                user.prestige = 1 + (user.prestige ?? 0)
-
-                const prestige = user.prestige
-                streak = { streak: 1, wasAddedToday: true }
-                const congrats = `Dægårten! Du har henta daglige chips i 100 dager i strekk! Gz dude, nå prestige du. Du e nå prestige ${prestige} og får ${this.findPrestigeMultiplier(
-                    prestige
-                )}x i multiplier på alle daily's framøve! \n\n*Streaken din resettes nå te 1, så du kan ta ein pause hvis du vil*`
-                message.reply(congrats)
-            }
-            if (!user.dailyClaimStreak) {
-                user.dailyClaimStreak = {
-                    streak: 1,
-                    wasAddedToday: true,
-                }
-            } else {
-                user.dailyClaimStreak.streak = streak?.streak ?? 1
-                user.dailyClaimStreak.wasAddedToday = streak?.wasAddedToday ?? true
-            }
-            user.dailyClaim = 1
-            DatabaseHelper.updateUser(user)
-        } else {
-            message.reply('Du har allerede hentet dine daglige chips og coins. Prøv igjen i morgen etter klokken 06:00')
         }
     }
 
-    private freezeDailyClaim(message: Message, messageContent: string, args: string[]) {
-        const user = DatabaseHelper.getUser(message.author.id)
-        const numDays = Number(args[0])
+    private claimDailyChipsAndCoins(rawInteraction: Interaction<CacheType>): string {
+        const interaction = SlashCommandHelper.getTypedInteraction(rawInteraction)
+        if (interaction) {
+            const user = DatabaseHelper.getUser(interaction.user.id)
+            const canClaim = user.dailyClaim
+            const dailyPrice = { chips: '300', coins: '80' }
+            const hasFreeze = user.dailyFreezeCounter
+            if (hasFreeze && !isNaN(hasFreeze) && hasFreeze > 0) {
+                return 'Du har frosset daily claimet ditt i ' + hasFreeze + ' dager til. Vent til da og prøv igjen'
+            } else if (canClaim === 0) {
+                const oldData = user.dailyClaimStreak
+
+                let streak: IDailyPriceClaim = { streak: 1, wasAddedToday: true }
+                if (oldData) {
+                    const oldStreak = oldData
+                    streak = { streak: oldStreak?.streak + 1 ?? 1, wasAddedToday: true }
+                } else {
+                    streak = { streak: 1, wasAddedToday: true }
+                }
+
+                const daily = this.findAndIncrementValue(streak.streak, dailyPrice, user)
+
+                const prestige = user.prestige
+                let claimedMessage = `Du har hentet dine daglige ${daily.dailyChips} chips og ${daily.dailyCoins} coins! ${
+                    streak.streak > 1 ? '(' + streak.streak + ' dager i streak)' : ''
+                } ${prestige ? '(' + prestige + ' prestige)' : ''}`
+
+                if (streak.streak >= 100) {
+                    user.prestige = 1 + (user.prestige ?? 0)
+
+                    const prestige = user.prestige
+                    streak = { streak: 1, wasAddedToday: true }
+                    claimedMessage += `\nDægårten! Du har henta daglige chips i 100 dager i strekk! Gz dude, nå prestige du. Du e nå prestige ${prestige} og får ${this.findPrestigeMultiplier(
+                        prestige
+                    )}x i multiplier på alle daily's framøve! \n\n*Streaken din resettes nå te 1, så du kan ta ein pause hvis du vil*`
+                }
+                if (!user.dailyClaimStreak) {
+                    user.dailyClaimStreak = {
+                        streak: 1,
+                        wasAddedToday: true,
+                    }
+                } else {
+                    user.dailyClaimStreak.streak = streak?.streak ?? 1
+                    user.dailyClaimStreak.wasAddedToday = streak?.wasAddedToday ?? true
+                }
+                user.dailyClaim = 1
+                DatabaseHelper.updateUser(user)
+                return claimedMessage
+            } else {
+                return 'Du har allerede hentet dine daglige chips og coins. Prøv igjen i morgen etter klokken 06:00'
+            }
+        } else return 'Klarte ikke hente daily'
+    }
+
+    private freezeDailyClaim(interaction: Interaction<CacheType>, numDays: number): string {
+        const user = DatabaseHelper.getUser(interaction.user.id)
+
         const hasFreeze = user.dailyFreezeCounter
         if (isNaN(numDays) || numDays > 8) {
-            message.reply('Du må skrive inn et gyldig tall lavere enn 8')
+            return 'Tallet var ikke gyldig'
         } else if (hasFreeze && hasFreeze > 0) {
-            message.reply('Du har allerede frosset daily claimet ditt i ' + hasFreeze + ' dager til')
+            return 'Du har allerede frosset daily claimet ditt i ' + hasFreeze + ' dager til'
         } else {
             user.dailyFreezeCounter = numDays
             DatabaseHelper.updateUser(user)
-            message.reply(
+            return (
                 'Du har frosset daily claimen din i ' +
-                    numDays +
-                    ' dager. Du får ikke hente ut daily chips og coins før da, men streaken din vil heller ikke forsvinne. Denne kan ikke overskrives eller fjernes'
+                numDays +
+                ' dager. Du får ikke hente ut daily chips og coins før da, men streaken din vil heller ikke forsvinne. Denne kan ikke overskrives eller fjernes'
             )
         }
     }
@@ -1161,17 +1181,15 @@ export class GamblingCommands extends AbstractCommands {
             {
                 commandName: 'daily',
                 description: 'Hent dine daglige chips og coins. Hvis det gjøres i flere dager sammenhengene vil du få større og større rewards',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.claimDailyChipsAndCoins(rawMessage, messageContent, args)
-                },
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
+                isReplacedWithSlashCommand: 'daily',
                 category: 'gambling',
             },
             {
                 commandName: 'freezedaily',
                 description: 'Frys daily rewarden din i X antall dager (maks 4)',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.freezeDailyClaim(rawMessage, messageContent, args)
-                },
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
+                isReplacedWithSlashCommand: 'daily freeze',
                 category: 'gambling',
             },
 
@@ -1204,6 +1222,14 @@ export class GamblingCommands extends AbstractCommands {
     }
 
     getAllInteractions(): IInteractionElement[] {
-        return []
+        return [
+            {
+                commandName: 'daily',
+                command: (rawInteraction: Interaction<CacheType>) => {
+                    this.handleDailyClaimInteraction(rawInteraction)
+                },
+                category: 'gambling',
+            },
+        ]
     }
 }

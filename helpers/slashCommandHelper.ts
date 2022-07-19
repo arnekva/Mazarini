@@ -1,4 +1,6 @@
 import { CacheType, CommandInteraction, Interaction } from 'discord.js'
+import { MentionUtils } from '../utils/mentionUtils'
+import { UserUtils } from '../utils/userUtils'
 
 // const { REST } = require('@discordjs/rest')
 // const { Routes } = require('discord-api-types/v9')
@@ -23,8 +25,18 @@ export class SlashCommandHelper {
         // await rest.put(Routes.applicationCommands(''), { body: [dropCommand] })
     }
 
-    /** Get the interaction typed as CommandInteraction */
+    /** Få interaction typed as CommandInteraction */
     static getTypedInteraction(interaction: Interaction<CacheType>): CommandInteraction<CacheType> | undefined {
         return interaction.isCommand() ? (interaction as CommandInteraction<CacheType>) : undefined
+    }
+
+    /** Send en error hvis interactionen ble sendt uten korrekte parametere. Dette må rettes opp i via Slash Command API-et for å unngå at samme feil kan skje. Logger feilmelding */
+    static handleInteractionParameterError(interaction: Interaction<CacheType>) {
+        if (interaction.isCommand()) {
+            if (interaction.replied) {
+                interaction.editReply('En feil har oppstått.' + MentionUtils.mentionRole(UserUtils.ROLE_IDs.BOT_SUPPORT))
+            }
+            interaction.reply('En feil har oppstått.' + MentionUtils.mentionRole(UserUtils.ROLE_IDs.BOT_SUPPORT))
+        }
     }
 }
