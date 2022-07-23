@@ -210,16 +210,11 @@ Docs: https://www.last.fm/api/show/user.getInfo
                         if (prop) {
                             const zeroWidthSpace = '\u200B'
                             const lineSeperator = `${zeroWidthSpace}\n${zeroWidthSpace}`
-                            console.log('has prop', dataParam.limit)
-                            console.log(prop.length)
 
                             prop.forEach((element: any, index) => {
-                                console.log(index)
-
                                 const isCurrentlyPlaying = !isNotRecent && element.hasOwnProperty('@attr')
 
                                 numPlaysInTopX += parseInt(element.playcount)
-                                console.log('over adding')
 
                                 /** Denne ser kanskje lang ut, men den lager hver linje. Først ser den etter artist (hentes forskjellig fra weekly), legger til bindestrek, sjekker etter sangnavn etc.  */
                                 musicData +=
@@ -233,11 +228,9 @@ Docs: https://www.last.fm/api/show/user.getInfo
                                     `${element?.name} ${isNotRecent ? '(' + element.playcount + ' plays)' : ''} ` +
                                     `${dataParam.includeStats ? ((parseInt(element.playcount) / parseInt(totalPlaycount)) * 100).toFixed(1) + '%' : ''} ` +
                                     `${isCurrentlyPlaying ? '(spiller nå)' : ''} `
-                                console.log('directly under adding', isCurrentlyPlaying)
 
                                 /** Silent er når botten selv trigger metoden (f.eks. fra spotify-command). Da vil man ha med datostempelet. Ikke nødvendig ellers */
                                 if (dataParam.silent) musicData += `${'(' + new Date(Number(element.date['uts']) * 1000).toLocaleString('nb-NO') + ')'}`
-                                console.log('at end')
 
                                 musicData += lineSeperator
                             })
@@ -256,7 +249,6 @@ Docs: https://www.last.fm/api/show/user.getInfo
                             }* `
 
                         arrayDataRet.push(musicData)
-                        console.log(musicData)
 
                         // return retMessage
                     })

@@ -13,7 +13,6 @@ export class LinkCommands extends AbstractCommands {
         if (interaction) {
             const isWZ = interaction.options.getSubcommand() === 'warzone'
             const isLastFM = interaction.options.getSubcommand() === 'lastfm'
-            console.log(isWZ, isLastFM)
 
             let saved = false
             if (isWZ) {
