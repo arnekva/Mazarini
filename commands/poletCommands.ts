@@ -93,24 +93,6 @@ export class PoletCommands extends AbstractCommands {
         return 'Stengt'
     }
 
-    private async setFavoritePol(message: Message, content: string, args: string[]) {
-        const storeId = parseInt(args[0])
-        if (!isNaN(storeId) && storeId < 1000) {
-            const store = await PoletCommands.fetchPoletData(undefined, storeId.toString(), true)
-            if (!store) {
-                this.messageHelper.reactWithThumbs(message, 'down')
-                message.reply('Det finnes ingen butikk med id ' + storeId)
-            } else {
-                const user = DatabaseHelper.getUser(message.author.id)
-                user.favoritePol = storeId.toString()
-                DatabaseHelper.updateUser(user)
-                this.messageHelper.reactWithThumbs(message, 'up')
-            }
-        } else {
-            message.reply('ID-en er ikke gyldig')
-        }
-    }
-
     getAllCommands(): ICommandElement[] {
         return [
             {
@@ -128,8 +110,9 @@ export class PoletCommands extends AbstractCommands {
                 description:
                     'Sett din favorittpol til å brukes når du sjekker åpningstidene med "!mz polet". !mz mittpol <butikk id> (må hentes fra nettsiden)',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.setFavoritePol(rawMessage, messageContent, args)
+                    // this.setFavoritePol(rawMessage, messageContent, args)
                 },
+                isReplacedWithSlashCommand: 'link',
                 category: 'annet',
             },
         ]

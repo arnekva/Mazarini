@@ -4,17 +4,11 @@ import { ICommandElement, IInteractionElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '9.2.0'
+    public static readonly currentVersion = '9.2.1'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string =
-        `\n* Oppgradert til DiscordJS v14 (fra v13)` +
-        `\n* Krever nå Node v16.9.0 eller høyere for å kjøre botten` +
-        `\n* 'send' (Sende melding som botten) er nå en slash-command. Den vil vise for alle, men du vil ikke kunne bruke den hvis du ikke er admin` +
-        `\n* Rettet en feil som gjorde at /musikk kommandoen ikke fungerte i noen tilfeller` +
-        `\n* Shop er fjernet fra kodebasen og slash-kommandoene er fjernet` +
-        `\n* Du kan nå linke WZ-brukernavn og LastFM-brukernavn med /link-kommandoen`
+    public static readonly currentPatchNotes: string = `\n* Du kan nå linke favorittpol med /link`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
