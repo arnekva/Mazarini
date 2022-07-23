@@ -1,4 +1,4 @@
-import { Client, DMChannel, Message, MessageEmbed, TextChannel, User } from 'discord.js'
+import { ChannelType, Client, DMChannel, EmbedBuilder, Message, TextChannel, User } from 'discord.js'
 import { globalArrays } from '../globals'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { CollectorUtils } from '../utils/collectorUtils'
@@ -100,7 +100,7 @@ export class MessageHelper {
     }
     /** Send en embedded message (se gambling for eksempel) */
 
-    async sendFormattedMessage(channel: TextChannel | string, newMessage: MessageEmbed) {
+    async sendFormattedMessage(channel: TextChannel | string, newMessage: EmbedBuilder) {
         if (typeof channel === 'string') {
             const textCh = this.findChannelById(channel) as TextChannel
             if (textCh) return textCh.send({ embeds: [newMessage] })
@@ -121,7 +121,8 @@ export class MessageHelper {
                 replyChannel ? replyChannel.toString() : 'ingen'
             }.`
         )
-        if (replyChannel && replyChannel.isText()) replyChannel.send(`${errorMessageToSend} ${MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.BOT_SUPPORT)}`)
+        if (replyChannel && replyChannel.type === ChannelType.GuildText)
+            replyChannel.send(`${errorMessageToSend} ${MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.BOT_SUPPORT)}`)
     }
 
     async sendMessageToActionLogWithDefaultMessage(message: Message, error: any) {

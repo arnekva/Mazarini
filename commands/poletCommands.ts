@@ -1,4 +1,4 @@
-import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
+import { CacheType, Client, EmbedBuilder, Interaction, Message, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { vinmonopoletKey } from '../client-env'
 import { ICommandElement, IInteractionElement } from '../General/commands'
@@ -37,11 +37,11 @@ export class PoletCommands extends AbstractCommands {
         super(client, messageHelper)
     }
 
-    static async fetchPoletData(rawMessage?: Message, storeId?: string, checkExistance?: boolean) {
+    static async fetchPoletData(rawInteraction?: Interaction<CacheType>, storeId?: string, checkExistance?: boolean) {
         let id = '416'
         if (storeId) id = storeId
-        if (rawMessage) {
-            id = DatabaseHelper.getUser(rawMessage.author.id).favoritePol ?? '416'
+        if (rawInteraction) {
+            id = DatabaseHelper.getUser(rawInteraction.user.id).favoritePol ?? '416'
         }
 
         const data = await fetch(`${PoletCommands.baseURL}?storeId=${id}`, {
@@ -53,21 +53,21 @@ export class PoletCommands extends AbstractCommands {
         return (await data.json())[0] as PoletData
     }
     /** Brukerens pol fra DB overstyrer storeId som sendes inn */
-    private async getOpeningHours(rawMessage?: Message, storeId?: string) {
-        const poletData = await PoletCommands.fetchPoletData(rawMessage, storeId)
+    private async getOpeningHours(rawInteraction?: Interaction<CacheType>, storeId?: string) {
+        const poletData = await PoletCommands.fetchPoletData(rawInteraction, storeId)
 
-        const fmMessage = new MessageEmbed().setTitle(`${poletData.storeName} (${poletData.address.postalCode}, ${poletData.address.city}) `)
+        const fmMessage = new EmbedBuilder().setTitle(`${poletData.storeName} (${poletData.address.postalCode}, ${poletData.address.city}) `)
 
         if (poletData.openingHours.exceptionHours.length) {
-            fmMessage.addField('Endre åpningstider', 'Det er endrede åpningstider denne uken')
+            fmMessage.addFields({ name: 'Endre åpningstider', value: 'Det er endrede åpningstider denne uken' })
             poletData.openingHours.exceptionHours.forEach((h) => {
-                fmMessage.addField(
-                    h.dayOfTheWeek,
-                    (h.closed ? 'Stengt hele dagen' : `${h.openingTime} - ${h.closingTime}`) + `${h?.message ? '. ' + h.message : ''}`
-                )
+                fmMessage.addFields({
+                    name: h.dayOfTheWeek,
+                    value: (h.closed ? 'Stengt hele dagen' : `${h.openingTime} - ${h.closingTime}`) + `${h?.message ? '. ' + h.message : ''}`,
+                })
             })
         } else {
-            fmMessage.addField('Åpningstider', 'Polet holder åpent som normalt denne uken')
+            fmMessage.addFields({ name: 'Åpningstider', value: 'Polet holder åpent som normalt denne uken' })
         }
         let todayClosing: string = ''
         if (poletData.openingHours.regularHours) {
@@ -75,12 +75,12 @@ export class PoletCommands extends AbstractCommands {
                 const day = Languages.weekdayTranslate(rh.dayOfTheWeek)
                 const isToday = DateUtils.isDateNameToday(day)
                 const dayHeader = `${day} ${isToday ? ' (i dag)' : ''}`
-                fmMessage.addField(dayHeader, rh.closed ? 'Stengt' : `${rh.openingTime} - ${rh.closingTime}`)
+                fmMessage.addFields({ name: dayHeader, value: rh.closed ? 'Stengt' : `${rh.openingTime} - ${rh.closingTime}` })
                 if (isToday) todayClosing = rh.closingTime
             })
         }
         fmMessage.setDescription(`${this.isStoreOpen(todayClosing)}`)
-        this.messageHelper.sendFormattedMessage(rawMessage?.channel as TextChannel, fmMessage)
+        this.messageHelper.sendFormattedMessage(rawInteraction?.channel as TextChannel, fmMessage)
     }
 
     private isStoreOpen(closingTime: string) {
@@ -118,8 +118,9 @@ export class PoletCommands extends AbstractCommands {
                 description:
                     'Sjekk åpningstidene på polet. Bruker polet på Madla Amfi Stavanger som default hvis du ikke har satt et eget med "!mz mittpol" kommandoen',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.getOpeningHours(rawMessage)
+                    // this.getOpeningHours(rawMessage)
                 },
+                isReplacedWithSlashCommand: 'vinmonopolet',
                 category: 'annet',
             },
             {
@@ -134,6 +135,14 @@ export class PoletCommands extends AbstractCommands {
         ]
     }
     getAllInteractions(): IInteractionElement[] {
-        return []
+        return [
+            {
+                commandName: 'vinmonopolet',
+                command: (rawInteraction: Interaction<CacheType>) => {
+                    this.getOpeningHours(rawInteraction)
+                },
+                category: 'drink',
+            },
+        ]
     }
 }

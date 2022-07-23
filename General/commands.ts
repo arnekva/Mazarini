@@ -1,4 +1,4 @@
-import { CacheType, Client, Interaction, Message } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, Interaction, Message } from 'discord.js'
 import { Admin } from '../admin/admin'
 import { CardCommands } from '../commands/cardCommands'
 import { DateCommands } from '../commands/dateCommands'
@@ -6,6 +6,7 @@ import { DrinksCommands } from '../commands/drinksCommands'
 import { GamblingCommands } from '../commands/gamblingCommands'
 import { GameCommands } from '../commands/gameCommands'
 import { JokeCommands } from '../commands/jokeCommands'
+import { LinkCommands } from '../commands/linkCommands'
 import { Meme } from '../commands/memeCommands'
 import { Music } from '../commands/musicCommands'
 import { NameCommands } from '../commands/nameCommands'
@@ -18,6 +19,7 @@ import { WarzoneCommands } from '../commands/warzoneCommands'
 import { Weather } from '../commands/weatherCommands'
 import { MessageHelper } from '../helpers/messageHelper'
 import { PatchNotes } from '../patchnotes'
+import { ModalHandler } from './modalHandler'
 
 /**
  * Interface for kommandoer. Alle kommandoer må følge dette oppsettet.
@@ -48,7 +50,7 @@ export interface IInteractionElement {
     commandName: string
     category: commandCategory
     isAdmin?: boolean
-    command: (rawMessage: Interaction<CacheType>) => void
+    command: (rawMessage: ChatInputCommandInteraction<CacheType>) => void
 }
 
 export type commandCategory = 'musikk' | 'gambling' | 'gaming' | 'tekst' | 'annet' | 'admin' | 'spin' | 'drink'
@@ -74,6 +76,8 @@ export class Commands {
     private drinksCommands: DrinksCommands
     private nameCommands: NameCommands
     private poletCommands: PoletCommands
+    private linkCommands: LinkCommands
+    private modalHandler: ModalHandler
 
     constructor(client: Client, messageHelper: MessageHelper) {
         this.client = client
@@ -97,6 +101,8 @@ export class Commands {
         this.drinksCommands = new DrinksCommands(this.client, this.messageHelper)
         this.nameCommands = new NameCommands(this.client, this.messageHelper)
         this.poletCommands = new PoletCommands(this.client, this.messageHelper)
+        this.linkCommands = new LinkCommands(this.client, this.messageHelper)
+        this.modalHandler = new ModalHandler(this.client, this.messageHelper)
     }
 
     getAllCommands() {
@@ -121,6 +127,7 @@ export class Commands {
             ...this.drinksCommands.getAllCommands(),
             ...this.nameCommands.getAllCommands(),
             ...this.poletCommands.getAllCommands(),
+            ...this.linkCommands.getAllCommands(),
         ]
     }
 
@@ -144,7 +151,12 @@ export class Commands {
             ...this.drinksCommands.getAllInteractions(),
             ...this.nameCommands.getAllInteractions(),
             ...this.poletCommands.getAllInteractions(),
+            ...this.linkCommands.getAllInteractions(),
         ]
+    }
+
+    handleModalInteractions(interaction: Interaction<CacheType>) {
+        this.modalHandler.handleIncomingModalInteraction(interaction)
     }
 
     getCommandCatgeories() {

@@ -1,13 +1,15 @@
 import {
+    AuditLogEvent,
     CacheType,
     Client,
     DMChannel,
+    GatewayIntentBits,
     Guild,
     GuildBan,
     GuildMember,
-    Intents,
     Interaction,
     Message,
+    MessageType,
     NonThreadGuildBasedChannel,
     PartialGuildMember,
     PartialMessage,
@@ -46,20 +48,21 @@ export class MazariniClient {
     constructor() {
         this.client = new Discord.Client({
             intents: [
-                Intents.FLAGS.GUILDS,
-                Intents.FLAGS.GUILD_MESSAGES,
-                Intents.FLAGS.GUILD_INVITES,
-                Intents.FLAGS.DIRECT_MESSAGES,
-                Intents.FLAGS.GUILD_BANS,
-                Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS,
-                Intents.FLAGS.GUILD_MEMBERS,
-                Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
-                Intents.FLAGS.GUILD_MESSAGE_TYPING,
-                Intents.FLAGS.GUILD_PRESENCES,
-                Intents.FLAGS.GUILD_WEBHOOKS,
-                Intents.FLAGS.GUILD_INTEGRATIONS,
-                Intents.FLAGS.DIRECT_MESSAGE_TYPING,
-                Intents.FLAGS.GUILD_VOICE_STATES,
+                GatewayIntentBits.Guilds,
+                GatewayIntentBits.GuildMessages,
+                GatewayIntentBits.GuildInvites,
+                GatewayIntentBits.DirectMessages,
+                GatewayIntentBits.GuildBans,
+                GatewayIntentBits.GuildEmojisAndStickers,
+                GatewayIntentBits.GuildMembers,
+                GatewayIntentBits.MessageContent,
+                GatewayIntentBits.GuildMessageReactions,
+                GatewayIntentBits.GuildMessageTyping,
+                GatewayIntentBits.GuildPresences,
+                GatewayIntentBits.GuildWebhooks,
+                GatewayIntentBits.GuildIntegrations,
+                GatewayIntentBits.DirectMessageTyping,
+                GatewayIntentBits.GuildVoiceStates,
             ],
         })
         this.messageHelper = new MessageHelper(this.client)
@@ -159,7 +162,7 @@ export class MazariniClient {
         client.on('messageCreate', async (message: Message) => {
             MazariniClient.numMessages++
             //Do not reply to own messages. Do not trigger on pinned messages
-            if (message.author.username == client.user.username || message.type == 'CHANNEL_PINNED_MESSAGE') return
+            if (message.author.username == client.user.username || message.type === MessageType.ChannelPinnedMessage) return
 
             _mzClient.commandRunner.runCommands(message)
         })
@@ -168,7 +171,7 @@ export class MazariniClient {
             if (!message.guild) return
             const fetchedLogs = await message?.guild.fetchAuditLogs({
                 limit: 1,
-                type: 'MESSAGE_DELETE',
+                type: AuditLogEvent.MessageDelete,
             })
             const actionLogId = '810832760364859432'
 

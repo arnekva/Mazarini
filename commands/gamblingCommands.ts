@@ -1,9 +1,8 @@
-import { CacheType, Client, Interaction, Message, MessageEmbed, TextChannel, User } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction, Message, TextChannel, User } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'
 import { ICommandElement, IInteractionElement } from '../General/commands'
-import { globals } from '../globals'
-import { betObject, betObjectReturned, DatabaseHelper, dbPrefix, MazariniUser } from '../helpers/databaseHelper'
+import { DatabaseHelper, dbPrefix, MazariniUser } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { SlashCommandHelper } from '../helpers/slashCommandHelper'
 import { CollectorUtils } from '../utils/collectorUtils'
@@ -20,159 +19,6 @@ export interface IDailyPriceClaim {
 export class GamblingCommands extends AbstractCommands {
     constructor(client: Client, messageHelper: MessageHelper) {
         super(client, messageHelper)
-    }
-
-    private async createBet(message: Message, messageContent: string, args: string[]) {
-        const hasActiveBet = DatabaseHelper.getActiveBetObject(message.author.username)
-        const user = DatabaseHelper.getUser(message.author.id)
-        const userBalance = user.chips
-        let desc = messageContent
-        let betVal = 100
-        if (hasActiveBet) {
-            message.reply('Du kan bare ha ett aktivt veddemål om gangen. Gjør ferdig ditt gamle, og prøv på nytt')
-        } else if (!isNaN(Number(args[0]))) {
-            betVal = Number(args[0])
-            desc = desc.slice(args[0].length)
-        } else if (betVal > Number(userBalance)) {
-            message.reply('Du har kje råd te dette bro')
-        } else {
-            const betString = `${message.author.username} har startet et veddemål: ${desc} (${betVal} chips). Reager med 👍 for JA, 👎 for NEI. Resultat vises om ${globals.TIMEOUT_TIME.name}`
-            const startMessage = await this.messageHelper.sendMessage(message.channelId, betString)
-            if (startMessage) {
-                this.messageHelper.reactWithThumbs(startMessage, 'up')
-                this.messageHelper.reactWithThumbs(startMessage, 'down')
-                const _msg = this.messageHelper
-                setTimeout(async function () {
-                    let fullString = ''
-                    const positive: string[] = []
-                    const negative: string[] = []
-
-                    const thumbsUp = startMessage.reactions.cache.find((emoji) => emoji.emoji.name == '👍')
-                    if (thumbsUp) {
-                        const users = await thumbsUp.users.fetch()
-                        users.forEach((us, ind) => {
-                            const localUser = DatabaseHelper.getUser(us.id)
-                            if (localUser) {
-                                const userBal = localUser.chips
-                                if (us.id === '802945796457758760') return
-                                if (Number(userBal) < betVal && us.id !== '802945796457758760') {
-                                    fullString += us.username + '(har ikke råd og blir ikke telt med),'
-                                } else {
-                                    if (us.username !== 'MazariniBot') {
-                                        localUser.chips = Number(userBal) - betVal
-                                        DatabaseHelper.updateUser(localUser)
-                                        positive.push(us.username)
-                                        fullString += us.username == 'Mazarini Bot' ? '' : ' ' + us.username + ','
-                                    }
-                                }
-                            }
-                        })
-                        fullString += '\n'
-                    }
-                    const thumbsDown = startMessage.reactions.cache.find((emoji) => emoji.emoji.name == '👎')
-                    if (thumbsDown) {
-                        const users = await thumbsDown.users.fetch()
-                        users.forEach((us, ind) => {
-                            const localUser = DatabaseHelper.getUser(us.id)
-                            if (localUser) {
-                                const userBal = localUser.chips
-                                if (Number(userBal) < betVal && us.username !== 'Mazarini Bot') {
-                                    fullString += us.username + '(har ikke råd og blir ikke telt med),'
-                                } else {
-                                    if (us.username !== 'MazariniBot') {
-                                        localUser.chips = Number(userBal) - betVal
-                                        DatabaseHelper.updateUser(localUser)
-                                        negative.push(us.username)
-                                        fullString += us.username == 'Mazarini Bot' ? '' : ' ' + us.username + ','
-                                    }
-                                }
-                            }
-                        })
-                        fullString += '\n'
-                    }
-                    if (positive.length == 0 && negative.length == 0) {
-                        message.reply('Ingen svarte på veddemålet. ')
-                    } else {
-                        _msg.sendMessage(message.channelId, fullString)
-
-                        const obj: betObject = {
-                            description: desc,
-                            messageId: startMessage.id,
-                            positivePeople: positive,
-                            negativePeople: negative,
-                            value: betVal.toFixed(2),
-                        }
-                        DatabaseHelper.setActiveBetObject(message.author.username, obj)
-                    }
-                }, globals.TIMEOUT_TIME.time)
-            }
-        }
-    }
-
-    private async resolveBet(message: Message, messageContent: string, args: string[]) {
-        const username = message.author.username
-        const activeBet = DatabaseHelper.getActiveBetObject(message.author.username) as betObjectReturned
-        if (!activeBet) {
-            message.reply('Du kan kun lukke veddemål du har startet selv, og du har ingen aktive.')
-        } else {
-            if (args[0] === 'slett') {
-                let numP = 0
-                const negSplit = activeBet.negativePeople.split(',')
-                const posSplit = activeBet.positivePeople.split(',')
-                if (negSplit[0] !== '') numP += negSplit.length
-                if (posSplit[0] !== '') numP += posSplit.length
-                this.dealCoins(message, activeBet.value, activeBet.positivePeople.concat(activeBet.negativePeople), numP, true)
-                DatabaseHelper.deleteActiveBet(username)
-                message.reply('Veddemålet er slettet, og beløp er tilbakebetalt.')
-            } else if (args[0].toLocaleLowerCase() !== 'nei' && args[0].toLocaleLowerCase() !== 'ja') {
-                message.reply("Du må legge til om det var 'ja' eller 'nei' som var utfallet av veddemålet")
-            } else {
-                DatabaseHelper.deleteActiveBet(username)
-                const resolveMessage = await this.messageHelper.sendMessage(
-                    message.channelId,
-                    `${username} vil gjøre opp ett veddemål: ${activeBet.description}. Reager med 👍 for å godkjenne (Trenger 3).`
-                )
-
-                if (resolveMessage) {
-                    this.messageHelper.reactWithThumbs(resolveMessage, 'up')
-                    const collector = resolveMessage.createReactionCollector()
-                    collector.on('collect', (reaction) => {
-                        if (CollectorUtils.shouldStopCollector(reaction, message)) {
-                            if (resolveMessage) resolveMessage.edit(`${resolveMessage.content} (STANSET MED TOMMEL NED)`)
-                            collector.stop()
-                        }
-                        if (reaction.emoji.name === '👍' && reaction.users.cache.size > 2) {
-                            const isPositive = args[0].toLocaleLowerCase() === 'ja'
-                            this.messageHelper.sendMessage(message.channelId, `Veddemålsresultatet er godkjent. Beløpene blir nå lagt til på kontoene. `)
-
-                            this.dealCoins(
-                                message,
-                                activeBet.value,
-                                isPositive ? activeBet.positivePeople : activeBet.negativePeople,
-                                activeBet.negativePeople.split(',').length + activeBet.positivePeople.split(',').length
-                            )
-                            DatabaseHelper.deleteActiveBet(username)
-                            collector.stop()
-                        }
-                    })
-                }
-            }
-        }
-    }
-    private showActiveBet(message: Message, content: string, args: string[]) {
-        const username = args[0] ?? message.author.username
-        const activeBet = DatabaseHelper.getActiveBetObject(username) as betObject
-        if (!activeBet) {
-            message.reply('Du har ingen aktive veddemål')
-        } else {
-            const betMessage = new MessageEmbed()
-                .setTitle('🍀🎰 Veddemål 🤞🎲')
-                .setDescription(`Du har et aktivt veddemål om: '${activeBet.description}'`)
-                .addField('JA', `${activeBet.positivePeople.length < 1 ? 'Ingen' : activeBet.positivePeople}`)
-                .addField('NEI', `${activeBet.negativePeople.length < 1 ? 'Ingen' : activeBet.negativePeople}`)
-                .addField('Verdi', `${activeBet.value.length < 1 ? '0' : activeBet.value}`)
-            this.messageHelper.sendFormattedMessage(message.channel as TextChannel, betMessage)
-        }
     }
 
     private checkBalance(users: { userID: string }[], amountAsNumber: number): string | undefined {
@@ -364,12 +210,12 @@ export class GamblingCommands extends AbstractCommands {
     }
 
     private sendKrigMessage(channel: TextChannel, users: { username: string; balance: number; oldBalance: number }[], winningText: string) {
-        const gambling = new MessageEmbed().setTitle('⚔️ Krig ⚔️').setDescription(`Terningen trillet ${winningText}`)
+        const gambling = new EmbedBuilder().setTitle('⚔️ Krig ⚔️').setDescription(`Terningen trillet ${winningText}`)
         users.forEach((user) => {
-            gambling.addField(
-                `${user.username}`,
-                `Har nå ${TextUtils.formatMoney(user.balance, 2, 2)} chips (hadde ${TextUtils.formatMoney(user.oldBalance, 2, 2)})`
-            )
+            gambling.addFields({
+                name: `${user.username}`,
+                value: `Har nå ${TextUtils.formatMoney(user.balance, 2, 2)} chips (hadde ${TextUtils.formatMoney(user.oldBalance, 2, 2)})`,
+            })
         })
 
         this.messageHelper.sendFormattedMessage(channel, gambling)
@@ -515,7 +361,7 @@ export class GamblingCommands extends AbstractCommands {
                 user.chips = newMoneyValue
                 DatabaseHelper.updateUser(user)
 
-                const gambling = new MessageEmbed()
+                const gambling = new EmbedBuilder()
                     .setTitle('Gambling 🎲')
                     .setDescription(
                         `${message.author.username} gamblet ${TextUtils.formatMoney(valAsNum, 2, 2)} av ${TextUtils.formatMoney(
@@ -526,9 +372,12 @@ export class GamblingCommands extends AbstractCommands {
                             roll >= 50 ? 'vant! 💰💰 (' + Number(multiplier) + 'x)' : 'tapte 💸💸'
                         }\nDu har nå ${TextUtils.formatMoney(newMoneyValue, 2, 2)} chips.`
                     )
-                if (roll >= 100) gambling.addField(`Trillet 100!`, `Du trillet 100 og vant ${multiplier} ganger så mye som du satset!`)
+                if (roll >= 100) gambling.addFields({ name: `Trillet 100!`, value: `Du trillet 100 og vant ${multiplier} ganger så mye som du satset!` })
                 if (hasDebtPenalty && roll >= 50)
-                    gambling.addField(`Gjeld`, `Du er i høy gjeld, og banken har krevd inn ${interest.toFixed(0)} chips (${calculatedValue.rate.toFixed(0)}%)`)
+                    gambling.addFields({
+                        name: `Gjeld`,
+                        value: `Du er i høy gjeld, og banken har krevd inn ${interest.toFixed(0)} chips (${calculatedValue.rate.toFixed(0)}%)`,
+                    })
                 this.messageHelper.sendFormattedMessage(message.channel as TextChannel, gambling)
             }
         } else {
@@ -612,7 +461,7 @@ export class GamblingCommands extends AbstractCommands {
                 } else {
                     result = roll + ' sort'
                 }
-                const gambling = new MessageEmbed()
+                const gambling = new EmbedBuilder()
                     .setTitle('Rulett 🎲')
                     .setDescription(
                         `${message.author.username} satset ${valAsNum} av ${userMoney} chips på ${betOn}.\nBallen landet på: ${result}. Du ${
@@ -877,7 +726,7 @@ export class GamblingCommands extends AbstractCommands {
                 emojiString += MiscUtils.findLetterEmoji(num.toString())
             })
 
-            const msg = new MessageEmbed().setTitle('🎰 Gambling 🎰').setDescription(`${emojiString}`).setFields()
+            const msg = new EmbedBuilder().setTitle('🎰 Gambling 🎰').setDescription(`${emojiString}`).setFields()
 
             const amountOfCorrectNums: { val: number; num: number }[] = []
             const sequenceWins = ['123', '1234', '12345', '1337']
@@ -905,7 +754,7 @@ export class GamblingCommands extends AbstractCommands {
                 amountOfCorrectNums.forEach((correctNum) => {
                     let currentWinnings = this.findSlotMachineWinningAmount(correctNum.num + 1)
                     winnings += currentWinnings
-                    msg.addField(`${correctNum.val}`, `Kom ${correctNum.num + 1} ganger. Du har vunnet ${currentWinnings} chips`)
+                    msg.addFields({ name: `${correctNum.val}`, value: `Kom ${correctNum.num + 1} ganger. Du har vunnet ${currentWinnings} chips` })
                 })
                 const currentMoney = user.chips
                 const newMoney = Number(currentMoney) + winnings
@@ -918,37 +767,33 @@ export class GamblingCommands extends AbstractCommands {
                     if (arrayAsString.includes(seq)) {
                         const seqWorth = this.findSequenceWinningAmount(seq)
                         winnings += seqWorth
-                        msg.addField(`${seq}`, `Du fikk sekvensen ${seq}. Du har vunnet ${seqWorth} chips`)
+                        msg.addFields({ name: `${seq}`, value: `Du fikk sekvensen ${seq}. Du har vunnet ${seqWorth} chips` })
                         hasSequence = true
                     }
                 })
-                if (!hasSequence) msg.addField('Du tapte', '-100 chips')
+                if (!hasSequence) msg.addFields({ name: 'Du tapte', value: '-100 chips' })
             }
             this.messageHelper.sendFormattedMessage(message.channel as TextChannel, msg)
         }
     }
 
     /** Missing streak counter and increased reward */
-    private handleDailyClaimInteraction(rawInteraction: Interaction<CacheType>) {
-        const interaction = SlashCommandHelper.getTypedInteraction(rawInteraction)
-        if (interaction) {
-            const numDays = Number(interaction.options.get('dager')?.value)
+    private handleDailyClaimInteraction(interaction: ChatInputCommandInteraction<CacheType>) {
+        const numDays = Number(interaction.options.get('dager')?.value)
 
-            if (!numDays) {
-                const reply = this.claimDailyChipsAndCoins(rawInteraction)
-                interaction.reply(reply)
-            } else if (numDays) {
-                const reply = this.freezeDailyClaim(interaction, numDays)
-                interaction.reply(reply)
-            } else {
-                //Usikker på om dager er obligatorisk, så håndter en eventuell feil intill bekreftet oblig.
-                SlashCommandHelper.handleInteractionParameterError(interaction)
-            }
+        if (!numDays) {
+            const reply = this.claimDailyChipsAndCoins(interaction)
+            interaction.reply(reply)
+        } else if (numDays) {
+            const reply = this.freezeDailyClaim(interaction, numDays)
+            interaction.reply(reply)
+        } else {
+            //Usikker på om dager er obligatorisk, så håndter en eventuell feil intill bekreftet oblig.
+            SlashCommandHelper.handleInteractionParameterError(interaction)
         }
     }
 
-    private claimDailyChipsAndCoins(rawInteraction: Interaction<CacheType>): string {
-        const interaction = SlashCommandHelper.getTypedInteraction(rawInteraction)
+    private claimDailyChipsAndCoins(interaction: ChatInputCommandInteraction<CacheType>): string {
         if (interaction) {
             const user = DatabaseHelper.getUser(interaction.user.id)
             const canClaim = user.dailyClaim
@@ -1124,14 +969,6 @@ export class GamblingCommands extends AbstractCommands {
                 category: 'gambling',
             },
             {
-                commandName: 'visbet',
-                description: 'Vis en brukers aktive veddemål',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.showActiveBet(rawMessage, messageContent, args)
-                },
-                category: 'gambling',
-            },
-            {
                 commandName: 'vipps',
                 description: 'Vipps til en annen bruker. <brukernavn> <tall>',
 
@@ -1194,22 +1031,6 @@ export class GamblingCommands extends AbstractCommands {
             },
 
             {
-                commandName: 'bet',
-                description: 'Start et ja/nei veddemål',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.createBet(rawMessage, messageContent, args)
-                },
-                category: 'gambling',
-            },
-            {
-                commandName: 'resolve',
-                description: 'Resolve veddemålet',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.resolveBet(rawMessage, messageContent, args)
-                },
-                category: 'gambling',
-            },
-            {
                 commandName: 'roll',
                 description: 'Rull spillemaskinen. Du vinner hvis du får 2 eller flere like tall',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
@@ -1225,7 +1046,7 @@ export class GamblingCommands extends AbstractCommands {
         return [
             {
                 commandName: 'daily',
-                command: (rawInteraction: Interaction<CacheType>) => {
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.handleDailyClaimInteraction(rawInteraction)
                 },
                 category: 'gambling',

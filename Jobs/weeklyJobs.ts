@@ -1,4 +1,4 @@
-import { MessageEmbed } from 'discord.js'
+import { EmbedBuilder } from '@discordjs/builders'
 import { PoletCommands } from '../commands/poletCommands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -26,10 +26,12 @@ export class WeeklyJobs {
     private async checkPoletHours() {
         const data = await PoletCommands.fetchPoletData(undefined, '416')
         if (data && data?.openingHours?.exceptionHours?.length > 0) {
-            const fmMessage = new MessageEmbed()
+            const fmMessage = new EmbedBuilder()
                 .setTitle(`Det er endrede åpningstider på polet denne uken `)
                 .setDescription(`Bruker ${data.storeName} (${data.address.postalCode}, ${data.address.city}) som utgangspunkt`)
-            data.openingHours.exceptionHours.forEach((h) => fmMessage.addField(h.dayOfTheWeek, h.closed ? 'Stengt' : `${h.openingTime} - ${h.closingTime}\n`))
+            data.openingHours.exceptionHours.forEach((h) =>
+                fmMessage.addFields({ name: h.dayOfTheWeek, value: h.closed ? 'Stengt' : `${h.openingTime} - ${h.closingTime}\n` })
+            )
             this.messageHelper.sendFormattedMessage(MessageUtils.CHANNEL_IDs.VINMONOPOLET, fmMessage)
         }
     }

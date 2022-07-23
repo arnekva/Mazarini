@@ -1,10 +1,9 @@
-import { CacheType, Client, Interaction, Message, MessageEmbed, User } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction, Message, User } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { lfKey } from '../client-env'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { SlashCommandHelper } from '../helpers/slashCommandHelper'
 import { TextUtils } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
 const fetch = require('node-fetch')
@@ -54,72 +53,62 @@ export class Music extends AbstractCommands {
     private readonly baseUrl = 'http://ws.audioscrobbler.com/2.0/'
 
     async findCommand(message: Message, content: string, args: string[], params?: IFindCommand) {
-        if (args[1] && args[2] && args[0] === 'user') {
-            if (args[1] !== message.author.username) {
-                message.reply('du kan kun knytte ditt eget brukernavn')
-            } else {
-                this.connectLastFmUsernameToUser(args[1], args[2], message)
-                message.reply('Knyttet bruker ' + args[1] + ' til Last.fm brukernavnet ' + args[2])
-            }
-            return undefined
+        if (!args[0]) {
+            return message.reply("Feilformattert. Mangler du f.eks 'topp'?")
         } else {
-            if (!args[0]) {
-                return message.reply("Feilformattert. Mangler du f.eks 'topp'?")
-            } else {
-                /** CHECKS at alt eksistere */
-                const method = methods.filter((e) => e.command == args[0])[0]
+            /** CHECKS at alt eksistere */
+            const method = methods.filter((e) => e.command == args[0])[0]
 
-                if (args[0] != 'user') {
-                    if (!method) {
-                        return message.reply("Kommandoen eksisterer ikke. Bruk 'topp' eller 'weekly'")
-                    }
+            if (args[0] != 'user') {
+                if (!method) {
+                    return message.reply("Kommandoen eksisterer ikke. Bruk 'topp' eller 'weekly'")
+                }
 
-                    let username = this.getLastFMUsernameByDiscordUsername(params?.usernameToLookup ?? message.author.username, message)
+                let username = this.getLastFMUsernameByDiscordUsername(params?.usernameToLookup ?? message.author.username, message)
 
-                    //Check if fourth ([3]) argument is a valid username - if so, override author.username. Otherwise, treat [3] as 'stats' option.
-                    let usernameFromArgs = this.getLastFMUsernameByDiscordUsername(TextUtils.splitUsername(args[2]) ?? '', message)
-                    if (usernameFromArgs) username = usernameFromArgs
-                    let limit = (Number(args[1]) ? args[1] : args[2]) ?? '5'
-                    const cmd = this.getCommand(method.command, args[1])
+                //Check if fourth ([3]) argument is a valid username - if so, override author.username. Otherwise, treat [3] as 'stats' option.
+                let usernameFromArgs = this.getLastFMUsernameByDiscordUsername(TextUtils.splitUsername(args[2]) ?? '', message)
+                if (usernameFromArgs) username = usernameFromArgs
+                let limit = (Number(args[1]) ? args[1] : args[2]) ?? '5'
+                const cmd = this.getCommand(method.command, args[1])
 
-                    if (!username) {
-                        if (!params?.isSilent) message.reply("Du har ikke registrert brukernavnet ditt. Bruk '!mz musikk user <discordnavn> <last.fm navn>")
-                        return undefined
-                    }
-
-                    if (method.command === 'siste' && args[2]) {
-                        const nyUser = this.getLastFMUsernameByDiscordUsername(args[2], message)
-                        if (nyUser) {
-                            username = nyUser
-                        } else {
-                            if (!params?.isSilent)
-                                message.reply(
-                                    "du har oppgitt et brukernavn som ikke har tilknyttet Last.fm-kontoen sin ('!mz musikk user <discordnavn> <last.fm navn>')"
-                                )
-                            return undefined
-                        }
-                    }
-
-                    if (!cmd) {
-                        return message.reply("kommandoen mangler 'artist', 'songs' eller 'album' eller  bak 'topp', 'weekly' eller 'siste'")
-                    }
-                    /** CHECKS END */
-
-                    const data: fetchData = {
-                        user: username,
-                        method: { cmd: cmd, desc: method.title },
-                        limit: limit,
-                        includeStats: usernameFromArgs ? !!args[4] : !!args[3], //If overriding username, stats index is pushed back by 1 index
-                        silent: params?.isSilent ?? false,
-                        includeNameInOutput: params?.includeUsername ?? false,
-                        username: args[2] ?? message.author.username,
-                    }
-
-                    const dataRet = await this.findLastFmData(data, params?.notWeeklyOrRecent, params?.isSilent)
-                    return dataRet
-                } else {
+                if (!username) {
+                    if (!params?.isSilent) message.reply("Du har ikke registrert brukernavnet ditt. Bruk '!mz musikk user <discordnavn> <last.fm navn>")
                     return undefined
                 }
+
+                if (method.command === 'siste' && args[2]) {
+                    const nyUser = this.getLastFMUsernameByDiscordUsername(args[2], message)
+                    if (nyUser) {
+                        username = nyUser
+                    } else {
+                        if (!params?.isSilent)
+                            message.reply(
+                                "du har oppgitt et brukernavn som ikke har tilknyttet Last.fm-kontoen sin ('!mz musikk user <discordnavn> <last.fm navn>')"
+                            )
+                        return undefined
+                    }
+                }
+
+                if (!cmd) {
+                    return message.reply("kommandoen mangler 'artist', 'songs' eller 'album' eller  bak 'topp', 'weekly' eller 'siste'")
+                }
+                /** CHECKS END */
+
+                const data: fetchData = {
+                    user: username,
+                    method: { cmd: cmd, desc: method.title },
+                    limit: limit,
+                    includeStats: usernameFromArgs ? !!args[4] : !!args[3], //If overriding username, stats index is pushed back by 1 index
+                    silent: params?.isSilent ?? false,
+                    includeNameInOutput: params?.includeUsername ?? false,
+                    username: args[2] ?? message.author.username,
+                }
+
+                const dataRet = await this.findLastFmData(data, params?.notWeeklyOrRecent, params?.isSilent)
+                return dataRet
+            } else {
+                return undefined
             }
         }
     }
@@ -174,7 +163,6 @@ Docs: https://www.last.fm/api/show/user.getInfo
     */
     /**
      * Finn last FM data
-     * @param message
      * @param dataParam
      * @returns
      */
@@ -222,34 +210,38 @@ Docs: https://www.last.fm/api/show/user.getInfo
                         if (prop) {
                             const zeroWidthSpace = '\u200B'
                             const lineSeperator = `${zeroWidthSpace}\n${zeroWidthSpace}`
-                            let hasCurrentlyPlaying = false
+                            console.log('has prop', dataParam.limit)
+                            console.log(prop.length)
 
                             prop.forEach((element: any, index) => {
-                                if (index === 0) {
-                                    const isCurrentlyPlaying = !isNotRecent && element.hasOwnProperty('@attr')
-                                    // if (hasCurrentlyPlaying && dataParam.includeNameInOutput) {
-                                    // }
-                                    if (isCurrentlyPlaying) hasCurrentlyPlaying = true
-                                    numPlaysInTopX += parseInt(element.playcount)
+                                console.log(index)
 
-                                    /** Denne ser kanskje lang ut, men den lager hver linje. Først ser den etter artist (hentes forskjellig fra weekly), legger til bindestrek, sjekker etter sangnavn etc.  */
-                                    musicData +=
-                                        `${dataParam.includeNameInOutput ? '(' + dataParam.username + ') ' : ''}${
-                                            isFormattedWithHashtag && element.artist
-                                                ? element.artist['#text'] + ' - '
-                                                : element.artist
-                                                ? element.artist.name + ' - '
-                                                : ''
-                                        }` +
-                                        `${element?.name} ${isNotRecent ? '(' + element.playcount + ' plays)' : ''} ` +
-                                        `${dataParam.includeStats ? ((parseInt(element.playcount) / parseInt(totalPlaycount)) * 100).toFixed(1) + '%' : ''} ` +
-                                        `${isCurrentlyPlaying ? '(spiller nå)' : ''} `
-                                    /** Silent er når botten selv trigger metoden (f.eks. fra spotify-command). Da vil man ha med datostempelet. Ikke nødvendig ellers */
-                                    if (!isCurrentlyPlaying) musicData += `${'(' + new Date(Number(element.date['uts']) * 1000).toLocaleString('nb-NO') + ')'}`
+                                const isCurrentlyPlaying = !isNotRecent && element.hasOwnProperty('@attr')
 
-                                    musicData += lineSeperator
-                                }
+                                numPlaysInTopX += parseInt(element.playcount)
+                                console.log('over adding')
+
+                                /** Denne ser kanskje lang ut, men den lager hver linje. Først ser den etter artist (hentes forskjellig fra weekly), legger til bindestrek, sjekker etter sangnavn etc.  */
+                                musicData +=
+                                    `${dataParam.includeNameInOutput ? '(' + dataParam.username + ') ' : ''}${
+                                        isFormattedWithHashtag && element.artist
+                                            ? element.artist['#text'] + ' - '
+                                            : element.artist
+                                            ? element.artist.name + ' - '
+                                            : ''
+                                    }` +
+                                    `${element?.name} ${isNotRecent ? '(' + element.playcount + ' plays)' : ''} ` +
+                                    `${dataParam.includeStats ? ((parseInt(element.playcount) / parseInt(totalPlaycount)) * 100).toFixed(1) + '%' : ''} ` +
+                                    `${isCurrentlyPlaying ? '(spiller nå)' : ''} `
+                                console.log('directly under adding', isCurrentlyPlaying)
+
+                                /** Silent er når botten selv trigger metoden (f.eks. fra spotify-command). Da vil man ha med datostempelet. Ikke nødvendig ellers */
+                                if (dataParam.silent) musicData += `${'(' + new Date(Number(element.date['uts']) * 1000).toLocaleString('nb-NO') + ')'}`
+                                console.log('at end')
+
+                                musicData += lineSeperator
                             })
+
                             /** Hvis prop-en er formattert med en # (eks. ['@attr']) så finnes ikke total plays. */
                             if (!isFormattedWithHashtag) musicData += `\n*Totalt ${topData[strippedMethod]['@attr'].total} ${methodWithoutGet}s i biblioteket`
                         }
@@ -264,6 +256,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
                             }* `
 
                         arrayDataRet.push(musicData)
+                        console.log(musicData)
 
                         // return retMessage
                     })
@@ -282,27 +275,14 @@ Docs: https://www.last.fm/api/show/user.getInfo
         }
         return undefined
     }
-    private connectLastFmUsernameToUser(username: string, lfUsername: string, rawMessage: Message) {
-        const uname = UserUtils.findUserByUsername(username, rawMessage)
-        if (uname) {
-            const user = DatabaseHelper.getUser(uname.id)
-            if (user) {
-                user.lastFMUsername = lfUsername
-                DatabaseHelper.updateUser(user)
-                return true
-            }
-        }
-        return false
-    }
 
-    private async handleMusicInteractions(rawInteraction: Interaction<CacheType>) {
-        const interaction = SlashCommandHelper.getTypedInteraction(rawInteraction)
+    private async handleMusicInteractions(interaction: ChatInputCommandInteraction<CacheType>) {
         if (interaction) {
             const options = interaction.options.get('data')?.value as string
             const user = interaction.options.get('user')?.user
 
             const data = await this.findCommandForInteraction(interaction, options, user instanceof User ? user : undefined)
-            if (data instanceof MessageEmbed) {
+            if (data instanceof EmbedBuilder) {
                 interaction.reply({ embeds: [data] })
             } else {
                 interaction.reply(data)
@@ -310,7 +290,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
         }
     }
 
-    async findCommandForInteraction(interaction: Interaction<CacheType>, options: string, user?: User): Promise<string | MessageEmbed> {
+    async findCommandForInteraction(interaction: Interaction<CacheType>, options: string, user?: User): Promise<string | EmbedBuilder> {
         const fmUser = DatabaseHelper.getUser(user ? user?.id : interaction.user.id)
         if (fmUser.lastFMUsername) {
             let data: fetchData = {
@@ -332,8 +312,10 @@ Docs: https://www.last.fm/api/show/user.getInfo
             } else if (options === 'lasttensongs') {
                 data.method = { cmd: this.getCommand('siste', '10'), desc: 'Siste 10 sanger' }
             }
-            return `${user ? `Data for ${user.username}\n` : ''}` + (await this.findLastFmData(data)).join('\n')
-        } else return 'Brukeren har ikke knyttet til Last.fm-brukernavn'
+            const lastFmData = (await this.findLastFmData(data)).join('\n')
+
+            return `${user ? `Data for ${user.username}\n` : ''}` + lastFmData
+        } else return `Brukeren ${user.username} har ikke knyttet til et Last.fm-brukernavn`
     }
 
     public getAllCommands(): ICommandElement[] {
@@ -354,7 +336,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
         return [
             {
                 commandName: 'musikk',
-                command: (rawInteraction: Interaction<CacheType>) => {
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     // this.findCommand(rawMessage, messageContent, args)
                     this.handleMusicInteractions(rawInteraction)
                 },

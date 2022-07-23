@@ -1,4 +1,4 @@
-import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
+import { Client, EmbedBuilder, Message, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { Admin } from '../admin/admin'
 import { ICommandElement, IInteractionElement } from '../General/commands'
@@ -34,10 +34,10 @@ export class UserCommands extends AbstractCommands {
     private async roleAssignment(message: Message, content: string, args: string[]) {
         const roles = Roles.allRoles
 
-        const msg = new MessageEmbed().setTitle('Rolle').setDescription(`Reager med emojiene nedenfor for å få tildelt roller`)
+        const msg = new EmbedBuilder().setTitle('Rolle').setDescription(`Reager med emojiene nedenfor for å få tildelt roller`)
 
         roles.forEach((role) => {
-            msg.addField(`${role.name}`, `${role.emoji}`, true)
+            msg.addFields({ name: `${role.name}`, value: `${role.emoji}`, inline: true })
         })
 
         const sentMessage = await this.messageHelper.sendFormattedMessage(message.channel as TextChannel, msg)

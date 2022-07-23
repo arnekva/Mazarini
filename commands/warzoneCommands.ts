@@ -1,12 +1,11 @@
 import { login, platforms, Warzone } from 'call-of-duty-api'
-import { CacheType, Client, Interaction, Message, MessageEmbed } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction, Message } from 'discord.js'
 import { Response } from 'node-fetch'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { actSSOCookie } from '../client-env'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { SlashCommandHelper } from '../helpers/slashCommandHelper'
 import { DateUtils } from '../utils/dateUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { ObjectUtils } from '../utils/objectUtils'
@@ -174,7 +173,7 @@ export class WarzoneCommands extends AbstractCommands {
         }
     }
 
-    private async getLastMatchData(interaction: Interaction<CacheType>): Promise<string | MessageEmbed> {
+    private async getLastMatchData(interaction: Interaction<CacheType>): Promise<string | EmbedBuilder> {
         const WZUser = this.getWZUserStringFromDB(interaction)?.split(';')
         if (!WZUser) return 'Du må knytta brukernavn te brukeren din fysste'
         else {
@@ -196,7 +195,7 @@ export class WarzoneCommands extends AbstractCommands {
                     const matchStart = Number(data?.data?.matches[0]?.utcStartSeconds) * 1000
                     const matchStartDate = new Date(matchStart)
 
-                    const embedMsg = new MessageEmbed()
+                    const embedMsg = new EmbedBuilder()
                         .setTitle(`Siste match for ${gamertag}: ${data?.data?.matches[0]?.playerStats?.teamPlacement ?? 'Ukjent'}. plass `)
                         .setDescription(`${matchStartDate ?? 'Ukjent dato og tid'}`)
                     const isFlaut = () => {
@@ -204,21 +203,23 @@ export class WarzoneCommands extends AbstractCommands {
                             ? '(flaut)'
                             : ''
                     }
-                    embedMsg.addField(`Kills:`, `${data?.data?.matches[0]?.playerStats?.kills ?? 'Ukjent'}`, true)
-                    embedMsg.addField(`Deaths:`, `${data?.data?.matches[0]?.playerStats?.deaths ?? 'Ukjent'}`, true)
-                    embedMsg.addField(`K/D Ratio:`, `${data?.data?.matches[0]?.playerStats?.kdRatio ?? 'Ukjent'}`, true)
-                    embedMsg.addField(`Assists:`, `${data?.data?.matches[0]?.playerStats?.assists ?? 'Ukjent'}`, true)
-                    embedMsg.addField(`Headshots:`, `${data?.data?.matches[0]?.playerStats?.headshots ?? 'Ukjent'}`, true)
-                    embedMsg.addField(`Longest streak:`, `${data?.data?.matches[0]?.playerStats?.longestStreak ?? 'Ukjent'}`, true)
-                    embedMsg.addField(`Damage done:`, `${data?.data?.matches[0]?.playerStats?.damageDone ?? 'Ukjent'}`, true)
-                    embedMsg.addField(`Damage taken:`, `${data?.data?.matches[0]?.playerStats?.damageTaken ?? 'Ukjent'} ${isFlaut()}`, true)
-                    embedMsg.addField(`Distance traveled:`, `${data?.data?.matches[0]?.playerStats?.distanceTraveled ?? 'Ukjent'}`, true)
-                    embedMsg.addField(`Gulag kills:`, `${data?.data?.matches[0]?.playerStats?.gulagKills ?? 'Ukjent'}`, true)
-                    embedMsg.addField(`Gulag deaths:`, `${data?.data?.matches[0]?.playerStats?.gulagDeaths ?? 'Ukjent'}`, true)
-                    embedMsg.addField(`Mode:`, `${data?.data?.matches[0]?.mode ?? 'Ukjent'}`, true)
-                    embedMsg.addField(`Score XP:`, `${data?.data?.matches[0]?.playerStats?.scoreXp ?? 'Ukjent'}`, true)
-                    embedMsg.addField(`Players in match:`, `${data?.data?.matches[0]?.playerCount}`, true)
-                    embedMsg.addField(`Rank:`, `${data?.data?.matches[0]?.player?.rank ?? 'Ukjent'}`, true)
+                    embedMsg.addFields([
+                        { name: `Kills:`, value: `${data?.data?.matches[0]?.playerStats?.kills ?? 'Ukjent'}`, inline: true },
+                        { name: `Deaths:`, value: `${data?.data?.matches[0]?.playerStats?.deaths ?? 'Ukjent'}`, inline: true },
+                        { name: `K/D Ratio:`, value: `${data?.data?.matches[0]?.playerStats?.kdRatio ?? 'Ukjent'}`, inline: true },
+                        { name: `Assists:`, value: `${data?.data?.matches[0]?.playerStats?.assists ?? 'Ukjent'}`, inline: true },
+                        { name: `Headshots:`, value: `${data?.data?.matches[0]?.playerStats?.headshots ?? 'Ukjent'}`, inline: true },
+                        { name: `Longest streak:`, value: `${data?.data?.matches[0]?.playerStats?.longestStreak ?? 'Ukjent'}`, inline: true },
+                        { name: `Damage done:`, value: `${data?.data?.matches[0]?.playerStats?.damageDone ?? 'Ukjent'}`, inline: true },
+                        { name: `Damage taken:`, value: `${data?.data?.matches[0]?.playerStats?.damageTaken ?? 'Ukjent'} ${isFlaut()}`, inline: true },
+                        { name: `Distance traveled:`, value: `${data?.data?.matches[0]?.playerStats?.distanceTraveled ?? 'Ukjent'}`, inline: true },
+                        { name: `Gulag kills:`, value: `${data?.data?.matches[0]?.playerStats?.gulagKills ?? 'Ukjent'}`, inline: true },
+                        { name: `Gulag deaths:`, value: `${data?.data?.matches[0]?.playerStats?.gulagDeaths ?? 'Ukjent'}`, inline: true },
+                        { name: `Mode`, value: `${data?.data?.matches[0]?.mode ?? 'Ukjent'}`, inline: true },
+                        { name: `Score XP:`, value: `${data?.data?.matches[0]?.playerStats?.scoreXp ?? 'Ukjent'}`, inline: true },
+                        { name: `Players in match:`, value: `${data?.data?.matches[0]?.playerCount}`, inline: true },
+                        { name: `Deaths`, value: `${data?.data?.matches[0]?.playerStats?.deaths ?? 'Ukjent'}`, inline: true },
+                    ])
 
                     return embedMsg
                 }
@@ -437,28 +438,7 @@ export class WarzoneCommands extends AbstractCommands {
             })
     }
 
-    private saveGameUsernameToDiscordUser(message: Message, content: string, args: string[]) {
-        const game = args[0]
-        const platform = args[1]
-        const gamertag = args[2]
-        let saveString = platform + ';' + gamertag
-        if (game === 'wz') {
-            const user = DatabaseHelper.getUser(message.author.id)
-            user.activisionUserString = saveString
-            DatabaseHelper.updateUser(user)
-
-            this.messageHelper.reactWithThumbs(message, 'up')
-        } else if (game === 'rocket') {
-            const user = DatabaseHelper.getUser(message.author.id)
-            user.rocketLeagueUserString = saveString
-            DatabaseHelper.updateUser(user)
-
-            this.messageHelper.reactWithThumbs(message, 'up')
-        }
-    }
-
-    private async handleWZInteraction(rawInteraction: Interaction<CacheType>) {
-        const interaction = SlashCommandHelper.getTypedInteraction(rawInteraction)
+    private async handleWZInteraction(interaction: ChatInputCommandInteraction<CacheType>) {
         if (interaction) {
             const wantedType = interaction.options.getString('mode') //"br", "weekly" eller "siste"
             if (wantedType === 'br' || wantedType === 'weekly') {
@@ -466,7 +446,7 @@ export class WarzoneCommands extends AbstractCommands {
                 interaction.reply(content)
             } else if (wantedType === 'siste') {
                 const content = await this.getLastMatchData(interaction)
-                if (content instanceof MessageEmbed)
+                if (content instanceof EmbedBuilder)
                     interaction.reply({
                         embeds: [content],
                     })
@@ -539,8 +519,9 @@ export class WarzoneCommands extends AbstractCommands {
                 commandName: 'link',
                 description: "<plattform> <gamertag> (plattform: 'battle', 'psn', 'xbl', 'epic')",
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.saveGameUsernameToDiscordUser(rawMessage, messageContent, args)
+                    // this.saveGameUsernameToDiscordUser(rawMessage, messageContent, args)
                 },
+                isReplacedWithSlashCommand: 'link',
                 category: 'gaming',
             },
             {
@@ -557,7 +538,7 @@ export class WarzoneCommands extends AbstractCommands {
         return [
             {
                 commandName: 'stats',
-                command: (rawInteraction: Interaction<CacheType>) => {
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.handleWZInteraction(rawInteraction)
                 },
                 category: 'gaming',

@@ -1,4 +1,4 @@
-import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
+import { Client, EmbedBuilder, Message, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -29,19 +29,19 @@ export class Weather extends AbstractCommands {
                 res.json().then((el: any) => {
                     const temperature: string = WeatherUtils.kelvinToCelcius(el.main.temp).toFixed(1).toString()
                     const weatherDescription = el.weather.map((weatherObj: any) => weatherObj.description).join(', ')
-                    const weather = new MessageEmbed()
+                    const weather = new EmbedBuilder()
                         .setTitle(`☁️ Vær - ${el.name} ☀️`)
                         .setDescription(``)
-                        .addField(
-                            'Temperatur',
-                            `Det er ${temperature} grader (føles som ${WeatherUtils.kelvinToCelcius(el.main.feels_like)
+                        .addFields({
+                            name: 'Temperatur',
+                            value: `Det er ${temperature} grader (føles som ${WeatherUtils.kelvinToCelcius(el.main.feels_like)
                                 .toFixed(1)
                                 .toString()}).\nLaveste er ${WeatherUtils.kelvinToCelcius(el.main.temp_min)
                                 .toFixed(1)
-                                .toString()}°, høyeste er ${WeatherUtils.kelvinToCelcius(el.main.temp_max).toFixed(1).toString()}°`
-                        )
-                        .addField(`Forhold`, `Det er ${weatherDescription}`)
-                        .addField(`Vind`, `${el.wind.speed} m/s`)
+                                .toString()}°, høyeste er ${WeatherUtils.kelvinToCelcius(el.main.temp_max).toFixed(1).toString()}°`,
+                        })
+                        .addFields({ name: `Forhold`, value: `Det er ${weatherDescription}` })
+                        .addFields({ name: `Vind`, value: `${el.wind.speed} m/s` })
 
                     this.messageHelper.sendFormattedMessage(message.channel as TextChannel, weather)
                 })

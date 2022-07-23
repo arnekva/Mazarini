@@ -1,9 +1,8 @@
-import { CacheType, Client, Interaction, Message } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, Message } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { SlashCommandHelper } from '../helpers/slashCommandHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { RandomUtils } from '../utils/randomUtils'
 
@@ -25,8 +24,7 @@ export class NameCommands extends AbstractCommands {
         return message.content.split(' ')[needsIndex ? needsIndex : 1]
     }
 
-    private handleNameCommands(rawInteraction: Interaction<CacheType>) {
-        const interaction = SlashCommandHelper.getTypedInteraction(rawInteraction)
+    private handleNameCommands(interaction: ChatInputCommandInteraction<CacheType>) {
         if (interaction) {
             const textToAdd = interaction.options.get('tekst')?.value as string
             const userTextIsAddedTo = interaction.options.get('bruker')?.value as string
@@ -63,8 +61,9 @@ export class NameCommands extends AbstractCommands {
     }
 
     private getTextFromCommand(username: string) {
-        return `${username} ${ArrayUtils.randomChoiceFromArray(DatabaseHelper.getTextCommandValueArray(username.toLowerCase()) ?? []) || 'Ingen tekst lagt til'}`
-         
+        return `${username} ${
+            ArrayUtils.randomChoiceFromArray(DatabaseHelper.getTextCommandValueArray(username.toLowerCase()) ?? []) || 'Ingen tekst lagt til'
+        }`
     }
 
     private addTextValueFromInteraction(text: string, username: string): boolean {
@@ -121,7 +120,7 @@ export class NameCommands extends AbstractCommands {
         return [
             {
                 commandName: 'navn',
-                command: (rawInteraction: Interaction<CacheType>) => {
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.handleNameCommands(rawInteraction)
                 },
                 category: 'gaming',

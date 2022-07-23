@@ -1,4 +1,4 @@
-import { CacheType, Client, Interaction, Message, MessageEmbed, User } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction, Message, User } from 'discord.js'
 import { Headers } from 'node-fetch'
 import { URLSearchParams } from 'url'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
@@ -7,7 +7,6 @@ import { ICommandElement, IInteractionElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { SlashCommandHelper } from '../helpers/slashCommandHelper'
 import { UserUtils } from '../utils/userUtils'
 import { Music } from './musicCommands'
 const SpotifyWebApi = require('spotify-web-api-node')
@@ -99,7 +98,7 @@ export class SpotifyCommands extends AbstractCommands {
         }
     }
 
-    private async currentPlayingFromDiscord(interaction: Interaction<CacheType>, mode?: string, user?: User): Promise<string | MessageEmbed> {
+    private async currentPlayingFromDiscord(interaction: Interaction<CacheType>, mode?: string, user?: User): Promise<string | EmbedBuilder> {
         const _music = new Music(this.client, this.messageHelper)
 
         const isAllActive = mode === 'active'
@@ -158,11 +157,13 @@ export class SpotifyCommands extends AbstractCommands {
                 const data = await this.searchForSongOnSpotifyAPI(spotify.details, spotify.state)
                 const items = data.body.tracks.items[0]
 
-                const embed = new MessageEmbed()
+                const embed = new EmbedBuilder()
                     .setTitle(`${user ? `${user.username} hører på: ` : ''}${spotify?.details} `)
                     .setDescription(`${spotify?.state}`)
                 if (items) {
-                    embed.addField('Album', items.album?.name ?? 'Ukjent', true).addField('Utgitt', items.album?.release_date ?? 'Ukjent', true)
+                    embed
+                        .addFields({ name: 'Album', value: items.album?.name ?? 'Ukjent', inline: true })
+                        .addFields({ name: 'Utgitt', value: items.album?.release_date ?? 'Ukjent', inline: true })
                     if (items.album?.external_urls?.spotify) embed.setURL(items.album?.external_urls?.spotify ?? '#')
 
                     if (items.album?.images[0]?.url) embed.setThumbnail(items.album.images[0].url)
@@ -190,15 +191,14 @@ export class SpotifyCommands extends AbstractCommands {
         return `${user} hører ikke på Spotify nå, og har heller ikke koblet til Last.fm`
     }
 
-    private async handleSpotifyInteractions(rawInteraction: Interaction<CacheType>) {
-        const interaction = SlashCommandHelper.getTypedInteraction(rawInteraction)
+    private async handleSpotifyInteractions(interaction: ChatInputCommandInteraction<CacheType>) {
         if (interaction) {
             await interaction.deferReply() //Må defere reply siden botter har maks 3 sekund å svare på en interaction
             const mode = interaction.options.get('mode')?.value as string
             const user = interaction.options.get('user')?.user
             const data = await this.currentPlayingFromDiscord(interaction, mode, user instanceof User ? user : undefined)
 
-            if (data instanceof MessageEmbed) {
+            if (data instanceof EmbedBuilder) {
                 interaction.editReply({ embeds: [data] })
             } else {
                 interaction.editReply(data)
@@ -231,7 +231,7 @@ export class SpotifyCommands extends AbstractCommands {
         return [
             {
                 commandName: 'spotify',
-                command: (rawInteraction: Interaction<CacheType>) => {
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.handleSpotifyInteractions(rawInteraction)
                 },
                 category: 'musikk',

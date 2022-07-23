@@ -1,5 +1,5 @@
 import didYouMean from 'didyoumean2'
-import { CacheType, Client, Interaction, Message, TextChannel } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, Interaction, InteractionType, Message, TextChannel } from 'discord.js'
 import { Admin } from '../admin/admin'
 import { environment } from '../client-env'
 import { DatabaseHelper } from '../helpers/databaseHelper'
@@ -87,13 +87,14 @@ export class CommandRunner {
         // const isAdmin = Admin.isAuthorAdmin(UserUtils.findMemberByUsername(interaction.user.username, message))
 
         const commands = this.commands.getAllInteractionCommands()
-
-        if (interaction.isCommand()) {
+        if (interaction.isChatInputCommand()) {
             commands.forEach((cmd) => {
                 if (cmd.commandName === interaction.commandName) {
                     this.runInteractionElement(cmd, interaction)
                 }
             })
+        } else if (interaction.type === InteractionType.ModalSubmit) {
+            this.commands.handleModalInteractions(interaction)
         }
         return undefined
     }
@@ -151,7 +152,7 @@ export class CommandRunner {
         } else return undefined
     }
 
-    runInteractionElement(runningInteraction: IInteractionElement, interaction: Interaction<CacheType>) {
+    runInteractionElement(runningInteraction: IInteractionElement, interaction: ChatInputCommandInteraction<CacheType>) {
         runningInteraction.command(interaction)
     }
 

@@ -3,7 +3,6 @@ import { Message } from 'discord.js'
 import { JsonDB } from 'node-json-db'
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
 import { IDailyPriceClaim } from '../commands/gamblingCommands'
-import { inventoryItem } from '../commands/shop'
 import { CodBRStatsType, CodStats } from '../commands/warzoneCommands'
 
 const db = new JsonDB(new Config('myDataBase', true, true, '/'))
@@ -65,7 +64,7 @@ export interface MazariniUser {
     rocketLeagueUserString?: string
     /** Brukernavn */
     displayName: string
-    inventory?: inventoryItem[] //TODO Cast this
+    inventory?: any[] //TODO Cast this
     debuff?: any //TODO Cast this
     dailyClaim?: number
     dailyClaimStreak?: IDailyPriceClaim
@@ -127,7 +126,7 @@ export interface betObjectReturned {
 }
 
 export interface itemsBoughtAtStore {
-    itemList: inventoryItem[]
+    itemList: any[]
 }
 
 export interface debuffItem {
@@ -353,20 +352,6 @@ export class DatabaseHelper {
     /** Fjern prefix fra en string */
     static stripPrefixFromString(text: string, prefix: dbPrefix) {
         return text.replace(prefix + '-', '')
-    }
-
-    static setShoppingList(username: string, shopItems: inventoryItem[]) {
-        shopItems.forEach((item) => {
-            db.push(`${folderPrefix}/${username}/inventory/${item.name}/name`, `${item.name}`)
-            db.push(`${folderPrefix}/${username}/inventory/${item.name}/price`, `${item.price}`)
-            db.push(`${folderPrefix}/${username}/inventory/${item.name}/description`, `${item.description}`)
-            try {
-                let mengde = db.getData(`${folderPrefix}/${username}/inventory/${item.name}/amount`) + 1
-                db.push(`${folderPrefix}/${username}/inventory/${item.name}/amount`, mengde)
-            } catch (error) {
-                db.push(`${folderPrefix}/${username}/inventory/${item.name}/amount`, 1)
-            }
-        })
     }
 
     static increaseDebuff(target: string, item: string) {

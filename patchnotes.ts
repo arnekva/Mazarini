@@ -4,14 +4,17 @@ import { ICommandElement, IInteractionElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '9.1.1'
+    public static readonly currentVersion = '9.2.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Daily og daily freeze er nå slash commands` +
-        `\n* /navn inkluderer nå navnet på kommandoen` +
-        `\n* Kommandoer som har blitt erstattet med slash-kommandoer (men som fortsatt eksisterer i en grace-periode) vil ikke lenger vises i listen som sendes ved '!mz hjelp'`
+        `\n* Oppgradert til DiscordJS v14 (fra v13)` +
+        `\n* Krever nå Node v16.9.0 eller høyere for å kjøre botten` +
+        `\n* 'send' (Sende melding som botten) er nå en slash-command. Den vil vise for alle, men du vil ikke kunne bruke den hvis du ikke er admin` +
+        `\n* Rettet en feil som gjorde at /musikk kommandoen ikke fungerte i noen tilfeller` +
+        `\n* Shop er fjernet fra kodebasen og slash-kommandoene er fjernet` +
+        `\n* Du kan nå linke WZ-brukernavn og LastFM-brukernavn med /link-kommandoen`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

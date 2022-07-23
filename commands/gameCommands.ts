@@ -1,10 +1,9 @@
-import { CacheType, Client, CommandInteraction, Interaction, Message, MessageEmbed, TextChannel } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, CommandInteraction, EmbedBuilder, Message, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { SlashCommandHelper } from '../helpers/slashCommandHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { RandomUtils } from '../utils/randomUtils'
 import { TextUtils } from '../utils/textUtils'
@@ -78,12 +77,11 @@ export class GameCommands extends AbstractCommands {
         super(client, messageHelper)
     }
 
-    private async findDropLocation(rawInteraction: Interaction<CacheType>) {
+    private async findDropLocation(interaction: ChatInputCommandInteraction<CacheType>) {
         let mapArray = []
         let mapName = ''
-        const interaction = SlashCommandHelper.getTypedInteraction(rawInteraction)
 
-        const map = interaction.options.getString('map')
+        const map = interaction.options.get('map').value
 
         if (map === 'caldera') {
             mapArray = calderaPoints
@@ -236,18 +234,18 @@ export class GameCommands extends AbstractCommands {
                 threeVthree.mmr = segment?.stats?.rating?.value
             }
         }
-        const msgContent = new MessageEmbed().setTitle(`Rocket League - ${name}`)
+        const msgContent = new EmbedBuilder().setTitle(`Rocket League - ${name}`)
         if (args[0] === '3v3') {
-            msgContent.addField(`${threeVthree.modeName}`, `${threeVthree.rank} ${threeVthree.division} (${threeVthree.mmr})`)
+            msgContent.addFields([{ name: `${threeVthree.modeName}`, value: `${threeVthree.rank} ${threeVthree.division} (${threeVthree.mmr})` }])
             if (threeVthree.iconURL) msgContent.setThumbnail(threeVthree.iconURL)
         } else if (args[0] === '2v2') {
-            msgContent.addField(`${twoVtwo.modeName}`, `${twoVtwo.rank} ${twoVtwo.division} (${twoVtwo.mmr})`)
+            msgContent.addFields([{ name: `${twoVtwo.modeName}`, value: `${twoVtwo.rank} ${twoVtwo.division} (${twoVtwo.mmr})` }])
             if (twoVtwo.iconURL) msgContent.setThumbnail(twoVtwo.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
         } else if (args[0] === '1v1') {
-            msgContent.addField(`${oneVone.modeName}`, `${oneVone.rank} ${oneVone.division} (${oneVone.mmr})`)
+            msgContent.addFields([{ name: `${oneVone.modeName}`, value: `${oneVone.rank} ${oneVone.division} (${oneVone.mmr})` }])
             if (oneVone.iconURL) msgContent.setThumbnail(oneVone.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
         } else {
-            msgContent.addField(`Lifetime stats:`, `${lifetimeStats.goals} mål\n${lifetimeStats.wins} wins\n${lifetimeStats.shots} skudd`)
+            msgContent.addFields([{ name: `Lifetime stats:`, value: `${lifetimeStats.goals} mål\n${lifetimeStats.wins} wins\n${lifetimeStats.shots} skudd` }])
         }
         if (waitMsg) waitMsg.delete()
 
@@ -287,7 +285,7 @@ export class GameCommands extends AbstractCommands {
         return [
             {
                 commandName: 'drop',
-                command: (interaction: Interaction<CacheType>) => {
+                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                     this.findDropLocation(interaction)
                 },
                 category: 'gaming',

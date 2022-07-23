@@ -1,5 +1,4 @@
-import { Client, ExcludeEnum, GuildMember, Message, TextChannel } from 'discord.js'
-import { ActivityTypes } from 'discord.js/typings/enums'
+import { ActivityType, APIInteractionGuildMember, CacheType, ChatInputCommandInteraction, Client, GuildMember, Message, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { ClientHelper } from '../helpers/clientHelper'
@@ -10,6 +9,8 @@ import { MessageUtils } from '../utils/messageUtils'
 import { ObjectUtils } from '../utils/objectUtils'
 import { TextUtils } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
+const { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js')
+
 const pm2 = require('pm2')
 
 export class Admin extends AbstractCommands {
@@ -84,7 +85,7 @@ export class Admin extends AbstractCommands {
         this.messageHelper.sendMessageToActionLog(
             message.channel as TextChannel,
             `Bottens aktivitet er satt til '${activity}' med teksten '${status}' av ${message.author.username}. ${
-                activity === 'STREAMING' && !hasUrl
+                activity === ActivityType.Streaming && !hasUrl
                     ? 'Du kan ikke sette status til streaming uten å ha en URL som parameter 1. "!mz botstatus streaming www.twitch.tv/Deadmaggi Deadmaggis Tips n tricks". Den er derfor satt til Playing '
                     : ''
             }`
@@ -92,21 +93,22 @@ export class Admin extends AbstractCommands {
         ClientHelper.updatePresence(this.client, activity, status, hasUrl ? args[1] : undefined)
     }
 
-    private translateActivityType(type: string): ExcludeEnum<typeof ActivityTypes, 'CUSTOM'> {
+    private translateActivityType(type: string): Exclude<ActivityType, ActivityType.Custom> {
         switch (type.toUpperCase()) {
             case 'COMPETING':
-                return 'COMPETING'
+                return ActivityType.Competing
+
             case 'LISTENING':
-                return 'LISTENING'
+                return ActivityType.Listening
             case 'PLAYING':
-                return 'PLAYING'
+                return ActivityType.Playing
             case 'STREAMING':
-                return 'STREAMING'
+                return ActivityType.Streaming
             case 'WATCHING':
-                return 'WATCHING'
+                return ActivityType.Watching
 
             default:
-                return 'PLAYING'
+                return ActivityType.Playing
         }
     }
 
@@ -324,7 +326,28 @@ export class Admin extends AbstractCommands {
         // SlashCommandHelper.buildCommands()
     }
 
-    private timeoutUser(message: Message, messageContent: string, args: string[]) {}
+    private async buildSendModal(interaction: ChatInputCommandInteraction<CacheType>) {
+        if (interaction) {
+            const modal = new ModalBuilder().setCustomId(Admin.adminSendModalID).setTitle('Send melding som Høie')
+            const channelID = new TextInputBuilder()
+                .setCustomId('channelID')
+                // The label is the prompt the user sees for this input
+                .setLabel('ID-en til kanalen meldingen skal sendes til')
+                // Short means only a single line of text
+                .setStyle(TextInputStyle.Short)
+
+            const message = new TextInputBuilder()
+                .setCustomId('messageInput')
+                .setLabel('Melding')
+                // Paragraph means multiple lines of text.
+                .setStyle(TextInputStyle.Paragraph)
+
+            const firstActionRow = new ActionRowBuilder().addComponents(channelID)
+            const secondActionRow = new ActionRowBuilder().addComponents(message)
+            modal.addComponents(firstActionRow, secondActionRow)
+            await interaction.showModal(modal)
+        }
+    }
 
     public getAllCommands(): ICommandElement[] {
         return [
@@ -358,6 +381,7 @@ export class Admin extends AbstractCommands {
                 command: (rawMessage: Message, messageContent: string) => {
                     this.sendMessageAsBotToSpecificChannel(rawMessage)
                 },
+                isReplacedWithSlashCommand: 'send',
                 category: 'admin',
             },
             {
@@ -454,15 +478,27 @@ export class Admin extends AbstractCommands {
         ]
     }
     getAllInteractions(): IInteractionElement[] {
-        return []
+        return [
+            {
+                commandName: 'send',
+                category: 'admin',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    if (Admin.isAuthorAdmin(rawInteraction.member)) this.buildSendModal(rawInteraction)
+                    else rawInteraction.reply({ content: 'Du har ikke rettighetene til å gjøre dette', ephemeral: true })
+                },
+            },
+        ]
     }
 
-    static isAuthorAdmin(member: GuildMember | null | undefined) {
-        if (member) return member.roles.cache.has('821709203470680117')
-        return false
+    static isAuthorAdmin(member: GuildMember | APIInteractionGuildMember | null | undefined) {
+        const cache = (member as GuildMember).roles.cache
+        if (!cache) return false
+        else return cache.has('821709203470680117')
     }
     static isAuthorSuperAdmin(member: GuildMember | null | undefined) {
         if (member) return member.roles.cache.has('963017545647030272')
         return false
     }
+
+    static adminSendModalID = 'adminSendModal'
 }

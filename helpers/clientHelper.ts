@@ -1,9 +1,8 @@
-import { Client, ExcludeEnum } from 'discord.js'
-import { ActivityTypes } from 'discord.js/typings/enums'
+import { ActivityType, Client } from 'discord.js'
 import { DatabaseHelper } from './databaseHelper'
 
 export class ClientHelper {
-    static updatePresence(client: Client, type: ExcludeEnum<typeof ActivityTypes, 'CUSTOM'>, status: string, twitchUrl?: string) {
+    static updatePresence(client: Client, type: Exclude<ActivityType, ActivityType.Custom>, status: string, twitchUrl?: string) {
         try {
             client.user?.setActivity({
                 type: type,
@@ -21,7 +20,7 @@ export class ClientHelper {
 
     static setStatusFromStorage(client: Client) {
         const status = DatabaseHelper.getBotData('status') ?? 'Kaptein Sabeltann'
-        const activityType: ExcludeEnum<typeof ActivityTypes, 'CUSTOM'> = DatabaseHelper.getBotData('statusType') ?? 'WATCHING'
+        const activityType: Exclude<ActivityType, ActivityType.Custom> = DatabaseHelper.getBotData('statusType') ?? 'WATCHING'
         client.user?.setPresence({
             activities: [
                 {
