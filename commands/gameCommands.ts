@@ -93,7 +93,7 @@ export class GameCommands extends AbstractCommands {
             mapArray = fortunesKeep
             mapName = "Fortune's Keep"
         }
-        const emb = new EmbedBuilder().setTitle(`${ArrayUtils.randomChoiceFromArray(mapArray)}`).setDescription(`Dere dropper i ${mapName}`)
+        const emb = new EmbedBuilder().setTitle(`${ArrayUtils.randomChoiceFromArray(mapArray)}`).setDescription(`Droppunkt for ${mapName}`)
         this.messageHelper.replyToInteraction(interaction, emb)
     }
 
