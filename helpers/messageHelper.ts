@@ -1,4 +1,4 @@
-import { ChannelType, Client, DMChannel, EmbedBuilder, Message, TextChannel, User } from 'discord.js'
+import { CacheType, ChannelType, ChatInputCommandInteraction, Client, DMChannel, EmbedBuilder, Message, TextChannel, User } from 'discord.js'
 import { globalArrays } from '../globals'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { CollectorUtils } from '../utils/collectorUtils'
@@ -19,7 +19,26 @@ export class MessageHelper {
         this.client = client
     }
 
-    /** Sender en melding. Returner Promise av en meldingen hvis meldingen ble sendt, ellers undefined. Logger feilmelding hvis teksten er tom. */
+    /**
+     * Reply to an interaction. Will only reply if it haven't been answered already.
+     * @param interaction
+     * @param content   The content to be sent. Can be a string or an embed message
+     * @param onlyVisibleToEngager Sets the message as ephemeral, i.e. only the engager can see it. This means that the message can be dismissed and is not saved on Discord servers
+     * @returns True if reply is sent, false if not
+     */
+    replyToInteraction(interaction: ChatInputCommandInteraction<CacheType>, content: string | EmbedBuilder, onlyVisibleToEngager?: boolean): boolean {
+        if (!interaction.replied) {
+            if (content instanceof EmbedBuilder) {
+                interaction.reply({ embeds: [content], ephemeral: onlyVisibleToEngager })
+            } else {
+                interaction.reply(content)
+            }
+            return true
+        }
+        return false
+    }
+
+    /** Sends a message and returns the sent message (as a promise) */
     sendMessage(channelId: string, message: string) {
         if (!this.checkForEmptyMessage(message)) {
             return this.logEmptyMessage('En melding som ble forsøkt sendt var tom', channelId)
@@ -35,7 +54,7 @@ export class MessageHelper {
 
     /**
      *
-     * @deprecated Bruker sendMessage
+     * @deprecated Uses sendMessage
      */
     sendMessageToChannel(channel: TextChannel | DMChannel, message: string) {
         if (!this.checkForEmptyMessage(message)) {
@@ -67,12 +86,11 @@ export class MessageHelper {
         message.react(ArrayUtils.randomChoiceFromArray(globalArrays.emojiesList))
     }
 
-    /** Reply til en gitt melding med gitt string. */
-    replyToMessage(message: Message, errormessage: string) {
-        message.reply(errormessage)
+    /** Reply to a given message */
+    replyToMessage(message: Message, content: string) {
+        message.reply(content)
     }
 
-    /** Reply når feil formattering er brukt. Send inn hvilken formattering som skal brukes */
     replyFormattingError(message: Message, errormessage: string) {
         message.reply('du har brukt feil formattering. Bruk: ' + errormessage)
     }
@@ -91,15 +109,14 @@ export class MessageHelper {
                         }
                     })
                     .catch((error: any) => {
-                        //ikke catch noe, den thrower exception hvis meldingen ikke finnes (noe den ikke skal gjøre i 9/10 channels)
                         // MessageHelper.sendMessageToActionLogWithDefaultMessage(rawMessage, error);
                     })
             }
         }
         return messageToReturn
     }
-    /** Send en embedded message (se gambling for eksempel) */
 
+    /** Send an embed message */
     async sendFormattedMessage(channel: TextChannel | string, newMessage: EmbedBuilder) {
         if (typeof channel === 'string') {
             const textCh = this.findChannelById(channel) as TextChannel
@@ -145,7 +162,6 @@ export class MessageHelper {
     }
 
     async sendMessageToActionLogWithCustomMessage(message: Message, error: any, reply: string, includeSupportTag?: boolean) {
-        //Arne
         const replyMsg = await message.reply(`${reply} ${includeSupportTag ? '(Reager med tommel opp for å tagge Bot-support)' : ''}`)
         this.reactWithThumbs(replyMsg, 'up')
         const collector = replyMsg.createReactionCollector()

@@ -41,8 +41,8 @@ export class SpotifyCommands extends AbstractCommands {
         )
     }
 
-    /** Autorisere appen hos spotify
-     *  @returns Access Token for API-et
+    /** Authorize app
+     *  @returns Access Token for API
      */
     private async authorize() {
         let myHeaders = new Headers()

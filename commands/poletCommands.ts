@@ -52,7 +52,7 @@ export class PoletCommands extends AbstractCommands {
         })
         return (await data.json())[0] as PoletData
     }
-    /** Brukerens pol fra DB overstyrer storeId som sendes inn */
+
     private async getOpeningHours(rawInteraction?: Interaction<CacheType>, storeId?: string) {
         const poletData = await PoletCommands.fetchPoletData(rawInteraction, storeId)
 

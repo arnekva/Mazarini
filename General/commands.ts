@@ -25,28 +25,26 @@ import { ModalHandler } from './modalHandler'
  * Interface for kommandoer. Alle kommandoer må følge dette oppsettet.
  */
 export interface ICommandElement {
-    /** Stringen som trigger kommandoen (kommer etter !mz)  - her kan man ha flere ved å legge det i en array */
+    /** The string which triggers the command */
     commandName: string | string[]
-    /**  Beskrivelse av kommandoen. Vises i !mz help <kommando>. */
+    /** Description of the command. Is shown in !mz help <kommando>. */
     description: string
-    /** Funksjon som skal kjøres. */
+    /** The function being run */
     command: (rawMessage: Message, messageContent: string, args: string[]) => void
     category: commandCategory
-    /**  Sett til true for å gjemme funksjonen fra !mz help listen. Default false */
+    /**  Set to true to hide it from the help list */
     hideFromListing?: boolean
-    /**   Sett til true for å kun la admins kjøre. Default false  */
+    /**   Set to true if admin only  */
     isAdmin?: boolean
-    /**  Hvis commanden bytter navn, sett den gamle til deprecated og la verdien være navnet på den nye commanden (eks !mz master bytter til !mz countdown -> behold !mz master og ha "countdown" i verdien på deprecated). Da vil botten legge til informasjon om deprecated og be de bruke den nye neste gang */
+    /**  Used to indicate that another function has replaced it */
     deprecated?: string
-    /** Kun la super admins kjøre commanden */
+    /** Set to true if super admin only */
     isSuperAdmin?: boolean
-    /** Oppgi channel-IDer i en array her hvis commanden kun kan brukes i de channelene */
     canOnlyBeUsedInSpecificChannel?: string[]
     isReplacedWithSlashCommand?: string
 }
 
 export interface IInteractionElement {
-    /** Oppgi interaction ID for interactionen som skal kjøre denne commanden */
     commandName: string
     category: commandCategory
     isAdmin?: boolean

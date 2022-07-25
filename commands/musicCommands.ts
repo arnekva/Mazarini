@@ -56,7 +56,6 @@ export class Music extends AbstractCommands {
         if (!args[0]) {
             return message.reply("Feilformattert. Mangler du f.eks 'topp'?")
         } else {
-            /** CHECKS at alt eksistere */
             const method = methods.filter((e) => e.command == args[0])[0]
 
             if (args[0] != 'user') {
@@ -93,7 +92,6 @@ export class Music extends AbstractCommands {
                 if (!cmd) {
                     return message.reply("kommandoen mangler 'artist', 'songs' eller 'album' eller  bak 'topp', 'weekly' eller 'siste'")
                 }
-                /** CHECKS END */
 
                 const data: fetchData = {
                     user: username,
@@ -176,7 +174,6 @@ Docs: https://www.last.fm/api/show/user.getInfo
 
         let musicData = ''
 
-        /**Promise.all siden vi gjør 2 fetches og trenger at begge resolves samtidig */
         const arrayDataRet: string[] = []
         await Promise.all([
             fetch(this.baseUrl + `?method=${dataParam.method.cmd}&user=${dataParam.user}&api_key=${apiKey}&format=json&limit=${dataParam.limit}`, {
@@ -187,8 +184,6 @@ Docs: https://www.last.fm/api/show/user.getInfo
             .then(async ([resTop, resInfo]) => {
                 await Promise.all([resTop.json(), resInfo.json()])
                     .then(([topData, info]) => {
-                        /** Forskjellige metoder har litt forskjellig respons, så det ligger en del boolean verdier på toppen for å sjekke dette når det skal hentes ut */
-
                         const isFormattedWithHashtag = notWeeklyOrRecent
                             ? true
                             : dataParam.method.cmd.includes('weekly') || dataParam.method.cmd.includes('recent')
@@ -197,13 +192,13 @@ Docs: https://www.last.fm/api/show/user.getInfo
                         const totalPlaycount = info['user']?.playcount ?? '1'
 
                         let prop
-                        /** En metode ser ut som typ user.getrecenttrack. Her fjerner vi user.get for å finne ut hvilken metode som er brukt. */
+
                         const strippedMethod = dataParam.method.cmd.replace('user.get', '')
-                        /** Fjern unødvendige ting fra stringen for å finne kun metodenavnet */
+
                         const methodWithoutGet = isWeekly
                             ? strippedMethod.replace('weekly', '').replace('chart', '')
                             : TextUtils.replaceLast(strippedMethod.replace('top', '').replace('recent', ''), 's', '')
-                        /** Prop er fulle dataen som hentes ut */
+
                         prop = topData[strippedMethod][methodWithoutGet] as { name: string; playcount: string; artist?: { name: string } }[]
 
                         let numPlaysInTopX = 0
@@ -216,7 +211,6 @@ Docs: https://www.last.fm/api/show/user.getInfo
 
                                 numPlaysInTopX += parseInt(element.playcount)
 
-                                /** Denne ser kanskje lang ut, men den lager hver linje. Først ser den etter artist (hentes forskjellig fra weekly), legger til bindestrek, sjekker etter sangnavn etc.  */
                                 musicData +=
                                     `${dataParam.includeNameInOutput ? '(' + dataParam.username + ') ' : ''}${
                                         isFormattedWithHashtag && element.artist
@@ -229,13 +223,11 @@ Docs: https://www.last.fm/api/show/user.getInfo
                                     `${dataParam.includeStats ? ((parseInt(element.playcount) / parseInt(totalPlaycount)) * 100).toFixed(1) + '%' : ''} ` +
                                     `${isCurrentlyPlaying ? '(spiller nå)' : ''} `
 
-                                /** Silent er når botten selv trigger metoden (f.eks. fra spotify-command). Da vil man ha med datostempelet. Ikke nødvendig ellers */
                                 if (dataParam.silent) musicData += `${'(' + new Date(Number(element.date['uts']) * 1000).toLocaleString('nb-NO') + ')'}`
 
                                 musicData += lineSeperator
                             })
 
-                            /** Hvis prop-en er formattert med en # (eks. ['@attr']) så finnes ikke total plays. */
                             if (!isFormattedWithHashtag) musicData += `\n*Totalt ${topData[strippedMethod]['@attr'].total} ${methodWithoutGet}s i biblioteket`
                         }
                         if (!isFormattedWithHashtag)

@@ -278,7 +278,6 @@ export class WarzoneCommands extends AbstractCommands {
                 return value.toFixed(3).replace(/\.000$/, '')
             }
 
-            /** Gjør sammenligning og legg til i respons */
             for (const [key, value] of Object.entries(orderedStats)) {
                 const compareDataString = () => {
                     if (oldData && ObjectUtils.isObjKey(key, oldData) && !!oldData[key]) {
@@ -330,7 +329,6 @@ export class WarzoneCommands extends AbstractCommands {
                 const userStats = this.getUserStats(interaction)
                 const oldData = userStats
 
-                /** Time played og average lifetime krever egen formattering for å være lesbart */
                 const getValueFormatted = (key: string, value: string | Number) => {
                     if (key === 'avgLifeTime')
                         return `${DateUtils.secondsToMinutesAndSeconds(Number(value)).minutes.toFixed(0)} minutes and ${DateUtils.secondsToMinutesAndSeconds(
@@ -344,7 +342,6 @@ export class WarzoneCommands extends AbstractCommands {
                     return parseFloat(Number(value).toFixed(3))
                 }
 
-                /** Gjør sammenligning og legg til i respons */
                 for (const [key, value] of Object.entries(orderedStats)) {
                     if (key === 'gulagKd' && orderedStats.gulagDeaths && orderedStats.gulagKills) {
                         statsTyped['gulagKd'] = orderedStats['gulagKd'] ?? 0
@@ -382,12 +379,10 @@ export class WarzoneCommands extends AbstractCommands {
         }
     }
 
-    /** Sjekk om headeren finnes i stats som skal sammenlignes */
     private isCorrectHeader(key: codStatsKeyHeader) {
         return !!WarzoneCommands.statsToIncludeInSave.find((k) => k?.key === key?.key)?.header
     }
 
-    //TODO: Get this properly
     private findWeeklyRebirthOnly(gamertag: string, data: any): string {
         let numKills = 0
         let numDeaths = 0

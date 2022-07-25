@@ -8,7 +8,6 @@ import { UserUtils } from '../utils/userUtils'
 export class SlashCommandHelper {
     static async buildCommands() {}
 
-    /** Send en error hvis interactionen ble sendt uten korrekte parametere. Dette må rettes opp i via Slash Command API-et for å unngå at samme feil kan skje. Logger feilmelding */
     static handleInteractionParameterError(interaction: Interaction<CacheType>) {
         if (interaction.type === InteractionType.ApplicationCommand) {
             if (interaction.replied) {

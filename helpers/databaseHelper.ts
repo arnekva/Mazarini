@@ -27,45 +27,45 @@ export interface MazariniUser {
     /** User id */
     id: string
 
-    /** Bursdagsdato dd-mm-yyyy */
+    /**  dd-mm-yyyy */
     birthday?: string
-    /** Dagens status. Slettes hver dag 06:00 */
+    /** Custom status */
     status?: string
-    /** Total antall spins */
+    /** Total spins */
     spinCounter: number //TODO?
-    /** Høyeste spin tid */
+
     ATHspin?: string
-    /** Antall chips */
+    /** No.  chips */
     chips: number
-    /** Antall coins */
+    /** No. coins */
     coins: number
-    /** Antall warnings */
+    /** No. warnings */
     warningCounter: number
-    /** Antall bonks */
+    /** No. bonks */
     bonkCounter: number
-    /** Brukernavn for last.fm */
+
     lastFMUsername?: string
-    /** Antall lån gjort */
+    /** No. loans */
     loanCounter: number
-    /** Nåværende gjeld */
+
     debt: number
-    /** Gjeld */
+
     debtPenalty: number | string
     debtMultiplier: number
-    /** Gjenstander fra shopen */
+
     shopItems?: any //TODO Cast this
-    /** Lagrede stats for Cod weekly stats */
+    /** Cod weekly stats */
     codStats?: CodStats | CodBRStatsType
-    /** Lagrede stats for Cod BR */
+    /**Cod BR */
     codStatsBR?: CodBRStatsType | CodStats
-    /** Brukernavn for activision. username;platform */
+    /** Username for activision. username;platform */
     activisionUserString?: string
-    /** Brukernavn for rocket league. username;platform */
+    /** Username for rocket league. username;platform */
     rocketLeagueUserString?: string
-    /** Brukernavn */
+    /** Displayname */
     displayName: string
-    inventory?: any[] //TODO Cast this
-    debuff?: any //TODO Cast this
+    inventory?: any[]
+    debuff?: any
     dailyClaim?: number
     dailyClaimStreak?: IDailyPriceClaim
     dailyFreezeCounter?: number
@@ -139,7 +139,11 @@ export interface ferieItem {
     toDate: Date
 }
 export class DatabaseHelper {
-    /** Hent et brukerobjekt på ID. De fleste verdier kan være undefined. Hvis brukeren ikke finnes så opprettes det et objekt med default verdier. Oppdater verdier med å kalle DatabaseHelper.updateUser(user) */
+    /**
+     * Get a user object by ID.
+     * @param userID ID of the user as a string
+     * @returns
+     */
     static getUser(userID: string): MazariniUser {
         // { [key: string]: MazariniUser }
         try {
@@ -150,7 +154,7 @@ export class DatabaseHelper {
         }
     }
 
-    /** Hent et untyped User objekt. Brukes kun i admin.setSpecificValue() */
+    /** Get an untyped user object */
     static getUntypedUser(userID: string): any | undefined {
         // { [key: string]: MazariniUser }
         try {
@@ -160,7 +164,7 @@ export class DatabaseHelper {
         }
     }
 
-    /** Oppdater brukerobjektet i databasen */
+    /** Update the user object in DB */
     static updateUser(userObject: MazariniUser) {
         const objToPush = JSON.stringify(userObject)
         db.push(`${folderPrefix}/${userObject.id}/`, `${objToPush}`)
@@ -169,7 +173,7 @@ export class DatabaseHelper {
     static setObjectValue(prefix: dbPrefix, key: string, value: any) {
         db.push(`${folderPrefix}/${key}/${prefix}`, `${value}`)
     }
-    /** Sett en verdi i "other"-delen av databasen */
+    /** Update a non-user value in the database */
     static setNonUserValue(id: string, key: string, value: string) {
         db.push(`${otherFolderPreifx}/${id}/${key}`, `${value}`)
     }
@@ -197,7 +201,7 @@ export class DatabaseHelper {
     static getAllFerieValues() {
         return db.getData(`${otherFolderPreifx}/ferie/`)
     }
-    /** Hent en verdi i "other"-delen av databasen */
+    /** Get a non-user value */
     static getNonUserValue(id: string, key: string, noInsertions?: boolean) {
         try {
             const data = db.getData(`${otherFolderPreifx}/${id}/${key}`)
@@ -216,7 +220,7 @@ export class DatabaseHelper {
             return ''
         }
     }
-    /** Knytter et bet til en bruker */
+
     static setActiveBetObject(key: string, value: betObject) {
         db.push(`${otherFolderPreifx}/activeBet/${key}/positivePeople`, `${value.positivePeople}`)
         db.push(`${otherFolderPreifx}/activeBet/${key}/negativePeople`, `${value.negativePeople}`)
@@ -281,17 +285,16 @@ export class DatabaseHelper {
         return data
     }
 
-    /** Finn default verdi å sette i databasen hvis det ikke eksisterer.  */
     static getDefaultPrefixValue(prefix: dbPrefix) {
         if (prefix === 'achievement') return {}
         else if (prefix === 'spin' || prefix == 'ATHspin') return '00'
         else return '0'
     }
-    /** Hent alle brukere */
+
     static getAllUsers() {
         return db.getData('/users')
     }
-    /** Slett et aktivt bet */
+
     static deleteActiveBet(username: string) {
         db.delete(`${otherFolderPreifx}/activeBet/${username}`)
     }
@@ -349,7 +352,6 @@ export class DatabaseHelper {
         return db.getData(`${path}`)
     }
 
-    /** Fjern prefix fra en string */
     static stripPrefixFromString(text: string, prefix: dbPrefix) {
         return text.replace(prefix + '-', '')
     }
