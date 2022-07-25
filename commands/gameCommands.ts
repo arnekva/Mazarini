@@ -1,4 +1,4 @@
-import { CacheType, ChatInputCommandInteraction, Client, CommandInteraction, EmbedBuilder, Message, TextChannel } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Message, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'
 import { ICommandElement, IInteractionElement } from '../General/commands'
@@ -93,9 +93,8 @@ export class GameCommands extends AbstractCommands {
             mapArray = fortunesKeep
             mapName = "Fortune's Keep"
         }
-
-        const commandInteraction = interaction as CommandInteraction
-        await commandInteraction.reply(`Dere dropper i ${ArrayUtils.randomChoiceFromArray(mapArray)} (${mapName})`)
+        const emb = new EmbedBuilder().setTitle(`${ArrayUtils.randomChoiceFromArray(mapArray)}`).setDescription(`Dere dropper i ${mapName}`)
+        this.messageHelper.replyToInteraction(interaction, emb)
     }
 
     private dropGrid(message: Message, messageContent: string) {

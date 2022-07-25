@@ -1,4 +1,15 @@
-import { CacheType, ChannelType, ChatInputCommandInteraction, Client, DMChannel, EmbedBuilder, Message, TextChannel, User } from 'discord.js'
+import {
+    CacheType,
+    ChannelType,
+    ChatInputCommandInteraction,
+    Client,
+    DMChannel,
+    EmbedBuilder,
+    Message,
+    ModalSubmitInteraction,
+    TextChannel,
+    User,
+} from 'discord.js'
 import { globalArrays } from '../globals'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { CollectorUtils } from '../utils/collectorUtils'
@@ -26,7 +37,11 @@ export class MessageHelper {
      * @param onlyVisibleToEngager Sets the message as ephemeral, i.e. only the engager can see it. This means that the message can be dismissed and is not saved on Discord servers
      * @returns True if reply is sent, false if not
      */
-    replyToInteraction(interaction: ChatInputCommandInteraction<CacheType>, content: string | EmbedBuilder, onlyVisibleToEngager?: boolean): boolean {
+    replyToInteraction(
+        interaction: ChatInputCommandInteraction<CacheType> | ModalSubmitInteraction<CacheType>,
+        content: string | EmbedBuilder,
+        onlyVisibleToEngager?: boolean
+    ): boolean {
         if (!interaction.replied) {
             if (content instanceof EmbedBuilder) {
                 interaction.reply({ embeds: [content], ephemeral: onlyVisibleToEngager })

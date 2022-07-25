@@ -438,17 +438,14 @@ export class WarzoneCommands extends AbstractCommands {
             const wantedType = interaction.options.getString('mode') //"br", "weekly" eller "siste"
             if (wantedType === 'br' || wantedType === 'weekly') {
                 const content = await this.getBRContent(interaction, wantedType === 'weekly')
-                interaction.reply(content)
+                this.messageHelper.replyToInteraction(interaction, content)
             } else if (wantedType === 'siste') {
                 const content = await this.getLastMatchData(interaction)
-                if (content instanceof EmbedBuilder)
-                    interaction.reply({
-                        embeds: [content],
-                    })
-                else interaction.reply(content)
+
+                this.messageHelper.replyToInteraction(interaction, content)
             }
         } else {
-            interaction.reply('Kunne ikke finne data på valgte modus')
+            this.messageHelper.replyToInteraction(interaction, 'Kunne ikke finne data på valgte modus')
         }
     }
 

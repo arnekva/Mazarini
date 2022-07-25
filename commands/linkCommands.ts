@@ -29,8 +29,9 @@ export class LinkCommands extends AbstractCommands {
                 const polID = interaction.options.get('vinmonopolid')?.value as string
                 saved = await this.linkVinmonopolToUser(polID, interaction.user.id)
             }
-            if (saved) interaction.reply('Brukernavnet er nå linket til din konto')
-            else interaction.reply('Klarte ikke hente brukernavn eller plattform')
+
+            if (saved) this.messageHelper.replyToInteraction(interaction, 'Brukernavnet er nå linket til din konto')
+            else this.messageHelper.replyToInteraction(interaction, 'Klarte ikke hente brukernavn eller plattform')
         } else {
             const intr = interaction as CommandInteraction
             intr.reply('En feil har oppstått')

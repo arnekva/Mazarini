@@ -1,5 +1,5 @@
 import { dateValPair } from '../commands/dateCommands'
-import { userValPair, ValuePair } from '../helpers/databaseHelper'
+import { ValuePair } from '../helpers/databaseHelper'
 
 export class ArrayUtils {
     static sortUserValuePairArray(val: ValuePair[]) {
@@ -26,7 +26,10 @@ export class ArrayUtils {
 
     /** Get a random object from the array */
     static randomChoiceFromArray(arr: any[]) {
-        return arr[Math.floor(arr.length * Math.random())]
+        const x = Math.floor(Math.random() * arr.length)
+        console.log(arr.length, x)
+
+        return arr[x]
     }
 
     /** Check if array length is at least as large as the given number */

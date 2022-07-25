@@ -27,6 +27,6 @@ export class ModalHandler {
         const text = modalInteraction.fields.getTextInputValue('messageInput')
 
         this.messageHelper.sendMessage(chatID, text)
-        modalInteraction.reply({ content: `Meldingen <*${text}*> ble sent til kanalen med ID <*${chatID}*>`, ephemeral: true })
+        this.messageHelper.replyToInteraction(modalInteraction, `Meldingen <*${text}*> ble sent til kanalen med ID <*${chatID}*>`, true)
     }
 }

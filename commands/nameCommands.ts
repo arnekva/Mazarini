@@ -34,29 +34,37 @@ export class NameCommands extends AbstractCommands {
 
             if (textToAdd && userTextIsAddedTo) {
                 const added = this.addTextValueFromInteraction(textToAdd, userTextIsAddedTo)
-                if (added) interaction.reply(`La til *${textToAdd}* for *${userTextIsAddedTo}*`)
-                else interaction.reply(`Klarte ikke legge til tekst. Enten manglet tekst (${textToAdd}) eller brukernavn (${userTextIsAddedTo})`)
+                if (added) this.messageHelper.replyToInteraction(interaction, `La til *${textToAdd}* for *${userTextIsAddedTo}*`)
+                else
+                    this.messageHelper.replyToInteraction(
+                        interaction,
+                        `Klarte ikke legge til tekst. Enten manglet tekst (${textToAdd}) eller brukernavn (${userTextIsAddedTo})`
+                    )
             } else if (textToDeleteUser) {
                 if (!textToDelete) {
                     const texts = this.listTexts(textToDeleteUser)
                     if (texts) {
                         let text = ''
                         texts.forEach((t, i) => (text += `\n${i}: ${t}`))
-                        interaction.reply(text)
+                        this.messageHelper.replyToInteraction(interaction, text)
                     } else {
-                        interaction.reply({ content: 'Du skrev ikke inn et gyldig navn', ephemeral: true })
+                        this.messageHelper.replyToInteraction(interaction, 'Du skrev ikke inn et gyldig navn', true)
                     }
                 } else {
                     const deleted = this.removeTextValueFromInteraction(textToDelete, textToDeleteUser)
-                    if (deleted) interaction.reply(`Slettet indeks *${textToDelete}* for *${textToDeleteUser}*`)
-                    else interaction.reply(`Klarte ikke slette tekst. Enten manglet indeks (${textToDelete}) eller brukernavn (${textToDeleteUser})`)
+                    if (deleted) this.messageHelper.replyToInteraction(interaction, `Slettet indeks *${textToDelete}* for *${textToDeleteUser}*`)
+                    else
+                        this.messageHelper.replyToInteraction(
+                            interaction,
+                            `Klarte ikke slette tekst. Enten manglet indeks (${textToDelete}) eller brukernavn (${textToDeleteUser})`
+                        )
                 }
             } else if (personToLookUp) {
-                interaction.reply(this.getTextFromCommand(personToLookUp))
+                this.messageHelper.replyToInteraction(interaction, this.getTextFromCommand(personToLookUp))
             } else {
             }
         } else {
-            interaction.reply('Kunne ikke finne data på valgte modus')
+            this.messageHelper.replyToInteraction(interaction, 'Kunne ikke finne data på valgte modus')
         }
     }
 

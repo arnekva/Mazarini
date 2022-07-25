@@ -783,10 +783,10 @@ export class GamblingCommands extends AbstractCommands {
 
         if (!numDays) {
             const reply = this.claimDailyChipsAndCoins(interaction)
-            interaction.reply(reply)
+            this.messageHelper.replyToInteraction(interaction, reply)
         } else if (numDays) {
             const reply = this.freezeDailyClaim(interaction, numDays)
-            interaction.reply(reply)
+            this.messageHelper.replyToInteraction(interaction, reply)
         } else {
             //Usikker på om dager er obligatorisk, så håndter en eventuell feil intill bekreftet oblig.
             SlashCommandHelper.handleInteractionParameterError(interaction)

@@ -267,9 +267,9 @@ Docs: https://www.last.fm/api/show/user.getInfo
 
             const data = await this.findCommandForInteraction(interaction, options, user instanceof User ? user : undefined)
             if (data instanceof EmbedBuilder) {
-                interaction.reply({ embeds: [data] })
+                this.messageHelper.replyToInteraction(interaction, data)
             } else {
-                interaction.reply(data)
+                this.messageHelper.replyToInteraction(interaction, data)
             }
         }
     }
