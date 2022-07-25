@@ -3,6 +3,7 @@ import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { RandomUtils } from '../utils/randomUtils'
 
 const weightedRandomObject = require('weighted-random-object')
 
@@ -60,7 +61,7 @@ export class Spinner extends AbstractCommands {
     private spin(message: Message) {
         const user = DatabaseHelper.getUser(message.author.id)
         const min = weightedRandomObject(spinMinutes).number
-        const sec = Math.floor(Math.random() * 60)
+        const sec = RandomUtils.getRndInteger(0, 60)
 
         const winnings = this.getSpinnerWinnings(Number(min))
         if (winnings > 0) {

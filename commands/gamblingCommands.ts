@@ -348,7 +348,7 @@ export class GamblingCommands extends AbstractCommands {
                 message.reply('Du må satsa minst 1 chip')
             } else if (value && Number(value)) {
                 const valAsNum = Number(Number(value).toFixed(0))
-                const roll = Math.floor(Math.random() * 100) + 1
+                const roll = RandomUtils.getRndInteger(0, 100)
                 const hasDebtPenalty = user.debtPenalty === 'true'
 
                 let newMoneyValue = 0

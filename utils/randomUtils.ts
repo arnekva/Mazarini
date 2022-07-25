@@ -1,6 +1,7 @@
+const crypto = require('crypto')
 export namespace RandomUtils {
     export function getRndInteger(min: number, max: number) {
-        return Math.floor(Math.random() * (max - min + 1)) + min
+        return crypto.randomInt(min, max)
     }
 
     export function getRndBetween0and100() {

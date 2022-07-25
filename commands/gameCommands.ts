@@ -128,7 +128,7 @@ export class GameCommands extends AbstractCommands {
                 })
             }
 
-            this.messageHelper.sendMessage(message.channelId, 'Dere dropper på ' + gridLetter[xDropCoordinate] + yDropCoordinate)
+            this.messageHelper.sendMessage(message.channelId, 'Droppunkt for ' + gridLetter[xDropCoordinate] + yDropCoordinate)
             if (dropPlaces) this.messageHelper.sendMessage(message.channelId, 'Her ligger: ' + dropPlaces)
         }
     }
