@@ -8,7 +8,8 @@ export class PatchNotes extends AbstractCommands {
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `\n* Du kan nå linke favorittpol med /link`
+    public static readonly currentPatchNotes: string =
+        `\n* RandomUtils bruker nå crypto.Random i stedet for Math.random` + `\n* /drop bruker nå en embed message`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
