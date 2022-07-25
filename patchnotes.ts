@@ -4,12 +4,12 @@ import { ICommandElement, IInteractionElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '9.2.1'
+    public static readonly currentVersion = '9.2.2'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* RandomUtils bruker nå crypto.Random i stedet for Math.random` + `\n* /drop bruker nå en embed message`
+        `\n* /navn joiij fungerer nå igjen` + `\n* /drop bruker nå en embed message` + `\n* Status er nå en slash command`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

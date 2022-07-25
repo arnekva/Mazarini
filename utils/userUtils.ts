@@ -1,4 +1,4 @@
-import { CacheType, GuildMember, Interaction, Message, PartialGuildMember, PartialUser, Role, TextChannel, User } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, GuildMember, Interaction, Message, PartialGuildMember, PartialUser, Role, TextChannel, User } from 'discord.js'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 const diff = require('deep-diff')
@@ -29,7 +29,7 @@ export namespace UserUtils {
      * @param rawMessage needed to find the guild
      * @returns User object or undefined
      */
-    export const findUserById = (id: string, rawMessage: Message) => {
+    export const findUserById = (id: string, rawMessage: Message | ChatInputCommandInteraction) => {
         return rawMessage.client.users.cache.find((user) => user.id == id)
     }
 

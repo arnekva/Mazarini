@@ -11,61 +11,58 @@ export class NameCommands extends AbstractCommands {
         super(client, messageHelper)
     }
 
-    private async joiijText(message: Message) {
+    private handleNameCommands(interaction: ChatInputCommandInteraction<CacheType>) {
+        const textToAdd = interaction.options.get('tekst')?.value as string
+        const userTextIsAddedTo = interaction.options.get('bruker')?.value as string
+        const textToDelete = interaction.options.get('indeks')?.value as number
+        const textToDeleteUser = interaction.options.get('brukeren')?.value as string
+        const personToLookUp = interaction.options.get('navn')?.value as string
+
+        if (textToAdd && userTextIsAddedTo) {
+            const added = this.addTextValueFromInteraction(textToAdd, userTextIsAddedTo)
+            if (added) this.messageHelper.replyToInteraction(interaction, `La til *${textToAdd}* for *${userTextIsAddedTo}*`)
+            else
+                this.messageHelper.replyToInteraction(
+                    interaction,
+                    `Klarte ikke legge til tekst. Enten manglet tekst (${textToAdd}) eller brukernavn (${userTextIsAddedTo})`
+                )
+        } else if (textToDeleteUser) {
+            if (!textToDelete) {
+                const texts = this.listTexts(textToDeleteUser)
+                if (texts) {
+                    let text = ''
+                    texts.forEach((t, i) => (text += `\n${i}: ${t}`))
+                    this.messageHelper.replyToInteraction(interaction, text)
+                } else {
+                    this.messageHelper.replyToInteraction(interaction, 'Du skrev ikke inn et gyldig navn', true)
+                }
+            } else {
+                const deleted = this.removeTextValueFromInteraction(textToDelete, textToDeleteUser)
+                if (deleted) this.messageHelper.replyToInteraction(interaction, `Slettet indeks *${textToDelete}* for *${textToDeleteUser}*`)
+                else
+                    this.messageHelper.replyToInteraction(
+                        interaction,
+                        `Klarte ikke slette tekst. Enten manglet indeks (${textToDelete}) eller brukernavn (${textToDeleteUser})`
+                    )
+            }
+        } else if (personToLookUp) {
+            if (personToLookUp === 'joiij') {
+                this.messageHelper.replyToInteraction(interaction, this.joiijText())
+            } else {
+                this.messageHelper.replyToInteraction(interaction, this.getTextFromCommand(personToLookUp))
+            }
+        } else {
+            this.messageHelper.replyToInteraction(interaction, 'En feil har skjedd')
+        }
+    }
+
+    private joiijText() {
         const hr = RandomUtils.getRndInteger(0, 3)
         const min = RandomUtils.getRndInteger(1, 59)
         const getHrLine = (h: number) => {
             return h === 1 ? 'time' : 'timer'
         }
-        await this.messageHelper.sendMessage(message.channelId, `Joiij e der om ${hr === 0 ? '' : hr + ' timer og '}${min} minutt!`)
-    }
-
-    private findCommandName(message: Message, needsIndex?: number) {
-        return message.content.split(' ')[needsIndex ? needsIndex : 1]
-    }
-
-    private handleNameCommands(interaction: ChatInputCommandInteraction<CacheType>) {
-        if (interaction) {
-            const textToAdd = interaction.options.get('tekst')?.value as string
-            const userTextIsAddedTo = interaction.options.get('bruker')?.value as string
-            const textToDelete = interaction.options.get('indeks')?.value as number
-            const textToDeleteUser = interaction.options.get('brukeren')?.value as string
-            const personToLookUp = interaction.options.get('navn')?.value as string
-
-            if (textToAdd && userTextIsAddedTo) {
-                const added = this.addTextValueFromInteraction(textToAdd, userTextIsAddedTo)
-                if (added) this.messageHelper.replyToInteraction(interaction, `La til *${textToAdd}* for *${userTextIsAddedTo}*`)
-                else
-                    this.messageHelper.replyToInteraction(
-                        interaction,
-                        `Klarte ikke legge til tekst. Enten manglet tekst (${textToAdd}) eller brukernavn (${userTextIsAddedTo})`
-                    )
-            } else if (textToDeleteUser) {
-                if (!textToDelete) {
-                    const texts = this.listTexts(textToDeleteUser)
-                    if (texts) {
-                        let text = ''
-                        texts.forEach((t, i) => (text += `\n${i}: ${t}`))
-                        this.messageHelper.replyToInteraction(interaction, text)
-                    } else {
-                        this.messageHelper.replyToInteraction(interaction, 'Du skrev ikke inn et gyldig navn', true)
-                    }
-                } else {
-                    const deleted = this.removeTextValueFromInteraction(textToDelete, textToDeleteUser)
-                    if (deleted) this.messageHelper.replyToInteraction(interaction, `Slettet indeks *${textToDelete}* for *${textToDeleteUser}*`)
-                    else
-                        this.messageHelper.replyToInteraction(
-                            interaction,
-                            `Klarte ikke slette tekst. Enten manglet indeks (${textToDelete}) eller brukernavn (${textToDeleteUser})`
-                        )
-                }
-            } else if (personToLookUp) {
-                this.messageHelper.replyToInteraction(interaction, this.getTextFromCommand(personToLookUp))
-            } else {
-            }
-        } else {
-            this.messageHelper.replyToInteraction(interaction, 'Kunne ikke finne data på valgte modus')
-        }
+        return `Joiij e der om ${hr === 0 ? '' : hr + ' ' + getHrLine(hr) + ' og '}${min} minutt!`
     }
 
     private getTextFromCommand(username: string) {

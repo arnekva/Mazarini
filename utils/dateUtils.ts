@@ -128,4 +128,8 @@ export class DateUtils {
     static isHourMinuteBefore(hour: number, minute: number) {
         return moment().isBefore(moment({ hour: hour, minute: minute }))
     }
+
+    static getCurrentTimeFormatted() {
+        return `${moment().format('HH:mm:ss YYYY-MM-DD ')}`
+    }
 }

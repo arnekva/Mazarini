@@ -50,56 +50,6 @@ export class JokeCommands extends AbstractCommands {
         }
     }
 
-    private async updateMygleStatus(message: Message, messageContent: string) {
-        let content = messageContent
-        let url: string = ''
-
-        if (message.mentions.roles.size > 0) {
-            message.reply('Du kan kje ha roller i statusen din, bro')
-        } else {
-            if (message.attachments) {
-                url = message.attachments.first()?.url
-            }
-
-            const count = messageContent.split('://')
-            const count2 = messageContent.split('www')
-            if (count.length > 2 || count2.length > 2) {
-                message.reply('Max ein attachment, bro')
-            } else {
-                content = content.replace(/(?:\r\n|\r|\n)/g, ' ')
-                content = TextUtils.replaceAtWithTextUsername(content, message)
-
-                if (content.length < 150 && content.trim().length > 0) {
-                    if (message.content.includes('!zm')) {
-                        content = TextUtils.reverseMessageString(content)
-                    }
-                    const user = DatabaseHelper.getUser(message.author.id)
-                    user.status = content + (url ? ' ' + url : '')
-                    DatabaseHelper.updateUser(user)
-                    this.messageHelper.reactWithRandomEmoji(message)
-                } else {
-                    this.messageHelper.sendMessage(
-                        message.channelId,
-                        content.trim().length > 0 ? 'Du kan kje mygla så møye. Mindre enn 150 tegn, takk' : 'Du må sei koffor du mygle, bro'
-                    )
-                }
-            }
-        }
-    }
-    private async getAllStatuses(message: Message) {
-        const val = DatabaseHelper.getAllUsers()
-        let statuser = ''
-        Object.keys(val).forEach((key) => {
-            const user = DatabaseHelper.getUser(key)
-            const status = user?.status
-            if (status && status !== 'undefined') statuser += `${user.displayName} ${user.status} \n `
-        })
-        statuser = statuser.trim() ? statuser : 'Ingen har satt statusen sin i dag'
-        this.messageHelper.sendMessage(message.channelId, statuser)
-
-        // const vals = await DatabaseHelper.getAllValuesFromPrefix("mygling")
-    }
-
     private async reactToManyMessages(message: Message, emojiName: string) {
         try {
             const channel = message.channel as TextChannel
@@ -305,17 +255,15 @@ export class JokeCommands extends AbstractCommands {
             {
                 commandName: 'status',
                 description: 'Sett din status. Resettes 06:00 hver dag',
-                command: (rawMessage: Message, messageContent: string) => {
-                    this.updateMygleStatus(rawMessage, messageContent)
-                },
+                command: (rawMessage: Message, messageContent: string) => {},
                 category: 'annet',
+                isReplacedWithSlashCommand: 'status',
             },
             {
                 commandName: 'statuser',
                 description: 'Se alle satte statuser.Mygles det?',
-                command: (rawMessage: Message, messageContent: string) => {
-                    this.getAllStatuses(rawMessage)
-                },
+                command: (rawMessage: Message, messageContent: string) => {},
+                isReplacedWithSlashCommand: 'status',
                 category: 'annet',
             },
 

@@ -1,4 +1,4 @@
-import { Client, EmbedBuilder, Message, TextChannel } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Message, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { Admin } from '../admin/admin'
 import { ICommandElement, IInteractionElement } from '../General/commands'
@@ -6,6 +6,7 @@ import { DatabaseHelper, MazariniUser } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { CollectorUtils } from '../utils/collectorUtils'
+import { DateUtils } from '../utils/dateUtils'
 import { Roles } from '../utils/roles'
 import { UserUtils } from '../utils/userUtils'
 
@@ -120,6 +121,33 @@ export class UserCommands extends AbstractCommands {
         }
     }
 
+    private setStatus(interaction: ChatInputCommandInteraction<CacheType>) {
+        const statusText = interaction.options.get('tekst')?.value as string
+        if (statusText) {
+            const user = DatabaseHelper.getUser(interaction.user.id)
+            user.status = statusText
+            DatabaseHelper.updateUser(user)
+            const embed = new EmbedBuilder()
+                .setTitle(`${interaction.user.username} har oppdatert statusen sin`)
+                .setDescription(`${statusText}`)
+                .setFooter({ text: `${DateUtils.getCurrentTimeFormatted()}` })
+            this.messageHelper.replyToInteraction(interaction, embed)
+        } else {
+            const val = DatabaseHelper.getAllUsers()
+            const embed = new EmbedBuilder().setTitle('Statuser')
+            Object.keys(val).forEach((key) => {
+                const user = DatabaseHelper.getUser(key)
+                const status = user?.status
+                if (status && status !== 'undefined') {
+                    const name = UserUtils.findUserById(key, interaction)?.username ?? user.displayName ?? 'Ukjent brukernavn'
+                    embed.addFields({ name: user.displayName, value: name })
+                }
+            })
+            if (embed.data.fields.length === 0) embed.addFields({ name: 'Helt tomt', value: 'Ingen har satt statusen sin i dag' })
+            this.messageHelper.replyToInteraction(interaction, embed)
+        }
+    }
+
     public getAllCommands(): ICommandElement[] {
         return [
             {
@@ -158,6 +186,14 @@ export class UserCommands extends AbstractCommands {
     }
 
     getAllInteractions(): IInteractionElement[] {
-        return []
+        return [
+            {
+                commandName: 'status',
+                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                    this.setStatus(interaction)
+                },
+                category: 'annet',
+            },
+        ]
     }
 }
