@@ -71,6 +71,8 @@ export interface MazariniUser {
     dailyFreezeCounter?: number
     prestige?: number
     favoritePol?: string
+    //OUTDATED
+    nickname?: string
 }
 export type dbPrefix =
     | 'spin'
