@@ -1,7 +1,9 @@
 import { getVoiceConnection } from '@discordjs/voice'
+import { environment } from '../client-env'
 
 const say = require('say')
 const { joinVoiceChannel } = require('@discordjs/voice')
+const exec = require('child_process').exec
 
 interface IVoiceConnectParams {
     channelID: string
@@ -10,7 +12,15 @@ interface IVoiceConnectParams {
 }
 export class SoundUtils {
     static speakText(text: string) {
-        say.speak(text)
+        if (environment === 'prod') {
+            SoundUtils.speakOnLinux(text)
+        } else {
+            say.speak(text)
+        }
+    }
+
+    static speakOnLinux(text: string) {
+        exec('echo ' + text)
     }
 
     static stopCurrentSay() {
