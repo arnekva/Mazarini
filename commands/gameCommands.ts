@@ -81,7 +81,7 @@ export class GameCommands extends AbstractCommands {
     private async findDropLocation(interaction: ChatInputCommandInteraction<CacheType>) {
         let mapArray: string[] = []
         let mapName = ''
-        interaction.deferReply()
+        await interaction.deferReply()
         const map = interaction.options.get('map')?.value
 
         if (map === 'caldera') {
