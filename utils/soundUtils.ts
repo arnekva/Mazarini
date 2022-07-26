@@ -1,4 +1,13 @@
-import { AudioPlayer, createAudioResource, entersState, getVoiceConnection, joinVoiceChannel, StreamType, VoiceConnectionStatus } from '@discordjs/voice'
+import {
+    AudioPlayer,
+    AudioPlayerStatus,
+    createAudioResource,
+    entersState,
+    getVoiceConnection,
+    joinVoiceChannel,
+    StreamType,
+    VoiceConnectionStatus,
+} from '@discordjs/voice'
 import { Client } from 'discord.js'
 const discordTTS = require('discord-tts')
 
@@ -14,7 +23,7 @@ export class SoundUtils {
 
     static async connectToVoiceAndSpeak(params: IVoiceConnectParams, text: string) {
         const stream = discordTTS.getVoiceStream(text)
-        const audioResource = createAudioResource(stream, { inputType: StreamType.Arbitrary, inlineVolume: true, })
+        const audioResource = createAudioResource(stream, { inputType: StreamType.Arbitrary, inlineVolume: true })
         let voiceConnection: any
         let audioPlayer = new AudioPlayer()
         if (!voiceConnection || voiceConnection?.status === VoiceConnectionStatus.Disconnected) {
@@ -23,17 +32,22 @@ export class SoundUtils {
                 guildId: params.guildID,
                 adapterCreator: params.adapterCreator,
             })
+
             voiceConnection = await entersState(voiceConnection, VoiceConnectionStatus.Connecting, 5_000)
         }
-        console.log('mid', voiceConnection.status)
+        // console.log(voiceConnection._state_.status)
+        // if()
+        await voiceConnection.subscribe(audioPlayer)
 
-        // if (voiceConnection.status === VoiceConnectionStatus.Ready) {
-        console.log('ready?')
-
-        voiceConnection.subscribe(audioPlayer)
         audioPlayer.play(audioResource)
-        // }
 
+        //Make sure the bot leaves after saying the text
+        audioPlayer.on(AudioPlayerStatus.Idle, () => {
+            SoundUtils.disconnectFromVoiceChannel(params.guildID)
+        })
+
+        // }
+        // console.log(voiceConnection._state_.status)
         // const player = createAudioPlayer()
         // const connection = joinVoiceChannel({
         //     channelId: params.channelID,
