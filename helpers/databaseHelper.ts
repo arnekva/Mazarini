@@ -72,44 +72,40 @@ export interface MazariniUser {
     prestige?: number
     favoritePol?: string
     //OUTDATED
-    nickname?: string
 }
 export type dbPrefix =
-    | 'spin'
     | 'birthday'
-    | 'stock'
-    | 'mygling'
-    | 'week'
-    | 'counterSpin'
-    | 'ATHspin'
-    | 'sCounterWeeklySpin'
-    | 'chips'
-    | 'bailout'
-    | 'warningCounter'
-    | 'dogeCoin'
-    | 'test'
-    | 'achievement'
-    | 'bonkCounter'
-    | 'lastFmUsername'
-    | 'loanCounter'
-    | 'debt'
+    | 'spinCounter'
+    | 'favoritePol'
+    | 'prestige'
+    | 'dailyFreezeCounter'
+    | 'dailyClaimStreak'
+    | 'dailyClaim'
+    | 'debuff'
+    | 'inventory'
+    | 'displayName'
+    | 'rocketLeagueUserString'
+    | 'activisionUserString'
+    | 'codStatsBR'
+    | 'codStats'
     | 'debtPenalty'
     | 'debtMultiplier'
     | 'shopItems'
     | 'codStats'
     | 'codStatsBR'
-    | 'activisionUserString'
-    | 'rocketLeagueUserString'
-    | 'cancelledCounter'
-    | 'nickname'
-    | 'inventory'
-    | 'debuff'
-    | 'dailyClaim'
-    | 'dailyClaimStreak'
-    | 'prestige'
-    | 'dailyFreezeCounter'
-    | 'birthday'
-    | 'favoritePol'
+    | 'shopItems'
+    | 'debtMultiplier'
+    | 'debtPenalty'
+    | 'debt'
+    | 'loanCounter'
+    | 'lastFMUsername'
+    | 'bonkCounter'
+    | 'warningCounter'
+    | 'coins'
+    | 'chips'
+    | 'ATHspin'
+    | 'status'
+    | 'id'
 
 export interface betObject {
     description: string
@@ -288,8 +284,7 @@ export class DatabaseHelper {
     }
 
     static getDefaultPrefixValue(prefix: dbPrefix) {
-        if (prefix === 'achievement') return {}
-        else if (prefix === 'spin' || prefix == 'ATHspin') return '00'
+        if (prefix == 'ATHspin') return '00'
         else return '0'
     }
 
@@ -417,39 +412,36 @@ export interface prefixVal {
 }
 
 export const prefixList: dbPrefix[] = [
-    'spin',
     'birthday',
-    'stock',
-    'mygling',
-    'week',
-    'counterSpin',
-    'ATHspin',
-    'sCounterWeeklySpin',
-    'chips',
-    'bailout',
-    'warningCounter',
-    'dogeCoin',
-    'test',
-    'achievement',
-    'bonkCounter',
-    'lastFmUsername',
-    'loanCounter',
-    'debt',
+    'spinCounter',
+    'favoritePol',
+    'prestige',
+    'dailyFreezeCounter',
+    'dailyClaimStreak',
+    'dailyClaim',
+    'debuff',
+    'inventory',
+    'displayName',
+    'rocketLeagueUserString',
+    'activisionUserString',
+    'codStatsBR',
+    'codStats',
     'debtPenalty',
     'debtMultiplier',
     'shopItems',
     'codStats',
     'codStatsBR',
-    'activisionUserString',
-    'rocketLeagueUserString',
-    'cancelledCounter',
-    'nickname',
-    'inventory',
-    'debuff',
-    'dailyClaim',
-    'dailyClaimStreak',
-    'prestige',
-    'dailyFreezeCounter',
-    'birthday',
-    'favoritePol',
+    'shopItems',
+    'debtMultiplier',
+    'debtPenalty',
+    'debt',
+    'loanCounter',
+    'lastFMUsername',
+    'bonkCounter',
+    'warningCounter',
+    'coins',
+    'chips',
+    'ATHspin',
+    'status',
+    'id',
 ]

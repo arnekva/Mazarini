@@ -625,7 +625,7 @@ export class GamblingCommands extends AbstractCommands {
             const transactionType = args[2]
             let trType: dbPrefix
             if (transactionType === 'coins') {
-                trType = 'dogeCoin'
+                trType = 'chips'
             } else if (transactionType === 'chips') {
                 trType = transactionType
             } else {
