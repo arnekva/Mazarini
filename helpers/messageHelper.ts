@@ -40,13 +40,15 @@ export class MessageHelper {
     replyToInteraction(
         interaction: ChatInputCommandInteraction<CacheType> | ModalSubmitInteraction<CacheType>,
         content: string | EmbedBuilder,
-        onlyVisibleToEngager?: boolean
+        onlyVisibleToEngager?: boolean,
+        wasDefered?: boolean
     ): boolean {
         if (!interaction.replied) {
             if (content instanceof EmbedBuilder) {
                 interaction.reply({ embeds: [content], ephemeral: onlyVisibleToEngager })
             } else {
-                interaction.reply(content)
+                if (wasDefered) interaction.editReply(content)
+                else interaction.reply(content)
             }
             return true
         }

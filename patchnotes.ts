@@ -4,11 +4,13 @@ import { ICommandElement, IInteractionElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '9.2.3'
+    public static readonly currentVersion = '9.3.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `\n* Fikset at statuser ikke viste statuser men brukernavn dobbelt`
+    public static readonly currentPatchNotes: string = 
+    `\n* Botten kan nå gjøre TTS (forhåpentligvis uten problemer). ` + 
+    `\n* Fikset at statuser ikke viste statuser men brukernavn dobbelt`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
