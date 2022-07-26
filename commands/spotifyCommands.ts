@@ -106,7 +106,7 @@ export class SpotifyCommands extends AbstractCommands {
         const emoji = await EmojiHelper.getEmoji('catJAM', interaction)
         if (isAllActive) {
             let replyString = ''
-            interaction.guild.members.cache.forEach((localMember) => {
+            interaction?.guild?.members?.cache?.forEach((localMember) => {
                 if (localMember?.presence)
                     localMember.presence.activities.forEach((activity) => {
                         if (activity.name === 'Spotify') {
@@ -121,7 +121,7 @@ export class SpotifyCommands extends AbstractCommands {
 
         if (isFull) {
             let musicRet = ''
-            const users = interaction.guild.members.cache.map((u) => {
+            const users = interaction?.guild?.members?.cache.map((u) => {
                 return {
                     id: u.user.id,
                     name: u.user.username,
