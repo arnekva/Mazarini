@@ -14,7 +14,7 @@ export class SoundUtils {
 
     static async connectToVoiceAndSpeak(params: IVoiceConnectParams, text: string) {
         const stream = discordTTS.getVoiceStream(text)
-        const audioResource = createAudioResource(stream, { inputType: StreamType.Arbitrary, inlineVolume: true })
+        const audioResource = createAudioResource(stream, { inputType: StreamType.Arbitrary, inlineVolume: true, })
         let voiceConnection: any
         let audioPlayer = new AudioPlayer()
         if (!voiceConnection || voiceConnection?.status === VoiceConnectionStatus.Disconnected) {

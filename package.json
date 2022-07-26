@@ -39,6 +39,7 @@
         "node-schedule": "^2.0.0",
         "nodemon": "^2.0.7",
         "npm": "latest",
+        "opusscript": "^0.0.8",
         "pm2": "^5.2.0",
         "pm2-axon": "^4.0.1",
         "puppeteer": "^13.5.1",
