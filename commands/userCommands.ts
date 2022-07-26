@@ -100,7 +100,7 @@ export class UserCommands extends AbstractCommands {
 
     private updateDisplayName(message: Message, messageContent: string, args: string[]) {
         const updateOtherUSer = UserUtils.findUserByUsername(args[0], message)
-        let user: MazariniUser
+        let user: MazariniUser = DatabaseHelper.getUser(message.author.id)
         let name: string
         let canUpdate = true
         if (updateOtherUSer && !!args[1]) {
@@ -111,7 +111,6 @@ export class UserCommands extends AbstractCommands {
             }
             name = args.slice(1).join(' ')
         } else {
-            user = DatabaseHelper.getUser(message.author.id)
             name = args.slice(0).join(' ')
         }
         if (canUpdate) {
@@ -146,7 +145,7 @@ export class UserCommands extends AbstractCommands {
                     embed.addFields({ name: name, value: status })
                 }
             })
-            if (embed.data.fields.length === 0) embed.addFields({ name: 'Helt tomt', value: 'Ingen har satt statusen sin i dag' })
+            if (embed.data?.fields?.length === 0) embed.addFields({ name: 'Helt tomt', value: 'Ingen har satt statusen sin i dag' })
             this.messageHelper.replyToInteraction(interaction, embed)
         }
     }
