@@ -141,7 +141,7 @@ export class Music extends AbstractCommands {
             case 'weekly':
                 return base + 'getweeklytrackchart'
             default:
-                return undefined
+                return base + 'getweeklytrackchart'
         }
     }
 
@@ -153,7 +153,7 @@ export class Music extends AbstractCommands {
             case 'songs':
                 return base + 'getweeklytrackchart'
             default:
-                return undefined
+                return base + 'getweeklyartistchart'
         }
     }
     /*
