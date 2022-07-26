@@ -262,8 +262,8 @@ Docs: https://www.last.fm/api/show/user.getInfo
 
     private async handleMusicInteractions(interaction: ChatInputCommandInteraction<CacheType>) {
         if (interaction) {
-            const options = interaction.options.get('data')?.value as string
-            const user = interaction.options.get('user')?.user
+            const options = interaction?.options?.get('data')?.value as string
+            const user = interaction?.options?.get('user')?.user
 
             const data = await this.findCommandForInteraction(interaction, options, user instanceof User ? user : undefined)
             if (data instanceof EmbedBuilder) {

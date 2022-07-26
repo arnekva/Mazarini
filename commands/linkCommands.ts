@@ -12,21 +12,21 @@ export class LinkCommands extends AbstractCommands {
 
     private async handleLinking(interaction: ChatInputCommandInteraction<CacheType>) {
         if (interaction) {
-            const isWZ = interaction.options.getSubcommand() === 'warzone'
-            const isLastFM = interaction.options.getSubcommand() === 'lastfm'
-            const isVinmonopol = interaction.options.getSubcommand() === 'vinmonopol'
+            const isWZ = interaction?.options?.getSubcommand() === 'warzone'
+            const isLastFM = interaction?.options?.getSubcommand() === 'lastfm'
+            const isVinmonopol = interaction?.options?.getSubcommand() === 'vinmonopol'
 
             let saved = false
             if (isWZ) {
-                const platform = interaction.options.get('plattform')?.value as string
-                const username = interaction.options.get('brukernavn')?.value as string
+                const platform = interaction?.options?.get('plattform')?.value as string
+                const username = interaction?.options?.get('brukernavn')?.value as string
 
                 saved = this.linkWZName(interaction, platform, username)
             } else if (isLastFM) {
-                const username = interaction.options.get('brukernavn')?.value as string
+                const username = interaction?.options?.get('brukernavn')?.value as string
                 saved = this.linkLastFMName(interaction, username)
             } else if (isVinmonopol) {
-                const polID = interaction.options.get('vinmonopolid')?.value as string
+                const polID = interaction?.options?.get('vinmonopolid')?.value as string
                 saved = await this.linkVinmonopolToUser(polID, interaction.user.id)
             }
 

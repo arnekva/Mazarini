@@ -79,10 +79,10 @@ export class GameCommands extends AbstractCommands {
     }
 
     private async findDropLocation(interaction: ChatInputCommandInteraction<CacheType>) {
-        let mapArray = []
+        let mapArray: string[] = []
         let mapName = ''
 
-        const map = interaction.options.get('map').value
+        const map = interaction?.options?.get('map').value
 
         if (map === 'caldera') {
             mapArray = calderaPoints
@@ -99,7 +99,7 @@ export class GameCommands extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, emb)
 
         const memb = UserUtils.findMemberByUserID(interaction.user.id, interaction)
-        if (memb.voice.channel) {
+        if (memb?.voice?.channel) {
             await SoundUtils.connectToVoiceAndSpeak(
                 {
                     adapterCreator: interaction.guild.voiceAdapterCreator,

@@ -194,8 +194,8 @@ export class SpotifyCommands extends AbstractCommands {
     private async handleSpotifyInteractions(interaction: ChatInputCommandInteraction<CacheType>) {
         if (interaction) {
             await interaction.deferReply() //Må defere reply siden botter har maks 3 sekund å svare på en interaction
-            const mode = interaction.options.get('mode')?.value as string
-            const user = interaction.options.get('user')?.user
+            const mode = interaction?.options?.get('mode')?.value as string
+            const user = interaction?.options?.get('user')?.user
             const data = await this.currentPlayingFromDiscord(interaction, mode, user instanceof User ? user : undefined)
 
             if (data instanceof EmbedBuilder) {
