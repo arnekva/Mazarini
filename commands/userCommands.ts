@@ -122,7 +122,7 @@ export class UserCommands extends AbstractCommands {
     }
 
     private setStatus(interaction: ChatInputCommandInteraction<CacheType>) {
-        const statusText = interaction?.options?.get('tekst')?.value as string
+        const statusText = interaction.options.get('tekst')?.value as string
         if (statusText) {
             const user = DatabaseHelper.getUser(interaction.user.id)
             user.status = statusText

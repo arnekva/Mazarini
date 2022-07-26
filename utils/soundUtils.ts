@@ -15,7 +15,7 @@ export class SoundUtils {
     static async connectToVoiceAndSpeak(params: IVoiceConnectParams, text: string) {
         const stream = discordTTS.getVoiceStream(text)
         const audioResource = createAudioResource(stream, { inputType: StreamType.Arbitrary, inlineVolume: true })
-        let voiceConnection
+        let voiceConnection: any
         let audioPlayer = new AudioPlayer()
         if (!voiceConnection || voiceConnection?.status === VoiceConnectionStatus.Disconnected) {
             voiceConnection = joinVoiceChannel({
@@ -45,6 +45,6 @@ export class SoundUtils {
 
     static disconnectFromVoiceChannel(guildID: string) {
         const connection = getVoiceConnection(guildID)
-        connection.destroy()
+        connection?.destroy()
     }
 }

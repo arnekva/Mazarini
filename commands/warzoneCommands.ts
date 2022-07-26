@@ -435,7 +435,7 @@ export class WarzoneCommands extends AbstractCommands {
 
     private async handleWZInteraction(interaction: ChatInputCommandInteraction<CacheType>) {
         if (interaction) {
-            const wantedType = interaction?.options?.getString('mode') //"br", "weekly" eller "siste"
+            const wantedType = interaction.options.getString('mode') //"br", "weekly" eller "siste"
             if (wantedType === 'br' || wantedType === 'weekly') {
                 const content = await this.getBRContent(interaction, wantedType === 'weekly')
                 this.messageHelper.replyToInteraction(interaction, content)

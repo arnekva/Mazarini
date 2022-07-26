@@ -82,7 +82,7 @@ export class GameCommands extends AbstractCommands {
         let mapArray: string[] = []
         let mapName = ''
 
-        const map = interaction?.options?.get('map')?.value
+        const map = interaction.options.get('map')?.value
 
         if (map === 'caldera') {
             mapArray = calderaPoints

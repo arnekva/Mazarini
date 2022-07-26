@@ -12,11 +12,11 @@ export class NameCommands extends AbstractCommands {
     }
 
     private handleNameCommands(interaction: ChatInputCommandInteraction<CacheType>) {
-        const textToAdd = interaction?.options?.get('tekst')?.value as string
-        const userTextIsAddedTo = interaction?.options?.get('bruker')?.value as string
-        const textToDelete = interaction?.options?.get('indeks')?.value as number
-        const textToDeleteUser = interaction?.options?.get('brukeren')?.value as string
-        const personToLookUp = interaction?.options?.get('navn')?.value as string
+        const textToAdd = interaction.options.get('tekst')?.value as string
+        const userTextIsAddedTo = interaction.options.get('bruker')?.value as string
+        const textToDelete = interaction.options.get('indeks')?.value as number
+        const textToDeleteUser = interaction.options.get('brukeren')?.value as string
+        const personToLookUp = interaction.options.get('navn')?.value as string
 
         if (textToAdd && userTextIsAddedTo) {
             const added = this.addTextValueFromInteraction(textToAdd, userTextIsAddedTo)
