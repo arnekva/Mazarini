@@ -127,27 +127,28 @@ export class SpotifyCommands extends AbstractCommands {
                     name: u.user.username,
                 }
             })
+            if (users) {
+                for (let i = 0; i < users.length; i++) {
+                    const user = DatabaseHelper.getUser(users[i].id)
+                    const lastFmName = user?.lastFMUsername
 
-            for (let i = 0; i < users.length; i++) {
-                const user = DatabaseHelper.getUser(users[i].id)
-                const lastFmName = user?.lastFMUsername
-
-                if (lastFmName) {
-                    musicRet +=
-                        `(${users[i].name}) ` +
-                        (await _music.findLastFmData({
-                            user: lastFmName,
-                            includeNameInOutput: false,
-                            includeStats: false,
-                            limit: '1',
-                            method: { cmd: _music.getCommand('siste', '1'), desc: 'Siste 1' },
-                            silent: false,
-                            username: users[i].name,
-                        }))
+                    if (lastFmName) {
+                        musicRet +=
+                            `(${users[i].name}) ` +
+                            (await _music.findLastFmData({
+                                user: lastFmName,
+                                includeNameInOutput: false,
+                                includeStats: false,
+                                limit: '1',
+                                method: { cmd: _music.getCommand('siste', '1'), desc: 'Siste 1' },
+                                silent: false,
+                                username: users[i].name,
+                            }))
+                    }
                 }
-            }
-            if (musicRet.length < 1) musicRet = 'Fant ingen data'
-            return musicRet
+                if (musicRet.length < 1) musicRet = 'Fant ingen data'
+                return musicRet
+            } else return 'Ingen data funnet'
         }
 
         const member = UserUtils.findMemberByUserID(user ? user.id : interaction.user.id, interaction)
