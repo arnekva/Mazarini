@@ -58,10 +58,10 @@ export namespace UserUtils {
         if (oldMember.user.username !== newMember.user.username) return 'username'
 
         //TODO: Sjekk etter andre ting?
-        if (oldMember.isCommunicationDisabled() !== newMember.isCommunicationDisabled()) {
-            const date = newMember.communicationDisabledUntil
+        if (oldMember?.isCommunicationDisabled() !== newMember?.isCommunicationDisabled()) {
+            const date = newMember?.communicationDisabledUntil ?? new Date()
             return `Timeout ${
-                newMember.isCommunicationDisabled()
+                newMember?.isCommunicationDisabled()
                     ? `${date.getDate()}.${date.getMonth()}.${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}`
                     : 'er ferdig'
             }`
