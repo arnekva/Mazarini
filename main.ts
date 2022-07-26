@@ -143,8 +143,7 @@ export class MazariniClient {
                             _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
                             'PM2 logget en feil. Process:exception. Dette er en DISCORD.COM feilmelding: ENOTFOUND.'
                         )
-                    }
-                    if (!data?.data?.stack?.includes('fewer in length')) {
+                    } else if (!data?.data?.stack?.includes('fewer in length')) {
                         _msgHelper.sendMessageToActionLog(
                             _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
 
@@ -162,9 +161,10 @@ export class MazariniClient {
         client.on('messageCreate', async (message: Message) => {
             MazariniClient.numMessages++
             //Do not reply to own messages. Do not trigger on pinned messages
-            if (message.author.username == client.user.username || message.type === MessageType.ChannelPinnedMessage) return
-
-            _mzClient.commandRunner.runCommands(message)
+            if (message.author.username == client.user.username || message.type === MessageType.ChannelPinnedMessage) {
+            } else {
+                _mzClient.commandRunner.runCommands(message)
+            }
         })
 
         client.on('messageDelete', async (message: Message<boolean> | PartialMessage) => {
