@@ -120,7 +120,7 @@ export class Music extends AbstractCommands {
             case 'siste':
                 if (s as weeklyMethods) return this.findLastPlayedSongs(s)
         }
-        return undefined
+        return this.findTopMethod(s)
     }
 
     private findLastPlayedSongs(m: string) {
@@ -299,7 +299,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
             const lastFmData = (await this.findLastFmData(data)).join('\n')
 
             return `${user ? `Data for ${user.username}\n` : ''}` + lastFmData
-        } else return `Brukeren ${user.username} har ikke knyttet til et Last.fm-brukernavn`
+        } else return `Brukeren ${user?.username} har ikke knyttet til et Last.fm-brukernavn`
     }
 
     public getAllCommands(): ICommandElement[] {
