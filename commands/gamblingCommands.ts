@@ -623,11 +623,9 @@ export class GamblingCommands extends AbstractCommands {
             message.reply('Du må skriva inn et gyldig tegn. Det må være større enn 0')
         } else {
             const transactionType = args[2]
-            let trType: dbPrefix
+            let trType: dbPrefix = 'chips'
             if (transactionType === 'coins') {
-                trType = 'chips'
-            } else if (transactionType === 'chips') {
-                trType = transactionType
+                trType = 'coins'
             } else {
                 message.reply('Du må spesifisere om du vil vippse "coins" eller "chips"')
             }
