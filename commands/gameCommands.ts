@@ -82,7 +82,7 @@ export class GameCommands extends AbstractCommands {
         let mapArray: string[] = []
         let mapName = ''
 
-        const map = interaction?.options?.get('map').value
+        const map = interaction?.options?.get('map')?.value
 
         if (map === 'caldera') {
             mapArray = calderaPoints
@@ -102,9 +102,9 @@ export class GameCommands extends AbstractCommands {
         if (memb?.voice?.channel) {
             await SoundUtils.connectToVoiceAndSpeak(
                 {
-                    adapterCreator: interaction.guild.voiceAdapterCreator,
-                    channelID: memb.voice.channelId,
-                    guildID: interaction.guildId,
+                    adapterCreator: interaction.guild?.voiceAdapterCreator,
+                    channelID: memb.voice?.channelId ?? 'None',
+                    guildID: interaction?.guildId ?? 'None',
                 },
                 `For ${mapName}, you are dropping in ${drop}`
             )
