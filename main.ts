@@ -161,7 +161,7 @@ export class MazariniClient {
         client.on('messageCreate', async (message: Message) => {
             MazariniClient.numMessages++
             //Do not reply to own messages. Do not trigger on pinned messages
-            if (message.author.username == client.user.username || message.type === MessageType.ChannelPinnedMessage) {
+            if (message?.author?.username == client?.user?.username || message?.type === MessageType.ChannelPinnedMessage) {
             } else {
                 _mzClient.commandRunner.runCommands(message)
             }
