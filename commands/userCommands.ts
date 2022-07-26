@@ -127,10 +127,13 @@ export class UserCommands extends AbstractCommands {
             const user = DatabaseHelper.getUser(interaction.user.id)
             user.status = statusText
             DatabaseHelper.updateUser(user)
+
             const embed = new EmbedBuilder()
                 .setTitle(`${interaction.user.username} har oppdatert statusen sin`)
                 .setDescription(`${statusText}`)
+                .setThumbnail(`${interaction.user.avatarURL()}`)
                 .setFooter({ text: `${DateUtils.getCurrentTimeFormatted()}` })
+
             this.messageHelper.replyToInteraction(interaction, embed)
         } else {
             const val = DatabaseHelper.getAllUsers()
@@ -140,7 +143,7 @@ export class UserCommands extends AbstractCommands {
                 const status = user?.status
                 if (status && status !== 'undefined') {
                     const name = UserUtils.findUserById(key, interaction)?.username ?? user.displayName ?? 'Ukjent brukernavn'
-                    embed.addFields({ name: user.displayName, value: name })
+                    embed.addFields({ name: name, value: status })
                 }
             })
             if (embed.data.fields.length === 0) embed.addFields({ name: 'Helt tomt', value: 'Ingen har satt statusen sin i dag' })

@@ -130,6 +130,6 @@ export class DateUtils {
     }
 
     static getCurrentTimeFormatted() {
-        return `${moment().format('HH:mm:ss YYYY-MM-DD ')}`
+        return `${moment().format('HH:mm:ss DD-MM-YYYY ')}`
     }
 }

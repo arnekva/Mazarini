@@ -4,12 +4,11 @@ import { ICommandElement, IInteractionElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '9.2.2'
+    public static readonly currentVersion = '9.2.3'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string =
-        `\n* /navn joiij fungerer nå igjen` + `\n* /drop bruker nå en embed message` + `\n* Status er nå en slash command`
+    public static readonly currentPatchNotes: string = `\n* Fikset at statuser ikke viste statuser men brukernavn dobbelt`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

@@ -6,6 +6,7 @@ import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { RandomUtils } from '../utils/randomUtils'
+import { SoundUtils } from '../utils/soundUtils'
 import { TextUtils } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
 
@@ -93,8 +94,22 @@ export class GameCommands extends AbstractCommands {
             mapArray = fortunesKeep
             mapName = "Fortune's Keep"
         }
-        const emb = new EmbedBuilder().setTitle(`${ArrayUtils.randomChoiceFromArray(mapArray)}`).setDescription(`Droppunkt for ${mapName}`)
+        const drop = `${ArrayUtils.randomChoiceFromArray(mapArray)}`
+        const emb = new EmbedBuilder().setTitle(drop).setDescription(`Droppunkt for ${mapName}`)
         this.messageHelper.replyToInteraction(interaction, emb)
+
+        const memb = UserUtils.findMemberByUserID(interaction.user.id, interaction)
+        if (memb.voice.channel) {
+            SoundUtils.connectToVoiceAndSpeak(
+                {
+                    adapterCreator: interaction.guild.voiceAdapterCreator,
+                    channelID: memb.voice.channelId,
+                    guildID: interaction.guildId,
+                },
+                `For ${mapName}, you are dropping in ${drop}`
+            )
+            SoundUtils.disconnectFromVoiceChannel(interaction.guildId)
+        }
     }
 
     private dropGrid(message: Message, messageContent: string) {
