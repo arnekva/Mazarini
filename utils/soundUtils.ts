@@ -1,9 +1,6 @@
-import { getVoiceConnection } from '@discordjs/voice'
-import { environment } from '../client-env'
-
-const say = require('say')
-const { joinVoiceChannel } = require('@discordjs/voice')
-const exec = require('child_process').exec
+import { AudioPlayer, createAudioResource, entersState, getVoiceConnection, joinVoiceChannel, StreamType, VoiceConnectionStatus } from '@discordjs/voice'
+import { Client } from 'discord.js'
+const discordTTS = require('discord-tts')
 
 interface IVoiceConnectParams {
     channelID: string
@@ -11,29 +8,39 @@ interface IVoiceConnectParams {
     adapterCreator: any //TODO: Type this
 }
 export class SoundUtils {
-    static speakText(text: string) {
-        if (environment === 'prod') {
-            SoundUtils.speakOnLinux(text)
-        } else {
-            say.speak(text)
+    static speakText(client: Client, text: string) {}
+
+    static stopCurrentSay() {}
+
+    static async connectToVoiceAndSpeak(params: IVoiceConnectParams, text: string) {
+        const stream = discordTTS.getVoiceStream(text)
+        const audioResource = createAudioResource(stream, { inputType: StreamType.Arbitrary, inlineVolume: true })
+        let voiceConnection
+        let audioPlayer = new AudioPlayer()
+        if (!voiceConnection || voiceConnection?.status === VoiceConnectionStatus.Disconnected) {
+            voiceConnection = joinVoiceChannel({
+                channelId: params.channelID,
+                guildId: params.guildID,
+                adapterCreator: params.adapterCreator,
+            })
+            voiceConnection = await entersState(voiceConnection, VoiceConnectionStatus.Connecting, 5_000)
         }
-    }
+        console.log('mid', voiceConnection.status)
 
-    static speakOnLinux(text: string) {
-        exec('echo ' + text)
-    }
+        // if (voiceConnection.status === VoiceConnectionStatus.Ready) {
+        console.log('ready?')
 
-    static stopCurrentSay() {
-        say.stop()
-    }
+        voiceConnection.subscribe(audioPlayer)
+        audioPlayer.play(audioResource)
+        // }
 
-    static connectToVoiceAndSpeak(params: IVoiceConnectParams, text: string) {
-        const connection = joinVoiceChannel({
-            channelId: params.channelID,
-            guildId: params.guildID,
-            adapterCreator: params.adapterCreator,
-        })
-        SoundUtils.speakText(text)
+        // const player = createAudioPlayer()
+        // const connection = joinVoiceChannel({
+        //     channelId: params.channelID,
+        //     guildId: params.guildID,
+        //     adapterCreator: params.adapterCreator,
+        // }).subscribe(player)
+        // player.play(discordTTS.getVoiceStream(text))
     }
 
     static disconnectFromVoiceChannel(guildID: string) {

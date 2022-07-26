@@ -100,7 +100,7 @@ export class GameCommands extends AbstractCommands {
 
         const memb = UserUtils.findMemberByUserID(interaction.user.id, interaction)
         if (memb.voice.channel) {
-            SoundUtils.connectToVoiceAndSpeak(
+            await SoundUtils.connectToVoiceAndSpeak(
                 {
                     adapterCreator: interaction.guild.voiceAdapterCreator,
                     channelID: memb.voice.channelId,
@@ -108,7 +108,7 @@ export class GameCommands extends AbstractCommands {
                 },
                 `For ${mapName}, you are dropping in ${drop}`
             )
-            SoundUtils.disconnectFromVoiceChannel(interaction.guildId)
+            // SoundUtils.disconnectFromVoiceChannel(interaction.guildId)
         }
     }
 
