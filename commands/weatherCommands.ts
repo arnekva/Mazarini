@@ -24,14 +24,17 @@ export class Weather extends AbstractCommands {
         })
             .then((res: any) => {
                 if (!res.ok) {
-                    throw new Error(res.status.toString())
+                    console.log('throws error')
+
+                    // throw new Error(res.status.toString())
+                    //TODO: Do not throw error, log it instead
                 }
                 res.json().then((el: any) => {
                     const temperature: string = WeatherUtils.kelvinToCelcius(el.main.temp).toFixed(1).toString()
                     const weatherDescription = el.weather.map((weatherObj: any) => weatherObj.description).join(', ')
                     const weather = new EmbedBuilder()
-                        .setTitle(`☁️ Vær - ${el.name} ☀️`)
-                        .setDescription(``)
+                        .setTitle(`☁️ Vær - ${el?.name} ☀️`)
+                        .setDescription(`Været i dag`)
                         .addFields({
                             name: 'Temperatur',
                             value: `Det er ${temperature} grader (føles som ${WeatherUtils.kelvinToCelcius(el.main.feels_like)
@@ -41,7 +44,7 @@ export class Weather extends AbstractCommands {
                                 .toString()}°, høyeste er ${WeatherUtils.kelvinToCelcius(el.main.temp_max).toFixed(1).toString()}°`,
                         })
                         .addFields({ name: `Forhold`, value: `Det er ${weatherDescription}` })
-                        .addFields({ name: `Vind`, value: `${el.wind.speed} m/s` })
+                        .addFields({ name: `Vind`, value: `${el?.wind?.speed} m/s` })
 
                     this.messageHelper.sendFormattedMessage(message.channel as TextChannel, weather)
                 })

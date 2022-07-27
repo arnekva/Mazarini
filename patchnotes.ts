@@ -4,13 +4,11 @@ import { ICommandElement, IInteractionElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '9.3.0'
+    public static readonly currentVersion = '9.3.1'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = 
-    `\n* Botten kan nå gjøre TTS (forhåpentligvis uten problemer). ` + 
-    `\n* Fikset at statuser ikke viste statuser men brukernavn dobbelt`
+    public static readonly currentPatchNotes: string = `\n* Fikset en feil som gjorde at !mz vær ikke fungerte lenger etter oppgradering til Discord v14`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
