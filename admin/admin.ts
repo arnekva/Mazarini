@@ -257,6 +257,11 @@ export class Admin extends AbstractCommands {
 
                     values.push({ key: el, val: x })
                 })
+                if (p.split('/')[1] === 'incorrectCommands') {
+                    values.sort(function (a, b) {
+                        return a[1] - b[1]
+                    })
+                }
                 let formatted = values.map((d: ValuePair) => `${d.key} - ${d.val}`).join('\n')
                 if (formatted.length > 1000) {
                     const totalLength = formatted.length
