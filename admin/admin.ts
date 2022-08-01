@@ -259,7 +259,7 @@ export class Admin extends AbstractCommands {
                 })
                 if (p.split('/')[1] === 'incorrectCommands') {
                     values.sort(function (a, b) {
-                        return a[1] - b[1]
+                        return Number(a.val) - Number(b.val)
                     })
                 }
                 let formatted = values.map((d: ValuePair) => `${d.key} - ${d.val}`).join('\n')
