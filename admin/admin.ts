@@ -257,15 +257,17 @@ export class Admin extends AbstractCommands {
 
                     values.push({ key: el, val: x })
                 })
-                if (p.split('/')[1] === 'incorrectCommands') {
+                console.log(p.split('/'))
+
+                if (p.split('/')[1] === 'incorrectCommand') {
                     values.sort(function (a, b) {
-                        return Number(a.val) - Number(b.val)
+                        return Number(b.val) - Number(a.val)
                     })
                 }
                 let formatted = values.map((d: ValuePair) => `${d.key} - ${d.val}`).join('\n')
-                if (formatted.length > 1000) {
+                if (formatted.length > 700) {
                     const totalLength = formatted.length
-                    const slicedFormat = formatted.slice(0, 998)
+                    const slicedFormat = formatted.slice(0, 700)
                     formatted = slicedFormat + '...' + `\nViser ${slicedFormat.length} av ${totalLength}`
                 }
                 if (formatted) return this.messageHelper.sendMessage(message.channelId, formatted)
