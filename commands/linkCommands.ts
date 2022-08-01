@@ -12,30 +12,27 @@ export class LinkCommands extends AbstractCommands {
 
     private async handleLinking(interaction: ChatInputCommandInteraction<CacheType>) {
         await interaction.deferReply()
-        if (interaction) {
-            const isWZ = interaction.options.getSubcommand() === 'warzone'
-            const isLastFM = interaction.options.getSubcommand() === 'lastfm'
-            const isVinmonopol = interaction.options.getSubcommand() === 'vinmonopol'
 
-            let saved = false
-            if (isWZ) {
-                const platform = interaction.options.get('plattform')?.value as string
-                const username = interaction.options.get('brukernavn')?.value as string
+        const isWZ = interaction.options.getSubcommand() === 'warzone'
+        const isLastFM = interaction.options.getSubcommand() === 'lastfm'
+        const isVinmonopol = interaction.options.getSubcommand() === 'vinmonopol'
 
-                saved = this.linkWZName(interaction, platform, username)
-            } else if (isLastFM) {
-                const username = interaction.options.get('brukernavn')?.value as string
-                saved = this.linkLastFMName(interaction, username)
-            } else if (isVinmonopol) {
-                const polID = interaction.options.get('vinmonopolid')?.value as string
-                saved = await this.linkVinmonopolToUser(polID, interaction.user.id)
-            }
+        let saved = false
+        if (isWZ) {
+            const platform = interaction.options.get('plattform')?.value as string
+            const username = interaction.options.get('brukernavn')?.value as string
 
-            if (saved) this.messageHelper.replyToInteraction(interaction, 'Brukernavnet er nå linket til din konto', undefined, true)
-            else this.messageHelper.replyToInteraction(interaction, 'Klarte ikke hente brukernavn eller plattform', undefined, true)
-        } else {
-            interaction.reply('En feil har oppstått')
+            saved = this.linkWZName(interaction, platform, username)
+        } else if (isLastFM) {
+            const username = interaction.options.get('brukernavn')?.value as string
+            saved = this.linkLastFMName(interaction, username)
+        } else if (isVinmonopol) {
+            const polID = interaction.options.get('vinmonopolid')?.value as string
+            saved = await this.linkVinmonopolToUser(polID, interaction.user.id)
         }
+
+        if (saved) this.messageHelper.replyToInteraction(interaction, 'Brukernavnet er nå linket til din konto', undefined, true)
+        else this.messageHelper.replyToInteraction(interaction, 'Klarte ikke hente brukernavn eller plattform', undefined, true)
     }
 
     private linkWZName(rawInteraction: ChatInputCommandInteraction<CacheType>, platform?: string, username?: string): boolean {
