@@ -66,6 +66,7 @@ export class PoletCommands extends AbstractCommands {
     }
 
     private async getOpeningHours(rawInteraction?: ChatInputCommandInteraction<CacheType>, storeId?: string) {
+        await rawInteraction.deferReply()
         const poletData = await PoletCommands.fetchPoletData(rawInteraction, storeId)
 
         const fmMessage = new EmbedBuilder().setTitle(`${poletData.storeName} (${poletData.address.postalCode}, ${poletData.address.city}) `)
@@ -96,8 +97,6 @@ export class PoletCommands extends AbstractCommands {
     }
 
     private async handleVinmonopoletCommand(interaction: ChatInputCommandInteraction<CacheType>) {
-        await interaction.deferReply()
-
         await this.getOpeningHours(interaction)
     }
 
