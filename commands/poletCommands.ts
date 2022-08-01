@@ -1,4 +1,4 @@
-import { CacheType, Client, EmbedBuilder, Interaction, Message, TextChannel } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction, Message } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { vinmonopoletKey } from '../client-env'
 import { ICommandElement, IInteractionElement } from '../General/commands'
@@ -32,19 +32,21 @@ interface PoletData {
     }
 }
 export class PoletCommands extends AbstractCommands {
-    static baseURL = 'https://apis.vinmonopolet.no/stores/v0/details'
+    static baseStoreDataURL = 'https://apis.vinmonopolet.no/stores/v0/details'
+    static baseProductURL = 'https://apis.vinmonopolet.no/products/v0/details-normal'
+    static baseStoreID = '416'
     constructor(client: Client, messageHelper: MessageHelper) {
         super(client, messageHelper)
     }
 
-    static async fetchPoletData(rawInteraction?: Interaction<CacheType>, storeId?: string, checkExistance?: boolean) {
-        let id = '416'
+    static async fetchPoletData(rawInteraction?: Interaction<CacheType>, storeId?: string) {
+        let id = PoletCommands.baseStoreID
         if (storeId) id = storeId
         if (rawInteraction) {
             id = DatabaseHelper.getUser(rawInteraction.user.id).favoritePol ?? '416'
         }
 
-        const data = await fetch(`${PoletCommands.baseURL}?storeId=${id}`, {
+        const data = await fetch(`${PoletCommands.baseStoreDataURL}?storeId=${id}`, {
             method: 'GET',
             headers: {
                 'Ocp-Apim-Subscription-Key': vinmonopoletKey,
@@ -53,7 +55,17 @@ export class PoletCommands extends AbstractCommands {
         return (await data.json())[0] as PoletData
     }
 
-    private async getOpeningHours(rawInteraction?: Interaction<CacheType>, storeId?: string) {
+    static async fetchProductData(productNameContains: string) {
+        const data = await fetch(`${PoletCommands.baseProductURL}?productShortNameContains=${productNameContains}`, {
+            method: 'GET',
+            headers: {
+                'Ocp-Apim-Subscription-Key': vinmonopoletKey,
+            },
+        })
+        return (await data.json())[0] as PoletData
+    }
+
+    private async getOpeningHours(rawInteraction?: ChatInputCommandInteraction<CacheType>, storeId?: string) {
         const poletData = await PoletCommands.fetchPoletData(rawInteraction, storeId)
 
         const fmMessage = new EmbedBuilder().setTitle(`${poletData.storeName} (${poletData.address.postalCode}, ${poletData.address.city}) `)
@@ -80,7 +92,13 @@ export class PoletCommands extends AbstractCommands {
             })
         }
         fmMessage.setDescription(`${this.isStoreOpen(todayClosing)}`)
-        this.messageHelper.sendFormattedMessage(rawInteraction?.channel as TextChannel, fmMessage)
+        this.messageHelper.replyToInteraction(rawInteraction, fmMessage, undefined, true)
+    }
+
+    private async handleVinmonopoletCommand(interaction: ChatInputCommandInteraction<CacheType>) {
+        await interaction.deferReply()
+
+        await this.getOpeningHours(interaction)
     }
 
     private isStoreOpen(closingTime: string) {
@@ -121,8 +139,8 @@ export class PoletCommands extends AbstractCommands {
         return [
             {
                 commandName: 'vinmonopolet',
-                command: (rawInteraction: Interaction<CacheType>) => {
-                    this.getOpeningHours(rawInteraction)
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.handleVinmonopoletCommand(rawInteraction)
                 },
                 category: 'drink',
             },

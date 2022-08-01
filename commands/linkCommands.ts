@@ -1,4 +1,4 @@
-import { CacheType, ChatInputCommandInteraction, Client, CommandInteraction, Interaction } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, Interaction } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
@@ -11,6 +11,7 @@ export class LinkCommands extends AbstractCommands {
     }
 
     private async handleLinking(interaction: ChatInputCommandInteraction<CacheType>) {
+        await interaction.deferReply()
         if (interaction) {
             const isWZ = interaction.options.getSubcommand() === 'warzone'
             const isLastFM = interaction.options.getSubcommand() === 'lastfm'
@@ -30,11 +31,10 @@ export class LinkCommands extends AbstractCommands {
                 saved = await this.linkVinmonopolToUser(polID, interaction.user.id)
             }
 
-            if (saved) this.messageHelper.replyToInteraction(interaction, 'Brukernavnet er nå linket til din konto')
-            else this.messageHelper.replyToInteraction(interaction, 'Klarte ikke hente brukernavn eller plattform')
+            if (saved) this.messageHelper.replyToInteraction(interaction, 'Brukernavnet er nå linket til din konto', undefined, true)
+            else this.messageHelper.replyToInteraction(interaction, 'Klarte ikke hente brukernavn eller plattform', undefined, true)
         } else {
-            const intr = interaction as CommandInteraction
-            intr.reply('En feil har oppstått')
+            interaction.reply('En feil har oppstått')
         }
     }
 
@@ -57,7 +57,7 @@ export class LinkCommands extends AbstractCommands {
     async linkVinmonopolToUser(storeIdFromInteraction: string, userId: string): Promise<boolean> {
         const storeId = parseInt(storeIdFromInteraction)
         if (!isNaN(storeId) && storeId < 1000) {
-            const store = await PoletCommands.fetchPoletData(undefined, storeId.toString(), true)
+            const store = await PoletCommands.fetchPoletData(undefined, storeId.toString())
             if (!store) {
                 return false
             } else {

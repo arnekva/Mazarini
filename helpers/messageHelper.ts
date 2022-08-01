@@ -35,6 +35,7 @@ export class MessageHelper {
      * @param interaction
      * @param content   The content to be sent. Can be a string or an embed message
      * @param onlyVisibleToEngager Sets the message as ephemeral, i.e. only the engager can see it. This means that the message can be dismissed and is not saved on Discord servers
+     * @param wasDefered Set to true if the interaction has been defered (i.e. paused while thinking). Defered interactions requires to be replied with editReply() instead of reply().
      * @returns True if reply is sent, false if not
      */
     replyToInteraction(

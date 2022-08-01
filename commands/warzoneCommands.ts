@@ -434,6 +434,7 @@ export class WarzoneCommands extends AbstractCommands {
     }
 
     private async handleWZInteraction(interaction: ChatInputCommandInteraction<CacheType>) {
+        await interaction.deferReply()
         if (interaction) {
             const wantedType = interaction.options.getString('mode') //"br", "weekly" eller "siste"
             if (wantedType === 'br' || wantedType === 'weekly') {
@@ -442,10 +443,10 @@ export class WarzoneCommands extends AbstractCommands {
             } else if (wantedType === 'siste') {
                 const content = await this.getLastMatchData(interaction)
 
-                this.messageHelper.replyToInteraction(interaction, content)
+                this.messageHelper.replyToInteraction(interaction, content, undefined, true)
             }
         } else {
-            this.messageHelper.replyToInteraction(interaction, 'Kunne ikke finne data på valgte modus')
+            this.messageHelper.replyToInteraction(interaction, 'Kunne ikke finne data på valgte modus', undefined, true)
         }
     }
 
