@@ -257,7 +257,12 @@ export class Admin extends AbstractCommands {
 
                     values.push({ key: el, val: x })
                 })
-                const formatted = values.map((d: ValuePair) => `${d.key} - ${d.val}`).join('\n')
+                let formatted = values.map((d: ValuePair) => `${d.key} - ${d.val}`).join('\n')
+                if (formatted.length > 1000) {
+                    const totalLength = formatted.length
+                    const slicedFormat = formatted.slice(0, 998)
+                    formatted = slicedFormat + '...' + `\nViser ${slicedFormat.length} av ${totalLength}`
+                }
                 if (formatted) return this.messageHelper.sendMessage(message.channelId, formatted)
                 return undefined
             } else {
