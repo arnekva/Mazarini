@@ -65,7 +65,7 @@ export class PoletCommands extends AbstractCommands {
         return (await data.json())[0] as PoletData
     }
 
-    private async getOpeningHours(rawInteraction?: ChatInputCommandInteraction<CacheType>, storeId?: string) {
+    private async getOpeningHours(rawInteraction: ChatInputCommandInteraction<CacheType>, storeId?: string) {
         await rawInteraction.deferReply()
         const poletData = await PoletCommands.fetchPoletData(rawInteraction, storeId)
 
