@@ -439,7 +439,7 @@ export class WarzoneCommands extends AbstractCommands {
             const wantedType = interaction.options.getString('mode') //"br", "weekly" eller "siste"
             if (wantedType === 'br' || wantedType === 'weekly') {
                 const content = await this.getBRContent(interaction, wantedType === 'weekly')
-                this.messageHelper.replyToInteraction(interaction, content)
+                this.messageHelper.replyToInteraction(interaction, content, undefined, true)
             } else if (wantedType === 'siste') {
                 const content = await this.getLastMatchData(interaction)
 

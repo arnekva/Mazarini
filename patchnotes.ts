@@ -4,13 +4,11 @@ import { ICommandElement, IInteractionElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '9.3.3'
+    public static readonly currentVersion = '9.3.4'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string =
-        `\n* Fikset en feil som gjorde at polet-kommandoen ikke svarte på interactions, men sendte en separat melding` +
-        `\n* stats-kommandoen deferer nå reply-et i tilfelle fetchen av data tar lenger enn 3 sekunder`
+    public static readonly currentPatchNotes: string = `\n* Fikset en feil som gjorde at Høie ikke fikk svart på /stats kommandoen`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
