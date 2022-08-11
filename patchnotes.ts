@@ -4,11 +4,15 @@ import { ICommandElement, IInteractionElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '9.3.4'
+    public static readonly currentVersion = '9.4.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `\n* Fikset en feil som gjorde at Høie ikke fikk svart på /stats kommandoen`
+    public static readonly currentPatchNotes: string = 
+    `\n* Fikset at stats med en feil ble forsøkt inkludert i siste 10 sanger fra /musikk` +
+    `\n* Fikset en feil som gjorde at Høie ikke fikk svart på /stats kommandoen` +
+    `\n* Fikset en feil som gjorde at Høie ikke fikk svart på /stats kommandoen` +
+    `\n* Fikset en feil som gjorde at Høie ikke fikk svart på /stats kommandoen` 
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

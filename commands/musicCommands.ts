@@ -295,6 +295,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
                 data.method = { cmd: this.getCommand('topp', 'songs'), desc: 'Topp sanger' }
             } else if (options === 'lasttensongs') {
                 data.method = { cmd: this.getCommand('siste', '10'), desc: 'Siste 10 sanger' }
+                data.includeStats = false
             }
             const lastFmData = (await this.findLastFmData(data)).join('\n')
 

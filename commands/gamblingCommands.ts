@@ -285,7 +285,7 @@ export class GamblingCommands extends AbstractCommands {
                             `<@${UserUtils.findUserByUsername(notEnoughChips, message)?.id}>, du har kje råd te det`
                         )
                     } else if (reaction.emoji.name === '👍' && reaction.users.cache.find((u: User) => u.id === user.id)) {
-                        const shouldAlwaysLose = user.id === message.author.id || user.id === '802945796457758760'
+                        const shouldAlwaysLose = user.id === message.author.id || user.id === UserUtils.User_IDs.BOT_HOIE
                         const roll = RandomUtils.getRndInteger(0, 100)
                         let description = `Terningen trillet: ${roll}/100. ${
                             roll < 51 ? (roll == 50 ? 'Bot Høie' : message.author.username) : user.username
