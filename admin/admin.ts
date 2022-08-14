@@ -503,11 +503,13 @@ export class Admin extends AbstractCommands {
     }
 
     static isAuthorAdmin(member: GuildMember | APIInteractionGuildMember | null | undefined) {
+        if (!member || !member?.roles) return false
         const cache = (member as GuildMember).roles.cache
         if (!cache) return false
         else return cache.has('821709203470680117')
     }
     static isAuthorSuperAdmin(member: GuildMember | null | undefined) {
+        if (!member || !member.roles) return false
         if (member) return member.roles.cache.has('963017545647030272')
         return false
     }

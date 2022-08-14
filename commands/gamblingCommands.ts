@@ -817,12 +817,14 @@ export class GamblingCommands extends AbstractCommands {
                     streak.streak > 1 ? '(' + streak.streak + ' dager i streak)' : ''
                 } ${prestige ? '(' + prestige + ' prestige)' : ''}`
 
-                if (streak.streak >= 100) {
+                if (streak.streak >= 30) {
                     user.prestige = 1 + (user.prestige ?? 0)
 
                     const prestige = user.prestige
                     streak = { streak: 1, wasAddedToday: true }
-                    claimedMessage += `\nDægårten! Du har henta daglige chips i 100 dager i strekk! Gz dude, nå prestige du. Du e nå prestige ${prestige} og får ${this.findPrestigeMultiplier(
+                    claimedMessage += `\nDægårten! Du har henta daglige chips i ${
+                        streak.streak
+                    } dager i strekk! Gz dude, nå prestige du. Du e nå prestige ${prestige} og får ${this.findPrestigeMultiplier(
                         prestige
                     )}x i multiplier på alle daily's framøve! \n\n*Streaken din resettes nå te 1, så du kan ta ein pause hvis du vil*`
                 }
@@ -884,16 +886,12 @@ export class GamblingCommands extends AbstractCommands {
 
     private findPrestigeMultiplier(p: number | undefined) {
         if (p && !isNaN(p) && p > 0) {
-            return 1.15
+            return 1.05 + 0.05 * p
         }
         return 1
     }
 
     private findAdditionalCoins(streak: number): { coins: number; chips: number } | undefined {
-        if (streak == 69) return { coins: 6889, chips: 4000 }
-        if (streak >= 100) return { coins: 5000, chips: 50000 }
-        if (streak > 75) return { coins: 565, chips: 5500 }
-        if (streak > 50) return { coins: 500, chips: 2400 }
         if (streak > 25) return { coins: 175, chips: 1500 }
         if (streak > 15) return { coins: 125, chips: 980 }
         if (streak >= 10) return { coins: 80, chips: 600 }

@@ -143,6 +143,7 @@ export class SpotifyCommands extends AbstractCommands {
                                 method: { cmd: _music.getCommand('siste', '1'), desc: 'Siste 1' },
                                 silent: false,
                                 username: users[i].name,
+                                header: '',
                             }))
                     }
                 }
@@ -184,6 +185,7 @@ export class SpotifyCommands extends AbstractCommands {
                     method: { cmd: _music.getCommand('siste', '10'), desc: 'test' },
                     silent: false,
                     username: dbUser.displayName ?? (user ? user.username : interaction.user.username),
+                    header: '',
                 })
 
                 return (user ? `*${user.username}:* ` : '') + lastFMData.join(' ') ?? `${user} hører ikke på Spotify nå, og har heller ikke koblet til Last.fm`

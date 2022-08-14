@@ -36,6 +36,7 @@ interface fetchData {
     silent: boolean
     includeNameInOutput: boolean
     username: string
+    header: string
 }
 
 export interface IFindCommand {
@@ -101,6 +102,7 @@ export class Music extends AbstractCommands {
                     silent: params?.isSilent ?? false,
                     includeNameInOutput: params?.includeUsername ?? false,
                     username: args[2] ?? message.author.username,
+                    header: `${cmd} 10 for ${message.author.username}`,
                 }
 
                 const dataRet = await this.findLastFmData(data, params?.notWeeklyOrRecent, params?.isSilent)
@@ -205,7 +207,7 @@ Docs: https://www.last.fm/api/show/user.getInfo
                         if (prop) {
                             const zeroWidthSpace = '\u200B'
                             const lineSeperator = `${zeroWidthSpace}\n${zeroWidthSpace}`
-
+                            musicData += `${dataParam.header}\n`
                             prop.forEach((element: any, index) => {
                                 const isCurrentlyPlaying = !isNotRecent && element.hasOwnProperty('@attr')
 
@@ -285,16 +287,21 @@ Docs: https://www.last.fm/api/show/user.getInfo
                 silent: false,
                 includeNameInOutput: false,
                 username: user ? user.username : interaction.user.username,
+                header: '',
             }
 
             if (options === 'toptenartist') {
                 data.method = { cmd: this.getCommand('topp', 'artist'), desc: 'Topp artist' }
+                data.header = `Topp 10 artister\n`
             } else if (options === 'toptenalbum') {
                 data.method = { cmd: this.getCommand('topp', 'album'), desc: 'Topp album' }
+                data.header = `Topp 10 album`
             } else if (options === 'toptensongs') {
                 data.method = { cmd: this.getCommand('topp', 'songs'), desc: 'Topp sanger' }
+                data.header = `Topp 10 sanger`
             } else if (options === 'lasttensongs') {
                 data.method = { cmd: this.getCommand('siste', '10'), desc: 'Siste 10 sanger' }
+                data.header = `Siste 10 sanger`
                 data.includeStats = false
             }
             const lastFmData = (await this.findLastFmData(data)).join('\n')
