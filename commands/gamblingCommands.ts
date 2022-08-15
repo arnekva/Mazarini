@@ -824,8 +824,8 @@ export class GamblingCommands extends AbstractCommands {
                     streak = { streak: 1, wasAddedToday: true }
                     claimedMessage += `\nDægårten! Du har henta daglige chips i ${
                         streak.streak
-                    } dager i strekk! Gz dude, nå prestige du. Du e nå prestige ${prestige} og får ${this.findPrestigeMultiplier(
-                        prestige
+                    } dager i strekk! Gz dude, nå prestige du. Du e nå prestige ${prestige} og får ${this.findPrestigeMultiplier(prestige).toFixed(
+                        2
                     )}x i multiplier på alle daily's framøve! \n\n*Streaken din resettes nå te 1, så du kan ta ein pause hvis du vil*`
                 }
                 if (!user.dailyClaimStreak) {
@@ -886,7 +886,7 @@ export class GamblingCommands extends AbstractCommands {
 
     private findPrestigeMultiplier(p: number | undefined) {
         if (p && !isNaN(p) && p > 0) {
-            return 1.05 + 0.05 * p
+            return 1 + 0.05 * p
         }
         return 1
     }
