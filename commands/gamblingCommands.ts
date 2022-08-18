@@ -817,7 +817,7 @@ export class GamblingCommands extends AbstractCommands {
                     streak.streak > 1 ? '(' + streak.streak + ' dager i streak)' : ''
                 } ${prestige ? '(' + prestige + ' prestige)' : ''}`
 
-                if (streak.streak >= 30) {
+                if (streak.streak >= 7) {
                     user.prestige = 1 + (user.prestige ?? 0)
 
                     const prestige = user.prestige
@@ -826,7 +826,7 @@ export class GamblingCommands extends AbstractCommands {
                         streak.streak
                     } dager i strekk! Gz dude, nå prestige du. Du e nå prestige ${prestige} og får ${this.findPrestigeMultiplier(prestige).toFixed(
                         2
-                    )}x i multiplier på alle daily's framøve! \n\n*Streaken din resettes nå te 1, så du kan ta ein pause hvis du vil*`
+                    )}x i multiplier på alle daily's framøve! \n\n*Streaken din resettes nå te 1*`
                 }
                 if (!user.dailyClaimStreak) {
                     user.dailyClaimStreak = {

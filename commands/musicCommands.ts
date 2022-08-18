@@ -207,14 +207,18 @@ Docs: https://www.last.fm/api/show/user.getInfo
                         if (prop) {
                             const zeroWidthSpace = '\u200B'
                             const lineSeperator = `${zeroWidthSpace}\n${zeroWidthSpace}`
-                            musicData += `${dataParam.header}\n`
+                            musicData += `${dataParam.header ? '\n' : ''}`
+                            if (dataParam.limit === '1' && prop.length > 1) {
+                                prop = prop.slice(0, 1)
+                            }
                             prop.forEach((element: any, index) => {
                                 const isCurrentlyPlaying = !isNotRecent && element.hasOwnProperty('@attr')
 
                                 numPlaysInTopX += parseInt(element.playcount)
 
                                 musicData +=
-                                    `${dataParam.includeNameInOutput ? '(' + dataParam.username + ') ' : ''}${
+                                    `${dataParam.includeNameInOutput ? '(' + dataParam.username + ') ' : ''}` +
+                                    `${
                                         isFormattedWithHashtag && element.artist
                                             ? element.artist['#text'] + ' - '
                                             : element.artist

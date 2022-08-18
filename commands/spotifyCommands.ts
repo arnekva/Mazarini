@@ -133,18 +133,16 @@ export class SpotifyCommands extends AbstractCommands {
                     const lastFmName = user?.lastFMUsername
 
                     if (lastFmName) {
-                        musicRet +=
-                            `(${users[i].name}) ` +
-                            (await _music.findLastFmData({
-                                user: lastFmName,
-                                includeNameInOutput: false,
-                                includeStats: false,
-                                limit: '1',
-                                method: { cmd: _music.getCommand('siste', '1'), desc: 'Siste 1' },
-                                silent: false,
-                                username: users[i].name,
-                                header: '',
-                            }))
+                        musicRet += await _music.findLastFmData({
+                            user: lastFmName,
+                            includeNameInOutput: true,
+                            includeStats: false,
+                            limit: '1',
+                            method: { cmd: _music.getCommand('siste', '1'), desc: 'Siste 1' },
+                            silent: false,
+                            username: users[i].name,
+                            header: '',
+                        })
                     }
                 }
                 if (musicRet.length < 1) musicRet = 'Fant ingen data'

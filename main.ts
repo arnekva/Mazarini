@@ -203,6 +203,7 @@ export class MazariniClient {
 
         /** For interactions (slash-commands and user-commands) */
         client.on('interactionCreate', async (interaction: Interaction<CacheType>) => {
+            if (environment === 'prod' && interaction.channelId === MessageUtils.CHANNEL_IDs.LOKAL_BOT_SPAM) return
             _mzClient.commandRunner.checkForCommandInInteraction(interaction)
         })
 
