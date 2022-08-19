@@ -5,16 +5,19 @@ import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '9.5.0'
+    public static readonly currentVersion = '9.6.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Prestige for Daily er senket til 7 dager (var 30)` +
-        `\n* Fikset en feil som ga ekstra linebreaks i /spotify full` +
-        `\n* Når /spotify gjør en fetch til last.fm og personen spiller av musikk, viser det nå kun nåværende sang som spilles. (API-et returnerer også forrige scrobblet sang, men denne filtreres nå bort)` +
-        `\n* Prod-botten skal ikke lenger forsøke å svare på interactions i ${MentionUtils.mentionChannel(MessageUtils.CHANNEL_IDs.LOKAL_BOT_SPAM)}` +
-        `\n* Fikset en feil i /musikk som gjorde at formatteringen kunne bli feil`
+        `\n* Helg er nå en slash command` +
+        `\n* Remind er nå en slash command` +
+        `\n* Vær er nå en slash command` +
+        `\n* Playlist er nå en slash command` +
+        `\n* Aktivitet er nå en slash command` +
+        `\n* Grid er nå en slash command` +
+        `\n* Fese er nå en slash command` +
+        `\n* Rettet en feil som gjorde at testbotten svarte i ${MentionUtils.mentionChannel(MessageUtils.CHANNEL_IDs.GENERAL)}`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

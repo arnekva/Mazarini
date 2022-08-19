@@ -1,4 +1,4 @@
-import { Client, Message } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, Message } from 'discord.js'
 import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../General/commands'
@@ -6,6 +6,7 @@ import { DatabaseHelper, ferieItem } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { countdownTime, dateRegex, DateUtils } from '../utils/dateUtils'
+import { MentionUtils } from '../utils/mentionUtils'
 
 const holidays = require('holidays-norway').default
 
@@ -18,22 +19,22 @@ export class DateCommands extends AbstractCommands {
     constructor(client: Client, messageHelper: MessageHelper) {
         super(client, messageHelper)
     }
-    private setReminder(message: Message, content: string, args: string[]) {
-        const timeArray = args[0].split(':')
-        const event = args.slice(1).join(' ')
+    private setReminder(interaction: ChatInputCommandInteraction<CacheType>) {
+        const timeArray = (interaction.options.get('tid')?.value as string).split(':')
+        const event = interaction.options.get('tekst')?.value as string
 
         const hoursInMilli = Number(timeArray[0]) * 3600 * 1000
         const minInMilli = Number(timeArray[1]) * 60000
         const secInMilli = Number(timeArray[2]) * 1000
         const timeout = hoursInMilli + minInMilli + secInMilli
         if (timeArray.length < 3) {
-            message.reply('Formattering på tid må være HH:MM:SS')
+            this.messageHelper.replyToInteraction(interaction, 'Formattering på tid må være HH:MM:SS', true)
         } else if (event.length < 1) {
-            message.reply('Du må spesifisere hva påminnelsen gjelder')
+            this.messageHelper.replyToInteraction(interaction, 'Du må spesifisere hva påminnelsen gjelder', true)
         } else {
-            this.messageHelper.reactWithRandomEmoji(message)
+            this.messageHelper.replyToInteraction(interaction, `Påminnelsen din er satt`)
             setTimeout(() => {
-                message.reply(`*Påminnelse for ${message.author.username}*\n *${event}*`)
+                this.messageHelper.sendMessage(interaction.channelId, `*Påminnelse for ${MentionUtils.mentionUser(interaction.user.id)}*\n *${event}*`)
             }, timeout)
         }
     }
@@ -56,6 +57,7 @@ export class DateCommands extends AbstractCommands {
         return timeString
     }
 
+    //TODO: Fix this one
     private registerFerie(message: Message, messageContent: string, args: string[]) {
         if (args[0] == 'fjern') {
             return DatabaseHelper.deleteFerieValue(message.author.username)
@@ -271,10 +273,10 @@ export class DateCommands extends AbstractCommands {
         return timeUntil
     }
 
-    private async checkForHelg(message: Message, messageContent: string, args: string[]) {
+    private async checkForHelg(interaction: ChatInputCommandInteraction<CacheType>) {
         const isHelg = this.isItHelg()
 
-        this.messageHelper.sendMessage(message.channelId, isHelg ? `Det e helg!` : `${this.getTimeUntilHelgString()}`)
+        interaction.reply(isHelg ? `Det e helg!` : `${this.getTimeUntilHelgString()}`)
     }
 
     private addUserBirthday(message: Message, messageContent: string, args: string[]) {
@@ -326,20 +328,16 @@ export class DateCommands extends AbstractCommands {
                 description:
                     "Sett en varsling. Formattering: '!mz remind HH:MM:SS tekst her'. Denne er ikke lagret vedvarende, så den forsvinner hvis botten restarter.",
                 hideFromListing: true,
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.setReminder(rawMessage, messageContent, args)
-                },
-
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
+                isReplacedWithSlashCommand: 'reminder',
                 category: 'annet',
             },
             {
                 commandName: 'helg',
                 description: 'Sjekk hvor lenge det er til helg',
                 hideFromListing: true,
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.checkForHelg(rawMessage, messageContent, args)
-                },
-
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
+                isReplacedWithSlashCommand: 'helg',
                 category: 'annet',
             },
             {
@@ -371,6 +369,21 @@ export class DateCommands extends AbstractCommands {
     }
 
     getAllInteractions(): IInteractionElement[] {
-        return []
+        return [
+            {
+                commandName: 'helg',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.checkForHelg(rawInteraction)
+                },
+                category: 'annet',
+            },
+            {
+                commandName: 'reminder',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.setReminder(rawInteraction)
+                },
+                category: 'annet',
+            },
+        ]
     }
 }

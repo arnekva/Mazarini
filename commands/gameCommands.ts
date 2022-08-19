@@ -39,7 +39,7 @@ const striptags = require('striptags')
 const puppeteer = require('puppeteer')
 function getValidDropCoordinate(xCircleCenter: number, yCircleCenter: number): dropCoordinate {
     // -2
-    const width: number = RandomUtils.getRndInteger(-3, 3)
+    const width: number = RandomUtils.getUnsecureRandomInteger(-3, 3)
     const isIllegal = (xCoordinate: number, yCoordinate: number) => {
         // A, B, I, J
         const illegalXCoordinates = [0, 1, 8, 9]
@@ -112,25 +112,25 @@ export class GameCommands extends AbstractCommands {
         }
     }
 
-    private dropGrid(message: Message, messageContent: string) {
+    private dropGrid(interaction: ChatInputCommandInteraction<CacheType>) {
         const gridLetter = 'ABCDEFGHIJ'
         const validNumbers = '2345678'
         const illegalCenterCoordinates = ['A0', 'J0']
 
-        const grid = messageContent.trim()
+        const grid = interaction.options.get('placement')?.value as string
         const letter = grid.charAt(0)
-
         const gridNumber = parseInt(grid.charAt(1))
 
         if (!gridLetter.includes(letter) || !validNumbers.includes(validNumbers) || grid == '' || Number.isNaN(gridNumber)) {
-            this.messageHelper.sendMessage(message.channelId, 'Kan du ikkje i det minsta velga kor sirkelen e?')
+            this.messageHelper.replyToInteraction(interaction, 'Kan du ikkje i det minsta velga kor sirkelen e?', true)
         } else if (illegalCenterCoordinates.includes(grid)) {
-            this.messageHelper.sendMessage(
-                message.channelId,
-                'E det sirkelen din? Dokker e fucked... \n(Botten klare ikkje å regna ud koordinater for så små grids)'
+            this.messageHelper.replyToInteraction(
+                interaction,
+                'E det sirkelen din? Dokker e fucked... \n(Botten klare ikkje å regna ud koordinater for så små grids)',
+                true
             )
         } else {
-            // E5 = 5,5
+            // E5 = 5,5grid
             const xCircleCenter = gridLetter.indexOf(letter)
             const yCircleCenter = gridNumber
 
@@ -142,9 +142,10 @@ export class GameCommands extends AbstractCommands {
                     if (el == dropLoc) dropPlaces += '\n' + dropLocations[i].name
                 })
             }
-
-            this.messageHelper.sendMessage(message.channelId, 'Droppunkt for ' + gridLetter[xDropCoordinate] + yDropCoordinate)
-            if (dropPlaces) this.messageHelper.sendMessage(message.channelId, 'Her ligger: ' + dropPlaces)
+            this.messageHelper.replyToInteraction(
+                interaction,
+                'Droppunkt for ' + gridLetter[xDropCoordinate] + yDropCoordinate + (dropPlaces ? '\nHer ligger: ' + dropPlaces : '')
+            )
         }
     }
 
@@ -269,28 +270,12 @@ export class GameCommands extends AbstractCommands {
     public getAllCommands(): ICommandElement[] {
         return [
             {
-                commandName: 'rocket',
-                description: 'Få Rocket League stats. <2v2|3v3|stats>',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    rawMessage.reply('Denne funksjonen er midlertidig skrudd av grunnet Puppeteer-krøll')
-                },
-                category: 'gaming',
-            },
-
-            {
                 commandName: 'grid',
-                description: 'Få et tilfeldig sted å droppe ut fra Grid i Verdansk',
+                description: 'Få et tilfeldig sted å droppe ut fra Grid i Caldera',
                 command: (rawMessage: Message, messageContent: string) => {
-                    this.dropGrid(rawMessage, messageContent)
+                    // this.dropGrid(rawMessage, messageContent)
                 },
-                category: 'gaming',
-            },
-            {
-                commandName: ['fortune', 'caldera', 'rebirth'],
-                description: 'Deprecated, bruk slash-command i stedet',
-                command: (rawMessage: Message, messageContent: string) => {
-                    rawMessage.reply('Denne commanden er deprecated. Bruk /drop i stedet')
-                },
+                isReplacedWithSlashCommand: 'grid',
                 category: 'gaming',
             },
         ]
@@ -301,6 +286,13 @@ export class GameCommands extends AbstractCommands {
                 commandName: 'drop',
                 command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                     this.findDropLocation(interaction)
+                },
+                category: 'gaming',
+            },
+            {
+                commandName: 'grid',
+                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                    this.dropGrid(interaction)
                 },
                 category: 'gaming',
             },

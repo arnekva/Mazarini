@@ -1,4 +1,4 @@
-import { Client, Message, TextChannel } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, Message, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { globalArrays } from '../globals'
@@ -21,12 +21,12 @@ export class JokeCommands extends AbstractCommands {
         await this.messageHelper.sendMessage(message.channelId, Math.random() > 0.05 ? `E nais ${emoji.id}` : `E skamnais :eyebrows: ${emoji.id}`)
     }
 
-    private async isMaggiPlaying(message: Message, content: string, args: string[]) {
-        let name = message.author.username
-        if (args[0]) name = args[0]
-        const guild = message.channel.client.guilds.cache.get('340626855990132747')
+    private async isMaggiPlaying(interaction: ChatInputCommandInteraction<CacheType>) {
+        interaction.deferReply()
+        const user = interaction.options.get('user')?.user
+        const guild = interaction.channel.client.guilds.cache.get('340626855990132747')
         if (guild) {
-            const user = guild.members.cache.filter((u) => u.user.username.toLowerCase() === name.toLowerCase()).first()
+            const user = guild.members.cache.filter((u) => u.user.username.toLowerCase() === user.username.toLowerCase()).first()
             if (user && user.presence) {
                 if (user.presence.clientStatus) {
                     if (user.presence.activities && user.presence.activities[0]) {
@@ -34,28 +34,33 @@ export class JokeCommands extends AbstractCommands {
                             .filter((a) => (user.user.username.toLowerCase() === 'mazarinibot' ? a : a.name.toLowerCase() !== 'custom status'))
                             .map((act) => act.name)
 
-                        if (activities.length > 0)
-                            await this.messageHelper.sendMessage(
-                                message.channelId,
-                                `${name} drive me ${activities.length > 1 ? 'disse aktivitene' : 'aktiviteten'}: ${activities.join(', ')}`
+                        if (activities.length > 0) {
+                            this.messageHelper.replyToInteraction(
+                                interaction,
+                                `${name} drive me ${activities.length > 1 ? 'disse aktivitene' : 'aktiviteten'}: ${activities.join(', ')}`,
+                                undefined,
+                                true
                             )
-                        else await this.messageHelper.sendMessage(message.channelId, `Drive ikkje me någe spess`)
+                        } else {
+                            this.messageHelper.replyToInteraction(interaction, `Drive ikkje me någe spess`, undefined, true)
+                        }
                     } else {
-                        await this.messageHelper.sendMessage(message.channelId, 'Ingen aktivitet registrert på Discord.')
+                        this.messageHelper.replyToInteraction(interaction, 'Ingen aktivitet registrert på Discord.', undefined, true)
                     }
                 }
             } else {
-                await this.messageHelper.sendMessage(message.channelId, 'Fant ikke brukeren. Husk at du må bruke **brukernavn** og *ikke* display name')
+                await this.messageHelper.replyToInteraction(interaction, 'Fant ikke brukeren. Husk at du må bruke **brukernavn** og *ikke* display name', true)
             }
         }
     }
 
-    private async reactToManyMessages(message: Message, emojiName: string) {
+    private async reactToManyMessages(interaction: ChatInputCommandInteraction<CacheType>, emojiName: string) {
+        this.messageHelper.replyToInteraction(interaction, 'Eivindprider sendt', true)
         try {
-            const channel = message.channel as TextChannel
-            const react = message.guild?.emojis.cache.find((emoji) => emoji.name == emojiName)
+            const channel = interaction.channel as TextChannel
+            const react = interaction.guild?.emojis.cache.find((emoji) => emoji.name == emojiName)
 
-            if (message.client) {
+            if (interaction.client) {
                 channel.messages
                     .fetch({ limit: 15 })
                     .then((el) => {
@@ -63,15 +68,11 @@ export class JokeCommands extends AbstractCommands {
                             if (react) message.react(react)
                         })
                     })
-                    .catch((error: any) => {
-                        this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
-                    })
+                    .catch((error: any) => {})
             }
-        } catch (error) {
-            this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
-        }
-        if (message.guild) {
-            const react = message.guild.emojis.cache.find((emoji) => emoji.name == 'eivindpride')
+        } catch (error) {}
+        if (interaction.guild) {
+            const react = interaction.guild.emojis.cache.find((emoji) => emoji.name == 'eivindpride')
             if (react) {
             }
         }
@@ -138,17 +139,17 @@ export class JokeCommands extends AbstractCommands {
         }
     }
 
-    private harFese(message: Message, msgContent: string, args: string[]) {
-        const channel = message.channel as TextChannel
-        const role = this.getRoleBasedOnChannel(message.channelId)
+    private harFese(interaction: ChatInputCommandInteraction<CacheType>) {
+        const channel = interaction.channel as TextChannel
+        const role = this.getRoleBasedOnChannel(interaction.channelId)
 
         const randomUser = role ? channel.members.filter((m) => m.roles.cache.get(role) !== undefined).random() : channel.members.random()
-        const authorName = message.member?.nickname ?? message.member?.displayName ?? message.author.username
-        const randomName = randomUser?.nickname ?? randomUser?.displayName ?? randomUser?.user?.username
+        const authorName = interaction.user.username
+        const randomName = randomUser.user.username
         const phese = MiscUtils.findFeseText(authorName, randomName)
         const reply = `${phese}`
 
-        this.messageHelper.sendMessage(message.channelId, reply)
+        this.messageHelper.replyToInteraction(interaction, reply)
     }
 
     private getRoleBasedOnChannel(channelId: string) {
@@ -230,9 +231,8 @@ export class JokeCommands extends AbstractCommands {
             {
                 commandName: 'fese',
                 description: 'Har någen fese?',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.harFese(rawMessage, messageContent, args)
-                },
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
+                isReplacedWithSlashCommand: 'fese',
                 category: 'annet',
             },
             {
@@ -270,9 +270,8 @@ export class JokeCommands extends AbstractCommands {
             {
                 commandName: 'aktivitet',
                 description: 'Går det egentlig bra med masteren te Magnus?',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.isMaggiPlaying(rawMessage, messageContent, args)
-                },
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
+                isReplacedWithSlashCommand: 'aktivitet',
                 category: 'annet',
             },
 
@@ -282,20 +281,12 @@ export class JokeCommands extends AbstractCommands {
                 hideFromListing: true,
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string) => {
-                    this.reactToManyMessages(rawMessage, 'eivindpride')
+                    // this.reactToManyMessages(rawMessage, 'eivindpride')
                 },
+                isReplacedWithSlashCommand: 'eivindpride',
                 category: 'annet',
             },
-            {
-                commandName: 'putinpride',
-                description: 'Eivindpride it. Eivindpride it ALL.',
-                hideFromListing: true,
-                isAdmin: true,
-                command: (rawMessage: Message, messageContent: string) => {
-                    this.reactToManyMessages(rawMessage, 'putinpride')
-                },
-                category: 'annet',
-            },
+
             {
                 commandName: 'jærsk',
                 description: 'Gjør teksten jærsk',
@@ -335,6 +326,28 @@ export class JokeCommands extends AbstractCommands {
         ]
     }
     getAllInteractions(): IInteractionElement[] {
-        return []
+        return [
+            {
+                commandName: 'fese',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.harFese(rawInteraction)
+                },
+                category: 'gaming',
+            },
+            {
+                commandName: 'akivitet',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.isMaggiPlaying(rawInteraction)
+                },
+                category: 'gaming',
+            },
+            {
+                commandName: 'eivindpride',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.reactToManyMessages(rawInteraction, 'eivindpride')
+                },
+                category: 'gaming',
+            },
+        ]
     }
 }

@@ -400,11 +400,12 @@ export class WarzoneCommands extends AbstractCommands {
         return ` Weekly REBIRTH ONLY Stats for <${gamertag}>\nKills: ${numKills}\nDeaths: ${numDeaths}\nDamage Done: ${numDamage}\nDamage Taken: ${numDamageTaken}`
     }
 
-    private async findWeeklyPlaylist(message: Message, content: String, args: String[]) {
+    private async findWeeklyPlaylist(interaction: ChatInputCommandInteraction<CacheType>) {
         let found = false
         let i = 0
         const now = new Date()
-        let sentMessage = await this.messageHelper.sendMessage(message.channelId, 'Henter data...')
+        interaction.deferReply()
+
         fetch('https://api.trello.com/1/boards/ZgSjnGba/cards')
             .then((response: Response) => response.json())
             .then((data: any) => {
@@ -419,16 +420,14 @@ export class WarzoneCommands extends AbstractCommands {
                             fetch('https://api.trello.com/1/cards/' + cardId + '/attachments/' + attachmentId)
                                 .then((response: Response) => response.json())
                                 .then((data: any) => {
-                                    if (sentMessage) sentMessage.edit(data.url)
-                                    else this.messageHelper.sendMessage(message.channelId, data.url)
+                                    this.messageHelper.replyToInteraction(interaction, data.url, undefined, true)
                                 })
                         }
                     }
                     i += 1
                 }
                 if (!found) {
-                    if (sentMessage) sentMessage.edit('Fant ikke playlist')
-                    else this.messageHelper.sendMessage(message.channelId, 'Fant ikke playlist')
+                    this.messageHelper.replyToInteraction(interaction, 'Fant ikke playlist', undefined, true)
                 }
             })
     }
@@ -511,18 +510,15 @@ export class WarzoneCommands extends AbstractCommands {
             {
                 commandName: 'link',
                 description: "<plattform> <gamertag> (plattform: 'battle', 'psn', 'xbl', 'epic')",
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    // this.saveGameUsernameToDiscordUser(rawMessage, messageContent, args)
-                },
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
                 isReplacedWithSlashCommand: 'link',
                 category: 'gaming',
             },
             {
                 commandName: 'playlist',
                 description: 'playlist',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.findWeeklyPlaylist(rawMessage, messageContent, args)
-                },
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
+                isReplacedWithSlashCommand: 'playlist',
                 category: 'gaming',
             },
         ]
@@ -533,6 +529,13 @@ export class WarzoneCommands extends AbstractCommands {
                 commandName: 'stats',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.handleWZInteraction(rawInteraction)
+                },
+                category: 'gaming',
+            },
+            {
+                commandName: 'playlist',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.findWeeklyPlaylist(rawInteraction)
                 },
                 category: 'gaming',
             },

@@ -817,16 +817,19 @@ export class GamblingCommands extends AbstractCommands {
                     streak.streak > 1 ? '(' + streak.streak + ' dager i streak)' : ''
                 } ${prestige ? '(' + prestige + ' prestige)' : ''}`
 
-                if (streak.streak >= 7) {
+                const maxLimit = 7
+                if (streak.streak >= maxLimit) {
+                    const remainingDays = streak.streak - maxLimit
                     user.prestige = 1 + (user.prestige ?? 0)
 
                     const prestige = user.prestige
-                    streak = { streak: 1, wasAddedToday: true }
+
                     claimedMessage += `\nDægårten! Du har henta daglige chips i ${
                         streak.streak
                     } dager i strekk! Gz dude, nå prestige du. Du e nå prestige ${prestige} og får ${this.findPrestigeMultiplier(prestige).toFixed(
                         2
-                    )}x i multiplier på alle daily's framøve! \n\n*Streaken din resettes nå te 1*`
+                    )}x i multiplier på alle daily's framøve! \n\n*Streaken din resettes nå te ${!!remainingDays ? remainingDays : '1'}*`
+                    streak = { streak: 1 + Math.max(remainingDays, 0), wasAddedToday: true }
                 }
                 if (!user.dailyClaimStreak) {
                     user.dailyClaimStreak = {

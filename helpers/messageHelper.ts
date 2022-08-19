@@ -50,7 +50,7 @@ export class MessageHelper {
                 else interaction.reply({ embeds: [content], ephemeral: onlyVisibleToEngager })
             } else {
                 if (wasDefered) interaction.editReply(content)
-                else interaction.reply(content)
+                else interaction.reply({ content: content, ephemeral: onlyVisibleToEngager })
             }
             return true
         }

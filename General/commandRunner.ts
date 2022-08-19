@@ -311,11 +311,10 @@ export class CommandRunner {
     isLegalChannel(message: Message) {
         return (
             (environment === 'dev' &&
-                (message.channel.id === '880493116648456222' ||
-                    message.channel.id === '880493116648456222' ||
-                    message.channel.id === '342009170318327831' ||
-                    message.channel.id === '778599907933159434')) ||
-            (environment === 'prod' && message.channel.id !== '880493116648456222')
+                (message.channel.id === MessageUtils.CHANNEL_IDs.LOKAL_BOT_SPAM ||
+                    message.channel.id === MessageUtils.CHANNEL_IDs.STATS_SPAM ||
+                    message.channel.id === MessageUtils.CHANNEL_IDs.GODMODE)) ||
+            (environment === 'prod' && message.channel.id !== MessageUtils.CHANNEL_IDs.LOKAL_BOT_SPAM)
         )
     }
 }

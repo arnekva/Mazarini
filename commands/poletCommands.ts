@@ -116,9 +116,7 @@ export class PoletCommands extends AbstractCommands {
                 commandName: ['polet', 'vinmonopolet', 'alkoholsalg'],
                 description:
                     'Sjekk åpningstidene på polet. Bruker polet på Madla Amfi Stavanger som default hvis du ikke har satt et eget med "!mz mittpol" kommandoen',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    // this.getOpeningHours(rawMessage)
-                },
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
                 isReplacedWithSlashCommand: 'vinmonopolet',
                 category: 'annet',
             },
@@ -126,9 +124,7 @@ export class PoletCommands extends AbstractCommands {
                 commandName: 'mittpol',
                 description:
                     'Sett din favorittpol til å brukes når du sjekker åpningstidene med "!mz polet". !mz mittpol <butikk id> (må hentes fra nettsiden)',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    // this.setFavoritePol(rawMessage, messageContent, args)
-                },
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
                 isReplacedWithSlashCommand: 'link',
                 category: 'annet',
             },

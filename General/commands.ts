@@ -48,6 +48,8 @@ export interface IInteractionElement {
     commandName: string
     category: commandCategory
     isAdmin?: boolean
+    /** TODO: Not yet implemented, but should reply with an ephemeral message saying it can't be used there */
+    canOnlyBeUsedInSpecificChannel?: string[]
     command: (rawMessage: ChatInputCommandInteraction<CacheType>) => void
 }
 
