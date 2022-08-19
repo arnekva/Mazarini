@@ -19,7 +19,7 @@ export class CommandRunner {
     lockedThread: string[] = []
     lastUsedCommand = 'help'
     polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê|å|æ|ê|è|é|à|á)*(ls)(e|a|å|o|i)|(pause)|(🌭)|(hotdog)|(sausage)|(hot-dog)/gi)
-    helgeRegex = new RegExp(/(helg)(å|en|ene|a|e)?/gi)
+    helgeRegex = new RegExp(/(helg)(en|ene|a|e|å)*/gi)
 
     constructor(client: Client, messageHelper: MessageHelper) {
         this.messageHelper = messageHelper
