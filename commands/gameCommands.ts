@@ -62,7 +62,7 @@ function getValidDropCoordinate(xCircleCenter: number, yCircleCenter: number): d
     // -2 + 5 = 3, C
     const xCoordinate: number = width + xCircleCenter
 
-    const height: number = RandomUtils.getRndInteger(-heightToTravel, heightToTravel)
+    const height: number = RandomUtils.getUnsecureRandomInteger(-heightToTravel, heightToTravel)
     // yCoordinate + 1 eller - 1
     const yCoordinate = yCircleCenter + height
 

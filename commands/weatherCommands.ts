@@ -10,25 +10,20 @@ export class Weather extends AbstractCommands {
         super(client, messageHelper)
     }
 
-    private getWeatherForGivenCity(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async getWeatherForGivenCity(interaction: ChatInputCommandInteraction<CacheType>) {
         const APIkey = 'fc7f85d19367afda9a6a3839919a820a'
         const rootUrl = 'https://api.openweathermap.org/data/2.5/weather?'
+        await interaction.deferReply()
         const city = interaction.options.get('stedsnavn')?.value as string
         const cityWithoutSpecialChars = city.replace('æ', 'ae').replace('ø', 'o').replace('å', 'a')
         const fullUrl = rootUrl + 'q=' + cityWithoutSpecialChars + '&appid=' + APIkey + '&lang=NO'
-        interaction.deferReply()
         fetch(fullUrl, {
             method: 'GET',
         })
             .then((res: any) => {
                 if (!res.ok) {
-                    console.log('throws error')
-
-                    // throw new Error(res.status.toString())
-                    //TODO: Do not throw error, log it instead
+                    this.messageHelper.replyToInteraction(interaction, `Det har oppstått et problem`, undefined, true)
                 } else {
-                    console.log(res)
-
                     res.json().then((el: any) => {
                         const temperature: string = WeatherUtils.kelvinToCelcius(el.main.temp).toFixed(1).toString()
                         const weatherDescription = el.weather.map((weatherObj: any) => weatherObj.description).join(', ')
@@ -74,7 +69,7 @@ export class Weather extends AbstractCommands {
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.getWeatherForGivenCity(rawInteraction)
                 },
-                category: 'gaming',
+                category: 'annet',
             },
         ]
     }
