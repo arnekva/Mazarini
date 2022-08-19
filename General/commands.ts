@@ -231,4 +231,8 @@ export class Commands {
         command: (rawMessage, messageContent, args) => this.helperCommands(rawMessage, messageContent, args),
         category: 'annet',
     }
+
+    get dateFunc() {
+        return this.dateCommands
+    }
 }

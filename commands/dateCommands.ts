@@ -273,10 +273,13 @@ export class DateCommands extends AbstractCommands {
         return timeUntil
     }
 
-    private async checkForHelg(interaction: ChatInputCommandInteraction<CacheType>) {
+    public checkForHelg(interaction?: ChatInputCommandInteraction<CacheType>): string {
         const isHelg = this.isItHelg()
-
-        interaction.reply(isHelg ? `Det e helg!` : `${this.getTimeUntilHelgString()}`)
+        const val = isHelg ? `Det e helg!` : `${this.getTimeUntilHelgString()}`
+        if (interaction) {
+            interaction.reply(val)
+            return val
+        } else return val
     }
 
     private addUserBirthday(message: Message, messageContent: string, args: string[]) {
@@ -314,7 +317,7 @@ export class DateCommands extends AbstractCommands {
         }
     }
 
-    private isItHelg() {
+    public isItHelg() {
         const today = new Date()
         if (today.getDay() == 6 || today.getDay() == 0) return true
         else if (today.getDay() == 5 && today.getHours() > 16) return true
