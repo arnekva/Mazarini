@@ -335,7 +335,7 @@ export class JokeCommands extends AbstractCommands {
                 category: 'gaming',
             },
             {
-                commandName: 'akivitet',
+                commandName: 'aktivitet',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.isMaggiPlaying(rawInteraction)
                 },
