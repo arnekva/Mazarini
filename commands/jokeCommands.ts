@@ -23,32 +23,30 @@ export class JokeCommands extends AbstractCommands {
     }
 
     private async findUserActivity(interaction: ChatInputCommandInteraction<CacheType>) {
-        interaction.deferReply()
-        const paramUser = interaction.options.get('user')?.user
-        const member = UserUtils.findMemberByUserID(paramUser.id, interaction)
-        if (member && member?.presence) {
-            if (member.presence.clientStatus) {
-                if (member.presence.activities && member.presence.activities[0]) {
-                    const activities = member.presence.activities
-                        .filter((a) => (member.user.id === UserUtils.User_IDs.BOT_HOIE ? a : a.name.toLowerCase() !== 'custom status'))
-                        .map((act) => act.name)
+        await interaction.deferReply()
+        const paramUser = interaction.options.get('bruker')?.user
 
-                    if (activities.length > 0) {
-                        this.messageHelper.replyToInteraction(
-                            interaction,
-                            `${name} drive me ${activities.length > 1 ? 'disse aktivitene' : 'aktiviteten'}: ${activities.join(', ')}`,
-                            undefined,
-                            true
-                        )
-                    } else {
-                        this.messageHelper.replyToInteraction(interaction, `Drive ikkje me någe spess`, undefined, true)
-                    }
+        const member = UserUtils.findMemberByUserID(paramUser.id, interaction)
+        if (member && member?.presence && member?.presence?.clientStatus) {
+            if (member.presence.activities && member.presence.activities[0]) {
+                const activities = member.presence.activities
+                    .filter((a) => (member.id === UserUtils.User_IDs.BOT_HOIE ? a : a.name.toLowerCase() !== 'custom status'))
+                    .map((act) => act.name)
+                if (activities.length > 0) {
+                    this.messageHelper.replyToInteraction(
+                        interaction,
+                        `${member.user.username} drive me ${activities.length > 1 ? 'disse aktivitene' : 'aktiviteten'}: ${activities.join(', ')}`,
+                        undefined,
+                        true
+                    )
                 } else {
-                    this.messageHelper.replyToInteraction(interaction, 'Ingen aktivitet registrert på Discord.', undefined, true)
+                    this.messageHelper.replyToInteraction(interaction, `Drive ikkje me någe spess`, undefined, true)
                 }
             } else {
-                await this.messageHelper.replyToInteraction(interaction, 'Fant ikke brukeren. Husk at du må bruke **brukernavn** og *ikke* display name', true)
+                this.messageHelper.replyToInteraction(interaction, 'Ingen aktivitet registrert på Discord.', undefined, true)
             }
+        } else {
+            this.messageHelper.replyToInteraction(interaction, 'Fant ikke brukeren. Husk at du må bruke **brukernavn** og *ikke* display name', true, true)
         }
     }
 
