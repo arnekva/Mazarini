@@ -9,6 +9,7 @@ import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { TextUtils } from '../utils/textUtils'
+import { UserUtils } from '../utils/userUtils'
 
 export class JokeCommands extends AbstractCommands {
     constructor(client: Client, messageHelper: MessageHelper) {
@@ -21,32 +22,29 @@ export class JokeCommands extends AbstractCommands {
         await this.messageHelper.sendMessage(message.channelId, Math.random() > 0.05 ? `E nais ${emoji.id}` : `E skamnais :eyebrows: ${emoji.id}`)
     }
 
-    private async isMaggiPlaying(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async findUserActivity(interaction: ChatInputCommandInteraction<CacheType>) {
         interaction.deferReply()
-        const user = interaction.options.get('user')?.user
-        const guild = interaction.channel.client.guilds.cache.get('340626855990132747')
-        if (guild) {
-            const user = guild.members.cache.filter((u) => u.user.username.toLowerCase() === user.username.toLowerCase()).first()
-            if (user && user.presence) {
-                if (user.presence.clientStatus) {
-                    if (user.presence.activities && user.presence.activities[0]) {
-                        const activities = user.presence.activities
-                            .filter((a) => (user.user.username.toLowerCase() === 'mazarinibot' ? a : a.name.toLowerCase() !== 'custom status'))
-                            .map((act) => act.name)
+        const paramUser = interaction.options.get('user')?.user
+        const member = UserUtils.findMemberByUserID(paramUser.id, interaction)
+        if (member && member?.presence) {
+            if (member.presence.clientStatus) {
+                if (member.presence.activities && member.presence.activities[0]) {
+                    const activities = member.presence.activities
+                        .filter((a) => (member.user.id === UserUtils.User_IDs.BOT_HOIE ? a : a.name.toLowerCase() !== 'custom status'))
+                        .map((act) => act.name)
 
-                        if (activities.length > 0) {
-                            this.messageHelper.replyToInteraction(
-                                interaction,
-                                `${name} drive me ${activities.length > 1 ? 'disse aktivitene' : 'aktiviteten'}: ${activities.join(', ')}`,
-                                undefined,
-                                true
-                            )
-                        } else {
-                            this.messageHelper.replyToInteraction(interaction, `Drive ikkje me någe spess`, undefined, true)
-                        }
+                    if (activities.length > 0) {
+                        this.messageHelper.replyToInteraction(
+                            interaction,
+                            `${name} drive me ${activities.length > 1 ? 'disse aktivitene' : 'aktiviteten'}: ${activities.join(', ')}`,
+                            undefined,
+                            true
+                        )
                     } else {
-                        this.messageHelper.replyToInteraction(interaction, 'Ingen aktivitet registrert på Discord.', undefined, true)
+                        this.messageHelper.replyToInteraction(interaction, `Drive ikkje me någe spess`, undefined, true)
                     }
+                } else {
+                    this.messageHelper.replyToInteraction(interaction, 'Ingen aktivitet registrert på Discord.', undefined, true)
                 }
             } else {
                 await this.messageHelper.replyToInteraction(interaction, 'Fant ikke brukeren. Husk at du må bruke **brukernavn** og *ikke* display name', true)
@@ -337,7 +335,7 @@ export class JokeCommands extends AbstractCommands {
             {
                 commandName: 'aktivitet',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.isMaggiPlaying(rawInteraction)
+                    this.findUserActivity(rawInteraction)
                 },
                 category: 'gaming',
             },
