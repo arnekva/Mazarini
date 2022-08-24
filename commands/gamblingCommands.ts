@@ -6,6 +6,7 @@ import { DatabaseHelper, MazariniUser } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { SlashCommandHelper } from '../helpers/slashCommandHelper'
 import { CollectorUtils } from '../utils/collectorUtils'
+import { MentionUtils } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { RandomUtils } from '../utils/randomUtils'
@@ -517,7 +518,10 @@ export class GamblingCommands extends AbstractCommands {
                 target.chips = newChips + transactionAmount
                 DatabaseHelper.updateUser(user)
                 DatabaseHelper.updateUser(target)
-                this.messageHelper.sendMessage(message.channelId, `${message.author.username} vippset ${targetUser.username} ${transactionAmount} chips.`)
+                this.messageHelper.sendMessage(
+                    message.channelId,
+                    `${message.author.username} vippset ${MentionUtils.mentionUser(targetUser.id)} ${transactionAmount} chips.`
+                )
             } else {
                 message.reply('du har ikkje råd te å vippsa så møye, bro.')
             }

@@ -1,4 +1,4 @@
-import { Client, Message } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, Message } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -37,35 +37,28 @@ export class CardCommands extends AbstractCommands {
         return value ? value : ''
     }
 
-    public drawCard(message: Message, sendMessage: boolean) {
+    public drawCard(): string {
         let card = this.deck.draw()
         if (card === undefined) {
-            sendMessage ? this.messageHelper.sendMessage(message.channelId, 'Kortstokken er tom for kort') : {}
-            return card
+            return 'Kortstokken er tom for kort'
         }
-        let number = CardCommands.cardTranslations.get(card.toString().substring(0, 1))
-        let suite: string = this.getTranslation(card.toString().substring(1, 2))
-        sendMessage ? this.messageHelper.sendMessage(message.channelId, suite + number + suite) : {}
+
         return card.toString()
     }
 
-    public resetDeck(message: Message, sendMessage: boolean) {
+    public resetDeck(): string {
         this.deck.reset()
-        sendMessage ? this.messageHelper.sendMessage(message.channelId, 'Kortstokken er nullstilt og stokket') : {}
+        return 'Kortstokken er nullstilt og stokket'
     }
 
-    public shuffleDeck(message: Message, sendMessage: boolean) {
+    public shuffleDeck() {
         this.deck.shuffle()
-        sendMessage ? this.messageHelper.sendMessage(message.channelId, 'Kortstokken er stokket') : {}
+        return 'Kortstokken er stokket'
     }
 
-    public remainingCards(message: Message, sendMessage: boolean) {
-        let remaining = this.getRemainingCards()
-        if (remaining > 0) {
-            sendMessage ? this.messageHelper.sendMessage(message.channelId, 'Det er ' + remaining + ' kort igjen i kortstokken') : {}
-        } else {
-            sendMessage ? this.messageHelper.sendMessage(message.channelId, 'Kortstokken er tom for kort') : {}
-        }
+    public remainingCards() {
+        const remaining = this.getRemainingCards()
+        return remaining > 0 ? 'Det er ' + remaining + ' kort igjen i kortstokken' : 'Kortstokken er tom for kort'
     }
 
     private getRemainingCards() {
@@ -79,61 +72,49 @@ export class CardCommands extends AbstractCommands {
         }
     }
 
-    private cardSwitch(message: Message, messageContent: string, args: string[]) {
-        if (args[0]) {
-            switch (args[0].toLowerCase()) {
-                case 'trekk': {
-                    if (args[1]) {
-                        if (Number(args[1])) {
-                            let amount = Math.floor(Number(args[1]))
-                            let remaining = this.getRemainingCards()
-                            if (remaining == 0) {
-                                this.messageHelper.sendMessage(message.channelId, 'Kortstokken er tom for kort')
-                            } else {
-                                if (amount > 0 && amount <= remaining) {
-                                    for (let i = 0; i < amount; i++) {
-                                        this.drawCard(message, true)
-                                    }
-                                } else if (amount < 0) {
-                                    this.messageHelper.sendMessage(message.channelId, 'Det er en fordel å komme med et positivt tall')
-                                } else if (amount == 0) {
-                                    this.messageHelper.sendMessage(message.channelId, 'Desimaltall rundes ned')
-                                } else {
-                                    this.messageHelper.sendMessage(message.channelId, 'Det er bare ' + remaining + ' kort igjen i kortstokken')
-                                }
-                            }
-                        } else {
-                            this.messageHelper.sendMessage(message.channelId, "Kom gjerne med et tall etter 'trekk'")
-                        }
-                    } else {
-                        this.drawCard(message, true)
+    private cardSwitch(interaction: ChatInputCommandInteraction<CacheType>) {
+        console.log('in')
+
+        const isTrekk = interaction.options.getSubcommand() === 'trekk'
+        const isReset = interaction.options.getSubcommand() === 'resett'
+        const isShufle = interaction.options.getSubcommand() === 'stokk'
+        const isCheckRemaining = interaction.options.getSubcommand() === 'mengde'
+
+        if (isTrekk) {
+            let amount = interaction.options.get('antall')?.value as number
+            let remaining = this.getRemainingCards()
+            if (remaining == 0) {
+                this.messageHelper.replyToInteraction(interaction, 'Kortstokken er tom for kort')
+            } else {
+                if (amount > 0) {
+                    let drawPile = ''
+                    if (amount > remaining) {
+                        drawPile = 'Du har valgt å trekke mer enn det er kort igjen i kortstokken, så du trekker alt'
+                        amount = remaining
                     }
-                    break
-                }
-                case 'resett': {
-                    this.resetDeck(message, true)
-                    break
-                }
-                case 'stokk': {
-                    this.shuffleDeck(message, true)
-                    break
-                }
-                case 'gjenstår': {
-                    this.remainingCards(message, true)
-                    break
-                }
-                default: {
-                    this.messageHelper.sendMessage(
-                        message.channelId,
-                        "Tilgjengelige kortkommandoer er: 'trekk [tall: optional]', 'stokk', 'resett' og 'gjenstår'"
-                    )
+                    for (let i = 0; i < amount; i++) {
+                        const card = this.drawCard()
+
+                        let number = CardCommands.cardTranslations.get(card.toString().substring(0, 1))
+                        let suite: string = this.getTranslation(card.toString().substring(1, 2))
+                        drawPile += `${suite.trim()} ${number} ${suite}\n`
+                    }
+                    this.messageHelper.replyToInteraction(interaction, drawPile)
+                } else {
+                    this.messageHelper.replyToInteraction(interaction, 'Du har ikke gitt et gyldig tall, og det ignoreres derfor', true)
                 }
             }
+        } else if (isReset) {
+            const msg = this.resetDeck()
+            this.messageHelper.replyToInteraction(interaction, msg)
+        } else if (isShufle) {
+            const msg = this.shuffleDeck()
+            this.messageHelper.replyToInteraction(interaction, msg)
+        } else if (isCheckRemaining) {
+            const msg = this.remainingCards()
+            this.messageHelper.replyToInteraction(interaction, msg)
         } else {
-            this.messageHelper.sendMessage(
-                message.channelId,
-                "Du må inkludere en av følgende etter 'kort': 'trekk [tall: optional]', 'stokk', 'resett' og 'gjenstår'"
-            )
+            this.messageHelper.replyToInteraction(interaction, 'Ukjent kommando', true)
         }
     }
 
@@ -143,16 +124,22 @@ export class CardCommands extends AbstractCommands {
                 commandName: 'kort',
                 description: 'Diverse kortkommandoer',
                 hideFromListing: false,
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.cardSwitch(rawMessage, messageContent, args)
-                },
-
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
+                isReplacedWithSlashCommand: 'kort',
                 category: 'annet',
             },
         ]
     }
 
     getAllInteractions(): IInteractionElement[] {
-        return []
+        return [
+            {
+                commandName: 'kort',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.cardSwitch(rawInteraction)
+                },
+                category: 'gaming',
+            },
+        ]
     }
 }

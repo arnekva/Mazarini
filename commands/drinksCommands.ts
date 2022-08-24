@@ -125,7 +125,7 @@ export class DrinksCommands extends AbstractCommands {
     }
 
     private drawCard(message: Message) {
-        let card: string = this.deck.drawCard(message, false)
+        let card: string = this.deck.drawCard()
         if (!card) {
             this.messageHelper.sendMessage(message.channelId, "Kortstokken er tom. Dersom dere vil fortsette, bruk '!mz el resett'")
         } else {
@@ -190,7 +190,8 @@ export class DrinksCommands extends AbstractCommands {
 
     private stopElectricity(message: Message) {
         this.playerList = new Array<IUserObject>()
-        this.deck.resetDeck(message, false)
+        const resetMsg = this.deck.resetDeck()
+        this.messageHelper.sendMessage(message.channelId, resetMsg)
         this.id = 0
         this.activeGame = false
         this.reactor = undefined
@@ -249,7 +250,8 @@ export class DrinksCommands extends AbstractCommands {
                         break
                     }
                     case 'resett': {
-                        this.deck.resetDeck(message, true)
+                        const msg = this.deck.resetDeck()
+                        this.messageHelper.sendMessage(message.channelId, msg)
                         break
                     }
                     default: {
