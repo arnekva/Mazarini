@@ -40,14 +40,14 @@ export class JokeCommands extends AbstractCommands {
                     const timeSince = DateUtils.getTimeSince(activities[0].timestamps?.start ?? new Date())
                     const embd = EmbedUtils.createSimpleEmbed(
                         `${member.user.username} - ${activities[0].name}`,
-                        `${activities[0]?.details ?? 'Ingen beskrivelse'}`,
+                        `${activities[0]?.details ?? ''} ${activities[0]?.state ? ' - ' + activities[0]?.state : ''}`,
                         [{ name: 'Åpent i', value: timeSince ? `${timeSince.hours} timer og ${timeSince.minutes} minutter` : 'Ane ikkje' }]
                     )
                     if (activities[0].url) embd.setThumbnail(`${activities[0].url}`)
                     if (activities[0].assets) {
                         const urlSlashFix = activities[0].assets.largeImage.replace('https/', 'https://')
                         const urlMatch = urlSlashFix.match(/\bhttps?:\/\/\S+/gi)
-                        embd.setDescription(`${activities[0].assets.largeText}`)
+                        if (activities[0].assets.largeText) embd.setDescription(`${activities[0].assets.largeText}`)
                         if (urlMatch) embd.setThumbnail(`${urlMatch}`)
                     }
                     this.messageHelper.replyToInteraction(interaction, embd, undefined, true)
