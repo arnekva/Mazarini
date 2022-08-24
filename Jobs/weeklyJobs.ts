@@ -11,11 +11,11 @@ export class WeeklyJobs {
         this.messageHelper = messageHelper
     }
     runJobs() {
-        this.awardWeeklyCoins()
+        this.awardWeeklyChips()
         this.checkPoletHours()
         // this.logEvent()
     }
-    private async awardWeeklyCoins() {
+    private async awardWeeklyChips() {
         const brukere = await DatabaseHelper.getAllUsers()
         Object.keys(brukere).forEach((userID: string) => {
             const currUser = DatabaseHelper.getUser(userID)

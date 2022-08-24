@@ -11,7 +11,6 @@ export type musicCommand = 'top'
 
 export type topMethods = 'songs' | 'artist' | 'album' | 'tags'
 export type weeklyMethods = 'songs' | 'artist'
-
 export type commandTypes = 'topp' | 'weekly' | 'siste'
 interface musicMethod {
     description: string

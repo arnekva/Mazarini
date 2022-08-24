@@ -5,6 +5,7 @@ import { UserUtils } from '../utils/userUtils'
 // const { REST } = require('@discordjs/rest')
 // const { Routes } = require('discord-api-types/v9')
 // const { SlashCommandBuilder } = require('@discordjs/builders')
+type expectedType = 'string' | 'number' | 'boolean' | 'role' | 'user' | 'channel' | 'attachment'
 export class SlashCommandHelper {
     static async buildCommands() {}
 

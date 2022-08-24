@@ -294,10 +294,9 @@ export class CommandRunner {
         }
         const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message)
         if (idJoke == '1337') {
-            message.reply('nice, id-en te meldingen din inneholde 1337. Gz, du har vonne 100 coins og 5.000 chips')
+            message.reply('nice, id-en te meldingen din inneholde 1337. Gz, du har vonne 1.000 chips')
             const user = DatabaseHelper.getUser(message.author.id)
-            user.chips += 5000
-            user.coins += 100
+            user.chips += 1000
             DatabaseHelper.updateUser(user)
         }
     }

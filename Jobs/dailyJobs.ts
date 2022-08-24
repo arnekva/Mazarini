@@ -17,6 +17,7 @@ export class DailyJobs {
             this.resetStatuses()
         }
         this.checkForUserBirthdays()
+        this.convertCoinsToChips()
         // this.logEvent()
     }
 
@@ -40,6 +41,27 @@ export class DailyJobs {
                 user.dailyClaimStreak = streak
             }
             user.dailyClaim = 0
+            DatabaseHelper.updateUser(user)
+        })
+    }
+
+    private convertCoinsToChips() {
+        const brukere = DatabaseHelper.getAllUsers()
+        Object.keys(brukere).forEach((userID: string) => {
+            const user = DatabaseHelper.getUser(userID)
+            const coins = user.coins
+            if (coins && coins > 0) {
+                const convertedToChips = coins * 0.25
+                user.chips += Number(convertedToChips.toFixed(0))
+            }
+            delete user.coins
+            delete user.debt
+            delete user.debtMultiplier
+            delete user.debtPenalty
+            delete user.debuff
+            delete user.inventory
+            delete user.loanCounter
+            delete user.shopItems
             DatabaseHelper.updateUser(user)
         })
     }

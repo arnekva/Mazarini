@@ -4,11 +4,15 @@ import { ICommandElement, IInteractionElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '9.6.1'
+    public static readonly currentVersion = '9.7.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `\n* Høie er nå mer giret på helg enn før`
+    public static readonly currentPatchNotes: string =
+        `\n* /aktivitet er nå gjort om til en Embed, og støtter nå Rich Presence (for large Text og large image). Disse legges til hvis de eksisterer` +
+        `\n* Coins fases ut. Alle coins blir konvertert til chips i morgen 06:00 - 4 coins = 1 chip` +
+        `\n* Du kan ikke lenger låne chips fra banken. Du kan heller spinne fidget spinneren for chips` +
+        `\n* Følgende databaseverdier slettes fra alle brukere: coins, debt, debtMultiplier, debtPenalty, debuff, inventory, shopItems, loanCounter`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

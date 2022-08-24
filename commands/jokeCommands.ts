@@ -7,6 +7,8 @@ import { EmojiHelper } from '../helpers/emojiHelper'
 import { Languages } from '../helpers/languageHelpers'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
+import { DateUtils } from '../utils/dateUtils'
+import { EmbedUtils } from '../utils/embedUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { TextUtils } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
@@ -29,16 +31,26 @@ export class JokeCommands extends AbstractCommands {
         const member = UserUtils.findMemberByUserID(paramUser.id, interaction)
         if (member && member?.presence && member?.presence?.clientStatus) {
             if (member.presence.activities && member.presence.activities[0]) {
-                const activities = member.presence.activities
-                    .filter((a) => (member.id === UserUtils.User_IDs.BOT_HOIE ? a : a.name.toLowerCase() !== 'custom status'))
-                    .map((act) => act.name)
+                const activities = member.presence.activities.filter((a) =>
+                    member.id === UserUtils.User_IDs.BOT_HOIE ? a : a.name.toLowerCase() !== 'custom status'
+                )
+
                 if (activities.length > 0) {
-                    this.messageHelper.replyToInteraction(
-                        interaction,
-                        `${member.user.username} drive me ${activities.length > 1 ? 'disse aktivitene' : 'aktiviteten'}: ${activities.join(', ')}`,
-                        undefined,
-                        true
+                    console.log(activities[0])
+                    const timeSince = DateUtils.getTimeSince(activities[0].timestamps?.start ?? new Date())
+                    const embd = EmbedUtils.createSimpleEmbed(
+                        `${member.user.username} - ${activities[0].name}`,
+                        `${activities[0]?.details ?? 'Ingen beskrivelse'}`,
+                        [{ name: 'Åpent i', value: timeSince ? `${timeSince.hours} timer og ${timeSince.minutes} minutter` : 'Ane ikkje' }]
                     )
+                    if (activities[0].url) embd.setThumbnail(`${activities[0].url}`)
+                    if (activities[0].assets) {
+                        const urlSlashFix = activities[0].assets.largeImage.replace('https/', 'https://')
+                        const urlMatch = urlSlashFix.match(/\bhttps?:\/\/\S+/gi)
+                        embd.setDescription(`${activities[0].assets.largeText}`)
+                        if (urlMatch) embd.setThumbnail(`${urlMatch}`)
+                    }
+                    this.messageHelper.replyToInteraction(interaction, embd, undefined, true)
                 } else {
                     this.messageHelper.replyToInteraction(interaction, `Drive ikkje me någe spess`, undefined, true)
                 }

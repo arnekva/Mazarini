@@ -45,7 +45,7 @@ export class MessageHelper {
         wasDefered?: boolean
     ): boolean {
         if (!interaction.replied) {
-            if (content instanceof EmbedBuilder) {
+            if (typeof content === 'object') {
                 if (wasDefered) interaction.editReply({ embeds: [content] })
                 else interaction.reply({ embeds: [content], ephemeral: onlyVisibleToEngager })
             } else {
