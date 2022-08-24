@@ -45,16 +45,6 @@ export class SoundUtils {
         audioPlayer.on(AudioPlayerStatus.Idle, () => {
             SoundUtils.disconnectFromVoiceChannel(params.guildID)
         })
-
-        // }
-        // console.log(voiceConnection._state_.status)
-        // const player = createAudioPlayer()
-        // const connection = joinVoiceChannel({
-        //     channelId: params.channelID,
-        //     guildId: params.guildID,
-        //     adapterCreator: params.adapterCreator,
-        // }).subscribe(player)
-        // player.play(discordTTS.getVoiceStream(text))
     }
 
     static disconnectFromVoiceChannel(guildID: string) {

@@ -73,8 +73,6 @@ export class CardCommands extends AbstractCommands {
     }
 
     private cardSwitch(interaction: ChatInputCommandInteraction<CacheType>) {
-        console.log('in')
-
         const isTrekk = interaction.options.getSubcommand() === 'trekk'
         const isReset = interaction.options.getSubcommand() === 'resett'
         const isShufle = interaction.options.getSubcommand() === 'stokk'

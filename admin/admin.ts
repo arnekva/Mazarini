@@ -257,7 +257,6 @@ export class Admin extends AbstractCommands {
 
                     values.push({ key: el, val: x })
                 })
-                console.log(p.split('/'))
 
                 if (p.split('/')[1] === 'incorrectCommand') {
                     values.sort(function (a, b) {

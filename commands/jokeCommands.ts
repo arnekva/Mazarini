@@ -36,7 +36,6 @@ export class JokeCommands extends AbstractCommands {
                 )
 
                 if (activities.length > 0) {
-                    console.log(activities[0])
                     const timeSince = DateUtils.getTimeSince(activities[0].timestamps?.start ?? new Date())
                     const embd = EmbedUtils.createSimpleEmbed(
                         `${member.user.username} - ${activities[0].name}`,
