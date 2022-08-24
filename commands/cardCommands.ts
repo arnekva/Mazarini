@@ -89,7 +89,7 @@ export class CardCommands extends AbstractCommands {
                 if (amount > 0) {
                     let drawPile = ''
                     if (amount > remaining) {
-                        drawPile = 'Du har valgt å trekke mer enn det er kort igjen i kortstokken, så du trekker alt'
+                        drawPile = 'Du har valgt å trekke mer enn det er kort igjen i kortstokken, så du trekker alt\n'
                         amount = remaining
                     }
                     for (let i = 0; i < amount; i++) {
