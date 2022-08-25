@@ -393,7 +393,7 @@ export class GamblingCommands extends AbstractCommands {
             message.reply('Så du bare setter chips på ingenting?')
         } else if (args.length > 2) {
             message.reply('Helvedde.. Tror kanskje du må spørre om hjelp for å formattere deg riktig')
-        } else if (userMoney && userMoney > 0) {
+        } else if (!userMoney || userMoney < 0) {
             if (Number(stake) > Number(userMoney)) {
                 message.reply('Du har ikke nok penger til å gamble så mye. Bruk <!mz lån 100> for å låne chips fra MazariniBank')
             } else if (Number(stake) < 0 || Number(stake) === 0) {
