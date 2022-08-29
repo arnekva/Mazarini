@@ -80,6 +80,7 @@ export class CardCommands extends AbstractCommands {
 
         if (isTrekk) {
             let amount = interaction.options.get('antall')?.value as number
+            if (!amount) amount = 1
             let remaining = this.getRemainingCards()
             if (remaining == 0) {
                 this.messageHelper.replyToInteraction(interaction, 'Kortstokken er tom for kort')

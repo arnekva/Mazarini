@@ -36,11 +36,8 @@ export class Admin extends AbstractCommands {
 
                 if (prefixList.includes(property as dbPrefix) || prop) {
                     let oldVal = dbUser[property] //Brukt til logging
-                    console.log(prop, property, typeof prop)
 
                     if (typeof prop === 'object') {
-                        console.log(secondaryProperty, prop[secondaryProperty])
-
                         if (secondaryProperty && prop[secondaryProperty]) {
                             oldVal = dbUser[property][secondaryProperty]
                             dbUser[property][secondaryProperty] = value
