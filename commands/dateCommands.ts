@@ -327,23 +327,6 @@ export class DateCommands extends AbstractCommands {
     public getAllCommands(): ICommandElement[] {
         return [
             {
-                commandName: 'remind',
-                description:
-                    "Sett en varsling. Formattering: '!mz remind HH:MM:SS tekst her'. Denne er ikke lagret vedvarende, så den forsvinner hvis botten restarter.",
-                hideFromListing: true,
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
-                isReplacedWithSlashCommand: 'reminder',
-                category: 'annet',
-            },
-            {
-                commandName: 'helg',
-                description: 'Sjekk hvor lenge det er til helg',
-                hideFromListing: true,
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
-                isReplacedWithSlashCommand: 'helg',
-                category: 'annet',
-            },
-            {
                 commandName: 'countdown',
                 description:
                     "Se hvor lenge det er igjen til events (Legg til ny med '!mz countdown <dd-mm-yyyy> <hh> <beskrivelse> (klokke kan spesifiserert slik: <hh:mm:ss:SSS>. Kun time er nødvendig)",

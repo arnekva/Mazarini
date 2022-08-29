@@ -1,5 +1,5 @@
 import { login, platforms, Warzone } from 'call-of-duty-api'
-import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction, Message } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction } from 'discord.js'
 import { Response } from 'node-fetch'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { actSSOCookie } from '../client-env'
@@ -7,7 +7,6 @@ import { ICommandElement, IInteractionElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
-import { MessageUtils } from '../utils/messageUtils'
 import { ObjectUtils } from '../utils/objectUtils'
 const fetch = require('node-fetch')
 
@@ -430,6 +429,9 @@ export class WarzoneCommands extends AbstractCommands {
                     this.messageHelper.replyToInteraction(interaction, 'Fant ikke playlist', undefined, true)
                 }
             })
+            .catch((error) => {
+                this.messageHelper.replyToInteraction(interaction, 'Fetchen for playlist feilet', undefined, true)
+            })
     }
 
     private async handleWZInteraction(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -490,38 +492,7 @@ export class WarzoneCommands extends AbstractCommands {
     }
 
     public getAllCommands(): ICommandElement[] {
-        return [
-            {
-                commandName: 'br',
-                description: "<gamertag> <plattform> (plattform: 'battle',  'psn', 'xbl'",
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
-                category: 'gaming',
-                canOnlyBeUsedInSpecificChannel: [MessageUtils.CHANNEL_IDs.STATS_SPAM],
-                isReplacedWithSlashCommand: 'stats br',
-            },
-            {
-                commandName: 'weekly',
-                description: "<gamertag> <plattform> (plattform: 'battle', 'steam', 'psn', 'xbl', 'acti', 'uno' (Activision ID som tall), 'all' (uvisst)",
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
-                category: 'gaming',
-                canOnlyBeUsedInSpecificChannel: [MessageUtils.CHANNEL_IDs.STATS_SPAM],
-                isReplacedWithSlashCommand: 'stats weekly',
-            },
-            {
-                commandName: 'link',
-                description: "<plattform> <gamertag> (plattform: 'battle', 'psn', 'xbl', 'epic')",
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
-                isReplacedWithSlashCommand: 'link',
-                category: 'gaming',
-            },
-            {
-                commandName: 'playlist',
-                description: 'playlist',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
-                isReplacedWithSlashCommand: 'playlist',
-                category: 'gaming',
-            },
-        ]
+        return []
     }
     getAllInteractions(): IInteractionElement[] {
         return [

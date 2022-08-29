@@ -1,4 +1,4 @@
-import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction, Message } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { vinmonopoletKey } from '../client-env'
 import { ICommandElement, IInteractionElement } from '../General/commands'
@@ -111,24 +111,7 @@ export class PoletCommands extends AbstractCommands {
     }
 
     getAllCommands(): ICommandElement[] {
-        return [
-            {
-                commandName: ['polet', 'vinmonopolet', 'alkoholsalg'],
-                description:
-                    'Sjekk åpningstidene på polet. Bruker polet på Madla Amfi Stavanger som default hvis du ikke har satt et eget med "!mz mittpol" kommandoen',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
-                isReplacedWithSlashCommand: 'vinmonopolet',
-                category: 'annet',
-            },
-            {
-                commandName: 'mittpol',
-                description:
-                    'Sett din favorittpol til å brukes når du sjekker åpningstidene med "!mz polet". !mz mittpol <butikk id> (må hentes fra nettsiden)',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
-                isReplacedWithSlashCommand: 'link',
-                category: 'annet',
-            },
-        ]
+        return []
     }
     getAllInteractions(): IInteractionElement[] {
         return [

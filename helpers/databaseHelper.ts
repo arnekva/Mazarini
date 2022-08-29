@@ -37,8 +37,7 @@ export interface MazariniUser {
     ATHspin?: string
     /** No.  chips */
     chips: number
-    /** No. coins */
-    coins: number
+
     /** No. warnings */
     warningCounter: number
     /** No. bonks */
@@ -46,12 +45,6 @@ export interface MazariniUser {
 
     lastFMUsername?: string
     /** No. loans */
-    loanCounter: number
-
-    debt: number
-
-    debtPenalty: number | string
-    debtMultiplier: number
 
     shopItems?: any //TODO Cast this
     /** Cod weekly stats */
@@ -88,20 +81,11 @@ export type dbPrefix =
     | 'activisionUserString'
     | 'codStatsBR'
     | 'codStats'
-    | 'debtPenalty'
-    | 'debtMultiplier'
-    | 'shopItems'
     | 'codStats'
     | 'codStatsBR'
-    | 'shopItems'
-    | 'debtMultiplier'
-    | 'debtPenalty'
-    | 'debt'
-    | 'loanCounter'
     | 'lastFMUsername'
     | 'bonkCounter'
     | 'warningCounter'
-    | 'coins'
     | 'chips'
     | 'ATHspin'
     | 'status'
@@ -186,11 +170,6 @@ export class DatabaseHelper {
     }
     static deleteFerieValue(id: string) {
         db.delete(`${otherFolderPreifx}/ferie/${id}/`)
-    }
-
-    static setStoreItems(key: string, itemList: itemsBoughtAtStore) {
-        const prefix: dbPrefix = 'shopItems'
-        db.push(`${folderPrefix}/${key}/${prefix}`, `${itemList}`)
     }
 
     static getAllCountdownValues() {
@@ -372,12 +351,7 @@ export class DatabaseHelper {
         return {
             bonkCounter: 0,
             chips: 5000,
-            coins: 150,
-            debt: 0,
-            debtMultiplier: 0,
-            debtPenalty: 0,
             id: id,
-            loanCounter: 0,
             spinCounter: 0,
             warningCounter: 0,
             displayName: name,
@@ -419,27 +393,16 @@ export const prefixList: dbPrefix[] = [
     'dailyFreezeCounter',
     'dailyClaimStreak',
     'dailyClaim',
-    'debuff',
-    'inventory',
     'displayName',
     'rocketLeagueUserString',
     'activisionUserString',
     'codStatsBR',
     'codStats',
-    'debtPenalty',
-    'debtMultiplier',
-    'shopItems',
     'codStats',
     'codStatsBR',
-    'shopItems',
-    'debtMultiplier',
-    'debtPenalty',
-    'debt',
-    'loanCounter',
     'lastFMUsername',
     'bonkCounter',
     'warningCounter',
-    'coins',
     'chips',
     'ATHspin',
     'status',

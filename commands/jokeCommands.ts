@@ -36,17 +36,28 @@ export class JokeCommands extends AbstractCommands {
                 )
 
                 if (activities.length > 0) {
-                    const timeSince = DateUtils.getTimeSince(activities[0].timestamps?.start ?? new Date())
+                    let currentActivity = activities[0]
+                    //Need a flag to check if current activity is Spotify. Spotify supplies album name in asset but artist/song in state/details, so asset should not override description
+                    let isSpotify = false
+                    if (currentActivity.name.toLowerCase() === 'spotify') {
+                        isSpotify = true
+                        currentActivity = activities[1] ?? currentActivity
+                    }
+                    console.log(currentActivity)
+
+                    const timeSince = DateUtils.getTimeSince(currentActivity.timestamps?.start ?? new Date())
                     const embd = EmbedUtils.createSimpleEmbed(
-                        `${member.user.username} - ${activities[0].name}`,
-                        `${activities[0]?.details ?? ''} ${activities[0]?.state ? ' - ' + activities[0]?.state : ''}`,
+                        `${member.user.username} - ${currentActivity.name}`,
+                        `${currentActivity?.details ?? ''} ${currentActivity.state ? ' - ' + currentActivity?.state : ''}`,
                         [{ name: 'Åpent i', value: timeSince ? `${timeSince.hours} timer og ${timeSince.minutes} minutter` : 'Ane ikkje' }]
                     )
-                    if (activities[0].url) embd.setThumbnail(`${activities[0].url}`)
-                    if (activities[0].assets) {
-                        const urlSlashFix = activities[0].assets.largeImage.replace('https/', 'https://')
+                    if (currentActivity.url) embd.setThumbnail(`${currentActivity.url}`)
+                    if (currentActivity.assets) {
+                        const urlSlashFix = currentActivity.assets.largeImage.replace('https/', 'https://')
                         const urlMatch = urlSlashFix.match(/\bhttps?:\/\/\S+/gi)
-                        if (activities[0].assets.largeText) embd.setDescription(`${activities[0].assets.largeText}`)
+                        if (isSpotify) {
+                            embd.addFields([{ name: 'Album', value: `${currentActivity.assets.largeText}` }])
+                        } else if (currentActivity.assets.largeText) embd.setDescription(`${currentActivity.assets.largeText}`)
                         if (urlMatch) embd.setThumbnail(`${urlMatch}`)
                     }
                     this.messageHelper.replyToInteraction(interaction, embd, undefined, true)

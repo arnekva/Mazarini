@@ -1,4 +1,4 @@
-import { CacheType, ChatInputCommandInteraction, Client, Message } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -95,7 +95,7 @@ export class CardCommands extends AbstractCommands {
 
                         let number = CardCommands.cardTranslations.get(card.toString().substring(0, 1))
                         let suite: string = this.getTranslation(card.toString().substring(1, 2))
-                        drawPile += `${suite.trim()} ${number} ${suite}\n`
+                        drawPile += `${suite.trim()} ${number} ${suite.trim()}\n`
                     }
                     this.messageHelper.replyToInteraction(interaction, drawPile)
                 } else {
@@ -117,16 +117,7 @@ export class CardCommands extends AbstractCommands {
     }
 
     public getAllCommands(): ICommandElement[] {
-        return [
-            {
-                commandName: 'kort',
-                description: 'Diverse kortkommandoer',
-                hideFromListing: false,
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
-                isReplacedWithSlashCommand: 'kort',
-                category: 'annet',
-            },
-        ]
+        return []
     }
 
     getAllInteractions(): IInteractionElement[] {

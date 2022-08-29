@@ -1,4 +1,4 @@
-import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Message } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -50,17 +50,7 @@ export class Weather extends AbstractCommands {
             })
     }
     public getAllCommands(): ICommandElement[] {
-        return [
-            {
-                commandName: 'vær',
-                description: 'Sjekk været på et gitt sted',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    // this.getWeatherForGivenCity(rawMessage, messageContent)
-                },
-                isReplacedWithSlashCommand: 'weather',
-                category: 'annet',
-            },
-        ]
+        return []
     }
     getAllInteractions(): IInteractionElement[] {
         return [

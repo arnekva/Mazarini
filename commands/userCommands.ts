@@ -176,14 +176,6 @@ export class UserCommands extends AbstractCommands {
                 },
                 category: 'annet',
             },
-            {
-                commandName: 'name',
-                description: 'Endre displaynavnet ditt i databasen',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.updateDisplayName(rawMessage, messageContent, args)
-                },
-                category: 'annet',
-            },
         ]
     }
 

@@ -6,6 +6,7 @@ import { DatabaseHelper, MazariniUser } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { SlashCommandHelper } from '../helpers/slashCommandHelper'
 import { CollectorUtils } from '../utils/collectorUtils'
+import { EmbedUtils } from '../utils/embedUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
@@ -26,7 +27,7 @@ export class GamblingCommands extends AbstractCommands {
         let user: string | undefined = undefined
         users.forEach((u) => {
             const balance = DatabaseHelper.getUser(u.userID).chips
-            if (Number(balance) < amountAsNumber || Number(balance) === 0) user = DatabaseHelper.getUser(u.userID).displayName
+            if (Number(balance) < amountAsNumber || Number(balance) === 0) user = DatabaseHelper.getUser(u.userID).id
         })
         return user
     }
@@ -279,55 +280,54 @@ export class GamblingCommands extends AbstractCommands {
                     if (amountIsAll) {
                         amountAsNum = Math.min(engagerValue, victimValue)
                     }
-                    const notEnoughChips = this.checkBalance([{ userID: message.author.id }, { userID: user.id }], amountAsNum)
-                    if (notEnoughChips) {
-                        this.messageHelper.sendMessage(
-                            message.channelId,
-                            `<@${UserUtils.findUserByUsername(notEnoughChips, message)?.id}>, du har kje råd te det`
-                        )
-                    } else if (reaction.emoji.name === '👍' && reaction.users.cache.find((u: User) => u.id === user.id)) {
-                        const shouldAlwaysLose = user.id === message.author.id || user.id === UserUtils.User_IDs.BOT_HOIE
-                        const roll = RandomUtils.getRndInteger(0, 100)
-                        let description = `Terningen trillet: ${roll}/100. ${
-                            roll < 51 ? (roll == 50 ? 'Bot Høie' : message.author.username) : user.username
-                        } vant! 💰💰`
-                        if (shouldAlwaysLose) {
-                            description = `${
-                                user.id === message.author.id
-                                    ? 'Du gikk til krig mot deg selv. Dette liker ikke Bot Høie, og tar derfor pengene.'
-                                    : 'Huset vinner alltid'
-                            }`
+                    if (reaction.emoji.name === '👍' && reaction.users.cache.find((u: User) => u.id === user.id)) {
+                        const notEnoughChips = this.checkBalance([{ userID: message.author.id }, { userID: user.id }], amountAsNum)
+                        if (notEnoughChips) {
+                            this.messageHelper.sendMessage(message.channelId, `${MentionUtils.mentionUser(notEnoughChips)}, du har kje råd te det`)
+                        } else {
+                            const shouldAlwaysLose = user.id === message.author.id || user.id === UserUtils.User_IDs.BOT_HOIE
+                            const roll = RandomUtils.getRndInteger(0, 100)
+                            let description = `Terningen trillet: ${roll}/100. ${
+                                roll < 51 ? (roll == 50 ? 'Bot Høie' : message.author.username) : user.username
+                            } vant! 💰💰`
+                            if (shouldAlwaysLose) {
+                                description = `${
+                                    user.id === message.author.id
+                                        ? 'Du gikk til krig mot deg selv. Dette liker ikke Bot Høie, og tar derfor pengene.'
+                                        : 'Huset vinner alltid'
+                                }`
+                            }
+
+                            if (roll == 50 || shouldAlwaysLose) {
+                                engagerValue -= amountAsNum
+                                victimValue -= amountAsNum
+                            } else if (roll < 50) {
+                                engagerValue += amountAsNum
+                                victimValue -= amountAsNum
+                            } else if (roll > 50) {
+                                engagerValue -= amountAsNum
+                                victimValue += amountAsNum
+                            }
+
+                            const users = shouldAlwaysLose
+                                ? [{ username: message.author.username, balance: engagerValue, oldBalance: currentValue.engagerChips }]
+                                : [
+                                      { username: message.author.username, balance: engagerValue, oldBalance: currentValue.engagerChips },
+                                      { username: user.username, balance: victimValue, oldBalance: currentValue.victimChips },
+                                  ]
+
+                            this.messageHelper.sendMessage(message.channelId, `<@${user?.id}> <@${message.author.id}>`)
+                            this.sendKrigMessage(message.channel as TextChannel, users, description)
+
+                            const authorUser = DatabaseHelper.getUser(message.author.id)
+                            const victimUser = DatabaseHelper.getUser(user.id)
+                            authorUser.chips = engagerValue
+                            victimUser.chips = victimValue
+                            DatabaseHelper.updateUser(authorUser)
+                            DatabaseHelper.updateUser(victimUser)
+
+                            collector.stop()
                         }
-
-                        if (roll == 50 || shouldAlwaysLose) {
-                            engagerValue -= amountAsNum
-                            victimValue -= amountAsNum
-                        } else if (roll < 50) {
-                            engagerValue += amountAsNum
-                            victimValue -= amountAsNum
-                        } else if (roll > 50) {
-                            engagerValue -= amountAsNum
-                            victimValue += amountAsNum
-                        }
-
-                        const users = shouldAlwaysLose
-                            ? [{ username: message.author.username, balance: engagerValue, oldBalance: currentValue.engagerChips }]
-                            : [
-                                  { username: message.author.username, balance: engagerValue, oldBalance: currentValue.engagerChips },
-                                  { username: user.username, balance: victimValue, oldBalance: currentValue.victimChips },
-                              ]
-
-                        this.messageHelper.sendMessage(message.channelId, `<@${user?.id}> <@${message.author.id}>`)
-                        this.sendKrigMessage(message.channel as TextChannel, users, description)
-
-                        const authorUser = DatabaseHelper.getUser(message.author.id)
-                        const victimUser = DatabaseHelper.getUser(user.id)
-                        authorUser.chips = engagerValue
-                        victimUser.chips = victimValue
-                        DatabaseHelper.updateUser(authorUser)
-                        DatabaseHelper.updateUser(victimUser)
-
-                        collector.stop()
                     }
                 })
             }
@@ -350,7 +350,6 @@ export class GamblingCommands extends AbstractCommands {
             } else if (value && Number(value)) {
                 const valAsNum = Number(Number(value).toFixed(0))
                 const roll = RandomUtils.getRndInteger(0, 100)
-                const hasDebtPenalty = user.debtPenalty === 'true'
 
                 let newMoneyValue = 0
                 let multiplier = this.getMultiplier(roll, valAsNum)
@@ -482,67 +481,59 @@ export class GamblingCommands extends AbstractCommands {
         userMoney: number
     ): { newMoneyValue: number; interestAmount: number; rate: number } {
         const user = DatabaseHelper.getUser(message.author.id)
-        const hasDebtPenalty = user.debtPenalty === 'true'
+
         let newMoneyValue = 0
         let interest = 0
         let rate = 0
-        if (hasDebtPenalty) {
-            const mp = user.debtMultiplier
 
-            rate = 1 - (100 - mp) / 100
-
-            interest = valAsNum * rate
-        }
         newMoneyValue = Number(userMoney) + multiplier * valAsNum - interest - valAsNum
 
         return { newMoneyValue: newMoneyValue, interestAmount: interest, rate: rate }
     }
 
-    private vippsChips(message: Message, content: string, args: string[]) {
-        const targetUser = UserUtils.findUserByUsername(TextUtils.splitUsername(args[0]), message)
-        const transactionAmount = Number(args[1])
+    private vippsChips(interaction: ChatInputCommandInteraction<CacheType>) {
+        const target = interaction.options.get('bruker')?.user
+        const amount = interaction.options.get('chips')?.value as number
 
-        if (!targetUser) {
-            message.reply('Brukeren eksisterer ikke')
-        } else if (isNaN(transactionAmount) || transactionAmount < 1) {
-            message.reply('Du må skriva inn et gyldig tegn. Det må være større enn 0')
+        const user = DatabaseHelper.getUser(interaction.user.id)
+        const targetUser = DatabaseHelper.getUser(target.id)
+        const userBalance = user.chips
+
+        if (isNaN(amount) || amount < 0) {
+            this.messageHelper.replyToInteraction(interaction, `Det e kje lov å vippsa någen et negativt beløp ;)`, true)
+        } else if (userBalance >= amount) {
+            const oldChips = user.chips
+            user.chips = oldChips - amount
+            const newChips = targetUser.chips
+            targetUser.chips = newChips + amount
+            DatabaseHelper.updateUser(user)
+            DatabaseHelper.updateUser(targetUser)
+            this.messageHelper.replyToInteraction(
+                interaction,
+                `${interaction.user.username} vippset ${MentionUtils.mentionUser(targetUser.id)} ${amount} chips.`
+            )
         } else {
-            const user = DatabaseHelper.getUser(message.author.id)
-            const target = DatabaseHelper.getUser(targetUser.id)
-            const userBalance = user.chips
-
-            if (userBalance >= transactionAmount) {
-                const oldChips = user.chips
-                user.chips = oldChips - transactionAmount
-                const newChips = target.chips
-                target.chips = newChips + transactionAmount
-                DatabaseHelper.updateUser(user)
-                DatabaseHelper.updateUser(target)
-                this.messageHelper.sendMessage(
-                    message.channelId,
-                    `${message.author.username} vippset ${MentionUtils.mentionUser(targetUser.id)} ${transactionAmount} chips.`
-                )
-            } else {
-                message.reply('du har ikkje råd te å vippsa så møye, bro.')
-            }
+            this.messageHelper.replyToInteraction(
+                interaction,
+                'Dette har du kje råd te, bro. Du mangle ' + (amount - userBalance) + ' for å få lov te å vippsa ' + amount,
+                true
+            )
         }
     }
 
-    private async checkCoins(message: Message, messageContent: string, args: string[]) {
-        let username: string
-        if (!args[0]) {
-            username = message.author.username
-        } else username = TextUtils.splitUsername(args[0])
-        if (!UserUtils.findUserByUsername(username, message)) {
-            message.reply('Brukeren finnes ikke')
-        } else {
-            const uID = UserUtils.findUserByUsername(username, message)
-            if (uID) {
-                const user = DatabaseHelper.getUser(uID.id)
-                const chips = user.chips
-                this.messageHelper.sendMessage(message.channelId, `${username} har ${TextUtils.formatMoney(Number(chips), 2, 2)} chips`)
-            }
+    private async openWallet(interaction: ChatInputCommandInteraction<CacheType>) {
+        const target = interaction.options.get('bruker')?.user
+
+        let id = interaction.user.id
+        let name = interaction.user.username
+        if (target) {
+            id = target.id
+            name = target.username
         }
+        const user = DatabaseHelper.getUser(id)
+        const chips = user.chips
+        const embed = EmbedUtils.createSimpleEmbed(`💳 Lommeboken til ${name} 🏧`, `${chips} chips`)
+        this.messageHelper.replyToInteraction(interaction, embed)
     }
 
     private rollSlotMachine(message: Message, messageContent: string, args: string[]) {
@@ -639,7 +630,7 @@ export class GamblingCommands extends AbstractCommands {
             const hasFreeze = user.dailyFreezeCounter
             if (hasFreeze && !isNaN(hasFreeze) && hasFreeze > 0) {
                 return 'Du har frosset daily claimet ditt i ' + hasFreeze + ' dager til. Vent til da og prøv igjen'
-            } else if (canClaim === 0) {
+            } else if (canClaim === 0 || canClaim === undefined) {
                 const oldData = user.dailyClaimStreak
 
                 let streak: IDailyPriceClaim = { streak: 1, wasAddedToday: true }
@@ -684,6 +675,8 @@ export class GamblingCommands extends AbstractCommands {
                 DatabaseHelper.updateUser(user)
                 return claimedMessage
             } else {
+                console.log(canClaim)
+
                 return 'Du har allerede hentet dine daglige chips. Prøv igjen i morgen etter klokken 06:00'
             }
         } else return 'Klarte ikke hente daily'
@@ -783,9 +776,10 @@ export class GamblingCommands extends AbstractCommands {
                 description: 'Vipps til en annen bruker. <brukernavn> <tall>',
 
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.vippsChips(rawMessage, messageContent, args)
+                    // this.vippsChips(rawMessage, messageContent, args)
                 },
                 category: 'gambling',
+                isReplacedWithSlashCommand: 'vipps',
             },
             {
                 commandName: 'verdenskrig',
@@ -821,25 +815,11 @@ export class GamblingCommands extends AbstractCommands {
                 commandName: 'wallet',
                 description: 'Se antall coins og chips til en person',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.checkCoins(rawMessage, messageContent, args)
+                    // this.openWallet(rawMessage, messageContent, args)
                 },
+                isReplacedWithSlashCommand: 'wallet',
                 category: 'gambling',
             },
-            {
-                commandName: 'daily',
-                description: 'Hent dine daglige chips og coins. Hvis det gjøres i flere dager sammenhengene vil du få større og større rewards',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
-                isReplacedWithSlashCommand: 'daily',
-                category: 'gambling',
-            },
-            {
-                commandName: 'freezedaily',
-                description: 'Frys daily rewarden din i X antall dager (maks 4)',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
-                isReplacedWithSlashCommand: 'daily freeze',
-                category: 'gambling',
-            },
-
             {
                 commandName: 'roll',
                 description: 'Rull spillemaskinen. Du vinner hvis du får 2 eller flere like tall',
@@ -858,6 +838,20 @@ export class GamblingCommands extends AbstractCommands {
                 commandName: 'daily',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.handleDailyClaimInteraction(rawInteraction)
+                },
+                category: 'gambling',
+            },
+            {
+                commandName: 'vipps',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.vippsChips(rawInteraction)
+                },
+                category: 'gambling',
+            },
+            {
+                commandName: 'wallet',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.openWallet(rawInteraction)
                 },
                 category: 'gambling',
             },

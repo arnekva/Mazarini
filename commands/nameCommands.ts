@@ -1,4 +1,4 @@
-import { CacheType, ChatInputCommandInteraction, Client, Message } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
@@ -97,29 +97,7 @@ export class NameCommands extends AbstractCommands {
     }
 
     getAllCommands(): ICommandElement[] {
-        return [
-            {
-                commandName: 'add',
-                description: 'Legg til tekst til en tekstkommando',
-                isReplacedWithSlashCommand: 'navn add',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
-                category: 'annet',
-            },
-            {
-                commandName: 'remove',
-                description: 'Legg til tekst til en tekstkommando',
-                isReplacedWithSlashCommand: 'navn delete',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
-                category: 'annet',
-            },
-            {
-                commandName: ['arne', 'david', 'thomas', 'darri', 'sivert', 'geggien', 'eivind', 'maggi', 'øyvind', 'joiij'],
-                description: 'Hent tekst om et navn',
-                isReplacedWithSlashCommand: 'navn',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
-                category: 'annet',
-            },
-        ]
+        return []
     }
 
     getAllInteractions(): IInteractionElement[] {

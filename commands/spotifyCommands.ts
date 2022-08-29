@@ -210,15 +210,6 @@ export class SpotifyCommands extends AbstractCommands {
     public getAllCommands(): ICommandElement[] {
         return [
             {
-                commandName: 'spotify',
-                description: 'Hent hva brukeren spiller av på Spotify (fra Discord)',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    // this.currentPlayingFromDiscord(rawMessage, messageContent, args)
-                },
-                category: 'musikk',
-                isReplacedWithSlashCommand: 'spotify',
-            },
-            {
                 commandName: 'sang',
                 description: 'Søk etter en sang på Spotify. Returnerer første resultat med link',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {

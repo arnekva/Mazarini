@@ -1,5 +1,6 @@
 import { ActivityType, APIInteractionGuildMember, CacheType, ChatInputCommandInteraction, Client, GuildMember, Message, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { environment } from '../client-env'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { ClientHelper } from '../helpers/clientHelper'
 import { DatabaseHelper, dbPrefix, prefixList, ValuePair } from '../helpers/databaseHelper'
@@ -18,40 +19,59 @@ export class Admin extends AbstractCommands {
         super(client, messageHelper)
     }
 
-    private setSpecificValue(message: Message, messageContent: string, args: string[]) {
-        const username = args[0]
-        const prefix = args[1]
-        const value = args.slice(2).join(' ')
-        if (!username && !prefix && !value) {
-            return message.reply('Du mangler argumenter')
-        }
+    private setSpecificValue(interaction: ChatInputCommandInteraction<CacheType>): void {
+        const user = interaction.options.get('bruker')?.user
+        const property = interaction.options.get('property')?.value as string | number
+        const value = interaction.options.get('verdi')?.value
+        const secondaryProperty = interaction.options.get('secondary')?.value as string | number
+
+        //Double check that all where supplied in the interaction
         let logMsg = ''
-        const discordUser = UserUtils.findUserByUsername(username, message)
-        if (discordUser) {
-            const user = DatabaseHelper.getUntypedUser(discordUser.id)
-            if (user) {
-                const prop = user[prefix]
-                if (prefixList.includes(prefix as dbPrefix) || prop) {
-                    const oldVal = user[prefix] //Brukt til logging
-                    if (typeof prop === 'object') return message.reply('Du kan ikke sette en primitiv type på et objekt. setvalue støtter ikke objekter')
-                    else if (typeof prop === 'number') user[prefix] = Number(value)
-                    else user[prefix] = value
-                    DatabaseHelper.updateUser(user)
-                    this.messageHelper.reactWithThumbs(message, 'up')
-                    logMsg = `Setvalue ble brukt av ${message.author.username} for å sette verdi for bruker ${user.displayName} sin ${prefix}. Gammel verdi var ${oldVal}, ny verdi er ${value}`
+        let hasAck = false
+        if (user && property && value) {
+            const dbUser = DatabaseHelper.getUntypedUser(user.id)
+            if (dbUser) {
+                //
+                const prop = dbUser[property] //Check if property exists on DB user
+
+                if (prefixList.includes(property as dbPrefix) || prop) {
+                    let oldVal = dbUser[property] //Brukt til logging
+                    console.log(prop, property, typeof prop)
+
+                    if (typeof prop === 'object') {
+                        console.log(secondaryProperty, prop[secondaryProperty])
+
+                        if (secondaryProperty && prop[secondaryProperty]) {
+                            oldVal = dbUser[property][secondaryProperty]
+                            dbUser[property][secondaryProperty] = value
+                        } else {
+                            hasAck = true
+                            this.messageHelper.replyToInteraction(
+                                interaction,
+                                secondaryProperty
+                                    ? `Det ser ut som du prøver å sette en verdi på et objekt. Du må legge til verdien som skal settes på dette objektet ved bruk av argumentet "secondary".`
+                                    : `Du har prøvd å sette en verdi i objektet ${prop} og har brukt verdien ${secondaryProperty}. Denne finnes ikke på objektet, eller så mangler brukeren objektet.`,
+                                true
+                            )
+                        }
+                    } else if (typeof prop === 'number') dbUser[property] = Number(value)
+                    else dbUser[property] = value
+
+                    DatabaseHelper.updateUser(dbUser)
+                    if (!hasAck)
+                        this.messageHelper.replyToInteraction(
+                            interaction,
+                            `Oppdaterte ${property} for ${user.username}. Ny verdi er ${value}, gammel verdi var ${oldVal}`
+                        )
+                    logMsg = `Setvalue ble brukt av ${interaction.user.username} for å sette verdi for bruker ${user.username} sin ${property}. Gammel verdi var ${oldVal}, ny verdi er ${value}`
                 } else {
-                    logMsg = `Setvalue ble brukt av ${message.author.username} for å sette verdi for bruker ${user.displayName} men brukte feil prefix. Prefix forsøkt brukt var ${prefix}`
-                    message.reply(`${prefix} eksisterer ikke på ${discordUser.username}`)
+                    logMsg = `Setvalue ble brukt av ${interaction.user.username} for å sette verdi for bruker ${user.username} men brukte feil prefix. Prefix forsøkt brukt var ${property}`
                 }
-            } else {
-                logMsg = `Setvalue ble brukt av ${message.author.username} for å sette verdi for bruker som ikke eksisterer i Databasen`
-                return message.reply('Fant ikke brukeren i databasen')
             }
+            if (environment === 'prod') this.messageHelper.sendMessageToActionLog(interaction.channel as TextChannel, logMsg)
         } else {
-            logMsg = `Setvalue ble brukt av ${message.author.username} for å sette verdi for bruker som ikke eksisterer`
-            return message.reply('Fant ikke brukeren fra args[1] <' + username + '>')
+            this.messageHelper.replyToInteraction(interaction, `Alle nødvendige parametere ble ikke funnet. `, true)
         }
-        return this.messageHelper.sendMessageToActionLog(message.channel as TextChannel, logMsg)
     }
 
     private async replyToMsgAsBot(rawMessage: Message, content: string) {
@@ -385,17 +405,6 @@ export class Admin extends AbstractCommands {
                 category: 'admin',
             },
             {
-                commandName: 'send',
-                description: 'Send en melding som boten. <channel id> <melding>',
-                hideFromListing: true,
-                isAdmin: true,
-                command: (rawMessage: Message, messageContent: string) => {
-                    this.sendMessageAsBotToSpecificChannel(rawMessage)
-                },
-                isReplacedWithSlashCommand: 'send',
-                category: 'admin',
-            },
-            {
                 commandName: 'react',
                 description: 'Reager på en melding som botten. <message id> <emoji>',
                 hideFromListing: true,
@@ -421,9 +430,10 @@ export class Admin extends AbstractCommands {
                 hideFromListing: true,
                 isAdmin: true,
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.setSpecificValue(rawMessage, messageContent, args)
+                    // this.setSpecificValue(rawMessage)
                 },
                 category: 'admin',
+                isReplacedWithSlashCommand: 'set',
             },
             {
                 commandName: 'warn',
@@ -496,6 +506,13 @@ export class Admin extends AbstractCommands {
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     if (Admin.isAuthorAdmin(rawInteraction.member)) this.buildSendModal(rawInteraction)
                     else rawInteraction.reply({ content: 'Du har ikke rettighetene til å gjøre dette', ephemeral: true })
+                },
+            },
+            {
+                commandName: 'set',
+                category: 'admin',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.setSpecificValue(rawInteraction)
                 },
             },
         ]
