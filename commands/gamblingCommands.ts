@@ -493,7 +493,7 @@ export class GamblingCommands extends AbstractCommands {
 
     private vippsChips(interaction: ChatInputCommandInteraction<CacheType>) {
         const target = interaction.options.get('bruker')?.user
-        const amount = interaction.options.get('chips')?.value as number
+        const amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('chips')?.value)
 
         const user = DatabaseHelper.getUser(interaction.user.id)
         const targetUser = DatabaseHelper.getUser(target.id)

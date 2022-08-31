@@ -2,6 +2,7 @@ import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { MessageHelper } from '../helpers/messageHelper'
+import { SlashCommandHelper } from '../helpers/slashCommandHelper'
 const deckOfCards = require('deckofcards')
 
 export class CardCommands extends AbstractCommands {
@@ -79,7 +80,7 @@ export class CardCommands extends AbstractCommands {
         const isCheckRemaining = interaction.options.getSubcommand() === 'mengde'
 
         if (isTrekk) {
-            let amount = interaction.options.get('antall')?.value as number
+            let amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('antall')?.value)
             if (!amount) amount = 1
             let remaining = this.getRemainingCards()
             if (remaining == 0) {

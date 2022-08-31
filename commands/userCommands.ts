@@ -1,12 +1,15 @@
-import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Message, TextChannel } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Message, SelectMenuComponentOptionData, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { Admin } from '../admin/admin'
 import { ICommandElement, IInteractionElement } from '../General/commands'
+import { SelectMenuHandler } from '../General/selectMenuHandler'
+import { ActionMenuHelper } from '../helpers/actionMenuHelpert'
 import { DatabaseHelper, MazariniUser } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { CollectorUtils } from '../utils/collectorUtils'
 import { DateUtils } from '../utils/dateUtils'
+import { EmbedUtils } from '../utils/embedUtils'
 import { Roles } from '../utils/roles'
 import { UserUtils } from '../utils/userUtils'
 
@@ -150,6 +153,27 @@ export class UserCommands extends AbstractCommands {
         }
     }
 
+    private findUserInfo(interaction: ChatInputCommandInteraction<CacheType>) {
+        const allUserTabs = DatabaseHelper.getUser(interaction.user.id)
+
+        const options: SelectMenuComponentOptionData[] = Object.keys(allUserTabs).map((key) => ({
+            label: key,
+            value: key,
+            description: `${typeof allUserTabs[key]}`,
+        }))
+        const menu = ActionMenuHelper.creatSelectMenu(SelectMenuHandler.userInfoId, 'Velg databaseinnlegg', options)
+        const embed = EmbedUtils.createSimpleEmbed(`Se brukerinfo for ${interaction.user.username}`, 'Ingen data å vise')
+        this.messageHelper.replyToInteraction(interaction, embed, false, false, menu)
+    }
+
+    //TODO: Spec:
+    /* 
+        Window ala shop
+        Dropdown meny som viser propertys på brukerobjektet ditt.
+        Når en er valgt, vises verdien i en egen kolonne
+        Kun brukeren selv kan bruke dropdownen/trigge endring
+   */
+
     public getAllCommands(): ICommandElement[] {
         return [
             {
@@ -185,6 +209,13 @@ export class UserCommands extends AbstractCommands {
                 commandName: 'status',
                 command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                     this.setStatus(interaction)
+                },
+                category: 'annet',
+            },
+            {
+                commandName: 'brukerinfo',
+                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                    this.findUserInfo(interaction)
                 },
                 category: 'annet',
             },

@@ -1,4 +1,5 @@
 import {
+    ActionRowBuilder,
     CacheType,
     ChannelType,
     ChatInputCommandInteraction,
@@ -7,6 +8,7 @@ import {
     EmbedBuilder,
     Message,
     ModalSubmitInteraction,
+    SelectMenuBuilder,
     TextChannel,
     User,
 } from 'discord.js'
@@ -42,19 +44,27 @@ export class MessageHelper {
         interaction: ChatInputCommandInteraction<CacheType> | ModalSubmitInteraction<CacheType>,
         content: string | EmbedBuilder,
         onlyVisibleToEngager?: boolean,
-        wasDefered?: boolean
+        wasDefered?: boolean,
+        menu?: ActionRowBuilder<SelectMenuBuilder>
     ): boolean {
         if (!interaction.replied) {
             if (typeof content === 'object') {
-                if (wasDefered) interaction.editReply({ embeds: [content] })
-                else interaction.reply({ embeds: [content], ephemeral: onlyVisibleToEngager })
+                if (wasDefered) interaction.editReply({ embeds: [content], components: menu ? [menu] : undefined })
+                else interaction.reply({ embeds: [content], ephemeral: onlyVisibleToEngager, components: menu ? [menu] : undefined })
             } else {
                 if (wasDefered) interaction.editReply(content)
-                else interaction.reply({ content: content, ephemeral: onlyVisibleToEngager })
+                else interaction.reply({ content: content, ephemeral: onlyVisibleToEngager, components: menu ? [menu] : undefined })
             }
             return true
         }
         return false
+    }
+
+    replyToInteractionWithSelectMenu(
+        interaction: ChatInputCommandInteraction<CacheType> | ModalSubmitInteraction<CacheType>,
+        content: ActionRowBuilder<SelectMenuBuilder>
+    ) {
+        interaction.reply({ content: 'Pong!', components: [content] })
     }
 
     /** Sends a message and returns the sent message (as a promise) */

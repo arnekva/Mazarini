@@ -25,21 +25,22 @@ export class Admin extends AbstractCommands {
         const value = interaction.options.get('verdi')?.value
         const secondaryProperty = interaction.options.get('secondary')?.value as string | number
 
-        //Double check that all where supplied in the interaction
         let logMsg = ''
         let hasAck = false
+        //Double check that all where supplied in the interaction
         if (user && property && value) {
             const dbUser = DatabaseHelper.getUntypedUser(user.id)
             if (dbUser) {
-                //
                 const prop = dbUser[property] //Check if property exists on DB user
 
                 if (prefixList.includes(property as dbPrefix) || prop) {
-                    let oldVal = dbUser[property] //Brukt til logging
+                    let oldVal = dbUser[property] //Used for logging
 
                     if (typeof prop === 'object') {
+                        //if prop is an object, we need to find the value that should actually be set
                         if (secondaryProperty && prop[secondaryProperty]) {
                             oldVal = dbUser[property][secondaryProperty]
+                            //If the property within the object exists, we update it
                             dbUser[property][secondaryProperty] = value
                         } else {
                             hasAck = true
@@ -381,13 +382,13 @@ export class Admin extends AbstractCommands {
         return [
             {
                 commandName: 'debug',
-                description: 'Superadminer kan kjøre denne for å kjøre funksjonen definert i debugMethod',
+                description: 'Adminer kan kjøre denne for å kjøre funksjonen definert i debugMethod',
                 hideFromListing: true,
                 command: async (rawMessage: Message, messageContent: string, args: string[]) => {
-                    if (Admin.isAuthorSuperAdmin(UserUtils.findMemberByUserID(rawMessage.author.id, rawMessage))) {
+                    if (Admin.isAuthorAdmin(UserUtils.findMemberByUserID(rawMessage.author.id, rawMessage))) {
                         this.debugMethod(rawMessage, messageContent, args)
                     } else {
-                        rawMessage.reply('Kun superadminer kan bruke denne')
+                        rawMessage.reply('Kun adminer kan bruke denne')
                     }
                 },
                 category: 'admin',
@@ -489,7 +490,7 @@ export class Admin extends AbstractCommands {
                     pm2?.killDaemon()
                     pm2?.disconnect()
                 },
-                isSuperAdmin: true,
+
                 hideFromListing: true,
                 category: 'admin',
             },

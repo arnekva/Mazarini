@@ -96,6 +96,8 @@ export class CommandRunner {
             })
         } else if (interaction.type === InteractionType.ModalSubmit) {
             this.commands.handleModalInteractions(interaction)
+        } else if (interaction.isSelectMenu()) {
+            this.commands.handleSelectMenus(interaction)
         }
         return undefined
     }
@@ -132,7 +134,7 @@ export class CommandRunner {
             const kekw = await message.client.emojis.cache.find((emoji) => emoji.name == 'kekw_animated')
             if (!cmdFound) {
                 const commandNames: string[] = []
-                const filteredCommands = commands.filter((cmd) => (isAdmin ? true : !cmd.isAdmin && !cmd.isSuperAdmin))
+                const filteredCommands = commands.filter((cmd) => (isAdmin ? true : !cmd.isAdmin))
                 filteredCommands.forEach((el) => commandNames.push(Array.isArray(el.commandName) ? el.commandName[0] : el.commandName))
                 if (kekw) message.react(kekw)
                 const matched = didYouMean(command, commandNames)
@@ -158,13 +160,7 @@ export class CommandRunner {
     }
 
     runCommandElement(cmd: ICommandElement, message: Message, messageContent: string, args: string[]) {
-        if (cmd.isSuperAdmin) {
-            if (Admin.isAuthorSuperAdmin(message.member)) {
-                cmd.command(message, messageContent, args)
-            } else {
-                this.messageHelper.sendMessageToActionLogWithInsufficientRightsMessage(message)
-            }
-        } else if (cmd.isAdmin) {
+        if (cmd.isAdmin) {
             if (Admin.isAuthorAdmin(message.member)) {
                 cmd.command(message, messageContent, args)
             } else {

@@ -17,4 +17,15 @@ export class SlashCommandHelper {
             interaction.reply('En feil har oppstått.' + MentionUtils.mentionRole(UserUtils.ROLE_IDs.BOT_SUPPORT))
         }
     }
+
+    static getCleanNumberValue(val: any | undefined) {
+        if (val) {
+            console.log('<' + val + '>')
+
+            const commaToDot = val.toString().replace(',', '.')
+            const num = Number(commaToDot).toFixed(0)
+            return Number(num)
+        }
+        return val
+    }
 }

@@ -6,9 +6,7 @@ export namespace CollectorUtils {
     export const shouldStopCollector = (reaction: MessageReaction, message: Message) => {
         return (
             CollectorUtils.isThumbsDown(reaction.emoji.name) &&
-            reaction.users.cache.find(
-                (u) => u.username === message.author.username || Admin.isAuthorSuperAdmin(UserUtils.findMemberByUsername(u.username, message))
-            )
+            reaction.users.cache.find((u) => u.username === message.author.username || Admin.isAuthorAdmin(UserUtils.findMemberByUsername(u.username, message)))
         )
     }
 

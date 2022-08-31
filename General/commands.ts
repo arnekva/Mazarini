@@ -20,6 +20,7 @@ import { Weather } from '../commands/weatherCommands'
 import { MessageHelper } from '../helpers/messageHelper'
 import { PatchNotes } from '../patchnotes'
 import { ModalHandler } from './modalHandler'
+import { SelectMenuHandler } from './selectMenuHandler'
 
 /**
  * Interface for kommandoer. Alle kommandoer må følge dette oppsettet.
@@ -38,8 +39,7 @@ export interface ICommandElement {
     isAdmin?: boolean
     /**  Used to indicate that another function has replaced it */
     deprecated?: string
-    /** Set to true if super admin only */
-    isSuperAdmin?: boolean
+
     canOnlyBeUsedInSpecificChannel?: string[]
     isReplacedWithSlashCommand?: string
 }
@@ -78,6 +78,7 @@ export class Commands {
     private poletCommands: PoletCommands
     private linkCommands: LinkCommands
     private modalHandler: ModalHandler
+    private selectMenuHandler: SelectMenuHandler
 
     constructor(client: Client, messageHelper: MessageHelper) {
         this.client = client
@@ -103,6 +104,7 @@ export class Commands {
         this.poletCommands = new PoletCommands(this.client, this.messageHelper)
         this.linkCommands = new LinkCommands(this.client, this.messageHelper)
         this.modalHandler = new ModalHandler(this.client, this.messageHelper)
+        this.selectMenuHandler = new SelectMenuHandler(this.client, this.messageHelper)
     }
 
     getAllCommands() {
@@ -158,6 +160,9 @@ export class Commands {
     handleModalInteractions(interaction: Interaction<CacheType>) {
         this.modalHandler.handleIncomingModalInteraction(interaction)
     }
+    handleSelectMenus(interaction: Interaction<CacheType>) {
+        this.selectMenuHandler.handleIncomingSelectMenu(interaction)
+    }
 
     getCommandCatgeories() {
         return ['lyd', 'gambling', 'gaming', 'tekst', 'annet', 'admin', 'spin']
@@ -180,12 +185,7 @@ export class Commands {
             let found = 0
             commands.forEach((cmd) => {
                 if (cmd.commandName == commandForHelp) {
-                    if (cmd.isSuperAdmin)
-                        this.messageHelper.sendMessage(
-                            rawMessage.channelId,
-                            cmd.commandName + (cmd.isSuperAdmin ? ' (Superadmin) ' : '') + ': ' + cmd.description
-                        )
-                    else this.messageHelper.sendMessage(rawMessage.channelId, cmd.commandName + (cmd.isAdmin ? ' (Admin) ' : '') + ': ' + cmd.description)
+                    this.messageHelper.sendMessage(rawMessage.channelId, cmd.commandName + (cmd.isAdmin ? ' (Admin) ' : '') + ': ' + cmd.description)
                     found++
                 }
             })
@@ -196,11 +196,7 @@ export class Commands {
         } else {
             commands.forEach((cmd) => {
                 if (isLookingForAllAdmin) {
-                    commandStringList.push(
-                        cmd.commandName +
-                            (cmd.isSuperAdmin ? ' (superadmin)' : '') +
-                            (cmd.isAdmin ? ' (admin)' : cmd.hideFromListing ? ' (gjemt fra visning) ' : '')
-                    )
+                    commandStringList.push(cmd.commandName + (cmd.isAdmin ? ' (admin)' : cmd.hideFromListing ? ' (gjemt fra visning) ' : ''))
                 } else {
                     if (!cmd.hideFromListing) commandStringList.push(Array.isArray(cmd.commandName) ? cmd.commandName[0] : cmd.commandName)
                 }
