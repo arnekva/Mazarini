@@ -9,6 +9,7 @@ import {
     Message,
     ModalSubmitInteraction,
     SelectMenuBuilder,
+    SelectMenuInteraction,
     TextChannel,
     User,
 } from 'discord.js'
@@ -41,7 +42,7 @@ export class MessageHelper {
      * @returns True if reply is sent, false if not
      */
     replyToInteraction(
-        interaction: ChatInputCommandInteraction<CacheType> | ModalSubmitInteraction<CacheType>,
+        interaction: ChatInputCommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | SelectMenuInteraction<CacheType>,
         content: string | EmbedBuilder,
         onlyVisibleToEngager?: boolean,
         wasDefered?: boolean,

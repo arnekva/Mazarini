@@ -15,9 +15,13 @@ export class SelectMenuHandler {
 
     handleIncomingSelectMenu(rawInteraction: Interaction<CacheType>) {
         if (rawInteraction.isSelectMenu()) {
-            const localIntr = rawInteraction as SelectMenuInteraction
+            if (rawInteraction.message.interaction.user === rawInteraction.user) {
+                const localIntr = rawInteraction as SelectMenuInteraction
 
-            this.handleUserInfoViewingMenu(localIntr)
+                this.handleUserInfoViewingMenu(localIntr)
+            } else {
+                this.messageHelper.replyToInteraction(rawInteraction, `Du kan bare sjekka dine egne ting, bro. Bruker /brukerinfo sjøl`, true)
+            }
         }
     }
 

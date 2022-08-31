@@ -161,6 +161,7 @@ export class UserCommands extends AbstractCommands {
             value: key,
             description: `${typeof allUserTabs[key]}`,
         }))
+
         const menu = ActionMenuHelper.creatSelectMenu(SelectMenuHandler.userInfoId, 'Velg databaseinnlegg', options)
         const embed = EmbedUtils.createSimpleEmbed(`Se brukerinfo for ${interaction.user.username}`, 'Ingen data å vise')
         this.messageHelper.replyToInteraction(interaction, embed, false, false, menu)
