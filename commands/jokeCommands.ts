@@ -40,7 +40,7 @@ export class JokeCommands extends AbstractCommands {
                     //Need a flag to check if current activity is Spotify. Spotify supplies album name in asset but artist/song in state/details, so asset should not override description
                     let isSpotify = false
                     if (currentActivity.name.toLowerCase() === 'spotify') {
-                        isSpotify = true
+                        isSpotify = activities[1] ? false : true
                         currentActivity = activities[1] ?? currentActivity
                     }
                     console.log(currentActivity)
