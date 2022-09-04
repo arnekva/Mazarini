@@ -43,6 +43,7 @@ export class JokeCommands extends AbstractCommands {
                         isSpotify = activities[1] ? false : true
                         currentActivity = activities[1] ?? currentActivity
                     }
+                    const baseURL = `https://cdn.discordapp.com/app-assets/${currentActivity.applicationId}`
                     console.log(currentActivity)
 
                     const timeSince = DateUtils.getTimeSince(currentActivity.timestamps?.start ?? new Date())
@@ -57,8 +58,13 @@ export class JokeCommands extends AbstractCommands {
                         const urlMatch = urlSlashFix.match(/\bhttps?:\/\/\S+/gi)
                         if (isSpotify) {
                             embd.addFields([{ name: 'Album', value: `${currentActivity.assets.largeText}` }])
-                        } else if (currentActivity.assets.largeText) embd.setDescription(`${currentActivity.assets.largeText}`)
+                        } else if (currentActivity.assets.largeText && currentActivity.name !== 'All The Mods 7')
+                            embd.setDescription(`${currentActivity.assets.largeText}`)
+
                         if (urlMatch) embd.setThumbnail(`${urlMatch}`)
+                        else if (currentActivity.assets?.smallImage) {
+                            embd.setThumbnail(`${baseURL}/${currentActivity.assets.smallImage}`)
+                        }
                     }
                     this.messageHelper.replyToInteraction(interaction, embd, undefined, true)
                 } else {

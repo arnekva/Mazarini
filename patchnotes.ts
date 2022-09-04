@@ -4,14 +4,11 @@ import { ICommandElement, IInteractionElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '9.9.0'
+    public static readonly currentVersion = '9.9.1'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string =
-        `\n* /brukerinfo kan nå vise informasjonen om deg som er lagret i databasen (gamle getvalue). Showcaser hvordan select menu kan brukes` +
-        `\n* Opprettet diverse handlere og hjelpeklasser for SelectMenus` +
-        `\n* Superadmin er fjernet. for alt utenom !lock. De resterende funksjonene er nå tilgjengelig for adminer`
+    public static readonly currentPatchNotes: string = `\n* Aktivitet skal nå støtte flere bilder`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
