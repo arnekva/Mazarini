@@ -148,7 +148,7 @@ export class UserCommands extends AbstractCommands {
                     embed.addFields({ name: name, value: status })
                 }
             })
-            if (embed.data?.fields?.length === 0) embed.addFields({ name: 'Helt tomt', value: 'Ingen har satt statusen sin i dag' })
+            if (embed.data?.fields?.length) embed.addFields({ name: 'Helt tomt', value: 'Ingen har satt statusen sin i dag' })
             this.messageHelper.replyToInteraction(interaction, embed)
         }
     }

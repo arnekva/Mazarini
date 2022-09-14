@@ -109,8 +109,8 @@ export class SpotifyCommands extends AbstractCommands {
             interaction?.guild?.members?.cache?.forEach((localMember) => {
                 if (localMember?.presence)
                     localMember.presence.activities.forEach((activity) => {
-                        if (activity.name === 'Spotify') {
-                            replyString += `(${localMember.user.username}) ${activity.state} - ${activity.details} ${emoji?.id ?? ''}\n`
+                        if (activity.name === 'Spotify' && activity.state) {
+                            replyString += activity.state && `(${localMember.user.username}) ${activity.state} - ${activity.details} ${emoji?.id ?? ''}\n`
                         }
                     })
             })

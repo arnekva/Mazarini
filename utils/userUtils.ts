@@ -19,7 +19,7 @@ export namespace UserUtils {
      * @param rawMessage needed to find the guild
      * @returns User object or undefined
      */
-    export const findUserByUsername = (username: string, rawMessage: Message) => {
+    export const findUserByUsername = (username: string, rawMessage: Message | ChatInputCommandInteraction) => {
         return rawMessage.client.users.cache.find((user) => user.username == username)
     }
 
@@ -39,7 +39,7 @@ export namespace UserUtils {
      * @param rawMessage needed to find the guild
      * @returns Member object or undefined
      */
-    export const findMemberByUsername = (username: string, rawMessage: Message) => {
+    export const findMemberByUsername = (username: string, rawMessage: Message | ChatInputCommandInteraction) => {
         const user = UserUtils.findUserByUsername(username, rawMessage)
         if (user) return UserUtils.findMemberByUserID(user.id, rawMessage)
         return undefined

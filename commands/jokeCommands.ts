@@ -1,4 +1,4 @@
-import { CacheType, ChatInputCommandInteraction, Client, Message, TextChannel } from 'discord.js'
+import { APIEmbedField, CacheType, ChatInputCommandInteraction, Client, Message, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { globalArrays } from '../globals'
@@ -35,8 +35,8 @@ export class JokeCommands extends AbstractCommands {
                     member.id === UserUtils.User_IDs.BOT_HOIE ? a : a.name.toLowerCase() !== 'custom status'
                 )
 
+                let currentActivity = activities[0]
                 if (activities.length > 0) {
-                    let currentActivity = activities[0]
                     //Need a flag to check if current activity is Spotify. Spotify supplies album name in asset but artist/song in state/details, so asset should not override description
                     let isSpotify = false
                     if (currentActivity.name.toLowerCase() === 'spotify') {
@@ -44,7 +44,6 @@ export class JokeCommands extends AbstractCommands {
                         currentActivity = activities[1] ?? currentActivity
                     }
                     const baseURL = `https://cdn.discordapp.com/app-assets/${currentActivity.applicationId}`
-                    console.log(currentActivity)
 
                     const timeSince = DateUtils.getTimeSince(currentActivity.timestamps?.start ?? new Date())
                     const embd = EmbedUtils.createSimpleEmbed(
@@ -65,6 +64,18 @@ export class JokeCommands extends AbstractCommands {
                         else if (currentActivity.assets?.smallImage) {
                             embd.setThumbnail(`${baseURL}/${currentActivity.assets.smallImage}`)
                         }
+                    }
+                    if (activities.length > 1) {
+                        const rest = activities
+
+                        const otherActivities: APIEmbedField[] = rest
+                            .filter((a) => a.name !== currentActivity.name)
+                            .map((a) => {
+                                console.log(a.name, activities.length)
+
+                                return { name: a.name, value: `${a?.state && a?.details ? a.state + ', ' + a.details : 'Ingen informasjon'}` }
+                            })
+                        embd.addFields(otherActivities)
                     }
                     this.messageHelper.replyToInteraction(interaction, embd, undefined, true)
                 } else {
@@ -276,21 +287,6 @@ export class JokeCommands extends AbstractCommands {
                 },
                 category: 'annet',
             },
-            {
-                commandName: 'status',
-                description: 'Sett din status. Resettes 06:00 hver dag',
-                command: (rawMessage: Message, messageContent: string) => {},
-                category: 'annet',
-                isReplacedWithSlashCommand: 'status',
-            },
-            {
-                commandName: 'statuser',
-                description: 'Se alle satte statuser.Mygles det?',
-                command: (rawMessage: Message, messageContent: string) => {},
-                isReplacedWithSlashCommand: 'status',
-                category: 'annet',
-            },
-
             {
                 commandName: 'aktivitet',
                 description: 'Går det egentlig bra med masteren te Magnus?',

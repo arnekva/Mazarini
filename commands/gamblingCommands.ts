@@ -1,6 +1,5 @@
 import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction, Message, TextChannel, User } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { environment } from '../client-env'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { DatabaseHelper, MazariniUser } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -27,7 +26,7 @@ export class GamblingCommands extends AbstractCommands {
         let user: string | undefined = undefined
         users.forEach((u) => {
             const balance = DatabaseHelper.getUser(u.userID).chips
-            if (Number(balance) < amountAsNumber || Number(balance) === 0) user = DatabaseHelper.getUser(u.userID).id
+            if (Number(balance) < amountAsNumber || Number(balance) === 0) user = DatabaseHelper.getUser(u.userID).displayName ?? 'Ukjent'
         })
         return user
     }
@@ -41,84 +40,6 @@ export class GamblingCommands extends AbstractCommands {
         }
     }
 
-    private async startVerdensKrig(message: Message, content: string, args: string[]) {
-        const amount = this.findKrigValue(args[0], message.author.id)
-        const user = DatabaseHelper.getUser(message.author.id)
-        const userBalance = user.chips
-        if (!amount) message.reply('Du har skrevet inn et ugyldig tall')
-        else if (userBalance < amount) message.reply(`Du kan kje starta ein krig for ${amount} når du bare har ${userBalance} chips sjøl`)
-        else if (userBalance <= 0) message.reply(`Du kan kje gå te krig når du bare har ${userBalance} i walleten`)
-        else {
-            const timer = !isNaN(Number(args[2])) && Number(args[2]) <= 800 ? Number(args[2]) * 1000 : 240000
-
-            const resolveMessage = await this.messageHelper.sendMessage(
-                message.channelId,
-                `${message.author.username} har startet en verdenskrig! Reager med 👍 for å bli med. Krigen starter om ${
-                    timer / 1000
-                } sekund. ${MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.NATO)}`
-            )
-            if (resolveMessage) {
-                this.messageHelper.reactWithThumbs(resolveMessage, 'up')
-                const _msgHelper = this.messageHelper
-
-                const collector = resolveMessage.createReactionCollector()
-                const nonValidAttempts: string[] = []
-
-                const krigTimeout = setTimeout(
-                    async function () {
-                        let people: string[] = []
-                        resolveMessage.reactions.cache.forEach((reaction) => {
-                            if (reaction.emoji.name === '👍') {
-                                people = reaction.users.cache
-                                    .filter((u: User) => u.id !== '802945796457758760' && u.id !== message.author.id)
-                                    .map((u: User) => u.id)
-                            }
-                        })
-
-                        people.push(message.author.id)
-                        people = people.filter((p) => {
-                            const userWallet = DatabaseHelper.getUser(p).chips
-                            return Number(userWallet) >= amount
-                        })
-                        if (people.length < 2) {
-                            message.reply('Mer enn 1 person med råd må delta i krigen.')
-                        } else if (people)
-                            people.forEach((p) => {
-                                const user = DatabaseHelper.getUser(p)
-                                const oldCHips = user.chips
-                                user.chips = oldCHips - amount
-                                DatabaseHelper.updateUser(user)
-                            })
-                        const roll = RandomUtils.getRndInteger(0, people.length - 1)
-                        const totalAmount = Number(amount) * people.length
-                        const userWinner = DatabaseHelper.getUser(people[roll])
-                        const oldWinnerCHips = userWinner.chips
-                        userWinner.chips = oldWinnerCHips + totalAmount
-                        DatabaseHelper.updateUser(userWinner)
-
-                        const pingMap = people.map((p) => MessageUtils.getUserTagString(UserUtils.findUserByUsername(p, message)?.id) + ' ')
-                        _msgHelper.sendMessage(
-                            message.channelId,
-                            `Terningen trillet ${roll + 1} av ${people.length}. ${people[roll]} vant! Du får ${totalAmount} chips. ${pingMap}.\n ` +
-                                people.map((u) => ` \n${u} - ${DatabaseHelper.getUser(u).chips}`)
-                        )
-
-                        collector.stop()
-                    },
-                    environment === 'dev' ? 10000 : timer //For testing
-                )
-
-                collector.on('collect', (reaction) => {
-                    if (CollectorUtils.shouldStopCollector(reaction, message)) {
-                        if (resolveMessage) resolveMessage.edit(`${resolveMessage.content} (STANSET MED TOMMEL NED)`)
-                        clearTimeout(krigTimeout)
-                        collector.stop()
-                    }
-                })
-            }
-        }
-    }
-
     private getUserWallets(engagerID: string, victimID: string): { engagerChips: number; victimChips: number } {
         const engagerValue = DatabaseHelper.getUser(engagerID).chips
         const victimValue = DatabaseHelper.getUser(victimID).chips
@@ -128,91 +49,91 @@ export class GamblingCommands extends AbstractCommands {
         }
     }
 
-    private async krigWithAnyone(message: Message, content: string, args: string[]) {
-        const amount = Number(this.findKrigValue(args[0], message.author.id))
-        if (!amount) {
-            message.reply('Du har skrevet inn et ugyldig tall')
-        } else {
-            const resolveMessage = await this.messageHelper.sendMessage(
-                message.channelId,
-                `${message.author.username} vil gå til krig mot hvem som helst for ${amount} chips. Reager med tommel opp for å svare`
-            )
-            if (resolveMessage) {
-                this.messageHelper.reactWithThumbs(resolveMessage, 'up')
+    // private async krigWithAnyone(message: Message, content: string, args: string[]) {
+    //     const amount = Number(this.findKrigValue(args[0], message.author.id))
+    //     if (!amount) {
+    //         message.reply('Du har skrevet inn et ugyldig tall')
+    //     } else {
+    //         const resolveMessage = await this.messageHelper.sendMessage(
+    //             message.channelId,
+    //             `${message.author.username} vil gå til krig mot hvem som helst for ${amount} chips. Reager med tommel opp for å svare`
+    //         )
+    //         if (resolveMessage) {
+    //             this.messageHelper.reactWithThumbs(resolveMessage, 'up')
 
-                const collector = resolveMessage.createReactionCollector()
-                const nonValidAttempts: string[] = []
-                collector.on('collect', (reaction) => {
-                    if (CollectorUtils.shouldStopCollector(reaction, message)) {
-                        if (resolveMessage) resolveMessage.edit(`${resolveMessage.content} (STANSET MED TOMMEL NED)`)
-                        collector.stop()
-                    }
+    //             const collector = resolveMessage.createReactionCollector()
+    //             const nonValidAttempts: string[] = []
+    //             collector.on('collect', (reaction) => {
+    //                 if (CollectorUtils.shouldStopCollector(reaction, message)) {
+    //                     if (resolveMessage) resolveMessage.edit(`${resolveMessage.content} (STANSET MED TOMMEL NED)`)
+    //                     collector.stop()
+    //                 }
 
-                    if (reaction.emoji.name === '👍') {
-                        const victim = reaction.users.cache
-                            .filter((u: User) => u.id !== '802945796457758760' && u.id !== message.author.id && !nonValidAttempts.includes(u.id))
-                            .first() as User
-                        if (victim) {
-                            const currentValue = this.getUserWallets(message.author.id, victim.id)
-                            let engagerValue = currentValue.engagerChips
-                            let victimValue = currentValue.victimChips
+    //                 if (reaction.emoji.name === '👍') {
+    //                     const victim = reaction.users.cache
+    //                         .filter((u: User) => u.id !== '802945796457758760' && u.id !== message.author.id && !nonValidAttempts.includes(u.id))
+    //                         .first() as User
+    //                     if (victim) {
+    //                         const currentValue = this.getUserWallets(message.author.id, victim.id)
+    //                         let engagerValue = currentValue.engagerChips
+    //                         let victimValue = currentValue.victimChips
 
-                            const notEnoughChips = this.checkBalance([{ userID: message.author.id }, { userID: victim.id }], amount)
-                            if (notEnoughChips) {
-                                nonValidAttempts.push(victim.id)
-                                this.messageHelper.sendMessage(
-                                    message.channelId,
-                                    `${notEnoughChips} har ikke råd til å delta i ${message.author.username} sin krig for ${amount}`
-                                )
-                            } else {
-                                const roll = RandomUtils.getRndInteger(0, 100)
-                                let description = `Terningen trillet: ${roll}/100. ${
-                                    roll < 51 ? (roll == 50 ? 'Bot Høie' : message.author.username) : victim.username
-                                } vant! 💰💰`
+    //                         const notEnoughChips = this.checkBalance([{ userID: message.author.id }, { userID: victim.id }], amount)
+    //                         if (notEnoughChips) {
+    //                             nonValidAttempts.push(victim.id)
+    //                             this.messageHelper.sendMessage(
+    //                                 message.channelId,
+    //                                 `${notEnoughChips} har ikke råd til å delta i ${message.author.username} sin krig for ${amount}`
+    //                             )
+    //                         } else {
+    //                             const roll = RandomUtils.getRndInteger(0, 100)
+    //                             let description = `Terningen trillet: ${roll}/100. ${
+    //                                 roll < 51 ? (roll == 50 ? 'Bot Høie' : message.author.username) : victim.username
+    //                             } vant! 💰💰`
 
-                                if (roll == 50) {
-                                    engagerValue -= amount
-                                    victimValue -= amount
-                                } else if (roll < 50) {
-                                    engagerValue += amount
-                                    victimValue -= amount
-                                } else if (roll > 50) {
-                                    engagerValue -= amount
-                                    victimValue += amount
-                                }
+    //                             if (roll == 50) {
+    //                                 engagerValue -= amount
+    //                                 victimValue -= amount
+    //                             } else if (roll < 50) {
+    //                                 engagerValue += amount
+    //                                 victimValue -= amount
+    //                             } else if (roll > 50) {
+    //                                 engagerValue -= amount
+    //                                 victimValue += amount
+    //                             }
 
-                                this.messageHelper.sendMessage(message.channelId, `<@${victim?.id}> <@${message.author.id}>`)
-                                this.sendKrigMessage(
-                                    message.channel as TextChannel,
-                                    [
-                                        { username: message.author.username, balance: engagerValue, oldBalance: currentValue.engagerChips },
-                                        { username: victim.username, balance: victimValue, oldBalance: currentValue.victimChips },
-                                    ],
-                                    description
-                                )
-                                const authorUser = DatabaseHelper.getUser(message.author.id)
-                                const victimUser = DatabaseHelper.getUser(victim.id)
-                                authorUser.chips = engagerValue
-                                victimUser.chips = victimValue
-                                DatabaseHelper.updateUser(authorUser)
-                                DatabaseHelper.updateUser(victimUser)
+    //                             this.messageHelper.sendMessage(message.channelId, `<@${victim?.id}> <@${message.author.id}>`)
+    //                             this.sendKrigMessage(
+    //                                 message.channel as TextChannel,
+    //                                 [
+    //                                     { username: message.author.username, balance: engagerValue, oldBalance: currentValue.engagerChips },
+    //                                     { username: victim.username, balance: victimValue, oldBalance: currentValue.victimChips },
+    //                                 ],
+    //                                 description
+    //                             )
+    //                             const authorUser = DatabaseHelper.getUser(message.author.id)
+    //                             const victimUser = DatabaseHelper.getUser(victim.id)
+    //                             authorUser.chips = engagerValue
+    //                             victimUser.chips = victimValue
+    //                             DatabaseHelper.updateUser(authorUser)
+    //                             DatabaseHelper.updateUser(victimUser)
 
-                                this.messageHelper.reactWithCheckmark(resolveMessage)
-                                if (resolveMessage) {
-                                    const oldContent = resolveMessage.content
-                                    resolveMessage.edit(`${oldContent} (Fullført)`)
-                                }
-                                collector.stop()
-                            }
-                        }
-                    }
-                })
-            }
-        }
-    }
+    //                             this.messageHelper.reactWithCheckmark(resolveMessage)
+    //                             if (resolveMessage) {
+    //                                 const oldContent = resolveMessage.content
+    //                                 resolveMessage.edit(`${oldContent} (Fullført)`)
+    //                             }
+    //                             collector.stop()
+    //                         }
+    //                     }
+    //                 }
+    //             })
+    //         }
+    //     }
+    // }
 
     private sendKrigMessage(channel: TextChannel, users: { username: string; balance: number; oldBalance: number }[], winningText: string) {
-        const gambling = new EmbedBuilder().setTitle('⚔️ Krig ⚔️').setDescription(`Terningen trillet ${winningText}`)
+        const gambling = new EmbedBuilder().setTitle('⚔️ Krig ⚔️').setDescription(`${winningText}`)
         users.forEach((user) => {
             gambling.addFields({
                 name: `${user.username}`,
@@ -223,113 +144,102 @@ export class GamblingCommands extends AbstractCommands {
         this.messageHelper.sendFormattedMessage(channel, gambling)
     }
 
-    private async krig(message: Message, content: string, args: string[]) {
-        if (args[1] === 'alle') {
-            return this.startVerdensKrig(message, content, args)
-        }
+    private async krig(interaction: ChatInputCommandInteraction<CacheType>) {
+        const target = interaction.options.get('bruker')?.user
+        const amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('chips')?.value)
 
-        let userID = ''
-        let username1 = TextUtils.splitUsername(args[0])
-        let username2 = TextUtils.splitUsername(args[1])
+        if (!isNaN(Number(amount)) || Number(amount) < 1) {
+            this.messageHelper.replyToInteraction(interaction, `Tallet er ugyldig`, true)
+        } else {
+            const userWallets = this.getUserWallets(interaction.user.id, target.id)
+            const hasAmount = !!amount
+            console.log(hasAmount, amount)
 
-        const user0Exists = UserUtils.findUserByUsername(username1, message)
-        const user1Exists = UserUtils.findUserByUsername(username2, message)
-        const amount = user0Exists ? args[1] : args[0]
+            const largestPossibleValue = Math.min(userWallets.engagerChips, userWallets.victimChips)
+            let amountAsNum = hasAmount ? Number(amount) : largestPossibleValue
+            const notEnoughChips = this.checkBalance([{ userID: interaction.user.id }, { userID: target.id }], amountAsNum)
 
-        if (user0Exists) userID = user0Exists.id
-        if (user1Exists) userID = user1Exists.id
+            if (notEnoughChips) {
+                this.messageHelper.replyToInteraction(interaction, `En av dere har ikke råd til dette`, true)
+            } else {
+                this.messageHelper.replyToInteraction(interaction, `Du har startet en krig mot ${target.username}`, true)
+                const resolveMessage = await this.messageHelper.sendMessage(
+                    interaction.channelId,
+                    `${interaction.user.username} vil gå til krig med deg, ${MentionUtils.mentionUser(
+                        target.id
+                    )} for ${amountAsNum} chips. Reager med 👍 for å godkjenne. Den som starter krigen ruller for 0-49.`
+                )
+                if (resolveMessage) {
+                    this.messageHelper.reactWithThumbs(resolveMessage, 'up')
 
-        if (!user0Exists && !user1Exists) {
-            return this.krigWithAnyone(message, content, args)
-        }
-        if ((isNaN(Number(amount)) || Number(amount) < 1) && amount !== 'alt') {
-            return message.reply('Tallet du har skrevet inn er ikke gyldig')
-        }
-
-        const userWallets = this.getUserWallets(message.author.id, userID)
-
-        const amountIsAll = amount === 'alt'
-        const largestPossibleValue = Math.min(userWallets.engagerChips, userWallets.victimChips)
-        let amountAsNum = amountIsAll ? largestPossibleValue : Number(amount)
-        const notEnoughChips = this.checkBalance([{ userID: message.author.id }, { userID: userID }], amountAsNum)
-        if (notEnoughChips) {
-            return message.reply(`${notEnoughChips} har ikke råd til å gå til krig.`)
-        }
-
-        const user = UserUtils.findUserById(userID, message)
-        if (user) {
-            const resolveMessage = await this.messageHelper.sendMessage(
-                message.channelId,
-                `${message.author.username} vil gå til krig med deg, ${
-                    user?.id ? '<@' + user.id + '>' : user.username
-                }. Reager med 👍 for å godkjenne. Den som starter krigen ruller for 0-49.`
-            )
-            if (resolveMessage) {
-                this.messageHelper.reactWithThumbs(resolveMessage, 'up')
-
-                const collector = resolveMessage.createReactionCollector()
-                collector.on('collect', (reaction) => {
-                    if (CollectorUtils.shouldStopCollector(reaction, message)) {
-                        if (resolveMessage) resolveMessage.edit(`${resolveMessage.content} (STANSET MED TOMMEL NED)`)
-                        collector.stop()
-                    }
-
-                    const currentValue = this.getUserWallets(message.author.id, user.id)
-                    let engagerValue = currentValue.engagerChips
-                    let victimValue = currentValue.victimChips
-                    if (amountIsAll) {
-                        amountAsNum = Math.min(engagerValue, victimValue)
-                    }
-                    if (reaction.emoji.name === '👍' && reaction.users.cache.find((u: User) => u.id === user.id)) {
-                        const notEnoughChips = this.checkBalance([{ userID: message.author.id }, { userID: user.id }], amountAsNum)
-                        if (notEnoughChips) {
-                            this.messageHelper.sendMessage(message.channelId, `${MentionUtils.mentionUser(notEnoughChips)}, du har kje råd te det`)
-                        } else {
-                            const shouldAlwaysLose = user.id === message.author.id || user.id === UserUtils.User_IDs.BOT_HOIE
-                            const roll = RandomUtils.getRndInteger(0, 100)
-                            let description = `Terningen trillet: ${roll}/100. ${
-                                roll < 51 ? (roll == 50 ? 'Bot Høie' : message.author.username) : user.username
-                            } vant! 💰💰`
-                            if (shouldAlwaysLose) {
-                                description = `${
-                                    user.id === message.author.id
-                                        ? 'Du gikk til krig mot deg selv. Dette liker ikke Bot Høie, og tar derfor pengene.'
-                                        : 'Huset vinner alltid'
-                                }`
-                            }
-
-                            if (roll == 50 || shouldAlwaysLose) {
-                                engagerValue -= amountAsNum
-                                victimValue -= amountAsNum
-                            } else if (roll < 50) {
-                                engagerValue += amountAsNum
-                                victimValue -= amountAsNum
-                            } else if (roll > 50) {
-                                engagerValue -= amountAsNum
-                                victimValue += amountAsNum
-                            }
-
-                            const users = shouldAlwaysLose
-                                ? [{ username: message.author.username, balance: engagerValue, oldBalance: currentValue.engagerChips }]
-                                : [
-                                      { username: message.author.username, balance: engagerValue, oldBalance: currentValue.engagerChips },
-                                      { username: user.username, balance: victimValue, oldBalance: currentValue.victimChips },
-                                  ]
-
-                            this.messageHelper.sendMessage(message.channelId, `<@${user?.id}> <@${message.author.id}>`)
-                            this.sendKrigMessage(message.channel as TextChannel, users, description)
-
-                            const authorUser = DatabaseHelper.getUser(message.author.id)
-                            const victimUser = DatabaseHelper.getUser(user.id)
-                            authorUser.chips = engagerValue
-                            victimUser.chips = victimValue
-                            DatabaseHelper.updateUser(authorUser)
-                            DatabaseHelper.updateUser(victimUser)
-
+                    const collector = resolveMessage.createReactionCollector()
+                    collector.on('collect', (reaction) => {
+                        if (CollectorUtils.shouldStopCollector(reaction, interaction)) {
+                            if (resolveMessage) resolveMessage.edit(`${resolveMessage.content} (STANSET MED TOMMEL NED)`)
                             collector.stop()
                         }
-                    }
-                })
+
+                        const currentValue = this.getUserWallets(interaction.user.id, target.id)
+                        let engagerValue = currentValue.engagerChips
+                        let victimValue = currentValue.victimChips
+                        if (!hasAmount) {
+                            amountAsNum = Math.min(engagerValue, victimValue)
+                        }
+                        if (reaction.emoji.name === '👍' && reaction.users.cache.find((u: User) => u.id === target.id)) {
+                            const notEnoughChips = this.checkBalance([{ userID: interaction.user.id }, { userID: target.id }], amountAsNum)
+                            if (notEnoughChips) {
+                                this.messageHelper.sendMessage(interaction.channelId, `Folkå har kje lenger råd te å kriga samen. Krigen bler stoppa`)
+                                collector.stop()
+                            } else {
+                                const shouldAlwaysLose = target.id === interaction.user.id || target.id === UserUtils.User_IDs.BOT_HOIE
+                                const roll = RandomUtils.getRndInteger(0, 100)
+                                let description = `Terningen trillet: ${roll}/100. ${
+                                    roll < 51 ? (roll == 50 ? 'Bot Høie' : interaction.user.username) : target.username
+                                } vant! 💰💰`
+                                if (shouldAlwaysLose) {
+                                    description += `${
+                                        target.id === interaction.user.id
+                                            ? 'Men, du gikk til krig mot deg selv. Dette liker ikke Bot Høie, og tar derfor pengene.'
+                                            : 'Huset vinner alltid'
+                                    }`
+                                }
+
+                                if (roll == 50 || shouldAlwaysLose) {
+                                    engagerValue -= amountAsNum
+                                    victimValue -= amountAsNum
+                                } else if (roll < 50) {
+                                    engagerValue += amountAsNum
+                                    victimValue -= amountAsNum
+                                } else if (roll > 50) {
+                                    engagerValue -= amountAsNum
+                                    victimValue += amountAsNum
+                                }
+
+                                const users = shouldAlwaysLose
+                                    ? [{ username: interaction.user.username, balance: engagerValue, oldBalance: currentValue.engagerChips }]
+                                    : [
+                                          { username: interaction.user.username, balance: engagerValue, oldBalance: currentValue.engagerChips },
+                                          { username: target.username, balance: victimValue, oldBalance: currentValue.victimChips },
+                                      ]
+
+                                this.messageHelper.sendMessage(
+                                    interaction.channelId,
+                                    `${MentionUtils.mentionUser(target.id)} ${MentionUtils.mentionUser(interaction.user.id)}`
+                                )
+                                this.sendKrigMessage(interaction.channel as TextChannel, users, description)
+
+                                const authorUser = DatabaseHelper.getUser(interaction.user.username)
+                                const victimUser = DatabaseHelper.getUser(target.id)
+                                authorUser.chips = engagerValue
+                                victimUser.chips = victimValue
+                                DatabaseHelper.updateUser(authorUser)
+                                DatabaseHelper.updateUser(victimUser)
+
+                                collector.stop()
+                            }
+                        }
+                    })
+                }
             }
         }
     }
@@ -766,10 +676,9 @@ export class GamblingCommands extends AbstractCommands {
                 commandName: 'krig',
                 description: 'Gå til krig mot noen. <nummer> <brukernavn>',
 
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.krig(rawMessage, messageContent, args)
-                },
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
                 category: 'gambling',
+                isReplacedWithSlashCommand: 'krig',
             },
             {
                 commandName: 'vipps',
@@ -786,9 +695,10 @@ export class GamblingCommands extends AbstractCommands {
                 description: 'Start en krig mot alle som vil bli med',
 
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.startVerdensKrig(rawMessage, messageContent, args)
+                    // this.startVerdensKrig(rawMessage, messageContent, args)
                 },
                 category: 'gambling',
+                isReplacedWithSlashCommand: 'krig',
             },
             {
                 commandName: ['gamble', 'g'],
@@ -852,6 +762,13 @@ export class GamblingCommands extends AbstractCommands {
                 commandName: 'wallet',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.openWallet(rawInteraction)
+                },
+                category: 'gambling',
+            },
+            {
+                commandName: 'krig',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.krig(rawInteraction)
                 },
                 category: 'gambling',
             },
