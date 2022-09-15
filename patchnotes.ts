@@ -4,15 +4,11 @@ import { ICommandElement, IInteractionElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '9.10.0'
+    public static readonly currentVersion = '9.10.1'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string =
-        `\n* Fikset en feil som gjorde at Spotify kunne dukke opp to ganger i /spotify hvis Spotify manuelt var lagt til som game i Discord` +
-        `\n* Krig er nå en slash command. Verdenskrig og krig mot hvem som helst er midlertidig skrudd av.` +
-        `\n* Mindre fikser for når en reaction collector stopper` +
-        `\n* /aktivitet skal nå liste andre aktiviteter under hovedaktiviteten`
+    public static readonly currentPatchNotes: string = `\n* Fikset en feil som gjorde at krig i noen tilfeller ikke trakk chips fra den som startet`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

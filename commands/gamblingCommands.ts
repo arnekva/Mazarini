@@ -228,7 +228,7 @@ export class GamblingCommands extends AbstractCommands {
                                 )
                                 this.sendKrigMessage(interaction.channel as TextChannel, users, description)
 
-                                const authorUser = DatabaseHelper.getUser(interaction.user.username)
+                                const authorUser = DatabaseHelper.getUser(interaction.user.id)
                                 const victimUser = DatabaseHelper.getUser(target.id)
                                 authorUser.chips = engagerValue
                                 victimUser.chips = victimValue
