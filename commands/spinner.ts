@@ -1,4 +1,4 @@
-import { Client, Message } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, Message } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
@@ -83,18 +83,49 @@ export class Spinner extends AbstractCommands {
 
             this.messageHelper.sendMessage(message.channelId, 'Du får 95 000 000 chips for det der mannen')
         }
-        const formatedScore = this.formatScore(min + sec)
+
         DatabaseHelper.updateUser(user)
         // this.compareScore(message, formatedScore)
-        this.incrementCounter(message)
+        this.incrementCounter(message.author.id)
+    }
+    private spinFromInteraction(interaction: ChatInputCommandInteraction<CacheType>) {
+        const user = DatabaseHelper.getUser(interaction.user.id)
+        const min = weightedRandomObject(spinMinutes).number
+        const sec = RandomUtils.getRndInteger(0, 60)
+
+        const winnings = this.getSpinnerWinnings(Number(min))
+        if (winnings > 0) {
+            user.chips += winnings
+        }
+        const winningsText = winnings > 0 ? `Du får ${winnings} chips.` : ''
+        this.messageHelper.replyToInteraction(
+            interaction,
+            interaction.user.username + ' spant fidget spinneren sin i ' + min + ' minutt og ' + sec + ' sekund!' + ` ${winningsText}`
+        )
+
+        if (min == 10 && sec == 59) {
+            this.messageHelper.sendMessage(interaction.channelId, 'gz med 10:59 bro')
+            user.chips += 975000000
+
+            this.messageHelper.sendMessage(interaction.channelId, 'Du får 975 000 000 chips for det der mannen')
+        } else if (min == 10) {
+            this.messageHelper.sendMessage(interaction.channelId, 'gz med 10 min bro')
+            user.chips += 95000000
+
+            this.messageHelper.sendMessage(interaction.channelId, 'Du får 95 000 000 chips for det der mannen')
+        }
+
+        DatabaseHelper.updateUser(user)
+
+        this.incrementCounter(interaction.user.id)
     }
 
     private getSpinnerWinnings(min: number) {
         switch (min) {
             case 5:
-                return 300
+                return 350
             case 6:
-                return 900
+                return 925
             case 7:
                 return 4500
             case 8:
@@ -108,9 +139,8 @@ export class Spinner extends AbstractCommands {
         }
     }
 
-    private async incrementCounter(message: Message) {
-        // const currentVal = DatabaseHelper.getValue("counterSpin", message.author.username, () => { });
-        const user = DatabaseHelper.getUser(message.author.id)
+    private async incrementCounter(userID: string) {
+        const user = DatabaseHelper.getUser(userID)
         user.spinCounter++
         DatabaseHelper.updateUser(user)
     }
@@ -171,17 +201,17 @@ export class Spinner extends AbstractCommands {
                 },
                 category: 'spin',
             },
-            {
-                commandName: 'totalspins',
-                description: 'Antall spins per person',
-                command: (rawMessage: Message, messageContent: string) => {
-                    this.listSpinCounter(rawMessage)
-                },
-                category: 'spin',
-            },
         ]
     }
     getAllInteractions(): IInteractionElement[] {
-        return []
+        return [
+            {
+                commandName: 'spin',
+                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                    this.spinFromInteraction(interaction)
+                },
+                category: 'annet',
+            },
+        ]
     }
 }

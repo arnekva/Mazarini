@@ -35,7 +35,7 @@ export class UserCommands extends AbstractCommands {
             )
     }
 
-    private async roleAssignment(message: Message, content: string, args: string[]) {
+    private async roleAssignment(interaction: ChatInputCommandInteraction<CacheType>) {
         const roles = Roles.allRoles
 
         const msg = new EmbedBuilder().setTitle('Rolle').setDescription(`Reager med emojiene nedenfor for å få tildelt roller`)
@@ -43,17 +43,17 @@ export class UserCommands extends AbstractCommands {
         roles.forEach((role) => {
             msg.addFields({ name: `${role.name}`, value: `${role.emoji}`, inline: true })
         })
-
-        const sentMessage = await this.messageHelper.sendFormattedMessage(message.channel as TextChannel, msg)
+        this.messageHelper.replyToInteraction(interaction, `Se meldingen under for roller`, true)
+        const sentMessage = await this.messageHelper.sendFormattedMessage(interaction.channel as TextChannel, msg)
         roles.forEach((r) => sentMessage?.react(r.emoji))
         if (sentMessage)
             sentMessage?.createReactionCollector().on('collect', (reaction) => {
                 const users = reaction.users.cache.filter((u) => u.id !== '802945796457758760')
                 const roleId = roles.find((rEmoji) => rEmoji.emoji === reaction.emoji.name)
                 if (roleId) {
-                    const role = message.guild?.roles?.cache.find((r) => r.id === roleId.id)
+                    const role = interaction.guild?.roles?.cache.find((r) => r.id === roleId.id)
                     users.forEach((u) => {
-                        const userAsMember = message.guild?.members?.cache.find((m) => m.id === u.id)
+                        const userAsMember = interaction.guild?.members?.cache.find((m) => m.id === u.id)
                         if (role && userAsMember) {
                             userAsMember.roles.add(role)
                         }
@@ -185,22 +185,6 @@ export class UserCommands extends AbstractCommands {
                 },
                 category: 'annet',
             },
-            {
-                commandName: 'warnings',
-                description: 'Se antall advarsler du har',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.getWarnings(rawMessage, messageContent, args)
-                },
-                category: 'annet',
-            },
-            {
-                commandName: 'role',
-                description: 'Trigger role assignment',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.roleAssignment(rawMessage, messageContent, args)
-                },
-                category: 'annet',
-            },
         ]
     }
 
@@ -217,6 +201,13 @@ export class UserCommands extends AbstractCommands {
                 commandName: 'brukerinfo',
                 command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                     this.findUserInfo(interaction)
+                },
+                category: 'annet',
+            },
+            {
+                commandName: 'role',
+                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                    this.roleAssignment(interaction)
                 },
                 category: 'annet',
             },

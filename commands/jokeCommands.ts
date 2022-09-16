@@ -18,10 +18,9 @@ export class JokeCommands extends AbstractCommands {
         super(client, messageHelper)
     }
 
-    private async mordi(message: Message) {
-        const emoji = await EmojiHelper.getEmoji('eyebrows', message)
-
-        await this.messageHelper.sendMessage(message.channelId, Math.random() > 0.05 ? `E nais ${emoji.id}` : `E skamnais :eyebrows: ${emoji.id}`)
+    private async mordi(interaction: ChatInputCommandInteraction<CacheType>) {
+        const emoji = await EmojiHelper.getEmoji('eyebrows', interaction)
+        this.messageHelper.replyToInteraction(interaction, Math.random() > 0.05 ? `E nais ${emoji.id}` : `E skamnais :eyebrows: ${emoji.id}`)
     }
 
     private async findUserActivity(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -215,32 +214,22 @@ export class JokeCommands extends AbstractCommands {
         }
     }
 
-    private async sendBonk(message: Message, content: string, args: string[]) {
+    private async sendBonk(interaction: ChatInputCommandInteraction<CacheType>) {
         const img = ArrayUtils.randomChoiceFromArray(globalArrays.bonkMemeUrls)
-        let user
-        let bkCounter
-        if (args.length > 0) {
-            user = args[0]
-            if (DatabaseHelper.findUserByUsername(user, message)) {
-                const foundUser = DatabaseHelper.findUserByUsername(args[0], message)
-                if (foundUser) {
-                    const user = DatabaseHelper.getUser(foundUser.id)
-                    bkCounter = user.bonkCounter
-                    user.bonkCounter++
-                    DatabaseHelper.updateUser(user)
+        const user = interaction.options.get('bruker')?.user
 
-                    bkCounter++
-                    this.messageHelper.sendMessage(
-                        message.channelId,
-                        (user ? user.displayName + ', du har blitt bonket. (' + `${bkCounter} ${bkCounter == 1 ? 'gang' : 'ganger'}) ` : '') + img
-                    )
-                }
-            } else {
-                message.reply('du har ikke oppgitt et gyldig brukernavn')
-            }
-        } else {
-            this.messageHelper.sendMessage(message.channelId, img)
-        }
+        let bkCounter = 0
+
+        const dbUser = DatabaseHelper.getUser(user.id)
+        bkCounter = dbUser.bonkCounter
+        dbUser.bonkCounter++
+        DatabaseHelper.updateUser(dbUser)
+
+        bkCounter++
+        this.messageHelper.replyToInteraction(
+            interaction,
+            user.username + ', du har blitt bonket. (' + `${bkCounter} ${bkCounter == 1 ? 'gang' : 'ganger'}) ` + img
+        )
     }
 
     private static uwuText(t: string) {
@@ -273,9 +262,8 @@ export class JokeCommands extends AbstractCommands {
             {
                 commandName: 'bonk',
                 description: 'Send en bonk. Kan brukes mot brukere.',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.sendBonk(rawMessage, messageContent, args)
-                },
+                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
+                isReplacedWithSlashCommand: 'bonk',
                 category: 'annet',
             },
             {
@@ -287,26 +275,6 @@ export class JokeCommands extends AbstractCommands {
                 },
                 category: 'annet',
             },
-            {
-                commandName: 'aktivitet',
-                description: 'Går det egentlig bra med masteren te Magnus?',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
-                isReplacedWithSlashCommand: 'aktivitet',
-                category: 'annet',
-            },
-
-            {
-                commandName: 'eivindpride',
-                description: 'Eivindpride it. Eivindpride it ALL.',
-                hideFromListing: true,
-                isAdmin: true,
-                command: (rawMessage: Message, messageContent: string) => {
-                    // this.reactToManyMessages(rawMessage, 'eivindpride')
-                },
-                isReplacedWithSlashCommand: 'eivindpride',
-                category: 'annet',
-            },
-
             {
                 commandName: 'jærsk',
                 description: 'Gjør teksten jærsk',
@@ -337,16 +305,23 @@ export class JokeCommands extends AbstractCommands {
             {
                 commandName: 'mordi',
                 description: 'Mordi e nais',
-
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.mordi(rawMessage)
+                    // this.mordi(rawMessage)
                 },
+                isReplacedWithSlashCommand: 'mordi',
                 category: 'annet',
             },
         ]
     }
     getAllInteractions(): IInteractionElement[] {
         return [
+            {
+                commandName: 'mordi',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.mordi(rawInteraction)
+                },
+                category: 'gaming',
+            },
             {
                 commandName: 'fese',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
@@ -365,6 +340,13 @@ export class JokeCommands extends AbstractCommands {
                 commandName: 'eivindpride',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.reactToManyMessages(rawInteraction, 'eivindpride')
+                },
+                category: 'gaming',
+            },
+            {
+                commandName: 'bonk',
+                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                    this.sendBonk(interaction)
                 },
                 category: 'gaming',
             },

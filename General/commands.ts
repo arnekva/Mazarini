@@ -110,7 +110,6 @@ export class Commands {
     getAllCommands() {
         return [
             this.helpCommand,
-            this.helpCommand2,
             ...this.gameCommands.getAllCommands(),
             ...this.spinner.getAllCommands(),
             ...this.jokeCommands.getAllCommands(),
@@ -216,13 +215,7 @@ export class Commands {
 
     //TODO: Refactor these:
     private helpCommand: ICommandElement = {
-        commandName: 'help',
-        description: "List alle metoder. Bruk '!mz help <command>' for å finne ut mer om en spesifikk kommando",
-        command: (rawMessage, messageContent, args) => this.helperCommands(rawMessage, messageContent, args),
-        category: 'annet',
-    }
-    private helpCommand2: ICommandElement = {
-        commandName: 'hjelp',
+        commandName: ['help', 'hjelp'],
         description: "List alle metoder. Bruk '!mz help <command>' for å finne ut mer om en spesifikk kommando",
         command: (rawMessage, messageContent, args) => this.helperCommands(rawMessage, messageContent, args),
         category: 'annet',

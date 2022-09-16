@@ -1,4 +1,4 @@
-import { Client, Message } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, Message } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -264,30 +264,29 @@ export class DrinksCommands extends AbstractCommands {
         }
     }
 
-    private drinkBitch(message: Message, messageContent: string, args: string[]) {
-        let antallSlurks = Number(args[0])
-
+    private drinkBitch(interaction: ChatInputCommandInteraction<CacheType>) {
+        let antallSlurks = interaction.options.get('antall')?.value as number
         if (!antallSlurks) {
             if (RandomUtils.getRndBetween0and100() === 69) {
-                return this.messageHelper.sendMessage(message.channelId, 'Damn bro, du skulle ikke ha latt meg bestemme. Chug sjæl!')
+                return this.messageHelper.replyToInteraction(interaction, 'Damn bro, du skulle ikke ha latt meg bestemme. Chug sjæl!')
             }
             antallSlurks = Math.ceil(RandomUtils.getRndBetween0and100() / 10)
         }
         let roll = RandomUtils.getRndBetween0and100()
         if (antallSlurks > 10) {
-            this.messageHelper.sendMessage(message.channelId, 'Nå roer vi oss ned 2 hakk her')
+            this.messageHelper.replyToInteraction(interaction, 'Nå roer vi oss ned 2 hakk her')
             antallSlurks = Math.ceil(RandomUtils.getRndBetween0and100() / 10)
             roll = 1
         }
 
         if (roll === 69) {
-            return this.messageHelper.sendMessage(message.channelId, 'Cracking open a cold one with the boys? Men da utbringer eg en skål, og alle kan chugge')
+            return this.messageHelper.replyToInteraction(interaction, 'Cracking open a cold one with the boys? Men da utbringer eg en skål, og alle kan chugge')
         } else if (roll <= 33) {
-            return this.messageHelper.sendMessage(message.channelId, 'Drikk selv ' + antallSlurks + ' slurker')
+            return this.messageHelper.replyToInteraction(interaction, 'Drikk selv ' + antallSlurks + ' slurker')
         } else if (roll <= 66) {
-            return this.messageHelper.sendMessage(message.channelId, 'Ta selv, og gi vekk ' + antallSlurks + ' slurker')
+            return this.messageHelper.replyToInteraction(interaction, 'Ta selv, og gi vekk ' + antallSlurks + ' slurker')
         } else {
-            return this.messageHelper.sendMessage(message.channelId, 'Gi vekk ' + antallSlurks + ' slurker')
+            return this.messageHelper.replyToInteraction(interaction, 'Gi vekk ' + antallSlurks + ' slurker')
         }
     }
 
@@ -306,15 +305,23 @@ export class DrinksCommands extends AbstractCommands {
                 commandName: ['drikk', 'drink'],
                 description: 'Drikkelek: Drikking + Gambling, name a more iconic duo',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.drinkBitch(rawMessage, messageContent, args)
+                    // this.drinkBitch(rawMessage, messageContent, args)
                 },
-
+                isReplacedWithSlashCommand: 'drikk',
                 category: 'drink',
             },
         ]
     }
 
     getAllInteractions(): IInteractionElement[] {
-        return []
+        return [
+            {
+                commandName: 'drikk',
+                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                    this.drinkBitch(interaction)
+                },
+                category: 'annet',
+            },
+        ]
     }
 }

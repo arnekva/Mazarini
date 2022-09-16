@@ -1,14 +1,21 @@
-import { Client, Message } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, Message } from 'discord.js'
 import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '9.10.1'
+    public static readonly currentVersion = '9.11.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
-    public static readonly currentPatchNotes: string = `\n* Fikset en feil som gjorde at krig i noen tilfeller ikke trakk chips fra den som startet`
+    public static readonly currentPatchNotes: string =
+        `\n* Role er nå slashcommand` +
+        `\n* Bonk er nå slashcommand` +
+        `\n* Patchnotes er nå slashcommand` +
+        `\n* Mordi er nå slashcommand` +
+        `\n* Drikk er nå slashcommand` +
+        `\n* Du kan nå spinne fidgetspinneren med /spin. (!mz spin beholdes også foreløpig)` +
+        `\n* !mz warnings og !mz totalspins er fjernet, siden dataen kan sees i /brukerinfo`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
@@ -19,15 +26,6 @@ export class PatchNotes extends AbstractCommands {
     }
     public getAllCommands(): ICommandElement[] {
         return [
-            {
-                commandName: 'patch',
-                description: 'Vis patch notes for ' + PatchNotes.currentVersion,
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    const pn = PatchNotes.getCurrentPatchNotes()
-                    this.messageHelper.sendMessage(rawMessage.channelId, pn)
-                },
-                category: 'annet',
-            },
             {
                 commandName: 'publishnotes',
                 description: 'Publiser nyeste patch notes til Bot-utvikling',
@@ -42,6 +40,14 @@ export class PatchNotes extends AbstractCommands {
         ]
     }
     getAllInteractions(): IInteractionElement[] {
-        return []
+        return [
+            {
+                commandName: 'patchnotes',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.messageHelper.replyToInteraction(rawInteraction, PatchNotes.getCurrentPatchNotes())
+                },
+                category: 'annet',
+            },
+        ]
     }
 }
