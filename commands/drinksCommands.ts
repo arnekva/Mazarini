@@ -103,8 +103,8 @@ export class DrinksCommands extends AbstractCommands {
             if (mustDrink.length === this.playerList.length && this.cardsMatch(mustDrink[0].card, mustDrink[mustDrink.length - 1].card)) {
                 str = 'Den går infinite! Alle chugge'
             } else if (mustDrink.length > 1) {
-                str = 'Følgende må drikke: '
-                mustDrink.forEach((u) => (str += `${u.name} (${u.card.printString}),  `))
+                str = `Følgende må drikke ${mustDrink.length} slurker: `
+                mustDrink.forEach((u) => (str += `\n**${u.name} (${u.card.printString})**`))
             }
             return str
         }
@@ -124,20 +124,20 @@ export class DrinksCommands extends AbstractCommands {
         return cardObject
     }
 
-    private drawCard(message: Message) {
+    private drawCard(interaction: ChatInputCommandInteraction<CacheType>) {
         let card: string = this.deck.drawCard()
         if (!card) {
-            this.messageHelper.sendMessage(message.channelId, "Kortstokken er tom. Dersom dere vil fortsette, bruk '!mz el resett'")
+            this.messageHelper.replyToInteraction(interaction, "Kortstokken er tom. Dersom dere vil fortsette, bruk '!mz el resett'")
         } else {
             const currentPlayer = this.getUserObjectById(this.turn)
             this.turn = (this.turn + 1) % this.playerList.length
             const cardObject = this.setCardOnUser(currentPlayer.name, card)
             const mustDrink = this.checkWhoMustDrink(currentPlayer.name, currentPlayer.id, currentPlayer.card)
-            let gameState = '\n'
+            let gameState = '\n\n*På bordet*:'
             this.playerList.forEach((player) => {
                 gameState += `\n${player.name} (${player.id}) - ${player.card.printString}`
             })
-            this.messageHelper.sendMessage(message.channelId, currentPlayer.name + ' trakk ' + cardObject.printString + '\n' + mustDrink + gameState)
+            this.messageHelper.replyToInteraction(interaction, currentPlayer.name + ' trakk ' + cardObject.printString + '\n' + mustDrink + gameState)
         }
     }
 
@@ -149,16 +149,20 @@ export class DrinksCommands extends AbstractCommands {
         return players.substring(0, players.length - 2)
     }
 
-    private async startElectricity(message: Message) {
+    private async startElectricity(interaction: ChatInputCommandInteraction<CacheType>) {
         if (this.activeGame) {
-            message.reply('Du kan bare ha ett aktivt spill om gangen. For å avslutte spillet, bruk "!mz electricity stopp"')
+            this.messageHelper.replyToInteraction(
+                interaction,
+                'Du kan bare ha ett aktivt spill om gangen. For å avslutte spillet, bruk "!mz electricity stopp"'
+            )
         } else {
             if (this.reactor) {
                 this.reactor.stop()
             }
-            const author = message.author.username
+            const author = interaction.user.username
             const betString = `${author} ønsker å starte en runde med electricity: Reager med 👍 for å bli med. Spillet starter når noen reagerer med ✅`
-            const startMessage = await this.messageHelper.sendMessage(message.channelId, betString)
+            const startMessage = await this.messageHelper.sendMessage(interaction.channelId, betString)
+            this.messageHelper.replyToInteraction(interaction, `Starter electricity`, true)
             if (startMessage) {
                 this.messageHelper.reactWithThumbs(startMessage, 'up')
                 startMessage.react('✅')
@@ -175,11 +179,11 @@ export class DrinksCommands extends AbstractCommands {
                             }
                         })
                     } else if (reaction.emoji.name == '✅' && users.size > 0) {
-                        if (this.playerList.length < 2) {
-                            message.reply('Det trengs minst 2 deltakere for å starte spillet.')
+                        if (this.playerList.length < 1) {
+                            this.messageHelper.sendMessage(interaction.channelId, 'Det trengs minst 2 deltakere for å starte spillet.')
                         } else {
                             this.activeGame = true
-                            this.messageHelper.sendMessage(message.channelId, this.getPlayersString())
+                            this.messageHelper.sendMessage(interaction.channelId, this.getPlayersString())
                             this.reactor.stop()
                         }
                     }
@@ -188,28 +192,29 @@ export class DrinksCommands extends AbstractCommands {
         }
     }
 
-    private stopElectricity(message: Message) {
+    private stopElectricity(interaction: ChatInputCommandInteraction<CacheType>) {
         this.playerList = new Array<IUserObject>()
         const resetMsg = this.deck.resetDeck()
-        this.messageHelper.sendMessage(message.channelId, resetMsg)
+        this.messageHelper.replyToInteraction(interaction, resetMsg)
         this.id = 0
         this.activeGame = false
         this.reactor = undefined
-        this.messageHelper.sendMessage(message.channelId, 'Spillet er stoppet')
+        this.messageHelper.sendMessage(interaction.channelId, 'Spillet er stoppet')
     }
 
-    private getMyCard(message: Message) {
-        const author = message.author.username
+    private getMyCard(interaction: ChatInputCommandInteraction<CacheType>) {
+        const author = interaction.user.username
         const user = this.getUserObject(author)
         if (!user.card.number) {
-            this.messageHelper.sendMessage(message.channelId, author + ' har ikke trukket et kort enda')
+            this.messageHelper.replyToInteraction(interaction, author + ' har ikke trukket et kort enda')
         } else {
-            this.messageHelper.sendMessage(message.channelId, author + ' sitt gjeldende kort: ' + user.card.printString)
+            this.messageHelper.replyToInteraction(interaction, author + ' sitt gjeldende kort: ' + user.card.printString)
         }
     }
 
-    private elSwitch(message: Message, messageContent: string, args: string[]) {
-        const author = message.author.username
+    private elSwitch(interaction: ChatInputCommandInteraction<CacheType>) {
+        const action = interaction.options.getSubcommand()
+        const author = interaction.user.username
         let activePlayer = false
         for (let player of this.playerList) {
             if (player.name === author) {
@@ -217,49 +222,53 @@ export class DrinksCommands extends AbstractCommands {
             }
         }
         if (!activePlayer && this.activeGame) {
-            this.messageHelper.sendMessage(message.channelId, 'Bro du skulle gitt en tommel opp før spillet begynte hvis du ville være med')
+            this.messageHelper.replyToInteraction(interaction, 'Bro du skulle gitt en tommel opp før spillet begynte hvis du ville være med')
+            // this.messageHelper.sendMessage(message.channelId, )
         } else {
-            if (args[0]) {
-                switch (args[0].toLowerCase()) {
+            if (action) {
+                switch (action.toLowerCase()) {
                     case 'start': {
-                        this.startElectricity(message)
+                        this.startElectricity(interaction)
                         break
                     }
                     case 'trekk': {
                         if (!this.activeGame) {
-                            this.messageHelper.sendMessage(message.channelId, 'Du må starte et spill først')
+                            this.messageHelper.replyToInteraction(interaction, `Du må starte et spill først`)
                         } else {
-                            this.drawCard(message)
+                            this.drawCard(interaction)
                         }
                         break
                     }
                     case 'stopp': {
                         if (!this.activeGame || !this.reactor) {
-                            this.messageHelper.sendMessage(message.channelId, 'Det er ingenting å stoppe')
+                            this.messageHelper.replyToInteraction(interaction, 'Det er ingenting å stoppe')
                         } else {
-                            this.stopElectricity(message)
+                            this.stopElectricity(interaction)
                         }
                         break
                     }
                     case 'mitt': {
                         if (!this.activeGame) {
-                            this.messageHelper.sendMessage(message.channelId, 'Du må nesten ha et aktivt spill for å kunne ha et kort')
+                            this.messageHelper.replyToInteraction(interaction, 'Du må nesten ha et aktivt spill for å kunne ha et kort')
                         } else {
-                            this.getMyCard(message)
+                            this.getMyCard(interaction)
                         }
                         break
                     }
                     case 'resett': {
                         const msg = this.deck.resetDeck()
-                        this.messageHelper.sendMessage(message.channelId, msg)
+                        this.messageHelper.replyToInteraction(interaction, msg)
                         break
                     }
                     default: {
-                        this.messageHelper.sendMessage(message.channelId, "Tilgjengelige kommandoer er: 'start', 'trekk', 'mitt', 'resett' og 'stopp'")
+                        this.messageHelper.replyToInteraction(interaction, "Tilgjengelige kommandoer er: 'start', 'trekk', 'mitt', 'resett' og 'stopp'")
                     }
                 }
             } else {
-                this.messageHelper.sendMessage(message.channelId, "Du må inkludere en av følgende etter 'el': 'start', 'trekk', 'mitt', 'resett' eller 'stopp'")
+                this.messageHelper.replyToInteraction(
+                    interaction,
+                    "Du må inkludere en av følgende etter 'el': 'start', 'trekk', 'mitt', 'resett' eller 'stopp'"
+                )
             }
         }
     }
@@ -296,9 +305,9 @@ export class DrinksCommands extends AbstractCommands {
                 commandName: ['el', 'electricity', 'elektrisitet'],
                 description: 'Start drikkeleken electricity. Nu ska d drekkjast',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.elSwitch(rawMessage, messageContent, args)
+                    // this.elSwitch(rawMessage, messageContent, args)
                 },
-
+                isReplacedWithSlashCommand: 'electricity',
                 category: 'drink',
             },
             {
@@ -319,6 +328,13 @@ export class DrinksCommands extends AbstractCommands {
                 commandName: 'drikk',
                 command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                     this.drinkBitch(interaction)
+                },
+                category: 'annet',
+            },
+            {
+                commandName: 'electricity',
+                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                    this.elSwitch(interaction)
                 },
                 category: 'annet',
             },

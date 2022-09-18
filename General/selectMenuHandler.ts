@@ -19,10 +19,12 @@ export class SelectMenuHandler {
                 const localIntr = rawInteraction as SelectMenuInteraction
 
                 this.handleUserInfoViewingMenu(localIntr)
+                return true
             } else {
                 this.messageHelper.replyToInteraction(rawInteraction, `Du kan bare sjekka dine egne ting, bro. Bruker /brukerinfo sjøl`, true)
             }
         }
+        return false
     }
 
     private async handleUserInfoViewingMenu(selectMenu: SelectMenuInteraction<CacheType>) {

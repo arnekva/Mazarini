@@ -168,10 +168,10 @@ export class Admin extends AbstractCommands {
         if (channel) channel.send(replyString)
     }
 
-    private getBotStatistics(message: Message, messageContent: string, args: string[]) {
+    private getBotStatistics(interaction: ChatInputCommandInteraction<CacheType>) {
         const numMessages = MazariniClient.numMessages
         const statsReply = `Statistikk:\nAntall meldinger siden sist oppstart: ${numMessages}`
-        this.messageHelper.sendMessage(message.channelId, statsReply)
+        this.messageHelper.replyToInteraction(interaction, statsReply)
     }
 
     private async warnUser(message: Message, messageContent: string, args: string[]) {
@@ -366,6 +366,13 @@ export class Admin extends AbstractCommands {
             await interaction.showModal(modal)
         }
     }
+    private async rewardUser(interaction: ChatInputCommandInteraction<CacheType>) {
+        const type = interaction.options.getString('type')
+        const reason = interaction.options.get('type')?.value as string
+        const chips = interaction.options.get('chips')?.value as number
+        const user = interaction.options.get('user')?.user
+        this.messageHelper.replyToInteraction(interaction, `${user.username} har mottatt en ${type} reward på ${chips} på grunn av *${reason}*`)
+    }
 
     public getAllCommands(): ICommandElement[] {
         return [
@@ -382,15 +389,7 @@ export class Admin extends AbstractCommands {
                 },
                 category: 'admin',
             },
-            {
-                commandName: 'deletemessages',
-                description: 'Slett X siste meldinger fra en bruker i en channel',
-                isAdmin: true,
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.deleteXLastMessagesByUserInChannel(rawMessage, messageContent, args)
-                },
-                category: 'admin',
-            },
+
             {
                 commandName: 'react',
                 description: 'Reager på en melding som botten. <message id> <emoji>',
@@ -442,14 +441,7 @@ export class Admin extends AbstractCommands {
                 },
                 category: 'admin',
             },
-            {
-                commandName: 'stats',
-                description: 'Hent enkle stats om botten',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.getBotStatistics(rawMessage, messageContent, args)
-                },
-                category: 'admin',
-            },
+
             {
                 commandName: 'run',
                 description:
@@ -490,6 +482,20 @@ export class Admin extends AbstractCommands {
                 category: 'admin',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.setSpecificValue(rawInteraction)
+                },
+            },
+            {
+                commandName: 'reward',
+                category: 'admin',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.rewardUser(rawInteraction)
+                },
+            },
+            {
+                commandName: 'botstats',
+                category: 'admin',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.getBotStatistics(rawInteraction)
                 },
             },
         ]

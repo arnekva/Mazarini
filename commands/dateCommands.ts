@@ -32,7 +32,7 @@ export class DateCommands extends AbstractCommands {
         } else if (event.length < 1) {
             this.messageHelper.replyToInteraction(interaction, 'Du må spesifisere hva påminnelsen gjelder', true)
         } else {
-            this.messageHelper.replyToInteraction(interaction, `Påminnelsen din er satt`)
+            this.messageHelper.replyToInteraction(interaction, `Påminnelsen din er satt for *${event}*`)
             setTimeout(() => {
                 this.messageHelper.sendMessage(interaction.channelId, `*Påminnelse for ${MentionUtils.mentionUser(interaction.user.id)}*\n *${event}*`)
             }, timeout)
@@ -109,23 +109,28 @@ export class DateCommands extends AbstractCommands {
         if (!sendThisText) sendThisText = 'Ingen har ferie lenger :('
         this.messageHelper.sendMessage(message.channelId, sendThisText)
     }
-    private async countdownToDate(message: Message, messageContent: string, args: string[]) {
-        if (args[0] == 'fjern') {
-            return DatabaseHelper.deleteCountdownValue(message.author.username)
-        }
-        if (args[0] && (!args[1] || !args[2])) {
-            return message.reply('du mangler beskrivelse eller time (!mz countdown <dd-mm-yyyy> <HH> <beskrivelse>')
-        }
+    private async countdownToDate(interaction: ChatInputCommandInteraction<CacheType>) {
+        const isNewCountdown = interaction.options.getSubcommand() === 'sett'
+        const isPrinting = interaction.options.getSubcommand() === 'vis'
 
-        if (args.length >= 2) {
-            //dd-mm-yyyy
-            const isLegal = dateRegex.test(args[0])
-            if (!isLegal) {
-                return message.reply('du må formattere datoen ordentlig (dd-mm-yyyy)')
+        const event = interaction.options.get('hendelse')?.value as string
+        const dato = interaction.options.get('dato')?.value as string
+        const timestamp = interaction.options.get('klokkeslett')?.value as string
+
+        if (isNewCountdown) {
+            if (event == 'fjern') {
+                this.messageHelper.replyToInteraction(interaction, `Fjernet countdownen din`, true)
+                return DatabaseHelper.deleteCountdownValue(interaction.user.username)
             }
-            const dateParams = args[0].split('-')
-            const hrs = args[1].split(':')
-            const desc = args.slice(2).join(' ')
+
+            //dd-mm-yyyy
+            const isLegal = dateRegex.test(dato)
+            if (!isLegal) {
+                return this.messageHelper.replyToInteraction(interaction, 'du må formattere datoen ordentlig (dd-mm-yyyy)', true)
+            }
+            const dateParams = dato.split('-')
+            const hrs = timestamp.split(':')
+
             const cdDate = new Date(
                 Number(dateParams[2]),
                 Number(dateParams[1]) - 1,
@@ -136,37 +141,40 @@ export class DateCommands extends AbstractCommands {
                 Number(hrs[3] ?? 0)
             )
             if (!DateUtils.isValidDate(cdDate)) {
-                return message.reply(
-                    'Du har skrevet inn en ugyldig dato eller klokkeslett. !mz countdown <dd-mm-yyyy> <HH> <beskrivelse>. Husk at time er nødvendig, minutt og sekund frivillig (HH:MM:SS)'
+                this.messageHelper.replyToInteraction(
+                    interaction,
+                    `  'Du har skrevet inn en ugyldig dato eller klokkeslett. !mz countdown <dd-mm-yyyy> <HH> <beskrivelse>. Husk at time er nødvendig, minutt og sekund frivillig (HH:MM:SS)'`
                 )
             }
-            DatabaseHelper.setCountdownValue(message.author.username, 'date', cdDate.toString())
-            DatabaseHelper.setCountdownValue(message.author.username, 'desc', desc)
-        }
-        let sendThisText = ''
-        if (Object.keys(DatabaseHelper.getAllCountdownValues()).length < 1) {
-            return message.reply('Det er ingen aktive countdowns')
-        }
-        const countdownDates = DatabaseHelper.getAllCountdownValues()
+            DatabaseHelper.setCountdownValue(interaction.user.username, 'date', cdDate.toString())
+            DatabaseHelper.setCountdownValue(interaction.user.username, 'desc', event)
+            this.messageHelper.replyToInteraction(interaction, `Din countdown er satt til ${cdDate}`)
+        } else if (isPrinting) {
+            let sendThisText = ''
+            if (Object.keys(DatabaseHelper.getAllCountdownValues()).length < 1) {
+                return this.messageHelper.replyToInteraction(interaction, `Det er ingen aktive countdowns`)
+            }
+            const countdownDates = DatabaseHelper.getAllCountdownValues()
 
-        const printValues: dateValPair[] = []
+            const printValues: dateValPair[] = []
 
-        Object.keys(countdownDates).forEach((username) => {
-            const countdownElement = DatabaseHelper.getNonUserValue('countdown', username)
-            const daysUntil = DateUtils.getTimeTo(new Date(countdownElement.date))
-            const text = this.formatCountdownText(daysUntil, 'te ' + countdownElement.desc)
-            printValues.push({
-                print: `${!!text ? '\n' : ''}` + `${this.formatCountdownText(daysUntil, 'te ' + countdownElement.desc)}`,
-                date: countdownElement.date,
+            Object.keys(countdownDates).forEach((username) => {
+                const countdownElement = DatabaseHelper.getNonUserValue('countdown', username)
+                const daysUntil = DateUtils.getTimeTo(new Date(countdownElement.date))
+                const text = this.formatCountdownText(daysUntil, 'te ' + countdownElement.desc)
+                printValues.push({
+                    print: `${!!text ? '\n' : ''}` + `${this.formatCountdownText(daysUntil, 'te ' + countdownElement.desc)}`,
+                    date: countdownElement.date,
+                })
             })
-        })
 
-        ArrayUtils.sortDateStringArray(printValues)
-        printValues.forEach((el) => {
-            sendThisText += el.print
-        })
-        if (!sendThisText) sendThisText = 'Det er ingen aktive countdowner'
-        this.messageHelper.sendMessage(message.channelId, sendThisText)
+            ArrayUtils.sortDateStringArray(printValues)
+            printValues.forEach((el) => {
+                sendThisText += el.print
+            })
+            if (!sendThisText) sendThisText = 'Det er ingen aktive countdowner'
+            this.messageHelper.replyToInteraction(interaction, sendThisText)
+        }
     }
 
     private findHolidaysInThisWeek(checkForNextWeeksMonday?: boolean) {
@@ -273,19 +281,18 @@ export class DateCommands extends AbstractCommands {
         return timeUntil
     }
 
-    public checkForHelg(interaction?: ChatInputCommandInteraction<CacheType>): string {
+    public checkForHelg(interaction?: ChatInputCommandInteraction<CacheType>) {
         const isHelg = this.isItHelg()
         const val = isHelg ? `Det e helg!` : `${this.getTimeUntilHelgString()}`
-        if (interaction) {
-            interaction.reply(val)
-            return val
-        } else return val
+        if (interaction) this.messageHelper.replyToInteraction(interaction, val)
+        return val
     }
 
-    private addUserBirthday(message: Message, messageContent: string, args: string[]) {
-        const user = DatabaseHelper.getUser(message.author.id)
+    private addUserBirthday(interaction: ChatInputCommandInteraction<CacheType>) {
+        const user = DatabaseHelper.getUser(interaction.user.id)
+        const birthDayFromArg = interaction.options.get('dato')?.value as string
         const birthday = user.birthday
-        if (birthday && !args[0]) {
+        if (birthday && !birthDayFromArg) {
             const bdTab = birthday.split('-').map((d: any) => Number(d))
             const today = new Date()
             let date = new Date(new Date().getFullYear(), bdTab[1] - 1, bdTab[0])
@@ -298,22 +305,26 @@ export class DateCommands extends AbstractCommands {
             }
 
             if (DateUtils.isToday(date)) {
-                this.messageHelper.sendMessage(message.channelId, 'Du har bursdag i dag! gz')
+                this.messageHelper.replyToInteraction(interaction, 'Du har bursdag i dag! gz')
             } else {
-                const timeUntilBirthday = this.formatCountdownText(DateUtils.getTimeTo(date), `til ${message.author.username} sin bursdag.`, undefined, true)
-                this.messageHelper.sendMessage(message.channelId, timeUntilBirthday ?? 'Klarte ikke regne ut')
+                const timeUntilBirthday = this.formatCountdownText(DateUtils.getTimeTo(date), `til ${interaction.user.username} sin bursdag.`, undefined, true)
+                this.messageHelper.replyToInteraction(interaction, timeUntilBirthday ?? 'Klarte ikke regne ut')
             }
-        } else if (args[0]) {
-            const dateString = args[0]
+        } else if (birthDayFromArg) {
+            const dateString = birthDayFromArg
             if (dateString.split('-').length < 2 || (!(new Date(dateString) instanceof Date) && !isNaN(new Date(dateString).getTime()))) {
-                message.reply('Datoen er feilformattert. dd-mm-yyyy')
+                this.messageHelper.replyToInteraction(interaction, `Formatteringen din er feil (${dateString}). Det må formatteres dd-mm-yyyy`, true)
             } else {
                 user.birthday = dateString
                 DatabaseHelper.updateUser(user)
-                this.messageHelper.reactWithThumbs(message, 'up')
+                this.messageHelper.replyToInteraction(interaction, `Satte bursdagen din til ${dateString}`)
             }
         } else {
-            message.reply('Du må legge ved dato formattert dd-mm-yyyy')
+            this.messageHelper.replyToInteraction(
+                interaction,
+                `Du har ikke satt bursdagen din. Legg ved datoen formattert dd-mm-yyyy som argument når du kaller /bursdag neste gang`,
+                true
+            )
         }
     }
 
@@ -331,8 +342,9 @@ export class DateCommands extends AbstractCommands {
                 description:
                     "Se hvor lenge det er igjen til events (Legg til ny med '!mz countdown <dd-mm-yyyy> <hh> <beskrivelse> (klokke kan spesifiserert slik: <hh:mm:ss:SSS>. Kun time er nødvendig)",
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.countdownToDate(rawMessage, messageContent, args)
+                    // this.countdownToDate(rawMessage, messageContent, args)
                 },
+                isReplacedWithSlashCommand: 'countdown',
                 category: 'annet',
             },
             {
@@ -347,9 +359,10 @@ export class DateCommands extends AbstractCommands {
                 commandName: 'bursdag',
                 description: 'Legg til bursdagen din, så får du en gratulasjon av Høie på dagen',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.addUserBirthday(rawMessage, messageContent, args)
+                    // this.addUserBirthday(rawMessage, messageContent, args)
                 },
                 category: 'annet',
+                isReplacedWithSlashCommand: 'bursdag',
             },
         ]
     }
@@ -367,6 +380,20 @@ export class DateCommands extends AbstractCommands {
                 commandName: 'reminder',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.setReminder(rawInteraction)
+                },
+                category: 'annet',
+            },
+            {
+                commandName: 'bursdag',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.addUserBirthday(rawInteraction)
+                },
+                category: 'annet',
+            },
+            {
+                commandName: 'countdown',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.countdownToDate(rawInteraction)
                 },
                 category: 'annet',
             },

@@ -174,24 +174,8 @@ export class Spinner extends AbstractCommands {
         // DatabaseHelper.compareAndUpdateValue('ATHspin', 'spin')
     }
 
-    private async allTimeHigh(message: Message) {
-        // this.updateATH()
-        // const val = DatabaseHelper.getAllValuesFromPrefix('ATHspin')
-        // ArrayUtils.sortUserValuePairArray(val)
-        // const printList = ArrayUtils.makeValuePairIntoOneString(val, this.formatValue)
-        // this.messageHelper.sendMessage(message.channelId, printList)
-    }
-
     public getAllCommands(): ICommandElement[] {
         return [
-            {
-                commandName: 'ATH',
-                description: 'Printer hver person sin beste spin!',
-                command: (rawMessage: Message, messageContent: string) => {
-                    this.allTimeHigh(rawMessage)
-                },
-                category: 'spin',
-            },
             {
                 commandName: 'spin',
                 description:

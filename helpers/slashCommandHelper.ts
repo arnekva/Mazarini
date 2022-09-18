@@ -18,10 +18,8 @@ export class SlashCommandHelper {
         }
     }
 
-    static getCleanNumberValue(val: any | undefined) {
+    static getCleanNumberValue(val: any | undefined): number | undefined {
         if (val) {
-            console.log('<' + val + '>')
-
             const commaToDot = val.toString().replace(',', '.')
             const num = Number(commaToDot).toFixed(0)
             return Number(num)

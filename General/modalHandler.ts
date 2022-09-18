@@ -11,15 +11,17 @@ export class ModalHandler {
         this.messageHelper = messageHelper
     }
 
-    handleIncomingModalInteraction(rawInteraction: Interaction<CacheType>) {
+    handleIncomingModalInteraction(rawInteraction: Interaction<CacheType>): boolean {
         if (rawInteraction.type === InteractionType.ModalSubmit) {
             //Is Modal
             const localIntr = rawInteraction as ModalSubmitInteraction
             const interactionID = localIntr.customId
             if (interactionID === Admin.adminSendModalID) {
                 this.handleAdminSendModalDialog(localIntr)
+                return true
             }
         }
+        return false
     }
 
     private handleAdminSendModalDialog(modalInteraction: ModalSubmitInteraction) {

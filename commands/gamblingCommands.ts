@@ -153,7 +153,6 @@ export class GamblingCommands extends AbstractCommands {
         } else {
             const userWallets = this.getUserWallets(interaction.user.id, target.id)
             const hasAmount = !!amount
-            console.log(hasAmount, amount)
 
             const largestPossibleValue = Math.min(userWallets.engagerChips, userWallets.victimChips)
             let amountAsNum = hasAmount ? Number(amount) : largestPossibleValue
@@ -244,50 +243,42 @@ export class GamblingCommands extends AbstractCommands {
         }
     }
 
-    private diceGamble(message: Message, content: string, args: string[]) {
-        const user = DatabaseHelper.getUser(message.author.id)
+    private diceGamble(interaction: ChatInputCommandInteraction<CacheType>) {
+        const user = DatabaseHelper.getUser(interaction.user.id)
+        const amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('chips')?.value)
         const userMoney = user.chips
-        let value = args[0]
-        if (value === 'alt' || value === 'all') value = userMoney.toString()
-        if (value === 'halv' || value === 'halvparten') value = (userMoney * 0.5).toFixed(0)
-        if (!value || isNaN(Number(value))) {
-            message.reply('Du må si hvor mye du vil gamble')
-        } else if (userMoney) {
-            if (Number(value) > Number(userMoney)) {
-                message.reply('Du har ikke nok penger til å gamble så mye. Bruk <!mz lån 100> for å låne chips fra MazariniBank')
-            } else if (Number(value) < 1) {
-                message.reply('Du må satsa minst 1 chip')
-            } else if (value && Number(value)) {
-                const valAsNum = Number(Number(value).toFixed(0))
-                const roll = RandomUtils.getRndInteger(0, 100)
+        let chipsToGamble = amount
 
-                let newMoneyValue = 0
-                let multiplier = this.getMultiplier(roll, valAsNum)
-                const calculatedValue = this.calculatedNewMoneyValue(message, multiplier, valAsNum, userMoney)
-                let interest = calculatedValue.interestAmount
-                if (roll >= 50) {
-                    newMoneyValue = calculatedValue.newMoneyValue
-                } else newMoneyValue = Number(userMoney) - valAsNum
-                user.chips = newMoneyValue
-                DatabaseHelper.updateUser(user)
+        if (!amount || amount > userMoney) chipsToGamble = userMoney
+        if (amount < 1 || isNaN(amount)) chipsToGamble = 1
+        if (userMoney) {
+            const roll = RandomUtils.getRndInteger(0, 100)
 
-                const gambling = new EmbedBuilder()
-                    .setTitle('Gambling 🎲')
-                    .setDescription(
-                        `${message.author.username} gamblet ${TextUtils.formatMoney(valAsNum, 2, 2)} av ${TextUtils.formatMoney(
-                            Number(userMoney),
-                            2,
-                            2
-                        )} chips.\nTerningen trillet: ${roll}/100. Du ${
-                            roll >= 50 ? 'vant! 💰💰 (' + Number(multiplier) + 'x)' : 'tapte 💸💸'
-                        }\nDu har nå ${TextUtils.formatMoney(newMoneyValue, 2, 2)} chips.`
-                    )
-                if (roll >= 100) gambling.addFields({ name: `Trillet 100!`, value: `Du trillet 100 og vant ${multiplier} ganger så mye som du satset!` })
+            let newMoneyValue = 0
+            let multiplier = this.getMultiplier(roll)
+            const calculatedValue = this.calculatedNewMoneyValue(interaction.user.id, multiplier, chipsToGamble, userMoney)
 
-                this.messageHelper.sendFormattedMessage(message.channel as TextChannel, gambling)
-            }
+            if (roll >= 50) {
+                newMoneyValue = calculatedValue.newMoneyValue
+            } else newMoneyValue = Number(userMoney) - chipsToGamble
+            user.chips = newMoneyValue
+            DatabaseHelper.updateUser(user)
+
+            const gambling = new EmbedBuilder()
+                .setTitle('Gambling 🎲')
+                .setDescription(
+                    `${interaction.user.username} gamblet ${TextUtils.formatMoney(chipsToGamble, 2, 2)} av ${TextUtils.formatMoney(
+                        Number(userMoney),
+                        2,
+                        2
+                    )} chips.\nTerningen trillet: ${roll}/100. Du ${
+                        roll >= 50 ? 'vant! 💰💰 (' + Number(multiplier) + 'x)' : 'tapte 💸💸'
+                    }\nDu har nå ${TextUtils.formatMoney(newMoneyValue, 2, 2)} chips.`
+                )
+            if (roll >= 100) gambling.addFields({ name: `Trillet 100!`, value: `Du trillet 100 og vant ${multiplier} ganger så mye som du satset!` })
+            this.messageHelper.replyToInteraction(interaction, gambling)
         } else {
-            message.reply('Du har nok ikkje råd te dette')
+            this.messageHelper.replyToInteraction(interaction, `Du må ha minst 1 chip for å gambla :'(`)
         }
     }
 
@@ -354,7 +345,7 @@ export class GamblingCommands extends AbstractCommands {
             if (!incorrectFormat) {
                 let newMoneyValue = 0
 
-                if (won) newMoneyValue = this.calculatedNewMoneyValue(message, multiplier, valAsNum, userMoney).newMoneyValue
+                if (won) newMoneyValue = this.calculatedNewMoneyValue(message.author.id, multiplier, valAsNum, userMoney).newMoneyValue
                 else newMoneyValue = Number(userMoney) - valAsNum
                 user.chips = newMoneyValue
                 DatabaseHelper.updateUser(user)
@@ -379,18 +370,18 @@ export class GamblingCommands extends AbstractCommands {
             }
         }
     }
-    private getMultiplier(roll: number, amountBet: number) {
+    private getMultiplier(roll: number) {
         if (roll >= 100) return 5
         return 2
     }
 
     private calculatedNewMoneyValue(
-        message: Message,
+        id: string,
         multiplier: number,
         valAsNum: number,
         userMoney: number
     ): { newMoneyValue: number; interestAmount: number; rate: number } {
-        const user = DatabaseHelper.getUser(message.author.id)
+        const user = DatabaseHelper.getUser(id)
 
         let newMoneyValue = 0
         let interest = 0
@@ -446,11 +437,11 @@ export class GamblingCommands extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, embed)
     }
 
-    private rollSlotMachine(message: Message, messageContent: string, args: string[]) {
-        const user = DatabaseHelper.getUser(message.author.id)
+    private rollSlotMachine(interaction: ChatInputCommandInteraction<CacheType>) {
+        const user = DatabaseHelper.getUser(interaction.user.id)
         const userMoney = user.chips
         if (Number(userMoney) < 100) {
-            message.reply('Det koste 100 chips for å bruga maskinen, og du har kje råd bro')
+            this.messageHelper.replyToInteraction(interaction, `Det koste 100 chips for å bruga maskinen, og du har kje råd bro`)
         } else {
             //Remove 100 chips
             let emojiString = ''
@@ -468,7 +459,7 @@ export class GamblingCommands extends AbstractCommands {
             const msg = new EmbedBuilder().setTitle('🎰 Gambling 🎰').setDescription(`${emojiString}`).setFields()
 
             const amountOfCorrectNums: { val: number; num: number }[] = []
-            const sequenceWins = ['123', '1234', '12345', '1337']
+            const sequenceWins = ['123', '1234', '12345', '1337', '80085']
             let currentNum = randArray[0]
             let numOfOccurence = 0
             //Gå gjennom array
@@ -512,7 +503,7 @@ export class GamblingCommands extends AbstractCommands {
                 })
                 if (!hasSequence) msg.addFields({ name: 'Du tapte', value: '-100 chips' })
             }
-            this.messageHelper.sendFormattedMessage(message.channel as TextChannel, msg)
+            this.messageHelper.replyToInteraction(interaction, msg)
         }
     }
 
@@ -585,8 +576,6 @@ export class GamblingCommands extends AbstractCommands {
                 DatabaseHelper.updateUser(user)
                 return claimedMessage
             } else {
-                console.log(canClaim)
-
                 return 'Du har allerede hentet dine daglige chips. Prøv igjen i morgen etter klokken 06:00'
             }
         } else return 'Klarte ikke hente daily'
@@ -645,6 +634,7 @@ export class GamblingCommands extends AbstractCommands {
             case '1234':
                 return 15500
             case '12345':
+            case '80085':
                 return 3575000
             case '1337':
                 return 345750
@@ -704,9 +694,10 @@ export class GamblingCommands extends AbstractCommands {
                 commandName: ['gamble', 'g'],
                 description: 'Gambla chips dine! Skriv inn mengde chips du vil gambla, så kan du vinna.',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.diceGamble(rawMessage, messageContent, args)
+                    // this.diceGamble(rawMessage, messageContent, args)
                 },
                 category: 'gambling',
+                isReplacedWithSlashCommand: 'gamble',
                 canOnlyBeUsedInSpecificChannel: [MessageUtils.CHANNEL_IDs.LAS_VEGAS],
             },
 
@@ -734,9 +725,10 @@ export class GamblingCommands extends AbstractCommands {
                 commandName: 'roll',
                 description: 'Rull spillemaskinen. Du vinner hvis du får 2 eller flere like tall',
                 command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.rollSlotMachine(rawMessage, messageContent, args)
+                    // this.rollSlotMachine(rawMessage, messageContent, args)
                 },
                 category: 'gambling',
+                isReplacedWithSlashCommand: 'roll',
                 canOnlyBeUsedInSpecificChannel: [MessageUtils.CHANNEL_IDs.LAS_VEGAS],
             },
         ]
@@ -769,6 +761,20 @@ export class GamblingCommands extends AbstractCommands {
                 commandName: 'krig',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.krig(rawInteraction)
+                },
+                category: 'gambling',
+            },
+            {
+                commandName: 'gamble',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.diceGamble(rawInteraction)
+                },
+                category: 'gambling',
+            },
+            {
+                commandName: 'roll',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.rollSlotMachine(rawInteraction)
                 },
                 category: 'gambling',
             },

@@ -2,20 +2,26 @@ import { CacheType, ChatInputCommandInteraction, Client, Message } from 'discord
 import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from './General/commands'
 import { MessageHelper } from './helpers/messageHelper'
+import { MentionUtils } from './utils/mentionUtils'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '9.11.0'
+    public static readonly currentVersion = '9.12.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Role er nå slashcommand` +
-        `\n* Bonk er nå slashcommand` +
-        `\n* Patchnotes er nå slashcommand` +
-        `\n* Mordi er nå slashcommand` +
-        `\n* Drikk er nå slashcommand` +
-        `\n* Du kan nå spinne fidgetspinneren med /spin. (!mz spin beholdes også foreløpig)` +
-        `\n* !mz warnings og !mz totalspins er fjernet, siden dataen kan sees i /brukerinfo`
+        `\n* /snakk kan nå brukes for å få botten til å si noe i voice channel` +
+        `\n* Bursdag er nå en slashcommand` +
+        `\n* Countdown er nå en slashcommand` +
+        `\n* Gamble er nå en slashcommand` +
+        `\n* Roll er nå en slashcommand` +
+        `\n* Electricity er nå en slashcommand` +
+        `\n* Botstats er nå en slashcommand` +
+        `\n* *!mz jærsk* er fjernet` +
+        `\n* Electricity skal nå gi litt bedre oversikt over game state og hvem som må drikke (og hvor mye de må drikke)` +
+        `\n* Du kan nå motta en chips-reward for bug reports til ${MentionUtils.mentionChannel(MessageUtils.CHANNEL_IDs.BOT_UTVIKLING)}` +
+        `\n* Fikset en feil som gjorde at /helg kunne føre til at en at interaction kunne bli forsøkt besvart to ganger` +
+        `\n* Lagt til en fallback hvis en interaksjon er opprettet, men kodestøtten ikke er pushet live enda`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

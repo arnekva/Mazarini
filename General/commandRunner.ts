@@ -88,17 +88,21 @@ export class CommandRunner {
         // const isAdmin = Admin.isAuthorAdmin(UserUtils.findMemberByUsername(interaction.user.username, message))
 
         const commands = this.commands.getAllInteractionCommands()
+        let hasAcknowledged = false
+
         if (interaction.isChatInputCommand()) {
             commands.forEach((cmd) => {
                 if (cmd.commandName === interaction.commandName) {
                     this.runInteractionElement(cmd, interaction)
+                    hasAcknowledged = true
                 }
             })
         } else if (interaction.type === InteractionType.ModalSubmit) {
-            this.commands.handleModalInteractions(interaction)
+            hasAcknowledged = this.commands.handleModalInteractions(interaction)
         } else if (interaction.isSelectMenu()) {
-            this.commands.handleSelectMenus(interaction)
+            hasAcknowledged = this.commands.handleSelectMenus(interaction)
         }
+        if (!hasAcknowledged) interaction.isRepliable() ? interaction.reply(`Denne interaksjonen støttes ikke for øyeblikket`) : undefined
         return undefined
     }
     async checkForCommand(message: Message) {

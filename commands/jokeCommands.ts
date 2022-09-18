@@ -70,8 +70,6 @@ export class JokeCommands extends AbstractCommands {
                         const otherActivities: APIEmbedField[] = rest
                             .filter((a) => a.name !== currentActivity.name)
                             .map((a) => {
-                                console.log(a.name, activities.length)
-
                                 return { name: a.name, value: `${a?.state && a?.details ? a.state + ', ' + a.details : 'Ingen informasjon'}` }
                             })
                         embd.addFields(otherActivities)
@@ -197,23 +195,6 @@ export class JokeCommands extends AbstractCommands {
         }
     }
 
-    private async jaerskIfyer(message: Message, msgContent: string, args: string[]) {
-        let fMsg
-        if (args && args[0] && args[0].length > 10 && parseInt(args[0])) {
-            fMsg = await this.messageHelper.sendMessage(message.channelId, 'Leter etter meldingen...')
-            const msgToJaersk = await (<Message>(<unknown>MessageHelper.findMessageById(message, msgContent)))
-            if (msgToJaersk) {
-                const uwuIfiedText = JokeCommands.jaerskText(msgToJaersk.content)
-                if (fMsg) fMsg.edit(uwuIfiedText)
-                else this.messageHelper.sendMessage(message.channelId, uwuIfiedText)
-            }
-            if (!msgToJaersk && fMsg) fMsg.edit('Fant ikke meldingen :(')
-        } else {
-            let textToBeUwued = JokeCommands.jaerskText(args.length > 0 ? args.join(' ') : 'Please skriv inn ein tekst eller id neste gang')
-            this.messageHelper.sendMessage(message.channelId, textToBeUwued)
-        }
-    }
-
     private async sendBonk(interaction: ChatInputCommandInteraction<CacheType>) {
         const img = ArrayUtils.randomChoiceFromArray(globalArrays.bonkMemeUrls)
         const user = interaction.options.get('bruker')?.user
@@ -272,14 +253,6 @@ export class JokeCommands extends AbstractCommands {
                     'Stav ut en setning som emojier i reactions. Syntax: <ord/setning> <(optional) message-id>. Ordet bør ikke inneholde repeterte bokstaver; kun ABCIMOPRSTVX har to versjoner og kan repeteres. Hvis ingen message id gis reagerer den på sendt melding. ',
                 command: (rawMessage: Message, messageContent: string, args: string[] | undefined) => {
                     this.reactWithLetters(rawMessage, messageContent, args)
-                },
-                category: 'annet',
-            },
-            {
-                commandName: 'jærsk',
-                description: 'Gjør teksten jærsk',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.jaerskIfyer(rawMessage, messageContent, args)
                 },
                 category: 'annet',
             },

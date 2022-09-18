@@ -156,11 +156,11 @@ export class Commands {
         ]
     }
 
-    handleModalInteractions(interaction: Interaction<CacheType>) {
-        this.modalHandler.handleIncomingModalInteraction(interaction)
+    handleModalInteractions(interaction: Interaction<CacheType>): boolean {
+        return this.modalHandler.handleIncomingModalInteraction(interaction)
     }
-    handleSelectMenus(interaction: Interaction<CacheType>) {
-        this.selectMenuHandler.handleIncomingSelectMenu(interaction)
+    handleSelectMenus(interaction: Interaction<CacheType>): boolean {
+        return this.selectMenuHandler.handleIncomingSelectMenu(interaction)
     }
 
     getCommandCatgeories() {
