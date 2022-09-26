@@ -61,10 +61,11 @@ export class JokeCommands extends AbstractCommands {
                             embd.setDescription(`${currentActivity.assets.largeText}`)
 
                         if (urlMatch) embd.setThumbnail(`${urlMatch}`)
+                        else if (currentActivity.assets?.largeImage) {
+                            embd.setThumbnail(`${baseURL}/${currentActivity.assets.largeImage}`)
+                        }
                         else if (currentActivity.assets?.smallImage) {
                             embd.setThumbnail(`${baseURL}/${currentActivity.assets.smallImage}`)
-                        } else if (currentActivity.assets?.largeImage) {
-                            embd.setThumbnail(`${baseURL}/${currentActivity.assets.largeImage}`)
                         }
                     }
                     if (activities.length > 1) {
