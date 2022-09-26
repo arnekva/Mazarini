@@ -50,9 +50,10 @@ export class JokeCommands extends AbstractCommands {
                         `${currentActivity?.details ?? ''} ${currentActivity.state ? ' - ' + currentActivity?.state : ''}`,
                         [{ name: 'Åpent i', value: timeSince ? `${timeSince.hours} timer og ${timeSince.minutes} minutter` : 'Ane ikkje' }]
                     )
+
                     if (currentActivity.url) embd.setThumbnail(`${currentActivity.url}`)
                     if (currentActivity.assets) {
-                        const urlSlashFix = currentActivity.assets.largeImage.replace('https/', 'https://')
+                        const urlSlashFix = currentActivity.assets.largeImage ? currentActivity.assets.largeImage.replace('https/', 'https://') : ''
                         const urlMatch = urlSlashFix.match(/\bhttps?:\/\/\S+/gi)
                         if (isSpotify) {
                             embd.addFields([{ name: 'Album', value: `${currentActivity.assets.largeText}` }])
@@ -62,6 +63,8 @@ export class JokeCommands extends AbstractCommands {
                         if (urlMatch) embd.setThumbnail(`${urlMatch}`)
                         else if (currentActivity.assets?.smallImage) {
                             embd.setThumbnail(`${baseURL}/${currentActivity.assets.smallImage}`)
+                        } else if (currentActivity.assets?.largeImage) {
+                            embd.setThumbnail(`${baseURL}/${currentActivity.assets.largeImage}`)
                         }
                     }
                     if (activities.length > 1) {
