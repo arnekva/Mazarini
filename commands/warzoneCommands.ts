@@ -232,7 +232,7 @@ export class WarzoneCommands extends AbstractCommands {
         let gamertag = ''
         let platform: platforms
 
-        const WZUser = user ? this.getWZUserStringFromDB(rawInteraction.user)?.split(';') : this.getWZUserStringFromDB(rawInteraction.user)?.split(';')
+        const WZUser = user ? this.getWZUserStringFromDB(user)?.split(';') : this.getWZUserStringFromDB(rawInteraction.user)?.split(';')
         if (!WZUser) {
             return user ? `Brukeren har ikkje kobla opp brukernavn` : 'Du må knytta brukernavn te brukeren din fysste'
         }
