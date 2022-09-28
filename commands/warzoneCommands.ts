@@ -228,7 +228,7 @@ export class WarzoneCommands extends AbstractCommands {
         }
     }
 
-    private async getBRContent(rawInteraction: Interaction<CacheType>, isWeekly?: boolean, user?: User) {
+    private async getBRContent(rawInteraction: Interaction<CacheType>, wantedType: string, user?: User, rebirthOnly?: boolean) {
         let gamertag = ''
         let platform: platforms
 
@@ -242,9 +242,9 @@ export class WarzoneCommands extends AbstractCommands {
         const filterMode: string = ' ' //TODO: Legg til support for dette igjen
 
         const noSave = filterMode === 'nosave' || !!user
-        const isRebirth = filterMode === 'rebirth'
+        const isRebirth = filterMode === 'rebirth' || rebirthOnly
 
-        if (isWeekly) {
+        if (wantedType === 'weekly' || wantedType === 'rebirth') {
             return this.findWeeklyData(gamertag, platform, rawInteraction, { noSave: noSave, rebirth: isRebirth })
         } else {
             /** BR */
@@ -437,10 +437,11 @@ export class WarzoneCommands extends AbstractCommands {
     private async handleWZInteraction(interaction: ChatInputCommandInteraction<CacheType>) {
         await interaction.deferReply()
         if (interaction) {
-            const wantedType = interaction.options.getString('mode') //"br", "weekly" eller "siste"
+            const wantedType = interaction.options.getString('mode') //"br", "weekly", "siste" or "rebirth"
             const checkAnotherUser = interaction.options.get('bruker')?.user
+
             if (wantedType === 'br' || wantedType === 'weekly') {
-                const content = await this.getBRContent(interaction, wantedType === 'weekly', checkAnotherUser)
+                const content = await this.getBRContent(interaction, wantedType, checkAnotherUser)
                 this.messageHelper.replyToInteraction(interaction, content, undefined, true)
             } else if (wantedType === 'siste') {
                 const content = await this.getLastMatchData(interaction, checkAnotherUser)

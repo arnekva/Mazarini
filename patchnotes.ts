@@ -10,6 +10,7 @@ export class PatchNotes extends AbstractCommands {
 
     public static readonly currentPatchNotes: string =
         `\n* /snakk sier ikke lenger hva du fikk botten til å si for alle - den svarer kun deg` +
+        `\n* Du kan nå få rebirth only stats for wz med /stats rebirth` +
         `\n* Du kan nå sjekke andre personer sine stats med /stats <mode> <bruker?>`
 
     static getCurrentPatchNotes() {
