@@ -52,66 +52,6 @@ export class Music extends AbstractCommands {
 
     private readonly baseUrl = 'http://ws.audioscrobbler.com/2.0/'
 
-    async findCommand(message: Message, content: string, args: string[], params?: IFindCommand) {
-        if (!args[0]) {
-            return message.reply("Feilformattert. Mangler du f.eks 'topp'?")
-        } else {
-            const method = methods.filter((e) => e.command == args[0])[0]
-
-            if (args[0] != 'user') {
-                if (!method) {
-                    return message.reply("Kommandoen eksisterer ikke. Bruk 'topp' eller 'weekly'")
-                }
-
-                let username = this.getLastFMUsernameByDiscordUsername(params?.usernameToLookup ?? message.author.username, message)
-
-                //Check if fourth ([3]) argument is a valid username - if so, override author.username. Otherwise, treat [3] as 'stats' option.
-                let usernameFromArgs = this.getLastFMUsernameByDiscordUsername(TextUtils.splitUsername(args[2]) ?? '', message)
-                if (usernameFromArgs) username = usernameFromArgs
-                let limit = (Number(args[1]) ? args[1] : args[2]) ?? '5'
-                const cmd = this.getCommand(method.command, args[1])
-
-                if (!username) {
-                    if (!params?.isSilent) message.reply("Du har ikke registrert brukernavnet ditt. Bruk '!mz musikk user <discordnavn> <last.fm navn>")
-                    return undefined
-                }
-
-                if (method.command === 'siste' && args[2]) {
-                    const nyUser = this.getLastFMUsernameByDiscordUsername(args[2], message)
-                    if (nyUser) {
-                        username = nyUser
-                    } else {
-                        if (!params?.isSilent)
-                            message.reply(
-                                "du har oppgitt et brukernavn som ikke har tilknyttet Last.fm-kontoen sin ('!mz musikk user <discordnavn> <last.fm navn>')"
-                            )
-                        return undefined
-                    }
-                }
-
-                if (!cmd) {
-                    return message.reply("kommandoen mangler 'artist', 'songs' eller 'album' eller  bak 'topp', 'weekly' eller 'siste'")
-                }
-
-                const data: fetchData = {
-                    user: username,
-                    method: { cmd: cmd, desc: method.title },
-                    limit: limit,
-                    includeStats: usernameFromArgs ? !!args[4] : !!args[3], //If overriding username, stats index is pushed back by 1 index
-                    silent: params?.isSilent ?? false,
-                    includeNameInOutput: params?.includeUsername ?? false,
-                    username: args[2] ?? message.author.username,
-                    header: `${cmd} 10 for ${message.author.username}`,
-                }
-
-                const dataRet = await this.findLastFmData(data, params?.notWeeklyOrRecent, params?.isSilent)
-                return dataRet
-            } else {
-                return undefined
-            }
-        }
-    }
-
     getCommand(c: commandTypes, s: string) {
         switch (c) {
             case 'topp':
@@ -321,7 +261,6 @@ Docs: https://www.last.fm/api/show/user.getInfo
             {
                 commandName: 'musikk',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    // this.findCommand(rawMessage, messageContent, args)
                     this.handleMusicInteractions(rawInteraction)
                 },
                 category: 'musikk',

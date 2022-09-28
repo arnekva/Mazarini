@@ -148,7 +148,7 @@ export class GamblingCommands extends AbstractCommands {
         const target = interaction.options.get('bruker')?.user
         const amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('chips')?.value)
 
-        if (!isNaN(Number(amount)) || Number(amount) < 1) {
+        if (isNaN(Number(amount)) || Number(amount) < 1) {
             this.messageHelper.replyToInteraction(interaction, `Tallet er ugyldig`, true)
         } else {
             const userWallets = this.getUserWallets(interaction.user.id, target.id)

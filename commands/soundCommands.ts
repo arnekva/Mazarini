@@ -1,7 +1,8 @@
-import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { MessageHelper } from '../helpers/messageHelper'
+import { MentionUtils } from '../utils/mentionUtils'
 import { SoundUtils } from '../utils/soundUtils'
 import { UserUtils } from '../utils/userUtils'
 
@@ -15,7 +16,7 @@ export class SoundCommands extends AbstractCommands {
         const memb = UserUtils.findMemberByUserID(interaction.user.id, interaction)
 
         if (memb?.voice?.channel) {
-            this.messageHelper.replyToInteraction(interaction, `${interaction.user.username} fekk meg te å sei *${text}* i voice chatten`)
+            this.messageHelper.replyToInteraction(interaction, `Du fekk meg te å sei *${text}* i voice chatten`, true)
             await SoundUtils.connectToVoiceAndSpeak(
                 {
                     adapterCreator: interaction.guild?.voiceAdapterCreator,
@@ -23,6 +24,10 @@ export class SoundCommands extends AbstractCommands {
                     guildID: interaction?.guildId ?? 'None',
                 },
                 `${text}`
+            )
+            this.messageHelper.sendMessageToActionLog(
+                interaction.channel as TextChannel,
+                `${interaction.user.username} fikk botten til å si *${text}* i ${MentionUtils.mentionChannel(memb.voice?.channelId)}`
             )
             // SoundUtils.disconnectFromVoiceChannel(interaction.guildId)
         } else {

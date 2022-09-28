@@ -1,5 +1,5 @@
 import { login, platforms, Warzone } from 'call-of-duty-api'
-import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction, User } from 'discord.js'
 import { Response } from 'node-fetch'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { actSSOCookie } from '../client-env'
@@ -172,9 +172,9 @@ export class WarzoneCommands extends AbstractCommands {
         }
     }
 
-    private async getLastMatchData(interaction: Interaction<CacheType>): Promise<string | EmbedBuilder> {
-        const WZUser = this.getWZUserStringFromDB(interaction)?.split(';')
-        if (!WZUser) return 'Du må knytta brukernavn te brukeren din fysste'
+    private async getLastMatchData(interaction: Interaction<CacheType>, user?: User): Promise<string | EmbedBuilder> {
+        const WZUser = user ? this.getWZUserStringFromDB(user)?.split(';') : this.getWZUserStringFromDB(interaction.user)?.split(';')
+        if (!WZUser) return user ? `Brukeren har ikkje kobla te brukernavn` : 'Du må knytta brukernavn te brukeren din fysste'
         else {
             const gamertag = WZUser[1]
             const platform = this.translatePlatform(WZUser[0])
@@ -228,13 +228,13 @@ export class WarzoneCommands extends AbstractCommands {
         }
     }
 
-    private async getBRContent(rawInteraction: Interaction<CacheType>, isWeekly?: boolean) {
+    private async getBRContent(rawInteraction: Interaction<CacheType>, isWeekly?: boolean, user?: User) {
         let gamertag = ''
         let platform: platforms
 
-        const WZUser = this.getWZUserStringFromDB(rawInteraction)?.split(';')
+        const WZUser = user ? this.getWZUserStringFromDB(rawInteraction.user)?.split(';') : this.getWZUserStringFromDB(rawInteraction.user)?.split(';')
         if (!WZUser) {
-            return 'Du må knytta brukernavn te brukeren din fysste'
+            return user ? `Brukeren har ikkje kobla opp brukernavn` : 'Du må knytta brukernavn te brukeren din fysste'
         }
         gamertag = WZUser[1]
         platform = this.translatePlatform(WZUser[0])
@@ -438,11 +438,12 @@ export class WarzoneCommands extends AbstractCommands {
         await interaction.deferReply()
         if (interaction) {
             const wantedType = interaction.options.getString('mode') //"br", "weekly" eller "siste"
+            const checkAnotherUser = interaction.options.get('bruker')?.user
             if (wantedType === 'br' || wantedType === 'weekly') {
-                const content = await this.getBRContent(interaction, wantedType === 'weekly')
+                const content = await this.getBRContent(interaction, wantedType === 'weekly', checkAnotherUser)
                 this.messageHelper.replyToInteraction(interaction, content, undefined, true)
             } else if (wantedType === 'siste') {
-                const content = await this.getLastMatchData(interaction)
+                const content = await this.getLastMatchData(interaction, checkAnotherUser)
 
                 this.messageHelper.replyToInteraction(interaction, content, undefined, true)
             }
@@ -451,8 +452,8 @@ export class WarzoneCommands extends AbstractCommands {
         }
     }
 
-    private getWZUserStringFromDB(interaction: Interaction<CacheType>) {
-        return DatabaseHelper.getUser(interaction.user.id)?.activisionUserString
+    private getWZUserStringFromDB(user: User) {
+        return DatabaseHelper.getUser(user.id)?.activisionUserString
     }
 
     /**
