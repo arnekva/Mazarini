@@ -241,7 +241,7 @@ export class WarzoneCommands extends AbstractCommands {
 
         const filterMode: string = ' ' //TODO: Legg til support for dette igjen
 
-        const noSave = filterMode === 'nosave'
+        const noSave = filterMode === 'nosave' || !!user
         const isRebirth = filterMode === 'rebirth'
 
         if (isWeekly) {
