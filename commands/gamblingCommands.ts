@@ -249,8 +249,8 @@ export class GamblingCommands extends AbstractCommands {
         const userMoney = user.chips
         let chipsToGamble = amount
 
-        if (!amount || amount > userMoney) chipsToGamble = userMoney
-        if (amount < 1 || isNaN(amount)) chipsToGamble = 1
+        if (!amount || amount > userMoney || isNaN(amount)) chipsToGamble = userMoney
+        if (amount < 1) chipsToGamble = 1
         if (userMoney) {
             const roll = RandomUtils.getRndInteger(0, 100)
 
@@ -295,10 +295,12 @@ export class GamblingCommands extends AbstractCommands {
             message.reply('Helvedde.. Tror kanskje du må spørre om hjelp for å formattere deg riktig')
         } else if (!userMoney || userMoney < 0) {
             if (Number(stake) > Number(userMoney)) {
-                message.reply('Du har ikke nok penger til å gamble så mye. Bruk <!mz lån 100> for å låne chips fra MazariniBank')
+                message.reply('Du har ikke nok penger til å gamble så mye. Ta å spin fidget spinneren litt for någe cash')
             } else if (Number(stake) < 0 || Number(stake) === 0) {
                 message.reply('Du prøver å gamble med en ulovlig verdi.')
             }
+        } else if (userMoney < Number(stake)) {
+            message.reply('Du har kje råd te dette')
         } else if (stake && Number(stake) && betOn) {
             const red = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]
             const valAsNum = Number(Number(stake).toFixed(2))

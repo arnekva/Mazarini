@@ -16,6 +16,7 @@ import {
 import { globalArrays } from '../globals'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { CollectorUtils } from '../utils/collectorUtils'
+import { MentionUtils } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { UserUtils } from '../utils/userUtils'
 
@@ -41,20 +42,40 @@ export class MessageHelper {
      * @param wasDefered Set to true if the interaction has been defered (i.e. paused while thinking). Defered interactions requires to be replied with editReply() instead of reply().
      * @returns True if reply is sent, false if not
      */
-    replyToInteraction(
+    async replyToInteraction(
         interaction: ChatInputCommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | SelectMenuInteraction<CacheType>,
         content: string | EmbedBuilder,
         onlyVisibleToEngager?: boolean,
         wasDefered?: boolean,
         menu?: ActionRowBuilder<SelectMenuBuilder>
-    ): boolean {
+    ): Promise<boolean> {
+        const logError = (e: any) => {
+            this.sendMessageToActionLog(
+                interaction.channel as TextChannel,
+                `Klarte ikke svare på en interaction. ${interaction.user.username} prøvde å bruke ${
+                    interaction.isChatInputCommand() ? interaction.commandName : '<ikke command>'
+                } i kanalen ${MentionUtils.mentionChannel(interaction.channelId)}. \nStacktrace: \n${e}`
+            )
+            this.sendMessage(
+                interaction.channelId,
+                `Klarte ikke svare på interactionen. Feilmelding er logget. ${MentionUtils.mentionRole(
+                    UserUtils.ROLE_IDs.BOT_SUPPORT
+                )}. Prøv å utføre interactionen på ny`
+            )
+        }
         if (!interaction.replied) {
             if (typeof content === 'object') {
-                if (wasDefered) interaction.editReply({ embeds: [content], components: menu ? [menu] : undefined })
-                else interaction.reply({ embeds: [content], ephemeral: onlyVisibleToEngager, components: menu ? [menu] : undefined })
+                if (wasDefered) await interaction.editReply({ embeds: [content], components: menu ? [menu] : undefined }).catch((e) => logError(e))
+                else
+                    await interaction
+                        .reply({ embeds: [content], ephemeral: onlyVisibleToEngager, components: menu ? [menu] : undefined })
+                        .catch((e) => logError(e))
             } else {
-                if (wasDefered) interaction.editReply(content)
-                else interaction.reply({ content: content, ephemeral: onlyVisibleToEngager, components: menu ? [menu] : undefined })
+                if (wasDefered) await interaction.editReply(content).catch((e) => logError(e))
+                else
+                    await interaction
+                        .reply({ content: content, ephemeral: onlyVisibleToEngager, components: menu ? [menu] : undefined })
+                        .catch((e) => logError(e))
             }
             return true
         }

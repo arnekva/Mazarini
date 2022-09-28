@@ -371,6 +371,9 @@ export class Admin extends AbstractCommands {
         const reason = interaction.options.get('type')?.value as string
         const chips = interaction.options.get('chips')?.value as number
         const user = interaction.options.get('user')?.user
+        const dbUser = DatabaseHelper.getUser(user.id)
+        dbUser.chips += chips
+        DatabaseHelper.updateUser(dbUser)
         this.messageHelper.replyToInteraction(interaction, `${user.username} har mottatt en ${type} reward på ${chips} på grunn av *${reason}*`)
     }
 
