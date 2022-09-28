@@ -440,7 +440,7 @@ export class WarzoneCommands extends AbstractCommands {
             const wantedType = interaction.options.getString('mode') //"br", "weekly", "siste" or "rebirth"
             const checkAnotherUser = interaction.options.get('bruker')?.user
 
-            if (wantedType === 'br' || wantedType === 'weekly') {
+            if (wantedType === 'br' || wantedType === 'weekly' || wantedType === 'rebirth') {
                 const content = await this.getBRContent(interaction, wantedType, checkAnotherUser)
                 this.messageHelper.replyToInteraction(interaction, content, undefined, true)
             } else if (wantedType === 'siste') {
