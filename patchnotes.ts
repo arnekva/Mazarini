@@ -9,12 +9,8 @@ export class PatchNotes extends AbstractCommands {
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Botten skal få forsøke å logge bedre feilmeldinger når en interaksjon feiler` +
-        `\n* Gamble skal nå defaulte til alt` +
-        `\n* Reward skal nå korrekt oppdatere databaseverdien på chips for brukeren` +
         `\n* /snakk sier ikke lenger hva du fikk botten til å si for alle - den svarer kun deg` +
-        `\n* Du kan nå sjekke andre personer sine stats med /stats <mode> <bruker?>` +
-        `\n* Fikset en feil som gjorde at du kunne bette så mye du ville på rulett`
+        `\n* Du kan nå sjekke andre personer sine stats med /stats <mode> <bruker?>`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
