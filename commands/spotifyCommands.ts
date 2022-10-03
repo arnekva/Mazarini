@@ -88,13 +88,15 @@ export class SpotifyCommands extends AbstractCommands {
         return await spotifyApi.searchTracks(searchString)
     }
 
-    private async printSongFromSpotify(message: Message, messageContent: string, args: string[]) {
-        const data = await this.searchForSongOnSpotifyAPI(messageContent)
+    private async printSongFromSpotify(interaction: ChatInputCommandInteraction<CacheType>) {
+        await interaction.deferReply()
+        const searchString = interaction.options.get('tittel')?.value as string
+        const data = await this.searchForSongOnSpotifyAPI(searchString)
         if (data) {
             const firstResult = data.body.tracks.items[0]
 
             const result = `${firstResult?.name} av ${firstResult?.artists[0]?.name}. Utgitt ${firstResult?.album?.release_date}. ${firstResult?.external_urls?.spotify}`
-            this.messageHelper.sendMessage(message.channelId, result)
+            this.messageHelper.replyToInteraction(interaction, result, false, true)
         }
     }
 
@@ -208,16 +210,7 @@ export class SpotifyCommands extends AbstractCommands {
     }
 
     public getAllCommands(): ICommandElement[] {
-        return [
-            {
-                commandName: 'sang',
-                description: 'Søk etter en sang på Spotify. Returnerer første resultat med link',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.printSongFromSpotify(rawMessage, messageContent, args)
-                },
-                category: 'musikk',
-            },
-        ]
+        return []
     }
     getAllInteractions(): IInteractionElement[] {
         return [
@@ -225,6 +218,13 @@ export class SpotifyCommands extends AbstractCommands {
                 commandName: 'spotify',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.handleSpotifyInteractions(rawInteraction)
+                },
+                category: 'musikk',
+            },
+            {
+                commandName: 'sang',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.printSongFromSpotify(rawInteraction)
                 },
                 category: 'musikk',
             },

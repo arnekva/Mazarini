@@ -1,4 +1,4 @@
-import { CacheType, ChatInputCommandInteraction, GuildMember, Interaction, Message, PartialGuildMember, PartialUser, Role, TextChannel, User } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, GuildMember, Interaction, Message, PartialGuildMember, PartialUser, Role, User } from 'discord.js'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 const diff = require('deep-diff')
@@ -90,26 +90,17 @@ export namespace UserUtils {
             'Welcome to the Gulag, ' + (member.nickname ?? member.displayName) + '. Bruk commanden "!mz role" for å gi deg selv roller for å komme i gang'
         )
         DatabaseHelper.getUser(member.id)
-        msgHelper.sendMessageToActionLog(
-            member.guild.channels.cache.first() as TextChannel,
-            'En bruker ble med i Mazarini: ' + (member.nickname ?? member.displayName)
-        )
+        msgHelper.sendMessageToActionLog('En bruker ble med i Mazarini: ' + (member.nickname ?? member.displayName))
     }
 
     export const onMemberLeave = async (member: GuildMember | PartialGuildMember, msgHelper: MessageHelper) => {
         msgHelper.sendMessage('340626855990132747', 'Farvell, ' + (member.nickname ?? member.displayName))
-        msgHelper.sendMessageToActionLog(
-            member.guild.channels.cache.first() as TextChannel,
-            'En bruker forlot Mazarini: ' + (member.nickname ?? member.displayName)
-        )
+        msgHelper.sendMessageToActionLog('En bruker forlot Mazarini: ' + (member.nickname ?? member.displayName))
     }
 
     export const onUserUpdate = (oldUser: User | PartialUser, newUser: User | PartialUser, msgHelper: MessageHelper) => {
         if (oldUser.id === '802945796457758760') return
-        msgHelper.sendMessageToActionLog(
-            newUser.client.channels.cache.first() as TextChannel,
-            'Oppdatert bruker:   ' + oldUser.username + ' -> ' + newUser.username + ''
-        )
+        msgHelper.sendMessageToActionLog('Oppdatert bruker:   ' + oldUser.username + ' -> ' + newUser.username + '')
     }
     export const onMemberUpdate = (oldMember: GuildMember | PartialGuildMember, newMember: GuildMember, msgHelper: MessageHelper) => {
         if (newMember.id === '802945796457758760') return //Ikke gjør noe når bot oppdateres
@@ -123,13 +114,13 @@ export namespace UserUtils {
             differences.forEach((change: any, index: number) => {
                 changesString += change.path + (index == differences.length ? ' ' : ',')
             })
-            msgHelper.sendMessageToActionLog(
-                newMember.client.channels.cache.first() as TextChannel,
-                'Oppdatert bruker ' + (oldMember.nickname ?? oldMember.displayName) + ': ' + whatChanged + '.'
-            )
+            msgHelper.sendMessageToActionLog('Oppdatert bruker ' + (oldMember.nickname ?? oldMember.displayName) + ': ' + whatChanged + '.')
         }
     }
 
+    /**
+     * @deprecated: Bruk MentionUtils instead
+     */
     export const ROLE_IDs = {
         BOT_SUPPORT: '863038817794392106',
         NATO: '963396965947801630',

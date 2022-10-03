@@ -26,7 +26,6 @@
         "clean-text-utils": "^1.1.17",
         "deckofcards": "^1.2.2",
         "deep-diff": "^1.0.2",
-        "didyoumean2": "^5.0.0",
         "discord-api-types": "^0.36.1",
         "discord-tts": "^1.2.2",
         "discord.js": "^14.0.0",

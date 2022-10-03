@@ -162,30 +162,8 @@ export class Spinner extends AbstractCommands {
         this.messageHelper.sendMessage(message.channelId, statuser)
     }
 
-    private formatValue(val: string) {
-        if (val.length == 2) return `0${val.charAt(0)}:0${val.charAt(1)}`
-
-        if (val.length == 3) return `0${val.charAt(0)}:${val.charAt(1)}${val.charAt(2)}`
-        if (val.length == 4) return `${val.charAt(0)}${val.charAt(1)}:${val.charAt(2)}${val.charAt(3)}`
-        return 'Ugyldig verdi'
-    }
-
-    private updateATH() {
-        // DatabaseHelper.compareAndUpdateValue('ATHspin', 'spin')
-    }
-
     public getAllCommands(): ICommandElement[] {
-        return [
-            {
-                commandName: 'spin',
-                description:
-                    'Spin fidgetspinneren. Beste tid per bruker registreres i databasen. Tallene er tilfeldige, men vektet. Du vinner chips hvis du spinner mer enn 5 minutter. (Høyeste gevinst er 100.000.000 chips for 10 min) ',
-                command: (rawMessage: Message, messageContent: string) => {
-                    this.spin(rawMessage)
-                },
-                category: 'spin',
-            },
-        ]
+        return []
     }
     getAllInteractions(): IInteractionElement[] {
         return [

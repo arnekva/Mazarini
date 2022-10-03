@@ -1,4 +1,4 @@
-import { CacheType, ChatInputCommandInteraction, Client, TextChannel } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -26,7 +26,6 @@ export class SoundCommands extends AbstractCommands {
                 `${text}`
             )
             this.messageHelper.sendMessageToActionLog(
-                interaction.channel as TextChannel,
                 `${interaction.user.username} fikk botten til å si *${text}* i ${MentionUtils.mentionChannel(memb.voice?.channelId)}`
             )
             // SoundUtils.disconnectFromVoiceChannel(interaction.guildId)

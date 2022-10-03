@@ -1,10 +1,9 @@
-import { Client, Message } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
 import { URLSearchParams } from 'url'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { imgflip } from '../client-env'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { MessageHelper } from '../helpers/messageHelper'
-import { TextUtils } from '../utils/textUtils'
 const fetch = require('node-fetch')
 export class Meme extends AbstractCommands {
     constructor(client: Client, messageHelper: MessageHelper) {
@@ -12,26 +11,23 @@ export class Meme extends AbstractCommands {
     }
     private readonly baseURL = 'https://api.imgflip.com/caption_image'
 
-    private async findMemeIdAndCreate(message: Message, content: string, args: string[]) {
-        const memeString = args[0].toLowerCase()
-        if (memeString == 'anakin' || memeString == '322841258') return await this.createMeme('322841258', content, message, args)
-        if (memeString == 'timmy' || memeString == '26433458') return await this.createMeme('26433458', content, message, args)
-        if (memeString == 'sjøsyk' || memeString == 'hallgeir')
-            return await this.messageHelper.sendMessage(message.channelId, 'https://i.imgur.com/ka7SslJ.jpg')
+    private async findMemeIdAndCreate(meme: string, interaction: ChatInputCommandInteraction<CacheType>) {
+        if (meme == 'anakin') return await this.createMeme('322841258', interaction)
+        if (meme == 'timmy') return await this.createMeme('26433458', interaction)
+        if (meme == 'sjosyk') return await this.messageHelper.sendMessage(interaction.channelId, 'https://i.imgur.com/ka7SslJ.jpg')
     }
 
-    private async sendMeme(message: Message, content: string, args: string[]) {
-        if (args.length < 1) {
-            message.reply('Du må velge en meme')
-        } else {
-            const meme = await this.findMemeIdAndCreate(message, content, args)
-        }
+    private async sendMeme(interaction: ChatInputCommandInteraction<CacheType>) {
+        const meme = await this.findMemeIdAndCreate(interaction.options.get('meme')?.value as string, interaction)
     }
-    private async createMeme(templateId: string, messageContent: string, message: Message, args: string[]) {
-        messageContent = TextUtils.replaceAtWithTextUsername(messageContent, message, true)
-        const splitContent = messageContent.split(':')
-        splitContent[0] = splitContent[0].split(' ').slice(1).join(' ')
-        if (splitContent[0] && splitContent[1]) {
+    private async createMeme(templateId: string, interaction: ChatInputCommandInteraction<CacheType>) {
+        await interaction.deferReply()
+        const text1 = interaction.options.get('tekst-1')?.value as string
+        const text2 = interaction.options.get('tekst-2')?.value as string
+        const text3 = interaction.options.get('tekst-3')?.value as string
+        const text4 = interaction.options.get('tekst-4')?.value as string
+
+        if (text1 && text2) {
             const id = templateId
             const fetchUrl = this.baseURL + ``
             const params = new URLSearchParams({
@@ -45,21 +41,21 @@ export class Meme extends AbstractCommands {
             const box0Params = this.getBoxCoords(templateId).filter((e) => e.boxId == '0')[0]
             const box1Params = this.getBoxCoords(templateId).filter((e) => e.boxId == '1')[0]
             const box2Params = this.getBoxCoords(templateId).filter((e) => e.boxId == '2')[0]
-            params.append('boxes[0][text]', splitContent[0] ?? 'Mangler tekst')
+            params.append('boxes[0][text]', text1 ?? 'Mangler tekst')
             params.append('boxes[0][x]', box0Params.x)
             params.append('boxes[0][y]', box0Params.y)
             params.append('boxes[0][width]', box0Params.width)
             params.append('boxes[0][height]', box0Params.height)
-            if (splitContent[1] && box1Params) {
-                params.append('boxes[1][text]', splitContent[1] ?? 'Mangler tekst')
+            if (text2 && box1Params) {
+                params.append('boxes[1][text]', text2 ?? 'Mangler tekst')
                 params.append('boxes[1][x]', box1Params.x)
                 params.append('boxes[1][y]', box1Params.y)
                 params.append('boxes[1][width]', box1Params.width)
                 params.append('boxes[1][height]', box1Params.height)
             }
 
-            if (splitContent[2] && box2Params) {
-                params.append('boxes[2][text]', splitContent[2] ?? 'Mangler tekst')
+            if (text3 && box2Params) {
+                params.append('boxes[2][text]', text3 ?? 'Mangler tekst')
                 params.append('boxes[2][x]', box2Params.x)
                 params.append('boxes[2][y]', box2Params.y)
                 params.append('boxes[2][width]', box2Params.width)
@@ -76,17 +72,18 @@ export class Meme extends AbstractCommands {
                 .then((res: any) => {
                     res.json()
                         .then((el: any) => {
-                            if (el.data) this.messageHelper.sendMessage(message.channelId, el.data.url)
+                            if (el.data) this.messageHelper.sendMessage(interaction.channelId, el.data.url)
+                            this.messageHelper.replyToInteraction(interaction, `Lagde et meme te deg bro`, true, true)
                         })
                         .catch((error: any) => {
-                            this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
+                            this.messageHelper.replyToInteraction(interaction, `her skjedde det ein feil. Hvis det skjer igjen tag @Bot-support`, true, true)
                         })
                 })
                 .catch((error: any) => {
-                    this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
+                    this.messageHelper.replyToInteraction(interaction, `her skjedde det ein feil. Hvis det skjer igjen tag @Bot-support`, true, true)
                 })
         } else {
-            message.reply('Du mangler noen tekster')
+            this.messageHelper.replyToInteraction(interaction, `Det mangle någen tekster`, true, true)
         }
     }
 
@@ -150,19 +147,17 @@ export class Meme extends AbstractCommands {
     }
 
     public getAllCommands(): ICommandElement[] {
+        return []
+    }
+    getAllInteractions(): IInteractionElement[] {
         return [
             {
                 commandName: 'meme',
-                description: "Lag et meme. '!mz meme <anakin|timmy|sjøsyk> text1:text2:text3:text4'",
-
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.sendMeme(rawMessage, messageContent, args)
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.sendMeme(rawInteraction)
                 },
                 category: 'annet',
             },
         ]
-    }
-    getAllInteractions(): IInteractionElement[] {
-        return []
     }
 }

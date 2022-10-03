@@ -1,13 +1,10 @@
 import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Message, SelectMenuComponentOptionData, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { Admin } from '../admin/admin'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { SelectMenuHandler } from '../General/selectMenuHandler'
 import { ActionMenuHelper } from '../helpers/actionMenuHelpert'
-import { DatabaseHelper, MazariniUser } from '../helpers/databaseHelper'
+import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { ArrayUtils } from '../utils/arrayUtils'
-import { CollectorUtils } from '../utils/collectorUtils'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { Roles } from '../utils/roles'
@@ -20,7 +17,7 @@ export class UserCommands extends AbstractCommands {
 
     private getWarnings(message: Message, content: string, args: string[]) {
         const userNameToFind = args.join(' ')
-        const userExists = DatabaseHelper.findUserByUsername(userNameToFind, message)
+        const userExists = UserUtils.findUserByUsername(userNameToFind, message)
         const user = DatabaseHelper.getUser(userExists?.id ?? message.author.id)
         const warningCounter = user.warningCounter
         if (userExists)
@@ -62,70 +59,11 @@ export class UserCommands extends AbstractCommands {
             })
     }
 
-    private async addQuote(message: Message, content: string, args: string[]) {
-        const isUpperCase = (letter: string) => {
-            return letter === letter.toUpperCase()
-        }
-        if (args.length > 1) {
-            const quoteBy = args[0]
-            if (!isUpperCase(quoteBy[0])) {
-                message.reply(`Argument 1 (${args[0]}) må ha stor forbokstav. Dette er navnet på personen som sa quotet.`)
-            } else {
-                const quoteText = args.slice(1).join(' ')
-                if (!!quoteBy && !!quoteText) {
-                    this.messageHelper.reactWithThumbs(message, 'up')
-                    const reply = await message.reply('Trenge 4 thumbs up for å godkjenne')
-                    const collector = message.createReactionCollector()
-                    collector.on('collect', (reaction) => {
-                        if (CollectorUtils.shouldStopCollector(reaction, message)) {
-                            if (message) message.edit(`${message.content} (STANSET MED TOMMEL NED)`)
-                            collector.stop()
-                        }
-
-                        if (reaction.emoji.name === '👍' && reaction.users.cache.size > 3) {
-                            DatabaseHelper.setQuoteObject(quoteBy, quoteText)
-                            collector.stop()
-                            if (reply) reply.delete()
-                        }
-                    })
-                }
-            }
-        } else {
-            const quotes = DatabaseHelper.getAllNonUserValueFromPrefix('quotes')
-            let name = ArrayUtils.randomChoiceFromArray(Object.keys(quotes))
-            //User may specify which person he wants a quote from, so we check if it exists
-            if (!!args[0] && isUpperCase(args[0][0]) && quotes[args[0]]) name = args[0]
-
-            const randomQuote = ArrayUtils.randomChoiceFromArray(quotes[name])
-            this.messageHelper.sendMessage(message.channelId, `*" ${randomQuote} "*\n- ${name}`)
-        }
-    }
-
-    private updateDisplayName(message: Message, messageContent: string, args: string[]) {
-        const updateOtherUSer = UserUtils.findUserByUsername(args[0], message)
-        let user: MazariniUser = DatabaseHelper.getUser(message.author.id)
-        let name: string
-        let canUpdate = true
-        if (updateOtherUSer && !!args[1]) {
-            if (Admin.isAuthorAdmin(UserUtils.findMemberByUsername(message.author.username, message))) user = DatabaseHelper.getUser(updateOtherUSer.id)
-            else {
-                message.reply('Kun administratorer kan endre displaynavnet til andre brukere')
-                canUpdate = false
-            }
-            name = args.slice(1).join(' ')
-        } else {
-            name = args.slice(0).join(' ')
-        }
-        if (canUpdate) {
-            user.displayName = name ?? message.author.username
-            DatabaseHelper.updateUser(user)
-            this.messageHelper.reactWithThumbs(message, 'up')
-        }
-    }
-
     private setStatus(interaction: ChatInputCommandInteraction<CacheType>) {
-        const statusText = interaction.options.get('tekst')?.value as string
-        if (statusText) {
+        const isVis = interaction.options.getSubcommand() === 'vis'
+        const isSet = interaction.options.getSubcommand() === 'sett'
+        if (isSet) {
+            const statusText = interaction.options.get('tekst')?.value as string
             const user = DatabaseHelper.getUser(interaction.user.id)
             user.status = statusText
             DatabaseHelper.updateUser(user)
@@ -137,7 +75,7 @@ export class UserCommands extends AbstractCommands {
                 .setFooter({ text: `${DateUtils.getCurrentTimeFormatted()}` })
 
             this.messageHelper.replyToInteraction(interaction, embed)
-        } else {
+        } else if (isVis) {
             const val = DatabaseHelper.getAllUsers()
             const embed = new EmbedBuilder().setTitle('Statuser')
             Object.keys(val).forEach((key) => {
@@ -167,25 +105,8 @@ export class UserCommands extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, embed, false, false, menu)
     }
 
-    //TODO: Spec:
-    /* 
-        Window ala shop
-        Dropdown meny som viser propertys på brukerobjektet ditt.
-        Når en er valgt, vises verdien i en egen kolonne
-        Kun brukeren selv kan bruke dropdownen/trigge endring
-   */
-
     public getAllCommands(): ICommandElement[] {
-        return [
-            {
-                commandName: 'quote',
-                description: 'Legg til eller hent et tilfeldig quote',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.addQuote(rawMessage, messageContent, args)
-                },
-                category: 'annet',
-            },
-        ]
+        return []
     }
 
     getAllInteractions(): IInteractionElement[] {

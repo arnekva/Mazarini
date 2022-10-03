@@ -190,7 +190,6 @@ export class GameCommands extends AbstractCommands {
         if (contentString.includes('Access denied')) {
             this.messageHelper.sendMessage(rawMessage.channelId, `Access denied.`)
             this.messageHelper.sendMessageToActionLog(
-                rawMessage.channel as TextChannel,
                 `api.tracker.gg for Rocket League gir Access Denied. Melding stammer fra ${rawMessage.author.username} i ${
                     (rawMessage.channel as TextChannel).name
                 }`
@@ -268,17 +267,7 @@ export class GameCommands extends AbstractCommands {
     }
 
     public getAllCommands(): ICommandElement[] {
-        return [
-            {
-                commandName: 'grid',
-                description: 'Få et tilfeldig sted å droppe ut fra Grid i Caldera',
-                command: (rawMessage: Message, messageContent: string) => {
-                    // this.dropGrid(rawMessage, messageContent)
-                },
-                isReplacedWithSlashCommand: 'grid',
-                category: 'gaming',
-            },
-        ]
+        return []
     }
     public getAllInteractions(): IInteractionElement[] {
         return [

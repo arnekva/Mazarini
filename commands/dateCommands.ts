@@ -1,4 +1,4 @@
-import { CacheType, ChatInputCommandInteraction, Client, Message } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
 import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../General/commands'
@@ -58,56 +58,67 @@ export class DateCommands extends AbstractCommands {
     }
 
     //TODO: Fix this one
-    private registerFerie(message: Message, messageContent: string, args: string[]) {
-        if (args[0] == 'fjern') {
-            return DatabaseHelper.deleteFerieValue(message.author.username)
+    private registerFerie(interaction: ChatInputCommandInteraction<CacheType>) {
+        const isSet = interaction.options.getSubcommand() === 'sett'
+        const isVis = interaction.options.getSubcommand() === 'vis'
+        const fromDate = interaction.options.get('fra-dato')?.value as string
+        const toDate = interaction.options.get('til-dato')?.value as string
+        if (fromDate === 'fjern' || toDate === 'fjern') {
+            return DatabaseHelper.deleteFerieValue(interaction.user.id)
         }
-        if (args[0] && !args[1]) {
-            return message.reply('Du mangler til eller fra dato')
-        }
+
         /** Registrer ferier */
-        if (args.length >= 2) {
-            //dd-mm-yyyy
-            const isLegal = dateRegex.test(args[0]) && dateRegex.test(args[1])
+
+        //dd-mm-yyyy
+        if (isSet) {
+            const isLegal = dateRegex.test(fromDate) && dateRegex.test(toDate)
             if (!isLegal) {
-                return message.reply('du må formattere datoene som dd-mm-yyyy')
+                return this.messageHelper.replyToInteraction(
+                    interaction,
+                    `En av datoene er ikke formattert riktig. Husk at det må være dd-mm-yyyy. Eksempelvis 24-07-2022`,
+                    true
+                )
             }
             moment.locale('nb')
-            const date1 = moment(args[0], 'DD-MM-YYYY').toDate() // new Date(args[0])
-            const date2 = moment(args[1], 'DD-MM-YYYY').toDate()
+            const date1 = moment(fromDate, 'DD-MM-YYYY').toDate() // new Date(args[0])
+            const date2 = moment(toDate, 'DD-MM-YYYY').toDate()
             const feireObj: ferieItem = {
                 fromDate: date1,
                 toDate: date2,
             }
             const maxNumDays = 200
             if (DateUtils.isDateBefore(date1, date2) && DateUtils.dateIsMaxXDaysInFuture(date2, maxNumDays)) {
-                DatabaseHelper.setFerieValue(message.author.username, 'date', JSON.stringify(feireObj))
+                DatabaseHelper.setFerieValue(interaction.user.id, 'date', JSON.stringify(feireObj))
             } else {
-                message.reply(`Dato 1 må være før dato 2, og ferie kan maks settes til ${maxNumDays} dager frem i tid fra nåværende dato`)
+                this.messageHelper.replyToInteraction(
+                    interaction,
+                    `Dato 1 må være før dato 2, og ferie kan maks settes til ${maxNumDays} dager frem i tid fra nåværende dato`
+                )
             }
-        }
-        if (Object.keys(DatabaseHelper.getAllFerieValues()).length < 1) {
-            return message.reply('Ingen har ferie')
-        }
-        let sendThisText = ''
-        const ferieDates = DatabaseHelper.getAllFerieValues()
-        /** Finn alle ferier og print dem hvis de er gyldige */
-        Object.keys(ferieDates).forEach((username) => {
-            if (DatabaseHelper.getNonUserValue('ferie', username)?.date) {
-                const ferieEle = JSON.parse(DatabaseHelper.getNonUserValue('ferie', username).date) as ferieItem
-                const date1 = moment(new Date(ferieEle.fromDate), 'DD-MM-YYYY').toDate()
-                const date2 = moment(new Date(ferieEle.toDate), 'DD-MM-YYYY').toDate()
-                if (!DateUtils.dateHasPassed(date2)) {
-                    const timeRemaining = DateUtils.dateHasPassed(date1)
-                        ? `(${DateUtils.getTimeTo(date2)?.days} dager igjen av ferien)`
-                        : `(${DateUtils.getTimeTo(date1)?.days} dager igjen til ferien starter)`
-                    sendThisText += `\n${username} har ferie mellom ${moment(date1).format('ll')} og ${moment(date2).format('ll')} ${timeRemaining}`
+        } else {
+            if (Object.keys(DatabaseHelper.getAllFerieValues()).length < 1) {
+                return this.messageHelper.replyToInteraction(interaction, `Ingen har ferie i nærmeste fremtid`)
+            }
+            let sendThisText = ''
+            const ferieDates = DatabaseHelper.getAllFerieValues()
+            /** Finn alle ferier og print dem hvis de er gyldige */
+            Object.keys(ferieDates).forEach((username) => {
+                if (DatabaseHelper.getNonUserValue('ferie', username)?.date) {
+                    const ferieEle = JSON.parse(DatabaseHelper.getNonUserValue('ferie', username).date) as ferieItem
+                    const date1 = moment(new Date(ferieEle.fromDate), 'DD-MM-YYYY').toDate()
+                    const date2 = moment(new Date(ferieEle.toDate), 'DD-MM-YYYY').toDate()
+                    if (!DateUtils.dateHasPassed(date2)) {
+                        const timeRemaining = DateUtils.dateHasPassed(date1)
+                            ? `(${DateUtils.getTimeTo(date2)?.days} dager igjen av ferien)`
+                            : `(${DateUtils.getTimeTo(date1)?.days} dager igjen til ferien starter)`
+                        sendThisText += `\n${username} har ferie mellom ${moment(date1).format('ll')} og ${moment(date2).format('ll')} ${timeRemaining}`
+                    }
                 }
-            }
-        })
+            })
 
-        if (!sendThisText) sendThisText = 'Ingen har ferie lenger :('
-        this.messageHelper.sendMessage(message.channelId, sendThisText)
+            if (!sendThisText) sendThisText = 'Ingen har ferie lenger :('
+            this.messageHelper.replyToInteraction(interaction, sendThisText)
+        }
     }
     private async countdownToDate(interaction: ChatInputCommandInteraction<CacheType>) {
         const isNewCountdown = interaction.options.getSubcommand() === 'sett'
@@ -120,13 +131,17 @@ export class DateCommands extends AbstractCommands {
         if (isNewCountdown) {
             if (event == 'fjern') {
                 this.messageHelper.replyToInteraction(interaction, `Fjernet countdownen din`, true)
-                return DatabaseHelper.deleteCountdownValue(interaction.user.username)
+                return DatabaseHelper.deleteCountdownValue(interaction.user.id)
             }
 
             //dd-mm-yyyy
             const isLegal = dateRegex.test(dato)
             if (!isLegal) {
-                return this.messageHelper.replyToInteraction(interaction, 'du må formattere datoen ordentlig (dd-mm-yyyy)', true)
+                return this.messageHelper.replyToInteraction(
+                    interaction,
+                    'du må formattere datoen ordentlig (dd-mm-yyyy). Hvis du bare prøve å se aktive countdowns, bruk /countdown vis',
+                    true
+                )
             }
             const dateParams = dato.split('-')
             const hrs = timestamp.split(':')
@@ -146,9 +161,9 @@ export class DateCommands extends AbstractCommands {
                     `  'Du har skrevet inn en ugyldig dato eller klokkeslett. !mz countdown <dd-mm-yyyy> <HH> <beskrivelse>. Husk at time er nødvendig, minutt og sekund frivillig (HH:MM:SS)'`
                 )
             }
-            DatabaseHelper.setCountdownValue(interaction.user.username, 'date', cdDate.toString())
-            DatabaseHelper.setCountdownValue(interaction.user.username, 'desc', event)
-            this.messageHelper.replyToInteraction(interaction, `Din countdown er satt til ${cdDate}`)
+            DatabaseHelper.setCountdownValue(interaction.user.id, 'date', cdDate.toString())
+            DatabaseHelper.setCountdownValue(interaction.user.id, 'desc', event)
+            this.messageHelper.replyToInteraction(interaction, `Din countdown for *${event}* er satt til ${cdDate.toLocaleDateString('nb')}`)
         } else if (isPrinting) {
             let sendThisText = ''
             if (Object.keys(DatabaseHelper.getAllCountdownValues()).length < 1) {
@@ -336,35 +351,7 @@ export class DateCommands extends AbstractCommands {
     }
 
     public getAllCommands(): ICommandElement[] {
-        return [
-            {
-                commandName: 'countdown',
-                description:
-                    "Se hvor lenge det er igjen til events (Legg til ny med '!mz countdown <dd-mm-yyyy> <hh> <beskrivelse> (klokke kan spesifiserert slik: <hh:mm:ss:SSS>. Kun time er nødvendig)",
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    // this.countdownToDate(rawMessage, messageContent, args)
-                },
-                isReplacedWithSlashCommand: 'countdown',
-                category: 'annet',
-            },
-            {
-                commandName: 'ferie',
-                description: "Registrer ferien din ('!mz ferie <fra-dato> <til-dato> (dd-mm-yyyy)",
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.registerFerie(rawMessage, messageContent, args)
-                },
-                category: 'annet',
-            },
-            {
-                commandName: 'bursdag',
-                description: 'Legg til bursdagen din, så får du en gratulasjon av Høie på dagen',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    // this.addUserBirthday(rawMessage, messageContent, args)
-                },
-                category: 'annet',
-                isReplacedWithSlashCommand: 'bursdag',
-            },
-        ]
+        return []
     }
 
     getAllInteractions(): IInteractionElement[] {
@@ -373,6 +360,13 @@ export class DateCommands extends AbstractCommands {
                 commandName: 'helg',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.checkForHelg(rawInteraction)
+                },
+                category: 'annet',
+            },
+            {
+                commandName: 'ferie',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.registerFerie(rawInteraction)
                 },
                 category: 'annet',
             },

@@ -2,10 +2,12 @@ import { ActivityType, APIInteractionGuildMember, CacheType, ChatInputCommandInt
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'
 import { ICommandElement, IInteractionElement } from '../General/commands'
+import { LockingManager } from '../General/lockingManager'
 import { ClientHelper } from '../helpers/clientHelper'
 import { DatabaseHelper, dbPrefix, prefixList, ValuePair } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniClient } from '../main'
+import { MentionUtils } from '../utils/mentionUtils'
 import { ObjectUtils } from '../utils/objectUtils'
 import { TextUtils } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
@@ -65,17 +67,17 @@ export class Admin extends AbstractCommands {
                     logMsg = `Setvalue ble brukt av ${interaction.user.username} for å sette verdi for bruker ${user.username} men brukte feil prefix. Prefix forsøkt brukt var ${property}`
                 }
             }
-            if (environment === 'prod') this.messageHelper.sendMessageToActionLog(interaction.channel as TextChannel, logMsg)
+            if (environment === 'prod') this.messageHelper.sendMessageToActionLog(logMsg)
         } else {
             this.messageHelper.replyToInteraction(interaction, `Alle nødvendige parametere ble ikke funnet. `, true)
         }
     }
 
-    private async replyToMsgAsBot(rawMessage: Message, content: string) {
-        const allChannels = [...rawMessage.client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
-
-        const id = content.substr(0, content.indexOf(' '))
-        const replyString = content.substr(content.indexOf(' ') + 1)
+    private async replyToMsgAsBot(interaction: ChatInputCommandInteraction<CacheType>) {
+        await interaction.deferReply()
+        const allChannels = [...this.client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
+        const id = interaction.options.get('melding-id')?.value as string
+        const replyString = interaction.options.get('tekst')?.value as string
         allChannels.forEach((channel: TextChannel) => {
             if (channel) {
                 channel.messages
@@ -83,38 +85,40 @@ export class Admin extends AbstractCommands {
                     .then(async (message) => {
                         if (message.guild) {
                             message.reply(replyString)
+                            this.messageHelper.replyToInteraction(
+                                interaction,
+                                `Svarte på meldingen i kanalen ${MentionUtils.mentionChannel(message.channelId)}, skrevet av ${message.author.username}`,
+                                true
+                            )
                         }
                     })
                     .catch((error) => {
-                        //Catch thrown error
+                        this.messageHelper.replyToInteraction(
+                            interaction,
+                            `Ser kje ud som eg fant meldingen din. Sjekk om du har et mellomrom for møye me og prøv på nytt`,
+                            true
+                        )
                     })
             }
         })
     }
 
-    private setBotStatus(message: Message, messageContent: string, args: string[]) {
-        const activity = this.translateActivityType(args[0])
-        const hasUrl = args[1].includes('www.')
-        const status = hasUrl ? args.slice(2).join(' ') : args.slice(1).join(' ')
+    private setBotStatus(interaction: ChatInputCommandInteraction<CacheType>) {
+        const activity = this.translateActivityType(interaction.options.get('aktivitet')?.value as string)
+        const status = interaction.options.get('statustekst')?.value as string
+        const hasUrl = status.includes('www.')
+        const activityName = activity
         DatabaseHelper.setBotData('status', status)
         DatabaseHelper.setBotData('statusType', activity)
-        this.messageHelper.reactWithThumbs(message, 'up')
-        this.messageHelper.sendMessageToActionLog(
-            message.channel as TextChannel,
-            `Bottens aktivitet er satt til '${activity}' med teksten '${status}' av ${message.author.username}. ${
-                activity === ActivityType.Streaming && !hasUrl
-                    ? 'Du kan ikke sette status til streaming uten å ha en URL som parameter 1. "!mz botstatus streaming www.twitch.tv/Deadmaggi Deadmaggis Tips n tricks". Den er derfor satt til Playing '
-                    : ''
-            }`
-        )
-        ClientHelper.updatePresence(this.client, activity, status, hasUrl ? args[1] : undefined)
+        this.messageHelper.sendMessageToActionLog(`Bottens aktivitet er satt til '${activityName}' med teksten '${status}' av ${interaction.user.username}. `)
+        this.messageHelper.replyToInteraction(interaction, `Bottens aktivitet er satt til '${activityName}' med teksten '${status}'`)
+        ClientHelper.updatePresence(this.client, activity, status, hasUrl ? status : undefined)
     }
 
     private translateActivityType(type: string): Exclude<ActivityType, ActivityType.Custom> {
         switch (type.toUpperCase()) {
             case 'COMPETING':
                 return ActivityType.Competing
-
             case 'LISTENING':
                 return ActivityType.Listening
             case 'PLAYING':
@@ -123,7 +127,6 @@ export class Admin extends AbstractCommands {
                 return ActivityType.Streaming
             case 'WATCHING':
                 return ActivityType.Watching
-
             default:
                 return ActivityType.Playing
         }
@@ -155,17 +158,7 @@ export class Admin extends AbstractCommands {
                         })
                 }
             })
-        } else {
-            this.messageHelper.replyFormattingError(rawMessage, '<message id> <emoji navn>')
         }
-    }
-    private async sendMessageAsBotToSpecificChannel(message: Message) {
-        const content = message.content.replace('!mz send ', '')
-
-        const id = content.substr(0, content.indexOf(' ')).trim()
-        const replyString = content.substr(content.indexOf(' ') + 1)
-        const channel = [...message.client.channels.cache.values()].find((channel) => channel.id === id) as TextChannel
-        if (channel) channel.send(replyString)
     }
 
     private getBotStatistics(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -196,7 +189,6 @@ export class Admin extends AbstractCommands {
                 )
                 //Send msg to action-log
                 return this.messageHelper.sendMessageToActionLog(
-                    message.channel as TextChannel,
                     message.author.username +
                         ' ga en advarsel til ' +
                         warnedUser.displayName +
@@ -305,7 +297,7 @@ export class Admin extends AbstractCommands {
 
     private deleteXLastMessagesByUserInChannel(message: Message, messageContent: string, args: string[]) {
         const userToDelete = TextUtils.splitUsername(args[0])
-        const user = DatabaseHelper.findUserByUsername(userToDelete, message)
+        const user = UserUtils.findUserByUsername(userToDelete, message)
 
         const reason = userToDelete ? args.slice(3).join(' ') : args.slice(2).join(' ')
         if (!user) {
@@ -326,7 +318,6 @@ export class Admin extends AbstractCommands {
                         }
                     })
                     this.messageHelper.sendMessageToActionLog(
-                        message.channel as TextChannel,
                         `${message.author.username} slettet ${maxDelete} meldinger fra ${user.username} i channel ${message.channel} på grunn av: "${
                             reason.length > 0 ? reason : 'ingen grunn oppgitt'
                         }"`
@@ -366,6 +357,24 @@ export class Admin extends AbstractCommands {
             await interaction.showModal(modal)
         }
     }
+    private async handleLocking(interaction: ChatInputCommandInteraction<CacheType>) {
+        const isBot = interaction.options.getSubcommand() === 'bot'
+        const isUser = interaction.options.getSubcommand() === 'user'
+        const isChannel = interaction.options.getSubcommand() === 'channel'
+        const user = interaction.options.get('bruker')?.user
+        this.messageHelper.replyToInteraction(interaction, `Låst.`, true)
+        if (isBot) {
+            LockingManager.setBotLocked(!LockingManager.getbotLocked())
+        } else if (isChannel) {
+            if (LockingManager.getlockedThread().includes(interaction.channelId)) {
+                LockingManager.removeThread(interaction.channelId)
+            } else LockingManager.setLockedThread(interaction.channelId)
+        } else if (isUser) {
+            if (LockingManager.getlockedUser().includes(user?.id)) {
+                LockingManager.removeUserLock(user.id)
+            } else LockingManager.setLockedUser(user.id)
+        }
+    }
     private async rewardUser(interaction: ChatInputCommandInteraction<CacheType>) {
         const type = interaction.options.getString('type')
         const reason = interaction.options.get('type')?.value as string
@@ -380,51 +389,6 @@ export class Admin extends AbstractCommands {
     public getAllCommands(): ICommandElement[] {
         return [
             {
-                commandName: 'debug',
-                description: 'Adminer kan kjøre denne for å kjøre funksjonen definert i debugMethod',
-                hideFromListing: true,
-                command: async (rawMessage: Message, messageContent: string, args: string[]) => {
-                    if (Admin.isAuthorAdmin(UserUtils.findMemberByUserID(rawMessage.author.id, rawMessage))) {
-                        this.debugMethod(rawMessage, messageContent, args)
-                    } else {
-                        rawMessage.reply('Kun adminer kan bruke denne')
-                    }
-                },
-                category: 'admin',
-            },
-
-            {
-                commandName: 'react',
-                description: 'Reager på en melding som botten. <message id> <emoji>',
-                hideFromListing: true,
-                isAdmin: true,
-                command: (rawMessage: Message, messageContent: string) => {
-                    this.reactToMsgAsBot(rawMessage, messageContent)
-                },
-                category: 'admin',
-            },
-            {
-                commandName: 'reply',
-                description: 'Svar på en melding som botten. <melding-ID> <melding>',
-                hideFromListing: true,
-                isAdmin: true,
-                command: (rawMessage: Message, messageContent: string) => {
-                    this.replyToMsgAsBot(rawMessage, messageContent)
-                },
-                category: 'admin',
-            },
-            {
-                commandName: 'setvalue',
-                description: 'Sett en spesifikk verdi i databasen. <brukernavn> <prefix> <verdi>. Sender feilmelding hvis verdi ikke kan settes',
-                hideFromListing: true,
-                isAdmin: true,
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    // this.setSpecificValue(rawMessage)
-                },
-                category: 'admin',
-                isReplacedWithSlashCommand: 'set',
-            },
-            {
                 commandName: 'warn',
                 description: 'Gi en advarsel til en bruker. <Brukernavn> <grunn> ',
                 hideFromListing: true,
@@ -435,17 +399,6 @@ export class Admin extends AbstractCommands {
                 category: 'admin',
             },
             {
-                commandName: 'botstatus',
-                description: 'Sett botten sin status. Lovlige aktiviteter: watching, streaming, playing, listening og competing. Defaulter til playing',
-                hideFromListing: true,
-                isAdmin: true,
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.setBotStatus(rawMessage, messageContent, args)
-                },
-                category: 'admin',
-            },
-
-            {
                 commandName: 'run',
                 description:
                     'Kjør admin funksjon. \ndbget - Hent ut verdier direkte fra databasen. dbget <prefix> for brukerobjekter. dbget <prefix> <folder> for verdier utenfor brukere\nlistprefix - List alle prefixer',
@@ -453,18 +406,6 @@ export class Admin extends AbstractCommands {
                     this.runScript(rawMessage, messageContent, args)
                 },
                 isAdmin: true,
-                hideFromListing: true,
-                category: 'admin',
-            },
-            {
-                commandName: 'stopprocess',
-                description: 'Stopp PM2-prosessen som kjører botten. Den vil ikke restarte når den stoppes på denne måten',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.messageHelper.sendMessageToActionLog(rawMessage.channel as TextChannel, 'STANSET PM2-PROSESSEN')
-                    pm2?.killDaemon()
-                    pm2?.disconnect()
-                },
-
                 hideFromListing: true,
                 category: 'admin',
             },
@@ -478,6 +419,20 @@ export class Admin extends AbstractCommands {
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     if (Admin.isAuthorAdmin(rawInteraction.member)) this.buildSendModal(rawInteraction)
                     else rawInteraction.reply({ content: 'Du har ikke rettighetene til å gjøre dette', ephemeral: true })
+                },
+            },
+            {
+                commandName: 'lock',
+                category: 'admin',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.handleLocking(rawInteraction)
+                },
+            },
+            {
+                commandName: 'botstatus',
+                category: 'admin',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.setBotStatus(rawInteraction)
                 },
             },
             {
@@ -501,6 +456,23 @@ export class Admin extends AbstractCommands {
                     this.getBotStatistics(rawInteraction)
                 },
             },
+            {
+                commandName: 'botstats',
+                category: 'admin',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.replyToMsgAsBot(rawInteraction)
+                },
+            },
+            {
+                commandName: 'stopprocess',
+                category: 'admin',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.messageHelper.sendMessageToActionLog('STANSET PM2-PROSESSEN. Rip meg')
+                    this.messageHelper.replyToInteraction(rawInteraction, `Forsøker å stoppe botten. Rip meg`)
+                    pm2?.killDaemon()
+                    pm2?.disconnect()
+                },
+            },
         ]
     }
 
@@ -510,7 +482,7 @@ export class Admin extends AbstractCommands {
         if (!cache) return false
         else return cache.has('821709203470680117')
     }
-    static isAuthorSuperAdmin(member: GuildMember | null | undefined) {
+    static isAuthorTrustedAdmin(member: GuildMember | null | undefined) {
         if (!member || !member.roles) return false
         if (member) return member.roles.cache.has('963017545647030272')
         return false

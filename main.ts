@@ -15,7 +15,6 @@ import {
     PartialMessage,
     PartialUser,
     Role,
-    TextChannel,
     User,
 } from 'discord.js'
 import moment from 'moment'
@@ -86,11 +85,7 @@ export class MazariniClient {
             const today = new Date()
             console.log(`Logged in as ${_mzClient.client.user?.tag} ${today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()} !`)
 
-            if (environment == 'prod')
-                _msgHelper.sendMessageToActionLog(
-                    _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
-                    'Boten er nå live i production mode.'
-                )
+            if (environment == 'prod') _msgHelper.sendMessageToActionLog('Boten er nå live i production mode.')
 
             ClientHelper.setStatusFromStorage(client)
 
@@ -120,7 +115,6 @@ export class MazariniClient {
 
                 bus.on('log:err', function (data: any) {
                     _msgHelper.sendMessageToActionLog(
-                        _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
                         'En feilmelding har blitt logget til konsollen (log:err) \n**Melding:** ' +
                             `\n**Message**: ${data?.data ?? 'NONE'}\n**Unix timestamp**: ${data?.at ?? 'NONE'}`
                     )
@@ -129,24 +123,16 @@ export class MazariniClient {
                 // Listen for PM2 kill
 
                 bus.on('pm2:kill', function (data: any) {
-                    _msgHelper.sendMessageToActionLog(
-                        _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
-                        'pm2 logget en melding til konsollen. pm2:kill. Melding: ' + data
-                    )
+                    _msgHelper.sendMessageToActionLog('pm2 logget en melding til konsollen. pm2:kill. Melding: ' + data)
                 })
 
                 // Listen for process exceptions
 
                 bus.on('process:exception', function (data: any) {
                     if (!data?.data?.stack?.includes('ENOTFOUND') || !data?.data?.stack?.includes('discord.com')) {
-                        _msgHelper.sendMessageToActionLog(
-                            _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
-                            'PM2 logget en feil. Process:exception. Dette er en DISCORD.COM feilmelding: ENOTFOUND.'
-                        )
+                        _msgHelper.sendMessageToActionLog('PM2 logget en feil. Process:exception. Dette er en DISCORD.COM feilmelding: ENOTFOUND.')
                     } else if (!data?.data?.stack?.includes('fewer in length')) {
                         _msgHelper.sendMessageToActionLog(
-                            _mzClient.client.channels.cache.get('810832760364859432') as TextChannel,
-
                             'pm2 logget en melding til konsollen. Process:exception. Melding: ' +
                                 `\n* **Message**: ${data?.data?.message ?? 'NONE'}\n* **Error** name: ${data?.data?.name ?? 'NONE'}\n* **Callsite**: ${
                                     data?.data?.callsite ?? 'NONE'
@@ -218,7 +204,7 @@ export class MazariniClient {
         })
 
         client.on('guildCreate', (guild: Guild) => {
-            _msgHelper.sendMessageToActionLog(guild.channels.cache.first() as TextChannel, 'Ukjent: on guildCreate. Wat dis do?')
+            _msgHelper.sendMessageToActionLog('Ukjent: on guildCreate. Wat dis do?')
         })
 
         client.on('guildMemberAdd', async (member: GuildMember) => {
@@ -238,42 +224,20 @@ export class MazariniClient {
         })
 
         client.on('roleCreate', function (role: Role) {
-            _msgHelper.sendMessageToActionLog(role.guild.channels.cache.first() as TextChannel, 'En ny rolle er opprettet: ' + role.name)
+            _msgHelper.sendMessageToActionLog('En ny rolle er opprettet: ' + role.name)
         })
         client.on('roleDelete', function (role: Role) {
-            _msgHelper.sendMessageToActionLog(role.guild.channels.cache.first() as TextChannel, 'En rolle er slettet: ' + role.name)
+            _msgHelper.sendMessageToActionLog('En rolle er slettet: ' + role.name)
         })
 
         client.on('messageUpdate', function (oldMessage: Message | PartialMessage, newMessage: Message | PartialMessage) {
-            const commandContent = newMessage?.content?.slice(0, 2)
-            if (commandContent) {
-                newMessage.channel.messages
-                    .fetch({ limit: 15 })
-                    .then((el) => {
-                        const arr = el.map((msg) => msg)
-                        const ind = arr.findIndex((msg) => msg.content.includes(commandContent) && msg.author.id === newMessage.author?.id)
-                        const msg = arr[ind - 1]
-                        if (msg.author.id === '802945796457758760') msg.delete()
-                    })
-                    .catch((error: any) => {
-                        // this.messageHelper.sendMessageToActionLogWithDefaultMessage(message, error)
-                    })
-            }
             if (!newMessage.pinned && !oldMessage.pinned) {
-                _mzClient.commandRunner.checkForCommand(newMessage as Message)
                 _mzClient.commandRunner.checkMessageForJokes(newMessage as Message)
             }
         })
 
-        // client.on('warn', function (info: string) {
-        //     _msgHelper.sendMessageToActionLog(client.channels.cache.get('810832760364859432') as TextChannel, 'En advarsel ble fanget opp. Info: \n ' + info)
-        // })
-
         client.on('error', function (error: Error) {
-            _msgHelper.sendMessageToActionLog(
-                client.channels.cache.get('810832760364859432') as TextChannel,
-                'En feilmelding ble fanget opp. Error: \n ' + error
-            )
+            _msgHelper.sendMessageToActionLog('En feilmelding ble fanget opp. Error: \n ' + error)
         })
     }
 

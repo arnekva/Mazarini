@@ -4,7 +4,6 @@ import {
     ChannelType,
     ChatInputCommandInteraction,
     Client,
-    DMChannel,
     EmbedBuilder,
     Message,
     ModalSubmitInteraction,
@@ -51,7 +50,6 @@ export class MessageHelper {
     ): Promise<boolean> {
         const logError = (e: any) => {
             this.sendMessageToActionLog(
-                interaction.channel as TextChannel,
                 `Klarte ikke svare på en interaction. ${interaction.user.username} prøvde å bruke ${
                     interaction.isChatInputCommand() ? interaction.commandName : '<ikke command>'
                 } i kanalen ${MentionUtils.mentionChannel(interaction.channelId)}. \nStacktrace: \n${e}`
@@ -103,17 +101,6 @@ export class MessageHelper {
         return !!s.trim()
     }
 
-    /**
-     *
-     * @deprecated Uses sendMessage
-     */
-    sendMessageToChannel(channel: TextChannel | DMChannel, message: string) {
-        if (!this.checkForEmptyMessage(message)) {
-            return this.logEmptyMessage('En melding som ble forsøkt sendt var tom', channel.id)
-        }
-        return channel.send(message)
-    }
-
     sendDM(user: User, message: string) {
         if (!this.checkForEmptyMessage(message)) {
             return undefined
@@ -142,12 +129,8 @@ export class MessageHelper {
         message.reply(content)
     }
 
-    replyFormattingError(message: Message, errormessage: string) {
-        message.reply('du har brukt feil formattering. Bruk: ' + errormessage)
-    }
-
-    static async findMessageById(rawMessage: Message, id: string): Promise<Message<boolean> | undefined> {
-        const allChannels = [...rawMessage.client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
+    async findMessageById(id: string): Promise<Message<boolean> | undefined> {
+        const allChannels = [...this.client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
         let messageToReturn
 
         for (const channel of allChannels) {
@@ -176,8 +159,8 @@ export class MessageHelper {
         return undefined
     }
 
-    sendMessageToActionLog(channel: TextChannel, msg: string) {
-        const errorChannel = channel.client.channels.cache.get('810832760364859432') as TextChannel
+    sendMessageToActionLog(msg: string) {
+        const errorChannel = this.client.channels.cache.get('810832760364859432') as TextChannel
         errorChannel.send(msg)
     }
 

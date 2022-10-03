@@ -403,7 +403,7 @@ export class WarzoneCommands extends AbstractCommands {
         let found = false
         let i = 0
         const now = new Date()
-        interaction.deferReply()
+        await interaction.deferReply()
 
         fetch('https://api.trello.com/1/boards/ZgSjnGba/cards')
             .then((response: Response) => response.json())

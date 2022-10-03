@@ -1,4 +1,3 @@
-import { Message } from 'discord.js'
 //https://openbase.com/js/node-json-db
 import { JsonDB } from 'node-json-db'
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
@@ -205,14 +204,6 @@ export class DatabaseHelper {
         db.push(`${otherFolderPreifx}/activeBet/${key}/description`, `${value.description}`)
         db.push(`${otherFolderPreifx}/activeBet/${key}/messageId`, `${value.messageId}`)
     }
-    /**
-     * TODO: Attempt to set override to false?
-     * @param key Name of person who said the quote
-     */
-    static setQuoteObject(key: string, quote: string) {
-        //TODO: Need to push quote-object to list under key, such that we can retrive all quotes by person X.
-        db.push(`${otherFolderPreifx}/quotes/${key}[]`, quote)
-    }
 
     static getActiveBetObject(key: string) {
         try {
@@ -290,18 +281,6 @@ export class DatabaseHelper {
 
     static getProperty<T>(o: MazariniUser, name: keyof MazariniUser) {
         return o[name]
-    }
-    /**
-     * @deprecated Bruk UserUtils i stedet
-     */
-    static findUserByUsername(username: string, rawMessage: Message) {
-        return rawMessage.client.users.cache.find((user) => user.username == username)
-    }
-    /**
-     * @deprecated Bruk UserUtils i stedet
-     */
-    static findUserById(id: string, rawMessage: Message) {
-        return rawMessage.client.users.cache.find((user) => user.id == id)
     }
 
     static decreaseInventoryItem(item: String, username: String) {

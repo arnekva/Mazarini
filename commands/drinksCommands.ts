@@ -1,4 +1,4 @@
-import { CacheType, ChatInputCommandInteraction, Client, Message } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -300,26 +300,7 @@ export class DrinksCommands extends AbstractCommands {
     }
 
     public getAllCommands(): ICommandElement[] {
-        return [
-            {
-                commandName: ['el', 'electricity', 'elektrisitet'],
-                description: 'Start drikkeleken electricity. Nu ska d drekkjast',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    // this.elSwitch(rawMessage, messageContent, args)
-                },
-                isReplacedWithSlashCommand: 'electricity',
-                category: 'drink',
-            },
-            {
-                commandName: ['drikk', 'drink'],
-                description: 'Drikkelek: Drikking + Gambling, name a more iconic duo',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    // this.drinkBitch(rawMessage, messageContent, args)
-                },
-                isReplacedWithSlashCommand: 'drikk',
-                category: 'drink',
-            },
-        ]
+        return []
     }
 
     getAllInteractions(): IInteractionElement[] {

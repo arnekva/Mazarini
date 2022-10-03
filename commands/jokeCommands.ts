@@ -4,7 +4,6 @@ import { ICommandElement, IInteractionElement } from '../General/commands'
 import { globalArrays } from '../globals'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
-import { Languages } from '../helpers/languageHelpers'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { DateUtils } from '../utils/dateUtils'
@@ -63,8 +62,7 @@ export class JokeCommands extends AbstractCommands {
                         if (urlMatch) embd.setThumbnail(`${urlMatch}`)
                         else if (currentActivity.assets?.largeImage) {
                             embd.setThumbnail(`${baseURL}/${currentActivity.assets.largeImage}`)
-                        }
-                        else if (currentActivity.assets?.smallImage) {
+                        } else if (currentActivity.assets?.smallImage) {
                             embd.setThumbnail(`${baseURL}/${currentActivity.assets.smallImage}`)
                         }
                     }
@@ -114,27 +112,15 @@ export class JokeCommands extends AbstractCommands {
         }
     }
 
-    private async reactWithLetters(message: Message, msgContent: string, args: string[] | undefined) {
-        const splitTab = msgContent.split(' ')
-        let msgId = ''
-        let letterTab: string[] = []
+    private async reactWithLetters(interaction: ChatInputCommandInteraction<CacheType>) {
+        await interaction.deferReply()
+        const text = interaction.options.get('melding')?.value as string
+        const msgId = interaction.options.get('melding-id')?.value as string
 
-        for (let i = 0; i < splitTab.length; i++) {
-            let wasPreviousIndexWord = false
-            if (splitTab[i].length > 10 && parseInt(splitTab[i])) {
-                msgId = splitTab[i]
-                wasPreviousIndexWord = false
-            } else {
-                const newWord = (i == 0 || !wasPreviousIndexWord ? '' : ' ') + splitTab[i]
-                wasPreviousIndexWord = true
-                letterTab = letterTab.concat(newWord.split(''))
-            }
-        }
-        let messageToReactTo = message
-        if (msgId) {
-            let searchMessage = await MessageHelper.findMessageById(message, msgId)
-            if (searchMessage) messageToReactTo = searchMessage
-        }
+        let letterTab: string[] = text.split('')
+
+        let messageToReactTo = await this.messageHelper.findMessageById(msgId)
+        if (!messageToReactTo) this.messageHelper.replyToInteraction(interaction, `Fant kje meldingen bro`, true, true)
 
         let usedLetter = ''
         let spaceCounter = 0
@@ -158,20 +144,18 @@ export class JokeCommands extends AbstractCommands {
         else this.messageHelper.sendMessage(message.channelId, `${name} ` + ArrayUtils.randomChoiceFromArray(globalArrays.kanIkkjeTekster))
     }
 
-    private async uWuIfyer(message: Message, msgContent: string, args: string[]) {
-        let fMsg
-        if (args && args[0] && args[0].length > 10 && parseInt(args[0])) {
-            fMsg = await this.messageHelper.sendMessage(message.channelId, 'Leter etter meldingen...')
-            const msgToUwU = await MessageHelper.findMessageById(message, msgContent)
+    private async uWuIfyer(interaction: ChatInputCommandInteraction<CacheType>) {
+        const id = Number(interaction.options.get('melding-id')?.value as string)
+        if (id && !isNaN(id)) {
+            const fMsg = await this.messageHelper.replyToInteraction(interaction, 'Leter etter meldingen...', true)
+            const msgToUwU = await this.messageHelper.findMessageById(id.toString())
             if (msgToUwU) {
                 const uwuIfiedText = JokeCommands.uwuText(msgToUwU.content)
-                if (fMsg) fMsg.edit(uwuIfiedText)
-                else this.messageHelper.sendMessage(message.channelId, uwuIfiedText)
+                this.messageHelper.replyToInteraction(interaction, uwuIfiedText, false, true)
             }
-            if (!msgToUwU && fMsg) fMsg.edit('Fant ikke meldingen :(')
+            if (!msgToUwU && fMsg) this.messageHelper.replyToInteraction(interaction, 'Fant ikke meldingen :(', true, true)
         } else {
-            let textToBeUwued = JokeCommands.uwuText(args.length > 0 ? args.join(' ') : 'Please skriv inn ein tekst eller id neste gang')
-            this.messageHelper.sendMessage(message.channelId, textToBeUwued)
+            this.messageHelper.replyToInteraction(interaction, `Du skreiv nok ikkje inn ein rektige ID`, true)
         }
     }
 
@@ -227,68 +211,9 @@ export class JokeCommands extends AbstractCommands {
                     .concat(' ', ArrayUtils.randomChoiceFromArray(globalArrays.asciiEmojies.filter((e) => e !== firstChoice)))
         )
     }
-    private static jaerskText(t: string) {
-        let reply = ''
-        t.split(' ').forEach((word) => {
-            reply += ' ' + Languages.translateToJaersk(word)
-        })
-        return reply
-    }
 
     public getAllCommands(): ICommandElement[] {
-        return [
-            {
-                commandName: 'fese',
-                description: 'Har någen fese?',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
-                isReplacedWithSlashCommand: 'fese',
-                category: 'annet',
-            },
-            {
-                commandName: 'bonk',
-                description: 'Send en bonk. Kan brukes mot brukere.',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
-                isReplacedWithSlashCommand: 'bonk',
-                category: 'annet',
-            },
-            {
-                commandName: 'spell',
-                description:
-                    'Stav ut en setning som emojier i reactions. Syntax: <ord/setning> <(optional) message-id>. Ordet bør ikke inneholde repeterte bokstaver; kun ABCIMOPRSTVX har to versjoner og kan repeteres. Hvis ingen message id gis reagerer den på sendt melding. ',
-                command: (rawMessage: Message, messageContent: string, args: string[] | undefined) => {
-                    this.reactWithLetters(rawMessage, messageContent, args)
-                },
-                category: 'annet',
-            },
-            {
-                commandName: 'kan',
-                description: 'Kan personen? Sikkert ikkje',
-                hideFromListing: true,
-                isAdmin: true,
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.kanPersonen(rawMessage, messageContent, args)
-                },
-                category: 'annet',
-            },
-            {
-                commandName: 'uwu',
-                description: 'UwU-ify en melding',
-
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.uWuIfyer(rawMessage, messageContent, args)
-                },
-                category: 'annet',
-            },
-            {
-                commandName: 'mordi',
-                description: 'Mordi e nais',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    // this.mordi(rawMessage)
-                },
-                isReplacedWithSlashCommand: 'mordi',
-                category: 'annet',
-            },
-        ]
+        return []
     }
     getAllInteractions(): IInteractionElement[] {
         return [
@@ -300,9 +225,30 @@ export class JokeCommands extends AbstractCommands {
                 category: 'gaming',
             },
             {
+                commandName: 'spell',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.reactWithLetters(rawInteraction)
+                },
+                category: 'gaming',
+            },
+            {
+                commandName: 'pullrequest',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.messageHelper.replyToInteraction(rawInteraction, `https://github.com/arnekva/Mazarini/pulls`)
+                },
+                category: 'gaming',
+            },
+            {
                 commandName: 'fese',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.harFese(rawInteraction)
+                },
+                category: 'gaming',
+            },
+            {
+                commandName: 'uwu',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.uWuIfyer(rawInteraction)
                 },
                 category: 'gaming',
             },

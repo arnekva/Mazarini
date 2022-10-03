@@ -1,4 +1,4 @@
-import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction, Message, TextChannel, User } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction, TextChannel, User } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../General/commands'
 import { DatabaseHelper, MazariniUser } from '../helpers/databaseHelper'
@@ -7,7 +7,6 @@ import { SlashCommandHelper } from '../helpers/slashCommandHelper'
 import { CollectorUtils } from '../utils/collectorUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { MentionUtils } from '../utils/mentionUtils'
-import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { RandomUtils } from '../utils/randomUtils'
 import { TextUtils } from '../utils/textUtils'
@@ -282,32 +281,26 @@ export class GamblingCommands extends AbstractCommands {
         }
     }
 
-    private roulette(message: Message, content: string, args: string[]) {
-        const user = DatabaseHelper.getUser(message.author.id)
+    private roulette(interaction: ChatInputCommandInteraction<CacheType>) {
+        const user = DatabaseHelper.getUser(interaction.user.id)
         let userMoney = user.chips
-        const stake = args[0]
-        const betOn = args[1]
-        if (!stake || isNaN(Number(stake))) {
-            message.reply('Du må si hvor mye du vil gamble')
-        } else if (!betOn) {
-            message.reply('Så du bare setter chips på ingenting?')
-        } else if (args.length > 2) {
-            message.reply('Helvedde.. Tror kanskje du må spørre om hjelp for å formattere deg riktig')
-        } else if (!userMoney || userMoney < 0) {
+        const stake = SlashCommandHelper.getCleanNumberValue(interaction.options.get('stake')?.value)
+        const betOn = interaction.options.get('satsing')?.value as string
+
+        if (!userMoney || userMoney < 0) {
             if (Number(stake) > Number(userMoney)) {
-                message.reply('Du har ikke nok penger til å gamble så mye. Ta å spin fidget spinneren litt for någe cash')
+                this.messageHelper.replyToInteraction(interaction, 'Du har ikke nok penger til å gamble så mye. Ta å spin fidget spinneren litt for någe cash')
             } else if (Number(stake) < 0 || Number(stake) === 0) {
-                message.reply('Du prøver å gamble med en ulovlig verdi.')
+                this.messageHelper.replyToInteraction(interaction, 'Du prøver å gamble med en ulovlig verdi.')
             }
         } else if (userMoney < Number(stake)) {
-            message.reply('Du har kje råd te dette')
-        } else if (stake && Number(stake) && betOn) {
+            this.messageHelper.replyToInteraction(interaction, 'Du har kje råd te dette')
+        } else if (Number(stake) && betOn) {
             const red = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]
             const valAsNum = Number(Number(stake).toFixed(2))
             const roll = Math.floor(Math.random() * 37)
             let multiplier = 1
             let won = false
-            let incorrectFormat = false
             if (!isNaN(Number(betOn)) && Number(betOn) >= 0 && Number(betOn) <= 37) {
                 if (roll == Number(betOn)) {
                     won = true
@@ -339,37 +332,33 @@ export class GamblingCommands extends AbstractCommands {
                         won = true
                         multiplier = 2
                     }
-                } else {
-                    message.reply('Lol, kan du ikke rulett eller?')
-                    incorrectFormat = true
                 }
             }
-            if (!incorrectFormat) {
-                let newMoneyValue = 0
 
-                if (won) newMoneyValue = this.calculatedNewMoneyValue(message.author.id, multiplier, valAsNum, userMoney).newMoneyValue
-                else newMoneyValue = Number(userMoney) - valAsNum
-                user.chips = newMoneyValue
-                DatabaseHelper.updateUser(user)
+            let newMoneyValue = 0
 
-                let result = ''
-                if (roll == 0) {
-                    result = roll + ' grønn(!)'
-                } else if (red.includes(roll)) {
-                    result = roll + ' rød'
-                } else {
-                    result = roll + ' sort'
-                }
-                const gambling = new EmbedBuilder()
-                    .setTitle('Rulett 🎲')
-                    .setDescription(
-                        `${message.author.username} satset ${valAsNum} av ${userMoney} chips på ${betOn}.\nBallen landet på: ${result}. Du ${
-                            won ? 'vant! 💰💰 (' + Number(multiplier) + 'x)' : 'tapte 💸💸'
-                        }\nDu har nå ${TextUtils.formatMoney(newMoneyValue, 2, 2)} chips.`
-                    )
+            if (won) newMoneyValue = this.calculatedNewMoneyValue(interaction.user.id, multiplier, valAsNum, userMoney).newMoneyValue
+            else newMoneyValue = Number(userMoney) - valAsNum
+            user.chips = newMoneyValue
+            DatabaseHelper.updateUser(user)
 
-                this.messageHelper.sendFormattedMessage(message.channel as TextChannel, gambling)
+            let result = ''
+            if (roll == 0) {
+                result = roll + ' grønn(!)'
+            } else if (red.includes(roll)) {
+                result = roll + ' rød'
+            } else {
+                result = roll + ' sort'
             }
+            const gambling = new EmbedBuilder()
+                .setTitle('Rulett 🎲')
+                .setDescription(
+                    `${interaction.user.username} satset ${valAsNum} av ${userMoney} chips på ${betOn}.\nBallen landet på: ${result}. Du ${
+                        won ? 'vant! 💰💰 (' + Number(multiplier) + 'x)' : 'tapte 💸💸'
+                    }\nDu har nå ${TextUtils.formatMoney(newMoneyValue, 2, 2)} chips.`
+                )
+
+            this.messageHelper.replyToInteraction(interaction, gambling)
         }
     }
     private getMultiplier(roll: number) {
@@ -663,77 +652,7 @@ export class GamblingCommands extends AbstractCommands {
     }
 
     public getAllCommands(): ICommandElement[] {
-        return [
-            {
-                commandName: 'krig',
-                description: 'Gå til krig mot noen. <nummer> <brukernavn>',
-
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {},
-                category: 'gambling',
-                isReplacedWithSlashCommand: 'krig',
-            },
-            {
-                commandName: 'vipps',
-                description: 'Vipps til en annen bruker. <brukernavn> <tall>',
-
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    // this.vippsChips(rawMessage, messageContent, args)
-                },
-                category: 'gambling',
-                isReplacedWithSlashCommand: 'vipps',
-            },
-            {
-                commandName: 'verdenskrig',
-                description: 'Start en krig mot alle som vil bli med',
-
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    // this.startVerdensKrig(rawMessage, messageContent, args)
-                },
-                category: 'gambling',
-                isReplacedWithSlashCommand: 'krig',
-            },
-            {
-                commandName: ['gamble', 'g'],
-                description: 'Gambla chips dine! Skriv inn mengde chips du vil gambla, så kan du vinna.',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    // this.diceGamble(rawMessage, messageContent, args)
-                },
-                category: 'gambling',
-                isReplacedWithSlashCommand: 'gamble',
-                canOnlyBeUsedInSpecificChannel: [MessageUtils.CHANNEL_IDs.LAS_VEGAS],
-            },
-
-            {
-                commandName: 'rulett',
-                description:
-                    'Gambla chipså dine! Skriv inn mengde chips du vil gambla og ikke minst ka du gamble de på, så kan du vinna. Tilbakebetaling blir høyere jo større risiko du tar. Lykke til!' +
-                    "\nHer kan du gambla på tall, farge eller partall/oddetall. Eksempel: '!mz rulett 1000 svart",
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    this.roulette(rawMessage, messageContent, args)
-                },
-                category: 'gambling',
-                canOnlyBeUsedInSpecificChannel: [MessageUtils.CHANNEL_IDs.LAS_VEGAS],
-            },
-            {
-                commandName: 'wallet',
-                description: 'Se antall coins og chips til en person',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    // this.openWallet(rawMessage, messageContent, args)
-                },
-                isReplacedWithSlashCommand: 'wallet',
-                category: 'gambling',
-            },
-            {
-                commandName: 'roll',
-                description: 'Rull spillemaskinen. Du vinner hvis du får 2 eller flere like tall',
-                command: (rawMessage: Message, messageContent: string, args: string[]) => {
-                    // this.rollSlotMachine(rawMessage, messageContent, args)
-                },
-                category: 'gambling',
-                isReplacedWithSlashCommand: 'roll',
-                canOnlyBeUsedInSpecificChannel: [MessageUtils.CHANNEL_IDs.LAS_VEGAS],
-            },
-        ]
+        return []
     }
 
     getAllInteractions(): IInteractionElement[] {
@@ -777,6 +696,13 @@ export class GamblingCommands extends AbstractCommands {
                 commandName: 'roll',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.rollSlotMachine(rawInteraction)
+                },
+                category: 'gambling',
+            },
+            {
+                commandName: 'rulett',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.roulette(rawInteraction)
                 },
                 category: 'gambling',
             },
