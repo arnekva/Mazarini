@@ -91,10 +91,10 @@ export class PatchNotes extends AbstractCommands {
                 commandName: 'publishnotes',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     const pn = PatchNotes.getCurrentPatchNotes()
-                    this.messageHelper.sendMessage(MessageUtils.CHANNEL_IDs.LOKAL_BOT_SPAM, pn)
+                    this.messageHelper.sendMessage(MessageUtils.CHANNEL_IDs.BOT_UTVIKLING, pn)
                     this.messageHelper.replyToInteraction(
                         rawInteraction,
-                        `Patch notes sendt til ${MentionUtils.mentionChannel(MessageUtils.CHANNEL_IDs.LOKAL_BOT_SPAM)}`,
+                        `Patch notes sendt til ${MentionUtils.mentionChannel(MessageUtils.CHANNEL_IDs.BOT_UTVIKLING)}`,
                         true
                     )
                 },
