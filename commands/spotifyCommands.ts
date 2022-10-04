@@ -157,18 +157,34 @@ export class SpotifyCommands extends AbstractCommands {
             const spotify = member.presence.activities.filter((a) => a.name === 'Spotify')[0]
             if (spotify?.state && spotify.details) {
                 const data = await this.searchForSongOnSpotifyAPI(spotify.details, spotify.state)
-                const items = data.body.tracks.items[0]
+                const items = data.body.tracks.items
+                let foundItem: any
+                let i = 0
+                while (i < items.length) {
+                    if (
+                        items[i].artists.filter((a) => {
+                            console.log(a.name, spotify.state)
+
+                            return a.name === spotify.state
+                        }).length
+                    ) {
+                        foundItem = items[i]
+                        i = items.length
+                    } else {
+                        i++
+                    }
+                }
 
                 const embed = new EmbedBuilder()
                     .setTitle(`${user ? `${user.username} hører på: ` : ''}${spotify?.details} `)
                     .setDescription(`${spotify?.state}`)
-                if (items) {
+                if (foundItem) {
                     embed
-                        .addFields({ name: 'Album', value: items.album?.name ?? 'Ukjent', inline: true })
-                        .addFields({ name: 'Utgitt', value: items.album?.release_date ?? 'Ukjent', inline: true })
-                    if (items.album?.external_urls?.spotify) embed.setURL(items.album?.external_urls?.spotify ?? '#')
+                        .addFields({ name: 'Album', value: foundItem.album?.name ?? 'Ukjent', inline: true })
+                        .addFields({ name: 'Utgitt', value: foundItem.album?.release_date ?? 'Ukjent', inline: true })
+                    if (foundItem.album?.external_urls?.spotify) embed.setURL(foundItem.album?.external_urls?.spotify ?? '#')
 
-                    if (items.album?.images[0]?.url) embed.setThumbnail(items.album.images[0].url)
+                    if (foundItem.album?.images[0]?.url) embed.setThumbnail(foundItem.album.images[0].url)
                 }
 
                 return embed

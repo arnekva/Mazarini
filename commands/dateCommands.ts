@@ -163,7 +163,15 @@ export class DateCommands extends AbstractCommands {
             }
             DatabaseHelper.setCountdownValue(interaction.user.id, 'date', cdDate.toString())
             DatabaseHelper.setCountdownValue(interaction.user.id, 'desc', event)
-            this.messageHelper.replyToInteraction(interaction, `Din countdown for *${event}* er satt til ${cdDate.toLocaleDateString('nb')}`)
+            this.messageHelper.replyToInteraction(
+                interaction,
+                `Din countdown for *${event}* er satt til ${cdDate.toLocaleDateString('nb', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                })} ${cdDate.toLocaleTimeString('nb')}`
+            )
         } else if (isPrinting) {
             let sendThisText = ''
             if (Object.keys(DatabaseHelper.getAllCountdownValues()).length < 1) {

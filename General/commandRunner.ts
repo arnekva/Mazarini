@@ -38,21 +38,29 @@ export class CommandRunner {
         }
     }
 
-    checkForLockedPath(interaction: Interaction<CacheType>) {
-        if (Admin.isAuthorAdmin(UserUtils.findMemberByUserID(interaction.user.id, interaction))) {
+    checkIfLockedPath(interaction: Interaction<CacheType> | Message) {
+        let uId = '0'
+        let channelId = '0'
+        if (interaction instanceof Message) {
+            uId = interaction.author.id
+        } else {
+            uId = interaction.user.id
+        }
+        channelId = interaction.channelId
+        if (Admin.isAuthorAdmin(UserUtils.findMemberByUserID(uId, interaction))) {
             //Always allow admins to carry out interactions - this includes unlocking
             return false
         } else {
             const lm = LockingManager
             if (lm.getbotLocked()) return true
-            if (lm.getlockedThread().includes(interaction.channelId)) return true
-            if (lm.getlockedUser().includes(interaction.user.id)) return true
+            if (lm.getlockedThread().includes(channelId)) return true
+            if (lm.getlockedUser().includes(uId)) return true
             return false
         }
     }
     async checkForCommandInInteraction(interaction: Interaction<CacheType>) {
         /** Check if any part of the interaction is currently locked - if it is, do not proceed. Answer with an ephemeral message explaining the lock */
-        if (this.checkForLockedPath(interaction))
+        if (this.checkIfLockedPath(interaction))
             return interaction.isRepliable()
                 ? interaction.reply(
                       `Interaksjoner er låst. Prøv å se ${MentionUtils.mentionChannel(
@@ -152,50 +160,52 @@ export class CommandRunner {
 
     /** Checks for pølse, eivindpride etc. */
     checkMessageForJokes(message: Message) {
-        if (message.id === '802945796457758760') return
+        if (!this.checkIfLockedPath(message)) {
+            if (message.id === '802945796457758760') return
 
-        let matches
-        let polseCounter = 0
-        this.polseRegex.lastIndex = 0
-        while ((matches = this.polseRegex.exec(message.content))) {
-            if (matches) {
-                polseCounter++
+            let matches
+            let polseCounter = 0
+            this.polseRegex.lastIndex = 0
+            while ((matches = this.polseRegex.exec(message.content))) {
+                if (matches) {
+                    polseCounter++
+                }
             }
-        }
-        const hasHelg = this.helgeRegex.exec(message.content)
-        if (hasHelg) {
-            const val = this.commands.dateFunc.checkForHelg()
-            this.messageHelper.sendMessage(message.channelId, val)
-        }
+            const hasHelg = this.helgeRegex.exec(message.content)
+            if (hasHelg) {
+                const val = this.commands.dateFunc.checkForHelg()
+                this.messageHelper.sendMessage(message.channelId, val)
+            }
 
-        if (message.attachments) {
-            if (this.polseRegex.exec(message.attachments.first()?.name ?? '')) polseCounter++
-        }
+            if (message.attachments) {
+                if (this.polseRegex.exec(message.attachments.first()?.name ?? '')) polseCounter++
+            }
 
-        if (polseCounter > 0) message.channel.send('Hæ, ' + (polseCounter > 1 ? polseCounter + ' ' : '') + 'pølse' + (polseCounter > 1 ? 'r' : '') + '?')
+            if (polseCounter > 0) message.channel.send('Hæ, ' + (polseCounter > 1 ? polseCounter + ' ' : '') + 'pølse' + (polseCounter > 1 ? 'r' : '') + '?')
 
-        //If eivind, eivindpride him
-        if (message.author.id == '239154365443604480' && message.guild) {
-            const react = message.guild.emojis.cache.find((emoji) => emoji.name == 'eivindpride')
-            //check for 10% chance of eivindpriding
-            if (MiscUtils.doesThisMessageNeedAnEivindPride(message.content, polseCounter) && react) message.react(react)
-        }
+            //If eivind, eivindpride him
+            if (message.author.id == '239154365443604480' && message.guild) {
+                const react = message.guild.emojis.cache.find((emoji) => emoji.name == 'eivindpride')
+                //check for 10% chance of eivindpriding
+                if (MiscUtils.doesThisMessageNeedAnEivindPride(message.content, polseCounter) && react) message.react(react)
+            }
 
-        //TODO: Refactor this
-        if (message.author.id == '733320780707790898' && message.guild) {
-            this.applyJoiijJokes(message)
-        }
-        const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message)
-        if (idJoke == '1337') {
-            message.reply('nice, id-en te meldingen din inneholde 1337. Gz, du har vonne 1.000 chips')
-            const user = DatabaseHelper.getUser(message.author.id)
-            user.chips += 1000
-            DatabaseHelper.updateUser(user)
-        }
+            //TODO: Refactor this
+            if (message.author.id == '733320780707790898' && message.guild) {
+                this.applyJoiijJokes(message)
+            }
+            const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message)
+            if (idJoke == '1337') {
+                message.reply('nice, id-en te meldingen din inneholde 1337. Gz, du har vonne 1.000 chips')
+                const user = DatabaseHelper.getUser(message.author.id)
+                user.chips += 1000
+                DatabaseHelper.updateUser(user)
+            }
 
-        if (message.content.toLowerCase().startsWith('kan')) {
-            const name = message.content.split(' ')[1] ?? 'Han'
-            this.messageHelper.sendMessage(message.channelId, `${name} ` + ArrayUtils.randomChoiceFromArray(globalArrays.kanIkkjeTekster))
+            if (message.content.toLowerCase().startsWith('kan')) {
+                const name = message.content.split(' ')[1] ?? 'Han'
+                this.messageHelper.sendMessage(message.channelId, `${name} ` + ArrayUtils.randomChoiceFromArray(globalArrays.kanIkkjeTekster))
+            }
         }
     }
 

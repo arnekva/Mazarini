@@ -31,12 +31,14 @@ export class PatchNotes extends AbstractCommands {
         `\n* publishnotes er nå slashcommand (admin). Publiserer patch notes til ${MentionUtils.mentionChannel(MessageUtils.CHANNEL_IDs.BOT_UTVIKLING)}` +
         `\n* stopprocess er nå slashcommand (admin). Denne vil forsøke å stanse prod-botten` +
         `\n* /lock er nå slashcommand (admin). Adminer kan alltid by-passe locks. ` +
+        `\n* Låsing gjelder nå også passive funksjoner som pølse ` +
         `\n* countdown lagrer nå verdien på ID i stedet for brukernavn` +
+        `\n* Endret måten /Spotify håndterer søket på; før valgte den bare første resultat, men den vil nå lete gjennom resultatene til den finner matchende artistnavn. Hvis ingen finnes vil den ikke sende med ekstra data` +
         `\n* Quote er fjernet` +
         `\n* React er fjernet` +
         `\n* "Kan" kommandoen er fjernet, og er erstattet med en "pølse"-lignende effekt. Meldingen må starte med "Kan".` +
         `\n* Du kan nå sjekke andre personer sine stats med /stats <mode> <bruker?>` +
-        `\n* TODO: TEST countdown skal nå printe en finere timestamp` +
+        `\n* countdown skal nå printe en finere timestamp når du setter den` +
         `\n* countdown skal nå printe hendelsesteksten i bekreftelsesmeldingen` +
         `\n* ID-er for roller og channels er nå samlet i MentionUtils` +
         `\n* ID-er for roller og channels er nå markert som deprecated i MessageUtils og UserUtils i stedet for å ble fjerna siden Arne e for lat te å endra patchnotene som allerede bruke verdiene fra de to` +

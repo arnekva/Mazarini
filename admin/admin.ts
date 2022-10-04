@@ -362,19 +362,24 @@ export class Admin extends AbstractCommands {
         const isUser = interaction.options.getSubcommand() === 'user'
         const isChannel = interaction.options.getSubcommand() === 'channel'
         const user = interaction.options.get('bruker')?.user
-        this.messageHelper.replyToInteraction(interaction, `Låst.`, true)
+        let locked = false
         if (isBot) {
+            locked = !LockingManager.getbotLocked()
             LockingManager.setBotLocked(!LockingManager.getbotLocked())
         } else if (isChannel) {
             if (LockingManager.getlockedThread().includes(interaction.channelId)) {
                 LockingManager.removeThread(interaction.channelId)
             } else LockingManager.setLockedThread(interaction.channelId)
+            locked = LockingManager.getlockedThread().includes(interaction.channelId)
         } else if (isUser) {
             if (LockingManager.getlockedUser().includes(user?.id)) {
                 LockingManager.removeUserLock(user.id)
             } else LockingManager.setLockedUser(user.id)
+            locked = LockingManager.getlockedUser().includes(user?.id)
         }
+        this.messageHelper.replyToInteraction(interaction, `${locked ? 'Låst' : 'Åpnet'}`)
     }
+
     private async rewardUser(interaction: ChatInputCommandInteraction<CacheType>) {
         const type = interaction.options.getString('type')
         const reason = interaction.options.get('type')?.value as string
