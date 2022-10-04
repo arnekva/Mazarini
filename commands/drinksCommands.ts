@@ -127,7 +127,7 @@ export class DrinksCommands extends AbstractCommands {
     private drawCard(interaction: ChatInputCommandInteraction<CacheType>) {
         let card: string = this.deck.drawCard()
         if (!card) {
-            this.messageHelper.replyToInteraction(interaction, "Kortstokken er tom. Dersom dere vil fortsette, bruk '!mz el resett'")
+            this.messageHelper.replyToInteraction(interaction, "Kortstokken er tom. Dersom dere vil fortsette, bruk /electricity resett'")
         } else {
             const currentPlayer = this.getUserObjectById(this.turn)
             this.turn = (this.turn + 1) % this.playerList.length
@@ -151,10 +151,7 @@ export class DrinksCommands extends AbstractCommands {
 
     private async startElectricity(interaction: ChatInputCommandInteraction<CacheType>) {
         if (this.activeGame) {
-            this.messageHelper.replyToInteraction(
-                interaction,
-                'Du kan bare ha ett aktivt spill om gangen. For å avslutte spillet, bruk "!mz electricity stopp"'
-            )
+            this.messageHelper.replyToInteraction(interaction, 'Du kan bare ha ett aktivt spill om gangen. For å avslutte spillet, bruk "/electricity stopp"')
         } else {
             if (this.reactor) {
                 this.reactor.stop()

@@ -152,8 +152,9 @@ export namespace globalArrays {
         'kan faktisk, han fekk lo... ånei kødda, mamma seie nei aligavel',
         'kan kje, morfar e på besøg :(',
         'kan ikkje, han ska spisa pistasj :3',
-        'komme seff, maen e alltid klar for smellen på quellen',
+        'kan seff, maen e alltid klar for smellen på quellen',
         'kan kje, mamma e så streng :(',
+        'kan, men han e kje klar før jæskla seint på quellen',
         'får lov, men må ver hjemma før klokkå 9 hvis ikkje får han kje middag imårå',
     ]
 

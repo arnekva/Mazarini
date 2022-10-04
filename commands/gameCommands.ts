@@ -158,7 +158,7 @@ export class GameCommands extends AbstractCommands {
 
         // return
         if (!user) {
-            return rawMessage.reply("Du må linke Rocket League kontoen din. Bruk '!mz link rocket <psn|xbl|steam|epic> <brukernavn>'")
+            return rawMessage.reply("Du må linke Rocket League kontoen din. Bruk '/link rocket <psn|xbl|steam|epic> <brukernavn>'")
         }
         const waitMsg = await this.messageHelper.sendMessage(rawMessage.channelId, 'Laster data...')
         const platform = user[0]

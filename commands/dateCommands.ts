@@ -158,7 +158,7 @@ export class DateCommands extends AbstractCommands {
             if (!DateUtils.isValidDate(cdDate)) {
                 this.messageHelper.replyToInteraction(
                     interaction,
-                    `  'Du har skrevet inn en ugyldig dato eller klokkeslett. !mz countdown <dd-mm-yyyy> <HH> <beskrivelse>. Husk at time er nødvendig, minutt og sekund frivillig (HH:MM:SS)'`
+                    `  'Du har skrevet inn en ugyldig dato eller klokkeslett. <dd-mm-yyyy> <HH> <beskrivelse>. Husk at time er nødvendig, minutt og sekund frivillig (HH:MM:SS)'`
                 )
             }
             DatabaseHelper.setCountdownValue(interaction.user.id, 'date', cdDate.toString())

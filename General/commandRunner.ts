@@ -106,6 +106,9 @@ export class CommandRunner {
                     cmdFound = this.runCommandElement(cmd, message, messageContent, args)
                 }
             })
+            if (!cmdFound) {
+                return message.reply('Eg leide ikkje itte mz lenger. Du finne alle kommandoene med å skriva ein skråstreg i tekstfelte')
+            }
 
             return undefined
         } else if (message.content.startsWith('!mz')) {

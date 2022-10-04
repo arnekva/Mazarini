@@ -47,9 +47,10 @@ export class PatchNotes extends AbstractCommands {
         `\n* Prod-bot skal ikke lenger svare på interactions i ${MentionUtils.mentionChannel(MessageUtils.CHANNEL_IDs.LOKAL_BOT_SPAM)} hvis testbotten kjører` +
         `\n* Flere npm dependencies er fjernet` +
         `\n* Flere hooks i main er fjernet` +
+        `\n* Oppdatert flere tekster som refererte til !mz-kommandoer til å nå vise til slashcommandoene` +
         `\n* Lagt til funksjoner som skal forsøke å fange flere feil som blir kastet av interaksjonene` +
-        `\n* Fikset en feil som tillot flere enn én countdown` +
-        `\n* Flere databaseinnlegg, deriblant incorrectCommands vil fjernes` +
+        `\n* Fikset en feil som tillot flere enn én countdown hvis du endret brukernavn` +
+        `\n* Flere databaseinnlegg, deriblant incorrectCommands er fjernet` +
         `\n* Sjekker ikke lenger for kommandoer på messageCreate eller messageUpdate` +
         `\n* Locking er flyttet til LockingManager, som nå håndterer locking. Låsing lagres ikke persistant.` +
         `\n* MessageHelper sin replyToInteraction skal nå gjøre et bedre forsøk på å ikke besvare en interaksjon to ganger` +

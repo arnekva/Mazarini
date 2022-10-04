@@ -107,7 +107,7 @@ export class Admin extends AbstractCommands {
         const activity = this.translateActivityType(interaction.options.get('aktivitet')?.value as string)
         const status = interaction.options.get('statustekst')?.value as string
         const hasUrl = status.includes('www.')
-        const activityName = activity
+        const activityName = ActivityType[activity]
         DatabaseHelper.setBotData('status', status)
         DatabaseHelper.setBotData('statusType', activity)
         this.messageHelper.sendMessageToActionLog(`Bottens aktivitet er satt til '${activityName}' med teksten '${status}' av ${interaction.user.username}. `)
