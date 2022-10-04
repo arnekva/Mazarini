@@ -40,10 +40,10 @@ export class PatchNotes extends AbstractCommands {
         `\n* Du kan nå sjekke andre personer sine stats med /stats <mode> <bruker?>` +
         `\n* countdown skal nå printe en finere timestamp når du setter den` +
         `\n* countdown skal nå printe hendelsesteksten i bekreftelsesmeldingen` +
-        `\n* ID-er for roller og channels er nå samlet i MentionUtils` +
-        `\n* ID-er for roller og channels er nå markert som deprecated i MessageUtils og UserUtils i stedet for å ble fjerna siden Arne e for lat te å endra patchnotene som allerede bruke verdiene fra de to` +
         `\n* Ryddet opp i funksjoner i messageHelper` +
         `\n* Ryddet opp i funksjoner i databaseHelper` +
+        `\n* ID-er for roller og channels er nå samlet i MentionUtils` +
+        `\n* ID-er for roller og channels er nå markert som deprecated i MessageUtils og UserUtils i stedet for å ble fjerna siden Arne e for lat te å endra patchnotene som allerede bruke verdiene fra de to` +
         `\n* Prod-bot skal ikke lenger svare på interactions i ${MentionUtils.mentionChannel(MessageUtils.CHANNEL_IDs.LOKAL_BOT_SPAM)} hvis testbotten kjører` +
         `\n* Flere npm dependencies er fjernet` +
         `\n* Flere hooks i main er fjernet` +
@@ -91,10 +91,10 @@ export class PatchNotes extends AbstractCommands {
                 commandName: 'publishnotes',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     const pn = PatchNotes.getCurrentPatchNotes()
-                    this.messageHelper.sendMessage(MessageUtils.CHANNEL_IDs.BOT_UTVIKLING, pn)
+                    this.messageHelper.sendMessage(MessageUtils.CHANNEL_IDs.LOKAL_BOT_SPAM, pn)
                     this.messageHelper.replyToInteraction(
                         rawInteraction,
-                        `Patch notes sendt til ${MentionUtils.mentionChannel(MessageUtils.CHANNEL_IDs.BOT_UTVIKLING)}`,
+                        `Patch notes sendt til ${MentionUtils.mentionChannel(MessageUtils.CHANNEL_IDs.LOKAL_BOT_SPAM)}`,
                         true
                     )
                 },

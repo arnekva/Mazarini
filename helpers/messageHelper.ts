@@ -92,8 +92,18 @@ export class MessageHelper {
         if (!this.checkForEmptyMessage(message)) {
             return this.logEmptyMessage('En melding som ble forsøkt sendt var tom', channelId)
         }
+
         const channel = this.findChannelById(channelId) as TextChannel
-        if (channel) return channel.send(message)
+        if (channel) {
+            if (message.length >= 2000) {
+                const msgArr = message.match(/[\s\S]{1,1800}/g)
+                msgArr.forEach((msg, ind) => {
+                    channel.send(msg)
+                })
+            } else {
+                return channel.send(message)
+            }
+        }
         return undefined
     }
 
