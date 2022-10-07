@@ -6,7 +6,7 @@ import { MentionUtils } from './utils/mentionUtils'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
     public static readonly currentVersion = '10.0.0'
-    public static readonly nextVersion = '10.0.0'
+    public static readonly nextVersion = '10.1.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Endringer som kommer i neste release ' + PatchNotes.nextVersion
@@ -56,7 +56,11 @@ export class PatchNotes extends AbstractCommands {
         `\n* MessageHelper sin replyToInteraction skal nå gjøre et bedre forsøk på å ikke besvare en interaksjon to ganger` +
         `\n* Botstatus skal nå vise korrekt verdi i loggen for hvilken enum som blir satt til verdi. (Logger nå navn på enum i stedet for verdien)`
 
-    public static readonly nextPatchNotes: string = `\n* Ingenting er planlagt for release enda`
+    public static readonly nextPatchNotes: string =
+        `\n* Økning av multiplier for prestige i daily claim` +
+        `\n* Krig default til 'alt'` +
+        `\n* Muligens forbedre preview-en på meldinger slik at varsler på mobil ikke er tomme når Høie svarer på interaksjoner` +
+        `\n* Fikse UwU`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

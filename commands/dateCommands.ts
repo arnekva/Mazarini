@@ -7,6 +7,7 @@ import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { countdownTime, dateRegex, DateUtils } from '../utils/dateUtils'
 import { MentionUtils } from '../utils/mentionUtils'
+import { UserUtils } from '../utils/userUtils'
 
 const holidays = require('holidays-norway').default
 
@@ -89,6 +90,7 @@ export class DateCommands extends AbstractCommands {
             const maxNumDays = 200
             if (DateUtils.isDateBefore(date1, date2) && DateUtils.dateIsMaxXDaysInFuture(date2, maxNumDays)) {
                 DatabaseHelper.setFerieValue(interaction.user.id, 'date', JSON.stringify(feireObj))
+                this.messageHelper.replyToInteraction(interaction, `Ferien din e satt`, true)
             } else {
                 this.messageHelper.replyToInteraction(
                     interaction,
@@ -111,7 +113,9 @@ export class DateCommands extends AbstractCommands {
                         const timeRemaining = DateUtils.dateHasPassed(date1)
                             ? `(${DateUtils.getTimeTo(date2)?.days} dager igjen av ferien)`
                             : `(${DateUtils.getTimeTo(date1)?.days} dager igjen til ferien starter)`
-                        sendThisText += `\n${username} har ferie mellom ${moment(date1).format('ll')} og ${moment(date2).format('ll')} ${timeRemaining}`
+                        sendThisText += `\n${UserUtils.findUserById(username, interaction).username} har ferie mellom ${moment(date1).format('ll')} og ${moment(
+                            date2
+                        ).format('ll')} ${timeRemaining}`
                     }
                 }
             })
