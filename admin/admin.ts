@@ -462,7 +462,7 @@ export class Admin extends AbstractCommands {
                 },
             },
             {
-                commandName: 'botstats',
+                commandName: 'reply',
                 category: 'admin',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.replyToMsgAsBot(rawInteraction)
