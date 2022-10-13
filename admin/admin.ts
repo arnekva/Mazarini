@@ -78,26 +78,35 @@ export class Admin extends AbstractCommands {
         const allChannels = [...this.client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
         const id = interaction.options.get('melding-id')?.value as string
         const replyString = interaction.options.get('tekst')?.value as string
+        let hasFoundMsgOrThrewError = false
         allChannels.forEach((channel: TextChannel) => {
             if (channel) {
                 channel.messages
                     .fetch(id)
                     .then(async (message) => {
-                        if (message.guild) {
+                        if (message && message.id == id) {
                             message.reply(replyString)
-                            this.messageHelper.replyToInteraction(
-                                interaction,
-                                `Svarte på meldingen i kanalen ${MentionUtils.mentionChannel(message.channelId)}, skrevet av ${message.author.username}`,
-                                true
-                            )
+                            if (!hasFoundMsgOrThrewError) {
+                                this.messageHelper.replyToInteraction(
+                                    interaction,
+                                    `Svarte på meldingen i kanalen ${MentionUtils.mentionChannel(message.channelId)}, skrevet av ${message.author.username}`,
+                                    true,
+                                    true
+                                )
+                                hasFoundMsgOrThrewError = true
+                            }
                         }
                     })
                     .catch((error) => {
-                        this.messageHelper.replyToInteraction(
-                            interaction,
-                            `Ser kje ud som eg fant meldingen din. Sjekk om du har et mellomrom for møye me og prøv på nytt`,
-                            true
-                        )
+                        if (!hasFoundMsgOrThrewError) {
+                            this.messageHelper.replyToInteraction(
+                                interaction,
+                                `Ser kje ud som eg fant meldingen din. Sjekk om du har et mellomrom for møye me og prøv på nytt`,
+                                true,
+                                true
+                            )
+                            hasFoundMsgOrThrewError = true
+                        }
                     })
             }
         })
