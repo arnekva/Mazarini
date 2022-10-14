@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
-import { Commands } from '../General/commands'
+import { Commands } from '../general/commands'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniClient } from '../main'
 

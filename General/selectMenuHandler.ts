@@ -21,7 +21,7 @@ export class SelectMenuHandler {
                 this.handleUserInfoViewingMenu(localIntr)
                 return true
             } else {
-                this.messageHelper.replyToInteraction(rawInteraction, `Du kan bare sjekka dine egne ting, bro. Bruker /brukerinfo sjøl`, true)
+                this.messageHelper.replyToInteraction(rawInteraction, `Du kan bare sjekka dine egne ting. Bruke '/brukerinfo' for å se dine egne verdier`, true)
             }
         }
         return false

@@ -19,7 +19,7 @@ import {
 } from 'discord.js'
 import moment from 'moment'
 import { discordSecret, environment } from './client-env'
-import { CommandRunner } from './General/commandRunner'
+import { CommandRunner } from './general/commandRunner'
 import { ClientHelper } from './helpers/clientHelper'
 import { MessageHelper } from './helpers/messageHelper'
 import { DailyJobs } from './Jobs/dailyJobs'

@@ -1,5 +1,5 @@
 import { Client } from 'discord.js'
-import { ICommandElement, IInteractionElement } from '../General/commands'
+import { ICommandElement, IInteractionElement } from '../general/commands'
 import { MessageHelper } from '../helpers/messageHelper'
 
 export abstract class AbstractCommands {

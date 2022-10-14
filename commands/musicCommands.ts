@@ -1,7 +1,7 @@
 import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction, Message, User } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { lfKey } from '../client-env'
-import { ICommandElement, IInteractionElement } from '../General/commands'
+import { ICommandElement, IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { TextUtils } from '../utils/textUtils'

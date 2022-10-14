@@ -1,6 +1,6 @@
 import { APIEmbedField, CacheType, ChatInputCommandInteraction, Client, Message, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { ICommandElement, IInteractionElement } from '../General/commands'
+import { ICommandElement, IInteractionElement } from '../general/commands'
 import { globalArrays } from '../globals'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
@@ -8,6 +8,7 @@ import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
+import { MentionUtils } from '../utils/mentionUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { TextUtils } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
@@ -234,7 +235,11 @@ export class JokeCommands extends AbstractCommands {
             {
                 commandName: 'pullrequest',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.messageHelper.replyToInteraction(rawInteraction, `https://github.com/arnekva/Mazarini/pulls`)
+                    const user = rawInteraction.options.get('bruker').user
+                    this.messageHelper.replyToInteraction(
+                        rawInteraction,
+                        `https://github.com/arnekva/Mazarini/pulls ${user ? MentionUtils.mentionUser(user.id) : ''}`
+                    )
                 },
                 category: 'gaming',
             },

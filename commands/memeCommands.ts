@@ -2,7 +2,7 @@ import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
 import { URLSearchParams } from 'url'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { imgflip } from '../client-env'
-import { ICommandElement, IInteractionElement } from '../General/commands'
+import { ICommandElement, IInteractionElement } from '../general/commands'
 import { MessageHelper } from '../helpers/messageHelper'
 const fetch = require('node-fetch')
 export class Meme extends AbstractCommands {

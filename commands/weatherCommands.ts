@@ -1,6 +1,6 @@
 import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { ICommandElement, IInteractionElement } from '../General/commands'
+import { ICommandElement, IInteractionElement } from '../general/commands'
 import { MessageHelper } from '../helpers/messageHelper'
 import { WeatherUtils } from '../utils/weatherUtils'
 const fetch = require('node-fetch')

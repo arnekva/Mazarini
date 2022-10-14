@@ -3,7 +3,7 @@ import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interacti
 import { Response } from 'node-fetch'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { actSSOCookie } from '../client-env'
-import { ICommandElement, IInteractionElement } from '../General/commands'
+import { ICommandElement, IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
@@ -242,7 +242,7 @@ export class WarzoneCommands extends AbstractCommands {
         const filterMode: string = ' ' //TODO: Legg til support for dette igjen
 
         const noSave = filterMode === 'nosave' || !!user
-        const isRebirth = filterMode === 'rebirth' || rebirthOnly
+        const isRebirth = filterMode == 'rebirth' || rebirthOnly
 
         if (wantedType === 'weekly' || wantedType === 'rebirth') {
             return this.findWeeklyData(gamertag, platform, rawInteraction, { noSave: noSave, rebirth: isRebirth })
@@ -441,7 +441,7 @@ export class WarzoneCommands extends AbstractCommands {
             const checkAnotherUser = interaction.options.get('bruker')?.user
 
             if (wantedType === 'br' || wantedType === 'weekly' || wantedType === 'rebirth') {
-                const content = await this.getBRContent(interaction, wantedType, checkAnotherUser)
+                const content = await this.getBRContent(interaction, wantedType, checkAnotherUser, wantedType === 'rebirth')
                 this.messageHelper.replyToInteraction(interaction, content, undefined, true)
             } else if (wantedType === 'siste') {
                 const content = await this.getLastMatchData(interaction, checkAnotherUser)
