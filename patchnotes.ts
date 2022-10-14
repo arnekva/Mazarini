@@ -16,6 +16,7 @@ export class PatchNotes extends AbstractCommands {
         `\n* Du kan nå tagge personer i /pullrequest for å rette den mot noen` +
         `\n* Fjernet flere !mz-kommandoer` +
         `\n* /reply viser nå kun svar for den som utførte kommandoen` +
+        `\n* Hvis du inkluderer 'debug' i /sang søket vil den nå printe hva den søkte etter samt andre resultat` +
         `\n* /stats rebirth skal nå fungere for å vise stats for kun rebirth`
 
     public static readonly nextPatchNotes: string =

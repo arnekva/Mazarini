@@ -37,7 +37,6 @@
         "IndentStyle": "smart",
         "TabSize": 2,
         "NewLineCharacter": "\n",
-        "ConvertTabsToSpaces": true,
         "InsertSpaceAfterCommaDelimiter": true,
         "InsertSpaceAfterSemicolonInForStatements": true,
         "InsertSpaceBeforeAndAfterBinaryOperators": true,

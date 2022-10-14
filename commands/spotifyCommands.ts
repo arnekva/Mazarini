@@ -90,12 +90,30 @@ export class SpotifyCommands extends AbstractCommands {
 
     private async printSongFromSpotify(interaction: ChatInputCommandInteraction<CacheType>) {
         await interaction.deferReply()
-        const searchString = interaction.options.get('tittel')?.value as string
+        let searchString = interaction.options.get('tittel')?.value as string
+        let debugMode = false
+        if (searchString.includes('debug')) {
+            searchString = searchString.replace('debug', '')
+            debugMode = true
+        }
+
         const data = await this.searchForSongOnSpotifyAPI(searchString)
+
         if (data) {
             const firstResult = data.body.tracks.items[0]
 
-            const result = `${firstResult?.name} av ${firstResult?.artists[0]?.name}. Utgitt ${firstResult?.album?.release_date}. ${firstResult?.external_urls?.spotify}`
+            const result = `${firstResult?.name} av ${firstResult?.artists[0]?.name}. Utgitt ${firstResult?.album?.release_date}. ${
+                firstResult?.external_urls?.spotify
+            } ${
+                debugMode
+                    ? '\n*DEBUG*: Funnet med søk på ' +
+                      searchString +
+                      ' Andre resultat var ' +
+                      data?.body?.tracks?.items[1]?.name +
+                      ' av ' +
+                      data?.body?.tracks?.items[1]?.artists[0].name
+                    : ''
+            }`
             this.messageHelper.replyToInteraction(interaction, result, false, true)
         }
     }
