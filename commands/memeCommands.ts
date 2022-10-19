@@ -14,7 +14,10 @@ export class Meme extends AbstractCommands {
     private async findMemeIdAndCreate(meme: string, interaction: ChatInputCommandInteraction<CacheType>) {
         if (meme == 'anakin') return await this.createMeme('322841258', interaction)
         if (meme == 'timmy') return await this.createMeme('26433458', interaction)
-        if (meme == 'sjosyk') return await this.messageHelper.sendMessage(interaction.channelId, 'https://i.imgur.com/ka7SslJ.jpg')
+        if (meme == 'sjosyk') {
+            this.messageHelper.replyToInteraction(interaction, 'Fant memen din bro', true)
+            return await this.messageHelper.sendMessage(interaction.channelId, 'https://i.imgur.com/ka7SslJ.jpg')
+        }
     }
 
     private async sendMeme(interaction: ChatInputCommandInteraction<CacheType>) {

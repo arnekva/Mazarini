@@ -5,8 +5,8 @@ import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '10.1.01'
-    public static readonly nextVersion = '10.2.0'
+    public static readonly currentVersion = '10.2.0'
+    public static readonly nextVersion = '10.3.0'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Endringer som kommer i neste release ' + PatchNotes.nextVersion
@@ -17,10 +17,11 @@ export class PatchNotes extends AbstractCommands {
         `\n* Fjernet flere !mz-kommandoer` +
         `\n* /reply viser nå kun svar for den som utførte kommandoen` +
         `\n* Hvis du inkluderer 'debug' i /sang søket vil den nå printe hva den søkte etter samt andre resultat` +
+        `\n* Fikset en feil som gjorde at */meme sjosyk* ikke svarte på interaksjonen selv om den sendte memen` +
+        `\n* Påminnelse printer nå en bekreftelse på tid til påminnelse (fjernet også et ekstra mellomrom i printen)` +
         `\n* /stats rebirth skal nå fungere for å vise stats for kun rebirth`
 
-    public static readonly nextPatchNotes: string =
-        `\n* Muligens forbedre preview-en på meldinger slik at varsler på mobil ikke er tomme når Høie svarer på interaksjoner` + `\n* Fikse UwU`
+    public static readonly nextPatchNotes: string = `\n* /navn person skal ikke sende navn hvis innholdet kun er en emoji` + `\n* Fikse UwU`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes

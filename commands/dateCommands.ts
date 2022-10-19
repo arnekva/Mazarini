@@ -33,9 +33,14 @@ export class DateCommands extends AbstractCommands {
         } else if (event.length < 1) {
             this.messageHelper.replyToInteraction(interaction, 'Du må spesifisere hva påminnelsen gjelder', true)
         } else {
-            this.messageHelper.replyToInteraction(interaction, `Påminnelsen din er satt for *${event}*`)
+            this.messageHelper.replyToInteraction(
+                interaction,
+                `Påminnelsen din er satt for *${event}* om *${timeArray[0] ? timeArray[0] + ' timer, ' : ''} ${timeArray[1]} minutter og ${
+                    timeArray[2]
+                } sekunder*`
+            )
             setTimeout(() => {
-                this.messageHelper.sendMessage(interaction.channelId, `*Påminnelse for ${MentionUtils.mentionUser(interaction.user.id)}*\n *${event}*`)
+                this.messageHelper.sendMessage(interaction.channelId, `*Påminnelse for ${MentionUtils.mentionUser(interaction.user.id)}*\n*${event}*`)
             }, timeout)
         }
     }

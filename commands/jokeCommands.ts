@@ -33,7 +33,6 @@ export class JokeCommands extends AbstractCommands {
                 const activities = member.presence.activities.filter((a) =>
                     member.id === UserUtils.User_IDs.BOT_HOIE ? a : a.name.toLowerCase() !== 'custom status'
                 )
-
                 let currentActivity = activities[0]
                 if (activities.length > 0) {
                     //Need a flag to check if current activity is Spotify. Spotify supplies album name in asset but artist/song in state/details, so asset should not override description
