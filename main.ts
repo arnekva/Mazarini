@@ -73,7 +73,12 @@ export class MazariniClient {
 
     async initClient() {
         /** Login client */
+        console.log('Initializing client')
+        console.log('Logging in')
+
         await this.client.login(discordSecret)
+        console.log('Logged in, starting setup')
+
         this.setupClient(this.client)
     }
 
@@ -83,7 +88,9 @@ export class MazariniClient {
         moment.updateLocale('nb', {})
         client.on('ready', async () => {
             const today = new Date()
-            console.log(`Logged in as ${_mzClient.client.user?.tag} ${today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()} !`)
+            console.log(
+                `Setup ready, bot is ready as ${_mzClient.client.user?.tag} at ${today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()} !`
+            )
 
             if (environment == 'prod') _msgHelper.sendMessageToActionLog('Boten er nå live i production mode.')
 
