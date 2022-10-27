@@ -96,7 +96,6 @@ export namespace globalArrays {
         'Har dokkor hørt om Gustav Vigeland?',
         'Hæ, pølse?',
     ]
-    
 
     export const emojiesList = [
         '🤬',
@@ -144,6 +143,18 @@ export namespace globalArrays {
         '🤟🏻',
         '🔐',
         '🤛🏻',
+    ]
+
+    export const kanIkkjeTekster = [
+        `kan ikkje, får kje lov av farsin :(`,
+        `kan ikkje, han skamtrunte på vei te buen`,
+        `kan ikkje, fekk husarrest for å leka me fyrstikker`,
+        `kan faktisk, han fekk lo... ånei kødda, mamma seie nei aligavel`,
+        `kan ikkje, han ska spisa pistasj :3`,
+        `kan seff, maen e alltid klar for smellen på quellen`,
+        `kan kje, mamma e så streng :(`,
+        `kan, men han e kje klar før jæskla seint på quellen`,
+        `får lov, men må ver hjemma før klokkå 9 hvis ikkje får han kje middag imårå`,
     ]
 
     export const feseTexts = [
