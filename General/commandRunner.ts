@@ -1,7 +1,6 @@
 import { CacheType, ChatInputCommandInteraction, Client, Interaction, InteractionType, Message } from 'discord.js'
 import { Admin } from '../admin/admin'
 import { environment } from '../client-env'
-import { globalArrays } from '../globals'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
@@ -207,7 +206,7 @@ export class CommandRunner {
 
             if (message.content.toLowerCase().startsWith('kan') && message.content.toLowerCase().endsWith('?')) {
                 const name = message.content.split(' ')[1] ?? 'Han'
-                const texts = globalArrays.kanIkkjeTekster(name.toLowerCase() === 'eg')
+                const texts = ArrayUtils.kanIkkjeTekster(name.toLowerCase() === 'eg')
                 this.messageHelper.sendMessage(message.channelId, `${name} ` + ArrayUtils.randomChoiceFromArray(texts))
             }
         }

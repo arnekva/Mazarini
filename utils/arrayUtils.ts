@@ -56,4 +56,19 @@ export class ArrayUtils {
         }
         return array
     }
+
+    static kanIkkjeTekster(hasEg?: boolean): string[] {
+        const obj = hasEg ? `du` : 'han'
+        return [
+            `kan ikkje, får kje lov av farsin :(`,
+            `kan ikkje, ${obj} skamtrunte på vei te buen`,
+            `kan ikkje, fekk husarrest for å leka me fyrstikker`,
+            `kan faktisk, ${obj} fekk lo... ånei kødda, mamma seie nei aligavel`,
+            `kan ikkje, ${obj} ska spisa pistasj :3`,
+            `kan seff, maen e alltid klar for smellen på quellen`,
+            `kan kje, mamma e så streng :(`,
+            `kan, men ${obj} e kje klar før jæskla seint på quellen`,
+            `får lov, men må ver hjemma før klokkå 9 hvis ikkje får ${obj} kje middag imårå`,
+        ]
+    }
 }
