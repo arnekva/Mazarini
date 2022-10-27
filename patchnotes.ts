@@ -13,6 +13,7 @@ export class PatchNotes extends AbstractCommands {
 
     public static readonly currentPatchNotes: string =
         `\n* Hvis en interaksjon ikke kan svares på skal svaret nå forsøkes sendt som egen melding` +
+        `\n* /link vinmonopol gir nå en bedre melding` +
         `\n* Forbedret logging når en interaksjon feiler` +
         `\n* Joiij-tekstene er nå på Stavangersk` +
         `\n* Joiij-tekstene om tid reagerer nå også om ${MentionUtils.mentionRole(MentionUtils.ROLE_IDs.WARZONE)} tagges` +

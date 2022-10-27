@@ -18,20 +18,25 @@ export class LinkCommands extends AbstractCommands {
         const isVinmonopol = interaction.options.getSubcommand() === 'vinmonopol'
 
         let saved = false
+        let msg = ''
         if (isWZ) {
             const platform = interaction.options.get('plattform')?.value as string
             const username = interaction.options.get('brukernavn')?.value as string
+            msg = `Linket *${username}* *${platform}* til brukeren din for Warzone`
 
             saved = this.linkWZName(interaction, platform, username)
         } else if (isLastFM) {
             const username = interaction.options.get('brukernavn')?.value as string
             saved = this.linkLastFMName(interaction, username)
+            msg = `Linket *${username}* til brukeren din for Last.fm`
         } else if (isVinmonopol) {
             const polID = interaction.options.get('vinmonopolid')?.value as string
-            saved = await this.linkVinmonopolToUser(polID, interaction.user.id)
+            const data = await this.linkVinmonopolToUser(polID, interaction.user.id)
+            saved = !!data
+            msg = `Vinmonopolet ${data} er lagret på brukeren din`
         }
 
-        if (saved) this.messageHelper.replyToInteraction(interaction, 'Brukernavnet er nå linket til din konto', undefined, true)
+        if (saved) this.messageHelper.replyToInteraction(interaction, msg, undefined, true)
         else this.messageHelper.replyToInteraction(interaction, 'Klarte ikke hente brukernavn eller plattform', undefined, true)
     }
 
@@ -51,20 +56,20 @@ export class LinkCommands extends AbstractCommands {
         return true
     }
 
-    async linkVinmonopolToUser(storeIdFromInteraction: string, userId: string): Promise<boolean> {
+    async linkVinmonopolToUser(storeIdFromInteraction: string, userId: string): Promise<string> {
         const storeId = parseInt(storeIdFromInteraction)
         if (!isNaN(storeId) && storeId < 1000) {
             const store = await PoletCommands.fetchPoletData(undefined, storeId.toString())
             if (!store) {
-                return false
+                return ''
             } else {
                 const user = DatabaseHelper.getUser(userId)
                 user.favoritePol = storeId.toString()
                 DatabaseHelper.updateUser(user)
-                return true
+                return `${store.storeName} (${store.storeId}), med adressen ${store.address.street} ${store.address.postalCode} ${store.address.city}`
             }
         } else {
-            return false
+            return ''
         }
     }
 
