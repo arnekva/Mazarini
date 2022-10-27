@@ -288,7 +288,7 @@ export class Admin extends AbstractCommands {
                         const dbUser = DatabaseHelper.getUser(user.id)
                         const value = dbUser[prop]
                         if (value) {
-                            this.messageHelper.sendMessage(message.channelId, `Verdi er <${value}> (prop: ${prop}, bruker: ${user.username})`)
+                            return this.messageHelper.sendMessage(message.channelId, `Verdi er <${value}> (prop: ${prop}, bruker: ${user.username})`)
                         } else {
                             message.reply('Fant ingen verdi')
                         }
@@ -298,6 +298,7 @@ export class Admin extends AbstractCommands {
                 } else {
                     message.reply('Fant ikke bruker')
                 }
+                return undefined
             }
         } else {
             return message.reply('Du må spesifisere path eller prefix')

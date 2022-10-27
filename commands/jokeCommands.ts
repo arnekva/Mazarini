@@ -141,7 +141,7 @@ export class JokeCommands extends AbstractCommands {
     private kanPersonen(message: Message, msgContent: string, args: string[]) {
         const name = TextUtils.splitUsername(args[0])
         if (!args[0] || !name) message.reply('Du kan jaffal ikkje skriva denne kommandoen rett')
-        else this.messageHelper.sendMessage(message.channelId, `${name} ` + ArrayUtils.randomChoiceFromArray(globalArrays.kanIkkjeTekster))
+        else this.messageHelper.sendMessage(message.channelId, `${name} ` + ArrayUtils.randomChoiceFromArray(ArrayUtils.kanIkkjeTekster()))
     }
 
     private async uWuIfyer(interaction: ChatInputCommandInteraction<CacheType>) {
