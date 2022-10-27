@@ -203,12 +203,6 @@ export class CommandRunner {
                 user.chips += 1000
                 DatabaseHelper.updateUser(user)
             }
-
-            if (message.content.toLowerCase().startsWith('kan') && message.content.toLowerCase().endsWith('?')) {
-                const name = message.content.split(' ')[1] ?? 'Han'
-                const textList = ArrayUtils.kanIkkjeTekster(name.toLowerCase() === 'eg')
-                this.messageHelper.sendMessage(message.channelId, `${name} ` + ArrayUtils.randomChoiceFromArray(textList))
-            }
         }
     }
 

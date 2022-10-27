@@ -16,12 +16,14 @@ export class PatchNotes extends AbstractCommands {
         `\n* Forbedret logging når en interaksjon feiler` +
         `\n* Joiij-tekstene er nå på Stavangersk` +
         `\n* Joiij-tekstene om tid reagerer nå også om ${MentionUtils.mentionRole(MentionUtils.ROLE_IDs.WARZONE)} tagges` +
-        `\n* Rettet diverse tekster i 'kan'` +
-        `\n* 'kan' trigges nå kun dersom setningen slutter med et spørsmålstegn` +
+        `\n* 'kan' er midlertidig skrudd av` +
         `\n* **/weather** printer nå søkestringen i feilmeldingen hvis det oppstår et problem`
 
     public static readonly nextPatchNotes: string =
-        `\n* /navn person skal ikke sende navn hvis innholdet kun er en emoji` + `\n* Fikse lånegreiene til Geggi` + `\n* Fikse UwU`
+        `\n* /navn person skal ikke sende navn hvis innholdet kun er en emoji` +
+        `\n* Fikse lånegreiene til Geggi` +
+        `\n* Fikse UwU` +
+        `\n* Gjøre 'kan' triggeren bedre`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
