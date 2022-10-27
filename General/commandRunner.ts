@@ -206,8 +206,8 @@ export class CommandRunner {
 
             if (message.content.toLowerCase().startsWith('kan') && message.content.toLowerCase().endsWith('?')) {
                 const name = message.content.split(' ')[1] ?? 'Han'
-                const texts = ArrayUtils.kanIkkjeTekster(name.toLowerCase() === 'eg')
-                this.messageHelper.sendMessage(message.channelId, `${name} ` + ArrayUtils.randomChoiceFromArray(texts))
+                const textList = ArrayUtils.kanIkkjeTekster(name.toLowerCase() === 'eg')
+                this.messageHelper.sendMessage(message.channelId, `${name} ` + ArrayUtils.randomChoiceFromArray(textList))
             }
         }
     }

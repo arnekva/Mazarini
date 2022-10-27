@@ -1,4 +1,4 @@
-import { APIEmbedField, CacheType, ChatInputCommandInteraction, Client, Message, TextChannel } from 'discord.js'
+import { APIEmbedField, CacheType, ChatInputCommandInteraction, Client, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../general/commands'
 import { globalArrays } from '../globals'
@@ -10,7 +10,6 @@ import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { MiscUtils } from '../utils/miscUtils'
-import { TextUtils } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
 
 export class JokeCommands extends AbstractCommands {
@@ -136,12 +135,6 @@ export class JokeCommands extends AbstractCommands {
                 console.log(error)
             }
         })
-    }
-
-    private kanPersonen(message: Message, msgContent: string, args: string[]) {
-        const name = TextUtils.splitUsername(args[0])
-        if (!args[0] || !name) message.reply('Du kan jaffal ikkje skriva denne kommandoen rett')
-        else this.messageHelper.sendMessage(message.channelId, `${name} ` + ArrayUtils.randomChoiceFromArray(ArrayUtils.kanIkkjeTekster()))
     }
 
     private async uWuIfyer(interaction: ChatInputCommandInteraction<CacheType>) {
