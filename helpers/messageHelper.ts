@@ -48,32 +48,35 @@ export class MessageHelper {
         wasDefered?: boolean,
         menu?: ActionRowBuilder<SelectMenuBuilder>
     ): Promise<boolean> {
-        const logError = (e: any) => {
+        const handleError = async (e: any) => {
+            let msg: Message<boolean> | undefined
+            if (content instanceof EmbedBuilder) msg = await this.sendFormattedMessage(interaction.channelId, content)
+            else msg = await this.sendMessage(interaction.channelId, content)
+
+            let msgInfo = msg ? `Forsøkte å sende en separat melding i stedet for interaksjonssvar.` : `Klarte heller ikke sende separat melding som svar`
+            if (msg) msgInfo += `\nCreatedAt: ${msg?.createdAt}.\nType sent: ${msg?.type}\nWAS EMBED: ${content instanceof EmbedBuilder}`
+
             this.sendMessageToActionLog(
                 `Klarte ikke svare på en interaction. ${interaction.user.username} prøvde å bruke ${
                     interaction.isChatInputCommand() ? interaction.commandName : '<ikke command>'
-                } i kanalen ${MentionUtils.mentionChannel(interaction.channelId)}. \nStacktrace: \n${e}`
-            )
-            this.sendMessage(
-                interaction.channelId,
-                `Klarte ikke svare på interactionen. Feilmelding er logget. ${MentionUtils.mentionRole(
-                    UserUtils.ROLE_IDs.BOT_SUPPORT
-                )}. Prøv å utføre interactionen på ny`
+                } i kanalen ${MentionUtils.mentionChannel(interaction.channelId)}. \nWas object: ${
+                    typeof content === 'object'
+                }.\nWas defered: ${wasDefered}.\nHad menu:${menu}.\n${msgInfo} \nStacktrace: \n${e}`
             )
         }
         if (!interaction.replied) {
             if (typeof content === 'object') {
-                if (wasDefered) await interaction.editReply({ embeds: [content], components: menu ? [menu] : undefined }).catch((e) => logError(e))
+                if (wasDefered) await interaction.editReply({ embeds: [content], components: menu ? [menu] : undefined }).catch((e) => handleError(e))
                 else
                     await interaction
                         .reply({ embeds: [content], ephemeral: onlyVisibleToEngager, components: menu ? [menu] : undefined })
-                        .catch((e) => logError(e))
+                        .catch((e) => handleError(e))
             } else {
-                if (wasDefered) await interaction.editReply(content).catch((e) => logError(e))
+                if (wasDefered) await interaction.editReply(content).catch((e) => handleError(e))
                 else
                     await interaction
                         .reply({ content: content, ephemeral: onlyVisibleToEngager, components: menu ? [menu] : undefined })
-                        .catch((e) => logError(e))
+                        .catch((e) => handleError(e))
             }
             return true
         }
@@ -94,12 +97,14 @@ export class MessageHelper {
         }
 
         const channel = this.findChannelById(channelId) as TextChannel
+        let msg: Message | undefined
         if (channel) {
             if (message.length >= 2000) {
                 const msgArr = message.match(/[\s\S]{1,1800}/g)
                 msgArr.forEach((msg, ind) => {
                     channel.send(msg)
                 })
+                return undefined
             } else {
                 return channel.send(message)
             }
@@ -183,7 +188,8 @@ export class MessageHelper {
             }.`
         )
         if (replyChannel && replyChannel.type === ChannelType.GuildText)
-            replyChannel.send(`${errorMessageToSend} ${MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.BOT_SUPPORT)}`)
+            return replyChannel.send(`${errorMessageToSend} ${MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.BOT_SUPPORT)}`)
+        return undefined
     }
 
     async sendMessageToActionLogWithDefaultMessage(message: Message, error: any) {

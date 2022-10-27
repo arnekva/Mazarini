@@ -205,9 +205,12 @@ export class CommandRunner {
                 DatabaseHelper.updateUser(user)
             }
 
-            if (message.content.toLowerCase().startsWith('kan')) {
+            if (message.content.toLowerCase().startsWith('kan') && message.content.toLowerCase().endsWith('?')) {
                 const name = message.content.split(' ')[1] ?? 'Han'
-                this.messageHelper.sendMessage(message.channelId, `${name} ` + ArrayUtils.randomChoiceFromArray(globalArrays.kanIkkjeTekster))
+                this.messageHelper.sendMessage(
+                    message.channelId,
+                    `${name} ` + ArrayUtils.randomChoiceFromArray(globalArrays.kanIkkjeTekster(name.toLowerCase() === 'eg'))
+                )
             }
         }
     }
@@ -227,18 +230,20 @@ export class CommandRunner {
             arg2 = numbers[0] * 5 + '-' + numbers[1] * 5
         }
         const responses = [
-            'hahaha, du mener ' + arg2 + ', sant?',
+            'hahaha, du meine ' + arg2 + ', sant?',
             arg2 + '*',
-            'det var vel litt ambisiøst.. ' + arg2 + ' høres mer riktig ut',
-            'hmm.. føler jeg har hørt den før 🤔',
-            'hva får deg til å tro at det stemmer denne gangen?',
-            arg1 + ' ja.. vi lyger vel alle litt på CVen, hæ?',
-            arg1 + '? komman Joiij',
+            'det va vel litt vel ambisiøst.. ' + arg2 + ' hørres mer rett ud',
+            'hmm... ' + arg1 + ' ...føle eg har hørt den før 🤔',
+            arg1 + ' ja.. me lyge vel alle litt på CVen, hæ?',
+            arg1 + '? Komman Joiij, alle vett du meine ' + arg2,
+            `vedde hundre kroner på at du egentlig e klar ${arg2}`,
+            `glede meg te å sidda i lobby å venta te når du faktisk e klar om ${arg2}`,
         ]
         if (numbers.length > 0 && numbers.length < 3 && !MessageUtils.messageHasCommand(message)) {
             message.react(kekw ?? '😂')
             message.reply(ArrayUtils.randomChoiceFromArray(responses))
-        } else if (message.mentions.roles.find((e) => e.name == 'Jævla Drittspel')) {
+        }
+        if (message.mentions.roles.find((e) => e.name == 'Jævla Drittspel')) {
             message.react(kekw ?? '😂')
             message.reply('lol')
         }

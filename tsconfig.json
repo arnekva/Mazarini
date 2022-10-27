@@ -19,7 +19,7 @@
         "indentStyle": "smart",
         "tabSize": 2,
         "newLineCharacter": "\n",
-        "convertTabsToSpaces": false,
+        "convertTabsToSpaces": true,
         "insertSpaceAfterCommaDelimiter": true,
         "insertSpaceAfterSemicolonInForStatements": true,
         "insertSpaceBeforeAndAfterBinaryOperators": true,

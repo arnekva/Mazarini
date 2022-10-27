@@ -29,6 +29,7 @@ export class MentionUtils {
     static ROLE_IDs = {
         BOT_SUPPORT: '863038817794392106',
         NATO: '963396965947801630',
+        WARZONE: '1034860501383004161',
     }
 
     static User_IDs = {

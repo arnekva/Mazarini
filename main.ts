@@ -29,7 +29,6 @@ import { MessageUtils } from './utils/messageUtils'
 import { UserUtils } from './utils/userUtils'
 
 const Discord = require('discord.js')
-
 const schedule = require('node-schedule')
 const axon = require('pm2-axon')
 const sub = axon.socket('sub-emitter')

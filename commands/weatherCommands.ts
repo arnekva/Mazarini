@@ -22,7 +22,7 @@ export class Weather extends AbstractCommands {
         })
             .then((res: any) => {
                 if (!res.ok) {
-                    this.messageHelper.replyToInteraction(interaction, `Det har oppstått et problem`, undefined, true)
+                    this.messageHelper.replyToInteraction(interaction, `Det har oppstått et problem for søket ditt på ${city}`, undefined, true)
                 } else {
                     res.json().then((el: any) => {
                         const temperature: string = WeatherUtils.kelvinToCelcius(el.main.temp).toFixed(1).toString()

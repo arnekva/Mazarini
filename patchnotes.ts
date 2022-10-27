@@ -5,23 +5,23 @@ import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '10.2.0'
-    public static readonly nextVersion = '10.3.0'
+    public static readonly currentVersion = '10.3.0'
+    public static readonly nextVersion = 'Backlog'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
-    private static readonly headerNextRelease = 'Endringer som kommer i neste release ' + PatchNotes.nextVersion
+    private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Nerfet payout fra spin på de laveste verdiene (5-7 minutt) og økt utbetaling for høyere spins (8-10)` +
-        `\n* Du kan nå tagge personer i /pullrequest for å rette den mot noen` +
-        `\n* Fjernet flere !mz-kommandoer` +
-        `\n* /reply viser nå kun svar for den som utførte kommandoen` +
-        `\n* Hvis du inkluderer 'debug' i /sang søket vil den nå printe hva den søkte etter samt andre resultat` +
-        `\n* Fikset en feil som gjorde at */meme sjosyk* ikke svarte på interaksjonen selv om den sendte memen` +
-        `\n* Påminnelse printer nå en bekreftelse på tid til påminnelse (fjernet også et ekstra mellomrom i printen)` +
-        `\n* /stats rebirth skal nå fungere for å vise stats for kun rebirth`
+        `\n* Hvis en interaksjon ikke kan svares på skal svaret nå forsøkes sendt som egen melding` +
+        `\n* Forbedret logging når en interaksjon feiler` +
+        `\n* Joiij-tekstene er nå på Stavangersk` +
+        `\n* Joiij-tekstene om tid reagerer nå også om ${MentionUtils.mentionRole(MentionUtils.ROLE_IDs.WARZONE)} tagges` +
+        `\n* Rettet diverse tekster i 'kan'` +
+        `\n* 'kan' trigges nå kun dersom setningen slutter med et spørsmålstegn` +
+        `\n* **/weather** printer nå søkestringen i feilmeldingen hvis det oppstår et problem`
 
-    public static readonly nextPatchNotes: string = `\n* /navn person skal ikke sende navn hvis innholdet kun er en emoji` + `\n* Fikse UwU`
+    public static readonly nextPatchNotes: string =
+        `\n* /navn person skal ikke sende navn hvis innholdet kun er en emoji` + `\n* Fikse lånegreiene til Geggi` + `\n* Fikse UwU`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
