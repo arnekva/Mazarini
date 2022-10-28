@@ -1,4 +1,4 @@
-export class LockingManager {
+export class LockingHandler {
     private static botLocked: boolean = false
     /** Array of user IDs */
     private static lockedUser: string[] = []

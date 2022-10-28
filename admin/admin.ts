@@ -2,7 +2,7 @@ import { ActivityType, APIInteractionGuildMember, CacheType, ChatInputCommandInt
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'
 import { ICommandElement, IInteractionElement } from '../general/commands'
-import { LockingManager } from '../general/lockingManager'
+import { LockingHandler } from '../handlers/lockingHandler'
 import { ClientHelper } from '../helpers/clientHelper'
 import { DatabaseHelper, dbPrefix, prefixList, ValuePair } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -374,18 +374,18 @@ export class Admin extends AbstractCommands {
         const user = interaction.options.get('bruker')?.user
         let locked = false
         if (isBot) {
-            locked = !LockingManager.getbotLocked()
-            LockingManager.setBotLocked(!LockingManager.getbotLocked())
+            locked = !LockingHandler.getbotLocked()
+            LockingHandler.setBotLocked(!LockingHandler.getbotLocked())
         } else if (isChannel) {
-            if (LockingManager.getlockedThread().includes(interaction.channelId)) {
-                LockingManager.removeThread(interaction.channelId)
-            } else LockingManager.setLockedThread(interaction.channelId)
-            locked = LockingManager.getlockedThread().includes(interaction.channelId)
+            if (LockingHandler.getlockedThread().includes(interaction.channelId)) {
+                LockingHandler.removeThread(interaction.channelId)
+            } else LockingHandler.setLockedThread(interaction.channelId)
+            locked = LockingHandler.getlockedThread().includes(interaction.channelId)
         } else if (isUser) {
-            if (LockingManager.getlockedUser().includes(user?.id)) {
-                LockingManager.removeUserLock(user.id)
-            } else LockingManager.setLockedUser(user.id)
-            locked = LockingManager.getlockedUser().includes(user?.id)
+            if (LockingHandler.getlockedUser().includes(user?.id)) {
+                LockingHandler.removeUserLock(user.id)
+            } else LockingHandler.setLockedUser(user.id)
+            locked = LockingHandler.getlockedUser().includes(user?.id)
         }
         this.messageHelper.replyToInteraction(interaction, `${locked ? 'Låst' : 'Åpnet'}`)
     }

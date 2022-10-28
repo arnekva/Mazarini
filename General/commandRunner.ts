@@ -1,6 +1,7 @@
 import { CacheType, ChatInputCommandInteraction, Client, Interaction, InteractionType, Message } from 'discord.js'
 import { Admin } from '../admin/admin'
 import { environment } from '../client-env'
+import { LockingHandler } from '../handlers/lockingHandler'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
@@ -9,7 +10,6 @@ import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { UserUtils } from '../utils/userUtils'
 import { Commands, ICommandElement, IInteractionElement } from './commands'
-import { LockingManager } from './lockingManager'
 
 export class CommandRunner {
     private commands: Commands
@@ -50,7 +50,7 @@ export class CommandRunner {
             //Always allow admins to carry out interactions - this includes unlocking
             return false
         } else {
-            const lm = LockingManager
+            const lm = LockingHandler
             if (lm.getbotLocked()) return true
             if (lm.getlockedThread().includes(channelId)) return true
             if (lm.getlockedUser().includes(uId)) return true
