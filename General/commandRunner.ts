@@ -84,6 +84,8 @@ export class CommandRunner {
             hasAcknowledged = this.commands.handleModalInteractions(interaction)
         } else if (interaction.isSelectMenu()) {
             hasAcknowledged = this.commands.handleSelectMenus(interaction)
+        } else if (interaction.isButton()) {
+            hasAcknowledged = this.commands.handleButtons(interaction)
         }
         if (!hasAcknowledged) interaction.isRepliable() ? interaction.reply(`Denne interaksjonen støttes ikke for øyeblikket`) : undefined
         return undefined

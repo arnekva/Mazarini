@@ -19,6 +19,7 @@ import { WarzoneCommands } from '../commands/warzoneCommands'
 import { Weather } from '../commands/weatherCommands'
 import { MessageHelper } from '../helpers/messageHelper'
 import { PatchNotes } from '../patchnotes'
+import { ButtonHandler } from './buttonHandler'
 import { ModalHandler } from './modalHandler'
 import { SelectMenuHandler } from './selectMenuHandler'
 
@@ -79,6 +80,7 @@ export class Commands {
     private linkCommands: LinkCommands
     private modalHandler: ModalHandler
     private selectMenuHandler: SelectMenuHandler
+    private buttonHandler: ButtonHandler
 
     constructor(client: Client, messageHelper: MessageHelper) {
         this.client = client
@@ -105,6 +107,7 @@ export class Commands {
         this.linkCommands = new LinkCommands(this.client, this.messageHelper)
         this.modalHandler = new ModalHandler(this.client, this.messageHelper)
         this.selectMenuHandler = new SelectMenuHandler(this.client, this.messageHelper)
+        this.buttonHandler = new ButtonHandler(this.client, this.messageHelper)
     }
 
     getAllCommands() {
@@ -161,6 +164,9 @@ export class Commands {
     }
     handleSelectMenus(interaction: Interaction<CacheType>): boolean {
         return this.selectMenuHandler.handleIncomingSelectMenu(interaction)
+    }
+    handleButtons(interaction: Interaction<CacheType>): boolean {
+        return this.buttonHandler.handleIncomingButtonInteraction(interaction)
     }
 
     getCommandCatgeories() {

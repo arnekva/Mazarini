@@ -1,10 +1,16 @@
 import {
     ActionRowBuilder,
+    ActionRowData,
+    APIActionRowComponent,
+    APIMessageActionRowComponent,
+    ButtonBuilder,
+    ButtonInteraction,
     CacheType,
     ChannelType,
     ChatInputCommandInteraction,
     Client,
     EmbedBuilder,
+    JSONEncodable,
     Message,
     ModalSubmitInteraction,
     SelectMenuBuilder,
@@ -42,7 +48,11 @@ export class MessageHelper {
      * @returns True if reply is sent, false if not
      */
     async replyToInteraction(
-        interaction: ChatInputCommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | SelectMenuInteraction<CacheType>,
+        interaction:
+            | ChatInputCommandInteraction<CacheType>
+            | ModalSubmitInteraction<CacheType>
+            | SelectMenuInteraction<CacheType>
+            | ButtonInteraction<CacheType>,
         content: string | EmbedBuilder,
         onlyVisibleToEngager?: boolean,
         wasDefered?: boolean,
@@ -171,6 +181,19 @@ export class MessageHelper {
             const textCh = this.findChannelById(channel) as TextChannel
             if (textCh) return textCh.send({ embeds: [newMessage] })
         } else return channel.send({ embeds: [newMessage] })
+        return undefined
+    }
+    async sendMessageWithComponents(
+        channelID: string,
+        components: (
+            | APIActionRowComponent<APIMessageActionRowComponent>
+            | JSONEncodable<APIActionRowComponent<APIMessageActionRowComponent>>
+            | ActionRowData<any>
+            | ActionRowBuilder<ButtonBuilder>
+        )[]
+    ) {
+        const textCh = this.findChannelById(channelID) as TextChannel
+        if (textCh) return textCh.send({ components: components })
         return undefined
     }
 

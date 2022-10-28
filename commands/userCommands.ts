@@ -1,5 +1,16 @@
-import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Message, SelectMenuComponentOptionData, TextChannel } from 'discord.js'
+import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    CacheType,
+    ChatInputCommandInteraction,
+    Client,
+    EmbedBuilder,
+    Message,
+    SelectMenuComponentOptionData,
+} from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { ButtonHandler } from '../general/buttonHandler'
 import { ICommandElement, IInteractionElement } from '../general/commands'
 import { SelectMenuHandler } from '../general/selectMenuHandler'
 import { ActionMenuHelper } from '../helpers/actionMenuHelpert'
@@ -35,28 +46,21 @@ export class UserCommands extends AbstractCommands {
     private async roleAssignment(interaction: ChatInputCommandInteraction<CacheType>) {
         const roles = Roles.allRoles
 
-        const msg = new EmbedBuilder().setTitle('Rolle').setDescription(`Reager med emojiene nedenfor for å få tildelt roller`)
+        const row = new ActionRowBuilder<ButtonBuilder>()
 
         roles.forEach((role) => {
-            msg.addFields({ name: `${role.name}`, value: `${role.emoji}`, inline: true })
+            row.addComponents(
+                new ButtonBuilder({
+                    custom_id: `${ButtonHandler.USER_ROLE_ID}${role.id}`,
+                    style: ButtonStyle.Primary,
+                    label: `${role.name}`,
+                    disabled: false,
+                    type: 2,
+                })
+            )
         })
-        this.messageHelper.replyToInteraction(interaction, `Se meldingen under for roller`, true)
-        const sentMessage = await this.messageHelper.sendFormattedMessage(interaction.channel as TextChannel, msg)
-        roles.forEach((r) => sentMessage?.react(r.emoji))
-        if (sentMessage)
-            sentMessage?.createReactionCollector().on('collect', (reaction) => {
-                const users = reaction.users.cache.filter((u) => u.id !== '802945796457758760')
-                const roleId = roles.find((rEmoji) => rEmoji.emoji === reaction.emoji.name)
-                if (roleId) {
-                    const role = interaction.guild?.roles?.cache.find((r) => r.id === roleId.id)
-                    users.forEach((u) => {
-                        const userAsMember = interaction.guild?.members?.cache.find((m) => m.id === u.id)
-                        if (role && userAsMember) {
-                            userAsMember.roles.add(role)
-                        }
-                    })
-                }
-            })
+        this.messageHelper.replyToInteraction(interaction, `Trykk på knappene under for å få rollene`)
+        await this.messageHelper.sendMessageWithComponents(interaction.channelId, [row])
     }
 
     private setStatus(interaction: ChatInputCommandInteraction<CacheType>) {
