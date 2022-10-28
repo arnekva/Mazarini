@@ -5,20 +5,13 @@ import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '10.3.0'
+    public static readonly currentVersion = '10.3.1'
     public static readonly nextVersion = 'Backlog'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
-    public static readonly currentPatchNotes: string =
-        `\n* Hvis en interaksjon ikke kan svares på skal svaret nå forsøkes sendt som egen melding` +
-        `\n* /link vinmonopol gir nå en bedre melding` +
-        `\n* Forbedret logging når en interaksjon feiler` +
-        `\n* Joiij-tekstene er nå på Stavangersk` +
-        `\n* Joiij-tekstene om tid reagerer nå også om ${MentionUtils.mentionRole(MentionUtils.ROLE_IDs.WARZONE)} tagges` +
-        `\n* 'kan' er midlertidig skrudd av` +
-        `\n* **/weather** printer nå søkestringen i feilmeldingen hvis det oppstår et problem`
+    public static readonly currentPatchNotes: string = `\n* /role støtter nå CoD Multiplayer`
 
     public static readonly nextPatchNotes: string =
         `\n* /navn person skal ikke sende navn hvis innholdet kun er en emoji` +

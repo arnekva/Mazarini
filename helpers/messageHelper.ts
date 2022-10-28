@@ -34,7 +34,7 @@ export class MessageHelper {
     }
 
     /**
-     * Reply to an interaction. Will only reply if it haven't been answered already.
+     * Reply to an interaction. Will only reply if it haven't been answered already. If the reply throws an error it will send a message instead of a reply
      * @param interaction
      * @param content   The content to be sent. Can be a string or an embed message
      * @param onlyVisibleToEngager Sets the message as ephemeral, i.e. only the engager can see it. This means that the message can be dismissed and is not saved on Discord servers
