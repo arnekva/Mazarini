@@ -88,7 +88,12 @@ export class MazariniClient {
         client.on('ready', async () => {
             const today = new Date()
             console.log(
-                `Setup ready, bot is ready as ${_mzClient.client.user?.tag} at ${today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()} !`
+                `Setup ready, bot is ready as ${_mzClient.client.user?.tag} at ${new Date().toLocaleDateString('nb', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                })} ${new Date().toLocaleTimeString('nb')} !`
             )
 
             if (environment == 'prod') _msgHelper.sendMessageToActionLog('Boten er nå live i production mode.')
