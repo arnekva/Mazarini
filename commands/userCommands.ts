@@ -10,8 +10,8 @@ import {
     SelectMenuComponentOptionData,
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { ButtonHandler } from '../general/buttonHandler'
 import { ICommandElement, IInteractionElement } from '../general/commands'
+import { ButtonHandler } from '../handlers/buttonHandler'
 import { SelectMenuHandler } from '../handlers/selectMenuHandler'
 import { ActionMenuHelper } from '../helpers/actionMenuHelper'
 import { DatabaseHelper } from '../helpers/databaseHelper'

@@ -17,11 +17,11 @@ import { SpotifyCommands } from '../commands/spotifyCommands'
 import { UserCommands } from '../commands/userCommands'
 import { WarzoneCommands } from '../commands/warzoneCommands'
 import { Weather } from '../commands/weatherCommands'
+import { ButtonHandler } from '../handlers/buttonHandler'
 import { ModalHandler } from '../handlers/modalHandler'
 import { SelectMenuHandler } from '../handlers/selectMenuHandler'
 import { MessageHelper } from '../helpers/messageHelper'
 import { PatchNotes } from '../patchnotes'
-import { ButtonHandler } from './buttonHandler'
 
 /**
  * Interface for kommandoer. Alle kommandoer må følge dette oppsettet.
