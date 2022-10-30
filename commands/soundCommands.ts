@@ -12,6 +12,7 @@ export class SoundCommands extends AbstractCommands {
     }
 
     private async speak(interaction: ChatInputCommandInteraction<CacheType>) {
+        await interaction.deferReply()
         const text = interaction.options.get('tekst')?.value as string
         const memb = UserUtils.findMemberByUserID(interaction.user.id, interaction)
 
@@ -30,7 +31,7 @@ export class SoundCommands extends AbstractCommands {
             )
             // SoundUtils.disconnectFromVoiceChannel(interaction.guildId)
         } else {
-            this.messageHelper.replyToInteraction(interaction, `Du må være koblet til en voice channel for å bruke denne funksjonen`, true)
+            this.messageHelper.replyToInteraction(interaction, `Du må være koblet til en voice channel for å bruke denne funksjonen`, true, true)
         }
     }
 

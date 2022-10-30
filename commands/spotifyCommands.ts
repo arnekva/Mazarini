@@ -181,8 +181,6 @@ export class SpotifyCommands extends AbstractCommands {
                 while (i < items.length) {
                     if (
                         items[i].artists.filter((a) => {
-                            console.log(a.name, spotify.state)
-
                             return a.name === spotify.state
                         }).length
                     ) {

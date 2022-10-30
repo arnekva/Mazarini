@@ -42,9 +42,9 @@ export class MessageHelper {
     /**
      * Reply to an interaction. Will only reply if it haven't been answered already. If the reply throws an error it will send a message instead of a reply
      * @param interaction
-     * @param content   The content to be sent. Can be a string or an embed message
+     * @param content   The content to be sent. Can be a string or an embeded message
      * @param onlyVisibleToEngager Sets the message as ephemeral, i.e. only the engager can see it. This means that the message can be dismissed and is not saved on Discord servers
-     * @param wasDefered Set to true if the interaction has been defered (i.e. paused while thinking). Defered interactions requires to be replied with editReply() instead of reply().
+     * @param wasDefered Set to true if the interaction has been defered (i.e. paused while thinking). Defered interactions requires to be replied with editReply() instead of reply()
      * @returns True if reply is sent, false if not
      */
     async replyToInteraction(
@@ -71,7 +71,7 @@ export class MessageHelper {
                     interaction.isChatInputCommand() ? interaction.commandName : '<ikke command>'
                 } i kanalen ${MentionUtils.mentionChannel(interaction.channelId)}. \nWas object: ${
                     typeof content === 'object'
-                }.\nWas defered: ${wasDefered}.\nHad menu:${menu}.\n${msgInfo} \nStacktrace: \n${e}`
+                }.\nWas defered: ${wasDefered}.\nHad menu: ${!!menu}.\n${msgInfo} \nStacktrace: \n${e}`
             )
         }
         if (!interaction.replied) {
