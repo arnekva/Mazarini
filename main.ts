@@ -20,16 +20,17 @@ import {
 import moment from 'moment'
 import { discordSecret, environment } from './client-env'
 import { CommandRunner } from './general/commandRunner'
+import { textArrays } from './globals'
+import { ErrorHandler } from './handlers/errorHandler'
 import { ClientHelper } from './helpers/clientHelper'
 import { MessageHelper } from './helpers/messageHelper'
-import { DailyJobs } from './Jobs/dailyJobs'
-import { DayJob } from './Jobs/dayJobs'
-import { WeeklyJobs } from './Jobs/weeklyJobs'
+import { JobScheduler } from './Jobs/jobScheduler'
+import { ArrayUtils } from './utils/arrayUtils'
+import { MentionUtils } from './utils/mentionUtils'
 import { MessageUtils } from './utils/messageUtils'
 import { UserUtils } from './utils/userUtils'
 
 const Discord = require('discord.js')
-const schedule = require('node-schedule')
 const axon = require('pm2-axon')
 const sub = axon.socket('sub-emitter')
 const pm2 = require('pm2')
@@ -38,6 +39,8 @@ export class MazariniClient {
     private client: Client
     private commandRunner: CommandRunner
     private messageHelper: MessageHelper
+    private jobScheduler: JobScheduler
+    private errorHandler: ErrorHandler
     static numMessages: number
     private isTest: boolean
     private startTime: Date
@@ -86,7 +89,6 @@ export class MazariniClient {
         const _msgHelper = this.messageHelper
         moment.updateLocale('nb', {})
         client.on('ready', async () => {
-            const today = new Date()
             console.log(
                 `Setup ready, bot is ready as ${_mzClient.client.user?.tag} at ${new Date().toLocaleDateString('nb', {
                     weekday: 'long',
@@ -100,58 +102,15 @@ export class MazariniClient {
 
             ClientHelper.setStatusFromStorage(client)
 
-            /** SCHEDULED JOBS */
-            //https://www.npmjs.com/package/node-schedule
-            /** Runs every day at 06:00 */
-            const dailyJob = schedule.scheduleJob('0 6 * * *', async function () {
-                const jobs = new DailyJobs(_msgHelper)
-                jobs.runJobs()
-            })
-            /** Runs once a week at mondays 06:00 */
-            const weeklyJob = schedule.scheduleJob('0 6 * * 1', async function () {
-                const jobs = new WeeklyJobs(_msgHelper)
-                jobs.runJobs()
-            })
-            const fridayJob = schedule.scheduleJob('0 16 * * 5', async function () {
-                const jobs = new DayJob(_msgHelper, 'friday')
-                jobs.runJobs()
-            })
+            /** SCHEDULED JOBS - resets every day at 06:00 */
+            this.jobScheduler = new JobScheduler(_msgHelper)
 
             const guild = client.guilds.cache.find((g: Guild) => g.id === '340626855990132747') as Guild
             const bot = guild.members.cache.find((member) => member.id === '802945796457758760')
             bot?.setNickname(environment === 'dev' ? 'Bot Høie (TEST)' : 'Bot Høie')
 
-            pm2.launchBus(function (err: any, bus: any) {
-                // Listen for process errors
-
-                bus.on('log:err', function (data: any) {
-                    _msgHelper.sendMessageToActionLog(
-                        'En feilmelding har blitt logget til konsollen (log:err) \n**Melding:** ' +
-                            `\n**Message**: ${data?.data ?? 'NONE'}\n**Unix timestamp**: ${data?.at ?? 'NONE'}`
-                    )
-                })
-
-                // Listen for PM2 kill
-
-                bus.on('pm2:kill', function (data: any) {
-                    _msgHelper.sendMessageToActionLog('pm2 logget en melding til konsollen. pm2:kill. Melding: ' + data)
-                })
-
-                // Listen for process exceptions
-
-                bus.on('process:exception', function (data: any) {
-                    if (!data?.data?.stack?.includes('ENOTFOUND') || !data?.data?.stack?.includes('discord.com')) {
-                        _msgHelper.sendMessageToActionLog('PM2 logget en feil. Process:exception. Dette er en DISCORD.COM feilmelding: ENOTFOUND.')
-                    } else if (!data?.data?.stack?.includes('fewer in length')) {
-                        _msgHelper.sendMessageToActionLog(
-                            'pm2 logget en melding til konsollen. Process:exception. Melding: ' +
-                                `\n* **Message**: ${data?.data?.message ?? 'NONE'}\n* **Error** name: ${data?.data?.name ?? 'NONE'}\n* **Callsite**: ${
-                                    data?.data?.callsite ?? 'NONE'
-                                }\n* **Context**: ${data?.data?.context ?? 'NONE'}\n* **Stacktrace**: ${data?.data?.stack ?? 'NONE'}`
-                        )
-                    }
-                })
-            })
+            this.errorHandler = new ErrorHandler(_msgHelper)
+            this.errorHandler.launchBusListeners()
         })
 
         /** For all sent messages */
@@ -161,6 +120,10 @@ export class MazariniClient {
             if (message?.author?.username == client?.user?.username || message?.type === MessageType.ChannelPinnedMessage) {
             } else {
                 _mzClient.commandRunner.runCommands(message)
+
+                if (message.mentions.users.find((u) => u.id === MentionUtils.User_IDs.BOT_HOIE)) {
+                    message.reply(ArrayUtils.randomChoiceFromArray(textArrays.bentHoieLines))
+                }
             }
         })
 
@@ -175,7 +138,6 @@ export class MazariniClient {
             const deletionLog = fetchedLogs.entries.first()
 
             if (!deletionLog) {
-                // _msgHelper.sendMessage(actionLogId, `En melding av ${message.author.tag} ble slettet, men ingen audit logs ble funnet knyttet til meldingen.`)
                 return
             }
             const { executor, target } = deletionLog
@@ -200,7 +162,6 @@ export class MazariniClient {
 
         /** For interactions (slash-commands and user-commands) */
         client.on('interactionCreate', async (interaction: Interaction<CacheType>) => {
-            if (environment === 'prod' && interaction.channelId === MessageUtils.CHANNEL_IDs.LOKAL_BOT_SPAM) return
             _mzClient.commandRunner.checkForCommandInInteraction(interaction)
         })
 

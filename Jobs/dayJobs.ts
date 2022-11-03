@@ -18,9 +18,7 @@ export class DayJob {
     }
 
     private itsWeekend() {
-        const todaysTime = new Date().toLocaleTimeString()
         this.messageHelper.sendMessage(MessageUtils.CHANNEL_IDs.GENERAL, `${ArrayUtils.randomChoiceFromArray(this.getHelgMessage())}`)
-        console.log(`Sendte melding til General om helg. ${todaysTime}`)
     }
     private logEvent() {
         const todaysTime = new Date().toLocaleTimeString()
@@ -36,7 +34,6 @@ export class DayJob {
             'Sa någen helg? Ja, eg sa det for det e faenmeg helg nå',
             'Ekje lenge te helg nå folkens. Faktisk så det e nå',
             'Helg folkens. Skru av maskinane og komma seg hjem asap',
-            'Heeeeelg',
         ]
     }
 }

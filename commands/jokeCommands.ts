@@ -1,7 +1,7 @@
 import { APIEmbedField, CacheType, ChatInputCommandInteraction, Client, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../general/commands'
-import { globalArrays } from '../globals'
+import { textArrays } from '../globals'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -177,7 +177,7 @@ export class JokeCommands extends AbstractCommands {
     }
 
     private async sendBonk(interaction: ChatInputCommandInteraction<CacheType>) {
-        const img = ArrayUtils.randomChoiceFromArray(globalArrays.bonkMemeUrls)
+        const img = ArrayUtils.randomChoiceFromArray(textArrays.bonkMemeUrls)
         const user = interaction.options.get('bruker')?.user
 
         let bkCounter = 0
@@ -195,13 +195,13 @@ export class JokeCommands extends AbstractCommands {
     }
 
     private static uwuText(t: string) {
-        const firstChoice = ArrayUtils.randomChoiceFromArray(globalArrays.asciiEmojies)
+        const firstChoice = ArrayUtils.randomChoiceFromArray(textArrays.asciiEmojies)
         return firstChoice.concat(
             ' ' +
                 t
                     .replace(/r/g, 'w')
                     .replace(/l/g, 'w')
-                    .concat(' ', ArrayUtils.randomChoiceFromArray(globalArrays.asciiEmojies.filter((e) => e !== firstChoice)))
+                    .concat(' ', ArrayUtils.randomChoiceFromArray(textArrays.asciiEmojies.filter((e) => e !== firstChoice)))
         )
     }
 

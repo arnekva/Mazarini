@@ -1,4 +1,4 @@
-export namespace globalArrays {
+export namespace textArrays {
     export const bonkMemeUrls = [
         'https://i.kym-cdn.com/photos/images/newsfeed/001/842/713/b73.jpg',
         'https://i.redd.it/s897cyurzpe51.jpg',

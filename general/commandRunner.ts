@@ -228,9 +228,10 @@ export class CommandRunner {
             'det va vel litt vel ambisiøst.. ' + arg2 + ' hørres mer rett ud',
             'hmm... ' + arg1 + ' ...føle eg har hørt den før 🤔',
             arg1 + ' ja.. me lyge vel alle litt på CVen, hæ?',
+            arg1 + ' e det løgnaste eg har hørt',
             arg1 + '? Komman Joiij, alle vett du meine ' + arg2,
             `vedde hundre kroner på at du egentlig e klar ${arg2}`,
-            `glede meg te å sidda i lobby å venta te når du faktisk e klar om ${arg2}`,
+            `https://tenor.com/view/donald-trump-fake-news-gif-11382583`,
         ]
         if (numbers.length > 0 && numbers.length < 3 && !MessageUtils.messageHasCommand(message)) {
             message.react(kekw ?? '😂')

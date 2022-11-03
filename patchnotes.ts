@@ -5,13 +5,20 @@ import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '10.4.1'
+    public static readonly currentVersion = '10.5.0'
     public static readonly nextVersion = 'Backlog'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
-    public static readonly currentPatchNotes: string = `\n* /snakk deferer nå reply`
+    public static readonly currentPatchNotes: string =
+        `\n* Replies fra Høie er tilbake når du tagger han` +
+        `\n* /snakk vil ikke lenger printe hva som ble sagt` +
+        `\n* Ryddet i main onReady` +
+        `\n* Forbedret feilhåndtering når en interaksjon feiler` +
+        `\n* Endret på Joiij-tekster` +
+        `\n* Ryddet i main onReady`
+
     public static readonly nextPatchNotes: string =
         `\n* /navn person skal ikke sende navn hvis innholdet kun er en emoji` +
         `\n* Fikse lånegreiene til Geggi` +

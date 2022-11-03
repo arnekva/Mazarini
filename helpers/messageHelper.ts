@@ -18,7 +18,7 @@ import {
     TextChannel,
     User,
 } from 'discord.js'
-import { globalArrays } from '../globals'
+import { textArrays } from '../globals'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { CollectorUtils } from '../utils/collectorUtils'
 import { MentionUtils } from '../utils/mentionUtils'
@@ -146,7 +146,7 @@ export class MessageHelper {
     }
 
     reactWithRandomEmoji(message: Message) {
-        message.react(ArrayUtils.randomChoiceFromArray(globalArrays.emojiesList))
+        message.react(ArrayUtils.randomChoiceFromArray(textArrays.emojiesList))
     }
 
     /** Reply to a given message */
