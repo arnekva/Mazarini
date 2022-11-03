@@ -22,6 +22,7 @@ export class PatchNotes extends AbstractCommands {
     public static readonly nextPatchNotes: string =
         `\n* Splitt /rulett inn i subcommands for å sate på enten <green|red etc> eller tall` +
         `\n* /navn person skal ikke sende navn hvis innholdet kun er en emoji` +
+        `\n* /krig burde bruke buttons for å starte krig, ikke reactionCollector` +
         `\n* Fikse lånegreiene til Geggi` +
         `\n* Fikse UwU` +
         `\n* Gjøre 'kan' triggeren bedre`
