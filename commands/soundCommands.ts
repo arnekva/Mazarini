@@ -15,7 +15,7 @@ export class SoundCommands extends AbstractCommands {
         const text = interaction.options.get('tekst')?.value as string
         const memb = UserUtils.findMemberByUserID(interaction.user.id, interaction)
         if (memb?.voice?.channel) {
-            this.messageHelper.replyToInteraction(interaction, `Du fekk meg te å sei *${text}* i voice chatten`, true)
+            await this.messageHelper.replyToInteraction(interaction, `Du fekk meg te å sei *${text}* i voice chatten`, true)
             await SoundUtils.connectToVoiceAndSpeak(
                 {
                     adapterCreator: interaction.guild?.voiceAdapterCreator,
