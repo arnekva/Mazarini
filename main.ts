@@ -20,7 +20,6 @@ import {
 import moment from 'moment'
 import { discordSecret, environment } from './client-env'
 import { CommandRunner } from './general/commandRunner'
-import { textArrays } from './globals'
 import { ErrorHandler } from './handlers/errorHandler'
 import { ClientHelper } from './helpers/clientHelper'
 import { MessageHelper } from './helpers/messageHelper'
@@ -28,6 +27,7 @@ import { JobScheduler } from './Jobs/jobScheduler'
 import { ArrayUtils } from './utils/arrayUtils'
 import { MentionUtils } from './utils/mentionUtils'
 import { MessageUtils } from './utils/messageUtils'
+import { textArrays } from './utils/textArrays'
 import { UserUtils } from './utils/userUtils'
 
 const Discord = require('discord.js')

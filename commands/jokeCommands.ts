@@ -1,7 +1,6 @@
 import { APIEmbedField, CacheType, ChatInputCommandInteraction, Client, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../general/commands'
-import { textArrays } from '../globals'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -10,6 +9,7 @@ import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { MiscUtils } from '../utils/miscUtils'
+import { textArrays } from '../utils/textArrays'
 import { UserUtils } from '../utils/userUtils'
 
 export class JokeCommands extends AbstractCommands {

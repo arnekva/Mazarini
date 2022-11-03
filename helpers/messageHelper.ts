@@ -18,11 +18,11 @@ import {
     TextChannel,
     User,
 } from 'discord.js'
-import { textArrays } from '../globals'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { CollectorUtils } from '../utils/collectorUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
+import { textArrays } from '../utils/textArrays'
 import { UserUtils } from '../utils/userUtils'
 
 export type typeOfError = 'unauthorized' | 'error' | 'warning'

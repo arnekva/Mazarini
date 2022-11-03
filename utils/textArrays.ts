@@ -159,7 +159,6 @@ export namespace textArrays {
 
     export const feseTexts = [
         'har fese',
-        'har fese xD',
         'har skamfese',
         'har phese',
         'har drede',

@@ -20,6 +20,7 @@ export class PatchNotes extends AbstractCommands {
         `\n* Ryddet i main onReady`
 
     public static readonly nextPatchNotes: string =
+        `\n* Splitt /rulett inn i subcommands for å sate på enten <green|red etc> eller tall` +
         `\n* /navn person skal ikke sende navn hvis innholdet kun er en emoji` +
         `\n* Fikse lånegreiene til Geggi` +
         `\n* Fikse UwU` +
