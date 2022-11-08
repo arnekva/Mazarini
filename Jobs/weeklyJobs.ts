@@ -13,6 +13,7 @@ export class WeeklyJobs {
     runJobs() {
         this.awardWeeklyChips()
         this.checkPoletHours()
+        this.resetStatuses()
         // this.logEvent()
     }
     private async awardWeeklyChips() {
@@ -35,6 +36,10 @@ export class WeeklyJobs {
             this.messageHelper.sendFormattedMessage(MessageUtils.CHANNEL_IDs.VINMONOPOLET, fmMessage)
         }
     }
+    private async resetStatuses() {
+        DatabaseHelper.deleteSpecificPrefixValues('status')
+    }
+
     private logEvent() {
         const todaysTime = new Date().toLocaleTimeString()
         this.messageHelper.sendMessage('810832760364859432', `Ukentlige jobber kjørte ${todaysTime} (NAV-penger)`)

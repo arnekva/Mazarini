@@ -4,11 +4,11 @@ import { Response } from 'node-fetch'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { actSSOCookie } from '../client-env'
 import { ICommandElement, IInteractionElement } from '../general/commands'
-
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
 import { ObjectUtils } from '../utils/objectUtils'
+
 const fetch = require('node-fetch')
 
 export interface CodStats {
@@ -438,7 +438,7 @@ export class WarzoneCommands extends AbstractCommands {
     private async handleWZInteraction(interaction: ChatInputCommandInteraction<CacheType>) {
         await interaction.deferReply()
         if (interaction) {
-            const wantedType = interaction.options.getString('mode') //"br", "weekly", "siste" or "rebirth"
+            const wantedType = interaction.options.getString('mode') //"br", "weekly", "siste" or "rebirth" or "mw2mp"
             const checkAnotherUser = interaction.options.get('bruker')?.user
 
             if (wantedType === 'br' || wantedType === 'weekly' || wantedType === 'rebirth') {
@@ -448,10 +448,21 @@ export class WarzoneCommands extends AbstractCommands {
                 const content = await this.getLastMatchData(interaction, checkAnotherUser)
 
                 this.messageHelper.replyToInteraction(interaction, content, undefined, true)
+            } else if (wantedType === 'mw2mp') {
+                this.findMultiplayerStats(interaction, checkAnotherUser)
             }
         } else {
             this.messageHelper.replyToInteraction(interaction, 'Kunne ikke finne data på valgte modus', undefined, true)
         }
+    }
+
+    private findMultiplayerStats(interaction: ChatInputCommandInteraction<CacheType>, user?: User) {
+        this.messageHelper.replyToInteraction(
+            interaction,
+            `Stats for MW2 Multiplayer er ikke tilgjengelig enda. Forventet tilgjengelig 16. November`,
+            false,
+            true
+        )
     }
 
     private getWZUserStringFromDB(user: User) {

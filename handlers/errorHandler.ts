@@ -1,4 +1,5 @@
 import { MessageHelper } from '../helpers/messageHelper'
+import { MazariniClient } from '../main'
 
 const pm2 = require('pm2')
 export class ErrorHandler {
@@ -17,6 +18,7 @@ export class ErrorHandler {
                     'En feilmelding har blitt logget til konsollen (log:err) \n**Melding:** ' +
                         `\n**Message**: ${data?.data ?? 'NONE'}\n**Unix timestamp**: ${data?.at ?? 'NONE'}`
                 )
+
             })
             // Listen for PM2 kill
             bus.on('pm2:kill', function (data: any) {
@@ -36,6 +38,7 @@ export class ErrorHandler {
                             }\n* **Context**: ${data?.data?.context ?? 'NONE'}\n* **Stacktrace**: ${data?.data?.stack ?? 'NONE'}`
                     )
                 }
+
             })
         })
     }

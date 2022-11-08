@@ -14,7 +14,6 @@ export class DailyJobs {
     runJobs(onlyBd?: boolean) {
         if (!onlyBd) {
             this.validateAndResetDailyClaims()
-            this.resetStatuses()
         }
         this.checkForUserBirthdays()
 
@@ -62,10 +61,6 @@ export class DailyJobs {
         })
 
         DatabaseHelper.deleteSpecificPrefixValues('dailyClaim')
-    }
-
-    private async resetStatuses() {
-        DatabaseHelper.deleteSpecificPrefixValues('status')
     }
 
     private logEvent() {

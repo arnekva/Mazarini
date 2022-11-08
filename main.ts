@@ -42,8 +42,10 @@ export class MazariniClient {
     private jobScheduler: JobScheduler
     private errorHandler: ErrorHandler
     static numMessages: number
+    static numMessagesFromBot: number
+    static numMessagesNumErrorMessages: number
     private isTest: boolean
-    private startTime: Date
+    static startTime: Date
     mazarini: any
 
     constructor() {
@@ -68,7 +70,7 @@ export class MazariniClient {
         })
         this.messageHelper = new MessageHelper(this.client)
         this.commandRunner = new CommandRunner(this.client, this.messageHelper)
-        this.startTime = new Date()
+        MazariniClient.startTime = new Date()
         MazariniClient.numMessages = 0
         this.isTest = environment === 'dev'
     }
@@ -118,6 +120,7 @@ export class MazariniClient {
             MazariniClient.numMessages++
             //Do not reply to own messages. Do not trigger on pinned messages
             if (message?.author?.username == client?.user?.username || message?.type === MessageType.ChannelPinnedMessage) {
+                MazariniClient.numMessagesFromBot++
             } else {
                 _mzClient.commandRunner.runCommands(message)
 

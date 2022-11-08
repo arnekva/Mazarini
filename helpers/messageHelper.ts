@@ -18,6 +18,7 @@ import {
     TextChannel,
     User,
 } from 'discord.js'
+import { MazariniClient } from '../main'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { CollectorUtils } from '../utils/collectorUtils'
 import { MentionUtils } from '../utils/mentionUtils'
@@ -88,6 +89,7 @@ export class MessageHelper {
                         .reply({ content: content, ephemeral: onlyVisibleToEngager, components: menu ? [menu] : undefined })
                         .catch((e) => handleError(e))
             }
+            MazariniClient.numMessagesFromBot++
             return true
         }
         return false
@@ -200,6 +202,7 @@ export class MessageHelper {
     sendMessageToActionLog(msg: string) {
         const errorChannel = this.client.channels.cache.get('810832760364859432') as TextChannel
         errorChannel.send(msg)
+        MazariniClient.numMessagesNumErrorMessages++
     }
 
     logEmptyMessage(errorMessageToSend: string, channelId: string) {
@@ -210,6 +213,7 @@ export class MessageHelper {
                 replyChannel ? replyChannel.toString() : 'ingen'
             }.`
         )
+        MazariniClient.numMessagesNumErrorMessages++
         if (replyChannel && replyChannel.type === ChannelType.GuildText)
             return replyChannel.send(`${errorMessageToSend} ${MessageUtils.getRoleTagString(UserUtils.ROLE_IDs.BOT_SUPPORT)}`)
         return undefined
@@ -232,6 +236,7 @@ export class MessageHelper {
         errorChannel.send(
             `En feil har oppstått i en melding fra ${message.author.username}. Meldingsinnhold: <${message.content}>. Channel: ${message.channel}. Feilmelding: <${error}>`
         )
+        MazariniClient.numMessagesNumErrorMessages++
     }
 
     async sendMessageToActionLogWithCustomMessage(message: Message, error: any, reply: string, includeSupportTag?: boolean) {
@@ -250,6 +255,7 @@ export class MessageHelper {
         errorChannel.send(
             `En feil har oppstått i en melding fra ${message.author.username}. Meldingsinnhold: <${message.content}>. Channel: ${message.channel}. Feilmelding: <${error}>`
         )
+        MazariniClient.numMessagesNumErrorMessages++
     }
 
     sendMessageToActionLogWithInsufficientRightsMessage(message: Message, extra?: any, ignoreReply?: boolean) {
@@ -258,6 +264,7 @@ export class MessageHelper {
         errorChannel.send(
             `${message.author.username} forsøkte å bruke en funksjon uten rettigheter. Meldingsinnhold: <${message.content}>. Channel: ${message.channel}. ${extra}`
         )
+        MazariniClient.numMessagesNumErrorMessages++
     }
 
     sendMessageToBotUtvikling(channel: TextChannel, message: string) {

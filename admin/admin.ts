@@ -171,8 +171,20 @@ export class Admin extends AbstractCommands {
     }
 
     private getBotStatistics(interaction: ChatInputCommandInteraction<CacheType>) {
+        const start = MazariniClient.startTime
         const numMessages = MazariniClient.numMessages
-        const statsReply = `Statistikk:\nAntall meldinger siden sist oppstart: ${numMessages}`
+        const numMessagesFromBot = MazariniClient.numMessagesFromBot
+        const numErrorMessages = MazariniClient.numMessagesNumErrorMessages
+        const statsReply =
+            `Statistikk (fra ${start.toLocaleDateString('nb', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            })} ${start.toLocaleTimeString('nb')}):` +
+            `\nAntall meldinger: ${numMessages}` +
+            `\nAntall meldinger fra bot: ${numMessagesFromBot}` +
+            `\nAntall feilmeldinger logget: ${numErrorMessages}`
         this.messageHelper.replyToInteraction(interaction, statsReply)
     }
 

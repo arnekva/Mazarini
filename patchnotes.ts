@@ -12,20 +12,10 @@ export class PatchNotes extends AbstractCommands {
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Replies fra Høie er tilbake når du tagger han` +
-        `\n* /snakk vil ikke lenger printe hva som ble sagt` +
-        `\n* Ryddet i main onReady` +
-        `\n* Forbedret feilhåndtering når en interaksjon feiler` +
-        `\n* Endret på Joiij-tekster` +
-        `\n* Ryddet i main onReady`
+        `\n* Statuser slettes nå ukentlig (mandag 06:00) i stedet for hver kveld` +
+        `\n* Forberedelser for stats for WZ2 og MW2 Multplayer. Forventet tilgjengelig mellom 16. og 20. November en gang`
 
-    public static readonly nextPatchNotes: string =
-        `\n* Splitt /rulett inn i subcommands for å sate på enten <green|red etc> eller tall` +
-        `\n* /navn person skal ikke sende navn hvis innholdet kun er en emoji` +
-        `\n* /krig burde bruke buttons for å starte krig, ikke reactionCollector` +
-        `\n* Fikse lånegreiene til Geggi` +
-        `\n* Fikse UwU` +
-        `\n* Gjøre 'kan' triggeren bedre`
+    public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
