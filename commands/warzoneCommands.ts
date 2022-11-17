@@ -466,7 +466,7 @@ export class WarzoneCommands extends AbstractCommands {
         const platform = this.translatePlatform(WZUser[0])
         const data = await ModernWarfare.fullData(gamertag, platform)
         //TODO: Filter this out
-        return data
+        return `Data: ${data}`
     }
 
     private getWZUserStringFromDB(user: User) {
