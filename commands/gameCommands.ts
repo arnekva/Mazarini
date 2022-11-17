@@ -84,7 +84,10 @@ export class GameCommands extends AbstractCommands {
         await interaction.deferReply()
         const map = interaction.options.get('map')?.value
 
-        if (map === 'caldera') {
+        if (map === 'almazrah') {
+            mapArray = alMazrah
+            mapName = 'Al Mazrah'
+        } else if (map === 'caldera') {
             mapArray = calderaPoints
             mapName = 'Caldera'
         } else if (map === 'rebirth') {
@@ -356,4 +359,25 @@ export const fortunesKeep = [
     "Smuggler's Cove",
     'Bay',
     'Graveyard',
+]
+
+export const alMazrah = [
+    'Oasis',
+    'Taraq Village',
+    'Rohan Oil',
+    'Quarry',
+    'Port',
+    'Hydroelectric',
+    'Al Mazrah City',
+    'Caves',
+    "Sa'id City",
+    'Cemetery',
+    'Sawah Village',
+    'Sarrif Bay',
+    'Fortress',
+    'Airport',
+    'Ahkdar Village',
+    'Observatory',
+    'Marshlands',
+    'Al Sharim Pass',
 ]
