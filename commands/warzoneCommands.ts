@@ -1,4 +1,4 @@
-import { login, platforms, Warzone } from 'call-of-duty-api'
+import { login, ModernWarfare, platforms, Warzone } from 'call-of-duty-api'
 import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction, User } from 'discord.js'
 import { Response } from 'node-fetch'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
@@ -449,20 +449,24 @@ export class WarzoneCommands extends AbstractCommands {
 
                 this.messageHelper.replyToInteraction(interaction, content, undefined, true)
             } else if (wantedType === 'mw2mp') {
-                this.findMultiplayerStats(interaction, checkAnotherUser)
+                const content = await this.findMultiplayerStats(interaction, checkAnotherUser)
+                this.messageHelper.replyToInteraction(interaction, content, undefined, true)
             }
         } else {
             this.messageHelper.replyToInteraction(interaction, 'Kunne ikke finne data på valgte modus', undefined, true)
         }
     }
 
-    private findMultiplayerStats(interaction: ChatInputCommandInteraction<CacheType>, user?: User) {
-        this.messageHelper.replyToInteraction(
-            interaction,
-            `Stats for MW2 Multiplayer er ikke tilgjengelig enda. Forventet tilgjengelig 16. November`,
-            false,
-            true
-        )
+    private async findMultiplayerStats(interaction: ChatInputCommandInteraction<CacheType>, user?: User) {
+        const WZUser = user ? this.getWZUserStringFromDB(user)?.split(';') : this.getWZUserStringFromDB(interaction.user)?.split(';')
+        if (!WZUser) {
+            return user ? `Brukeren har ikkje kobla opp brukernavn` : 'Du må knytta brukernavn te brukeren din fysste'
+        }
+        const gamertag = WZUser[1]
+        const platform = this.translatePlatform(WZUser[0])
+        const data = await ModernWarfare.fullData(gamertag, platform)
+        //TODO: Filter this out
+        return data
     }
 
     private getWZUserStringFromDB(user: User) {

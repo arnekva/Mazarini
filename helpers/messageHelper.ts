@@ -2,6 +2,7 @@ import {
     ActionRowBuilder,
     ActionRowData,
     APIActionRowComponent,
+    APIEmbedField,
     APIMessageActionRowComponent,
     ButtonBuilder,
     ButtonInteraction,
@@ -13,6 +14,7 @@ import {
     JSONEncodable,
     Message,
     ModalSubmitInteraction,
+    RestOrArray,
     SelectMenuBuilder,
     SelectMenuInteraction,
     TextChannel,
@@ -110,7 +112,7 @@ export class MessageHelper {
 
         const channel = this.findChannelById(channelId) as TextChannel
         let msg: Message | undefined
-        if (channel) {
+        if (channel && channel.permissionsFor(UserUtils.findMemberByUserID(UserUtils.User_IDs.BOT_HOIE, channel.guild)).toArray().includes('SendMessages')) {
             if (message.length >= 2000) {
                 const msgArr = message.match(/[\s\S]{1,1800}/g)
                 msgArr.forEach((msg, ind) => {
@@ -202,6 +204,13 @@ export class MessageHelper {
     sendMessageToActionLog(msg: string) {
         const errorChannel = this.client.channels.cache.get('810832760364859432') as TextChannel
         errorChannel.send(msg)
+        MazariniClient.numMessagesNumErrorMessages++
+    }
+    sendFormattedMessageToActionLog(title: string, description: string, msg?: RestOrArray<APIEmbedField>) {
+        const embed = new EmbedBuilder().setTitle(`${title}`).setDescription(`${description}`)
+        if (msg) embed.addFields(...msg)
+        const errorChannel = this.client.channels.cache.get('810832760364859432') as TextChannel
+        this.sendFormattedMessage(errorChannel, embed)
         MazariniClient.numMessagesNumErrorMessages++
     }
 

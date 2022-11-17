@@ -1,4 +1,4 @@
-import { CacheType, ChatInputCommandInteraction, GuildMember, Interaction, Message, PartialGuildMember, PartialUser, Role, User } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Guild, GuildMember, Interaction, Message, PartialGuildMember, PartialUser, Role, User } from 'discord.js'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 const diff = require('deep-diff')
@@ -6,11 +6,13 @@ export namespace UserUtils {
     /**
      * Get a Member object by supplying a user id
      * @param userId User ID of Member
-     * @param message needed to find the guild
+     * @param searchable needed to find the guild
      * @returns Member Object (undefined if none)
      */
-    export const findMemberByUserID = (userId: string, message: Message | Interaction<CacheType>) => {
-        return message.guild?.members?.cache.find((m) => m.id === userId)
+    export const findMemberByUserID = (userId: string, searchable: Message | Interaction<CacheType> | Guild) => {
+        return searchable instanceof Guild
+            ? searchable?.members?.cache.find((m) => m.id === userId)
+            : searchable.guild?.members?.cache.find((m) => m.id === userId)
     }
 
     /**
