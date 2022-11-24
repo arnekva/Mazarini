@@ -230,14 +230,14 @@ export class CommandRunner {
             arg1 + ' ja.. me lyge vel alle litt på CVen, hæ?',
             arg1 + ' e det løgnaste eg har hørt',
             arg1 + '? Komman Joiij, alle vett du meine ' + arg2,
-            `vedde hundre kroner på at du egentlig e klar ${arg2}`,
+            `vedde hundre kroner på at du egentlig meine ${arg2}`,
             `https://tenor.com/view/donald-trump-fake-news-gif-11382583`,
         ]
         if (numbers.length > 0 && numbers.length < 3 && !MessageUtils.messageHasCommand(message)) {
             message.react(kekw ?? '😂')
             message.reply(ArrayUtils.randomChoiceFromArray(responses))
         }
-        if (message.mentions.roles.find((e) => e.name == 'Jævla Drittspel')) {
+        if (message.mentions.roles.find((e) => e.id === MentionUtils.ROLE_IDs.WARZONE)) {
             message.react(kekw ?? '😂')
             message.reply('lol')
         }

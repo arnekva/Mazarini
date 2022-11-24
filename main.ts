@@ -208,11 +208,11 @@ export class MazariniClient {
         client.on('messageUpdate', function (oldMessage: Message | PartialMessage, newMessage: Message | PartialMessage) {
             if (!newMessage.pinned && !oldMessage.pinned) {
                 _mzClient.commandRunner.checkMessageForJokes(newMessage as Message)
-            }
-            if (newMessage.content.startsWith('/')) {
-                newMessage.reply(
-                    'Du kan ikkje gjør ein slash-command når du redigere ein melding. Du må senda ein ny melding for å trigga commanden. Skyld på Discord for dårlig UX her, ikkje meg'
-                )
+                if (newMessage.content.startsWith('/') && !newMessage.content.startsWith('//')) { //Dont trigger on TODO's
+                    newMessage.reply(
+                        'Du kan ikkje gjør ein slash-command når du redigere ein melding. Du må senda ein ny melding for å trigga commanden. Skyld på Discord for dårlig UX her, ikkje meg'
+                    )
+                }
             }
         })
 

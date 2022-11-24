@@ -50,6 +50,8 @@ export interface MazariniUser {
     codStats?: CodStats | CodBRStatsType
     /**Cod BR */
     codStatsBR?: CodBRStatsType | CodStats
+    /** Legacy stats for Warzone 1 */
+    codStatsWarzone1?: CodBRStatsType | CodStats
     /** Username for activision. username;platform */
     activisionUserString?: string
     /** Username for rocket league. username;platform */

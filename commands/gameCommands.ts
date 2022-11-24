@@ -371,7 +371,6 @@ export const alMazrah = [
     'Al Mazrah City',
     'Caves',
     "Sa'id City",
-    'Cemetery',
     'Sawah Village',
     'Sarrif Bay',
     'Fortress',

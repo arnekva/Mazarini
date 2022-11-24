@@ -25,7 +25,7 @@ export class WeeklyJobs {
         })
     }
     private async checkPoletHours() {
-        const data = await PoletCommands.fetchPoletData(undefined, '416')
+        const data = await PoletCommands.fetchPoletData(undefined, '116')
         if (data && data?.openingHours?.exceptionHours?.length > 0) {
             const fmMessage = new EmbedBuilder()
                 .setTitle(`Det er endrede åpningstider på polet denne uken `)
@@ -34,6 +34,13 @@ export class WeeklyJobs {
                 fmMessage.addFields({ name: h.dayOfTheWeek, value: h.closed ? 'Stengt' : `${h.openingTime} - ${h.closingTime}\n` })
             )
             this.messageHelper.sendFormattedMessage(MessageUtils.CHANNEL_IDs.VINMONOPOLET, fmMessage)
+        } else {
+            this.messageHelper.sendMessage(
+                '810832760364859432',
+                `TEST: Det er ikke registrert endrede åpningstider på polet denne uken (Kvadrat, 116). ExceptionHours: ${data?.openingHours?.exceptionHours.join(
+                    ','
+                )}`
+            )
         }
     }
     private async resetStatuses() {
