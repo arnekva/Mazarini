@@ -1,4 +1,5 @@
 import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction } from 'discord.js'
+import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { vinmonopoletKey } from '../client-env'
 import { ICommandElement, IInteractionElement } from '../general/commands'
@@ -80,14 +81,27 @@ export class PoletCommands extends AbstractCommands {
                 })
             })
         } else {
-            fmMessage.addFields({ name: 'Åpningstider', value: 'Polet holder åpent som normalt denne uken' })
+            fmMessage.addFields({ name: 'Åpningstider', value: `Polet holder åpent som normalt denne uken` })
         }
         let todayClosing: string = ''
         if (poletData.openingHours.regularHours) {
             poletData.openingHours.regularHours.forEach((rh) => {
                 const day = Languages.weekdayTranslate(rh.dayOfTheWeek)
                 const isToday = DateUtils.isDateNameToday(day)
-                const dayHeader = `${day} ${isToday ? ' (i dag)' : ''}`
+
+                const hr = Number(rh.closingTime.split(':')[0])
+                const mn = Number(rh.closingTime.split(':')[1])
+                const closingTime = moment().hour(hr).minutes(mn)
+                const timeUntil = {
+                    hours: closingTime.diff(moment(), 'hour'),
+                    minutes: closingTime.diff(moment(), 'minute') % 60,
+                }
+
+                const timeToCloseText =
+                    timeUntil.hours > 0 || (timeUntil.hours === 0 && timeUntil.minutes > 0)
+                        ? `, stenger om ${timeUntil.hours} timer og ${timeUntil.minutes} minutter`
+                        : 'Stengt'
+                const dayHeader = `${day} ${isToday ? ` (i dag ${timeToCloseText})` : ''}`
                 fmMessage.addFields({ name: dayHeader, value: rh.closed ? 'Stengt' : `${rh.openingTime} - ${rh.closingTime}` })
                 if (isToday) todayClosing = rh.closingTime
             })

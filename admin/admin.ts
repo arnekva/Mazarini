@@ -7,7 +7,6 @@ import { ClientHelper } from '../helpers/clientHelper'
 import { DatabaseHelper, dbPrefix, prefixList, ValuePair } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniClient } from '../main'
-import { MentionUtils } from '../utils/mentionUtils'
 import { ObjectUtils } from '../utils/objectUtils'
 import { TextUtils } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
@@ -74,37 +73,26 @@ export class Admin extends AbstractCommands {
     }
 
     private async replyToMsgAsBot(interaction: ChatInputCommandInteraction<CacheType>) {
-        await interaction.deferReply()
+        this.messageHelper.replyToInteraction(interaction, `Svarer på meldingen vises jeg finner den`, true)
         const allChannels = [...this.client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
         const id = interaction.options.get('melding-id')?.value as string
         const replyString = interaction.options.get('tekst')?.value as string
         let hasFoundMsgOrThrewError = false
         allChannels.forEach((channel: TextChannel) => {
-            if (channel) {
+            if (
+                channel &&
+                channel.permissionsFor(UserUtils.findMemberByUserID(UserUtils.User_IDs.BOT_HOIE, channel.guild)).toArray().includes('ReadMessageHistory')
+            ) {
                 channel.messages
                     .fetch(id)
                     .then(async (message) => {
                         if (message && message.id == id) {
                             message.reply(replyString)
-                            if (!hasFoundMsgOrThrewError) {
-                                this.messageHelper.replyToInteraction(
-                                    interaction,
-                                    `Svarte på meldingen i kanalen ${MentionUtils.mentionChannel(message.channelId)}, skrevet av ${message.author.username}`,
-                                    true,
-                                    true
-                                )
-                                hasFoundMsgOrThrewError = true
-                            }
                         }
                     })
                     .catch((error) => {
-                        if (!hasFoundMsgOrThrewError) {
-                            this.messageHelper.replyToInteraction(
-                                interaction,
-                                `Ser kje ud som eg fant meldingen din. Sjekk om du har et mellomrom for møye me og prøv på nytt`,
-                                true,
-                                true
-                            )
+                        if (!hasFoundMsgOrThrewError && error.rawError.message !== 'Missing Access' && error.rawError.message !== 'Unknown Message') {
+                            this.messageHelper.sendMessageToActionLog(`${interaction.user.username} brukte */reply*, men meldingen ble ikke funnet`)
                             hasFoundMsgOrThrewError = true
                         }
                     })

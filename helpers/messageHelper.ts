@@ -163,17 +163,16 @@ export class MessageHelper {
         let messageToReturn
 
         for (const channel of allChannels) {
-            if (channel) {
+            if (
+                channel &&
+                channel.permissionsFor(UserUtils.findMemberByUserID(UserUtils.User_IDs.BOT_HOIE, channel.guild)).toArray().includes('SendMessages')
+            ) {
                 await channel.messages
                     .fetch(id)
-                    .then((message) => {
-                        if (message.guild) {
-                            messageToReturn = message
-                        }
+                    .then(async (message) => {
+                        messageToReturn = message
                     })
-                    .catch((error: any) => {
-                        // MessageHelper.sendMessageToActionLogWithDefaultMessage(rawMessage, error);
-                    })
+                    .catch((error) => {})
             }
         }
         return messageToReturn

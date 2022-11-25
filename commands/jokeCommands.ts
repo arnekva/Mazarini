@@ -138,17 +138,14 @@ export class JokeCommands extends AbstractCommands {
     }
 
     private async uWuIfyer(interaction: ChatInputCommandInteraction<CacheType>) {
-        const id = Number(interaction.options.get('melding-id')?.value as string)
-        if (id && !isNaN(id)) {
-            const fMsg = await this.messageHelper.replyToInteraction(interaction, 'Leter etter meldingen...', true)
-            const msgToUwU = await this.messageHelper.findMessageById(id.toString())
+        const id = interaction.options.get('melding-id')?.value as string
+        this.messageHelper.replyToInteraction(interaction, 'Prøver å uwu-ifye meldingen hvis jeg finner den', true)
+        if (id && !isNaN(Number(id))) {
+            const msgToUwU = await this.messageHelper.findMessageById(id)
             if (msgToUwU) {
                 const uwuIfiedText = JokeCommands.uwuText(msgToUwU.content)
-                this.messageHelper.replyToInteraction(interaction, uwuIfiedText, false, true)
+                this.messageHelper.sendMessage(interaction.channelId, uwuIfiedText)
             }
-            if (!msgToUwU && fMsg) this.messageHelper.replyToInteraction(interaction, 'Fant ikke meldingen :(', true, true)
-        } else {
-            this.messageHelper.replyToInteraction(interaction, `Du skreiv nok ikkje inn ein rektige ID`, true)
         }
     }
 
