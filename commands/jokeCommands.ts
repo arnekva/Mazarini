@@ -210,8 +210,9 @@ export class JokeCommands extends AbstractCommands {
             {
                 commandName: 'wham',
                 command: async (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    rawInteraction.deferReply()
                     const msg = await this.messageHelper.findMessageById('1047478489793691708')
-                    this.messageHelper.replyToInteraction(rawInteraction, `Whamageddon 2022 status:\n  ${msg.content}`)
+                    this.messageHelper.replyToInteraction(rawInteraction, `Whamageddon 2022 status:\n  ${msg.content}`, false, true)
                 },
                 category: 'gaming',
             },
