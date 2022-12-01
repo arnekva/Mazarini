@@ -212,7 +212,8 @@ export class JokeCommands extends AbstractCommands {
                 command: async (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     rawInteraction.deferReply()
                     const msg = await this.messageHelper.findMessageById('1047478489793691708')
-                    this.messageHelper.replyToInteraction(rawInteraction, `Whamageddon 2022 status:\n  ${msg.content}`, false, true)
+                    if (msg) this.messageHelper.replyToInteraction(rawInteraction, `Whamageddon 2022 status:\n  ${msg.content}`, false, true)
+                    else this.messageHelper.replyToInteraction(rawInteraction, `Statusen e ukjent`, false, true)
                 },
                 category: 'gaming',
             },
