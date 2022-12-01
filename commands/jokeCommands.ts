@@ -208,6 +208,14 @@ export class JokeCommands extends AbstractCommands {
     getAllInteractions(): IInteractionElement[] {
         return [
             {
+                commandName: 'wham',
+                command: async (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    const msg = await this.messageHelper.findMessageById('1047478489793691708')
+                    this.messageHelper.replyToInteraction(rawInteraction, `Whamageddon 2022 status:\n  ${msg.content}`)
+                },
+                category: 'gaming',
+            },
+            {
                 commandName: 'mordi',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.mordi(rawInteraction)
