@@ -29,6 +29,7 @@ import { MentionUtils } from './utils/mentionUtils'
 import { MessageUtils } from './utils/messageUtils'
 import { textArrays } from './utils/textArrays'
 import { UserUtils } from './utils/userUtils'
+const { Util } = require('discord.js')
 
 const Discord = require('discord.js')
 const axon = require('pm2-axon')
@@ -158,7 +159,8 @@ export class MazariniClient {
             ) {
                 _msgHelper.sendMessage(
                     actionLogId,
-                    `**En melding av** *${message?.author?.tag}* **ble slettet av** *${executor?.tag}*. **Innhold**: '*${message?.content}*'`
+                    `**En melding av** *${message?.author?.tag}* **ble slettet av** *${executor?.tag}*. **Innhold**: '*${message?.content}*'`,
+                    true
                 )
             }
         })

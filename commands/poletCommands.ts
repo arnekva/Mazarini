@@ -8,6 +8,13 @@ import { Languages } from '../helpers/languageHelpers'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
 const fetch = require('node-fetch')
+interface exceptionHours {
+    date: string
+    openingTime: string
+    closingTime: string
+    closed: boolean
+    message?: string
+}
 interface openingHours {
     validFromDate: string
     dayOfTheWeek: string
@@ -29,7 +36,7 @@ interface PoletData {
     email: string
     openingHours: {
         regularHours: openingHours[]
-        exceptionHours: openingHours[]
+        exceptionHours: exceptionHours[]
     }
 }
 export class PoletCommands extends AbstractCommands {
@@ -73,13 +80,32 @@ export class PoletCommands extends AbstractCommands {
         const fmMessage = new EmbedBuilder().setTitle(`${poletData.storeName} (${poletData.address.postalCode}, ${poletData.address.city}) `)
 
         if (poletData.openingHours.exceptionHours.length) {
-            fmMessage.addFields({ name: 'Endre åpningstider', value: 'Det er endrede åpningstider denne uken' })
-            poletData.openingHours.exceptionHours.forEach((h) => {
-                fmMessage.addFields({
-                    name: h.dayOfTheWeek,
-                    value: (h.closed ? 'Stengt hele dagen' : `${h.openingTime} - ${h.closingTime}`) + `${h?.message ? '. ' + h.message : ''}`,
+            // const dates = poletData.openingHours.exceptionHours.filter((eh) => {
+            //     const now = moment()
+            //     const input = moment(eh.date)
+            //     return now.isoWeek() == input.isoWeek()
+            // })
+            // console.log(dates)
+            //if (dates.length) {
+            if (true) {
+                fmMessage.addFields({ name: 'Endre åpningstider', value: 'Det er endrede åpningstider denne måneden' })
+                console.log(poletData.openingHours.exceptionHours)
+
+                poletData.openingHours.exceptionHours.forEach((h, index) => {
+                    const dateName = Languages.weekdayTranslate(moment(h?.date).format('dddd'))
+
+                    let message = ''
+                    if (h.openingTime && h.closingTime) {
+                        message = `Forkortet åpningstid. Det er åpent mellom ${h.openingTime} - ${h.closingTime}`
+                    } else {
+                        message = h?.message ? h.message : 'Ingen forklaring'
+                    }
+                    fmMessage.addFields({
+                        name: dateName ? `${dateName} (${h?.date})` : 'Ukjent dag',
+                        value: `${message}`,
+                    })
                 })
-            })
+            }
         } else {
             fmMessage.addFields({ name: 'Åpningstider', value: `Polet holder åpent som normalt denne uken` })
         }

@@ -64,10 +64,10 @@ export class MessageHelper {
         const handleError = async (e: any) => {
             let msg: Message<boolean> | undefined
             if (content instanceof EmbedBuilder) msg = await this.sendFormattedMessage(interaction.channelId, content)
-            else msg = await this.sendMessage(interaction.channelId, content)
+            else msg = await this.sendMessage(interaction.channelId, `${MentionUtils.mentionUser(interaction.user.id)} ${content}`)
 
-            let msgInfo = msg ? `Forsøkte å sende en separat melding i stedet for interaksjonssvar.` : `Klarte heller ikke sende separat melding som svar`
-            if (msg) msgInfo += `\nCreatedAt: ${msg?.createdAt}.\nType sent: ${msg?.type}\nWAS EMBED: ${content instanceof EmbedBuilder}`
+            let msgInfo = msg ? `Sendte en separat melding i stedet for interaksjonssvar.` : `Klarte heller ikke sende separat melding som svar`
+            if (msg) msgInfo += `\nType sent: ${msg?.type}\nWAS EMBED: ${content instanceof EmbedBuilder}`
 
             this.sendMessageToActionLog(
                 `Klarte ikke svare på en interaction. ${interaction.user.username} prøvde å bruke ${
@@ -105,7 +105,7 @@ export class MessageHelper {
     }
 
     /** Sends a message and returns the sent message (as a promise) */
-    sendMessage(channelId: string, message: string) {
+    sendMessage(channelId: string, message: string, noMentions?: boolean) {
         if (!this.checkForEmptyMessage(message)) {
             return this.logEmptyMessage('En melding som ble forsøkt sendt var tom', channelId)
         }
@@ -120,7 +120,21 @@ export class MessageHelper {
                 })
                 return undefined
             } else {
-                return channel.send(message)
+                if (noMentions) {
+                    channel.send({
+                        content: message,
+                        options: {
+                            allowedMentions: {
+                                roles: [],
+                                users: [],
+                                repliedUser: true,
+                            },
+                        },
+                    })
+                }
+                return channel.send({
+                    content: message,
+                })
             }
         }
         return undefined

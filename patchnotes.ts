@@ -5,22 +5,19 @@ import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '10.6.1'
+    public static readonly currentVersion = '10.7.0'
     public static readonly nextVersion = 'Backlog'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* /vinmonopolet inkluderer nå hvor lenge det er til stengetid` +
-        `\n* Lagt til en melding som forklarer at du ikke kan redigere en gammel melding for å trigge en slash command (man kunne redigere en melding for å trigge en !mz command før)` +
-        `\n* Botten sjekker nå om den har tilgang til en channel før sendMessage sender melding (fikser feil med /reply og /send)` +
-        `\n* Oppdatert /drop for Al Mazrah på Warzone` +
-        `\n* Fikset at Høie ikke svarte med 'lol' når ${MentionUtils.mentionUser('733320780707790898')} tagget Jævla Drittspel` +
-        `\n* Fjernet rebirth island og fortunes keep fra /drop og /grid` +
-        `\n* Fikset UwU` +
-        `\n* Fikset redigering/pinning av en //TODO:` +
-        `\n* Økt multiplier for daily prestige`
+        `\n* /vinmonopolet skal nå varsle om endrede åpningstider for hele måneden.` +
+        `\n* Høie varsler til ${MentionUtils.mentionChannel(
+            MentionUtils.CHANNEL_IDs.VINMONOPOLET
+        )} på mandager når det finnes endrede åpningstider i nåværende uke` +
+        `\n* Hvis botten ikke klarer å svare på en interaksjon og sender en normal melding skal du nå tagges i den meldingen` +
+        `\n* Det blir nå forsøkt logget hvem som timet out en bruker og grunnen som ble gitt`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 

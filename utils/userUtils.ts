@@ -1,4 +1,16 @@
-import { CacheType, ChatInputCommandInteraction, Guild, GuildMember, Interaction, Message, PartialGuildMember, PartialUser, Role, User } from 'discord.js'
+import {
+    AuditLogEvent,
+    CacheType,
+    ChatInputCommandInteraction,
+    Guild,
+    GuildMember,
+    Interaction,
+    Message,
+    PartialGuildMember,
+    PartialUser,
+    Role,
+    User,
+} from 'discord.js'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 const diff = require('deep-diff')
@@ -47,7 +59,7 @@ export namespace UserUtils {
         return undefined
     }
 
-    export const compareMember = (oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) => {
+    export const compareMember = async (oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) => {
         if (newMember.id === '802945796457758760') return '' //Ikke gjør noe når bot oppdateres
         if (oldMember.id === '802945796457758760') return ''
 
@@ -61,12 +73,26 @@ export namespace UserUtils {
 
         //TODO: Sjekk etter andre ting?
         if (oldMember?.isCommunicationDisabled() !== newMember?.isCommunicationDisabled()) {
+            const fetchedLogs = await oldMember?.guild.fetchAuditLogs({
+                limit: 1,
+                type: AuditLogEvent.MemberUpdate,
+            })
+            const actionLogId = '810832760364859432'
+
+            const deletionLog = fetchedLogs.entries.find((log) => log.target.id === newMember.id)
+            let reason = ''
+            let performedBy = ''
+            if (deletionLog) {
+                reason = deletionLog.reason
+                performedBy = deletionLog.executor.username
+            }
+
             const date = newMember?.communicationDisabledUntil ?? new Date()
             return `Timeout ${
                 newMember?.isCommunicationDisabled()
                     ? `${date.getDate()}.${date.getMonth()}.${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}`
                     : 'er ferdig'
-            }`
+            } (satt av ${performedBy ?? 'ukjent'}, grunn: *${reason ?? 'ukjent'}*)`
         }
         if (oldMember.nickname !== newMember.nickname) return 'nickname'
 

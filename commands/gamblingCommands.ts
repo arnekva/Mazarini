@@ -112,7 +112,7 @@ export class GamblingCommands extends AbstractCommands {
                                 description += `${
                                     target.id === interaction.user.id
                                         ? 'Men, du gikk til krig mot deg selv. Dette liker ikke Bot Høie, og tar derfor pengene.'
-                                        : 'Huset vinner alltid'
+                                        : 'Du gikk til krig mot Bot Høie, så huset vinner alltid uansett'
                                 }`
                             }
 
