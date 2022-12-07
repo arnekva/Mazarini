@@ -15,8 +15,9 @@ export class PatchNotes extends AbstractCommands {
         `\n* /vinmonopolet skal nå varsle om endrede åpningstider for hele måneden.` +
         `\n* Høie varsler til ${MentionUtils.mentionChannel(
             MentionUtils.CHANNEL_IDs.VINMONOPOLET
-        )} på mandager når det finnes endrede åpningstider i nåværende uke` +
+        )} på mandager når det finnes endrede åpningstider i nåværende måned eller uke` +
         `\n* Hvis botten ikke klarer å svare på en interaksjon og sender en normal melding skal du nå tagges i den meldingen` +
+        `\n* Botten vil ikke lenger logge hele stacktracen på feilmeldinger som gjelder Unknown Interaction` +
         `\n* Det blir nå forsøkt logget hvem som timet out en bruker og grunnen som ble gitt`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

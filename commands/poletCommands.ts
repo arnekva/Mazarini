@@ -92,7 +92,7 @@ export class PoletCommands extends AbstractCommands {
                 console.log(poletData.openingHours.exceptionHours)
 
                 poletData.openingHours.exceptionHours.forEach((h, index) => {
-                    const dateName = Languages.weekdayTranslate(moment(h?.date).format('dddd'))
+                    const dateName = moment(h?.date).format('dddd')
 
                     let message = ''
                     if (h.openingTime && h.closingTime) {

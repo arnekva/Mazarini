@@ -2,7 +2,6 @@ import { EmbedBuilder } from '@discordjs/builders'
 import moment from 'moment'
 import { PoletCommands } from '../commands/poletCommands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
-import { Languages } from '../helpers/languageHelpers'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MessageUtils } from '../utils/messageUtils'
 
@@ -33,13 +32,13 @@ export class WeeklyJobs {
             const input = moment(eh.date)
             return now.isoWeek() == input.isoWeek()
         })
-        if (data && data?.openingHours?.exceptionHours?.length > 0 && dates.length) {
+        if (data && data?.openingHours?.exceptionHours?.length > 0) {
             const fmMessage = new EmbedBuilder()
-                .setTitle(`Det er endrede åpningstider på polet denne uken `)
+                .setTitle(`Det er endrede åpningstider på polet denne ${!!dates.length ? 'uken' : 'måneden'}`)
                 .setDescription(`Bruker ${data.storeName} (${data.address.postalCode}, ${data.address.city}) som utgangspunkt`)
 
             data.openingHours.exceptionHours.forEach((h, index) => {
-                const dateName = Languages.weekdayTranslate(moment(h?.date).format('dddd'))
+                const dateName = moment(h?.date).format('dddd')
 
                 let message = ''
                 if (h.openingTime && h.closingTime) {
@@ -54,13 +53,6 @@ export class WeeklyJobs {
             })
 
             this.messageHelper.sendFormattedMessage(MessageUtils.CHANNEL_IDs.VINMONOPOLET, fmMessage)
-        } else if (data?.openingHours?.exceptionHours?.length > 0) {
-            this.messageHelper.sendMessage(
-                '810832760364859432',
-                `Det er registrert endrede åpningstider denne måneden, men de er ikke i nåværende uke. ExceptionHours: ${data?.openingHours?.exceptionHours.join(
-                    ','
-                )}`
-            )
         } else {
             this.messageHelper.sendMessage(
                 '810832760364859432',
