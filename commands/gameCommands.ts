@@ -99,7 +99,7 @@ export class GameCommands extends AbstractCommands {
         }
         const drop = `${ArrayUtils.randomChoiceFromArray(mapArray)}`
         const emb = new EmbedBuilder().setTitle(drop).setDescription(`Droppunkt for ${mapName}`)
-        this.messageHelper.replyToInteraction(interaction, emb, false, true)
+        await this.messageHelper.replyToInteraction(interaction, emb, false, true)
 
         const memb = UserUtils.findMemberByUserID(interaction.user.id, interaction)
         if (memb?.voice?.channel) {

@@ -39,7 +39,7 @@ export class UserCommands extends AbstractCommands {
         else
             this.messageHelper.sendMessage(
                 message.channelId,
-                `${message.author.username} har ${warningCounter} ${Number(warningCounter) === 1 ? 'advarsel' : 'advarsler'}`
+                `${message.author.username} har ${warningCounter} ${warningCounter === 1 ? 'advarsel' : 'advarsler'}`
             )
     }
 

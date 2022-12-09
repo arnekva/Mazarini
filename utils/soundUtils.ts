@@ -35,8 +35,7 @@ export class SoundUtils {
 
             voiceConnection = await entersState(voiceConnection, VoiceConnectionStatus.Connecting, 5_000)
         }
-        // console.log(voiceConnection._state_.status)
-        // if()
+
         await voiceConnection.subscribe(audioPlayer)
 
         audioPlayer.play(audioResource)

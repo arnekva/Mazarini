@@ -73,7 +73,7 @@ export class Admin extends AbstractCommands {
     }
 
     private async replyToMsgAsBot(interaction: ChatInputCommandInteraction<CacheType>) {
-        this.messageHelper.replyToInteraction(interaction, `Svarer på meldingen vises jeg finner den`, true)
+        this.messageHelper.replyToInteraction(interaction, `Svarer på meldingen hvis jeg finner den`, true)
         const allChannels = [...this.client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
         const id = interaction.options.get('melding-id')?.value as string
         const replyString = interaction.options.get('tekst')?.value as string

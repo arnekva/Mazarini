@@ -77,10 +77,6 @@ export namespace textArrays {
     ]
 
     export const bentHoieLines = [
-        'Husk å holde avstand',
-        'Er det 1 meter mellom dere? *Drar frem målebånd*',
-        'Erna ser deg!',
-        'Holde dokk avstand nå bler det utepils te sommaren!',
         'Jaja, fina vêre då',
         'Ka du tagge meg for?',
         'Klare for udepils eller?',
@@ -92,7 +88,6 @@ export namespace textArrays {
         'Du havna nettopp bakerst i vaksinekøen pga den taggen der',
         'Någen så kan oppdatera meg på tennis-fronten her, faen ka?',
         'E på date me mor te Eivind atm, kan kje svara',
-        'Kan hooka deg opp me ein AstraZeneca-dose for ein hundrings bro',
         'Har dokkor hørt om Gustav Vigeland?',
         'Hæ, pølse?',
     ]
