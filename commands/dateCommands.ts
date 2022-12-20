@@ -210,14 +210,11 @@ export class DateCommands extends AbstractCommands {
     }
 
     private findHolidaysInThisWeek(checkForNextWeeksMonday?: boolean) {
-        //TODO: Hacky fix for formatteringsfeil som skjer hvis nb er spesifisert.
-        //Overskriv til en og sett tilbake til nb etterpå midlertidig
-        moment.locale('en')
         const holidaysFromYear = holidays(new Date().getFullYear())
-        // holidaysFromYear.push({ name: 'Testdagen', date: '2022-05.27' })
 
         const holidaysThisWeek: { name: string; date: string }[] = []
         const startNextWeek = moment().add(1, 'weeks').startOf('week')
+
         holidaysFromYear.forEach((day: { name: string; date: string }) => {
             const date = new Date(day.date)
             if (day.name.includes('Himmelsprettsdag')) day.name = 'Kristi himmelfartsdag'
@@ -231,8 +228,7 @@ export class DateCommands extends AbstractCommands {
                 }
             }
         })
-        //FIXME:
-        moment.locale('nb')
+
         return holidaysThisWeek
     }
 

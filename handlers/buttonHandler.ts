@@ -45,7 +45,7 @@ export class ButtonHandler {
             row.addComponents(
                 new ButtonBuilder({
                     custom_id: `${ButtonHandler.KRIG_ID}COMPLETED`,
-                    style: ButtonStyle.Primary,
+                    style: ButtonStyle.Secondary,
                     label: `🏳️ Krig 🏳️`,
                     disabled: true,
                     type: 2,
