@@ -1,5 +1,6 @@
 import {
     AuditLogEvent,
+    ButtonInteraction,
     CacheType,
     ChatInputCommandInteraction,
     Guild,
@@ -43,7 +44,7 @@ export namespace UserUtils {
      * @param rawMessage needed to find the guild
      * @returns User object or undefined
      */
-    export const findUserById = (id: string, rawMessage: Message | ChatInputCommandInteraction) => {
+    export const findUserById = (id: string, rawMessage: Message | ChatInputCommandInteraction | ButtonInteraction) => {
         return rawMessage.client.users.cache.find((user) => user.id == id)
     }
 

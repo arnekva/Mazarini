@@ -35,8 +35,10 @@ export class ButtonHandler {
         const engagerId = ids[1]
         const eligibleTargetId = ids[0]
         const amountAsNum = Number(ids[2])
+        /** Victim */
         const userAsMember = UserUtils.findMemberByUserID(interaction.user.id, interaction)
-
+        /** Engager */
+        const engagerUser = UserUtils.findUserById(engagerId, interaction)
         if (userAsMember.id === eligibleTargetId && interaction.message.components.length) {
             //We update the row with a new, disabled button, so that the user cannot enage the Krig more than once
             const row = new ActionRowBuilder<ButtonBuilder>()
@@ -44,7 +46,7 @@ export class ButtonHandler {
                 new ButtonBuilder({
                     custom_id: `${ButtonHandler.KRIG_ID}COMPLETED`,
                     style: ButtonStyle.Primary,
-                    label: `Krig`,
+                    label: `🏳️ Krig 🏳️`,
                     disabled: true,
                     type: 2,
                 })
@@ -62,7 +64,7 @@ export class ButtonHandler {
             const shouldAlwaysLose = engager.id === interaction.user.id
             const roll = RandomUtils.getRndInteger(0, 100)
             let description = `Terningen trillet: ${roll}/100. ${
-                roll < 51 ? (roll == 50 ? 'Bot Høie' : interaction.user.username) : userAsMember.user.username
+                roll < 51 ? (roll == 50 ? 'Bot Høie' : engagerUser.username) : userAsMember.user.username
             } vant! 💰💰`
             if (shouldAlwaysLose) {
                 description += `${
@@ -88,7 +90,7 @@ export class ButtonHandler {
             const users = shouldAlwaysLose
                 ? [{ username: interaction.user.username, balance: engagerValue, oldBalance: oldEngVal }]
                 : [
-                      { username: interaction.user.username, balance: engagerValue, oldBalance: oldEngVal },
+                      { username: engagerUser.username, balance: engagerValue, oldBalance: oldEngVal },
                       { username: userAsMember.user.username, balance: victimValue, oldBalance: oldTarVal },
                   ]
 

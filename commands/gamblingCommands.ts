@@ -66,7 +66,7 @@ export class GamblingCommands extends AbstractCommands {
                 new ButtonBuilder({
                     custom_id: `${ButtonHandler.KRIG_ID}${target.id}&${interaction.user.id}&${amountAsNum}`,
                     style: ButtonStyle.Primary,
-                    label: `Krig`,
+                    label: `⚔️ Krig ⚔️`,
                     disabled: false,
                     type: 2,
                 })
