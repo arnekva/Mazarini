@@ -1,16 +1,15 @@
-import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction, TextChannel, User } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../general/commands'
+import { ButtonHandler } from '../handlers/buttonHandler'
 import { DatabaseHelper, MazariniUser } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { SlashCommandHelper } from '../helpers/slashCommandHelper'
-import { CollectorUtils } from '../utils/collectorUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { RandomUtils } from '../utils/randomUtils'
 import { TextUtils } from '../utils/textUtils'
-import { UserUtils } from '../utils/userUtils'
 
 export interface IDailyPriceClaim {
     streak: number
@@ -29,15 +28,6 @@ export class GamblingCommands extends AbstractCommands {
         })
         return notEnough
     }
-    private findKrigValue(val: string, engagerUsername: string): number | undefined {
-        if (val === 'alt') {
-            return Number(DatabaseHelper.getUser(engagerUsername).chips)
-        } else {
-            const value = Number(val)
-            if (isNaN(value) || value < 1) return undefined
-            return value
-        }
-    }
 
     private getUserWallets(engagerID: string, victimID: string): { engagerChips: number; victimChips: number } {
         const engagerValue = DatabaseHelper.getUser(engagerID).chips
@@ -46,18 +36,6 @@ export class GamblingCommands extends AbstractCommands {
             engagerChips: engagerValue,
             victimChips: victimValue,
         }
-    }
-
-    private sendKrigMessage(channel: TextChannel, users: { username: string; balance: number; oldBalance: number }[], winningText: string) {
-        const gambling = new EmbedBuilder().setTitle('⚔️ Krig ⚔️').setDescription(`${winningText}`)
-        users.forEach((user) => {
-            gambling.addFields({
-                name: `${user.username}`,
-                value: `Har nå ${TextUtils.formatMoney(user.balance, 2, 2)} chips (hadde ${TextUtils.formatMoney(user.oldBalance, 2, 2)})`,
-            })
-        })
-
-        this.messageHelper.sendFormattedMessage(channel, gambling)
     }
 
     private async krig(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -75,83 +53,25 @@ export class GamblingCommands extends AbstractCommands {
             this.messageHelper.replyToInteraction(interaction, `En av dere har ikke råd til dette`, true)
         } else {
             this.messageHelper.replyToInteraction(interaction, `Du har startet en krig mot ${target.username}`, true)
-            const resolveMessage = await this.messageHelper.sendMessage(
+            await this.messageHelper.sendMessage(
                 interaction.channelId,
                 `${interaction.user.username} vil gå til krig med deg, ${MentionUtils.mentionUser(
                     target.id
-                )} for ${amountAsNum} chips. Reager med 👍 for å godkjenne. Den som starter krigen ruller for 0-49.`
+                )} for ${amountAsNum} chips. Trykk på knappen for å godkjenne. Den som starter krigen ruller for 0-49.`
             )
-            if (resolveMessage) {
-                this.messageHelper.reactWithThumbs(resolveMessage, 'up')
 
-                const collector = resolveMessage.createReactionCollector()
-                collector.on('collect', (reaction) => {
-                    if (CollectorUtils.shouldStopCollector(reaction, interaction)) {
-                        if (resolveMessage) resolveMessage.edit(`${resolveMessage.content} (STANSET MED TOMMEL NED)`)
-                        collector.stop()
-                    }
+            const row = new ActionRowBuilder<ButtonBuilder>()
 
-                    const currentValue = this.getUserWallets(interaction.user.id, target.id)
-                    let engagerValue = currentValue.engagerChips
-                    let victimValue = currentValue.victimChips
-                    if (!hasAmount) {
-                        amountAsNum = Math.min(engagerValue, victimValue)
-                    }
-                    if (reaction.emoji.name === '👍' && reaction.users.cache.find((u: User) => u.id === target.id)) {
-                        const notEnoughChips = this.checkBalance([{ userID: interaction.user.id }, { userID: target.id }], amountAsNum)
-                        if (notEnoughChips) {
-                            this.messageHelper.sendMessage(interaction.channelId, `Folkå har kje lenger råd te å kriga samen. Krigen bler stoppa`)
-                            collector.stop()
-                        } else {
-                            const shouldAlwaysLose = target.id === interaction.user.id || target.id === UserUtils.User_IDs.BOT_HOIE
-                            const roll = RandomUtils.getRndInteger(0, 100)
-                            let description = `Terningen trillet: ${roll}/100. ${
-                                roll < 51 ? (roll == 50 ? 'Bot Høie' : interaction.user.username) : target.username
-                            } vant! 💰💰`
-                            if (shouldAlwaysLose) {
-                                description += `${
-                                    target.id === interaction.user.id
-                                        ? 'Men, du gikk til krig mot deg selv. Dette liker ikke Bot Høie, og tar derfor pengene.'
-                                        : 'Du gikk til krig mot Bot Høie, så huset vinner alltid uansett'
-                                }`
-                            }
-
-                            if (roll == 50 || shouldAlwaysLose) {
-                                engagerValue -= amountAsNum
-                                victimValue -= amountAsNum
-                            } else if (roll < 50) {
-                                engagerValue += amountAsNum
-                                victimValue -= amountAsNum
-                            } else if (roll > 50) {
-                                engagerValue -= amountAsNum
-                                victimValue += amountAsNum
-                            }
-
-                            const users = shouldAlwaysLose
-                                ? [{ username: interaction.user.username, balance: engagerValue, oldBalance: currentValue.engagerChips }]
-                                : [
-                                      { username: interaction.user.username, balance: engagerValue, oldBalance: currentValue.engagerChips },
-                                      { username: target.username, balance: victimValue, oldBalance: currentValue.victimChips },
-                                  ]
-
-                            this.messageHelper.sendMessage(
-                                interaction.channelId,
-                                `${MentionUtils.mentionUser(target.id)} ${MentionUtils.mentionUser(interaction.user.id)}`
-                            )
-                            this.sendKrigMessage(interaction.channel as TextChannel, users, description)
-
-                            const authorUser = DatabaseHelper.getUser(interaction.user.id)
-                            const victimUser = DatabaseHelper.getUser(target.id)
-                            authorUser.chips = engagerValue
-                            victimUser.chips = victimValue
-                            DatabaseHelper.updateUser(authorUser)
-                            DatabaseHelper.updateUser(victimUser)
-
-                            collector.stop()
-                        }
-                    }
+            row.addComponents(
+                new ButtonBuilder({
+                    custom_id: `${ButtonHandler.KRIG_ID}${target.id}&${interaction.user.id}&${amountAsNum}`,
+                    style: ButtonStyle.Primary,
+                    label: `Krig`,
+                    disabled: false,
+                    type: 2,
                 })
-            }
+            )
+            await this.messageHelper.sendMessageWithComponents(interaction.channelId, [row])
         }
     }
 
