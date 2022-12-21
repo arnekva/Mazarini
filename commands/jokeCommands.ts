@@ -266,7 +266,7 @@ export class JokeCommands extends AbstractCommands {
             {
                 commandName: 'eivindpride',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.reactToManyMessages(rawInteraction, 'eivindpride')
+                    this.reactToManyMessages(rawInteraction, DateUtils.isDecember() ? 'eivindclausepride' : 'eivindpride')
                 },
                 category: 'gaming',
             },

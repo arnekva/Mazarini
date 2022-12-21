@@ -5,6 +5,7 @@ import { LockingHandler } from '../handlers/lockingHandler'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
+import { DateUtils } from '../utils/dateUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
@@ -189,7 +190,7 @@ export class CommandRunner {
 
             //If eivind, eivindpride him
             if (message.author.id == '239154365443604480' && message.guild) {
-                const react = message.guild.emojis.cache.find((emoji) => emoji.name == 'eivindpride')
+                const react = message.guild.emojis.cache.find((emoji) => emoji.name == (DateUtils.isDecember() ? 'eivindclausepride' : 'eivindpride'))
                 //check for 10% chance of eivindpriding
                 if (MiscUtils.doesThisMessageNeedAnEivindPride(message.content, polseCounter) && react) message.react(react)
             }

@@ -5,15 +5,13 @@ import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '10.8.1'
+    public static readonly currentVersion = '10.8.2'
     public static readonly nextVersion = 'Backlog'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
-    public static readonly currentPatchNotes: string =
-        `\n* Du kan nå gjøre omkamp når en /krig er ferdig. Trykk på knappen som kommer opp for å gjøre en omkamp. Antall chips er lik som i forrige krig (eventuelt blir den nedjustert til høyeste mulige hvis en har mindre chips en summen). Knappen kommer kun opp hvis begge to fortsatt har mer enn 0 chips` +
-        `\n* Fikset en feil som gjorde at helligdager som landet på søndager ble vist som en langhelg`
+    public static readonly currentPatchNotes: string = `\n* Eivindclausepride brukes nå  istedet for eivindpride i desember`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 

@@ -132,4 +132,8 @@ export class DateUtils {
     static getCurrentTimeFormatted() {
         return `${moment().format('HH:mm:ss DD-MM-YYYY ')}`
     }
+
+    static isDecember() {
+        return moment().month() === 11
+    }
 }
