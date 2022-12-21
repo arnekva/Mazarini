@@ -1,4 +1,15 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction } from 'discord.js'
+import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonInteraction,
+    ButtonStyle,
+    CacheType,
+    ChatInputCommandInteraction,
+    Client,
+    EmbedBuilder,
+    Interaction,
+    User,
+} from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../general/commands'
 import { ButtonHandler } from '../handlers/buttonHandler'
@@ -20,7 +31,7 @@ export class GamblingCommands extends AbstractCommands {
         super(client, messageHelper)
     }
 
-    private checkBalance(users: { userID: string }[], amountAsNumber: number): boolean {
+    static checkBalance(users: { userID: string }[], amountAsNumber: number): boolean {
         let notEnough = false
         users.forEach((u) => {
             const balance = DatabaseHelper.getUser(u.userID).chips
@@ -29,7 +40,7 @@ export class GamblingCommands extends AbstractCommands {
         return notEnough
     }
 
-    private getUserWallets(engagerID: string, victimID: string): { engagerChips: number; victimChips: number } {
+    static getUserWallets(engagerID: string, victimID: string): { engagerChips: number; victimChips: number } {
         const engagerValue = DatabaseHelper.getUser(engagerID).chips
         const victimValue = DatabaseHelper.getUser(victimID).chips
         return {
@@ -42,12 +53,12 @@ export class GamblingCommands extends AbstractCommands {
         const target = interaction.options.get('bruker')?.user
         const amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('chips')?.value)
 
-        const userWallets = this.getUserWallets(interaction.user.id, target.id)
+        const userWallets = GamblingCommands.getUserWallets(interaction.user.id, target.id)
         const hasAmount = !!amount
 
         const largestPossibleValue = Math.min(userWallets.engagerChips, userWallets.victimChips)
         let amountAsNum = hasAmount ? Number(amount) : largestPossibleValue
-        const notEnoughChips = this.checkBalance([{ userID: interaction.user.id }, { userID: target.id }], amountAsNum)
+        const notEnoughChips = GamblingCommands.checkBalance([{ userID: interaction.user.id }, { userID: target.id }], amountAsNum)
 
         if (notEnoughChips) {
             this.messageHelper.replyToInteraction(interaction, `En av dere har ikke råd til dette`, true)
@@ -72,6 +83,44 @@ export class GamblingCommands extends AbstractCommands {
                 })
             )
             await this.messageHelper.sendMessageWithComponents(interaction.channelId, [row])
+        }
+    }
+    static async krig(
+        interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>,
+        msgHelper: MessageHelper,
+        target: User,
+        amount: number
+    ) {
+        const userWallets = this.getUserWallets(interaction.user.id, target.id)
+        const hasAmount = !!amount
+
+        const largestPossibleValue = Math.min(userWallets.engagerChips, userWallets.victimChips)
+        let amountAsNum = hasAmount ? Number(amount) : largestPossibleValue
+        const notEnoughChips = this.checkBalance([{ userID: interaction.user.id }, { userID: target.id }], amountAsNum)
+
+        if (notEnoughChips) {
+            msgHelper.replyToInteraction(interaction, `En av dere har ikke råd til dette`, true)
+        } else {
+            msgHelper.replyToInteraction(interaction, `Du har startet en krig mot ${target.username}`, true)
+            await msgHelper.sendMessage(
+                interaction.channelId,
+                `${interaction.user.username} vil gå til krig med deg, ${MentionUtils.mentionUser(
+                    target.id
+                )} for ${amountAsNum} chips. Trykk på knappen for å godkjenne. Den som starter krigen ruller for 0-49.`
+            )
+
+            const row = new ActionRowBuilder<ButtonBuilder>()
+
+            row.addComponents(
+                new ButtonBuilder({
+                    custom_id: `${ButtonHandler.KRIG_ID}${target.id}&${interaction.user.id}&${amountAsNum}`,
+                    style: ButtonStyle.Primary,
+                    label: `⚔️ Krig ⚔️`,
+                    disabled: false,
+                    type: 2,
+                })
+            )
+            await msgHelper.sendMessageWithComponents(interaction.channelId, [row])
         }
     }
 

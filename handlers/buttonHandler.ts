@@ -1,4 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, Client, EmbedBuilder, Interaction } from 'discord.js'
+import { GamblingCommands } from '../commands/gamblingCommands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MentionUtils } from '../utils/mentionUtils'
@@ -12,6 +13,7 @@ export class ButtonHandler {
 
     static USER_ROLE_ID = 'UserRoleId_'
     static KRIG_ID = 'KrigId_'
+    static KRIG_REMATCH = 'KrigRematchId_'
     constructor(client: Client, messageHelper: MessageHelper) {
         this.client = client
         this.messageHelper = messageHelper
@@ -23,11 +25,43 @@ export class ButtonHandler {
                 this.handleAssignmentOfRoles(interaction)
             } else if (interaction.customId.startsWith(ButtonHandler.KRIG_ID)) {
                 this.handleKrig(interaction)
+            } else if (interaction.customId.startsWith(ButtonHandler.KRIG_REMATCH)) {
+                this.handleRematch(interaction)
             }
 
             return true
         }
         return false
+    }
+
+    private async handleRematch(interaction: ButtonInteraction<CacheType>) {
+        const params = interaction.customId.replace(ButtonHandler.KRIG_REMATCH, '').split('&')
+        const oldEngager = params[0]
+        const oldTarget = params[1]
+        const updatedTargetId = oldTarget === interaction.user.id ? oldEngager : oldTarget
+        const amount = Number(params[2])
+        console.log(oldEngager, oldTarget, updatedTargetId)
+        if ([oldEngager, oldTarget].includes(interaction.user.id)) {
+            const victimUser = UserUtils.findUserById(updatedTargetId, interaction)
+            if (victimUser) {
+                GamblingCommands.krig(interaction, this.messageHelper, victimUser, amount)
+            }
+            const row = new ActionRowBuilder<ButtonBuilder>()
+            row.addComponents(
+                new ButtonBuilder({
+                    custom_id: `${ButtonHandler.KRIG_REMATCH}COMPLETED`,
+                    style: ButtonStyle.Secondary,
+                    label: `🏳️ Omkamp 🏳️`,
+                    disabled: true,
+                    type: 2,
+                })
+            )
+            await interaction.message.edit({
+                components: [row],
+            })
+        } else {
+            this.messageHelper.replyToInteraction(interaction, `Du kan bare starta ein omkamp for ein krig du deltok i sjøl`, true)
+        }
     }
 
     private async handleKrig(interaction: ButtonInteraction<CacheType>) {
@@ -109,6 +143,26 @@ export class ButtonHandler {
             target.chips = victimValue
             DatabaseHelper.updateUser(engager)
             DatabaseHelper.updateUser(target)
+
+            const rematchRow = new ActionRowBuilder<ButtonBuilder>()
+
+            const updatedMax = Math.min(engagerValue, victimValue)
+
+            const oldEngager = engagerUser.id
+            const oldTarget = userAsMember.id
+
+            if (updatedMax > 0) {
+                rematchRow.addComponents(
+                    new ButtonBuilder({
+                        custom_id: `${ButtonHandler.KRIG_REMATCH}${oldEngager}&${oldTarget}&${amountAsNum < updatedMax ? amountAsNum : updatedMax}`,
+                        style: ButtonStyle.Success,
+                        label: `⚔️ Omkamp ⚔️`,
+                        disabled: false,
+                        type: 2,
+                    })
+                )
+                await this.messageHelper.sendMessageWithComponents(interaction.channelId, [rematchRow])
+            }
         } else {
             this.messageHelper.replyToInteraction(interaction, `Du kan kje starta denne krigen`, true)
         }
