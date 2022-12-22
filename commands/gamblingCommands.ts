@@ -66,7 +66,7 @@ export class GamblingCommands extends AbstractCommands {
             this.messageHelper.replyToInteraction(interaction, `Du har startet en krig mot ${target.username}`, true)
             await this.messageHelper.sendMessage(
                 interaction.channelId,
-                `${interaction.user.username} vil gå til krig med deg, ${MentionUtils.mentionUser(
+                `${interaction.user.username} vil gå til krig med deg ${MentionUtils.mentionUser(
                     target.id
                 )} for ${amountAsNum} chips. Trykk på knappen for å godkjenne. Den som starter krigen ruller for 0-49.`
             )
@@ -76,7 +76,7 @@ export class GamblingCommands extends AbstractCommands {
             row.addComponents(
                 new ButtonBuilder({
                     custom_id: `${ButtonHandler.KRIG_ID}${target.id}&${interaction.user.id}&${amountAsNum}`,
-                    style: ButtonStyle.Primary,
+                    style: ButtonStyle.Success,
                     label: `⚔️ Krig ⚔️`,
                     disabled: false,
                     type: 2,
@@ -85,6 +85,8 @@ export class GamblingCommands extends AbstractCommands {
             await this.messageHelper.sendMessageWithComponents(interaction.channelId, [row])
         }
     }
+
+    /** FIXME: Should refactor instead of just duplicating it as a static. */
     static async krig(
         interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>,
         msgHelper: MessageHelper,
@@ -104,7 +106,7 @@ export class GamblingCommands extends AbstractCommands {
             msgHelper.replyToInteraction(interaction, `Du har startet en krig mot ${target.username}`, true)
             await msgHelper.sendMessage(
                 interaction.channelId,
-                `${interaction.user.username} vil gå til krig med deg, ${MentionUtils.mentionUser(
+                `${interaction.user.username} vil gå til krig med deg ${MentionUtils.mentionUser(
                     target.id
                 )} for ${amountAsNum} chips. Trykk på knappen for å godkjenne. Den som starter krigen ruller for 0-49.`
             )

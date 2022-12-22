@@ -155,7 +155,7 @@ export class ButtonHandler {
                 rematchRow.addComponents(
                     new ButtonBuilder({
                         custom_id: `${ButtonHandler.KRIG_REMATCH}${oldEngager}&${oldTarget}&${amountAsNum < updatedMax ? amountAsNum : updatedMax}`,
-                        style: ButtonStyle.Success,
+                        style: ButtonStyle.Primary,
                         label: `⚔️ Omkamp ⚔️`,
                         disabled: false,
                         type: 2,
