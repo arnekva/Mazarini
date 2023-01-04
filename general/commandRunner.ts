@@ -69,27 +69,27 @@ export class CommandRunner {
                   )
                 : undefined
 
-        if (!this.isLegalChannel(interaction)) return
+        if (this.isLegalChannel(interaction)) {
+            const commands = this.commands.getAllInteractionCommands()
+            let hasAcknowledged = false
 
-        const commands = this.commands.getAllInteractionCommands()
-        let hasAcknowledged = false
-
-        if (interaction.isChatInputCommand()) {
-            commands.forEach((cmd) => {
-                if (cmd.commandName === interaction.commandName) {
-                    this.runInteractionElement(cmd, interaction)
-                    hasAcknowledged = true
-                }
-            })
-        } else if (interaction.type === InteractionType.ModalSubmit) {
-            hasAcknowledged = this.commands.handleModalInteractions(interaction)
-        } else if (interaction.isSelectMenu()) {
-            hasAcknowledged = this.commands.handleSelectMenus(interaction)
-        } else if (interaction.isButton()) {
-            hasAcknowledged = this.commands.handleButtons(interaction)
+            if (interaction.isChatInputCommand()) {
+                commands.forEach((cmd) => {
+                    if (cmd.commandName === interaction.commandName) {
+                        this.runInteractionElement(cmd, interaction)
+                        hasAcknowledged = true
+                    }
+                })
+            } else if (interaction.type === InteractionType.ModalSubmit) {
+                hasAcknowledged = this.commands.handleModalInteractions(interaction)
+            } else if (interaction.isSelectMenu()) {
+                hasAcknowledged = this.commands.handleSelectMenus(interaction)
+            } else if (interaction.isButton()) {
+                hasAcknowledged = this.commands.handleButtons(interaction)
+            }
+            if (!hasAcknowledged) interaction.isRepliable() ? interaction.reply(`Denne interaksjonen støttes ikke for øyeblikket`) : undefined
+            return undefined
         }
-        if (!hasAcknowledged) interaction.isRepliable() ? interaction.reply(`Denne interaksjonen støttes ikke for øyeblikket`) : undefined
-        return undefined
     }
 
     async checkForCommand(message: Message) {

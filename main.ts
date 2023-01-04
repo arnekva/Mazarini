@@ -42,9 +42,9 @@ export class MazariniClient {
     private messageHelper: MessageHelper
     private jobScheduler: JobScheduler
     private errorHandler: ErrorHandler
-    static numMessages: number
-    static numMessagesFromBot: number
-    static numMessagesNumErrorMessages: number
+    static numMessages: number = 0
+    static numMessagesFromBot: number = 0
+    static numMessagesNumErrorMessages: number = 0
     private isTest: boolean
     static startTime: Date
     mazarini: any

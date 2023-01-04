@@ -27,8 +27,9 @@ export class Weather extends AbstractCommands {
                     res.json().then((el: any) => {
                         const temperature: string = WeatherUtils.kelvinToCelcius(el.main.temp).toFixed(1).toString()
                         const weatherDescription = el.weather.map((weatherObj: any) => weatherObj.description).join(', ')
+
                         const weather = new EmbedBuilder()
-                            .setTitle(`☁️ Vær - ${el?.name} ☀️`)
+                            .setTitle(`Været i ${el?.name}`)
                             .setDescription(`Været i dag`)
                             .addFields({
                                 name: 'Temperatur',
@@ -38,9 +39,11 @@ export class Weather extends AbstractCommands {
                                     .toFixed(1)
                                     .toString()}°, høyeste er ${WeatherUtils.kelvinToCelcius(el.main.temp_max).toFixed(1).toString()}°`,
                             })
+
                             .addFields({ name: `Forhold`, value: `Det er ${weatherDescription}` })
                             .addFields({ name: `Vind`, value: `${el?.wind?.speed} m/s` })
-
+                        const icon = el.weather[0].icon
+                        if (icon) weather.setThumbnail(`http://openweathermap.org/img/wn/${icon}@2x.png`)
                         this.messageHelper.replyToInteraction(interaction, weather, undefined, true)
                     })
                 }

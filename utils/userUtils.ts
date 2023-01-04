@@ -72,7 +72,6 @@ export namespace UserUtils {
             return 'nickname: ' + (oldMember.nickname ?? oldMember.displayName) + ' endret til ' + (newMember.nickname ?? newMember.displayName)
         if (oldMember.user.username !== newMember.user.username) return 'username'
 
-        //TODO: Sjekk etter andre ting?
         if (oldMember?.isCommunicationDisabled() !== newMember?.isCommunicationDisabled()) {
             const fetchedLogs = await oldMember?.guild.fetchAuditLogs({
                 limit: 1,
@@ -80,12 +79,12 @@ export namespace UserUtils {
             })
             const actionLogId = '810832760364859432'
 
-            const deletionLog = fetchedLogs.entries.find((log) => log.target.id === newMember.id)
+            const logs = fetchedLogs.entries.find((log) => log.target.id === newMember.id)
             let reason = ''
             let performedBy = ''
-            if (deletionLog) {
-                reason = deletionLog.reason
-                performedBy = deletionLog.executor.username
+            if (logs) {
+                reason = logs.reason
+                performedBy = logs.executor.username
             }
 
             const date = newMember?.communicationDisabledUntil ?? new Date()
@@ -131,13 +130,13 @@ export namespace UserUtils {
         if (oldUser.id === '802945796457758760') return
         msgHelper.sendMessageToActionLog('Oppdatert bruker:   ' + oldUser.username + ' -> ' + newUser.username + '')
     }
-    export const onMemberUpdate = (oldMember: GuildMember | PartialGuildMember, newMember: GuildMember, msgHelper: MessageHelper) => {
+    export const onMemberUpdate = async (oldMember: GuildMember | PartialGuildMember, newMember: GuildMember, msgHelper: MessageHelper) => {
         if (newMember.id === '802945796457758760') return //Ikke gjør noe når bot oppdateres
         if (oldMember.id === '802945796457758760') return
         if (oldMember.user.username === 'MazariniBot') return
         const diffCalc = diff.diff
         const differences = diff(oldMember, newMember)
-        const whatChanged = UserUtils.compareMember(oldMember, newMember)
+        const whatChanged = await UserUtils.compareMember(oldMember, newMember)
         let changesString = ''
         if (differences) {
             differences.forEach((change: any, index: number) => {
