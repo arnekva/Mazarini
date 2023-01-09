@@ -210,16 +210,23 @@ export class DateCommands extends AbstractCommands {
     }
 
     private findHolidaysInThisWeek(checkForNextWeeksMonday?: boolean) {
+        moment.locale('en')
         const holidaysFromYear = holidays(new Date().getFullYear())
 
         const holidaysThisWeek: { name: string; date: string }[] = []
-        const startNextWeek = moment().add(1, 'weeks').startOf('week')
-
+        /** FIXME: Sets locale to en to avoid mess with js dates for the time being. Need to add 1 days to start of week since that would be sunday in en locale.
+         * When fixed, make sure to remove the add days.
+         */
+        const startNextWeek = moment().add(1, 'weeks').startOf('week').add(1, 'days')
+        holidaysFromYear.push({ name: 'Testdagen', date: '2023-01-16' })
         holidaysFromYear.forEach((day: { name: string; date: string }) => {
             const date = new Date(day.date)
+
+            /** Override the name the package uses */
             if (day.name.includes('Himmelsprettsdag')) day.name = 'Kristi himmelfartsdag'
             if (checkForNextWeeksMonday) {
-                if (moment(date).isSame(startNextWeek, 'week')) {
+                /** If week is same as next week, and it's the same day (monday), we have a langhelg */
+                if (moment(date).isSame(startNextWeek, 'week') && moment(date).isSame(startNextWeek, 'day')) {
                     holidaysThisWeek.push(day)
                 }
             } else {
@@ -228,7 +235,8 @@ export class DateCommands extends AbstractCommands {
                 }
             }
         })
-
+        /** set locale back to nb */
+        moment.locale('nb')
         return holidaysThisWeek
     }
 

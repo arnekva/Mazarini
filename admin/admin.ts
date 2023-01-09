@@ -172,7 +172,7 @@ export class Admin extends AbstractCommands {
             })} ${start.toLocaleTimeString('nb')}):` +
             `\nAntall meldinger: ${numMessages}` +
             `\nAntall meldinger fra bot: ${numMessagesFromBot}` +
-            `\nAntall feilmeldinger logget: ${numErrorMessages}`
+            `\nAntall logger: ${numErrorMessages}`
         this.messageHelper.replyToInteraction(interaction, statsReply)
     }
 

@@ -42,6 +42,7 @@ interface PoletData {
 export class PoletCommands extends AbstractCommands {
     static baseStoreDataURL = 'https://apis.vinmonopolet.no/stores/v0/details'
     static baseProductURL = 'https://apis.vinmonopolet.no/products/v0/details-normal'
+    static pressProductURL = 'https://apis.vinmonopolet.no/press-products/v0/price-elements'
     static baseStoreID = '416'
     constructor(client: Client, messageHelper: MessageHelper) {
         super(client, messageHelper)
@@ -71,6 +72,15 @@ export class PoletCommands extends AbstractCommands {
             },
         })
         return (await data.json())[0] as PoletData
+    }
+    static async fetchProductDataFromId(productId: string) {
+        const data = await fetch(`${PoletCommands.pressProductURL}?productId=${productId}`, {
+            method: 'GET',
+            headers: {
+                'Ocp-Apim-Subscription-Key': vinmonopoletKey,
+            },
+        })
+        return await data
     }
 
     private async getOpeningHours(rawInteraction: ChatInputCommandInteraction<CacheType>, storeId?: string) {

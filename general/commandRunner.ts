@@ -1,6 +1,7 @@
 import { CacheType, ChatInputCommandInteraction, Client, Interaction, InteractionType, Message } from 'discord.js'
 import { Admin } from '../admin/admin'
 import { environment } from '../client-env'
+import { PoletCommands } from '../commands/poletCommands'
 import { LockingHandler } from '../handlers/lockingHandler'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -11,6 +12,7 @@ import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { UserUtils } from '../utils/userUtils'
 import { Commands, ICommandElement, IInteractionElement } from './commands'
+const fetch = require('node-fetch')
 
 export class CommandRunner {
     private commands: Commands
@@ -33,8 +35,21 @@ export class CommandRunner {
             await this.checkForCommand(message)
             /** Additional non-command checks */
             this.checkMessageForJokes(message)
+
+            this.checkForVinmonopolContent(message)
         } catch (error) {
             this.messageHelper.sendMessageToActionLogWithCustomMessage(message, error, 'Her har det skjedd en feil', true)
+        }
+    }
+
+    async checkForVinmonopolContent(message: Message) {
+        const content = message.content
+        if (content.includes('https://www.vinmonopolet.no/')) {
+            const id = content.split('/p/')[1]
+            if (id && !isNaN(Number(id))) {
+                const data = await PoletCommands.fetchProductDataFromId(id)
+                console.log(data)
+            }
         }
     }
 
