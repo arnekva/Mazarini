@@ -218,7 +218,7 @@ export class DateCommands extends AbstractCommands {
          * When fixed, make sure to remove the add days.
          */
         const startNextWeek = moment().add(1, 'weeks').startOf('week').add(1, 'days')
-        holidaysFromYear.push({ name: 'Testdagen', date: '2023-01-16' })
+
         holidaysFromYear.forEach((day: { name: string; date: string }) => {
             const date = new Date(day.date)
 
