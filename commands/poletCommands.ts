@@ -42,7 +42,7 @@ interface PoletData {
 export class PoletCommands extends AbstractCommands {
     static baseStoreDataURL = 'https://apis.vinmonopolet.no/stores/v0/details'
     static baseProductURL = 'https://apis.vinmonopolet.no/products/v0/details-normal'
-    static pressProductURL = 'https://apis.vinmonopolet.no/press-products/v0/price-elements'
+    static pressProductURL = 'https://www.vinmonopolet.no/api/products'
     static baseStoreID = '416'
     constructor(client: Client, messageHelper: MessageHelper) {
         super(client, messageHelper)
@@ -74,13 +74,25 @@ export class PoletCommands extends AbstractCommands {
         return (await data.json())[0] as PoletData
     }
     static async fetchProductDataFromId(productId: string) {
-        const data = await fetch(`${PoletCommands.pressProductURL}?productId=${productId}`, {
+        const data = await fetch(`${PoletCommands.pressProductURL}/${productId}?fields=FULL`, {
             method: 'GET',
             headers: {
                 'Ocp-Apim-Subscription-Key': vinmonopoletKey,
+                'sec-ch-ua-mobile': '?0',
+                'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.72 Safari/537.36',
+                'accept-encoding': 'gzip, deflate, br',
+                accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+                'upgrade-insecure-requests': '1',
+                'accept-language': 'en-US,en;0.9',
+                'sec-fetch-site': 'same-site',
+                'sec-fetch-mode': 'navigate',
+                'sec-fetch-user': '?1',
+                'sec-fetch-dest': 'document',
+                encoding: 'null',
+                gzip: true,
             },
         })
-        return await data
+        return await data.json()
     }
 
     private async getOpeningHours(rawInteraction: ChatInputCommandInteraction<CacheType>, storeId?: string) {

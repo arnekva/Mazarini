@@ -7,6 +7,7 @@ import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { DateUtils } from '../utils/dateUtils'
+import { EmbedUtils } from '../utils/embedUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
@@ -48,7 +49,67 @@ export class CommandRunner {
             const id = content.split('/p/')[1]
             if (id && !isNaN(Number(id))) {
                 const data = await PoletCommands.fetchProductDataFromId(id)
-                console.log(data)
+
+                if (data) {
+                    const hasDesc = !!data.description.trim()
+                    const embed = EmbedUtils.createSimpleEmbed(`${data.name}`, `${hasDesc ? data.description : data.taste}`, [
+                        { name: `Lukt`, value: `${data.smell}` },
+                        { name: `Pris`, value: `${data.price.formattedValue}`, inline: true },
+                        { name: `Type`, value: `${data.main_category.name}`, inline: true },
+                        //Årgang doesnt apply to all products, but some times it's still in the data as the year 0000.
+                        { name: `Årgang`, value: `${data.year === '0000' ? 'Ukjent' : data.year}`, inline: true },
+                        { name: `Volum`, value: `${data.volume.formattedValue}`, inline: true },
+                        { name: `Land`, value: `${data.main_country.name}`, inline: true },
+                        { name: `Alkohol`, value: `${data.alcohol.formattedValue}`, inline: true },
+                        // { name: `Smak`, value: `${data.taste}` },
+                        { name: `Flaske/Kork`, value: `${data.packageType}, ${data.cork}`, inline: true },
+                        { name: `Stil`, value: `${data.style?.name}`, inline: true },
+                        { name: `Lagring`, value: `${data.matured}`, inline: true },
+                        { name: `Farge`, value: `${data.color}`, inline: true },
+                        { name: `Finnes i`, value: `${data.product_selection}`, inline: true },
+                        {
+                            name: `Tilgjengelighet`,
+                            value: `${data.availability.storeAvailability.available ? 'Ja' : 'Nei'}, ${data.availability.storeAvailability.mainText}`,
+                            inline: true,
+                        },
+                    ])
+                    /** In case of wines, it will be something like [Pinot Noir 80%, Merlot 20%]
+                     * For liquers, ciders, etc. it may only be "Plommer, epler", since they dont display the percentage of the mix.
+                     *  Therefore, if no percentage is supplied, we hardcode it to a 100%
+                     */
+                    if (data.raastoff) {
+                        embed.addFields({
+                            name: `Innhold`,
+                            value: `${data.raastoff.map((rs) => `${rs.name} (${rs.percentage ? rs.percentage : '100'}%)`)}`,
+                            inline: true,
+                        })
+                    }
+                    if (!!data.isGoodFor.length) {
+                        embed.addFields({
+                            name: `Passer til`,
+                            value: `${data.isGoodFor.map((igf) => `${igf.name}`)}`,
+                            inline: true,
+                        })
+                    }
+                    //Make sure to add some text if field does not exist, since the embed will crash if a field is empty
+                    //Also, in case a data value doesn't exist, we set it to "ukjent" for a better look
+                    embed.data.fields.forEach((f) => {
+                        console.log(f.value)
+
+                        if (!f.value) f.value = 'Ukjent'
+                        if (f.value.includes('undefined')) f.value = f.value.replace('undefined', 'Ukjent')
+                    })
+
+                    //These image formats may exist: product, thumbnail, zoom, cartIcon and superZoom.
+                    const imageUrl = data.images.filter((img) => img.format === 'zoom')[0]?.url
+                    if (imageUrl) embed.setThumbnail(imageUrl)
+                    embed.setURL(`https://www.vinmonopolet.no${data.url}`)
+
+                    embed.setFooter({
+                        text: `Produsent: ${data.main_producer.name}, Distrikt: ${data.district?.name}, Sub-distrikt: ${data.sub_District?.name}`,
+                    })
+                    this.messageHelper.sendFormattedMessage(message.channelId, embed)
+                }
             }
         }
     }

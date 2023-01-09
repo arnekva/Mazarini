@@ -5,13 +5,13 @@ import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '10.9.1'
+    public static readonly currentVersion = '10.10.0'
     public static readonly nextVersion = 'Backlog'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
-    public static readonly currentPatchNotes: string = `\n* Fikset en feil på søket etter helligdager på /helg kommandoen`
+    public static readonly currentPatchNotes: string = `\n* Botten leter nå etter vinmonopol-linker i meldinger, og vil forsøke å oppgi informasjon om produktet hvis den finner data om det. (Trenger produkt-id i URLen, eks. https://vinmonopolet/p/1234567)`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 

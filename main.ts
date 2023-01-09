@@ -93,7 +93,7 @@ export class MazariniClient {
         moment.updateLocale('nb', {})
         client.on('ready', async () => {
             console.log(
-                `Setup ready, bot is ready as ${_mzClient.client.user?.tag} at ${new Date().toLocaleDateString('nb', {
+                `Setup ready, bot is running as ${_mzClient.client.user?.tag} at ${new Date().toLocaleDateString('nb', {
                     weekday: 'long',
                     year: 'numeric',
                     month: 'long',
