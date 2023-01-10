@@ -80,14 +80,14 @@ export class CommandRunner {
                     if (data.raastoff) {
                         embed.addFields({
                             name: `Innhold`,
-                            value: `${data.raastoff.map((rs) => `${rs.name} (${rs.percentage ? rs.percentage : '100'}%)`)}`,
+                            value: `${data.raastoff.map((rs) => `${rs.name} (${rs.percentage ? rs.percentage : '100'}%)`).join(', ')}`,
                             inline: true,
                         })
                     }
                     if (!!data.isGoodFor.length) {
                         embed.addFields({
                             name: `Passer til`,
-                            value: `${data.isGoodFor.map((igf) => `${igf.name}`)}`,
+                            value: `${data.isGoodFor.map((igf) => `${igf.name}`).join(', ')}`,
                             inline: true,
                         })
                     }
