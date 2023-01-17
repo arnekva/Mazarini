@@ -108,9 +108,9 @@ export class MazariniClient {
             /** SCHEDULED JOBS - resets every day at 06:00 */
             this.jobScheduler = new JobScheduler(_msgHelper)
 
-            const guild = client.guilds.cache.find((g: Guild) => g.id === '340626855990132747') as Guild
-            const bot = guild.members.cache.find((member) => member.id === '802945796457758760')
-            bot?.setNickname(environment === 'dev' ? 'Bot Høie (TEST)' : 'Bot Høie')
+            // const guild = client.guilds.cache.find((g: Guild) => g.id === '340626855990132747') as Guild
+            // const bot = guild.members.cache.find((member) => member.id === '802945796457758760')
+            // bot?.setNickname(environment === 'dev' ? 'Bot Høie (TEST)' : 'Bot Høie')
 
             this.errorHandler = new ErrorHandler(_msgHelper)
             this.errorHandler.launchBusListeners()

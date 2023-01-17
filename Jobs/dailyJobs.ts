@@ -1,4 +1,5 @@
 import { IDailyPriceClaim } from '../commands/gamblingCommands'
+import { PoletCommands } from '../commands/poletCommands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
@@ -16,8 +17,12 @@ export class DailyJobs {
             this.validateAndResetDailyClaims()
         }
         this.checkForUserBirthdays()
-
+        this.attemptToUpdateCookie()
         // this.logEvent()
+    }
+
+    private attemptToUpdateCookie() {
+        PoletCommands.fetchProductDataFromId('3499801')
     }
 
     private validateAndResetDailyClaims() {

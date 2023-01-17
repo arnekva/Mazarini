@@ -45,6 +45,8 @@ export class PoletCommands extends AbstractCommands {
     static baseProductURL = 'https://apis.vinmonopolet.no/products/v0/details-normal'
     static pressProductURL = 'https://www.vinmonopolet.no/api/products'
     static baseStoreID = '416'
+    static cookie
+
     constructor(client: Client, messageHelper: MessageHelper) {
         super(client, messageHelper)
     }
@@ -84,29 +86,20 @@ export class PoletCommands extends AbstractCommands {
                 'accept-encoding': 'gzip, deflate, br',
                 accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
                 'upgrade-insecure-requests': '1',
-                'accept-language': 'en-US,en;0.9',
                 'sec-fetch-site': 'same-site',
                 'sec-fetch-mode': 'navigate',
                 'sec-fetch-user': '?1',
                 'sec-fetch-dest': 'document',
-                referer: 'https://webapp4.asu.edu/catalog/',
-                method: 'GET',
                 scheme: 'https',
-                'cache-control': 'no-cache',
-                pragma: 'no-cache',
                 redirect: 'follow',
-                // cookie: vinmonopoletKey,
-                cookie: poletCookie,
-                follow: '50',
+                cookie: PoletCommands.cookie ?? poletCookie,
                 encoding: 'null',
-                dnt: 1,
-                'sec-ch-ua': "'Not_A Brand';v'99', 'Google Chrome';v='109', 'Chromium';v='109'",
-                'ec-ch-ua-platform': 'Windows',
                 gzip: true,
-                authority: 'www.vinmonopolet.no',
             },
         })
-
+        const t = await data.headers
+        const hc = t.get('set-cookie')
+        PoletCommands.cookie = hc
         return await data.json()
     }
 
