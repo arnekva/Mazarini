@@ -53,13 +53,6 @@ export class WeeklyJobs {
             })
 
             this.messageHelper.sendFormattedMessage(MessageUtils.CHANNEL_IDs.VINMONOPOLET, fmMessage)
-        } else {
-            this.messageHelper.sendMessage(
-                '810832760364859432',
-                `TEST: Det er ikke registrert endrede åpningstider på polet denne uken (Kvadrat, 116). ExceptionHours: ${data?.openingHours?.exceptionHours.join(
-                    ','
-                )}`
-            )
         }
     }
     private async resetStatuses() {

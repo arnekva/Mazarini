@@ -1,7 +1,7 @@
 import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction } from 'discord.js'
 import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { poletCookie, vinmonopoletKey } from '../client-env'
+import { vinmonopoletKey } from '../client-env'
 import { ICommandElement, IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { Languages } from '../helpers/languageHelpers'
@@ -45,7 +45,6 @@ export class PoletCommands extends AbstractCommands {
     static baseProductURL = 'https://apis.vinmonopolet.no/products/v0/details-normal'
     static pressProductURL = 'https://www.vinmonopolet.no/api/products'
     static baseStoreID = '416'
-    static cookie
 
     constructor(client: Client, messageHelper: MessageHelper) {
         super(client, messageHelper)
@@ -92,14 +91,10 @@ export class PoletCommands extends AbstractCommands {
                 'sec-fetch-dest': 'document',
                 scheme: 'https',
                 redirect: 'follow',
-                cookie: PoletCommands.cookie ?? poletCookie,
                 encoding: 'null',
                 gzip: true,
             },
         })
-        const t = await data.headers
-        const hc = t.get('set-cookie')
-        PoletCommands.cookie = hc
         return await data.json()
     }
 
