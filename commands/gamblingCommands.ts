@@ -361,23 +361,24 @@ export class GamblingCommands extends AbstractCommands {
                     winnings += currentWinnings
                     msg.addFields({ name: `${correctNum.val}`, value: `Kom ${correctNum.num + 1} ganger. Du har vunnet ${currentWinnings} chips` })
                 })
-                const currentMoney = user.chips
-                const newMoney = Number(currentMoney) + winnings
-                user.chips = newMoney
-                DatabaseHelper.updateUser(user)
-            } else {
-                const arrayAsString = randArray.join('')
-                let hasSequence = false
-                sequenceWins.forEach((seq) => {
-                    if (arrayAsString.includes(seq)) {
-                        const seqWorth = this.findSequenceWinningAmount(seq)
-                        winnings += seqWorth
-                        msg.addFields({ name: `${seq}`, value: `Du fikk sekvensen ${seq}. Du har vunnet ${seqWorth} chips` })
-                        hasSequence = true
-                    }
-                })
-                if (!hasSequence) msg.addFields({ name: 'Du tapte', value: '-100 chips' })
             }
+            const arrayAsString = randArray.join('')
+            let hasSequence = false
+            sequenceWins.forEach((seq) => {
+                if (arrayAsString.includes(seq)) {
+                    const seqWorth = this.findSequenceWinningAmount(seq)
+                    winnings += seqWorth
+                    msg.addFields({ name: `${seq}`, value: `Du fikk sekvensen ${seq}. Du har vunnet ${seqWorth} chips` })
+                    hasSequence = true
+                }
+            })
+            const currentMoney = user.chips
+            const newMoney = Number(currentMoney) + winnings
+            user.chips = newMoney
+            DatabaseHelper.updateUser(user)
+
+            if (!hasSequence && amountOfCorrectNums.length < 1) msg.addFields({ name: 'Du tapte', value: '-100 chips' })
+
             this.messageHelper.replyToInteraction(interaction, msg)
         }
     }
