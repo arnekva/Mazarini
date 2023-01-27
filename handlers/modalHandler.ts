@@ -1,6 +1,7 @@
 import { CacheType, Client, Interaction, InteractionType, ModalSubmitInteraction } from 'discord.js'
 import { Admin } from '../admin/admin'
 import { MessageHelper } from '../helpers/messageHelper'
+import { MentionUtils } from '../utils/mentionUtils'
 
 export class ModalHandler {
     private client: Client
@@ -30,5 +31,8 @@ export class ModalHandler {
 
         this.messageHelper.sendMessage(chatID, text)
         this.messageHelper.replyToInteraction(modalInteraction, `Meldingen <*${text}*> ble sent til kanalen med ID <*${chatID}*>`, true)
+        this.messageHelper.sendMessageToActionLog(
+            `${modalInteraction.user.username} sendte en melding som botten til kanalen ${MentionUtils.mentionChannel(chatID)} med innholdet '*${text}*'`
+        )
     }
 }

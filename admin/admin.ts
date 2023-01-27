@@ -7,6 +7,7 @@ import { ClientHelper } from '../helpers/clientHelper'
 import { DatabaseHelper, dbPrefix, prefixList, ValuePair } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniClient } from '../main'
+import { MentionUtils } from '../utils/mentionUtils'
 import { ObjectUtils } from '../utils/objectUtils'
 import { TextUtils } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
@@ -432,8 +433,12 @@ export class Admin extends AbstractCommands {
                 commandName: 'send',
                 category: 'admin',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    if (Admin.isAuthorAdmin(rawInteraction.member)) this.buildSendModal(rawInteraction)
-                    else rawInteraction.reply({ content: 'Du har ikke rettighetene til å gjøre dette', ephemeral: true })
+                    if (Admin.isAuthorAdmin(rawInteraction.member)) {
+                        this.buildSendModal(rawInteraction)
+                        this.messageHelper.sendMessageToActionLog(
+                            `${rawInteraction.user.username} trigget 'send' fra ${MentionUtils.mentionChannel(rawInteraction.channelId)}.`
+                        )
+                    } else rawInteraction.reply({ content: 'Du har ikke rettighetene til å gjøre dette', ephemeral: true })
                 },
             },
             {
