@@ -256,7 +256,7 @@ export class CommandRunner {
                     polseCounter++
                 }
             }
-            const hasHelg = this.helgeRegex.exec(message.content)
+            const hasHelg = this.helgeRegex.test(message.content)
             if (hasHelg) {
                 const val = this.commands.dateFunc.checkForHelg()
                 this.messageHelper.sendMessage(message.channelId, val)

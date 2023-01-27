@@ -359,7 +359,7 @@ export class GamblingCommands extends AbstractCommands {
                 amountOfCorrectNums.forEach((correctNum) => {
                     let currentWinnings = this.findSlotMachineWinningAmount(correctNum.num + 1)
                     winnings += currentWinnings
-                    msg.addFields({ name: `${correctNum.val}`, value: `Kom ${correctNum.num + 1} ganger. Du har vunnet ${currentWinnings} chips` })
+                    msg.addFields({ name: `${correctNum.val}`, value: `Kom ${correctNum.num + 1} ganger på rad. Du har vunnet ${currentWinnings} chips` })
                 })
             }
             const arrayAsString = randArray.join('')

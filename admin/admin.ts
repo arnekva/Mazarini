@@ -164,7 +164,7 @@ export class Admin extends AbstractCommands {
         const numMessagesFromBot = MazariniClient.numMessagesFromBot
         const numErrorMessages = MazariniClient.numMessagesNumErrorMessages
         const statsReply =
-            `Statistikk (fra ${start.toLocaleDateString('nb', {
+            `Statistikk (fra og med oppstart ${start.toLocaleDateString('nb', {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
