@@ -45,6 +45,7 @@ export class MazariniClient {
     static numMessages: number = 0
     static numMessagesFromBot: number = 0
     static numMessagesNumErrorMessages: number = 0
+    static numCommands: number = 0
     private isTest: boolean
     static startTime: Date
     mazarini: any
@@ -167,6 +168,7 @@ export class MazariniClient {
 
         /** For interactions (slash-commands and user-commands) */
         client.on('interactionCreate', async (interaction: Interaction<CacheType>) => {
+            MazariniClient.numCommands++
             _mzClient.commandRunner.checkForCommandInInteraction(interaction)
         })
 

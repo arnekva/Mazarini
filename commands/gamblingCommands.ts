@@ -143,7 +143,11 @@ export class GamblingCommands extends AbstractCommands {
 
             if (roll >= 50) {
                 newMoneyValue = calculatedValue.newMoneyValue
-            } else newMoneyValue = Number(userMoney) - chipsToGamble
+                DatabaseHelper.incrementChipsStats(user, 'gambleWins')
+            } else {
+                newMoneyValue = Number(userMoney) - chipsToGamble
+                DatabaseHelper.incrementChipsStats(user, 'gambleLosses')
+            }
             user.chips = newMoneyValue
             DatabaseHelper.updateUser(user)
 
@@ -224,6 +228,7 @@ export class GamblingCommands extends AbstractCommands {
             if (won) newMoneyValue = this.calculatedNewMoneyValue(interaction.user.id, multiplier, valAsNum, userMoney).newMoneyValue
             else newMoneyValue = Number(userMoney) - valAsNum
             user.chips = newMoneyValue
+            DatabaseHelper.incrementChipsStats(user, won ? 'roulettWins' : 'rouletteLosses')
             DatabaseHelper.updateUser(user)
 
             let result = ''
@@ -372,6 +377,11 @@ export class GamblingCommands extends AbstractCommands {
                     hasSequence = true
                 }
             })
+            if (hasSequence || amountOfCorrectNums.length > 0) {
+                DatabaseHelper.incrementChipsStats(user, 'slotWins')
+            } else {
+                DatabaseHelper.incrementChipsStats(user, 'slotLosses')
+            }
             const currentMoney = user.chips
             const newMoney = Number(currentMoney) + winnings
             user.chips = newMoney
@@ -474,6 +484,22 @@ export class GamblingCommands extends AbstractCommands {
                 ' dager. Du får ikke hente ut daily chips og coins før da, men streaken din vil heller ikke forsvinne. Denne kan ikke overskrives eller fjernes'
             )
         }
+    }
+
+    private findUserStats(interaction: ChatInputCommandInteraction<CacheType>) {
+        const user = DatabaseHelper.getUser(interaction.user.id)
+        const userStats = user.userStats?.chipsStats
+        let reply = ''
+        if (userStats) {
+            reply = Object.entries(userStats)
+                .map((stat) => {
+                    return `${stat[0]}: ${stat[1]}`
+                })
+                .join(', ')
+        } else {
+            reply = 'Du har ingen statistikk å visa'
+        }
+        this.messageHelper.replyToInteraction(interaction, reply)
     }
 
     private findAndIncrementValue(streak: number, dailyPrice: { chips: string }, user: MazariniUser): { dailyChips: string } {
@@ -588,6 +614,13 @@ export class GamblingCommands extends AbstractCommands {
                 commandName: 'rulett',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.roulette(rawInteraction)
+                },
+                category: 'gambling',
+            },
+            {
+                commandName: 'brukerstats',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.findUserStats(rawInteraction)
                 },
                 category: 'gambling',
             },

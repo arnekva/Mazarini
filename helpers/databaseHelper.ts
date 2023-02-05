@@ -65,7 +65,11 @@ export interface MazariniUser {
     dailyFreezeCounter?: number
     prestige?: number
     favoritePol?: string
+    userStats?: UserStats
     //OUTDATED
+}
+export type UserStats = {
+    chipsStats?: ChipsStats
 }
 export type dbPrefix =
     | 'birthday'
@@ -121,6 +125,16 @@ export interface ferieItem {
     fromDate: Date
     toDate: Date
 }
+export interface ChipsStats {
+    krigWins?: number
+    krigLosses?: number
+    gambleWins?: number
+    gambleLosses?: number
+    slotWins?: number
+    slotLosses?: number
+    roulettWins?: number
+    rouletteLosses?: number
+}
 export class DatabaseHelper {
     /**
      * Get a user object by ID.
@@ -151,6 +165,20 @@ export class DatabaseHelper {
     static updateUser(userObject: MazariniUser) {
         const objToPush = JSON.stringify(userObject)
         db.push(`${folderPrefix}/${userObject.id}/`, `${objToPush}`)
+    }
+
+    /** Update the chips stats property of a user stat object. Will set value of property to 1 if not created yet.
+     *  Remember that you will still need to call DatabaseHelper.updateUser() to save the information */
+    static incrementChipsStats(userObject: MazariniUser, property: keyof ChipsStats) {
+        if (userObject.userStats?.chipsStats) {
+            userObject.userStats.chipsStats[property] = ++userObject.userStats.chipsStats[property] || 1
+        } else {
+            userObject.userStats = {
+                chipsStats: {
+                    [property]: 1,
+                },
+            }
+        }
     }
 
     static setObjectValue(prefix: dbPrefix, key: string, value: any) {

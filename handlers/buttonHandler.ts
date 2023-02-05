@@ -113,12 +113,18 @@ export class ButtonHandler {
             if (roll == 50 || shouldAlwaysLose) {
                 engagerValue -= amountAsNum
                 victimValue -= amountAsNum
+                DatabaseHelper.incrementChipsStats(engager, 'krigLosses')
+                DatabaseHelper.incrementChipsStats(target, 'krigLosses')
             } else if (roll < 50) {
                 engagerValue += amountAsNum
                 victimValue -= amountAsNum
+                DatabaseHelper.incrementChipsStats(engager, 'krigWins')
+                DatabaseHelper.incrementChipsStats(target, 'krigLosses')
             } else if (roll > 50) {
                 engagerValue -= amountAsNum
                 victimValue += amountAsNum
+                DatabaseHelper.incrementChipsStats(engager, 'krigLosses')
+                DatabaseHelper.incrementChipsStats(target, 'krigWins')
             }
 
             const users = shouldAlwaysLose

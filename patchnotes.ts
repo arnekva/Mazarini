@@ -5,13 +5,15 @@ import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '10.10.4'
+    public static readonly currentVersion = '10.11.0'
     public static readonly nextVersion = 'Backlog'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
-    public static readonly currentPatchNotes: string = `\n* Botten logger nå /send til ${MentionUtils.mentionChannel(MentionUtils.CHANNEL_IDs.ACTION_LOG)}`
+    public static readonly currentPatchNotes: string = `\n* Botten lagrer nå statistikk for brukere. Foreløpig lagrer den antall wins/losses i /krig, /gambling, /rulett og /roll. Statistikken kan sees ved å bruke /brukerstats, og skal gjøres penere av ${MentionUtils.mentionUser(
+        '293489109048229888'
+    )}`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 

@@ -164,6 +164,7 @@ export class Admin extends AbstractCommands {
         const numMessages = MazariniClient.numMessages
         const numMessagesFromBot = MazariniClient.numMessagesFromBot
         const numErrorMessages = MazariniClient.numMessagesNumErrorMessages
+        const numCommands = MazariniClient.numCommands
         const statsReply =
             `Statistikk (fra og med oppstart ${start.toLocaleDateString('nb', {
                 weekday: 'long',
@@ -173,6 +174,7 @@ export class Admin extends AbstractCommands {
             })} ${start.toLocaleTimeString('nb')}):` +
             `\nAntall meldinger: ${numMessages}` +
             `\nAntall meldinger fra bot: ${numMessagesFromBot}` +
+            `\nAntall kommandoer: ${numCommands}` +
             `\nAntall logger: ${numErrorMessages}`
         this.messageHelper.replyToInteraction(interaction, statsReply)
     }
