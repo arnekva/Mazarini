@@ -2,6 +2,7 @@ import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder } from 'di
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../general/commands'
 import { MessageHelper } from '../helpers/messageHelper'
+import { DailyJobs } from '../Jobs/dailyJobs'
 import { WeatherUtils } from '../utils/weatherUtils'
 const fetch = require('node-fetch')
 
@@ -60,7 +61,9 @@ export class Weather extends AbstractCommands {
             {
                 commandName: 'weather',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.getWeatherForGivenCity(rawInteraction)
+                    const jobs = new DailyJobs(this.messageHelper)
+                    jobs.runJobs()
+                    // this.getWeatherForGivenCity(rawInteraction)
                 },
                 category: 'annet',
             },
