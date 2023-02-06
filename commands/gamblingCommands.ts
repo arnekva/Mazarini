@@ -10,10 +10,11 @@ import {
     Interaction,
     User,
 } from 'discord.js'
+import ImageCharts from 'image-charts'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../general/commands'
 import { ButtonHandler } from '../handlers/buttonHandler'
-import { DatabaseHelper, MazariniUser } from '../helpers/databaseHelper'
+import { ChipsStats, DatabaseHelper, MazariniUser, UserStats } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { SlashCommandHelper } from '../helpers/slashCommandHelper'
 import { EmbedUtils } from '../utils/embedUtils'
@@ -21,7 +22,6 @@ import { MentionUtils } from '../utils/mentionUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { RandomUtils } from '../utils/randomUtils'
 import { TextUtils } from '../utils/textUtils'
-
 export interface IDailyPriceClaim {
     streak: number
     wasAddedToday: boolean
@@ -499,7 +499,53 @@ export class GamblingCommands extends AbstractCommands {
         } else {
             reply = 'Du har ingen statistikk å visa'
         }
-        this.messageHelper.replyToInteraction(interaction, reply)
+        const fileUrl = this.generateStatsImage(user, 'chipsStats')
+        this.messageHelper.replyToInteraction(interaction, fileUrl || reply)
+    }
+
+    private generateStatsImage(user: MazariniUser, statsProp: keyof UserStats) {
+        const prop = user.userStats[statsProp]
+        const pie = new ImageCharts()
+            .cht('bvg')
+            .chd(`a:${Object.values(prop).join(',')}`)
+            .chl(
+                `${Object.keys(prop)
+                    .map((p) => this.findPrettyNameForKey(p as keyof ChipsStats))
+                    .join('|')}`
+            )
+            .chdl('Antall')
+            .chxt('y')
+            .chbr('10')
+            .chco(this.getBarColor().join('|'))
+            .chs('900x400')
+        return pie.toURL()
+    }
+
+    private getBarColor() {
+        return ['FFC6A5', 'FFFF42', 'DEF3BD', 'b2fefa', 'DEBDDE', 'e1eec3', 'acb6e5', 'bdfff3']
+    }
+
+    private findPrettyNameForKey(prop: keyof ChipsStats) {
+        switch (prop) {
+            case 'gambleLosses':
+                return 'Gambling\ntap'
+            case 'gambleWins':
+                return 'Gambling\ngevinst'
+            case 'krigLosses':
+                return 'Krig\ntap'
+            case 'krigWins':
+                return 'Krig\nseier'
+            case 'roulettWins':
+                return 'Rulett\ngevinst'
+            case 'rouletteLosses':
+                return 'Rulett\ntap'
+            case 'slotLosses':
+                return 'Roll\ntap'
+            case 'slotWins':
+                return 'Roll\ngevinst'
+            default:
+                return 'Ukjent'
+        }
     }
 
     private findAndIncrementValue(streak: number, dailyPrice: { chips: string }, user: MazariniUser): { dailyChips: string } {
