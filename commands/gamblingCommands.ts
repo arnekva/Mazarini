@@ -516,13 +516,15 @@ export class GamblingCommands extends AbstractCommands {
             .chdl('Antall')
             .chxt('y')
             .chbr('10')
+            .chlps('align,center|color,FFFFFF')
             .chco(this.getBarColor().join('|'))
-            .chs('900x400')
+            .chs('650x400')
         return pie.toURL()
     }
 
     private getBarColor() {
-        return ['89CFEF', '89CFEF', '89CFEF', '89CFEF', '89CFEF', '89CFEF', '89CFEF', '89CFEF']
+        const col = '0080FE'
+        return [col, col, col, col, col, col, col, col]
     }
 
     private findPrettyNameForKey(prop: keyof ChipsStats) {
