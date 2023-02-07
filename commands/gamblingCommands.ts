@@ -522,7 +522,7 @@ export class GamblingCommands extends AbstractCommands {
     }
 
     private getBarColor() {
-        return ['FFC6A5', 'FFFF42', 'DEF3BD', 'b2fefa', 'DEBDDE', 'e1eec3', 'acb6e5', 'bdfff3']
+        return ['89CFEF', '89CFEF', '89CFEF', '89CFEF', '89CFEF', '89CFEF', '89CFEF', '89CFEF']
     }
 
     private findPrettyNameForKey(prop: keyof ChipsStats) {
