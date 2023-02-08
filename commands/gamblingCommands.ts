@@ -10,13 +10,13 @@ import {
     Interaction,
     User,
 } from 'discord.js'
-import ImageCharts from 'image-charts'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../general/commands'
 import { ButtonHandler } from '../handlers/buttonHandler'
-import { ChipsStats, DatabaseHelper, MazariniUser, UserStats } from '../helpers/databaseHelper'
+import { ChipsStats, DatabaseHelper, MazariniUser } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { SlashCommandHelper } from '../helpers/slashCommandHelper'
+import { chartData, ChartUtils } from '../utils/chartUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { MiscUtils } from '../utils/miscUtils'
@@ -499,27 +499,14 @@ export class GamblingCommands extends AbstractCommands {
         } else {
             reply = 'Du har ingen statistikk å visa'
         }
-        const fileUrl = this.generateStatsImage(user, 'chipsStats')
+        const data: chartData = Object.entries(userStats).map((us) => {
+            return {
+                label: this.findPrettyNameForKey(us[0] as keyof ChipsStats),
+                value: us[1],
+            }
+        })
+        const fileUrl = ChartUtils.createChart('bar', data, this.getBarColor())
         this.messageHelper.replyToInteraction(interaction, fileUrl || reply)
-    }
-
-    private generateStatsImage(user: MazariniUser, statsProp: keyof UserStats) {
-        const prop = user.userStats[statsProp]
-        const pie = new ImageCharts()
-            .cht('bvg')
-            .chd(`a:${Object.values(prop).join(',')}`)
-            .chl(
-                `${Object.keys(prop)
-                    .map((p) => this.findPrettyNameForKey(p as keyof ChipsStats))
-                    .join('|')}`
-            )
-            .chdl('Antall')
-            .chxt('y')
-            .chbr('10')
-            .chlps('align,center|color,FFFFFF')
-            .chco(this.getBarColor().join('|'))
-            .chs('650x400')
-        return pie.toURL()
     }
 
     private getBarColor() {
