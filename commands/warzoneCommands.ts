@@ -406,11 +406,11 @@ export class WarzoneCommands extends AbstractCommands {
         const now = new Date()
         await interaction.deferReply()
 
-        fetch('https://api.trello.com/1/boards/ZgSjnGba/cards')
+        fetch('https://api.trello.com/1/boards/1eSBEowr/cards')
             .then((response: Response) => response.json())
             .then((data: any) => {
                 while (!found && i < data.length) {
-                    if (data[i].name == 'Playlist Update') {
+                    if (data[i].name.startsWith('Playlist | Week of ')) {
                         let start = new Date(data[i].start)
                         let end = new Date(data[i].due)
                         if (now > start && now < end) {
