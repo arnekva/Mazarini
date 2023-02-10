@@ -343,6 +343,7 @@ export class DrinksCommands extends AbstractCommands {
             const mockCard: ICardObject = { number: '', suite: '', printString: '' }
             const user: IUserObject = { name: addPlayer.username, id: this.id++, card: mockCard, mates: [] as IUserObject[] }
             this.playerList.push(user)
+            reply += `\nLa til ${user.name} i spillet på plass ${user.id}`
         }
         return reply
     }
