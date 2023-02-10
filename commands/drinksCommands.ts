@@ -2,6 +2,7 @@ import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../general/commands'
 import { MessageHelper } from '../helpers/messageHelper'
+import { ArrayUtils } from '../utils/arrayUtils'
 import { RandomUtils } from '../utils/randomUtils'
 import { CardCommands } from './cardCommands'
 
@@ -9,6 +10,7 @@ interface IUserObject {
     name: string
     id: number
     card: ICardObject
+    mates: IUserObject[]
 }
 
 interface ICardObject {
@@ -24,6 +26,7 @@ export class DrinksCommands extends AbstractCommands {
     private id: number
     private reactor: any
     private turn: number
+    private shouldChugOnLoop: boolean
 
     constructor(client: Client, messageHelper: MessageHelper) {
         super(client, messageHelper)
@@ -33,6 +36,7 @@ export class DrinksCommands extends AbstractCommands {
         this.id = 0
         this.reactor = undefined
         this.turn = 0
+        this.shouldChugOnLoop = true
     }
 
     private setCardOnUser(username: string, card: string) {
@@ -67,6 +71,8 @@ export class DrinksCommands extends AbstractCommands {
     private checkWhoMustDrink(author: string, currentPlayerIndex: number, firstPlayerValue: ICardObject) {
         const players = this.playerList
         const mustDrink: IUserObject[] = []
+        /** Mates who directly relate to the person who must drink */
+        const matesWhoMustDrinkDirectly: IUserObject[] = []
 
         const search = (ind: number, val: any) => {
             if (this.cardsMatch(players[ind].card, val)) {
@@ -74,6 +80,8 @@ export class DrinksCommands extends AbstractCommands {
                     return false
                 }
                 mustDrink.push(players[ind])
+
+                matesWhoMustDrinkDirectly.push(...players[ind].mates)
                 return players[ind].card
             }
             return false
@@ -97,21 +105,43 @@ export class DrinksCommands extends AbstractCommands {
                 currentCard = result
             }
         }
-        const transformList = (mustDrink: IUserObject[]) => {
+        const transformList = (mustDrink: IUserObject[], mates: IUserObject[]) => {
             let str = ''
 
             if (mustDrink.length === this.playerList.length && this.cardsMatch(mustDrink[0].card, mustDrink[mustDrink.length - 1].card)) {
-                str = 'Den går infinite! Alle chugge'
+                str = this.shouldChugOnLoop ? 'Den går infinite! Alle chugge' : 'Den går i sirkel! Alle drikke ' + (mustDrink.length - 1) + ' slurker!'
             } else if (mustDrink.length > 1) {
                 str = `Følgende må drikke ${mustDrink.length} slurker: `
                 mustDrink.forEach((u) => (str += `\n**${u.name} (${u.card.printString})**`))
             }
+            if (mates.length > 1 && mustDrink.length > 1) {
+                str += `\nDisse matene må også drikke: ${mates.map((m) => {
+                    return `\n${m.name}`
+                })}`
+            }
             return str
+        }
+
+        const theseMatesMustDrink: IUserObject[] = []
+        //This is initially called with all the mates who have been added directly (i.e. the mates of someone who drew a card)
+        const findAllMates = (mates: IUserObject[]) => {
+            //Go through all the mates
+            mates.forEach((mate) => {
+                //If not currently present in the Must Drink group, add them
+                if (!theseMatesMustDrink.includes(mate)) {
+                    theseMatesMustDrink.push(mate)
+                    if (mate.mates) {
+                        //If this mate has mates, call the function again with the mates of the current mate
+                        findAllMates(mate.mates)
+                    }
+                }
+            })
         }
 
         findOnSearchUp()
         findOnSearchDown()
-        return transformList(mustDrink)
+        findAllMates(matesWhoMustDrinkDirectly)
+        return transformList(mustDrink, theseMatesMustDrink)
     }
 
     private createCardObject(card: string) {
@@ -170,7 +200,7 @@ export class DrinksCommands extends AbstractCommands {
                         users.forEach((us, ind) => {
                             if (!this.getUserObject(us.username)) {
                                 const userCard: ICardObject = { number: '', suite: '', printString: '' }
-                                const user: IUserObject = { name: us.username, id: this.id, card: userCard }
+                                const user: IUserObject = { name: us.username, id: this.id, card: userCard, mates: [] }
                                 this.playerList.push(user)
                                 this.id++
                             }
@@ -257,6 +287,11 @@ export class DrinksCommands extends AbstractCommands {
                         this.messageHelper.replyToInteraction(interaction, msg)
                         break
                     }
+                    case 'instillinger': {
+                        const options = this.setElectricityOptions(interaction)
+                        this.messageHelper.replyToInteraction(interaction, options)
+                        break
+                    }
                     default: {
                         this.messageHelper.replyToInteraction(interaction, "Tilgjengelige kommandoer er: 'start', 'trekk', 'mitt', 'resett' og 'stopp'")
                     }
@@ -268,6 +303,48 @@ export class DrinksCommands extends AbstractCommands {
                 )
             }
         }
+    }
+
+    private setElectricityOptions(interaction: ChatInputCommandInteraction<CacheType>): string {
+        const mate = interaction.options.get('mate')?.user
+        const chugOnLoop = interaction.options.get('chug-on-loop')?.value as boolean | undefined
+        const addPlayer = interaction.options.get('add')?.user
+        let reply = ``
+        if (mate) {
+            const currentUser = this.getUserObject(interaction.user.username)
+            const mateUser = this.getUserObject(mate.username)
+            if (currentUser && mateUser) {
+                if (currentUser.mates.find((u) => u.name === mate.username)) {
+                    ArrayUtils.removeItemOnce(
+                        currentUser.mates,
+                        currentUser.mates.find((u) => u.name === mate.username)
+                    )
+                    ArrayUtils.removeItemOnce(
+                        mateUser.mates,
+                        mateUser.mates.find((u) => u.name === currentUser.name)
+                    )
+                    reply += `Fjernet ${mateUser.name} fra listen til ${currentUser.name}`
+                } else {
+                    if (mateUser.name !== currentUser.name) {
+                        currentUser.mates.push(mateUser)
+                        mateUser.mates.push(currentUser)
+                        reply += `La til ${mateUser.name} i listen til ${currentUser.name} (og motsatt)`
+                    } else {
+                        reply += `Du kan ikkje ha deg sjøl some mate, då fucke du me rekursjonen`
+                    }
+                }
+            }
+        }
+        if (chugOnLoop !== undefined) {
+            this.shouldChugOnLoop = chugOnLoop
+            reply += `\nChug on loop: ${this.shouldChugOnLoop}`
+        }
+        if (addPlayer) {
+            const mockCard: ICardObject = { number: '', suite: '', printString: '' }
+            const user: IUserObject = { name: addPlayer.username, id: this.id++, card: mockCard, mates: [] as IUserObject[] }
+            this.playerList.push(user)
+        }
+        return reply
     }
 
     private drinkBitch(interaction: ChatInputCommandInteraction<CacheType>) {

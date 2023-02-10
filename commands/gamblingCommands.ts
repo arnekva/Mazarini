@@ -16,7 +16,6 @@ import { ButtonHandler } from '../handlers/buttonHandler'
 import { ChipsStats, DatabaseHelper, MazariniUser } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { SlashCommandHelper } from '../helpers/slashCommandHelper'
-import { chartData, ChartUtils } from '../utils/chartUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { MiscUtils } from '../utils/miscUtils'
@@ -485,28 +484,30 @@ export class GamblingCommands extends AbstractCommands {
             )
         }
     }
-
+    //TODO: Move this away from gamblingCommands
     private findUserStats(interaction: ChatInputCommandInteraction<CacheType>) {
         const user = DatabaseHelper.getUser(interaction.user.id)
         const userStats = user.userStats?.chipsStats
         let reply = ''
         if (userStats) {
             reply = Object.entries(userStats)
+
                 .map((stat) => {
-                    return `${stat[0]}: ${stat[1]}`
+                    return `${this.findPrettyNameForKey(stat[0] as keyof ChipsStats)}: ${stat[1]}`
                 })
-                .join(', ')
+                .sort()
+                .join('\n')
         } else {
             reply = 'Du har ingen statistikk å visa'
         }
-        const data: chartData = Object.entries(userStats).map((us) => {
-            return {
-                label: this.findPrettyNameForKey(us[0] as keyof ChipsStats),
-                value: us[1],
-            }
-        })
-        const fileUrl = ChartUtils.createChart('bar', data, this.getBarColor())
-        this.messageHelper.replyToInteraction(interaction, fileUrl || reply)
+        // const data: chartData = Object.entries(userStats).map((us) => {
+        //     return {
+        //         label: this.findPrettyNameForKey(us[0] as keyof ChipsStats),
+        //         value: us[1],
+        //     }
+        // })
+        // const fileUrl = ChartUtils.createChart('bar', data, this.getBarColor())
+        this.messageHelper.replyToInteraction(interaction, reply)
     }
 
     private getBarColor() {
@@ -517,21 +518,21 @@ export class GamblingCommands extends AbstractCommands {
     private findPrettyNameForKey(prop: keyof ChipsStats) {
         switch (prop) {
             case 'gambleLosses':
-                return 'Gambling\ntap'
+                return 'Gambling tap'
             case 'gambleWins':
-                return 'Gambling\ngevinst'
+                return 'Gambling gevinst'
             case 'krigLosses':
-                return 'Krig\ntap'
+                return 'Krig tap'
             case 'krigWins':
-                return 'Krig\nseier'
+                return 'Krig seier'
             case 'roulettWins':
-                return 'Rulett\ngevinst'
+                return 'Rulett gevinst'
             case 'rouletteLosses':
-                return 'Rulett\ntap'
+                return 'Rulett tap'
             case 'slotLosses':
-                return 'Roll\ntap'
+                return 'Roll tap'
             case 'slotWins':
-                return 'Roll\ngevinst'
+                return 'Roll gevinst'
             default:
                 return 'Ukjent'
         }
