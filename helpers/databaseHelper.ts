@@ -70,6 +70,7 @@ export interface MazariniUser {
 }
 export type UserStats = {
     chipsStats?: ChipsStats
+    rulettStats?: RulettStats
 }
 export type dbPrefix =
     | 'birthday'
@@ -135,6 +136,13 @@ export interface ChipsStats {
     roulettWins?: number
     rouletteLosses?: number
 }
+export interface RulettStats {
+    red?: number
+    black?: number
+    green?: number
+    odd?: number
+    even?: number
+}
 export class DatabaseHelper {
     /**
      * Get a user object by ID.
@@ -173,10 +181,19 @@ export class DatabaseHelper {
         if (userObject.userStats?.chipsStats) {
             userObject.userStats.chipsStats[property] = ++userObject.userStats.chipsStats[property] || 1
         } else {
-            userObject.userStats = {
-                chipsStats: {
-                    [property]: 1,
-                },
+            userObject.userStats.chipsStats = {
+                [property]: 1,
+            }
+        }
+    }
+    /** Update the rulett stats property of a user stat object. Will set value of property to 1 if not created yet.
+     *  Remember that you will still need to call DatabaseHelper.updateUser() to save the information */
+    static incrementRulettStats(userObject: MazariniUser, property: keyof RulettStats) {
+        if (userObject.userStats?.rulettStats) {
+            userObject.userStats.rulettStats[property] = ++userObject.userStats.rulettStats[property] || 1
+        } else {
+            userObject.userStats.rulettStats = {
+                [property]: 1,
             }
         }
     }

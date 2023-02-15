@@ -13,7 +13,7 @@ import {
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../general/commands'
 import { ButtonHandler } from '../handlers/buttonHandler'
-import { ChipsStats, DatabaseHelper, MazariniUser } from '../helpers/databaseHelper'
+import { ChipsStats, DatabaseHelper, MazariniUser, RulettStats } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { SlashCommandHelper } from '../helpers/slashCommandHelper'
 import { EmbedUtils } from '../utils/embedUtils'
@@ -188,6 +188,7 @@ export class GamblingCommands extends AbstractCommands {
             const roll = Math.floor(Math.random() * 37)
             let multiplier = 1
             let won = false
+
             if (!isNaN(Number(betOn)) && Number(betOn) >= 0 && Number(betOn) <= 37) {
                 if (roll == Number(betOn)) {
                     won = true
@@ -227,17 +228,24 @@ export class GamblingCommands extends AbstractCommands {
             if (won) newMoneyValue = this.calculatedNewMoneyValue(interaction.user.id, multiplier, valAsNum, userMoney).newMoneyValue
             else newMoneyValue = Number(userMoney) - valAsNum
             user.chips = newMoneyValue
+
             DatabaseHelper.incrementChipsStats(user, won ? 'roulettWins' : 'rouletteLosses')
-            DatabaseHelper.updateUser(user)
+            DatabaseHelper.incrementRulettStats(user, roll % 2 == 0 ? 'even' : 'odd')
 
             let result = ''
             if (roll == 0) {
                 result = roll + ' grønn(!)'
+                DatabaseHelper.incrementRulettStats(user, 'green')
             } else if (red.includes(roll)) {
                 result = roll + ' rød'
+                DatabaseHelper.incrementRulettStats(user, 'red')
             } else {
                 result = roll + ' sort'
+                DatabaseHelper.incrementRulettStats(user, 'black')
             }
+
+            DatabaseHelper.updateUser(user)
+
             const gambling = new EmbedBuilder()
                 .setTitle('Rulett 🎲')
                 .setDescription(
@@ -488,16 +496,27 @@ export class GamblingCommands extends AbstractCommands {
     private findUserStats(interaction: ChatInputCommandInteraction<CacheType>) {
         const user = DatabaseHelper.getUser(interaction.user.id)
         const userStats = user.userStats?.chipsStats
+        const rulettStats = user.userStats?.rulettStats
         let reply = ''
         if (userStats) {
-            reply = Object.entries(userStats)
-
+            reply += '**Gambling**\n'
+            reply += Object.entries(userStats)
                 .map((stat) => {
-                    return `${this.findPrettyNameForKey(stat[0] as keyof ChipsStats)}: ${stat[1]}`
+                    return `${this.findPrettyNameForChipsKey(stat[0] as keyof ChipsStats)}: ${stat[1]}`
                 })
                 .sort()
                 .join('\n')
-        } else {
+        }
+        if (rulettStats) {
+            reply += '\n\n**Rulett**\n'
+            reply += Object.entries(rulettStats)
+                .map((stat) => {
+                    return `${this.findPrettyNameForRulettKey(stat[0] as keyof RulettStats)}: ${stat[1]}`
+                })
+                .sort()
+                .join('\n')
+        }
+        if (reply == '') {
             reply = 'Du har ingen statistikk å visa'
         }
         // const data: chartData = Object.entries(userStats).map((us) => {
@@ -515,7 +534,7 @@ export class GamblingCommands extends AbstractCommands {
         return [col, col, col, col, col, col, col, col]
     }
 
-    private findPrettyNameForKey(prop: keyof ChipsStats) {
+    private findPrettyNameForChipsKey(prop: keyof ChipsStats) {
         switch (prop) {
             case 'gambleLosses':
                 return 'Gambling tap'
@@ -533,6 +552,22 @@ export class GamblingCommands extends AbstractCommands {
                 return 'Roll tap'
             case 'slotWins':
                 return 'Roll gevinst'
+            default:
+                return 'Ukjent'
+        }
+    }
+    private findPrettyNameForRulettKey(prop: keyof RulettStats) {
+        switch (prop) {
+            case 'black':
+                return 'Svart'
+            case 'green':
+                return 'Grønn'
+            case 'red':
+                return 'Rød'
+            case 'even':
+                return 'Partall'
+            case 'odd':
+                return 'Oddetall'
             default:
                 return 'Ukjent'
         }
