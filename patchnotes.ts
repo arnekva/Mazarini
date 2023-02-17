@@ -5,13 +5,15 @@ import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '10.12.1'
+    public static readonly currentVersion = '10.12.2'
     public static readonly nextVersion = 'Backlog'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
-    public static readonly currentPatchNotes: string = `\n* Botten lagrer nå statistikk for rulettkastingen din. Du kan se hvor mange rød/svart/grønn/partall/oddetall du har fått`
+    public static readonly currentPatchNotes: string =
+        `\n* Fikset en feil som gjorde at en kunne starte en krig når en brukere hadde lavere balanse enn krigens verdi` +
+        `\n* Rulett bruker nå secure random i stedet for Math.random, slik som resten av gambling-funksjonene`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 

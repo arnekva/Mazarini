@@ -185,7 +185,7 @@ export class GamblingCommands extends AbstractCommands {
         } else if (Number(stake) && betOn) {
             const red = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]
             const valAsNum = Number(Number(stake).toFixed(2))
-            const roll = Math.floor(Math.random() * 37)
+            const roll = RandomUtils.getRndInteger(0, 36)
             let multiplier = 1
             let won = false
 

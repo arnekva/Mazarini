@@ -74,100 +74,108 @@ export class ButtonHandler {
         /** Engager */
         const engagerUser = UserUtils.findUserById(engagerId, interaction)
         if (userAsMember.id === eligibleTargetId && interaction.message.components.length) {
-            //We update the row with a new, disabled button, so that the user cannot enage the Krig more than once
-            const row = new ActionRowBuilder<ButtonBuilder>()
-            row.addComponents(
-                new ButtonBuilder({
-                    custom_id: `${ButtonHandler.KRIG_ID}COMPLETED`,
-                    style: ButtonStyle.Secondary,
-                    label: `🏳️ Krig 🏳️`,
-                    disabled: true,
-                    type: 2,
-                })
-            )
-            await interaction.message.edit({
-                components: [row],
-            })
-
-            const engager = DatabaseHelper.getUser(engagerId)
-            const target = DatabaseHelper.getUser(eligibleTargetId)
-
-            let engagerValue = engager.chips
-            let victimValue = target.chips
-
-            const shouldAlwaysLose = engager.id === interaction.user.id
-            const roll = RandomUtils.getRndInteger(0, 100)
-            let description = `Terningen trillet: ${roll}/100. ${
-                roll < 51 ? (roll == 50 ? 'Bot Høie' : engagerUser.username) : userAsMember.user.username
-            } vant! 💰💰`
-            if (shouldAlwaysLose) {
-                description += `${
-                    engager.id === interaction.user.id
-                        ? 'Men, du gikk til krig mot deg selv. Dette liker ikke Bot Høie, og tar derfor pengene.'
-                        : 'Du gikk til krig mot Bot Høie, så huset vinner alltid uansett'
-                }`
-            }
-
-            const oldTarVal = target.chips
-            const oldEngVal = engager.chips
-            if (roll == 50 || shouldAlwaysLose) {
-                engagerValue -= amountAsNum
-                victimValue -= amountAsNum
-                DatabaseHelper.incrementChipsStats(engager, 'krigLosses')
-                DatabaseHelper.incrementChipsStats(target, 'krigLosses')
-            } else if (roll < 50) {
-                engagerValue += amountAsNum
-                victimValue -= amountAsNum
-                DatabaseHelper.incrementChipsStats(engager, 'krigWins')
-                DatabaseHelper.incrementChipsStats(target, 'krigLosses')
-            } else if (roll > 50) {
-                engagerValue -= amountAsNum
-                victimValue += amountAsNum
-                DatabaseHelper.incrementChipsStats(engager, 'krigLosses')
-                DatabaseHelper.incrementChipsStats(target, 'krigWins')
-            }
-
-            const users = shouldAlwaysLose
-                ? [{ username: interaction.user.username, balance: engagerValue, oldBalance: oldEngVal }]
-                : [
-                      { username: engagerUser.username, balance: engagerValue, oldBalance: oldEngVal },
-                      { username: userAsMember.user.username, balance: victimValue, oldBalance: oldTarVal },
-                  ]
-
-            this.messageHelper.sendMessage(interaction.channelId, `${MentionUtils.mentionUser(engager.id)} ${MentionUtils.mentionUser(interaction.user.id)}`)
-            const gambling = new EmbedBuilder().setTitle('⚔️ Krig ⚔️').setDescription(`${description}`)
-            users.forEach((user) => {
-                gambling.addFields({
-                    name: `${user.username}`,
-                    value: `Har nå ${TextUtils.formatMoney(user.balance, 2, 2)} chips (hadde ${TextUtils.formatMoney(user.oldBalance, 2, 2)})`,
-                })
-            })
-
-            this.messageHelper.replyToInteraction(interaction, gambling)
-
-            engager.chips = engagerValue
-            target.chips = victimValue
-            DatabaseHelper.updateUser(engager)
-            DatabaseHelper.updateUser(target)
-
-            const rematchRow = new ActionRowBuilder<ButtonBuilder>()
-
-            const updatedMax = Math.min(engagerValue, victimValue)
-
-            const oldEngager = engagerUser.id
-            const oldTarget = userAsMember.id
-
-            if (updatedMax > 0) {
-                rematchRow.addComponents(
+            const notEnoughChips = GamblingCommands.checkBalance([{ userID: engagerId }, { userID: eligibleTargetId }], amountAsNum)
+            if (notEnoughChips) {
+                this.messageHelper.replyToInteraction(interaction, `En av dere har ikke lenger råd til krigen`, true)
+            } else {
+                //We update the row with a new, disabled button, so that the user cannot enage the Krig more than once
+                const row = new ActionRowBuilder<ButtonBuilder>()
+                row.addComponents(
                     new ButtonBuilder({
-                        custom_id: `${ButtonHandler.KRIG_REMATCH}${oldEngager}&${oldTarget}&${amountAsNum < updatedMax ? amountAsNum : updatedMax}`,
-                        style: ButtonStyle.Primary,
-                        label: `⚔️ Omkamp ⚔️`,
-                        disabled: false,
+                        custom_id: `${ButtonHandler.KRIG_ID}COMPLETED`,
+                        style: ButtonStyle.Secondary,
+                        label: `🏳️ Krig 🏳️`,
+                        disabled: true,
                         type: 2,
                     })
                 )
-                await this.messageHelper.sendMessageWithComponents(interaction.channelId, [rematchRow])
+                await interaction.message.edit({
+                    components: [row],
+                })
+
+                const engager = DatabaseHelper.getUser(engagerId)
+                const target = DatabaseHelper.getUser(eligibleTargetId)
+
+                let engagerValue = engager.chips
+                let victimValue = target.chips
+
+                const shouldAlwaysLose = engager.id === interaction.user.id
+                const roll = RandomUtils.getRndInteger(0, 100)
+                let description = `Terningen trillet: ${roll}/100. ${
+                    roll < 51 ? (roll == 50 ? 'Bot Høie' : engagerUser.username) : userAsMember.user.username
+                } vant! 💰💰`
+                if (shouldAlwaysLose) {
+                    description += `${
+                        engager.id === interaction.user.id
+                            ? 'Men, du gikk til krig mot deg selv. Dette liker ikke Bot Høie, og tar derfor pengene.'
+                            : 'Du gikk til krig mot Bot Høie, så huset vinner alltid uansett'
+                    }`
+                }
+
+                const oldTarVal = target.chips
+                const oldEngVal = engager.chips
+                if (roll == 50 || shouldAlwaysLose) {
+                    engagerValue -= amountAsNum
+                    victimValue -= amountAsNum
+                    DatabaseHelper.incrementChipsStats(engager, 'krigLosses')
+                    DatabaseHelper.incrementChipsStats(target, 'krigLosses')
+                } else if (roll < 50) {
+                    engagerValue += amountAsNum
+                    victimValue -= amountAsNum
+                    DatabaseHelper.incrementChipsStats(engager, 'krigWins')
+                    DatabaseHelper.incrementChipsStats(target, 'krigLosses')
+                } else if (roll > 50) {
+                    engagerValue -= amountAsNum
+                    victimValue += amountAsNum
+                    DatabaseHelper.incrementChipsStats(engager, 'krigLosses')
+                    DatabaseHelper.incrementChipsStats(target, 'krigWins')
+                }
+
+                const users = shouldAlwaysLose
+                    ? [{ username: interaction.user.username, balance: engagerValue, oldBalance: oldEngVal }]
+                    : [
+                          { username: engagerUser.username, balance: engagerValue, oldBalance: oldEngVal },
+                          { username: userAsMember.user.username, balance: victimValue, oldBalance: oldTarVal },
+                      ]
+
+                this.messageHelper.sendMessage(
+                    interaction.channelId,
+                    `${MentionUtils.mentionUser(engager.id)} ${MentionUtils.mentionUser(interaction.user.id)}`
+                )
+                const gambling = new EmbedBuilder().setTitle('⚔️ Krig ⚔️').setDescription(`${description}`)
+                users.forEach((user) => {
+                    gambling.addFields({
+                        name: `${user.username}`,
+                        value: `Har nå ${TextUtils.formatMoney(user.balance, 2, 2)} chips (hadde ${TextUtils.formatMoney(user.oldBalance, 2, 2)})`,
+                    })
+                })
+
+                this.messageHelper.replyToInteraction(interaction, gambling)
+
+                engager.chips = engagerValue
+                target.chips = victimValue
+                DatabaseHelper.updateUser(engager)
+                DatabaseHelper.updateUser(target)
+
+                const rematchRow = new ActionRowBuilder<ButtonBuilder>()
+
+                const updatedMax = Math.min(engagerValue, victimValue)
+
+                const oldEngager = engagerUser.id
+                const oldTarget = userAsMember.id
+
+                if (updatedMax > 0) {
+                    rematchRow.addComponents(
+                        new ButtonBuilder({
+                            custom_id: `${ButtonHandler.KRIG_REMATCH}${oldEngager}&${oldTarget}&${amountAsNum < updatedMax ? amountAsNum : updatedMax}`,
+                            style: ButtonStyle.Primary,
+                            label: `⚔️ Omkamp ⚔️`,
+                            disabled: false,
+                            type: 2,
+                        })
+                    )
+                    await this.messageHelper.sendMessageWithComponents(interaction.channelId, [rematchRow])
+                }
             }
         } else {
             this.messageHelper.replyToInteraction(interaction, `Du kan kje starta denne krigen`, true)
