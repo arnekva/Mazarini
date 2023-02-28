@@ -181,8 +181,16 @@ export class DatabaseHelper {
         if (userObject.userStats?.chipsStats) {
             userObject.userStats.chipsStats[property] = ++userObject.userStats.chipsStats[property] || 1
         } else {
-            userObject.userStats.chipsStats = {
-                [property]: 1,
+            if (userObject.userStats) {
+                userObject.userStats.chipsStats = {
+                    [property]: 1,
+                }
+            } else {
+                userObject.userStats = {
+                    chipsStats: {
+                        [property]: 1,
+                    },
+                }
             }
         }
     }
@@ -192,8 +200,16 @@ export class DatabaseHelper {
         if (userObject.userStats?.rulettStats) {
             userObject.userStats.rulettStats[property] = ++userObject.userStats.rulettStats[property] || 1
         } else {
-            userObject.userStats.rulettStats = {
-                [property]: 1,
+            if (userObject.userStats) {
+                userObject.userStats.rulettStats = {
+                    [property]: 1,
+                }
+            } else {
+                userObject.userStats = {
+                    rulettStats: {
+                        [property]: 1,
+                    },
+                }
             }
         }
     }
