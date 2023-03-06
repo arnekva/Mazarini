@@ -1,6 +1,7 @@
-import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Message } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../general/commands'
+import { ButtonHandler } from '../handlers/buttonHandler'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { RandomUtils } from '../utils/randomUtils'
@@ -19,24 +20,85 @@ interface ICardObject {
     printString: string
 }
 
+const activeGameButtonRow = new ActionRowBuilder<ButtonBuilder>()
+activeGameButtonRow.addComponents(
+    new ButtonBuilder({
+        custom_id: `${ButtonHandler.ELECTRICITY_DRAW}`,
+        style: ButtonStyle.Success,
+        label: `Trekk`,
+        disabled: false,
+        type: 2,
+    }),
+    new ButtonBuilder({
+        custom_id: `${ButtonHandler.ELECTRICITY_MOVE}`,
+        style: ButtonStyle.Primary,
+        label: `Flytt ned`,
+        disabled: false,
+        type: 2,
+    })
+)
+
+const gameSetupButtonRow = new ActionRowBuilder<ButtonBuilder>()
+gameSetupButtonRow.addComponents(
+    new ButtonBuilder({
+        custom_id: `${ButtonHandler.ELECTRICITY_JOIN}`,
+        style: ButtonStyle.Primary,
+        label: `Bli med!`,
+        disabled: false,
+        type: 2,
+    }),
+    new ButtonBuilder({
+        custom_id: `${ButtonHandler.ELECTRICITY_START}`,
+        style: ButtonStyle.Success,
+        label: `🍷 Start 🍷`,
+        disabled: false,
+        type: 2,
+    })
+)
+
+const resetDeckButtonRow = new ActionRowBuilder<ButtonBuilder>()
+resetDeckButtonRow.addComponents(
+    new ButtonBuilder({
+        custom_id: `${ButtonHandler.ELECTRICITY_RESET}`,
+        style: ButtonStyle.Primary,
+        label: `Resett kortstokk`,
+        disabled: false,
+        type: 2,
+    })
+)
+
+const testData = [
+    {name:"PhedeSpelar", id: 0, card:{number:"", suite:"", printString:""}, mates: []},
+    {name:"Eivind", id: 1, card:{number:"", suite:"", printString:""}, mates: []},
+    {name:"Deadmaggi", id: 2, card:{number:"", suite:"", printString:""}, mates: []}
+];
+
 export class DrinksCommands extends AbstractCommands {
     private playerList: IUserObject[]
     private activeGame: boolean
+    private initiated: boolean
     private deck: CardCommands
     private id: number
-    private reactor: any
     private turn: number
     private shouldChugOnLoop: boolean
+    private embedMessage: Message
+    private buttonsMessage: Message
+    private embed: EmbedBuilder
+    private currentButtons: ActionRowBuilder<ButtonBuilder>
 
     constructor(client: Client, messageHelper: MessageHelper) {
         super(client, messageHelper)
         this.activeGame = false
+        this.initiated = false
         this.playerList = new Array<IUserObject>()
         this.deck = new CardCommands(client, messageHelper)
         this.id = 0
-        this.reactor = undefined
         this.turn = 0
         this.shouldChugOnLoop = true
+        this.embedMessage = undefined
+        this.buttonsMessage = undefined
+        this.embed = undefined
+        this.currentButtons = gameSetupButtonRow
     }
 
     private setCardOnUser(username: string, card: string) {
@@ -105,6 +167,7 @@ export class DrinksCommands extends AbstractCommands {
                 currentCard = result
             }
         }
+        /* Kommenterer bare ut disse i tilfelle vi vil gå tilbake til de ved en senere anledning
         const transformList = (mustDrink: IUserObject[], mates: IUserObject[]) => {
             let str = ''
 
@@ -137,11 +200,12 @@ export class DrinksCommands extends AbstractCommands {
                 }
             })
         }
+        */
 
         findOnSearchUp()
         findOnSearchDown()
-        findAllMates(matesWhoMustDrinkDirectly)
-        return transformList(mustDrink, theseMatesMustDrink)
+        //findAllMates(matesWhoMustDrinkDirectly)
+        return mustDrink
     }
 
     private createCardObject(card: string) {
@@ -154,154 +218,180 @@ export class DrinksCommands extends AbstractCommands {
         return cardObject
     }
 
-    private drawCard(interaction: ChatInputCommandInteraction<CacheType>) {
-        let card: string = this.deck.drawCard()
-        if (!card) {
-            this.messageHelper.replyToInteraction(interaction, "Kortstokken er tom. Dersom dere vil fortsette, bruk /electricity resett'")
+    public drawCard(interaction: ButtonInteraction<CacheType>) {
+        if (this.playerList.find(player => player.name == interaction.user.username)) {
+            let card: string = this.deck.drawCard()
+            if (card == 'Kortstokken er tom for kort') {
+                this.messageHelper.replyToInteraction(interaction, "Kortstokken er tom. Bruk knappen under dersom dere vil fortsette.")
+                this.messageHelper.sendMessageWithComponents(interaction.channelId, [resetDeckButtonRow])
+            } else {
+                const currentPlayer = this.getUserObjectById(this.turn)
+                this.turn = (this.turn + 1) % this.playerList.length
+                this.setCardOnUser(currentPlayer.name, card)
+                const mustDrink = this.checkWhoMustDrink(currentPlayer.name, currentPlayer.id, currentPlayer.card)
+                this.updateActiveGameMessage(mustDrink, currentPlayer)
+                this.replyToInteraction(interaction)
+            }
         } else {
-            const currentPlayer = this.getUserObjectById(this.turn)
-            this.turn = (this.turn + 1) % this.playerList.length
-            const cardObject = this.setCardOnUser(currentPlayer.name, card)
-            const mustDrink = this.checkWhoMustDrink(currentPlayer.name, currentPlayer.id, currentPlayer.card)
-            let gameState = '\n\n*På bordet*:'
-            this.playerList.forEach((player) => {
-                gameState += `\n${player.name} (${player.id}) - ${player.card.printString}`
-            })
-            this.messageHelper.replyToInteraction(interaction, currentPlayer.name + ' trakk ' + cardObject.printString + '\n' + mustDrink + gameState)
+            this.messageHelper.replyToInteraction(interaction, `Du må være med for å kunne trekke`, true)
         }
     }
 
-    private getPlayersString() {
-        let players = 'Da starter vi en ny runde electricity med '
-        for (let player of this.playerList) {
-            players = players + player.name + '(id:' + player.id + '), '
+    private updateActiveGameMessage(mustDrink: Array<IUserObject>, currentPlayer: IUserObject) {
+        let formattedMsg = new EmbedBuilder()
+                .setTitle('Electricity ⚡')
+                .setDescription("Kort på bordet:")
+        
+        let infinite = false
+        if (mustDrink.length === this.playerList.length) {
+            infinite = this.isInfinite()
         }
-        return players.substring(0, players.length - 2)
+        let sips = infinite && this.shouldChugOnLoop ? "♾" : mustDrink.length
+        this.playerList.forEach(player => {
+            
+            let playerName = player.id == currentPlayer?.id ? "__" + player.name + "__" : player.name
+            playerName += mustDrink.length > 1 && mustDrink.includes(player) ? " 🍷x" + sips : ""
+            formattedMsg.addFields(
+                {
+                    name: playerName, 
+                    value: player.card.printString + " ", 
+                    inline: false
+                }
+            )
+        })
+        this.embed = formattedMsg
     }
 
-    private async startElectricity(interaction: ChatInputCommandInteraction<CacheType>) {
+    private isInfinite() {
+        for(let i = 0; i <= this.playerList.length; i++) {
+            if (!this.cardsMatch(this.playerList[i % this.playerList.length].card, this.playerList[(i+1) % this.playerList.length].card)) {
+                return false 
+            }
+        }
+        return true
+    }
+
+    private async replyToInteraction(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+        if (interaction.isButton()) {
+            this.embedMessage.edit({embeds: [this.embed]})
+            interaction.deferUpdate()
+        } else {
+            this.messageHelper.replyToInteraction(interaction, "Nu skal det drekjast")
+            this.embedMessage = await this.messageHelper.sendFormattedMessage(interaction.channelId, this.embed)
+            this.buttonsMessage = await this.messageHelper.sendMessageWithComponents(interaction.channelId, [this.currentButtons])
+        }
+    }
+
+    public setupElectricity(interaction: ChatInputCommandInteraction<CacheType>) {
         if (this.activeGame) {
             this.messageHelper.replyToInteraction(interaction, 'Du kan bare ha ett aktivt spill om gangen. For å avslutte spillet, bruk "/electricity stopp"')
         } else {
-            if (this.reactor) {
-                this.reactor.stop()
-            }
-            const author = interaction.user.username
-            const betString = `${author} ønsker å starte en runde med electricity: Reager med 👍 for å bli med. Spillet starter når noen reagerer med ✅`
-            const startMessage = await this.messageHelper.sendMessage(interaction.channelId, betString)
-            this.messageHelper.replyToInteraction(interaction, `Starter electricity`, true)
-            if (startMessage) {
-                this.messageHelper.reactWithThumbs(startMessage, 'up')
-                startMessage.react('✅')
-                const _msg = this.messageHelper
-                this.reactor = startMessage.createReactionCollector().on('collect', async (reaction) => {
-                    const users = reaction.users.cache.filter((u) => u.id !== '802945796457758760')
-                    if (reaction.emoji.name == '👍') {
-                        users.forEach((us, ind) => {
-                            if (!this.getUserObject(us.username)) {
-                                const userCard: ICardObject = { number: '', suite: '', printString: '' }
-                                const user: IUserObject = { name: us.username, id: this.id, card: userCard, mates: [] }
-                                this.playerList.push(user)
-                                this.id++
-                            }
-                        })
-                    } else if (reaction.emoji.name == '✅' && users.size > 0) {
-                        if (this.playerList.length < 1) {
-                            this.messageHelper.sendMessage(interaction.channelId, 'Det trengs minst 2 deltakere for å starte spillet.')
-                        } else {
-                            this.activeGame = true
-                            this.messageHelper.sendMessage(interaction.channelId, this.getPlayersString())
-                            this.reactor.stop()
-                        }
-                    }
-                })
-            }
+            this.initiated = true
+            this.updateStartMessage()
+            this.replyToInteraction(interaction)
+        } 
+    }
+
+    public async joinElectricity(interaction: ButtonInteraction<CacheType>) {
+        const newUser = interaction.user
+        if (!this.playerList.find(player => player.name == newUser.username)) {
+            const userCard: ICardObject = { number: '', suite: '', printString: '' }
+            const user: IUserObject = { name: newUser.username, id: this.id, card: userCard, mates: [] }
+            this.playerList.push(user)
+            this.id++
+            this.updateStartMessage()
+            this.replyToInteraction(interaction)
+        } else {
+            interaction.deferUpdate()
         }
     }
+
+    public startElectricity(interaction: ButtonInteraction<CacheType>) {
+        if (this.playerList.length < 1) {
+            this.messageHelper.sendMessage(interaction.channelId, 'Det trengs minst 2 deltakere for å starte spillet.')
+        } else {
+            this.activeGame = true
+            this.currentButtons = activeGameButtonRow
+            this.updateActiveGameMessage([], null)
+            this.replyToInteraction(interaction)
+            this.buttonsMessage.edit({components: [this.currentButtons]})
+        }
+    }
+
+    private updateStartMessage() {
+        let formattedMsg = new EmbedBuilder()
+                .setTitle('Electricity ⚡')
+                .setDescription("Følgende spelare er klare for å drikke litt (masse):")
+        this.playerList.forEach(player => {
+            formattedMsg.addFields(
+                {
+                    name: player.name, 
+                    value: " ", 
+                    inline: false
+                }
+            )
+        })
+        this.embed = formattedMsg
+    }
+
+    public async resendMessages(interaction: ButtonInteraction<CacheType>) {
+        this.deleteMessages()
+        this.embedMessage = await this.messageHelper.sendFormattedMessage(interaction.channelId, this.embed)
+        this.buttonsMessage = await this.messageHelper.sendMessageWithComponents(interaction.channelId, [this.currentButtons])
+    }
+
+    private deleteMessages() {
+        this.embedMessage.delete()
+        this.buttonsMessage.delete()
+        this.embedMessage = undefined
+        this.buttonsMessage = undefined
+    }
+
+    public async resetDeck(interaction: ButtonInteraction<CacheType>) {
+        const msg = this.deck.resetDeck()
+        this.messageHelper.replyToInteraction(interaction, msg)
+    } 
 
     private stopElectricity(interaction: ChatInputCommandInteraction<CacheType>) {
         this.playerList = new Array<IUserObject>()
-        const resetMsg = this.deck.resetDeck()
-        this.messageHelper.replyToInteraction(interaction, resetMsg)
+        this.deck.resetDeck()
         this.id = 0
         this.activeGame = false
-        this.reactor = undefined
-        this.messageHelper.sendMessage(interaction.channelId, 'Spillet er stoppet')
-    }
-
-    private getMyCard(interaction: ChatInputCommandInteraction<CacheType>) {
-        const author = interaction.user.username
-        const user = this.getUserObject(author)
-        if (!user.card.number) {
-            this.messageHelper.replyToInteraction(interaction, author + ' har ikke trukket et kort enda')
-        } else {
-            this.messageHelper.replyToInteraction(interaction, author + ' sitt gjeldende kort: ' + user.card.printString)
-        }
+        this.initiated = false
+        this.messageHelper.sendMessage(interaction.channelId, 'Spillet er stoppet og kortstokken nullstilt')
     }
 
     private elSwitch(interaction: ChatInputCommandInteraction<CacheType>) {
         const action = interaction.options.getSubcommand()
-        const author = interaction.user.username
-        let activePlayer = false
-        for (let player of this.playerList) {
-            if (player.name === author) {
-                activePlayer = true
-            }
-        }
-        if (!activePlayer && this.activeGame) {
-            this.messageHelper.replyToInteraction(interaction, 'Bro du skulle gitt en tommel opp før spillet begynte hvis du ville være med')
-            // this.messageHelper.sendMessage(message.channelId, )
-        } else {
-            if (action) {
-                switch (action.toLowerCase()) {
-                    case 'start': {
-                        this.startElectricity(interaction)
-                        break
-                    }
-                    case 'trekk': {
-                        if (!this.activeGame) {
-                            this.messageHelper.replyToInteraction(interaction, `Du må starte et spill først`)
-                        } else {
-                            this.drawCard(interaction)
-                        }
-                        break
-                    }
-                    case 'stopp': {
-                        if (!this.activeGame || !this.reactor) {
-                            this.messageHelper.replyToInteraction(interaction, 'Det er ingenting å stoppe')
-                        } else {
-                            this.stopElectricity(interaction)
-                        }
-                        break
-                    }
-                    case 'mitt': {
-                        if (!this.activeGame) {
-                            this.messageHelper.replyToInteraction(interaction, 'Du må nesten ha et aktivt spill for å kunne ha et kort')
-                        } else {
-                            this.getMyCard(interaction)
-                        }
-                        break
-                    }
-                    case 'resett': {
-                        const msg = this.deck.resetDeck()
-                        this.messageHelper.replyToInteraction(interaction, msg)
-                        break
-                    }
-                    case 'instillinger': {
-                        const options = this.setElectricityOptions(interaction)
-                        this.messageHelper.replyToInteraction(interaction, options)
-                        break
-                    }
-                    default: {
-                        this.messageHelper.replyToInteraction(interaction, "Tilgjengelige kommandoer er: 'start', 'trekk', 'mitt', 'resett' og 'stopp'")
-                    }
+        if (action) {
+            switch (action.toLowerCase()) {
+                case 'start': {
+                    this.setupElectricity(interaction)
+                    break
                 }
-            } else {
-                this.messageHelper.replyToInteraction(
-                    interaction,
-                    "Du må inkludere en av følgende etter 'el': 'start', 'trekk', 'mitt', 'resett' eller 'stopp'"
-                )
+                case 'stopp': {
+                    if (!this.activeGame || !this.initiated) {
+                        this.messageHelper.replyToInteraction(interaction, 'Det er ingenting å stoppe')
+                    } else {
+                        this.stopElectricity(interaction)
+                    }
+                    break
+                }
+                case 'instillinger': {
+                    const options = this.setElectricityOptions(interaction)
+                    this.messageHelper.replyToInteraction(interaction, options)
+                    break
+                }
+                default: {
+                    this.messageHelper.replyToInteraction(interaction, "Tilgjengelige kommandoer er: 'start', 'stopp' og 'instillinger'")
+                }
             }
+        } else {
+            this.messageHelper.replyToInteraction(
+                interaction,
+                "Du må inkludere en av følgende etter '/electricity': 'start', 'stopp', eller 'instillinger'"
+            )
+        
         }
     }
 

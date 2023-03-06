@@ -1,5 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, Client, EmbedBuilder, Interaction } from 'discord.js'
+import { DrinksCommands } from '../commands/drinksCommands'
 import { GamblingCommands } from '../commands/gamblingCommands'
+import { TestCommands } from '../commands/testCommands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MentionUtils } from '../utils/mentionUtils'
@@ -10,13 +12,23 @@ import { UserUtils } from '../utils/userUtils'
 export class ButtonHandler {
     private client: Client
     private messageHelper: MessageHelper
+    private drinksCommands: DrinksCommands
+    private testCommands: TestCommands
 
     static USER_ROLE_ID = 'UserRoleId_'
     static KRIG_ID = 'KrigId_'
     static KRIG_REMATCH = 'KrigRematchId_'
-    constructor(client: Client, messageHelper: MessageHelper) {
+    static ELECTRICITY_DRAW = 'ElectricityDrawId_'
+    static ELECTRICITY_MOVE = 'ElectricityMoveId_'
+    static ELECTRICITY_JOIN = 'ElectricityJoinId_'
+    static ELECTRICITY_START = 'ElectricityStartId_'
+    static ELECTRICITY_RESET = 'ElectricityResetId_'
+    static TEST = 'TestId_'
+    constructor(client: Client, messageHelper: MessageHelper, drinksCommands: DrinksCommands, testCommands: TestCommands) {
         this.client = client
         this.messageHelper = messageHelper
+        this.drinksCommands = drinksCommands
+        this.testCommands = testCommands
     }
 
     handleIncomingButtonInteraction(interaction: Interaction<CacheType>) {
@@ -27,11 +39,43 @@ export class ButtonHandler {
                 this.handleKrig(interaction)
             } else if (interaction.customId.startsWith(ButtonHandler.KRIG_REMATCH)) {
                 this.handleRematch(interaction)
-            }
+            } else if (interaction.customId.startsWith(ButtonHandler.ELECTRICITY_DRAW)) {
+                this.handleElectricityDraw(interaction)
+            } else if (interaction.customId.startsWith(ButtonHandler.ELECTRICITY_MOVE)) {
+                this.handleElectricityMove(interaction)
+            } else if (interaction.customId.startsWith(ButtonHandler.ELECTRICITY_JOIN)) {
+                this.handleElectricityJoin(interaction)
+            } else if (interaction.customId.startsWith(ButtonHandler.ELECTRICITY_START)) {
+                this.handleElectricityStart(interaction)
+            } else if (interaction.customId.startsWith(ButtonHandler.ELECTRICITY_RESET)) {
+                this.handleElectricityReset(interaction)
+            } else if (interaction.customId.startsWith(ButtonHandler.TEST)) {
+                this.test(interaction)
+            } 
 
             return true
         }
         return false
+    }
+
+    private handleElectricityDraw(interaction: ButtonInteraction<CacheType>) {
+        this.drinksCommands.drawCard(interaction)
+    }
+
+    private handleElectricityMove(interaction: ButtonInteraction<CacheType>) {
+        this.drinksCommands.resendMessages(interaction)
+    }
+
+    private handleElectricityJoin(interaction: ButtonInteraction<CacheType>) {
+        this.drinksCommands.joinElectricity(interaction)
+    }
+
+    private handleElectricityStart(interaction: ButtonInteraction<CacheType>) {
+        this.drinksCommands.startElectricity(interaction)
+    }
+
+    private handleElectricityReset(interaction: ButtonInteraction<CacheType>) {
+        this.drinksCommands.resetDeck(interaction)
     }
 
     private async handleRematch(interaction: ButtonInteraction<CacheType>) {
@@ -190,5 +234,9 @@ export class ButtonHandler {
             userAsMember.roles.add(role)
             this.messageHelper.replyToInteraction(interaction, `Du har nå fått tildelt rollen ${role.name}`, true)
         }
+    }
+
+    private test (interaction: ButtonInteraction<CacheType>) {
+        this.testCommands.test(interaction)
     }
 }
