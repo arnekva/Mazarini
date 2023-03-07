@@ -67,14 +67,11 @@ export class MessageHelper {
             else msg = await this.sendMessage(interaction.channelId, `${MentionUtils.mentionUser(interaction.user.id)} ${content}`)
 
             let msgInfo = msg ? `Sendte en separat melding i stedet for interaksjonssvar.` : `Klarte heller ikke sende separat melding som svar`
-            if (msg) msgInfo += `\nType sent: ${msg?.type}\nWAS EMBED: ${content instanceof EmbedBuilder}`
 
             this.sendMessageToActionLog(
                 `Klarte ikke svare på en interaction. ${interaction.user.username} prøvde å bruke ${
                     interaction.isChatInputCommand() ? interaction.commandName : '<ikke command>'
-                } i kanalen ${MentionUtils.mentionChannel(interaction.channelId)}. \nWas object: ${
-                    typeof content === 'object'
-                }.\nWas defered: ${wasDefered}.\nHad menu: ${!!menu}.\n${msgInfo} \nStacktrace: \n${e}`
+                } i kanalen ${MentionUtils.mentionChannel(interaction.channelId)}. \n${msgInfo}`
             )
         }
         if (!interaction.replied) {
