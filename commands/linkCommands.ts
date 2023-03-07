@@ -14,6 +14,7 @@ export class LinkCommands extends AbstractCommands {
         await interaction.deferReply()
 
         const isWZ = interaction.options.getSubcommand() === 'warzone'
+        const isRocket = interaction.options.getSubcommand() === 'rocket'
         const isLastFM = interaction.options.getSubcommand() === 'lastfm'
         const isVinmonopol = interaction.options.getSubcommand() === 'vinmonopol'
 
@@ -25,6 +26,11 @@ export class LinkCommands extends AbstractCommands {
             msg = `Linket *${username}* *${platform}* til brukeren din for Warzone`
 
             saved = this.linkWZName(interaction, platform, username)
+        } else if (isRocket) {
+            const platform = interaction.options.get('plattform')?.value as string
+            const username = interaction.options.get('brukernavn')?.value as string
+            saved = this.linkRocketName(interaction, platform, username)
+            msg = `Linket *${username}* *${platform}* til brukeren din for Rocket League`
         } else if (isLastFM) {
             const username = interaction.options.get('brukernavn')?.value as string
             saved = this.linkLastFMName(interaction, username)
@@ -44,6 +50,14 @@ export class LinkCommands extends AbstractCommands {
         if (!platform || !username) return false
         const user = DatabaseHelper.getUser(rawInteraction.user.id)
         user.activisionUserString = `${platform};${username}`
+        DatabaseHelper.updateUser(user)
+        return true
+    }
+
+    private linkRocketName(rawInteraction: ChatInputCommandInteraction<CacheType>, platform?: string, username?: string): boolean {
+        if (!platform || !username) return false
+        const user = DatabaseHelper.getUser(rawInteraction.user.id)
+        user.rocketLeagueUserString = `${platform};${username}`
         DatabaseHelper.updateUser(user)
         return true
     }

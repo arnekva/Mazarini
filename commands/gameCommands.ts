@@ -152,18 +152,17 @@ export class GameCommands extends AbstractCommands {
         }
     }
 
-    private async rocketLeagueRanks(rawMessage: Message, messageContent: string, args: string[]) {
-        const _user = UserUtils.findUserByUsername(TextUtils.splitUsername(args[1]), rawMessage)
+    private async rocketLeagueRanks(interaction: ChatInputCommandInteraction<CacheType>) {
 
-        const userValue = _user ? DatabaseHelper.getUser(_user.id).rocketLeagueUserString : DatabaseHelper.getUser(rawMessage.author.id).rocketLeagueUserString
+        const userValue = DatabaseHelper.getUser(interaction.user.id).rocketLeagueUserString
         let user
         if (userValue) user = userValue.split(';')
 
         // return
         if (!user) {
-            return rawMessage.reply("Du må linke Rocket League kontoen din. Bruk '/link rocket <psn|xbl|steam|epic> <brukernavn>'")
+            this.messageHelper.replyToInteraction(interaction, "Du må linke Rocket League kontoen din. Bruk '/link rocket <psn|xbl|steam|epic> <brukernavn>'")
         }
-        const waitMsg = await this.messageHelper.sendMessage(rawMessage.channelId, 'Laster data...')
+        await interaction.deferReply()
         const platform = user[0]
         const name = user[1]
         const url = `https://api.tracker.gg/api/v2/rocket-league/standard/profile/${platform}/${name}`
@@ -191,23 +190,23 @@ export class GameCommands extends AbstractCommands {
         await browser.close()
         const contentString = content as string
         if (contentString.includes('Access denied')) {
-            this.messageHelper.sendMessage(rawMessage.channelId, `Access denied.`)
+            this.messageHelper.sendMessage(interaction.channelId, `Access denied.`)
             this.messageHelper.sendMessageToActionLog(
-                `api.tracker.gg for Rocket League gir Access Denied. Melding stammer fra ${rawMessage.author.username} i ${
-                    (rawMessage.channel as TextChannel).name
+                `api.tracker.gg for Rocket League gir Access Denied. Melding stammer fra ${interaction.user.username} i ${
+                    (interaction.channel as TextChannel).name
                 }`
             )
-            if (waitMsg) waitMsg.delete()
         }
 
         const response = JSON.parse(striptags(content))
         if (!response.data) {
-            return this.messageHelper.sendMessageToActionLogWithCustomMessage(
-                rawMessage,
-                'Fant ikke data',
-                'Fant ikke data for brukeren. Her har en error skjedd',
-                true
-            )
+            await this.messageHelper.replyToInteraction(interaction, "Fant ikke data")
+            // return this.messageHelper.sendMessageToActionLogWithCustomMessage(
+            //     rawMessage,
+            //     'Fant ikke data',
+            //     'Fant ikke data for brukeren. Her har en error skjedd',
+            //     true
+            // )
         }
         const segments = response.data.segments
 
@@ -216,11 +215,13 @@ export class GameCommands extends AbstractCommands {
         let oneVone: rocketLeagueStats = {}
         let lifetimeStats: rocketLeagueLifetime = {}
         if (!segments) {
-            return this.messageHelper.sendMessageToActionLogWithCustomMessage(rawMessage, 'Fetch til Rocket League API feilet', 'Her har noe gått galt', false)
+            await this.messageHelper.replyToInteraction(interaction, "Fetch til Rocket League API feilet")
+            // return this.messageHelper.sendMessageToActionLogWithCustomMessage(rawMessage, 'Fetch til Rocket League API feilet', 'Her har noe gått galt', false)
         }
         for (const segment of segments) {
             if (!segment) {
-                this.messageHelper.sendMessageToActionLogWithCustomMessage(rawMessage, 'Fetch til Rocket League API feilet', 'Her har noe gått galt', true)
+                await this.messageHelper.replyToInteraction(interaction, "Fetch til Rocket League API feilet")
+                // this.messageHelper.sendMessageToActionLogWithCustomMessage(rawMessage, 'Fetch til Rocket League API feilet', 'Her har noe gått galt', true)
                 break
             }
             if (segment.metadata.name === 'Lifetime') {
@@ -252,21 +253,21 @@ export class GameCommands extends AbstractCommands {
             }
         }
         const msgContent = new EmbedBuilder().setTitle(`Rocket League - ${name}`)
-        if (args[0] === '3v3') {
+        const statsType = interaction.options.get('modus')?.value as string
+        if (statsType === '3v3') {
             msgContent.addFields([{ name: `${threeVthree.modeName}`, value: `${threeVthree.rank} ${threeVthree.division} (${threeVthree.mmr})` }])
             if (threeVthree.iconURL) msgContent.setThumbnail(threeVthree.iconURL)
-        } else if (args[0] === '2v2') {
+        } else if (statsType === '2v2') {
             msgContent.addFields([{ name: `${twoVtwo.modeName}`, value: `${twoVtwo.rank} ${twoVtwo.division} (${twoVtwo.mmr})` }])
             if (twoVtwo.iconURL) msgContent.setThumbnail(twoVtwo.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
-        } else if (args[0] === '1v1') {
+        } else if (statsType === '1v1') {
             msgContent.addFields([{ name: `${oneVone.modeName}`, value: `${oneVone.rank} ${oneVone.division} (${oneVone.mmr})` }])
             if (oneVone.iconURL) msgContent.setThumbnail(oneVone.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
         } else {
             msgContent.addFields([{ name: `Lifetime stats:`, value: `${lifetimeStats.goals} mål\n${lifetimeStats.wins} wins\n${lifetimeStats.shots} skudd` }])
         }
-        if (waitMsg) waitMsg.delete()
 
-        this.messageHelper.sendFormattedMessage(rawMessage.channel as TextChannel, msgContent)
+        this.messageHelper.sendFormattedMessage(interaction.channel as TextChannel, msgContent)
     }
 
     public getAllCommands(): ICommandElement[] {
@@ -285,6 +286,13 @@ export class GameCommands extends AbstractCommands {
                 commandName: 'grid',
                 command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                     this.dropGrid(interaction)
+                },
+                category: 'gaming',
+            },
+            {
+                commandName: 'rocket',
+                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                    this.rocketLeagueRanks(interaction)
                 },
                 category: 'gaming',
             },
