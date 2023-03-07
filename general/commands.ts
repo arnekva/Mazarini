@@ -14,6 +14,7 @@ import { PoletCommands } from '../commands/poletCommands'
 import { SoundCommands } from '../commands/soundCommands'
 import { Spinner } from '../commands/spinner'
 import { SpotifyCommands } from '../commands/spotifyCommands'
+import { TestCommands } from '../commands/testCommands'
 import { UserCommands } from '../commands/userCommands'
 import { WarzoneCommands } from '../commands/warzoneCommands'
 import { Weather } from '../commands/weatherCommands'
@@ -68,6 +69,7 @@ export class Commands {
     private jokeCommands: JokeCommands
     private warzoneCommands: WarzoneCommands
     private spotifyCommands: SpotifyCommands
+    private testCommands: TestCommands
     private musicCommands: Music
     private memeCommands: Meme
     private userCommands: UserCommands
@@ -94,6 +96,7 @@ export class Commands {
         this.jokeCommands = new JokeCommands(this.client, this.messageHelper)
         this.warzoneCommands = new WarzoneCommands(this.client, this.messageHelper)
         this.spotifyCommands = new SpotifyCommands(this.client, this.messageHelper)
+        this.testCommands = new TestCommands(this.client, this.messageHelper)
         this.musicCommands = new Music(this.client, this.messageHelper)
         this.memeCommands = new Meme(this.client, this.messageHelper)
         this.userCommands = new UserCommands(this.client, this.messageHelper)
@@ -107,7 +110,7 @@ export class Commands {
         this.linkCommands = new LinkCommands(this.client, this.messageHelper)
         this.modalHandler = new ModalHandler(this.client, this.messageHelper)
         this.selectMenuHandler = new SelectMenuHandler(this.client, this.messageHelper)
-        this.buttonHandler = new ButtonHandler(this.client, this.messageHelper)
+        this.buttonHandler = new ButtonHandler(this.client, this.messageHelper, this.drinksCommands, this.testCommands)
     }
 
     getAllCommands() {
@@ -122,6 +125,7 @@ export class Commands {
             ...this.warzoneCommands.getAllCommands(),
             ...this.patchNotes.getAllCommands(),
             ...this.spotifyCommands.getAllCommands(),
+            ...this.testCommands.getAllCommands(),
             ...this.musicCommands.getAllCommands(),
             ...this.memeCommands.getAllCommands(),
             ...this.userCommands.getAllCommands(),
@@ -146,6 +150,7 @@ export class Commands {
             ...this.warzoneCommands.getAllInteractions(),
             ...this.patchNotes.getAllInteractions(),
             ...this.spotifyCommands.getAllInteractions(),
+            ...this.testCommands.getAllInteractions(),
             ...this.musicCommands.getAllInteractions(),
             ...this.memeCommands.getAllInteractions(),
             ...this.userCommands.getAllInteractions(),
