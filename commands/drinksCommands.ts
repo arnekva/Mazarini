@@ -283,9 +283,10 @@ export class DrinksCommands extends AbstractCommands {
     }
 
     public setupElectricity(interaction: ChatInputCommandInteraction<CacheType>) {
-        if (this.activeGame) {
+        if (this.activeGame || this.initiated) {
             this.messageHelper.replyToInteraction(interaction, 'Du kan bare ha ett aktivt spill om gangen. For å avslutte spillet, bruk "/electricity stopp"')
         } else {
+            this.currentButtons = gameSetupButtonRow
             this.initiated = true
             this.updateStartMessage()
             this.replyToInteraction(interaction)
@@ -308,7 +309,7 @@ export class DrinksCommands extends AbstractCommands {
 
     public startElectricity(interaction: ButtonInteraction<CacheType>) {
         if (this.playerList.length < 1) {
-            this.messageHelper.sendMessage(interaction.channelId, 'Det trengs minst 2 deltakere for å starte spillet.')
+            this.messageHelper.replyToInteraction(interaction, 'Det trengs minst 1 deltaker for å starte spillet (men det er litt trist å spille dette alene).', false)
         } else {
             this.activeGame = true
             this.currentButtons = activeGameButtonRow
@@ -358,7 +359,7 @@ export class DrinksCommands extends AbstractCommands {
         this.id = 0
         this.activeGame = false
         this.initiated = false
-        this.messageHelper.sendMessage(interaction.channelId, 'Spillet er stoppet og kortstokken nullstilt')
+        this.messageHelper.replyToInteraction(interaction, 'Spillet er stoppet og kortstokken nullstilt', false)
     }
 
     private elSwitch(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -370,7 +371,7 @@ export class DrinksCommands extends AbstractCommands {
                     break
                 }
                 case 'stopp': {
-                    if (!this.activeGame || !this.initiated) {
+                    if (!this.activeGame && !this.initiated) {
                         this.messageHelper.replyToInteraction(interaction, 'Det er ingenting å stoppe')
                     } else {
                         this.stopElectricity(interaction)
