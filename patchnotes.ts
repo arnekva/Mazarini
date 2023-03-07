@@ -5,15 +5,13 @@ import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '10.13.0'
+    public static readonly currentVersion = '10.13.1'
     public static readonly nextVersion = 'Backlog'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
-    public static readonly currentPatchNotes: string =
-        `\n* Electricity har nå fått seg en full overhaling` +
-        `\n* Har nå lagt til en generisk test-command for å kunne drive med vilkårlig lokal testing uten å måtte bruke eksisterende metoder`
+    public static readonly currentPatchNotes: string = `\n* Loggen når en interaction ikke kan besvares er nå mindre` + `\n* Feilrettinger for electricity`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
