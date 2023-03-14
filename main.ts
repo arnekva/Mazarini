@@ -160,7 +160,7 @@ export class MazariniClient {
             ) {
                 _msgHelper.sendMessage(
                     actionLogId,
-                    `**En melding av** *${message?.author?.tag}* **ble slettet av** *${executor?.tag}*. **Innhold**: '*${message?.content}*'`,
+                    `**En melding fra ** *${message?.author?.tag}* **ble slettet av** *${executor?.tag}*. **Innhold**: '*${message?.content}*'`,
                     true
                 )
             }

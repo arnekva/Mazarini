@@ -15,6 +15,7 @@ import { SoundCommands } from '../commands/soundCommands'
 import { Spinner } from '../commands/spinner'
 import { SpotifyCommands } from '../commands/spotifyCommands'
 import { TestCommands } from '../commands/testCommands'
+import { TextCommands } from '../commands/textCommands'
 import { UserCommands } from '../commands/userCommands'
 import { WarzoneCommands } from '../commands/warzoneCommands'
 import { Weather } from '../commands/weatherCommands'
@@ -83,6 +84,7 @@ export class Commands {
     private modalHandler: ModalHandler
     private selectMenuHandler: SelectMenuHandler
     private buttonHandler: ButtonHandler
+    private textCommands: TextCommands
 
     constructor(client: Client, messageHelper: MessageHelper) {
         this.client = client
@@ -110,6 +112,7 @@ export class Commands {
         this.linkCommands = new LinkCommands(this.client, this.messageHelper)
         this.modalHandler = new ModalHandler(this.client, this.messageHelper)
         this.selectMenuHandler = new SelectMenuHandler(this.client, this.messageHelper)
+        this.textCommands = new TextCommands(this.client, this.messageHelper)
         this.buttonHandler = new ButtonHandler(this.client, this.messageHelper, this.drinksCommands, this.testCommands)
     }
 
@@ -136,6 +139,7 @@ export class Commands {
             ...this.nameCommands.getAllCommands(),
             ...this.poletCommands.getAllCommands(),
             ...this.linkCommands.getAllCommands(),
+            ...this.textCommands.getAllCommands(),
         ]
     }
 
@@ -161,6 +165,7 @@ export class Commands {
             ...this.nameCommands.getAllInteractions(),
             ...this.poletCommands.getAllInteractions(),
             ...this.linkCommands.getAllInteractions(),
+            ...this.textCommands.getAllInteractions(),
         ]
     }
 
