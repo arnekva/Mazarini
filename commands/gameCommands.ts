@@ -33,6 +33,7 @@ interface rocketLeagueLifetime {
     saves?: string
     assists?: string
     shots?: string
+    goalShotRatio?: string
 }
 interface rocketLeagueMMR {
     mmr1v1?: string
@@ -44,7 +45,7 @@ export interface rocketLeagueDbData {
     mmr: rocketLeagueMMR
 }
 const emptyStats: rocketLeagueDbData = {
-    stats: {wins: "0", goals: "0", mvp: "0", saves: "0", assists: "0", shots: "0"},
+    stats: {wins: "0", goals: "0", mvp: "0", saves: "0", assists: "0", shots: "0", goalShotRatio: "0"},
     mmr: {mmr1v1: "0", mmr2v2: "0", mmr3v3: "0"}
 }
 const fetch = require('node-fetch')
@@ -245,6 +246,7 @@ export class GameCommands extends AbstractCommands {
                 lifetimeStats.saves = segment.stats.saves.value
                 lifetimeStats.wins = segment.stats.wins.value
                 lifetimeStats.shots = segment.stats.shots.value
+                lifetimeStats.goalShotRatio = Number(segment.stats.goalShotRatio.value).toFixed(2)
             } else if (segment.metadata.name === 'Ranked Duel 1v1') {
                 oneVone.rank = segment?.stats?.tier?.metadata?.name
                 oneVone.division = segment?.stats?.division?.metadata?.name
@@ -290,13 +292,16 @@ export class GameCommands extends AbstractCommands {
             const shotsDiff = this.compareOldNewStats(lifetimeStats.shots, oldData.stats?.shots, false)
             const savesDiff = this.compareOldNewStats(lifetimeStats.saves, oldData.stats?.saves, false)
             const assistsDiff = this.compareOldNewStats(lifetimeStats.assists, oldData.stats?.assists, false)
+            const goalShotRatioDiff = this.compareOldNewStats(lifetimeStats.goalShotRatio, oldData.stats?.goalShotRatio, false)
+            msgContent.setDescription("Lifetime stats")
             msgContent.addFields([
-                { name: `Lifetime stats:`, 
-                 value: `${lifetimeStats.wins} wins ${winDiff}
-                         ${lifetimeStats.goals} goals ${goalDiff}
-                         ${lifetimeStats.assists} assists ${assistsDiff}
-                         ${lifetimeStats.shots} shots ${shotsDiff}
-                         ${lifetimeStats.saves} saves ${savesDiff}` }])
+                { name: "Wins", value: lifetimeStats.wins + ' ' + winDiff, inline: true},
+                { name: "Goals", value: lifetimeStats.goals + ' ' + goalDiff, inline: true},
+                { name: "Assists", value: lifetimeStats.assists + ' ' + assistsDiff, inline: true},
+                { name: "Shots", value: lifetimeStats.shots + ' ' + shotsDiff, inline: true},
+                { name: "Saves", value: lifetimeStats.saves + ' ' + savesDiff, inline: true},
+                { name: "Goal/Shot Ratio", value: lifetimeStats.goalShotRatio + '% ' + goalShotRatioDiff, inline: true}
+            ])
             oldData.stats = lifetimeStats
         }
         this.saveUserStats(interaction, oldData)
@@ -309,8 +314,8 @@ export class GameCommands extends AbstractCommands {
         const currentStats = Number(current)
         const oldStorageStats = Number(storedData)
         const value = currentStats - oldStorageStats
-        if (currentStats > oldStorageStats) return ` (+${parseFloat(Number(value).toFixed(3))})`
-        if (currentStats < oldStorageStats) return ` (${parseFloat(Number(value).toFixed(3))})`
+        if (currentStats > oldStorageStats) return ` (+${parseFloat(Number(value).toFixed(2))})`
+        if (currentStats < oldStorageStats) return ` (${parseFloat(Number(value).toFixed(2))})`
         return ``
     }
 
