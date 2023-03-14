@@ -11,7 +11,7 @@ export class TextCommands extends AbstractCommands {
     }
 
     private async searchWiki(interaction: ChatInputCommandInteraction<CacheType>) {
-        // await interaction.deferReply()
+        await interaction.deferReply()
         const search = interaction.options.get('search')?.value as string
 
         const capitalizeFirstLetter = (text: string) => {
@@ -40,7 +40,7 @@ export class TextCommands extends AbstractCommands {
             const summary = (await result.summary()).slice(0, 450) + '...'
             const image = await result.mainImage()
             const embed = EmbedUtils.createSimpleEmbed(`${search}`, summary)
-           
+
             if (image) embed.setThumbnail(image)
             embed.setURL(result.url())
             this.messageHelper.replyToInteraction(interaction, embed, false, true)
