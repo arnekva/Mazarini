@@ -2,6 +2,7 @@
 import { JsonDB } from 'node-json-db'
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
 import { IDailyPriceClaim } from '../commands/gamblingCommands'
+import { rocketLeagueDbData } from '../commands/gameCommands'
 import { CodBRStatsType, CodStats } from '../commands/warzoneCommands'
 
 const db = new JsonDB(new Config('myDataBase', true, true, '/'))
@@ -54,6 +55,8 @@ export interface MazariniUser {
     codStatsWarzone1?: CodBRStatsType | CodStats
     /** Username for activision. username;platform */
     activisionUserString?: string
+    /** Rocket League stats */
+    rocketLeagueStats?: rocketLeagueDbData
     /** Username for rocket league. username;platform */
     rocketLeagueUserString?: string
     /** Displayname */

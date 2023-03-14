@@ -34,6 +34,19 @@ interface rocketLeagueLifetime {
     assists?: string
     shots?: string
 }
+interface rocketLeagueMMR {
+    mmr1v1?: string
+    mmr2v2?: string
+    mmr3v3?: string
+}
+export interface rocketLeagueDbData {
+    stats: rocketLeagueLifetime
+    mmr: rocketLeagueMMR
+}
+const emptyStats: rocketLeagueDbData = {
+    stats: {wins: "0", goals: "0", mvp: "0", saves: "0", assists: "0", shots: "0"},
+    mmr: {mmr1v1: "0", mmr2v2: "0", mmr3v3: "0"}
+}
 const fetch = require('node-fetch')
 const striptags = require('striptags')
 const puppeteer = require('puppeteer')
@@ -252,22 +265,65 @@ export class GameCommands extends AbstractCommands {
                 threeVthree.mmr = segment?.stats?.rating?.value
             }
         }
+        let oldData = this.getUserStats(interaction)        
+        let mmrDiff = ''
         const msgContent = new EmbedBuilder().setTitle(`Rocket League - ${name}`)
         const statsType = interaction.options.get('modus')?.value as string
         if (statsType === '3v3') {
-            msgContent.addFields([{ name: `${threeVthree.modeName}`, value: `${threeVthree.rank} ${threeVthree.division} (${threeVthree.mmr})` }])
+            mmrDiff = this.compareOldNewStats(threeVthree.mmr, oldData.mmr?.mmr3v3, false)
+            msgContent.addFields([{ name: `${threeVthree.modeName}`, value: `${threeVthree.rank} ${threeVthree.division}\n${threeVthree.mmr} MMR ${mmrDiff}` }])
             if (threeVthree.iconURL) msgContent.setThumbnail(threeVthree.iconURL)
+            oldData.mmr.mmr3v3 = threeVthree.mmr
         } else if (statsType === '2v2') {
-            msgContent.addFields([{ name: `${twoVtwo.modeName}`, value: `${twoVtwo.rank} ${twoVtwo.division} (${twoVtwo.mmr})` }])
+            mmrDiff = this.compareOldNewStats(twoVtwo.mmr, oldData.mmr?.mmr2v2, false)
+            msgContent.addFields([{ name: `${twoVtwo.modeName}`, value: `${twoVtwo.rank} ${twoVtwo.division}\n${twoVtwo.mmr} MMR ${mmrDiff}` }])
             if (twoVtwo.iconURL) msgContent.setThumbnail(twoVtwo.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
+            oldData.mmr.mmr2v2 = twoVtwo.mmr
         } else if (statsType === '1v1') {
-            msgContent.addFields([{ name: `${oneVone.modeName}`, value: `${oneVone.rank} ${oneVone.division} (${oneVone.mmr})` }])
+            mmrDiff = this.compareOldNewStats(oneVone.mmr, oldData.mmr?.mmr1v1, false)
+            msgContent.addFields([{ name: `${oneVone.modeName}`, value: `${oneVone.rank} ${oneVone.division}\n${oneVone.mmr} MMR ${mmrDiff}` }])
             if (oneVone.iconURL) msgContent.setThumbnail(oneVone.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
+            oldData.mmr.mmr1v1 = oneVone.mmr
         } else {
-            msgContent.addFields([{ name: `Lifetime stats:`, value: `${lifetimeStats.goals} mål\n${lifetimeStats.wins} wins\n${lifetimeStats.shots} skudd` }])
+            const goalDiff = this.compareOldNewStats(lifetimeStats.goals, oldData.stats?.goals, false)
+            const winDiff = this.compareOldNewStats(lifetimeStats.wins, oldData.stats?.wins, false)
+            const shotsDiff = this.compareOldNewStats(lifetimeStats.shots, oldData.stats?.shots, false)
+            const savesDiff = this.compareOldNewStats(lifetimeStats.saves, oldData.stats?.saves, false)
+            const assistsDiff = this.compareOldNewStats(lifetimeStats.assists, oldData.stats?.assists, false)
+            msgContent.addFields([
+                { name: `Lifetime stats:`, 
+                 value: `${lifetimeStats.wins} wins ${winDiff}
+                         ${lifetimeStats.goals} goals ${goalDiff}
+                         ${lifetimeStats.assists} assists ${assistsDiff}
+                         ${lifetimeStats.shots} shots ${shotsDiff}
+                         ${lifetimeStats.saves} saves ${savesDiff}` }])
+            oldData.stats = lifetimeStats
         }
-
+        this.saveUserStats(interaction, oldData)
         interaction.editReply({ embeds: [msgContent] })
+    }
+
+    private compareOldNewStats(current?: string | Number | undefined, storedData?: string | number | undefined, ignoreCompare?: boolean) {        
+        if (!current || !storedData) return ''
+        if (ignoreCompare) return ''
+        const currentStats = Number(current)
+        const oldStorageStats = Number(storedData)
+        const value = currentStats - oldStorageStats
+        if (currentStats > oldStorageStats) return ` (+${parseFloat(Number(value).toFixed(3))})`
+        if (currentStats < oldStorageStats) return ` (${parseFloat(Number(value).toFixed(3))})`
+        return ``
+    }
+
+    private saveUserStats(interaction: ChatInputCommandInteraction<CacheType>, stats: rocketLeagueDbData) {
+        const user = DatabaseHelper.getUser(interaction.user.id)
+        user.rocketLeagueStats = stats
+        DatabaseHelper.updateUser(user)
+    }
+
+    private getUserStats(interaction: ChatInputCommandInteraction<CacheType>) {
+        const user = DatabaseHelper.getUser(interaction.user.id)
+        if (user.rocketLeagueStats === undefined) return emptyStats
+        return user.rocketLeagueStats
     }
 
     public getAllCommands(): ICommandElement[] {
