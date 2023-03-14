@@ -5,14 +5,13 @@ import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 import { MessageUtils } from './utils/messageUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '10.14.1'
+    public static readonly currentVersion = '10.14.2'
     public static readonly nextVersion = 'Backlog'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
-    public static readonly currentPatchNotes: string = `\n* Du kan nå søke etter ting på Wikipedia ved å bruke /wiki
-                                                          * Lagrer nå Rocket League stats`
+    public static readonly currentPatchNotes: string = `\n* Fikset /rocket lifetime formattering`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
