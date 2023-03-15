@@ -174,7 +174,7 @@ export class GameCommands extends AbstractCommands {
 
         // return
         if (!user) {
-            this.messageHelper.replyToInteraction(interaction, "Du må linke Rocket League kontoen din. Bruk '/link rocket <psn|xbl|steam|epic> <brukernavn>'")
+            return this.messageHelper.replyToInteraction(interaction, "Du må linke Rocket League kontoen din. Bruk '/link rocket <psn|xbl|steam|epic> <brukernavn>'")
         }
         await interaction.deferReply()
         const platform = user[0]
@@ -267,32 +267,32 @@ export class GameCommands extends AbstractCommands {
                 threeVthree.mmr = segment?.stats?.rating?.value
             }
         }
-        let oldData = this.getUserStats(interaction)        
+        let userData = this.getUserStats(interaction)        
         let mmrDiff = ''
         const msgContent = new EmbedBuilder().setTitle(`Rocket League - ${name}`)
         const statsType = interaction.options.get('modus')?.value as string
         if (statsType === '3v3') {
-            mmrDiff = this.compareOldNewStats(threeVthree.mmr, oldData.mmr?.mmr3v3, false)
+            mmrDiff = this.compareOldNewStats(threeVthree.mmr, userData.mmr?.mmr3v3, false)
             msgContent.addFields([{ name: `${threeVthree.modeName}`, value: `${threeVthree.rank} ${threeVthree.division}\n${threeVthree.mmr} MMR ${mmrDiff}` }])
             if (threeVthree.iconURL) msgContent.setThumbnail(threeVthree.iconURL)
-            oldData.mmr.mmr3v3 = threeVthree.mmr
+            userData.mmr.mmr3v3 = threeVthree.mmr
         } else if (statsType === '2v2') {
-            mmrDiff = this.compareOldNewStats(twoVtwo.mmr, oldData.mmr?.mmr2v2, false)
+            mmrDiff = this.compareOldNewStats(twoVtwo.mmr, userData.mmr?.mmr2v2, false)
             msgContent.addFields([{ name: `${twoVtwo.modeName}`, value: `${twoVtwo.rank} ${twoVtwo.division}\n${twoVtwo.mmr} MMR ${mmrDiff}` }])
             if (twoVtwo.iconURL) msgContent.setThumbnail(twoVtwo.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
-            oldData.mmr.mmr2v2 = twoVtwo.mmr
+            userData.mmr.mmr2v2 = twoVtwo.mmr
         } else if (statsType === '1v1') {
-            mmrDiff = this.compareOldNewStats(oneVone.mmr, oldData.mmr?.mmr1v1, false)
+            mmrDiff = this.compareOldNewStats(oneVone.mmr, userData.mmr?.mmr1v1, false)
             msgContent.addFields([{ name: `${oneVone.modeName}`, value: `${oneVone.rank} ${oneVone.division}\n${oneVone.mmr} MMR ${mmrDiff}` }])
             if (oneVone.iconURL) msgContent.setThumbnail(oneVone.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
-            oldData.mmr.mmr1v1 = oneVone.mmr
+            userData.mmr.mmr1v1 = oneVone.mmr
         } else {
-            const goalDiff = this.compareOldNewStats(lifetimeStats.goals, oldData.stats?.goals, false)
-            const winDiff = this.compareOldNewStats(lifetimeStats.wins, oldData.stats?.wins, false)
-            const shotsDiff = this.compareOldNewStats(lifetimeStats.shots, oldData.stats?.shots, false)
-            const savesDiff = this.compareOldNewStats(lifetimeStats.saves, oldData.stats?.saves, false)
-            const assistsDiff = this.compareOldNewStats(lifetimeStats.assists, oldData.stats?.assists, false)
-            const goalShotRatioDiff = this.compareOldNewStats(lifetimeStats.goalShotRatio, oldData.stats?.goalShotRatio, false)
+            const goalDiff = this.compareOldNewStats(lifetimeStats.goals, userData.stats?.goals, false)
+            const winDiff = this.compareOldNewStats(lifetimeStats.wins, userData.stats?.wins, false)
+            const shotsDiff = this.compareOldNewStats(lifetimeStats.shots, userData.stats?.shots, false)
+            const savesDiff = this.compareOldNewStats(lifetimeStats.saves, userData.stats?.saves, false)
+            const assistsDiff = this.compareOldNewStats(lifetimeStats.assists, userData.stats?.assists, false)
+            const goalShotRatioDiff = this.compareOldNewStats(lifetimeStats.goalShotRatio, userData.stats?.goalShotRatio, false)
             msgContent.setDescription("Lifetime stats")
             msgContent.addFields([
                 { name: "Wins", value: lifetimeStats.wins + ' ' + winDiff, inline: true},
@@ -302,10 +302,11 @@ export class GameCommands extends AbstractCommands {
                 { name: "Saves", value: lifetimeStats.saves + ' ' + savesDiff, inline: true},
                 { name: "Goal/Shot Ratio", value: lifetimeStats.goalShotRatio + '% ' + goalShotRatioDiff, inline: true}
             ])
-            oldData.stats = lifetimeStats
+            userData.stats = lifetimeStats
         }
-        this.saveUserStats(interaction, oldData)
+        this.saveUserStats(interaction, userData)
         interaction.editReply({ embeds: [msgContent] })
+        return true
     }
 
     private compareOldNewStats(current?: string | Number | undefined, storedData?: string | number | undefined, ignoreCompare?: boolean) {        
