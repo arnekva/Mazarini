@@ -266,7 +266,8 @@ export class CommandRunner {
                 if (this.polseRegex.exec(message.attachments.first()?.name ?? '')) polseCounter++
             }
 
-            if (polseCounter > 0) message.channel.send('Hæ, ' + (polseCounter > 1 ? polseCounter + ' ' : '') + 'pølse' + (polseCounter > 1 ? 'r' : '') + '?')
+            if (polseCounter > 0)
+                message.channel.send('Heisann, ' + (polseCounter > 1 ? polseCounter + ' ' : '') + 'pølse' + (polseCounter > 1 ? 'r' : '') + '?')
 
             //If eivind, eivindpride him
             if (message.author.id == '239154365443604480' && message.guild) {
