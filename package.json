@@ -4,7 +4,7 @@
     "description": "",
     "scripts": {
         "start": "nodemon index.ts --ignore myDataBase.json",
-        "start:bg": "pm2 --name mazarini start index.ts ",
+        "start:bg": "pm2 --name mazarini start index.ts",
         "start:crashed": "pm2 delete mazarini  && pm2 --name mazarini start index.ts -a crashed",
         "stop:bg": "pm2 delete mazarini --no-treekill",
         "test": "mocha -r ts-node/register 'tests/**/*.ts'",
@@ -42,7 +42,6 @@
         "nodemon": "^2.0.7",
         "npm": "latest",
         "opusscript": "^0.0.8",
-        "pm2": "^5.2.0",
         "pm2-axon": "^4.0.1",
         "puppeteer": "^13.5.1",
         "request": "^2.88.2",
@@ -67,6 +66,7 @@
         "eslint-config-airbnb": "^18.2.1",
         "eslint-import-resolver-typescript": "^2.4.0",
         "mocha": "^9.2.2",
+        "pm2": "^5.3.0",
         "prettier": "^2.3.0",
         "prettier-plugin-organize-imports": "^2.0.0",
         "ts-node": "^10.7.0"

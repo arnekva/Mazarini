@@ -75,6 +75,7 @@ export class MazariniClient {
         MazariniClient.startTime = new Date()
         MazariniClient.numMessages = 0
         this.isTest = environment === 'dev'
+        this.jobScheduler = new JobScheduler(this.messageHelper)
     }
 
     async initClient() {
@@ -107,7 +108,6 @@ export class MazariniClient {
             ClientHelper.setStatusFromStorage(client)
 
             /** SCHEDULED JOBS - resets every day at 06:00 */
-            this.jobScheduler = new JobScheduler(_msgHelper)
 
             // const guild = client.guilds.cache.find((g: Guild) => g.id === '340626855990132747') as Guild
             // const bot = guild.members.cache.find((member) => member.id === '802945796457758760')
@@ -212,7 +212,7 @@ export class MazariniClient {
         client.on('messageUpdate', function (oldMessage: Message | PartialMessage, newMessage: Message | PartialMessage) {
             if (!newMessage.pinned && !oldMessage.pinned && !!newMessage.author) {
                 _mzClient.commandRunner.checkMessageForJokes(newMessage as Message)
-                if (newMessage.content.startsWith('/') && !newMessage.content.startsWith('//')) {
+                if (newMessage.content && newMessage.content.startsWith('/') && !newMessage.content.startsWith('//')) {
                     //Dont trigger on TODO's
                     newMessage.reply(
                         'Du kan ikkje gjør ein slash-command når du redigere ein melding. Du må senda ein ny melding for å trigga commanden. Skyld på Discord for dårlig UX her, ikkje meg'

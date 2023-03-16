@@ -1,3 +1,4 @@
+import { exec } from 'child_process'
 import { ActivityType, APIInteractionGuildMember, CacheType, ChatInputCommandInteraction, Client, GuildMember, Message, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'
@@ -12,8 +13,8 @@ import { ObjectUtils } from '../utils/objectUtils'
 import { TextUtils } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
 const { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js')
-const { exec } = require('child_process')
-const { spawn } = require('node:child_process')
+// const { exec } = require('child_process')
+// const { spawn } = require('node:child_process')
 const pm2 = require('pm2')
 
 export class Admin extends AbstractCommands {
