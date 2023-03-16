@@ -13,6 +13,7 @@ import { TextUtils } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
 const { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js')
 const { exec } = require('child_process')
+const { spawn } = require('node:child_process')
 const pm2 = require('pm2')
 
 export class Admin extends AbstractCommands {
@@ -409,19 +410,22 @@ export class Admin extends AbstractCommands {
         let restartMsg = 'Forsøker å restarte botten'
         const msg = await this.messageHelper.sendMessageToActionLog(restartMsg)
 
+        this.messageHelper.sendMessageToActionLog(`Restarter botten ...`)
+        const restart = spawn('npm run restart', ['-lh', '/usr'], { detached: true })
+
         //Execute the git pull command to get new data from github
-        await exec('git pull', async (error, stdout, stderr) => {
-            if (error) {
-                restartMsg += `\nKlarte ikke restarte: \n${error}`
-                msg.edit(restartMsg)
-            }
-            if (stdout) {
-                restartMsg += `\n* Hentet data fra git`
-                await msg.edit(restartMsg)
-            }
-            //When command has been executed, kill the pm2 process causing it to restart.
-            pm2.reload(`mazarini`, () => {})
-        })
+        // await exec('git pull', async (error, stdout, stderr) => {
+        //     if (error) {
+        //         restartMsg += `\nKlarte ikke restarte: \n${error}`
+        //         msg.edit(restartMsg)
+        //     }
+        //     if (stdout) {
+        //         restartMsg += `\n* Hentet data fra git`
+        //         await msg.edit(restartMsg)
+        //     }
+        //     //When command has been executed, kill the pm2 process causing it to restart.
+        //     pm2.reload(`mazarini`, () => {})
+        // })
     }
 
     public getAllCommands(): ICommandElement[] {
