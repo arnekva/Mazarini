@@ -76,6 +76,7 @@ export class MazariniClient {
         MazariniClient.numMessages = 0
         this.isTest = environment === 'dev'
         this.jobScheduler = new JobScheduler(this.messageHelper)
+        this.errorHandler = new ErrorHandler(this.messageHelper)
     }
 
     async initClient() {
@@ -113,7 +114,6 @@ export class MazariniClient {
             // const bot = guild.members.cache.find((member) => member.id === '802945796457758760')
             // bot?.setNickname(environment === 'dev' ? 'Bot Høie (TEST)' : 'Bot Høie')
 
-            this.errorHandler = new ErrorHandler(_msgHelper)
             this.errorHandler.launchBusListeners()
         })
 
