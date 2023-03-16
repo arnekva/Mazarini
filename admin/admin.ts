@@ -409,11 +409,16 @@ export class Admin extends AbstractCommands {
         let restartMsg = 'Forsøker å restarte botten'
         const msg = await this.messageHelper.sendMessageToActionLog(restartMsg)
 
-        exec('npm run stop:bg && git pull && npm run start:bg', (error, stdout, stderr) => {
+        await exec('git pull', async (error, stdout, stderr) => {
             if (error) {
                 restartMsg += `\nKlarte ikke restarte: \n${error}`
                 msg.edit(restartMsg)
             }
+            if (stdout) {
+                restartMsg += `Hentet data fra git`
+                await msg.edit(restartMsg)
+            }
+            pm2.kill(`mazarini`, 'SIGINT')
         })
     }
 
