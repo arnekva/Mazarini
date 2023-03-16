@@ -412,12 +412,12 @@ export class Admin extends AbstractCommands {
         const msg = await this.messageHelper.sendMessageToActionLog(restartMsg)
 
         this.messageHelper.sendMessageToActionLog(
-            `Restart trigger av ${interaction.user.username} i kanalen ${MentionUtils.mentionChannel(
+            `Restart trigget av ${interaction.user.username} i kanalen ${MentionUtils.mentionChannel(
                 interaction.channelId
             )}. Henter data fra Git og restarter botten ...`
         )
 
-        await exec('git pull && pm2 restart mazarini -- restartedForGit', async (error, stdout, stderr) => {
+        await exec('git pull && pm2 restart mazarini -- -restartedForGit', async (error, stdout, stderr) => {
             if (error) {
                 restartMsg += `\nKlarte ikke restarte: \n${error}`
                 msg.edit(restartMsg)
