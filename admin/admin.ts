@@ -406,12 +406,13 @@ export class Admin extends AbstractCommands {
     }
 
     private async restartBot(interaction: ChatInputCommandInteraction<CacheType>) {
-        this.messageHelper.replyToInteraction(interaction, `Forsøker å restarte botten`, true)
+        this.messageHelper.replyToInteraction(interaction, `Forsøker å restarte botten`)
         let restartMsg = 'Forsøker å restarte botten'
         const msg = await this.messageHelper.sendMessageToActionLog(restartMsg)
 
         this.messageHelper.sendMessageToActionLog(`Restarter botten ...`)
-        const restart = spawn('npm run restart', [], { detached: true, stdio: ['ignore'] })
+
+        const restart = spawn('npm run restart', [], { detached: true, stdio: ['ignore'], shell: true })
 
         //Execute the git pull command to get new data from github
         // await exec('git pull', async (error, stdout, stderr) => {
