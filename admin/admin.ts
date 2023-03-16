@@ -411,7 +411,7 @@ export class Admin extends AbstractCommands {
         const msg = await this.messageHelper.sendMessageToActionLog(restartMsg)
 
         this.messageHelper.sendMessageToActionLog(`Restarter botten ...`)
-        const restart = spawn('npm run restart', ['-lh', '/usr'], { detached: true })
+        const restart = spawn('npm run restart', [], { detached: true, stdio: ['ignore'] })
 
         //Execute the git pull command to get new data from github
         // await exec('git pull', async (error, stdout, stderr) => {
