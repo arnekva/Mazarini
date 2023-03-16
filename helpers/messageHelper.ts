@@ -213,8 +213,8 @@ export class MessageHelper {
 
     sendMessageToActionLog(msg: string) {
         const errorChannel = this.client.channels.cache.get('810832760364859432') as TextChannel
-        errorChannel.send(msg)
         MazariniClient.numMessagesNumErrorMessages++
+        return errorChannel.send(msg)
     }
     sendFormattedMessageToActionLog(title: string, description: string, msg?: RestOrArray<APIEmbedField>) {
         const embed = new EmbedBuilder().setTitle(`${title}`).setDescription(`${description}`)

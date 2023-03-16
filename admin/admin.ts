@@ -12,7 +12,7 @@ import { ObjectUtils } from '../utils/objectUtils'
 import { TextUtils } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
 const { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js')
-
+const { exec } = require('child_process')
 const pm2 = require('pm2')
 
 export class Admin extends AbstractCommands {
@@ -404,6 +404,21 @@ export class Admin extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, `${user.username} har mottatt en ${type} reward på ${chips} på grunn av *${reason}*`)
     }
 
+    private async restartBot(interaction: ChatInputCommandInteraction<CacheType>) {
+        this.messageHelper.replyToInteraction(interaction, `Forsøker å restarte botten`, true)
+        let restartMsg = 'Forsøker å restarte botten'
+        const msg = await this.messageHelper.sendMessageToActionLog(restartMsg)
+        exec('ls', (error, stdout, stderr) => {
+            if (error) {
+                restartMsg += `\nKlarte ikke restarte: \n${error}`
+                msg.edit(restartMsg)
+            }
+            if (stdout) {
+                this.messageHelper.sendMessage(interaction.channelId, stdout)
+            }
+        })
+    }
+
     public getAllCommands(): ICommandElement[] {
         return [
             {
@@ -493,6 +508,13 @@ export class Admin extends AbstractCommands {
                     this.messageHelper.replyToInteraction(rawInteraction, `Forsøker å stoppe botten. Rip meg`)
                     pm2?.killDaemon()
                     pm2?.disconnect()
+                },
+            },
+            {
+                commandName: 'restart',
+                category: 'admin',
+                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    this.restartBot(rawInteraction)
                 },
             },
         ]
