@@ -413,7 +413,7 @@ export class Admin extends AbstractCommands {
 
         this.messageHelper.sendMessageToActionLog(`Restarter botten ...`)
 
-        await exec('git pull', async (error, stdout, stderr) => {
+        await exec('git pull && pm2 restart mazarini', async (error, stdout, stderr) => {
             if (error) {
                 restartMsg += `\nKlarte ikke restarte: \n${error}`
                 msg.edit(restartMsg)
@@ -422,16 +422,6 @@ export class Admin extends AbstractCommands {
                 restartMsg += `\n* Hentet data fra git`
                 await msg.edit(restartMsg)
             }
-            //When command has been executed, kill the pm2 process causing it to restart.
-            pm2.connect(function (err) {
-                if (err) {
-                    console.error('PM2 FAILED TO CONNECT:', err)
-                } else {
-                    pm2.restart('mazarini', { treekill: false }, function () {})
-                }
-            })
-
-            pm2.disconnect()
         })
     }
 
