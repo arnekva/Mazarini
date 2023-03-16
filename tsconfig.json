@@ -1,17 +1,25 @@
 {
     "compilerOptions": {
         "target": "es6",
-        "lib": ["es2016", "dom"],
+        "lib": [
+            "es2016",
+            "dom"
+        ],
         "outDir": "bin",
         "module": "commonjs",
         "removeComments": true,
         "moduleResolution": "node",
-        "typeRoots": ["node_modules/@types/"],
-        "types": ["node"],
+        "typeRoots": [
+            "node_modules/@types/"
+        ],
+        "types": [
+            "node"
+        ],
         "esModuleInterop": true,
         "downlevelIteration": true,
         "noImplicitThis": true,
-        "noImplicitReturns": true
+        "noImplicitReturns": true,
+        "strictNullChecks": false,
     },
     "formatterOptions": {
         "baseIndentSize": 0,
@@ -51,6 +59,10 @@
         "PlaceOpenBraceOnNewLineForControlBlocks": false,
         "InsertSpaceAfterTypeAssertion": true
     },
-    "include": ["**/*.ts"],
-    "exclude": ["node_modules"]
+    "include": [
+        "**/*.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
 }
