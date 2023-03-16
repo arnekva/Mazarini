@@ -94,7 +94,7 @@ export class CommandRunner {
                         }
                         //Make sure to add some text if field does not exist, since the embed will crash if a field is empty
                         //Also, in case a data value doesn't exist, we set it to "ukjent" for a better look
-                        embed.data.fields.forEach((f) => {
+                        embed?.data?.fields.forEach((f) => {
                             console.log(f.value)
 
                             if (!f.value) f.value = 'Ukjent'
@@ -102,7 +102,7 @@ export class CommandRunner {
                         })
 
                         //These image formats may exist: product, thumbnail, zoom, cartIcon and superZoom.
-                        const imageUrl = data.images.filter((img) => img.format === 'zoom')[0]?.url
+                        const imageUrl = data.images.filter((img: any) => img.format === 'zoom')[0]?.url
                         if (imageUrl) embed.setThumbnail(imageUrl)
                         embed.setURL(`https://www.vinmonopolet.no${data.url}`)
 

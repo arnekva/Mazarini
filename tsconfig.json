@@ -17,11 +17,10 @@
         ],
         "esModuleInterop": true,
         "downlevelIteration": true,
-        "noImplicitThis": true,
+        "noImplicitThis": false,
         "noImplicitReturns": false,
         "strictNullChecks": false,
-        
-
+        "noImplicitAny": false
     },
     "formatterOptions": {
         "baseIndentSize": 0,
