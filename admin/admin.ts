@@ -409,16 +409,18 @@ export class Admin extends AbstractCommands {
         let restartMsg = 'Forsøker å restarte botten'
         const msg = await this.messageHelper.sendMessageToActionLog(restartMsg)
 
+        //Execute the git pull command to get new data from github
         await exec('git pull', async (error, stdout, stderr) => {
             if (error) {
                 restartMsg += `\nKlarte ikke restarte: \n${error}`
                 msg.edit(restartMsg)
             }
             if (stdout) {
-                restartMsg += `Hentet data fra git`
+                restartMsg += `\n* Hentet data fra git`
                 await msg.edit(restartMsg)
             }
-            pm2.kill(`mazarini`, 'SIGINT')
+            //When command has been executed, kill the pm2 process causing it to restart.
+            pm2.exit(`mazarini`, 'SIGINT')
         })
     }
 
