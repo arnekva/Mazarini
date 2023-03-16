@@ -75,15 +75,15 @@ export class Spinner extends AbstractCommands {
         )
 
         if (min == 10 && sec == 59) {
-            this.messageHelper.sendMessage(interaction.channelId, 'gz med 10:59 bro')
+            this.messageHelper.sendMessage(interaction?.channelId, 'gz med 10:59 bro')
             user.chips += 975000000
 
-            this.messageHelper.sendMessage(interaction.channelId, 'Du får 975 000 000 chips for det der mannen')
+            this.messageHelper.sendMessage(interaction?.channelId, 'Du får 975 000 000 chips for det der mannen')
         } else if (min == 10) {
-            this.messageHelper.sendMessage(interaction.channelId, 'gz med 10 min bro')
+            this.messageHelper.sendMessage(interaction?.channelId, 'gz med 10 min bro')
             user.chips += 95000000
 
-            this.messageHelper.sendMessage(interaction.channelId, 'Du får 95 000 000 chips for det der mannen')
+            this.messageHelper.sendMessage(interaction?.channelId, 'Du får 95 000 000 chips for det der mannen')
         }
 
         DatabaseHelper.updateUser(user)

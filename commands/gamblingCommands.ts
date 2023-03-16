@@ -64,7 +64,7 @@ export class GamblingCommands extends AbstractCommands {
         } else {
             this.messageHelper.replyToInteraction(interaction, `Du har startet en krig mot ${target.username}`, true)
             await this.messageHelper.sendMessage(
-                interaction.channelId,
+                interaction?.channelId,
                 `${interaction.user.username} vil gå til krig med deg ${MentionUtils.mentionUser(
                     target.id
                 )} for ${amountAsNum} chips. Trykk på knappen for å godkjenne. Den som starter krigen ruller for 0-49.`
@@ -81,7 +81,7 @@ export class GamblingCommands extends AbstractCommands {
                     type: 2,
                 })
             )
-            await this.messageHelper.sendMessageWithComponents(interaction.channelId, [row])
+            await this.messageHelper.sendMessageWithComponents(interaction?.channelId, [row])
         }
     }
 
@@ -104,7 +104,7 @@ export class GamblingCommands extends AbstractCommands {
         } else {
             msgHelper.replyToInteraction(interaction, `Du har startet en krig mot ${target.username}`, true)
             await msgHelper.sendMessage(
-                interaction.channelId,
+                interaction?.channelId,
                 `${interaction.user.username} vil gå til krig med deg ${MentionUtils.mentionUser(
                     target.id
                 )} for ${amountAsNum} chips. Trykk på knappen for å godkjenne. Den som starter krigen ruller for 0-49.`
@@ -121,7 +121,7 @@ export class GamblingCommands extends AbstractCommands {
                     type: 2,
                 })
             )
-            await msgHelper.sendMessageWithComponents(interaction.channelId, [row])
+            await msgHelper.sendMessageWithComponents(interaction?.channelId, [row])
         }
     }
 

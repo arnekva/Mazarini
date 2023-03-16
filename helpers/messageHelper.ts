@@ -63,15 +63,15 @@ export class MessageHelper {
     ): Promise<boolean> {
         const handleError = async (e: any) => {
             let msg: Message<boolean> | undefined
-            if (typeof content === 'object') msg = await this.sendFormattedMessage(interaction.channelId, content)
-            else msg = await this.sendMessage(interaction.channelId, `${MentionUtils.mentionUser(interaction.user.id)} ${content}`)
+            if (typeof content === 'object') msg = await this.sendFormattedMessage(interaction?.channelId, content)
+            else msg = await this.sendMessage(interaction?.channelId, `${MentionUtils.mentionUser(interaction.user.id)} ${content}`)
 
             let msgInfo = msg ? `Sendte en separat melding i stedet for interaksjonssvar.` : `Klarte heller ikke sende separat melding som svar`
 
             this.sendMessageToActionLog(
                 `Klarte ikke svare på en interaction. ${interaction.user.username} prøvde å bruke ${
                     interaction.isChatInputCommand() ? interaction.commandName : '<ikke command>'
-                } i kanalen ${MentionUtils.mentionChannel(interaction.channelId)}. \n${msgInfo}`
+                } i kanalen ${MentionUtils.mentionChannel(interaction?.channelId)}. \n${msgInfo}`
             )
         }
         if (!interaction.replied) {

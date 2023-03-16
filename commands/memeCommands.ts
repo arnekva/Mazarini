@@ -16,7 +16,7 @@ export class Meme extends AbstractCommands {
         if (meme == 'timmy') return await this.createMeme('26433458', interaction)
         if (meme == 'sjosyk') {
             this.messageHelper.replyToInteraction(interaction, 'Fant memen din bro', true)
-            return await this.messageHelper.sendMessage(interaction.channelId, 'https://i.imgur.com/ka7SslJ.jpg')
+            return await this.messageHelper.sendMessage(interaction?.channelId, 'https://i.imgur.com/ka7SslJ.jpg')
         }
     }
 
@@ -75,7 +75,7 @@ export class Meme extends AbstractCommands {
                 .then((res: any) => {
                     res.json()
                         .then((el: any) => {
-                            if (el.data) this.messageHelper.sendMessage(interaction.channelId, el.data.url)
+                            if (el.data) this.messageHelper.sendMessage(interaction?.channelId, el.data.url)
                             this.messageHelper.replyToInteraction(interaction, `Lagde et meme te deg bro`, true, true)
                         })
                         .catch((error: any) => {

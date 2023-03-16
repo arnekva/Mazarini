@@ -126,7 +126,7 @@ export class CommandRunner {
         } else {
             uId = interaction.user.id
         }
-        channelId = interaction.channelId
+        channelId = interaction?.channelId
         if (Admin.isAuthorAdmin(UserUtils.findMemberByUserID(uId, interaction))) {
             //Always allow admins to carry out interactions - this includes unlocking
             return false
@@ -327,10 +327,10 @@ export class CommandRunner {
     isLegalChannel(interaction: Interaction | Message) {
         return (
             (environment === 'dev' &&
-                (interaction.channel.id === MessageUtils.CHANNEL_IDs.LOKAL_BOT_SPAM ||
-                    interaction.channel.id === MessageUtils.CHANNEL_IDs.STATS_SPAM ||
-                    interaction.channel.id === MessageUtils.CHANNEL_IDs.GODMODE)) ||
-            (environment === 'prod' && interaction.channel.id !== MessageUtils.CHANNEL_IDs.LOKAL_BOT_SPAM)
+                (interaction?.channel.id === MessageUtils.CHANNEL_IDs.LOKAL_BOT_SPAM ||
+                    interaction?.channel.id === MessageUtils.CHANNEL_IDs.STATS_SPAM ||
+                    interaction?.channel.id === MessageUtils.CHANNEL_IDs.GODMODE)) ||
+            (environment === 'prod' && interaction?.channel.id !== MessageUtils.CHANNEL_IDs.LOKAL_BOT_SPAM)
         )
     }
 }

@@ -60,7 +60,7 @@ export class UserCommands extends AbstractCommands {
             )
         })
         this.messageHelper.replyToInteraction(interaction, `Trykk på knappene under for å få rollene`)
-        await this.messageHelper.sendMessageWithComponents(interaction.channelId, [row])
+        await this.messageHelper.sendMessageWithComponents(interaction?.channelId, [row])
     }
 
     private setStatus(interaction: ChatInputCommandInteraction<CacheType>) {

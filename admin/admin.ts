@@ -382,10 +382,10 @@ export class Admin extends AbstractCommands {
             locked = !LockingHandler.getbotLocked()
             LockingHandler.setBotLocked(!LockingHandler.getbotLocked())
         } else if (isChannel) {
-            if (LockingHandler.getlockedThread().includes(interaction.channelId)) {
-                LockingHandler.removeThread(interaction.channelId)
-            } else LockingHandler.setLockedThread(interaction.channelId)
-            locked = LockingHandler.getlockedThread().includes(interaction.channelId)
+            if (LockingHandler.getlockedThread().includes(interaction?.channelId)) {
+                LockingHandler.removeThread(interaction?.channelId)
+            } else LockingHandler.setLockedThread(interaction?.channelId)
+            locked = LockingHandler.getlockedThread().includes(interaction?.channelId)
         } else if (isUser) {
             if (LockingHandler.getlockedUser().includes(user?.id)) {
                 LockingHandler.removeUserLock(user.id)
@@ -459,7 +459,7 @@ export class Admin extends AbstractCommands {
                     if (Admin.isAuthorAdmin(rawInteraction.member)) {
                         this.buildSendModal(rawInteraction)
                         this.messageHelper.sendMessageToActionLog(
-                            `${rawInteraction.user.username} trigget 'send' fra ${MentionUtils.mentionChannel(rawInteraction.channelId)}.`
+                            `${rawInteraction.user.username} trigget 'send' fra ${MentionUtils.mentionChannel(rawInteraction?.channelId)}.`
                         )
                     } else rawInteraction.reply({ content: 'Du har ikke rettighetene til å gjøre dette', ephemeral: true })
                 },

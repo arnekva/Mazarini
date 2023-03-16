@@ -1,4 +1,4 @@
-import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Message, TextChannel } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'
 import { ICommandElement, IInteractionElement } from '../general/commands'
@@ -7,7 +7,6 @@ import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { RandomUtils } from '../utils/randomUtils'
 import { SoundUtils } from '../utils/soundUtils'
-import { TextUtils } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
 
 interface dropCoordinate {
@@ -45,8 +44,8 @@ export interface rocketLeagueDbData {
     mmr: rocketLeagueMMR
 }
 const emptyStats: rocketLeagueDbData = {
-    stats: {wins: "0", goals: "0", mvp: "0", saves: "0", assists: "0", shots: "0", goalShotRatio: "0"},
-    mmr: {mmr1v1: "0", mmr2v2: "0", mmr3v3: "0"}
+    stats: { wins: '0', goals: '0', mvp: '0', saves: '0', assists: '0', shots: '0', goalShotRatio: '0' },
+    mmr: { mmr1v1: '0', mmr2v2: '0', mmr3v3: '0' },
 }
 const fetch = require('node-fetch')
 const striptags = require('striptags')
@@ -167,14 +166,16 @@ export class GameCommands extends AbstractCommands {
     }
 
     private async rocketLeagueRanks(interaction: ChatInputCommandInteraction<CacheType>) {
-
         const userValue = DatabaseHelper.getUser(interaction.user.id).rocketLeagueUserString
         let user
         if (userValue) user = userValue.split(';')
 
         // return
         if (!user) {
-            return this.messageHelper.replyToInteraction(interaction, "Du må linke Rocket League kontoen din. Bruk '/link rocket <psn|xbl|steam|epic> <brukernavn>'")
+            return this.messageHelper.replyToInteraction(
+                interaction,
+                "Du må linke Rocket League kontoen din. Bruk '/link rocket <psn|xbl|steam|epic> <brukernavn>'"
+            )
         }
         await interaction.deferReply()
         const platform = user[0]
@@ -207,14 +208,14 @@ export class GameCommands extends AbstractCommands {
             interaction.editReply(`Access denied.`)
             this.messageHelper.sendMessageToActionLog(
                 `api.tracker.gg for Rocket League gir Access Denied. Melding stammer fra ${interaction.user.username} i ${
-                    (interaction.channel as TextChannel).name
+                    (interaction?.channel as TextChannel).name
                 }`
             )
         }
 
         const response = JSON.parse(striptags(content))
         if (!response.data) {
-            interaction.editReply("Fant ikke data")
+            interaction.editReply('Fant ikke data')
             // return this.messageHelper.sendMessageToActionLogWithCustomMessage(
             //     rawMessage,
             //     'Fant ikke data',
@@ -229,12 +230,12 @@ export class GameCommands extends AbstractCommands {
         let oneVone: rocketLeagueStats = {}
         let lifetimeStats: rocketLeagueLifetime = {}
         if (!segments) {
-            interaction.editReply("Fetch til Rocket League API feilet")
+            interaction.editReply('Fetch til Rocket League API feilet')
             // return this.messageHelper.sendMessageToActionLogWithCustomMessage(rawMessage, 'Fetch til Rocket League API feilet', 'Her har noe gått galt', false)
         }
         for (const segment of segments) {
             if (!segment) {
-                interaction.editReply("Fetch til Rocket League API feilet")
+                interaction.editReply('Fetch til Rocket League API feilet')
                 // this.messageHelper.sendMessageToActionLogWithCustomMessage(rawMessage, 'Fetch til Rocket League API feilet', 'Her har noe gått galt', true)
                 break
             }
@@ -267,7 +268,7 @@ export class GameCommands extends AbstractCommands {
                 threeVthree.mmr = segment?.stats?.rating?.value
             }
         }
-        let userData = this.getUserStats(interaction)        
+        let userData = this.getUserStats(interaction)
         let mmrDiff = ''
         const msgContent = new EmbedBuilder().setTitle(`Rocket League - ${name}`)
         const statsType = interaction.options.get('modus')?.value as string
@@ -293,14 +294,14 @@ export class GameCommands extends AbstractCommands {
             const savesDiff = this.compareOldNewStats(lifetimeStats.saves, userData.stats?.saves, false)
             const assistsDiff = this.compareOldNewStats(lifetimeStats.assists, userData.stats?.assists, false)
             const goalShotRatioDiff = this.compareOldNewStats(lifetimeStats.goalShotRatio, userData.stats?.goalShotRatio, false)
-            msgContent.setDescription("Lifetime stats")
+            msgContent.setDescription('Lifetime stats')
             msgContent.addFields([
-                { name: "Wins", value: lifetimeStats.wins + ' ' + winDiff, inline: true},
-                { name: "Goals", value: lifetimeStats.goals + ' ' + goalDiff, inline: true},
-                { name: "Assists", value: lifetimeStats.assists + ' ' + assistsDiff, inline: true},
-                { name: "Shots", value: lifetimeStats.shots + ' ' + shotsDiff, inline: true},
-                { name: "Saves", value: lifetimeStats.saves + ' ' + savesDiff, inline: true},
-                { name: "Goal/Shot Ratio", value: lifetimeStats.goalShotRatio + '% ' + goalShotRatioDiff, inline: true}
+                { name: 'Wins', value: lifetimeStats.wins + ' ' + winDiff, inline: true },
+                { name: 'Goals', value: lifetimeStats.goals + ' ' + goalDiff, inline: true },
+                { name: 'Assists', value: lifetimeStats.assists + ' ' + assistsDiff, inline: true },
+                { name: 'Shots', value: lifetimeStats.shots + ' ' + shotsDiff, inline: true },
+                { name: 'Saves', value: lifetimeStats.saves + ' ' + savesDiff, inline: true },
+                { name: 'Goal/Shot Ratio', value: lifetimeStats.goalShotRatio + '% ' + goalShotRatioDiff, inline: true },
             ])
             userData.stats = lifetimeStats
         }
@@ -309,7 +310,7 @@ export class GameCommands extends AbstractCommands {
         return true
     }
 
-    private compareOldNewStats(current?: string | Number | undefined, storedData?: string | number | undefined, ignoreCompare?: boolean) {        
+    private compareOldNewStats(current?: string | Number | undefined, storedData?: string | number | undefined, ignoreCompare?: boolean) {
         if (!current || !storedData) return ''
         if (ignoreCompare) return ''
         const currentStats = Number(current)

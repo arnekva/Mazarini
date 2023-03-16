@@ -51,7 +51,7 @@ export class ButtonHandler {
                 this.handleElectricityReset(interaction)
             } else if (interaction.customId.startsWith(ButtonHandler.TEST)) {
                 this.test(interaction)
-            } 
+            }
 
             return true
         }
@@ -183,7 +183,7 @@ export class ButtonHandler {
                       ]
 
                 this.messageHelper.sendMessage(
-                    interaction.channelId,
+                    interaction?.channelId,
                     `${MentionUtils.mentionUser(engager.id)} ${MentionUtils.mentionUser(interaction.user.id)}`
                 )
                 const gambling = new EmbedBuilder().setTitle('⚔️ Krig ⚔️').setDescription(`${description}`)
@@ -218,7 +218,7 @@ export class ButtonHandler {
                             type: 2,
                         })
                     )
-                    await this.messageHelper.sendMessageWithComponents(interaction.channelId, [rematchRow])
+                    await this.messageHelper.sendMessageWithComponents(interaction?.channelId, [rematchRow])
                 }
             }
         } else {
@@ -236,7 +236,7 @@ export class ButtonHandler {
         }
     }
 
-    private test (interaction: ButtonInteraction<CacheType>) {
+    private test(interaction: ButtonInteraction<CacheType>) {
         this.testCommands.test(interaction)
     }
 }

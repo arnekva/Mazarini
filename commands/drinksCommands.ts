@@ -1,4 +1,14 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Message } from 'discord.js'
+import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonInteraction,
+    ButtonStyle,
+    CacheType,
+    ChatInputCommandInteraction,
+    Client,
+    EmbedBuilder,
+    Message,
+} from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../general/commands'
 import { ButtonHandler } from '../handlers/buttonHandler'
@@ -68,10 +78,10 @@ resetDeckButtonRow.addComponents(
 )
 
 const testData = [
-    {name:"PhedeSpelar", id: 0, card:{number:"", suite:"", printString:""}, mates: []},
-    {name:"Eivind", id: 1, card:{number:"", suite:"", printString:""}, mates: []},
-    {name:"Deadmaggi", id: 2, card:{number:"", suite:"", printString:""}, mates: []}
-];
+    { name: 'PhedeSpelar', id: 0, card: { number: '', suite: '', printString: '' }, mates: [] },
+    { name: 'Eivind', id: 1, card: { number: '', suite: '', printString: '' }, mates: [] },
+    { name: 'Deadmaggi', id: 2, card: { number: '', suite: '', printString: '' }, mates: [] },
+]
 
 export class DrinksCommands extends AbstractCommands {
     private playerList: IUserObject[]
@@ -219,11 +229,11 @@ export class DrinksCommands extends AbstractCommands {
     }
 
     public drawCard(interaction: ButtonInteraction<CacheType>) {
-        if (this.playerList.find(player => player.name == interaction.user.username)) {
+        if (this.playerList.find((player) => player.name == interaction.user.username)) {
             let card: string = this.deck.drawCard()
             if (card == 'Kortstokken er tom for kort') {
-                this.messageHelper.replyToInteraction(interaction, "Kortstokken er tom. Bruk knappen under dersom dere vil fortsette.")
-                this.messageHelper.sendMessageWithComponents(interaction.channelId, [resetDeckButtonRow])
+                this.messageHelper.replyToInteraction(interaction, 'Kortstokken er tom. Bruk knappen under dersom dere vil fortsette.')
+                this.messageHelper.sendMessageWithComponents(interaction?.channelId, [resetDeckButtonRow])
             } else {
                 const currentPlayer = this.getUserObjectById(this.turn)
                 this.turn = (this.turn + 1) % this.playerList.length
@@ -238,34 +248,29 @@ export class DrinksCommands extends AbstractCommands {
     }
 
     private updateActiveGameMessage(mustDrink: Array<IUserObject>, currentPlayer: IUserObject) {
-        let formattedMsg = new EmbedBuilder()
-                .setTitle('Electricity ⚡')
-                .setDescription("Kort på bordet:")
-        
+        let formattedMsg = new EmbedBuilder().setTitle('Electricity ⚡').setDescription('Kort på bordet:')
+
         let infinite = false
         if (mustDrink.length === this.playerList.length) {
             infinite = this.isInfinite()
         }
-        let sips = infinite && this.shouldChugOnLoop ? "♾" : mustDrink.length
-        this.playerList.forEach(player => {
-            
-            let playerName = player.id == currentPlayer?.id ? "__" + player.name + "__" : player.name
-            playerName += mustDrink.length > 1 && mustDrink.includes(player) ? " 🍷x" + sips : ""
-            formattedMsg.addFields(
-                {
-                    name: playerName, 
-                    value: player.card.printString + " ", 
-                    inline: false
-                }
-            )
+        let sips = infinite && this.shouldChugOnLoop ? '♾' : mustDrink.length
+        this.playerList.forEach((player) => {
+            let playerName = player.id == currentPlayer?.id ? '__' + player.name + '__' : player.name
+            playerName += mustDrink.length > 1 && mustDrink.includes(player) ? ' 🍷x' + sips : ''
+            formattedMsg.addFields({
+                name: playerName,
+                value: player.card.printString + ' ',
+                inline: false,
+            })
         })
         this.embed = formattedMsg
     }
 
     private isInfinite() {
-        for(let i = 0; i <= this.playerList.length; i++) {
-            if (!this.cardsMatch(this.playerList[i % this.playerList.length].card, this.playerList[(i+1) % this.playerList.length].card)) {
-                return false 
+        for (let i = 0; i <= this.playerList.length; i++) {
+            if (!this.cardsMatch(this.playerList[i % this.playerList.length].card, this.playerList[(i + 1) % this.playerList.length].card)) {
+                return false
             }
         }
         return true
@@ -273,12 +278,12 @@ export class DrinksCommands extends AbstractCommands {
 
     private async replyToInteraction(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
         if (interaction.isButton()) {
-            this.embedMessage.edit({embeds: [this.embed]})
+            this.embedMessage.edit({ embeds: [this.embed] })
             interaction.deferUpdate()
         } else {
-            this.messageHelper.replyToInteraction(interaction, "Nu skal det drekjast")
-            this.embedMessage = await this.messageHelper.sendFormattedMessage(interaction.channelId, this.embed)
-            this.buttonsMessage = await this.messageHelper.sendMessageWithComponents(interaction.channelId, [this.currentButtons])
+            this.messageHelper.replyToInteraction(interaction, 'Nu skal det drekjast')
+            this.embedMessage = await this.messageHelper.sendFormattedMessage(interaction?.channelId, this.embed)
+            this.buttonsMessage = await this.messageHelper.sendMessageWithComponents(interaction?.channelId, [this.currentButtons])
         }
     }
 
@@ -290,12 +295,12 @@ export class DrinksCommands extends AbstractCommands {
             this.initiated = true
             this.updateStartMessage()
             this.replyToInteraction(interaction)
-        } 
+        }
     }
 
     public async joinElectricity(interaction: ButtonInteraction<CacheType>) {
         const newUser = interaction.user
-        if (!this.playerList.find(player => player.name == newUser.username)) {
+        if (!this.playerList.find((player) => player.name == newUser.username)) {
             const userCard: ICardObject = { number: '', suite: '', printString: '' }
             const user: IUserObject = { name: newUser.username, id: this.id, card: userCard, mates: [] }
             this.playerList.push(user)
@@ -309,36 +314,36 @@ export class DrinksCommands extends AbstractCommands {
 
     public startElectricity(interaction: ButtonInteraction<CacheType>) {
         if (this.playerList.length < 1) {
-            this.messageHelper.replyToInteraction(interaction, 'Det trengs minst 1 deltaker for å starte spillet (men det er litt trist å spille dette alene).', false)
+            this.messageHelper.replyToInteraction(
+                interaction,
+                'Det trengs minst 1 deltaker for å starte spillet (men det er litt trist å spille dette alene).',
+                false
+            )
         } else {
             this.activeGame = true
             this.currentButtons = activeGameButtonRow
             this.updateActiveGameMessage([], null)
             this.replyToInteraction(interaction)
-            this.buttonsMessage.edit({components: [this.currentButtons]})
+            this.buttonsMessage.edit({ components: [this.currentButtons] })
         }
     }
 
     private updateStartMessage() {
-        let formattedMsg = new EmbedBuilder()
-                .setTitle('Electricity ⚡')
-                .setDescription("Følgende spelare er klare for å drikke litt (masse):")
-        this.playerList.forEach(player => {
-            formattedMsg.addFields(
-                {
-                    name: player.name, 
-                    value: " ", 
-                    inline: false
-                }
-            )
+        let formattedMsg = new EmbedBuilder().setTitle('Electricity ⚡').setDescription('Følgende spelare er klare for å drikke litt (masse):')
+        this.playerList.forEach((player) => {
+            formattedMsg.addFields({
+                name: player.name,
+                value: ' ',
+                inline: false,
+            })
         })
         this.embed = formattedMsg
     }
 
     public async resendMessages(interaction: ButtonInteraction<CacheType>) {
         this.deleteMessages()
-        this.embedMessage = await this.messageHelper.sendFormattedMessage(interaction.channelId, this.embed)
-        this.buttonsMessage = await this.messageHelper.sendMessageWithComponents(interaction.channelId, [this.currentButtons])
+        this.embedMessage = await this.messageHelper.sendFormattedMessage(interaction?.channelId, this.embed)
+        this.buttonsMessage = await this.messageHelper.sendMessageWithComponents(interaction?.channelId, [this.currentButtons])
     }
 
     private deleteMessages() {
@@ -351,7 +356,7 @@ export class DrinksCommands extends AbstractCommands {
     public async resetDeck(interaction: ButtonInteraction<CacheType>) {
         const msg = this.deck.resetDeck()
         this.messageHelper.replyToInteraction(interaction, msg)
-    } 
+    }
 
     private stopElectricity(interaction: ChatInputCommandInteraction<CacheType>) {
         this.playerList = new Array<IUserObject>()
@@ -388,11 +393,7 @@ export class DrinksCommands extends AbstractCommands {
                 }
             }
         } else {
-            this.messageHelper.replyToInteraction(
-                interaction,
-                "Du må inkludere en av følgende etter '/electricity': 'start', 'stopp', eller 'instillinger'"
-            )
-        
+            this.messageHelper.replyToInteraction(interaction, "Du må inkludere en av følgende etter '/electricity': 'start', 'stopp', eller 'instillinger'")
         }
     }
 

@@ -20,6 +20,8 @@
         "noImplicitThis": true,
         "noImplicitReturns": false,
         "strictNullChecks": false,
+        
+
     },
     "formatterOptions": {
         "baseIndentSize": 0,

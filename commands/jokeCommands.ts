@@ -90,7 +90,7 @@ export class JokeCommands extends AbstractCommands {
     private async reactToManyMessages(interaction: ChatInputCommandInteraction<CacheType>, emojiName: string) {
         this.messageHelper.replyToInteraction(interaction, 'Eivindprider sendt', true)
         try {
-            const channel = interaction.channel as TextChannel
+            const channel = interaction?.channel as TextChannel
             const react = interaction.guild?.emojis.cache.find((emoji) => emoji.name == emojiName)
 
             if (interaction.client) {
@@ -144,14 +144,14 @@ export class JokeCommands extends AbstractCommands {
             const msgToUwU = await this.messageHelper.findMessageById(id)
             if (msgToUwU) {
                 const uwuIfiedText = JokeCommands.uwuText(msgToUwU.content)
-                this.messageHelper.sendMessage(interaction.channelId, uwuIfiedText)
+                this.messageHelper.sendMessage(interaction?.channelId, uwuIfiedText)
             }
         }
     }
 
     private harFese(interaction: ChatInputCommandInteraction<CacheType>) {
-        const channel = interaction.channel as TextChannel
-        const role = this.getRoleBasedOnChannel(interaction.channelId)
+        const channel = interaction?.channel as TextChannel
+        const role = this.getRoleBasedOnChannel(interaction?.channelId)
 
         const randomUser = role ? channel.members.filter((m) => m.roles.cache.get(role) !== undefined).random() : channel.members.random()
         const authorName = interaction.user.username

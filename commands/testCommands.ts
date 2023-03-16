@@ -1,4 +1,14 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Message } from 'discord.js'
+import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonInteraction,
+    ButtonStyle,
+    CacheType,
+    ChatInputCommandInteraction,
+    Client,
+    EmbedBuilder,
+    Message,
+} from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ICommandElement, IInteractionElement } from '../general/commands'
 import { ButtonHandler } from '../handlers/buttonHandler'
@@ -17,7 +27,7 @@ defaultButtonRow.addComponents(
 
 //NB: IKKE PUSH ENDRINGER I DENNE KLASSEN MED MINDRE DET ER GENERISKE HJELPEMETODER
 
-//Skall-klasse for testing av alt mulig random shit. 
+//Skall-klasse for testing av alt mulig random shit.
 export class TestCommands extends AbstractCommands {
     private embedMessage: Message
     private buttonsMessage: Message
@@ -33,26 +43,26 @@ export class TestCommands extends AbstractCommands {
     }
 
     public async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        this.messageHelper.replyToInteraction(interaction, "Disse kommandoene brukes bare for lokal testing og er ikke implementerte ellers.", false)
+        this.messageHelper.replyToInteraction(interaction, 'Disse kommandoene brukes bare for lokal testing og er ikke implementerte ellers.', false)
     }
 
     //Redigerer eksisterende embed hvis det er en knapp interaction, sender ny embed hvis ikke
     private async replyToInteraction(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
         if (interaction.isButton()) {
-            this.embedMessage.edit({embeds: [this.embed]})
+            this.embedMessage.edit({ embeds: [this.embed] })
             interaction.deferUpdate()
         } else {
-            this.messageHelper.replyToInteraction(interaction, "Test")
-            this.embedMessage = await this.messageHelper.sendFormattedMessage(interaction.channelId, this.embed)
-            this.buttonsMessage = await this.messageHelper.sendMessageWithComponents(interaction.channelId, [this.currentButtons])
+            this.messageHelper.replyToInteraction(interaction, 'Test')
+            this.embedMessage = await this.messageHelper.sendFormattedMessage(interaction?.channelId, this.embed)
+            this.buttonsMessage = await this.messageHelper.sendMessageWithComponents(interaction?.channelId, [this.currentButtons])
         }
     }
 
     //Flytt embed ned til bunnen
     private async resendMessages(interaction: ButtonInteraction<CacheType>) {
         this.deleteMessages()
-        this.embedMessage = await this.messageHelper.sendFormattedMessage(interaction.channelId, this.embed)
-        this.buttonsMessage = await this.messageHelper.sendMessageWithComponents(interaction.channelId, [this.currentButtons])
+        this.embedMessage = await this.messageHelper.sendFormattedMessage(interaction?.channelId, this.embed)
+        this.buttonsMessage = await this.messageHelper.sendMessageWithComponents(interaction?.channelId, [this.currentButtons])
     }
 
     //Slett meldingene
@@ -64,7 +74,7 @@ export class TestCommands extends AbstractCommands {
     }
 
     private testSwitch(interaction: ChatInputCommandInteraction<CacheType>) {
-        const action = interaction.options.getSubcommand()        
+        const action = interaction.options.getSubcommand()
         if (action) {
             switch (action.toLowerCase()) {
                 case '-1-': {
@@ -84,14 +94,11 @@ export class TestCommands extends AbstractCommands {
                     break
                 }
                 default: {
-                    this.messageHelper.replyToInteraction(interaction, "Default test sub-command")
+                    this.messageHelper.replyToInteraction(interaction, 'Default test sub-command')
                 }
             }
         } else {
-            this.messageHelper.replyToInteraction(
-                interaction,
-                "Ingen test sub-command angitt"
-            )
+            this.messageHelper.replyToInteraction(interaction, 'Ingen test sub-command angitt')
         }
     }
 
