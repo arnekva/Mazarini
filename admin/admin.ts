@@ -420,7 +420,7 @@ export class Admin extends AbstractCommands {
                 await msg.edit(restartMsg)
             }
             //When command has been executed, kill the pm2 process causing it to restart.
-            pm2.exit(`mazarini`, 'SIGINT')
+            pm2.restart(`mazarini`, () => {})
         })
     }
 
