@@ -412,8 +412,16 @@ export class Admin extends AbstractCommands {
 
         this.messageHelper.sendMessageToActionLog(`Restarter botten ...`)
 
-        const restart = spawn('npm run restart', [], { detached: true, stdio: ['ignore'], shell: true })
+        // const restart = spawn('npm run restart', [], { detached: true, stdio: ['ignore'], shell: true })
+        pm2.connect(function (err) {
+            if (err) {
+                console.error('PM2 FAILED TO CONNECT:', err)
+            } else {
+                pm2.restart('mazarini', { treekill: false }, function () {})
+            }
+        })
 
+        pm2.disconnect()
         //Execute the git pull command to get new data from github
         // await exec('git pull', async (error, stdout, stderr) => {
         //     if (error) {
