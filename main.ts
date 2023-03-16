@@ -104,15 +104,13 @@ export class MazariniClient {
                 })} ${new Date().toLocaleTimeString('nb')} !`
             )
 
-            if (environment == 'prod') _msgHelper.sendMessageToActionLog('Boten er nå live i production mode.')
+            let msg = 'Boten er nå live i production mode.'
+            if (process.env['restartedForGit']) {
+                msg += ' Prosjektet er oppdatert fra Git, trigger av en /restart.'
+            }
+            if (environment == 'prod') _msgHelper.sendMessageToActionLog(msg)
 
             ClientHelper.setStatusFromStorage(client)
-
-            /** SCHEDULED JOBS - resets every day at 06:00 */
-
-            // const guild = client.guilds.cache.find((g: Guild) => g.id === '340626855990132747') as Guild
-            // const bot = guild.members.cache.find((member) => member.id === '802945796457758760')
-            // bot?.setNickname(environment === 'dev' ? 'Bot Høie (TEST)' : 'Bot Høie')
 
             this.errorHandler.launchBusListeners()
         })

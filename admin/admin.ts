@@ -407,13 +407,17 @@ export class Admin extends AbstractCommands {
     }
 
     private async restartBot(interaction: ChatInputCommandInteraction<CacheType>) {
-        this.messageHelper.replyToInteraction(interaction, `Forsøker å restarte botten`)
+        this.messageHelper.replyToInteraction(interaction, `Forsøker å restarte botten`, true)
         let restartMsg = 'Forsøker å restarte botten'
         const msg = await this.messageHelper.sendMessageToActionLog(restartMsg)
 
-        this.messageHelper.sendMessageToActionLog(`Restarter botten ...`)
+        this.messageHelper.sendMessageToActionLog(
+            `Restart trigger av ${interaction.user.username} i kanalen ${MentionUtils.mentionChannel(
+                interaction.channelId
+            )}. Henter data fra Git og restarter botten ...`
+        )
 
-        await exec('git pull && pm2 restart mazarini', async (error, stdout, stderr) => {
+        await exec('git pull && pm2 restart mazarini -- restartedForGit', async (error, stdout, stderr) => {
             if (error) {
                 restartMsg += `\nKlarte ikke restarte: \n${error}`
                 msg.edit(restartMsg)

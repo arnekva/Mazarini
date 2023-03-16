@@ -267,7 +267,7 @@ export class CommandRunner {
             }
 
             if (polseCounter > 0)
-                message.channel.send('Hæisann sveisann, ' + (polseCounter > 1 ? polseCounter + ' ' : '') + 'pølse' + (polseCounter > 1 ? 'r' : '') + '?')
+                message.channel.send('Hæ, ' + (polseCounter > 1 ? polseCounter + ' ' : '') + 'pølse' + (polseCounter > 1 ? 'r' : '') + '?')
 
             //If eivind, eivindpride him
             if (message.author.id == '239154365443604480' && message.guild) {
