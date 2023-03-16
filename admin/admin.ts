@@ -408,13 +408,10 @@ export class Admin extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, `Forsøker å restarte botten`, true)
         let restartMsg = 'Forsøker å restarte botten'
         const msg = await this.messageHelper.sendMessageToActionLog(restartMsg)
-        exec('ls', (error, stdout, stderr) => {
+        exec('npm run restart', (error, stdout, stderr) => {
             if (error) {
                 restartMsg += `\nKlarte ikke restarte: \n${error}`
                 msg.edit(restartMsg)
-            }
-            if (stdout) {
-                this.messageHelper.sendMessage(interaction.channelId, stdout)
             }
         })
     }
