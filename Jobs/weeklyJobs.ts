@@ -3,7 +3,7 @@ import moment from 'moment'
 import { PoletCommands } from '../commands/poletCommands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { MessageUtils } from '../utils/messageUtils'
+import { MentionUtils } from '../utils/mentionUtils'
 
 export class WeeklyJobs {
     private messageHelper: MessageHelper
@@ -52,7 +52,7 @@ export class WeeklyJobs {
                 })
             })
 
-            this.messageHelper.sendFormattedMessage(MessageUtils.CHANNEL_IDs.VINMONOPOLET, fmMessage)
+            this.messageHelper.sendFormattedMessage(MentionUtils.CHANNEL_IDs.VINMONOPOLET, fmMessage)
         }
     }
     private async resetStatuses() {

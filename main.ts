@@ -50,6 +50,7 @@ export class MazariniClient {
     mazarini: any
 
     constructor() {
+        //Specifies intents needed to perform certain actions, i.e. what permissions the bot must have
         this.client = new Discord.Client({
             intents: [
                 GatewayIntentBits.Guilds,
@@ -80,8 +81,7 @@ export class MazariniClient {
 
     async initClient() {
         /** Login client */
-        console.log('Initializing client')
-        console.log('Logging in')
+        console.log('Initializing client, logging in')
 
         await this.client.login(discordSecret)
         console.log('Logged in, starting setup')
@@ -106,7 +106,7 @@ export class MazariniClient {
             let msg = 'Boten er nå live i production mode.'
 
             if (process.env['restartedForGit']) {
-                msg += ' Prosjektet er oppdatert fra Git, trigger at en /restart.'
+                msg += ' Prosjektet er oppdatert fra Git, trigget at en /restart.'
             }
             if (environment == 'prod') _msgHelper.sendMessageToActionLog(msg)
 
