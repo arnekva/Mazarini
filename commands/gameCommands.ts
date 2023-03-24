@@ -340,21 +340,18 @@ export class GameCommands extends AbstractCommands {
                 command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                     this.findDropLocation(interaction)
                 },
-                category: 'gaming',
             },
             {
                 commandName: 'grid',
                 command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                     this.dropGrid(interaction)
                 },
-                category: 'gaming',
             },
             {
                 commandName: 'rocket',
                 command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                     this.rocketLeagueRanks(interaction)
                 },
-                category: 'gaming',
             },
         ]
     }

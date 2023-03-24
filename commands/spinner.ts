@@ -142,7 +142,6 @@ export class Spinner extends AbstractCommands {
                 command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                     this.spinFromInteraction(interaction)
                 },
-                category: 'annet',
             },
         ]
     }

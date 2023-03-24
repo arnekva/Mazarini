@@ -82,7 +82,7 @@ export class Admin extends AbstractCommands {
         allChannels.forEach((channel: TextChannel) => {
             if (
                 channel &&
-                channel.permissionsFor(UserUtils.findMemberByUserID(UserUtils.User_IDs.BOT_HOIE, channel.guild)).toArray().includes('ReadMessageHistory')
+                channel.permissionsFor(UserUtils.findMemberByUserID(MentionUtils.User_IDs.BOT_HOIE, channel.guild)).toArray().includes('ReadMessageHistory')
             ) {
                 channel.messages
                     .fetch(id)
@@ -233,7 +233,6 @@ export class Admin extends AbstractCommands {
         return [
             {
                 commandName: 'send',
-                category: 'admin',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     if (Admin.isAuthorAdmin(rawInteraction.member)) {
                         this.buildSendModal(rawInteraction)
@@ -245,49 +244,42 @@ export class Admin extends AbstractCommands {
             },
             {
                 commandName: 'lock',
-                category: 'admin',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.handleLocking(rawInteraction)
                 },
             },
             {
                 commandName: 'botstatus',
-                category: 'admin',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.setBotStatus(rawInteraction)
                 },
             },
             {
                 commandName: 'set',
-                category: 'admin',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.setSpecificValue(rawInteraction)
                 },
             },
             {
                 commandName: 'reward',
-                category: 'admin',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.rewardUser(rawInteraction)
                 },
             },
             {
                 commandName: 'botstats',
-                category: 'admin',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.getBotStatistics(rawInteraction)
                 },
             },
             {
                 commandName: 'reply',
-                category: 'admin',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.replyToMsgAsBot(rawInteraction)
                 },
             },
             {
                 commandName: 'stopprocess',
-                category: 'admin',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.messageHelper.sendMessageToActionLog('STANSET PM2-PROSESSEN. Rip meg')
                     this.messageHelper.replyToInteraction(rawInteraction, `Forsøker å stoppe botten. Rip meg`)
@@ -297,7 +289,6 @@ export class Admin extends AbstractCommands {
             },
             {
                 commandName: 'restart',
-                category: 'admin',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.restartBot(rawInteraction)
                 },

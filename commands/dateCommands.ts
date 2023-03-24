@@ -378,35 +378,30 @@ export class DateCommands extends AbstractCommands {
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.checkForHelg(rawInteraction)
                 },
-                category: 'annet',
             },
             {
                 commandName: 'ferie',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.registerFerie(rawInteraction)
                 },
-                category: 'annet',
             },
             {
                 commandName: 'reminder',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.setReminder(rawInteraction)
                 },
-                category: 'annet',
             },
             {
                 commandName: 'bursdag',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.addUserBirthday(rawInteraction)
                 },
-                category: 'annet',
             },
             {
                 commandName: 'countdown',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.countdownToDate(rawInteraction)
                 },
-                category: 'annet',
             },
         ]
     }

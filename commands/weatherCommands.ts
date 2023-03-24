@@ -60,7 +60,6 @@ export class Weather extends AbstractCommands {
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.getWeatherForGivenCity(rawInteraction)
                 },
-                category: 'annet',
             },
         ]
     }

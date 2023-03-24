@@ -260,7 +260,6 @@ Docs: https://www.last.fm/api/show/user.getInfo
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.handleMusicInteractions(rawInteraction)
                 },
-                category: 'musikk',
             },
         ]
     }

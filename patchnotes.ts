@@ -4,13 +4,20 @@ import { IInteractionElement } from './general/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '10.14.5'
+    public static readonly currentVersion = '11.0.0'
     public static readonly nextVersion = 'Backlog'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
-    public static readonly currentPatchNotes: string = `\n* 'Hælj' trigger nå *Helg*-kommandoen`
+    public static readonly currentPatchNotes: string =
+        `\n* Alle tekstkommandoer (!mz) er nå fjernet, og alle referanser til det er fjernet fra koden. ICommandElement og liknende interfacer er fjernet` +
+        `\n* Diverse refaktoreringer` +
+        `\n* Channel-, user- og role-ids ligger nå i MentionUtils i stedet for spredt i messageHelper og userUtils` +
+        `\n* Diverse tsdoc oppdateringer` +
+        `\n* IInteractionElement inneholder nå kun commandName og callback - resten (som isAdmin) er fjernet da det nå kan styres fra server settings i discordappen` +
+        `\n* '!get' er fjernet` +
+        `\n* 'Hælj' trigger nå *Helg*-kommandoen`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
@@ -32,14 +39,12 @@ export class PatchNotes extends AbstractCommands {
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.messageHelper.replyToInteraction(rawInteraction, PatchNotes.getCurrentPatchNotes())
                 },
-                category: 'annet',
             },
             {
                 commandName: 'backlog',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.messageHelper.replyToInteraction(rawInteraction, PatchNotes.getNextReleasePatchNotes())
                 },
-                category: 'annet',
             },
             {
                 commandName: 'publishnotes',
@@ -52,7 +57,6 @@ export class PatchNotes extends AbstractCommands {
                         true
                     )
                 },
-                category: 'annet',
             },
         ]
     }

@@ -145,16 +145,4 @@ export namespace UserUtils {
             msgHelper.sendMessageToActionLog('Oppdatert bruker ' + (oldMember.nickname ?? oldMember.displayName) + ': ' + whatChanged + '.')
         }
     }
-
-    /**
-     * @deprecated: Bruk MentionUtils instead
-     */
-    export const ROLE_IDs = {
-        BOT_SUPPORT: '863038817794392106',
-        NATO: '963396965947801630',
-    }
-
-    export const User_IDs = {
-        BOT_HOIE: '802945796457758760',
-    }
 }

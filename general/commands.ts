@@ -28,18 +28,6 @@ import { PatchNotes } from '../patchnotes'
 export interface IInteractionElement {
     /** Name of command */
     commandName: string
-    /**
-     * @deprecated Not in use
-     */
-    category: commandCategory
-    /**
-     * @deprecated Not in use - use integration settings on server instead and lock it to specific role
-     */
-    isAdmin?: boolean
-    /**
-     * @deprecated Not in use -  use integration settings on server instead and lock it to specific channel
-     */
-    canOnlyBeUsedInSpecificChannel?: string[]
     /** Function to be run */
     command: (rawMessage: ChatInputCommandInteraction<CacheType>) => void
 }

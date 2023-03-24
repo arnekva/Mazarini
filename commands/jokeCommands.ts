@@ -30,7 +30,7 @@ export class JokeCommands extends AbstractCommands {
         if (member && member?.presence && member?.presence?.clientStatus) {
             if (member.presence.activities && member.presence.activities[0]) {
                 const activities = member.presence.activities.filter((a) =>
-                    member.id === UserUtils.User_IDs.BOT_HOIE ? a : a.name.toLowerCase() !== 'custom status'
+                    member.id === MentionUtils.User_IDs.BOT_HOIE ? a : a.name.toLowerCase() !== 'custom status'
                 )
                 let currentActivity = activities[0]
                 if (activities.length > 0) {
@@ -212,21 +212,18 @@ export class JokeCommands extends AbstractCommands {
                     if (msg) this.messageHelper.replyToInteraction(rawInteraction, `Whamageddon 2022 status:\n${msg.content}`, false, true)
                     else this.messageHelper.replyToInteraction(rawInteraction, `Statusen e ukjent`, false, true)
                 },
-                category: 'gaming',
             },
             {
                 commandName: 'mordi',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.mordi(rawInteraction)
                 },
-                category: 'gaming',
             },
             {
                 commandName: 'spell',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.reactWithLetters(rawInteraction)
                 },
-                category: 'gaming',
             },
             {
                 commandName: 'pullrequest',
@@ -237,42 +234,36 @@ export class JokeCommands extends AbstractCommands {
                         `https://github.com/arnekva/Mazarini/pulls ${user ? MentionUtils.mentionUser(user.id) : ''}`
                     )
                 },
-                category: 'gaming',
             },
             {
                 commandName: 'fese',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.harFese(rawInteraction)
                 },
-                category: 'gaming',
             },
             {
                 commandName: 'uwu',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.uWuIfyer(rawInteraction)
                 },
-                category: 'gaming',
             },
             {
                 commandName: 'aktivitet',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.findUserActivity(rawInteraction)
                 },
-                category: 'gaming',
             },
             {
                 commandName: 'eivindpride',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.reactToManyMessages(rawInteraction, DateUtils.isDecember() ? 'eivindclausepride' : 'eivindpride')
                 },
-                category: 'gaming',
             },
             {
                 commandName: 'bonk',
                 command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                     this.sendBonk(interaction)
                 },
-                category: 'gaming',
             },
         ]
     }

@@ -125,7 +125,6 @@ export class CardCommands extends AbstractCommands {
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.cardSwitch(rawInteraction)
                 },
-                category: 'gaming',
             },
         ]
     }

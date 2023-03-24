@@ -182,7 +182,6 @@ export class PoletCommands extends AbstractCommands {
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.handleVinmonopoletCommand(rawInteraction)
                 },
-                category: 'drink',
             },
         ]
     }

@@ -116,21 +116,18 @@ export class UserCommands extends AbstractCommands {
                 command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                     this.setStatus(interaction)
                 },
-                category: 'annet',
             },
             {
                 commandName: 'brukerinfo',
                 command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                     this.findUserInfo(interaction)
                 },
-                category: 'annet',
             },
             {
                 commandName: 'role',
                 command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                     this.roleAssignment(interaction)
                 },
-                category: 'annet',
             },
         ]
     }

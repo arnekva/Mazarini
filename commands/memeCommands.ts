@@ -156,7 +156,6 @@ export class Meme extends AbstractCommands {
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.sendMeme(rawInteraction)
                 },
-                category: 'annet',
             },
         ]
     }

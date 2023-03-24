@@ -54,7 +54,6 @@ export class TextCommands extends AbstractCommands {
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.searchWiki(rawInteraction)
                 },
-                category: 'annet',
             },
         ]
     }

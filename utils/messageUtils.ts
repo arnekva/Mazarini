@@ -50,17 +50,4 @@ export namespace MessageUtils {
     export const getUserTagString = (userID: string | undefined) => {
         return userID ? `<@${userID}>` : ''
     }
-    /**
-     * @deprecated: Bruk MentionUtils instead
-     */
-    export const CHANNEL_IDs = {
-        LAS_VEGAS: '808992127249678386',
-        BOT_UTVIKLING: '802716150484041751',
-        GENERAL: '340626855990132747',
-        ACTION_LOG: '810832760364859432',
-        GODMODE: '778599907933159434',
-        STATS_SPAM: '967847736693108736',
-        VINMONOPOLET: '936685813813628949',
-        LOKAL_BOT_SPAM: '880493116648456222',
-    }
 }

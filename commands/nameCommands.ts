@@ -104,7 +104,6 @@ export class NameCommands extends AbstractCommands {
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.handleNameCommands(rawInteraction)
                 },
-                category: 'gaming',
             },
         ]
     }

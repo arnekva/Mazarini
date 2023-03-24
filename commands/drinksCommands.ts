@@ -473,14 +473,12 @@ export class DrinksCommands extends AbstractCommands {
                 command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                     this.drinkBitch(interaction)
                 },
-                category: 'annet',
             },
             {
                 commandName: 'electricity',
                 command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                     this.elSwitch(interaction)
                 },
-                category: 'annet',
             },
         ]
     }

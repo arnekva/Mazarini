@@ -94,7 +94,6 @@ export class LinkCommands extends AbstractCommands {
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.handleLinking(rawInteraction)
                 },
-                category: 'gaming',
             },
         ]
     }

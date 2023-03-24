@@ -40,7 +40,6 @@ export class SoundCommands extends AbstractCommands {
                 command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                     this.speak(interaction)
                 },
-                category: 'annet',
             },
         ]
     }

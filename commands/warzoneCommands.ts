@@ -516,14 +516,12 @@ export class WarzoneCommands extends AbstractCommands {
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.handleWZInteraction(rawInteraction)
                 },
-                category: 'gaming',
             },
             {
                 commandName: 'playlist',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.findWeeklyPlaylist(rawInteraction)
                 },
-                category: 'gaming',
             },
         ]
     }

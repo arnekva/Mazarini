@@ -640,56 +640,48 @@ export class GamblingCommands extends AbstractCommands {
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.handleDailyClaimInteraction(rawInteraction)
                 },
-                category: 'gambling',
             },
             {
                 commandName: 'vipps',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.vippsChips(rawInteraction)
                 },
-                category: 'gambling',
             },
             {
                 commandName: 'wallet',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.openWallet(rawInteraction)
                 },
-                category: 'gambling',
             },
             {
                 commandName: 'krig',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.krig(rawInteraction)
                 },
-                category: 'gambling',
             },
             {
                 commandName: 'gamble',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.diceGamble(rawInteraction)
                 },
-                category: 'gambling',
             },
             {
                 commandName: 'roll',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.rollSlotMachine(rawInteraction)
                 },
-                category: 'gambling',
             },
             {
                 commandName: 'rulett',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.roulette(rawInteraction)
                 },
-                category: 'gambling',
             },
             {
                 commandName: 'brukerstats',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.findUserStats(rawInteraction)
                 },
-                category: 'gambling',
             },
         ]
     }

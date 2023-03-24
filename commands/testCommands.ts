@@ -109,7 +109,6 @@ export class TestCommands extends AbstractCommands {
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.testSwitch(rawInteraction)
                 },
-                category: 'annet',
             },
         ]
     }

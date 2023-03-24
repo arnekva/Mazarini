@@ -31,7 +31,6 @@ export class CommandRunner {
         try {
             /** Check if the bot is allowed to send messages in this channel */
             if (!this.isLegalChannel(message)) return
-            if (this.checkForGetCommands(message)) return
             /**  Check message for text commands */
             await this.checkForCommand(message)
             /** Additional non-command checks */
@@ -186,20 +185,6 @@ export class CommandRunner {
 
     runInteractionElement(runningInteraction: IInteractionElement, interaction: ChatInputCommandInteraction<CacheType>) {
         runningInteraction.command(interaction)
-    }
-
-    checkForGetCommands(message: Message) {
-        const args = message.content.split(' ')
-        if (message.content.startsWith('!get')) {
-            if (args[1] === 'username') {
-                const searchName = args.slice(2).join(' ')
-
-                const user = message?.guild?.members?.cache?.find((member) => (member?.displayName ?? 'undefined') == (searchName ?? 'tester'))
-                if (user) message.reply(user.user.username)
-            }
-            return true
-        }
-        return false
     }
 
     logIncorectCommandUsage(message: Message, messageContent: string, args: string[]) {

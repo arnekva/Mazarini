@@ -26,7 +26,6 @@ import { MessageHelper } from './helpers/messageHelper'
 import { JobScheduler } from './Jobs/jobScheduler'
 import { ArrayUtils } from './utils/arrayUtils'
 import { MentionUtils } from './utils/mentionUtils'
-import { MessageUtils } from './utils/messageUtils'
 import { textArrays } from './utils/textArrays'
 import { UserUtils } from './utils/userUtils'
 const { Util } = require('discord.js')
@@ -125,7 +124,7 @@ export class MazariniClient {
             } else {
                 _mzClient.commandRunner.runCommands(message)
 
-                if (message.mentions.users.find((u) => u.id === MentionUtils.User_IDs.BOT_HOIE)) {
+                if (message.mentions.users.find((u) => u.id === MentionUtils.User_IDs.BOT_HOIE) && environment === 'prod') {
                     message.reply(ArrayUtils.randomChoiceFromArray(textArrays.bentHoieLines))
                 }
             }
@@ -152,9 +151,10 @@ export class MazariniClient {
             }
             if (
                 target?.id === message?.author?.id &&
-                message.channelId !== MessageUtils.CHANNEL_IDs.ACTION_LOG &&
+                message.channelId !== MentionUtils.CHANNEL_IDs.ACTION_LOG &&
                 !message?.content?.includes('Laster data') &&
                 !message?.content?.includes('Henter data') &&
+                environment === 'prod' &&
                 timeMatches()
             ) {
                 _msgHelper.sendMessage(
