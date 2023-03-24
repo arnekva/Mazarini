@@ -10,7 +10,7 @@ import {
     Message,
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { ICommandElement, IInteractionElement } from '../general/commands'
+import { IInteractionElement } from '../general/commands'
 import { ButtonHandler } from '../handlers/buttonHandler'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
@@ -464,10 +464,6 @@ export class DrinksCommands extends AbstractCommands {
         } else {
             return this.messageHelper.replyToInteraction(interaction, 'Gi vekk ' + antallSlurks + ' slurker')
         }
-    }
-
-    public getAllCommands(): ICommandElement[] {
-        return []
     }
 
     getAllInteractions(): IInteractionElement[] {

@@ -1,7 +1,7 @@
 import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'
-import { ICommandElement, IInteractionElement } from '../general/commands'
+import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
@@ -333,9 +333,6 @@ export class GameCommands extends AbstractCommands {
         return user.rocketLeagueStats
     }
 
-    public getAllCommands(): ICommandElement[] {
-        return []
-    }
     public getAllInteractions(): IInteractionElement[] {
         return [
             {

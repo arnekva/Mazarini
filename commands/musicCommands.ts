@@ -1,7 +1,7 @@
 import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction, Message, User } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { lfKey } from '../client-env'
-import { ICommandElement, IInteractionElement } from '../general/commands'
+import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { TextUtils } from '../utils/textUtils'
@@ -253,9 +253,6 @@ Docs: https://www.last.fm/api/show/user.getInfo
         } else return `Brukeren ${user?.username} har ikke knyttet til et Last.fm-brukernavn`
     }
 
-    public getAllCommands(): ICommandElement[] {
-        return []
-    }
     getAllInteractions(): IInteractionElement[] {
         return [
             {

@@ -10,7 +10,7 @@ import {
     SelectMenuComponentOptionData,
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { ICommandElement, IInteractionElement } from '../general/commands'
+import { IInteractionElement } from '../general/commands'
 import { ButtonHandler } from '../handlers/buttonHandler'
 import { SelectMenuHandler } from '../handlers/selectMenuHandler'
 import { ActionMenuHelper } from '../helpers/actionMenuHelper'
@@ -107,10 +107,6 @@ export class UserCommands extends AbstractCommands {
         const menu = ActionMenuHelper.creatSelectMenu(SelectMenuHandler.userInfoId, 'Velg databaseinnlegg', options)
         const embed = EmbedUtils.createSimpleEmbed(`Se brukerinfo for ${interaction.user.username}`, 'Ingen data å vise')
         this.messageHelper.replyToInteraction(interaction, embed, false, false, menu)
-    }
-
-    public getAllCommands(): ICommandElement[] {
-        return []
     }
 
     getAllInteractions(): IInteractionElement[] {

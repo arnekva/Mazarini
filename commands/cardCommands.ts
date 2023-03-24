@@ -1,6 +1,6 @@
 import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { ICommandElement, IInteractionElement } from '../general/commands'
+import { IInteractionElement } from '../general/commands'
 import { MessageHelper } from '../helpers/messageHelper'
 import { SlashCommandHelper } from '../helpers/slashCommandHelper'
 const deckOfCards = require('deckofcards')
@@ -116,10 +116,6 @@ export class CardCommands extends AbstractCommands {
         } else {
             this.messageHelper.replyToInteraction(interaction, 'Ukjent kommando', true)
         }
-    }
-
-    public getAllCommands(): ICommandElement[] {
-        return []
     }
 
     getAllInteractions(): IInteractionElement[] {

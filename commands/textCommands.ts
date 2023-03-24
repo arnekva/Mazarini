@@ -1,7 +1,7 @@
 import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
 import wiki from 'wikijs'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { ICommandElement, IInteractionElement } from '../general/commands'
+import { IInteractionElement } from '../general/commands'
 import { MessageHelper } from '../helpers/messageHelper'
 import { EmbedUtils } from '../utils/embedUtils'
 
@@ -47,9 +47,6 @@ export class TextCommands extends AbstractCommands {
         }
     }
 
-    getAllCommands(): ICommandElement[] {
-        return []
-    }
     getAllInteractions(): IInteractionElement[] {
         return [
             {

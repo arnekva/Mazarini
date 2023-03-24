@@ -3,7 +3,7 @@ import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interacti
 import { Response } from 'node-fetch'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { actSSOCookie } from '../client-env'
-import { ICommandElement, IInteractionElement } from '../general/commands'
+import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
@@ -509,9 +509,6 @@ export class WarzoneCommands extends AbstractCommands {
         return user.codStats
     }
 
-    public getAllCommands(): ICommandElement[] {
-        return []
-    }
     getAllInteractions(): IInteractionElement[] {
         return [
             {

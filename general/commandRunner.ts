@@ -12,7 +12,7 @@ import { MentionUtils } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { UserUtils } from '../utils/userUtils'
-import { Commands, ICommandElement, IInteractionElement } from './commands'
+import { Commands, IInteractionElement } from './commands'
 const fetch = require('node-fetch')
 
 export class CommandRunner {
@@ -21,7 +21,7 @@ export class CommandRunner {
 
     lastUsedCommand = 'help'
     polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê|å|æ|ê|è|é|à|á)*(ls)(e|a|å|o|i)|(pause)|(🌭)|(hotdog)|(sausage)|(hot-dog)/gi)
-    helgeRegex = new RegExp(/(helg)(å|en|ene|a|e)*/gi)
+    helgeRegex = new RegExp(/(helg)(å|en|ene|a|e|æ)|(hælj)|(hælja)|(hælg)*/gi)
 
     constructor(client: Client, messageHelper: MessageHelper) {
         this.messageHelper = messageHelper
@@ -32,7 +32,7 @@ export class CommandRunner {
             /** Check if the bot is allowed to send messages in this channel */
             if (!this.isLegalChannel(message)) return
             if (this.checkForGetCommands(message)) return
-            /**  Check message for commands */
+            /**  Check message for text commands */
             await this.checkForCommand(message)
             /** Additional non-command checks */
             this.checkMessageForJokes(message)
@@ -57,7 +57,7 @@ export class CommandRunner {
                             { name: `Lukt`, value: `${data.smell}` },
                             { name: `Pris`, value: `${data.price.formattedValue}`, inline: true },
                             { name: `Type`, value: `${data.main_category.name}`, inline: true },
-                            //Årgang doesnt apply to all products, but some times it's still in the data as the year 0000.
+                            //Årgang doesnt apply to all products, but some for some products the year is set to 0000 instead of being undefined so we replace it with "Ukjent"
                             { name: `Årgang`, value: `${data.year === '0000' ? 'Ukjent' : data.year}`, inline: true },
                             { name: `Volum`, value: `${data.volume.formattedValue}`, inline: true },
                             { name: `Land`, value: `${data.main_country.name}`, inline: true },
@@ -76,12 +76,11 @@ export class CommandRunner {
                         ])
                         /** In case of wines, it will be something like [Pinot Noir 80%, Merlot 20%]
                          * For liquers, ciders, etc. it may only be "Plommer, epler", since they dont display the percentage of the mix.
-                         *  Therefore, if no percentage is supplied, we hardcode it to a 100%
                          */
                         if (data.raastoff) {
                             embed.addFields({
                                 name: `Innhold`,
-                                value: `${data.raastoff.map((rs) => `${rs.name} (${rs.percentage ? rs.percentage : '100'}%)`).join(', ')}`,
+                                value: `${data.raastoff.map((rs) => `${rs.name} (${rs.percentage ? rs.percentage + '%' : ''})`).join(', ')}`,
                                 inline: true,
                             })
                         }
@@ -101,7 +100,8 @@ export class CommandRunner {
                             if (f.value.includes('undefined')) f.value = f.value.replace('undefined', 'Ukjent')
                         })
 
-                        //These image formats may exist: product, thumbnail, zoom, cartIcon and superZoom.
+                        //Possible formats: product, thumbnail, zoom, cartIcon and superZoom (some may be identical or not exist at all.)
+                        //"zoom" seems to be the version used on the website, but still not all products have photos so it might be undefined
                         const imageUrl = data.images.filter((img: any) => img.format === 'zoom')[0]?.url
                         if (imageUrl) embed.setThumbnail(imageUrl)
                         embed.setURL(`https://www.vinmonopolet.no${data.url}`)
@@ -167,52 +167,25 @@ export class CommandRunner {
             } else if (interaction.isButton()) {
                 hasAcknowledged = this.commands.handleButtons(interaction)
             }
+
+            // New interactions are added online, so it is instantly available in the production version of the app, despite being on development
+            // Therefore a command that doesnt yet "exist" could still be run.
             if (!hasAcknowledged) interaction.isRepliable() ? interaction.reply(`Denne interaksjonen støttes ikke for øyeblikket`) : undefined
             return undefined
         }
     }
 
+    /**
+     *  TEXT COMMANDS ARE NO LONGER IN USE - keep info message in transition period
+     */
     async checkForCommand(message: Message) {
-        if (message.author.id === '802945796457758760') return undefined
-
-        if (message.content.toLowerCase().startsWith('!mz ')) {
-            let cmdFound = false
-            const command = message.content.toLowerCase().replace('!mz ', '').replace('!mz', '').replace('!zm ', '').split(' ')[0].toLowerCase()
-            const messageContent = message.content.split(' ').slice(2).join(' ')
-            const args = !!messageContent ? messageContent.split(' ') : []
-            const commands = this.commands.getAllCommands()
-            commands.forEach((cmd) => {
-                if (
-                    Array.isArray(cmd.commandName) ? cmd.commandName.includes(command.toLowerCase()) : cmd.commandName.toLowerCase() === command.toLowerCase()
-                ) {
-                    cmdFound = this.runCommandElement(cmd, message, messageContent, args)
-                }
-            })
-            if (!cmdFound) {
-                return message.reply('Eg leide ikkje itte mz lenger. Du finne alle kommandoene med å skriva ein skråstreg i tekstfelte')
-            }
-
-            return undefined
-        } else if (message.content.startsWith('!mz')) {
-            return message.reply('Eg leide ikkje itte mz lenger. Du finne alle kommandoene med å skriva ein skråstreg i tekstfelte')
-        } else return undefined
+        if (message.content.startsWith('!mz') && message.author.id === MentionUtils.User_IDs.BOT_HOIE) {
+            message.reply('Eg leide ikkje itte mz lenger. Du finne alle kommandoene med å skriva ein skråstreg i tekstfelte')
+        }
     }
 
     runInteractionElement(runningInteraction: IInteractionElement, interaction: ChatInputCommandInteraction<CacheType>) {
         runningInteraction.command(interaction)
-    }
-
-    runCommandElement(cmd: ICommandElement, message: Message, messageContent: string, args: string[]) {
-        if (cmd.isAdmin) {
-            if (Admin.isAuthorAdmin(message.member)) {
-                cmd.command(message, messageContent, args)
-            } else {
-                this.messageHelper.sendMessageToActionLogWithInsufficientRightsMessage(message)
-            }
-        } else {
-            message.reply(`Alle kommandoene er nå erstattet av slash-commandoer.`)
-        }
-        return true
     }
 
     checkForGetCommands(message: Message) {
@@ -266,8 +239,7 @@ export class CommandRunner {
                 if (this.polseRegex.exec(message.attachments.first()?.name ?? '')) polseCounter++
             }
 
-            if (polseCounter > 0)
-                message.channel.send('Hæ, ' + (polseCounter > 1 ? polseCounter + ' ' : '') + 'pølse' + (polseCounter > 1 ? 'r' : '') + '?')
+            if (polseCounter > 0) message.channel.send('Hæ, ' + (polseCounter > 1 ? polseCounter + ' ' : '') + 'pølse' + (polseCounter > 1 ? 'r' : '') + '?')
 
             //If eivind, eivindpride him
             if (message.author.id == '239154365443604480' && message.guild) {
@@ -328,10 +300,10 @@ export class CommandRunner {
     isLegalChannel(interaction: Interaction | Message) {
         return (
             (environment === 'dev' &&
-                (interaction?.channel.id === MessageUtils.CHANNEL_IDs.LOKAL_BOT_SPAM ||
-                    interaction?.channel.id === MessageUtils.CHANNEL_IDs.STATS_SPAM ||
-                    interaction?.channel.id === MessageUtils.CHANNEL_IDs.GODMODE)) ||
-            (environment === 'prod' && interaction?.channel.id !== MessageUtils.CHANNEL_IDs.LOKAL_BOT_SPAM)
+                (interaction?.channel.id === MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM ||
+                    interaction?.channel.id === MentionUtils.CHANNEL_IDs.STATS_SPAM ||
+                    interaction?.channel.id === MentionUtils.CHANNEL_IDs.GODMODE)) ||
+            (environment === 'prod' && interaction?.channel.id !== MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM)
         )
     }
 }

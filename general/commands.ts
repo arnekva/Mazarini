@@ -1,4 +1,4 @@
-import { CacheType, ChatInputCommandInteraction, Client, Interaction, Message } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, Interaction } from 'discord.js'
 import { Admin } from '../admin/admin'
 import { CardCommands } from '../commands/cardCommands'
 import { DateCommands } from '../commands/dateCommands'
@@ -25,34 +25,22 @@ import { SelectMenuHandler } from '../handlers/selectMenuHandler'
 import { MessageHelper } from '../helpers/messageHelper'
 import { PatchNotes } from '../patchnotes'
 
-/**
- * Interface for kommandoer. Alle kommandoer må følge dette oppsettet.
- */
-export interface ICommandElement {
-    /** The string which triggers the command */
-    commandName: string | string[]
-    /** Description of the command. Is shown in !mz help <kommando>. */
-    description: string
-    /** The function being run */
-    command: (rawMessage: Message, messageContent: string, args: string[]) => void
-    category: commandCategory
-    /**  Set to true to hide it from the help list */
-    hideFromListing?: boolean
-    /**   Set to true if admin only  */
-    isAdmin?: boolean
-    /**  Used to indicate that another function has replaced it */
-    deprecated?: string
-
-    canOnlyBeUsedInSpecificChannel?: string[]
-    isReplacedWithSlashCommand?: string
-}
-
 export interface IInteractionElement {
+    /** Name of command */
     commandName: string
+    /**
+     * @deprecated Not in use
+     */
     category: commandCategory
+    /**
+     * @deprecated Not in use - use integration settings on server instead and lock it to specific role
+     */
     isAdmin?: boolean
-    /** TODO: Not yet implemented, but should reply with an ephemeral message saying it can't be used there */
+    /**
+     * @deprecated Not in use -  use integration settings on server instead and lock it to specific channel
+     */
     canOnlyBeUsedInSpecificChannel?: string[]
+    /** Function to be run */
     command: (rawMessage: ChatInputCommandInteraction<CacheType>) => void
 }
 
@@ -116,33 +104,6 @@ export class Commands {
         this.buttonHandler = new ButtonHandler(this.client, this.messageHelper, this.drinksCommands, this.testCommands)
     }
 
-    getAllCommands() {
-        return [
-            this.helpCommand,
-            ...this.gameCommands.getAllCommands(),
-            ...this.spinner.getAllCommands(),
-            ...this.jokeCommands.getAllCommands(),
-            ...this.adminCommands.getAllCommands(),
-            ...this.gamblingCommands.getAllCommands(),
-            ...this.dateCommands.getAllCommands(),
-            ...this.warzoneCommands.getAllCommands(),
-            ...this.patchNotes.getAllCommands(),
-            ...this.spotifyCommands.getAllCommands(),
-            ...this.testCommands.getAllCommands(),
-            ...this.musicCommands.getAllCommands(),
-            ...this.memeCommands.getAllCommands(),
-            ...this.userCommands.getAllCommands(),
-            ...this.weatherCommands.getAllCommands(),
-            ...this.soundCommands.getAllCommands(),
-            ...this.cardCommands.getAllCommands(),
-            ...this.drinksCommands.getAllCommands(),
-            ...this.nameCommands.getAllCommands(),
-            ...this.poletCommands.getAllCommands(),
-            ...this.linkCommands.getAllCommands(),
-            ...this.textCommands.getAllCommands(),
-        ]
-    }
-
     getAllInteractionCommands() {
         return [
             ...this.gameCommands.getAllInteractions(),
@@ -177,64 +138,6 @@ export class Commands {
     }
     handleButtons(interaction: Interaction<CacheType>): boolean {
         return this.buttonHandler.handleIncomingButtonInteraction(interaction)
-    }
-
-    getCommandCatgeories() {
-        return ['lyd', 'gambling', 'gaming', 'tekst', 'annet', 'admin', 'spin']
-    }
-
-    helperCommands = (rawMessage: Message, messageContent: string, args: string[]) => {
-        const isLookingForAllAdmin = !!args && args[0] === 'admin' && Admin.isAuthorAdmin(rawMessage.member)
-        let commandString = 'Kommandoer: '
-        let commandStringList: string[] = []
-        const commandForHelp = messageContent.replace('!mz help ', '').trim()
-        const commands = this.getAllCommands().filter((c) => !c.isReplacedWithSlashCommand)
-        if (this.getCommandCatgeories().includes(args[0])) {
-            commands.forEach((cmd) => {
-                if (cmd.category == args[0]) commandStringList.push(Array.isArray(cmd.commandName) ? cmd.commandName[0] : cmd.commandName)
-            })
-            commandStringList.sort()
-            commandStringList.forEach((str) => (commandString += '\n' + str))
-            this.messageHelper.sendDM(rawMessage.author, commandString)
-        } else if (args && args[0] !== 'admin' && commandForHelp.length > 0) {
-            let found = 0
-            commands.forEach((cmd) => {
-                if (cmd.commandName == commandForHelp) {
-                    this.messageHelper.sendMessage(rawMessage.channelId, cmd.commandName + (cmd.isAdmin ? ' (Admin) ' : '') + ': ' + cmd.description)
-                    found++
-                }
-            })
-
-            if (found == 0) {
-                this.messageHelper.sendMessage(rawMessage.channelId, "Fant ingen kommando '" + commandForHelp + "'. ")
-            }
-        } else {
-            commands.forEach((cmd) => {
-                if (isLookingForAllAdmin) {
-                    commandStringList.push(cmd.commandName + (cmd.isAdmin ? ' (admin)' : cmd.hideFromListing ? ' (gjemt fra visning) ' : ''))
-                } else {
-                    if (!cmd.hideFromListing) commandStringList.push(Array.isArray(cmd.commandName) ? cmd.commandName[0] : cmd.commandName)
-                }
-            })
-
-            commandStringList.sort()
-            commandStringList.forEach((str) => (commandString += '\n' + str))
-            commandString += '\n\n' + "*Bruk '!mz help <command>' for beskrivelse*"
-            commandString += "\n*Eller bruk '!mz help <kategori>' med en av følgende kategorier for en mindre liste:* "
-            this.getCommandCatgeories().forEach((cat) => {
-                commandString += ' *' + cat + ',*'
-            })
-            this.messageHelper.sendMessage(rawMessage.channelId, 'Liste over kommandoer er sendt på DM.')
-            this.messageHelper.sendDM(rawMessage.author, commandString)
-        }
-    }
-
-    //TODO: Refactor these:
-    private helpCommand: ICommandElement = {
-        commandName: ['help', 'hjelp'],
-        description: "List alle metoder. Bruk '!mz help <command>' for å finne ut mer om en spesifikk kommando",
-        command: (rawMessage, messageContent, args) => this.helperCommands(rawMessage, messageContent, args),
-        category: 'annet',
     }
 
     get dateFunc() {

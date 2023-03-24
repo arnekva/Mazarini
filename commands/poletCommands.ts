@@ -2,7 +2,7 @@ import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interacti
 import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { vinmonopoletKey } from '../client-env'
-import { ICommandElement, IInteractionElement } from '../general/commands'
+import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { Languages } from '../helpers/languageHelpers'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -175,9 +175,6 @@ export class PoletCommands extends AbstractCommands {
         return 'Stengt'
     }
 
-    getAllCommands(): ICommandElement[] {
-        return []
-    }
     getAllInteractions(): IInteractionElement[] {
         return [
             {

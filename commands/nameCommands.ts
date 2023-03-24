@@ -1,6 +1,6 @@
 import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { ICommandElement, IInteractionElement } from '../general/commands'
+import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { SlashCommandHelper } from '../helpers/slashCommandHelper'
@@ -95,10 +95,6 @@ export class NameCommands extends AbstractCommands {
         } else {
             return false
         }
-    }
-
-    getAllCommands(): ICommandElement[] {
-        return []
     }
 
     getAllInteractions(): IInteractionElement[] {

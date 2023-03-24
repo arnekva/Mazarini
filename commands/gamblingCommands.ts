@@ -11,7 +11,7 @@ import {
     User,
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { ICommandElement, IInteractionElement } from '../general/commands'
+import { IInteractionElement } from '../general/commands'
 import { ButtonHandler } from '../handlers/buttonHandler'
 import { ChipsStats, DatabaseHelper, MazariniUser, RulettStats } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -631,10 +631,6 @@ export class GamblingCommands extends AbstractCommands {
             default:
                 return 100
         }
-    }
-
-    public getAllCommands(): ICommandElement[] {
-        return []
     }
 
     getAllInteractions(): IInteractionElement[] {

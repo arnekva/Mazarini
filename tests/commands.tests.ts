@@ -11,7 +11,7 @@ describe('Commands test', () => {
         const commands = new Commands(client.client, msg)
         expect(
             commands
-                .getAllCommands()
+                .getAllInteractionCommands()
                 .map((c) => c.commandName)
                 .every((e, i, a) => a.indexOf(e) === i)
         ).to.be.true

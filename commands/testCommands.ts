@@ -10,7 +10,7 @@ import {
     Message,
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { ICommandElement, IInteractionElement } from '../general/commands'
+import { IInteractionElement } from '../general/commands'
 import { ButtonHandler } from '../handlers/buttonHandler'
 import { MessageHelper } from '../helpers/messageHelper'
 
@@ -100,10 +100,6 @@ export class TestCommands extends AbstractCommands {
         } else {
             this.messageHelper.replyToInteraction(interaction, 'Ingen test sub-command angitt')
         }
-    }
-
-    public getAllCommands(): ICommandElement[] {
-        return []
     }
 
     getAllInteractions(): IInteractionElement[] {

@@ -1,7 +1,7 @@
 import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
 import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { ICommandElement, IInteractionElement } from '../general/commands'
+import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper, ferieItem } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
@@ -369,10 +369,6 @@ export class DateCommands extends AbstractCommands {
         if (today.getDay() == 6 || today.getDay() == 0) return true
         else if (today.getDay() == 5 && today.getHours() > 16) return true
         return false
-    }
-
-    public getAllCommands(): ICommandElement[] {
-        return []
     }
 
     getAllInteractions(): IInteractionElement[] {

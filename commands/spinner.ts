@@ -1,6 +1,6 @@
 import { CacheType, ChatInputCommandInteraction, Client, Message } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { ICommandElement, IInteractionElement } from '../general/commands'
+import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { RandomUtils } from '../utils/randomUtils'
@@ -135,9 +135,6 @@ export class Spinner extends AbstractCommands {
         this.messageHelper.sendMessage(message.channelId, statuser)
     }
 
-    public getAllCommands(): ICommandElement[] {
-        return []
-    }
     getAllInteractions(): IInteractionElement[] {
         return [
             {

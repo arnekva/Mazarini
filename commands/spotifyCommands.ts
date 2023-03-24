@@ -3,7 +3,7 @@ import { Headers } from 'node-fetch'
 import { URLSearchParams } from 'url'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { spotifyClientID, spotifyClientSecret } from '../client-env'
-import { ICommandElement, IInteractionElement } from '../general/commands'
+import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -241,9 +241,6 @@ export class SpotifyCommands extends AbstractCommands {
         }
     }
 
-    public getAllCommands(): ICommandElement[] {
-        return []
-    }
     getAllInteractions(): IInteractionElement[] {
         return [
             {

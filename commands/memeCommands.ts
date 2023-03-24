@@ -2,7 +2,7 @@ import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
 import { URLSearchParams } from 'url'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { imgflip } from '../client-env'
-import { ICommandElement, IInteractionElement } from '../general/commands'
+import { IInteractionElement } from '../general/commands'
 import { MessageHelper } from '../helpers/messageHelper'
 const fetch = require('node-fetch')
 export class Meme extends AbstractCommands {
@@ -149,9 +149,6 @@ export class Meme extends AbstractCommands {
         return [{ boxId: '0', x: '10', y: '300', width: '300', height: '100' }]
     }
 
-    public getAllCommands(): ICommandElement[] {
-        return []
-    }
     getAllInteractions(): IInteractionElement[] {
         return [
             {
