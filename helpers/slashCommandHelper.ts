@@ -12,9 +12,9 @@ export class SlashCommandHelper {
     static handleInteractionParameterError(interaction: Interaction<CacheType>) {
         if (interaction.type === InteractionType.ApplicationCommand) {
             if (interaction.replied) {
-                interaction.editReply('En feil har oppstått.' + MentionUtils.mentionRole(UserUtils.ROLE_IDs.BOT_SUPPORT))
+                interaction.editReply('En feil har oppstått.' + MentionUtils.mentionRole(MentionUtils.ROLE_IDs.BOT_SUPPORT))
             }
-            interaction.reply('En feil har oppstått.' + MentionUtils.mentionRole(UserUtils.ROLE_IDs.BOT_SUPPORT))
+            interaction.reply('En feil har oppstått.' + MentionUtils.mentionRole(MentionUtils.ROLE_IDs.BOT_SUPPORT))
         }
     }
 

@@ -24,7 +24,6 @@ import { MazariniClient } from '../main'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { CollectorUtils } from '../utils/collectorUtils'
 import { MentionUtils } from '../utils/mentionUtils'
-import { MessageUtils } from '../utils/messageUtils'
 import { textArrays } from '../utils/textArrays'
 import { UserUtils } from '../utils/userUtils'
 
@@ -169,7 +168,7 @@ export class MessageHelper {
         message.reply(content)
     }
 
-    async findMessageById(id: string): Promise<Message<boolean> | undefined> {
+    async findMessageById(id: string, onErr?: () => void): Promise<Message<boolean> | undefined> {
         const allChannels = [...this.client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
         let messageToReturn
 
@@ -183,7 +182,9 @@ export class MessageHelper {
                     .then(async (message) => {
                         messageToReturn = message
                     })
-                    .catch((error) => {})
+                    .catch((error) => {
+                        if (onErr) onErr()
+                    })
             }
         }
         return messageToReturn
@@ -234,7 +235,7 @@ export class MessageHelper {
         )
         MazariniClient.numMessagesNumErrorMessages++
         if (replyChannel && replyChannel.type === ChannelType.GuildText)
-            return replyChannel.send(`${errorMessageToSend} ${MessageUtils.getRoleTagString(MentionUtils.ROLE_IDs.BOT_SUPPORT)}`)
+            return replyChannel.send(`${errorMessageToSend} ${MentionUtils.mentionRole(MentionUtils.ROLE_IDs.BOT_SUPPORT)}`)
         return undefined
     }
 
@@ -247,9 +248,7 @@ export class MessageHelper {
             if (CollectorUtils.shouldStopCollector(reaction, message)) collector.stop()
 
             if (reaction.emoji.name === '👍' && reaction.users.cache.find((u) => u.username === message.author.username)) {
-                replyMsg.edit(
-                    `En feil har oppstått. Feilkoden og meldingen din blir logget.  ${MessageUtils.getRoleTagString(MentionUtils.ROLE_IDs.BOT_SUPPORT)}`
-                )
+                replyMsg.edit(`En feil har oppstått. Feilkoden og meldingen din blir logget.  ${MentionUtils.mentionRole(MentionUtils.ROLE_IDs.BOT_SUPPORT)}`)
                 collector.stop()
             }
         })
@@ -268,7 +267,7 @@ export class MessageHelper {
             if (CollectorUtils.shouldStopCollector(reaction, message)) collector.stop()
 
             if (reaction.emoji.name === '👍' && reaction.users.cache.find((u) => u.username === message.author.username)) {
-                replyMsg.edit(`${reply} ${includeSupportTag ? MessageUtils.getRoleTagString(MentionUtils.ROLE_IDs.BOT_SUPPORT) : ''}`)
+                replyMsg.edit(`${reply} ${includeSupportTag ? MentionUtils.mentionRole(MentionUtils.ROLE_IDs.BOT_SUPPORT) : ''}`)
                 collector.stop()
             }
         })
@@ -280,9 +279,7 @@ export class MessageHelper {
     }
 
     sendMessageToActionLogWithInsufficientRightsMessage(message: Message, extra?: any, ignoreReply?: boolean) {
-        message.reply(
-            `Du har ikke de nødvendige rettighetene for å bruke denne funksjonen. ${MessageUtils.getRoleTagString(MentionUtils.ROLE_IDs.BOT_SUPPORT)}`
-        )
+        message.reply(`Du har ikke de nødvendige rettighetene for å bruke denne funksjonen. ${MentionUtils.mentionRole(MentionUtils.ROLE_IDs.BOT_SUPPORT)}`)
         const errorChannel = message.channel.client.channels.cache.get('810832760364859432') as TextChannel
         errorChannel.send(
             `${message.author.username} forsøkte å bruke en funksjon uten rettigheter. Meldingsinnhold: <${message.content}>. Channel: ${message.channel}. ${extra}`

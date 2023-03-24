@@ -124,7 +124,6 @@ export class GameCommands extends AbstractCommands {
                 },
                 `For ${mapName}, you are dropping in ${drop}`
             )
-            // SoundUtils.disconnectFromVoiceChannel(interaction.guildId)
         }
     }
 

@@ -8,10 +8,6 @@ export namespace MessageUtils {
         return 'none'
     }
 
-    export const isArgsAtleastThisLong = (args: string[], neededLength: number) => {
-        return args.length - 1 === neededLength
-    }
-
     export const doesMessageContainNumber = (message: Message) => {
         let arr = new Array<number>()
         const content = message.content
@@ -33,21 +29,5 @@ export namespace MessageUtils {
             })
         }
         return arr
-    }
-
-    export const findCommandName = (message: Message): string | undefined => {
-        if (message.content.includes('!mz')) return message.content.split(' ')[1]
-        return undefined
-    }
-
-    export const messageHasCommand = (message: Message) => {
-        return message.content.includes('!mz')
-    }
-
-    export const getRoleTagString = (roleId: string) => {
-        return `<@&${roleId}>`
-    }
-    export const getUserTagString = (userID: string | undefined) => {
-        return userID ? `<@${userID}>` : ''
     }
 }

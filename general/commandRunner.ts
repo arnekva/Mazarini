@@ -272,7 +272,7 @@ export class CommandRunner {
             `vedde hundre kroner på at du egentlig meine ${arg2}`,
             `https://tenor.com/view/donald-trump-fake-news-gif-11382583`,
         ]
-        if (numbers.length > 0 && numbers.length < 3 && !MessageUtils.messageHasCommand(message)) {
+        if (numbers.length > 0 && numbers.length < 3) {
             message.react(kekw ?? '😂')
             message.reply(ArrayUtils.randomChoiceFromArray(responses))
         }

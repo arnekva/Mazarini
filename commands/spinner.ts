@@ -1,4 +1,4 @@
-import { CacheType, ChatInputCommandInteraction, Client, Message } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
@@ -116,23 +116,6 @@ export class Spinner extends AbstractCommands {
         const user = DatabaseHelper.getUser(userID)
         user.spinCounter++
         DatabaseHelper.updateUser(user)
-    }
-
-    private formatScore(score: string) {
-        if (score.charAt(0) + score.charAt(1) == '10' && score.length == 3) return '100' + score.charAt(2)
-        return score.length === 2 ? score.charAt(0) + '0' + score.charAt(1) : score
-    }
-
-    private async listSpinCounter(message: Message) {
-        const val = DatabaseHelper.getAllUsers()
-        let statuser = ''
-        Object.keys(val).forEach((key) => {
-            const user = DatabaseHelper.getUser(key)
-            const spins = user?.spinCounter
-            if (spins) statuser += `${user.displayName} ${user.spinCounter} \n `
-        })
-        statuser = statuser.trim() ? statuser : 'Ingen har satt statusen sin i dag'
-        this.messageHelper.sendMessage(message.channelId, statuser)
     }
 
     getAllInteractions(): IInteractionElement[] {
