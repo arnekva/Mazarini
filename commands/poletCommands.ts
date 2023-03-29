@@ -105,22 +105,14 @@ export class PoletCommands extends AbstractCommands {
         const fmMessage = new EmbedBuilder().setTitle(`${poletData.storeName} (${poletData.address.postalCode}, ${poletData.address.city}) `)
 
         if (poletData.openingHours.exceptionHours.length) {
-            // const dates = poletData.openingHours.exceptionHours.filter((eh) => {
-            //     const now = moment()
-            //     const input = moment(eh.date)
-            //     return now.isoWeek() == input.isoWeek()
-            // })
-            // console.log(dates)
-            //if (dates.length) {
-            if (true) {
-                fmMessage.addFields({ name: 'Endre åpningstider', value: 'Det er endrede åpningstider denne måneden' })
-                console.log(poletData.openingHours.exceptionHours)
+            fmMessage.addFields({ name: 'Endre åpningstider', value: 'Det er endrede åpningstider denne måneden' })
 
-                poletData.openingHours.exceptionHours.forEach((h, index) => {
-                    const dateName = moment(h?.date).format('dddd')
-
+            poletData.openingHours.exceptionHours.forEach((h, index) => {
+                const dateName = moment(h?.date).format('dddd')
+                if (h.openingTime !== '10:00' || h.closingTime !== '18:00') {
                     let message = ''
                     if (h.openingTime && h.closingTime) {
+                        //Some times days with normal opening hours are added to the exception list, so check if the hours actually deviate
                         message = `Forkortet åpningstid. Det er åpent mellom ${h.openingTime} - ${h.closingTime}`
                     } else {
                         message = h?.message ? h.message : 'Ingen forklaring'
@@ -129,8 +121,8 @@ export class PoletCommands extends AbstractCommands {
                         name: dateName ? `${dateName} (${h?.date})` : 'Ukjent dag',
                         value: `${message}`,
                     })
-                })
-            }
+                }
+            })
         } else {
             fmMessage.addFields({ name: 'Åpningstider', value: `Polet holder åpent som normalt denne uken` })
         }

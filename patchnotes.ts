@@ -15,9 +15,11 @@ export class PatchNotes extends AbstractCommands {
         `\n* Diverse refaktoreringer` +
         `\n* Channel-, user- og role-ids ligger nå i MentionUtils i stedet for spredt i messageHelper og userUtils` +
         `\n* Diverse tsdoc oppdateringer` +
+        `\n* Åpningstider som ikke skiller seg fra normalen skal nå filtreres bort når /vinmonopolet rapporterer om endrede åpningstider` +
         `\n* IInteractionElement inneholder nå kun commandName og callback - resten (som isAdmin) er fjernet da det nå kan styres fra server settings i discordappen` +
         `\n* '!get' er fjernet` +
-        `\n* 'Hælj' trigger nå *Helg*-kommandoen`
+        `\n* *Helg*-kommandoen trigges nå av litt flere varianter` +
+        `\n* Daily claim prestige multiplieren er økt bittelitt`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
