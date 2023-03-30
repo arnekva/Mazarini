@@ -327,16 +327,16 @@ export class GamblingCommands extends AbstractCommands {
     private rollSlotMachine(interaction: ChatInputCommandInteraction<CacheType>) {
         const user = DatabaseHelper.getUser(interaction.user.id)
         const userMoney = user.chips
-        if (Number(userMoney) < 100) {
-            this.messageHelper.replyToInteraction(interaction, `Det koste 100 chips for å bruga maskinen, og du har kje råd bro`)
+        if (Number(userMoney) < 200) {
+            this.messageHelper.replyToInteraction(interaction, `Det koste 200 chips for å bruga maskinen, og du har kje råd bro`)
         } else {
             //Remove 100 chips
             let emojiString = ''
-            const newMoneyVal = Number(userMoney) - 100
+            const newMoneyVal = Number(userMoney) - 200
             user.chips = newMoneyVal
             DatabaseHelper.updateUser(user)
             const randArray = []
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < 6; i++) {
                 randArray.push(RandomUtils.getRndInteger(0, 9))
             }
             randArray.forEach((num) => {
@@ -346,7 +346,7 @@ export class GamblingCommands extends AbstractCommands {
             const msg = new EmbedBuilder().setTitle('🎰 Gambling 🎰').setDescription(`${emojiString}`).setFields()
 
             const amountOfCorrectNums: { val: number; num: number }[] = []
-            const sequenceWins = ['123', '1234', '12345', '1337', '80085']
+            const sequenceWins = ['123', '1234', '12345', '123456', '1337', '80085']
             let currentNum = randArray[0]
             let numOfOccurence = 0
             //Gå gjennom array
@@ -394,7 +394,7 @@ export class GamblingCommands extends AbstractCommands {
             user.chips = newMoney
             DatabaseHelper.updateUser(user)
 
-            if (!hasSequence && amountOfCorrectNums.length < 1) msg.addFields({ name: 'Du tapte', value: '-100 chips' })
+            if (!hasSequence && amountOfCorrectNums.length < 1) msg.addFields({ name: 'Du tapte', value: '-200 chips' })
 
             this.messageHelper.replyToInteraction(interaction, msg)
         }
@@ -420,7 +420,7 @@ export class GamblingCommands extends AbstractCommands {
         if (interaction) {
             const user = DatabaseHelper.getUser(interaction.user.id)
             const canClaim = user.dailyClaim
-            const dailyPrice = { chips: '300', coins: '80' }
+            const dailyPrice = '500'
             const hasFreeze = user.dailyFreezeCounter
             if (hasFreeze && !isNaN(hasFreeze) && hasFreeze > 0) {
                 return 'Du har frosset daily claimet ditt i ' + hasFreeze + ' dager til. Vent til da og prøv igjen'
@@ -519,19 +519,7 @@ export class GamblingCommands extends AbstractCommands {
         if (reply == '') {
             reply = 'Du har ingen statistikk å visa'
         }
-        // const data: chartData = Object.entries(userStats).map((us) => {
-        //     return {
-        //         label: this.findPrettyNameForKey(us[0] as keyof ChipsStats),
-        //         value: us[1],
-        //     }
-        // })
-        // const fileUrl = ChartUtils.createChart('bar', data, this.getBarColor())
         this.messageHelper.replyToInteraction(interaction, reply)
-    }
-
-    private getBarColor() {
-        const col = '0080FE'
-        return [col, col, col, col, col, col, col, col]
     }
 
     private findPrettyNameForChipsKey(prop: keyof ChipsStats) {
@@ -573,13 +561,12 @@ export class GamblingCommands extends AbstractCommands {
         }
     }
 
-    private findAndIncrementValue(streak: number, dailyPrice: { chips: string }, user: MazariniUser): { dailyChips: string } {
+    private findAndIncrementValue(streak: number, dailyPrice: string, user: MazariniUser): { dailyChips: string } {
         const additionalCoins = this.findAdditionalCoins(streak)
         const prestigeMultiplier = this.findPrestigeMultiplier(user.prestige)
 
-        const dailyChips = ((Number(dailyPrice.chips) + Number(additionalCoins?.chips ?? 0)) * prestigeMultiplier).toFixed(0)
+        const dailyChips = ((Number(dailyPrice) + Number(additionalCoins ?? 0)) * prestigeMultiplier).toFixed(0)
         user.chips = user.chips + Number(dailyChips)
-
         user.dailyClaim = 1
         DatabaseHelper.updateUser(user)
 
@@ -588,29 +575,29 @@ export class GamblingCommands extends AbstractCommands {
 
     private findPrestigeMultiplier(p: number | undefined) {
         if (p && !isNaN(p) && p > 0) {
-            return 1 + 0.2 * p
+            return 1 + 0.315 * p
         }
         return 1
     }
 
-    private findAdditionalCoins(streak: number): { chips: number } | undefined {
-        if (streak > 5) return { chips: 100 }
-        if (streak > 3) return { chips: 75 }
-        if (streak >= 2) return { chips: 25 }
+    private findAdditionalCoins(streak: number): number | undefined {
+        if (streak > 5) return 250
+        if (streak > 3) return 100
+        if (streak >= 2) return 50
         return undefined
     }
 
     private findSequenceWinningAmount(s: string) {
         switch (s) {
             case '123':
-                return 1000
+                return 1500
             case '1234':
                 return 15500
             case '12345':
             case '80085':
                 return 3575000
             case '1337':
-                return 345750
+                return 301337
             default:
                 return 400
         }
@@ -619,9 +606,9 @@ export class GamblingCommands extends AbstractCommands {
     private findSlotMachineWinningAmount(numCorrect: number) {
         switch (numCorrect) {
             case 2:
-                return 100
+                return 200
             case 3:
-                return 1500
+                return 1750
             case 4:
                 return 14500
             case 5:
@@ -629,7 +616,7 @@ export class GamblingCommands extends AbstractCommands {
             case 6:
                 return 35750000
             default:
-                return 100
+                return 200
         }
     }
 

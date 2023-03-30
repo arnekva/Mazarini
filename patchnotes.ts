@@ -11,8 +11,8 @@ export class PatchNotes extends AbstractCommands {
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Helg mygler litt mer nå (eventuelt litt mer excited på fredager)` +
-        `\n* Fikset en feil på regexen som gjorde at den ikke fanget opp alle "helg"-tekster. Indeksen resettes nå etter hvert søk som blir gjort.`
+        `\n* Flere tall i daily claim har blitt oppdatert. Base claim er økt fra 300 til 500 chips` +
+        `\n* /roll koster nå 200 chips å bruke, men har økt med ett tall (6 totalt), samt fått økte gevinster`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
