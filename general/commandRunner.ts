@@ -161,7 +161,7 @@ export class CommandRunner {
                 })
             } else if (interaction.type === InteractionType.ModalSubmit) {
                 hasAcknowledged = this.commands.handleModalInteractions(interaction)
-            } else if (interaction.isSelectMenu()) {
+            } else if (interaction.isAnySelectMenu()) {
                 hasAcknowledged = this.commands.handleSelectMenus(interaction)
             } else if (interaction.isButton()) {
                 hasAcknowledged = this.commands.handleButtons(interaction)

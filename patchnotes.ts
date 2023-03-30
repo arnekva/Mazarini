@@ -4,7 +4,7 @@ import { IInteractionElement } from './general/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '11.0.1'
+    public static readonly currentVersion = '11.0.2'
     public static readonly nextVersion = 'Backlog'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion

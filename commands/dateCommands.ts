@@ -312,7 +312,7 @@ export class DateCommands extends AbstractCommands {
                         const emoji = EmojiHelper.getHelgEmoji(this.client, isLessThan4HoursAway)
                         timeUntil += this.formatCountdownText(
                             timeTo,
-                            `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg!'} ${emoji}`
+                            `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg'} ${emoji}`
                         )
                     }
                 }

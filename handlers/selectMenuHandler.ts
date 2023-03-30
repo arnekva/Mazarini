@@ -14,14 +14,18 @@ export class SelectMenuHandler {
     }
 
     handleIncomingSelectMenu(rawInteraction: Interaction<CacheType>) {
-        if (rawInteraction.isSelectMenu()) {
+        if (rawInteraction.isStringSelectMenu()) {
             if (rawInteraction.message.interaction.user === rawInteraction.user) {
                 const localIntr = rawInteraction as SelectMenuInteraction
 
                 this.handleUserInfoViewingMenu(localIntr)
                 return true
             } else {
-                this.messageHelper.replyToInteraction(rawInteraction, `Du kan bare sjekka dine egne ting. Bruke '/brukerinfo' for å se dine egne verdier`, true)
+                return !!this.messageHelper.replyToInteraction(
+                    rawInteraction,
+                    `Du kan bare sjekka dine egne ting. Bruke '/brukerinfo' for å se dine egne verdier`,
+                    true
+                )
             }
         }
         return false
