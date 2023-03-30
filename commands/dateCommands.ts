@@ -3,6 +3,7 @@ import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper, ferieItem } from '../helpers/databaseHelper'
+import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { countdownTime, dateRegex, DateUtils } from '../utils/dateUtils'
@@ -273,7 +274,7 @@ export class DateCommands extends AbstractCommands {
         return mondayHoliday
     }
 
-    private getTimeUntilHelgString() {
+    private async getTimeUntilHelgString() {
         const isHelg = this.isItHelg()
         const holidays = this.findHolidaysInThisWeek()
         let timeUntil = ''
@@ -306,9 +307,12 @@ export class DateCommands extends AbstractCommands {
                             )
                         else timeUntil = `Det e helg!`
                     } else {
+                        const timeTo = DateUtils.getTimeTo(new Date(DateUtils.nextWeekdayDate(date, 5)))
+                        const isLessThan4HoursAway = timeTo.days == 0 || timeTo.hours < 4
+                        const emoji = EmojiHelper.getHelgEmoji(this.client, isLessThan4HoursAway)
                         timeUntil += this.formatCountdownText(
-                            DateUtils.getTimeTo(new Date(DateUtils.nextWeekdayDate(date, 5))),
-                            `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg!'}`
+                            timeTo,
+                            `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg!'} ${emoji}`
                         )
                     }
                 }
@@ -317,9 +321,9 @@ export class DateCommands extends AbstractCommands {
         return timeUntil
     }
 
-    public checkForHelg(interaction?: ChatInputCommandInteraction<CacheType>) {
+    public async checkForHelg(interaction?: ChatInputCommandInteraction<CacheType>) {
         const isHelg = this.isItHelg()
-        const val = isHelg ? `Det e helg!` : `${this.getTimeUntilHelgString()}`
+        const val = (await isHelg) ? `Det e helg!` : `${await this.getTimeUntilHelgString()}`
         if (interaction) this.messageHelper.replyToInteraction(interaction, val)
         return val
     }

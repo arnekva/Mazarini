@@ -1,18 +1,11 @@
 import { ArrayUtils } from './arrayUtils'
 import { RandomUtils } from './randomUtils'
 
-const prideReg = new RegExp(
-    /(penis)|(sex)|(gay)|(xD)|(:3)|(pls)|(mamma)|(porno)|(jævla)|(dritt)|(komme)|(tinder)|(date)|(pølse)|(eivindpride)|(pride)|(daily)|(rip)|(kekw)|(cat)|(enig)|(komt)/gi
-)
-const putinReg = new RegExp(
-    /(krig)|(ukraina)|(russland)|(invadere)|(invasjon)|(russiske)|(russisk)|(russer)|(russia)|(putin)|(kiev)|(putinpride)|(kyiv)|(europa)|(kina)/gi
-)
+const prideReg = new RegExp(/(xD)|(:3)|(pls)|(dritt)|(tinder)|(date)|(pølse)|(eivindpride)|(pride)|(rip)/gi)
+
 export namespace MiscUtils {
     export function doesThisMessageNeedAnEivindPride(content: string, polseCounter: number) {
         return Math.random() < 0.1 || polseCounter > 0 || prideReg.test(content)
-    }
-    export function doesThisMessageNeedAPutinPride(content: string, polseCounter: number) {
-        return Math.random() < 0.1 || putinReg.test(content)
     }
 
     /** Return a matching emoji for the given letter. Some letters have more than one matching emoji (set isSecond to true to get second one), and there can be up to 7 spaces */

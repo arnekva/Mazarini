@@ -21,7 +21,7 @@ export class CommandRunner {
 
     lastUsedCommand = 'help'
     polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê|å|æ|ê|è|é|à|á)*(ls)(e|a|å|o|i)|(pause)|(🌭)|(hotdog)|(sausage)|(hot-dog)/gi)
-    helgeRegex = new RegExp(/(helg)(å|en|ene|a|e|æ)|(hælj)|(hælja)|(hælg)|(weekend)/gi)
+    helgeRegex = new RegExp(/(helg|Helg|hælj|hælg)(å|en|ene|a|e|æ)*|(weekend)/gi)
 
     constructor(client: Client, messageHelper: MessageHelper) {
         this.messageHelper = messageHelper
@@ -202,7 +202,7 @@ export class CommandRunner {
     }
 
     /** Checks for pølse, eivindpride etc. */
-    checkMessageForJokes(message: Message) {
+    async checkMessageForJokes(message: Message) {
         if (!this.checkIfLockedPath(message)) {
             if (message.id === '802945796457758760') return
 
@@ -215,8 +215,10 @@ export class CommandRunner {
                 }
             }
             const hasHelg = this.helgeRegex.test(message.content)
+            this.helgeRegex.lastIndex = 0
+
             if (hasHelg) {
-                const val = this.commands.dateFunc.checkForHelg()
+                const val = await this.commands.dateFunc.checkForHelg()
                 this.messageHelper.sendMessage(message.channelId, val)
             }
 
