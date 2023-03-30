@@ -34,7 +34,7 @@ export class CommandRunner {
             /**  Check message for text commands */
             await this.checkForCommand(message)
             /** Additional non-command checks */
-            this.checkMessageForJokes(message)
+            await this.checkMessageForJokes(message)
 
             this.checkForVinmonopolContent(message)
         } catch (error) {
