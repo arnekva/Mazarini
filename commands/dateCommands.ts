@@ -296,6 +296,10 @@ export class DateCommands extends AbstractCommands {
                     const doesNextWeekHaveHolidayOnMonday = this.nextWeekHasHolidayOnMonday()[0]
                     const date = new Date()
 
+                    const timeTo = DateUtils.getTimeTo(new Date(DateUtils.nextWeekdayDate(date, 5)))
+                    const isLessThan4HoursAway = timeTo.days == 0 || timeTo.hours < 4
+                    const emoji = EmojiHelper.getHelgEmoji(this.client, isLessThan4HoursAway)
+
                     date.setHours(16, 0, 0, 0)
                     if (this.isTodayHoliday()) {
                         timeUntil = 'Det e fridag!'
@@ -303,13 +307,10 @@ export class DateCommands extends AbstractCommands {
                         if (new Date().getHours() < 16)
                             timeUntil += this.formatCountdownText(
                                 DateUtils.getTimeTo(date),
-                                `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg!'}`
+                                `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg'} ${emoji}}`
                             )
                         else timeUntil = `Det e helg!`
                     } else {
-                        const timeTo = DateUtils.getTimeTo(new Date(DateUtils.nextWeekdayDate(date, 5)))
-                        const isLessThan4HoursAway = timeTo.days == 0 || timeTo.hours < 4
-                        const emoji = EmojiHelper.getHelgEmoji(this.client, isLessThan4HoursAway)
                         timeUntil += this.formatCountdownText(
                             timeTo,
                             `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg'} ${emoji}`
