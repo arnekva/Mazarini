@@ -20,9 +20,13 @@ export class TextCommands extends AbstractCommands {
         }
 
         let result
+
+        //TODO: Refactor this
         try {
             result = await wiki({ apiUrl: 'https://no.wikipedia.org/w/api.php' })?.page(search)
         } catch (error) {
+            //Module throws an error instead of returning an error code/undefined for some reason ..
+            //Since search is case sensitive, we try again with each word caopitalized
             const splitSearch = search.split(' ').map((word) => capitalizeFirstLetter(word))
             const search2 = splitSearch.join(' ')
             try {
