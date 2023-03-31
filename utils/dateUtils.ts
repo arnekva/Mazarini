@@ -68,7 +68,10 @@ export class DateUtils {
     static isValidDate(date: Date | number) {
         return date instanceof Date && !isNaN(Number(date))
     }
-
+    /** This function finds the next instance of the specified day
+     * @params date - Date to search from (defaults to today)
+     * @params day_in_week - Day to search for (e.g. 5 for friday)
+     */
     static nextWeekdayDate(date: Date, day_in_week: number) {
         var ret = new Date(date || new Date())
         ret.setDate(ret.getDate() + ((day_in_week - 1 - ret.getDay() + 7) % 7) + 1)

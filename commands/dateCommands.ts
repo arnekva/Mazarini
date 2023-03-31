@@ -295,27 +295,26 @@ export class DateCommands extends AbstractCommands {
                 } else {
                     const doesNextWeekHaveHolidayOnMonday = this.nextWeekHasHolidayOnMonday()[0]
                     const date = new Date()
-
-                    const timeTo = DateUtils.getTimeTo(new Date(DateUtils.nextWeekdayDate(date, 5)))
-                    const isLessThan4HoursAway = timeTo.days == 0 || timeTo.hours < 4
+                    date.setHours(16, 0, 0, 0)
+                    const isFriday = date.getDay() === 5
+                    const isAfter16 = date.getHours() > 16
+                    const nextWeekendStart = new Date(DateUtils.nextWeekdayDate(date, 5))
+                    nextWeekendStart.setHours(16)
+                    const timeTo = DateUtils.getTimeTo(isFriday ? date : nextWeekendStart)
+                    const isLessThan4HoursAway = timeTo.days == 0 && timeTo.hours < 4
                     const emoji = EmojiHelper.getHelgEmoji(this.client, isLessThan4HoursAway)
 
-                    date.setHours(16, 0, 0, 0)
+                    const textToPrint =
+                        isFriday && isAfter16
+                            ? 'Det e helg!'
+                            : `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg'} ${emoji}`
+
+                    const timeToPrint = this.formatCountdownText(timeTo, textToPrint)
+
                     if (this.isTodayHoliday()) {
-                        timeUntil = 'Det e fridag!'
-                    } else if (date.getDay() === 5) {
-                        if (new Date().getHours() < 16)
-                            timeUntil += this.formatCountdownText(
-                                DateUtils.getTimeTo(date),
-                                `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg'} ${emoji}}`
-                            )
-                        else timeUntil = `Det e helg!`
-                    } else {
-                        timeUntil += this.formatCountdownText(
-                            timeTo,
-                            `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg'} ${emoji}`
-                        )
+                        return 'Det e fridag!'
                     }
+                    return timeToPrint
                 }
             }
         }
