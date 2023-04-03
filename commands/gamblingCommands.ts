@@ -575,7 +575,7 @@ export class GamblingCommands extends AbstractCommands {
 
     private findPrestigeMultiplier(p: number | undefined) {
         if (p && !isNaN(p) && p > 0) {
-            return 1 + 0.315 * p
+            return 1 + 0.395 * p
         }
         return 1
     }
@@ -594,7 +594,6 @@ export class GamblingCommands extends AbstractCommands {
             case '1234':
                 return 15500
             case '12345':
-            case '80085':
                 return 3575000
             case '1337':
                 return 301337
