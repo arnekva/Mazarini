@@ -4,15 +4,13 @@ import { IInteractionElement } from './general/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '11.0.3'
+    public static readonly currentVersion = '11.1.0'
     public static readonly nextVersion = 'Backlog'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
-    public static readonly currentPatchNotes: string =
-        `\n* Flere tall i daily claim har blitt oppdatert. Base claim er økt fra 300 til 500 chips` +
-        `\n* /roll koster nå 200 chips å bruke, men har økt med ett tall (6 totalt), samt fått økte gevinster`
+    public static readonly currentPatchNotes: string = `\n* Du kan endelig satse chips på spesifikke tall i rulett igjen`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 

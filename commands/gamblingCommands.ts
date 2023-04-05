@@ -171,17 +171,16 @@ export class GamblingCommands extends AbstractCommands {
     private roulette(interaction: ChatInputCommandInteraction<CacheType>) {
         const user = DatabaseHelper.getUser(interaction.user.id)
         let userMoney = user.chips
-        const stake = SlashCommandHelper.getCleanNumberValue(interaction.options.get('stake')?.value)
-        const betOn = interaction.options.get('satsing')?.value as string
+        const isForNumber = interaction.options.getSubcommand() === 'tall'
+        const isForCategory = interaction.options.getSubcommand() === 'kategori'
 
-        if (!userMoney || userMoney < 0) {
-            if (Number(stake) > Number(userMoney)) {
-                this.messageHelper.replyToInteraction(interaction, 'Du har ikke nok penger til å gamble så mye. Ta å spin fidget spinneren litt for någe cash')
-            } else if (Number(stake) < 0 || Number(stake) === 0) {
-                this.messageHelper.replyToInteraction(interaction, 'Du prøver å gamble med en ulovlig verdi.')
-            }
-        } else if (userMoney < Number(stake)) {
-            this.messageHelper.replyToInteraction(interaction, 'Du har kje råd te dette')
+        const stake = SlashCommandHelper.getCleanNumberValue(interaction.options.get('satsing')?.value)
+        const betOn: string | number = interaction.options.get(isForNumber ? 'tall' : 'kategori')?.value as string | number
+        const betOnNumber = Number(betOn)
+        if (Number(stake) > Number(userMoney) || !userMoney || userMoney < 0) {
+            this.messageHelper.replyToInteraction(interaction, 'Du har ikke nok penger til å gamble så mye. Ta å spin fidget spinneren litt for någe cash')
+        } else if (Number(stake) <= 0 || Number(stake) === 0 || (isForNumber && (betOnNumber < 0 || betOnNumber > 37))) {
+            this.messageHelper.replyToInteraction(interaction, 'Du prøver å gamble med en ulovlig verdi.')
         } else if (Number(stake) && betOn) {
             const red = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]
             const valAsNum = Number(Number(stake).toFixed(2))
@@ -189,12 +188,12 @@ export class GamblingCommands extends AbstractCommands {
             let multiplier = 1
             let won = false
 
-            if (!isNaN(Number(betOn)) && Number(betOn) >= 0 && Number(betOn) <= 37) {
-                if (roll == Number(betOn)) {
+            if (!isNaN(betOnNumber) && betOnNumber >= 0 && betOnNumber <= 37) {
+                if (roll == betOnNumber) {
                     won = true
                     multiplier = 36
                 }
-            } else {
+            } else if (typeof betOn === 'string') {
                 if (['red', 'rød', 'raud', 'røde'].includes(betOn.toLowerCase())) {
                     if (red.includes(roll)) {
                         won = true
@@ -240,7 +239,7 @@ export class GamblingCommands extends AbstractCommands {
                 result = roll + ' rød'
                 DatabaseHelper.incrementRulettStats(user, 'red')
             } else {
-                result = roll + ' sort'
+                result = roll + ' svart'
                 DatabaseHelper.incrementRulettStats(user, 'black')
             }
 
@@ -249,13 +248,25 @@ export class GamblingCommands extends AbstractCommands {
             const gambling = new EmbedBuilder()
                 .setTitle('Rulett 🎲')
                 .setDescription(
-                    `${interaction.user.username} satset ${valAsNum} av ${userMoney} chips på ${betOn}.\nBallen landet på: ${result}. Du ${
-                        won ? 'vant! 💰💰 (' + Number(multiplier) + 'x)' : 'tapte 💸💸'
-                    }\nDu har nå ${TextUtils.formatMoney(newMoneyValue, 2, 2)} chips.`
+                    `${interaction.user.username} satset ${valAsNum} av ${userMoney} chips på ${
+                        isForCategory ? this.getPrettyName(betOn.toString()) : betOn
+                    }.\nBallen landet på: ${result}. Du ${won ? 'vant! 💰💰 (' + Number(multiplier) + 'x)' : 'tapte 💸💸'}\nDu har nå ${TextUtils.formatMoney(
+                        newMoneyValue,
+                        2,
+                        2
+                    )} chips.`
                 )
 
             this.messageHelper.replyToInteraction(interaction, gambling)
         }
+    }
+    private getPrettyName(n: string) {
+        if (n === 'green') return 'grønn'
+        if (n === 'red') return 'rød'
+        if (n === 'black') return 'svart'
+        if (n === 'odd') return 'oddetall'
+        if (n === 'even') return 'partall'
+        return 'ukjent'
     }
     private getMultiplier(roll: number) {
         if (roll >= 100) return 5
