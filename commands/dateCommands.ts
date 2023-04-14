@@ -295,7 +295,6 @@ export class DateCommands extends AbstractCommands {
                 } else {
                     const doesNextWeekHaveHolidayOnMonday = this.nextWeekHasHolidayOnMonday()[0]
                     const date = new Date()
-           
                     const isFriday = date.getDay() === 5
                     const isAfter16 = date.getHours() >= 16
                     const nextWeekendStart = new Date(DateUtils.nextWeekdayDate(date, 5))
@@ -308,7 +307,7 @@ export class DateCommands extends AbstractCommands {
 
                     const textToPrint = `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg'} ${emoji}`
 
-                    const timeToPrint = this.formatCountdownText(timeTo, textToPrint) || 'TOmt'
+                    const timeToPrint = this.formatCountdownText(timeTo, textToPrint) || 'Eg vett ikkje korti det e helg atm, Arne har visst fucka koden min'
 
                     if (this.isTodayHoliday()) {
                         return 'Det e fridag!'
