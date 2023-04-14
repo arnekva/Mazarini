@@ -295,10 +295,12 @@ export class DateCommands extends AbstractCommands {
                 } else {
                     const doesNextWeekHaveHolidayOnMonday = this.nextWeekHasHolidayOnMonday()[0]
                     const date = new Date()
+                   
                     const isFriday = date.getDay() === 5
                     const isAfter16 = date.getHours() >= 16
                     const nextWeekendStart = new Date(DateUtils.nextWeekdayDate(date, 5))
                     nextWeekendStart.setHours(16)
+                    date.setHours(16)
                     const timeTo = DateUtils.getTimeTo(isFriday ? date : nextWeekendStart)
                     const isLessThan4HoursAway = timeTo?.days == 0 && timeTo?.hours < 4
                     const emoji = EmojiHelper.getHelgEmoji(this.client, isLessThan4HoursAway)
