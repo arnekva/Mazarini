@@ -295,7 +295,7 @@ export class DateCommands extends AbstractCommands {
                 } else {
                     const doesNextWeekHaveHolidayOnMonday = this.nextWeekHasHolidayOnMonday()[0]
                     const date = new Date()
-                    date.setHours(16, 0, 0, 0)
+           
                     const isFriday = date.getDay() === 5
                     const isAfter16 = date.getHours() >= 16
                     const nextWeekendStart = new Date(DateUtils.nextWeekdayDate(date, 5))
