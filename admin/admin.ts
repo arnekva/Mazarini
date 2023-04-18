@@ -207,7 +207,7 @@ export class Admin extends AbstractCommands {
     }
 
     private async restartBot(interaction: ChatInputCommandInteraction<CacheType>) {
-        this.messageHelper.replyToInteraction(interaction, `Forsøker å restarte botten`, true)
+        this.messageHelper.replyToInteraction(interaction, `Forsøker å restarte botten`)
         let restartMsg = 'Forsøker å restarte botten'
         const msg = await this.messageHelper.sendMessageToActionLog(restartMsg)
 
