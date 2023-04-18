@@ -300,6 +300,8 @@ export class DateCommands extends AbstractCommands {
                     const isAfter16 = date.getHours() >= 16
                     const nextWeekendStart = new Date(DateUtils.nextWeekdayDate(date, 5))
                     nextWeekendStart.setHours(16)
+                    console.log(nextWeekendStart)
+
                     const timeTo = DateUtils.getTimeTo(isFriday ? date : nextWeekendStart)
                     const isLessThan4HoursAway = timeTo?.days == 0 && timeTo?.hours < 4
                     const emoji = EmojiHelper.getHelgEmoji(this.client, isLessThan4HoursAway)
@@ -308,7 +310,7 @@ export class DateCommands extends AbstractCommands {
 
                     const textToPrint = `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg'} ${emoji}`
 
-                    const timeToPrint = this.formatCountdownText(timeTo, textToPrint) || 'TOmt'
+                    const timeToPrint = this.formatCountdownText(timeTo, textToPrint) || 'Eg vettkje ka dag det e :('
 
                     if (this.isTodayHoliday()) {
                         return 'Det e fridag!'
