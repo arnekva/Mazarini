@@ -297,10 +297,10 @@ export class DateCommands extends AbstractCommands {
                     moment.locale('nb')
                     const date = moment()
                     const isFriday = date.day() === 5
-                    const isAfter16 = date.hours() >= 15
+                    const isAfter16 = date.hours() >= 16
                     const nextWeekendStart = moment(DateUtils.nextWeekdayDate(5))
-                    nextWeekendStart.hours(15).minutes(0).seconds(0)
-                    date.hours(15)
+                    nextWeekendStart.hours(16).minutes(0).seconds(0)
+                    date.hours(16)
 
                     const timeTo = DateUtils.getTimeTo(isFriday ? date : nextWeekendStart)
                     const isLessThan4HoursAway = timeTo?.days == 0 && timeTo?.hours < 4
@@ -372,7 +372,7 @@ export class DateCommands extends AbstractCommands {
     public isItHelg() {
         const today = moment()
         if (today.day() == 6 || today.day() == 0) return true
-        else if (today.day() == 5 && today.hours() > 15) return true
+        else if (today.day() == 5 && today.hours() > 16) return true
         return false
     }
 
