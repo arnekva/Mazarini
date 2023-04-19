@@ -1,4 +1,4 @@
-import moment from 'moment'
+import moment, { Moment } from 'moment'
 
 export const dateRegex = new RegExp(/^(0[1-9]|[12][0-9]|3[01])[-](0[1-9]|1[012])[-](19|20)\d\d$/) ///^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\d\d$/ old
 export function getWeekNumber(d: Date) {
@@ -36,8 +36,9 @@ export class DateUtils {
      * @param date The date
      * @returns An object with days, hours, minutes and seconds
      */
-    static getTimeTo(date: Date): countdownTime | undefined {
-        const total = date.getTime() - new Date().getTime()
+    static getTimeTo(date: Moment | Date): countdownTime | undefined {
+        const total = (date instanceof Date ? date.getTime() : date.valueOf()) - moment().valueOf() //- new Date().getTime()
+
         if (total < 0) return undefined
         const rDate: countdownTime = {
             days: Math.floor(total / (1000 * 60 * 60 * 24)),
@@ -45,6 +46,7 @@ export class DateUtils {
             minutes: Math.floor((total / 1000 / 60) % 60),
             seconds: Math.floor((total / 1000) % 60),
         }
+
         return rDate
     }
 
@@ -72,9 +74,9 @@ export class DateUtils {
      * @params date - Date to search from (defaults to today)
      * @params day_in_week - Day to search for (e.g. 5 for friday)
      */
-    static nextWeekdayDate(date: Date, day_in_week: number) {
-        var ret = new Date(date || new Date())
-        ret.setDate(ret.getDate() + ((day_in_week - 1 - ret.getDay() + 7) % 7) + 1)
+    static nextWeekdayDate(day_in_week: number) {
+        var ret = moment()
+        ret.date(ret.date() + ((day_in_week - 1 - ret.day() + 7) % 7) + 1)
         return ret
     }
 

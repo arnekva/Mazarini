@@ -84,7 +84,7 @@ export class ButtonHandler {
         const oldTarget = params[1]
         const updatedTargetId = oldTarget === interaction.user.id ? oldEngager : oldTarget
         const amount = Number(params[2])
-        console.log(oldEngager, oldTarget, updatedTargetId)
+
         if ([oldEngager, oldTarget].includes(interaction.user.id)) {
             const victimUser = UserUtils.findUserById(updatedTargetId, interaction)
             if (victimUser) {

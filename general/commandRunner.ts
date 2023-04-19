@@ -93,8 +93,6 @@ export class CommandRunner {
                         //Make sure to add some text if field does not exist, since the embed will crash if a field is empty
                         //Also, in case a data value doesn't exist, we set it to "ukjent" for a better look
                         embed?.data?.fields.forEach((f) => {
-                            console.log(f.value)
-
                             if (!f.value) f.value = 'Ukjent'
                             if (f.value.includes('undefined')) f.value = f.value.replace('undefined', 'Ukjent')
                         })

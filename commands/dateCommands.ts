@@ -294,15 +294,14 @@ export class DateCommands extends AbstractCommands {
                     timeUntil += this.formatCountdownText(DateUtils.getTimeTo(possibleWeekendStart), 'til langhelg')
                 } else {
                     const doesNextWeekHaveHolidayOnMonday = this.nextWeekHasHolidayOnMonday()[0]
-                    const date = new Date()
+                    moment.locale('nb')
+                    const date = moment()
+                    const isFriday = date.day() === 5
+                    const isAfter16 = date.hours() >= 15
+                    const nextWeekendStart = moment(DateUtils.nextWeekdayDate(5))
+                    nextWeekendStart.hours(15).minutes(0).seconds(0)
+                    date.hours(15)
 
-                    const isFriday = date.getDay() === 5
-                    const isAfter16 = date.getHours() >= 16
-                    const nextWeekendStart = new Date(DateUtils.nextWeekdayDate(date, 5))
-                    nextWeekendStart.setHours(16)
-                    console.log(nextWeekendStart)
-
-                    date.setHours(16)
                     const timeTo = DateUtils.getTimeTo(isFriday ? date : nextWeekendStart)
                     const isLessThan4HoursAway = timeTo?.days == 0 && timeTo?.hours < 4
                     const emoji = EmojiHelper.getHelgEmoji(this.client, isLessThan4HoursAway)
@@ -371,9 +370,9 @@ export class DateCommands extends AbstractCommands {
     }
 
     public isItHelg() {
-        const today = new Date()
-        if (today.getDay() == 6 || today.getDay() == 0) return true
-        else if (today.getDay() == 5 && today.getHours() > 16) return true
+        const today = moment()
+        if (today.day() == 6 || today.day() == 0) return true
+        else if (today.day() == 5 && today.hours() > 15) return true
         return false
     }
 
