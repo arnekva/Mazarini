@@ -1,7 +1,8 @@
-import { CacheType, ChatInputCommandInteraction, Client, Interaction, InteractionType, Message } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, CacheType, ChatInputCommandInteraction, Client, Interaction, InteractionType, Message } from 'discord.js'
 import { Admin } from '../admin/admin'
 import { environment } from '../client-env'
 import { PoletCommands } from '../commands/poletCommands'
+import { ButtonHandler } from '../handlers/buttonHandler'
 import { LockingHandler } from '../handlers/lockingHandler'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -108,7 +109,18 @@ export class CommandRunner {
                         embed.setFooter({
                             text: `Produsent: ${data.main_producer.name}, Distrikt: ${data.district?.name}, Sub-distrikt: ${data.sub_District?.name}`,
                         })
+                        const poletStockButton = new ActionRowBuilder<ButtonBuilder>()
+                        poletStockButton.addComponents(
+                            new ButtonBuilder({
+                                custom_id: `${ButtonHandler.POLET_STOCK}${data.code}&${data.name}`,
+                                style: ButtonStyle.Primary,
+                                label: `Varelagerstatus`,
+                                disabled: false,
+                                type: 2,
+                            })
+                        )
                         this.messageHelper.sendFormattedMessage(message.channelId, embed)
+                        this.messageHelper.sendMessageWithComponents(message.channelId, [poletStockButton])
                     }
                 } catch (error) {
                     this.messageHelper.sendMessageToActionLog(`Klarte ikke hente produktinfo for id ${id}.\n${error}`)

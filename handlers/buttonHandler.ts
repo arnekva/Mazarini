@@ -1,6 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, Client, EmbedBuilder, Interaction } from 'discord.js'
 import { DrinksCommands } from '../commands/drinksCommands'
 import { GamblingCommands } from '../commands/gamblingCommands'
+import { PoletCommands } from '../commands/poletCommands'
 import { TestCommands } from '../commands/testCommands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -23,6 +24,7 @@ export class ButtonHandler {
     static ELECTRICITY_JOIN = 'ElectricityJoinId_'
     static ELECTRICITY_START = 'ElectricityStartId_'
     static ELECTRICITY_RESET = 'ElectricityResetId_'
+    static POLET_STOCK = 'PoletStockId_'
     static TEST = 'TestId_'
     constructor(client: Client, messageHelper: MessageHelper, drinksCommands: DrinksCommands, testCommands: TestCommands) {
         this.client = client
@@ -49,6 +51,8 @@ export class ButtonHandler {
                 this.handleElectricityStart(interaction)
             } else if (interaction.customId.startsWith(ButtonHandler.ELECTRICITY_RESET)) {
                 this.handleElectricityReset(interaction)
+            } else if (interaction.customId.startsWith(ButtonHandler.POLET_STOCK)) {
+                this.handlePoletStock(interaction)
             } else if (interaction.customId.startsWith(ButtonHandler.TEST)) {
                 this.test(interaction)
             }
@@ -224,6 +228,10 @@ export class ButtonHandler {
         } else {
             this.messageHelper.replyToInteraction(interaction, `Du kan kje starta denne krigen`, true)
         }
+    }
+
+    private handlePoletStock(interaction: ButtonInteraction<CacheType>) {
+        PoletCommands.getProductStockForUser(interaction, this.messageHelper)
     }
 
     private handleAssignmentOfRoles(interaction: ButtonInteraction<CacheType>) {
