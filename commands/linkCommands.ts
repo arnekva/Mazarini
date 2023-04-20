@@ -77,8 +77,14 @@ export class LinkCommands extends AbstractCommands {
             if (!store) {
                 return ''
             } else {
+                const storeCoord = store.address.gpsCoord.split(';')
                 const user = DatabaseHelper.getUser(userId)
-                user.favoritePol = storeId.toString()
+                const favoritePol = {
+                    id: storeId.toString(),
+                    latitude: storeCoord[0],
+                    longitude: storeCoord[1]
+                }
+                user.favoritePol = favoritePol
                 DatabaseHelper.updateUser(user)
                 return `${store.storeName} (${store.storeId}), med adressen ${store.address.street} ${store.address.postalCode} ${store.address.city}`
             }

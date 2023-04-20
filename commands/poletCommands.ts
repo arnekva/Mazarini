@@ -1,8 +1,9 @@
-import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction } from 'discord.js'
+import { ButtonInteraction, CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction } from 'discord.js'
 import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { vinmonopoletKey } from '../client-env'
 import { IInteractionElement } from '../general/commands'
+import { ButtonHandler } from '../handlers/buttonHandler'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { Languages } from '../helpers/languageHelpers'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -32,6 +33,7 @@ interface PoletData {
         street: string
         postalCode: string
         city: string
+        gpsCoord: string
     }
     telephone: string
     email: string
@@ -54,7 +56,7 @@ export class PoletCommands extends AbstractCommands {
         let id = PoletCommands.baseStoreID
         if (storeId) id = storeId
         if (rawInteraction) {
-            id = DatabaseHelper.getUser(rawInteraction.user.id).favoritePol ?? '416'
+            id = DatabaseHelper.getUser(rawInteraction.user.id).favoritePol.id ?? '416'
         }
 
         const data = await fetch(`${PoletCommands.baseStoreDataURL}?storeId=${id}`, {
@@ -96,6 +98,42 @@ export class PoletCommands extends AbstractCommands {
             },
         })
         return await data.json()
+    }
+
+    static async fetchProductStock(productId: string, latitude: string, longitude: string) {
+        const data = await fetch(`${PoletCommands.pressProductURL}/${productId}/stock?pageSize=10&currentPage=0&fields=BASIC&latitude=${latitude}&longitude=${longitude}`, {
+            method: 'GET',
+            headers: {
+                'Ocp-Apim-Subscription-Key': vinmonopoletKey,
+                'sec-ch-ua-mobile': '?0',
+                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
+                'accept-encoding': 'gzip, deflate, br',
+                accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+                'upgrade-insecure-requests': '1',
+                'sec-fetch-site': 'same-site',
+                'sec-fetch-mode': 'navigate',
+                'sec-fetch-user': '?1',
+                'sec-fetch-dest': 'document',
+                scheme: 'https',
+                redirect: 'follow',
+                encoding: 'null',
+                gzip: true,
+            },
+        })
+        return await data.json()
+    }
+
+    public static async getProductStockForUser(interaction: ButtonInteraction<CacheType>, messageHelper: MessageHelper) {
+        const params = interaction.customId.replace(ButtonHandler.POLET_STOCK, '').split('&')
+        const productId = params[0]
+        const favoritePol = DatabaseHelper.getUser(interaction.user.id).favoritePol
+        const stockData = await this.fetchProductStock(productId, favoritePol.latitude, favoritePol.longitude)
+        const embed = new EmbedBuilder().setTitle(`${params[1]}`)
+        embed.setDescription(`${interaction.user.username} sine 3 nærmeste vinmonopol`)
+        stockData.stores.slice(0,3).forEach(store => {
+            embed.addFields({name: store.pointOfService.displayName, value: `Antall: ${store.stockInfo.stockLevel}`, inline: false})
+        })
+        messageHelper.replyToInteraction(interaction, embed)
     }
 
     private async getOpeningHours(rawInteraction: ChatInputCommandInteraction<CacheType>, storeId?: string) {
