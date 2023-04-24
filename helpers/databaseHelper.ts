@@ -67,9 +67,15 @@ export interface MazariniUser {
     dailyClaimStreak?: IDailyPriceClaim
     dailyFreezeCounter?: number
     prestige?: number
-    favoritePol?: string
+    favoritePol?: FavoritePol
     userStats?: UserStats
     //OUTDATED
+}
+
+export type FavoritePol = {
+    id?: string
+    longitude?: string
+    latitude?: string
 }
 export type UserStats = {
     chipsStats?: ChipsStats
