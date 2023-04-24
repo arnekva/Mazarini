@@ -43,6 +43,7 @@ export class CommandRunner {
         }
     }
 
+    //TODO & FIXME: Move this out of commandRunner
     async checkForVinmonopolContent(message: Message) {
         const content = message.content
         if (content.includes('https://www.vinmonopolet.no/')) {
@@ -63,16 +64,16 @@ export class CommandRunner {
                             { name: `Land`, value: `${data.main_country.name}`, inline: true },
                             { name: `Alkohol`, value: `${data.alcohol.formattedValue}`, inline: true },
                             // { name: `Smak`, value: `${data.taste}` },
-                            { name: `Flaske/Kork`, value: `${data.packageType}, ${data.cork}`, inline: true },
+                            // { name: `Flaske/Kork`, value: `${data.packageType}, ${data.cork}`, inline: true },
                             { name: `Stil`, value: `${data.style?.name}`, inline: true },
-                            { name: `Lagring`, value: `${data.matured}`, inline: true },
-                            { name: `Farge`, value: `${data.color}`, inline: true },
-                            { name: `Finnes i`, value: `${data.product_selection}`, inline: true },
-                            {
-                                name: `Tilgjengelighet`,
-                                value: `${data.availability.storeAvailability.available ? 'Ja' : 'Nei'}, ${data.availability.storeAvailability.mainText}`,
-                                inline: true,
-                            },
+                            // { name: `Lagring`, value: `${data.matured}`, inline: true },
+                            // { name: `Farge`, value: `${data.color}`, inline: true },
+                            // { name: `Finnes i`, value: `${data.product_selection}`, inline: true },
+                            // {
+                            //     name: `Tilgjengelighet`,
+                            //     value: `${data.availability.storeAvailability.available ? 'Ja' : 'Nei'}, ${data.availability.storeAvailability.mainText}`,
+                            //     inline: true,
+                            // },
                         ])
                         /** In case of wines, it will be something like [Pinot Noir 80%, Merlot 20%]
                          * For liquers, ciders, etc. it may only be "Plommer, epler", since they dont display the percentage of the mix.
@@ -80,17 +81,17 @@ export class CommandRunner {
                         if (data.raastoff) {
                             embed.addFields({
                                 name: `Innhold`,
-                                value: `${data.raastoff.map((rs) => `${rs.name} (${rs.percentage ? rs.percentage + '%' : ''})`).join(', ')}`,
+                                value: `${data.raastoff.map((rs) => `${rs.name} ${rs.percentage ? '(' + rs.percentage + '%)' : ''}`).join(', ')}`,
                                 inline: true,
                             })
                         }
-                        if (!!data.isGoodFor.length) {
-                            embed.addFields({
-                                name: `Passer til`,
-                                value: `${data.isGoodFor.map((igf) => `${igf.name}`).join(', ')}`,
-                                inline: true,
-                            })
-                        }
+                        // if (!!data.isGoodFor.length) {
+                        //     embed.addFields({
+                        //         name: `Passer til`,
+                        //         value: `${data.isGoodFor.map((igf) => `${igf.name}`).join(', ')}`,
+                        //         inline: true,
+                        //     })
+                        // }
                         //Make sure to add some text if field does not exist, since the embed will crash if a field is empty
                         //Also, in case a data value doesn't exist, we set it to "ukjent" for a better look
                         embed?.data?.fields.forEach((f) => {
