@@ -10,7 +10,7 @@ export class PatchNotes extends AbstractCommands {
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
-    public static readonly currentPatchNotes: string = `\n* Du kan nå sjekke lagerstatus på viner sendt i #vinmonopolet! (NB: du må linke polet ditt på nytt)`
+    public static readonly currentPatchNotes: string = `\n* Fjernet Flaske/Kork, Lagring, Farge, Finnes i, Passer til og Tilgjengelighet fra dataen som hentes fra vinmonopolet, slik at det ikke blir så mye undøvendig tekst.`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
