@@ -152,6 +152,7 @@ export class MazariniClient {
             if (
                 target?.id === message?.author?.id &&
                 message.channelId !== MentionUtils.CHANNEL_IDs.ACTION_LOG &&
+                message.channelId !== MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM &&
                 !message?.content?.includes('Laster data') &&
                 !message?.content?.includes('Henter data') &&
                 environment === 'prod' &&
