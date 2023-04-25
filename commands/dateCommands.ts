@@ -232,6 +232,7 @@ export class DateCommands extends AbstractCommands {
                 }
             }
         })
+
         /** set locale back to nb */
         moment.locale('nb')
         return holidaysThisWeek
@@ -274,16 +275,28 @@ export class DateCommands extends AbstractCommands {
         const isHelg = this.isItHelg()
         const holidays = this.findHolidaysInThisWeek()
         let timeUntil = ''
+        console.log(holidays)
+        let hasHolidayInTheMiddleOfWeek = ''
         if (!isHelg) {
             let hasFoundWeekendStart = false
             holidays.forEach((day) => {
                 if (!hasFoundWeekendStart) {
-                    if (new Date(day.date).getDay() === this.findWeekendStart()?.getDay()) {
+                    const currentDaysDate = new Date(day.date)
+                    console.log(currentDaysDate.getDay())
+
+                    currentDaysDate.setHours(16)
+                    if (currentDaysDate.getDay() === this.findWeekendStart()?.getDay()) {
                         hasFoundWeekendStart = true
-                        timeUntil += `${DateUtils.formatCountdownText(DateUtils.getTimeTo(new Date(day.date)), `til langhelgå så starte med ${day.name}`)}\n`
-                    } else timeUntil += `${DateUtils.formatCountdownText(DateUtils.getTimeTo(new Date(day.date)), `til ${day.name}`)}\n`
+                        timeUntil += `${DateUtils.formatCountdownText(DateUtils.getTimeTo(currentDaysDate), `til langhelgå så starte med ${day.name}`)}\n`
+                    } else
+                        hasHolidayInTheMiddleOfWeek = timeUntil = `${DateUtils.formatCountdownText(
+                            DateUtils.getTimeTo(currentDaysDate),
+                            `til fridagen ${day.name}`
+                        )}\n`
                 }
             })
+            console.log(timeUntil)
+
             if (!hasFoundWeekendStart) {
                 const possibleWeekendStart = this.findWeekendStart()
                 if (possibleWeekendStart) {
@@ -306,10 +319,12 @@ export class DateCommands extends AbstractCommands {
 
                     const textToPrint = `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg'} ${emoji}`
 
-                    const timeToPrint = DateUtils.formatCountdownText(timeTo, textToPrint) || 'Eg vettkje ka dag det e :('
-
+                    let timeToPrint = DateUtils.formatCountdownText(timeTo, textToPrint) || 'Eg vettkje ka dag det e :('
+                    if (!!hasHolidayInTheMiddleOfWeek && !this.isTodayHoliday()) {
+                        timeToPrint += `\n${hasHolidayInTheMiddleOfWeek}`
+                    }
                     if (this.isTodayHoliday()) {
-                        return 'Det e fridag!'
+                        return 'Det e fridag i dag! Og ' + timeToPrint
                     }
                     return timeToPrint
                 }
