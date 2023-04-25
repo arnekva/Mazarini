@@ -282,9 +282,7 @@ export class DateCommands extends AbstractCommands {
             holidays.forEach((day) => {
                 if (!hasFoundWeekendStart) {
                     const currentDaysDate = new Date(day.date)
-                    console.log(currentDaysDate.getDay())
 
-                    currentDaysDate.setHours(16)
                     if (currentDaysDate.getDay() === this.findWeekendStart()?.getDay()) {
                         hasFoundWeekendStart = true
                         timeUntil += `${DateUtils.formatCountdownText(DateUtils.getTimeTo(currentDaysDate), `til langhelgå så starte med ${day.name}`)}\n`
