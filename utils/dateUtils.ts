@@ -1,6 +1,8 @@
 import moment, { Moment } from 'moment'
 
 export const dateRegex = new RegExp(/^(0[1-9]|[12][0-9]|3[01])[-](0[1-9]|1[012])[-](19|20)\d\d$/) ///^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\d\d$/ old
+/** Checks a string against 24hr format HH:MM */
+export const timeRegex = new RegExp(/([01]?[0-9]|2[0-3]):[0-5][0-9]/)
 export function getWeekNumber(d: Date) {
     // Copy date so don't modify original
     d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
@@ -109,6 +111,24 @@ export class DateUtils {
     static isToday(compareDate: Date, ignoreMonthOffset?: boolean) {
         const today = new Date()
         return compareDate.getDate() == today.getDate() && compareDate.getMonth() == today.getMonth() + (ignoreMonthOffset ? 0 : 1)
+    }
+
+    static formatCountdownText(dateObj: countdownTime | undefined, textEnding: string, finishedText?: string, noTextEnding?: boolean) {
+        if (!dateObj) return finishedText ?? ''
+        const timeTab: string[] = []
+        let timeString = 'Det er'
+
+        if (dateObj.days > 0) timeTab.push(' ' + dateObj.days + ` ${dateObj.days == 1 ? 'dag' : 'dager'}`)
+        if (dateObj.hours > 0) timeTab.push(' ' + dateObj.hours + ` ${dateObj.hours == 1 ? 'time' : 'timer'}`)
+        if (dateObj.minutes > 0) timeTab.push(' ' + dateObj.minutes + ` ${dateObj.minutes == 1 ? 'minutt' : 'minutter'}`)
+        if (dateObj.seconds > 0) timeTab.push(' ' + dateObj.seconds + ` ${dateObj.seconds == 1 ? 'sekund' : 'sekunder'}`)
+        if (timeTab.length < 1) return noTextEnding ? '' : textEnding + ' er ferdig!'
+        timeTab.forEach((text, index) => {
+            timeString += text
+            if (index <= timeTab.length - 2 && timeTab.length > 1) timeString += index == timeTab.length - 2 ? ' og' : ','
+        })
+        timeString += ' ' + textEnding
+        return timeString
     }
 
     static dateHasPassed(d: Date) {

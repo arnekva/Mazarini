@@ -4,13 +4,13 @@ import { IInteractionElement } from './general/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '11.1.1'
+    public static readonly currentVersion = '11.2.0'
     public static readonly nextVersion = 'Backlog'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
-    public static readonly currentPatchNotes: string = `\n* Fjernet Flaske/Kork, Lagring, Farge, Finnes i, Passer til og Tilgjengelighet fra dataen som hentes fra vinmonopolet, slik at det ikke blir så mye undøvendig tekst.`
+    public static readonly currentPatchNotes: string = `\n* Du kan nå sette klokkeslett for feriestart når du registrerer /ferie. Gamle ferieperioder defaulter til midnatt`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
