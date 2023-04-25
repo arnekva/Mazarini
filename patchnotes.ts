@@ -10,7 +10,9 @@ export class PatchNotes extends AbstractCommands {
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
-    public static readonly currentPatchNotes: string = `\n* Du kan nå sette klokkeslett for feriestart når du registrerer /ferie. Gamle ferieperioder defaulter til midnatt`
+    public static readonly currentPatchNotes: string =
+        `\n* Du kan nå sette klokkeslett for feriestart når du registrerer /ferie. Gamle ferieperioder defaulter til midnatt` +
+        `\n* Du kan nå sette locale på /wiki-søkene dine (norsk eller engelsk). Defaulter til norsk`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
