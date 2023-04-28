@@ -118,6 +118,7 @@ export class CommandRunner {
                                 type: 2,
                             })
                         )
+                        this.messageHelper.suppressEmbeds(message)
                         this.messageHelper.sendFormattedMessage(message.channelId, embed)
                         this.messageHelper.sendMessageWithComponents(message.channelId, [poletStockButton])
                     }
