@@ -293,4 +293,9 @@ export class MessageHelper {
         const errorChannel = channel.client.channels.cache.get('802716150484041751') as TextChannel
         errorChannel.send(message)
     }
+
+    /** Removes all embeds for a specific message */
+    suppressEmbeds(message: Message) {
+        message.suppressEmbeds(true)
+    }
 }

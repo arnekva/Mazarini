@@ -297,6 +297,7 @@ export class DateCommands extends AbstractCommands {
 
             if (!hasFoundWeekendStart) {
                 const possibleWeekendStart = this.findWeekendStart()
+
                 if (possibleWeekendStart) {
                     timeUntil += DateUtils.formatCountdownText(DateUtils.getTimeTo(possibleWeekendStart), 'til langhelg')
                 } else {
@@ -307,7 +308,7 @@ export class DateCommands extends AbstractCommands {
                     const isAfter16 = date.hours() >= 16
                     const nextWeekendStart = moment(DateUtils.nextWeekdayDate(5))
                     nextWeekendStart.hours(16).minutes(0).seconds(0)
-                    date.hours(16)
+                    date.hours(16).minute(0).seconds(0)
 
                     const timeTo = DateUtils.getTimeTo(isFriday ? date : nextWeekendStart)
                     const isLessThan4HoursAway = timeTo?.days == 0 && timeTo?.hours < 4

@@ -101,25 +101,28 @@ export class PoletCommands extends AbstractCommands {
     }
 
     static async fetchProductStock(productId: string, latitude: string, longitude: string) {
-        const data = await fetch(`${PoletCommands.pressProductURL}/${productId}/stock?pageSize=10&currentPage=0&fields=BASIC&latitude=${latitude}&longitude=${longitude}`, {
-            method: 'GET',
-            headers: {
-                'Ocp-Apim-Subscription-Key': vinmonopoletKey,
-                'sec-ch-ua-mobile': '?0',
-                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
-                'accept-encoding': 'gzip, deflate, br',
-                accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-                'upgrade-insecure-requests': '1',
-                'sec-fetch-site': 'same-site',
-                'sec-fetch-mode': 'navigate',
-                'sec-fetch-user': '?1',
-                'sec-fetch-dest': 'document',
-                scheme: 'https',
-                redirect: 'follow',
-                encoding: 'null',
-                gzip: true,
-            },
-        })
+        const data = await fetch(
+            `${PoletCommands.pressProductURL}/${productId}/stock?pageSize=10&currentPage=0&fields=BASIC&latitude=${latitude}&longitude=${longitude}`,
+            {
+                method: 'GET',
+                headers: {
+                    'Ocp-Apim-Subscription-Key': vinmonopoletKey,
+                    'sec-ch-ua-mobile': '?0',
+                    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
+                    'accept-encoding': 'gzip, deflate, br',
+                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+                    'upgrade-insecure-requests': '1',
+                    'sec-fetch-site': 'same-site',
+                    'sec-fetch-mode': 'navigate',
+                    'sec-fetch-user': '?1',
+                    'sec-fetch-dest': 'document',
+                    scheme: 'https',
+                    redirect: 'follow',
+                    encoding: 'null',
+                    gzip: true,
+                },
+            }
+        )
         return await data.json()
     }
 
@@ -127,13 +130,17 @@ export class PoletCommands extends AbstractCommands {
         const params = interaction.customId.replace(ButtonHandler.POLET_STOCK, '').split('&')
         const productId = params[0]
         const favoritePol = DatabaseHelper.getUser(interaction.user.id).favoritePol
-        const stockData = await this.fetchProductStock(productId, favoritePol.latitude, favoritePol.longitude)
-        const embed = new EmbedBuilder().setTitle(`${params[1]}`)
-        embed.setDescription(`${interaction.user.username} sine 3 nærmeste vinmonopol`)
-        stockData.stores.slice(0,3).forEach(store => {
-            embed.addFields({name: store.pointOfService.displayName, value: `Antall: ${store.stockInfo.stockLevel}`, inline: false})
-        })
-        messageHelper.replyToInteraction(interaction, embed)
+        if (favoritePol.latitude && favoritePol.longitude) {
+            const stockData = await this.fetchProductStock(productId, favoritePol.latitude, favoritePol.longitude)
+            const embed = new EmbedBuilder().setTitle(`${params[1]}`)
+            embed.setDescription(`${interaction.user.username} sine 3 nærmeste vinmonopol`)
+            stockData.stores.slice(0, 3).forEach((store) => {
+                embed.addFields({ name: store.pointOfService.displayName, value: `Antall: ${store.stockInfo.stockLevel}`, inline: false })
+            })
+            messageHelper.replyToInteraction(interaction, embed)
+        } else {
+            messageHelper.replyToInteraction(interaction, 'Du må linka polet ditt')
+        }
     }
 
     private async getOpeningHours(rawInteraction: ChatInputCommandInteraction<CacheType>, storeId?: string) {
