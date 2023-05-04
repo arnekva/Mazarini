@@ -6,7 +6,7 @@ import { DatabaseHelper, ferieItem } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
-import { countdownTime, dateRegex, DateUtils } from '../utils/dateUtils'
+import { dateRegex, DateUtils, timeRegex } from '../utils/dateUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
 
@@ -46,30 +46,13 @@ export class DateCommands extends AbstractCommands {
         }
     }
 
-    private formatCountdownText(dateObj: countdownTime | undefined, textEnding: string, finishedText?: string, noTextEnding?: boolean) {
-        if (!dateObj) return finishedText ?? ''
-        const timeTab: string[] = []
-        let timeString = 'Det er'
-
-        if (dateObj.days > 0) timeTab.push(' ' + dateObj.days + ` ${dateObj.days == 1 ? 'dag' : 'dager'}`)
-        if (dateObj.hours > 0) timeTab.push(' ' + dateObj.hours + ` ${dateObj.hours == 1 ? 'time' : 'timer'}`)
-        if (dateObj.minutes > 0) timeTab.push(' ' + dateObj.minutes + ` ${dateObj.minutes == 1 ? 'minutt' : 'minutter'}`)
-        if (dateObj.seconds > 0) timeTab.push(' ' + dateObj.seconds + ` ${dateObj.seconds == 1 ? 'sekund' : 'sekunder'}`)
-        if (timeTab.length < 1) return noTextEnding ? '' : textEnding + ' er ferdig!'
-        timeTab.forEach((text, index) => {
-            timeString += text
-            if (index <= timeTab.length - 2 && timeTab.length > 1) timeString += index == timeTab.length - 2 ? ' og' : ','
-        })
-        timeString += ' ' + textEnding
-        return timeString
-    }
-
     //TODO: Fix this one
     private registerFerie(interaction: ChatInputCommandInteraction<CacheType>) {
         const isSet = interaction.options.getSubcommand() === 'sett'
         const isVis = interaction.options.getSubcommand() === 'vis'
         const fromDate = interaction.options.get('fra-dato')?.value as string
         const toDate = interaction.options.get('til-dato')?.value as string
+        const fromHours = interaction.options.get('fra-klokkeslett')?.value as string
         if (fromDate === 'fjern' || toDate === 'fjern') {
             return DatabaseHelper.deleteFerieValue(interaction.user.id)
         }
@@ -79,6 +62,7 @@ export class DateCommands extends AbstractCommands {
         //dd-mm-yyyy
         if (isSet) {
             const isLegal = dateRegex.test(fromDate) && dateRegex.test(toDate)
+            const isLegalTime = timeRegex.test(fromHours)
             if (!isLegal) {
                 return this.messageHelper.replyToInteraction(
                     interaction,
@@ -86,14 +70,26 @@ export class DateCommands extends AbstractCommands {
                     true
                 )
             }
+            if (!isLegalTime) {
+                return this.messageHelper.replyToInteraction(
+                    interaction,
+                    `Klokkeslettet ditt er ikke formattert riktig. Det må være i formatet HH:MM (eksempelvis 17:30)`,
+                    true
+                )
+            }
             moment.locale('nb')
+            const time = fromHours.split(':')
+            const hours = time[0]
+            const minutes = time[1]
             const date1 = moment(fromDate, 'DD-MM-YYYY').toDate() // new Date(args[0])
+            date1.setHours(Number(hours))
+            date1.setMinutes(Number(minutes))
             const date2 = moment(toDate, 'DD-MM-YYYY').toDate()
             const feireObj: ferieItem = {
                 fromDate: date1,
                 toDate: date2,
             }
-            const maxNumDays = 200
+            const maxNumDays = 250
             if (DateUtils.isDateBefore(date1, date2) && DateUtils.dateIsMaxXDaysInFuture(date2, maxNumDays)) {
                 DatabaseHelper.setFerieValue(interaction.user.id, 'date', JSON.stringify(feireObj))
                 this.messageHelper.replyToInteraction(interaction, `Ferien din e satt`, true)
@@ -117,8 +113,8 @@ export class DateCommands extends AbstractCommands {
                     const date2 = moment(new Date(ferieEle.toDate), 'DD-MM-YYYY').toDate()
                     if (!DateUtils.dateHasPassed(date2)) {
                         const timeRemaining = DateUtils.dateHasPassed(date1)
-                            ? `(${DateUtils.getTimeTo(date2)?.days} dager igjen av ferien)`
-                            : `(${DateUtils.getTimeTo(date1)?.days} dager igjen til ferien starter)`
+                            ? `(${DateUtils.formatCountdownText(DateUtils.getTimeTo(date2), 'igjen av ferien')} )`
+                            : `(${DateUtils.formatCountdownText(DateUtils.getTimeTo(date1), 'til')})`
                         sendThisText += `\n${UserUtils.findUserById(username, interaction).username} har ferie mellom ${moment(date1).format('ll')} og ${moment(
                             date2
                         ).format('ll')} ${timeRemaining}`
@@ -194,9 +190,9 @@ export class DateCommands extends AbstractCommands {
             Object.keys(countdownDates).forEach((username) => {
                 const countdownElement = DatabaseHelper.getNonUserValue('countdown', username)
                 const daysUntil = DateUtils.getTimeTo(new Date(countdownElement.date))
-                const text = this.formatCountdownText(daysUntil, 'te ' + countdownElement.desc)
+                const text = DateUtils.formatCountdownText(daysUntil, 'te ' + countdownElement.desc)
                 printValues.push({
-                    print: `${!!text ? '\n' : ''}` + `${this.formatCountdownText(daysUntil, 'te ' + countdownElement.desc)}`,
+                    print: `${!!text ? '\n' : ''}` + `${DateUtils.formatCountdownText(daysUntil, 'te ' + countdownElement.desc)}`,
                     date: countdownElement.date,
                 })
             })
@@ -236,6 +232,7 @@ export class DateCommands extends AbstractCommands {
                 }
             }
         })
+
         /** set locale back to nb */
         moment.locale('nb')
         return holidaysThisWeek
@@ -278,20 +275,31 @@ export class DateCommands extends AbstractCommands {
         const isHelg = this.isItHelg()
         const holidays = this.findHolidaysInThisWeek()
         let timeUntil = ''
+        console.log(holidays)
+        let hasHolidayInTheMiddleOfWeek = ''
         if (!isHelg) {
             let hasFoundWeekendStart = false
             holidays.forEach((day) => {
                 if (!hasFoundWeekendStart) {
-                    if (new Date(day.date).getDay() === this.findWeekendStart()?.getDay()) {
+                    const currentDaysDate = new Date(day.date)
+
+                    if (currentDaysDate.getDay() === this.findWeekendStart()?.getDay()) {
                         hasFoundWeekendStart = true
-                        timeUntil += `${this.formatCountdownText(DateUtils.getTimeTo(new Date(day.date)), `til langhelgå så starte med ${day.name}`)}\n`
-                    } else timeUntil += `${this.formatCountdownText(DateUtils.getTimeTo(new Date(day.date)), `til ${day.name}`)}\n`
+                        timeUntil += `${DateUtils.formatCountdownText(DateUtils.getTimeTo(currentDaysDate), `til langhelgå så starte med ${day.name}`)}\n`
+                    } else
+                        hasHolidayInTheMiddleOfWeek = timeUntil = `${DateUtils.formatCountdownText(
+                            DateUtils.getTimeTo(currentDaysDate),
+                            `til fridagen ${day.name}`
+                        )}\n`
                 }
             })
+            console.log(timeUntil)
+
             if (!hasFoundWeekendStart) {
                 const possibleWeekendStart = this.findWeekendStart()
+
                 if (possibleWeekendStart) {
-                    timeUntil += this.formatCountdownText(DateUtils.getTimeTo(possibleWeekendStart), 'til langhelg')
+                    timeUntil += DateUtils.formatCountdownText(DateUtils.getTimeTo(possibleWeekendStart), 'til langhelg')
                 } else {
                     const doesNextWeekHaveHolidayOnMonday = this.nextWeekHasHolidayOnMonday()[0]
                     moment.locale('nb')
@@ -300,7 +308,7 @@ export class DateCommands extends AbstractCommands {
                     const isAfter16 = date.hours() >= 16
                     const nextWeekendStart = moment(DateUtils.nextWeekdayDate(5))
                     nextWeekendStart.hours(16).minutes(0).seconds(0)
-                    date.hours(16)
+                    date.hours(16).minute(0).seconds(0)
 
                     const timeTo = DateUtils.getTimeTo(isFriday ? date : nextWeekendStart)
                     const isLessThan4HoursAway = timeTo?.days == 0 && timeTo?.hours < 4
@@ -310,10 +318,12 @@ export class DateCommands extends AbstractCommands {
 
                     const textToPrint = `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg'} ${emoji}`
 
-                    const timeToPrint = this.formatCountdownText(timeTo, textToPrint) || 'Eg vettkje ka dag det e :('
-
+                    let timeToPrint = DateUtils.formatCountdownText(timeTo, textToPrint) || 'Eg vettkje ka dag det e :('
+                    if (!!hasHolidayInTheMiddleOfWeek && !this.isTodayHoliday()) {
+                        timeToPrint += `\n${hasHolidayInTheMiddleOfWeek}`
+                    }
                     if (this.isTodayHoliday()) {
-                        return 'Det e fridag!'
+                        return 'Det e fridag i dag! Og ' + timeToPrint
                     }
                     return timeToPrint
                 }
@@ -348,7 +358,12 @@ export class DateCommands extends AbstractCommands {
             if (DateUtils.isToday(date)) {
                 this.messageHelper.replyToInteraction(interaction, 'Du har bursdag i dag! gz')
             } else {
-                const timeUntilBirthday = this.formatCountdownText(DateUtils.getTimeTo(date), `til ${interaction.user.username} sin bursdag.`, undefined, true)
+                const timeUntilBirthday = DateUtils.formatCountdownText(
+                    DateUtils.getTimeTo(date),
+                    `til ${interaction.user.username} sin bursdag.`,
+                    undefined,
+                    true
+                )
                 this.messageHelper.replyToInteraction(interaction, timeUntilBirthday ?? 'Klarte ikke regne ut')
             }
         } else if (birthDayFromArg) {

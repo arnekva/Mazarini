@@ -20,6 +20,7 @@ import {
     TextChannel,
     User,
 } from 'discord.js'
+import { environment } from '../client-env'
 import { MazariniClient } from '../main'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { CollectorUtils } from '../utils/collectorUtils'
@@ -66,12 +67,13 @@ export class MessageHelper {
             else msg = await this.sendMessage(interaction?.channelId, `${MentionUtils.mentionUser(interaction.user.id)} ${content}`)
 
             let msgInfo = msg ? `Sendte en separat melding i stedet for interaksjonssvar.` : `Klarte heller ikke sende separat melding som svar`
-
-            this.sendMessageToActionLog(
-                `Klarte ikke svare på en interaction. ${interaction.user.username} prøvde å bruke ${
-                    interaction.isChatInputCommand() ? interaction.commandName : '<ikke command>'
-                } i kanalen ${MentionUtils.mentionChannel(interaction?.channelId)}. \n${msgInfo}`
-            )
+            if (environment !== 'dev') {
+                this.sendMessageToActionLog(
+                    `Klarte ikke svare på en interaction. ${interaction.user.username} prøvde å bruke ${
+                        interaction.isChatInputCommand() ? interaction.commandName : '<ikke command>'
+                    } i kanalen ${MentionUtils.mentionChannel(interaction?.channelId)}. \n${msgInfo}`
+                )
+            }
         }
         if (!interaction.replied) {
             if (typeof content === 'object') {
@@ -290,5 +292,10 @@ export class MessageHelper {
     sendMessageToBotUtvikling(channel: TextChannel, message: string) {
         const errorChannel = channel.client.channels.cache.get('802716150484041751') as TextChannel
         errorChannel.send(message)
+    }
+
+    /** Removes all embeds for a specific message */
+    suppressEmbeds(message: Message) {
+        message.suppressEmbeds(true)
     }
 }
