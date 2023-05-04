@@ -4,20 +4,16 @@ import { IInteractionElement } from './general/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '11.2.0'
+    public static readonly currentVersion = '11.3.0'
     public static readonly nextVersion = 'Backlog'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Du kan nå sette klokkeslett for feriestart når du registrerer /ferie. Gamle ferieperioder defaulter til midnatt` +
-        `\n* Du kan nå sette locale på /wiki-søkene dine (norsk eller engelsk). Defaulter til norsk` +
-        `\n* Meldinger som blir slettet i ${MentionUtils.mentionChannel(MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM)} skal ikke lenger bli logget` +
-        `\n* Det tas nå bedre regne for helligdager når det regnes tid til helg, samt at helligdager midt i uken nå blir med i meldingen` +
-        `\n* Embeds fjernes nå fra vinmonopolet-linker dersom Høie finner produktet og sender info om det` +
-        `\n* Fikset en feil som skjedde hvis en bruker forsøkte å se varelagerstatus på et produkt uten å ha oppdatert favorittpolet sitt` +
-        `\n* Fikset en feil som gjorde at minutter og sekunder ikke kom med i nedtellingen til helg`
+        `\n* /weather har nå fått seg en solid oppgradering!` + 
+        `\n\t* Du kan nå søke med alle mulige stedsnavn (addresse, gate, by) - men er du for uspesifikk kan du få mye rart` + 
+        `\n\t* Vi har byttet til meteorologisk institutt sitt API og vil dermed få langt mer nøyaktige data og vil enkelt kunne utvide visningen med andre ønskelige data`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 

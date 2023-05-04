@@ -78,7 +78,6 @@ export class Weather extends AbstractCommands {
         const closestHour = new Date().getMinutes() < 30 ? startOfCurrentHour : endOfCurrentHour
         const currentTemp = this.getWeightedAverage(startOfCurrentHour.data.instant.details.air_temperature, endOfCurrentHour.data.instant.details.air_temperature)
         const currentWind = this.getWeightedAverage(startOfCurrentHour.data.instant.details.wind_speed, endOfCurrentHour.data.instant.details.wind_speed)
-        const currentWindDirection = this.getWeightedAverage(startOfCurrentHour.data.instant.details.wind_from_direction, endOfCurrentHour.data.instant.details.wind_from_direction)
         
         const weather = new EmbedBuilder()
             .setTitle(`${Weather.GeoLocationString(geoLocation)}`)
@@ -86,7 +85,7 @@ export class Weather extends AbstractCommands {
             .addFields({ name: 'Temperatur', value: `${currentTemp} °C :thermometer:`, inline: true })
             .addFields({ name: '\t\t', value: '\t\t', inline: true})
             .addFields({ name: 'Min/Maks', value: `${this.getMinMaxTempString(today, currentTemp)}`, inline: true})
-            .addFields({ name: `Vind`, value: `${currentWind} m/s ${WeatherUtils.windDegreesToDirectionalArrow(Number(currentWindDirection))} :dash:`, inline: true })
+            .addFields({ name: `Vind`, value: `${currentWind} m/s ${WeatherUtils.windDegreesToDirectionalArrow(Number(closestHour.data.instant.details.wind_from_direction))} :dash:`, inline: true })
             .addFields({ name: '\t\t', value: '\t\t', inline: true})
             .addFields({ name: `Regn 1t / 6t`, value: `${closestHour.data.next_1_hours.details.precipitation_amount} mm / ${closestHour.data.next_6_hours.details.precipitation_amount} mm` , inline: true})
             
