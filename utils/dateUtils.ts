@@ -141,4 +141,16 @@ export class DateUtils {
     static isDecember() {
         return moment().month() === 11
     }
+
+    static dateIsWithinLastHour(d: Date) {
+        return moment(d).isBetween(moment().subtract(1, 'hours'), moment())
+    }
+
+    static dateIsWithinNextHour(d: Date) {
+        return moment(d).isBetween(moment(), moment().add(1, 'hours'))
+    }
+
+    static dateIsClosestHour(d: Date) {
+        return moment().minutes() >= 30 ? DateUtils.dateIsWithinNextHour(d) : DateUtils.dateIsWithinLastHour(d)
+    }
 }
