@@ -3,7 +3,7 @@ import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { IInteractionElement } from '../general/commands'
 import { MessageHelper } from '../helpers/messageHelper'
 import { WeatherUtils } from '../utils/weatherUtils'
-import { openCageAPIKey } from '../client-env'
+import { openCageAPIKey, openWeatherAPIKey } from '../client-env'
 import { DateUtils } from '../utils/dateUtils'
 const fetch = require('node-fetch')
 const NodeGeocoder = require('node-geocoder')
@@ -48,10 +48,9 @@ export class Weather extends AbstractCommands {
     }
 
     static async fetchOPENWeatherForCity(city: string) {
-        const APIkey = 'fc7f85d19367afda9a6a3839919a820a'
         const rootUrl = 'https://api.openweathermap.org/data/2.5/weather?'
         const cityWithoutSpecialChars = city.replace('æ', 'ae').replace('ø', 'o').replace('å', 'a')
-        const fullUrl = rootUrl + 'q=' + cityWithoutSpecialChars + '&appid=' + APIkey + '&lang=NO'
+        const fullUrl = rootUrl + 'q=' + cityWithoutSpecialChars + '&appid=' + openWeatherAPIKey + '&lang=NO'
         const data = await fetch(fullUrl, {
             method: 'GET',
         })
