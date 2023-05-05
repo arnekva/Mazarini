@@ -14,6 +14,7 @@ import {
     JSONEncodable,
     Message,
     ModalSubmitInteraction,
+    RepliableInteraction,
     RestOrArray,
     SelectMenuBuilder,
     SelectMenuInteraction,
@@ -55,7 +56,8 @@ export class MessageHelper {
             | ChatInputCommandInteraction<CacheType>
             | ModalSubmitInteraction<CacheType>
             | SelectMenuInteraction<CacheType>
-            | ButtonInteraction<CacheType>,
+            | ButtonInteraction<CacheType>
+            | RepliableInteraction<CacheType>,
         content: string | EmbedBuilder,
         onlyVisibleToEngager?: boolean,
         wasDefered?: boolean,

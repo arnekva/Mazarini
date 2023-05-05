@@ -31,7 +31,7 @@ export class CommandRunner {
     async runCommands(message: Message) {
         try {
             /** Check if the bot is allowed to send messages in this channel */
-            if (!this.isLegalChannel(message)) return
+            if (!this.isLegalChannel(message) || this.checkIfLockedPath(message)) return
             /**  Check message for text commands */
             await this.checkForCommand(message)
             /** Additional non-command checks */
@@ -151,16 +151,17 @@ export class CommandRunner {
     }
     async checkForCommandInInteraction(interaction: Interaction<CacheType>) {
         /** Check if any part of the interaction is currently locked - if it is, do not proceed. Answer with an ephemeral message explaining the lock */
-        if (this.checkIfLockedPath(interaction))
-            return interaction.isRepliable()
-                ? interaction.reply(
-                      `Interaksjoner er låst. Prøv å se ${MentionUtils.mentionChannel(
-                          MentionUtils.CHANNEL_IDs.BOT_UTVIKLING
-                      )} for informasjon, eller tag bot-support`
-                  )
-                : undefined
-
-        if (this.isLegalChannel(interaction)) {
+        if (this.checkIfLockedPath(interaction)) {
+            if (interaction.isRepliable()) {
+                this.messageHelper.replyToInteraction(
+                    interaction,
+                    `Interaksjoner er låst. Prøv å se ${MentionUtils.mentionChannel(
+                        MentionUtils.CHANNEL_IDs.BOT_UTVIKLING
+                    )} for informasjon, eller tag bot-support`,
+                    true
+                )
+            }
+        } else if (this.isLegalChannel(interaction)) {
             const commands = this.commands.getAllInteractionCommands()
             let hasAcknowledged = false
 
