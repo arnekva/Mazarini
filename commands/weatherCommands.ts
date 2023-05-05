@@ -58,20 +58,26 @@ export class Weather extends AbstractCommands {
     }
 
     static GeoLocationString(location: GeoLocation) {
-        return location.streetName ? `${location.streetName} ${location.streetNumber}, ${location.city}` : location.city
+        let string = ""
+        if (location.streetName) string += location.streetName
+        string += location.streetName && location.streetNumber ? ' ' + location.streetNumber + ', ' : location.streetName ? ', ' : ' '
+        string += location.city ? location.city : location.county ? location.county += location.country ? ', ' + location.country : '' : location.country
+        return string
     }
 
     private async getWeatherForGivenCity(interaction: ChatInputCommandInteraction<CacheType>) {
         await interaction.deferReply()
         const city = interaction.options.get('stedsnavn')?.value as string
+        if (!city) return this.messageHelper.replyToInteraction(interaction, `Ugyldig input "${city}"`, undefined, true)
+        
         const geoLocation = await Weather.getCoordinatesForLocation(city)
-        if (geoLocation == undefined) return this.messageHelper.replyToInteraction(interaction, `Finner ikke stedet "${city}"`, undefined, true)
+        if (!geoLocation) return this.messageHelper.replyToInteraction(interaction, `Finner ikke stedet "${city}"`, undefined, true)
 
         const data = await Weather.fetchMETWeatherForCoordinates(geoLocation.latitude, geoLocation.longitude)
         const today = this.getTodaysTimeseries(data)
-        const conditions = await Weather.fetchOPENWeatherForCity(geoLocation.city)
+        const conditions = geoLocation.city ? await Weather.fetchOPENWeatherForCity(geoLocation.city) : ""
 
-        const weatherConditions = conditions.weather.map((weatherObj: any) => weatherObj.description).join(', ')
+        const weatherConditions = geoLocation.city ? 'Det er ' + conditions.weather.map((weatherObj: any) => weatherObj.description).join(', ') : " "
         const startOfCurrentHour = today[0]        
         const endOfCurrentHour = today[1]
         const closestHour = new Date().getMinutes() < 30 ? startOfCurrentHour : endOfCurrentHour
@@ -80,7 +86,7 @@ export class Weather extends AbstractCommands {
         
         const weather = new EmbedBuilder()
             .setTitle(`${Weather.GeoLocationString(geoLocation)}`)
-            .setDescription(`Det er ${weatherConditions}`)
+            .setDescription(`${weatherConditions}`)
             .addFields({ name: 'Temperatur', value: `${currentTemp} °C :thermometer:`, inline: true })
             .addFields({ name: '\t\t', value: '\t\t', inline: true})
             .addFields({ name: 'Min/Maks', value: `${this.getMinMaxTempString(today, currentTemp)}`, inline: true})
