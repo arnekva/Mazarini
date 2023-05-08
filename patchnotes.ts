@@ -4,13 +4,15 @@ import { IInteractionElement } from './general/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '11.3.2'
+    public static readonly currentVersion = '11.3.3'
     public static readonly nextVersion = 'Backlog'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
-    public static readonly currentPatchNotes: string = `\n* Botten skal ikke lenger svare på ting som pølse o.l. når den er låst`
+    public static readonly currentPatchNotes: string =
+        `\n* Electricity skal nå tagge den spilleren som må trekke` +
+        `\n* Varelagerstatus på varer fra vinmonopolet har nå en bedre melding hvis varen ikke er på lager`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 

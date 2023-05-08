@@ -14,6 +14,7 @@ import { IInteractionElement } from '../general/commands'
 import { ButtonHandler } from '../handlers/buttonHandler'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
+import { MentionUtils } from '../utils/mentionUtils'
 import { RandomUtils } from '../utils/randomUtils'
 import { CardCommands } from './cardCommands'
 
@@ -256,7 +257,7 @@ export class DrinksCommands extends AbstractCommands {
         }
         let sips = infinite && this.shouldChugOnLoop ? '♾' : mustDrink.length
         this.playerList.forEach((player) => {
-            let playerName = player.id == currentPlayer?.id ? '__' + player.name + '__' : player.name
+            let playerName = player.id == currentPlayer?.id ? MentionUtils.mentionUser(player.id.toString()) : player.name
             playerName += mustDrink.length > 1 && mustDrink.includes(player) ? ' 🍷x' + sips : ''
             formattedMsg.addFields({
                 name: playerName,

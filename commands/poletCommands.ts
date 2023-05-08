@@ -133,8 +133,13 @@ export class PoletCommands extends AbstractCommands {
         if (favoritePol.latitude && favoritePol.longitude) {
             const stockData = await this.fetchProductStock(productId, favoritePol.latitude, favoritePol.longitude)
             const embed = new EmbedBuilder().setTitle(`${params[1]}`)
-            embed.setDescription(`${interaction.user.username} sine 3 nærmeste vinmonopol`)
-            stockData.stores.slice(0, 3).forEach((store) => {
+            const stores = stockData.stores.slice(0, 3)
+            if (stores.length === 0) {
+                embed.setDescription(`${interaction.user.username} har ingen vinmonopol i nærheten med varen på lager`)
+            } else {
+                embed.setDescription(`${interaction.user.username} sine ${stores.length ?? 0} nærmeste vinmonopol`)
+            }
+            stores.forEach((store) => {
                 embed.addFields({ name: store.pointOfService.displayName, value: `Antall: ${store.stockInfo.stockLevel}`, inline: false })
             })
             messageHelper.replyToInteraction(interaction, embed)
