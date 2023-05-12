@@ -110,7 +110,7 @@ export class PoletCommands extends AbstractCommands {
                     'sec-ch-ua-mobile': '?0',
                     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
                     'accept-encoding': 'gzip, deflate, br',
-                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+                    accept: 'application/json,text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
                     'upgrade-insecure-requests': '1',
                     'sec-fetch-site': 'same-site',
                     'sec-fetch-mode': 'navigate',
