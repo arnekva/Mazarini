@@ -45,7 +45,7 @@ interface PoletData {
 export class PoletCommands extends AbstractCommands {
     static baseStoreDataURL = 'https://apis.vinmonopolet.no/stores/v0/details'
     static baseProductURL = 'https://apis.vinmonopolet.no/products/v0/details-normal'
-    static pressProductURL = 'https://www.vinmonopolet.no/api/products'
+    static pressProductURL = 'https://www.vinmonopolet.no/vmpws/v2/vmp/products'
     static baseStoreID = '416'
 
     constructor(client: Client, messageHelper: MessageHelper) {
