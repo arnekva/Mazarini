@@ -1,9 +1,17 @@
-import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
+import { ButtonInteraction, CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { IInteractionElement } from '../general/commands'
+import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { SlashCommandHelper } from '../helpers/slashCommandHelper'
 const deckOfCards = require('deckofcards')
+
+export interface ICardObject {
+    number: string
+    suite: string
+    printString: string
+    url: string
+}
 
 export class CardCommands extends AbstractCommands {
     private deck: any
@@ -36,6 +44,15 @@ export class CardCommands extends AbstractCommands {
     public getTranslation(param: string) {
         let value = CardCommands.cardTranslations.get(param)
         return value ? value : ''
+    }
+
+    public async createCardObject(card: string, interaction: ButtonInteraction<CacheType>) {
+        let number = card.substring(0, 1)
+        let suite = card.substring(1, 2)
+        let emoji = await EmojiHelper.getEmoji(card, interaction)
+        const emojiUrl = `https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?size=96&quality=lossless`
+        const cardObject: ICardObject = { number: number, suite: suite, printString: emoji.id, url: emojiUrl }
+        return cardObject
     }
 
     public drawCard(): string {

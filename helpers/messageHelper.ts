@@ -61,7 +61,7 @@ export class MessageHelper {
         content: string | EmbedBuilder,
         onlyVisibleToEngager?: boolean,
         wasDefered?: boolean,
-        menu?: ActionRowBuilder<SelectMenuBuilder>
+        menu?: ActionRowBuilder<SelectMenuBuilder> | ActionRowBuilder<ButtonBuilder>
     ): Promise<boolean> {
         const handleError = async (e: any) => {
             let msg: Message<boolean> | undefined

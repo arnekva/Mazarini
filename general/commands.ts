@@ -2,6 +2,8 @@ import { CacheType, ChatInputCommandInteraction, Client, Interaction } from 'dis
 import { Admin } from '../admin/admin'
 import { CardCommands } from '../commands/cardCommands'
 import { DateCommands } from '../commands/dateCommands'
+import { RedBlackButtonHandler } from '../commands/drinks/redBlack/redBlackButtonHandler'
+import { RedBlackCommands } from '../commands/drinks/redBlack/redBlackCommands'
 import { DrinksCommands } from '../commands/drinksCommands'
 import { GamblingCommands } from '../commands/gamblingCommands'
 import { GameCommands } from '../commands/gameCommands'
@@ -61,6 +63,8 @@ export class Commands {
     private selectMenuHandler: SelectMenuHandler
     private buttonHandler: ButtonHandler
     private textCommands: TextCommands
+    private redBlackCommands: RedBlackCommands
+    private redBlackButtonHandler: RedBlackButtonHandler
 
     constructor(client: Client, messageHelper: MessageHelper) {
         this.client = client
@@ -89,7 +93,9 @@ export class Commands {
         this.modalHandler = new ModalHandler(this.client, this.messageHelper)
         this.selectMenuHandler = new SelectMenuHandler(this.client, this.messageHelper)
         this.textCommands = new TextCommands(this.client, this.messageHelper)
-        this.buttonHandler = new ButtonHandler(this.client, this.messageHelper, this.drinksCommands, this.testCommands)
+        this.redBlackCommands = new RedBlackCommands(this.client, this.messageHelper)
+        this.redBlackButtonHandler = new RedBlackButtonHandler(this.client, this.messageHelper, this.redBlackCommands)
+        this.buttonHandler = new ButtonHandler(this.client, this.messageHelper, this.redBlackButtonHandler, this.drinksCommands, this.testCommands)
     }
 
     getAllInteractionCommands() {
@@ -115,6 +121,7 @@ export class Commands {
             ...this.poletCommands.getAllInteractions(),
             ...this.linkCommands.getAllInteractions(),
             ...this.textCommands.getAllInteractions(),
+            ...this.redBlackCommands.getAllInteractions(),
         ]
     }
 
