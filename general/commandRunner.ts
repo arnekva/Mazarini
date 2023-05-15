@@ -303,7 +303,9 @@ export class CommandRunner {
                 (interaction?.channel.id === MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM ||
                     interaction?.channel.id === MentionUtils.CHANNEL_IDs.STATS_SPAM ||
                     interaction?.channel.id === MentionUtils.CHANNEL_IDs.GODMODE)) ||
-            (environment === 'prod' && interaction?.channel.id !== MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM)
+            (environment === 'prod' &&
+                interaction?.channel.id !== MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM &&
+                interaction.channelId !== MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM_DEV)
         )
     }
 }
