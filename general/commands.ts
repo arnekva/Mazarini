@@ -33,8 +33,6 @@ export interface IInteractionElement {
     command: (rawMessage: ChatInputCommandInteraction<CacheType>) => void
 }
 
-export type commandCategory = 'musikk' | 'gambling' | 'gaming' | 'tekst' | 'annet' | 'admin' | 'spin' | 'drink'
-
 export class Commands {
     private client: Client
     private messageHelper: MessageHelper
