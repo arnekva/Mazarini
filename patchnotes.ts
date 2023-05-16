@@ -4,13 +4,19 @@ import { IInteractionElement } from './general/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '11.4.0'
+    public static readonly currentVersion = '11.3.5'
     public static readonly nextVersion = 'Backlog'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
-    public static readonly currentPatchNotes: string = `\n* Admins kan nå legge til et kort i backlog ved å bruke /issue`
+    public static readonly currentPatchNotes: string =
+        `\n* Admins kan nå legge til et kort i backlog ved å bruke /issue` +
+        `\n* Nye issues logges til ${MentionUtils.mentionChannel(MentionUtils.CHANNEL_IDs.BOARD_UPDATES)}` +
+        `\n* Nye commits og pull request logges til ${MentionUtils.mentionChannel(MentionUtils.CHANNEL_IDs.GIT_UPDATES)}` +
+        `\n* Patch notes sendes nå også til ${MentionUtils.mentionChannel(MentionUtils.CHANNEL_IDs.PATCH_NOTES)} sammen med ${MentionUtils.mentionChannel(
+            MentionUtils.CHANNEL_IDs.BOT_UTVIKLING
+        )}`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
@@ -44,9 +50,12 @@ export class PatchNotes extends AbstractCommands {
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     const pn = PatchNotes.getCurrentPatchNotes()
                     this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.BOT_UTVIKLING, pn)
+                    this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.PATCH_NOTES, pn)
                     this.messageHelper.replyToInteraction(
                         rawInteraction,
-                        `Patch notes sendt til ${MentionUtils.mentionChannel(MentionUtils.CHANNEL_IDs.BOT_UTVIKLING)}`,
+                        `Patch notes sendt til ${MentionUtils.mentionChannel(MentionUtils.CHANNEL_IDs.BOT_UTVIKLING)} og ${MentionUtils.mentionChannel(
+                            MentionUtils.CHANNEL_IDs.PATCH_NOTES
+                        )}`,
                         true
                     )
                 },
