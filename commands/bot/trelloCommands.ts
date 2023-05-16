@@ -23,9 +23,7 @@ export class TrelloCommands extends AbstractCommands {
                 name: header,
                 desc: body,
             })
-        const form = new FormData()
-        form.append('name', header)
-        form.append('desc', body)
+
         const card = await fetch(url, {
             method: 'POST',
             headers: {
