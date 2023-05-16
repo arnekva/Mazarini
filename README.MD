@@ -39,7 +39,7 @@ Du må også opprette en 'myDataBase.json' fil. Bruk 'npm run create:db' for å 
         },
         "ThomasW": {
             "mygling": "digge ny patch 🆒",
-            "ATHspin": "752",
+            "ATHspin": "742",
             "counterSpin": "213",
             "dogeCoin": "5000",
             "warningCounter": "2"
