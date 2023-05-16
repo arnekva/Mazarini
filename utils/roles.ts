@@ -3,7 +3,9 @@ export interface MZRole {
     id: string
     emoji: string
 }
+/** @deprecated use MentionUtils instead */
 export namespace Roles {
+    /** @deprecated use MentionUtils instead */
     export const allRoles: MZRole[] = [
         { name: 'Battlefield', id: '886600170328952882', emoji: '🖐️' },
         { name: 'Warzone', id: '735253573025267883', emoji: '🙌' },

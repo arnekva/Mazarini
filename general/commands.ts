@@ -1,5 +1,6 @@
 import { CacheType, ChatInputCommandInteraction, Client, Interaction } from 'discord.js'
 import { Admin } from '../admin/admin'
+import { TrelloCommands } from '../commands/bot/trelloCommands'
 import { CardCommands } from '../commands/cardCommands'
 import { DateCommands } from '../commands/dateCommands'
 import { DrinksCommands } from '../commands/drinksCommands'
@@ -61,6 +62,7 @@ export class Commands {
     private selectMenuHandler: SelectMenuHandler
     private buttonHandler: ButtonHandler
     private textCommands: TextCommands
+    private trelloCommands: TrelloCommands
 
     constructor(client: Client, messageHelper: MessageHelper) {
         this.client = client
@@ -88,6 +90,7 @@ export class Commands {
         this.linkCommands = new LinkCommands(this.client, this.messageHelper)
         this.modalHandler = new ModalHandler(this.client, this.messageHelper)
         this.selectMenuHandler = new SelectMenuHandler(this.client, this.messageHelper)
+        this.trelloCommands = new TrelloCommands(this.client, this.messageHelper)
         this.textCommands = new TextCommands(this.client, this.messageHelper)
         this.buttonHandler = new ButtonHandler(this.client, this.messageHelper, this.drinksCommands, this.testCommands)
     }
@@ -115,6 +118,7 @@ export class Commands {
             ...this.poletCommands.getAllInteractions(),
             ...this.linkCommands.getAllInteractions(),
             ...this.textCommands.getAllInteractions(),
+            ...this.trelloCommands.getAllInteractions(),
         ]
     }
 
