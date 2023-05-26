@@ -24,6 +24,7 @@ export class MentionUtils {
         STATS_SPAM: '967847736693108736',
         VINMONOPOLET: '936685813813628949',
         LOKAL_BOT_SPAM: '880493116648456222',
+        DEV_LOKAL_BOT: '1106130420308922378',
     }
 
     static ROLE_IDs = {

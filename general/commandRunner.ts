@@ -301,9 +301,12 @@ export class CommandRunner {
         return (
             (environment === 'dev' &&
                 (interaction?.channel.id === MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM ||
+                    interaction?.channel.id === MentionUtils.CHANNEL_IDs.DEV_LOKAL_BOT ||
                     interaction?.channel.id === MentionUtils.CHANNEL_IDs.STATS_SPAM ||
                     interaction?.channel.id === MentionUtils.CHANNEL_IDs.GODMODE)) ||
-            (environment === 'prod' && interaction?.channel.id !== MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM)
+            (environment === 'prod' && 
+                interaction?.channel.id !== MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM &&
+                interaction?.channel.id !== MentionUtils.CHANNEL_IDs.DEV_LOKAL_BOT)
         )
     }
 }

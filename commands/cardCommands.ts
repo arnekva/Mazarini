@@ -7,7 +7,7 @@ import { SlashCommandHelper } from '../helpers/slashCommandHelper'
 const deckOfCards = require('deckofcards')
 
 export interface ICardObject {
-    number: string
+    number: number
     suite: string
     printString: string
     url: string
@@ -20,6 +20,22 @@ export class CardCommands extends AbstractCommands {
         super(client, messageHelper)
         this.deck = new deckOfCards.Deck()
     }
+
+    static numberTranslations: Map<string, number> = new Map<string, number>([
+        ['2', 2],
+        ['3', 3],
+        ['4', 4],
+        ['5', 5],
+        ['6', 6],
+        ['7', 7],
+        ['8', 8],
+        ['9', 9],
+        ['T', 10],
+        ['J', 11],
+        ['Q', 12],
+        ['K', 13],
+        ['A', 14],
+    ])
 
     static cardTranslations: Map<string, string> = new Map<string, string>([
         ['2', '2'],
@@ -41,27 +57,33 @@ export class CardCommands extends AbstractCommands {
         ['D', ' ♢ '],
     ])
 
+    public static transformNumber(number: string) {
+        return CardCommands.numberTranslations.get(number)
+    }
+
     public getTranslation(param: string) {
         let value = CardCommands.cardTranslations.get(param)
         return value ? value : ''
     }
 
-    public async createCardObject(card: string, interaction: ButtonInteraction<CacheType>) {
-        let number = card.substring(0, 1)
-        let suite = card.substring(1, 2)
-        let emoji = await EmojiHelper.getEmoji(card, interaction)
-        const emojiUrl = `https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?size=96&quality=lossless`
-        const cardObject: ICardObject = { number: number, suite: suite, printString: emoji.id, url: emojiUrl }
-        return cardObject
+    public async createCardObject(card: string, interaction: ButtonInteraction<CacheType> = undefined) {
+        const number = CardCommands.numberTranslations.get(card.substring(0, 1))
+        const suite = card.substring(1, 2)
+        if (interaction !== undefined) {
+            const emoji = await EmojiHelper.getEmoji(card, interaction)
+            const emojiUrl = `https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?size=96&quality=lossless`
+            return { number: number, suite: suite, printString: emoji.id, url: emojiUrl }
+        }
+        return {number: number, suite: suite, printString: undefined, url: undefined}
     }
 
-    public drawCard(): string {
+    public async drawCard(interaction: ButtonInteraction<CacheType> = undefined) {
         let card = this.deck.draw()
         if (card === undefined) {
-            return 'Kortstokken er tom for kort'
+            return undefined
         }
-
-        return card.toString()
+        
+        return await this.createCardObject(card.toString(), interaction)
     }
 
     public resetDeck(): string {
@@ -79,7 +101,7 @@ export class CardCommands extends AbstractCommands {
         return remaining > 0 ? 'Det er ' + remaining + ' kort igjen i kortstokken' : 'Kortstokken er tom for kort'
     }
 
-    private getRemainingCards() {
+    public getRemainingCards() {
         let cards = this.deck.toString()
         const regex = new RegExp('C|D|S|H')
         if (!regex.test(cards)) {

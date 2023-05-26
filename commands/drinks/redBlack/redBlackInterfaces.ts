@@ -7,7 +7,25 @@ export interface IUserObject {
     cards: ICardObject[]
 }
 
+export interface IRedBlackGame {
+    stage: RedBlackStage
+    currentPlayer: IUserObject
+    
+}
 
+export enum RedBlackStage {
+    RedBlack = 'RedBlack',
+    UpDown = 'UpDown',
+    InsideOutside = 'InsideOutside',
+    Suit = 'Suit'
+}
+
+export interface IGiveTakeGame {
+    gtTable: Map<number, IGiveTakeCard>
+    currentGtCard: IGiveTakeCard
+    gtTableMessage: Message
+    gtNextCardId: number
+}
 
 export interface IGiveTakeCard {
     card: ICardObject
@@ -58,6 +76,6 @@ export enum BusRide {
 }
 
 export interface IGameRules {
-    giveTakeLevelSips: number[]
+    gtLevelSips: number[]
     busRide: BusRide
 }

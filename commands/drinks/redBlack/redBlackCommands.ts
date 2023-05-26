@@ -18,31 +18,35 @@ import { ArrayUtils } from '../../../utils/arrayUtils'
 import { MentionUtils } from '../../../utils/mentionUtils'
 import { RandomUtils } from '../../../utils/randomUtils'
 import { CardCommands, ICardObject } from '../../cardCommands'
-import { setupGameButtonRow, redBlackButtonRow, giveTakeButtonRow } from './redBlackButtonRows'
-import { IGameRules, BusRide, IUserObject, IGiveTakeCard } from './redBlackInterfaces'
-
-
+import { RedBlackButtonHandler } from './redBlackButtonHandler'
+import { setupGameButtonRow, redBlackButtonRow, gtButtonRow } from './redBlackButtonRows'
+import { IGameRules, BusRide, IUserObject, IGiveTakeCard, GameStage } from './redBlackInterfaces'
 
 const defaultRules: IGameRules = {
-    giveTakeLevelSips: [2, 4, 6, 8, Number.POSITIVE_INFINITY],
+    gtLevelSips: [2, 4, 6, 8, Number.POSITIVE_INFINITY],
     busRide: BusRide.Canadian
 }
 
 const testData: IUserObject[] = [
-    { name: 'PhedeSpelar', id: 0, cards: [{ number: '', suite: '', printString: '', url: '' }] },
-    { name: 'Eivind', id: 1, cards: [{ number: '', suite: '', printString: '', url: '' }] },
-    { name: 'Deadmaggi', id: 2, cards: [{ number: '', suite: '', printString: '', url: '' }] },
+    { name: 'PhedeSpelar', id: 0, cards: new Array<ICardObject>() },
+    { name: 'Eivind', id: 1, cards: new Array<ICardObject>() },
+    { name: 'Deadmaggi', id: 2, cards: new Array<ICardObject>() },
 ]
 
 export class RedBlackCommands extends AbstractCommands {
     private playerList: IUserObject[]
     private activeGame: boolean
     private initiated: boolean
+    private stage: GameStage
     private deck: CardCommands
     private rules: IGameRules
-    private giveTakeTable: Map<string, IGiveTakeCard>
+    private currentPlayer
+    private gtTable: Map<number, IGiveTakeCard>
+    private currentGtCard: IGiveTakeCard
+    private gtNextCardId: number
     private id: number
     private turn: number
+    private gtTableMessage: Message
     private embedMessage: Message
     private buttonsMessage: Message
     private embed: EmbedBuilder
@@ -52,58 +56,145 @@ export class RedBlackCommands extends AbstractCommands {
         super(client, messageHelper)
         this.activeGame = false
         this.initiated = false
+        this.stage = undefined
         this.playerList = new Array<IUserObject>()
         this.deck = new CardCommands(client, messageHelper)
         this.rules = defaultRules
-        this.giveTakeTable = new Map<string, IGiveTakeCard>()
+        this.gtTable = new Map<number, IGiveTakeCard>()
+        this.currentGtCard = undefined
+        this.gtNextCardId = 0
         this.id = 0
         this.turn = 0
+        this.gtTableMessage = undefined
         this.embedMessage = undefined
         this.buttonsMessage = undefined
         this.embed = undefined
         this.currentButtons = setupGameButtonRow
     }
 
-    private generateGiveTakeTable() {
-        const levels = this.rules.giveTakeLevelSips.length
+    public async generateGiveTakeTable(interaction: ButtonInteraction<CacheType>) {
+        const levels = this.rules.gtLevelSips.length
+        let key = 0
         for (var i = 1; i < levels; i++) 
         {
             for (var y = 1; y <= 3; y++) 
             {
-                this.giveTakeTable.set(String(i)+String(y),
-                    { card: undefined//this.deck.drawCard() 
+
+                this.gtTable.set(key++,
+                    { card: await this.drawCard(interaction) 
                     , give: y == 1 || y == 3
                     , take: y == 2 || y == 3
-                    , sips: this.rules.giveTakeLevelSips[i-1]
+                    , sips: this.rules.gtLevelSips[i-1]
                     , revealed: false
                     }
                 )
             }
         }
-        this.giveTakeTable.set(String(levels)+String(2), 
-                    { card: undefined//this.deck.drawCard() 
+        this.gtTable.set(key, 
+                    { card: await this.drawCard(interaction) 
                     , give: false
                     , take: true
-                    , sips: this.rules.giveTakeLevelSips[levels-1]
+                    , sips: this.rules.gtLevelSips[levels-1]
                     , revealed: false
                     }
-        )
+        )        
     }
 
-    private printGiveTakeTable(interaction: ButtonInteraction<CacheType>) {
-        let tableString = ''
-        const levels = this.rules.giveTakeLevelSips.length
-        const chugCard = this.giveTakeTable.get(String(levels)+String(2))
-        const cardEmoji = 
-        tableString += ``
-        
-        for (var i = levels; i > 0; i--) 
-        {
-            for (var y = 1; y <= 3; y++) 
-            {
-
-            }
+    private async drawCard(interaction: ButtonInteraction<CacheType>) {
+        if (this.deck.getRemainingCards() > 0) {
+            return await this.deck.drawCard(interaction)
         }
+        this.deck.shuffleDeck()
+        return await this.deck.drawCard(interaction)
+    }
+
+    public async printGiveTakeTable(interaction: ButtonInteraction<CacheType>) {                
+        let tableString = ''
+        const levels = this.rules.gtLevelSips.length
+        let iterateId = this.gtTable.size - 1
+        const chugCard = this.gtTable.get(iterateId--)
+        const emptyCard = await (await EmojiHelper.getEmoji('emptyCard', interaction)).id
+        const faceCard = await (await EmojiHelper.getEmoji('faceCard', interaction)).id
+        tableString += `${emptyCard} ${chugCard.revealed ? chugCard.card.printString : faceCard}`
+        
+        for (var i = levels-1; i > 0; i--) 
+        {
+            tableString += '\n\n'
+            const gtCard = this.gtTable.get(iterateId--)
+            const tCard = this.gtTable.get(iterateId--)
+            const gCard = this.gtTable.get(iterateId--)
+            const gtCardStr = gtCard.revealed ? `${gtCard.card.printString} ` : `${faceCard} `
+            const tCardStr = tCard.revealed ? `${tCard.card.printString} ` : `${faceCard} `
+            const gCardStr = gCard.revealed ? `${gCard.card.printString} ` : `${faceCard} `
+            tableString += (gCardStr + tCardStr + gtCardStr)
+        }
+        if (!this.gtTableMessage) {
+            this.gtTableMessage = await this.messageHelper.sendMessage(interaction.channelId, tableString)
+        } else {
+            this.gtTableMessage.edit(tableString)
+        }
+        interaction.deferUpdate()
+    }
+
+    public revealNextGTCard(interaction: ButtonInteraction<CacheType>) {
+        this.currentGtCard = this.gtTable.get(this.gtNextCardId++)
+        this.currentGtCard.revealed = true
+        //Må resette "A kan gi x slurker" meldinger
+        //Må oppdatere embed med nytt kort
+        this.printGiveTakeTable(interaction)
+    }
+
+    private cardIsValid(userCard: ICardObject) {
+        return this.currentGtCard.card.number == userCard.number
+    }
+
+    public async placeCard(interaction: ButtonInteraction<CacheType>) {
+        const user = this.getUserObject(interaction.user.username)
+        const index = user.cards.findIndex(card => this.cardIsValid(card))
+        if (index < 0) {
+            return await this.messageHelper.replyToInteraction(interaction, 'Du har ingen kort du kan legge på bordet', true)
+        }
+        const placedCard = user.cards.splice(index, 1).pop()
+        this.updateGiveTakeGameMessage(placedCard, user.name)
+    }
+
+    private updateGiveTakeGameMessage(card: ICardObject, username: string) {
+        //Må 
+    }
+
+    private updateRedBlackGameMessage(card: ICardObject, username: string, correct: boolean) {
+        //Må 
+    }
+
+    public async handleRedBlackGuess(interaction: ButtonInteraction<CacheType>) {
+        const user = this.getUserObject(interaction.user.username)
+        const card = await this.drawCard(interaction)
+        const guess = interaction.customId.split('_').pop()
+        let correct = false
+        if (interaction.customId.startsWith(RedBlackButtonHandler.GUESS_RB)) {
+            correct = (guess == 'Black' && ['S','C'].includes(card.suite)) 
+                   || (guess == 'Red' && ['H','D'].includes(card.suite))
+        } else if (interaction.customId.startsWith(RedBlackButtonHandler.GUESS_UD)) {
+            const card1 = user.cards[0]
+            correct = (guess == 'Up' && card.number > card1.number)
+                   || (guess == 'Down' && card.number < card1.number)
+                   || (guess == 'Same' && card.number == card1.number)
+        } else if (interaction.customId.startsWith(RedBlackButtonHandler.GUESS_IO)) {
+            const card1 = user.cards[0]
+            const card2 = user.cards[1]
+            correct = (guess == 'Inside' && card.number > card1.number && card.number < card2.number)
+                   || (guess == 'Outside' && card.number < card1.number || card.number > card2.number)
+                   || (guess == 'Same' && card.number == card1.number || card.number == card2.number)
+        } else if (interaction.customId.startsWith(RedBlackButtonHandler.GUESS_S)) {
+            correct = guess == card.suite
+        }
+        user.cards.push(card)
+        user.cards.sort((a,b) => a.number - b.number)
+        this.updateRedBlackGameMessage(card, user.name, correct)
+    }
+
+    private verifyUsersTurn(username: string) {
+
     }
 
     private setCardOnUser(username: string, card: string) {
@@ -137,16 +228,16 @@ export class RedBlackCommands extends AbstractCommands {
 
     
 
-    public drawCard(interaction: ButtonInteraction<CacheType>) {
+    public async olddrawCard(interaction: ButtonInteraction<CacheType>) {
         if (this.playerList.find((player) => player.name == interaction.user.username)) {
-            let card: string = this.deck.drawCard()
-            if (card == 'Kortstokken er tom for kort') {
+            let card: ICardObject = await this.deck.drawCard()
+            if (card == undefined) {
                 this.messageHelper.replyToInteraction(interaction, 'Kortstokken er tom. Bruk knappen under dersom dere vil fortsette.')
                 //this.messageHelper.sendMessageWithComponents(interaction?.channelId, [resetDeckButtonRow])
             } else {
                 const currentPlayer = this.getUserObjectById(this.turn)
                 this.turn = (this.turn + 1) % this.playerList.length
-                this.setCardOnUser(currentPlayer.name, card)
+                //this.setCardOnUser(currentPlayer.name, card)
                 //const mustDrink = this.checkWhoMustDrink(currentPlayer.name, currentPlayer.id, currentPlayer.card)
                 //this.updateActiveGameMessage(mustDrink, currentPlayer)
                 this.replyToInteraction(interaction)
@@ -183,22 +274,22 @@ export class RedBlackCommands extends AbstractCommands {
         }
     }
 
-    public setupElectricity(interaction: ChatInputCommandInteraction<CacheType>) {
+    public setupRedBlack(interaction: ChatInputCommandInteraction<CacheType>) {
         if (this.activeGame || this.initiated) {
             this.messageHelper.replyToInteraction(interaction, 'Du kan bare ha ett aktivt spill om gangen. For å avslutte spillet, bruk "/electricity stopp"')
         } else {
             this.currentButtons = setupGameButtonRow
             this.initiated = true
+            this.stage = GameStage.RedBlack
             this.updateStartMessage()
             this.replyToInteraction(interaction)
         }
     }
 
-    public async joinElectricity(interaction: ButtonInteraction<CacheType>) {
+    public async joinGame(interaction: ButtonInteraction<CacheType>) {
         const newUser = interaction.user
         if (!this.playerList.find((player) => player.name == newUser.username)) {
-            const userCard: ICardObject = { number: '', suite: '', printString: '', url: '' }
-            const user: IUserObject = { name: newUser.username, id: this.id, cards: [userCard] }
+            const user: IUserObject = { name: newUser.username, id: this.id, cards: new Array<ICardObject>() }
             this.playerList.push(user)
             this.id++
             this.updateStartMessage()
@@ -208,7 +299,7 @@ export class RedBlackCommands extends AbstractCommands {
         }
     }
 
-    public startElectricity(interaction: ButtonInteraction<CacheType>) {
+    public startGame(interaction: ButtonInteraction<CacheType>) {
         if (this.playerList.length < 1) {
             this.messageHelper.replyToInteraction(
                 interaction,
@@ -225,7 +316,7 @@ export class RedBlackCommands extends AbstractCommands {
     }
 
     private updateStartMessage() {
-        let formattedMsg = new EmbedBuilder().setTitle('Electricity ⚡').setDescription('Følgende spelare er klare for å drikke litt (masse):')
+        let formattedMsg = new EmbedBuilder().setTitle('Rød eller Svart :thinking:').setDescription('Følgende spelare er klare for å drikke litt (masse):')
         this.playerList.forEach((player) => {
             formattedMsg.addFields({
                 name: player.name,
@@ -254,7 +345,7 @@ export class RedBlackCommands extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, msg)
     }
 
-    private stopElectricity(interaction: ChatInputCommandInteraction<CacheType>) {
+    private stopRedBlack(interaction: ChatInputCommandInteraction<CacheType>) {
         this.playerList = new Array<IUserObject>()
         this.deck.resetDeck()
         this.id = 0
@@ -267,19 +358,19 @@ export class RedBlackCommands extends AbstractCommands {
         return this.playerList.some(user => user.name == username)
     }
 
-    private elSwitch(interaction: ChatInputCommandInteraction<CacheType>) {
+    private rbSwitch(interaction: ChatInputCommandInteraction<CacheType>) {
         const action = interaction.options.getSubcommand()
         if (action) {
             switch (action.toLowerCase()) {
                 case 'start': {
-                    this.setupElectricity(interaction)
+                    this.setupRedBlack(interaction)
                     break
                 }
                 case 'stopp': {
                     if (!this.activeGame && !this.initiated) {
                         this.messageHelper.replyToInteraction(interaction, 'Det er ingenting å stoppe')
                     } else {
-                        this.stopElectricity(interaction)
+                        this.stopRedBlack(interaction)
                     }
                     break
                 }
@@ -303,8 +394,8 @@ export class RedBlackCommands extends AbstractCommands {
         const addPlayer = interaction.options.get('add')?.user
         let reply = ``
         if (addPlayer) {
-            const mockCard: ICardObject = { number: '', suite: '', printString: '', url: '' }
-            const user: IUserObject = { name: addPlayer.username, id: this.id++, cards: [mockCard] }
+            // const mockCard: ICardObject = { number: '', suite: '', printString: '', url: '' }
+            const user: IUserObject = { name: addPlayer.username, id: this.id++, cards: new Array<ICardObject>() }
             this.playerList.push(user)
             reply += `\nLa til ${user.name} i spillet på plass ${user.id}`
         }
@@ -314,9 +405,9 @@ export class RedBlackCommands extends AbstractCommands {
     getAllInteractions(): IInteractionElement[] {
         return [
             {
-                commandName: 'electricity',
+                commandName: 'redblack',
                 command: (interaction: ChatInputCommandInteraction<CacheType>) => {
-                    this.elSwitch(interaction)
+                    this.rbSwitch(interaction)
                 },
             },
         ]
