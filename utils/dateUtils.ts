@@ -132,7 +132,18 @@ export class DateUtils {
     }
 
     static dateHasPassed(d: Date) {
-        return moment(d).isBefore(moment(), 'day') || DateUtils.isToday(d, true)
+        return moment(d).isBefore(moment(), 'day')
+    }
+
+    static formatDate(d: Date) {
+        return `${DateUtils.addZero(d.getUTCDate())}.${DateUtils.addZero(d.getUTCMonth()+1)}.${String(d.getUTCFullYear()).substring(2,4)}`
+    }
+
+    static addZero(n: number) {
+        if (String(n).length < 2) {
+            return `0${n}`
+        }
+        return n
     }
 
     /** Checks if the string supplied is today (e.g. "monday")  */

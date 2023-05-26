@@ -1,4 +1,4 @@
-import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder } from 'discord.js'
 import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { IInteractionElement } from '../general/commands'
@@ -103,7 +103,8 @@ export class DateCommands extends AbstractCommands {
             if (Object.keys(DatabaseHelper.getAllFerieValues()).length < 1) {
                 return this.messageHelper.replyToInteraction(interaction, `Ingen har ferie i nærmeste fremtid`)
             }
-            let sendThisText = ''
+            const vacayNowMap: Map<Date, string> = new Map<Date, string>()
+            const vacayLaterMap: Map<Date, string> = new Map<Date, string>()
             const ferieDates = DatabaseHelper.getAllFerieValues()
             /** Finn alle ferier og print dem hvis de er gyldige */
             Object.keys(ferieDates).forEach((username) => {
@@ -112,18 +113,40 @@ export class DateCommands extends AbstractCommands {
                     const date1 = moment(new Date(ferieEle.fromDate), 'DD-MM-YYYY').toDate()
                     const date2 = moment(new Date(ferieEle.toDate), 'DD-MM-YYYY').toDate()
                     if (!DateUtils.dateHasPassed(date2)) {
-                        const timeRemaining = DateUtils.dateHasPassed(date1)
-                            ? `(${DateUtils.formatCountdownText(DateUtils.getTimeTo(date2), 'igjen av ferien')} )`
-                            : `(${DateUtils.formatCountdownText(DateUtils.getTimeTo(date1), 'til')})`
-                        sendThisText += `\n${UserUtils.findUserById(username, interaction).username} har ferie mellom ${moment(date1).format('ll')} og ${moment(
-                            date2
-                        ).format('ll')} ${timeRemaining}`
+                        if (DateUtils.dateHasPassed(date1)) {
+                            const timeRemaining = DateUtils.getTimeTo(date2)
+                            const dayString = timeRemaining.days > 0 ? `${timeRemaining.days} dager, ` : ''
+                            const hourString = timeRemaining.hours > 0 ? `${timeRemaining.hours} timer og ` : ''
+                            const timeUntilString = `${dayString}${hourString}${timeRemaining.minutes} min`
+                            const vacayString = `- ${UserUtils.findUserById(username, interaction).username}: ${timeUntilString} igjen *(${DateUtils.formatDate(date2)})*\n`
+                            vacayNowMap.set(date2, vacayString)
+                        } else {
+                            const timeRemaining = DateUtils.getTimeTo(date1)
+                            const dayString = timeRemaining.days > 0 ? `${timeRemaining.days} dager, ` : ''
+                            const hourString = timeRemaining.hours > 0 ? `${timeRemaining.hours} timer og ` : ''
+                            const timeUntilString = `${dayString}${hourString}${timeRemaining.minutes} min`
+                            const vacayString = `- ${UserUtils.findUserById(username, interaction).username}: om ${timeUntilString} *(${DateUtils.formatDate(date1)})*\n`
+                            vacayLaterMap.set(date1, vacayString)
+                        }
                     }
                 }
             })
-
-            if (!sendThisText) sendThisText = 'Ingen har ferie lenger :('
-            this.messageHelper.replyToInteraction(interaction, sendThisText)
+            
+            if (vacayNowMap.size < 1 && vacayLaterMap.size < 1) {
+                return this.messageHelper.replyToInteraction(interaction, `Ingen har ferie lenger :(`)
+            }
+            let vacayNow = ''
+            let vacayLater = ''
+            let vacayNowSorted = new Map([...vacayNowMap].sort((d1, d2) => d1[0].getTime() - d2[0].getTime()))
+            vacayNowSorted.forEach((vacayString, key) => vacayNow += vacayString)
+            let vacayLaterSorted = new Map([...vacayLaterMap].sort((d1, d2) => d1[0].getTime() - d2[0].getTime()))
+            vacayLaterSorted.forEach((vacayString, key) => vacayLater += vacayString)
+            
+            const vacay = new EmbedBuilder()
+            .setTitle(`Ferie 🏝️`)
+            if (vacayNowMap.size > 0) vacay.addFields({ name: 'Er på ferie 😎', value: `${vacayNow}`, inline: false })
+            if (vacayLaterMap.size > 0) vacay.addFields({ name: 'Skal på ferie 🙏', value: `${vacayLater}`, inline: false})
+            this.messageHelper.replyToInteraction(interaction, vacay)
         }
     }
     private async countdownToDate(interaction: ChatInputCommandInteraction<CacheType>) {
