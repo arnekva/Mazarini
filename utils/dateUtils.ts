@@ -132,11 +132,11 @@ export class DateUtils {
     }
 
     static dateHasPassed(d: Date) {
-        return moment(d).isBefore(moment(), 'day')
+        return moment(d).isBefore(moment(), 'day') || DateUtils.isToday(d, true)
     }
 
     static formatDate(d: Date) {
-        return `${DateUtils.addZero(d.getUTCDate())}.${DateUtils.addZero(d.getUTCMonth()+1)}.${String(d.getUTCFullYear()).substring(2,4)}`
+        return `${DateUtils.addZero(d.getUTCDate())}.${DateUtils.addZero(d.getUTCMonth() + 1)}.${String(d.getUTCFullYear()).substring(2, 4)}`
     }
 
     static addZero(n: number) {
