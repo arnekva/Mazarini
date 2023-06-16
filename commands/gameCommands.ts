@@ -205,7 +205,7 @@ export class GameCommands extends AbstractCommands {
         const contentString = content as string
         if (contentString.includes('Access denied')) {
             interaction.editReply(`Access denied.`)
-            this.messageHelper.sendMessageToActionLog(
+            this.messageHelper.sendLogMessage(
                 `api.tracker.gg for Rocket League gir Access Denied. Melding stammer fra ${interaction.user.username} i ${
                     (interaction?.channel as TextChannel).name
                 }`
@@ -215,12 +215,7 @@ export class GameCommands extends AbstractCommands {
         const response = JSON.parse(striptags(content))
         if (!response.data) {
             interaction.editReply('Fant ikke data')
-            // return this.messageHelper.sendMessageToActionLogWithCustomMessage(
-            //     rawMessage,
-            //     'Fant ikke data',
-            //     'Fant ikke data for brukeren. Her har en error skjedd',
-            //     true
-            // )
+    
         }
         const segments = response.data.segments
 
@@ -230,13 +225,11 @@ export class GameCommands extends AbstractCommands {
         let lifetimeStats: rocketLeagueLifetime = {}
         if (!segments) {
             interaction.editReply('Fetch til Rocket League API feilet')
-            // return this.messageHelper.sendMessageToActionLogWithCustomMessage(rawMessage, 'Fetch til Rocket League API feilet', 'Her har noe gått galt', false)
-        }
+       }
         for (const segment of segments) {
             if (!segment) {
                 interaction.editReply('Fetch til Rocket League API feilet')
-                // this.messageHelper.sendMessageToActionLogWithCustomMessage(rawMessage, 'Fetch til Rocket League API feilet', 'Her har noe gått galt', true)
-                break
+               break
             }
             if (segment.metadata.name === 'Lifetime') {
                 //Lifetime stats

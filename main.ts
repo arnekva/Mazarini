@@ -108,7 +108,7 @@ export class MazariniClient {
             if (process.env['restartedForGit']) {
                 msg += ' Prosjektet er oppdatert fra Git, trigget at en /restart.'
             }
-            if (environment == 'prod') _msgHelper.sendMessageToActionLog(msg)
+            if (environment == 'prod') _msgHelper.sendLogMessage(msg)
 
             ClientHelper.setStatusFromStorage(client)
 
@@ -160,7 +160,7 @@ export class MazariniClient {
             ) {
                 _msgHelper.sendMessage(
                     actionLogId,
-                    `**En melding fra ** *${message?.author?.tag}* **ble slettet av** *${executor?.tag}*. **Innhold**: '*${message?.content}*'`,
+                    `**En melding fra ** *${message?.author?.username}* **ble slettet av** *${executor?.username}*. **Innhold**: '*${message?.content}*'`,
                     true
                 )
             }
@@ -183,7 +183,7 @@ export class MazariniClient {
         })
 
         client.on('guildCreate', (guild: Guild) => {
-            _msgHelper.sendMessageToActionLog('Ukjent: on guildCreate. Wat dis do?')
+            _msgHelper.sendLogMessage('Ukjent: on guildCreate. Wat dis do?')
         })
 
         client.on('guildMemberAdd', async (member: GuildMember) => {
@@ -203,10 +203,10 @@ export class MazariniClient {
         })
 
         client.on('roleCreate', function (role: Role) {
-            _msgHelper.sendMessageToActionLog('En ny rolle er opprettet: ' + role.name)
+            _msgHelper.sendLogMessage('En ny rolle er opprettet: ' + role.name)
         })
         client.on('roleDelete', function (role: Role) {
-            _msgHelper.sendMessageToActionLog('En rolle er slettet: ' + role.name)
+            _msgHelper.sendLogMessage('En rolle er slettet: ' + role.name)
         })
 
         client.on('messageUpdate', function (oldMessage: Message | PartialMessage, newMessage: Message | PartialMessage) {
@@ -222,7 +222,7 @@ export class MazariniClient {
         })
 
         client.on('error', function (error: Error) {
-            _msgHelper.sendMessageToActionLog('En feilmelding ble fanget opp. Error: \n ' + error)
+            _msgHelper.sendLogMessage('En feilmelding ble fanget opp. Error: \n ' + error)
         })
     }
 

@@ -16,8 +16,6 @@ export class DailyJobs {
             this.validateAndResetDailyClaims()
         }
         this.checkForUserBirthdays()
-
-        // this.logEvent()
     }
 
     private validateAndResetDailyClaims() {
@@ -66,7 +64,7 @@ export class DailyJobs {
 
     private logEvent() {
         const todaysTime = new Date().toLocaleTimeString()
-        this.messageHelper.sendMessage('810832760364859432', `Daglige jobber kjørte ${todaysTime} (Resett status, resett daily price claim)`)
+        this.messageHelper.sendMessage('810832760364859432', `Daglige jobber kjørte ${todaysTime}`)
         console.log(`Daily jobs ran at ${todaysTime}`)
     }
 }

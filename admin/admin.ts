@@ -67,7 +67,7 @@ export class Admin extends AbstractCommands {
                     logMsg = `Setvalue ble brukt av ${interaction.user.username} for å sette verdi for bruker ${user.username} men brukte feil prefix. Prefix forsøkt brukt var ${property}`
                 }
             }
-            if (environment === 'prod') this.messageHelper.sendMessageToActionLog(logMsg)
+            if (environment === 'prod') this.messageHelper.sendLogMessage(logMsg)
         } else {
             this.messageHelper.replyToInteraction(interaction, `Alle nødvendige parametere ble ikke funnet. `, true)
         }
@@ -93,7 +93,7 @@ export class Admin extends AbstractCommands {
                     })
                     .catch((error) => {
                         if (!hasFoundMsgOrThrewError && error.rawError.message !== 'Missing Access' && error.rawError.message !== 'Unknown Message') {
-                            this.messageHelper.sendMessageToActionLog(`${interaction.user.username} brukte */reply*, men meldingen ble ikke funnet`)
+                            this.messageHelper.sendLogMessage(`${interaction.user.username} brukte */reply*, men meldingen ble ikke funnet`)
                             hasFoundMsgOrThrewError = true
                         }
                     })
@@ -108,7 +108,7 @@ export class Admin extends AbstractCommands {
         const activityName = ActivityType[activity]
         DatabaseHelper.setBotData('status', status)
         DatabaseHelper.setBotData('statusType', activity)
-        this.messageHelper.sendMessageToActionLog(`Bottens aktivitet er satt til '${activityName}' med teksten '${status}' av ${interaction.user.username}. `)
+        this.messageHelper.sendLogMessage(`Bottens aktivitet er satt til '${activityName}' med teksten '${status}' av ${interaction.user.username}. `)
         this.messageHelper.replyToInteraction(interaction, `Bottens aktivitet er satt til '${activityName}' med teksten '${status}'`)
         ClientHelper.updatePresence(this.client, activity, status, hasUrl ? status : undefined)
     }
@@ -209,9 +209,9 @@ export class Admin extends AbstractCommands {
     private async restartBot(interaction: ChatInputCommandInteraction<CacheType>) {
         await this.messageHelper.replyToInteraction(interaction, `Forsøker å restarte botten`)
         let restartMsg = 'Forsøker å restarte botten'
-        const msg = await this.messageHelper.sendMessageToActionLog(restartMsg)
+        const msg = await this.messageHelper.sendLogMessage(restartMsg)
 
-        this.messageHelper.sendMessageToActionLog(
+        this.messageHelper.sendLogMessage(
             `Restart trigget av ${interaction.user.username} i kanalen ${MentionUtils.mentionChannel(
                 interaction.channelId
             )}. Henter data fra Git og restarter botten ...`
@@ -236,7 +236,7 @@ export class Admin extends AbstractCommands {
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     if (Admin.isAuthorAdmin(rawInteraction.member)) {
                         this.buildSendModal(rawInteraction)
-                        this.messageHelper.sendMessageToActionLog(
+                        this.messageHelper.sendLogMessage(
                             `${rawInteraction.user.username} trigget 'send' fra ${MentionUtils.mentionChannel(rawInteraction?.channelId)}.`
                         )
                     } else rawInteraction.reply({ content: 'Du har ikke rettighetene til å gjøre dette', ephemeral: true })
@@ -281,7 +281,7 @@ export class Admin extends AbstractCommands {
             {
                 commandName: 'stopprocess',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.messageHelper.sendMessageToActionLog('STANSET PM2-PROSESSEN. Rip meg')
+                    this.messageHelper.sendLogMessage('STANSET PM2-PROSESSEN. Rip meg')
                     this.messageHelper.replyToInteraction(rawInteraction, `Forsøker å stoppe botten. Rip meg`)
                     pm2?.killDaemon()
                     pm2?.disconnect()

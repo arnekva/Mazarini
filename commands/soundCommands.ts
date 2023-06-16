@@ -24,7 +24,7 @@ export class SoundCommands extends AbstractCommands {
                 },
                 `${text}`
             )
-            this.messageHelper.sendMessageToActionLog(
+            this.messageHelper.sendLogMessage(
                 `${interaction.user.username} fikk botten til å si *${text}* i ${MentionUtils.mentionChannel(memb.voice?.channelId)}`
             )
             // SoundUtils.disconnectFromVoiceChannel(interaction.guildId)
