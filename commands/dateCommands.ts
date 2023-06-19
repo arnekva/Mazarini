@@ -92,7 +92,7 @@ export class DateCommands extends AbstractCommands {
             const maxNumDays = 250
             if (DateUtils.isDateBefore(date1, date2) && DateUtils.dateIsMaxXDaysInFuture(date2, maxNumDays)) {
                 DatabaseHelper.setFerieValue(interaction.user.id, 'date', JSON.stringify(feireObj))
-                this.messageHelper.replyToInteraction(interaction, `Ferien din e satt`, true)
+                this.messageHelper.replyToInteraction(interaction, `Ferien din er satt`, true)
             } else {
                 this.messageHelper.replyToInteraction(
                     interaction,
@@ -129,12 +129,13 @@ export class DateCommands extends AbstractCommands {
                             vacayNowMap.set(date2, vacayString)
                         } else {
                             const timeRemaining = DateUtils.getTimeTo(date1)
+                            const vacationLength = DateUtils.findDaysBetweenTwoDates(date1, date2)
                             const dayString = timeRemaining.days > 0 ? `${timeRemaining.days} dager, ` : ''
                             const hourString = timeRemaining.hours > 0 ? `${timeRemaining.hours} timer og ` : ''
                             const timeUntilString = `${dayString}${hourString}${timeRemaining.minutes} min`
                             const vacayString = `- ${UserUtils.findUserById(username, interaction).username}: om ${timeUntilString} *(${DateUtils.formatDate(
                                 date1
-                            )})*\n`
+                            )}, ${vacationLength} dager ferie)*\n`
                             vacayLaterMap.set(date1, vacayString)
                         }
                     }

@@ -108,6 +108,21 @@ export class DateUtils {
         }
     }
 
+    /**
+     * Get number of days between two given datestrings
+     * @param date1 From this date
+     * @param date2 To this day
+     * @returns
+     */
+    static findDaysBetweenTwoDates(date1: string | Date, date2: string | Date) {
+        const fromDate = new Date(date1)
+        const toDate = new Date(date2)
+
+        const Difference_In_Time = toDate.getTime() - fromDate.getTime()
+
+        return Math.ceil(Difference_In_Time / (1000 * 3600 * 24))
+    }
+
     static isToday(compareDate: Date, ignoreMonthOffset?: boolean) {
         const today = new Date()
         return compareDate.getDate() == today.getDate() && compareDate.getMonth() == today.getMonth() + (ignoreMonthOffset ? 0 : 1)
