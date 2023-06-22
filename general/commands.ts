@@ -12,6 +12,7 @@ import { Meme } from '../commands/memeCommands'
 import { Music } from '../commands/musicCommands'
 import { NameCommands } from '../commands/nameCommands'
 import { PoletCommands } from '../commands/poletCommands'
+import { PollCommands } from '../commands/pollcommands'
 import { SoundCommands } from '../commands/soundCommands'
 import { Spinner } from '../commands/spinner'
 import { SpotifyCommands } from '../commands/spotifyCommands'
@@ -61,6 +62,7 @@ export class Commands {
     private buttonHandler: ButtonHandler
     private textCommands: TextCommands
     private trelloCommands: TrelloCommands
+    private pollCommands: PollCommands
 
     constructor(client: Client, messageHelper: MessageHelper) {
         this.client = client
@@ -90,6 +92,7 @@ export class Commands {
         this.selectMenuHandler = new SelectMenuHandler(this.client, this.messageHelper)
         this.trelloCommands = new TrelloCommands(this.client, this.messageHelper)
         this.textCommands = new TextCommands(this.client, this.messageHelper)
+        this.pollCommands = new PollCommands(this.client, this.messageHelper)
         this.buttonHandler = new ButtonHandler(this.client, this.messageHelper, this.drinksCommands, this.testCommands)
     }
 
@@ -108,6 +111,7 @@ export class Commands {
             ...this.musicCommands.getAllInteractions(),
             ...this.memeCommands.getAllInteractions(),
             ...this.userCommands.getAllInteractions(),
+            ...this.pollCommands.getAllInteractions(),
             ...this.weatherCommands.getAllInteractions(),
             ...this.soundCommands.getAllInteractions(),
             ...this.cardCommands.getAllInteractions(),
