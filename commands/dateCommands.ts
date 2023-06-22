@@ -129,7 +129,7 @@ export class DateCommands extends AbstractCommands {
                             vacayNowMap.set(date2, vacayString)
                         } else {
                             const timeRemaining = DateUtils.getTimeTo(date1)
-                            const vacationLength = DateUtils.findDaysBetweenTwoDates(5, date2)
+                            const vacationLength = DateUtils.findDaysBetweenTwoDates(date1, date2)
                             const dayString = timeRemaining.days > 0 ? `${timeRemaining.days} dager, ` : ''
                             const hourString = timeRemaining.hours > 0 ? `${timeRemaining.hours} timer og ` : ''
                             const timeUntilString = `${dayString}${hourString}${timeRemaining.minutes} min`
