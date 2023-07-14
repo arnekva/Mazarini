@@ -29,14 +29,14 @@ export const setupGameButtonRow = new ActionRowBuilder<ButtonBuilder>().addCompo
 //TODO: Legg til emoji i label
 export const redBlackButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder({
-        custom_id: `${RedBlackButtonHandler.GUESS_RB}Red`,
+        custom_id: `${RedBlackButtonHandler.GUESS_RED_BLACK}red`,
         style: ButtonStyle.Success,
         label: `🟥`,
         disabled: false,
         type: 2,
     }),
     new ButtonBuilder({
-        custom_id: `${RedBlackButtonHandler.GUESS_RB}Black`,
+        custom_id: `${RedBlackButtonHandler.GUESS_RED_BLACK}black`,
         style: ButtonStyle.Success,
         label: `⬛`,
         disabled: false,
@@ -46,21 +46,21 @@ export const redBlackButtonRow = new ActionRowBuilder<ButtonBuilder>().addCompon
 
 export const upDownButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder({
-        custom_id: `${RedBlackButtonHandler.GUESS_UD}Up`,
+        custom_id: `${RedBlackButtonHandler.GUESS_UP_DOWN}up`,
         style: ButtonStyle.Success,
         label: `Opp`,
         disabled: false,
         type: 2,
     }),
     new ButtonBuilder({
-        custom_id: `${RedBlackButtonHandler.GUESS_UD}Down`,
+        custom_id: `${RedBlackButtonHandler.GUESS_UP_DOWN}down`,
         style: ButtonStyle.Success,
         label: `Ned`,
         disabled: false,
         type: 2,
     }),
     new ButtonBuilder({
-        custom_id: `${RedBlackButtonHandler.GUESS_UD}Same`,
+        custom_id: `${RedBlackButtonHandler.GUESS_UP_DOWN}same`,
         style: ButtonStyle.Success,
         label: `Lik`,
         disabled: false,
@@ -70,21 +70,21 @@ export const upDownButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponen
 
 export const insideOutsideButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder({
-        custom_id: `${RedBlackButtonHandler.GUESS_IO}Inside`,
+        custom_id: `${RedBlackButtonHandler.GUESS_IN_OUT}in`,
         style: ButtonStyle.Success,
         label: `Innenfor`,
         disabled: false,
         type: 2,
     }),
     new ButtonBuilder({
-        custom_id: `${RedBlackButtonHandler.GUESS_IO}Outside`,
+        custom_id: `${RedBlackButtonHandler.GUESS_IN_OUT}out`,
         style: ButtonStyle.Success,
         label: `Utenfor`,
         disabled: false,
         type: 2,
     }),
     new ButtonBuilder({
-        custom_id: `${RedBlackButtonHandler.GUESS_IO}Same`,
+        custom_id: `${RedBlackButtonHandler.GUESS_IN_OUT}same`,
         style: ButtonStyle.Success,
         label: `Lik`,
         disabled: false,
@@ -94,21 +94,21 @@ export const insideOutsideButtonRow = new ActionRowBuilder<ButtonBuilder>().addC
 
 export const suiteButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder({
-        custom_id: `${RedBlackButtonHandler.GUESS_S}H`,
+        custom_id: `${RedBlackButtonHandler.GUESS_SUIT}H`,
         style: ButtonStyle.Success,
         emoji: {id: HEARTS},
         disabled: false,
         type: 2,
     }),
     new ButtonBuilder({
-        custom_id: `${RedBlackButtonHandler.GUESS_S}D`,
+        custom_id: `${RedBlackButtonHandler.GUESS_SUIT}D`,
         style: ButtonStyle.Success,
         emoji: {id: DIAMONDS},
         disabled: false,
         type: 2,
     }),
     new ButtonBuilder({
-        custom_id: `${RedBlackButtonHandler.GUESS_S}S`,
+        custom_id: `${RedBlackButtonHandler.GUESS_SUIT}S`,
         style: ButtonStyle.Success,
         emoji: {id: SPADES},
         disabled: false,

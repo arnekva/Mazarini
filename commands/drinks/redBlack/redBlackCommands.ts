@@ -21,6 +21,8 @@ import { CardCommands, ICardObject } from '../../cardCommands'
 import { RedBlackButtonHandler } from './redBlackButtonHandler'
 import { setupGameButtonRow, redBlackButtonRow, gtButtonRow } from './redBlackButtonRows'
 import { IGameRules, BusRide, IUserObject, IGiveTakeCard, GameStage } from './redBlackInterfaces'
+import { GiveTake } from './stage/giveTake'
+import { RedBlack } from './stage/redBlack'
 
 const defaultRules: IGameRules = {
     gtLevelSips: [2, 4, 6, 8, Number.POSITIVE_INFINITY],
@@ -41,9 +43,7 @@ export class RedBlackCommands extends AbstractCommands {
     private deck: CardCommands
     private rules: IGameRules
     private currentPlayer
-    private gtTable: Map<number, IGiveTakeCard>
     private currentGtCard: IGiveTakeCard
-    private gtNextCardId: number
     private id: number
     private turn: number
     private gtTableMessage: Message
@@ -51,6 +51,7 @@ export class RedBlackCommands extends AbstractCommands {
     private buttonsMessage: Message
     private embed: EmbedBuilder
     private currentButtons: ActionRowBuilder<ButtonBuilder>
+    private giveTake: GiveTake
 
     constructor(client: Client, messageHelper: MessageHelper) {
         super(client, messageHelper)
@@ -60,9 +61,7 @@ export class RedBlackCommands extends AbstractCommands {
         this.playerList = new Array<IUserObject>()
         this.deck = new CardCommands(client, messageHelper)
         this.rules = defaultRules
-        this.gtTable = new Map<number, IGiveTakeCard>()
         this.currentGtCard = undefined
-        this.gtNextCardId = 0
         this.id = 0
         this.turn = 0
         this.gtTableMessage = undefined
@@ -70,34 +69,7 @@ export class RedBlackCommands extends AbstractCommands {
         this.buttonsMessage = undefined
         this.embed = undefined
         this.currentButtons = setupGameButtonRow
-    }
-
-    public async generateGiveTakeTable(interaction: ButtonInteraction<CacheType>) {
-        const levels = this.rules.gtLevelSips.length
-        let key = 0
-        for (var i = 1; i < levels; i++) 
-        {
-            for (var y = 1; y <= 3; y++) 
-            {
-
-                this.gtTable.set(key++,
-                    { card: await this.drawCard(interaction) 
-                    , give: y == 1 || y == 3
-                    , take: y == 2 || y == 3
-                    , sips: this.rules.gtLevelSips[i-1]
-                    , revealed: false
-                    }
-                )
-            }
-        }
-        this.gtTable.set(key, 
-                    { card: await this.drawCard(interaction) 
-                    , give: false
-                    , take: true
-                    , sips: this.rules.gtLevelSips[levels-1]
-                    , revealed: false
-                    }
-        )        
+        this.giveTake = undefined
     }
 
     private async drawCard(interaction: ButtonInteraction<CacheType>) {
@@ -108,26 +80,49 @@ export class RedBlackCommands extends AbstractCommands {
         return await this.deck.drawCard(interaction)
     }
 
-    public async printGiveTakeTable(interaction: ButtonInteraction<CacheType>) {                
-        let tableString = ''
-        const levels = this.rules.gtLevelSips.length
-        let iterateId = this.gtTable.size - 1
-        const chugCard = this.gtTable.get(iterateId--)
-        const emptyCard = await (await EmojiHelper.getEmoji('emptyCard', interaction)).id
-        const faceCard = await (await EmojiHelper.getEmoji('faceCard', interaction)).id
-        tableString += `${emptyCard} ${chugCard.revealed ? chugCard.card.printString : faceCard}`
-        
-        for (var i = levels-1; i > 0; i--) 
-        {
-            tableString += '\n\n'
-            const gtCard = this.gtTable.get(iterateId--)
-            const tCard = this.gtTable.get(iterateId--)
-            const gCard = this.gtTable.get(iterateId--)
-            const gtCardStr = gtCard.revealed ? `${gtCard.card.printString} ` : `${faceCard} `
-            const tCardStr = tCard.revealed ? `${tCard.card.printString} ` : `${faceCard} `
-            const gCardStr = gCard.revealed ? `${gCard.card.printString} ` : `${faceCard} `
-            tableString += (gCardStr + tCardStr + gtCardStr)
+    public phaseController(interaction: ButtonInteraction<CacheType>) {
+        //Må opprette GiveTake objekt når den trengs
+        //
+    }
+
+    //Må ha en egen metode for å holde oversikt over hvem sin tur det er og hvor langt man har kommet i runden. Egen for hver av delene til spillet?
+
+    public async redBlackController(interaction: ButtonInteraction<CacheType>) {
+        const card = await this.drawCard(interaction)
+        const prevCards = this.getCardsOnUser(interaction.user.username)
+        let correct = false
+        let give = 0
+        let take = 0
+        if (interaction.customId === RedBlackButtonHandler.GUESS_RED_BLACK) 
+        { 
+            correct = await RedBlack.guessRB(card, interaction.customId)
+            correct ? give = 1 : take = 1
         }
+        else if (interaction.customId === RedBlackButtonHandler.GUESS_UP_DOWN) 
+        { 
+            correct = await RedBlack.guessUD(card, prevCards, interaction.customId) 
+            correct ? give = 2 : take = 2
+        }
+        else if (interaction.customId === RedBlackButtonHandler.GUESS_IN_OUT) 
+        { 
+            correct = await RedBlack.guessIO(card, prevCards, interaction.customId) 
+            correct ? give = 3 : take = 3
+        }
+        else if (interaction.customId === RedBlackButtonHandler.GUESS_SUIT) 
+        { 
+            correct = await RedBlack.guessSuit(card, interaction.customId) 
+            correct ? give = 4 : take = 4
+        }
+        this.setCardOnUser(interaction.user.username, card)
+        //TODO: replyToInteraction with "you can (give/take) x sips"
+    }
+
+    public async nextGtCard(interaction: ButtonInteraction<CacheType>) {
+        if (interaction.customId === RedBlackButtonHandler.NEXT_CARD) 
+        { 
+            this.currentGtCard = this.giveTake.revealNextGTCard(interaction)
+        }
+        const tableString = await this.giveTake.printGiveTakeTable(interaction)
         if (!this.gtTableMessage) {
             this.gtTableMessage = await this.messageHelper.sendMessage(interaction.channelId, tableString)
         } else {
@@ -136,19 +131,7 @@ export class RedBlackCommands extends AbstractCommands {
         interaction.deferUpdate()
     }
 
-    public revealNextGTCard(interaction: ButtonInteraction<CacheType>) {
-        this.currentGtCard = this.gtTable.get(this.gtNextCardId++)
-        this.currentGtCard.revealed = true
-        //Må resette "A kan gi x slurker" meldinger
-        //Må oppdatere embed med nytt kort
-        this.printGiveTakeTable(interaction)
-    }
-
-    private cardIsValid(userCard: ICardObject) {
-        return this.currentGtCard.card.number == userCard.number
-    }
-
-    public async placeCard(interaction: ButtonInteraction<CacheType>) {
+    public async placeGtCard(interaction: ButtonInteraction<CacheType>) {
         const user = this.getUserObject(interaction.user.username)
         const index = user.cards.findIndex(card => this.cardIsValid(card))
         if (index < 0) {
@@ -156,6 +139,14 @@ export class RedBlackCommands extends AbstractCommands {
         }
         const placedCard = user.cards.splice(index, 1).pop()
         this.updateGiveTakeGameMessage(placedCard, user.name)
+    }
+
+    private getCardsOnUser(username: string) {
+        return this.getUserObject(username).cards.sort((x,y) => x.number-y.number)
+    }
+
+    private cardIsValid(userCard: ICardObject) {
+        return this.currentGtCard.card.number == userCard.number
     }
 
     private updateGiveTakeGameMessage(card: ICardObject, username: string) {
@@ -166,43 +157,12 @@ export class RedBlackCommands extends AbstractCommands {
         //Må 
     }
 
-    public async handleRedBlackGuess(interaction: ButtonInteraction<CacheType>) {
-        const user = this.getUserObject(interaction.user.username)
-        const card = await this.drawCard(interaction)
-        const guess = interaction.customId.split('_').pop()
-        let correct = false
-        if (interaction.customId.startsWith(RedBlackButtonHandler.GUESS_RB)) {
-            correct = (guess == 'Black' && ['S','C'].includes(card.suite)) 
-                   || (guess == 'Red' && ['H','D'].includes(card.suite))
-        } else if (interaction.customId.startsWith(RedBlackButtonHandler.GUESS_UD)) {
-            const card1 = user.cards[0]
-            correct = (guess == 'Up' && card.number > card1.number)
-                   || (guess == 'Down' && card.number < card1.number)
-                   || (guess == 'Same' && card.number == card1.number)
-        } else if (interaction.customId.startsWith(RedBlackButtonHandler.GUESS_IO)) {
-            const card1 = user.cards[0]
-            const card2 = user.cards[1]
-            correct = (guess == 'Inside' && card.number > card1.number && card.number < card2.number)
-                   || (guess == 'Outside' && card.number < card1.number || card.number > card2.number)
-                   || (guess == 'Same' && card.number == card1.number || card.number == card2.number)
-        } else if (interaction.customId.startsWith(RedBlackButtonHandler.GUESS_S)) {
-            correct = guess == card.suite
-        }
-        user.cards.push(card)
-        user.cards.sort((a,b) => a.number - b.number)
-        this.updateRedBlackGameMessage(card, user.name, correct)
-    }
-
     private verifyUsersTurn(username: string) {
 
     }
 
-    private setCardOnUser(username: string, card: string) {
-        let userObject = this.getUserObject(username)
-        let cardObject = undefined//this.createCardObject(card)
-        userObject.cards.push(cardObject)
-        this.playerList[this.getUserIndex(username)] = userObject
-        return cardObject
+    private setCardOnUser(username: string, card: ICardObject) {
+        this.getUserObject(username).cards.push(card)
     }
 
     private getUserObject(username: string) {
@@ -221,12 +181,6 @@ export class RedBlackCommands extends AbstractCommands {
         const index = this.playerList.map((e) => e.id).indexOf(id2)
         return this.playerList[index]
     }
-
-    private cardsMatch(card1: ICardObject, card2: ICardObject) {
-        return card1?.number === card2?.number || card1.suite === card2.suite ? true : false
-    }
-
-    
 
     public async olddrawCard(interaction: ButtonInteraction<CacheType>) {
         if (this.playerList.find((player) => player.name == interaction.user.username)) {

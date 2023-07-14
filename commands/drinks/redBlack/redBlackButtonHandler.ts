@@ -11,13 +11,13 @@ export class RedBlackButtonHandler {
     static REDBLACK = 'RedBlack'
     static JOIN = this.REDBLACK + 'Join_'
     static START = this.REDBLACK + 'Start_'
-    static NEXT_CARD = this.REDBLACK + 'NextCard_'
     static GUESS = this.REDBLACK + 'Guess_'
-    static GUESS_RB = this.GUESS + 'RB_'
-    static GUESS_UD = this.GUESS + 'UD_'
-    static GUESS_IO = this.GUESS + 'IO_'
-    static GUESS_S = this.GUESS + 'S_'
+    static GUESS_RED_BLACK = this.GUESS + 'RB_'
+    static GUESS_UP_DOWN = this.GUESS + 'UD_'
+    static GUESS_IN_OUT = this.GUESS + 'IO_'
+    static GUESS_SUIT = this.GUESS + 'S_'
     static PLACE = this.REDBLACK + 'Place_'
+    static NEXT_CARD = this.REDBLACK + 'NextCard_'
     static MOVE = this.REDBLACK + 'Move_'
     static TEST = this.REDBLACK + 'Test_'
     static NEXT_PHASE = this.REDBLACK + 'NextPhase_'
@@ -32,11 +32,11 @@ export class RedBlackButtonHandler {
     handleIncomingButtonInteraction(interaction: Interaction<CacheType>) {
         if (interaction.isButton()) {
             if (interaction.customId.startsWith(RedBlackButtonHandler.GUESS)) {
-                this.default(interaction)
+                this.redBlack(interaction)
             } else if (interaction.customId.startsWith(RedBlackButtonHandler.PLACE)) {
-                this.default(interaction)
-            } else if (interaction.customId.startsWith(RedBlackButtonHandler.TEST)) {
-                this.testRedBlack(interaction)
+                this.placeCard(interaction)
+            // } else if (interaction.customId.startsWith(RedBlackButtonHandler.TEST)) {
+            //     this.testRedBlack(interaction)
             } else if (interaction.customId.startsWith(RedBlackButtonHandler.NEXT_CARD)) {
                 this.nextCard(interaction)
             } 
@@ -48,13 +48,21 @@ export class RedBlackButtonHandler {
         //this.redBlackCommands.drawCard(interaction)
     }
 
-    private async testRedBlack(interaction: ButtonInteraction<CacheType>) {
-        await this.redBlackCommands.generateGiveTakeTable(interaction)
-        this.redBlackCommands.printGiveTakeTable(interaction)
+    private async redBlack(interaction: ButtonInteraction<CacheType>) {
+        await this.redBlackCommands.redBlackController(interaction)
     }
 
+    private async placeCard(interaction: ButtonInteraction<CacheType>) {
+        await this.redBlackCommands.placeGtCard(interaction)
+    }
+
+    // private async testRedBlack(interaction: ButtonInteraction<CacheType>) {
+    //     await this.redBlackCommands.generateGiveTakeTable(interaction)
+    //     this.redBlackCommands.printGiveTakeTable(interaction)
+    // }
+
     private async nextCard(interaction: ButtonInteraction<CacheType>) {
-        await this.redBlackCommands.revealNextGTCard(interaction)
+        await this.redBlackCommands.nextGtCard(interaction)
     }
 
     private verifyParticipatingUser(interaction: ButtonInteraction<CacheType>) {
