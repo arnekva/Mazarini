@@ -216,6 +216,36 @@ export class MessageHelper {
         return undefined
     }
 
+    async sendMessageWithContentAndComponents(
+        channelID: string,
+        content: string,
+        components: (
+            | APIActionRowComponent<APIMessageActionRowComponent>
+            | JSONEncodable<APIActionRowComponent<APIMessageActionRowComponent>>
+            | ActionRowData<any>
+            | ActionRowBuilder<ButtonBuilder>
+        )[]
+    ) {
+        const textCh = this.findChannelById(channelID) as TextChannel
+        if (textCh) return textCh.send({ content: content, components: components })
+        return undefined
+    }
+
+    async sendMessageWithEmbedAndButtons(
+        channelID: string,
+        embed: EmbedBuilder,
+        components: (
+            | APIActionRowComponent<APIMessageActionRowComponent>
+            | JSONEncodable<APIActionRowComponent<APIMessageActionRowComponent>>
+            | ActionRowData<any>
+            | ActionRowBuilder<ButtonBuilder>
+        )[]
+    ) {
+        const textCh = this.findChannelById(channelID) as TextChannel
+        if (textCh) return textCh.send({ embeds: [embed], components: components })
+        return undefined
+    }
+
     sendMessageToActionLog(msg: string) {
         const errorChannel = this.client.channels.cache.get('810832760364859432') as TextChannel
         MazariniClient.numMessagesNumErrorMessages++

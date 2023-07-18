@@ -5,19 +5,21 @@ export interface IUserObject {
     name: string
     id: number
     cards: ICardObject[]
+    //Skulle kanskje hatt en ephemeral message lagret på hver bruker :thinking:
 }
 
 export interface IRedBlackGame {
-    stage: RedBlackStage
+    stage: RedBlackRound
     currentPlayer: IUserObject
     
 }
 
-export enum RedBlackStage {
+export enum RedBlackRound {
     RedBlack = 'RedBlack',
     UpDown = 'UpDown',
     InsideOutside = 'InsideOutside',
-    Suit = 'Suit'
+    Suit = 'Suit',
+    Finished = 'Finished'
 }
 
 export interface IGiveTakeGame {

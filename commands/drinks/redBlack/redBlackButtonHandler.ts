@@ -31,14 +31,20 @@ export class RedBlackButtonHandler {
 
     handleIncomingButtonInteraction(interaction: Interaction<CacheType>) {
         if (interaction.isButton()) {
-            if (interaction.customId.startsWith(RedBlackButtonHandler.GUESS)) {
-                this.redBlack(interaction)
+            if (interaction.customId.startsWith(RedBlackButtonHandler.JOIN)) {
+                this.join(interaction)
+            } else if (interaction.customId.startsWith(RedBlackButtonHandler.START)) {
+                this.start(interaction)
+            } else if (interaction.customId.startsWith(RedBlackButtonHandler.GUESS)) {
+                this.guess(interaction)
+            } else if (interaction.customId.startsWith(RedBlackButtonHandler.NEXT_PHASE)) {
+                this.nextPhase(interaction)
             } else if (interaction.customId.startsWith(RedBlackButtonHandler.PLACE)) {
                 this.placeCard(interaction)
-            // } else if (interaction.customId.startsWith(RedBlackButtonHandler.TEST)) {
-            //     this.testRedBlack(interaction)
             } else if (interaction.customId.startsWith(RedBlackButtonHandler.NEXT_CARD)) {
                 this.nextCard(interaction)
+            } else if (interaction.customId.startsWith(RedBlackButtonHandler.TEST)) {
+                this.testRedBlack(interaction)
             } 
         }
         return false
@@ -48,24 +54,35 @@ export class RedBlackButtonHandler {
         //this.redBlackCommands.drawCard(interaction)
     }
 
-    private async redBlack(interaction: ButtonInteraction<CacheType>) {
-        await this.redBlackCommands.redBlackController(interaction)
+    private async join(interaction:ButtonInteraction<CacheType>) {
+        await this.redBlackCommands.joinGame(interaction)
+    }
+
+    private async start(interaction:ButtonInteraction<CacheType>) {
+        await this.redBlackCommands.startGame(interaction)
+    }
+
+    private async guess(interaction: ButtonInteraction<CacheType>) {
+        await this.redBlackCommands.guess(interaction)
+    }
+
+    private async nextPhase(interaction: ButtonInteraction<CacheType>) {
+        await this.redBlackCommands.phaseController(interaction)
     }
 
     private async placeCard(interaction: ButtonInteraction<CacheType>) {
         await this.redBlackCommands.placeGtCard(interaction)
     }
 
-    // private async testRedBlack(interaction: ButtonInteraction<CacheType>) {
-    //     await this.redBlackCommands.generateGiveTakeTable(interaction)
-    //     this.redBlackCommands.printGiveTakeTable(interaction)
-    // }
+    private async testRedBlack(interaction: ButtonInteraction<CacheType>) {
+        await this.redBlackCommands.setupRedBlack(interaction)
+    }
 
     private async nextCard(interaction: ButtonInteraction<CacheType>) {
         await this.redBlackCommands.nextGtCard(interaction)
     }
 
-    private verifyParticipatingUser(interaction: ButtonInteraction<CacheType>) {
-        return this.redBlackCommands.checkUserIsActivePlayer(interaction.user.username)
-    }
+    // private verifyParticipatingUser(interaction: ButtonInteraction<CacheType>) {
+    //     return this.redBlackCommands.checkUserIsActivePlayer(interaction.user.username)
+    // }
 }

@@ -72,6 +72,13 @@ export class TestCommands extends AbstractCommands {
                 label: `Snu neste`,
                 disabled: false,
                 type: 2,
+            }),
+            new ButtonBuilder({
+                custom_id: `${RedBlackButtonHandler.TEST}`,
+                style: ButtonStyle.Secondary,
+                label: `Test`,
+                disabled: false,
+                type: 2,
             })
             // new ButtonBuilder({
             //     custom_id: `${RedBlackButtonHandler.NEXT_CARD}3`,

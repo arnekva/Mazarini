@@ -92,7 +92,7 @@ export const insideOutsideButtonRow = new ActionRowBuilder<ButtonBuilder>().addC
     })
 )
 
-export const suiteButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+export const suitButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder({
         custom_id: `${RedBlackButtonHandler.GUESS_SUIT}H`,
         style: ButtonStyle.Success,
@@ -138,13 +138,16 @@ export const gtButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
         disabled: false,
         type: 2,
     }),
+)
+
+export const gtStartButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder({
         custom_id: `${RedBlackButtonHandler.NEXT_CARD}`,
-        style: ButtonStyle.Secondary,
-        label: `Mine kort`,
+        style: ButtonStyle.Success,
+        label: `Snu første`,
         disabled: false,
         type: 2,
-    })
+    }),
 )
 
 

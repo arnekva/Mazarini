@@ -8,7 +8,7 @@ const deckOfCards = require('deckofcards')
 
 export interface ICardObject {
     number: number
-    suite: string
+    suit: string
     printString: string
     url: string
 }
@@ -66,15 +66,21 @@ export class CardCommands extends AbstractCommands {
         return value ? value : ''
     }
 
+    public getStringPrint(card: ICardObject) {
+        const suit = this.getTranslation(card.suit)
+        const num = this.getTranslation(String(card.number))
+        return `${suit} ${num} ${suit}`
+    }
+
     public async createCardObject(card: string, interaction: ButtonInteraction<CacheType> = undefined) {
         const number = CardCommands.numberTranslations.get(card.substring(0, 1))
-        const suite = card.substring(1, 2)
+        const suit = card.substring(1, 2)
         if (interaction !== undefined) {
             const emoji = await EmojiHelper.getEmoji(card, interaction)
             const emojiUrl = `https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?size=96&quality=lossless`
-            return { number: number, suite: suite, printString: emoji.id, url: emojiUrl }
+            return { number: number, suit: suit, printString: emoji.id, url: emojiUrl }
         }
-        return {number: number, suite: suite, printString: undefined, url: undefined}
+        return {number: number, suit: suit, printString: undefined, url: undefined}
     }
 
     public async drawCard(interaction: ButtonInteraction<CacheType> = undefined) {

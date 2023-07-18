@@ -16,19 +16,13 @@ import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { RandomUtils } from '../utils/randomUtils'
-import { CardCommands } from './cardCommands'
+import { CardCommands, ICardObject } from './cardCommands'
 
 interface IUserObject {
     name: string
     id: number
     card: ICardObject
     mates: IUserObject[]
-}
-
-interface ICardObject {
-    number: number
-    suite: string
-    printString: string
 }
 
 const activeGameButtonRow = new ActionRowBuilder<ButtonBuilder>()
@@ -138,7 +132,7 @@ export class DrinksCommands extends AbstractCommands {
     }
 
     private cardsMatch(card1: ICardObject, card2: ICardObject) {
-        return card1?.number === card2?.number || card1.suite === card2.suite ? true : false
+        return card1?.number === card2?.number || card1.suit === card2.suit ? true : false
     }
 
     private checkWhoMustDrink(author: string, currentPlayerIndex: number, firstPlayerValue: ICardObject) {
@@ -302,7 +296,7 @@ export class DrinksCommands extends AbstractCommands {
     public async joinElectricity(interaction: ButtonInteraction<CacheType>) {
         const newUser = interaction.user
         if (!this.playerList.find((player) => player.name == newUser.username)) {
-            const userCard: ICardObject = { number: 0, suite: '', printString: '' }
+            const userCard: ICardObject = { number: 0, suit: '', printString: '', url: '' }
             const user: IUserObject = { name: newUser.username, id: this.id, card: userCard, mates: [] }
             this.playerList.push(user)
             this.id++
@@ -433,7 +427,7 @@ export class DrinksCommands extends AbstractCommands {
             reply += `\nChug on loop: ${this.shouldChugOnLoop}`
         }
         if (addPlayer) {
-            const mockCard: ICardObject = { number: 0, suite: '', printString: '' }
+            const mockCard: ICardObject = { number: 0, suit: '', printString: '', url: '' }
             const user: IUserObject = { name: addPlayer.username, id: this.id++, card: mockCard, mates: [] as IUserObject[] }
             this.playerList.push(user)
             reply += `\nLa til ${user.name} i spillet på plass ${user.id}`
