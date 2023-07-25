@@ -1,5 +1,6 @@
 import { CacheType, ChatInputCommandInteraction, Client, Interaction } from 'discord.js'
 import { Admin } from '../admin/admin'
+import { TrelloCommands } from '../commands/bot/trelloCommands'
 import { CardCommands } from '../commands/cardCommands'
 import { DateCommands } from '../commands/dateCommands'
 import { RedBlackButtonHandler } from '../commands/drinks/redBlack/redBlackButtonHandler'
@@ -13,6 +14,7 @@ import { Meme } from '../commands/memeCommands'
 import { Music } from '../commands/musicCommands'
 import { NameCommands } from '../commands/nameCommands'
 import { PoletCommands } from '../commands/poletCommands'
+import { PollCommands } from '../commands/pollcommands'
 import { SoundCommands } from '../commands/soundCommands'
 import { Spinner } from '../commands/spinner'
 import { SpotifyCommands } from '../commands/spotifyCommands'
@@ -33,8 +35,6 @@ export interface IInteractionElement {
     /** Function to be run */
     command: (rawMessage: ChatInputCommandInteraction<CacheType>) => void
 }
-
-export type commandCategory = 'musikk' | 'gambling' | 'gaming' | 'tekst' | 'annet' | 'admin' | 'spin' | 'drink'
 
 export class Commands {
     private client: Client
@@ -65,6 +65,8 @@ export class Commands {
     private textCommands: TextCommands
     private redBlackCommands: RedBlackCommands
     private redBlackButtonHandler: RedBlackButtonHandler
+    private trelloCommands: TrelloCommands
+    private pollCommands: PollCommands
 
     constructor(client: Client, messageHelper: MessageHelper) {
         this.client = client
@@ -92,10 +94,12 @@ export class Commands {
         this.linkCommands = new LinkCommands(this.client, this.messageHelper)
         this.modalHandler = new ModalHandler(this.client, this.messageHelper)
         this.selectMenuHandler = new SelectMenuHandler(this.client, this.messageHelper)
+        this.trelloCommands = new TrelloCommands(this.client, this.messageHelper)
         this.textCommands = new TextCommands(this.client, this.messageHelper)
         this.redBlackCommands = new RedBlackCommands(this.client, this.messageHelper)
         this.redBlackButtonHandler = new RedBlackButtonHandler(this.client, this.messageHelper, this.redBlackCommands)
         this.buttonHandler = new ButtonHandler(this.client, this.messageHelper, this.redBlackButtonHandler, this.drinksCommands, this.testCommands)
+        this.pollCommands = new PollCommands(this.client, this.messageHelper)
     }
 
     getAllInteractionCommands() {
@@ -113,6 +117,7 @@ export class Commands {
             ...this.musicCommands.getAllInteractions(),
             ...this.memeCommands.getAllInteractions(),
             ...this.userCommands.getAllInteractions(),
+            ...this.pollCommands.getAllInteractions(),
             ...this.weatherCommands.getAllInteractions(),
             ...this.soundCommands.getAllInteractions(),
             ...this.cardCommands.getAllInteractions(),
@@ -122,6 +127,7 @@ export class Commands {
             ...this.linkCommands.getAllInteractions(),
             ...this.textCommands.getAllInteractions(),
             ...this.redBlackCommands.getAllInteractions(),
+            ...this.trelloCommands.getAllInteractions(),
         ]
     }
 

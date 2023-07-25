@@ -1,7 +1,6 @@
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { MentionUtils } from '../utils/mentionUtils'
-import { MessageUtils } from '../utils/messageUtils'
 
 type dayJobs = 'friday' | 'none'
 export class DayJob {
@@ -31,9 +30,9 @@ export class DayJob {
             'HEEEEEEEEEEEELG',
             'Aellen, det e helg gutta',
             'Någen så e down for et glass rødt? Ejo helg nå',
+            'Aell, ud i quell? Ejo helg nå https://open.spotify.com/track/4xbxqbVMtEqTEwYrrNkArU?si=f6c96603113b4dfd',
             'Komma dokk hjem folkens, det e helg',
             'Sa någen helg? Ja, eg sa det for det e faenmeg helg nå',
-            'Ekje lenge te helg nå folkens. Faktisk så det e nå',
             'Helg folkens. Skru av maskinane og komma seg hjem asap',
         ]
     }

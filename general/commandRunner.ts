@@ -39,11 +39,11 @@ export class CommandRunner {
 
             this.checkForVinmonopolContent(message)
         } catch (error) {
-            this.messageHelper.sendMessageToActionLogWithCustomMessage(message, error, 'Her har det skjedd en feil', true)
+            this.messageHelper.sendLogMessage(`Det oppstod en feil under kjøring av en command. Stacktrace: ` + error)
         }
     }
 
-    //TODO & FIXME: Move this out of commandRunner
+    //TODO & FIXME: Move this out of commandRunner - also remove commented fields
     async checkForVinmonopolContent(message: Message) {
         const content = message.content
         if (content.includes('https://www.vinmonopolet.no/')) {
@@ -123,7 +123,7 @@ export class CommandRunner {
                         this.messageHelper.sendMessageWithComponents(message.channelId, [poletStockButton])
                     }
                 } catch (error) {
-                    this.messageHelper.sendMessageToActionLog(`Klarte ikke hente produktinfo for id ${id}.\n${error}`)
+                    this.messageHelper.sendLogMessage(`Klarte ikke hente produktinfo for id ${id}.\n${error}`)
                 }
             }
         }
@@ -207,7 +207,7 @@ export class CommandRunner {
             let newFailNum = 1
             if (numberOfFails && Number(numberOfFails)) newFailNum = Number(numberOfFails) + 1
             if (command === '' || command.trim() === '') command = '<tom command>'
-            this.messageHelper.sendMessageToActionLog(
+            this.messageHelper.sendLogMessage(
                 `Kommandoen '${command}' ble forsøkt brukt av ${message.author.username}, men den finnes ikke. Denne kommandoen er forsøkt brukt ${newFailNum} ganger`
             )
             DatabaseHelper.setNonUserValue('incorrectCommand', command, newFailNum.toString())
@@ -304,9 +304,9 @@ export class CommandRunner {
                     interaction?.channel.id === MentionUtils.CHANNEL_IDs.DEV_LOKAL_BOT ||
                     interaction?.channel.id === MentionUtils.CHANNEL_IDs.STATS_SPAM ||
                     interaction?.channel.id === MentionUtils.CHANNEL_IDs.GODMODE)) ||
-            (environment === 'prod' && 
+            (environment === 'prod' &&
                 interaction?.channel.id !== MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM &&
-                interaction?.channel.id !== MentionUtils.CHANNEL_IDs.DEV_LOKAL_BOT)
+                interaction.channelId !== MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM_DEV)
         )
     }
 }

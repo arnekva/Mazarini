@@ -108,6 +108,21 @@ export class DateUtils {
         }
     }
 
+    /**
+     * Get number of days between two given datestrings
+     * @param date1 From this date
+     * @param date2 To this day
+     * @returns
+     */
+    static findDaysBetweenTwoDates(date1: string | Date, date2: string | Date) {
+        const fromDate = new Date(date1)
+        const toDate = new Date(date2)
+
+        const Difference_In_Time = toDate.getTime() - fromDate.getTime()
+
+        return Math.ceil(Difference_In_Time / (1000 * 3600 * 24))
+    }
+
     static isToday(compareDate: Date, ignoreMonthOffset?: boolean) {
         const today = new Date()
         return compareDate.getDate() == today.getDate() && compareDate.getMonth() == today.getMonth() + (ignoreMonthOffset ? 0 : 1)
@@ -133,6 +148,17 @@ export class DateUtils {
 
     static dateHasPassed(d: Date) {
         return moment(d).isBefore(moment(), 'day') || DateUtils.isToday(d, true)
+    }
+
+    static formatDate(d: Date) {
+        return `${DateUtils.addZero(d.getUTCDate())}.${DateUtils.addZero(d.getUTCMonth() + 1)}.${String(d.getUTCFullYear()).substring(2, 4)}`
+    }
+
+    static addZero(n: number) {
+        if (String(n).length < 2) {
+            return `0${n}`
+        }
+        return n
     }
 
     /** Checks if the string supplied is today (e.g. "monday")  */

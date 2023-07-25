@@ -118,17 +118,17 @@ export namespace UserUtils {
             'Welcome to the Gulag, ' + (member.nickname ?? member.displayName) + '. Bruk commanden "/role" for å gi deg selv roller for å komme i gang'
         )
         DatabaseHelper.getUser(member.id)
-        msgHelper.sendMessageToActionLog('En bruker ble med i Mazarini: ' + (member.nickname ?? member.displayName))
+        msgHelper.sendLogMessage('En bruker ble med i Mazarini: ' + (member.nickname ?? member.displayName))
     }
 
     export const onMemberLeave = async (member: GuildMember | PartialGuildMember, msgHelper: MessageHelper) => {
         msgHelper.sendMessage('340626855990132747', 'Farvell, ' + (member.nickname ?? member.displayName))
-        msgHelper.sendMessageToActionLog('En bruker forlot Mazarini: ' + (member.nickname ?? member.displayName))
+        msgHelper.sendLogMessage('En bruker forlot Mazarini: ' + (member.nickname ?? member.displayName))
     }
 
     export const onUserUpdate = (oldUser: User | PartialUser, newUser: User | PartialUser, msgHelper: MessageHelper) => {
         if (oldUser.id === '802945796457758760') return
-        msgHelper.sendMessageToActionLog('Oppdatert bruker:   ' + oldUser.username + ' -> ' + newUser.username + '')
+        msgHelper.sendLogMessage('Oppdatert bruker:   ' + oldUser.username + ' -> ' + newUser.username + '')
     }
     export const onMemberUpdate = async (oldMember: GuildMember | PartialGuildMember, newMember: GuildMember, msgHelper: MessageHelper) => {
         if (newMember.id === '802945796457758760') return //Ikke gjør noe når bot oppdateres
@@ -142,7 +142,7 @@ export namespace UserUtils {
             differences.forEach((change: any, index: number) => {
                 changesString += change.path + (index == differences.length ? ' ' : ',')
             })
-            msgHelper.sendMessageToActionLog('Oppdatert bruker ' + (oldMember.nickname ?? oldMember.displayName) + ': ' + whatChanged + '.')
+            msgHelper.sendLogMessage('Oppdatert bruker ' + (oldMember.nickname ?? oldMember.displayName) + ': ' + whatChanged + '.')
         }
     }
 }
