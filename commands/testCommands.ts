@@ -51,89 +51,14 @@ export class TestCommands extends AbstractCommands {
     }
 
     public async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        let msg = new EmbedBuilder().setTitle('Test').setThumbnail('https://cdn.discordapp.com/emojis/1106129265919021066.webp?size=96&quality=lossless')
-        let diamonds = await EmojiHelper.getEmoji('diamonds_suit', interaction)        
-        let hearts = await EmojiHelper.getEmoji('hearts_suit', interaction)
-        let spades = await EmojiHelper.getEmoji('spades_suit', interaction)
-        let clubs = await EmojiHelper.getEmoji('clubs_suit', interaction)        
-        let buttons = new ActionRowBuilder<ButtonBuilder>()
         
-        buttons.addComponents(
-            new ButtonBuilder({
-                custom_id: `${RedBlackButtonHandler.PLACE}`,
-                style: ButtonStyle.Primary,
-                label: `Legg kort`,
-                disabled: false,
-                type: 2,
-            }),
-            new ButtonBuilder({
-                custom_id: `${RedBlackButtonHandler.NEXT_CARD}`,
-                style: ButtonStyle.Success,
-                label: `Snu neste`,
-                disabled: false,
-                type: 2,
-            }),
-            new ButtonBuilder({
-                custom_id: `${RedBlackButtonHandler.TEST}`,
-                style: ButtonStyle.Secondary,
-                label: `Test`,
-                disabled: false,
-                type: 2,
-            })
-            // new ButtonBuilder({
-            //     custom_id: `${RedBlackButtonHandler.NEXT_CARD}3`,
-            //     style: ButtonStyle.Success,
-            //     label: '',
-            //     emoji: {id: '1107629199935672370'},//diamonds
-            //     disabled: false,
-            //     type: 2,
-            // }),
-            // new ButtonBuilder({
-            //     custom_id: `${RedBlackButtonHandler.NEXT_CARD}4`,
-            //     style: ButtonStyle.Success,
-            //     label: '',
-            //     emoji: {id: '1107629197037412414'},//clubs
-            //     disabled: false,
-            //     type: 2,
-            // }),
-            // new ButtonBuilder({
-            //     custom_id: `${RedBlackButtonHandler.NEXT_CARD}`,
-            //     style: ButtonStyle.Primary,
-            //     label: `Neste kort`,
-            //     disabled: false,
-            //     type: 2,
-            // })
-        )
-        this.messageHelper.replyToInteraction(interaction, msg, false, false, buttons)
-        // msg.setTitle('Test WHAM!')
-        // buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
-        //     new ButtonBuilder({
-        //         custom_id: `${ButtonHandler.ELECTRICITY_RESET}`,
-        //         style: ButtonStyle.Primary,
-        //         label: `Resett kortstokk`,
-        //         disabled: false,
-        //         type: 2,
-        //     })
-        // )
-        // const allUserTabs = DatabaseHelper.getUser(interaction.user.id)
-
-        // const options: SelectMenuComponentOptionData[] = Object.keys(allUserTabs).map((key) => ({
-        //     label: key,
-        //     value: key,
-        //     description: `${typeof allUserTabs[key]}`,
-        // }))
-
-        // const menu = ActionMenuHelper.creatSelectMenu(SelectMenuHandler.userInfoId, 'Test', options)
-        // await new Promise(f => setTimeout(f, 3000));
-		// await interaction.editReply({ embeds: [msg], components: [buttons, menu] }).catch((e) => console.log(e));
     }
 
     public async test2(interaction: ChatInputCommandInteraction<CacheType>) {
-        const emoji = await EmojiHelper.getEmoji('2C', interaction)
-        this.messageHelper.replyToInteraction(interaction, emoji.id + ' ' + emoji.id + ' ' + emoji.id + '\n\n' + emoji.id)
+        
     }
 
-    public async test3(interaction) {
+    public async test3() {
 
     }
 

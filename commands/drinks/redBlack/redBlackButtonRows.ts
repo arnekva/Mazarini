@@ -10,6 +10,14 @@ const SPADES = '1107629201428852746'
 const DIAMONDS = '1107629199935672370'
 const CLUBS = '1107629197037412414'
 
+const moveBtn = new ButtonBuilder({
+    custom_id: `${RedBlackButtonHandler.MOVE}`,
+    style: ButtonStyle.Secondary,
+    label: `Flytt ned`,
+    disabled: false,
+    type: 2,
+})
+
 export const setupGameButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder({
         custom_id: `${RedBlackButtonHandler.JOIN}`,
@@ -24,7 +32,8 @@ export const setupGameButtonRow = new ActionRowBuilder<ButtonBuilder>().addCompo
         label: `🍷 Start 🍷`,
         disabled: false,
         type: 2,
-    })
+    }),
+    moveBtn
 )
 //TODO: Legg til emoji i label
 export const redBlackButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -41,7 +50,8 @@ export const redBlackButtonRow = new ActionRowBuilder<ButtonBuilder>().addCompon
         label: `⬛`,
         disabled: false,
         type: 2,
-    })
+    }),
+    moveBtn
 )
 
 export const upDownButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -65,7 +75,8 @@ export const upDownButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponen
         label: `Lik`,
         disabled: false,
         type: 2,
-    })
+    }),
+    moveBtn
 )
 
 export const insideOutsideButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -89,7 +100,8 @@ export const insideOutsideButtonRow = new ActionRowBuilder<ButtonBuilder>().addC
         label: `Lik`,
         disabled: false,
         type: 2,
-    })
+    }),
+    moveBtn
 )
 
 export const suitButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -120,7 +132,8 @@ export const suitButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponents
         emoji: {id: CLUBS},
         disabled: false,
         type: 2,
-    })
+    }),
+    moveBtn
 )
 
 export const gtButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -138,6 +151,7 @@ export const gtButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
         disabled: false,
         type: 2,
     }),
+    moveBtn
 )
 
 export const gtStartButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -148,6 +162,7 @@ export const gtStartButtonRow = new ActionRowBuilder<ButtonBuilder>().addCompone
         disabled: false,
         type: 2,
     }),
+    moveBtn
 )
 
 
@@ -158,6 +173,60 @@ export const nextPhaseBtn = new ActionRowBuilder<ButtonBuilder>().addComponents(
         label: `Neste del ➡️`,
         disabled: false,
         type: 2,
-    })
+    }),
+    moveBtn
 )
 
+export const canadianBusrideButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder({
+        custom_id: `${RedBlackButtonHandler.CANADIAN_GUESS}up`,
+        style: ButtonStyle.Success,
+        label: `Opp`,
+        disabled: false,
+        type: 2,
+    }),
+    new ButtonBuilder({
+        custom_id: `${RedBlackButtonHandler.CANADIAN_GUESS}down`,
+        style: ButtonStyle.Success,
+        label: `Ned`,
+        disabled: false,
+        type: 2,
+    }),
+    new ButtonBuilder({
+        custom_id: `${RedBlackButtonHandler.CANADIAN_GUESS}same`,
+        style: ButtonStyle.Success,
+        label: `Lik`,
+        disabled: false,
+        type: 2,
+    }),
+    moveBtn
+)
+
+export const revealLoserBtn = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder({
+        custom_id: `${RedBlackButtonHandler.PLACE}`,
+        style: ButtonStyle.Primary,
+        label: `Legg kort`,
+        disabled: false,
+        type: 2,
+    }),
+    new ButtonBuilder({
+        custom_id: `${RedBlackButtonHandler.REVEAL_LOSER}`,
+        style: ButtonStyle.Danger,
+        label: `Avslør taperen`,
+        disabled: false,
+        type: 2,
+    }),
+    moveBtn
+)
+
+export const TryAgainBtn = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder({
+        custom_id: `${RedBlackButtonHandler.TRY_AGAIN}`,
+        style: ButtonStyle.Primary,
+        label: `Prøv igjen :)`,
+        disabled: false,
+        type: 2,
+    }),
+    moveBtn
+)

@@ -52,9 +52,9 @@ export class RedBlack {
         ['same', 'likt'],
         ['in', 'innenfor'],
         ['out', 'utenfor'],
-        ['S', ' ♤ '],
-        ['C', ' ♧ '],
-        ['H', ' ♡ '],
-        ['D', ' ♢ '],
+        ['S', ' spar '],
+        ['C', ' kløver '],
+        ['H', ' hjerter '],
+        ['D', ' ruter '],
     ])
 }

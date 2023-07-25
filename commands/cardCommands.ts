@@ -37,6 +37,22 @@ export class CardCommands extends AbstractCommands {
         ['A', 14],
     ])
 
+    static reverseNumberTranslations: Map<number, string> = new Map<number, string>([
+        [2, '2'],
+        [3, '3'],
+        [4, '4'],
+        [5, '5'],
+        [6, '6'],
+        [7, '7'],
+        [8, '8'],
+        [9, '9'],
+        [10, '10'],
+        [11, 'J'],
+        [12, 'Q'],
+        [13, 'K'],
+        [14, 'A'],
+    ])
+
     static cardTranslations: Map<string, string> = new Map<string, string>([
         ['2', '2'],
         ['3', '3'],
@@ -57,8 +73,9 @@ export class CardCommands extends AbstractCommands {
         ['D', ' ♢ '],
     ])
 
-    public static transformNumber(number: string) {
-        return CardCommands.numberTranslations.get(number)
+    public static transformNumber(number: string | number) {
+        if (typeof number == 'string') return CardCommands.numberTranslations.get(number)
+        if (typeof number == 'number') return CardCommands.reverseNumberTranslations.get(number)
     }
 
     public getTranslation(param: string) {

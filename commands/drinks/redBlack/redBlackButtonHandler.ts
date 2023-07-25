@@ -8,7 +8,7 @@ export class RedBlackButtonHandler {
     private messageHelper: MessageHelper
     private redBlackCommands: RedBlackCommands
     
-    static REDBLACK = 'RedBlack'
+    static REDBLACK = 'RedBlack_'
     static JOIN = this.REDBLACK + 'Join_'
     static START = this.REDBLACK + 'Start_'
     static GUESS = this.REDBLACK + 'Guess_'
@@ -22,6 +22,12 @@ export class RedBlackButtonHandler {
     static TEST = this.REDBLACK + 'Test_'
     static NEXT_PHASE = this.REDBLACK + 'NextPhase_'
     static MY_CARDS = this.REDBLACK + 'MyCards_'
+    static BUSRIDE = this.REDBLACK + 'Busride_'
+    static CANADIAN_GUESS = this.BUSRIDE + 'Canadian_'
+    static TRY_AGAIN = this.BUSRIDE + 'TryAgain_'
+    static REVEAL_LOSER = this.REDBLACK + 'RevealLoser_'
+    static START_BUSRIDE = this.BUSRIDE + 'Start_'
+    static TIE_BREAK = this.REDBLACK + 'TieBreak_'
 
     constructor(client: Client, messageHelper: MessageHelper, redBlackCommands: RedBlackCommands) {
         this.client = client
@@ -45,7 +51,19 @@ export class RedBlackButtonHandler {
                 this.nextCard(interaction)
             } else if (interaction.customId.startsWith(RedBlackButtonHandler.TEST)) {
                 this.testRedBlack(interaction)
-            } 
+            } else if (interaction.customId.startsWith(RedBlackButtonHandler.MOVE)) {
+                this.moveMessages(interaction)
+            } else if (interaction.customId.startsWith(RedBlackButtonHandler.REVEAL_LOSER)) {
+                this.revealLoser(interaction)
+            } else if (interaction.customId.startsWith(RedBlackButtonHandler.TIE_BREAK)) {
+                this.tieBreak(interaction)
+            } else if (interaction.customId.startsWith(RedBlackButtonHandler.START_BUSRIDE)) {
+                this.startBusRide(interaction)
+            } else if (interaction.customId.startsWith(RedBlackButtonHandler.CANADIAN_GUESS)) {
+                this.busRideGuess(interaction)
+            } else if (interaction.customId.startsWith(RedBlackButtonHandler.TRY_AGAIN)) {
+                this.busRideTryAgain(interaction)
+            }
         }
         return false
     }
@@ -79,10 +97,32 @@ export class RedBlackButtonHandler {
     }
 
     private async nextCard(interaction: ButtonInteraction<CacheType>) {
-        await this.redBlackCommands.nextGtCard(interaction)
+        if (interaction.user.id === '221739293889003520') interaction.deferUpdate()
+        else await this.redBlackCommands.nextGtCard(interaction)
     }
 
-    // private verifyParticipatingUser(interaction: ButtonInteraction<CacheType>) {
-    //     return this.redBlackCommands.checkUserIsActivePlayer(interaction.user.username)
-    // }
+    private async moveMessages(interaction: ButtonInteraction<CacheType>) {
+        await this.redBlackCommands.resendMessages(interaction)
+        interaction.deferUpdate()
+    }
+
+    private async revealLoser(interaction: ButtonInteraction<CacheType>) {
+        await this.redBlackCommands.revealLoser(interaction)
+    }
+
+    private async tieBreak(interaction: ButtonInteraction<CacheType>) {
+        await this.redBlackCommands.showGiveTakeSummary(interaction)
+    }
+
+    private async startBusRide(interaction: ButtonInteraction<CacheType>) {
+        await this.redBlackCommands.setupBusride(interaction)
+    }
+    
+    private async busRideGuess(interaction: ButtonInteraction<CacheType>) {
+        await this.redBlackCommands.busrideGuess(interaction)
+    }
+
+    private async busRideTryAgain(interaction: ButtonInteraction<CacheType>) {
+        await this.redBlackCommands.busrideReset(interaction)
+    }
 }

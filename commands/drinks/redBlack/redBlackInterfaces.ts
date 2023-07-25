@@ -37,8 +37,9 @@ export interface IGiveTakeCard {
     revealed: boolean
 }
 
-export interface IBusRideTable {
-    cards: ICardObject[]
+export interface IBusRideCard {
+    card: ICardObject
+    revealed: boolean
 }
 
 //kanskje ikke så nødvendig?
@@ -71,7 +72,7 @@ export enum GameStage {
     BusRide = 'BusRide'
 }
 
-export enum BusRide {
+export enum IBusRide {
     Standard = 'Standard',
     Canadian = 'Canadian',
     BergenLightRail = 'BergenLightRail'
@@ -79,5 +80,5 @@ export enum BusRide {
 
 export interface IGameRules {
     gtLevelSips: number[]
-    busRide: BusRide
+    busRide: IBusRide
 }
