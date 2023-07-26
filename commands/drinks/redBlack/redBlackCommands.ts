@@ -171,13 +171,19 @@ export class RedBlackCommands extends AbstractCommands {
         const user = this.getUserObject(interaction.user.username)
         const index = user.cards.findIndex(card => this.cardIsValid(card))
         if (index < 0) {
-            const cardsString = this.getCardsOnHandForUser(user)
-            return await this.messageHelper.replyToInteraction(interaction, 'Du har ingen kort du kan legge på bordet\n' + cardsString, true) 
+            return await this.messageHelper.replyToInteraction(interaction, 'Du kan ikke legge kort', true) 
 
         }
         const placedCard = user.cards.splice(index, 1).pop()
         this.updateGiveTakeGameMessage(placedCard, user.name)
         interaction.deferUpdate() 
+    }
+
+    public async sendUserCards(interaction: ButtonInteraction<CacheType>) {
+        const user = this.getUserObject(interaction.user.username)
+        let cardsString = this.getCardsOnHandForUser(user)
+        if (!cardsString.trim()) cardsString = "Du har ingen kort på hånd"
+        return await this.messageHelper.replyToInteraction(interaction, cardsString, true) 
     }
 
     public async revealLoser(interaction: ButtonInteraction<CacheType>) {

@@ -17,6 +17,7 @@ export class BusRide {
     private loser: IUserObject
     private messageHelper: MessageHelper
     private currentButtons: ActionRowBuilder<ButtonBuilder>
+    private totalSips: number
 
     constructor(messageHelper: MessageHelper, deck: CardCommands, embedMessage: Message, tableMessage: Message, loser: IUserObject) {
         this.messageHelper = messageHelper
@@ -29,6 +30,7 @@ export class BusRide {
         this.tableString = undefined
         this.loser = loser
         this.currentButtons = canadianBusrideButtonRow
+        this.totalSips = 0
     }
 
     public async setupCanadianBusride(interaction: ButtonInteraction<CacheType>) {        
@@ -54,8 +56,18 @@ export class BusRide {
 
     private async updateBusrideMessage(interaction: ButtonInteraction<CacheType>, correct: boolean) {             
         const guess = this.guessTranslations.get(interaction.customId.replace(RedBlackButtonHandler.CANADIAN_GUESS, ''))
-        const text = 
-        this.embed.setDescription(`${this.loser.name} gjettet: ${guess}\n\n ${correct ? 'Greit det..' : 'Ble jo fort feil det! Drikk ' + this.nextCardId + ' og prøv igjen 🍷'}`)        
+        let text = ''
+        if (!correct) {
+            this.totalSips += this.nextCardId
+            text = 'Ble jo fort feil det! Drikk ' + this.nextCardId + ' og prøv igjen 🍷'
+        } else {
+            if (this.nextCardId === (this.cardsOnTable.length - 1)) {
+                text = 'Jaja gz då'
+            } else {
+                text = 'Det var dessverre riktig'
+            }
+        }
+        this.embed.setDescription(`${this.loser.name} gjettet: ${guess}\n\n ${text}`)        
         this.embedMessage.edit({ embeds: [this.embed] })
     }
 
@@ -86,15 +98,16 @@ export class BusRide {
         if (guess === 'up') correct = nextCard.card.number > currentCard.card.number
         if (guess === 'down') correct = nextCard.card.number < currentCard.card.number
         if (guess === 'same') correct = nextCard.card.number === currentCard.card.number
-
-        console.log(correct);
         
         this.updateBusrideMessage(interaction, correct)
         this.printCanadianBusrideTable(interaction, correct)
         if (correct) {
-            this.nextCardId++
+            if (this.nextCardId < (this.cardsOnTable.length - 1)) {
+                this.nextCardId++
+            } else {
+                this.tableMessage.edit({ content: this.tableString, components: []})
+            }
         }
-        console.log('test');
         
         interaction.deferUpdate()
     }
@@ -136,7 +149,6 @@ export class BusRide {
         'Jaja, lykke til da!\n\n\nneida',
         'Jeg har troen',
         'Håper du kommer til siste kortet før du ryker',
-        '"Rykk tilbake til start"',
         'lol'
     ]
 

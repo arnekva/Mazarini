@@ -50,6 +50,8 @@ export class RedBlackButtonHandler {
                 this.placeCard(interaction)
             } else if (interaction.customId.startsWith(RedBlackButtonHandler.NEXT_CARD)) {
                 this.nextCard(interaction)
+            } else if (interaction.customId.startsWith(RedBlackButtonHandler.MY_CARDS)) {
+                this.myCards(interaction)
             } else if (interaction.customId.startsWith(RedBlackButtonHandler.TEST)) {
                 this.testRedBlack(interaction)
             } else if (interaction.customId.startsWith(RedBlackButtonHandler.MOVE)) {
@@ -102,6 +104,10 @@ export class RedBlackButtonHandler {
     private async nextCard(interaction: ButtonInteraction<CacheType>) {
         if (interaction.user.id === '221739293889003520') interaction.deferUpdate()
         else await this.redBlackCommands.nextGtCard(interaction)
+    }
+
+    private async myCards(interaction: ButtonInteraction<CacheType>) {
+        await this.redBlackCommands.sendUserCards(interaction)
     }
 
     private async moveMessages(interaction: ButtonInteraction<CacheType>) {

@@ -159,6 +159,13 @@ export const gtButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
         disabled: false,
         type: 2,
     }),
+    new ButtonBuilder({
+        custom_id: `${RedBlackButtonHandler.MY_CARDS}`,
+        style: ButtonStyle.Secondary,
+        label: `Mine kort`,
+        disabled: false,
+        type: 2,
+    }),
     moveBtn
 )
 
