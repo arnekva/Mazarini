@@ -1,7 +1,6 @@
-import { Message, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonInteraction, CacheType } from "discord.js"
+import { ButtonInteraction, CacheType } from "discord.js"
 import { EmojiHelper } from "../../../../helpers/emojiHelper"
-import { CardCommands, ICardObject } from "../../../cardCommands"
-import { setupGameButtonRow } from "../redBlackButtonRows"
+import { CardCommands } from "../../../cardCommands"
 import { IGameRules, IGiveTakeCard } from "../redBlackInterfaces"
 
 export class GiveTake {

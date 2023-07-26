@@ -14,6 +14,7 @@ export class PatchNotes extends AbstractCommands {
         '810832760364859432'
     )} til ${MentionUtils.mentionChannel(MentionUtils.CHANNEL_IDs.ACTION_LOG)}`
 
+
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
     static getCurrentPatchNotes() {

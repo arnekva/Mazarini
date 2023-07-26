@@ -1,7 +1,7 @@
 import {
     ActionRowBuilder,
     ButtonBuilder,
-    ButtonStyle,
+    ButtonStyle
 } from 'discord.js'
 import { RedBlackButtonHandler } from './redBlackButtonHandler'
 
@@ -10,8 +10,16 @@ const SPADES = '1107629201428852746'
 const DIAMONDS = '1107629199935672370'
 const CLUBS = '1107629197037412414'
 
-const moveBtn = new ButtonBuilder({
+export const moveBtn = new ButtonBuilder({
     custom_id: `${RedBlackButtonHandler.MOVE}`,
+    style: ButtonStyle.Secondary,
+    label: `Flytt ned`,
+    disabled: false,
+    type: 2,
+})
+
+const busMoveBtn = new ButtonBuilder({
+    custom_id: `${RedBlackButtonHandler.MOVE_BUS}`,
     style: ButtonStyle.Secondary,
     label: `Flytt ned`,
     disabled: false,
@@ -127,7 +135,7 @@ export const suitButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponents
         type: 2,
     }),
     new ButtonBuilder({
-        custom_id: `${RedBlackButtonHandler.GUESS}C`,
+        custom_id: `${RedBlackButtonHandler.GUESS_SUIT}C`,
         style: ButtonStyle.Success,
         emoji: {id: CLUBS},
         disabled: false,
@@ -148,6 +156,13 @@ export const gtButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
         custom_id: `${RedBlackButtonHandler.NEXT_CARD}`,
         style: ButtonStyle.Success,
         label: `Snu neste`,
+        disabled: false,
+        type: 2,
+    }),
+    new ButtonBuilder({
+        custom_id: `${RedBlackButtonHandler.MY_CARDS}`,
+        style: ButtonStyle.Secondary,
+        label: `Mine kort`,
         disabled: false,
         type: 2,
     }),
@@ -199,7 +214,7 @@ export const canadianBusrideButtonRow = new ActionRowBuilder<ButtonBuilder>().ad
         disabled: false,
         type: 2,
     }),
-    moveBtn
+    busMoveBtn
 )
 
 export const revealLoserBtn = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -228,5 +243,5 @@ export const TryAgainBtn = new ActionRowBuilder<ButtonBuilder>().addComponents(
         disabled: false,
         type: 2,
     }),
-    moveBtn
+    busMoveBtn
 )

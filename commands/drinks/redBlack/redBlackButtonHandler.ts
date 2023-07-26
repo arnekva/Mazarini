@@ -28,6 +28,7 @@ export class RedBlackButtonHandler {
     static REVEAL_LOSER = this.REDBLACK + 'RevealLoser_'
     static START_BUSRIDE = this.BUSRIDE + 'Start_'
     static TIE_BREAK = this.REDBLACK + 'TieBreak_'
+    static MOVE_BUS = this.REDBLACK + 'MoveBus_'
 
     constructor(client: Client, messageHelper: MessageHelper, redBlackCommands: RedBlackCommands) {
         this.client = client
@@ -49,6 +50,8 @@ export class RedBlackButtonHandler {
                 this.placeCard(interaction)
             } else if (interaction.customId.startsWith(RedBlackButtonHandler.NEXT_CARD)) {
                 this.nextCard(interaction)
+            } else if (interaction.customId.startsWith(RedBlackButtonHandler.MY_CARDS)) {
+                this.myCards(interaction)
             } else if (interaction.customId.startsWith(RedBlackButtonHandler.TEST)) {
                 this.testRedBlack(interaction)
             } else if (interaction.customId.startsWith(RedBlackButtonHandler.MOVE)) {
@@ -63,6 +66,8 @@ export class RedBlackButtonHandler {
                 this.busRideGuess(interaction)
             } else if (interaction.customId.startsWith(RedBlackButtonHandler.TRY_AGAIN)) {
                 this.busRideTryAgain(interaction)
+            } else if (interaction.customId.startsWith(RedBlackButtonHandler.MOVE_BUS)) {
+                this.moveBus(interaction)
             }
         }
         return false
@@ -101,6 +106,10 @@ export class RedBlackButtonHandler {
         else await this.redBlackCommands.nextGtCard(interaction)
     }
 
+    private async myCards(interaction: ButtonInteraction<CacheType>) {
+        await this.redBlackCommands.sendUserCards(interaction)
+    }
+
     private async moveMessages(interaction: ButtonInteraction<CacheType>) {
         await this.redBlackCommands.resendMessages(interaction)
         interaction.deferUpdate()
@@ -124,5 +133,9 @@ export class RedBlackButtonHandler {
 
     private async busRideTryAgain(interaction: ButtonInteraction<CacheType>) {
         await this.redBlackCommands.busrideReset(interaction)
+    }
+    
+    private async moveBus(interaction: ButtonInteraction<CacheType>) {
+        await this.redBlackCommands.moveBus(interaction)
     }
 }
