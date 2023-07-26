@@ -514,7 +514,7 @@ export class RedBlackCommands extends AbstractCommands {
     getAllInteractions(): IInteractionElement[] {
         return [
             {
-                commandName: 'redblack',
+                commandName: 'rødsvart',
                 command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                     this.rbSwitch(interaction)
                 },
