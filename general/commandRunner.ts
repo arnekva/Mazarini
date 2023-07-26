@@ -252,13 +252,13 @@ export class CommandRunner {
             if (message.author.id == '733320780707790898' && message.guild) {
                 this.applyJoiijJokes(message)
             }
-            const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message)
-            if (idJoke == '1337') {
-                message.reply('nice, id-en te meldingen din inneholde 1337. Gz, du har vonne 1.000 chips')
-                const user = DatabaseHelper.getUser(message.author.id)
-                user.chips += 1000
-                DatabaseHelper.updateUser(user)
-            }
+            // const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message)
+            // if (idJoke == '1337') {
+            //     message.reply('nice, id-en te meldingen din inneholde 1337. Gz, du har vonne 1.000 chips')
+            //     const user = DatabaseHelper.getUser(message.author.id)
+            //     user.chips += 1000
+            //     DatabaseHelper.updateUser(user)
+            // }
         }
     }
 
