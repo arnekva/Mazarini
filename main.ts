@@ -103,10 +103,10 @@ export class MazariniClient {
                 })} ${new Date().toLocaleTimeString('nb')} !`
             )
 
-            let msg = 'Boten er nå live i production mode. ' + process.argv.join(',')
+            let msg = 'Boten er nå live i production mode. '
 
             if (process.env['restartedForGit'] || process.argv.includes('restartedForGit')) {
-                msg += ' Prosjektet er oppdatert fra Git, trigget at en /restart.'
+                msg += 'Prosjektet er oppdatert fra Git, trigget av en /restart.'
             }
             if (environment == 'prod') _msgHelper.sendLogMessage(msg)
 
