@@ -13,7 +13,7 @@ import { IInteractionElement } from '../../../general/commands'
 import { MessageHelper } from '../../../helpers/messageHelper'
 import { CardCommands, ICardObject } from '../../cardCommands'
 import { RedBlackButtonHandler } from './redBlackButtonHandler'
-import { gtButtonRow, gtStartButtonRow, insideOutsideButtonRow, nextPhaseBtn, redBlackButtonRow, revealLoserBtn, setupGameButtonRow, suitButtonRow, upDownButtonRow } from './redBlackButtonRows'
+import { gtButtonRow, gtStartButtonRow, insideOutsideButtonRow, moveBtn, nextPhaseBtn, redBlackButtonRow, revealLoserBtn, setupGameButtonRow, suitButtonRow, upDownButtonRow } from './redBlackButtonRows'
 import { GameStage, IBusRide, IGameRules, IGiveTakeCard, IUserObject, RedBlackRound } from './redBlackInterfaces'
 import { BusRide } from './stage/busRide'
 import { GiveTake } from './stage/giveTake'
@@ -206,6 +206,7 @@ export class RedBlackCommands extends AbstractCommands {
                     }),
                 )
             })
+            tieBreak.addComponents(moveBtn)
             this.embedMessage.edit({ embeds: [this.embed], components: [tieBreak] })
         } else {
             this.showGiveTakeSummary(interaction, losers[0])
@@ -226,7 +227,8 @@ export class RedBlackCommands extends AbstractCommands {
                 label: `🚌 Busstur 🚌`,
                 disabled: false,
                 type: 2,
-            })
+            }),
+            moveBtn
         )
         this.embedMessage.edit({ embeds: [this.embed], components: [startBusride] })
     }
