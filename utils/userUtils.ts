@@ -77,7 +77,6 @@ export namespace UserUtils {
                 limit: 1,
                 type: AuditLogEvent.MemberUpdate,
             })
-            const actionLogId = '810832760364859432'
 
             const logs = fetchedLogs.entries.find((log) => log.target.id === newMember.id)
             let reason = ''

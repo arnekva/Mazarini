@@ -103,10 +103,10 @@ export class MazariniClient {
                 })} ${new Date().toLocaleTimeString('nb')} !`
             )
 
-            let msg = 'Boten er nå live i production mode.'
+            let msg = 'Boten er nå live i production mode. '
 
-            if (process.env['restartedForGit']) {
-                msg += ' Prosjektet er oppdatert fra Git, trigget at en /restart.'
+            if (process.env['--restartedForGit'] || process.argv.includes('--restartedForGit')) {
+                msg += 'Boten ble restartet av en /restart, og prosjektet er oppdatert fra Git'
             }
             if (environment == 'prod') _msgHelper.sendLogMessage(msg)
 
@@ -136,7 +136,7 @@ export class MazariniClient {
                 limit: 1,
                 type: AuditLogEvent.MessageDelete,
             })
-            const actionLogId = '810832760364859432'
+            const actionLogId = MentionUtils.CHANNEL_IDs.ACTION_LOG
 
             const deletionLog = fetchedLogs.entries.first()
 
@@ -173,12 +173,12 @@ export class MazariniClient {
         })
 
         client.on('channelDelete', (channel: DMChannel | NonThreadGuildBasedChannel) => {
-            const id = '810832760364859432'
+            const id = MentionUtils.CHANNEL_IDs.ACTION_LOG
             _msgHelper.sendMessage(id, `Channel med ID ${channel.id} ble slettet`)
         })
 
         client.on('guildBanAdd', (ban: GuildBan) => {
-            const id = '810832760364859432'
+            const id = MentionUtils.CHANNEL_IDs.ACTION_LOG
             _msgHelper.sendMessage(id, `${ban.user.username} ble bannet pga ${ban?.reason}`)
         })
 
