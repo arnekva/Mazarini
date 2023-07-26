@@ -103,7 +103,7 @@ export class MazariniClient {
                 })} ${new Date().toLocaleTimeString('nb')} !`
             )
 
-            let msg = 'Boten er nå live i production mode. '
+            let msg = 'Boten er nå live i production mode. ' + '<ARGS START>' + process.argv.join('>,<') + '<END>'
 
             if (process.env['--restartedForGit'] || process.argv.includes('--restartedForGit')) {
                 msg += 'Prosjektet er oppdatert fra Git, trigget av en /restart.'
