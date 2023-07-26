@@ -454,11 +454,11 @@ export class RedBlackCommands extends AbstractCommands {
     private deleteMessages() { 
         this.embedMessage.delete()
         this.embedMessage = undefined
-        if (!this.playerCardsMessage === undefined) {
+        if (!(this.playerCardsMessage === undefined)) {
             this.playerCardsMessage.delete()
             this.playerCardsMessage = undefined
         }
-        if (!this.gtTableMessage === undefined) {
+        if (!(this.gtTableMessage === undefined)) {
             this.gtTableMessage.delete()
             this.gtTableMessage = undefined
         }
