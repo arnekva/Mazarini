@@ -13,22 +13,24 @@ export class RedBlack {
         const guess = RedBlack.getGuessValue(customId, RedBlackRound.UpDown)
         const prevCard = prevCards.pop()
         const guessIsUp = guess === 'up'
+        const guessIsDown = guess === 'down'
+        const guessIsSame = !guessIsUp && !guessIsDown
         const currPlayerHasAce = !!prevCards.find((card) => card.number === 14)
 
         const findAceValue = () => {
+            //If a player has gotten an Ace in round one, and by chance gets a second one in round two while guessing "likt", it is still undefined.
+            if (guessIsSame) return undefined
+            //If an Ace has been drawn in first pass, or is drawn this pass for the first time, we need to
+            //find the correct value - it should always be the opposite of what the player guesses, such that he always loses the round.
             return guessIsUp ? 1 : 14
         }
-        /**
-         *  If an Ace has been drawn in first pass, or is drawn this pass for the first time, we need to
-         *  find the correct value - it should always be the opposite of what the player guesses, such that he always loses the round.
-         */
+
         if ((card.number === 14 || currPlayerHasAce) && !RedBlackCommands.aceValue) {
             RedBlackCommands.aceValue = findAceValue()
-            card.number = RedBlackCommands.aceValue //Need to overwrite current card as well, as it has already been generated
-            console.log('ACE WAS DRAWN, value set to ', RedBlackCommands.aceValue)
+            if (RedBlackCommands.aceValue) card.number = RedBlackCommands.aceValue //Need to overwrite current card as well (if applicable), as it has been generated with the standard value
         }
-        if (guess === 'up') return card.number > prevCard.number
-        if (guess === 'down') return card.number < prevCard.number
+        if (guessIsUp) return card.number > prevCard.number
+        if (guessIsDown) return card.number < prevCard.number
         return card.number == prevCard.number
     }
 
