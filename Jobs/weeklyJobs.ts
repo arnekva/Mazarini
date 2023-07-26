@@ -61,7 +61,7 @@ export class WeeklyJobs {
 
     private logEvent() {
         const todaysTime = new Date().toLocaleTimeString()
-        this.messageHelper.sendMessage('810832760364859432', `Ukentlige jobber kjørte ${todaysTime} (NAV-penger)`)
+        this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.ACTION_LOG, `Ukentlige jobber kjørte ${todaysTime} (NAV-penger)`)
         console.log(`Weekly jobs ran at ${todaysTime}`)
     }
 }

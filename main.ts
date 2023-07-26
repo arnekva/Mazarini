@@ -136,7 +136,7 @@ export class MazariniClient {
                 limit: 1,
                 type: AuditLogEvent.MessageDelete,
             })
-            const actionLogId = '810832760364859432'
+            const actionLogId = MentionUtils.CHANNEL_IDs.ACTION_LOG
 
             const deletionLog = fetchedLogs.entries.first()
 
@@ -173,12 +173,12 @@ export class MazariniClient {
         })
 
         client.on('channelDelete', (channel: DMChannel | NonThreadGuildBasedChannel) => {
-            const id = '810832760364859432'
+            const id = MentionUtils.CHANNEL_IDs.ACTION_LOG
             _msgHelper.sendMessage(id, `Channel med ID ${channel.id} ble slettet`)
         })
 
         client.on('guildBanAdd', (ban: GuildBan) => {
-            const id = '810832760364859432'
+            const id = MentionUtils.CHANNEL_IDs.ACTION_LOG
             _msgHelper.sendMessage(id, `${ban.user.username} ble bannet pga ${ban?.reason}`)
         })
 

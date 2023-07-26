@@ -22,7 +22,7 @@ export class DayJob {
     }
     private logEvent() {
         const todaysTime = new Date().toLocaleTimeString()
-        this.messageHelper.sendMessage('810832760364859432', `Dag-job for ${this.day} kjørte ${todaysTime} `)
+        this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.ACTION_LOG, `Dag-job for ${this.day} kjørte ${todaysTime} `)
     }
 
     private getHelgMessage() {
