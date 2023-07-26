@@ -1,4 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, Client, EmbedBuilder, Interaction } from 'discord.js'
+import { RedBlackButtonHandler } from '../commands/drinks/redBlack/redBlackButtonHandler'
 import { DrinksCommands } from '../commands/drinksCommands'
 import { GamblingCommands } from '../commands/gamblingCommands'
 import { PoletCommands } from '../commands/poletCommands'
@@ -13,6 +14,7 @@ import { UserUtils } from '../utils/userUtils'
 export class ButtonHandler {
     private client: Client
     private messageHelper: MessageHelper
+    private redBlackButtonHandler: RedBlackButtonHandler
     private drinksCommands: DrinksCommands
     private testCommands: TestCommands
 
@@ -26,9 +28,12 @@ export class ButtonHandler {
     static ELECTRICITY_RESET = 'ElectricityResetId_'
     static POLET_STOCK = 'PoletStockId_'
     static TEST = 'TestId_'
-    constructor(client: Client, messageHelper: MessageHelper, drinksCommands: DrinksCommands, testCommands: TestCommands) {
+    static REDBLACK = 'RedBlack'
+    
+    constructor(client: Client, messageHelper: MessageHelper, redBlackButtonHelper: RedBlackButtonHandler, drinksCommands: DrinksCommands, testCommands: TestCommands) {
         this.client = client
         this.messageHelper = messageHelper
+        this.redBlackButtonHandler = redBlackButtonHelper
         this.drinksCommands = drinksCommands
         this.testCommands = testCommands
     }
@@ -55,6 +60,8 @@ export class ButtonHandler {
                 this.handlePoletStock(interaction)
             } else if (interaction.customId.startsWith(ButtonHandler.TEST)) {
                 this.test(interaction)
+            } else if (interaction.customId.startsWith(ButtonHandler.REDBLACK)) {
+                this.redBlackButtonHandler.handleIncomingButtonInteraction(interaction)
             }
 
             return true

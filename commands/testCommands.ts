@@ -8,11 +8,19 @@ import {
     Client,
     EmbedBuilder,
     Message,
+    SelectMenuComponentOptionData,
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { IInteractionElement } from '../general/commands'
 import { ButtonHandler } from '../handlers/buttonHandler'
+import { SelectMenuHandler } from '../handlers/selectMenuHandler'
+import { ActionMenuHelper } from '../helpers/actionMenuHelper'
+import { DatabaseHelper } from '../helpers/databaseHelper'
+import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { EmbedUtils } from '../utils/embedUtils'
+import { RedBlackButtonHandler } from './drinks/redBlack/redBlackButtonHandler'
+import { gtButtonRow } from './drinks/redBlack/redBlackButtonRows'
 
 const defaultButtonRow = new ActionRowBuilder<ButtonBuilder>()
 defaultButtonRow.addComponents(
@@ -43,7 +51,15 @@ export class TestCommands extends AbstractCommands {
     }
 
     public async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        this.messageHelper.replyToInteraction(interaction, 'Disse kommandoene brukes bare for lokal testing og er ikke implementerte ellers.', false)
+        
+    }
+
+    public async test2(interaction: ChatInputCommandInteraction<CacheType>) {
+        
+    }
+
+    public async test3() {
+
     }
 
     //Redigerer eksisterende embed hvis det er en knapp interaction, sender ny embed hvis ikke
@@ -82,7 +98,7 @@ export class TestCommands extends AbstractCommands {
                     break
                 }
                 case '-2-': {
-                    this.test(interaction)
+                    this.test2(interaction)
                     break
                 }
                 case '-3-': {

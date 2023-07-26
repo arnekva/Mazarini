@@ -60,7 +60,7 @@ export class MessageHelper {
         content: string | EmbedBuilder,
         onlyVisibleToEngager?: boolean,
         wasDefered?: boolean,
-        menu?: ActionRowBuilder<SelectMenuBuilder>
+        menu?: ActionRowBuilder<SelectMenuBuilder> | ActionRowBuilder<ButtonBuilder>
     ): Promise<boolean> {
         const handleError = async (e: any) => {
             let msg: Message<boolean> | undefined
@@ -212,6 +212,36 @@ export class MessageHelper {
     ) {
         const textCh = this.findChannelById(channelID) as TextChannel
         if (textCh) return textCh.send({ components: components })
+        return undefined
+    }
+
+    async sendMessageWithContentAndComponents(
+        channelID: string,
+        content: string,
+        components: (
+            | APIActionRowComponent<APIMessageActionRowComponent>
+            | JSONEncodable<APIActionRowComponent<APIMessageActionRowComponent>>
+            | ActionRowData<any>
+            | ActionRowBuilder<ButtonBuilder>
+        )[]
+    ) {
+        const textCh = this.findChannelById(channelID) as TextChannel
+        if (textCh) return textCh.send({ content: content, components: components })
+        return undefined
+    }
+
+    async sendMessageWithEmbedAndButtons(
+        channelID: string,
+        embed: EmbedBuilder,
+        components: (
+            | APIActionRowComponent<APIMessageActionRowComponent>
+            | JSONEncodable<APIActionRowComponent<APIMessageActionRowComponent>>
+            | ActionRowData<any>
+            | ActionRowBuilder<ButtonBuilder>
+        )[]
+    ) {
+        const textCh = this.findChannelById(channelID) as TextChannel
+        if (textCh) return textCh.send({ embeds: [embed], components: components })
         return undefined
     }
 
