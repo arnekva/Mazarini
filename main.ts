@@ -105,7 +105,7 @@ export class MazariniClient {
 
             let msg = 'Boten er nå live i production mode. '
 
-            if (process.env['restartedForGit'] || process.argv.includes('restartedForGit')) {
+            if (process.env['--restartedForGit'] || process.argv.includes('--restartedForGit')) {
                 msg += 'Prosjektet er oppdatert fra Git, trigget av en /restart.'
             }
             if (environment == 'prod') _msgHelper.sendLogMessage(msg)
