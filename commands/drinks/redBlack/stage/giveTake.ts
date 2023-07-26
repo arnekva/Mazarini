@@ -1,7 +1,9 @@
-import { ButtonInteraction, CacheType } from "discord.js"
-import { EmojiHelper } from "../../../../helpers/emojiHelper"
-import { CardCommands } from "../../../cardCommands"
-import { IGameRules, IGiveTakeCard } from "../redBlackInterfaces"
+import { ButtonInteraction, CacheType } from 'discord.js'
+import { EmojiHelper } from '../../../../helpers/emojiHelper'
+import { RandomUtils } from '../../../../utils/randomUtils'
+import { CardCommands } from '../../../cardCommands'
+import { RedBlackCommands } from '../redBlackCommands'
+import { IGameRules, IGiveTakeCard } from '../redBlackInterfaces'
 
 export class GiveTake {
     private deck: CardCommands
@@ -20,29 +22,24 @@ export class GiveTake {
 
     public async generateGiveTakeTable(interaction: ButtonInteraction<CacheType>) {
         const levels = this.rules.gtLevelSips.length
+        //If Ace has not been drawn before round 3, the value is randomly set now
+        if (!RedBlackCommands.aceValue) {
+            RedBlackCommands.aceValue = RandomUtils.getFiftyFifty() ? 1 : 14
+        }
+
         let key = 0
-        for (var i = 1; i < levels; i++) 
-        {
-            for (var y = 1; y <= 3; y++) 
-            {
-                this.gtTable.set(key++,
-                    { card: await this.drawCard(interaction) 
-                    , give: y == 1 || y == 3
-                    , take: y == 2 || y == 3
-                    , sips: this.rules.gtLevelSips[i-1]
-                    , revealed: false
-                    }
-                )
+        for (var i = 1; i < levels; i++) {
+            for (var y = 1; y <= 3; y++) {
+                this.gtTable.set(key++, {
+                    card: await this.drawCard(interaction),
+                    give: y == 1 || y == 3,
+                    take: y == 2 || y == 3,
+                    sips: this.rules.gtLevelSips[i - 1],
+                    revealed: false,
+                })
             }
         }
-        this.gtTable.set(key, 
-                    { card: await this.drawCard(interaction) 
-                    , give: false
-                    , take: true
-                    , sips: this.rules.gtLevelSips[levels-1]
-                    , revealed: false
-                    }
-        )        
+        this.gtTable.set(key, { card: await this.drawCard(interaction), give: false, take: true, sips: this.rules.gtLevelSips[levels - 1], revealed: false })
     }
 
     private async drawCard(interaction: ButtonInteraction<CacheType>) {
@@ -53,7 +50,7 @@ export class GiveTake {
         return await this.deck.drawCard(interaction)
     }
 
-    public async printGiveTakeTable(interaction: ButtonInteraction<CacheType>) {                
+    public async printGiveTakeTable(interaction: ButtonInteraction<CacheType>) {
         let tableString = ''
         const levels = this.rules.gtLevelSips.length
         let iterateId = this.gtTable.size - 1
@@ -61,9 +58,8 @@ export class GiveTake {
         const emptyCard = (await EmojiHelper.getEmoji('emptyCard', interaction)).id
         const faceCard = (await EmojiHelper.getEmoji('faceCard', interaction)).id
         tableString += `${emptyCard} ${chugCard.revealed ? chugCard.card.printString : faceCard}`
-        
-        for (var i = levels-1; i > 0; i--) 
-        {
+
+        for (var i = levels - 1; i > 0; i--) {
             tableString += '\n\n'
             const gtCard = this.gtTable.get(iterateId--)
             const tCard = this.gtTable.get(iterateId--)
@@ -71,7 +67,7 @@ export class GiveTake {
             const gtCardStr = gtCard.revealed ? `${gtCard.card.printString} ` : `${faceCard} `
             const tCardStr = tCard.revealed ? `${tCard.card.printString} ` : `${faceCard} `
             const gCardStr = gCard.revealed ? `${gCard.card.printString} ` : `${faceCard} `
-            tableString += (gCardStr + tCardStr + gtCardStr)
+            tableString += gCardStr + tCardStr + gtCardStr
         }
         return tableString
     }

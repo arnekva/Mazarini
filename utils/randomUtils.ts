@@ -17,4 +17,8 @@ export namespace RandomUtils {
     export function getRandomPercentage(perc: number) {
         return getRndInteger(0, 100) < perc
     }
+
+    export function getFiftyFifty(): boolean {
+        return Math.random() < 0.5
+    }
 }
