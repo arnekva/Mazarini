@@ -246,21 +246,21 @@ export class MessageHelper {
     }
 
     sendLogMessage(msg: string) {
-        const errorChannel = this.client.channels.cache.get('810832760364859432') as TextChannel
+        const errorChannel = this.client.channels.cache.get(MentionUtils.CHANNEL_IDs.ACTION_LOG) as TextChannel
         MazariniClient.numMessagesNumErrorMessages++
         return errorChannel.send(msg)
     }
     sendFormattedLogMessage(title: string, description: string, msg?: RestOrArray<APIEmbedField>) {
         const embed = new EmbedBuilder().setTitle(`${title}`).setDescription(`${description}`)
         if (msg) embed.addFields(...msg)
-        const errorChannel = this.client.channels.cache.get('810832760364859432') as TextChannel
+        const errorChannel = this.client.channels.cache.get(MentionUtils.CHANNEL_IDs.ACTION_LOG) as TextChannel
         this.sendFormattedMessage(errorChannel, embed)
         MazariniClient.numMessagesNumErrorMessages++
     }
 
     /** Log that an empty message was attempted sent by the bot */
     sendLogMessageEmptyMessage(errorMessageToSend: string, channelId: string) {
-        const errorChannel = this.client.channels.cache.get('810832760364859432') as TextChannel
+        const errorChannel = this.client.channels.cache.get(MentionUtils.CHANNEL_IDs.ACTION_LOG) as TextChannel
         const replyChannel = this.client.channels.cache.get(channelId)
         errorChannel.send(
             `En tom melding ble forsøkt sendt. Forsøkte å sende til channel-ID ${channelId}. Channel-object er: ${
