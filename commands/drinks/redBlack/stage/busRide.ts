@@ -1,10 +1,10 @@
-import { ButtonInteraction, CacheType, Client, EmbedBuilder, Message } from "discord.js"
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, CacheType, EmbedBuilder, Message } from "discord.js";
 import { EmojiHelper } from "../../../../helpers/emojiHelper";
 import { MessageHelper } from "../../../../helpers/messageHelper";
-import { CardCommands, ICardObject } from "../../../cardCommands"
-import { RedBlackButtonHandler } from "../redBlackButtonHandler"
+import { CardCommands } from "../../../cardCommands";
+import { RedBlackButtonHandler } from "../redBlackButtonHandler";
 import { canadianBusrideButtonRow, TryAgainBtn } from "../redBlackButtonRows";
-import { IBusRideCard, IGameRules, IGiveTakeCard, IUserObject, RedBlackRound } from "../redBlackInterfaces"
+import { IBusRideCard, IUserObject } from "../redBlackInterfaces";
 
 export class BusRide {
     private deck: CardCommands
@@ -16,6 +16,7 @@ export class BusRide {
     private tableString: string
     private loser: IUserObject
     private messageHelper: MessageHelper
+    private currentButtons: ActionRowBuilder<ButtonBuilder>
 
     constructor(messageHelper: MessageHelper, deck: CardCommands, embedMessage: Message, tableMessage: Message, loser: IUserObject) {
         this.messageHelper = messageHelper
@@ -27,6 +28,7 @@ export class BusRide {
         this.tableMessage = tableMessage
         this.tableString = undefined
         this.loser = loser
+        this.currentButtons = canadianBusrideButtonRow
     }
 
     public async setupCanadianBusride(interaction: ButtonInteraction<CacheType>) {        
@@ -46,8 +48,8 @@ export class BusRide {
             cardsString += this.cardsOnTable[i].revealed ? `${this.cardsOnTable[i].card.printString} ` : `${faceCard} `
         }
         this.tableString = cardsString
-        const buttons = correct ? canadianBusrideButtonRow : TryAgainBtn
-        this.tableMessage.edit({ content: this.tableString, components: [buttons]})
+        this.currentButtons = correct ? canadianBusrideButtonRow : TryAgainBtn
+        this.tableMessage.edit({ content: this.tableString, components: [this.currentButtons]})
     }
 
     private async updateBusrideMessage(interaction: ButtonInteraction<CacheType>, correct: boolean) {             
@@ -108,6 +110,19 @@ export class BusRide {
         this.embedMessage.edit({ embeds: [this.embed] })
         this.printCanadianBusrideTable(interaction)
         interaction.deferUpdate()
+    }
+
+    public async resendMessages(interaction: ButtonInteraction<CacheType>) {
+        this.deleteMessages()
+        this.embedMessage = await this.messageHelper.sendFormattedMessage(interaction?.channelId, this.embed)
+        this.tableMessage = await this.messageHelper.sendMessageWithContentAndComponents(interaction.channelId, this.tableString, [this.currentButtons])
+    }
+
+    private deleteMessages() { 
+        this.embedMessage.delete()
+        this.embedMessage = undefined
+        this.tableMessage.delete()
+        this.tableMessage = undefined
     }
 
     private guessTranslations: Map<string, string> = new Map<string, string>([

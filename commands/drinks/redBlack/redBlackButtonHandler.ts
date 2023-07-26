@@ -28,6 +28,7 @@ export class RedBlackButtonHandler {
     static REVEAL_LOSER = this.REDBLACK + 'RevealLoser_'
     static START_BUSRIDE = this.BUSRIDE + 'Start_'
     static TIE_BREAK = this.REDBLACK + 'TieBreak_'
+    static MOVE_BUS = this.REDBLACK + 'MoveBus_'
 
     constructor(client: Client, messageHelper: MessageHelper, redBlackCommands: RedBlackCommands) {
         this.client = client
@@ -63,6 +64,8 @@ export class RedBlackButtonHandler {
                 this.busRideGuess(interaction)
             } else if (interaction.customId.startsWith(RedBlackButtonHandler.TRY_AGAIN)) {
                 this.busRideTryAgain(interaction)
+            } else if (interaction.customId.startsWith(RedBlackButtonHandler.MOVE_BUS)) {
+                this.moveBus(interaction)
             }
         }
         return false
@@ -124,5 +127,9 @@ export class RedBlackButtonHandler {
 
     private async busRideTryAgain(interaction: ButtonInteraction<CacheType>) {
         await this.redBlackCommands.busrideReset(interaction)
+    }
+    
+    private async moveBus(interaction: ButtonInteraction<CacheType>) {
+        await this.redBlackCommands.moveBus(interaction)
     }
 }

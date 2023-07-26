@@ -1,4 +1,4 @@
-import { Message, EmbedBuilder, ActionRowBuilder, ButtonInteraction, CacheType } from "discord.js"
+import { Message } from "discord.js"
 import { ICardObject } from "../../cardCommands"
 
 export interface IUserObject {
@@ -11,7 +11,6 @@ export interface IUserObject {
 export interface IRedBlackGame {
     stage: RedBlackRound
     currentPlayer: IUserObject
-    
 }
 
 export enum RedBlackRound {

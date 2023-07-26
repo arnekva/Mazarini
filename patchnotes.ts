@@ -10,7 +10,7 @@ export class PatchNotes extends AbstractCommands {
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
-    public static readonly currentPatchNotes: string = `\nEtter mye venting og enda mer utvikling håper jeg du er klar for de vanskelige spørsmålene:\n* Rød eller svart?\n*Opp eller ned?\nInnenfor, utenfor eller likt(!)?\n*Bryn deg på disse spørsmålene og mange fler i en fantastisk digitalisert utgave av "Rød eller svart"!`
+    public static readonly currentPatchNotes: string = `\nEtter mye venting og enda mer utvikling håper jeg du er klar for de vanskelige spørsmålene:\n* Rød eller svart?\n* Opp eller ned?\n* Innenfor, utenfor eller likt(!)?\n* Bryn deg på disse spørsmålene og mange fler i en fantastisk digitalisert utgave av "Rød eller svart"!`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 

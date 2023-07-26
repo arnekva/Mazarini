@@ -1,34 +1,27 @@
 import {
-    ActionRowBuilder,
-    APIEmbedField,
-    ButtonBuilder,
+    ActionRowBuilder, ButtonBuilder,
     ButtonInteraction,
     ButtonStyle,
     CacheType,
     ChatInputCommandInteraction,
     Client,
     EmbedBuilder,
-    Message,
+    Message
 } from 'discord.js'
 import { AbstractCommands } from '../../../Abstracts/AbstractCommand'
 import { IInteractionElement } from '../../../general/commands'
-import { ButtonHandler } from '../../../handlers/buttonHandler'
-import { EmojiHelper } from '../../../helpers/emojiHelper'
 import { MessageHelper } from '../../../helpers/messageHelper'
-import { ArrayUtils } from '../../../utils/arrayUtils'
-import { MentionUtils } from '../../../utils/mentionUtils'
-import { RandomUtils } from '../../../utils/randomUtils'
 import { CardCommands, ICardObject } from '../../cardCommands'
 import { RedBlackButtonHandler } from './redBlackButtonHandler'
-import { setupGameButtonRow, redBlackButtonRow, gtButtonRow, upDownButtonRow, insideOutsideButtonRow, suitButtonRow, nextPhaseBtn, gtStartButtonRow, revealLoserBtn } from './redBlackButtonRows'
-import { IGameRules, IBusRide, IUserObject, IGiveTakeCard, GameStage, RedBlackRound } from './redBlackInterfaces'
+import { gtButtonRow, gtStartButtonRow, insideOutsideButtonRow, nextPhaseBtn, redBlackButtonRow, revealLoserBtn, setupGameButtonRow, suitButtonRow, upDownButtonRow } from './redBlackButtonRows'
+import { GameStage, IBusRide, IGameRules, IGiveTakeCard, IUserObject, RedBlackRound } from './redBlackInterfaces'
 import { BusRide } from './stage/busRide'
 import { GiveTake } from './stage/giveTake'
 import { RedBlack } from './stage/redBlack'
 
 const defaultRules: IGameRules = {
     gtLevelSips: [2, 4, 6, 8, Number.POSITIVE_INFINITY],
-    busRide: IBusRide.Canadian
+    busRide: IBusRide.Canadian 
 }
 
 const testData: IUserObject[] = [ //legge til en ephemeral message på hver user? :thinking:
@@ -274,6 +267,10 @@ export class RedBlackCommands extends AbstractCommands {
         this.busride.resetCanadian(interaction)
     }
 
+    public async moveBus(interaction: ButtonInteraction<CacheType>) {
+        this.busride.resendMessages(interaction)
+    }
+
     private getCardsOnUser(username: string) {        
         return this.getUserObject(username).cards.sort((x,y) => x.number-y.number)
     }
@@ -434,15 +431,25 @@ export class RedBlackCommands extends AbstractCommands {
         this.deleteMessages()
         if (this.stage === GameStage.RedBlack) {
             this.embedMessage = await this.messageHelper.sendMessageWithEmbedAndButtons(interaction?.channelId, this.embed, [this.currentButtons])
+            if (!(this.rbRound === RedBlackRound.RedBlack)) {
+                const cardsString = this.getCardsOnHandForUser(this.currentPlayer)
+                this.playerCardsMessage = await this.messageHelper.sendMessage(interaction.channelId, cardsString)
+            }
         } else {
             this.embedMessage = await this.messageHelper.sendFormattedMessage(interaction?.channelId, this.embed)
-            this.gtTableMessage = await this.messageHelper.sendMessageWithContentAndComponents(interaction.channelId, this.gtTableString, [this.currentButtons])
+            if(this.stage === GameStage.GiveTake) {
+                this.gtTableMessage = await this.messageHelper.sendMessageWithContentAndComponents(interaction.channelId, this.gtTableString, [this.currentButtons])
+            }
         }
     }
 
     private deleteMessages() { 
         this.embedMessage.delete()
         this.embedMessage = undefined
+        if (!this.playerCardsMessage === undefined) {
+            this.playerCardsMessage.delete()
+            this.playerCardsMessage = undefined
+        }
         if (!this.gtTableMessage === undefined) {
             this.gtTableMessage.delete()
             this.gtTableMessage = undefined
