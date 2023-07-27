@@ -67,11 +67,15 @@ export class RedBlackCommands extends AbstractCommands {
     public static aceValue: 1 | 14 | undefined = undefined
     constructor(client: Client, messageHelper: MessageHelper) {
         super(client, messageHelper)
+        this.initGame()
+    }
+
+    private initGame() {
         this.activeGame = false
         this.initiated = false
         this.stage = undefined
         this.playerList = new Array<IUserObject>()
-        this.deck = new CardCommands(client, messageHelper)
+        this.deck = new CardCommands(this.client, this.messageHelper)
         this.rules = defaultRules
         this.currentGtCard = undefined
         this.id = 0
@@ -490,11 +494,7 @@ export class RedBlackCommands extends AbstractCommands {
     }
 
     private stopRedBlack(interaction: ChatInputCommandInteraction<CacheType>) {
-        this.playerList = new Array<IUserObject>()
-        this.deck.resetDeck()
-        this.id = 0
-        this.activeGame = false
-        this.initiated = false
+        this.initGame()
         this.messageHelper.replyToInteraction(interaction, 'Spillet er stoppet og kortstokken nullstilt', false)
     }
 
