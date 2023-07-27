@@ -15,11 +15,12 @@ export class RedBlack {
         const guessIsUp = guess === 'up'
         const guessIsDown = guess === 'down'
         const guessIsSame = !guessIsUp && !guessIsDown
-        const currPlayerHasAce = !!prevCards.find((card) => card.number === 14)
+        const oldAceIfExists = prevCards.find((card) => card.number === 14)
+        const currPlayerHasAce = !!oldAceIfExists
 
         const findAceValue = () => {
-            //If a player has gotten an Ace in round one, and by chance gets a second one in round two while guessing "likt", it is still undefined.
-            if (guessIsSame) return undefined
+            //If a player has gotten an Ace in round one, and by chance gets a second one in round two, it is still undefined since it's incorrect (or correct if guessing "likt") either way.
+            if (guessIsSame || (!RedBlackCommands.aceValue && card.number === 14)) return undefined
             //If an Ace has been drawn in first pass, or is drawn this pass for the first time, we need to
             //find the correct value - it should always be the opposite of what the player guesses, such that he always loses the round.
             return guessIsUp ? 1 : 14
@@ -27,7 +28,10 @@ export class RedBlack {
 
         if ((card.number === 14 || currPlayerHasAce) && !RedBlackCommands.aceValue) {
             RedBlackCommands.aceValue = findAceValue()
-            if (RedBlackCommands.aceValue) card.number = RedBlackCommands.aceValue //Need to overwrite current card as well (if applicable), as it has been generated with the standard value
+            //Need to overwrite the existing card as well (if applicable), as it has been generated with the standard value
+            if (RedBlackCommands.aceValue) {
+                currPlayerHasAce ? (oldAceIfExists.number = RedBlackCommands.aceValue) : (card.number = RedBlackCommands.aceValue)
+            }
         }
         if (guessIsUp) return card.number > prevCard.number
         if (guessIsDown) return card.number < prevCard.number
