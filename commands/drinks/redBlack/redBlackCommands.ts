@@ -1,5 +1,6 @@
 import {
     ActionRowBuilder,
+    APIEmbedField,
     ButtonBuilder,
     ButtonInteraction,
     ButtonStyle,
@@ -327,24 +328,32 @@ export class RedBlackCommands extends AbstractCommands {
     }
 
     private async updateRedBlackGameMessage(drawnCard: ICardObject, interaction: ButtonInteraction<CacheType>, correct: boolean) {
-        const formattedMsg = new EmbedBuilder().setTitle('Rød eller Svart')
+        let roundName = RedBlack.getPrettyRoundName(this.rbRound)
+        const formattedMsg = new EmbedBuilder().setTitle(`${roundName} - ${this.rbSips} slurk${this.rbSips > 1 ? 'er' : ''}`)
         if (drawnCard) {
             formattedMsg
                 .setThumbnail(drawnCard.url)
                 .setDescription(
-                    `${interaction.user.username} gjettet: ${RedBlack.getTranslatedGuessValue(interaction.customId, this.rbRound)}` +
-                        `\n\n🍷 ${correct ? 'Gi' : 'Drikk'} ${this.rbSips} slurk${this.rbSips > 1 ? 'er' : ''} 🍷\n\n\n`
+                    `${interaction.user.username} gjettet: ${RedBlack.getTranslatedGuessValue(interaction.customId, this.rbRound)} og fikk kortet til høyre` +
+                        `\n🍷 ${correct ? 'Gi' : 'Drikk'} ${this.rbSips} slurk${this.rbSips > 1 ? 'er' : ''} 🍷\n\n\n`
                 )
-            if (this.isEndOfRound()) this.handleRoundChange()
+            if (this.isEndOfRound()) {
+                this.handleRoundChange()
+                roundName = RedBlack.getPrettyRoundName(this.rbRound)
+                formattedMsg.setTitle(`${roundName} - ${this.rbSips} slurk${this.rbSips > 1 ? 'er' : ''}`)
+            }
         }
         if (this.rbRound === RedBlackRound.Finished) {
             this.playerCardsMessage.delete()
             this.playerCardsMessage = undefined
         } else {
-            formattedMsg.addFields({
-                name: `Det er nå ${this.currentPlayer.name} sin tur!`,
-                value: `${this.currentPlayer.cards.length >= 1 ? '(se kort på hånd under knappene)' : ' '}`,
+            const fields = [] as APIEmbedField[]
+            if (this.currentPlayer.cards.length >= 1) fields.push({ name: ' ', value: ' ' }, { name: ' ', value: ' ' }, { name: ' ', value: ' ' })
+            fields.push({
+                name: `**${this.currentPlayer.name} sin tur.**`,
+                value: `${this.currentPlayer.cards.length >= 1 ? '\n(se kort på hånd under knappene)' : ' '}`,
             })
+            formattedMsg.addFields(...fields)
             if (this.currentPlayer.cards.length >= 1) {
                 const cardsString = this.getCardsOnHandForUser(this.currentPlayer)
                 if (this.playerCardsMessage === undefined) {

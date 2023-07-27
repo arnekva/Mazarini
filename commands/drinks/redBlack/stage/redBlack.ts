@@ -65,6 +65,16 @@ export class RedBlack {
         return RedBlack.guessTranslations.get(RedBlack.getGuessValue(customId, round))
     }
 
+    public static getPrettyRoundName(rn: RedBlackRound) {
+        return RedBlack.roundPrettyName.get(rn)
+    }
+
+    static roundPrettyName: Map<RedBlackRound, string> = new Map<RedBlackRound, string>([
+        [RedBlackRound.RedBlack, 'Rød eller svart'],
+        [RedBlackRound.InsideOutside, 'Innenfor eller utenfor'],
+        [RedBlackRound.UpDown, 'Opp eller ned'],
+        [RedBlackRound.Suit, 'Hvilken type'],
+    ])
     static guessTranslations: Map<string, string> = new Map<string, string>([
         ['red', 'rød'],
         ['black', 'svart'],
