@@ -173,8 +173,19 @@ export class RedBlackCommands extends AbstractCommands {
         this.currentGtCard = this.giveTake.revealNextGTCard(interaction)
         if (this.currentGtCard.sips === Number.POSITIVE_INFINITY) this.currentButtons = revealLoserBtn
         this.gtTableString = await this.giveTake.printGiveTakeTable(interaction)
-        this.gtTableMessage.edit({ content: this.gtTableString, components: [this.currentButtons] })
-        this.updateGiveTakeGameMessage(undefined, '')
+
+        //It is first updated with a disabled "Next card" button - then, after 5 seconds it is updated again with it enabled
+        //This is to prevent spam-clicking next before anyone can add their card
+        const updateMessage = () => {
+            this.gtTableMessage.edit({ content: this.gtTableString, components: [this.currentButtons] })
+            this.updateGiveTakeGameMessage(undefined, '')
+        }
+        this.currentButtons.components[1].setDisabled(true)
+        updateMessage()
+        setTimeout(() => {
+            this.currentButtons.components[1].setDisabled(false)
+            updateMessage()
+        }, 5000)
         interaction.deferUpdate()
     }
 
