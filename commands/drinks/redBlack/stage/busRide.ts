@@ -146,7 +146,7 @@ export class BusRide {
 
     private tryAgainInsults: Array<string> = [
         'Da prøver vi igjen.', 
-        'Jaja, lykke til da!\n\n\nneida',
+        'Jaja, lykke til da!\n\nneida',
         'Jeg har troen',
         'Håper du kommer til siste kortet før du ryker',
         'lol'
