@@ -100,6 +100,7 @@ export class Commands {
         this.redBlackButtonHandler = new RedBlackButtonHandler(this.client, this.messageHelper, this.redBlackCommands)
         this.buttonHandler = new ButtonHandler(this.client, this.messageHelper, this.redBlackButtonHandler, this.drinksCommands, this.testCommands)
         this.pollCommands = new PollCommands(this.client, this.messageHelper)
+        this.selectMenuHandler = new SelectMenuHandler(this.client, this.messageHelper, this.trelloCommands)
     }
 
     getAllInteractionCommands() {

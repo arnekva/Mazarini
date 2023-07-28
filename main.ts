@@ -15,7 +15,7 @@ import {
     PartialMessage,
     PartialUser,
     Role,
-    User,
+    User
 } from 'discord.js'
 import moment from 'moment'
 import { discordSecret, environment } from './client-env'
@@ -152,7 +152,7 @@ export class MazariniClient {
             if (
                 target?.id === message?.author?.id &&
                 message.channelId !== MentionUtils.CHANNEL_IDs.ACTION_LOG &&
-                message.channelId !== MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM &&
+                message.channelId !== MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM_DEV &&
                 !message?.content?.includes('Laster data') &&
                 !message?.content?.includes('Henter data') &&
                 environment === 'prod' &&
