@@ -423,13 +423,12 @@ export class RedBlackCommands extends AbstractCommands {
 
     public async setupRedBlack(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
         if (this.activeGame || this.initiated) {
-            this.messageHelper.replyToInteraction(interaction, 'Du kan bare ha ett aktivt spill om gangen. For å avslutte spillet, bruk "/electricity stopp"')
+            this.messageHelper.replyToInteraction(interaction, 'Du kan bare ha ett aktivt spill om gangen. For å avslutte spillet, bruk "/redblack stopp"')
         } else {
             this.initiated = true
             this.stage = GameStage.RedBlack
             this.rbRound = RedBlackRound.RedBlack
             this.updateStartMessage()
-            // this.updateEmbedMessage(interaction)
             this.messageHelper.replyToInteraction(interaction, 'Nu skal det drekjast')
             this.embedMessage = await this.messageHelper.sendMessageWithEmbedAndButtons(interaction?.channelId, this.embed, [this.currentButtons])
         }
