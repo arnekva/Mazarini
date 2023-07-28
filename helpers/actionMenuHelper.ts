@@ -1,14 +1,14 @@
 import { SelectMenuOptionBuilder as BuildersSelectMenuOption } from '@discordjs/builders'
-import { ActionRowBuilder, APISelectMenuOption, RestOrArray, SelectMenuBuilder, SelectMenuComponentOptionData } from 'discord.js'
+import { ActionRowBuilder, APISelectMenuOption, RestOrArray, SelectMenuComponentOptionData, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } from 'discord.js'
 
 export class ActionMenuHelper {
     static creatSelectMenu(
         id: string,
         placeholderText: string,
-        ...options: RestOrArray<BuildersSelectMenuOption | SelectMenuComponentOptionData | APISelectMenuOption>
+        ...options: RestOrArray<BuildersSelectMenuOption | SelectMenuComponentOptionData | APISelectMenuOption | StringSelectMenuOptionBuilder>
     ) {
-        return new ActionRowBuilder<SelectMenuBuilder>().addComponents(
-            new SelectMenuBuilder()
+        return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+            new StringSelectMenuBuilder()
                 .setCustomId(id)
                 .setPlaceholder(placeholderText)
                 .addOptions(...options)

@@ -1,4 +1,5 @@
 import { CacheType, Client, Interaction, SelectMenuInteraction } from 'discord.js'
+import { TrelloCommands } from '../commands/bot/trelloCommands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { EmbedUtils } from '../utils/embedUtils'
@@ -6,18 +7,23 @@ import { EmbedUtils } from '../utils/embedUtils'
 export class SelectMenuHandler {
     private client: Client
     private messageHelper: MessageHelper
+    private trello: TrelloCommands
 
     static userInfoId = 'brukerinfoMenu'
-    constructor(client: Client, messageHelper: MessageHelper) {
+    static trelloMenuId = 'trelloMeny'
+    constructor(client: Client, messageHelper: MessageHelper, trello: TrelloCommands) {
         this.client = client
         this.messageHelper = messageHelper
+        this.trello = trello
     }
 
     handleIncomingSelectMenu(rawInteraction: Interaction<CacheType>) {
         if (rawInteraction.isStringSelectMenu()) {
-            if (rawInteraction.message.interaction.user === rawInteraction.user) {
-                const localIntr = rawInteraction as SelectMenuInteraction
-
+            const localIntr = rawInteraction as SelectMenuInteraction
+            if (localIntr.customId === SelectMenuHandler.trelloMenuId) {
+                this.handleTrelloCard(localIntr)
+                return true
+            } else if (rawInteraction.message.interaction.user === rawInteraction.user) {
                 this.handleUserInfoViewingMenu(localIntr)
                 return true
             } else {
@@ -46,5 +52,9 @@ export class SelectMenuHandler {
                 embeds: [EmbedUtils.createSimpleEmbed(`Se brukerinfo for ${selectMenu.user.username}`, `Verdien for ${value} er ${userData}`)],
             })
         }
+    }
+
+    private async handleTrelloCard(selectMenu: SelectMenuInteraction<CacheType>) {
+        this.trello.showCardInfo(selectMenu)
     }
 }
