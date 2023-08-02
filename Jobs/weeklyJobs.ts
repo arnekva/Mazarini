@@ -3,6 +3,7 @@ import moment from 'moment'
 import { PoletCommands } from '../commands/poletCommands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { DateUtils } from '../utils/dateUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 
 export class WeeklyJobs {
@@ -15,6 +16,7 @@ export class WeeklyJobs {
         this.awardWeeklyChips()
         this.checkPoletHours()
         this.resetStatuses()
+        this.deleteOldCountdowns()
         // this.logEvent()
     }
     private async awardWeeklyChips() {
@@ -57,6 +59,12 @@ export class WeeklyJobs {
     }
     private async resetStatuses() {
         DatabaseHelper.deleteSpecificPrefixValues('status')
+    }
+
+    private async deleteOldCountdowns() {
+        const countdowns = DatabaseHelper.getCountdowns()
+        countdowns.allCountdowns = countdowns.allCountdowns.filter((c) => !DateUtils.dateHasPassed(c.date))
+        DatabaseHelper.updateCountdowns(countdowns)
     }
 
     private logEvent() {

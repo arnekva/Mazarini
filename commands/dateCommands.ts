@@ -2,9 +2,10 @@ import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder } from 'di
 import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { IInteractionElement } from '../general/commands'
-import { DatabaseHelper, ferieItem } from '../helpers/databaseHelper'
+import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { ferieItem, ICountdownItem } from '../interfaces/database/databaseInterface'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { dateRegex, DateUtils, timeRegex } from '../utils/dateUtils'
 import { MentionUtils } from '../utils/mentionUtils'
@@ -14,7 +15,7 @@ const holidays = require('holidays-norway').default
 
 export interface dateValPair {
     print: string
-    date: string
+    date: string | Date
 }
 
 export class DateCommands extends AbstractCommands {
@@ -180,51 +181,47 @@ export class DateCommands extends AbstractCommands {
                     true
                 )
             }
-            const dateParams = dato.split('-')
-            const hrs = timestamp.split(':')
+            const dateTab = dato.split('-').reverse().join('-')
 
-            const cdDate = new Date(
-                Number(dateParams[2]),
-                Number(dateParams[1]) - 1,
-                Number(dateParams[0]),
-                Number(hrs[0]),
-                Number(hrs[1] ?? 0),
-                Number(hrs[2] ?? 0),
-                Number(hrs[3] ?? 0)
-            )
-            if (!DateUtils.isValidDate(cdDate)) {
-                this.messageHelper.replyToInteraction(
+            const cdDate = moment(dateTab + ' ' + timestamp + ':00')
+
+            if (!cdDate.isValid() || DateUtils.dateHasPassed(cdDate.toDate())) {
+                return this.messageHelper.replyToInteraction(
                     interaction,
-                    `  'Du har skrevet inn en ugyldig dato eller klokkeslett. <dd-mm-yyyy> <HH> <beskrivelse>. Husk at time er nødvendig, minutt og sekund frivillig (HH:MM:SS)'`
+                    `  'Du har skrevet inn en ugyldig dato eller klokkeslett. <dd-mm-yyyy> <HH> <beskrivelse>. Husk at time er nødvendig - minutt og sekund frivillig (HH:MM:SS)'.`
                 )
             }
-            DatabaseHelper.setCountdownValue(interaction.user.id, 'date', cdDate.toString())
-            DatabaseHelper.setCountdownValue(interaction.user.id, 'desc', event)
-            this.messageHelper.replyToInteraction(
-                interaction,
-                `Din countdown for *${event}* er satt til ${cdDate.toLocaleDateString('nb', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                })} ${cdDate.toLocaleTimeString('nb')}`
-            )
+            if (this.userHasMaxCountdowns(interaction.user.id)) {
+                this.messageHelper.replyToInteraction(
+                    interaction,
+                    `Du kan ha maks 3 countdowns. Bruk /countdown sett med teksten "fjern" for å fjerne alle, eller vent til de går ut.`
+                )
+            } else {
+                const cds = DatabaseHelper.getCountdowns()
+                const cdItem: ICountdownItem = {
+                    date: cdDate.toDate(),
+                    description: event,
+                    ownerId: interaction.user.id,
+                }
+                cds.allCountdowns.push(cdItem)
+                DatabaseHelper.updateCountdowns(cds)
+
+                this.messageHelper.replyToInteraction(interaction, `Din countdown for *${event}* er satt til ${cdDate.toLocaleString()}`)
+            }
         } else if (isPrinting) {
             let sendThisText = ''
-            if (Object.keys(DatabaseHelper.getAllCountdownValues()).length < 1) {
+
+            const countdowns = DatabaseHelper.getCountdowns()
+            const printValues: dateValPair[] = []
+            if (countdowns.allCountdowns.length < 1) {
                 return this.messageHelper.replyToInteraction(interaction, `Det er ingen aktive countdowns`)
             }
-            const countdownDates = DatabaseHelper.getAllCountdownValues()
-
-            const printValues: dateValPair[] = []
-
-            Object.keys(countdownDates).forEach((username) => {
-                const countdownElement = DatabaseHelper.getNonUserValue('countdown', username)
-                const daysUntil = DateUtils.getTimeTo(new Date(countdownElement.date))
-                const text = DateUtils.formatCountdownText(daysUntil, 'te ' + countdownElement.desc)
+            countdowns.allCountdowns.forEach((cd) => {
+                const daysUntil = DateUtils.getTimeTo(new Date(cd.date))
+                const text = DateUtils.formatCountdownText(daysUntil, 'te ' + cd.description)
                 printValues.push({
-                    print: `${!!text ? '\n' : ''}` + `${DateUtils.formatCountdownText(daysUntil, 'te ' + countdownElement.desc)}`,
-                    date: countdownElement.date,
+                    print: `${!!text ? '\n' : ''}` + `${DateUtils.formatCountdownText(daysUntil, 'te ' + cd.description)}`,
+                    date: cd.date,
                 })
             })
 
@@ -235,6 +232,11 @@ export class DateCommands extends AbstractCommands {
             if (!sendThisText) sendThisText = 'Det er ingen aktive countdowner'
             this.messageHelper.replyToInteraction(interaction, sendThisText)
         }
+    }
+
+    private userHasMaxCountdowns(userId: string) {
+        const cds = DatabaseHelper.getCountdowns()
+        return cds.allCountdowns.filter((c) => c.ownerId === userId).length >= 2
     }
 
     private findHolidaysInThisWeek(checkForNextWeeksMonday?: boolean) {

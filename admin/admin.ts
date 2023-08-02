@@ -5,11 +5,13 @@ import { environment } from '../client-env'
 import { IInteractionElement } from '../general/commands'
 import { LockingHandler } from '../handlers/lockingHandler'
 import { ClientHelper } from '../helpers/clientHelper'
-import { DatabaseHelper, dbPrefix, prefixList } from '../helpers/databaseHelper'
+import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { dbPrefix, prefixList } from '../interfaces/database/databaseInterface'
 import { MazariniClient } from '../main'
 import { MentionUtils } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
+
 const { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js')
 // const { exec } = require('child_process')
 // const { spawn } = require('node:child_process')

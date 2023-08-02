@@ -1,4 +1,4 @@
-import { dbPrefix, MazariniUser } from '../helpers/databaseHelper'
+import { dbPrefix } from '../interfaces/database/databaseInterface'
 
 export namespace ObjectUtils {
     export const isObjectOfTypeDbPrefix = (o: string): o is dbPrefix => {
@@ -8,7 +8,7 @@ export namespace ObjectUtils {
         return typeof o === 'object'
     }
 
-    export const isObjKey = <T>(key: PropertyKey, obj: T): key is keyof T => {
+    export const isObjKey = <T extends object>(key: PropertyKey, obj: T): key is keyof T => {
         return key in obj
     }
 }

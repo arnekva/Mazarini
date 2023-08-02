@@ -4,7 +4,6 @@ import { environment } from '../client-env'
 import { PoletCommands } from '../commands/poletCommands'
 import { ButtonHandler } from '../handlers/buttonHandler'
 import { LockingHandler } from '../handlers/lockingHandler'
-import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { DateUtils } from '../utils/dateUtils'
@@ -198,20 +197,6 @@ export class CommandRunner {
 
     runInteractionElement(runningInteraction: IInteractionElement, interaction: ChatInputCommandInteraction<CacheType>) {
         runningInteraction.command(interaction)
-    }
-
-    logIncorectCommandUsage(message: Message, messageContent: string, args: string[]) {
-        let command = message.content.split(' ')[1]
-        if (environment === 'prod') {
-            const numberOfFails = DatabaseHelper.getNonUserValue('incorrectCommand', command)
-            let newFailNum = 1
-            if (numberOfFails && Number(numberOfFails)) newFailNum = Number(numberOfFails) + 1
-            if (command === '' || command.trim() === '') command = '<tom command>'
-            this.messageHelper.sendLogMessage(
-                `Kommandoen '${command}' ble forsøkt brukt av ${message.author.username}, men den finnes ikke. Denne kommandoen er forsøkt brukt ${newFailNum} ganger`
-            )
-            DatabaseHelper.setNonUserValue('incorrectCommand', command, newFailNum.toString())
-        }
     }
 
     /** Checks for pølse, eivindpride etc. */

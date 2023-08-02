@@ -147,7 +147,7 @@ export class DateUtils {
     }
 
     static dateHasPassed(d: Date) {
-        return moment(d).isBefore(moment(), 'day') // || DateUtils.isToday(d, true)
+        return moment(d).isBefore(moment(), 'milliseconds') // || DateUtils.isToday(d, true)
     }
 
     static formatDate(d: Date) {
