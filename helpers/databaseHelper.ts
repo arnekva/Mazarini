@@ -89,15 +89,21 @@ export class DatabaseHelper {
     static getCountdowns(): MazariniCountdowns | undefined {
         try {
             const cds = JSON.parse(db.getData(`${otherFolderPreifx}/countdowns/`)) as MazariniCountdowns
-            if (!cds.allCountdowns) {
-                const objToPush = JSON.stringify({ allCountdowns: [] })
-                db.push(`${otherFolderPreifx}/countdowns/`, `${objToPush}`)
-            }
             return cds
         } catch (error: any) {
+            let data = {} as MazariniCountdowns | string
+            db.push(`${otherFolderPreifx}/countdowns/`, '', false)
+            data = db.getData(`${otherFolderPreifx}/countdowns/`)
+
+            if (!data || data == '') {
+                DatabaseHelper.updateCountdowns({ allCountdowns: [] })
+                return DatabaseHelper.getCountdowns()
+            }
+
             return undefined
         }
     }
+
     static updateCountdowns(cd: MazariniCountdowns) {
         const objToPush = JSON.stringify(cd)
         db.push(`${otherFolderPreifx}/countdowns/`, `${objToPush}`)

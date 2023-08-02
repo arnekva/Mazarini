@@ -212,8 +212,9 @@ export class DateCommands extends AbstractCommands {
             let sendThisText = ''
 
             const countdowns = DatabaseHelper.getCountdowns()
+
             const printValues: dateValPair[] = []
-            if (countdowns.allCountdowns.length < 1) {
+            if (countdowns?.allCountdowns?.length < 1) {
                 return this.messageHelper.replyToInteraction(interaction, `Det er ingen aktive countdowns`)
             }
             countdowns.allCountdowns.forEach((cd) => {
