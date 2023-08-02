@@ -93,13 +93,13 @@ export class Commands {
         this.poletCommands = new PoletCommands(this.client, this.messageHelper)
         this.linkCommands = new LinkCommands(this.client, this.messageHelper)
         this.modalHandler = new ModalHandler(this.client, this.messageHelper)
-        this.selectMenuHandler = new SelectMenuHandler(this.client, this.messageHelper)
         this.trelloCommands = new TrelloCommands(this.client, this.messageHelper)
         this.textCommands = new TextCommands(this.client, this.messageHelper)
         this.redBlackCommands = new RedBlackCommands(this.client, this.messageHelper)
         this.redBlackButtonHandler = new RedBlackButtonHandler(this.client, this.messageHelper, this.redBlackCommands)
         this.buttonHandler = new ButtonHandler(this.client, this.messageHelper, this.redBlackButtonHandler, this.drinksCommands, this.testCommands)
         this.pollCommands = new PollCommands(this.client, this.messageHelper)
+        this.selectMenuHandler = new SelectMenuHandler(this.client, this.messageHelper, this.trelloCommands)
     }
 
     getAllInteractionCommands() {
