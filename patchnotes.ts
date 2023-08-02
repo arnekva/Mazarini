@@ -4,16 +4,13 @@ import { IInteractionElement } from './general/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '11.4.1'
+    public static readonly currentVersion = '11.4.2'
     public static readonly nextVersion = 'Backlog'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
-    public static readonly currentPatchNotes: string = `* Flytter logging fra  ${MentionUtils.mentionChannel(
-        '810832760364859432'
-    )} til ${MentionUtils.mentionChannel(MentionUtils.CHANNEL_IDs.ACTION_LOG)}`
-
+    public static readonly currentPatchNotes: string = `* Diverse feilfikser`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 

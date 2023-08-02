@@ -115,7 +115,6 @@ export class DateCommands extends AbstractCommands {
                     if (!DateUtils.dateHasPassed(date2)) {
                         /**
                          * TODO: This has to be refactored, it's basically the same codeblock twice
-                         * ISUE: Doesnt work if someone's vacation ends today (dateHasPassed is updated to again check if date is today)
                          */
                         if (DateUtils.dateHasPassed(date1)) {
                             const timeRemaining = DateUtils.getTimeTo(date2)

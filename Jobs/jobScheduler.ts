@@ -1,7 +1,7 @@
-import { MessageHelper } from "../helpers/messageHelper"
-import { DailyJobs } from "./dailyJobs"
-import { DayJob } from "./dayJobs"
-import { WeeklyJobs } from "./weeklyJobs"
+import { MessageHelper } from '../helpers/messageHelper'
+import { DailyJobs } from './dailyJobs'
+import { DayJob } from './dayJobs'
+import { WeeklyJobs } from './weeklyJobs'
 
 const schedule = require('node-schedule')
 export class JobScheduler {
