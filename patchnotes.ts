@@ -11,11 +11,11 @@ export class PatchNotes extends AbstractCommands {
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
     public static readonly currentPatchNotes: string =
-        `* Flere meldinger som botten sender er nå gjørt silent, blant annet "Hæ, pølse?". Det betyr at du ikke vil få lydnotifikasjoner for disse meldingene lenger.` +
-        `* Adminfunksjonen /send autofyller nå tekstfeltet for channelId med id-en til kanalen du trigget kommandoen fra` +
-        `* MessageHelper.sendMessage() har nå et nytt options param hvor du kan sette silent message m.m.` +
-        `* Fikset en feil i /botstats som gjorde at antall meldinger fra botten ble doblet` +
-        `* Fikset formatteringen på /spotify når den henter data fra Last.fm`
+        `\n* Flere meldinger som botten sender er nå gjørt silent, blant annet "Hæ, pølse?". Det betyr at du ikke vil få lydnotifikasjoner for disse meldingene lenger.` +
+        `\n* Adminfunksjonen /send autofyller nå tekstfeltet for channelId med id-en til kanalen du trigget kommandoen fra` +
+        `\n* MessageHelper.sendMessage() har nå et nytt options param hvor du kan sette silent message m.m.` +
+        `\n* Fikset en feil i /botstats som gjorde at antall meldinger fra botten ble doblet` +
+        `\n* Fikset formatteringen på /spotify når den henter data fra Last.fm`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
