@@ -6,7 +6,6 @@ import {
     ChatInputCommandInteraction,
     Client,
     EmbedBuilder,
-    Message,
     SelectMenuComponentOptionData,
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
@@ -24,23 +23,6 @@ import { UserUtils } from '../utils/userUtils'
 export class UserCommands extends AbstractCommands {
     constructor(client: Client, messageHelper: MessageHelper) {
         super(client, messageHelper)
-    }
-
-    private getWarnings(message: Message, content: string, args: string[]) {
-        const userNameToFind = args.join(' ')
-        const userExists = UserUtils.findUserByUsername(userNameToFind, message)
-        const user = DatabaseHelper.getUser(userExists?.id ?? message.author.id)
-        const warningCounter = user.warningCounter
-        if (userExists)
-            this.messageHelper.sendMessage(
-                message.channelId,
-                `${userExists?.username} har ${warningCounter} ${Number(warningCounter) === 1 ? 'advarsel' : 'advarsler'}`
-            )
-        else
-            this.messageHelper.sendMessage(
-                message.channelId,
-                `${message.author.username} har ${warningCounter} ${warningCounter === 1 ? 'advarsel' : 'advarsler'}`
-            )
     }
 
     private async roleAssignment(interaction: ChatInputCommandInteraction<CacheType>) {

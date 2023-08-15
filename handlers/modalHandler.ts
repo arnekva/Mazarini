@@ -30,7 +30,7 @@ export class ModalHandler {
         const text = modalInteraction.fields.getTextInputValue('messageInput')
 
         this.messageHelper.sendMessage(chatID, text)
-        this.messageHelper.replyToInteraction(modalInteraction, `Meldingen <*${text}*> ble sent til kanalen med ID <*${chatID}*>`, true)
+        this.messageHelper.replyToInteraction(modalInteraction, `Meldingen *${text}* ble sent til ${MentionUtils.mentionChannel(chatID)}`, true)
         this.messageHelper.sendLogMessage(
             `${modalInteraction.user.username} sendte en melding som botten til kanalen ${MentionUtils.mentionChannel(chatID)} med innholdet '*${text}*'`
         )

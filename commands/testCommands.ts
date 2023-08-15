@@ -8,19 +8,12 @@ import {
     Client,
     EmbedBuilder,
     Message,
-    SelectMenuComponentOptionData,
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { IInteractionElement } from '../general/commands'
 import { ButtonHandler } from '../handlers/buttonHandler'
-import { SelectMenuHandler } from '../handlers/selectMenuHandler'
-import { ActionMenuHelper } from '../helpers/actionMenuHelper'
-import { DatabaseHelper } from '../helpers/databaseHelper'
-import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { EmbedUtils } from '../utils/embedUtils'
-import { RedBlackButtonHandler } from './drinks/redBlack/redBlackButtonHandler'
-import { gtButtonRow } from './drinks/redBlack/redBlackButtonRows'
+import { MentionUtils } from '../utils/mentionUtils'
 
 const defaultButtonRow = new ActionRowBuilder<ButtonBuilder>()
 defaultButtonRow.addComponents(
@@ -51,16 +44,20 @@ export class TestCommands extends AbstractCommands {
     }
 
     public async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        
+        this.messageHelper.sendMessage(
+            interaction.channelId,
+            `${MentionUtils.mentionUser('245607554254766081')} asdsadasdsd\`\`\`Test\`\`\` saddasd https://www.vg.no/`,
+            {
+                noMentions: true,
+                sendAsSilent: true,
+                supressEmbeds: false,
+            }
+        )
     }
 
-    public async test2(interaction: ChatInputCommandInteraction<CacheType>) {
-        
-    }
+    public async test2(interaction: ChatInputCommandInteraction<CacheType>) {}
 
-    public async test3() {
-
-    }
+    public async test3() {}
 
     //Redigerer eksisterende embed hvis det er en knapp interaction, sender ny embed hvis ikke
     private async replyToInteraction(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {

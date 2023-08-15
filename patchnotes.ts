@@ -4,14 +4,17 @@ import { IInteractionElement } from './general/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '11.5.0'
+    public static readonly currentVersion = '11.6.0'
     public static readonly nextVersion = 'Backlog'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
     public static readonly currentPatchNotes: string =
-        `* Du kan nå ha opp til 3 countdowns` + `* WeeklyJobs sletter nå countdowns som har passert` + `* Ryddet opp i DatabaseHelper`
+        `* Flere meldinger som botten sender er nå gjørt silent, blant annet "Hæ, pølse?". Det betyr at du ikke vil få lydnotifikasjoner for disse meldingene lenger.` +
+        `* Adminfunksjonen /send autofyller nå tekstfeltet for channelId med id-en til kanalen du trigget kommandoen fra` +
+        `* MessageHelper.sendMessage() har nå et nytt options param hvor du kan sette silent message m.m.` +
+        `* Fikset en feil i /botstats som gjorde at antall meldinger fra botten ble doblet`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 

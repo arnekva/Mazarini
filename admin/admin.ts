@@ -159,6 +159,8 @@ export class Admin extends AbstractCommands {
                 .setCustomId('channelID')
                 // The label is the prompt the user sees for this input
                 .setLabel('ID-en til kanalen meldingen skal sendes til')
+                .setPlaceholder(`${interaction.channelId}`)
+                .setValue(`${interaction.channelId}`)
                 // Short means only a single line of text
                 .setStyle(TextInputStyle.Short)
 
@@ -234,6 +236,7 @@ export class Admin extends AbstractCommands {
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     if (Admin.isAuthorAdmin(rawInteraction.member)) {
                         this.buildSendModal(rawInteraction)
+                        
                         this.messageHelper.sendLogMessage(
                             `${rawInteraction.user.username} trigget 'send' fra ${MentionUtils.mentionChannel(rawInteraction?.channelId)}.`
                         )
@@ -295,6 +298,7 @@ export class Admin extends AbstractCommands {
     }
 
     static isAuthorAdmin(member: GuildMember | APIInteractionGuildMember | null | undefined) {
+        if (environment === 'dev') return true
         if (!member || !member?.roles) return false
         const cache = (member as GuildMember).roles.cache
         if (!cache) return false

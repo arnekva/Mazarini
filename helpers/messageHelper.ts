@@ -4,6 +4,7 @@ import {
     APIActionRowComponent,
     APIEmbedField,
     APIMessageActionRowComponent,
+    BitFieldResolvable,
     ButtonBuilder,
     ButtonInteraction,
     CacheType,
@@ -13,6 +14,9 @@ import {
     EmbedBuilder,
     JSONEncodable,
     Message,
+    MessageCreateOptions,
+    MessageFlags,
+    MessageFlagsString,
     ModalSubmitInteraction,
     RepliableInteraction,
     RestOrArray,
@@ -34,6 +38,15 @@ export type thumbsReact = 'up' | 'down'
 interface DMParams {
     userID?: string
     username?: string
+}
+
+interface IMessageOptions {
+    /** Set this to true to be able to mention users without notifying them */
+    noMentions?: boolean
+    /** Settings this to true will send the message without users getting a sound notification. A new message icon (circle) will still appear */
+    sendAsSilent?: boolean
+    /** This will allow you to send links without an embed preview automatically showing. */
+    supressEmbeds?: boolean
 }
 export class MessageHelper {
     private client: Client
@@ -70,9 +83,9 @@ export class MessageHelper {
             let msgInfo = msg ? `Sendte en separat melding i stedet for interaksjonssvar.` : `Klarte heller ikke sende separat melding som svar`
             if (environment !== 'dev') {
                 this.sendLogMessage(
-                    `Klarte ikke svare på en interaction. ${interaction.user.username} prøvde å bruke ${
+                    `${interaction.user.username} prøvde å bruke ${
                         interaction.isChatInputCommand() ? interaction.commandName : '<ikke command>'
-                    } i kanalen ${MentionUtils.mentionChannel(interaction?.channelId)}. \n${msgInfo}`
+                    } i kanalen ${MentionUtils.mentionChannel(interaction?.channelId)}. \n${msgInfo}, men den feilet.`
                 )
             }
         }
@@ -104,7 +117,7 @@ export class MessageHelper {
     }
 
     /** Sends a message and returns the sent message (as a promise) */
-    sendMessage(channelId: string, message: string, noMentions?: boolean) {
+    sendMessage(channelId: string, message: string, options?: IMessageOptions) {
         if (!this.checkForEmptyMessage(message)) {
             return this.sendLogMessageEmptyMessage('En melding som ble forsøkt sendt var tom', channelId)
         }
@@ -115,25 +128,33 @@ export class MessageHelper {
             if (message.length >= 2000) {
                 const msgArr = message.match(/[\s\S]{1,1800}/g)
                 msgArr.forEach((msg, ind) => {
+                    MazariniClient.numMessagesFromBot++
                     channel.send(msg)
                 })
                 return undefined
             } else {
-                if (noMentions) {
-                    channel.send({
-                        content: message,
-                        options: {
-                            allowedMentions: {
-                                roles: [],
-                                users: [],
-                                repliedUser: true,
-                            },
-                        },
-                    })
+                const messageOptions = { content: message } as MessageCreateOptions
+                if (options?.noMentions) {
+                    messageOptions.allowedMentions = {
+                        roles: [],
+                        users: [],
+                        repliedUser: true,
+                    }
                 }
-                return channel.send({
-                    content: message,
-                })
+                const flags = [] as BitFieldResolvable<
+                    Extract<MessageFlagsString, 'SuppressEmbeds' | 'SuppressNotifications'>,
+                    MessageFlags.SuppressEmbeds | MessageFlags.SuppressNotifications
+                >[]
+
+                if (options?.sendAsSilent) {
+                    flags.push('SuppressNotifications')
+                }
+                if (options?.supressEmbeds) {
+                    flags.push('SuppressEmbeds')
+                }
+                messageOptions.flags = flags
+                MazariniClient.numMessagesFromBot++
+                return channel.send(messageOptions)
             }
         }
         return undefined
@@ -167,8 +188,27 @@ export class MessageHelper {
     }
 
     /** Reply to a given message */
-    replyToMessage(message: Message, content: string) {
-        message.reply(content)
+    replyToMessage(message: Message, content: string, options?: IMessageOptions) {
+        const flags = [] as BitFieldResolvable<
+            Extract<MessageFlagsString, 'SuppressEmbeds' | 'SuppressNotifications'>,
+            MessageFlags.SuppressEmbeds | MessageFlags.SuppressNotifications
+        >[]
+        const messageOptions = { content: content } as MessageCreateOptions
+        if (options?.noMentions) {
+            messageOptions.allowedMentions = {
+                roles: [],
+                users: [],
+                repliedUser: true,
+            }
+        }
+        if (options?.sendAsSilent) {
+            flags.push('SuppressNotifications')
+        }
+        if (options?.supressEmbeds) {
+            flags.push('SuppressEmbeds')
+        }
+        messageOptions.flags = flags
+        message.reply(messageOptions)
     }
 
     async findMessageById(id: string, onErr?: () => void): Promise<Message<boolean> | undefined> {

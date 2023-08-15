@@ -15,8 +15,7 @@ export class Meme extends AbstractCommands {
         if (meme == 'anakin') return await this.createMeme('322841258', interaction)
         if (meme == 'timmy') return await this.createMeme('26433458', interaction)
         if (meme == 'sjosyk') {
-            this.messageHelper.replyToInteraction(interaction, 'Fant memen din bro', true)
-            return await this.messageHelper.sendMessage(interaction?.channelId, 'https://i.imgur.com/ka7SslJ.jpg')
+            return this.messageHelper.replyToInteraction(interaction, 'https://i.imgur.com/ka7SslJ.jpg')
         }
     }
 
