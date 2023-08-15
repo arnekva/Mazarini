@@ -234,13 +234,11 @@ export class Admin extends AbstractCommands {
             {
                 commandName: 'send',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    if (Admin.isAuthorAdmin(rawInteraction.member)) {
-                        this.buildSendModal(rawInteraction)
-                        
-                        this.messageHelper.sendLogMessage(
-                            `${rawInteraction.user.username} trigget 'send' fra ${MentionUtils.mentionChannel(rawInteraction?.channelId)}.`
-                        )
-                    } else rawInteraction.reply({ content: 'Du har ikke rettighetene til å gjøre dette', ephemeral: true })
+                    this.buildSendModal(rawInteraction)
+
+                    this.messageHelper.sendLogMessage(
+                        `${rawInteraction.user.username} trigget 'send' fra ${MentionUtils.mentionChannel(rawInteraction?.channelId)}.`
+                    )
                 },
             },
             {

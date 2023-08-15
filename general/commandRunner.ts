@@ -218,7 +218,7 @@ export class CommandRunner {
 
             if (hasHelg) {
                 const val = await this.commands.dateFunc.checkForHelg()
-                this.messageHelper.sendMessage(message.channelId, val, { sendAsSilent: true })
+                this.messageHelper.sendMessage(message.channelId, val, {sendAsSilent: true})
             }
 
             if (message.attachments) {
