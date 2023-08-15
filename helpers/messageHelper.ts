@@ -85,7 +85,7 @@ export class MessageHelper {
                 this.sendLogMessage(
                     `${interaction.user.username} prøvde å bruke ${
                         interaction.isChatInputCommand() ? interaction.commandName : '<ikke command>'
-                    } i kanalen ${MentionUtils.mentionChannel(interaction?.channelId)}. \n${msgInfo}, men den feilet.`
+                    } i kanalen ${MentionUtils.mentionChannel(interaction?.channelId)}, men den feilet. \n${msgInfo}`
                 )
             }
         }
