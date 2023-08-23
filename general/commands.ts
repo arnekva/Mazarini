@@ -25,26 +25,23 @@ import { Weather } from '../commands/weatherCommands'
 import { MessageHelper } from '../helpers/messageHelper'
 import { PatchNotes } from '../patchnotes'
 
+export interface IInteractionCommand<T> {
+    commandName: string
+    command: (rawInteraction: T) => void
+}
+
 export interface IInteractionElement {
-    /** Name of command */
-    commandName: string
-    /** Function to be run */
-    command: (rawMessage: ChatInputCommandInteraction<CacheType>) => void
-}
-
-export interface IButtonInteractionElement {
-    commandName: string
-    command: (rawMessage: ButtonInteraction<CacheType>) => void
-}
-
-export interface IModalInteractionElement {
-    commandName: string
-    command: (rawMessage: ModalSubmitInteraction<CacheType>) => void
-}
-
-export interface ISelectMenuInteractionElement {
-    commandName: string
-    command: (rawMessage: StringSelectMenuInteraction<CacheType>) => void
+    /** Holds the list over all available commands */
+    commands: {
+        /** All interactions triggered by a chat input, i.e. slash commands */
+        interactionCommands?: IInteractionCommand<ChatInputCommandInteraction<CacheType>>[]
+        /** All interactions triggered by a button press */
+        buttonInteractionComands?: IInteractionCommand<ButtonInteraction<CacheType>>[]
+        /** All interactions triggered by a select menu (dropdown) */
+        selectMenuInteractionCommands?: IInteractionCommand<StringSelectMenuInteraction<CacheType>>[]
+        /** ALl interactions triggered by a modal dialog */
+        modalInteractionCommands?: IInteractionCommand<ModalSubmitInteraction<CacheType>>[]
+    }
 }
 
 export class Commands {
@@ -107,59 +104,55 @@ export class Commands {
 
     getAllInteractionCommands() {
         return [
-            ...this.gameCommands.getAllInteractions(),
-            ...this.spinner.getAllInteractions(),
-            ...this.jokeCommands.getAllInteractions(),
-            ...this.adminCommands.getAllInteractions(),
-            ...this.gamblingCommands.getAllInteractions(),
-            ...this.dateCommands.getAllInteractions(),
-            ...this.warzoneCommands.getAllInteractions(),
-            ...this.patchNotes.getAllInteractions(),
-            ...this.spotifyCommands.getAllInteractions(),
-            ...this.testCommands.getAllInteractions(),
-            ...this.musicCommands.getAllInteractions(),
-            ...this.memeCommands.getAllInteractions(),
-            ...this.userCommands.getAllInteractions(),
-            ...this.pollCommands.getAllInteractions(),
-            ...this.weatherCommands.getAllInteractions(),
-            ...this.soundCommands.getAllInteractions(),
-            ...this.cardCommands.getAllInteractions(),
-            ...this.drinksCommands.getAllInteractions(),
-            ...this.nameCommands.getAllInteractions(),
-            ...this.poletCommands.getAllInteractions(),
-            ...this.linkCommands.getAllInteractions(),
-            ...this.textCommands.getAllInteractions(),
-            ...this.redBlackCommands.getAllInteractions(),
-            ...this.trelloCommands.getAllInteractions(),
+            this.gameCommands.getAllInteractions(),
+            this.spinner.getAllInteractions(),
+            this.jokeCommands.getAllInteractions(),
+            this.adminCommands.getAllInteractions(),
+            this.gamblingCommands.getAllInteractions(),
+            this.dateCommands.getAllInteractions(),
+            this.warzoneCommands.getAllInteractions(),
+            this.patchNotes.getAllInteractions(),
+            this.spotifyCommands.getAllInteractions(),
+            this.testCommands.getAllInteractions(),
+            this.musicCommands.getAllInteractions(),
+            this.memeCommands.getAllInteractions(),
+            this.userCommands.getAllInteractions(),
+            this.pollCommands.getAllInteractions(),
+            this.weatherCommands.getAllInteractions(),
+            this.soundCommands.getAllInteractions(),
+            this.cardCommands.getAllInteractions(),
+            this.drinksCommands.getAllInteractions(),
+            this.nameCommands.getAllInteractions(),
+            this.poletCommands.getAllInteractions(),
+            this.linkCommands.getAllInteractions(),
+            this.textCommands.getAllInteractions(),
+            this.redBlackCommands.getAllInteractions(),
+            this.trelloCommands.getAllInteractions(),
         ]
     }
 
-    getAllButtonCommands() {
-        return [
-            ...this.trelloCommands.getAllButtonInteractions(),
-            ...this.testCommands.getAllButtonInteractions(),
-            ...this.drinksCommands.getAllButtonInteractions(),
-            ...this.poletCommands.getAllButtonInteractions(),
-            ...this.gamblingCommands.getAllButtonInteractions(),
-            ...this.redBlackCommands.getAllButtonInteractions(),
-            ...this.userCommands.getAllButtonInteractions(),
-        ]
+    getAllTextCommands() {
+        return this.getAllInteractionCommands()
+            .flatMap((c) => c.commands.interactionCommands)
+            .filter((c) => !!c)
     }
 
     getAllModalCommands() {
-        return [
-            ...this.trelloCommands.getAllModalInteractions(),
-            ...this.testCommands.getAllModalInteractions(),
-            ...this.adminCommands.getAllModalInteractions(),
-        ]
+        return this.getAllInteractionCommands()
+            .flatMap((c) => c.commands.modalInteractionCommands)
+            .filter((c) => !!c)
+    }
+
+    getAllButtonCommands() {
+        return this.getAllInteractionCommands()
+            .flatMap((c) => c.commands.buttonInteractionComands)
+            .filter((c) => !!c)
     }
 
     getAllSelectMenuCommands() {
-        return [
-            ...this.trelloCommands.getAllSelectMenuInteractions(),
-            ...this.testCommands.getAllSelectMenuInteractions(),
-            ...this.userCommands.getAllSelectMenuInteractions(),
-        ]
+        return this.getAllInteractionCommands()
+            .flatMap((c) => c.commands.selectMenuInteractionCommands)
+            .filter((c) => !!c)
     }
 
     get dateFunc() {

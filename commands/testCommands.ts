@@ -8,10 +8,11 @@ import {
     Client,
     EmbedBuilder,
     Message,
-    ModalSubmitInteraction, StringSelectMenuInteraction
+    ModalSubmitInteraction,
+    StringSelectMenuInteraction,
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { IButtonInteractionElement, IInteractionElement, IModalInteractionElement, ISelectMenuInteractionElement } from '../general/commands'
+import { IInteractionElement } from '../general/commands'
 import { MessageHelper } from '../helpers/messageHelper'
 
 const defaultButtonRow = new ActionRowBuilder<ButtonBuilder>()
@@ -59,7 +60,7 @@ export class TestCommands extends AbstractCommands {
     }
 
     private async testModalSubmit(interaction: ModalSubmitInteraction<CacheType>) {
-        const value = interaction.fields.getTextInputValue('someCustomFieldId');
+        const value = interaction.fields.getTextInputValue('someCustomFieldId')
         // Kode
         interaction.deferUpdate()
     }
@@ -120,48 +121,42 @@ export class TestCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'test',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.testSwitch(rawInteraction)
-                },
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'test',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.testSwitch(rawInteraction)
+                        },
+                    },
+                ],
+                buttonInteractionComands: [
+                    {
+                        commandName: 'TEST_BUTTON_1',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.testButton(rawInteraction)
+                        },
+                    },
+                ],
+                modalInteractionCommands: [
+                    {
+                        commandName: 'TEST_MODAL_1',
+                        command: (rawInteraction: ModalSubmitInteraction<CacheType>) => {
+                            this.testModalSubmit(rawInteraction)
+                        },
+                    },
+                ],
+                selectMenuInteractionCommands: [
+                    {
+                        commandName: 'TEST_SELECT_MENU_1',
+                        command: (rawInteraction: StringSelectMenuInteraction<CacheType>) => {
+                            this.testSelectMenu(rawInteraction)
+                        },
+                    },
+                ],
             },
-        ]
+        }
     }
-
-    getAllButtonInteractions(): IButtonInteractionElement[] {
-        return [
-            {
-                commandName: 'TEST_BUTTON_1',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.testButton(rawInteraction)
-                },
-            },
-        ]
-    }
-
-    getAllModalInteractions(): IModalInteractionElement[] {
-        return [
-            {
-                commandName: 'TEST_MODAL_1',
-                command: (rawInteraction: ModalSubmitInteraction<CacheType>) => {
-                    this.testModalSubmit(rawInteraction)
-                },
-            },
-        ]
-    }
-
-    getAllSelectMenuInteractions(): ISelectMenuInteractionElement[] {
-        return [
-            {
-                commandName: 'TEST_SELECT_MENU_1',
-                command: (rawInteraction: StringSelectMenuInteraction<CacheType>) => {
-                    this.testSelectMenu(rawInteraction)
-                },
-            },
-        ]
-    }
-
 }

@@ -2,7 +2,7 @@ import { ButtonInteraction, CacheType, ChatInputCommandInteraction, Client, Embe
 import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { vinmonopoletKey } from '../client-env'
-import { IButtonInteractionElement, IInteractionElement, IModalInteractionElement, ISelectMenuInteractionElement } from '../general/commands'
+import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { Languages } from '../helpers/languageHelpers'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -216,33 +216,26 @@ export class PoletCommands extends AbstractCommands {
         return 'Stengt'
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'vinmonopolet',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.handleVinmonopoletCommand(rawInteraction)
-                },
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'vinmonopolet',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.handleVinmonopoletCommand(rawInteraction)
+                        },
+                    },
+                ],
+                buttonInteractionComands: [
+                    {
+                        commandName: 'POLET_STOCK',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.getProductStockForUser(rawInteraction)
+                        },
+                    },
+                ],
             },
-        ]
-    }
-
-    getAllButtonInteractions(): IButtonInteractionElement[] {
-        return [
-            {
-                commandName: 'POLET_STOCK',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.getProductStockForUser(rawInteraction)
-                },
-            },
-        ]
-    }
-
-    getAllModalInteractions(): IModalInteractionElement[] {
-        return []
-    }
-
-    getAllSelectMenuInteractions(): ISelectMenuInteractionElement[] {
-        return []
+        }
     }
 }

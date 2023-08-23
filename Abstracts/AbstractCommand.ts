@@ -12,5 +12,5 @@ export abstract class AbstractCommands {
         this.messageHelper = messageHelper
     }
     /** Get all interaction commands */
-    abstract getAllInteractions(): IInteractionElement[]
+    abstract getAllInteractions(): IInteractionElement
 }

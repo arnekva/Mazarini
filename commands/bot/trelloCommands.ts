@@ -1,6 +1,22 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, Client, Message, ModalBuilder, ModalSubmitInteraction, StringSelectMenuBuilder, StringSelectMenuInteraction, StringSelectMenuOptionBuilder, TextInputBuilder, TextInputStyle } from 'discord.js'
+import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonInteraction,
+    ButtonStyle,
+    CacheType,
+    ChatInputCommandInteraction,
+    Client,
+    Message,
+    ModalBuilder,
+    ModalSubmitInteraction,
+    StringSelectMenuBuilder,
+    StringSelectMenuInteraction,
+    StringSelectMenuOptionBuilder,
+    TextInputBuilder,
+    TextInputStyle,
+} from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
-import { IButtonInteractionElement, IInteractionElement, IModalInteractionElement, ISelectMenuInteractionElement } from '../../general/commands'
+import { IInteractionElement } from '../../general/commands'
 import { ActionMenuHelper } from '../../helpers/actionMenuHelper'
 import { MessageHelper } from '../../helpers/messageHelper'
 import { EmbedUtils } from '../../utils/embedUtils'
@@ -8,7 +24,6 @@ import { TrelloAPI } from './trelloAPI'
 import { INewTrelloCard, ITrelloCard, ITrelloLabel, ITrelloList } from './trelloInterfaces'
 
 export class TrelloCommands extends AbstractCommands {
-
     static baseUrl = `https://api.trello.com/1/`
     static boardId = '6128df3901a08020e598cd85'
     static backLogId = '6128df3901a08020e598cd86'
@@ -33,17 +48,16 @@ export class TrelloCommands extends AbstractCommands {
         this.cards = await TrelloAPI.retrieveTrelloCards()
         this.labels = await TrelloAPI.retrieveTrelloLabels()
         this.lists = await TrelloAPI.retrieveTrelloLists()
-    } 
+    }
 
     private async getTrelloDropdown(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
         const options: StringSelectMenuOptionBuilder[] = new Array<StringSelectMenuOptionBuilder>()
-        Array.from(this.cards.values()).slice(0, 24).forEach((card) => {   
-            const name = card.name.length > 50 ? card.name.substring(0,47) + '...' : card.name
-            options.push(new StringSelectMenuOptionBuilder()
-            .setLabel(name)
-            .setDescription(' ')
-            .setValue(card.id),
-        )})
+        Array.from(this.cards.values())
+            .slice(0, 24)
+            .forEach((card) => {
+                const name = card.name.length > 50 ? card.name.substring(0, 47) + '...' : card.name
+                options.push(new StringSelectMenuOptionBuilder().setLabel(name).setDescription(' ').setValue(card.id))
+            })
 
         this.menu = ActionMenuHelper.createSelectMenu('TrelloMenu', 'Velg trello-kort', options)
         let embed = EmbedUtils.createSimpleEmbed(`Se informasjon om trello-kort`, 'Ingen kort valgt')
@@ -51,18 +65,17 @@ export class TrelloCommands extends AbstractCommands {
             if (this.currentCard) {
                 const trelloCard = this.cards.get(this.currentCard.id)
                 if (trelloCard) {
-                    const name = trelloCard.name.length > 50 ? trelloCard.name.substring(0,47) + '...' : trelloCard.name
+                    const name = trelloCard.name.length > 50 ? trelloCard.name.substring(0, 47) + '...' : trelloCard.name
                     this.currentCard = trelloCard
-                    const labelString = trelloCard.labels.map((label) => label.name).join(", ")
+                    const labelString = trelloCard.labels.map((label) => label.name).join(', ')
                     embed = EmbedUtils.createSimpleEmbed(`${name}`, `${trelloCard.desc}\n\nLabels: ${labelString}`)
                 }
             }
             await interaction.update({
                 embeds: [embed],
-                components: [this.menu,trelloButtons],
+                components: [this.menu, trelloButtons],
             })
         } else {
-            
             this.messageHelper.replyToInteraction(interaction, embed, false, false, [this.menu, newTrelloButton])
         }
     }
@@ -70,74 +83,68 @@ export class TrelloCommands extends AbstractCommands {
     public async showCardInfo(selectMenu: StringSelectMenuInteraction<CacheType>) {
         const value = selectMenu.values[0]
         const trelloCard = this.cards.get(value)
-        const name = trelloCard.name.length > 50 ? trelloCard.name.substring(0,47) + '...' : trelloCard.name
+        const name = trelloCard.name.length > 50 ? trelloCard.name.substring(0, 47) + '...' : trelloCard.name
         this.currentCard = trelloCard
-        
-        const labelString = trelloCard.labels.map((label) => label.name).join(", ")
+
+        const labelString = trelloCard.labels.map((label) => label.name).join(', ')
         await selectMenu.update({
             embeds: [EmbedUtils.createSimpleEmbed(`${name}`, `${trelloCard.desc}\n\nLabels: ${labelString}`)],
-            components: [this.menu,trelloButtons],
+            components: [this.menu, trelloButtons],
         })
     }
 
     private async createModal(interaction: ButtonInteraction<CacheType>, newCard: boolean) {
-        const customId = newCard ? 'TrelloModalNew' : ('TrelloModalEdit;' + this.currentCard.id)
-        const modal = new ModalBuilder()
-			.setCustomId(customId)
-			.setTitle('TrelloCards');
-        
-        const trelloCardTitle = new TextInputBuilder()
-			.setCustomId('trelloCardTitle')
-			.setLabel("Tittel")
-			.setStyle(TextInputStyle.Short)
-            if (!newCard) trelloCardTitle.setValue(this.currentCard.name)
+        const customId = newCard ? 'TrelloModalNew' : 'TrelloModalEdit;' + this.currentCard.id
+        const modal = new ModalBuilder().setCustomId(customId).setTitle('TrelloCards')
 
-		const trelloCardDescription = new TextInputBuilder()
-			.setCustomId('trelloCardDescription')
-			.setLabel("Beskrivelse")
+        const trelloCardTitle = new TextInputBuilder().setCustomId('trelloCardTitle').setLabel('Tittel').setStyle(TextInputStyle.Short)
+        if (!newCard) trelloCardTitle.setValue(this.currentCard.name)
+
+        const trelloCardDescription = new TextInputBuilder()
+            .setCustomId('trelloCardDescription')
+            .setLabel('Beskrivelse')
             .setRequired(false)
-			.setStyle(TextInputStyle.Paragraph)
-            if(!newCard) trelloCardDescription.setValue(this.currentCard.desc)
+            .setStyle(TextInputStyle.Paragraph)
+        if (!newCard) trelloCardDescription.setValue(this.currentCard.desc)
 
         const trelloCardLabels = new TextInputBuilder()
-			.setCustomId('trelloCardLabels')
-			.setLabel("Labels (komma-separert)")
+            .setCustomId('trelloCardLabels')
+            .setLabel('Labels (komma-separert)')
             .setRequired(false)
-			.setStyle(TextInputStyle.Short)
-            if (!newCard) trelloCardLabels.setValue(labelsToString(this.currentCard.labels, true));
+            .setStyle(TextInputStyle.Short)
+        if (!newCard) trelloCardLabels.setValue(labelsToString(this.currentCard.labels, true))
 
         const availableLabels = new TextInputBuilder()
-			.setCustomId('availableLabels')
-			.setLabel("Tilgjengelige labels (ikke rediger)")
+            .setCustomId('availableLabels')
+            .setLabel('Tilgjengelige labels (ikke rediger)')
             .setRequired(false)
-			.setStyle(TextInputStyle.Paragraph)
-            .setValue(labelsToString(Array.from(this.labels.values()), false));
+            .setStyle(TextInputStyle.Paragraph)
+            .setValue(labelsToString(Array.from(this.labels.values()), false))
 
         const trelloCardComment = new TextInputBuilder()
-			.setCustomId('trelloCardComment')
-			.setLabel("Legg til kommentar")
+            .setCustomId('trelloCardComment')
+            .setLabel('Legg til kommentar')
             .setRequired(false)
-			.setStyle(TextInputStyle.Paragraph);
+            .setStyle(TextInputStyle.Paragraph)
 
-		const firstActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(trelloCardTitle);
-		const secondActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(trelloCardDescription);
-        const thirdActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(trelloCardLabels);
-        const fourthActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(availableLabels);
-        const fifthActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(trelloCardComment);
+        const firstActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(trelloCardTitle)
+        const secondActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(trelloCardDescription)
+        const thirdActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(trelloCardLabels)
+        const fourthActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(availableLabels)
+        const fifthActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(trelloCardComment)
 
-		modal.addComponents(firstActionRow, secondActionRow, thirdActionRow, fourthActionRow, fifthActionRow);
+        modal.addComponents(firstActionRow, secondActionRow, thirdActionRow, fourthActionRow, fifthActionRow)
 
-		await interaction.showModal(modal);
+        await interaction.showModal(modal)
     }
 
     private async moveCard(interaction: ButtonInteraction<CacheType>) {
         const options: StringSelectMenuOptionBuilder[] = new Array<StringSelectMenuOptionBuilder>()
-        Array.from(this.lists.values()).slice(0, 24).forEach((list) => {   
-            options.push(new StringSelectMenuOptionBuilder()
-            .setLabel(list.name)
-            .setDescription(' ')
-            .setValue(list.id),
-        )})
+        Array.from(this.lists.values())
+            .slice(0, 24)
+            .forEach((list) => {
+                options.push(new StringSelectMenuOptionBuilder().setLabel(list.name).setDescription(' ').setValue(list.id))
+            })
 
         this.moveMenu = ActionMenuHelper.createSelectMenu('TrelloMoveMenu;' + this.currentCard.id, 'Flytt til ...', options)
         let embed = EmbedUtils.createSimpleEmbed(`Flytt kort til annen liste`, 'Ingen liste valgt')
@@ -146,15 +153,15 @@ export class TrelloCommands extends AbstractCommands {
     }
 
     private async handleListSelected(selectMenu: StringSelectMenuInteraction<CacheType>) {
-        const cardToMoveId = selectMenu.customId.replace('TrelloMoveMenu;','')
+        const cardToMoveId = selectMenu.customId.replace('TrelloMoveMenu;', '')
         const cardToMove = this.cards.get(cardToMoveId)
         const value = selectMenu.values[0]
         const newList = this.lists.get(value)
         const oldList = this.lists.get(cardToMove.idList)
-        const name = this.currentCard.name.length > 50 ? this.currentCard.name.substring(0,47) + '...' : this.currentCard.name
+        const name = this.currentCard.name.length > 50 ? this.currentCard.name.substring(0, 47) + '...' : this.currentCard.name
         await selectMenu.update({
             embeds: [EmbedUtils.createSimpleEmbed(`${name}`, `Flytter kortet\nFra: ${oldList.name}\nTil: ${newList.name}`)],
-            components: [this.moveMenu, moveCardButtons(cardToMoveId,value)],
+            components: [this.moveMenu, moveCardButtons(cardToMoveId, value)],
         })
     }
 
@@ -170,20 +177,18 @@ export class TrelloCommands extends AbstractCommands {
     }
 
     private async deleteCard(interaction: ButtonInteraction<CacheType>) {
-        const customId = ('TrelloModalDelete;' + this.currentCard.id)
-        const modal = new ModalBuilder()
-			.setCustomId(customId)
-			.setTitle('Er du sikker?');
-        
+        const customId = 'TrelloModalDelete;' + this.currentCard.id
+        const modal = new ModalBuilder().setCustomId(customId).setTitle('Er du sikker?')
+
         const trelloCardTitle = new TextInputBuilder()
-			.setCustomId('trelloCardTitle')
-			.setLabel("Følgende kort vil bli permanent slettet:")
-			.setStyle(TextInputStyle.Short)
+            .setCustomId('trelloCardTitle')
+            .setLabel('Følgende kort vil bli permanent slettet:')
+            .setStyle(TextInputStyle.Short)
             .setValue(this.currentCard.name)
 
-        const firstActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(trelloCardTitle);
+        const firstActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(trelloCardTitle)
         modal.addComponents(firstActionRow)
-		await interaction.showModal(modal);
+        await interaction.showModal(modal)
     }
 
     private async handleDeleteCard(interaction: ModalSubmitInteraction<CacheType>) {
@@ -193,16 +198,16 @@ export class TrelloCommands extends AbstractCommands {
     }
 
     private async handleNewTrelloCard(interaction: ModalSubmitInteraction<CacheType>) {
-        const title = interaction.fields.getTextInputValue('trelloCardTitle');
-        const desc = interaction.fields.getTextInputValue('trelloCardDescription');
-        const labels = interaction.fields.getTextInputValue('trelloCardLabels');
-        const idLabels = labels ? this.getLabelIds(labels) : ['']     
-        const comment = interaction.fields.getTextInputValue('trelloCardComment');
+        const title = interaction.fields.getTextInputValue('trelloCardTitle')
+        const desc = interaction.fields.getTextInputValue('trelloCardDescription')
+        const labels = interaction.fields.getTextInputValue('trelloCardLabels')
+        const idLabels = labels ? this.getLabelIds(labels) : ['']
+        const comment = interaction.fields.getTextInputValue('trelloCardComment')
 
         const newCard: INewTrelloCard = {
             name: title,
             desc: desc,
-            idLabels: idLabels
+            idLabels: idLabels,
         }
         const response = await TrelloAPI.addCard(newCard)
         if (comment) {
@@ -212,17 +217,17 @@ export class TrelloCommands extends AbstractCommands {
     }
 
     private async handleTrelloEdits(interaction: ModalSubmitInteraction<CacheType>) {
-        const title = interaction.fields.getTextInputValue('trelloCardTitle');
-        const desc = interaction.fields.getTextInputValue('trelloCardDescription');
-        const labels = interaction.fields.getTextInputValue('trelloCardLabels');
-        const comment = interaction.fields.getTextInputValue('trelloCardComment');
+        const title = interaction.fields.getTextInputValue('trelloCardTitle')
+        const desc = interaction.fields.getTextInputValue('trelloCardDescription')
+        const labels = interaction.fields.getTextInputValue('trelloCardLabels')
+        const comment = interaction.fields.getTextInputValue('trelloCardComment')
 
         let card = this.cards.get(interaction.customId.split(';')[1])
-        console.log('Redigerer dette kortet:\n', card);
-        
+        console.log('Redigerer dette kortet:\n', card)
+
         card.name = title
         card.desc = desc
-        const idLabels = labels ? this.getLabelIds(labels) : ['']        
+        const idLabels = labels ? this.getLabelIds(labels) : ['']
         card.idLabels = idLabels
         const response = await TrelloAPI.updateTrelloCard(card)
         if (comment) {
@@ -230,8 +235,6 @@ export class TrelloCommands extends AbstractCommands {
         }
         interaction.deferUpdate()
     }
-
-    
 
     private getLabelIds(labels: string) {
         const labelArray = labels.split(',')
@@ -243,114 +246,107 @@ export class TrelloCommands extends AbstractCommands {
         return labelIdArray
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'trello',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    return this.getTrelloDropdown(rawInteraction)
-                },
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'trello',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            return this.getTrelloDropdown(rawInteraction)
+                        },
+                    },
+                ],
+                buttonInteractionComands: [
+                    {
+                        commandName: 'TRELLO_NEW',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.createModal(rawInteraction, true)
+                        },
+                    },
+                    {
+                        commandName: 'TRELLO_EDIT',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.createModal(rawInteraction, false)
+                        },
+                    },
+                    {
+                        commandName: 'TRELLO_MOVE',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.moveCard(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'TRELLO_DELETE',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.deleteCard(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'TRELLO_REFRESH',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.fetchTrelloData().then(() => this.getTrelloDropdown(rawInteraction))
+                        },
+                    },
+                    {
+                        commandName: 'TRELLO_MOVE_CONFIRM',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.handleMoveTrelloCard(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'TRELLO_MOVE_CANCEL',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.moveCardMessage.delete()
+                            rawInteraction.deferUpdate()
+                        },
+                    },
+                ],
+                modalInteractionCommands: [
+                    {
+                        commandName: 'TrelloModalEdit',
+                        command: (rawInteraction: ModalSubmitInteraction<CacheType>) => {
+                            this.handleTrelloEdits(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'TrelloModalNew',
+                        command: (rawInteraction: ModalSubmitInteraction<CacheType>) => {
+                            this.handleNewTrelloCard(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'TrelloModalDelete',
+                        command: (rawInteraction: ModalSubmitInteraction<CacheType>) => {
+                            this.handleDeleteCard(rawInteraction)
+                        },
+                    },
+                ],
+                selectMenuInteractionCommands: [
+                    {
+                        commandName: 'TrelloMenu',
+                        command: (rawInteraction: StringSelectMenuInteraction<CacheType>) => {
+                            this.showCardInfo(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'TrelloMoveMenu',
+                        command: (rawInteraction: StringSelectMenuInteraction<CacheType>) => {
+                            this.handleListSelected(rawInteraction)
+                        },
+                    },
+                ],
             },
-        ]
+        }
     }
-
-    getAllButtonInteractions(): IButtonInteractionElement[] {
-        return [
-            {
-                commandName: 'TRELLO_NEW',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.createModal(rawInteraction, true)
-                },
-            },
-            {
-                commandName: 'TRELLO_EDIT',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.createModal(rawInteraction, false)
-                },
-            },
-            {
-                commandName: 'TRELLO_MOVE',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.moveCard(rawInteraction)
-                },
-            },
-            {
-                commandName: 'TRELLO_DELETE',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.deleteCard(rawInteraction)
-                },
-            },
-            {
-                commandName: 'TRELLO_REFRESH',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.fetchTrelloData().then(() => this.getTrelloDropdown(rawInteraction))
-                },
-            },
-            {
-                commandName: 'TRELLO_MOVE_CONFIRM',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.handleMoveTrelloCard(rawInteraction)
-                },
-            },
-            {
-                commandName: 'TRELLO_MOVE_CANCEL',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.moveCardMessage.delete()
-                    rawInteraction.deferUpdate()
-                },
-            },
-        ]
-    }
-
-    getAllModalInteractions(): IModalInteractionElement[] {
-        return [
-            {
-                commandName: 'TrelloModalEdit',
-                command: (rawInteraction: ModalSubmitInteraction<CacheType>) => {
-                    this.handleTrelloEdits(rawInteraction)
-                },
-            },
-            {
-                commandName: 'TrelloModalNew',
-                command: (rawInteraction: ModalSubmitInteraction<CacheType>) => {
-                    this.handleNewTrelloCard(rawInteraction)
-                },
-            },
-            {
-                commandName: 'TrelloModalDelete',
-                command: (rawInteraction: ModalSubmitInteraction<CacheType>) => {
-                    this.handleDeleteCard(rawInteraction)
-                },
-            },
-        ]
-    }
-
-    getAllSelectMenuInteractions(): ISelectMenuInteractionElement[] {
-        return [
-            {
-                commandName: 'TrelloMenu',
-                command: (rawInteraction: StringSelectMenuInteraction<CacheType>) => {
-                    this.showCardInfo(rawInteraction)
-                },
-            },
-            {
-                commandName: 'TrelloMoveMenu',
-                command: (rawInteraction: StringSelectMenuInteraction<CacheType>) => {
-                    this.handleListSelected(rawInteraction)
-                },
-            },
-        ]
-    }
-
 }
 
 const labelsToString = (labels: Array<ITrelloLabel>, comma: boolean) => {
-    let s = ""
+    let s = ''
     labels.forEach((label) => {
         s += `${label.name}${comma ? ',' : '\n'}`
     })
-    return comma ? s.substring(0,s.length-1) : s
-     
+    return comma ? s.substring(0, s.length - 1) : s
 }
 
 const newTrelloButton = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -411,14 +407,15 @@ const cancelMoveBtn = new ButtonBuilder({
 
 const cancelMoveBtnRow = new ActionRowBuilder<ButtonBuilder>().addComponents(cancelMoveBtn)
 
-const moveCardButtons = (cardId: string, newListId: string) => { return new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder({
-        custom_id: 'TRELLO_MOVE_CONFIRM;' + cardId + ';' + newListId,
-        style: ButtonStyle.Success,
-        label: `Bekreft`,
-        disabled: false,
-        type: 2,
-    }),
-    cancelMoveBtn
-)}
-
+const moveCardButtons = (cardId: string, newListId: string) => {
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder({
+            custom_id: 'TRELLO_MOVE_CONFIRM;' + cardId + ';' + newListId,
+            style: ButtonStyle.Success,
+            label: `Bekreft`,
+            disabled: false,
+            type: 2,
+        }),
+        cancelMoveBtn
+    )
+}

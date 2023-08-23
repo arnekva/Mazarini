@@ -7,10 +7,11 @@ import {
     ChatInputCommandInteraction,
     Client,
     EmbedBuilder,
-    SelectMenuComponentOptionData, StringSelectMenuInteraction
+    SelectMenuComponentOptionData,
+    StringSelectMenuInteraction,
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { IButtonInteractionElement, IInteractionElement, IModalInteractionElement, ISelectMenuInteractionElement } from '../general/commands'
+import { IInteractionElement } from '../general/commands'
 import { ActionMenuHelper } from '../helpers/actionMenuHelper'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -116,59 +117,56 @@ export class UserCommands extends AbstractCommands {
     private handleAssignmentOfRoles(interaction: ButtonInteraction<CacheType>) {
         const roleId = interaction.customId.split(';')[1]
         const role = interaction.guild?.roles?.cache.find((r) => r.id === roleId)
+
         if (roleId && role) {
             const userAsMember = UserUtils.findMemberByUserID(interaction.user.id, interaction)
             userAsMember.roles.add(role)
             this.messageHelper.replyToInteraction(interaction, `Du har nå fått tildelt rollen ${role.name}`, true)
+        } else {
+            this.messageHelper.replyToInteraction(interaction, `Det oppstod en feil med rollene. Prøv igjen senere`, true)
         }
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'status',
-                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
-                    this.setStatus(interaction)
-                },
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'status',
+                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                            this.setStatus(interaction)
+                        },
+                    },
+                    {
+                        commandName: 'brukerinfo',
+                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                            this.findUserInfo(interaction)
+                        },
+                    },
+                    {
+                        commandName: 'role',
+                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                            this.roleAssignment(interaction)
+                        },
+                    },
+                ],
+                buttonInteractionComands: [
+                    {
+                        commandName: 'USER_ROLE',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.handleAssignmentOfRoles(rawInteraction)
+                        },
+                    },
+                ],
+                selectMenuInteractionCommands: [
+                    {
+                        commandName: 'USER_INFO_MENU',
+                        command: (rawInteraction: StringSelectMenuInteraction<CacheType>) => {
+                            this.handleUserInfoViewingMenu(rawInteraction)
+                        },
+                    },
+                ],
             },
-            {
-                commandName: 'brukerinfo',
-                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
-                    this.findUserInfo(interaction)
-                },
-            },
-            {
-                commandName: 'role',
-                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
-                    this.roleAssignment(interaction)
-                },
-            },
-        ]
-    }
-
-    getAllButtonInteractions(): IButtonInteractionElement[] {
-        return [
-            {
-                commandName: 'USER_ROLE',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.handleAssignmentOfRoles(rawInteraction)
-                },
-            },
-        ]
-    }
-
-    getAllModalInteractions(): IModalInteractionElement[] {
-        return []
-    }
-
-    getAllSelectMenuInteractions(): ISelectMenuInteractionElement[] {
-        return [
-            {
-                commandName: 'USER_INFO_MENU',
-                command: (rawInteraction: StringSelectMenuInteraction<CacheType>) => {
-                    this.handleUserInfoViewingMenu(rawInteraction)
-                },
-            },
-        ]
+        }
     }
 }

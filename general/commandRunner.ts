@@ -1,4 +1,17 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, Client, Interaction, InteractionType, Message, ModalSubmitInteraction, StringSelectMenuInteraction } from 'discord.js'
+import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonInteraction,
+    ButtonStyle,
+    CacheType,
+    ChatInputCommandInteraction,
+    Client,
+    Interaction,
+    InteractionType,
+    Message,
+    ModalSubmitInteraction,
+    StringSelectMenuInteraction,
+} from 'discord.js'
 import { Admin } from '../admin/admin'
 import { environment } from '../client-env'
 import { PoletCommands } from '../commands/poletCommands'
@@ -12,7 +25,7 @@ import { MentionUtils } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { UserUtils } from '../utils/userUtils'
-import { Commands, IButtonInteractionElement, IInteractionElement, IModalInteractionElement, ISelectMenuInteractionElement } from './commands'
+import { Commands, IInteractionCommand } from './commands'
 const fetch = require('node-fetch')
 
 export class CommandRunner {
@@ -57,22 +70,12 @@ export class CommandRunner {
                             { name: `Lukt`, value: `${data.smell}` },
                             { name: `Pris`, value: `${data.price.formattedValue}`, inline: true },
                             { name: `Type`, value: `${data.main_category.name}`, inline: true },
-                            //Årgang doesnt apply to all products, but some for some products the year is set to 0000 instead of being undefined so we replace it with "Ukjent"
                             { name: `Årgang`, value: `${data.year === '0000' ? 'Ukjent' : data.year}`, inline: true },
                             { name: `Volum`, value: `${data.volume.formattedValue}`, inline: true },
                             { name: `Land`, value: `${data.main_country.name}`, inline: true },
                             { name: `Alkohol`, value: `${data.alcohol.formattedValue}`, inline: true },
-                            // { name: `Smak`, value: `${data.taste}` },
-                            // { name: `Flaske/Kork`, value: `${data.packageType}, ${data.cork}`, inline: true },
+
                             { name: `Stil`, value: `${data.style?.name}`, inline: true },
-                            // { name: `Lagring`, value: `${data.matured}`, inline: true },
-                            // { name: `Farge`, value: `${data.color}`, inline: true },
-                            // { name: `Finnes i`, value: `${data.product_selection}`, inline: true },
-                            // {
-                            //     name: `Tilgjengelighet`,
-                            //     value: `${data.availability.storeAvailability.available ? 'Ja' : 'Nei'}, ${data.availability.storeAvailability.mainText}`,
-                            //     inline: true,
-                            // },
                         ])
                         /** In case of wines, it will be something like [Pinot Noir 80%, Merlot 20%]
                          * For liquers, ciders, etc. it may only be "Plommer, epler", since they dont display the percentage of the mix.
@@ -84,13 +87,7 @@ export class CommandRunner {
                                 inline: true,
                             })
                         }
-                        // if (!!data.isGoodFor.length) {
-                        //     embed.addFields({
-                        //         name: `Passer til`,
-                        //         value: `${data.isGoodFor.map((igf) => `${igf.name}`).join(', ')}`,
-                        //         inline: true,
-                        //     })
-                        // }
+
                         //Make sure to add some text if field does not exist, since the embed will crash if a field is empty
                         //Also, in case a data value doesn't exist, we set it to "ukjent" for a better look
                         embed?.data?.fields.forEach((f) => {
@@ -161,34 +158,39 @@ export class CommandRunner {
                 )
             }
         } else if (this.isLegalChannel(interaction)) {
-            const commands = this.commands.getAllInteractionCommands()
             let hasAcknowledged = false
-
             if (interaction.isChatInputCommand()) {
-                commands.forEach((cmd) => {
+                this.commands.getAllTextCommands().forEach((cmd) => {
                     if (cmd.commandName === interaction.commandName) {
-                        this.runInteractionElement(cmd, interaction)
+                        this.runInteractionElement<ChatInputCommandInteraction<CacheType>>(cmd, interaction)
                         hasAcknowledged = true
                     }
                 })
             } else if (interaction.type === InteractionType.ModalSubmit) {
                 this.commands.getAllModalCommands().forEach((cmd) => {
                     if (cmd.commandName === interaction.customId.split(';')[0]) {
-                        this.runModalInteractionElement(cmd, interaction)
+                        this.runInteractionElement<ModalSubmitInteraction<CacheType>>(cmd, interaction)
+                        // this.runModalInteractionElement(cmd, interaction)
                         hasAcknowledged = true
                     }
                 })
             } else if (interaction.isStringSelectMenu()) {
                 this.commands.getAllSelectMenuCommands().forEach((cmd) => {
                     if (cmd.commandName === interaction.customId.split(';')[0]) {
-                        this.runSelectMenuInteractionElement(cmd, interaction)
+                        this.runInteractionElement<StringSelectMenuInteraction<CacheType>>(cmd, interaction)
+                        // this.runSelectMenuInteractionElement(cmd, interaction)
                         hasAcknowledged = true
                     }
                 })
             } else if (interaction.isButton()) {
                 this.commands.getAllButtonCommands().forEach((cmd) => {
+                    console.log('am in button looking for ', interaction.customId.split(';')[0], 'with', cmd.commandName)
+
                     if (cmd.commandName === interaction.customId.split(';')[0]) {
-                        this.runButtonInteractionElement(cmd, interaction)
+                        console.log('found match')
+
+                        this.runInteractionElement<ButtonInteraction<CacheType>>(cmd, interaction)
+                        // this.runButtonInteractionElement(cmd, interaction)
                         hasAcknowledged = true
                     }
                 })
@@ -210,19 +212,9 @@ export class CommandRunner {
         }
     }
 
-    runInteractionElement(runningInteraction: IInteractionElement, interaction: ChatInputCommandInteraction<CacheType>) {
-        runningInteraction.command(interaction)
-    }
+    runInteractionElement<InteractionTypes>(runningInteraction: IInteractionCommand<InteractionTypes>, interaction: InteractionTypes) {
+        console.log('am attempting to run interaction')
 
-    runButtonInteractionElement(runningInteraction: IButtonInteractionElement, interaction: ButtonInteraction<CacheType>) {
-        runningInteraction.command(interaction)
-    }
-
-    runModalInteractionElement(runningInteraction: IModalInteractionElement, interaction: ModalSubmitInteraction<CacheType>) {
-        runningInteraction.command(interaction)
-    }
-
-    runSelectMenuInteractionElement(runningInteraction: ISelectMenuInteractionElement, interaction: StringSelectMenuInteraction<CacheType>) {
         runningInteraction.command(interaction)
     }
 
@@ -244,7 +236,7 @@ export class CommandRunner {
 
             if (hasHelg) {
                 const val = await this.commands.dateFunc.checkForHelg()
-                this.messageHelper.sendMessage(message.channelId, val, {sendAsSilent: true})
+                this.messageHelper.sendMessage(message.channelId, val, { sendAsSilent: true })
             }
 
             if (message.attachments) {

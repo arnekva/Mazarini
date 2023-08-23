@@ -8,10 +8,10 @@ import {
     Client,
     EmbedBuilder,
     Interaction,
-    User
+    User,
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { IButtonInteractionElement, IInteractionElement, IModalInteractionElement, ISelectMenuInteractionElement } from '../general/commands'
+import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { SlashCommandHelper } from '../helpers/slashCommandHelper'
@@ -784,81 +784,74 @@ export class GamblingCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'daily',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.handleDailyClaimInteraction(rawInteraction)
-                },
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'daily',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.handleDailyClaimInteraction(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'vipps',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.vippsChips(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'wallet',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.openWallet(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'krig',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.krig(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'gamble',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.diceGamble(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'roll',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.rollSlotMachine(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'rulett',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.roulette(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'brukerstats',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.findUserStats(rawInteraction)
+                        },
+                    },
+                ],
+                buttonInteractionComands: [
+                    {
+                        commandName: 'KRIG',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.handleKrig(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'KRIG_REMATCH',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.handleKrig(rawInteraction)
+                        },
+                    },
+                ],
             },
-            {
-                commandName: 'vipps',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.vippsChips(rawInteraction)
-                },
-            },
-            {
-                commandName: 'wallet',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.openWallet(rawInteraction)
-                },
-            },
-            {
-                commandName: 'krig',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.krig(rawInteraction)
-                },
-            },
-            {
-                commandName: 'gamble',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.diceGamble(rawInteraction)
-                },
-            },
-            {
-                commandName: 'roll',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.rollSlotMachine(rawInteraction)
-                },
-            },
-            {
-                commandName: 'rulett',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.roulette(rawInteraction)
-                },
-            },
-            {
-                commandName: 'brukerstats',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.findUserStats(rawInteraction)
-                },
-            },
-        ]
-    }
-
-    getAllButtonInteractions(): IButtonInteractionElement[] {
-        return [
-            {
-                commandName: 'KRIG',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.handleKrig(rawInteraction)
-                },
-            },
-            {
-                commandName: 'KRIG_REMATCH',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.handleKrig(rawInteraction)
-                },
-            },
-        ]
-    }
-
-    getAllModalInteractions(): IModalInteractionElement[] {
-        return []
-    }
-
-    getAllSelectMenuInteractions(): ISelectMenuInteractionElement[] {
-        return []
+        }
     }
 }

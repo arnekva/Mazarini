@@ -1,10 +1,10 @@
 import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { openCageAPIKey, openWeatherAPIKey } from '../client-env'
 import { IInteractionElement } from '../general/commands'
 import { MessageHelper } from '../helpers/messageHelper'
-import { WeatherUtils } from '../utils/weatherUtils'
-import { openCageAPIKey, openWeatherAPIKey } from '../client-env'
 import { DateUtils } from '../utils/dateUtils'
+import { WeatherUtils } from '../utils/weatherUtils'
 const fetch = require('node-fetch')
 const NodeGeocoder = require('node-geocoder')
 
@@ -19,7 +19,7 @@ interface GeoLocation {
     streetNumber: string
     countryCode: string
     county: string
-    extra: { confidence: string, confidenceKM: string }
+    extra: { confidence: string; confidenceKM: string }
     provider: string
 }
 
@@ -34,7 +34,7 @@ export class Weather extends AbstractCommands {
     static geocoder = NodeGeocoder({
         provider: 'opencage',
         apiKey: openCageAPIKey,
-        formatter: null
+        formatter: null,
     })
 
     static async fetchMETWeatherForCoordinates(latitude: string, longitude: string) {
@@ -58,10 +58,10 @@ export class Weather extends AbstractCommands {
     }
 
     static GeoLocationString(location: GeoLocation) {
-        let string = ""
+        let string = ''
         if (location.streetName) string += location.streetName
         string += location.streetName && location.streetNumber ? ' ' + location.streetNumber + ', ' : location.streetName ? ', ' : ' '
-        string += location.city ? location.city : location.county ? location.county += location.country ? ', ' + location.country : '' : location.country
+        string += location.city ? location.city : location.county ? (location.county += location.country ? ', ' + location.country : '') : location.country
         return string
     }
 
@@ -69,55 +69,74 @@ export class Weather extends AbstractCommands {
         await interaction.deferReply()
         const city = interaction.options.get('stedsnavn')?.value as string
         if (!city) return this.messageHelper.replyToInteraction(interaction, `Ugyldig input "${city}"`, undefined, true)
-        
+
         const geoLocation = await Weather.getCoordinatesForLocation(city)
         if (!geoLocation) return this.messageHelper.replyToInteraction(interaction, `Finner ikke stedet "${city}"`, undefined, true)
 
         const data = await Weather.fetchMETWeatherForCoordinates(geoLocation.latitude, geoLocation.longitude)
         const today = this.getTodaysTimeseries(data)
-        const conditions = geoLocation.city ? await Weather.fetchOPENWeatherForCity(geoLocation.city) : ""
+        const conditions = geoLocation.city ? await Weather.fetchOPENWeatherForCity(geoLocation.city) : ''
 
-        const weatherConditions = geoLocation.city ? 'Det er ' + conditions.weather.map((weatherObj: any) => weatherObj.description).join(', ') : " "
-        const startOfCurrentHour = today[0]        
+        const weatherConditions = geoLocation.city ? 'Det er ' + conditions.weather.map((weatherObj: any) => weatherObj.description).join(', ') : ' '
+        const startOfCurrentHour = today[0]
         const endOfCurrentHour = today[1]
         const closestHour = new Date().getMinutes() < 30 ? startOfCurrentHour : endOfCurrentHour
-        const currentTemp = this.getWeightedAverage(startOfCurrentHour.data.instant.details.air_temperature, endOfCurrentHour.data.instant.details.air_temperature)
+        const currentTemp = this.getWeightedAverage(
+            startOfCurrentHour.data.instant.details.air_temperature,
+            endOfCurrentHour.data.instant.details.air_temperature
+        )
         const currentWind = this.getWeightedAverage(startOfCurrentHour.data.instant.details.wind_speed, endOfCurrentHour.data.instant.details.wind_speed)
-        
+
         const weather = new EmbedBuilder()
             .setTitle(`${Weather.GeoLocationString(geoLocation)}`)
             .setDescription(`${weatherConditions}`)
             .addFields({ name: 'Temperatur', value: `${currentTemp} °C :thermometer:`, inline: true })
-            .addFields({ name: '\t\t', value: '\t\t', inline: true})
-            .addFields({ name: 'Min/Maks', value: `${this.getMinMaxTempString(today, currentTemp)}`, inline: true})
-            .addFields({ name: `Vind`, value: `${currentWind} m/s ${WeatherUtils.windDegreesToDirectionalArrow(Number(closestHour.data.instant.details.wind_from_direction))} :dash:`, inline: true })
-            .addFields({ name: '\t\t', value: '\t\t', inline: true})
-            .addFields({ name: `Regn 1t / 6t`, value: `${closestHour.data.next_1_hours.details.precipitation_amount} mm / ${closestHour.data.next_6_hours.details.precipitation_amount} mm` , inline: true})
-            
+            .addFields({ name: '\t\t', value: '\t\t', inline: true })
+            .addFields({ name: 'Min/Maks', value: `${this.getMinMaxTempString(today, currentTemp)}`, inline: true })
+            .addFields({
+                name: `Vind`,
+                value: `${currentWind} m/s ${WeatherUtils.windDegreesToDirectionalArrow(Number(closestHour.data.instant.details.wind_from_direction))} :dash:`,
+                inline: true,
+            })
+            .addFields({ name: '\t\t', value: '\t\t', inline: true })
+            .addFields({
+                name: `Regn 1t / 6t`,
+                value: `${closestHour.data.next_1_hours.details.precipitation_amount} mm / ${closestHour.data.next_6_hours.details.precipitation_amount} mm`,
+                inline: true,
+            })
+
         const icon = closestHour.data.next_1_hours.summary.symbol_code
         if (icon) weather.setThumbnail(`${Weather.iconUrl}${icon}.png`)
         this.messageHelper.replyToInteraction(interaction, weather, undefined, true)
     }
 
-    private getMinMaxTempString(data:any, currentTemp: string) {
-        const sortedByTemp = [...data].slice(1, undefined).sort((a,b) => Number(a.data.instant.details.air_temperature) - Number(b.data.instant.details.air_temperature))
-        const highestTemp = Number(currentTemp) > sortedByTemp[sortedByTemp.length-1].data.instant.details.air_temperature ? Number(currentTemp) : sortedByTemp[sortedByTemp.length-1].data.instant.details.air_temperature
-        const lowestTemp = Number(currentTemp) < sortedByTemp[0].data.instant.details.air_temperature ? Number(currentTemp) : sortedByTemp[0].data.instant.details.air_temperature
+    private getMinMaxTempString(data: any, currentTemp: string) {
+        const sortedByTemp = [...data]
+            .slice(1, undefined)
+            .sort((a, b) => Number(a.data.instant.details.air_temperature) - Number(b.data.instant.details.air_temperature))
+        const highestTemp =
+            Number(currentTemp) > sortedByTemp[sortedByTemp.length - 1].data.instant.details.air_temperature
+                ? Number(currentTemp)
+                : sortedByTemp[sortedByTemp.length - 1].data.instant.details.air_temperature
+        const lowestTemp =
+            Number(currentTemp) < sortedByTemp[0].data.instant.details.air_temperature
+                ? Number(currentTemp)
+                : sortedByTemp[0].data.instant.details.air_temperature
         return `${lowestTemp}°C / ${highestTemp}°C`
     }
 
-    private getWeightedAverage(a,b) {
+    private getWeightedAverage(a, b) {
         const diff = Number(b) - Number(a)
         const weight = new Date().getMinutes() / 60
-        return (Number(a) + (diff * weight)).toFixed(1)
+        return (Number(a) + diff * weight).toFixed(1)
     }
 
     private getTodaysTimeseries(data: any) {
         let nowIndex = 0
-        const timeSeries = data.properties.timeseries        
+        const timeSeries = data.properties.timeseries
         for (var i = 0; i < timeSeries.length; i++) {
             let date = new Date(timeSeries[i].time)
-            if (DateUtils.dateIsWithinLastHour(date)) {                
+            if (DateUtils.dateIsWithinLastHour(date)) {
                 nowIndex = i
             }
             if (!DateUtils.isToday(date, true)) {
@@ -129,22 +148,26 @@ export class Weather extends AbstractCommands {
 
     public static async getCoordinatesForLocation(location: string) {
         const res = await this.geocoder.geocode(location)
-        return res[0] as GeoLocation 
-    }
-
-    public static async getLocationForCoordinates(latitude: string, longitude: string) {
-        const res = await this.geocoder.reverse({lat: latitude, lon: longitude})
         return res[0] as GeoLocation
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'weather',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.getWeatherForGivenCity(rawInteraction)
-                },
+    public static async getLocationForCoordinates(latitude: string, longitude: string) {
+        const res = await this.geocoder.reverse({ lat: latitude, lon: longitude })
+        return res[0] as GeoLocation
+    }
+
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'weather',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.getWeatherForGivenCity(rawInteraction)
+                        },
+                    },
+                ],
             },
-        ]
+        }
     }
 }

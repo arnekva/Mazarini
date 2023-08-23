@@ -509,21 +509,25 @@ export class WarzoneCommands extends AbstractCommands {
         return user.codStats
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'stats',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.handleWZInteraction(rawInteraction)
-                },
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'stats',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.handleWZInteraction(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'playlist',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.findWeeklyPlaylist(rawInteraction)
+                        },
+                    },
+                ],
             },
-            {
-                commandName: 'playlist',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.findWeeklyPlaylist(rawInteraction)
-                },
-            },
-        ]
+        }
     }
 }
 

@@ -8,10 +8,10 @@ import {
     ChatInputCommandInteraction,
     Client,
     EmbedBuilder,
-    Message
+    Message,
 } from 'discord.js'
 import { AbstractCommands } from '../../../Abstracts/AbstractCommand'
-import { IButtonInteractionElement, IInteractionElement, IModalInteractionElement, ISelectMenuInteractionElement } from '../../../general/commands'
+import { IInteractionElement } from '../../../general/commands'
 import { MessageHelper } from '../../../helpers/messageHelper'
 import { CardCommands, ICardObject } from '../../cardCommands'
 import {
@@ -24,7 +24,7 @@ import {
     revealLoserBtn,
     setupGameButtonRow,
     suitButtonRow,
-    upDownButtonRow
+    upDownButtonRow,
 } from './redBlackButtonRows'
 import { GameStage, IBusRide, IGameRules, IGiveTakeCard, IUserObject, RedBlackRound } from './redBlackInterfaces'
 import { BusRide } from './stage/busRide'
@@ -567,112 +567,105 @@ export class RedBlackCommands extends AbstractCommands {
         return reply
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'redblack',
-                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
-                    this.rbSwitch(interaction)
-                },
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'redblack',
+                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                            this.rbSwitch(interaction)
+                        },
+                    },
+                ],
+                buttonInteractionComands: [
+                    {
+                        commandName: 'RB_MOVE',
+                        command: (rawInteraction: ButtonInteraction) => {
+                            this.resendMessages(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'RB_MOVE_BUS',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.moveBus(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'RB_JOIN',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.joinGame(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'RB_START',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.startGame(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'RB_GUESS',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.guess(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'RB_PLACE',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.placeGtCard(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'RB_NEXT_CARD',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            if (rawInteraction.user.id === '221739293889003520') rawInteraction.deferUpdate()
+                            else this.nextGtCard(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'RB_MY_CARDS',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.sendUserCards(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'RB_NEXT_PHASE',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.phaseController(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'RB_BUS_CAN',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.busrideGuess(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'RB_REVEAL',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.revealLoser(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'RB_TRY_AGAIN',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.busrideReset(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'RB_TIE_BREAK',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.showGiveTakeSummary(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'RB_START_BUS',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.setupBusride(rawInteraction)
+                        },
+                    },
+                ],
             },
-        ]
-    }
-
-    getAllButtonInteractions(): IButtonInteractionElement[] {
-        return [
-            {
-                commandName: 'RB_MOVE',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.resendMessages(rawInteraction)
-                },
-            },
-            {
-                commandName: 'RB_MOVE_BUS',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.moveBus(rawInteraction)
-                },
-            },
-            {
-                commandName: 'RB_JOIN',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.joinGame(rawInteraction)
-                },
-            },
-            {
-                commandName: 'RB_START',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.startGame(rawInteraction)
-                },
-            },
-            {
-                commandName: 'RB_GUESS',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.guess(rawInteraction)
-                },
-            },
-            {
-                commandName: 'RB_PLACE',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.placeGtCard(rawInteraction)
-                },
-            },
-            {
-                commandName: 'RB_NEXT_CARD',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    if (rawInteraction.user.id === '221739293889003520') rawInteraction.deferUpdate()
-                    else this.nextGtCard(rawInteraction)
-                },
-            },
-            {
-                commandName: 'RB_MY_CARDS',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.sendUserCards(rawInteraction)
-                },
-            },
-            {
-                commandName: 'RB_NEXT_PHASE',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.phaseController(rawInteraction)
-                },
-            },
-            {
-                commandName: 'RB_BUS_CAN',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.busrideGuess(rawInteraction)
-                },
-            },
-            {
-                commandName: 'RB_REVEAL',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.revealLoser(rawInteraction)
-                },
-            },
-            {
-                commandName: 'RB_TRY_AGAIN',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.busrideReset(rawInteraction)
-                },
-            },
-            {
-                commandName: 'RB_TIE_BREAK',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.showGiveTakeSummary(rawInteraction)
-                },
-            },
-            {
-                commandName: 'RB_START_BUS',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.setupBusride(rawInteraction)
-                },
-            },
-        ]
-    }
-
-    getAllModalInteractions(): IModalInteractionElement[] {
-        return []
-    }
-
-    getAllSelectMenuInteractions(): ISelectMenuInteractionElement[] {
-        return []
+        }
     }
 }

@@ -202,69 +202,73 @@ export class JokeCommands extends AbstractCommands {
         )
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'wham',
-                command: async (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    rawInteraction.deferReply()
-                    const msg = await this.messageHelper.findMessageById('1047851607863349338')
-                    if (msg) this.messageHelper.replyToInteraction(rawInteraction, `Whamageddon 2022 status:\n${msg.content}`, false, true)
-                    else this.messageHelper.replyToInteraction(rawInteraction, `Statusen e ukjent`, false, true)
-                },
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'wham',
+                        command: async (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            rawInteraction.deferReply()
+                            const msg = await this.messageHelper.findMessageById('1047851607863349338')
+                            if (msg) this.messageHelper.replyToInteraction(rawInteraction, `Whamageddon 2022 status:\n${msg.content}`, false, true)
+                            else this.messageHelper.replyToInteraction(rawInteraction, `Statusen e ukjent`, false, true)
+                        },
+                    },
+                    {
+                        commandName: 'mordi',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.mordi(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'spell',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.reactWithLetters(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'pullrequest',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            const user = rawInteraction.options.get('bruker').user
+                            this.messageHelper.replyToInteraction(
+                                rawInteraction,
+                                `https://github.com/arnekva/Mazarini/pulls ${user ? MentionUtils.mentionUser(user.id) : ''}`
+                            )
+                        },
+                    },
+                    {
+                        commandName: 'fese',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.harFese(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'uwu',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.uWuIfyer(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'aktivitet',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.findUserActivity(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'eivindpride',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.reactToManyMessages(rawInteraction, DateUtils.isDecember() ? 'eivindclausepride' : 'eivindpride')
+                        },
+                    },
+                    {
+                        commandName: 'bonk',
+                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                            this.sendBonk(interaction)
+                        },
+                    },
+                ],
             },
-            {
-                commandName: 'mordi',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.mordi(rawInteraction)
-                },
-            },
-            {
-                commandName: 'spell',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.reactWithLetters(rawInteraction)
-                },
-            },
-            {
-                commandName: 'pullrequest',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    const user = rawInteraction.options.get('bruker').user
-                    this.messageHelper.replyToInteraction(
-                        rawInteraction,
-                        `https://github.com/arnekva/Mazarini/pulls ${user ? MentionUtils.mentionUser(user.id) : ''}`
-                    )
-                },
-            },
-            {
-                commandName: 'fese',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.harFese(rawInteraction)
-                },
-            },
-            {
-                commandName: 'uwu',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.uWuIfyer(rawInteraction)
-                },
-            },
-            {
-                commandName: 'aktivitet',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.findUserActivity(rawInteraction)
-                },
-            },
-            {
-                commandName: 'eivindpride',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.reactToManyMessages(rawInteraction, DateUtils.isDecember() ? 'eivindclausepride' : 'eivindpride')
-                },
-            },
-            {
-                commandName: 'bonk',
-                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
-                    this.sendBonk(interaction)
-                },
-            },
-        ]
+        }
     }
 }

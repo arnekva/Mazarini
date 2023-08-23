@@ -215,7 +215,6 @@ export class GameCommands extends AbstractCommands {
         const response = JSON.parse(striptags(content))
         if (!response.data) {
             interaction.editReply('Fant ikke data')
-    
         }
         const segments = response.data.segments
 
@@ -225,11 +224,11 @@ export class GameCommands extends AbstractCommands {
         let lifetimeStats: rocketLeagueLifetime = {}
         if (!segments) {
             interaction.editReply('Fetch til Rocket League API feilet')
-       }
+        }
         for (const segment of segments) {
             if (!segment) {
                 interaction.editReply('Fetch til Rocket League API feilet')
-               break
+                break
             }
             if (segment.metadata.name === 'Lifetime') {
                 //Lifetime stats
@@ -325,27 +324,31 @@ export class GameCommands extends AbstractCommands {
         return user.rocketLeagueStats
     }
 
-    public getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'drop',
-                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
-                    this.findDropLocation(interaction)
-                },
+    public getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'drop',
+                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                            this.findDropLocation(interaction)
+                        },
+                    },
+                    {
+                        commandName: 'grid',
+                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                            this.dropGrid(interaction)
+                        },
+                    },
+                    {
+                        commandName: 'rocket',
+                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                            this.rocketLeagueRanks(interaction)
+                        },
+                    },
+                ],
             },
-            {
-                commandName: 'grid',
-                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
-                    this.dropGrid(interaction)
-                },
-            },
-            {
-                commandName: 'rocket',
-                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
-                    this.rocketLeagueRanks(interaction)
-                },
-            },
-        ]
+        }
     }
 }
 

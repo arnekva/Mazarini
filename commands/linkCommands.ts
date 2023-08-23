@@ -82,7 +82,7 @@ export class LinkCommands extends AbstractCommands {
                 const favoritePol = {
                     id: storeId.toString(),
                     latitude: storeCoord[0],
-                    longitude: storeCoord[1]
+                    longitude: storeCoord[1],
                 }
                 user.favoritePol = favoritePol
                 DatabaseHelper.updateUser(user)
@@ -93,14 +93,18 @@ export class LinkCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'link',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.handleLinking(rawInteraction)
-                },
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'link',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.handleLinking(rawInteraction)
+                        },
+                    },
+                ],
             },
-        ]
+        }
     }
 }

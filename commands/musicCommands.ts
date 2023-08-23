@@ -253,14 +253,18 @@ Docs: https://www.last.fm/api/show/user.getInfo
         } else return `Brukeren ${user?.username} har ikke knyttet til et Last.fm-brukernavn`
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'musikk',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.handleMusicInteractions(rawInteraction)
-                },
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'musikk',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.handleMusicInteractions(rawInteraction)
+                        },
+                    },
+                ],
             },
-        ]
+        }
     }
 }

@@ -16,14 +16,18 @@ export class PollCommands extends AbstractCommands {
         const options = optionsFromInteraction.split(characterToSplit)
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'poll',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.createPoll(rawInteraction)
-                },
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'poll',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.createPoll(rawInteraction)
+                        },
+                    },
+                ],
             },
-        ]
+        }
     }
 }

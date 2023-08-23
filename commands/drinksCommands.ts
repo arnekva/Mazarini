@@ -7,10 +7,10 @@ import {
     ChatInputCommandInteraction,
     Client,
     EmbedBuilder,
-    Message
+    Message,
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { IButtonInteractionElement, IInteractionElement, IModalInteractionElement, ISelectMenuInteractionElement } from '../general/commands'
+import { IInteractionElement } from '../general/commands'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { MentionUtils } from '../utils/mentionUtils'
@@ -460,63 +460,56 @@ export class DrinksCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'drikk',
-                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
-                    this.drinkBitch(interaction)
-                },
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'drikk',
+                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                            this.drinkBitch(interaction)
+                        },
+                    },
+                    {
+                        commandName: 'electricity',
+                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                            this.elSwitch(interaction)
+                        },
+                    },
+                ],
+                buttonInteractionComands: [
+                    {
+                        commandName: 'EL_DRAW',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.drawCard(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'EL_MOVE',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.resendMessages(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'EL_JOIN',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.joinElectricity(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'EL_START',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.startElectricity(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'EL_RESET',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.resetDeck(rawInteraction)
+                        },
+                    },
+                ],
             },
-            {
-                commandName: 'electricity',
-                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
-                    this.elSwitch(interaction)
-                },
-            },
-        ]
-    }
-
-    getAllButtonInteractions(): IButtonInteractionElement[] {
-        return [
-            {
-                commandName: 'EL_DRAW',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.drawCard(rawInteraction)
-                },
-            },
-            {
-                commandName: 'EL_MOVE',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.resendMessages(rawInteraction)
-                },
-            },
-            {
-                commandName: 'EL_JOIN',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.joinElectricity(rawInteraction)
-                },
-            },
-            {
-                commandName: 'EL_START',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.startElectricity(rawInteraction)
-                },
-            },
-            {
-                commandName: 'EL_RESET',
-                command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                    this.resetDeck(rawInteraction)
-                },
-            },
-        ]
-    }
-
-    getAllModalInteractions(): IModalInteractionElement[] {
-        return []
-    }
-
-    getAllSelectMenuInteractions(): ISelectMenuInteractionElement[] {
-        return []
+        }
     }
 }
