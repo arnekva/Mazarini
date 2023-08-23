@@ -52,14 +52,18 @@ export class TextCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'wiki',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.searchWiki(rawInteraction)
-                },
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'wiki',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.searchWiki(rawInteraction)
+                        },
+                    },
+                ],
             },
-        ]
+        }
     }
 }

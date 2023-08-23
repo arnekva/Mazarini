@@ -33,14 +33,18 @@ export class SoundCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'snakk',
-                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
-                    this.speak(interaction)
-                },
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'snakk',
+                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                            this.speak(interaction)
+                        },
+                    },
+                ],
             },
-        ]
+        }
     }
 }

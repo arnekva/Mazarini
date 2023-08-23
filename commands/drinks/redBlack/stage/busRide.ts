@@ -2,7 +2,6 @@ import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, CacheType, EmbedBui
 import { EmojiHelper } from "../../../../helpers/emojiHelper";
 import { MessageHelper } from "../../../../helpers/messageHelper";
 import { CardCommands } from "../../../cardCommands";
-import { RedBlackButtonHandler } from "../redBlackButtonHandler";
 import { canadianBusrideButtonRow, TryAgainBtn } from "../redBlackButtonRows";
 import { IBusRideCard, IUserObject } from "../redBlackInterfaces";
 
@@ -55,7 +54,7 @@ export class BusRide {
     }
 
     private async updateBusrideMessage(interaction: ButtonInteraction<CacheType>, correct: boolean) {             
-        const guess = this.guessTranslations.get(interaction.customId.replace(RedBlackButtonHandler.CANADIAN_GUESS, ''))
+        const guess = this.guessTranslations.get(interaction.customId.split(';')[1])
         let text = ''
         if (!correct) {
             this.totalSips += this.nextCardId
@@ -93,7 +92,7 @@ export class BusRide {
         let currentCard = this.cardsOnTable[this.nextCardId-1]
         let nextCard = this.cardsOnTable[this.nextCardId]
         nextCard.revealed = true
-        const guess = interaction.customId.replace(RedBlackButtonHandler.CANADIAN_GUESS, '');
+        const guess = interaction.customId.split(';')[1];
         let correct = false
         if (guess === 'up') correct = nextCard.card.number > currentCard.card.number
         if (guess === 'down') correct = nextCard.card.number < currentCard.card.number

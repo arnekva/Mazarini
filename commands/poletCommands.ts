@@ -3,7 +3,6 @@ import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { vinmonopoletKey } from '../client-env'
 import { IInteractionElement } from '../general/commands'
-import { ButtonHandler } from '../handlers/buttonHandler'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { Languages } from '../helpers/languageHelpers'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -100,7 +99,7 @@ export class PoletCommands extends AbstractCommands {
         return await data.json()
     }
 
-    static async fetchProductStock(productId: string, latitude: string, longitude: string) {
+    private async fetchProductStock(productId: string, latitude: string, longitude: string) {
         const data = await fetch(
             `${PoletCommands.pressProductURL}/${productId}/stock?pageSize=10&currentPage=0&fields=BASIC&latitude=${latitude}&longitude=${longitude}`,
             {
@@ -126,13 +125,13 @@ export class PoletCommands extends AbstractCommands {
         return await data.json()
     }
 
-    public static async getProductStockForUser(interaction: ButtonInteraction<CacheType>, messageHelper: MessageHelper) {
-        const params = interaction.customId.replace(ButtonHandler.POLET_STOCK, '').split('&')
-        const productId = params[0]
+    public async getProductStockForUser(interaction: ButtonInteraction<CacheType>) {
+        const params = interaction.customId.split(';')
+        const productId = params[1]
         const favoritePol = DatabaseHelper.getUser(interaction.user.id).favoritePol
         if (favoritePol.latitude && favoritePol.longitude) {
             const stockData = await this.fetchProductStock(productId, favoritePol.latitude, favoritePol.longitude)
-            const embed = new EmbedBuilder().setTitle(`${params[1]}`)
+            const embed = new EmbedBuilder().setTitle(`${params[2]}`)
             const stores = stockData.stores.slice(0, 3)
             if (stores.length === 0) {
                 embed.setDescription(`${interaction.user.username} har ingen vinmonopol i nærheten med varen på lager`)
@@ -142,9 +141,9 @@ export class PoletCommands extends AbstractCommands {
             stores.forEach((store) => {
                 embed.addFields({ name: store.pointOfService.displayName, value: `Antall: ${store.stockInfo.stockLevel}`, inline: false })
             })
-            messageHelper.replyToInteraction(interaction, embed)
+            this.messageHelper.replyToInteraction(interaction, embed)
         } else {
-            messageHelper.replyToInteraction(interaction, 'Du må linka polet ditt')
+            this.messageHelper.replyToInteraction(interaction, 'Du må linka polet ditt')
         }
     }
 
@@ -217,14 +216,26 @@ export class PoletCommands extends AbstractCommands {
         return 'Stengt'
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'vinmonopolet',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.handleVinmonopoletCommand(rawInteraction)
-                },
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'vinmonopolet',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.handleVinmonopoletCommand(rawInteraction)
+                        },
+                    },
+                ],
+                buttonInteractionComands: [
+                    {
+                        commandName: 'POLET_STOCK',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.getProductStockForUser(rawInteraction)
+                        },
+                    },
+                ],
             },
-        ]
+        }
     }
 }

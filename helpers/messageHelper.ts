@@ -23,7 +23,7 @@ import {
     SelectMenuBuilder,
     SelectMenuInteraction,
     TextChannel,
-    User,
+    User
 } from 'discord.js'
 import { environment } from '../client-env'
 import { MazariniClient } from '../main'
@@ -73,7 +73,7 @@ export class MessageHelper {
         content: string | EmbedBuilder,
         onlyVisibleToEngager?: boolean,
         wasDefered?: boolean,
-        menu?: ActionRowBuilder<SelectMenuBuilder> | ActionRowBuilder<ButtonBuilder>
+        menu?: Array<ActionRowBuilder<SelectMenuBuilder> | ActionRowBuilder<ButtonBuilder>>
     ): Promise<boolean> {
         const handleError = async (e: any) => {
             let msg: Message<boolean> | undefined
@@ -91,16 +91,16 @@ export class MessageHelper {
         }
         if (!interaction.replied) {
             if (typeof content === 'object') {
-                if (wasDefered) await interaction.editReply({ embeds: [content], components: menu ? [menu] : undefined }).catch((e) => handleError(e))
+                if (wasDefered) await interaction.editReply({ embeds: [content], components: menu ? menu : undefined }).catch((e) => handleError(e))
                 else
                     await interaction
-                        .reply({ embeds: [content], ephemeral: onlyVisibleToEngager, components: menu ? [menu] : undefined })
+                        .reply({ embeds: [content], ephemeral: onlyVisibleToEngager, components: menu ? menu : undefined })
                         .catch((e) => handleError(e))
             } else {
                 if (wasDefered) await interaction.editReply(content).catch((e) => handleError(e))
                 else
                     await interaction
-                        .reply({ content: content, ephemeral: onlyVisibleToEngager, components: menu ? [menu] : undefined })
+                        .reply({ content: content, ephemeral: onlyVisibleToEngager, components: menu ? menu : undefined })
                         .catch((e) => handleError(e))
             }
             MazariniClient.numMessagesFromBot++
@@ -270,7 +270,7 @@ export class MessageHelper {
         return undefined
     }
 
-    async sendMessageWithEmbedAndButtons(
+    async sendMessageWithEmbedAndComponents(
         channelID: string,
         embed: EmbedBuilder,
         components: (
@@ -278,6 +278,7 @@ export class MessageHelper {
             | JSONEncodable<APIActionRowComponent<APIMessageActionRowComponent>>
             | ActionRowData<any>
             | ActionRowBuilder<ButtonBuilder>
+            | ActionRowBuilder<SelectMenuBuilder>
         )[]
     ) {
         const textCh = this.findChannelById(channelID) as TextChannel

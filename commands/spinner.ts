@@ -118,14 +118,18 @@ export class Spinner extends AbstractCommands {
         DatabaseHelper.updateUser(user)
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'spin',
-                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
-                    this.spinFromInteraction(interaction)
-                },
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'spin',
+                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                            this.spinFromInteraction(interaction)
+                        },
+                    },
+                ],
             },
-        ]
+        }
     }
 }

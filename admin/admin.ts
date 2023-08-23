@@ -1,5 +1,14 @@
 import { exec } from 'child_process'
-import { ActivityType, APIInteractionGuildMember, CacheType, ChatInputCommandInteraction, Client, GuildMember, TextChannel } from 'discord.js'
+import {
+    ActivityType,
+    APIInteractionGuildMember,
+    CacheType,
+    ChatInputCommandInteraction,
+    Client,
+    GuildMember,
+    ModalSubmitInteraction,
+    TextChannel,
+} from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'
 import { IInteractionElement } from '../general/commands'
@@ -229,70 +238,89 @@ export class Admin extends AbstractCommands {
         })
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'send',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.buildSendModal(rawInteraction)
+    private handleAdminSendModalDialog(modalInteraction: ModalSubmitInteraction) {
+        const chatID = modalInteraction.fields.getTextInputValue('channelID')
+        const text = modalInteraction.fields.getTextInputValue('messageInput')
 
-                    this.messageHelper.sendLogMessage(
-                        `${rawInteraction.user.username} trigget 'send' fra ${MentionUtils.mentionChannel(rawInteraction?.channelId)}.`
-                    )
-                },
+        this.messageHelper.sendMessage(chatID, text)
+        this.messageHelper.replyToInteraction(modalInteraction, `Meldingen *${text}* ble sent til ${MentionUtils.mentionChannel(chatID)}`, true)
+        this.messageHelper.sendLogMessage(
+            `${modalInteraction.user.username} sendte en melding som botten til kanalen ${MentionUtils.mentionChannel(chatID)} med innholdet '*${text}*'`
+        )
+    }
+
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'send',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.buildSendModal(rawInteraction)
+
+                            this.messageHelper.sendLogMessage(
+                                `${rawInteraction.user.username} trigget 'send' fra ${MentionUtils.mentionChannel(rawInteraction?.channelId)}.`
+                            )
+                        },
+                    },
+                    {
+                        commandName: 'lock',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.handleLocking(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'botstatus',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.setBotStatus(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'set',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.setSpecificValue(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'reward',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.rewardUser(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'botstats',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.getBotStatistics(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'reply',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.replyToMsgAsBot(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'stopprocess',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.messageHelper.sendLogMessage('STANSET PM2-PROSESSEN. Rip meg')
+                            this.messageHelper.replyToInteraction(rawInteraction, `Forsøker å stoppe botten. Rip meg`)
+                            pm2?.killDaemon()
+                            pm2?.disconnect()
+                        },
+                    },
+                    {
+                        commandName: 'restart',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.restartBot(rawInteraction)
+                        },
+                    },
+                ],
             },
-            {
-                commandName: 'lock',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.handleLocking(rawInteraction)
-                },
-            },
-            {
-                commandName: 'botstatus',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.setBotStatus(rawInteraction)
-                },
-            },
-            {
-                commandName: 'set',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.setSpecificValue(rawInteraction)
-                },
-            },
-            {
-                commandName: 'reward',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.rewardUser(rawInteraction)
-                },
-            },
-            {
-                commandName: 'botstats',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.getBotStatistics(rawInteraction)
-                },
-            },
-            {
-                commandName: 'reply',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.replyToMsgAsBot(rawInteraction)
-                },
-            },
-            {
-                commandName: 'stopprocess',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.messageHelper.sendLogMessage('STANSET PM2-PROSESSEN. Rip meg')
-                    this.messageHelper.replyToInteraction(rawInteraction, `Forsøker å stoppe botten. Rip meg`)
-                    pm2?.killDaemon()
-                    pm2?.disconnect()
-                },
-            },
-            {
-                commandName: 'restart',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.restartBot(rawInteraction)
-                },
-            },
-        ]
+        }
+    }
+
+    getAllModalInteractions(): IInteractionElement[] {
+        return []
     }
 
     static isAuthorAdmin(member: GuildMember | APIInteractionGuildMember | null | undefined) {

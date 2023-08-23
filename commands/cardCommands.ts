@@ -191,14 +191,18 @@ export class CardCommands extends AbstractCommands {
         this.aceValue = v
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'kort',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.cardSwitch(rawInteraction)
-                },
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'kort',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.cardSwitch(rawInteraction)
+                        },
+                    },
+                ],
             },
-        ]
+        }
     }
 }

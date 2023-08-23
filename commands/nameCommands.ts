@@ -97,15 +97,19 @@ export class NameCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'navn',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.handleNameCommands(rawInteraction)
-                },
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'navn',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.handleNameCommands(rawInteraction)
+                        },
+                    },
+                ],
             },
-        ]
+        }
     }
 
     getLegalTextCommandNames(): string[] {

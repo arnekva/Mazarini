@@ -8,17 +8,17 @@ import {
     Client,
     EmbedBuilder,
     Message,
+    ModalSubmitInteraction,
+    StringSelectMenuInteraction,
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { IInteractionElement } from '../general/commands'
-import { ButtonHandler } from '../handlers/buttonHandler'
 import { MessageHelper } from '../helpers/messageHelper'
-import { MentionUtils } from '../utils/mentionUtils'
 
 const defaultButtonRow = new ActionRowBuilder<ButtonBuilder>()
 defaultButtonRow.addComponents(
     new ButtonBuilder({
-        custom_id: `${ButtonHandler.TEST}`,
+        custom_id: `TEST_BUTTON_1`,
         style: ButtonStyle.Primary,
         label: `Test`,
         disabled: false,
@@ -26,9 +26,10 @@ defaultButtonRow.addComponents(
     })
 )
 
-//NB: IKKE PUSH ENDRINGER I DENNE KLASSEN MED MINDRE DET ER GENERISKE HJELPEMETODER
+// NB: IKKE PUSH ENDRINGER I DENNE KLASSEN MED MINDRE DET ER GENERISKE HJELPEMETODER
 
-//Skall-klasse for testing av alt mulig random shit.
+// Skall-klasse for testing av alt mulig random shit.
+// Fungerer også som en template for andre klasser
 export class TestCommands extends AbstractCommands {
     private embedMessage: Message
     private buttonsMessage: Message
@@ -43,21 +44,26 @@ export class TestCommands extends AbstractCommands {
         this.currentButtons = defaultButtonRow
     }
 
-    public async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        this.messageHelper.sendMessage(
-            interaction.channelId,
-            `${MentionUtils.mentionUser('245607554254766081')} asdsadasdsd\`\`\`Test\`\`\` saddasd https://www.vg.no/`,
-            {
-                noMentions: true,
-                sendAsSilent: true,
-                supressEmbeds: false,
-            }
-        )
+    private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+        // Kode
     }
 
-    public async test2(interaction: ChatInputCommandInteraction<CacheType>) {}
+    private async testSelectMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {
+        const value = selectMenu.values[0]
+        // Kode
+        selectMenu.deferUpdate()
+    }
 
-    public async test3() {}
+    private async testButton(interaction: ButtonInteraction<CacheType>) {
+        // Kode
+        interaction.deferUpdate()
+    }
+
+    private async testModalSubmit(interaction: ModalSubmitInteraction<CacheType>) {
+        const value = interaction.fields.getTextInputValue('someCustomFieldId')
+        // Kode
+        interaction.deferUpdate()
+    }
 
     //Redigerer eksisterende embed hvis det er en knapp interaction, sender ny embed hvis ikke
     private async replyToInteraction(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
@@ -95,7 +101,7 @@ export class TestCommands extends AbstractCommands {
                     break
                 }
                 case '-2-': {
-                    this.test2(interaction)
+                    this.test(interaction)
                     break
                 }
                 case '-3-': {
@@ -115,14 +121,42 @@ export class TestCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'test',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.testSwitch(rawInteraction)
-                },
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'test',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.testSwitch(rawInteraction)
+                        },
+                    },
+                ],
+                buttonInteractionComands: [
+                    {
+                        commandName: 'TEST_BUTTON_1',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.testButton(rawInteraction)
+                        },
+                    },
+                ],
+                modalInteractionCommands: [
+                    {
+                        commandName: 'TEST_MODAL_1',
+                        command: (rawInteraction: ModalSubmitInteraction<CacheType>) => {
+                            this.testModalSubmit(rawInteraction)
+                        },
+                    },
+                ],
+                selectMenuInteractionCommands: [
+                    {
+                        commandName: 'TEST_SELECT_MENU_1',
+                        command: (rawInteraction: StringSelectMenuInteraction<CacheType>) => {
+                            this.testSelectMenu(rawInteraction)
+                        },
+                    },
+                ],
             },
-        ]
+        }
     }
 }

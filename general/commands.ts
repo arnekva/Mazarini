@@ -1,9 +1,8 @@
-import { CacheType, ChatInputCommandInteraction, Client, Interaction } from 'discord.js'
+import { ButtonInteraction, CacheType, ChatInputCommandInteraction, Client, ModalSubmitInteraction, StringSelectMenuInteraction } from 'discord.js'
 import { Admin } from '../admin/admin'
 import { TrelloCommands } from '../commands/bot/trelloCommands'
 import { CardCommands } from '../commands/cardCommands'
 import { DateCommands } from '../commands/dateCommands'
-import { RedBlackButtonHandler } from '../commands/drinks/redBlack/redBlackButtonHandler'
 import { RedBlackCommands } from '../commands/drinks/redBlack/redBlackCommands'
 import { DrinksCommands } from '../commands/drinksCommands'
 import { GamblingCommands } from '../commands/gamblingCommands'
@@ -23,17 +22,26 @@ import { TextCommands } from '../commands/textCommands'
 import { UserCommands } from '../commands/userCommands'
 import { WarzoneCommands } from '../commands/warzoneCommands'
 import { Weather } from '../commands/weatherCommands'
-import { ButtonHandler } from '../handlers/buttonHandler'
-import { ModalHandler } from '../handlers/modalHandler'
-import { SelectMenuHandler } from '../handlers/selectMenuHandler'
 import { MessageHelper } from '../helpers/messageHelper'
 import { PatchNotes } from '../patchnotes'
 
-export interface IInteractionElement {
-    /** Name of command */
+export interface IInteractionCommand<T> {
     commandName: string
-    /** Function to be run */
-    command: (rawMessage: ChatInputCommandInteraction<CacheType>) => void
+    command: (rawInteraction: T) => void
+}
+
+export interface IInteractionElement {
+    /** Holds the list over all available commands */
+    commands: {
+        /** All interactions triggered by a chat input, i.e. slash commands */
+        interactionCommands?: IInteractionCommand<ChatInputCommandInteraction<CacheType>>[]
+        /** All interactions triggered by a button press */
+        buttonInteractionComands?: IInteractionCommand<ButtonInteraction<CacheType>>[]
+        /** All interactions triggered by a select menu (dropdown) */
+        selectMenuInteractionCommands?: IInteractionCommand<StringSelectMenuInteraction<CacheType>>[]
+        /** ALl interactions triggered by a modal dialog */
+        modalInteractionCommands?: IInteractionCommand<ModalSubmitInteraction<CacheType>>[]
+    }
 }
 
 export class Commands {
@@ -59,12 +67,8 @@ export class Commands {
     private nameCommands: NameCommands
     private poletCommands: PoletCommands
     private linkCommands: LinkCommands
-    private modalHandler: ModalHandler
-    private selectMenuHandler: SelectMenuHandler
-    private buttonHandler: ButtonHandler
     private textCommands: TextCommands
     private redBlackCommands: RedBlackCommands
-    private redBlackButtonHandler: RedBlackButtonHandler
     private trelloCommands: TrelloCommands
     private pollCommands: PollCommands
 
@@ -92,53 +96,63 @@ export class Commands {
         this.nameCommands = new NameCommands(this.client, this.messageHelper)
         this.poletCommands = new PoletCommands(this.client, this.messageHelper)
         this.linkCommands = new LinkCommands(this.client, this.messageHelper)
-        this.modalHandler = new ModalHandler(this.client, this.messageHelper)
         this.trelloCommands = new TrelloCommands(this.client, this.messageHelper)
         this.textCommands = new TextCommands(this.client, this.messageHelper)
         this.redBlackCommands = new RedBlackCommands(this.client, this.messageHelper)
-        this.redBlackButtonHandler = new RedBlackButtonHandler(this.client, this.messageHelper, this.redBlackCommands)
-        this.buttonHandler = new ButtonHandler(this.client, this.messageHelper, this.redBlackButtonHandler, this.drinksCommands, this.testCommands)
         this.pollCommands = new PollCommands(this.client, this.messageHelper)
-        this.selectMenuHandler = new SelectMenuHandler(this.client, this.messageHelper, this.trelloCommands)
     }
 
     getAllInteractionCommands() {
         return [
-            ...this.gameCommands.getAllInteractions(),
-            ...this.spinner.getAllInteractions(),
-            ...this.jokeCommands.getAllInteractions(),
-            ...this.adminCommands.getAllInteractions(),
-            ...this.gamblingCommands.getAllInteractions(),
-            ...this.dateCommands.getAllInteractions(),
-            ...this.warzoneCommands.getAllInteractions(),
-            ...this.patchNotes.getAllInteractions(),
-            ...this.spotifyCommands.getAllInteractions(),
-            ...this.testCommands.getAllInteractions(),
-            ...this.musicCommands.getAllInteractions(),
-            ...this.memeCommands.getAllInteractions(),
-            ...this.userCommands.getAllInteractions(),
-            ...this.pollCommands.getAllInteractions(),
-            ...this.weatherCommands.getAllInteractions(),
-            ...this.soundCommands.getAllInteractions(),
-            ...this.cardCommands.getAllInteractions(),
-            ...this.drinksCommands.getAllInteractions(),
-            ...this.nameCommands.getAllInteractions(),
-            ...this.poletCommands.getAllInteractions(),
-            ...this.linkCommands.getAllInteractions(),
-            ...this.textCommands.getAllInteractions(),
-            ...this.redBlackCommands.getAllInteractions(),
-            ...this.trelloCommands.getAllInteractions(),
+            this.gameCommands.getAllInteractions(),
+            this.spinner.getAllInteractions(),
+            this.jokeCommands.getAllInteractions(),
+            this.adminCommands.getAllInteractions(),
+            this.gamblingCommands.getAllInteractions(),
+            this.dateCommands.getAllInteractions(),
+            this.warzoneCommands.getAllInteractions(),
+            this.patchNotes.getAllInteractions(),
+            this.spotifyCommands.getAllInteractions(),
+            this.testCommands.getAllInteractions(),
+            this.musicCommands.getAllInteractions(),
+            this.memeCommands.getAllInteractions(),
+            this.userCommands.getAllInteractions(),
+            this.pollCommands.getAllInteractions(),
+            this.weatherCommands.getAllInteractions(),
+            this.soundCommands.getAllInteractions(),
+            this.cardCommands.getAllInteractions(),
+            this.drinksCommands.getAllInteractions(),
+            this.nameCommands.getAllInteractions(),
+            this.poletCommands.getAllInteractions(),
+            this.linkCommands.getAllInteractions(),
+            this.textCommands.getAllInteractions(),
+            this.redBlackCommands.getAllInteractions(),
+            this.trelloCommands.getAllInteractions(),
         ]
     }
 
-    handleModalInteractions(interaction: Interaction<CacheType>): boolean {
-        return this.modalHandler.handleIncomingModalInteraction(interaction)
+    getAllTextCommands() {
+        return this.getAllInteractionCommands()
+            .flatMap((c) => c.commands.interactionCommands)
+            .filter((c) => !!c)
     }
-    handleSelectMenus(interaction: Interaction<CacheType>): boolean {
-        return this.selectMenuHandler.handleIncomingSelectMenu(interaction)
+
+    getAllModalCommands() {
+        return this.getAllInteractionCommands()
+            .flatMap((c) => c.commands.modalInteractionCommands)
+            .filter((c) => !!c)
     }
-    handleButtons(interaction: Interaction<CacheType>): boolean {
-        return this.buttonHandler.handleIncomingButtonInteraction(interaction)
+
+    getAllButtonCommands() {
+        return this.getAllInteractionCommands()
+            .flatMap((c) => c.commands.buttonInteractionComands)
+            .filter((c) => !!c)
+    }
+
+    getAllSelectMenuCommands() {
+        return this.getAllInteractionCommands()
+            .flatMap((c) => c.commands.selectMenuInteractionCommands)
+            .filter((c) => !!c)
     }
 
     get dateFunc() {

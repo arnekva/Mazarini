@@ -11,7 +11,6 @@ import {
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { IInteractionElement } from '../general/commands'
-import { ButtonHandler } from '../handlers/buttonHandler'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { MentionUtils } from '../utils/mentionUtils'
@@ -28,14 +27,14 @@ interface IUserObject {
 const activeGameButtonRow = new ActionRowBuilder<ButtonBuilder>()
 activeGameButtonRow.addComponents(
     new ButtonBuilder({
-        custom_id: `${ButtonHandler.ELECTRICITY_DRAW}`,
+        custom_id: 'EL_DRAW',
         style: ButtonStyle.Success,
         label: `Trekk`,
         disabled: false,
         type: 2,
     }),
     new ButtonBuilder({
-        custom_id: `${ButtonHandler.ELECTRICITY_MOVE}`,
+        custom_id: 'EL_MOVE',
         style: ButtonStyle.Primary,
         label: `Flytt ned`,
         disabled: false,
@@ -46,14 +45,14 @@ activeGameButtonRow.addComponents(
 const gameSetupButtonRow = new ActionRowBuilder<ButtonBuilder>()
 gameSetupButtonRow.addComponents(
     new ButtonBuilder({
-        custom_id: `${ButtonHandler.ELECTRICITY_JOIN}`,
+        custom_id: 'EL_JOIN',
         style: ButtonStyle.Primary,
         label: `Bli med!`,
         disabled: false,
         type: 2,
     }),
     new ButtonBuilder({
-        custom_id: `${ButtonHandler.ELECTRICITY_START}`,
+        custom_id: 'EL_START',
         style: ButtonStyle.Success,
         label: `🍷 Start 🍷`,
         disabled: false,
@@ -64,7 +63,7 @@ gameSetupButtonRow.addComponents(
 const resetDeckButtonRow = new ActionRowBuilder<ButtonBuilder>()
 resetDeckButtonRow.addComponents(
     new ButtonBuilder({
-        custom_id: `${ButtonHandler.ELECTRICITY_RESET}`,
+        custom_id: 'EL_RESET',
         style: ButtonStyle.Primary,
         label: `Resett kortstokk`,
         disabled: false,
@@ -461,20 +460,56 @@ export class DrinksCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'drikk',
-                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
-                    this.drinkBitch(interaction)
-                },
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'drikk',
+                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                            this.drinkBitch(interaction)
+                        },
+                    },
+                    {
+                        commandName: 'electricity',
+                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                            this.elSwitch(interaction)
+                        },
+                    },
+                ],
+                buttonInteractionComands: [
+                    {
+                        commandName: 'EL_DRAW',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.drawCard(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'EL_MOVE',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.resendMessages(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'EL_JOIN',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.joinElectricity(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'EL_START',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.startElectricity(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'EL_RESET',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.resetDeck(rawInteraction)
+                        },
+                    },
+                ],
             },
-            {
-                commandName: 'electricity',
-                command: (interaction: ChatInputCommandInteraction<CacheType>) => {
-                    this.elSwitch(interaction)
-                },
-            },
-        ]
+        }
     }
 }

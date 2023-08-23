@@ -425,38 +425,42 @@ export class DateCommands extends AbstractCommands {
         return false
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'helg',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.checkForHelg(rawInteraction)
-                },
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'helg',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.checkForHelg(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'ferie',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.registerFerie(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'reminder',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.setReminder(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'bursdag',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.addUserBirthday(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'countdown',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.countdownToDate(rawInteraction)
+                        },
+                    },
+                ],
             },
-            {
-                commandName: 'ferie',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.registerFerie(rawInteraction)
-                },
-            },
-            {
-                commandName: 'reminder',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.setReminder(rawInteraction)
-                },
-            },
-            {
-                commandName: 'bursdag',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.addUserBirthday(rawInteraction)
-                },
-            },
-            {
-                commandName: 'countdown',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.countdownToDate(rawInteraction)
-                },
-            },
-        ]
+        }
     }
 }

@@ -42,9 +42,7 @@ export interface ITrelloCard {
         id: string
       }
     ]
-    idLabels: [
-        string
-    ]
+    idLabels: string[]
     idList: string
     idMembers: [
         string
@@ -53,14 +51,7 @@ export interface ITrelloCard {
         string
     ]
     idShort: number
-    labels: [
-        {
-            id: string
-            idBoard: string
-            name: string
-            color: string
-        }
-    ]
+    labels: ITrelloLabel[]
     limits: {
       attachments: {
         perBoard: {
@@ -84,5 +75,34 @@ export interface ITrelloCard {
       size: string
       brightness: string
       isTemplate: boolean
+    }
+  }
+
+  export interface ITrelloLabel {
+    id: string
+    idBoard: string
+    name: string
+    color: string
+    uses?: number
+  }
+
+  export interface INewTrelloCard {
+    name: string
+    desc: string
+    idLabels: string[]
+  }
+
+  export interface ITrelloList {
+    id: string
+    name: string
+    closed: boolean
+    pos: number
+    softLimit: string
+    idBoard: string
+    subscribed: boolean
+    limits: {
+      attachments: {
+        perBoard: {}
+      }
     }
   }

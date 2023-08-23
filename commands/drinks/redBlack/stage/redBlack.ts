@@ -1,16 +1,13 @@
 import { ICardObject } from '../../../cardCommands'
-import { RedBlackButtonHandler } from '../redBlackButtonHandler'
 import { RedBlackCommands } from '../redBlackCommands'
 import { RedBlackRound } from '../redBlackInterfaces'
 
 export class RedBlack {
-    public static async guessRB(card: ICardObject, customId: string) {
-        const guess = RedBlack.getGuessValue(customId, RedBlackRound.RedBlack)
+    public static async guessRB(card: ICardObject, guess: string) {
         return guess === 'red' ? ['H', 'D'].includes(card.suit) : ['S', 'C'].includes(card.suit)
     }
 
-    public static async guessUD(card: ICardObject, prevCards: ICardObject[], customId: string) {
-        const guess = RedBlack.getGuessValue(customId, RedBlackRound.UpDown)
+    public static async guessUD(card: ICardObject, prevCards: ICardObject[], guess: string) {
         const prevCard = prevCards.pop()
         const guessIsUp = guess === 'up'
         const guessIsDown = guess === 'down'
@@ -38,8 +35,7 @@ export class RedBlack {
         return card.number == prevCard.number
     }
 
-    public static async guessIO(card: ICardObject, prevCards: ICardObject[], customId: string) {
-        const guess = RedBlack.getGuessValue(customId, RedBlackRound.InsideOutside)
+    public static async guessIO(card: ICardObject, prevCards: ICardObject[], guess: string) {
         const highCard = prevCards.pop()
         const lowCard = prevCards.pop()
         if (guess === 'in') return card.number > lowCard.number && card.number < highCard.number
@@ -47,22 +43,12 @@ export class RedBlack {
         return card.number == highCard.number || card.number == lowCard.number
     }
 
-    public static async guessSuit(card: ICardObject, customId: string) {
-        const guess = RedBlack.getGuessValue(customId, RedBlackRound.Suit)
+    public static async guessSuit(card: ICardObject, guess: string) {
         return guess === card.suit
     }
 
-    public static getGuessValue(customId: string, round: RedBlackRound) {
-        let toReplace = ''
-        if (round === RedBlackRound.RedBlack) toReplace = RedBlackButtonHandler.GUESS_RED_BLACK
-        else if (round === RedBlackRound.UpDown) toReplace = RedBlackButtonHandler.GUESS_UP_DOWN
-        else if (round === RedBlackRound.InsideOutside) toReplace = RedBlackButtonHandler.GUESS_IN_OUT
-        else if (round === RedBlackRound.Suit) toReplace = RedBlackButtonHandler.GUESS_SUIT
-        return customId.replace(toReplace, '')
-    }
-
-    public static getTranslatedGuessValue(customId: string, round: RedBlackRound) {
-        return RedBlack.guessTranslations.get(RedBlack.getGuessValue(customId, round))
+    public static getTranslatedGuessValue(guess: string) {
+        return RedBlack.guessTranslations.get(guess)
     }
 
     public static getPrettyRoundName(rn: RedBlackRound) {

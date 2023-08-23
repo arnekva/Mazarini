@@ -245,20 +245,24 @@ export class SpotifyCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'spotify',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.handleSpotifyInteractions(rawInteraction)
-                },
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'spotify',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.handleSpotifyInteractions(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'sang',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.printSongFromSpotify(rawInteraction)
+                        },
+                    },
+                ],
             },
-            {
-                commandName: 'sang',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.printSongFromSpotify(rawInteraction)
-                },
-            },
-        ]
+        }
     }
 }

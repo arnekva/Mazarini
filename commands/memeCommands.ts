@@ -148,14 +148,18 @@ export class Meme extends AbstractCommands {
         return [{ boxId: '0', x: '10', y: '300', width: '300', height: '100' }]
     }
 
-    getAllInteractions(): IInteractionElement[] {
-        return [
-            {
-                commandName: 'meme',
-                command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    this.sendMeme(rawInteraction)
-                },
+    getAllInteractions(): IInteractionElement {
+        return {
+            commands: {
+                interactionCommands: [
+                    {
+                        commandName: 'meme',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.sendMeme(rawInteraction)
+                        },
+                    },
+                ],
             },
-        ]
+        }
     }
 }
