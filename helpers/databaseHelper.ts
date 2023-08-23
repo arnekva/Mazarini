@@ -1,9 +1,7 @@
 //https://openbase.com/js/node-json-db
 import { JsonDB } from 'node-json-db'
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
-import { IDailyPriceClaim } from '../commands/gamblingCommands'
-import { rocketLeagueDbData } from '../commands/gameCommands'
-import { CodBRStatsType, CodStats } from '../commands/warzoneCommands'
+import { botDataPrefix, ChipsStats, MazariniCountdowns, MazariniUser, RulettStats } from '../interfaces/database/databaseInterface'
 
 const db = new JsonDB(new Config('myDataBase', true, true, '/'))
 const folderPrefix = '/users'
@@ -11,147 +9,6 @@ const otherFolderPreifx = '/other'
 const botFolder = '/bot'
 const textCommandFolder = '/textCommand'
 
-//const db = new Database()
-/**
- * Denne kan senere utvides. Bruker for å passe på at alle verdier som skal inn i databasen samsvarer
- */
-export interface userValPair {
-    key: string
-    value: string
-    opt?: any
-}
-
-export type botDataPrefix = 'status' | 'statusType'
-
-export interface MazariniUser {
-    /** User id */
-    id: string
-
-    /**  dd-mm-yyyy */
-    birthday?: string
-    /** Custom status */
-    status?: string
-    /** Total spins */
-    spinCounter: number //TODO?
-
-    ATHspin?: string
-    /** No.  chips */
-    chips: number
-
-    /** No. warnings */
-    warningCounter: number
-    /** No. bonks */
-    bonkCounter: number
-
-    lastFMUsername?: string
-    /** No. loans */
-
-    shopItems?: any //TODO Cast this
-    /** Cod weekly stats */
-    codStats?: CodStats | CodBRStatsType
-    /**Cod BR */
-    codStatsBR?: CodBRStatsType | CodStats
-    /** Legacy stats for Warzone 1 */
-    codStatsWarzone1?: CodBRStatsType | CodStats
-    /** Username for activision. username;platform */
-    activisionUserString?: string
-    /** Rocket League stats */
-    rocketLeagueStats?: rocketLeagueDbData
-    /** Username for rocket league. username;platform */
-    rocketLeagueUserString?: string
-    /** Displayname */
-    displayName: string
-    inventory?: any[]
-    debuff?: any
-    dailyClaim?: number
-    dailyClaimStreak?: IDailyPriceClaim
-    dailyFreezeCounter?: number
-    prestige?: number
-    favoritePol?: FavoritePol
-    userStats?: UserStats
-    //OUTDATED
-}
-
-export type FavoritePol = {
-    id?: string
-    longitude?: string
-    latitude?: string
-}
-export type UserStats = {
-    chipsStats?: ChipsStats
-    rulettStats?: RulettStats
-}
-export type dbPrefix =
-    | 'birthday'
-    | 'spinCounter'
-    | 'favoritePol'
-    | 'prestige'
-    | 'dailyFreezeCounter'
-    | 'dailyClaimStreak'
-    | 'dailyClaim'
-    | 'debuff'
-    | 'inventory'
-    | 'displayName'
-    | 'rocketLeagueUserString'
-    | 'activisionUserString'
-    | 'codStatsBR'
-    | 'codStats'
-    | 'codStats'
-    | 'codStatsBR'
-    | 'lastFMUsername'
-    | 'bonkCounter'
-    | 'warningCounter'
-    | 'chips'
-    | 'ATHspin'
-    | 'status'
-    | 'id'
-
-export interface betObject {
-    description: string
-    value: string
-    positivePeople: string[]
-    negativePeople: string[]
-    messageId: string
-}
-export interface betObjectReturned {
-    discriminator: 'BETOBJECT'
-    description: string
-    value: string
-    positivePeople: string
-    negativePeople: string
-    messageId: string
-}
-
-export interface itemsBoughtAtStore {
-    itemList: any[]
-}
-
-export interface debuffItem {
-    item: string
-    amount: number
-}
-
-export interface ferieItem {
-    fromDate: Date
-    toDate: Date
-}
-export interface ChipsStats {
-    krigWins?: number
-    krigLosses?: number
-    gambleWins?: number
-    gambleLosses?: number
-    slotWins?: number
-    slotLosses?: number
-    roulettWins?: number
-    rouletteLosses?: number
-}
-export interface RulettStats {
-    red?: number
-    black?: number
-    green?: number
-    odd?: number
-    even?: number
-}
 export class DatabaseHelper {
     /**
      * Get a user object by ID.
@@ -168,11 +25,10 @@ export class DatabaseHelper {
         }
     }
 
-    /** Get an untyped user object */
+    /** Get an untyped user object. Do not use unless you know what you are doing */
     static getUntypedUser(userID: string): any | undefined {
-        // { [key: string]: MazariniUser }
         try {
-            return JSON.parse(db.getData(`${folderPrefix}/${userID}/`)) as MazariniUser
+            return JSON.parse(db.getData(`${folderPrefix}/${userID}/`)) as MazariniUser as any
         } catch (error: any) {
             return undefined
         }
@@ -223,19 +79,6 @@ export class DatabaseHelper {
         }
     }
 
-    static setObjectValue(prefix: dbPrefix, key: string, value: any) {
-        db.push(`${folderPrefix}/${key}/${prefix}`, `${value}`)
-    }
-    /** Update a non-user value in the database */
-    static setNonUserValue(id: string, key: string, value: string) {
-        db.push(`${otherFolderPreifx}/${id}/${key}`, `${value}`)
-    }
-    static setCountdownValue(id: string, key: string, value: string) {
-        db.push(`${otherFolderPreifx}/countdown/${id}/${key}`, `${value}`)
-    }
-    static deleteCountdownValue(id: string) {
-        db.delete(`${otherFolderPreifx}/countdown/${id}/`)
-    }
     static setFerieValue(id: string, key: string, value: string) {
         db.push(`${otherFolderPreifx}/ferie/${id}/${key}`, `${value}`)
     }
@@ -243,9 +86,35 @@ export class DatabaseHelper {
         db.delete(`${otherFolderPreifx}/ferie/${id}/`)
     }
 
-    static getAllCountdownValues() {
-        return db.getData(`${otherFolderPreifx}/countdown/`)
+    static getCountdowns(): MazariniCountdowns | undefined {
+        try {
+            const cds = JSON.parse(db.getData(`${otherFolderPreifx}/countdowns/`)) as MazariniCountdowns
+            return cds
+        } catch (error: any) {
+            let data = {} as MazariniCountdowns | string
+            db.push(`${otherFolderPreifx}/countdowns/`, '', false)
+            data = db.getData(`${otherFolderPreifx}/countdowns/`)
+
+            if (!data || data == '') {
+                DatabaseHelper.updateCountdowns({ allCountdowns: [] })
+                return DatabaseHelper.getCountdowns()
+            }
+
+            return undefined
+        }
     }
+
+    static updateCountdowns(cd: MazariniCountdowns) {
+        const objToPush = JSON.stringify(cd)
+        db.push(`${otherFolderPreifx}/countdowns/`, `${objToPush}`)
+    }
+
+    static deleteCountdownValue(id: string) {
+        const cds = DatabaseHelper.getCountdowns()
+        cds.allCountdowns = cds.allCountdowns.filter((c) => c.ownerId !== id)
+        DatabaseHelper.updateCountdowns(cds)
+    }
+
     static getAllFerieValues() {
         return db.getData(`${otherFolderPreifx}/ferie/`)
     }
@@ -259,40 +128,6 @@ export class DatabaseHelper {
             db.push(`${otherFolderPreifx}/${id}/${key}`, `0`)
             return '0'
         }
-    }
-    static getAllNonUserValueFromPrefix(id: string) {
-        try {
-            const data = db.getData(`${otherFolderPreifx}/${id}`)
-            return data
-        } catch (error) {
-            return ''
-        }
-    }
-
-    static setActiveBetObject(key: string, value: betObject) {
-        db.push(`${otherFolderPreifx}/activeBet/${key}/positivePeople`, `${value.positivePeople}`)
-        db.push(`${otherFolderPreifx}/activeBet/${key}/negativePeople`, `${value.negativePeople}`)
-        db.push(`${otherFolderPreifx}/activeBet/${key}/value`, `${value.value}`)
-        db.push(`${otherFolderPreifx}/activeBet/${key}/description`, `${value.description}`)
-        db.push(`${otherFolderPreifx}/activeBet/${key}/messageId`, `${value.messageId}`)
-    }
-
-    static getActiveBetObject(key: string) {
-        try {
-            const data = db.getData(`${otherFolderPreifx}/activeBet/${key}`)
-            return data
-        } catch (error) {
-            return undefined
-        }
-    }
-    static setBetObject(key: string, messageId: string, value: betObject) {
-        db.push(`${otherFolderPreifx}/storedBets/${messageId}/positive`, `${value.positivePeople}`)
-        db.push(`${otherFolderPreifx}/storedBets/${messageId}/negative`, `${value.negativePeople}`)
-    }
-
-    /** For missing folders, like achievement, you can add them using this */
-    static addUserFolder(key: string, prefix: dbPrefix) {
-        db.push(`${folderPrefix}/${key}/${prefix}`, {})
     }
 
     static getBotData(prefix: botDataPrefix) {
@@ -325,18 +160,10 @@ export class DatabaseHelper {
         return data
     }
 
-    static getDefaultPrefixValue(prefix: dbPrefix) {
-        if (prefix == 'ATHspin') return '00'
-        else return '0'
-    }
-
     static getAllUsers() {
         return db.getData('/users')
     }
 
-    static deleteActiveBet(username: string) {
-        db.delete(`${otherFolderPreifx}/activeBet/${username}`)
-    }
     static deleteSpecificPrefixValues(prefix: keyof MazariniUser) {
         const users = this.getAllUsers()
         Object.keys(users).forEach((key) => {
@@ -353,49 +180,6 @@ export class DatabaseHelper {
 
     static getProperty<T>(o: MazariniUser, name: keyof MazariniUser) {
         return o[name]
-    }
-
-    static decreaseInventoryItem(item: String, username: String) {
-        try {
-            const mengde = db.getData(`${folderPrefix}/${username}/inventory/${item}/amount`) - 1
-            if (mengde <= 0) {
-                db.delete(`${folderPrefix}/${username}/inventory/${item}`)
-            } else {
-                db.push(`${folderPrefix}/${username}/inventory/${item}/amount`, mengde)
-            }
-        } catch (error) {
-            return undefined
-        }
-    }
-
-    static getAllValuesFromPath(path: string) {
-        try {
-            return db.getData(`${path}`)
-        } catch (error) {
-            //nothing yet
-        }
-    }
-    static getValueFromPath(path: string) {
-        return db.getData(`${path}`)
-    }
-
-    static stripPrefixFromString(text: string, prefix: dbPrefix) {
-        return text.replace(prefix + '-', '')
-    }
-
-    static increaseDebuff(target: string, item: string) {
-        try {
-            const mengde = db.getData(`${folderPrefix}/${target}/debuff/${item}/amount`)
-            if (mengde <= 0 || mengde == undefined) {
-                db.push(`${folderPrefix}/${target}/debuff/${item}/name`, `${item}`)
-                db.push(`${folderPrefix}/${target}/debuff/${item}/amount`, `1`)
-            } else {
-                db.push(`${folderPrefix}/${target}/debuff/${item}/amount`, mengde + 1)
-            }
-        } catch (error) {
-            db.push(`${folderPrefix}/${target}/debuff/${item}/name`, `${item}`)
-            db.push(`${folderPrefix}/${target}/debuff/${item}/amount`, 1)
-        }
     }
 
     static defaultUser(id: string, name: string): MazariniUser {
@@ -424,38 +208,3 @@ export class DatabaseHelper {
         }
     }
 }
-export interface ValuePair {
-    key: string
-    val: string
-}
-export interface ValuePair {
-    key: string
-    val: string
-}
-export interface prefixVal {
-    anyName: string
-}
-
-export const prefixList: dbPrefix[] = [
-    'birthday',
-    'spinCounter',
-    'favoritePol',
-    'prestige',
-    'dailyFreezeCounter',
-    'dailyClaimStreak',
-    'dailyClaim',
-    'displayName',
-    'rocketLeagueUserString',
-    'activisionUserString',
-    'codStatsBR',
-    'codStats',
-    'codStats',
-    'codStatsBR',
-    'lastFMUsername',
-    'bonkCounter',
-    'warningCounter',
-    'chips',
-    'ATHspin',
-    'status',
-    'id',
-]

@@ -1,5 +1,5 @@
 import { dateValPair } from '../commands/dateCommands'
-import { ValuePair } from '../helpers/databaseHelper'
+import { ValuePair } from '../interfaces/database/databaseInterface'
 import { RandomUtils } from './randomUtils'
 
 export class ArrayUtils {

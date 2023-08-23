@@ -7,6 +7,7 @@ import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { TextUtils } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
 import { Music } from './musicCommands'
 const SpotifyWebApi = require('spotify-web-api-node')
@@ -208,7 +209,7 @@ export class SpotifyCommands extends AbstractCommands {
         } else {
             const dbUser = DatabaseHelper.getUser(user?.id ?? interaction.user.id)
             const lastFmName = dbUser.lastFMUsername
-            if (lastFmName) {
+            if (!!lastFmName) {
                 const lastFMData = await _music.findLastFmData({
                     user: lastFmName,
                     includeNameInOutput: false,
@@ -220,10 +221,13 @@ export class SpotifyCommands extends AbstractCommands {
                     header: '',
                 })
 
-                return (user ? `*${user.username}:* ` : '') + lastFMData.join(' ') ?? `${user} hører ikke på Spotify nå, og har heller ikke koblet til Last.fm`
+                return (
+                    (user ? `*${user.username}:* ` : '') + TextUtils.escapeString(lastFMData.join(' ')) ??
+                    `${user} hører ikke på Spotify nå, og har heller ikke koblet til Last.fm`
+                )
             }
         }
-        return `${user} hører ikke på Spotify nå, og har heller ikke koblet til Last.fm`
+        return `${user ? user : 'Du'} hører ikke på Spotify nå, og har heller ikke koblet til Last.fm`
     }
 
     private async handleSpotifyInteractions(interaction: ChatInputCommandInteraction<CacheType>) {

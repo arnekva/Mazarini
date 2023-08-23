@@ -226,20 +226,6 @@ export class CommandRunner {
         runningInteraction.command(interaction)
     }
 
-    logIncorectCommandUsage(message: Message, messageContent: string, args: string[]) {
-        let command = message.content.split(' ')[1]
-        if (environment === 'prod') {
-            const numberOfFails = DatabaseHelper.getNonUserValue('incorrectCommand', command)
-            let newFailNum = 1
-            if (numberOfFails && Number(numberOfFails)) newFailNum = Number(numberOfFails) + 1
-            if (command === '' || command.trim() === '') command = '<tom command>'
-            this.messageHelper.sendLogMessage(
-                `Kommandoen '${command}' ble forsøkt brukt av ${message.author.username}, men den finnes ikke. Denne kommandoen er forsøkt brukt ${newFailNum} ganger`
-            )
-            DatabaseHelper.setNonUserValue('incorrectCommand', command, newFailNum.toString())
-        }
-    }
-
     /** Checks for pølse, eivindpride etc. */
     async checkMessageForJokes(message: Message) {
         if (!this.checkIfLockedPath(message)) {
@@ -258,14 +244,19 @@ export class CommandRunner {
 
             if (hasHelg) {
                 const val = await this.commands.dateFunc.checkForHelg()
-                this.messageHelper.sendMessage(message.channelId, val)
+                this.messageHelper.sendMessage(message.channelId, val, {sendAsSilent: true})
             }
 
             if (message.attachments) {
                 if (this.polseRegex.exec(message.attachments.first()?.name ?? '')) polseCounter++
             }
 
-            if (polseCounter > 0) message.channel.send('Hæ, ' + (polseCounter > 1 ? polseCounter + ' ' : '') + 'pølse' + (polseCounter > 1 ? 'r' : '') + '?')
+            if (polseCounter > 0)
+                this.messageHelper.sendMessage(
+                    message.channelId,
+                    'Hæ, ' + (polseCounter > 1 ? polseCounter + ' ' : '') + 'pølse' + (polseCounter > 1 ? 'r' : '') + '?',
+                    { sendAsSilent: true }
+                )
 
             //If eivind, eivindpride him
             if (message.author.id == '239154365443604480' && message.guild) {
@@ -278,13 +269,14 @@ export class CommandRunner {
             if (message.author.id == '733320780707790898' && message.guild) {
                 this.applyJoiijJokes(message)
             }
-            // const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message)
-            // if (idJoke == '1337') {
-            //     message.reply('nice, id-en te meldingen din inneholde 1337. Gz, du har vonne 1.000 chips')
-            //     const user = DatabaseHelper.getUser(message.author.id)
-            //     user.chips += 1000
-            //     DatabaseHelper.updateUser(user)
-            // }
+            const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message)
+            if (idJoke == '1337') {
+                this.messageHelper.replyToMessage(message, 'nice, id-en te meldingen din inneholde 1337. Gz, du har vonne 1.000 chips', { sendAsSilent: true })
+
+                const user = DatabaseHelper.getUser(message.author.id)
+                user.chips += 1000
+                DatabaseHelper.updateUser(user)
+            }
         }
     }
 
@@ -315,11 +307,11 @@ export class CommandRunner {
         ]
         if (numbers.length > 0 && numbers.length < 3) {
             message.react(kekw ?? '😂')
-            message.reply(ArrayUtils.randomChoiceFromArray(responses))
+            this.messageHelper.replyToMessage(message, ArrayUtils.randomChoiceFromArray(responses))
         }
         if (message.mentions.roles.find((e) => e.id === MentionUtils.ROLE_IDs.WARZONE)) {
             message.react(kekw ?? '😂')
-            message.reply('lol')
+            this.messageHelper.replyToMessage(message, 'lol')
         }
     }
 

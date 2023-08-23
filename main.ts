@@ -15,7 +15,7 @@ import {
     PartialMessage,
     PartialUser,
     Role,
-    User
+    User,
 } from 'discord.js'
 import moment from 'moment'
 import { discordSecret, environment } from './client-env'
@@ -120,7 +120,7 @@ export class MazariniClient {
             MazariniClient.numMessages++
             //Do not reply to own messages. Do not trigger on pinned messages
             if (message?.author?.username == client?.user?.username || message?.type === MessageType.ChannelPinnedMessage) {
-                MazariniClient.numMessagesFromBot++
+                // MazariniClient.numMessagesFromBot++
             } else {
                 _mzClient.commandRunner.runCommands(message)
 
@@ -161,7 +161,7 @@ export class MazariniClient {
                 _msgHelper.sendMessage(
                     actionLogId,
                     `**En melding fra ** *${message?.author?.username}* **ble slettet av** *${executor?.username}*. **Innhold**: '*${message?.content}*'`,
-                    true
+                    { noMentions: true }
                 )
             }
         })

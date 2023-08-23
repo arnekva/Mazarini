@@ -12,15 +12,17 @@ import {
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { IButtonInteractionElement, IInteractionElement, IModalInteractionElement, ISelectMenuInteractionElement } from '../general/commands'
-import { ChipsStats, DatabaseHelper, MazariniUser, RulettStats } from '../helpers/databaseHelper'
+import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { SlashCommandHelper } from '../helpers/slashCommandHelper'
+import { ChipsStats, MazariniUser, RulettStats } from '../interfaces/database/databaseInterface'
 import { EmbedUtils } from '../utils/embedUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { RandomUtils } from '../utils/randomUtils'
 import { TextUtils } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
+
 export interface IDailyPriceClaim {
     streak: number
     wasAddedToday: boolean

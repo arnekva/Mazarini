@@ -5,11 +5,13 @@ import { environment } from '../client-env'
 import { IInteractionElement, IModalInteractionElement } from '../general/commands'
 import { LockingHandler } from '../handlers/lockingHandler'
 import { ClientHelper } from '../helpers/clientHelper'
-import { DatabaseHelper, dbPrefix, prefixList } from '../helpers/databaseHelper'
+import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { dbPrefix, prefixList } from '../interfaces/database/databaseInterface'
 import { MazariniClient } from '../main'
 import { MentionUtils } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
+
 const { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js')
 // const { exec } = require('child_process')
 // const { spawn } = require('node:child_process')
@@ -157,6 +159,8 @@ export class Admin extends AbstractCommands {
                 .setCustomId('channelID')
                 // The label is the prompt the user sees for this input
                 .setLabel('ID-en til kanalen meldingen skal sendes til')
+                .setPlaceholder(`${interaction.channelId}`)
+                .setValue(`${interaction.channelId}`)
                 // Short means only a single line of text
                 .setStyle(TextInputStyle.Short)
 
@@ -230,7 +234,7 @@ export class Admin extends AbstractCommands {
         const text = modalInteraction.fields.getTextInputValue('messageInput')
 
         this.messageHelper.sendMessage(chatID, text)
-        this.messageHelper.replyToInteraction(modalInteraction, `Meldingen <*${text}*> ble sent til kanalen med ID <*${chatID}*>`, true)
+        this.messageHelper.replyToInteraction(modalInteraction, `Meldingen *${text}* ble sent til ${MentionUtils.mentionChannel(chatID)}`, true)
         this.messageHelper.sendLogMessage(
             `${modalInteraction.user.username} sendte en melding som botten til kanalen ${MentionUtils.mentionChannel(chatID)} med innholdet '*${text}*'`
         )
@@ -241,12 +245,11 @@ export class Admin extends AbstractCommands {
             {
                 commandName: 'send',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                    if (Admin.isAuthorAdmin(rawInteraction.member)) {
-                        this.buildSendModal(rawInteraction)
-                        this.messageHelper.sendLogMessage(
-                            `${rawInteraction.user.username} trigget 'send' fra ${MentionUtils.mentionChannel(rawInteraction?.channelId)}.`
-                        )
-                    } else rawInteraction.reply({ content: 'Du har ikke rettighetene til å gjøre dette', ephemeral: true })
+                    this.buildSendModal(rawInteraction)
+
+                    this.messageHelper.sendLogMessage(
+                        `${rawInteraction.user.username} trigget 'send' fra ${MentionUtils.mentionChannel(rawInteraction?.channelId)}.`
+                    )
                 },
             },
             {
@@ -315,6 +318,7 @@ export class Admin extends AbstractCommands {
     }
 
     static isAuthorAdmin(member: GuildMember | APIInteractionGuildMember | null | undefined) {
+        if (environment === 'dev') return true
         if (!member || !member?.roles) return false
         const cache = (member as GuildMember).roles.cache
         if (!cache) return false

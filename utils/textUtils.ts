@@ -91,4 +91,8 @@ export namespace TextUtils {
             minimumFractionDigits: minDigit,
         })
     }
+
+    export function formatAsCodeBlock(text: string) {
+        return `\`\`\`${text}\`\`\``
+    }
 }
