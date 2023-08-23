@@ -4,18 +4,14 @@ import { IInteractionElement } from './general/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '11.6.0'
+    public static readonly currentVersion = '11.7.0'
     public static readonly nextVersion = 'Backlog'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
     public static readonly currentPatchNotes: string =
-        `\n* Flere meldinger som botten sender er nå gjørt silent, blant annet "Hæ, pølse?". Det betyr at du ikke vil få lydnotifikasjoner for disse meldingene lenger.` +
-        `\n* Adminfunksjonen /send autofyller nå tekstfeltet for channelId med id-en til kanalen du trigget kommandoen fra` +
-        `\n* MessageHelper.sendMessage() har nå et nytt options param hvor du kan sette silent message m.m.` +
-        `\n* Fikset en feil i /botstats som gjorde at antall meldinger fra botten ble doblet` +
-        `\n* Fikset formatteringen på /spotify når den henter data fra Last.fm`
+        `\n* Store refaktoreringer for håndtering av interactions. Kan føre til noen bugs.`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
