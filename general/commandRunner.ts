@@ -1,8 +1,7 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, CacheType, ChatInputCommandInteraction, Client, Interaction, InteractionType, Message } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, Client, Interaction, InteractionType, Message, ModalSubmitInteraction, StringSelectMenuInteraction } from 'discord.js'
 import { Admin } from '../admin/admin'
 import { environment } from '../client-env'
 import { PoletCommands } from '../commands/poletCommands'
-import { ButtonHandler } from '../handlers/buttonHandler'
 import { LockingHandler } from '../handlers/lockingHandler'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -13,7 +12,7 @@ import { MentionUtils } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { UserUtils } from '../utils/userUtils'
-import { Commands, IInteractionElement } from './commands'
+import { Commands, IButtonInteractionElement, IInteractionElement, IModalInteractionElement, ISelectMenuInteractionElement } from './commands'
 const fetch = require('node-fetch')
 
 export class CommandRunner {
@@ -111,7 +110,7 @@ export class CommandRunner {
                         const poletStockButton = new ActionRowBuilder<ButtonBuilder>()
                         poletStockButton.addComponents(
                             new ButtonBuilder({
-                                custom_id: `${ButtonHandler.POLET_STOCK}${data.code}&${data.name}`,
+                                custom_id: `POLET_STOCK;${data.code};${data.name}`,
                                 style: ButtonStyle.Primary,
                                 label: `Varelagerstatus`,
                                 disabled: false,
@@ -173,11 +172,26 @@ export class CommandRunner {
                     }
                 })
             } else if (interaction.type === InteractionType.ModalSubmit) {
-                hasAcknowledged = this.commands.handleModalInteractions(interaction)
-            } else if (interaction.isAnySelectMenu()) {
-                hasAcknowledged = this.commands.handleSelectMenus(interaction)
+                this.commands.getAllModalCommands().forEach((cmd) => {
+                    if (cmd.commandName === interaction.customId.split(';')[0]) {
+                        this.runModalInteractionElement(cmd, interaction)
+                        hasAcknowledged = true
+                    }
+                })
+            } else if (interaction.isStringSelectMenu()) {
+                this.commands.getAllSelectMenuCommands().forEach((cmd) => {
+                    if (cmd.commandName === interaction.customId.split(';')[0]) {
+                        this.runSelectMenuInteractionElement(cmd, interaction)
+                        hasAcknowledged = true
+                    }
+                })
             } else if (interaction.isButton()) {
-                hasAcknowledged = this.commands.handleButtons(interaction)
+                this.commands.getAllButtonCommands().forEach((cmd) => {
+                    if (cmd.commandName === interaction.customId.split(';')[0]) {
+                        this.runButtonInteractionElement(cmd, interaction)
+                        hasAcknowledged = true
+                    }
+                })
             }
 
             // New interactions are added online, so it is instantly available in the production version of the app, despite being on development
@@ -197,6 +211,18 @@ export class CommandRunner {
     }
 
     runInteractionElement(runningInteraction: IInteractionElement, interaction: ChatInputCommandInteraction<CacheType>) {
+        runningInteraction.command(interaction)
+    }
+
+    runButtonInteractionElement(runningInteraction: IButtonInteractionElement, interaction: ButtonInteraction<CacheType>) {
+        runningInteraction.command(interaction)
+    }
+
+    runModalInteractionElement(runningInteraction: IModalInteractionElement, interaction: ModalSubmitInteraction<CacheType>) {
+        runningInteraction.command(interaction)
+    }
+
+    runSelectMenuInteractionElement(runningInteraction: ISelectMenuInteractionElement, interaction: StringSelectMenuInteraction<CacheType>) {
         runningInteraction.command(interaction)
     }
 

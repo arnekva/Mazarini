@@ -1,18 +1,17 @@
 import {
     ActionRowBuilder,
     ButtonBuilder,
+    ButtonInteraction,
     ButtonStyle,
     CacheType,
     ChatInputCommandInteraction,
     Client,
     EmbedBuilder,
     Message,
-    SelectMenuComponentOptionData,
+    SelectMenuComponentOptionData, StringSelectMenuInteraction
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { IInteractionElement } from '../general/commands'
-import { ButtonHandler } from '../handlers/buttonHandler'
-import { SelectMenuHandler } from '../handlers/selectMenuHandler'
+import { IButtonInteractionElement, IInteractionElement, IModalInteractionElement, ISelectMenuInteractionElement } from '../general/commands'
 import { ActionMenuHelper } from '../helpers/actionMenuHelper'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -51,7 +50,7 @@ export class UserCommands extends AbstractCommands {
         roles.forEach((role) => {
             row.addComponents(
                 new ButtonBuilder({
-                    custom_id: `${ButtonHandler.USER_ROLE_ID}${role.id}`,
+                    custom_id: `USER_ROLE;${role.id}`,
                     style: ButtonStyle.Primary,
                     label: `${role.name}`,
                     disabled: false,
@@ -104,9 +103,42 @@ export class UserCommands extends AbstractCommands {
             description: `${typeof allUserTabs[key]}`,
         }))
 
-        const menu = ActionMenuHelper.creatSelectMenu(SelectMenuHandler.userInfoId, 'Velg databaseinnlegg', options)
+        const menu = ActionMenuHelper.createSelectMenu(`USER_INFO_MENU;${interaction.user.id}`, 'Velg databaseinnlegg', options)
         const embed = EmbedUtils.createSimpleEmbed(`Se brukerinfo for ${interaction.user.username}`, 'Ingen data å vise')
-        this.messageHelper.replyToInteraction(interaction, embed, false, false, menu)
+        this.messageHelper.replyToInteraction(interaction, embed, false, false, [menu])
+    }
+
+    private async handleUserInfoViewingMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {
+        if (selectMenu.customId.split(';')[1] === selectMenu.user.id) {
+            const value = selectMenu.values[0]
+            let userData = DatabaseHelper.getUser(selectMenu.user.id)[value]
+
+            if (typeof userData === 'object') {
+                userData = Object.entries(userData).map((entry, val) => {
+                    return `\n${entry[0]} - ${entry[1]}`
+                })
+            }
+            userData.toString()
+            await selectMenu.update({
+                embeds: [EmbedUtils.createSimpleEmbed(`Se brukerinfo for ${selectMenu.user.username}`, `Verdien for ${value} er ${userData}`)],
+            })
+        } else {
+            return !!this.messageHelper.replyToInteraction(
+                selectMenu,
+                `Du kan bare sjekka dine egne ting. Bruke '/brukerinfo' for å se dine egne verdier`,
+                true
+            )
+        }
+    }
+
+    private handleAssignmentOfRoles(interaction: ButtonInteraction<CacheType>) {
+        const roleId = interaction.customId.split(';')[1]
+        const role = interaction.guild?.roles?.cache.find((r) => r.id === roleId)
+        if (roleId && role) {
+            const userAsMember = UserUtils.findMemberByUserID(interaction.user.id, interaction)
+            userAsMember.roles.add(role)
+            this.messageHelper.replyToInteraction(interaction, `Du har nå fått tildelt rollen ${role.name}`, true)
+        }
     }
 
     getAllInteractions(): IInteractionElement[] {
@@ -127,6 +159,32 @@ export class UserCommands extends AbstractCommands {
                 commandName: 'role',
                 command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                     this.roleAssignment(interaction)
+                },
+            },
+        ]
+    }
+
+    getAllButtonInteractions(): IButtonInteractionElement[] {
+        return [
+            {
+                commandName: 'USER_ROLE',
+                command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                    this.handleAssignmentOfRoles(rawInteraction)
+                },
+            },
+        ]
+    }
+
+    getAllModalInteractions(): IModalInteractionElement[] {
+        return []
+    }
+
+    getAllSelectMenuInteractions(): ISelectMenuInteractionElement[] {
+        return [
+            {
+                commandName: 'USER_INFO_MENU',
+                command: (rawInteraction: StringSelectMenuInteraction<CacheType>) => {
+                    this.handleUserInfoViewingMenu(rawInteraction)
                 },
             },
         ]

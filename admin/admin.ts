@@ -1,8 +1,8 @@
 import { exec } from 'child_process'
-import { ActivityType, APIInteractionGuildMember, CacheType, ChatInputCommandInteraction, Client, GuildMember, TextChannel } from 'discord.js'
+import { ActivityType, APIInteractionGuildMember, CacheType, ChatInputCommandInteraction, Client, GuildMember, ModalSubmitInteraction, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'
-import { IInteractionElement } from '../general/commands'
+import { IInteractionElement, IModalInteractionElement } from '../general/commands'
 import { LockingHandler } from '../handlers/lockingHandler'
 import { ClientHelper } from '../helpers/clientHelper'
 import { DatabaseHelper, dbPrefix, prefixList } from '../helpers/databaseHelper'
@@ -225,6 +225,17 @@ export class Admin extends AbstractCommands {
         })
     }
 
+    private handleAdminSendModalDialog(modalInteraction: ModalSubmitInteraction) {
+        const chatID = modalInteraction.fields.getTextInputValue('channelID')
+        const text = modalInteraction.fields.getTextInputValue('messageInput')
+
+        this.messageHelper.sendMessage(chatID, text)
+        this.messageHelper.replyToInteraction(modalInteraction, `Meldingen <*${text}*> ble sent til kanalen med ID <*${chatID}*>`, true)
+        this.messageHelper.sendLogMessage(
+            `${modalInteraction.user.username} sendte en melding som botten til kanalen ${MentionUtils.mentionChannel(chatID)} med innholdet '*${text}*'`
+        )
+    }
+
     getAllInteractions(): IInteractionElement[] {
         return [
             {
@@ -287,6 +298,17 @@ export class Admin extends AbstractCommands {
                 commandName: 'restart',
                 command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     this.restartBot(rawInteraction)
+                },
+            },
+        ]
+    }
+
+    getAllModalInteractions(): IModalInteractionElement[] {
+        return [
+            {
+                commandName: Admin.adminSendModalID,
+                command: (rawInteraction: ModalSubmitInteraction<CacheType>) => {
+                    this.handleAdminSendModalDialog(rawInteraction)
                 },
             },
         ]
