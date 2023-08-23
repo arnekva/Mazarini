@@ -223,8 +223,6 @@ export class TrelloCommands extends AbstractCommands {
         const comment = interaction.fields.getTextInputValue('trelloCardComment')
 
         let card = this.cards.get(interaction.customId.split(';')[1])
-        console.log('Redigerer dette kortet:\n', card)
-
         card.name = title
         card.desc = desc
         const idLabels = labels ? this.getLabelIds(labels) : ['']

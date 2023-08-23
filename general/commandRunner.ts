@@ -1,8 +1,5 @@
 import {
-    ActionRowBuilder,
-    ButtonBuilder,
     ButtonInteraction,
-    ButtonStyle,
     CacheType,
     ChatInputCommandInteraction,
     Client,
@@ -20,7 +17,6 @@ import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { DateUtils } from '../utils/dateUtils'
-import { EmbedUtils } from '../utils/embedUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
@@ -49,79 +45,9 @@ export class CommandRunner {
             /** Additional non-command checks */
             await this.checkMessageForJokes(message)
 
-            this.checkForVinmonopolContent(message)
+            PoletCommands.checkForVinmonopolContent(message, this.messageHelper)
         } catch (error) {
             this.messageHelper.sendLogMessage(`Det oppstod en feil under kjøring av en command. Stacktrace: ` + error)
-        }
-    }
-
-    //TODO & FIXME: Move this out of commandRunner - also remove commented fields
-    async checkForVinmonopolContent(message: Message) {
-        const content = message.content
-        if (content.includes('https://www.vinmonopolet.no/')) {
-            const id = content.split('/p/')[1]
-            if (id && !isNaN(Number(id))) {
-                try {
-                    const data = await PoletCommands.fetchProductDataFromId(id)
-
-                    if (data) {
-                        const hasDesc = !!data.description.trim()
-                        const embed = EmbedUtils.createSimpleEmbed(`${data.name}`, `${hasDesc ? data.description : data.taste}`, [
-                            { name: `Lukt`, value: `${data.smell}` },
-                            { name: `Pris`, value: `${data.price.formattedValue}`, inline: true },
-                            { name: `Type`, value: `${data.main_category.name}`, inline: true },
-                            { name: `Årgang`, value: `${data.year === '0000' ? 'Ukjent' : data.year}`, inline: true },
-                            { name: `Volum`, value: `${data.volume.formattedValue}`, inline: true },
-                            { name: `Land`, value: `${data.main_country.name}`, inline: true },
-                            { name: `Alkohol`, value: `${data.alcohol.formattedValue}`, inline: true },
-
-                            { name: `Stil`, value: `${data.style?.name}`, inline: true },
-                        ])
-                        /** In case of wines, it will be something like [Pinot Noir 80%, Merlot 20%]
-                         * For liquers, ciders, etc. it may only be "Plommer, epler", since they dont display the percentage of the mix.
-                         */
-                        if (data.raastoff) {
-                            embed.addFields({
-                                name: `Innhold`,
-                                value: `${data.raastoff.map((rs) => `${rs.name} ${rs.percentage ? '(' + rs.percentage + '%)' : ''}`).join(', ')}`,
-                                inline: true,
-                            })
-                        }
-
-                        //Make sure to add some text if field does not exist, since the embed will crash if a field is empty
-                        //Also, in case a data value doesn't exist, we set it to "ukjent" for a better look
-                        embed?.data?.fields.forEach((f) => {
-                            if (!f.value) f.value = 'Ukjent'
-                            if (f.value.includes('undefined')) f.value = f.value.replace('undefined', 'Ukjent')
-                        })
-
-                        //Possible formats: product, thumbnail, zoom, cartIcon and superZoom (some may be identical or not exist at all.)
-                        //"zoom" seems to be the version used on the website, but still not all products have photos so it might be undefined
-                        const imageUrl = data.images.filter((img: any) => img.format === 'zoom')[0]?.url
-                        if (imageUrl) embed.setThumbnail(imageUrl)
-                        embed.setURL(`https://www.vinmonopolet.no${data.url}`)
-
-                        embed.setFooter({
-                            text: `Produsent: ${data.main_producer.name}, Distrikt: ${data.district?.name}, Sub-distrikt: ${data.sub_District?.name}`,
-                        })
-                        const poletStockButton = new ActionRowBuilder<ButtonBuilder>()
-                        poletStockButton.addComponents(
-                            new ButtonBuilder({
-                                custom_id: `POLET_STOCK;${data.code};${data.name}`,
-                                style: ButtonStyle.Primary,
-                                label: `Varelagerstatus`,
-                                disabled: false,
-                                type: 2,
-                            })
-                        )
-                        this.messageHelper.suppressEmbeds(message)
-                        this.messageHelper.sendFormattedMessage(message.channelId, embed)
-                        this.messageHelper.sendMessageWithComponents(message.channelId, [poletStockButton])
-                    }
-                } catch (error) {
-                    this.messageHelper.sendLogMessage(`Klarte ikke hente produktinfo for id ${id}.\n${error}`)
-                }
-            }
         }
     }
 
@@ -170,7 +96,6 @@ export class CommandRunner {
                 this.commands.getAllModalCommands().forEach((cmd) => {
                     if (cmd.commandName === interaction.customId.split(';')[0]) {
                         this.runInteractionElement<ModalSubmitInteraction<CacheType>>(cmd, interaction)
-                        // this.runModalInteractionElement(cmd, interaction)
                         hasAcknowledged = true
                     }
                 })
@@ -184,11 +109,7 @@ export class CommandRunner {
                 })
             } else if (interaction.isButton()) {
                 this.commands.getAllButtonCommands().forEach((cmd) => {
-                    console.log('am in button looking for ', interaction.customId.split(';')[0], 'with', cmd.commandName)
-
                     if (cmd.commandName === interaction.customId.split(';')[0]) {
-                        console.log('found match')
-
                         this.runInteractionElement<ButtonInteraction<CacheType>>(cmd, interaction)
                         // this.runButtonInteractionElement(cmd, interaction)
                         hasAcknowledged = true
@@ -213,8 +134,6 @@ export class CommandRunner {
     }
 
     runInteractionElement<InteractionTypes>(runningInteraction: IInteractionCommand<InteractionTypes>, interaction: InteractionTypes) {
-        console.log('am attempting to run interaction')
-
         runningInteraction.command(interaction)
     }
 

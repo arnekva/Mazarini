@@ -309,7 +309,6 @@ export class DateCommands extends AbstractCommands {
         const isHelg = this.isItHelg()
         const holidays = this.findHolidaysInThisWeek()
         let timeUntil = ''
-        console.log(holidays)
         let hasHolidayInTheMiddleOfWeek = ''
         if (!isHelg) {
             let hasFoundWeekendStart = false
@@ -327,8 +326,6 @@ export class DateCommands extends AbstractCommands {
                         )}\n`
                 }
             })
-            console.log(timeUntil)
-
             if (!hasFoundWeekendStart) {
                 const possibleWeekendStart = this.findWeekendStart()
 

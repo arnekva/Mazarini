@@ -315,6 +315,14 @@ export class Admin extends AbstractCommands {
                         },
                     },
                 ],
+                modalInteractionCommands: [
+                    {
+                        commandName: Admin.adminSendModalID,
+                        command: (rawInteraction: ModalSubmitInteraction<CacheType>) => {
+                            this.handleAdminSendModalDialog(rawInteraction)
+                        },
+                    },
+                ],
             },
         }
     }
