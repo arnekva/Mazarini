@@ -8,7 +8,7 @@ import {
     Client,
     EmbedBuilder,
     Interaction,
-    User,
+    User
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { IInteractionElement } from '../general/commands'
@@ -847,7 +847,7 @@ export class GamblingCommands extends AbstractCommands {
                     {
                         commandName: 'KRIG_REMATCH',
                         command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                            this.handleKrig(rawInteraction)
+                            this.handleRematch(rawInteraction)
                         },
                     },
                 ],
