@@ -88,7 +88,7 @@ export class UserCommands extends AbstractCommands {
 
         const menu = ActionMenuHelper.createSelectMenu(`USER_INFO_MENU;${interaction.user.id}`, 'Velg databaseinnlegg', options)
         const embed = EmbedUtils.createSimpleEmbed(`Se brukerinfo for ${interaction.user.username}`, 'Ingen data å vise')
-        this.messageHelper.replyToInteraction(interaction, embed, false, false, [menu])
+        this.messageHelper.replyToInteraction(interaction, embed, undefined, [menu])
     }
 
     private async handleUserInfoViewingMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {
@@ -106,11 +106,9 @@ export class UserCommands extends AbstractCommands {
                 embeds: [EmbedUtils.createSimpleEmbed(`Se brukerinfo for ${selectMenu.user.username}`, `Verdien for ${value} er ${userData}`)],
             })
         } else {
-            return !!this.messageHelper.replyToInteraction(
-                selectMenu,
-                `Du kan bare sjekka dine egne ting. Bruke '/brukerinfo' for å se dine egne verdier`,
-                true
-            )
+            return !!this.messageHelper.replyToInteraction(selectMenu, `Du kan bare sjekka dine egne ting. Bruke '/brukerinfo' for å se dine egne verdier`, {
+                ephemeral: true,
+            })
         }
     }
 
@@ -121,9 +119,9 @@ export class UserCommands extends AbstractCommands {
         if (roleId && role) {
             const userAsMember = UserUtils.findMemberByUserID(interaction.user.id, interaction)
             userAsMember.roles.add(role)
-            this.messageHelper.replyToInteraction(interaction, `Du har nå fått tildelt rollen ${role.name}`, true)
+            this.messageHelper.replyToInteraction(interaction, `Du har nå fått tildelt rollen ${role.name}`, { ephemeral: true })
         } else {
-            this.messageHelper.replyToInteraction(interaction, `Det oppstod en feil med rollene. Prøv igjen senere`, true)
+            this.messageHelper.replyToInteraction(interaction, `Det oppstod en feil med rollene. Prøv igjen senere`, { ephemeral: true })
         }
     }
 

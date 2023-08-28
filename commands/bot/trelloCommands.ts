@@ -76,7 +76,7 @@ export class TrelloCommands extends AbstractCommands {
                 components: [this.menu, trelloButtons],
             })
         } else {
-            this.messageHelper.replyToInteraction(interaction, embed, false, false, [this.menu, newTrelloButton])
+            this.messageHelper.replyToInteraction(interaction, embed, undefined, [this.menu, newTrelloButton])
         }
     }
 

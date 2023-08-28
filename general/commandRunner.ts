@@ -80,7 +80,7 @@ export class CommandRunner {
                     `Interaksjoner er låst. Prøv å se ${MentionUtils.mentionChannel(
                         MentionUtils.CHANNEL_IDs.BOT_UTVIKLING
                     )} for informasjon, eller tag bot-support`,
-                    true
+                    { ephemeral: true }
                 )
             }
         } else if (this.isLegalChannel(interaction)) {

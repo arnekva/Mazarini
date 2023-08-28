@@ -31,9 +31,9 @@ export class DateCommands extends AbstractCommands {
         const secInMilli = Number(timeArray[2]) * 1000
         const timeout = hoursInMilli + minInMilli + secInMilli
         if (timeArray.length < 3) {
-            this.messageHelper.replyToInteraction(interaction, 'Formattering på tid må være HH:MM:SS', true)
+            this.messageHelper.replyToInteraction(interaction, 'Formattering på tid må være HH:MM:SS', { ephemeral: true })
         } else if (event.length < 1) {
-            this.messageHelper.replyToInteraction(interaction, 'Du må spesifisere hva påminnelsen gjelder', true)
+            this.messageHelper.replyToInteraction(interaction, 'Du må spesifisere hva påminnelsen gjelder', { ephemeral: true })
         } else {
             this.messageHelper.replyToInteraction(
                 interaction,
@@ -68,14 +68,14 @@ export class DateCommands extends AbstractCommands {
                 return this.messageHelper.replyToInteraction(
                     interaction,
                     `En av datoene er ikke formattert riktig. Husk at det må være dd-mm-yyyy. Eksempelvis 24-07-2022`,
-                    true
+                    { ephemeral: true }
                 )
             }
             if (!isLegalTime) {
                 return this.messageHelper.replyToInteraction(
                     interaction,
                     `Klokkeslettet ditt er ikke formattert riktig. Det må være i formatet HH:MM (eksempelvis 17:30)`,
-                    true
+                    { ephemeral: true }
                 )
             }
             moment.locale('nb')
@@ -93,7 +93,7 @@ export class DateCommands extends AbstractCommands {
             const maxNumDays = 250
             if (DateUtils.isDateBefore(date1, date2) && DateUtils.dateIsMaxXDaysInFuture(date2, maxNumDays)) {
                 DatabaseHelper.setFerieValue(interaction.user.id, 'date', JSON.stringify(feireObj))
-                this.messageHelper.replyToInteraction(interaction, `Ferien din er satt`, true)
+                this.messageHelper.replyToInteraction(interaction, `Ferien din er satt`, { ephemeral: true })
             } else {
                 this.messageHelper.replyToInteraction(
                     interaction,
@@ -168,7 +168,7 @@ export class DateCommands extends AbstractCommands {
 
         if (isNewCountdown) {
             if (event == 'fjern') {
-                this.messageHelper.replyToInteraction(interaction, `Fjernet countdownen din`, true)
+                this.messageHelper.replyToInteraction(interaction, `Fjernet countdownen din`, { ephemeral: true })
                 return DatabaseHelper.deleteCountdownValue(interaction.user.id)
             }
 
@@ -178,7 +178,7 @@ export class DateCommands extends AbstractCommands {
                 return this.messageHelper.replyToInteraction(
                     interaction,
                     'du må formattere datoen ordentlig (dd-mm-yyyy). Hvis du bare prøve å se aktive countdowns, bruk /countdown vis',
-                    true
+                    { ephemeral: true }
                 )
             }
             const dateTab = dato.split('-').reverse().join('-')
@@ -400,7 +400,9 @@ export class DateCommands extends AbstractCommands {
         } else if (birthDayFromArg) {
             const dateString = birthDayFromArg
             if (dateString.split('-').length < 2 || (!(new Date(dateString) instanceof Date) && !isNaN(new Date(dateString).getTime()))) {
-                this.messageHelper.replyToInteraction(interaction, `Formatteringen din er feil (${dateString}). Det må formatteres dd-mm-yyyy`, true)
+                this.messageHelper.replyToInteraction(interaction, `Formatteringen din er feil (${dateString}). Det må formatteres dd-mm-yyyy`, {
+                    ephemeral: true,
+                })
             } else {
                 user.birthday = dateString
                 DatabaseHelper.updateUser(user)
@@ -410,7 +412,7 @@ export class DateCommands extends AbstractCommands {
             this.messageHelper.replyToInteraction(
                 interaction,
                 `Du har ikke satt bursdagen din. Legg ved datoen formattert dd-mm-yyyy som argument når du kaller /bursdag neste gang`,
-                true
+                { ephemeral: true }
             )
         }
     }

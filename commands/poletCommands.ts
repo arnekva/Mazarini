@@ -211,7 +211,7 @@ export class PoletCommands extends AbstractCommands {
             })
         }
         fmMessage.setDescription(`${this.isStoreOpen(todayClosing)}`)
-        this.messageHelper.replyToInteraction(rawInteraction, fmMessage, undefined, true)
+        this.messageHelper.replyToInteraction(rawInteraction, fmMessage, { hasBeenDefered: true })
     }
 
     private async handleVinmonopoletCommand(interaction: ChatInputCommandInteraction<CacheType>) {

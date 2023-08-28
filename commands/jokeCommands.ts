@@ -75,20 +75,23 @@ export class JokeCommands extends AbstractCommands {
                             })
                         embd.addFields(otherActivities)
                     }
-                    this.messageHelper.replyToInteraction(interaction, embd, undefined, true)
+                    this.messageHelper.replyToInteraction(interaction, embd, { hasBeenDefered: true })
                 } else {
-                    this.messageHelper.replyToInteraction(interaction, `Drive ikkje me någe spess`, undefined, true)
+                    this.messageHelper.replyToInteraction(interaction, `Drive ikkje me någe spess`, { hasBeenDefered: true })
                 }
             } else {
-                this.messageHelper.replyToInteraction(interaction, 'Ingen aktivitet registrert på Discord.', undefined, true)
+                this.messageHelper.replyToInteraction(interaction, 'Ingen aktivitet registrert på Discord.', { hasBeenDefered: true })
             }
         } else {
-            this.messageHelper.replyToInteraction(interaction, 'Fant ikke brukeren. Husk at du må bruke **brukernavn** og *ikke* display name', true, true)
+            this.messageHelper.replyToInteraction(interaction, 'Fant ikke brukeren. Husk at du må bruke **brukernavn** og *ikke* display name', {
+                ephemeral: true,
+                hasBeenDefered: true,
+            })
         }
     }
 
     private async reactToManyMessages(interaction: ChatInputCommandInteraction<CacheType>, emojiName: string) {
-        this.messageHelper.replyToInteraction(interaction, 'Eivindprider sendt', true)
+        this.messageHelper.replyToInteraction(interaction, 'Eivindprider sendt', { ephemeral: true })
         try {
             const channel = interaction?.channel as TextChannel
             const react = interaction.guild?.emojis.cache.find((emoji) => emoji.name == emojiName)
@@ -119,7 +122,7 @@ export class JokeCommands extends AbstractCommands {
         let letterTab: string[] = text.split('')
 
         let messageToReactTo = await this.messageHelper.findMessageById(msgId)
-        if (!messageToReactTo) this.messageHelper.replyToInteraction(interaction, `Fant kje meldingen bro`, true, true)
+        if (!messageToReactTo) this.messageHelper.replyToInteraction(interaction, `Fant kje meldingen bro`, { ephemeral: true, hasBeenDefered: true })
 
         let usedLetter = ''
         let spaceCounter = 0
@@ -139,7 +142,7 @@ export class JokeCommands extends AbstractCommands {
 
     private async uWuIfyer(interaction: ChatInputCommandInteraction<CacheType>) {
         const id = interaction.options.get('melding-id')?.value as string
-        this.messageHelper.replyToInteraction(interaction, 'Prøver å uwu-ifye meldingen hvis jeg finner den', true)
+        this.messageHelper.replyToInteraction(interaction, 'Prøver å uwu-ifye meldingen hvis jeg finner den', { ephemeral: true })
         if (id && !isNaN(Number(id))) {
             const msgToUwU = await this.messageHelper.findMessageById(id)
             if (msgToUwU) {
@@ -211,8 +214,8 @@ export class JokeCommands extends AbstractCommands {
                         command: async (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                             rawInteraction.deferReply()
                             const msg = await this.messageHelper.findMessageById('1047851607863349338')
-                            if (msg) this.messageHelper.replyToInteraction(rawInteraction, `Whamageddon 2022 status:\n${msg.content}`, false, true)
-                            else this.messageHelper.replyToInteraction(rawInteraction, `Statusen e ukjent`, false, true)
+                            if (msg) this.messageHelper.replyToInteraction(rawInteraction, `Whamageddon 2022 status:\n${msg.content}`, { hasBeenDefered: true })
+                            else this.messageHelper.replyToInteraction(rawInteraction, `Statusen e ukjent`, { hasBeenDefered: true })
                         },
                     },
                     {

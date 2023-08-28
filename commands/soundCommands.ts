@@ -15,7 +15,7 @@ export class SoundCommands extends AbstractCommands {
         const text = interaction.options.get('tekst')?.value as string
         const memb = UserUtils.findMemberByUserID(interaction.user.id, interaction)
         if (memb?.voice?.channel) {
-            await this.messageHelper.replyToInteraction(interaction, `Du fekk meg te å sei *${text}* i voice chatten`, true)
+            await this.messageHelper.replyToInteraction(interaction, `Du fekk meg te å sei *${text}* i voice chatten`, { ephemeral: true })
             await SoundUtils.connectToVoiceAndSpeak(
                 {
                     adapterCreator: interaction.guild?.voiceAdapterCreator,
@@ -29,7 +29,7 @@ export class SoundCommands extends AbstractCommands {
             )
             // SoundUtils.disconnectFromVoiceChannel(interaction.guildId)
         } else {
-            this.messageHelper.replyToInteraction(interaction, `Du må være koblet til en voice channel for å bruke denne funksjonen`, true)
+            this.messageHelper.replyToInteraction(interaction, `Du må være koblet til en voice channel for å bruke denne funksjonen`, { ephemeral: true })
         }
     }
 

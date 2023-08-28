@@ -75,17 +75,23 @@ export class Meme extends AbstractCommands {
                     res.json()
                         .then((el: any) => {
                             if (el.data) this.messageHelper.sendMessage(interaction?.channelId, el.data.url)
-                            this.messageHelper.replyToInteraction(interaction, `Lagde et meme te deg bro`, true, true)
+                            this.messageHelper.replyToInteraction(interaction, `Lagde et meme te deg bro`, { ephemeral: true, hasBeenDefered: true })
                         })
                         .catch((error: any) => {
-                            this.messageHelper.replyToInteraction(interaction, `her skjedde det ein feil. Hvis det skjer igjen tag @Bot-support`, true, true)
+                            this.messageHelper.replyToInteraction(interaction, `her skjedde det ein feil. Hvis det skjer igjen tag @Bot-support`, {
+                                ephemeral: true,
+                                hasBeenDefered: true,
+                            })
                         })
                 })
                 .catch((error: any) => {
-                    this.messageHelper.replyToInteraction(interaction, `her skjedde det ein feil. Hvis det skjer igjen tag @Bot-support`, true, true)
+                    this.messageHelper.replyToInteraction(interaction, `her skjedde det ein feil. Hvis det skjer igjen tag @Bot-support`, {
+                        ephemeral: true,
+                        hasBeenDefered: true,
+                    })
                 })
         } else {
-            this.messageHelper.replyToInteraction(interaction, `Det mangle någen tekster`, true, true)
+            this.messageHelper.replyToInteraction(interaction, `Det mangle någen tekster`, { ephemeral: true, hasBeenDefered: true })
         }
     }
 

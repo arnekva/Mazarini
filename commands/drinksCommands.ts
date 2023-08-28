@@ -237,7 +237,7 @@ export class DrinksCommands extends AbstractCommands {
                 this.replyToInteraction(interaction)
             }
         } else {
-            this.messageHelper.replyToInteraction(interaction, `Du må være med for å kunne trekke`, true)
+            this.messageHelper.replyToInteraction(interaction, `Du må være med for å kunne trekke`, { ephemeral: true })
         }
     }
 
@@ -308,11 +308,7 @@ export class DrinksCommands extends AbstractCommands {
 
     public startElectricity(interaction: ButtonInteraction<CacheType>) {
         if (this.playerList.length < 1) {
-            this.messageHelper.replyToInteraction(
-                interaction,
-                'Det trengs minst 1 deltaker for å starte spillet (men det er litt trist å spille dette alene).',
-                false
-            )
+            this.messageHelper.replyToInteraction(interaction, 'Det trengs minst 1 deltaker for å starte spillet (men det er litt trist å spille dette alene).')
         } else {
             this.activeGame = true
             this.currentButtons = activeGameButtonRow
@@ -358,7 +354,7 @@ export class DrinksCommands extends AbstractCommands {
         this.id = 0
         this.activeGame = false
         this.initiated = false
-        this.messageHelper.replyToInteraction(interaction, 'Spillet er stoppet og kortstokken nullstilt', false)
+        this.messageHelper.replyToInteraction(interaction, 'Spillet er stoppet og kortstokken nullstilt')
     }
 
     private elSwitch(interaction: ChatInputCommandInteraction<CacheType>) {
