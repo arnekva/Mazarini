@@ -10,7 +10,10 @@ export class PatchNotes extends AbstractCommands {
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
-    public static readonly currentPatchNotes: string = `\n* Refaktorert parametere i replyToInteraction`
+    public static readonly currentPatchNotes: string =
+        `\n* Refaktorert parametere i replyToInteraction` +
+        `\n* Det logges nå hvis en interaksjon som ikke er støttet i prod brukes` +
+        `\n* Fikset locking i dev guild`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
