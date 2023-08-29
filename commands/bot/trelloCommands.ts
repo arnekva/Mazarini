@@ -70,7 +70,7 @@ export class TrelloCommands extends AbstractCommands {
         this.listMenu = ActionMenuHelper.createSelectMenu('TrelloLists', 'Velg trello-liste', options)
         let embed = EmbedUtils.createSimpleEmbed(`Hent kortene i en liste`,'Ingen liste valgt')
 
-        this.messageHelper.replyToInteraction(interaction, embed, false, false, [this.listMenu])
+        this.messageHelper.replyToInteraction(interaction, embed, { ephemeral: false, hasBeenDefered: false }, [this.listMenu])
     }
 
     private async getCardsDropdown(interaction: StringSelectMenuInteraction<CacheType> | ButtonInteraction<CacheType>) {

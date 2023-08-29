@@ -35,7 +35,7 @@ export class NameCommands extends AbstractCommands {
                     texts.forEach((t, i) => (text += `\n${i}: ${t}`))
                     this.messageHelper.replyToInteraction(interaction, text)
                 } else {
-                    this.messageHelper.replyToInteraction(interaction, 'Du skrev ikke inn et gyldig navn', true)
+                    this.messageHelper.replyToInteraction(interaction, 'Du skrev ikke inn et gyldig navn', { ephemeral: true })
                 }
             } else {
                 const deleted = this.removeTextValueFromInteraction(textToDelete, textToDeleteUser)

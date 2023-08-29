@@ -112,7 +112,7 @@ export class GameCommands extends AbstractCommands {
         }
         const drop = `${ArrayUtils.randomChoiceFromArray(mapArray)}`
         const emb = new EmbedBuilder().setTitle(drop).setDescription(`Droppunkt for ${mapName}`)
-        await this.messageHelper.replyToInteraction(interaction, emb, false, true)
+        await this.messageHelper.replyToInteraction(interaction, emb, { hasBeenDefered: true })
 
         const memb = UserUtils.findMemberByUserID(interaction.user.id, interaction)
         if (memb?.voice?.channel) {
@@ -137,12 +137,12 @@ export class GameCommands extends AbstractCommands {
         const gridNumber = parseInt(grid.charAt(1))
 
         if (!gridLetter.includes(letter) || !validNumbers.includes(validNumbers) || grid == '' || Number.isNaN(gridNumber)) {
-            this.messageHelper.replyToInteraction(interaction, 'Kan du ikkje i det minsta velga kor sirkelen e?', true)
+            this.messageHelper.replyToInteraction(interaction, 'Kan du ikkje i det minsta velga kor sirkelen e?', { ephemeral: true })
         } else if (illegalCenterCoordinates.includes(grid)) {
             this.messageHelper.replyToInteraction(
                 interaction,
                 'E det sirkelen din? Dokker e fucked... \n(Botten klare ikkje å regna ud koordinater for så små grids)',
-                true
+                { ephemeral: true }
             )
         } else {
             // E5 = 5,5grid

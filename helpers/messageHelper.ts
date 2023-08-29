@@ -2,9 +2,14 @@ import {
     ActionRowBuilder,
     ActionRowData,
     APIActionRowComponent,
+    APIAttachment,
     APIEmbedField,
     APIMessageActionRowComponent,
+    Attachment,
+    AttachmentBuilder,
+    AttachmentPayload,
     BitFieldResolvable,
+    BufferResolvable,
     ButtonBuilder,
     ButtonInteraction,
     CacheType,
@@ -12,8 +17,12 @@ import {
     ChatInputCommandInteraction,
     Client,
     EmbedBuilder,
+    InteractionEditReplyOptions,
+    InteractionReplyOptions,
     JSONEncodable,
     Message,
+    MessageActionRowComponentBuilder,
+    MessageActionRowComponentData,
     MessageCreateOptions,
     MessageFlags,
     MessageFlagsString,
@@ -23,8 +32,9 @@ import {
     SelectMenuBuilder,
     SelectMenuInteraction,
     TextChannel,
-    User
+    User,
 } from 'discord.js'
+import { Stream } from 'stream'
 import { environment } from '../client-env'
 import { MazariniClient } from '../main'
 import { ArrayUtils } from '../utils/arrayUtils'
@@ -48,6 +58,21 @@ interface IMessageOptions {
     /** This will allow you to send links without an embed preview automatically showing. */
     supressEmbeds?: boolean
 }
+interface IInteractionOptions {
+    /** Make the reply only visible to the engager */
+    ephemeral?: boolean
+    /** If the interaction has been defered, this option MUST be set for the reply to work. This will edit the reply instead of attempting to send a new answer */
+    hasBeenDefered?: boolean
+}
+
+type MessageCompontent = (
+    | JSONEncodable<APIActionRowComponent<APIMessageActionRowComponent>>
+    | ActionRowData<MessageActionRowComponentData | MessageActionRowComponentBuilder>
+    | APIActionRowComponent<APIMessageActionRowComponent>
+)[]
+
+type MessageFiles = (BufferResolvable | Stream | JSONEncodable<APIAttachment> | Attachment | AttachmentBuilder | AttachmentPayload)[]
+
 export class MessageHelper {
     private client: Client
     botSupport = '863038817794392106'
@@ -56,12 +81,13 @@ export class MessageHelper {
     }
 
     /**
-     * Reply to an interaction. Will only reply if it haven't been answered already. If the reply throws an error it will send a message instead of a reply
-     * @param interaction
-     * @param content   The content to be sent. Can be a string or an embeded message
-     * @param onlyVisibleToEngager Sets the message as ephemeral, i.e. only the engager can see it. This means that the message can be dismissed and is not saved on Discord servers
-     * @param wasDefered Set to true if the interaction has been defered (i.e. paused while thinking). Defered interactions requires to be replied with editReply() instead of reply()
-     * @returns True if reply is sent, false if not
+     * The best way to reply to an interaction. If the wait time is longer than 3 seconds, it must be defered first with interaction.deferReply(). If defered, please add the the option param for it, otherwise it will throw an error
+     * @param interaction The interaction to reply to.
+     * @param messageContent The content to send. Can be a string or an embed
+     * @param options Options for the message - if message has been defered, it must be set in this
+     * @param components Components to send, i.e. action rows
+     * @param files Any files to attach to the message. Use the AttachmentBuilder for this. I.e. ```new AttachmentBuilder("https://placeholder.com/square120x120.png", {name: "square.png"})```
+     * @returns True if the message was sent succesfully, false if an error occured.
      */
     async replyToInteraction(
         interaction:
@@ -70,15 +96,15 @@ export class MessageHelper {
             | SelectMenuInteraction<CacheType>
             | ButtonInteraction<CacheType>
             | RepliableInteraction<CacheType>,
-        content: string | EmbedBuilder,
-        onlyVisibleToEngager?: boolean,
-        wasDefered?: boolean,
-        menu?: Array<ActionRowBuilder<SelectMenuBuilder> | ActionRowBuilder<ButtonBuilder>>
+        messageContent: string | EmbedBuilder,
+        options?: IInteractionOptions,
+        components?: MessageCompontent,
+        files?: MessageFiles
     ): Promise<boolean> {
         const handleError = async (e: any) => {
             let msg: Message<boolean> | undefined
-            if (typeof content === 'object') msg = await this.sendFormattedMessage(interaction?.channelId, content)
-            else msg = await this.sendMessage(interaction?.channelId, `${MentionUtils.mentionUser(interaction.user.id)} ${content}`)
+            if (typeof messageContent === 'object') msg = await this.sendFormattedMessage(interaction?.channelId, messageContent)
+            else msg = await this.sendMessage(interaction?.channelId, `${MentionUtils.mentionUser(interaction.user.id)} ${messageContent}`)
 
             let msgInfo = msg ? `Sendte en separat melding i stedet for interaksjonssvar.` : `Klarte heller ikke sende separat melding som svar`
             if (environment !== 'dev') {
@@ -88,20 +114,25 @@ export class MessageHelper {
                     } i kanalen ${MentionUtils.mentionChannel(interaction?.channelId)}, men den feilet. \n${msgInfo}`
                 )
             }
+            return false
         }
         if (!interaction.replied) {
-            if (typeof content === 'object') {
-                if (wasDefered) await interaction.editReply({ embeds: [content], components: menu ? menu : undefined }).catch((e) => handleError(e))
-                else
-                    await interaction
-                        .reply({ embeds: [content], ephemeral: onlyVisibleToEngager, components: menu ? menu : undefined })
-                        .catch((e) => handleError(e))
+            const payload: InteractionEditReplyOptions = {}
+
+            payload.components = components
+            payload.files = files
+
+            if (typeof messageContent === 'object') {
+                payload.embeds = [messageContent]
             } else {
-                if (wasDefered) await interaction.editReply(content).catch((e) => handleError(e))
-                else
-                    await interaction
-                        .reply({ content: content, ephemeral: onlyVisibleToEngager, components: menu ? menu : undefined })
-                        .catch((e) => handleError(e))
+                payload.content = messageContent
+            }
+            if (options.hasBeenDefered) {
+                await interaction.editReply(payload).catch((e) => handleError(e))
+            } else {
+                const payloadAsReply = payload as InteractionReplyOptions
+                payloadAsReply.ephemeral = options.ephemeral
+                await interaction.reply(payloadAsReply).catch((e) => handleError(e))
             }
             MazariniClient.numMessagesFromBot++
             return true

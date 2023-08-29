@@ -33,12 +33,9 @@ export class TextCommands extends AbstractCommands {
             try {
                 result = await wiki({ apiUrl: `https://${safeLocale}.wikipedia.org/w/api.php` })?.page(search2)
             } catch (error) {
-                this.messageHelper.replyToInteraction(
-                    interaction,
-                    `Fant ingen sider på *${search}* eller *${search2}*. Husk at søket er case sensitive`,
-                    false,
-                    true
-                )
+                this.messageHelper.replyToInteraction(interaction, `Fant ingen sider på *${search}* eller *${search2}*. Husk at søket er case sensitive`, {
+                    hasBeenDefered: true,
+                })
             }
         }
         if (result) {
@@ -48,7 +45,7 @@ export class TextCommands extends AbstractCommands {
 
             if (image) embed.setThumbnail(image)
             embed.setURL(result.url())
-            this.messageHelper.replyToInteraction(interaction, embed, false, true)
+            this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true })
         }
     }
 

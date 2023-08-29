@@ -42,8 +42,8 @@ export class LinkCommands extends AbstractCommands {
             msg = `Vinmonopolet ${data} er lagret på brukeren din`
         }
 
-        if (saved) this.messageHelper.replyToInteraction(interaction, msg, undefined, true)
-        else this.messageHelper.replyToInteraction(interaction, 'Klarte ikke hente brukernavn eller plattform', undefined, true)
+        if (saved) this.messageHelper.replyToInteraction(interaction, msg, { hasBeenDefered: true })
+        else this.messageHelper.replyToInteraction(interaction, 'Klarte ikke hente brukernavn eller plattform', { hasBeenDefered: true })
     }
 
     private linkWZName(rawInteraction: ChatInputCommandInteraction<CacheType>, platform?: string, username?: string): boolean {

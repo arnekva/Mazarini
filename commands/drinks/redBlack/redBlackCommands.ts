@@ -144,7 +144,7 @@ export class RedBlackCommands extends AbstractCommands {
 
     public async guess(interaction: ButtonInteraction<CacheType>) {
         if (!this.verifyUsersTurn(interaction.user.username)) {
-            return this.messageHelper.replyToInteraction(interaction, 'Det er ikke din tur', true)
+            return this.messageHelper.replyToInteraction(interaction, 'Det er ikke din tur', { ephemeral: true })
         }
         const card = await this.drawCard(interaction)
         const prevCards = this.getCardsOnUser(interaction.user.username)
@@ -193,7 +193,7 @@ export class RedBlackCommands extends AbstractCommands {
         const user = this.getUserObject(interaction.user.username)
         const index = user.cards.findIndex((card) => this.cardIsValid(card))
         if (index < 0) {
-            return await this.messageHelper.replyToInteraction(interaction, 'Du kan ikke legge kort', true)
+            return await this.messageHelper.replyToInteraction(interaction, 'Du kan ikke legge kort', { ephemeral: true })
         }
         const placedCard = user.cards.splice(index, 1).pop()
         this.updateGiveTakeGameMessage(placedCard, user.name)
@@ -204,7 +204,7 @@ export class RedBlackCommands extends AbstractCommands {
         const user = this.getUserObject(interaction.user.username)
         let cardsString = this.getCardsOnHandForUser(user)
         if (!cardsString.trim()) cardsString = 'Du har ingen kort på hånd'
-        return await this.messageHelper.replyToInteraction(interaction, cardsString, true)
+        return await this.messageHelper.replyToInteraction(interaction, cardsString, { ephemeral: true })
     }
 
     public async revealLoser(interaction: ButtonInteraction<CacheType>) {
@@ -449,11 +449,7 @@ export class RedBlackCommands extends AbstractCommands {
 
     public startGame(interaction: ButtonInteraction<CacheType>) {
         if (this.playerList.length < 1) {
-            this.messageHelper.replyToInteraction(
-                interaction,
-                'Det trengs minst 1 deltaker for å starte spillet (men det er litt trist å spille dette alene).',
-                false
-            )
+            this.messageHelper.replyToInteraction(interaction, 'Det trengs minst 1 deltaker for å starte spillet (men det er litt trist å spille dette alene).')
         } else {
             this.activeGame = true
             this.currentButtons = redBlackButtonRow
@@ -515,7 +511,7 @@ export class RedBlackCommands extends AbstractCommands {
 
     private stopRedBlack(interaction: ChatInputCommandInteraction<CacheType>) {
         this.initGame()
-        this.messageHelper.replyToInteraction(interaction, 'Spillet er stoppet og kortstokken nullstilt', false)
+        this.messageHelper.replyToInteraction(interaction, 'Spillet er stoppet og kortstokken nullstilt')
     }
 
     public checkUserIsActivePlayer(username: string) {

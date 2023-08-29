@@ -168,7 +168,7 @@ export class CardCommands extends AbstractCommands {
                     }
                     this.messageHelper.replyToInteraction(interaction, drawPile)
                 } else {
-                    this.messageHelper.replyToInteraction(interaction, 'Du har ikke gitt et gyldig tall, og det ignoreres derfor', true)
+                    this.messageHelper.replyToInteraction(interaction, 'Du har ikke gitt et gyldig tall, og det ignoreres derfor', { ephemeral: true })
                 }
             }
         } else if (isReset) {
@@ -181,7 +181,7 @@ export class CardCommands extends AbstractCommands {
             const msg = this.remainingCards()
             this.messageHelper.replyToInteraction(interaction, msg)
         } else {
-            this.messageHelper.replyToInteraction(interaction, 'Ukjent kommando', true)
+            this.messageHelper.replyToInteraction(interaction, 'Ukjent kommando', { ephemeral: true })
         }
     }
     public get valueOfAce() {

@@ -420,18 +420,18 @@ export class WarzoneCommands extends AbstractCommands {
                             fetch('https://api.trello.com/1/cards/' + cardId + '/attachments/' + attachmentId)
                                 .then((response: Response) => response.json())
                                 .then((data: any) => {
-                                    this.messageHelper.replyToInteraction(interaction, data.url, undefined, true)
+                                    this.messageHelper.replyToInteraction(interaction, data.url, { hasBeenDefered: true })
                                 })
                         }
                     }
                     i += 1
                 }
                 if (!found) {
-                    this.messageHelper.replyToInteraction(interaction, 'Fant ikke playlist', undefined, true)
+                    this.messageHelper.replyToInteraction(interaction, 'Fant ikke playlist',  { hasBeenDefered: true })
                 }
             })
             .catch((error) => {
-                this.messageHelper.replyToInteraction(interaction, 'Fetchen for playlist feilet', undefined, true)
+                this.messageHelper.replyToInteraction(interaction, 'Fetchen for playlist feilet', { hasBeenDefered: true })
             })
     }
 
@@ -443,17 +443,17 @@ export class WarzoneCommands extends AbstractCommands {
 
             if (wantedType === 'br' || wantedType === 'weekly' || wantedType === 'rebirth') {
                 const content = await this.getBRContent(interaction, wantedType, checkAnotherUser, wantedType === 'rebirth')
-                this.messageHelper.replyToInteraction(interaction, content, undefined, true)
+                this.messageHelper.replyToInteraction(interaction, content, { hasBeenDefered: true })
             } else if (wantedType === 'siste') {
                 const content = await this.getLastMatchData(interaction, checkAnotherUser)
 
-                this.messageHelper.replyToInteraction(interaction, content, undefined, true)
+                this.messageHelper.replyToInteraction(interaction, content, { hasBeenDefered: true })
             } else if (wantedType === 'mw2mp') {
                 const content = await this.findMultiplayerStats(interaction, checkAnotherUser)
-                this.messageHelper.replyToInteraction(interaction, content, undefined, true)
+                this.messageHelper.replyToInteraction(interaction, content, { hasBeenDefered: true })
             }
         } else {
-            this.messageHelper.replyToInteraction(interaction, 'Kunne ikke finne data på valgte modus', undefined, true)
+            this.messageHelper.replyToInteraction(interaction, 'Kunne ikke finne data på valgte modus', { hasBeenDefered: true })
         }
     }
 

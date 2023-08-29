@@ -60,7 +60,7 @@ export class CommandRunner {
             uId = interaction.user.id
         }
         channelId = interaction?.channelId
-        if (Admin.isAuthorAdmin(UserUtils.findMemberByUserID(uId, interaction))) {
+        if (Admin.isAuthorAdmin(UserUtils.findMemberByUserID(uId, interaction)) || interaction.guildId === '1106124769797091338') {
             //Always allow admins to carry out interactions - this includes unlocking
             return false
         } else {
@@ -80,7 +80,7 @@ export class CommandRunner {
                     `Interaksjoner er låst. Prøv å se ${MentionUtils.mentionChannel(
                         MentionUtils.CHANNEL_IDs.BOT_UTVIKLING
                     )} for informasjon, eller tag bot-support`,
-                    true
+                    { ephemeral: true }
                 )
             }
         } else if (this.isLegalChannel(interaction)) {
@@ -119,7 +119,19 @@ export class CommandRunner {
 
             // New interactions are added online, so it is instantly available in the production version of the app, despite being on development
             // Therefore a command that doesnt yet "exist" could still be run.
-            if (!hasAcknowledged) interaction.isRepliable() ? interaction.reply(`Denne interaksjonen støttes ikke for øyeblikket`) : undefined
+            if (!hasAcknowledged) {
+                interaction.isRepliable() ? interaction.reply(`Denne interaksjonen støttes ikke for øyeblikket`) : undefined
+                if (environment === 'prod') {
+                    this.messageHelper.sendLogMessage(
+                        `En interaksjon ble forsøkt brukt i ${MentionUtils.mentionChannel(interaction.channelId)} av ${MentionUtils.mentionUser(
+                            interaction.user.id
+                        )}. Denne interaksjonen støttes ikke i prod. Kommando: ${
+                            interaction.isCommand() ? interaction.commandName : interaction['customId'] ?? 'UKJENT'
+                        }`
+                    )
+                }
+            }
+
             return undefined
         }
     }

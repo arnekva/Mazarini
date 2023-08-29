@@ -1,9 +1,9 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, CacheType, EmbedBuilder, Message } from "discord.js";
-import { EmojiHelper } from "../../../../helpers/emojiHelper";
-import { MessageHelper } from "../../../../helpers/messageHelper";
-import { CardCommands } from "../../../cardCommands";
-import { canadianBusrideButtonRow, TryAgainBtn } from "../redBlackButtonRows";
-import { IBusRideCard, IUserObject } from "../redBlackInterfaces";
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, CacheType, EmbedBuilder, Message } from 'discord.js'
+import { EmojiHelper } from '../../../../helpers/emojiHelper'
+import { MessageHelper } from '../../../../helpers/messageHelper'
+import { CardCommands } from '../../../cardCommands'
+import { canadianBusrideButtonRow, TryAgainBtn } from '../redBlackButtonRows'
+import { IBusRideCard, IUserObject } from '../redBlackInterfaces'
 
 export class BusRide {
     private deck: CardCommands
@@ -32,7 +32,7 @@ export class BusRide {
         this.totalSips = 0
     }
 
-    public async setupCanadianBusride(interaction: ButtonInteraction<CacheType>) {        
+    public async setupCanadianBusride(interaction: ButtonInteraction<CacheType>) {
         this.cardsOnTable = new Array<IBusRideCard>()
         const startCard = { card: await this.drawCard(interaction), revealed: true }
         this.cardsOnTable[0] = startCard
@@ -42,37 +42,37 @@ export class BusRide {
         this.printCanadianBusrideTable(interaction)
     }
 
-    private async printCanadianBusrideTable(interaction: ButtonInteraction<CacheType>, correct: boolean = true) {                
+    private async printCanadianBusrideTable(interaction: ButtonInteraction<CacheType>, correct: boolean = true) {
         let cardsString = ''
-        const faceCard = (await EmojiHelper.getEmoji('faceCard', interaction)).id        
-        for (var i = 0; i < 7; i++) {            
+        const faceCard = (await EmojiHelper.getEmoji('faceCard', interaction)).id
+        for (var i = 0; i < 7; i++) {
             cardsString += this.cardsOnTable[i].revealed ? `${this.cardsOnTable[i].card.printString} ` : `${faceCard} `
         }
         this.tableString = cardsString
         this.currentButtons = correct ? canadianBusrideButtonRow : TryAgainBtn
-        this.tableMessage.edit({ content: this.tableString, components: [this.currentButtons]})
+        this.tableMessage.edit({ content: this.tableString, components: [this.currentButtons] })
     }
 
-    private async updateBusrideMessage(interaction: ButtonInteraction<CacheType>, correct: boolean) {             
+    private async updateBusrideMessage(interaction: ButtonInteraction<CacheType>, correct: boolean) {
         const guess = this.guessTranslations.get(interaction.customId.split(';')[1])
         let text = ''
         if (!correct) {
             this.totalSips += this.nextCardId
             text = 'Ble jo fort feil det! Drikk ' + this.nextCardId + ' og prøv igjen 🍷'
         } else {
-            if (this.nextCardId === (this.cardsOnTable.length - 1)) {
+            if (this.nextCardId === this.cardsOnTable.length - 1) {
                 text = 'Jaja gz då'
             } else {
                 text = 'Det var dessverre riktig'
             }
         }
-        this.embed.setDescription(`${this.loser.name} gjettet: ${guess}\n\n ${text}`)        
+        this.embed.setDescription(`${this.loser.name} gjettet: ${guess}\n\n ${text}`)
         this.embedMessage.edit({ embeds: [this.embed] })
     }
 
     private async setNewCards(i: number, interaction: ButtonInteraction<CacheType>) {
-        for (var y = 1; y <= i; y++) {            
-            let card = { card: await this.drawCard(interaction), revealed: false }            
+        for (var y = 1; y <= i; y++) {
+            let card = { card: await this.drawCard(interaction), revealed: false }
             this.cardsOnTable[y] = card
         }
     }
@@ -84,41 +84,41 @@ export class BusRide {
         this.deck.shuffleDeck()
         return await this.deck.drawCard(interaction)
     }
-    
+
     public async guessCanadian(interaction: ButtonInteraction<CacheType>) {
         if (!this.verifyUsersTurn(interaction.user.username)) {
-            return this.messageHelper.replyToInteraction(interaction, 'Nå er det heldigvis ikke du som tar bussturen', true)
+            return this.messageHelper.replyToInteraction(interaction, 'Nå er det heldigvis ikke du som tar bussturen', { hasBeenDefered: true })
         }
-        let currentCard = this.cardsOnTable[this.nextCardId-1]
+        let currentCard = this.cardsOnTable[this.nextCardId - 1]
         let nextCard = this.cardsOnTable[this.nextCardId]
         nextCard.revealed = true
-        const guess = interaction.customId.split(';')[1];
+        const guess = interaction.customId.split(';')[1]
         let correct = false
         if (guess === 'up') correct = nextCard.card.number > currentCard.card.number
         if (guess === 'down') correct = nextCard.card.number < currentCard.card.number
         if (guess === 'same') correct = nextCard.card.number === currentCard.card.number
-        
+
         this.updateBusrideMessage(interaction, correct)
         this.printCanadianBusrideTable(interaction, correct)
         if (correct) {
-            if (this.nextCardId < (this.cardsOnTable.length - 1)) {
+            if (this.nextCardId < this.cardsOnTable.length - 1) {
                 this.nextCardId++
             } else {
-                this.tableMessage.edit({ content: this.tableString, components: []})
+                this.tableMessage.edit({ content: this.tableString, components: [] })
             }
         }
-        
+
         interaction.deferUpdate()
     }
 
     private verifyUsersTurn(username: string) {
         return username === this.loser.name
     }
-    
+
     public async resetCanadian(interaction: ButtonInteraction<CacheType>) {
         await this.setNewCards(this.nextCardId, interaction)
         this.nextCardId = 1
-        this.embed.setDescription(this.tryAgainInsults[Math.floor(Math.random()*5)])
+        this.embed.setDescription(this.tryAgainInsults[Math.floor(Math.random() * 5)])
         this.embedMessage.edit({ embeds: [this.embed] })
         this.printCanadianBusrideTable(interaction)
         interaction.deferUpdate()
@@ -130,7 +130,7 @@ export class BusRide {
         this.tableMessage = await this.messageHelper.sendMessageWithContentAndComponents(interaction.channelId, this.tableString, [this.currentButtons])
     }
 
-    private deleteMessages() { 
+    private deleteMessages() {
         this.embedMessage.delete()
         this.embedMessage = undefined
         this.tableMessage.delete()
@@ -144,11 +144,10 @@ export class BusRide {
     ])
 
     private tryAgainInsults: Array<string> = [
-        'Da prøver vi igjen.', 
+        'Da prøver vi igjen.',
         'Jaja, lykke til da!\n\nneida',
         'Jeg har troen',
         'Håper du kommer til siste kortet før du ryker',
-        'lol'
+        'lol',
     ]
-
 }

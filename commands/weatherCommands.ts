@@ -68,10 +68,10 @@ export class Weather extends AbstractCommands {
     private async getWeatherForGivenCity(interaction: ChatInputCommandInteraction<CacheType>) {
         await interaction.deferReply()
         const city = interaction.options.get('stedsnavn')?.value as string
-        if (!city) return this.messageHelper.replyToInteraction(interaction, `Ugyldig input "${city}"`, undefined, true)
+        if (!city) return this.messageHelper.replyToInteraction(interaction, `Ugyldig input "${city}"`, { hasBeenDefered: true })
 
         const geoLocation = await Weather.getCoordinatesForLocation(city)
-        if (!geoLocation) return this.messageHelper.replyToInteraction(interaction, `Finner ikke stedet "${city}"`, undefined, true)
+        if (!geoLocation) return this.messageHelper.replyToInteraction(interaction, `Finner ikke stedet "${city}"`, { hasBeenDefered: true })
 
         const data = await Weather.fetchMETWeatherForCoordinates(geoLocation.latitude, geoLocation.longitude)
         const today = this.getTodaysTimeseries(data)
@@ -107,7 +107,7 @@ export class Weather extends AbstractCommands {
 
         const icon = closestHour.data.next_1_hours.summary.symbol_code
         if (icon) weather.setThumbnail(`${Weather.iconUrl}${icon}.png`)
-        this.messageHelper.replyToInteraction(interaction, weather, undefined, true)
+        this.messageHelper.replyToInteraction(interaction, weather, { hasBeenDefered: true })
     }
 
     private getMinMaxTempString(data: any, currentTemp: string) {

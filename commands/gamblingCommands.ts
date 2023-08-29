@@ -8,7 +8,7 @@ import {
     Client,
     EmbedBuilder,
     Interaction,
-    User
+    User,
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { IInteractionElement } from '../general/commands'
@@ -62,9 +62,9 @@ export class GamblingCommands extends AbstractCommands {
         const notEnoughChips = GamblingCommands.checkBalance([{ userID: interaction.user.id }, { userID: target.id }], amountAsNum)
 
         if (notEnoughChips) {
-            this.messageHelper.replyToInteraction(interaction, `En av dere har ikke råd til dette`, true)
+            this.messageHelper.replyToInteraction(interaction, `En av dere har ikke råd til dette`, { ephemeral: true })
         } else {
-            this.messageHelper.replyToInteraction(interaction, `Du har startet en krig mot ${target.username}`, true)
+            this.messageHelper.replyToInteraction(interaction, `Du har startet en krig mot ${target.username}`, { ephemeral: true })
             await this.messageHelper.sendMessage(
                 interaction?.channelId,
                 `${interaction.user.username} vil gå til krig med deg ${MentionUtils.mentionUser(
@@ -102,9 +102,9 @@ export class GamblingCommands extends AbstractCommands {
         const notEnoughChips = this.checkBalance([{ userID: interaction.user.id }, { userID: target.id }], amountAsNum)
 
         if (notEnoughChips) {
-            msgHelper.replyToInteraction(interaction, `En av dere har ikke råd til dette`, true)
+            msgHelper.replyToInteraction(interaction, `En av dere har ikke råd til dette`, { ephemeral: true })
         } else {
-            msgHelper.replyToInteraction(interaction, `Du har startet en krig mot ${target.username}`, true)
+            msgHelper.replyToInteraction(interaction, `Du har startet en krig mot ${target.username}`, { ephemeral: true })
             await msgHelper.sendMessage(
                 interaction?.channelId,
                 `${interaction.user.username} vil gå til krig med deg ${MentionUtils.mentionUser(
@@ -301,7 +301,7 @@ export class GamblingCommands extends AbstractCommands {
         const userBalance = user.chips
 
         if (isNaN(amount) || amount < 0) {
-            this.messageHelper.replyToInteraction(interaction, `Det e kje lov å vippsa någen et negativt beløp ;)`, true)
+            this.messageHelper.replyToInteraction(interaction, `Det e kje lov å vippsa någen et negativt beløp ;)`, { ephemeral: true })
         } else if (userBalance >= amount) {
             const oldChips = user.chips
             user.chips = oldChips - amount
@@ -317,7 +317,7 @@ export class GamblingCommands extends AbstractCommands {
             this.messageHelper.replyToInteraction(
                 interaction,
                 'Dette har du kje råd te, bro. Du mangle ' + (amount - userBalance) + ' for å få lov te å vippsa ' + amount,
-                true
+                { ephemeral: true }
             )
         }
     }
@@ -518,7 +518,7 @@ export class GamblingCommands extends AbstractCommands {
         if (userAsMember.id === eligibleTargetId && interaction.message.components.length) {
             const notEnoughChips = GamblingCommands.checkBalance([{ userID: engagerId }, { userID: eligibleTargetId }], amountAsNum)
             if (notEnoughChips) {
-                this.messageHelper.replyToInteraction(interaction, `En av dere har ikke lenger råd til krigen`, true)
+                this.messageHelper.replyToInteraction(interaction, `En av dere har ikke lenger råd til krigen`, { ephemeral: true })
             } else {
                 //We update the row with a new, disabled button, so that the user cannot enage the Krig more than once
                 const row = new ActionRowBuilder<ButtonBuilder>()
@@ -623,7 +623,7 @@ export class GamblingCommands extends AbstractCommands {
                 }
             }
         } else {
-            this.messageHelper.replyToInteraction(interaction, `Du kan kje starta denne krigen`, true)
+            this.messageHelper.replyToInteraction(interaction, `Du kan kje starta denne krigen`, { ephemeral: true })
         }
     }
 
@@ -653,7 +653,7 @@ export class GamblingCommands extends AbstractCommands {
                 components: [row],
             })
         } else {
-            this.messageHelper.replyToInteraction(interaction, `Du kan bare starta ein omkamp for ein krig du deltok i sjøl`, true)
+            this.messageHelper.replyToInteraction(interaction, `Du kan bare starta ein omkamp for ein krig du deltok i sjøl`, { ephemeral: true })
         }
     }
 

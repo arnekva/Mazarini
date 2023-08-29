@@ -61,7 +61,7 @@ export class Admin extends AbstractCommands {
                                 secondaryProperty
                                     ? `Det ser ut som du prøver å sette en verdi på et objekt. Du må legge til verdien som skal settes på dette objektet ved bruk av argumentet "secondary".`
                                     : `Du har prøvd å sette en verdi i objektet ${prop} og har brukt verdien ${secondaryProperty}. Denne finnes ikke på objektet, eller så mangler brukeren objektet.`,
-                                true
+                                { ephemeral: true }
                             )
                         }
                     } else if (typeof prop === 'number') dbUser[property] = Number(value)
@@ -80,12 +80,12 @@ export class Admin extends AbstractCommands {
             }
             if (environment === 'prod') this.messageHelper.sendLogMessage(logMsg)
         } else {
-            this.messageHelper.replyToInteraction(interaction, `Alle nødvendige parametere ble ikke funnet. `, true)
+            this.messageHelper.replyToInteraction(interaction, `Alle nødvendige parametere ble ikke funnet. `, { ephemeral: true })
         }
     }
 
     private async replyToMsgAsBot(interaction: ChatInputCommandInteraction<CacheType>) {
-        this.messageHelper.replyToInteraction(interaction, `Svarer på meldingen hvis jeg finner den`, true)
+        this.messageHelper.replyToInteraction(interaction, `Svarer på meldingen hvis jeg finner den`, { ephemeral: true })
         const allChannels = [...this.client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
         const id = interaction.options.get('melding-id')?.value as string
         const replyString = interaction.options.get('tekst')?.value as string
@@ -243,7 +243,7 @@ export class Admin extends AbstractCommands {
         const text = modalInteraction.fields.getTextInputValue('messageInput')
 
         this.messageHelper.sendMessage(chatID, text)
-        this.messageHelper.replyToInteraction(modalInteraction, `Meldingen *${text}* ble sent til ${MentionUtils.mentionChannel(chatID)}`, true)
+        this.messageHelper.replyToInteraction(modalInteraction, `Meldingen *${text}* ble sent til ${MentionUtils.mentionChannel(chatID)}`, { ephemeral: true })
         this.messageHelper.sendLogMessage(
             `${modalInteraction.user.username} sendte en melding som botten til kanalen ${MentionUtils.mentionChannel(chatID)} med innholdet '*${text}*'`
         )

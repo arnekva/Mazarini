@@ -115,7 +115,7 @@ export class SpotifyCommands extends AbstractCommands {
                       data?.body?.tracks?.items[1]?.artists[0].name
                     : ''
             }`
-            this.messageHelper.replyToInteraction(interaction, result, false, true)
+            this.messageHelper.replyToInteraction(interaction, result, { hasBeenDefered: true })
         }
     }
 
