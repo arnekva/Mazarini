@@ -13,7 +13,7 @@ import {
     StringSelectMenuInteraction,
     StringSelectMenuOptionBuilder,
     TextInputBuilder,
-    TextInputStyle,
+    TextInputStyle
 } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { IInteractionElement } from '../../general/commands'
@@ -31,26 +31,49 @@ export class TrelloCommands extends AbstractCommands {
     private labels: Map<string, ITrelloLabel>
     private lists: Map<string, ITrelloList>
     private currentCard: ITrelloCard
+    private currentListId: string
     private menu: ActionRowBuilder<StringSelectMenuBuilder>
+    private listMenu: ActionRowBuilder<StringSelectMenuBuilder>
     private moveMenu: ActionRowBuilder<StringSelectMenuBuilder>
+    private cardsDropdownMessage: Message
     private moveCardMessage: Message
 
     constructor(client: Client, messageHelper: MessageHelper) {
         super(client, messageHelper)
         this.currentCard = undefined
         this.menu = undefined
+        this.listMenu = undefined
         this.moveMenu = undefined
+        this.cardsDropdownMessage = undefined
         this.moveCardMessage = undefined
         this.fetchTrelloData()
     }
 
     private async fetchTrelloData() {
-        this.cards = await TrelloAPI.retrieveTrelloCards()
         this.labels = await TrelloAPI.retrieveTrelloLabels()
         this.lists = await TrelloAPI.retrieveTrelloLists()
     }
 
-    private async getTrelloDropdown(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+    private async fetchTrelloCards() {
+        this.cards = await TrelloAPI.retrieveTrelloCards(this.currentListId)
+    }
+
+    private async getListsDropdown(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+        const options: StringSelectMenuOptionBuilder[] = new Array<StringSelectMenuOptionBuilder>()
+        Array.from(this.lists.values())
+            .slice(0, 24)
+            .forEach((list) => {
+                const name = list.name.length > 50 ? list.name.substring(0, 47) + '...' : list.name
+                options.push(new StringSelectMenuOptionBuilder().setLabel(name).setDescription(' ').setValue(list.id))
+            })
+
+        this.listMenu = ActionMenuHelper.createSelectMenu('TrelloLists', 'Velg trello-liste', options)
+        let embed = EmbedUtils.createSimpleEmbed(`Hent kortene i en liste`,'Ingen liste valgt')
+
+        this.messageHelper.replyToInteraction(interaction, embed, { ephemeral: false, hasBeenDefered: false }, [this.listMenu])
+    }
+
+    private async getCardsDropdown(interaction: StringSelectMenuInteraction<CacheType> | ButtonInteraction<CacheType>) {
         const options: StringSelectMenuOptionBuilder[] = new Array<StringSelectMenuOptionBuilder>()
         Array.from(this.cards.values())
             .slice(0, 24)
@@ -58,29 +81,46 @@ export class TrelloCommands extends AbstractCommands {
                 const name = card.name.length > 50 ? card.name.substring(0, 47) + '...' : card.name
                 options.push(new StringSelectMenuOptionBuilder().setLabel(name).setDescription(' ').setValue(card.id))
             })
-
-        this.menu = ActionMenuHelper.createSelectMenu('TrelloMenu', 'Velg trello-kort', options)
-        let embed = EmbedUtils.createSimpleEmbed(`Se informasjon om trello-kort`, 'Ingen kort valgt')
-        if (interaction.isButton()) {
-            if (this.currentCard) {
-                const trelloCard = this.cards.get(this.currentCard.id)
-                if (trelloCard) {
-                    const name = trelloCard.name.length > 50 ? trelloCard.name.substring(0, 47) + '...' : trelloCard.name
-                    this.currentCard = trelloCard
-                    const labelString = trelloCard.labels.map((label) => label.name).join(', ')
-                    embed = EmbedUtils.createSimpleEmbed(`${name}`, `${trelloCard.desc}\n\nLabels: ${labelString}`)
+        if (options.length > 0) {
+            this.menu = ActionMenuHelper.createSelectMenu('TrelloMenu', 'Velg trello-kort', options)
+            let embed = EmbedUtils.createSimpleEmbed(`Se informasjon om trello-kort`, 'Ingen kort valgt')
+            if (this.cardsDropdownMessage) {
+                if (this.currentCard) {
+                    const trelloCard = this.cards.get(this.currentCard.id)
+                    if (trelloCard) {
+                        const name = trelloCard.name.length > 50 ? trelloCard.name.substring(0, 47) + '...' : trelloCard.name
+                        this.currentCard = trelloCard
+                        const labelString = trelloCard.labels.map((label) => label.name).join(', ')
+                        embed = EmbedUtils.createSimpleEmbed(`${name}`, `${trelloCard.desc}\n\nLabels: ${labelString}`)
+                    }
                 }
+                await this.cardsDropdownMessage.edit({
+                    embeds: [embed],
+                    components: [this.menu, trelloButtons],
+                })
+            } else {
+                this.cardsDropdownMessage = await this.messageHelper.sendMessageWithEmbedAndComponents(interaction.channelId, embed, [this.menu, newTrelloButton])
             }
-            await interaction.update({
-                embeds: [embed],
-                components: [this.menu, trelloButtons],
-            })
         } else {
-            this.messageHelper.replyToInteraction(interaction, embed, undefined, [this.menu, newTrelloButton])
+            this.cardsDropdownMessage?.delete()
+            this.cardsDropdownMessage = undefined
         }
+        
     }
 
-    public async showCardInfo(selectMenu: StringSelectMenuInteraction<CacheType>) {
+    private async handleListSelected(selectMenu: StringSelectMenuInteraction<CacheType>) {
+        this.currentCard = undefined 
+        this.currentListId = selectMenu.values[0]
+        const list = this.lists.get(this.currentListId)
+        await this.fetchTrelloCards()
+        await this.getCardsDropdown(selectMenu)
+        await selectMenu.update({
+            embeds: [EmbedUtils.createSimpleEmbed(`${list.name}`, `${this.cards.size} kort i listen`)],
+            components: [this.listMenu],
+        })
+    }
+
+    private async showCardInfo(selectMenu: StringSelectMenuInteraction<CacheType>) {
         const value = selectMenu.values[0]
         const trelloCard = this.cards.get(value)
         const name = trelloCard.name.length > 50 ? trelloCard.name.substring(0, 47) + '...' : trelloCard.name
@@ -152,7 +192,7 @@ export class TrelloCommands extends AbstractCommands {
         this.moveCardMessage = await this.messageHelper.sendMessageWithEmbedAndComponents(interaction.channelId, embed, [this.moveMenu, cancelMoveBtnRow])
     }
 
-    private async handleListSelected(selectMenu: StringSelectMenuInteraction<CacheType>) {
+    private async handleMoveListSelected(selectMenu: StringSelectMenuInteraction<CacheType>) {
         const cardToMoveId = selectMenu.customId.replace('TrelloMoveMenu;', '')
         const cardToMove = this.cards.get(cardToMoveId)
         const value = selectMenu.values[0]
@@ -160,7 +200,7 @@ export class TrelloCommands extends AbstractCommands {
         const oldList = this.lists.get(cardToMove.idList)
         const name = this.currentCard.name.length > 50 ? this.currentCard.name.substring(0, 47) + '...' : this.currentCard.name
         await selectMenu.update({
-            embeds: [EmbedUtils.createSimpleEmbed(`${name}`, `Flytter kortet\nFra: ${oldList.name}\nTil: ${newList.name}`)],
+            embeds: [EmbedUtils.createSimpleEmbed(`Flytter kortet:`, `${name}\n\nFra: ${oldList.name}\n\nTil: ${newList.name}`)],
             components: [this.moveMenu, moveCardButtons(cardToMoveId, value)],
         })
     }
@@ -194,6 +234,11 @@ export class TrelloCommands extends AbstractCommands {
     private async handleDeleteCard(interaction: ModalSubmitInteraction<CacheType>) {
         const cardId = interaction.customId.split(';')[1]
         await TrelloAPI.deleteCard(cardId)
+        let embed = EmbedUtils.createSimpleEmbed(`Se informasjon om trello-kort`, 'Ingen kort valgt')
+        await this.cardsDropdownMessage.edit({
+            embeds: [embed],
+            components: [this.menu, trelloButtons],
+        })
         interaction.deferUpdate()
     }
 
@@ -251,7 +296,7 @@ export class TrelloCommands extends AbstractCommands {
                     {
                         commandName: 'trello',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            return this.getTrelloDropdown(rawInteraction)
+                            return this.getListsDropdown(rawInteraction)
                         },
                     },
                 ],
@@ -283,7 +328,11 @@ export class TrelloCommands extends AbstractCommands {
                     {
                         commandName: 'TRELLO_REFRESH',
                         command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                            this.fetchTrelloData().then(() => this.getTrelloDropdown(rawInteraction))
+                            this.fetchTrelloCards().then(() => {
+                                this.getCardsDropdown(rawInteraction).then(() => {
+                                    rawInteraction.deferUpdate()
+                                })
+                            })
                         },
                     },
                     {
@@ -322,6 +371,12 @@ export class TrelloCommands extends AbstractCommands {
                 ],
                 selectMenuInteractionCommands: [
                     {
+                        commandName: 'TrelloLists',
+                        command: (rawInteraction: StringSelectMenuInteraction<CacheType>) => {
+                            this.handleListSelected(rawInteraction)
+                        },
+                    },
+                    {
                         commandName: 'TrelloMenu',
                         command: (rawInteraction: StringSelectMenuInteraction<CacheType>) => {
                             this.showCardInfo(rawInteraction)
@@ -330,7 +385,7 @@ export class TrelloCommands extends AbstractCommands {
                     {
                         commandName: 'TrelloMoveMenu',
                         command: (rawInteraction: StringSelectMenuInteraction<CacheType>) => {
-                            this.handleListSelected(rawInteraction)
+                            this.handleMoveListSelected(rawInteraction)
                         },
                     },
                 ],
