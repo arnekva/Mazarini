@@ -127,11 +127,11 @@ export class MessageHelper {
             } else {
                 payload.content = messageContent
             }
-            if (options.hasBeenDefered) {
+            if (options?.hasBeenDefered) {
                 await interaction.editReply(payload).catch((e) => handleError(e))
             } else {
                 const payloadAsReply = payload as InteractionReplyOptions
-                payloadAsReply.ephemeral = options.ephemeral
+                payloadAsReply.ephemeral = !!options?.ephemeral
                 await interaction.reply(payloadAsReply).catch((e) => handleError(e))
             }
             MazariniClient.numMessagesFromBot++
