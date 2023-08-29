@@ -80,9 +80,9 @@ export class TrelloAPI {
         return card
     }
 
-    public static async retrieveTrelloCards() {        
+    public static async retrieveTrelloCards(listId: string) {        
         const url = TrelloCommands.baseUrl +
-            `lists/${TrelloCommands.backLogId}/cards?key=${trelloApiKey}&token=${trelloToken}`
+            `lists/${listId}/cards?key=${trelloApiKey}&token=${trelloToken}`
 
         const response: Array<ITrelloCard> = await (await fetch(url, {
             method: 'GET',
@@ -126,7 +126,7 @@ export class TrelloAPI {
             },
         })).json()
         let lists = new Map<string, ITrelloList>()
-        response.forEach((list) => {            
+        response.forEach((list) => {    
             lists.set(list.id, list)
         })
         return lists
