@@ -4,16 +4,13 @@ import { IInteractionElement } from './general/commands'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '12.0.1'
+    public static readonly currentVersion = '12.0.2'
     public static readonly nextVersion = 'Backlog'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
-    public static readonly currentPatchNotes: string =
-        `\n* Refaktorert parametere i replyToInteraction` +
-        `\n* Det logges nå hvis en interaksjon som ikke er støttet i prod brukes` +
-        `\n* Fikset locking i dev guild`
+    public static readonly currentPatchNotes: string = `\n* Rettet en feil i RandomUtils`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
