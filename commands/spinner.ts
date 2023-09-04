@@ -62,7 +62,7 @@ export class Spinner extends AbstractCommands {
     private spinFromInteraction(interaction: ChatInputCommandInteraction<CacheType>) {
         const user = DatabaseHelper.getUser(interaction.user.id)
         const min = weightedRandomObject(spinMinutes).number
-        const sec = RandomUtils.getRndInteger(0, 60)
+        const sec = RandomUtils.getRandomInteger(0, 60)
 
         const winnings = this.getSpinnerWinnings(Number(min), Number(sec))
         if (winnings > 0) {

@@ -136,7 +136,7 @@ export class GamblingCommands extends AbstractCommands {
         if (!amount || amount > userMoney || isNaN(amount)) chipsToGamble = userMoney
         if (amount < 1) chipsToGamble = 1
         if (userMoney) {
-            const roll = RandomUtils.getRndInteger(0, 100)
+            const roll = RandomUtils.getRandomInteger(0, 100)
 
             let newMoneyValue = 0
             let multiplier = this.getMultiplier(roll)
@@ -186,7 +186,7 @@ export class GamblingCommands extends AbstractCommands {
         } else if (Number(stake) && betOn) {
             const red = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]
             const valAsNum = Number(Number(stake).toFixed(2))
-            const roll = RandomUtils.getRndInteger(0, 36)
+            const roll = RandomUtils.getRandomInteger(0, 36)
             let multiplier = 1
             let won = false
 
@@ -350,7 +350,7 @@ export class GamblingCommands extends AbstractCommands {
             DatabaseHelper.updateUser(user)
             const randArray = []
             for (let i = 0; i < 6; i++) {
-                randArray.push(RandomUtils.getRndInteger(0, 9))
+                randArray.push(RandomUtils.getRandomInteger(0, 9))
             }
             randArray.forEach((num) => {
                 emojiString += MiscUtils.findLetterEmoji(num.toString())
@@ -542,9 +542,9 @@ export class GamblingCommands extends AbstractCommands {
                 let victimValue = target.chips
 
                 const shouldAlwaysLose = engager.id === interaction.user.id
-                let roll = RandomUtils.getRndInteger(0, 100)
+                let roll = RandomUtils.getRandomInteger(0, 100)
                 if ((engager.id === '239154365443604480' && roll < 50) || (target.id === '239154365443604480' && roll > 50)) {
-                    roll = RandomUtils.getRndInteger(0, 100)
+                    roll = RandomUtils.getRandomInteger(0, 100)
                 }
                 let description = `Terningen trillet: ${roll}/100. ${
                     roll < 51 ? (roll == 50 ? 'Bot Høie' : engagerUser.username) : userAsMember.user.username

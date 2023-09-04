@@ -27,7 +27,7 @@ export class ArrayUtils {
 
     /** Get a random object from the array */
     static randomChoiceFromArray(arr: any[]) {
-        const randomNumber = RandomUtils.getRndInteger(0, arr.length)
+        const randomNumber = RandomUtils.getRandomInteger(0, arr.length)
         return arr[randomNumber]
     }
 
