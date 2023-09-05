@@ -100,6 +100,11 @@ export class Admin extends AbstractCommands {
                     .then(async (message) => {
                         if (message && message.id == id) {
                             message.reply(replyString)
+                            this.messageHelper.sendLogMessage(
+                                `${interaction.user.username} brukte */reply*, på en melding fra ${
+                                    message.author.username
+                                } i kanalen ${MentionUtils.mentionChannel(message.channelId)}`
+                            )
                         }
                     })
                     .catch((error) => {
