@@ -24,6 +24,7 @@ import { ErrorHandler } from './handlers/errorHandler'
 import { ClientHelper } from './helpers/clientHelper'
 import { MessageHelper } from './helpers/messageHelper'
 import { JobScheduler } from './Jobs/jobScheduler'
+import { PatchNotes } from './patchnotes'
 import { ArrayUtils } from './utils/arrayUtils'
 import { MentionUtils } from './utils/mentionUtils'
 import { textArrays } from './utils/textArrays'
@@ -111,7 +112,7 @@ export class MazariniClient {
             if (environment == 'prod') _msgHelper.sendLogMessage(msg)
 
             ClientHelper.setStatusFromStorage(client)
-
+            PatchNotes.compareAndSendPatchNotes(_msgHelper)
             this.errorHandler.launchBusListeners()
         })
 

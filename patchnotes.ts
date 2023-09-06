@@ -1,46 +1,41 @@
 import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
 import { AbstractCommands } from './Abstracts/AbstractCommand'
+import { environment } from './client-env'
 import { IInteractionElement } from './general/commands'
 import { DatabaseHelper } from './helpers/databaseHelper'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '12.0.4'
-    public static readonly nextVersion = 'Backlog'
-
+    public static readonly currentVersion = '12.0.5'
+    public static readonly currentPatchNotes = `\n* Mindre feilfikser`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
-    private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
-
-    public static readonly currentPatchNotes: string = `\n* Patchnotes vil nå publiseres automatisk ved oppstart dersom versjonsnr er endret`
-
-    public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
+    public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
     constructor(client: Client, messageHelper: MessageHelper) {
         super(client, messageHelper)
-        setTimeout(() => this.compareAndSendPatchNotes(), 5000)
     }
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
     }
     static getNextReleasePatchNotes() {
-        return PatchNotes.headerNextRelease + '\n' + PatchNotes.nextPatchNotes
+        return 'Backlog:\n' + PatchNotes.trelloBoardUrl
     }
 
-    private compareAndSendPatchNotes() {
+    static compareAndSendPatchNotes(msgHelper: MessageHelper) {
         const prev = DatabaseHelper.getBotData('version')
-        if (prev && prev != PatchNotes.currentVersion) {
-            this.publishPatchNotes()
+        if (prev && prev != PatchNotes.currentVersion && environment === 'prod') {
+            PatchNotes.publishPatchNotes(msgHelper)
         }
         DatabaseHelper.setBotData('version', PatchNotes.currentVersion)
     }
 
-    private publishPatchNotes(rawInteraction?: ChatInputCommandInteraction<CacheType>) {
+    static publishPatchNotes(msgHelper: MessageHelper, rawInteraction?: ChatInputCommandInteraction<CacheType>) {
         const pn = PatchNotes.getCurrentPatchNotes()
-        this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.BOT_UTVIKLING, pn)
-        this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.PATCH_NOTES, pn)
+        msgHelper.sendMessage(MentionUtils.CHANNEL_IDs.BOT_UTVIKLING, pn)
+        msgHelper.sendMessage(MentionUtils.CHANNEL_IDs.PATCH_NOTES, pn)
         if (rawInteraction) {
-            this.messageHelper.replyToInteraction(
+            msgHelper.replyToInteraction(
                 rawInteraction,
                 `Patch notes sendt til ${MentionUtils.mentionChannel(MentionUtils.CHANNEL_IDs.BOT_UTVIKLING)} og ${MentionUtils.mentionChannel(
                     MentionUtils.CHANNEL_IDs.PATCH_NOTES
@@ -66,12 +61,12 @@ export class PatchNotes extends AbstractCommands {
                             this.messageHelper.replyToInteraction(rawInteraction, PatchNotes.getNextReleasePatchNotes())
                         },
                     },
-                    {
-                        commandName: 'publishnotes',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            this.publishPatchNotes(rawInteraction)
-                        },
-                    },
+                    // {
+                    //     commandName: 'publishnotes',
+                    //     command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    //         this.publishPatchNotes(rawInteraction)
+                    //     },
+                    // },
                 ],
             },
         }
