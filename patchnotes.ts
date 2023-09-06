@@ -17,7 +17,7 @@ export class PatchNotes extends AbstractCommands {
 
     constructor(client: Client, messageHelper: MessageHelper) {
         super(client, messageHelper)
-        this.compareAndSendPatchNotes()
+        setTimeout(() => this.compareAndSendPatchNotes(), 5000)
     }
 
     static getCurrentPatchNotes() {
