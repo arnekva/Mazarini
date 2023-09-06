@@ -6,8 +6,8 @@ import { DatabaseHelper } from './helpers/databaseHelper'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '12.0.5'
-    public static readonly currentPatchNotes = `\n* Mindre feilfikser`
+    public static readonly currentVersion = '12.0.6'
+    public static readonly currentPatchNotes = `\n* Fikset ekstra linjeskift i /spotify når du sjekker andre brukere`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 

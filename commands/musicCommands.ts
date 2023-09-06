@@ -168,8 +168,7 @@ export class Music extends AbstractCommands {
                                     `${isCurrentlyPlaying ? '(spiller nå)' : ''} `
 
                                 if (dataParam.silent) musicData += `${'(' + new Date(Number(element.date['uts']) * 1000).toLocaleString('nb-NO') + ')'}`
-
-                                musicData += lineSeperator
+                                if (prop.length > 1) musicData += lineSeperator
                             })
 
                             if (!isFormattedWithHashtag) musicData += `\n*Totalt ${topData[strippedMethod]['@attr'].total} ${methodWithoutGet}s i biblioteket`
