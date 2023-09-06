@@ -122,11 +122,12 @@ export class CommandRunner {
             if (!hasAcknowledged) {
                 interaction.isRepliable() ? interaction.reply(`Denne interaksjonen støttes ikke for øyeblikket`) : undefined
                 if (environment === 'prod') {
+                    const uncastInteraction = interaction as any
                     this.messageHelper.sendLogMessage(
-                        `En interaksjon ble forsøkt brukt i ${MentionUtils.mentionChannel(interaction.channelId)} av ${MentionUtils.mentionUser(
-                            interaction.user.id
-                        )}. Denne interaksjonen støttes ikke i prod. Kommando: ${
-                            interaction.isCommand() ? interaction.commandName : interaction['customId'] ?? 'UKJENT'
+                        `En interaksjon ble forsøkt brukt i ${MentionUtils.mentionChannel(interaction.channelId)} av ${
+                            interaction.user.username
+                        }. Denne interaksjonen støttes ikke i prod. Kommando: ${
+                            uncastInteraction?.commandName ?? uncastInteraction?.customId ?? 'UKJENT - Commanden hadde ikke commandName eller customId'
                         }`
                     )
                 }

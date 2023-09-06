@@ -1,11 +1,10 @@
-import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction, Message, User } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction, User } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { lfKey } from '../client-env'
 import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { TextUtils } from '../utils/textUtils'
-import { UserUtils } from '../utils/userUtils'
 const fetch = require('node-fetch')
 export type musicCommand = 'top'
 
@@ -36,6 +35,7 @@ interface fetchData {
     includeNameInOutput: boolean
     username: string
     header: string
+    formatAsEmbed?: boolean
 }
 
 export interface IFindCommand {
@@ -97,15 +97,14 @@ export class Music extends AbstractCommands {
                 return base + 'getweeklyartistchart'
         }
     }
-    /*
-Docs: https://www.last.fm/api/show/user.getInfo
-    */
+
     /**
      * Finn last FM data
      * @param dataParam
      * @returns
+     *  Docs: https://www.last.fm/api/show/user.getInfo
      */
-    async findLastFmData(dataParam: fetchData, notWeeklyOrRecent?: boolean, silent?: boolean) {
+    async findLastFmData(dataParam: fetchData, notWeeklyOrRecent?: boolean) {
         if (!parseInt(dataParam.limit)) {
             dataParam.limit = '10'
             dataParam.includeStats = true
@@ -194,15 +193,6 @@ Docs: https://www.last.fm/api/show/user.getInfo
             .catch((error: any) => {})
 
         return arrayDataRet
-    }
-
-    private getLastFMUsernameByDiscordUsername(username: string, rawMessage: Message) {
-        const uname = UserUtils.findUserByUsername(username, rawMessage)
-        if (uname) {
-            const user = DatabaseHelper.getUser(uname?.id)
-            if (user) return user.lastFMUsername
-        }
-        return undefined
     }
 
     private async handleMusicInteractions(interaction: ChatInputCommandInteraction<CacheType>) {
