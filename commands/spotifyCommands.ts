@@ -7,7 +7,6 @@ import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { TextUtils } from '../utils/textUtils'
 import { UserUtils } from '../utils/userUtils'
 import { Music } from './musicCommands'
 const SpotifyWebApi = require('spotify-web-api-node')
@@ -173,37 +172,17 @@ export class SpotifyCommands extends AbstractCommands {
 
         const member = UserUtils.findMemberByUserID(user ? user.id : interaction.user.id, interaction)
         if (member && member.presence && member.presence.activities.find((a) => a.name === 'Spotify')) {
-            const spotify = member.presence.activities.filter((a) => a.name === 'Spotify')[0]
+            const spotify = member.presence.activities.find((a) => a.name === 'Spotify')
+            const spotifyImageBaseUrl = `https://i.scdn.co/image`
             if (spotify?.state && spotify.details) {
-                const data = await this.searchForSongOnSpotifyAPI(spotify.details, spotify.state)
-                const items = data.body.tracks.items
-                let foundItem: any
-                let i = 0
-                while (i < items.length) {
-                    if (
-                        items[i].artists.filter((a) => {
-                            return a.name === spotify.state
-                        }).length
-                    ) {
-                        foundItem = items[i]
-                        i = items.length
-                    } else {
-                        i++
-                    }
-                }
-
+                const imageUrl = spotify.assets.largeImage.replace('spotify:', '')
                 const embed = new EmbedBuilder()
                     .setTitle(`${user ? `${user.username} hører på: ` : ''}${spotify?.details} `)
                     .setDescription(`${spotify?.state}`)
-                if (foundItem) {
-                    embed
-                        .addFields({ name: 'Album', value: foundItem.album?.name ?? 'Ukjent', inline: true })
-                        .addFields({ name: 'Utgitt', value: foundItem.album?.release_date ?? 'Ukjent', inline: true })
-                    if (foundItem.album?.external_urls?.spotify) embed.setURL(foundItem.album?.external_urls?.spotify ?? '#')
 
-                    if (foundItem.album?.images[0]?.url) embed.setThumbnail(foundItem.album.images[0].url)
-                }
-
+                embed.addFields({ name: 'Album', value: spotify.assets.largeText ?? 'Ukjent album', inline: true })
+                if (!!spotify?.url) embed.setURL(spotify.url)
+                if (spotify.assets) embed.setThumbnail(`${spotifyImageBaseUrl}/${imageUrl}`)
                 return embed
             }
         } else {
@@ -221,10 +200,7 @@ export class SpotifyCommands extends AbstractCommands {
                     header: '',
                 })
 
-                return (
-                    (user ? `*${user.username}:* ` : '') + TextUtils.escapeString(lastFMData.join(' ')) ??
-                    `${user} hører ikke på Spotify nå, og har heller ikke koblet til Last.fm`
-                )
+                return (user ? `*${user.username}:* ` : '') + lastFMData.join(' ') ?? `${user} hører ikke på Spotify nå, og har heller ikke koblet til Last.fm`
             }
         }
         return `${user ? user : 'Du'} hører ikke på Spotify nå, og har heller ikke koblet til Last.fm`
