@@ -1,6 +1,7 @@
 import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
 import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { IInteractionElement } from './general/commands'
+import { DatabaseHelper } from './helpers/databaseHelper'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
@@ -10,9 +11,14 @@ export class PatchNotes extends AbstractCommands {
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     private static readonly headerNextRelease = 'Saker i ' + PatchNotes.nextVersion
 
-    public static readonly currentPatchNotes: string = `\n* /spotify henter nå data direkte fra Discord. Det betyr at man ikke lenger får utgivelsesdato eller link, men vil derimot nå alltid vise albumbilde`
+    public static readonly currentPatchNotes: string = `\n* Patchnotes vil nå publiseres automatisk ved oppstart dersom versjonsnr er endret`
 
     public static readonly nextPatchNotes: string = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
+
+    constructor(client: Client, messageHelper: MessageHelper) {
+        super(client, messageHelper)
+        this.compareAndSendPatchNotes()
+    }
 
     static getCurrentPatchNotes() {
         return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
@@ -21,8 +27,27 @@ export class PatchNotes extends AbstractCommands {
         return PatchNotes.headerNextRelease + '\n' + PatchNotes.nextPatchNotes
     }
 
-    constructor(client: Client, messageHelper: MessageHelper) {
-        super(client, messageHelper)
+    private compareAndSendPatchNotes() {
+        const prev = DatabaseHelper.getBotData('version')
+        if (prev && prev != PatchNotes.currentVersion) {
+            this.publishPatchNotes()
+        }
+        DatabaseHelper.setBotData('version', PatchNotes.currentVersion)
+    }
+
+    private publishPatchNotes(rawInteraction?: ChatInputCommandInteraction<CacheType>) {
+        const pn = PatchNotes.getCurrentPatchNotes()
+        this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.BOT_UTVIKLING, pn)
+        this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.PATCH_NOTES, pn)
+        if (rawInteraction) {
+            this.messageHelper.replyToInteraction(
+                rawInteraction,
+                `Patch notes sendt til ${MentionUtils.mentionChannel(MentionUtils.CHANNEL_IDs.BOT_UTVIKLING)} og ${MentionUtils.mentionChannel(
+                    MentionUtils.CHANNEL_IDs.PATCH_NOTES
+                )}`,
+                { ephemeral: true }
+            )
+        }
     }
 
     getAllInteractions(): IInteractionElement {
@@ -44,16 +69,7 @@ export class PatchNotes extends AbstractCommands {
                     {
                         commandName: 'publishnotes',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            const pn = PatchNotes.getCurrentPatchNotes()
-                            this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.BOT_UTVIKLING, pn)
-                            this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.PATCH_NOTES, pn)
-                            this.messageHelper.replyToInteraction(
-                                rawInteraction,
-                                `Patch notes sendt til ${MentionUtils.mentionChannel(MentionUtils.CHANNEL_IDs.BOT_UTVIKLING)} og ${MentionUtils.mentionChannel(
-                                    MentionUtils.CHANNEL_IDs.PATCH_NOTES
-                                )}`,
-                                { ephemeral: true }
-                            )
+                            this.publishPatchNotes(rawInteraction)
                         },
                     },
                 ],
