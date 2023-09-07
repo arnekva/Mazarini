@@ -124,7 +124,11 @@ export class MazariniClient {
                         if (latestMessage) {
                             const lastCommit = DatabaseHelper.getBotData('commit-id')
                             const indexOfLastID = allMessages.indexOf(lastCommit)
-                            allMessages = allMessages.slice(indexOfLastID ?? 1) //Only send last one if nothing is saved in the DB
+                            console.log(indexOfLastID)
+
+                            allMessages = allMessages.slice(0, indexOfLastID ?? 1) //Only send last one if nothing is saved in the DB
+                            console.log(allMessages)
+
                             //Add commit messages to start-up message
                             msg += `Commits siden forrige restart: ${allMessages.join('\n')}`
                             //Update current id
