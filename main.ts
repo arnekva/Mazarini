@@ -115,20 +115,12 @@ export class MazariniClient {
                         _msgHelper.sendLogMessage(`Git log failet. Klarte ikke liste siste commit messages`)
                     }
                     if (stdout) {
-                        console.log('does have an stdout')
-
                         let allMessages = stdout.split('\n')
                         const latestMessage = allMessages[0]
-                        console.log(latestMessage)
-
                         if (latestMessage) {
                             const lastCommit = DatabaseHelper.getBotData('commit-id')
                             const indexOfLastID = allMessages.indexOf(lastCommit)
-                            console.log(indexOfLastID)
-
                             allMessages = allMessages.slice(0, indexOfLastID ?? 1) //Only send last one if nothing is saved in the DB
-                            console.log(allMessages)
-
                             //Add commit messages to start-up message
                             _msgHelper.sendLogMessage(`Følgende commits er lagt til\n: ${allMessages.join('\n')}`)
                             //Update current id
