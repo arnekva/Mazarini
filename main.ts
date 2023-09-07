@@ -130,7 +130,7 @@ export class MazariniClient {
                             console.log(allMessages)
 
                             //Add commit messages to start-up message
-                            _msgHelper.sendLogMessage(`Følgende commits er lagt til: ${allMessages.join('\n')}`)
+                            _msgHelper.sendLogMessage(`Følgende commits er lagt til\n: ${allMessages.join('\n')}`)
                             //Update current id
                             DatabaseHelper.setBotData('commit-id', latestMessage)
                         }
