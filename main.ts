@@ -1,3 +1,4 @@
+import { exec } from 'child_process'
 import {
     AuditLogEvent,
     CacheType,
@@ -22,6 +23,7 @@ import { discordSecret, environment } from './client-env'
 import { CommandRunner } from './general/commandRunner'
 import { ErrorHandler } from './handlers/errorHandler'
 import { ClientHelper } from './helpers/clientHelper'
+import { DatabaseHelper } from './helpers/databaseHelper'
 import { MessageHelper } from './helpers/messageHelper'
 import { JobScheduler } from './Jobs/jobScheduler'
 import { PatchNotes } from './patchnotes'
@@ -109,10 +111,29 @@ export class MazariniClient {
             if (process.env['--restartedForGit'] || process.argv.includes('--restartedForGit')) {
                 msg += 'Boten ble restartet av en /restart, og prosjektet er oppdatert fra Git'
             }
+            await exec('git log --oneline -n 10', async (error, stdout, stderr) => {
+                if (error) {
+                    _msgHelper.sendLogMessage(`Git log failet. Klarte ikke liste siste commit messages`)
+                }
+                if (stdout) {
+                    const allMessages = stdout.split('\n')
+                    const latestMessage = allMessages[0]
+                    if (latestMessage) {
+                        const lastCommit = DatabaseHelper.getBotData('commit-id')
+                        const indexOfLastID = allMessages.indexOf(lastCommit)
+                        allMessages.slice(indexOfLastID ?? 1) //Only send last one if nothing is saved in the DB
+                        //Add commit messages to start-up message
+                        msg += `Commits siden forrige restart: ${allMessages.join('\n')}`
+                        //Update current id
+                        DatabaseHelper.setBotData('commit-id', latestMessage)
+                    }
+                }
+            })
             if (environment == 'prod') _msgHelper.sendLogMessage(msg)
 
             ClientHelper.setStatusFromStorage(client)
             PatchNotes.compareAndSendPatchNotes(_msgHelper)
+
             this.errorHandler.launchBusListeners()
         })
 

@@ -8,7 +8,7 @@ export interface userValPair {
     opt?: any
 }
 
-export type botDataPrefix = 'status' | 'statusType' | 'version'
+export type botDataPrefix = 'status' | 'statusType' | 'version' | 'commit-id'
 
 export interface MazariniUser {
     /** User id */
