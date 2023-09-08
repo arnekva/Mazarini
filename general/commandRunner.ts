@@ -47,7 +47,11 @@ export class CommandRunner {
 
             PoletCommands.checkForVinmonopolContent(message, this.messageHelper)
         } catch (error) {
-            this.messageHelper.sendLogMessage(`Det oppstod en feil under kjøring av en command. Stacktrace: ` + error)
+            this.messageHelper.sendLogMessage(
+                `Det oppstod en feil under kjøring av en command. Meldingen var fra ${message.author.username} i kanalen ${MentionUtils.mentionChannel(
+                    message.channelId
+                )} med innholdet ${message.content}. Stacktrace: ` + error
+            )
         }
     }
 
