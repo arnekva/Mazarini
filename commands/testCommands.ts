@@ -13,6 +13,7 @@ import {
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { IInteractionElement } from '../general/commands'
+import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 
 const defaultButtonRow = new ActionRowBuilder<ButtonBuilder>()
@@ -45,7 +46,27 @@ export class TestCommands extends AbstractCommands {
     }
 
     private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        // Kode
+        let allMessages = ['r55533 Test commit', 'fy6gb4 Fake commit']
+        const latestMessage = allMessages[0]
+        console.log('Yes,', latestMessage)
+
+        if (latestMessage) {
+            const lastCommit = DatabaseHelper.getBotData('commit-id')
+            const indexOfLastID = allMessages.indexOf(lastCommit)
+            allMessages = allMessages.slice(0, indexOfLastID > 0 ? indexOfLastID : 3) //Only send last one if nothing is saved in the DB
+            const formatCommitLine = (line: string) => {
+                const allWords = line.split(' ')
+                const firstWord = allWords[0]
+                const restOfSentence = allWords.slice(1).join(' ')
+
+                return `*${firstWord}* - ${restOfSentence}`
+            }
+        
+            //Add commit messages to start-up message
+            this.messageHelper.sendLogMessage(`Følgende commits er lagt til:\n${allMessages.map((s) => formatCommitLine(s)).join('\n')}`)
+            //Update current id
+            DatabaseHelper.setBotData('commit-id', latestMessage)
+        }
     }
 
     private async testSelectMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {

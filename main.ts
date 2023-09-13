@@ -120,9 +120,17 @@ export class MazariniClient {
                         if (latestMessage) {
                             const lastCommit = DatabaseHelper.getBotData('commit-id')
                             const indexOfLastID = allMessages.indexOf(lastCommit)
-                            allMessages = allMessages.slice(0, indexOfLastID ?? 1) //Only send last one if nothing is saved in the DB
+                            allMessages = allMessages.slice(0, indexOfLastID > 0 ? indexOfLastID : 1) //Only send last one if nothing is saved in the DB
+                            const formatCommitLine = (line: string) => {
+                                const allWords = line.split(' ')
+                                const firstWord = allWords[0]
+                                const restOfSentence = allWords.slice(1).join(' ')
+
+                                return `*${firstWord}* - ${restOfSentence}`
+                            }
+
                             //Add commit messages to start-up message
-                            _msgHelper.sendLogMessage(`Følgende commits er lagt til\n: ${allMessages.join('\n')}`)
+                            this.messageHelper.sendLogMessage(`Følgende commits er lagt til:\n${allMessages.map((s) => formatCommitLine(s)).join('\n')}`)
                             //Update current id
                             DatabaseHelper.setBotData('commit-id', latestMessage)
                         }
