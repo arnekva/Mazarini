@@ -5,7 +5,7 @@ export type emojiType = 'kekw_animated' | 'catJAM' | 'eyebrows'
 export interface emojiReturnType {
     id: string
     emojiObject?: GuildEmoji
-    urlId?: string|number
+    urlId?: string | number
 }
 type emojiObject = {
     name: string
@@ -16,7 +16,7 @@ export class EmojiHelper {
         const ap = accessPoint instanceof Client ? accessPoint : accessPoint.client
         const emojiObj = ap.emojis.cache.find((emoji) => emoji.name == emojiType)
         if (!emojiObj) return { id: '<Fant ikke emojien>' }
-        return { id: `<:${emojiObj.animated ? 'a:' : ''}${emojiObj.name}:${emojiObj?.id}>`, emojiObject: emojiObj, urlId: emojiObj?.id }
+        return { id: `<${emojiObj.animated ? 'a:' : ''}${emojiObj.name}:${emojiObj?.id}>`, emojiObject: emojiObj, urlId: emojiObj?.id }
     }
 
     static getHelgEmoji(accessPoint: Message | Interaction<CacheType> | Client<boolean>, isGeggi?: boolean) {

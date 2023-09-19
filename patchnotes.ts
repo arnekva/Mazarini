@@ -6,8 +6,8 @@ import { DatabaseHelper } from './helpers/databaseHelper'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '12.0.8'
-    public static readonly currentPatchNotes = `\n* Fikset en bug som gjorde at randomizing av og til prøvde å hente en outOfBounds index - påvirket "helg" blant annet`
+    public static readonly currentVersion = '12.0.9'
+    public static readonly currentPatchNotes = `\n* Fikset formattering på animerte emojier`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
