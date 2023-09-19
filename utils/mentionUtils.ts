@@ -33,6 +33,7 @@ export class MentionUtils {
         GIT_UPDATES: '1107961906028888114',
         BOARD_UPDATES: '1106126900671303711',
         PATCH_NOTES: '1107973457909649418',
+        GIT_LOG: '1107961906028888114',
     }
 
     static ROLE_IDs = {

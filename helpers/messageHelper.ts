@@ -321,6 +321,10 @@ export class MessageHelper {
         MazariniClient.numMessagesNumErrorMessages++
         return this.sendMessage(MentionUtils.CHANNEL_IDs.ACTION_LOG, msg, options)
     }
+    sendGitLogMessage(msg: string, options?: IMessageOptions) {
+        MazariniClient.numMessagesNumErrorMessages++
+        return this.sendMessage(MentionUtils.CHANNEL_IDs.GIT_LOG, msg, options)
+    }
     sendFormattedLogMessage(title: string, description: string, msg?: RestOrArray<APIEmbedField>) {
         const embed = new EmbedBuilder().setTitle(`${title}`).setDescription(`${description}`)
         if (msg) embed.addFields(...msg)

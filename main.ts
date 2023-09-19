@@ -132,9 +132,12 @@ export class MazariniClient {
                             }
 
                             //Add commit messages to start-up message
-                            this.messageHelper.sendLogMessage(`Følgende commits er lagt til:\n${allMessages.map((s) => formatCommitLine(s)).join('\n')}`, {
-                                supressEmbeds: true,
-                            })
+                            this.messageHelper.sendGitLogMessage(
+                                `Følgende commits er lagt til i ${PatchNotes.currentVersion}:\n${allMessages.map((s) => formatCommitLine(s)).join('\n')}`,
+                                {
+                                    supressEmbeds: true,
+                                }
+                            )
                             //Update current id
                             DatabaseHelper.setBotData('commit-id', latestMessage)
                         }
