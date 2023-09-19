@@ -7,6 +7,7 @@ import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { EmbedUtils } from '../utils/embedUtils'
 import { UserUtils } from '../utils/userUtils'
 import { Music } from './musicCommands'
 const SpotifyWebApi = require('spotify-web-api-node')
@@ -125,22 +126,26 @@ export class SpotifyCommands extends AbstractCommands {
         const isFull = mode === 'full'
         const emoji = await EmojiHelper.getEmoji('catJAM', interaction)
         if (isAllActive) {
-            let replyString = ''
+            const emb = EmbedUtils.createSimpleEmbed(`🎶 Musikk 🎶`, `Aktive nå`)
+
             interaction?.guild?.members?.cache?.forEach((localMember) => {
                 if (localMember?.presence)
                     localMember.presence.activities.forEach((activity) => {
                         if (activity.name === 'Spotify' && activity.state) {
-                            replyString += activity.state && `(${localMember.user.username}) ${activity.state} - ${activity.details} ${emoji?.id ?? ''}\n`
+                            emb.addFields({
+                                name: `${localMember.user.username}`,
+                                value: `${activity.state} - ${activity.details} ${emoji?.id ?? ''}`,
+                            })
                         }
                     })
             })
 
-            if (replyString.length === 0) replyString = 'Ingen hører på Spotify for øyeblikket'
-            return replyString
+            if (emb.data.fields.length === 0) return 'Ingen hører på Spotify for øyeblikket'
+            return emb
         }
 
         if (isFull) {
-            let musicRet = ''
+            let musicRet: string | EmbedBuilder
             const users = interaction?.guild?.members?.cache.map((u) => {
                 return {
                     id: u.user.id,
@@ -148,12 +153,13 @@ export class SpotifyCommands extends AbstractCommands {
                 }
             })
             if (users) {
+                const emb = EmbedUtils.createSimpleEmbed(`🎶 Musikk 🎶`, 'Fra alle')
                 for (let i = 0; i < users.length; i++) {
                     const user = DatabaseHelper.getUser(users[i].id)
                     const lastFmName = user?.lastFMUsername
 
                     if (lastFmName) {
-                        musicRet += await _music.findLastFmData({
+                        const data = await _music.findLastFmData({
                             user: lastFmName,
                             includeNameInOutput: true,
                             includeStats: false,
@@ -163,10 +169,15 @@ export class SpotifyCommands extends AbstractCommands {
                             username: users[i].name,
                             header: '',
                         })
+                        const dataToUse = data[0]
+                        emb.addFields({
+                            name: dataToUse.username,
+                            value: `${dataToUse.artist} - ${dataToUse.track}  *${dataToUse.isCurrentlyPlaying ? '(spiller nå)' : dataToUse.datePlayed}*`,
+                        })
                     }
                 }
-                if (musicRet.length < 1) musicRet = 'Fant ingen data'
-                return musicRet
+                // if (musicRet.length < 1) musicRet = 'Fant ingen data'
+                return emb
             } else return 'Ingen data funnet'
         }
 
@@ -189,18 +200,22 @@ export class SpotifyCommands extends AbstractCommands {
             const dbUser = DatabaseHelper.getUser(user?.id ?? interaction.user.id)
             const lastFmName = dbUser.lastFMUsername
             if (!!lastFmName) {
-                const lastFMData = await _music.findLastFmData({
+                const data = await _music.findLastFmData({
                     user: lastFmName,
-                    includeNameInOutput: false,
+                    includeNameInOutput: true,
                     includeStats: false,
                     limit: '1',
-                    method: { cmd: _music.getCommand('siste', '10'), desc: 'test' },
+                    method: { cmd: _music.getCommand('siste', '1'), desc: 'Siste 1' },
                     silent: false,
-                    username: dbUser.displayName ?? (user ? user.username : interaction.user.username),
+                    username: lastFmName,
                     header: '',
                 })
+                const dataToUse = data[0]
+                const emb = EmbedUtils.createSimpleEmbed(`🎶 Musikk 🎶`, `${dataToUse.username}`)
 
-                return (user ? `*${user.username}:* ` : '') + lastFMData.join(' ') ?? `${user} hører ikke på Spotify nå, og har heller ikke koblet til Last.fm`
+                emb.addFields({ name: 'Artist', value: dataToUse.artist ?? 't' }, { name: 'Sang', value: dataToUse.track ?? 'a' })
+                emb.setFooter({ text: `Hentet fra Last.fm` })
+                return emb
             }
         }
         return `${user ? user : 'Du'} hører ikke på Spotify nå, og har heller ikke koblet til Last.fm`
@@ -212,12 +227,9 @@ export class SpotifyCommands extends AbstractCommands {
             const mode = interaction.options.get('mode')?.value as string
             const user = interaction.options.get('user')?.user
             const data = await this.currentPlayingFromDiscord(interaction, mode, user instanceof User ? user : undefined)
+            console.log(data)
 
-            if (data instanceof EmbedBuilder) {
-                interaction.editReply({ embeds: [data] })
-            } else {
-                interaction.editReply(data)
-            }
+            this.messageHelper.replyToInteraction(interaction, data, { hasBeenDefered: true })
         }
     }
 

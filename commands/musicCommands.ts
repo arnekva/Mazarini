@@ -1,9 +1,10 @@
-import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction, User } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, Interaction, User } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { lfKey } from '../client-env'
 import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { EmbedUtils } from '../utils/embedUtils'
 import { TextUtils } from '../utils/textUtils'
 const fetch = require('node-fetch')
 export type musicCommand = 'top'
@@ -43,6 +44,17 @@ export interface IFindCommand {
     usernameToLookup?: string
     notWeeklyOrRecent?: boolean
     includeUsername?: boolean
+}
+
+export interface IMusicData {
+    username: string
+    artist: string
+    track: string
+    numPlays: string
+    isCurrentlyPlaying: boolean
+    datePlayed: string
+    info?: string
+    totalNumPlaysInLibrary: string
 }
 
 export class Music extends AbstractCommands {
@@ -104,7 +116,7 @@ export class Music extends AbstractCommands {
      * @returns
      *  Docs: https://www.last.fm/api/show/user.getInfo
      */
-    async findLastFmData(dataParam: fetchData, notWeeklyOrRecent?: boolean) {
+    async findLastFmData(dataParam: fetchData, notWeeklyOrRecent?: boolean): Promise<IMusicData[]> {
         if (!parseInt(dataParam.limit)) {
             dataParam.limit = '10'
             dataParam.includeStats = true
@@ -114,7 +126,8 @@ export class Music extends AbstractCommands {
 
         let musicData = ''
 
-        const arrayDataRet: string[] = []
+        const data: IMusicData[] = []
+
         await Promise.all([
             fetch(this.baseUrl + `?method=${dataParam.method.cmd}&user=${dataParam.user}&api_key=${apiKey}&format=json&limit=${dataParam.limit}`, {
                 method: 'GET',
@@ -141,57 +154,32 @@ export class Music extends AbstractCommands {
 
                         prop = topData[strippedMethod][methodWithoutGet] as { name: string; playcount: string; artist?: { name: string } }[]
 
-                        let numPlaysInTopX = 0
-                        if (prop) {
-                            const zeroWidthSpace = '\u200B'
-                            const lineSeperator = `${zeroWidthSpace}\n${zeroWidthSpace}`
-                            musicData += `${dataParam.header ? '\n' : ''}`
-                            if (dataParam.limit === '1' && prop.length > 1) {
-                                prop = prop.slice(0, 1)
-                            }
+                        if (!!prop) {
                             prop.forEach((element: any, index) => {
                                 const isCurrentlyPlaying = !isNotRecent && element.hasOwnProperty('@attr')
 
-                                numPlaysInTopX += parseInt(element.playcount)
+                                const localData: IMusicData = {
+                                    username: dataParam.username,
+                                    artist: isFormattedWithHashtag && element.artist ? element.artist['#text'] : element.artist ? element.artist.name : '',
+                                    track: element?.name,
+                                    numPlays: element?.playcount,
+                                    isCurrentlyPlaying: isCurrentlyPlaying,
+                                    datePlayed: element.date['uts']
+                                        ? `${'(' + new Date(Number(element.date['uts']) * 1000).toLocaleString('nb-NO') + ')'}`
+                                        : 'Ukjent dato',
+                                    totalNumPlaysInLibrary: `\n*Totalt ${topData[strippedMethod]['@attr'].total} ${methodWithoutGet}s i biblioteket`,
+                                }
 
-                                musicData +=
-                                    `${dataParam.includeNameInOutput ? '(' + dataParam.username + ') ' : ''}` +
-                                    `${
-                                        isFormattedWithHashtag && element.artist
-                                            ? element.artist['#text'] + ' - '
-                                            : element.artist
-                                            ? element.artist.name + ' - '
-                                            : ''
-                                    }` +
-                                    `${element?.name} ${isNotRecent ? '(' + element.playcount + ' plays)' : ''} ` +
-                                    `${dataParam.includeStats ? ((parseInt(element.playcount) / parseInt(totalPlaycount)) * 100).toFixed(1) + '%' : ''} ` +
-                                    `${isCurrentlyPlaying ? '(spiller nå)' : ''} `
-
-                                if (dataParam.silent) musicData += `${'(' + new Date(Number(element.date['uts']) * 1000).toLocaleString('nb-NO') + ')'}`
-                                if (prop.length > 1) musicData += lineSeperator
+                                data.push(localData)
                             })
-
-                            if (!isFormattedWithHashtag) musicData += `\n*Totalt ${topData[strippedMethod]['@attr'].total} ${methodWithoutGet}s i biblioteket`
                         }
-                        if (!isFormattedWithHashtag)
-                            musicData += `, ${totalPlaycount} totale avspillinger. ${
-                                dataParam.includeStats
-                                    ? ((numPlaysInTopX / parseInt(totalPlaycount)) * 100).toFixed(1) +
-                                      '% av avspillingene er fra dine topp ' +
-                                      dataParam.limit +
-                                      '.'
-                                    : ''
-                            }* `
-
-                        arrayDataRet.push(musicData)
 
                         // return retMessage
                     })
                     .catch((error: any) => {})
             })
             .catch((error: any) => {})
-
-        return arrayDataRet
+        return data
     }
 
     private async handleMusicInteractions(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -200,15 +188,32 @@ export class Music extends AbstractCommands {
             const user = interaction.options.get('user')?.user
 
             const data = await this.findCommandForInteraction(interaction, options, user instanceof User ? user : undefined)
-            if (data instanceof EmbedBuilder) {
-                this.messageHelper.replyToInteraction(interaction, data)
+            const emb = EmbedUtils.createSimpleEmbed(`Last.fm`, `Data for ${user instanceof User ? user.username : interaction.user.username}`)
+            if (typeof data === 'string') {
+                emb.addFields({
+                    name: 'Felt',
+                    value: data,
+                })
             } else {
-                this.messageHelper.replyToInteraction(interaction, data)
+                const isArtist = options === 'toptenartist'
+                const isLastPlayed = options === 'lasttensongs'
+                const isSongs = options === 'toptensongs' || isLastPlayed || options === 'toptenalbum'
+                let additionalData = data.forEach((d, idx) => {
+                    if (idx < 1) console.log(d)
+                    const additionalData = '(' + isLastPlayed ? d.datePlayed : d.numPlays + ')'
+                    emb.addFields({
+                        name: d.track, //Last.fm returns artist in the track place, so it's always track here
+                        value: `${isArtist ? d.numPlays + ' avspillinger' : d.artist} ${isArtist ? '' : additionalData}`,
+                    })
+                })
+                if (data[0].totalNumPlaysInLibrary) emb.setFooter({ text: `${data[0].totalNumPlaysInLibrary}*` })
             }
+
+            this.messageHelper.replyToInteraction(interaction, emb)
         }
     }
 
-    async findCommandForInteraction(interaction: Interaction<CacheType>, options: string, user?: User): Promise<string | EmbedBuilder> {
+    async findCommandForInteraction(interaction: Interaction<CacheType>, options: string, user?: User): Promise<IMusicData[] | string> {
         const fmUser = DatabaseHelper.getUser(user ? user?.id : interaction.user.id)
         if (fmUser.lastFMUsername) {
             let data: fetchData = {
@@ -236,9 +241,8 @@ export class Music extends AbstractCommands {
                 data.header = `Siste 10 sanger`
                 data.includeStats = false
             }
-            const lastFmData = (await this.findLastFmData(data)).join('\n')
-
-            return `${user ? `Data for ${user.username}\n` : ''}` + lastFmData
+            const lastFmData = await this.findLastFmData(data)
+            return lastFmData
         } else return `Brukeren ${user?.username} har ikke knyttet til et Last.fm-brukernavn`
     }
 

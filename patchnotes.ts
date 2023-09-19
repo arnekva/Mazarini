@@ -6,8 +6,8 @@ import { DatabaseHelper } from './helpers/databaseHelper'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '12.0.9'
-    public static readonly currentPatchNotes = `\n* Fikset formattering på animerte emojier`
+    public static readonly currentVersion = '12.1.0'
+    public static readonly currentPatchNotes = `\n* /spotify og /musikk bruker nå alltid embeds til å formattere meldingene`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
