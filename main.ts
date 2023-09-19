@@ -110,6 +110,8 @@ export class MazariniClient {
 
             if (process.env['--restartedForGit'] || process.argv.includes('--restartedForGit')) {
                 msg += 'Boten ble restartet av en /restart, og prosjektet er oppdatert fra Git'
+
+                //TODO & FIXME: Move this out into gitUtils or something
                 await exec('git log --oneline -n 10', async (error, stdout, stderr) => {
                     if (error) {
                         _msgHelper.sendLogMessage(`Git log failet. Klarte ikke liste siste commit messages`)
@@ -130,7 +132,9 @@ export class MazariniClient {
                             }
 
                             //Add commit messages to start-up message
-                            this.messageHelper.sendLogMessage(`Følgende commits er lagt til:\n${allMessages.map((s) => formatCommitLine(s)).join('\n')}`)
+                            this.messageHelper.sendLogMessage(`Følgende commits er lagt til:\n${allMessages.map((s) => formatCommitLine(s)).join('\n')}`, {
+                                supressEmbeds: true,
+                            })
                             //Update current id
                             DatabaseHelper.setBotData('commit-id', latestMessage)
                         }

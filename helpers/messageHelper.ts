@@ -317,10 +317,9 @@ export class MessageHelper {
         return undefined
     }
 
-    sendLogMessage(msg: string) {
-        const errorChannel = this.client.channels.cache.get(MentionUtils.CHANNEL_IDs.ACTION_LOG) as TextChannel
+    sendLogMessage(msg: string, options?: IMessageOptions) {
         MazariniClient.numMessagesNumErrorMessages++
-        return errorChannel.send(msg)
+        return this.sendMessage(MentionUtils.CHANNEL_IDs.ACTION_LOG, msg, options)
     }
     sendFormattedLogMessage(title: string, description: string, msg?: RestOrArray<APIEmbedField>) {
         const embed = new EmbedBuilder().setTitle(`${title}`).setDescription(`${description}`)
