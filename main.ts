@@ -163,8 +163,6 @@ export class MazariniClient {
                 // MazariniClient.numMessagesFromBot++
             } else {
                 _mzClient.commandRunner.runCommands(message)
-                console.log('registered msg with content', message.content, message.mentions)
-
                 if (
                     message.mentions.users.find((u) => u.id === MentionUtils.User_IDs.BOT_HOIE) ||
                     (message.content.includes(`<@!${MentionUtils.User_IDs.BOT_HOIE}>`) && environment === 'prod')
