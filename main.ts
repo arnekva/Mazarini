@@ -154,6 +154,7 @@ export class MazariniClient {
                 //Uncomment to run command creation
                 // CommandBuilder.createCommands(client)
             }
+
             this.errorHandler.launchBusListeners()
         })
 
