@@ -150,6 +150,10 @@ export class MazariniClient {
             ClientHelper.setStatusFromStorage(client)
             PatchNotes.compareAndSendPatchNotes(_msgHelper)
 
+            if (environment === 'dev') {
+                //Uncomment to run command creation
+                // CommandBuilder.createCommands(client)
+            }
             this.errorHandler.launchBusListeners()
         })
 

@@ -3,6 +3,7 @@ import {
     CacheType,
     ChatInputCommandInteraction,
     Client,
+    ContextMenuCommandInteraction,
     Interaction,
     InteractionType,
     Message,
@@ -89,10 +90,11 @@ export class CommandRunner {
             }
         } else if (this.isLegalChannel(interaction)) {
             let hasAcknowledged = false
-            if (interaction.isChatInputCommand()) {
+            //TODO: This might have to be refactored, by ContextMenuCommands are for now treated as regular ChatInputCommands, as they only have a commandName
+            if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
                 this.commands.getAllTextCommands().forEach((cmd) => {
                     if (cmd.commandName === interaction.commandName) {
-                        this.runInteractionElement<ChatInputCommandInteraction<CacheType>>(cmd, interaction)
+                        this.runInteractionElement<ChatInputCommandInteraction<CacheType> | ContextMenuCommandInteraction<CacheType>>(cmd, interaction)
                         hasAcknowledged = true
                     }
                 })
@@ -124,9 +126,11 @@ export class CommandRunner {
             // New interactions are added online, so it is instantly available in the production version of the app, despite being on development
             // Therefore a command that doesnt yet "exist" could still be run.
             if (!hasAcknowledged) {
+                console.log(interaction)
                 interaction.isRepliable() ? interaction.reply(`Denne interaksjonen støttes ikke for øyeblikket`) : undefined
                 if (environment === 'prod') {
                     const uncastInteraction = interaction as any
+
                     this.messageHelper.sendLogMessage(
                         `En interaksjon ble forsøkt brukt i ${MentionUtils.mentionChannel(interaction.channelId)} av ${
                             interaction.user.username
