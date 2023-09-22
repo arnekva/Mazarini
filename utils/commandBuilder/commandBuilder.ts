@@ -1,4 +1,5 @@
 import { ApplicationCommandOptionData, ApplicationCommandType, Client, ContextMenuCommandBuilder } from 'discord.js'
+import { CommandStorage } from './commandStorage'
 
 export interface ISlashCommandItem {
     commandName: string
@@ -21,15 +22,13 @@ export namespace CommandBuilder {
 
     /** Let this command run once to create the commands */
     export const createCommands = (client: Client) => {
-        // CommandBuilder.createSlashCommand(CommandStorage.MemeCommand, client)
-        CommandBuilder.createContextMenuCommand({ commandName: 'helg' }, client)
-       
+        CommandBuilder.createSlashCommand(CommandStorage.MemeCommand, client)
+        // CommandBuilder.createContextMenuCommand({ commandName: 'helg' }, client)
     }
 
     export const createContextMenuCommand = (params: IContextMenuCommandItem, client: Client) => {
-        const data = new ContextMenuCommandBuilder().setName(params.commandName).setType(ApplicationCommandType.User)
+        const data = new ContextMenuCommandBuilder().setName(params.commandName).setType(ApplicationCommandType.Message)
         client.application.commands.create(data)
-        // client.application.commands.create('1154764952561782875')
     }
 
     /** Can only delete by command id */

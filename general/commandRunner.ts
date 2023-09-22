@@ -94,6 +94,8 @@ export class CommandRunner {
             if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
                 this.commands.getAllTextCommands().forEach((cmd) => {
                     if (cmd.commandName === interaction.commandName) {
+                        console.log(interaction)
+
                         this.runInteractionElement<ChatInputCommandInteraction<CacheType> | ContextMenuCommandInteraction<CacheType>>(cmd, interaction)
                         hasAcknowledged = true
                     }
