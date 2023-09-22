@@ -52,9 +52,10 @@ export interface IMusicData {
     track: string
     numPlays: string
     isCurrentlyPlaying: boolean
-    datePlayed: string
+    datePlayed?: string
     info?: string
     totalNumPlaysInLibrary: string
+    coverArtUrl?: string
 }
 
 export class Music extends AbstractCommands {
@@ -153,21 +154,18 @@ export class Music extends AbstractCommands {
                             : TextUtils.replaceLast(strippedMethod.replace('top', '').replace('recent', ''), 's', '')
 
                         prop = topData[strippedMethod][methodWithoutGet] as { name: string; playcount: string; artist?: { name: string } }[]
-
                         if (!!prop) {
                             prop.forEach((element: any, index) => {
                                 const isCurrentlyPlaying = !isNotRecent && element.hasOwnProperty('@attr')
-
                                 const localData: IMusicData = {
                                     username: dataParam.username,
                                     artist: isFormattedWithHashtag && element.artist ? element.artist['#text'] : element.artist ? element.artist.name : '',
                                     track: element?.name,
                                     numPlays: element?.playcount,
                                     isCurrentlyPlaying: isCurrentlyPlaying,
-                                    datePlayed: element.date['uts']
-                                        ? `${'(' + new Date(Number(element.date['uts']) * 1000).toLocaleString('nb-NO') + ')'}`
-                                        : 'Ukjent dato',
-                                    totalNumPlaysInLibrary: `\n*Totalt ${topData[strippedMethod]['@attr'].total} ${methodWithoutGet}s i biblioteket`,
+                                    datePlayed: element?.date?.uts ? `${new Date(Number(element?.date?.uts) * 1000).toLocaleString('nb-NO')}` : undefined,
+                                    coverArtUrl: element?.image[1]['#text'],
+                                    totalNumPlaysInLibrary: '', // `\n*Totalt ${topData[strippedMethod]['@attr'].total} ${methodWithoutGet}s i biblioteket`,
                                 }
 
                                 data.push(localData)
@@ -194,22 +192,28 @@ export class Music extends AbstractCommands {
                     name: 'Felt',
                     value: data,
                 })
-            } else {
+            } else if (data.length) {
                 const isArtist = options === 'toptenartist'
                 const isLastPlayed = options === 'lasttensongs'
                 const isSongs = options === 'toptensongs' || isLastPlayed || options === 'toptenalbum'
                 let additionalData = data.forEach((d, idx) => {
                     if (idx < 1) console.log(d)
-                    const additionalData = '(' + isLastPlayed ? d.datePlayed : d.numPlays + ')'
+                    const datePlayed = d.datePlayed ? d.datePlayed : ''
+                    d
+                    const additionalData = isLastPlayed ? datePlayed : d.numPlays + ' avspillinger'
+                    let extraData = !!additionalData ? `(${additionalData})` : ''
+                    if (d.isCurrentlyPlaying) extraData = '(spiller nå)'
                     emb.addFields({
                         name: d.track, //Last.fm returns artist in the track place, so it's always track here
-                        value: `${isArtist ? d.numPlays + ' avspillinger' : d.artist} ${isArtist ? '' : additionalData}`,
+                        value: `${isArtist ? d.numPlays + ' avspillinger' : d.artist} ${isArtist ? '' : extraData}`,
                     })
                 })
-                if (data[0].totalNumPlaysInLibrary) emb.setFooter({ text: `${data[0].totalNumPlaysInLibrary}*` })
+                if (data && data[0]?.totalNumPlaysInLibrary) emb.setFooter({ text: `${data[0].totalNumPlaysInLibrary}*` })
+            } else {
+                //
             }
-
-            this.messageHelper.replyToInteraction(interaction, emb)
+            if (emb.data.fields?.length) this.messageHelper.replyToInteraction(interaction, emb)
+            else this.messageHelper.replyToInteraction(interaction, `Fant ingen data`)
         }
     }
 

@@ -170,9 +170,10 @@ export class SpotifyCommands extends AbstractCommands {
                             header: '',
                         })
                         const dataToUse = data[0]
+                        const datePlayed = dataToUse.datePlayed ? dataToUse.datePlayed : ''
                         emb.addFields({
                             name: dataToUse.username,
-                            value: `${dataToUse.artist} - ${dataToUse.track}  *${dataToUse.isCurrentlyPlaying ? '(spiller nå)' : dataToUse.datePlayed}*`,
+                            value: `${dataToUse.artist} - ${dataToUse.track}  *${dataToUse.isCurrentlyPlaying ? '(spiller nå)' : datePlayed}*`,
                         })
                     }
                 }
@@ -210,11 +211,18 @@ export class SpotifyCommands extends AbstractCommands {
                     username: lastFmName,
                     header: '',
                 })
-                const dataToUse = data[0]
-                const emb = EmbedUtils.createSimpleEmbed(`🎶 Musikk 🎶`, `${dataToUse.username}`)
 
-                emb.addFields({ name: 'Artist', value: dataToUse.artist ?? 't' }, { name: 'Sang', value: dataToUse.track ?? 'a' })
-                emb.setFooter({ text: `Hentet fra Last.fm` })
+                const dataToUse = data[0]
+                const emb = EmbedUtils.createSimpleEmbed(`🎶 Musikk 🎶`, `${dataToUse?.username}`)
+                if (data && dataToUse) {
+                    emb.addFields(
+                        { name: 'Artist', value: dataToUse.artist ?? 'Mangler data' },
+                        { name: 'Sang', value: (dataToUse.track ?? 'Mangler data') + (dataToUse.isCurrentlyPlaying ? ' (spiller nå)' : '') }
+                    )
+                    emb.setFooter({ text: `Dataen er hentet fra Last.fm` })
+                } else {
+                    return 'Klarte ikke hente data fra Last.fm'
+                }
                 return emb
             }
         }
@@ -227,8 +235,6 @@ export class SpotifyCommands extends AbstractCommands {
             const mode = interaction.options.get('mode')?.value as string
             const user = interaction.options.get('user')?.user
             const data = await this.currentPlayingFromDiscord(interaction, mode, user instanceof User ? user : undefined)
-            console.log(data)
-
             this.messageHelper.replyToInteraction(interaction, data, { hasBeenDefered: true })
         }
     }

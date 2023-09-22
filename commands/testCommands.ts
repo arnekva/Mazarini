@@ -48,8 +48,6 @@ export class TestCommands extends AbstractCommands {
     private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
         let allMessages = ['r55533 Test commit', 'fy6gb4 Fake commit']
         const latestMessage = allMessages[0]
-        console.log('Yes,', latestMessage)
-
         if (latestMessage) {
             const lastCommit = DatabaseHelper.getBotData('commit-id')
             const indexOfLastID = allMessages.indexOf(lastCommit)
@@ -61,7 +59,7 @@ export class TestCommands extends AbstractCommands {
 
                 return `*${firstWord}* - ${restOfSentence}`
             }
-        
+
             //Add commit messages to start-up message
             this.messageHelper.sendLogMessage(`Følgende commits er lagt til:\n${allMessages.map((s) => formatCommitLine(s)).join('\n')}`)
             //Update current id

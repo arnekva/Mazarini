@@ -155,8 +155,6 @@ export class MazariniClient {
 
         /** For all sent messages */
         client.on('messageCreate', async (message: Message) => {
-            console.log('test')
-
             MazariniClient.numMessages++
             //Do not reply to own messages. Do not trigger on pinned messages
             if (message?.author?.username == client?.user?.username || message?.type === MessageType.ChannelPinnedMessage) {
