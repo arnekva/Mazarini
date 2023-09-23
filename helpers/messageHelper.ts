@@ -108,9 +108,14 @@ export class MessageHelper {
 
             let msgInfo = msg ? `Sendte en separat melding i stedet for interaksjonssvar.` : `Klarte heller ikke sende separat melding som svar`
             if (environment !== 'dev') {
+                let commandName: string | undefined = undefined
+                if (interaction.isChatInputCommand()) commandName = interaction.commandName
+                else if (interaction.isButton()) commandName = interaction.customId
+                else if (interaction.isAnySelectMenu()) commandName = interaction.customId
+                else if (interaction.isModalSubmit()) commandName = interaction.customId
                 this.sendLogMessage(
                     `${interaction.user.username} prøvde å bruke ${
-                        interaction.isChatInputCommand() ? interaction.commandName : '<ikke command>'
+                        commandName ? commandName : '<MANGLER CASE FOR DENNE TYPE COMMAND>'
                     } i kanalen ${MentionUtils.mentionChannel(interaction?.channelId)}, men den feilet. \n${msgInfo}`
                 )
             }
