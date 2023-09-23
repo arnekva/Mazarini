@@ -94,8 +94,6 @@ export class CommandRunner {
             if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
                 this.commands.getAllTextCommands().forEach((cmd) => {
                     if (cmd.commandName === interaction.commandName) {
-                        console.log(interaction)
-
                         this.runInteractionElement<ChatInputCommandInteraction<CacheType> | ContextMenuCommandInteraction<CacheType>>(cmd, interaction)
                         hasAcknowledged = true
                     }
@@ -128,7 +126,6 @@ export class CommandRunner {
             // New interactions are added online, so it is instantly available in the production version of the app, despite being on development
             // Therefore a command that doesnt yet "exist" could still be run.
             if (!hasAcknowledged) {
-                console.log(interaction)
                 interaction.isRepliable() ? interaction.reply(`Denne interaksjonen støttes ikke for øyeblikket`) : undefined
                 if (environment === 'prod') {
                     const uncastInteraction = interaction as any

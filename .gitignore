@@ -4,3 +4,4 @@ myDataBase.json
 ./myDataBase.json
 .VSCodeCounter/
 commands/testCommands.ts
+.commands/testCommands.ts

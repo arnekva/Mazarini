@@ -740,15 +740,15 @@ export class GamblingCommands extends AbstractCommands {
 
     private findPrestigeMultiplier(p: number | undefined) {
         if (p && !isNaN(p) && p > 0) {
-            return 1 + 0.395 * p
+            return 1 + 0.43752 * p
         }
         return 1
     }
 
     private findAdditionalCoins(streak: number): number | undefined {
-        if (streak > 5) return 250
-        if (streak > 3) return 100
-        if (streak >= 2) return 50
+        if (streak > 5) return 1000
+        if (streak > 3) return 475
+        if (streak >= 2) return 250
         return undefined
     }
 

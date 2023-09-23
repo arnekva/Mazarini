@@ -28,11 +28,11 @@ export class DailyJobs {
             const currentStreak = user.dailyClaimStreak
             if (!currentStreak) return
             const streak: IDailyPriceClaim = { streak: currentStreak.streak, wasAddedToday: false }
-
             //Check if user has frozen their streak
             const hasFrozenStreak = user.dailyFreezeCounter
+
             if (hasFrozenStreak && !isNaN(hasFrozenStreak) && hasFrozenStreak > 0) {
-                user.dailyFreezeCounter = user.dailyFreezeCounter ? user.dailyFreezeCounter-- : 0
+                user.dailyFreezeCounter = user.dailyFreezeCounter ? --user.dailyFreezeCounter : 0
             } else {
                 streak.wasAddedToday = false //Reset check for daily claim
                 if (!currentStreak.wasAddedToday) streak.streak = 0 //If not claimed today, also reset the streak
