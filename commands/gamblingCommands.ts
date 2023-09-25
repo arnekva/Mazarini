@@ -509,11 +509,11 @@ export class GamblingCommands extends AbstractCommands {
     private rollDice(interaction: ChatInputCommandInteraction<CacheType>) {
         const customTarget = interaction.options.get('sider')?.value as number
         const diceTarget = customTarget ? customTarget : 6
-        if (diceTarget <= 0) this.messageHelper.replyToInteraction(interaction, `Du kan ikke trille en terning med mindre enn 1 side`)
+        if (diceTarget <= 0) this.messageHelper.replyToInteraction(interaction, `Du kan ikke trille en terning med mindre enn 1 side`, { ephemeral: true })
         else {
             const explanation = !!customTarget ? `*(1 - ${customTarget})*` : ``
             const number = RandomUtils.getRandomInteger(1, diceTarget)
-            this.messageHelper.replyToInteraction(interaction, `# ${number} ${explanation}`, { ephemeral: true })
+            this.messageHelper.replyToInteraction(interaction, `# ${number} ${explanation}`)
         }
     }
 
