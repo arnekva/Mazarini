@@ -53,7 +53,7 @@ export class TestCommands extends AbstractCommands {
     }
 
     private async testButton(interaction: ButtonInteraction<CacheType>) {
-        // Kode
+        // Kodedsddsad
         interaction.deferUpdate()
     }
 
