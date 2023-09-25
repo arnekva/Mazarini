@@ -2,6 +2,7 @@ const crypto = require('crypto')
 export namespace RandomUtils {
     /** Includes both min and max */
     export function getRandomInteger(min: number, max: number) {
+        if (min < 0 || max <= 0 || max < min) return 1
         return crypto.randomInt(min, max + 1)
     }
 
