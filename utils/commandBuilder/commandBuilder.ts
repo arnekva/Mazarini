@@ -25,7 +25,7 @@ export namespace CommandBuilder {
 
     /** This command will automatically create all commands listed in it */
     export const createCommands = (client: Client) => {
-        CommandBuilder.createSlashCommand(CommandStorage.MemeCommand, client)
+        CommandBuilder.createSlashCommand(CommandStorage.RollCommand, client)
         // CommandBuilder.createContextMenuCommand({ commandName: 'helg' }, client)
     }
 

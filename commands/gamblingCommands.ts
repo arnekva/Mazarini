@@ -506,6 +506,13 @@ export class GamblingCommands extends AbstractCommands {
         }
     }
 
+    private rollDice(interaction: ChatInputCommandInteraction<CacheType>) {
+        const targetNumber = (interaction.options.get('sider')?.value as number) ?? 10
+        const number = RandomUtils.getRandomInteger(1, targetNumber)
+
+        this.messageHelper.replyToInteraction(interaction, `# ${number}  \n*(1 - ${targetNumber})*`)
+    }
+
     private async handleKrig(interaction: ButtonInteraction<CacheType>) {
         const ids = interaction.customId.split(';')
         const engagerId = ids[2]
@@ -828,6 +835,12 @@ export class GamblingCommands extends AbstractCommands {
                         commandName: 'rulett',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                             this.roulette(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'terning',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.rollDice(rawInteraction)
                         },
                     },
                     {
