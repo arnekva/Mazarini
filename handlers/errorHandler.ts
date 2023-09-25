@@ -14,7 +14,7 @@ export class ErrorHandler {
 
             bus.on('log:err', function (data: any) {
                 if (data?.data?.includes('Unknown interaction')) {
-                    _msgHelper.sendLogMessage(`Klarte ikke bruke reply på en interaksjon. Ingen stacktrace vises. (log:err)`)
+                    _msgHelper.sendLogMessage(`Klarte ikke bruke reply på en interaksjon. Ingen stacktrace vises for Unknown Interaction. (log:err)`)
                 } else {
                     _msgHelper.sendLogMessage(
                         'En feilmelding har blitt logget til konsollen (log:err) \n**Melding:** ' +
@@ -34,7 +34,7 @@ export class ErrorHandler {
                     _msgHelper.sendLogMessage('PM2 logget en feil. Process:exception. Dette er en DISCORD.COM feilmelding: ENOTFOUND.')
                 } else if (data?.data?.message?.includes('Unknown interaction')) {
                     _msgHelper.sendLogMessage(
-                        'Klarte ikke bruke reply på en interaksjon (process:exception). En separat melding vil bli sendt for å svare på interaksjonen'
+                        'Klarte ikke bruke reply på en interaksjon (Unknown Interaction) (process:exception). En separat melding vil bli sendt for å svare på interaksjonen'
                     )
                 } else if (!data?.data?.stack?.includes('fewer in length')) {
                     _msgHelper.sendLogMessage(
