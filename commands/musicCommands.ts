@@ -125,9 +125,6 @@ export class Music extends AbstractCommands {
         }
 
         const apiKey = lfKey
-
-        let musicData = ''
-
         const data: IMusicData[] = []
 
         await Promise.all([
@@ -145,6 +142,8 @@ export class Music extends AbstractCommands {
             .then(async ([resTop, resInfo]) => {
                 await Promise.all([resTop.json(), resInfo.json()])
                     .then(([topData, info]) => {
+                        console.log(topData)
+
                         const isFormattedWithHashtag = notWeeklyOrRecent
                             ? true
                             : dataParam.method.cmd.includes('weekly') || dataParam.method.cmd.includes('recent')
@@ -203,6 +202,7 @@ export class Music extends AbstractCommands {
             const timePeriod = interaction.options.get('periode')?.value as string
             const isArtist = options === 'toptenartist'
             const isLastPlayed = options === 'lasttensongs'
+            const isTags = options === 'toptentags'
             const isSongs = options === 'toptensongs' || isLastPlayed || options === 'toptenalbum'
             const canHaveTimePriod = !!timePeriod && !isLastPlayed
             const data = await this.findCommandForInteraction(interaction, options, user instanceof User ? user : undefined, timePeriod)
@@ -210,6 +210,7 @@ export class Music extends AbstractCommands {
                 if (isArtist) return 'Topp 10 artister'
                 if (isLastPlayed) return 'Siste 10 sanger'
                 if (isSongs) return 'Topp 10 sanger'
+                if (isTags) return 'Topp 10 tags'
                 else return 'Topp 10 album'
             }
             const emb = EmbedUtils.createSimpleEmbed(
@@ -236,7 +237,7 @@ export class Music extends AbstractCommands {
                         value: `${isArtist ? d.numPlays + ' avspillinger' : d.artist} ${isArtist ? '' : extraData}`,
                     })
                 })
-                if (data && data[0]?.totalNumPlaysInLibrary) emb.setFooter({ text: `${data[0].totalNumPlaysInLibrary}*` })
+                if (data && data[0]?.totalNumPlaysInLibrary) emb.setFooter({ text: `${data[0].totalNumPlaysInLibrary}` })
             } else {
                 //
             }
@@ -269,6 +270,9 @@ export class Music extends AbstractCommands {
             } else if (options === 'toptensongs') {
                 data.method = { cmd: this.getCommand('topp', 'songs'), desc: 'Topp sanger' }
                 data.header = `Topp 10 sanger`
+            } else if (options === 'toptentags') {
+                data.method = { cmd: this.getCommand('topp', 'tags'), desc: 'Topp sjangere/tags' }
+                data.header = `Topp 10 tags`
             } else if (options === 'lasttensongs') {
                 data.method = { cmd: this.getCommand('siste', '10'), desc: 'Siste 10 sanger' }
                 data.header = `Siste 10 sanger`
