@@ -200,7 +200,8 @@ export class Music extends AbstractCommands {
             const options = interaction.options.get('data')?.value as string
             const user = interaction.options.get('user')?.user
             const timePeriod = interaction.options.get('periode')?.value as string
-            const isArtist = options === 'toptenartist'
+            const isTracks = options === 'toptensongs'
+            const isArtist = options === 'toptentracks'
             const isLastPlayed = options === 'lasttensongs'
             const isTags = options === 'toptentags'
             const isSongs = options === 'toptensongs' || isLastPlayed || options === 'toptenalbum'
@@ -209,7 +210,7 @@ export class Music extends AbstractCommands {
             const findDataDescription = () => {
                 if (isArtist) return 'Topp 10 artister'
                 if (isLastPlayed) return 'Siste 10 sanger'
-                if (isSongs) return 'Topp 10 sanger'
+                if (isTracks) return 'Topp 10 sanger'
                 if (isTags) return 'Topp 10 tags'
                 else return 'Topp 10 album'
             }
