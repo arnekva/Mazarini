@@ -6,8 +6,8 @@ import { DatabaseHelper } from './helpers/databaseHelper'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '12.2.1'
-    public static readonly currentPatchNotes = `\n* Fikset en feil som gjorde at en frossen daily streak ikke ble oppdatert `
+    public static readonly currentVersion = '12.2.2'
+    public static readonly currentPatchNotes = `\n* Du kan nå trille en terning med /terning. Parameter for antall sider, default er 10`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
