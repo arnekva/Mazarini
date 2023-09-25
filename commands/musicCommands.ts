@@ -36,6 +36,7 @@ interface fetchData {
     includeNameInOutput: boolean
     username: string
     header: string
+    period?: string
     formatAsEmbed?: boolean
 }
 
@@ -130,9 +131,15 @@ export class Music extends AbstractCommands {
         const data: IMusicData[] = []
 
         await Promise.all([
-            fetch(this.baseUrl + `?method=${dataParam.method.cmd}&user=${dataParam.user}&api_key=${apiKey}&format=json&limit=${dataParam.limit}`, {
-                method: 'GET',
-            }),
+            fetch(
+                this.baseUrl +
+                    `?method=${dataParam.method.cmd}&user=${dataParam.user}&api_key=${apiKey}&format=json&limit=${dataParam.limit}${
+                        dataParam.period ? '&period=' + dataParam.period : ''
+                    }`,
+                {
+                    method: 'GET',
+                }
+            ),
             fetch(this.baseUrl + `?method=user.getinfo&user=${dataParam.user}&api_key=${apiKey}&format=json`),
         ])
             .then(async ([resTop, resInfo]) => {
@@ -165,7 +172,7 @@ export class Music extends AbstractCommands {
                                     isCurrentlyPlaying: isCurrentlyPlaying,
                                     datePlayed: element?.date?.uts ? `${new Date(Number(element?.date?.uts) * 1000).toLocaleString('nb-NO')}` : undefined,
                                     coverArtUrl: element?.image[1]['#text'],
-                                    totalNumPlaysInLibrary: '', // `\n*Totalt ${topData[strippedMethod]['@attr'].total} ${methodWithoutGet}s i biblioteket`,
+                                    totalNumPlaysInLibrary: `\nTotalt ${topData[strippedMethod]['@attr'].total} ${methodWithoutGet}s i biblioteket`,
                                 }
 
                                 data.push(localData)
@@ -180,22 +187,43 @@ export class Music extends AbstractCommands {
         return data
     }
 
+    private prettyprintPeriod(p: string) {
+        if (p === 'overall') return 'All-time'
+        else if (p === 'week') return 'Siste uke'
+        else if (p === '1month') return 'Siste måned'
+        else if (p === '3month') return 'Siste 3 måneder'
+        else if (p === '6month') return 'Siste 6 måneder'
+        else if (p === '12month') return 'Siste 12 måneder'
+    }
+
     private async handleMusicInteractions(interaction: ChatInputCommandInteraction<CacheType>) {
         if (interaction) {
             const options = interaction.options.get('data')?.value as string
             const user = interaction.options.get('user')?.user
-
-            const data = await this.findCommandForInteraction(interaction, options, user instanceof User ? user : undefined)
-            const emb = EmbedUtils.createSimpleEmbed(`Last.fm`, `Data for ${user instanceof User ? user.username : interaction.user.username}`)
+            const timePeriod = interaction.options.get('periode')?.value as string
+            const isArtist = options === 'toptenartist'
+            const isLastPlayed = options === 'lasttensongs'
+            const isSongs = options === 'toptensongs' || isLastPlayed || options === 'toptenalbum'
+            const canHaveTimePriod = !!timePeriod && !isLastPlayed
+            const data = await this.findCommandForInteraction(interaction, options, user instanceof User ? user : undefined, timePeriod)
+            const findDataDescription = () => {
+                if (isArtist) return 'Topp 10 artister'
+                if (isLastPlayed) return 'Siste 10 sanger'
+                if (isSongs) return 'Topp 10 sanger'
+                else return 'Topp 10 album'
+            }
+            const emb = EmbedUtils.createSimpleEmbed(
+                `Last.fm`,
+                `${findDataDescription()} for ${user instanceof User ? user.username : interaction.user.username} ${
+                    timePeriod && canHaveTimePriod ? '\n' + this.prettyprintPeriod(timePeriod) : ''
+                }`
+            )
             if (typeof data === 'string') {
                 emb.addFields({
                     name: 'Felt',
                     value: data,
                 })
             } else if (data.length) {
-                const isArtist = options === 'toptenartist'
-                const isLastPlayed = options === 'lasttensongs'
-                const isSongs = options === 'toptensongs' || isLastPlayed || options === 'toptenalbum'
                 let additionalData = data.forEach((d, idx) => {
                     if (idx < 1) console.log(d)
                     const datePlayed = d.datePlayed ? d.datePlayed : ''
@@ -217,7 +245,7 @@ export class Music extends AbstractCommands {
         }
     }
 
-    async findCommandForInteraction(interaction: Interaction<CacheType>, options: string, user?: User): Promise<IMusicData[] | string> {
+    async findCommandForInteraction(interaction: Interaction<CacheType>, options: string, user?: User, period?: string): Promise<IMusicData[] | string> {
         const fmUser = DatabaseHelper.getUser(user ? user?.id : interaction.user.id)
         if (fmUser.lastFMUsername) {
             let data: fetchData = {
@@ -229,6 +257,7 @@ export class Music extends AbstractCommands {
                 includeNameInOutput: false,
                 username: user ? user.username : interaction.user.username,
                 header: '',
+                period: period,
             }
 
             if (options === 'toptenartist') {
