@@ -142,8 +142,6 @@ export class Music extends AbstractCommands {
             .then(async ([resTop, resInfo]) => {
                 await Promise.all([resTop.json(), resInfo.json()])
                     .then(([topData, info]) => {
-                        console.log(topData)
-
                         const isFormattedWithHashtag = notWeeklyOrRecent
                             ? true
                             : dataParam.method.cmd.includes('weekly') || dataParam.method.cmd.includes('recent')
@@ -201,7 +199,7 @@ export class Music extends AbstractCommands {
             const user = interaction.options.get('user')?.user
             const timePeriod = interaction.options.get('periode')?.value as string
             const isTracks = options === 'toptensongs'
-            const isArtist = options === 'toptentracks'
+            const isArtist = options === 'toptenartist'
             const isLastPlayed = options === 'lasttensongs'
             const isTags = options === 'toptentags'
             const isSongs = options === 'toptensongs' || isLastPlayed || options === 'toptenalbum'
@@ -227,7 +225,6 @@ export class Music extends AbstractCommands {
                 })
             } else if (data.length) {
                 let additionalData = data.forEach((d, idx) => {
-                    if (idx < 1) console.log(d)
                     const datePlayed = d.datePlayed ? d.datePlayed : ''
                     d
                     const additionalData = isLastPlayed ? datePlayed : d.numPlays + ' avspillinger'
