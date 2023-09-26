@@ -99,7 +99,7 @@ export class TrelloCommands extends AbstractCommands {
                     components: [this.menu, trelloButtons],
                 })
             } else {
-                this.cardsDropdownMessage = await this.messageHelper.sendMessageWithEmbedAndComponents(interaction.channelId, embed, [this.menu, newTrelloButton])
+                this.cardsDropdownMessage = await this.messageHelper.sendMessageWithEmbedAndComponents(interaction.channelId, embed, [this.menu])
             }
         } else {
             this.cardsDropdownMessage?.delete()
@@ -114,9 +114,11 @@ export class TrelloCommands extends AbstractCommands {
         const list = this.lists.get(this.currentListId)
         await this.fetchTrelloCards()
         await this.getCardsDropdown(selectMenu)
+        let componentArray: (ActionRowBuilder<ButtonBuilder> | ActionRowBuilder<StringSelectMenuBuilder>)[] = [this.listMenu]
+        if (this.cards.size > 25) componentArray.push(trelloListButtons)
         await selectMenu.update({
             embeds: [EmbedUtils.createSimpleEmbed(`${list.name}`, `${this.cards.size} kort i listen`)],
-            components: [this.listMenu],
+            components: componentArray,
         })
     }
 
@@ -133,7 +135,7 @@ export class TrelloCommands extends AbstractCommands {
         })
     }
 
-    private async createModal(interaction: ButtonInteraction<CacheType>, newCard: boolean) {
+    private async createModal(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, newCard: boolean) {
         const customId = newCard ? 'TrelloModalNew' : 'TrelloModalEdit;' + this.currentCard.id
         const modal = new ModalBuilder().setCustomId(customId).setTitle('TrelloCards')
 
@@ -203,6 +205,28 @@ export class TrelloCommands extends AbstractCommands {
             embeds: [EmbedUtils.createSimpleEmbed(`Flytter kortet:`, `${name}\n\nFra: ${oldList.name}\n\nTil: ${newList.name}`)],
             components: [this.moveMenu, moveCardButtons(cardToMoveId, value)],
         })
+    }
+
+    private async updateCardsInDropdown(interaction: ButtonInteraction<CacheType>, first: boolean) {
+        const firstIndex = first ? 0 : this.cards.size -25
+        const lastIndex = first ? 24 : this.cards.size
+        const options: StringSelectMenuOptionBuilder[] = new Array<StringSelectMenuOptionBuilder>()
+        Array.from(this.cards.values())
+            .slice(firstIndex, lastIndex)
+            .forEach((card) => {
+                const name = card.name.length > 50 ? card.name.substring(0, 47) + '...' : card.name
+                options.push(new StringSelectMenuOptionBuilder().setLabel(name).setDescription(' ').setValue(card.id))
+            })
+        
+        this.menu = ActionMenuHelper.createSelectMenu('TrelloMenu', 'Velg trello-kort', options)
+        let embed = EmbedUtils.createSimpleEmbed(`Se informasjon om trello-kort`, `Dropdown-en inneholder nå de 25 ${first ? 'første' : 'siste'} kortene i listen`)
+        if (this.cardsDropdownMessage) {
+            await this.cardsDropdownMessage.edit({
+                embeds: [embed],
+                components: [this.menu],
+            })
+        }
+        interaction.deferUpdate()
     }
 
     private async handleMoveTrelloCard(interaction: ButtonInteraction<CacheType>) {
@@ -296,17 +320,12 @@ export class TrelloCommands extends AbstractCommands {
                     {
                         commandName: 'trello',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            return this.getListsDropdown(rawInteraction)
+                            if (rawInteraction.options.getSubcommand() === 'new') this.createModal(rawInteraction, true)
+                            else if (rawInteraction.options.getSubcommand() === 'list') this.getListsDropdown(rawInteraction)
                         },
                     },
                 ],
                 buttonInteractionComands: [
-                    {
-                        commandName: 'TRELLO_NEW',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                            this.createModal(rawInteraction, true)
-                        },
-                    },
                     {
                         commandName: 'TRELLO_EDIT',
                         command: (rawInteraction: ButtonInteraction<CacheType>) => {
@@ -346,6 +365,18 @@ export class TrelloCommands extends AbstractCommands {
                         command: (rawInteraction: ButtonInteraction<CacheType>) => {
                             this.moveCardMessage.delete()
                             rawInteraction.deferUpdate()
+                        },
+                    },
+                    {
+                        commandName: 'TRELLO_FIRST_CARDS',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.updateCardsInDropdown(rawInteraction, true)
+                        },
+                    },
+                    {
+                        commandName: 'TRELLO_LAST_CARDS',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.updateCardsInDropdown(rawInteraction, false)
                         },
                     },
                 ],
@@ -402,24 +433,24 @@ const labelsToString = (labels: Array<ITrelloLabel>, comma: boolean) => {
     return comma ? s.substring(0, s.length - 1) : s
 }
 
-const newTrelloButton = new ActionRowBuilder<ButtonBuilder>().addComponents(
+const trelloListButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder({
-        custom_id: 'TRELLO_NEW',
-        style: ButtonStyle.Success,
-        label: `Nytt kort`,
+        custom_id: 'TRELLO_FIRST_CARDS',
+        style: ButtonStyle.Primary,
+        label: `Første 25 kort`,
+        disabled: false,
+        type: 2,
+    }),
+    new ButtonBuilder({
+        custom_id: 'TRELLO_LAST_CARDS',
+        style: ButtonStyle.Primary,
+        label: `Siste 25 kort`,
         disabled: false,
         type: 2,
     })
 )
 
 const trelloButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder({
-        custom_id: 'TRELLO_NEW',
-        style: ButtonStyle.Success,
-        label: `Nytt kort`,
-        disabled: false,
-        type: 2,
-    }),
     new ButtonBuilder({
         custom_id: 'TRELLO_EDIT',
         style: ButtonStyle.Primary,
@@ -429,7 +460,7 @@ const trelloButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
     }),
     new ButtonBuilder({
         custom_id: 'TRELLO_MOVE',
-        style: ButtonStyle.Primary,
+        style: ButtonStyle.Success,
         label: `Flytt`,
         disabled: false,
         type: 2,

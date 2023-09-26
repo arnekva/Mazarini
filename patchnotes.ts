@@ -6,10 +6,10 @@ import { DatabaseHelper } from './helpers/databaseHelper'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '12.3.0'
+    public static readonly currentVersion = '12.3.1'
     public static readonly currentPatchNotes =
-        `\n* Du kan nå velge periode i /musikk - overall, siste uke, 1/3/6/12 måneder` +
-        `\n* Du kan nå trille en terning med /terning. Parameter for antall sider, default er 6`
+        `\n* Delt "/trello" opp i "/trello new" og "/trello list"` +
+        `\n* Lagt til knapper for å se resten av listen hvis den inneholder flere enn 25 kort`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
