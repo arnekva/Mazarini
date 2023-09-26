@@ -16,7 +16,7 @@ export class EmojiHelper {
         const ap = accessPoint instanceof Client ? accessPoint : accessPoint.client
         const emojiObj = ap.emojis.cache.find((emoji) => emoji.name == emojiType)
         if (!emojiObj) return { id: '<Fant ikke emojien>' }
-        return { id: `<${emojiObj.animated ? 'a:' : ''}${emojiObj.name}:${emojiObj?.id}>`, emojiObject: emojiObj, urlId: emojiObj?.id }
+        return { id: `<${emojiObj.animated ? 'a' : ''}:${emojiObj.name}:${emojiObj?.id}>`, emojiObject: emojiObj, urlId: emojiObj?.id }
     }
 
     static getHelgEmoji(accessPoint: Message | Interaction<CacheType> | Client<boolean>, isGeggi?: boolean) {

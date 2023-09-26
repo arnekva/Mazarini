@@ -8,11 +8,12 @@ import {
     Client,
     EmbedBuilder,
     Interaction,
-    User,
+    User
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
+import { EmojiHelper } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { SlashCommandHelper } from '../helpers/slashCommandHelper'
 import { ChipsStats, MazariniUser, RulettStats } from '../interfaces/database/databaseInterface'
@@ -506,14 +507,15 @@ export class GamblingCommands extends AbstractCommands {
         }
     }
 
-    private rollDice(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async rollDice(interaction: ChatInputCommandInteraction<CacheType>) {
         const customTarget = interaction.options.get('sider')?.value as number
         const diceTarget = customTarget ? customTarget : 6
         if (diceTarget <= 0) this.messageHelper.replyToInteraction(interaction, `Du kan ikke trille en terning med mindre enn 1 side`, { ephemeral: true })
         else {
             const explanation = !!customTarget ? `*(1 - ${customTarget})*` : ``
             const number = RandomUtils.getRandomInteger(1, diceTarget)
-            this.messageHelper.replyToInteraction(interaction, `# ${number} ${explanation}`)
+            const numberEmoji = customTarget ? number : (await EmojiHelper.getEmoji(`dice_${number}`, interaction)).id
+            this.messageHelper.replyToInteraction(interaction, `${numberEmoji} ${explanation}`)
         }
     }
 

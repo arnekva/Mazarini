@@ -6,10 +6,10 @@ import { DatabaseHelper } from './helpers/databaseHelper'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '12.3.1'
+    public static readonly currentVersion = '12.3.2'
     public static readonly currentPatchNotes =
-        `\n* Delt "/trello" opp i "/trello new" og "/trello list"` +
-        `\n* Lagt til knapper for å se resten av listen hvis den inneholder flere enn 25 kort`
+        `\n* Lagt til emojier for en vanlig /terning` +
+        `\n* Fikset en bug som hindret Bot Høie i å sende emojier`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
