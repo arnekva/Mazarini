@@ -7,7 +7,7 @@ import {
     Client,
     GuildMember,
     ModalSubmitInteraction,
-    TextChannel,
+    TextChannel
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'
@@ -243,6 +243,12 @@ export class Admin extends AbstractCommands {
         })
     }
 
+    private async stopLocalBot(interaction: ChatInputCommandInteraction<CacheType>) {
+        await this.messageHelper.replyToInteraction(interaction, `Stopper lokale bot-er`)
+        if (interaction.channelId == MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM_DEV && environment == 'dev') process.exit()
+        else await this.messageHelper.replyToInteraction(interaction, `Denne kommandoen kan ikke brukes her`, { ephemeral: true })
+    }
+
     private handleAdminSendModalDialog(modalInteraction: ModalSubmitInteraction) {
         const chatID = modalInteraction.fields.getTextInputValue('channelID')
         const text = modalInteraction.fields.getTextInputValue('messageInput')
@@ -317,6 +323,12 @@ export class Admin extends AbstractCommands {
                         commandName: 'restart',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                             this.restartBot(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'stoplocal',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.stopLocalBot(rawInteraction)
                         },
                     },
                 ],
