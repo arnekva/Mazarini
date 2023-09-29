@@ -22,7 +22,7 @@ export class EmojiHelper {
     static getHelgEmoji(accessPoint: Message | Interaction<CacheType> | Client<boolean>, isGeggi?: boolean) {
         const ap = accessPoint instanceof Client ? accessPoint : accessPoint.client
         const emojis = Array.from(ap.emojis.cache.filter((emoji) => emoji.name.includes(isGeggi ? 'geggiexcited' : 'catmygling')))
-        const emoji = ArrayUtils.randomChoiceFromArray(emojis)
+        const emoji = emojis.length === 1 ? emojis[0] : ArrayUtils.randomChoiceFromArray(emojis)
         return emoji[1]
     }
 }
