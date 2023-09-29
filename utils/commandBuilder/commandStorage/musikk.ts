@@ -1,7 +1,7 @@
 import { ApplicationCommandOptionType } from 'discord.js'
 import { ISlashCommandItem } from '../commandBuilder'
 
-/** Saved version of the Meme command */
+/** Saved version of the Musikk command */
 export const musikkCommand: ISlashCommandItem = {
     commandName: 'musikk',
     commandDescription: 'se statistikk for musikken din',
