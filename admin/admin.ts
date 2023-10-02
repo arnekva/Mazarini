@@ -7,7 +7,7 @@ import {
     Client,
     GuildMember,
     ModalSubmitInteraction,
-    TextChannel
+    TextChannel,
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'

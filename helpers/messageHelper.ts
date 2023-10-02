@@ -3,7 +3,6 @@ import {
     ActionRowData,
     APIActionRowComponent,
     APIAttachment,
-    APIEmbedField,
     APIMessageActionRowComponent,
     Attachment,
     AttachmentBuilder,
@@ -28,7 +27,6 @@ import {
     MessageFlagsString,
     ModalSubmitInteraction,
     RepliableInteraction,
-    RestOrArray,
     SelectMenuBuilder,
     SelectMenuInteraction,
     TextChannel,
@@ -57,6 +55,8 @@ interface IMessageOptions {
     sendAsSilent?: boolean
     /** This will allow you to send links without an embed preview automatically showing. */
     supressEmbeds?: boolean
+    /** This will make the message NOT count towards MazariniClient.numMessagesFromBot. Used when e.g. it's an error message being sent, as this increments numErrorMessages instead */
+    dontIncrementMessageCounter?: boolean
 }
 interface IInteractionOptions {
     /** Make the reply only visible to the engager */
@@ -144,7 +144,7 @@ export class MessageHelper {
         }
         return false
     }
-
+    /** @deprecated Use sendMessage */
     replyToInteractionWithSelectMenu(
         interaction: ChatInputCommandInteraction<CacheType> | ModalSubmitInteraction<CacheType>,
         content: ActionRowBuilder<SelectMenuBuilder>
@@ -164,7 +164,7 @@ export class MessageHelper {
             if (message.length >= 2000) {
                 const msgArr = message.match(/[\s\S]{1,1800}/g)
                 msgArr.forEach((msg, ind) => {
-                    MazariniClient.numMessagesFromBot++
+                    if (!options.dontIncrementMessageCounter) MazariniClient.numMessagesFromBot++
                     channel.send(msg)
                 })
                 return undefined
@@ -189,7 +189,7 @@ export class MessageHelper {
                     flags.push('SuppressEmbeds')
                 }
                 messageOptions.flags = flags
-                MazariniClient.numMessagesFromBot++
+                if (!options.dontIncrementMessageCounter) MazariniClient.numMessagesFromBot++
                 return channel.send(messageOptions)
             }
         }
@@ -269,7 +269,7 @@ export class MessageHelper {
         return messageToReturn
     }
 
-    /** Send an embed message */
+    /** @deprecated Use sendMessage */
     async sendFormattedMessage(channel: TextChannel | string, newMessage: EmbedBuilder) {
         if (typeof channel === 'string') {
             const textCh = this.findChannelById(channel) as TextChannel
@@ -277,6 +277,7 @@ export class MessageHelper {
         } else return channel.send({ embeds: [newMessage] })
         return undefined
     }
+    /** @deprecated Use sendMessage */
     async sendMessageWithComponents(
         channelID: string,
         components: (
@@ -290,7 +291,7 @@ export class MessageHelper {
         if (textCh) return textCh.send({ components: components })
         return undefined
     }
-
+    /** @deprecated Use sendMessage */
     async sendMessageWithContentAndComponents(
         channelID: string,
         content: string,
@@ -305,7 +306,7 @@ export class MessageHelper {
         if (textCh) return textCh.send({ content: content, components: components })
         return undefined
     }
-
+    /** @deprecated Use sendMessage */
     async sendMessageWithEmbedAndComponents(
         channelID: string,
         embed: EmbedBuilder,
@@ -324,21 +325,16 @@ export class MessageHelper {
 
     sendLogMessage(msg: string, options?: IMessageOptions) {
         MazariniClient.numMessagesNumErrorMessages++
+        options.dontIncrementMessageCounter = true
         return this.sendMessage(MentionUtils.CHANNEL_IDs.ACTION_LOG, msg, options)
     }
     sendGitLogMessage(msg: string, options?: IMessageOptions) {
         MazariniClient.numMessagesNumErrorMessages++
+        options.dontIncrementMessageCounter = true
         return this.sendMessage(MentionUtils.CHANNEL_IDs.GIT_LOG, msg, options)
     }
-    sendFormattedLogMessage(title: string, description: string, msg?: RestOrArray<APIEmbedField>) {
-        const embed = new EmbedBuilder().setTitle(`${title}`).setDescription(`${description}`)
-        if (msg) embed.addFields(...msg)
-        const errorChannel = this.client.channels.cache.get(MentionUtils.CHANNEL_IDs.ACTION_LOG) as TextChannel
-        this.sendFormattedMessage(errorChannel, embed)
-        MazariniClient.numMessagesNumErrorMessages++
-    }
 
-    /** Log that an empty message was attempted sent by the bot */
+    /** @deprecated Log that an empty message was attempted sent by the bot */
     sendLogMessageEmptyMessage(errorMessageToSend: string, channelId: string) {
         const errorChannel = this.client.channels.cache.get(MentionUtils.CHANNEL_IDs.ACTION_LOG) as TextChannel
         const replyChannel = this.client.channels.cache.get(channelId)
