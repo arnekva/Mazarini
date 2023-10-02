@@ -164,7 +164,7 @@ export class MessageHelper {
             if (message.length >= 2000) {
                 const msgArr = message.match(/[\s\S]{1,1800}/g)
                 msgArr.forEach((msg, ind) => {
-                    if (!options.dontIncrementMessageCounter) MazariniClient.numMessagesFromBot++
+                    if (!options?.dontIncrementMessageCounter) MazariniClient.numMessagesFromBot++
                     channel.send(msg)
                 })
                 return undefined
@@ -189,7 +189,7 @@ export class MessageHelper {
                     flags.push('SuppressEmbeds')
                 }
                 messageOptions.flags = flags
-                if (!options.dontIncrementMessageCounter) MazariniClient.numMessagesFromBot++
+                if (!options?.dontIncrementMessageCounter) MazariniClient.numMessagesFromBot++
                 return channel.send(messageOptions)
             }
         }
@@ -325,12 +325,12 @@ export class MessageHelper {
 
     sendLogMessage(msg: string, options?: IMessageOptions) {
         MazariniClient.numMessagesNumErrorMessages++
-        options.dontIncrementMessageCounter = true
+        options ? (options.dontIncrementMessageCounter = true) : (options = { dontIncrementMessageCounter: true })
         return this.sendMessage(MentionUtils.CHANNEL_IDs.ACTION_LOG, msg, options)
     }
     sendGitLogMessage(msg: string, options?: IMessageOptions) {
         MazariniClient.numMessagesNumErrorMessages++
-        options.dontIncrementMessageCounter = true
+        options ? (options.dontIncrementMessageCounter = true) : (options = { dontIncrementMessageCounter: true })
         return this.sendMessage(MentionUtils.CHANNEL_IDs.GIT_LOG, msg, options)
     }
 
