@@ -6,10 +6,10 @@ import { DatabaseHelper } from './helpers/databaseHelper'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '12.3.2'
+    public static readonly currentVersion = '12.4.0'
     public static readonly currentPatchNotes =
-        `\n* Lagt til emojier for en vanlig /terning` +
-        `\n* Fikset en bug som hindret Bot Høie i å sende emojier`
+        `\n* Du har nå et mye større utvalg av memes å velge blant`
+        + `\n\t* Parantesen viser hvor mange tekst-bokser meme-template-en har`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
