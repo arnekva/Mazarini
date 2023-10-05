@@ -9,6 +9,7 @@ import {
     ModalSubmitInteraction,
     TextChannel,
 } from 'discord.js'
+import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'
 import { IInteractionElement } from '../general/commands'
@@ -152,6 +153,8 @@ export class Admin extends AbstractCommands {
         const numMessagesFromBot = MazariniClient.numMessagesFromBot
         const numErrorMessages = MazariniClient.numMessagesNumErrorMessages
         const numCommands = MazariniClient.numCommands
+        console.log(moment(start).unix())
+
         const statsReply =
             `Statistikk (fra og med oppstart ${start.toLocaleDateString('nb', {
                 weekday: 'long',
@@ -162,7 +165,8 @@ export class Admin extends AbstractCommands {
             `\nAntall meldinger: ${numMessages}` +
             `\nAntall meldinger fra bot: ${numMessagesFromBot}` +
             `\nAntall kommandoer: ${numCommands}` +
-            `\nAntall logger: ${numErrorMessages}`
+            `\nAntall logger: ${numErrorMessages}` +
+            `\nKjørt siden: <t:${moment(start).unix()}:R>`
         this.messageHelper.replyToInteraction(interaction, statsReply)
     }
 
@@ -243,10 +247,17 @@ export class Admin extends AbstractCommands {
         })
     }
 
-    private async stopLocalBot(interaction: ChatInputCommandInteraction<CacheType>) {
-        await this.messageHelper.replyToInteraction(interaction, `Stopper lokale bot-er`)
-        if (interaction.channelId == MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM_DEV && environment == 'dev') process.exit()
-        else await this.messageHelper.replyToInteraction(interaction, `Denne kommandoen kan ikke brukes her`, { ephemeral: true })
+    private async stopBot(interaction: ChatInputCommandInteraction<CacheType>) {
+        const text = interaction.options.get('env')?.value as string
+        if (text === 'prod') {
+            await this.messageHelper.sendLogMessage('Stanser bot i prod')
+            pm2?.killDaemon()
+            pm2?.disconnect()
+        } else {
+            await this.messageHelper.replyToInteraction(interaction, `Stopper lokale bot-er`)
+            if (interaction.channelId == MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM_DEV) process.exit()
+            else await this.messageHelper.replyToInteraction(interaction, `Denne kommandoen kan ikke brukes her`, { ephemeral: true })
+        }
     }
 
     private handleAdminSendModalDialog(modalInteraction: ModalSubmitInteraction) {
@@ -310,15 +321,7 @@ export class Admin extends AbstractCommands {
                             this.replyToMsgAsBot(rawInteraction)
                         },
                     },
-                    {
-                        commandName: 'stopprocess',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            this.messageHelper.sendLogMessage('STANSET PM2-PROSESSEN. Rip meg')
-                            this.messageHelper.replyToInteraction(rawInteraction, `Forsøker å stoppe botten. Rip meg`)
-                            pm2?.killDaemon()
-                            pm2?.disconnect()
-                        },
-                    },
+
                     {
                         commandName: 'restart',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
@@ -326,9 +329,9 @@ export class Admin extends AbstractCommands {
                         },
                     },
                     {
-                        commandName: 'stoplocal',
+                        commandName: 'stopp',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            this.stopLocalBot(rawInteraction)
+                            this.stopBot(rawInteraction)
                         },
                     },
                 ],

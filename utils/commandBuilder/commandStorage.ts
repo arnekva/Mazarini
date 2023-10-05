@@ -1,6 +1,7 @@
 import { memeCommand } from './commandStorage/meme'
 import { musikkCommand } from './commandStorage/musikk'
 import { rollCommand } from './commandStorage/roll'
+import { stoppCommand } from './commandStorage/stopp'
 
 /** Easy way to get commands out from storage.
  * Commands are stored so that they can easily be recreated/updated, and not have to be copied each time.
@@ -10,4 +11,5 @@ export namespace CommandStorage {
     export const MemeCommand = memeCommand
     export const RollCommand = rollCommand
     export const MusicCommand = musikkCommand
+    export const StoppCommand = stoppCommand
 }
