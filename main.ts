@@ -172,10 +172,9 @@ export class MazariniClient {
             } else {
                 _mzClient.commandRunner.runCommands(message)
                 if (
-                    message.mentions.users.find((u) => u.id === MentionUtils.User_IDs.BOT_HOIE) &&
-                    message.type !== MessageType.Reply &&
-                    message.content.includes(`<@!${MentionUtils.User_IDs.BOT_HOIE}>`) &&
-                    environment === 'prod'
+                    (message.mentions.users.find((u) => u.id === MentionUtils.User_IDs.BOT_HOIE) ||
+                        message.content.includes(`<@!${MentionUtils.User_IDs.BOT_HOIE}>`)) &&
+                    (message.type !== MessageType.Reply || environment === 'prod')
                 ) {
                     message.reply(ArrayUtils.randomChoiceFromArray(textArrays.bentHoieLines))
                 }
