@@ -87,8 +87,8 @@ export namespace TextUtils {
 
     export function formatMoney(n: number, maxDigit?: number, minDigit?: number) {
         return n.toLocaleString('nb', {
-            maximumFractionDigits: maxDigit,
-            minimumFractionDigits: minDigit,
+            maximumFractionDigits: maxDigit || 2,
+            minimumFractionDigits: minDigit || 2,
         })
     }
 
