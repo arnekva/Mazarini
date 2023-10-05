@@ -112,7 +112,7 @@ export class MazariniClient {
                 msg += 'Boten ble restartet av en /restart, og prosjektet er oppdatert fra Git'
 
                 //TODO & FIXME: Move this out into gitUtils or something
-                await exec('git log --oneline -n 10', async (error, stdout, stderr) => {
+                await exec('git log --oneline -n 15', async (error, stdout, stderr) => {
                     if (error) {
                         _msgHelper.sendLogMessage(`Git log failet. Klarte ikke liste siste commit messages`)
                     }
@@ -162,13 +162,20 @@ export class MazariniClient {
         client.on('messageCreate', async (message: Message) => {
             MazariniClient.numMessages++
             //Do not reply to own messages. Do not trigger on pinned messages
-            if (message?.author?.username == client?.user?.username || message?.type === MessageType.ChannelPinnedMessage) {
-                // MazariniClient.numMessagesFromBot++
+            if (
+                message?.author?.id == MentionUtils.User_IDs.BOT_HOIE ||
+                message?.author?.id == MentionUtils.User_IDs.CLYDE ||
+                message?.type === MessageType.ChannelPinnedMessage ||
+                !message?.author?.id
+            ) {
+                //Do not react
             } else {
                 _mzClient.commandRunner.runCommands(message)
                 if (
-                    message.mentions.users.find((u) => u.id === MentionUtils.User_IDs.BOT_HOIE) ||
-                    (message.content.includes(`<@!${MentionUtils.User_IDs.BOT_HOIE}>`) && environment === 'prod')
+                    message.mentions.users.find((u) => u.id === MentionUtils.User_IDs.BOT_HOIE) &&
+                    message.type !== MessageType.Reply &&
+                    message.content.includes(`<@!${MentionUtils.User_IDs.BOT_HOIE}>`) &&
+                    environment === 'prod'
                 ) {
                     message.reply(ArrayUtils.randomChoiceFromArray(textArrays.bentHoieLines))
                 }
