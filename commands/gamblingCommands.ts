@@ -8,7 +8,7 @@ import {
     Client,
     EmbedBuilder,
     Interaction,
-    User
+    User,
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { IInteractionElement } from '../general/commands'
@@ -68,9 +68,9 @@ export class GamblingCommands extends AbstractCommands {
             this.messageHelper.replyToInteraction(interaction, `Du har startet en krig mot ${target.username}`, { ephemeral: true })
             await this.messageHelper.sendMessage(
                 interaction?.channelId,
-                `${interaction.user.username} vil gå til krig med deg ${MentionUtils.mentionUser(
-                    target.id
-                )} for ${amountAsNum} chips. Trykk på knappen for å godkjenne. Den som starter krigen ruller for 0-49.`
+                `${interaction.user.username} vil gå til krig med deg ${MentionUtils.mentionUser(target.id)} for ${TextUtils.formatMoney(
+                    amountAsNum
+                )} chips. Trykk på knappen for å godkjenne. Den som starter krigen ruller for 0-49.`
             )
 
             const row = new ActionRowBuilder<ButtonBuilder>()
@@ -156,13 +156,11 @@ export class GamblingCommands extends AbstractCommands {
             const gambling = new EmbedBuilder()
                 .setTitle('Gambling 🎲')
                 .setDescription(
-                    `${interaction.user.username} gamblet ${TextUtils.formatMoney(chipsToGamble, 2, 2)} av ${TextUtils.formatMoney(
-                        Number(userMoney),
-                        2,
-                        2
+                    `${interaction.user.username} gamblet ${TextUtils.formatMoney(chipsToGamble)} av ${TextUtils.formatMoney(
+                        Number(userMoney)
                     )} chips.\nTerningen trillet: ${roll}/100. Du ${
                         roll >= 50 ? 'vant! 💰💰 (' + Number(multiplier) + 'x)' : 'tapte 💸💸'
-                    }\nDu har nå ${TextUtils.formatMoney(newMoneyValue, 2, 2)} chips.`
+                    }\nDu har nå ${TextUtils.formatMoney(newMoneyValue)} chips.`
                 )
             if (roll >= 100) gambling.addFields({ name: `Trillet 100!`, value: `Du trillet 100 og vant ${multiplier} ganger så mye som du satset!` })
             this.messageHelper.replyToInteraction(interaction, gambling)
@@ -251,12 +249,10 @@ export class GamblingCommands extends AbstractCommands {
             const gambling = new EmbedBuilder()
                 .setTitle('Rulett 🎲')
                 .setDescription(
-                    `${interaction.user.username} satset ${valAsNum} av ${userMoney} chips på ${
+                    `${interaction.user.username} satset ${TextUtils.formatMoney(valAsNum)} av ${TextUtils.formatMoney(userMoney)} chips på ${
                         isForCategory ? this.getPrettyName(betOn.toString()) : betOn
                     }.\nBallen landet på: ${result}. Du ${won ? 'vant! 💰💰 (' + Number(multiplier) + 'x)' : 'tapte 💸💸'}\nDu har nå ${TextUtils.formatMoney(
-                        newMoneyValue,
-                        2,
-                        2
+                        newMoneyValue
                     )} chips.`
                 )
 
@@ -604,7 +600,7 @@ export class GamblingCommands extends AbstractCommands {
                 users.forEach((user) => {
                     gambling.addFields({
                         name: `${user.username}`,
-                        value: `Har nå ${TextUtils.formatMoney(user.balance, 2, 2)} chips (hadde ${TextUtils.formatMoney(user.oldBalance, 2, 2)})`,
+                        value: `Har nå ${TextUtils.formatMoney(user.balance)} chips (hadde ${TextUtils.formatMoney(user.oldBalance)})`,
                     })
                 })
 
