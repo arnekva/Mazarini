@@ -203,14 +203,15 @@ export class PoletCommands extends AbstractCommands {
 
                 const timeToCloseText =
                     timeUntil.hours > 0 || (timeUntil.hours === 0 && timeUntil.minutes > 0)
-                        ? `, stenger om ${timeUntil.hours} timer og ${timeUntil.minutes} minutter`
+                        ? `Stenger om ${timeUntil.hours} timer og ${timeUntil.minutes} minutter`
                         : 'Stengt'
-                const dayHeader = `${day} ${isToday ? ` (i dag ${timeToCloseText})` : ''}`
+                if (isToday) fmMessage.setDescription(`${timeToCloseText}`)
+                const dayHeader = `${day} ${isToday ? ` (i dag)` : ''}`
                 fmMessage.addFields({ name: dayHeader, value: rh.closed ? 'Stengt' : `${rh.openingTime} - ${rh.closingTime}` })
                 if (isToday) todayClosing = rh.closingTime
             })
         }
-        fmMessage.setDescription(`${this.isStoreOpen(todayClosing)}`)
+        // fmMessage.setDescription(`${this.isStoreOpen(todayClosing)}`)
         this.messageHelper.replyToInteraction(rawInteraction, fmMessage, { hasBeenDefered: true })
     }
 
@@ -224,7 +225,6 @@ export class PoletCommands extends AbstractCommands {
             const hourMin: number[] = split.map((t) => Number(t))
             if (DateUtils.isHourMinuteBefore(hourMin[0], hourMin[1])) return 'Åpent'
         }
-
         return 'Stengt'
     }
 
