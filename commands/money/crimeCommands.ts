@@ -11,8 +11,11 @@ import {
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { IInteractionElement } from '../../general/commands'
 import { DatabaseHelper } from '../../helpers/databaseHelper'
+import { EmojiHelper } from '../../helpers/emojiHelper'
 import { MessageHelper } from '../../helpers/messageHelper'
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
+import { MazariniUser } from '../../interfaces/database/databaseInterface'
+import { EmbedUtils } from '../../utils/embedUtils'
 import { MentionUtils } from '../../utils/mentionUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { TextUtils } from '../../utils/textUtils'
@@ -45,9 +48,7 @@ export class CrimeCommands extends AbstractCommands {
         }
     }
 
-    private async krig(interaction: ChatInputCommandInteraction<CacheType>) {
-        const target = interaction.options.get('bruker')?.user
-        const amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('chips')?.value)
+    private async krig(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, target: User, amount: number) {
 
         const userWallets = CrimeCommands.getUserWallets(interaction.user.id, target.id)
         const hasAmount = !!amount
@@ -79,46 +80,6 @@ export class CrimeCommands extends AbstractCommands {
                 })
             )
             await this.messageHelper.sendMessageWithComponents(interaction?.channelId, [row])
-        }
-    }
-
-    /** FIXME: Should refactor instead of just duplicating it as a static. */
-    static async krig(
-        interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>,
-        msgHelper: MessageHelper,
-        target: User,
-        amount: number
-    ) {
-        const userWallets = this.getUserWallets(interaction.user.id, target.id)
-        const hasAmount = !!amount
-
-        const largestPossibleValue = Math.min(userWallets.engagerChips, userWallets.victimChips)
-        let amountAsNum = hasAmount ? Number(amount) : largestPossibleValue
-        const notEnoughChips = this.checkBalance([{ userID: interaction.user.id }, { userID: target.id }], amountAsNum)
-
-        if (notEnoughChips) {
-            msgHelper.replyToInteraction(interaction, `En av dere har ikke råd til dette`, { ephemeral: true })
-        } else {
-            msgHelper.replyToInteraction(interaction, `Du har startet en krig mot ${target.username}`, { ephemeral: true })
-            await msgHelper.sendMessage(
-                interaction?.channelId,
-                `${interaction.user.username} vil gå til krig med deg ${MentionUtils.mentionUser(
-                    target.id
-                )} for ${amountAsNum} chips. Trykk på knappen for å godkjenne. Den som starter krigen ruller for 0-49.`
-            )
-
-            const row = new ActionRowBuilder<ButtonBuilder>()
-
-            row.addComponents(
-                new ButtonBuilder({
-                    custom_id: `KRIG;${target.id};${interaction.user.id};${amountAsNum}`,
-                    style: ButtonStyle.Primary,
-                    label: `⚔️ Krig ⚔️`,
-                    disabled: false,
-                    type: 2,
-                })
-            )
-            await msgHelper.sendMessageWithComponents(interaction?.channelId, [row])
         }
     }
 
@@ -253,7 +214,7 @@ export class CrimeCommands extends AbstractCommands {
         if ([oldEngager, oldTarget].includes(interaction.user.id)) {
             const victimUser = UserUtils.findUserById(updatedTargetId, interaction)
             if (victimUser) {
-                CrimeCommands.krig(interaction, this.messageHelper, victimUser, amount)
+                this.krig(interaction, victimUser, amount)
             }
             const row = new ActionRowBuilder<ButtonBuilder>()
             row.addComponents(
@@ -273,6 +234,81 @@ export class CrimeCommands extends AbstractCommands {
         }
     }
 
+    private async pickpocket(interaction: ChatInputCommandInteraction<CacheType>) {
+        const target = interaction.options.get('bruker')?.user
+        const amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('chips')?.value)
+        const amountAsNum = Number(amount)
+
+        const engager = DatabaseHelper.getUser(interaction.user.id)
+        const victim = DatabaseHelper.getUser(target.id)
+        
+        if (await this.handleTheftEdgeCases(interaction,engager,victim,amountAsNum)) return
+
+        if (this.theftAttemptIsSuccessful(amountAsNum)) {
+            engager.chips += amountAsNum
+            victim.chips -= amountAsNum
+            victim.hasBeenRobbed = true
+            DatabaseHelper.updateUser(engager)
+            DatabaseHelper.updateUser(victim)
+            const arneSuperior = await EmojiHelper.getEmoji('arnesuperior', interaction)
+            this.messageHelper.replyToInteraction(interaction, `Hehe det va jo lett ${arneSuperior.id} ` +
+                `\nGz med ${TextUtils.formatMoney(engager.chips)} på konto`, {ephemeral:true})
+        } else {
+            engager.daysInJail = 4
+            DatabaseHelper.updateUser(engager)
+            const siren = await EmojiHelper.getEmoji('redbluesiren', interaction)
+            let embed = EmbedUtils.createSimpleEmbed(`${siren.id}  Caught in 4K ${siren.id}`
+                                                    ,`${MentionUtils.mentionUser(engager.id)} har blitt tatt i å prøva å stjela ${TextUtils.formatMoney(amountAsNum)} fra ${MentionUtils.mentionUser(victim.id)}` +
+                                                     `\n:lock: Eg dømme deg te 3 dager i fengsel :lock:`)
+            this.messageHelper.replyToInteraction(interaction, embed)
+        }
+        
+    }
+
+    //returns a bool indicating if the interaction has been handled or not
+    private async handleTheftEdgeCases(
+        interaction: ChatInputCommandInteraction<CacheType>, 
+        engager: MazariniUser, victim: MazariniUser, amount: number
+    ) {
+        const victimIsEngager = engager.id === victim.id
+        const isNegativeAmount = amount < 0
+        const victimHasAmount = victim.chips >= amount
+        const kekw = await EmojiHelper.getEmoji('kekw', interaction)
+        const amountOrBalance = Math.abs(amount) > engager.chips ? engager.chips : Math.abs(amount)
+
+        if (victimIsEngager) {
+            engager.chips -= amountOrBalance
+            DatabaseHelper.updateUser(engager)
+            this.messageHelper.replyToInteraction(interaction, `Du prøva å sjela fra deg sjøl? Greit det ${kekw.id}`)
+            return true
+        } else if (isNegativeAmount) {
+            engager.chips -= amountOrBalance
+            victim.chips += amountOrBalance
+            DatabaseHelper.updateUser(engager)
+            DatabaseHelper.updateUser(victim)
+            this.messageHelper.replyToInteraction(interaction, `Stjela ${TextUtils.formatMoney(amount)}? Du konne bare vippsa, bro ${kekw.id} \nGz ${MentionUtils.mentionUser(victim.id)}`)
+            return true
+        } else if (!victimHasAmount) {
+            this.messageHelper.replyToInteraction(interaction, `Du prøva å sjela merr enn an har`, {ephemeral:true})
+            return true
+        }
+        return false
+    }
+
+    private theftAttemptIsSuccessful(amount: number) {
+
+        // a suiteable 1/x function where the probability of success rapidly approaches a limit of 0
+        const chanceOfSuccess = ((1)/(((amount/1000)/(2))+10.1))*1000 
+        console.log('odds:', chanceOfSuccess);
+        
+        // need a roll with 3 decimals for proper accuracy given a high amount
+        const roll = (RandomUtils.getRandomInteger(0,100000))/1000 
+        console.log('roll:', roll);
+        
+        return roll < chanceOfSuccess
+    }
+
+    
     getAllInteractions(): IInteractionElement {
         return {
             commands: {
@@ -280,7 +316,15 @@ export class CrimeCommands extends AbstractCommands {
                     {
                         commandName: 'krig',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            this.krig(rawInteraction)
+                            const target = rawInteraction.options.get('bruker')?.user
+                            const amount = SlashCommandHelper.getCleanNumberValue(rawInteraction.options.get('chips')?.value)
+                            this.krig(rawInteraction, target, amount)
+                        },
+                    },
+                    {
+                        commandName: 'pickpocket',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.pickpocket(rawInteraction)
                         },
                     },
                 ],
@@ -302,3 +346,16 @@ export class CrimeCommands extends AbstractCommands {
         }
     }
 }
+
+export const illegalCommandsWhileInJail = [
+    'krig',
+    'pickpocket',
+    'KRIG',
+    'KRIG_REMATCH',
+    'vipps',
+    'daily',
+    'gamble',
+    'roll',
+    'rulett',
+    'set',
+]

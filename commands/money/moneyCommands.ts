@@ -62,7 +62,12 @@ export class MoneyCommands extends AbstractCommands {
         }
         const user = DatabaseHelper.getUser(id)
         const chips = user.chips
-        const embed = EmbedUtils.createSimpleEmbed(`💳 Lommeboken til ${name} 🏧`, `${chips} chips`)
+        let embed = EmbedUtils.createSimpleEmbed(`💳 Lommeboken til ${name} 🏧`, `${chips} chips`)
+        if (!target && user.hasBeenRobbed) {
+            embed = EmbedUtils.createSimpleEmbed(`💳 Lommeboken til ${name} 🏧`, `Hehe ser ut som noen har stjålet fra deg`)
+            user.hasBeenRobbed = false
+            DatabaseHelper.updateUser(user)
+        }
         this.messageHelper.replyToInteraction(interaction, embed)
     }
 

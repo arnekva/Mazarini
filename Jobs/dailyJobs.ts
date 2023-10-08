@@ -14,6 +14,7 @@ export class DailyJobs {
     runJobs(onlyBd?: boolean) {
         if (!onlyBd) {
             this.validateAndResetDailyClaims()
+            this.updateJailCounter()
         }
         this.checkForUserBirthdays()
     }
@@ -58,6 +59,19 @@ export class DailyJobs {
 
             if (isBirthdayToday) {
                 this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.GENERAL, `Gratulerer med dagen ${user.displayName}!`)
+            }
+        })
+    }
+
+    private updateJailCounter() {
+        const brukere = DatabaseHelper.getAllUsers()
+
+        Object.keys(brukere).forEach((userID: string) => {
+            const user = DatabaseHelper.getUser(userID)
+            const daysLeftInJail = user?.daysInJail
+
+            if (daysLeftInJail && !isNaN(daysLeftInJail) && daysLeftInJail > 0) {
+                user.daysInJail = user.daysInJail ? --user.daysInJail : 0
             }
         })
     }

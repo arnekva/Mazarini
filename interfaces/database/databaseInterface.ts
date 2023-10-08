@@ -56,6 +56,8 @@ export interface MazariniUser {
     prestige?: number
     favoritePol?: FavoritePol
     userStats?: UserStats
+    daysInJail?: number
+    hasBeenRobbed?: boolean
     //OUTDATED
 }
 
@@ -92,6 +94,7 @@ export type dbPrefix =
     | 'ATHspin'
     | 'status'
     | 'id'
+    | 'daysInJail'
 
 export interface betObject {
     description: string
@@ -182,4 +185,5 @@ export const prefixList: dbPrefix[] = [
     'ATHspin',
     'status',
     'id',
+    'daysInJail',
 ]

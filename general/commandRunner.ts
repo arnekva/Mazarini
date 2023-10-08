@@ -8,10 +8,11 @@ import {
     InteractionType,
     Message,
     ModalSubmitInteraction,
-    StringSelectMenuInteraction,
+    StringSelectMenuInteraction
 } from 'discord.js'
 import { Admin } from '../admin/admin'
 import { environment } from '../client-env'
+import { illegalCommandsWhileInJail } from '../commands/money/crimeCommands'
 import { PoletCommands } from '../commands/poletCommands'
 import { LockingHandler } from '../handlers/lockingHandler'
 import { DatabaseHelper } from '../helpers/databaseHelper'
@@ -88,6 +89,14 @@ export class CommandRunner {
                     { ephemeral: true }
                 )
             }
+        } else if (this.checkIfBlockedByJail(interaction)) {
+            if (interaction.isRepliable()) {
+                this.messageHelper.replyToInteraction(
+                    interaction,
+                    `Du e i fengsel, bro`,
+                    { ephemeral: true }
+                )
+            }
         } else if (this.isLegalChannel(interaction)) {
             let hasAcknowledged = false
             //TODO: This might have to be refactored, by ContextMenuCommands are for now treated as regular ChatInputCommands, as they only have a commandName
@@ -151,6 +160,18 @@ export class CommandRunner {
         if (message.content.startsWith('!mz') && message.author.id === MentionUtils.User_IDs.BOT_HOIE) {
             message.reply('Eg leide ikkje itte mz lenger. Du finne alle kommandoene med å skriva ein skråstreg i tekstfelte')
         }
+    }
+
+    checkIfBlockedByJail(interaction: Interaction<CacheType>) {
+        const user = DatabaseHelper.getUser(interaction.user.id)
+        if (user.daysInJail && user.daysInJail > 0) {
+            if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
+                return illegalCommandsWhileInJail.includes(interaction.commandName)
+            } else if (interaction.isButton() || interaction.isStringSelectMenu() || interaction.type === InteractionType.ModalSubmit) {
+                return illegalCommandsWhileInJail.includes(interaction.customId.split(';')[0])
+            }
+        }
+        return false
     }
 
     runInteractionElement<InteractionTypes>(runningInteraction: IInteractionCommand<InteractionTypes>, interaction: InteractionTypes) {

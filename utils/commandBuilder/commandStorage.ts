@@ -1,5 +1,6 @@
 import { memeCommand } from './commandStorage/meme'
 import { musikkCommand } from './commandStorage/musikk'
+import { pickpocketCommand } from './commandStorage/pickpocket'
 import { rollCommand } from './commandStorage/roll'
 import { stoppCommand } from './commandStorage/stopp'
 
@@ -12,4 +13,5 @@ export namespace CommandStorage {
     export const RollCommand = rollCommand
     export const MusicCommand = musikkCommand
     export const StoppCommand = stoppCommand
+    export const PickpocketCommand = pickpocketCommand
 }
