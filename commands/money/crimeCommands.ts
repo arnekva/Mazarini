@@ -283,6 +283,7 @@ export class CrimeCommands extends AbstractCommands {
             DatabaseHelper.updateUser(victim)
             DatabaseHelper.updateUser(engager)
             this.messageHelper.replyToInteraction(interaction, `Du prøve å sjela fra meg?? Du mista nettopp alle chipså dine for det`)
+            return true
         } else if (victimIsEngager) {
             engager.chips -= amountOrBalance
             DatabaseHelper.updateUser(engager)
