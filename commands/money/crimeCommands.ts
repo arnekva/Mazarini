@@ -252,7 +252,7 @@ export class CrimeCommands extends AbstractCommands {
             DatabaseHelper.updateUser(victim)
             const arneSuperior = await EmojiHelper.getEmoji('arnesuperior', interaction)
             this.messageHelper.replyToInteraction(interaction, `Hehe det va jo lett ${arneSuperior.id} ` +
-                `\nGz med ${TextUtils.formatMoney(engager.chips)} på konto`, {ephemeral:true})
+                `\nGz med nye ${TextUtils.formatMoney(amountAsNum)} på konto - oppe i ${TextUtils.formatMoney(engager.chips)} nå`, {ephemeral:true})
         } else {
             engager.daysInJail = 4
             DatabaseHelper.updateUser(engager)
@@ -273,13 +273,20 @@ export class CrimeCommands extends AbstractCommands {
         const victimIsEngager = engager.id === victim.id
         const isNegativeAmount = amount < 0
         const victimHasAmount = victim.chips >= amount
+        const victimIsBotHoie = victim.id === MentionUtils.User_IDs.BOT_HOIE
         const kekw = await EmojiHelper.getEmoji('kekw', interaction)
         const amountOrBalance = Math.abs(amount) > engager.chips ? engager.chips : Math.abs(amount)
 
-        if (victimIsEngager) {
+        if (victimIsBotHoie) {
+            victim.chips += engager.chips
+            engager.chips = 0
+            DatabaseHelper.updateUser(victim)
+            DatabaseHelper.updateUser(engager)
+            this.messageHelper.replyToInteraction(interaction, `Du prøve å sjela fra meg?? Du mista nettopp alle chipså dine for det`)
+        } else if (victimIsEngager) {
             engager.chips -= amountOrBalance
             DatabaseHelper.updateUser(engager)
-            this.messageHelper.replyToInteraction(interaction, `Du prøva å sjela fra deg sjøl? Greit det ${kekw.id}`)
+            this.messageHelper.replyToInteraction(interaction, `Du prøve å sjela fra deg sjøl? Greit det ${kekw.id}`)
             return true
         } else if (isNegativeAmount) {
             engager.chips -= amountOrBalance
@@ -289,7 +296,7 @@ export class CrimeCommands extends AbstractCommands {
             this.messageHelper.replyToInteraction(interaction, `Stjela ${TextUtils.formatMoney(amount)}? Du konne bare vippsa, bro ${kekw.id} \nGz ${MentionUtils.mentionUser(victim.id)}`)
             return true
         } else if (!victimHasAmount) {
-            this.messageHelper.replyToInteraction(interaction, `Du prøva å sjela merr enn an har`, {ephemeral:true})
+            this.messageHelper.replyToInteraction(interaction, `Du prøve å sjela merr enn an har`, {ephemeral:true})
             return true
         }
         return false
