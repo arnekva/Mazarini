@@ -282,12 +282,12 @@ export class CrimeCommands extends AbstractCommands {
             engager.chips = 0
             DatabaseHelper.updateUser(victim)
             DatabaseHelper.updateUser(engager)
-            this.messageHelper.replyToInteraction(interaction, `Du prøve å sjela fra meg?? Du mysta nettopp alle chipså dine for det`)
+            this.messageHelper.replyToInteraction(interaction, `Du prøve å stjela fra meg?? Du mysta nettopp alle chipså dine for det`)
             return true
         } else if (victimIsEngager) {
             engager.chips -= amountOrBalance
             DatabaseHelper.updateUser(engager)
-            this.messageHelper.replyToInteraction(interaction, `Du prøve å sjela fra deg sjøl? Greit det ${kekw.id}`)
+            this.messageHelper.replyToInteraction(interaction, `Du prøve å stjela fra deg sjøl? Greit det ${kekw.id}`)
             return true
         } else if (isNegativeAmount) {
             engager.chips -= amountOrBalance
@@ -297,7 +297,7 @@ export class CrimeCommands extends AbstractCommands {
             this.messageHelper.replyToInteraction(interaction, `Stjela ${TextUtils.formatMoney(amount)}? Du konne bare vippsa, bro ${kekw.id} \nGz ${MentionUtils.mentionUser(victim.id)}`)
             return true
         } else if (!victimHasAmount) {
-            this.messageHelper.replyToInteraction(interaction, `Du prøve å sjela merr enn an har`, {ephemeral:true})
+            this.messageHelper.replyToInteraction(interaction, `Du prøve å stjela merr enn an har`, {ephemeral:true})
             return true
         }
         return false
