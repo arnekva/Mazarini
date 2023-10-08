@@ -357,5 +357,5 @@ export const illegalCommandsWhileInJail = [
     'gamble',
     'roll',
     'rulett',
-    'set',
+    'spin',
 ]
