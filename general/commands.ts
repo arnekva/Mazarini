@@ -5,11 +5,13 @@ import { CardCommands } from '../commands/cardCommands'
 import { DateCommands } from '../commands/dateCommands'
 import { RedBlackCommands } from '../commands/drinks/redBlack/redBlackCommands'
 import { DrinksCommands } from '../commands/drinksCommands'
-import { GamblingCommands } from '../commands/gamblingCommands'
 import { GameCommands } from '../commands/gameCommands'
 import { JokeCommands } from '../commands/jokeCommands'
 import { LinkCommands } from '../commands/linkCommands'
 import { Meme } from '../commands/memeCommands'
+import { CrimeCommands } from '../commands/money/crimeCommands'
+import { GamblingCommands } from '../commands/money/gamblingCommands'
+import { MoneyCommands } from '../commands/money/moneyCommands'
 import { Music } from '../commands/musicCommands'
 import { NameCommands } from '../commands/nameCommands'
 import { PoletCommands } from '../commands/poletCommands'
@@ -51,6 +53,8 @@ export class Commands {
     private spinner: Spinner
     private adminCommands: Admin
     private gamblingCommands: GamblingCommands
+    private crimeCommands: CrimeCommands
+    private moneyCommands: MoneyCommands
     private dateCommands: DateCommands
     private weatherCommands: Weather
     private jokeCommands: JokeCommands
@@ -79,6 +83,8 @@ export class Commands {
         this.spinner = new Spinner(this.client, this.messageHelper)
         this.adminCommands = new Admin(this.client, this.messageHelper)
         this.gamblingCommands = new GamblingCommands(this.client, this.messageHelper)
+        this.crimeCommands = new CrimeCommands(this.client, this.messageHelper)
+        this.moneyCommands = new MoneyCommands(this.client, this.messageHelper)
         this.dateCommands = new DateCommands(this.client, this.messageHelper)
         this.weatherCommands = new Weather(this.client, this.messageHelper)
         this.jokeCommands = new JokeCommands(this.client, this.messageHelper)
@@ -109,6 +115,8 @@ export class Commands {
             this.jokeCommands.getAllInteractions(),
             this.adminCommands.getAllInteractions(),
             this.gamblingCommands.getAllInteractions(),
+            this.crimeCommands.getAllInteractions(),
+            this.moneyCommands.getAllInteractions(),
             this.dateCommands.getAllInteractions(),
             this.warzoneCommands.getAllInteractions(),
             this.patchNotes.getAllInteractions(),

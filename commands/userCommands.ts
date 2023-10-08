@@ -8,13 +8,14 @@ import {
     Client,
     EmbedBuilder,
     SelectMenuComponentOptionData,
-    StringSelectMenuInteraction,
+    StringSelectMenuInteraction
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { IInteractionElement } from '../general/commands'
 import { ActionMenuHelper } from '../helpers/actionMenuHelper'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { ChipsStats, RulettStats } from '../interfaces/database/databaseInterface'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { Roles } from '../utils/roles'
@@ -125,6 +126,74 @@ export class UserCommands extends AbstractCommands {
         }
     }
 
+    private findUserStats(interaction: ChatInputCommandInteraction<CacheType>) {
+        const user = DatabaseHelper.getUser(interaction.user.id)
+        const userStats = user.userStats?.chipsStats
+        const rulettStats = user.userStats?.rulettStats
+        let reply = ''
+        if (userStats) {
+            reply += '**Gambling**\n'
+            reply += Object.entries(userStats)
+                .map((stat) => {
+                    return `${this.findPrettyNameForChipsKey(stat[0] as keyof ChipsStats)}: ${stat[1]}`
+                })
+                .sort()
+                .join('\n')
+        }
+        if (rulettStats) {
+            reply += '\n\n**Rulett**\n'
+            reply += Object.entries(rulettStats)
+                .map((stat) => {
+                    return `${this.findPrettyNameForRulettKey(stat[0] as keyof RulettStats)}: ${stat[1]}`
+                })
+                .sort()
+                .join('\n')
+        }
+        if (reply == '') {
+            reply = 'Du har ingen statistikk å visa'
+        }
+        this.messageHelper.replyToInteraction(interaction, reply)
+    }
+
+    private findPrettyNameForChipsKey(prop: keyof ChipsStats) {
+        switch (prop) {
+            case 'gambleLosses':
+                return 'Gambling tap'
+            case 'gambleWins':
+                return 'Gambling gevinst'
+            case 'krigLosses':
+                return 'Krig tap'
+            case 'krigWins':
+                return 'Krig seier'
+            case 'roulettWins':
+                return 'Rulett gevinst'
+            case 'rouletteLosses':
+                return 'Rulett tap'
+            case 'slotLosses':
+                return 'Roll tap'
+            case 'slotWins':
+                return 'Roll gevinst'
+            default:
+                return 'Ukjent'
+        }
+    }
+    private findPrettyNameForRulettKey(prop: keyof RulettStats) {
+        switch (prop) {
+            case 'black':
+                return 'Svart'
+            case 'green':
+                return 'Grønn'
+            case 'red':
+                return 'Rød'
+            case 'even':
+                return 'Partall'
+            case 'odd':
+                return 'Oddetall'
+            default:
+                return 'Ukjent'
+        }
+    }
+
     getAllInteractions(): IInteractionElement {
         return {
             commands: {
@@ -145,6 +214,12 @@ export class UserCommands extends AbstractCommands {
                         commandName: 'role',
                         command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                             this.roleAssignment(interaction)
+                        },
+                    },
+                    {
+                        commandName: 'brukerstats',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.findUserStats(rawInteraction)
                         },
                     },
                 ],

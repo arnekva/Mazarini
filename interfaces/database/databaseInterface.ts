@@ -1,5 +1,5 @@
-import { IDailyPriceClaim } from '../../commands/gamblingCommands'
 import { rocketLeagueDbData } from '../../commands/gameCommands'
+import { IDailyPriceClaim } from '../../commands/money/gamblingCommands'
 import { CodBRStatsType, CodStats } from '../../commands/warzoneCommands'
 
 export interface userValPair {

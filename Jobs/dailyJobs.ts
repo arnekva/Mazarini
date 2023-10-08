@@ -1,4 +1,4 @@
-import { IDailyPriceClaim } from '../commands/gamblingCommands'
+import { IDailyPriceClaim } from '../commands/money/gamblingCommands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
