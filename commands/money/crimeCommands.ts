@@ -260,7 +260,7 @@ export class CrimeCommands extends AbstractCommands {
             const siren = await EmojiHelper.getEmoji('redbluesiren', interaction)
             let embed = EmbedUtils.createSimpleEmbed(`${siren.id}  Caught in 4K ${siren.id}`
                                                     ,`${MentionUtils.mentionUser(engager.id)} har blitt tatt i å prøva å stjela ${TextUtils.formatMoney(amountAsNum)} fra ${MentionUtils.mentionUser(victim.id)}` +
-                                                     `\n:lock: Eg dømme deg te 3 dager i fengsel :lock:`)
+                                                     `\n:lock: Eg dømme deg te ${engager.daysInJail} dager i fengsel :lock:`)
             this.messageHelper.replyToInteraction(interaction, embed)
         }
         
@@ -345,6 +345,27 @@ export class CrimeCommands extends AbstractCommands {
         }
     }
 
+    private async printPrisoners(interaction: ChatInputCommandInteraction<CacheType>) {
+
+        let formattedMsg = new EmbedBuilder().setTitle(':lock: Fengsel :lock:')
+        const users = DatabaseHelper.getAllUsers()
+        let someoneInJail = false
+        Object.keys(users).forEach((userID: string) => {
+            const user = DatabaseHelper.getUser(userID)
+            const daysLeftInJail = user?.daysInJail
+
+            if (daysLeftInJail && !isNaN(daysLeftInJail) && daysLeftInJail > 0) {
+                someoneInJail = true
+                formattedMsg.addFields({
+                    name: `${UserUtils.findUserById(user.id, interaction).username}`,
+                    value: `${daysLeftInJail} dager igjen `,
+                    inline: false,
+                })
+            }
+        })
+        this.messageHelper.replyToInteraction(interaction, someoneInJail ? formattedMsg : 'Det er ingen i fengsel atm')
+    }
+
     
     getAllInteractions(): IInteractionElement {
         return {
@@ -368,6 +389,12 @@ export class CrimeCommands extends AbstractCommands {
                         commandName: 'jailbreak',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                             this.jailbreak(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'jail',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.printPrisoners(rawInteraction)
                         },
                     },
                 ],
