@@ -255,6 +255,7 @@ export class CrimeCommands extends AbstractCommands {
                 `\nGz med nye ${TextUtils.formatMoney(amountAsNum)} på konto - oppe i ${TextUtils.formatMoney(engager.chips)} nå`, {ephemeral:true})
         } else {
             engager.daysInJail = 4
+            engager.dailyFreezeCounter = 0
             DatabaseHelper.updateUser(engager)
             const siren = await EmojiHelper.getEmoji('redbluesiren', interaction)
             let embed = EmbedUtils.createSimpleEmbed(`${siren.id}  Caught in 4K ${siren.id}`

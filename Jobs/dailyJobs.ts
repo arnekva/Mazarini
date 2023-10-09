@@ -73,6 +73,7 @@ export class DailyJobs {
             if (daysLeftInJail && !isNaN(daysLeftInJail) && daysLeftInJail > 0) {
                 user.daysInJail = user.daysInJail ? --user.daysInJail : 0
             }
+            DatabaseHelper.updateUser(user)
         })
     }
 
