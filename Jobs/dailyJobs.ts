@@ -14,7 +14,7 @@ export class DailyJobs {
     runJobs(onlyBd?: boolean) {
         if (!onlyBd) {
             this.validateAndResetDailyClaims()
-            this.updateJailCounter()
+            this.updateJailAndJailbreakCounters()
         }
         this.checkForUserBirthdays()
     }
@@ -63,7 +63,7 @@ export class DailyJobs {
         })
     }
 
-    private updateJailCounter() {
+    private updateJailAndJailbreakCounters() {
         const brukere = DatabaseHelper.getAllUsers()
 
         Object.keys(brukere).forEach((userID: string) => {
@@ -73,6 +73,7 @@ export class DailyJobs {
             if (daysLeftInJail && !isNaN(daysLeftInJail) && daysLeftInJail > 0) {
                 user.daysInJail = user.daysInJail ? --user.daysInJail : 0
             }
+            user.attemptedJailbreaks = 0
             DatabaseHelper.updateUser(user)
         })
     }

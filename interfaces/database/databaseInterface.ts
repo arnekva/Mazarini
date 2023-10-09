@@ -58,6 +58,7 @@ export interface MazariniUser {
     userStats?: UserStats
     daysInJail?: number
     hasBeenRobbed?: boolean
+    attemptedJailbreaks?: number
     //OUTDATED
 }
 
@@ -95,6 +96,7 @@ export type dbPrefix =
     | 'status'
     | 'id'
     | 'daysInJail'
+    | 'attemptedJailbreaks'
 
 export interface betObject {
     description: string
@@ -186,4 +188,5 @@ export const prefixList: dbPrefix[] = [
     'status',
     'id',
     'daysInJail',
+    'attemptedJailbreaks',
 ]

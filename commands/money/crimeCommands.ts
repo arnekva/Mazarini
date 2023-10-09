@@ -317,6 +317,34 @@ export class CrimeCommands extends AbstractCommands {
         return roll < chanceOfSuccess
     }
 
+    private async jailbreak(interaction: ChatInputCommandInteraction<CacheType>) {
+        const prisoner = DatabaseHelper.getUser(interaction.user.id)
+        const daysLeftInJail = prisoner?.daysInJail
+
+        if (!daysLeftInJail || isNaN(daysLeftInJail) || daysLeftInJail == 0) {
+            this.messageHelper.replyToInteraction(interaction, `Ka er det du prøve å bryta ud av?`, {ephemeral:true})
+        } else if ((prisoner.attemptedJailbreaks ?? 0) >= 1) {
+            this.messageHelper.replyToInteraction(interaction, `Du har bare ett rømningsforsøk per dag`, {ephemeral:true})
+        } else {
+            const prevAttempts = prisoner.attemptedJailbreaks
+            prisoner.attemptedJailbreaks = (prevAttempts && !isNaN(prevAttempts)) ? prevAttempts + 1 : 1
+            const number1 = RandomUtils.getRandomInteger(1, 6)
+            const number2 = RandomUtils.getRandomInteger(1, 6)
+            const number1Emoji = (await EmojiHelper.getEmoji(`dice_${number1}`, interaction)).id
+            const number2Emoji = (await EmojiHelper.getEmoji(`dice_${number2}`, interaction)).id
+            let message = EmbedUtils.createSimpleEmbed(`:lock: Jailbreak :lock:`
+                ,`${MentionUtils.mentionUser(prisoner.id)} prøvde å rømma fra fengsel, men trilla ${number1Emoji} ${number2Emoji}` +
+                `\nDu har fortsatt ${daysLeftInJail} dager igjen i fengsel`)
+            if (number1 === number2) {
+                prisoner.daysInJail = 0
+                message = EmbedUtils.createSimpleEmbed(`:unlock: Jailbreak :unlock:`
+                        ,`${MentionUtils.mentionUser(prisoner.id)} trilla to lige ${number1Emoji} ${number2Emoji} og har rømt fra fengsel!`)
+            } 
+            DatabaseHelper.updateUser(prisoner)
+            this.messageHelper.replyToInteraction(interaction, message)
+        }
+    }
+
     
     getAllInteractions(): IInteractionElement {
         return {
@@ -334,6 +362,12 @@ export class CrimeCommands extends AbstractCommands {
                         commandName: 'pickpocket',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                             this.pickpocket(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'jailbreak',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.jailbreak(rawInteraction)
                         },
                     },
                 ],

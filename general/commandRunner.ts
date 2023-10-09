@@ -89,7 +89,7 @@ export class CommandRunner {
                     { ephemeral: true }
                 )
             }
-        } else if (this.checkIfBlockedByJail(interaction)) {
+        } else if (this.isLegalChannel(interaction) && this.checkIfBlockedByJail(interaction)) {
             if (interaction.isRepliable()) {
                 this.messageHelper.replyToInteraction(
                     interaction,

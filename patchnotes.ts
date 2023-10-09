@@ -6,10 +6,9 @@ import { DatabaseHelper } from './helpers/databaseHelper'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '12.6.0'
+    public static readonly currentVersion = '12.6.1'
     public static readonly currentPatchNotes =
-        `\n* Refaktorering av gamblingCommands` +
-        `\n* Du kan nå forsøke å stjele chips fra andre, men du risikerer å havne i fengsel!`
+        `\n* Lagt til /jailbreak for å gi deg en daglig mulighet til å rømme fra fengsel`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
