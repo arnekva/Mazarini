@@ -1,3 +1,4 @@
+import { jailCommand } from './commandStorage/jail'
 import { jailbreakCommand } from './commandStorage/jailbreak'
 import { memeCommand } from './commandStorage/meme'
 import { musikkCommand } from './commandStorage/musikk'
@@ -16,4 +17,5 @@ export namespace CommandStorage {
     export const StoppCommand = stoppCommand
     export const PickpocketCommand = pickpocketCommand
     export const JailbreakCommand = jailbreakCommand
+    export const JailCommand = jailCommand
 }

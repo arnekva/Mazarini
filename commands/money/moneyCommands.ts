@@ -11,6 +11,7 @@ import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
 import { MazariniUser } from '../../interfaces/database/databaseInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { MentionUtils } from '../../utils/mentionUtils'
+import { TextUtils } from '../../utils/textUtils'
 
 export interface IDailyPriceClaim {
     streak: number
@@ -64,7 +65,8 @@ export class MoneyCommands extends AbstractCommands {
         const chips = user.chips
         let embed = EmbedUtils.createSimpleEmbed(`💳 Lommeboken til ${name} 🏧`, `${chips} chips`)
         if (!target && user.hasBeenRobbed) {
-            embed = EmbedUtils.createSimpleEmbed(`💳 Lommeboken til ${name} 🏧`, `Hehe ser ut som noen har stjålet fra deg`)
+            embed = EmbedUtils.createSimpleEmbed(`💳 Lommeboken til ${name} 🏧`, `Hehe ser ut som noen har stjålet fra deg`
+                                                + `\nDu har nå ${TextUtils.formatMoney(chips)} chips`)
             user.hasBeenRobbed = false
             DatabaseHelper.updateUser(user)
         }
