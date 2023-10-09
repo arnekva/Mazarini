@@ -166,6 +166,7 @@ export class Admin extends AbstractCommands {
             `\nAntall meldinger fra bot: ${numMessagesFromBot}` +
             `\nAntall kommandoer: ${numCommands}` +
             `\nAntall logger: ${numErrorMessages}` +
+            `\nAntall servere tilkoblet: ${this.client.guilds.cache.size}` +
             `\nKjørt siden: <t:${moment(start).unix()}:R>`
         this.messageHelper.replyToInteraction(interaction, statsReply)
     }
