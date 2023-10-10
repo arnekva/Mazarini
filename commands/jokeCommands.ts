@@ -185,21 +185,19 @@ export class JokeCommands extends AbstractCommands {
         const dbUser = DatabaseHelper.getUser(user.id)
         bkCounter = dbUser.bonkCounter
         dbUser.bonkCounter++
-        DatabaseHelper.updateUser(dbUser)
-
+        
         bkCounter++
         this.messageHelper.replyToInteraction(
             interaction,
             user.username + ', du har blitt bonket. (' + `${bkCounter} ${bkCounter == 1 ? 'gang' : 'ganger'}) ` + img
         )
         if (textArrays.jailBonkMemeUrls.includes(img)) {
-            const prisoner = DatabaseHelper.getUser(interaction.user.id)
-            const prevSentence = prisoner.daysInJail
-            prisoner.daysInJail = (prevSentence && !isNaN(prevSentence) && prevSentence > 0) ? prevSentence + 1 : 1
-            prisoner.dailyFreezeCounter = 0
-            DatabaseHelper.updateUser(prisoner)
+            const prevSentence = dbUser.daysInJail
+            dbUser.daysInJail = (prevSentence && !isNaN(prevSentence) && prevSentence > 0) ? prevSentence + 1 : 1
+            dbUser.dailyFreezeCounter = 0
             this.messageHelper.sendMessage(interaction.channelId, ':lock: Du e kje bare bonka, du e faktisk dømt te ein dag i fengsel og :lock:')
         }
+        DatabaseHelper.updateUser(dbUser)
     }
 
     private static uwuText(t: string) {
