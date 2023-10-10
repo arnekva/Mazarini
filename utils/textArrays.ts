@@ -1,9 +1,14 @@
 export namespace textArrays {
+
+    export const jailBonkMemeUrls = [
+        'https://i.kym-cdn.com/photos/images/newsfeed/001/842/713/b73.jpg', 
+        'https://i.redd.it/s897cyurzpe51.jpg', 
+        'https://i.kym-cdn.com/photos/images/original/002/032/806/d6b.jpg', 
+        'https://img-9gag-fun.9cache.com/photo/aV70r4O_460s.jpg',
+    ]
     export const bonkMemeUrls = [
-        'https://i.kym-cdn.com/photos/images/newsfeed/001/842/713/b73.jpg',
-        'https://i.redd.it/s897cyurzpe51.jpg',
-        'https://funvizeo.com/media/memes/8f8236034b498dcd/go-to-horny-jail-moans-sed-bonking-noise-meme-2119d384a4c39ef1-57964a3a96aa649e.jpg',
-        'https://lolpics.com/wp-content/uploads/2020/10/Sorry-ladies.jpg',
+        'https://i.kym-cdn.com/photos/images/newsfeed/001/842/713/b73.jpg', // Also sends to jail
+        'https://i.redd.it/s897cyurzpe51.jpg', // Also sends to jail
         'https://img-9gag-fun.9cache.com/photo/apGRLrp_460s.jpg',
         'https://i.redd.it/u1q0erv2gar51.jpg',
         'https://i.imgur.com/ve1UgLs.jpg',
@@ -11,7 +16,6 @@ export namespace textArrays {
         'https://i.pinimg.com/564x/cf/36/49/cf3649bf5a8b702fa6123c0235683f8f.jpg',
         'https://pbs.twimg.com/media/EaSlYnOU4AAKnbw.jpg',
         'https://64.media.tumblr.com/82c0ed15f3233f6c036864ded62348ae/11ccb39988acfd91-2e/s1280x1920/41d93f59b500f05cc01df84f3164a2703ebc72fb.jpg',
-        'https://lolpics.com/wp-content/uploads/2020/12/Consequences_2.jpg',
         'https://64.media.tumblr.com/1259f0839a07330734ab270dd9eb6656/2682e8d65435e55d-b9/s540x810/f20f224db9501fc6395ef228b39b55025b1ab736.png',
         'https://64.media.tumblr.com/868623aa7ca279d0592f7d0b45a21ddb/d5a5db7b9fc30e6b-b0/s640x960/a28b8bfec7bc0caffe6c72848e5e0626ca9cbf8c.jpg',
         'https://64.media.tumblr.com/07b37de392925fce02bb870ef3babe0e/d5a5db7b9fc30e6b-91/s500x750/3dbf9bb021ec8229d566a9e7f3d2d512291c23d5.jpg',
@@ -19,13 +23,11 @@ export namespace textArrays {
         'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3zjIfROgR4Q9I0mWsGuxDeMRp59ygKlRNkQ&usqp=CAU',
         'https://i.redd.it/qcpz7rrpt9z51.png',
         'https://pbs.twimg.com/media/EaSlYnIUwAA7Q0v?format=jpg&name=medium',
-        'https://i.kym-cdn.com/photos/images/original/002/032/806/d6b.jpg',
-        'https://i.kym-cdn.com/photos/images/original/002/032/806/d6b.jpg',
+        'https://i.kym-cdn.com/photos/images/original/002/032/806/d6b.jpg', // Also sends to jail
         'https://starecat.com/content/wp-content/uploads/dog-anti-bonk-helmet-doge.jpg',
-        'https://img-9gag-fun.9cache.com/photo/aV70r4O_460s.jpg',
+        'https://img-9gag-fun.9cache.com/photo/aV70r4O_460s.jpg', // Also sends to jail
         'https://pbs.twimg.com/media/Enc5buwXcAItjnb.png',
         'https://64.media.tumblr.com/82c0ed15f3233f6c036864ded62348ae/11ccb39988acfd91-2e/s1280x1920/41d93f59b500f05cc01df84f3164a2703ebc72fb.jpg',
-        'https://ahseeit.com//king-include/uploads/2020/10/needed-bonk-them-and-send-them-horny-jail-sir-assaulted-thousands-horny-people-with-baseball-bat-9130351705.jpg',
         'https://i.kym-cdn.com/photos/images/facebook/002/038/897/2ca.jpg',
         'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMkmBhuJF7s2z-luZAMB8rofJlrDkQjH5HnA&usqp=CAU',
         'https://i.redd.it/6ztypom2wy661.jpg',
@@ -33,6 +35,8 @@ export namespace textArrays {
         'https://i.kym-cdn.com/photos/images/original/001/878/184/c46',
         'https://i.redd.it/8tgtwu30fx761.jpg',
     ]
+
+    
 
     export const asciiEmojies = [
         '(ﾉ´ з `)ノ',

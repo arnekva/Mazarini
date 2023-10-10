@@ -192,6 +192,14 @@ export class JokeCommands extends AbstractCommands {
             interaction,
             user.username + ', du har blitt bonket. (' + `${bkCounter} ${bkCounter == 1 ? 'gang' : 'ganger'}) ` + img
         )
+        if (textArrays.jailBonkMemeUrls.includes(img)) {
+            const prisoner = DatabaseHelper.getUser(interaction.user.id)
+            const prevSentence = prisoner.daysInJail
+            prisoner.daysInJail = (prevSentence && !isNaN(prevSentence) && prevSentence > 0) ? prevSentence + 1 : 1
+            prisoner.dailyFreezeCounter = 0
+            DatabaseHelper.updateUser(prisoner)
+            this.messageHelper.sendMessage(interaction.channelId, ':lock: Du er ikke bare bonka, du er faktisk dømt te en dag i fengsel og :lock:')
+        }
     }
 
     private static uwuText(t: string) {

@@ -281,9 +281,11 @@ export class CrimeCommands extends AbstractCommands {
         if (victimIsBotHoie) {
             victim.chips += engager.chips
             engager.chips = 0
+            engager.daysInJail = 1
             DatabaseHelper.updateUser(victim)
             DatabaseHelper.updateUser(engager)
             this.messageHelper.replyToInteraction(interaction, `Du prøve å stjela fra meg?? Du mysta nettopp alle chipså dine for det`)
+            delay(5000).then(() => this.messageHelper.sendMessage(interaction.channelId, `:lock: Vet du.. det er faktisk ikke nok straff. Du får en dag i fengsel óg :lock:`)); 
             return true
         } else if (victimIsEngager) {
             engager.chips -= amountOrBalance
@@ -358,7 +360,7 @@ export class CrimeCommands extends AbstractCommands {
                 someoneInJail = true
                 formattedMsg.addFields({
                     name: `${UserUtils.findUserById(user.id, interaction).username}`,
-                    value: `${daysLeftInJail} dager igjen `,
+                    value: `${daysLeftInJail} dag${daysLeftInJail > 1 ? 'er' : ''} igjen `,
                     inline: false,
                 })
             }
@@ -429,3 +431,7 @@ export const illegalCommandsWhileInJail = [
     'rulett',
     'spin',
 ]
+
+function delay(time) {
+    return new Promise(resolve => setTimeout(resolve, time));
+  }
