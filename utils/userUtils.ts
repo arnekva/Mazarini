@@ -127,7 +127,12 @@ export namespace UserUtils {
 
     export const onUserUpdate = (oldUser: User | PartialUser, newUser: User | PartialUser, msgHelper: MessageHelper) => {
         if (oldUser.id === '802945796457758760') return
-        msgHelper.sendLogMessage('Oppdatert bruker:   ' + oldUser.username + ' -> ' + newUser.username + '')
+        msgHelper.sendLogMessage(
+            'Oppdatert bruker:   ' +
+                newUser.username +
+                `
+        ${oldUser.toString()} -${newUser.toString()}`
+        )
     }
     export const onMemberUpdate = async (oldMember: GuildMember | PartialGuildMember, newMember: GuildMember, msgHelper: MessageHelper) => {
         if (newMember.id === '802945796457758760') return //Ikke gjør noe når bot oppdateres
