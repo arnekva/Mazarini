@@ -29,6 +29,7 @@ export class CrimeCommands extends AbstractCommands {
     constructor(client: Client, messageHelper: MessageHelper) {
         super(client, messageHelper)
     }
+    static jailBreakAttempts = 1
 
     static checkBalance(users: { userID: string }[], amountAsNumber: number): boolean {
         let notEnough = false
@@ -325,8 +326,8 @@ export class CrimeCommands extends AbstractCommands {
 
         if (!daysLeftInJail || isNaN(daysLeftInJail) || daysLeftInJail == 0) {
             this.messageHelper.replyToInteraction(interaction, `Ka er det du prøve å bryta ud av?`, {ephemeral:true})
-        } else if ((prisoner.attemptedJailbreaks ?? 0) >= 1) {
-            this.messageHelper.replyToInteraction(interaction, `Du har bare ett rømningsforsøk per dag`, {ephemeral:true})
+        } else if ((prisoner.attemptedJailbreaks ?? 0) >= CrimeCommands.jailBreakAttempts) {
+            this.messageHelper.replyToInteraction(interaction, `Du har bare ${CrimeCommands.jailBreakAttempts} rømningsforsøk per dag itte fengsling`, {ephemeral:true})
         } else {
             const prevAttempts = prisoner.attemptedJailbreaks
             prisoner.attemptedJailbreaks = (prevAttempts && !isNaN(prevAttempts)) ? prevAttempts + 1 : 1
@@ -339,6 +340,7 @@ export class CrimeCommands extends AbstractCommands {
                 `\nDu har fortsatt ${daysLeftInJail} dager igjen i fengsel`)
             if (number1 === number2) {
                 prisoner.daysInJail = 0
+                prisoner.attemptedJailbreaks = 0
                 message = EmbedUtils.createSimpleEmbed(`:unlock: Jailbreak :unlock:`
                         ,`${MentionUtils.mentionUser(prisoner.id)} trilla to lige ${number1Emoji} ${number2Emoji} og har rømt fra fengsel!`)
             } 
