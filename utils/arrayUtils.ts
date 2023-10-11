@@ -26,9 +26,9 @@ export class ArrayUtils {
     }
 
     /** Get a random object from the array */
-    static randomChoiceFromArray(arr: any[]) {
-        const randomNumber = RandomUtils.getRandomInteger(0, arr.length-1)
-        return arr[randomNumber]
+    static randomChoiceFromArray<T>(arr: T[]) {
+        const randomNumber = RandomUtils.getRandomInteger(0, arr.length - 1)
+        return arr[randomNumber] as T
     }
 
     /** Check if array length is at least as large as the given number */
