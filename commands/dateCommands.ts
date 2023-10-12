@@ -54,8 +54,11 @@ export class DateCommands extends AbstractCommands {
         const fromDate = interaction.options.get('fra-dato')?.value as string
         const toDate = interaction.options.get('til-dato')?.value as string
         const fromHours = interaction.options.get('fra-klokkeslett')?.value as string
+        let ferier = DatabaseHelper.getStorage().ferie
+        if (!ferier) ferier = []
         if (fromDate === 'fjern' || toDate === 'fjern') {
-            return DatabaseHelper.deleteFerieValue(interaction.user.id)
+            ferier = ferier.filter((f) => f.id !== interaction.user.id)
+            DatabaseHelper.updateStorage({ ferie: ferier })
         }
 
         /** Registrer ferier */
@@ -92,7 +95,14 @@ export class DateCommands extends AbstractCommands {
             }
             const maxNumDays = 250
             if (DateUtils.isDateBefore(date1, date2) && DateUtils.dateIsMaxXDaysInFuture(date2, maxNumDays)) {
-                DatabaseHelper.setFerieValue(interaction.user.id, 'date', JSON.stringify(feireObj))
+                let hasFerie = ferier.find((f) => f.id === interaction.user.id)
+                if (hasFerie) hasFerie.value = JSON.stringify(feireObj)
+                else
+                    ferier.push({
+                        id: interaction.user.id,
+                        value: JSON.stringify(feireObj),
+                    })
+                DatabaseHelper.updateStorage({ ferie: ferier })
                 this.messageHelper.replyToInteraction(interaction, `Ferien din er satt`, { ephemeral: true })
             } else {
                 this.messageHelper.replyToInteraction(
@@ -101,43 +111,31 @@ export class DateCommands extends AbstractCommands {
                 )
             }
         } else {
-            if (Object.keys(DatabaseHelper.getAllFerieValues()).length < 1) {
-                return this.messageHelper.replyToInteraction(interaction, `Ingen har ferie i nærmeste fremtid`)
-            }
             const vacayNowMap: Map<Date, string> = new Map<Date, string>()
             const vacayLaterMap: Map<Date, string> = new Map<Date, string>()
-            const ferieDates = DatabaseHelper.getAllFerieValues()
+            const ferier = DatabaseHelper.getStorage().ferie
+            if (!ferier) return this.messageHelper.replyToInteraction(interaction, `Ingen har ferie i nærmeste fremtid`)
             /** Finn alle ferier og print dem hvis de er gyldige */
-            Object.keys(ferieDates).forEach((username) => {
-                if (DatabaseHelper.getNonUserValue('ferie', username)?.date) {
-                    const ferieEle = JSON.parse(DatabaseHelper.getNonUserValue('ferie', username).date) as ferieItem
+            ferier.forEach((ferie) => {
+                if (ferie.value) {
+                    const ferieEle = JSON.parse(ferie.value) as ferieItem
                     const date1 = moment(new Date(ferieEle.fromDate), 'DD-MM-YYYY').toDate()
                     const date2 = moment(new Date(ferieEle.toDate), 'DD-MM-YYYY').toDate()
                     if (!DateUtils.dateHasPassed(date2)) {
-                        /**
-                         * TODO: This has to be refactored, it's basically the same codeblock twice
-                         */
-                        if (DateUtils.dateHasPassed(date1)) {
-                            const timeRemaining = DateUtils.getTimeTo(date2)
+                        const isDuring = DateUtils.dateHasPassed(date1)
+                        const vacationLength = DateUtils.findDaysBetweenTwoDates(date1, date2)
+                        const timeRemaining = isDuring ? DateUtils.getTimeTo(date2) : DateUtils.getTimeTo(date1)
+                        const username = UserUtils.findUserById(ferie.id, interaction).username
 
-                            const dayString = timeRemaining?.days > 0 ? `${timeRemaining.days} dager, ` : ''
-                            const hourString = timeRemaining?.hours > 0 ? `${timeRemaining.hours} timer og ` : ''
-                            const timeUntilString = `${dayString}${hourString}${timeRemaining?.minutes ?? 0} min`
-                            const vacayString = `- ${UserUtils.findUserById(username, interaction).username}: ${timeUntilString} igjen *(${DateUtils.formatDate(
-                                date2
-                            )})*\n`
-                            vacayNowMap.set(date2, vacayString)
-                        } else {
-                            const timeRemaining = DateUtils.getTimeTo(date1)
-                            const vacationLength = DateUtils.findDaysBetweenTwoDates(date1, date2)
-                            const dayString = timeRemaining.days > 0 ? `${timeRemaining.days} dager, ` : ''
-                            const hourString = timeRemaining.hours > 0 ? `${timeRemaining.hours} timer og ` : ''
-                            const timeUntilString = `${dayString}${hourString}${timeRemaining.minutes} min`
-                            const vacayString = `- ${UserUtils.findUserById(username, interaction).username}: om ${timeUntilString} *(${DateUtils.formatDate(
-                                date1
-                            )}, ${vacationLength} dager ferie)*\n`
-                            vacayLaterMap.set(date1, vacayString)
-                        }
+                        const dayString = timeRemaining?.days > 0 ? `${timeRemaining.days} dager, ` : ''
+                        const hourString = timeRemaining?.hours > 0 ? `${timeRemaining.hours} timer og ` : ''
+                        const timeUntilString = `${dayString}${hourString}${timeRemaining?.minutes ?? 0} min`
+                        const vacayString =
+                            `- ${username}: ` + isDuring
+                                ? `${timeUntilString} igjen *(${DateUtils.formatDate(date2)})*\n`
+                                : `om ${timeUntilString} *(${DateUtils.formatDate(date1)}, ${vacationLength} dager ferie)*\n`
+                        if (isDuring) vacayNowMap.set(date2, vacayString)
+                        else vacayLaterMap.set(date2, vacayString)
                     }
                 }
             })
@@ -165,14 +163,22 @@ export class DateCommands extends AbstractCommands {
         const event = interaction.options.get('hendelse')?.value as string
         const dato = interaction.options.get('dato')?.value as string
         const timestamp = interaction.options.get('klokkeslett')?.value as string
-
+        let countdowns = DatabaseHelper.getStorage().countdown
+        if (!countdowns)
+            countdowns = {
+                allCountdowns: [],
+            }
         if (isNewCountdown) {
             if (event == 'fjern') {
                 this.messageHelper.replyToInteraction(interaction, `Fjernet countdownen din`, { ephemeral: true })
-                return DatabaseHelper.deleteCountdownValue(interaction.user.id)
+                const cdIndex = countdowns.allCountdowns.findIndex((c) => c.ownerId === interaction.user.id)
+                if (cdIndex) {
+                    countdowns.allCountdowns[cdIndex] = undefined
+                    DatabaseHelper.updateStorage({ countdown: countdowns })
+                    return true
+                }
+                return false
             }
-
-            //dd-mm-yyyy
             const isLegal = dateRegex.test(dato)
             if (!isLegal) {
                 return this.messageHelper.replyToInteraction(
@@ -197,21 +203,17 @@ export class DateCommands extends AbstractCommands {
                     `Du kan ha maks 3 countdowns. Bruk /countdown sett med teksten "fjern" for å fjerne alle, eller vent til de går ut.`
                 )
             } else {
-                const cds = DatabaseHelper.getCountdowns()
                 const cdItem: ICountdownItem = {
                     date: cdDate.toDate(),
                     description: event,
                     ownerId: interaction.user.id,
                 }
-                cds.allCountdowns.push(cdItem)
-                DatabaseHelper.updateCountdowns(cds)
-
+                countdowns.allCountdowns.push(cdItem)
+                DatabaseHelper.updateStorage({ countdown: countdowns })
                 this.messageHelper.replyToInteraction(interaction, `Din countdown for *${event}* er satt til ${cdDate.toLocaleString()}`)
             }
         } else if (isPrinting) {
             let sendThisText = ''
-
-            const countdowns = DatabaseHelper.getCountdowns()
 
             const printValues: dateValPair[] = []
             if (countdowns?.allCountdowns?.length < 1) {
@@ -236,8 +238,9 @@ export class DateCommands extends AbstractCommands {
     }
 
     private userHasMaxCountdowns(userId: string) {
-        const cds = DatabaseHelper.getCountdowns()
-        return cds.allCountdowns.filter((c) => c.ownerId === userId).length >= 2
+        const cds = DatabaseHelper.getStorage().countdown
+        if (!cds) return false
+        return cds.allCountdowns.filter((c) => c.ownerId === userId).length >= 1
     }
 
     private findHolidaysInThisWeek(checkForNextWeeksMonday?: boolean) {

@@ -62,9 +62,9 @@ export class WeeklyJobs {
     }
 
     private async deleteOldCountdowns() {
-        const countdowns = DatabaseHelper.getCountdowns()
+        const countdowns = DatabaseHelper.getStorage().countdown
         countdowns.allCountdowns = countdowns.allCountdowns.filter((c) => !DateUtils.dateHasPassed(c.date))
-        DatabaseHelper.updateCountdowns(countdowns)
+        DatabaseHelper.updateStorage({ countdown: countdowns })
     }
 
     private logEvent() {

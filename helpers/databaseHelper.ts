@@ -1,11 +1,12 @@
 //https://openbase.com/js/node-json-db
+import moment from 'moment'
 import { JsonDB } from 'node-json-db'
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
-import { botDataPrefix, ChipsStats, MazariniCountdowns, MazariniUser, RulettStats } from '../interfaces/database/databaseInterface'
+import { botDataPrefix, ChipsStats, MazariniCache, MazariniUser, RulettStats } from '../interfaces/database/databaseInterface'
 
 const db = new JsonDB(new Config('myDataBase', true, true, '/'))
 const folderPrefix = '/users'
-const otherFolderPreifx = '/other'
+const storagePrefix = '/other'
 const botFolder = '/bot'
 const textCommandFolder = '/textCommand'
 
@@ -38,6 +39,29 @@ export class DatabaseHelper {
     static updateUser(userObject: MazariniUser) {
         const objToPush = JSON.stringify(userObject)
         db.push(`${folderPrefix}/${userObject.id}/`, `${objToPush}`)
+    }
+
+    /** Get the cache. Will create and return an empty object if it doesnt exist */
+    static getStorage(): MazariniCache {
+        try {
+            return JSON.parse(db.getData(`${storagePrefix}/`)) as MazariniCache
+        } catch (error: any) {
+            db.push(`${storagePrefix}/`, `${JSON.stringify(this.defaultCache())}`)
+            return JSON.parse(db.getData(`${storagePrefix}/`)) as MazariniCache
+        }
+    }
+
+    /** Directly uppdates the storage with the given props.
+     * Note that this will overwrite existing cache. Any data you want to keep must be added to the partial. Use getCache() to get the current cache value */
+    static updateStorage(props: Partial<MazariniCache>) {
+        const cache = this.getStorage()
+        if (cache) {
+            for (const prop in props) {
+                cache[prop] = props[prop]
+            }
+        }
+        const objToPush = JSON.stringify(cache)
+        db.push(`${storagePrefix}/`, `${objToPush}`)
     }
 
     /** Update the chips stats property of a user stat object. Will set value of property to 1 if not created yet.
@@ -76,57 +100,6 @@ export class DatabaseHelper {
                     },
                 }
             }
-        }
-    }
-
-    static setFerieValue(id: string, key: string, value: string) {
-        db.push(`${otherFolderPreifx}/ferie/${id}/${key}`, `${value}`)
-    }
-    static deleteFerieValue(id: string) {
-        db.delete(`${otherFolderPreifx}/ferie/${id}/`)
-    }
-
-    static getCountdowns(): MazariniCountdowns | undefined {
-        try {
-            const cds = JSON.parse(db.getData(`${otherFolderPreifx}/countdowns/`)) as MazariniCountdowns
-            return cds
-        } catch (error: any) {
-            let data = {} as MazariniCountdowns | string
-            db.push(`${otherFolderPreifx}/countdowns/`, '', false)
-            data = db.getData(`${otherFolderPreifx}/countdowns/`)
-
-            if (!data || data == '') {
-                DatabaseHelper.updateCountdowns({ allCountdowns: [] })
-                return DatabaseHelper.getCountdowns()
-            }
-
-            return undefined
-        }
-    }
-
-    static updateCountdowns(cd: MazariniCountdowns) {
-        const objToPush = JSON.stringify(cd)
-        db.push(`${otherFolderPreifx}/countdowns/`, `${objToPush}`)
-    }
-
-    static deleteCountdownValue(id: string) {
-        const cds = DatabaseHelper.getCountdowns()
-        cds.allCountdowns = cds.allCountdowns.filter((c) => c.ownerId !== id)
-        DatabaseHelper.updateCountdowns(cds)
-    }
-
-    static getAllFerieValues() {
-        return db.getData(`${otherFolderPreifx}/ferie/`)
-    }
-    /** Get a non-user value */
-    static getNonUserValue(id: string, key: string, noInsertions?: boolean) {
-        try {
-            const data = db.getData(`${otherFolderPreifx}/${id}/${key}`)
-            return data
-        } catch (error) {
-            if (noInsertions) return ''
-            db.push(`${otherFolderPreifx}/${id}/${key}`, `0`)
-            return '0'
         }
     }
 
@@ -205,6 +178,12 @@ export class DatabaseHelper {
             shopItems: undefined,
             status: undefined,
             prestige: 0,
+        }
+    }
+
+    static defaultCache(): Partial<MazariniCache> {
+        return {
+            updateTimer: moment().unix(),
         }
     }
 }

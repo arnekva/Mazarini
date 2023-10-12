@@ -103,10 +103,12 @@ export class MessageHelper {
     ): Promise<boolean> {
         const handleError = async (e: any) => {
             let msg: Message<boolean> | undefined
+
             if (typeof messageContent === 'object') msg = await this.sendFormattedMessage(interaction?.channelId, messageContent)
             else msg = await this.sendMessage(interaction?.channelId, `${MentionUtils.mentionUser(interaction.user.id)} ${messageContent}`)
 
             let msgInfo = msg ? `Sendte en separat melding i stedet for interaksjonssvar.` : `Klarte heller ikke sende separat melding som svar`
+            if (options.ephemeral) msgInfo += `\nMelding var ephemeral, men ble sendt public.`
             if (environment !== 'dev') {
                 let commandName: string | undefined = undefined
                 if (interaction.isChatInputCommand()) commandName = interaction.commandName
@@ -277,7 +279,7 @@ export class MessageHelper {
         } else return channel.send({ embeds: [newMessage] })
         return undefined
     }
-    /** @deprecated Use sendMessage */
+
     async sendMessageWithComponents(
         channelID: string,
         components: (
@@ -291,7 +293,7 @@ export class MessageHelper {
         if (textCh) return textCh.send({ components: components })
         return undefined
     }
-    /** @deprecated Use sendMessage */
+
     async sendMessageWithContentAndComponents(
         channelID: string,
         content: string,

@@ -62,6 +62,17 @@ export interface MazariniUser {
     //OUTDATED
 }
 
+/** Values or objects that can be cached. All props must be marked optional */
+export interface MazariniCache {
+    updateTimer: number
+    rocketLeagueTournaments?: any //TODO: TYPE THIS
+    countdown?: MazariniCountdowns
+    ferie?: {
+        id: string
+        value: string // should be a stringifyed ferieItem
+    }[]
+}
+
 export type FavoritePol = {
     id?: string
     longitude?: string
@@ -150,7 +161,7 @@ export interface ICountdownItem {
     description: string
 }
 export interface MazariniCountdowns {
-    allCountdowns: ICountdownItem[]
+    allCountdowns?: ICountdownItem[]
 }
 
 export interface ValuePair {
