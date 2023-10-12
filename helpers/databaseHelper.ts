@@ -53,13 +53,12 @@ export class DatabaseHelper {
 
     /** Directly uppdates the storage with the given props.
      * Note that this will overwrite existing cache. Any data you want to keep must be added to the partial. Use getCache() to get the current cache value */
-    static updateStorage(props: Partial<MazariniCache>) {
+    static updateStorage(props: Partial<Omit<MazariniCache, 'updateTimer'>>) {
         const cache = this.getStorage()
-        if (cache) {
-            for (const prop in props) {
-                cache[prop] = props[prop]
-            }
+        for (const prop in props) {
+            cache[prop] = props[prop]
         }
+        cache.updateTimer = moment(new Date()).unix()
         const objToPush = JSON.stringify(cache)
         db.push(`${storagePrefix}/`, `${objToPush}`)
     }

@@ -59,17 +59,21 @@ export interface MazariniUser {
     daysInJail?: number
     hasBeenRobbed?: boolean
     attemptedJailbreaks?: number
-    //OUTDATED
 }
 
 /** Values or objects that can be cached. All props must be marked optional */
 export interface MazariniCache {
+    /** Timer of when the storage was last updated. Updated automatically when storage is changed */
     updateTimer: number
     rocketLeagueTournaments?: any //TODO: TYPE THIS
+    /** List of countdowns */
     countdown?: MazariniCountdowns
+    /** List of ferier */
     ferie?: {
+        /** Id of user/owner */
         id: string
-        value: string // should be a stringifyed ferieItem
+        /** Stringied feireItem */
+        value: string
     }[]
 }
 

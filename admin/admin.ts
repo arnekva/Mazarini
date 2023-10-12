@@ -167,6 +167,7 @@ export class Admin extends AbstractCommands {
             `\nAntall kommandoer: ${numCommands}` +
             `\nAntall logger: ${numErrorMessages}` +
             `\nAntall servere tilkoblet: ${this.client.guilds.cache.size}` +
+            `\nForrige oppdatering av storage: <t:${DatabaseHelper.getStorage().updateTimer}:R>` +
             `\nKjørt siden: <t:${moment(start).unix()}:R>`
         this.messageHelper.replyToInteraction(interaction, statsReply)
     }
