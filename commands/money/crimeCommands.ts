@@ -350,7 +350,7 @@ export class CrimeCommands extends AbstractCommands {
         } else {
             if (isBribe) {
                 const userChips = prisoner.chips
-                const bribePrice = Math.max(userChips * 0.2, 20000)
+                const bribePrice = Math.max(userChips * 0.2, 10000)
                 const canBribe = jailState !== 'max'
                 if (userChips < bribePrice || !canBribe) {
                     return this.messageHelper.replyToInteraction(

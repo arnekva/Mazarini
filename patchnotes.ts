@@ -6,10 +6,9 @@ import { DatabaseHelper } from './helpers/databaseHelper'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '12.6.3'
-    public static readonly currentPatchNotes =
-        `\n* Fikset fengsling ved /bonk slik at den som blir bonket får straffen` +
-        `\n* Nullstiller nå jailbreakAttempts etter vellykket jailbreak`
+    public static readonly currentVersion = '12.7.0'
+    public static readonly currentPatchNotes = `\n* Du kan nå bribe vaktene med 20% av lommeboken din (men minst 10k) for å få et nytt /jailbreak forsøk`
+
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
