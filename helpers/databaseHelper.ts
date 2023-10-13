@@ -2,7 +2,7 @@
 import moment from 'moment'
 import { JsonDB } from 'node-json-db'
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
-import { botDataPrefix, ChipsStats, MazariniCache, MazariniUser, RulettStats } from '../interfaces/database/databaseInterface'
+import { botDataPrefix, ChipsStats, MazariniStorage, MazariniUser, RulettStats } from '../interfaces/database/databaseInterface'
 
 const db = new JsonDB(new Config('myDataBase', true, true, '/'))
 const folderPrefix = '/users'
@@ -42,18 +42,18 @@ export class DatabaseHelper {
     }
 
     /** Get the cache. Will create and return an empty object if it doesnt exist */
-    static getStorage(): MazariniCache {
+    static getStorage(): MazariniStorage {
         try {
-            return JSON.parse(db.getData(`${storagePrefix}/`)) as MazariniCache
+            return JSON.parse(db.getData(`${storagePrefix}/`)) as MazariniStorage
         } catch (error: any) {
             db.push(`${storagePrefix}/`, `${JSON.stringify(this.defaultCache())}`)
-            return JSON.parse(db.getData(`${storagePrefix}/`)) as MazariniCache
+            return JSON.parse(db.getData(`${storagePrefix}/`)) as MazariniStorage
         }
     }
 
     /** Directly uppdates the storage with the given props.
      * Note that this will overwrite existing cache. Any data you want to keep must be added to the partial. Use getCache() to get the current cache value */
-    static updateStorage(props: Partial<Omit<MazariniCache, 'updateTimer'>>) {
+    static updateStorage(props: Partial<Omit<MazariniStorage, 'updateTimer'>>) {
         const cache = this.getStorage()
         for (const prop in props) {
             cache[prop] = props[prop]
@@ -180,7 +180,7 @@ export class DatabaseHelper {
         }
     }
 
-    static defaultCache(): Partial<MazariniCache> {
+    static defaultCache(): Partial<MazariniStorage> {
         return {
             updateTimer: moment().unix(),
         }

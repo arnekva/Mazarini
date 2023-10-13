@@ -62,7 +62,7 @@ export interface MazariniUser {
 }
 
 /** Values or objects that can be cached. All props must be marked optional */
-export interface MazariniCache {
+export interface MazariniStorage {
     /** Timer of when the storage was last updated. Updated automatically when storage is changed */
     updateTimer: number
     rocketLeagueTournaments?: any //TODO: TYPE THIS
