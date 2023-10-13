@@ -185,15 +185,20 @@ export class JokeCommands extends AbstractCommands {
         const dbUser = DatabaseHelper.getUser(user.id)
         bkCounter = dbUser.bonkCounter
         dbUser.bonkCounter++
-        
+
         bkCounter++
         this.messageHelper.replyToInteraction(
             interaction,
             user.username + ', du har blitt bonket. (' + `${bkCounter} ${bkCounter == 1 ? 'gang' : 'ganger'}) ` + img
         )
         if (textArrays.jailBonkMemeUrls.includes(img)) {
-            const prevSentence = dbUser.daysInJail
-            dbUser.daysInJail = (prevSentence && !isNaN(prevSentence) && prevSentence > 0) ? prevSentence + 1 : 1
+            const prevSentence = dbUser.jail?.daysInJail
+            if (!prevSentence)
+                dbUser.jail = {
+                    daysInJail: 1,
+                    jailState: 'standard',
+                }
+            dbUser.jail.daysInJail = prevSentence && !isNaN(prevSentence) && prevSentence > 0 ? prevSentence + 1 : 1
             dbUser.dailyFreezeCounter = 0
             this.messageHelper.sendMessage(interaction.channelId, ':lock: Du e kje bare bonka, du e faktisk dømt te ein dag i fengsel og :lock:')
         }

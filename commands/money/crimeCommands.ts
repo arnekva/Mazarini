@@ -1,20 +1,11 @@
-import {
-    ActionRowBuilder,
-    ButtonBuilder,
-    ButtonInteraction,
-    ButtonStyle,
-    CacheType,
-    ChatInputCommandInteraction,
-    Client,
-    EmbedBuilder, User
-} from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, User } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { IInteractionElement } from '../../general/commands'
 import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { MessageHelper } from '../../helpers/messageHelper'
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
-import { MazariniUser } from '../../interfaces/database/databaseInterface'
+import { JailState, MazariniUser } from '../../interfaces/database/databaseInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { MentionUtils } from '../../utils/mentionUtils'
 import { RandomUtils } from '../../utils/randomUtils'
@@ -50,7 +41,6 @@ export class CrimeCommands extends AbstractCommands {
     }
 
     private async krig(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, target: User, amount: number) {
-
         const userWallets = CrimeCommands.getUserWallets(interaction.user.id, target.id)
         const hasAmount = !!amount
 
@@ -242,8 +232,8 @@ export class CrimeCommands extends AbstractCommands {
 
         const engager = DatabaseHelper.getUser(interaction.user.id)
         const victim = DatabaseHelper.getUser(target.id)
-        
-        if (await this.handleTheftEdgeCases(interaction,engager,victim,amountAsNum)) return
+
+        if (await this.handleTheftEdgeCases(interaction, engager, victim, amountAsNum)) return
 
         if (this.theftAttemptIsSuccessful(amountAsNum)) {
             engager.chips += amountAsNum
@@ -252,26 +242,43 @@ export class CrimeCommands extends AbstractCommands {
             DatabaseHelper.updateUser(engager)
             DatabaseHelper.updateUser(victim)
             const arneSuperior = await EmojiHelper.getEmoji('arnesuperior', interaction)
-            this.messageHelper.replyToInteraction(interaction, `Hehe det va jo lett ${arneSuperior.id} ` +
-                `\nGz med nye ${TextUtils.formatMoney(amountAsNum)} på konto - oppe i ${TextUtils.formatMoney(engager.chips)} nå`, {ephemeral:true})
+            this.messageHelper.replyToInteraction(
+                interaction,
+                `Hehe det va jo lett ${arneSuperior.id} ` +
+                    `\nGz med nye ${TextUtils.formatMoney(amountAsNum)} på konto - oppe i ${TextUtils.formatMoney(engager.chips)} nå`,
+                { ephemeral: true }
+            )
         } else {
-            engager.daysInJail = 4
+            const prevJailState = engager.jail?.jailState
+            let nextJailState: JailState = 'standard'
+            if (prevJailState === 'none') nextJailState = 'standard'
+            if (prevJailState === 'standard') nextJailState = 'max'
+            if (prevJailState === 'max') nextJailState = 'solitairy'
+            engager.jail = {
+                daysInJail: 4,
+                jailState: nextJailState,
+            }
+
             engager.dailyFreezeCounter = 0
             DatabaseHelper.updateUser(engager)
+            let jailTypeString = ``
+            if (nextJailState === 'max') jailTypeString = '\nDu e nå i Maximum Security, og kan ikkje lenger briba vaktene'
+            if (nextJailState === 'solitairy') jailTypeString = '\nDu e nå i Solitairy Confinement, og kan ikkje lenger rømma'
             const siren = await EmojiHelper.getEmoji('redbluesiren', interaction)
-            let embed = EmbedUtils.createSimpleEmbed(`${siren.id}  Caught in 4K ${siren.id}`
-                                                    ,`${MentionUtils.mentionUser(engager.id)} har blitt tatt i å prøva å stjela ${TextUtils.formatMoney(amountAsNum)} fra ${MentionUtils.mentionUser(victim.id)}` +
-                                                     `\n:lock: Eg dømme deg te ${engager.daysInJail} dager i fengsel :lock:`)
+            let embed = EmbedUtils.createSimpleEmbed(
+                `${siren.id}  Caught in 4K ${siren.id}`,
+                `${MentionUtils.mentionUser(engager.id)} har blitt tatt i å prøva å stjela ${TextUtils.formatMoney(amountAsNum)} fra ${MentionUtils.mentionUser(
+                    victim.id
+                )}` +
+                    `\n:lock: Eg dømme deg te ${engager.jail.daysInJail} dager i fengsel :lock:` +
+                    jailTypeString
+            )
             this.messageHelper.replyToInteraction(interaction, embed)
         }
-        
     }
 
     //returns a bool indicating if the interaction has been handled or not
-    private async handleTheftEdgeCases(
-        interaction: ChatInputCommandInteraction<CacheType>, 
-        engager: MazariniUser, victim: MazariniUser, amount: number
-    ) {
+    private async handleTheftEdgeCases(interaction: ChatInputCommandInteraction<CacheType>, engager: MazariniUser, victim: MazariniUser, amount: number) {
         const victimIsEngager = engager.id === victim.id
         const isNegativeAmount = amount < 0
         const victimHasAmount = victim.chips >= amount
@@ -282,11 +289,13 @@ export class CrimeCommands extends AbstractCommands {
         if (victimIsBotHoie) {
             victim.chips += engager.chips
             engager.chips = 0
-            engager.daysInJail = 1
+            engager.jail.daysInJail = 1
             DatabaseHelper.updateUser(victim)
             DatabaseHelper.updateUser(engager)
             this.messageHelper.replyToInteraction(interaction, `Du prøve å stjela fra meg?? Du mysta nettopp alle chipså dine for det`)
-            delay(5000).then(() => this.messageHelper.sendMessage(interaction.channelId, `:lock: Vet du.. det er faktisk ikke nok straff. Du får en dag i fengsel óg :lock:`)); 
+            delay(5000).then(() =>
+                this.messageHelper.sendMessage(interaction.channelId, `:lock: Vet du.. det er faktisk ikke nok straff. Du får en dag i fengsel óg :lock:`)
+            )
             return true
         } else if (victimIsEngager) {
             engager.chips -= amountOrBalance
@@ -298,65 +307,95 @@ export class CrimeCommands extends AbstractCommands {
             victim.chips += amountOrBalance
             DatabaseHelper.updateUser(engager)
             DatabaseHelper.updateUser(victim)
-            this.messageHelper.replyToInteraction(interaction, `Stjela ${TextUtils.formatMoney(amount)}? Du konne bare vippsa, bro ${kekw.id} \nGz ${MentionUtils.mentionUser(victim.id)}`)
+            this.messageHelper.replyToInteraction(
+                interaction,
+                `Stjela ${TextUtils.formatMoney(amount)}? Du konne bare vippsa, bro ${kekw.id} \nGz ${MentionUtils.mentionUser(victim.id)}`
+            )
             return true
         } else if (!victimHasAmount) {
-            this.messageHelper.replyToInteraction(interaction, `Du prøve å stjela merr enn an har`, {ephemeral:true})
+            this.messageHelper.replyToInteraction(interaction, `Du prøve å stjela merr enn an har`, { ephemeral: true })
             return true
         }
         return false
     }
 
     private theftAttemptIsSuccessful(amount: number) {
-
         // a suiteable 1/x function where the probability of success rapidly approaches a limit of 0
-        const chanceOfSuccess = ((1)/(((amount/1000)/(2))+10.1))*1000 
-        console.log('odds:', chanceOfSuccess);
-        
+        const chanceOfSuccess = (1 / (amount / 1000 / 2 + 10.1)) * 1000
+        console.log('odds:', chanceOfSuccess)
+
         // need a roll with 3 decimals for proper accuracy given a high amount
-        const roll = (RandomUtils.getRandomInteger(0,100000))/1000 
-        console.log('roll:', roll);
-        
+        const roll = RandomUtils.getRandomInteger(0, 100000) / 1000
+        console.log('roll:', roll)
+
         return roll < chanceOfSuccess
     }
 
     private async jailbreak(interaction: ChatInputCommandInteraction<CacheType>) {
         const prisoner = DatabaseHelper.getUser(interaction.user.id)
-        const daysLeftInJail = prisoner?.daysInJail
+        const daysLeftInJail = prisoner?.jail?.daysInJail
+        const isBribe = interaction.options.get('bribe')?.value as boolean
+        const jailState = prisoner.jail?.jailState
 
         if (!daysLeftInJail || isNaN(daysLeftInJail) || daysLeftInJail == 0) {
-            this.messageHelper.replyToInteraction(interaction, `Ka er det du prøve å bryta ud av?`, {ephemeral:true})
-        } else if ((prisoner.attemptedJailbreaks ?? 0) >= CrimeCommands.jailBreakAttempts) {
-            this.messageHelper.replyToInteraction(interaction, `Du har bare ${CrimeCommands.jailBreakAttempts} rømningsforsøk per dag itte fengsling`, {ephemeral:true})
+            this.messageHelper.replyToInteraction(interaction, `Ka er det du prøve å bryta ud av?`, { ephemeral: true })
+        } else if ((prisoner.jail.attemptedJailbreaks ?? 0) >= CrimeCommands.jailBreakAttempts && !isBribe) {
+            this.messageHelper.replyToInteraction(interaction, `Du har bare ${CrimeCommands.jailBreakAttempts} rømningsforsøk per dag itte fengsling`, {
+                ephemeral: true,
+            })
+        } else if (jailState === 'solitairy') {
+            this.messageHelper.replyToInteraction(interaction, `Det går kje an å rømma fra Solitairy Confinement :(`, {
+                ephemeral: true,
+            })
         } else {
-            const prevAttempts = prisoner.attemptedJailbreaks
-            prisoner.attemptedJailbreaks = (prevAttempts && !isNaN(prevAttempts)) ? prevAttempts + 1 : 1
+            if (isBribe) {
+                const userChips = prisoner.chips
+                const bribePrice = Math.max(userChips * 0.2, 20000)
+                const canBribe = jailState !== 'max'
+                if (userChips < bribePrice || !canBribe) {
+                    return this.messageHelper.replyToInteraction(
+                        interaction,
+                        canBribe ? `Du har kje råd te briben.` : 'Du kan kje briba maximum security guards',
+                        {
+                            ephemeral: true,
+                        }
+                    )
+                } else {
+                    prisoner.chips -= bribePrice
+                    DatabaseHelper.updateUser(prisoner)
+                }
+            }
+            const prevAttempts = prisoner.jail.attemptedJailbreaks
+            prisoner.jail.attemptedJailbreaks = prevAttempts && !isNaN(prevAttempts) ? prevAttempts + 1 : 1
             const number1 = RandomUtils.getRandomInteger(1, 6)
             const number2 = RandomUtils.getRandomInteger(1, 6)
             const number1Emoji = (await EmojiHelper.getEmoji(`dice_${number1}`, interaction)).id
             const number2Emoji = (await EmojiHelper.getEmoji(`dice_${number2}`, interaction)).id
-            let message = EmbedUtils.createSimpleEmbed(`:lock: Jailbreak :lock:`
-                ,`${MentionUtils.mentionUser(prisoner.id)} prøvde å rømma fra fengsel, men trilla ${number1Emoji} ${number2Emoji}` +
-                `\nDu har fortsatt ${daysLeftInJail} dager igjen i fengsel`)
+            let message = EmbedUtils.createSimpleEmbed(
+                `:lock: Jailbreak :lock:`,
+                `${MentionUtils.mentionUser(prisoner.id)} prøvde å rømma fra fengsel, men trilla ${number1Emoji} ${number2Emoji}` +
+                    `\nDu har fortsatt ${daysLeftInJail} dager igjen i fengsel`
+            )
             if (number1 === number2) {
-                prisoner.daysInJail = 0
-                prisoner.attemptedJailbreaks = 0
-                message = EmbedUtils.createSimpleEmbed(`:unlock: Jailbreak :unlock:`
-                        ,`${MentionUtils.mentionUser(prisoner.id)} trilla to lige ${number1Emoji} ${number2Emoji} og har rømt fra fengsel!`)
-            } 
+                prisoner.jail.daysInJail = 0
+                prisoner.jail.attemptedJailbreaks = 0
+                message = EmbedUtils.createSimpleEmbed(
+                    `:unlock: Jailbreak :unlock:`,
+                    `${MentionUtils.mentionUser(prisoner.id)} trilla to lige ${number1Emoji} ${number2Emoji} og har rømt fra fengsel!`
+                )
+            }
             DatabaseHelper.updateUser(prisoner)
             this.messageHelper.replyToInteraction(interaction, message)
         }
     }
 
     private async printPrisoners(interaction: ChatInputCommandInteraction<CacheType>) {
-
         let formattedMsg = new EmbedBuilder().setTitle(':lock: Fengsel :lock:')
         const users = DatabaseHelper.getAllUsers()
         let someoneInJail = false
         Object.keys(users).forEach((userID: string) => {
             const user = DatabaseHelper.getUser(userID)
-            const daysLeftInJail = user?.daysInJail
+            const daysLeftInJail = user?.jail?.daysInJail
 
             if (daysLeftInJail && !isNaN(daysLeftInJail) && daysLeftInJail > 0) {
                 someoneInJail = true
@@ -370,7 +409,6 @@ export class CrimeCommands extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, someoneInJail ? formattedMsg : 'Det er ingen i fengsel atm')
     }
 
-    
     getAllInteractions(): IInteractionElement {
         return {
             commands: {
@@ -421,19 +459,8 @@ export class CrimeCommands extends AbstractCommands {
     }
 }
 
-export const illegalCommandsWhileInJail = [
-    'krig',
-    'pickpocket',
-    'KRIG',
-    'KRIG_REMATCH',
-    'vipps',
-    'daily',
-    'gamble',
-    'roll',
-    'rulett',
-    'spin',
-]
+export const illegalCommandsWhileInJail = ['krig', 'pickpocket', 'KRIG', 'KRIG_REMATCH', 'vipps', 'daily', 'gamble', 'roll', 'rulett', 'spin']
 
 function delay(time) {
-    return new Promise(resolve => setTimeout(resolve, time));
-  }
+    return new Promise((resolve) => setTimeout(resolve, time))
+}

@@ -161,7 +161,6 @@ export class DatabaseHelper {
             id: id,
             spinCounter: 0,
             warningCounter: 0,
-            displayName: name,
             ATHspin: '00',
             activisionUserString: undefined,
             birthday: undefined,

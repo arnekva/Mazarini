@@ -3,6 +3,7 @@ import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
 import { MentionUtils } from '../utils/mentionUtils'
+import { UserUtils } from '../utils/userUtils'
 
 export class DailyJobs {
     private messageHelper: MessageHelper
@@ -58,7 +59,10 @@ export class DailyJobs {
             const isBirthdayToday = DateUtils.isToday(new Date(date))
 
             if (isBirthdayToday) {
-                this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.GENERAL, `Gratulerer med dagen ${user.displayName}!`)
+                this.messageHelper.sendMessage(
+                    MentionUtils.CHANNEL_IDs.GENERAL,
+                    `Gratulerer med dagen ${UserUtils.findMemberByUserID(user.id, this.messageHelper.msgClient.guilds[0])}!`
+                )
             }
         })
     }
@@ -68,12 +72,15 @@ export class DailyJobs {
 
         Object.keys(brukere).forEach((userID: string) => {
             const user = DatabaseHelper.getUser(userID)
-            const daysLeftInJail = user?.daysInJail
+            const daysLeftInJail = user?.jail.daysInJail
 
             if (daysLeftInJail && !isNaN(daysLeftInJail) && daysLeftInJail > 0) {
-                user.daysInJail = user.daysInJail ? --user.daysInJail : 0
+                user.jail.daysInJail = user.jail.daysInJail ? --user.jail.daysInJail : 0
             }
-            user.attemptedJailbreaks = 0
+            if (!user.jail?.daysInJail) {
+                user.jail.jailState = 'none'
+            }
+            user.jail.attemptedJailbreaks = 0
             DatabaseHelper.updateUser(user)
         })
     }

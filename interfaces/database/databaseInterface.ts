@@ -9,6 +9,13 @@ export interface userValPair {
 }
 
 export type botDataPrefix = 'status' | 'statusType' | 'version' | 'commit-id'
+export type JailState = 'solitairy' | 'max' | 'standard' | 'none'
+
+export interface UserJail {
+    daysInJail?: number
+    attemptedJailbreaks?: number
+    jailState?: JailState
+}
 
 export interface MazariniUser {
     /** User id */
@@ -46,8 +53,6 @@ export interface MazariniUser {
     rocketLeagueStats?: rocketLeagueDbData
     /** Username for rocket league. username;platform */
     rocketLeagueUserString?: string
-    /** Displayname */
-    displayName: string
     inventory?: any[]
     debuff?: any
     dailyClaim?: number
@@ -56,9 +61,8 @@ export interface MazariniUser {
     prestige?: number
     favoritePol?: FavoritePol
     userStats?: UserStats
-    daysInJail?: number
     hasBeenRobbed?: boolean
-    attemptedJailbreaks?: number
+    jail?: UserJail
 }
 
 /** Values or objects that can be cached. All props must be marked optional */

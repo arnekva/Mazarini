@@ -8,7 +8,7 @@ import {
     InteractionType,
     Message,
     ModalSubmitInteraction,
-    StringSelectMenuInteraction
+    StringSelectMenuInteraction,
 } from 'discord.js'
 import { Admin } from '../admin/admin'
 import { environment } from '../client-env'
@@ -91,11 +91,7 @@ export class CommandRunner {
             }
         } else if (this.isLegalChannel(interaction) && this.checkIfBlockedByJail(interaction)) {
             if (interaction.isRepliable()) {
-                this.messageHelper.replyToInteraction(
-                    interaction,
-                    `Du e i fengsel, bro`,
-                    { ephemeral: true }
-                )
+                this.messageHelper.replyToInteraction(interaction, `Du e i fengsel, bro`, { ephemeral: true })
             }
         } else if (this.isLegalChannel(interaction)) {
             let hasAcknowledged = false
@@ -164,7 +160,7 @@ export class CommandRunner {
 
     checkIfBlockedByJail(interaction: Interaction<CacheType>) {
         const user = DatabaseHelper.getUser(interaction.user.id)
-        if (user.daysInJail && user.daysInJail > 0) {
+        if (user.jail?.daysInJail && user.jail?.daysInJail > 0) {
             if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
                 return illegalCommandsWhileInJail.includes(interaction.commandName)
             } else if (interaction.isButton() || interaction.isStringSelectMenu() || interaction.type === InteractionType.ModalSubmit) {

@@ -8,7 +8,7 @@ import {
     Client,
     EmbedBuilder,
     SelectMenuComponentOptionData,
-    StringSelectMenuInteraction
+    StringSelectMenuInteraction,
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { IInteractionElement } from '../general/commands'
@@ -69,7 +69,7 @@ export class UserCommands extends AbstractCommands {
                 const user = DatabaseHelper.getUser(key)
                 const status = user?.status
                 if (status && status !== 'undefined') {
-                    const name = UserUtils.findUserById(key, interaction)?.username ?? user.displayName ?? 'Ukjent brukernavn'
+                    const name = UserUtils.findUserById(key, interaction)?.username ?? 'Ukjent brukernavn'
                     embed.addFields({ name: name, value: status })
                 }
             })

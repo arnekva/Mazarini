@@ -360,4 +360,9 @@ export class MessageHelper {
     suppressEmbeds(message: Message) {
         message.suppressEmbeds(true)
     }
+
+    //TODO: Refactor this
+    get msgClient() {
+        return this.client
+    }
 }
