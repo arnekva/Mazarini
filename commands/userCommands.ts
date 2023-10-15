@@ -63,7 +63,7 @@ export class UserCommands extends AbstractCommands {
 
             this.messageHelper.replyToInteraction(interaction, embed)
         } else if (isVis) {
-            const val = DatabaseHelper.getAllUsers()
+            const val = DatabaseHelper.getAllUserIdsAsObject()
             const embed = new EmbedBuilder().setTitle('Statuser')
             Object.keys(val).forEach((key) => {
                 const user = DatabaseHelper.getUser(key)

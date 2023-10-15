@@ -132,12 +132,23 @@ export class DatabaseHelper {
         return data
     }
 
-    static getAllUsers() {
+    /**
+     * This returns an object with all the id's as keys.
+     * @deprecated Use getAllUsers()
+     */
+    static getAllUserIdsAsObject() {
         return db.getData('/users')
     }
 
+    /** Get a list of all database users */
+    static getAllUsers(): MazariniUser[] {
+        const users = db.getData('/users')
+        const typedUsersList = Object.values(users) as MazariniUser[]
+        return typedUsersList
+    }
+
     static deleteSpecificPrefixValues(prefix: keyof MazariniUser) {
-        const users = this.getAllUsers()
+        const users = this.getAllUserIdsAsObject()
         Object.keys(users).forEach((key) => {
             const user = this.getUser(key)
 

@@ -391,7 +391,7 @@ export class CrimeCommands extends AbstractCommands {
 
     private async printPrisoners(interaction: ChatInputCommandInteraction<CacheType>) {
         let formattedMsg = new EmbedBuilder().setTitle(':lock: Fengsel :lock:')
-        const users = DatabaseHelper.getAllUsers()
+        const users = DatabaseHelper.getAllUserIdsAsObject()
         let someoneInJail = false
         Object.keys(users).forEach((userID: string) => {
             const user = DatabaseHelper.getUser(userID)
