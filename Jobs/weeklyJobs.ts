@@ -19,12 +19,11 @@ export class WeeklyJobs {
         this.deleteOldCountdowns()
         // this.logEvent()
     }
-    private async awardWeeklyChips() {
-        const brukere = await DatabaseHelper.getAllUsers()
-        Object.keys(brukere).forEach((userID: string) => {
-            const currUser = DatabaseHelper.getUser(userID)
-            currUser.chips += 1000
-            DatabaseHelper.updateUser(currUser)
+    private awardWeeklyChips() {
+        const brukere = DatabaseHelper.getAllUsers()
+        brukere.forEach((user) => {
+            user.chips += 1500
+            DatabaseHelper.updateUser(user)
         })
     }
     private async checkPoletHours() {
