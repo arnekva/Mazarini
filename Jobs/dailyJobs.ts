@@ -21,7 +21,7 @@ export class DailyJobs {
     }
 
     private validateAndResetDailyClaims() {
-        const brukere = DatabaseHelper.getAllUsers()
+        const brukere = DatabaseHelper.getAllUserIdsAsObject()
         Object.keys(brukere).forEach((userID: string) => {
             const user = DatabaseHelper.getUser(userID)
 
@@ -47,7 +47,7 @@ export class DailyJobs {
     }
 
     private checkForUserBirthdays() {
-        const brukere = DatabaseHelper.getAllUsers()
+        const brukere = DatabaseHelper.getAllUserIdsAsObject()
 
         Object.keys(brukere).forEach((userID: string) => {
             const user = DatabaseHelper.getUser(userID)
@@ -68,11 +68,9 @@ export class DailyJobs {
     }
 
     private updateJailAndJailbreakCounters() {
-        const brukere = DatabaseHelper.getAllUsers()
-
-        Object.keys(brukere).forEach((userID: string) => {
-            const user = DatabaseHelper.getUser(userID)
-            const daysLeftInJail = user?.jail.daysInJail
+        const users = DatabaseHelper.getAllUsers()
+        users.forEach((user) => {
+            const daysLeftInJail = user.jail?.daysInJail
 
             if (daysLeftInJail && !isNaN(daysLeftInJail) && daysLeftInJail > 0) {
                 user.jail.daysInJail = user.jail.daysInJail ? --user.jail.daysInJail : 0
