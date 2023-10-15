@@ -108,7 +108,7 @@ export class MessageHelper {
             else msg = await this.sendMessage(interaction?.channelId, `${MentionUtils.mentionUser(interaction.user.id)} ${messageContent}`)
 
             let msgInfo = msg ? `Sendte en separat melding i stedet for interaksjonssvar.` : `Klarte heller ikke sende separat melding som svar`
-            if (options.ephemeral) msgInfo += `\nMelding var ephemeral, men ble sendt public.`
+            if (options?.ephemeral) msgInfo += `\nMelding var ephemeral, men ble sendt public.`
             if (environment !== 'dev') {
                 let commandName: string | undefined = undefined
                 if (interaction.isChatInputCommand()) commandName = interaction.commandName
