@@ -25,9 +25,7 @@ import { ErrorHandler } from './handlers/errorHandler'
 import { ClientHelper } from './helpers/clientHelper'
 import { DatabaseHelper } from './helpers/databaseHelper'
 import { MessageHelper } from './helpers/messageHelper'
-import { DailyJobs } from './Jobs/dailyJobs'
 import { JobScheduler } from './Jobs/jobScheduler'
-import { WeeklyJobs } from './Jobs/weeklyJobs'
 import { PatchNotes } from './patchnotes'
 import { ArrayUtils } from './utils/arrayUtils'
 import { MentionUtils } from './utils/mentionUtils'
@@ -155,12 +153,6 @@ export class MazariniClient {
             if (environment === 'dev') {
                 //Uncomment to run command creation
                 // CommandBuilder.createCommands(client)
-            }
-            if (environment === 'prod') {
-                const jobs = new DailyJobs(this.messageHelper)
-                const jobs2 = new WeeklyJobs(this.messageHelper)
-                jobs.runJobs()
-                jobs2.runJobs()
             }
 
             this.errorHandler.launchBusListeners()
