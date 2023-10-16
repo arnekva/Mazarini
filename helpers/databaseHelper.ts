@@ -143,7 +143,7 @@ export class DatabaseHelper {
     /** Get a list of all database users */
     static getAllUsers(): MazariniUser[] {
         const users = db.getData('/users')
-        const typedUsersList = Object.values(users) as MazariniUser[]
+        const typedUsersList = Object.values(users).map((u: string) => JSON.parse(u)) as MazariniUser[]
         return typedUsersList
     }
 
