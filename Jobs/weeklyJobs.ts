@@ -22,7 +22,7 @@ export class WeeklyJobs {
     private awardWeeklyChips() {
         const brukere = DatabaseHelper.getAllUsers()
         brukere.forEach((user) => {
-            user.chips += 1500
+            if (user.chips) user.chips += 1500
             DatabaseHelper.updateUser(user)
         })
     }

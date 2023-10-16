@@ -71,15 +71,16 @@ export class DailyJobs {
         const users = DatabaseHelper.getAllUsers()
         users.forEach((user) => {
             const daysLeftInJail = user.jail?.daysInJail
-
-            if (daysLeftInJail && !isNaN(daysLeftInJail) && daysLeftInJail > 0) {
-                user.jail.daysInJail = user.jail.daysInJail ? --user.jail.daysInJail : 0
+            if (user.jail) {
+                if (daysLeftInJail && !isNaN(daysLeftInJail) && daysLeftInJail > 0) {
+                    user.jail.daysInJail = user.jail.daysInJail ? --user.jail.daysInJail : 0
+                }
+                if (!user.jail?.daysInJail) {
+                    user.jail.jailState = 'none'
+                }
+                user.jail.attemptedJailbreaks = 0
+                DatabaseHelper.updateUser(user)
             }
-            if (!user.jail?.daysInJail) {
-                user.jail.jailState = 'none'
-            }
-            user.jail.attemptedJailbreaks = 0
-            DatabaseHelper.updateUser(user)
         })
     }
 
