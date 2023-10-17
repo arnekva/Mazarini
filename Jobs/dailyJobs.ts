@@ -79,6 +79,7 @@ export class DailyJobs {
                     user.jail.jailState = 'none'
                 }
                 user.jail.attemptedJailbreaks = 0
+                user.jail.timesJailedToday = 0
                 DatabaseHelper.updateUser(user)
             }
         })

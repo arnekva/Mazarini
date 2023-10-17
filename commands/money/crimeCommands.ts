@@ -251,12 +251,15 @@ export class CrimeCommands extends AbstractCommands {
         } else {
             const prevJailState = engager.jail?.jailState
             let nextJailState: JailState = 'standard'
-            if (prevJailState === 'none') nextJailState = 'standard'
-            if (prevJailState === 'standard') nextJailState = 'max'
-            if (prevJailState === 'max') nextJailState = 'solitairy'
+            if (engager.jail?.timesJailedToday > 0) {
+                if (prevJailState === 'none') nextJailState = 'standard'
+                if (prevJailState === 'standard') nextJailState = 'max'
+                if (prevJailState === 'max') nextJailState = 'solitairy'
+            }
             engager.jail = {
                 daysInJail: 4,
                 jailState: nextJailState,
+                timesJailedToday: ++engager.jail.timesJailedToday,
             }
 
             engager.dailyFreezeCounter = 0
@@ -289,7 +292,9 @@ export class CrimeCommands extends AbstractCommands {
         if (victimIsBotHoie) {
             victim.chips += engager.chips
             engager.chips = 0
+            if (!engager.jail) engager.jail = {}
             engager.jail.daysInJail = 1
+            engager.jail.timesJailedToday = ++engager.jail.timesJailedToday
             DatabaseHelper.updateUser(victim)
             DatabaseHelper.updateUser(engager)
             this.messageHelper.replyToInteraction(interaction, `Du prøve å stjela fra meg?? Du mysta nettopp alle chipså dine for det`)

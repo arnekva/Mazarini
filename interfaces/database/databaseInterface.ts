@@ -12,9 +12,14 @@ export type botDataPrefix = 'status' | 'statusType' | 'version' | 'commit-id'
 export type JailState = 'solitairy' | 'max' | 'standard' | 'none'
 
 export interface UserJail {
+    /** Days remaining of sentence */
     daysInJail?: number
+    /** Counter of attempted jailbreaks current day. Resets with daily jobs */
     attemptedJailbreaks?: number
+    /** Current jail state - standard, max or solitairy. Defines what is allowed to do (i.e. bribe, jailbreak) */
     jailState?: JailState
+    /** Counter for how many times a user has been jailed today. Used to calculate next sentence state */
+    timesJailedToday?: number
 }
 
 export interface MazariniUser {

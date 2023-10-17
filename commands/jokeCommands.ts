@@ -198,7 +198,9 @@ export class JokeCommands extends AbstractCommands {
                     daysInJail: 1,
                     jailState: 'standard',
                 }
+            if (!dbUser.jail) dbUser.jail = {}
             dbUser.jail.daysInJail = prevSentence && !isNaN(prevSentence) && prevSentence > 0 ? prevSentence + 1 : 1
+
             dbUser.dailyFreezeCounter = 0
             this.messageHelper.sendMessage(interaction.channelId, ':lock: Du e kje bare bonka, du e faktisk dømt te ein dag i fengsel og :lock:')
         }

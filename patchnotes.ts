@@ -6,8 +6,8 @@ import { DatabaseHelper } from './helpers/databaseHelper'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '12.7.1'
-    public static readonly currentPatchNotes = `\n* Diverse feilfikser` + `\n* Den ukentlige NAV-betalingen er justert for inflasjon og ligger nå på 1500 chips`
+    public static readonly currentVersion = '12.7.2'
+    public static readonly currentPatchNotes = `\n* Du skal ikke lenger havne i max hvis du ikke har vært fengslet tidligere på dagen`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
