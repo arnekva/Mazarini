@@ -1,9 +1,8 @@
 export namespace textArrays {
-
     export const jailBonkMemeUrls = [
-        'https://i.kym-cdn.com/photos/images/newsfeed/001/842/713/b73.jpg', 
-        'https://i.redd.it/s897cyurzpe51.jpg', 
-        'https://i.kym-cdn.com/photos/images/original/002/032/806/d6b.jpg', 
+        'https://i.kym-cdn.com/photos/images/newsfeed/001/842/713/b73.jpg',
+        'https://i.redd.it/s897cyurzpe51.jpg',
+        'https://i.kym-cdn.com/photos/images/original/002/032/806/d6b.jpg',
         'https://img-9gag-fun.9cache.com/photo/aV70r4O_460s.jpg',
     ]
     export const bonkMemeUrls = [
@@ -35,8 +34,6 @@ export namespace textArrays {
         'https://i.kym-cdn.com/photos/images/original/001/878/184/c46',
         'https://i.redd.it/8tgtwu30fx761.jpg',
     ]
-
-    
 
     export const asciiEmojies = [
         '(ﾉ´ з `)ノ',
@@ -81,19 +78,18 @@ export namespace textArrays {
     ]
 
     export const bentHoieLines = [
-        'Jaja, fina vêre då',
         'Ka du tagge meg for?',
-        'Klare for udepils eller?',
-        'Gidde du sedda på Sommartid av Guddfaren?',
         'Har kje tid te å svara, ska ud me mordi',
-        'Fuck off, eg e ude å fyre',
+        'Fuck off, e ude å fyre',
         '💩',
-        'https://media.tenor.com/images/a1505c6e6d37aa2b7c5953741c0177dc/tenor.gif',
-        'Du havna nettopp bakerst i vaksinekøen pga den taggen der',
         'Någen så kan oppdatera meg på tennis-fronten her, faen ka?',
         'E på date me mor te Eivind atm, kan kje svara',
         'Har dokkor hørt om Gustav Vigeland?',
         'Hæ, pølse?',
+        'Fyre deg',
+        'Fyre deg OG mordi',
+        'hold kjeft bror, tagge du meg ein gang te fyre eg deg',
+        'Trodde det va det stygga tryne ditt eg såg, faen gjør du her?',
     ]
 
     export const emojiesList = [
