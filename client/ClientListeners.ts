@@ -1,6 +1,8 @@
 import { ClientEvents } from 'discord.js'
 
-/** NOT IN USE */
+/** NOT IN USE
+ *  Testing sub-properties and functions
+ */
 export class ClientListeners {
     listeners = {
         on: () => {

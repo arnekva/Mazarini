@@ -28,15 +28,21 @@ import { MessageHelper } from '../helpers/messageHelper'
 import { JobScheduler } from '../Jobs/jobScheduler'
 import { MazariniBot } from '../main'
 import { ArrayUtils } from '../utils/arrayUtils'
+import { CommandBuilder } from '../utils/commandBuilder/commandBuilder'
 import { MentionUtils } from '../utils/mentionUtils'
 import { textArrays } from '../utils/textArrays'
 import { UserUtils } from '../utils/userUtils'
 const Discord = require('discord.js')
 
+/** Extension of Discord Client with extra properties like MessageHelper */
 export class MazariniClient extends Client {
+    /** Helper for sending and dealing with messages */
     private msgHelper: MessageHelper
+    /** Handles commands and runs the functions attached to them */
     private commandRunner: CommandRunner
+    /** Schedules timed jobs. Handled in constructor for now */
     private jobScheduler: JobScheduler
+    /** Sets up listeners on pm2 process and will log any activity to the log channel */
     private errorHandler: ErrorHandler
     constructor() {
         super({
@@ -64,6 +70,8 @@ export class MazariniClient extends Client {
         this.jobScheduler = new JobScheduler(this.msgHelper)
         this.errorHandler = new ErrorHandler(this.msgHelper)
     }
+
+    /** Starts property listeners for client.  */
     setupListeners() {
         this.on('ready', async () => {
             console.log(
@@ -74,7 +82,6 @@ export class MazariniClient extends Client {
                     day: 'numeric',
                 })} ${new Date().toLocaleTimeString('nb')} !`
             )
-
             let msg = 'Boten er nå live i production mode. '
 
             if (process.env['--restartedForGit'] || process.argv.includes('--restartedForGit')) {
@@ -118,11 +125,6 @@ export class MazariniClient extends Client {
 
             ClientHelper.setStatusFromStorage(this)
             PatchNotes.compareAndSendPatchNotes(this.msgHelper)
-
-            if (environment === 'dev') {
-                //Uncomment to run command creation
-                // CommandBuilder.createCommands(client)
-            }
 
             this.errorHandler.launchBusListeners()
         })
@@ -245,6 +247,14 @@ export class MazariniClient extends Client {
         this.on('error', function (error: Error) {
             this.messageHelper.sendLogMessage('En feilmelding ble fanget opp. Error: \n ' + error)
         })
+    }
+
+    /** Run this to create slash commands from CommandBuilder. Will only run in dev mode */
+    createSlashCommands() {
+        if (environment === 'dev') {
+            //Uncomment to run command creation
+            CommandBuilder.createCommands(this)
+        }
     }
 
     get messageHelper() {
