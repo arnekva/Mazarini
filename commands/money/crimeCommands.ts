@@ -383,7 +383,7 @@ export class CrimeCommands extends AbstractCommands {
             )
             if (number1 === number2) {
                 prisoner.jail.daysInJail = 0
-                prisoner.jail.attemptedJailbreaks = 0
+                prisoner.jail.attemptedJailbreaks += 1
                 message = EmbedUtils.createSimpleEmbed(
                     `:unlock: Jailbreak :unlock:`,
                     `${MentionUtils.mentionUser(prisoner.id)} trilla to lige ${number1Emoji} ${number2Emoji} og har rømt fra fengsel!`
