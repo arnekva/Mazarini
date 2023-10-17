@@ -15,6 +15,7 @@ import { GamblingCommands } from '../commands/money/gamblingCommands'
 import { MoneyCommands } from '../commands/money/moneyCommands'
 import { Music } from '../commands/musicCommands'
 import { NameCommands } from '../commands/nameCommands'
+import { PatchNotes } from '../commands/patchnotes/patchnotes'
 import { PoletCommands } from '../commands/poletCommands'
 import { PollCommands } from '../commands/pollcommands'
 import { SoundCommands } from '../commands/soundCommands'
@@ -25,7 +26,6 @@ import { TextCommands } from '../commands/textCommands'
 import { UserCommands } from '../commands/userCommands'
 import { WarzoneCommands } from '../commands/warzoneCommands'
 import { Weather } from '../commands/weatherCommands'
-import { PatchNotes } from '../patchnotes'
 
 export interface IInteractionCommand<T> {
     commandName: string

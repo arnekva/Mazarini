@@ -1,16 +1,17 @@
 import { CacheType, ChatInputCommandInteraction } from 'discord.js'
-import { AbstractCommands } from './Abstracts/AbstractCommand'
-import { environment } from './client-env'
-import { MazariniClient } from './client/MazariniClient'
-import { IInteractionElement } from './general/commands'
-import { DatabaseHelper } from './helpers/databaseHelper'
-import { MessageHelper } from './helpers/messageHelper'
-import { MentionUtils } from './utils/mentionUtils'
+import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { environment } from '../../client-env'
+import { MazariniClient } from '../../client/MazariniClient'
+import { IInteractionElement } from '../../general/commands'
+import { DatabaseHelper } from '../../helpers/databaseHelper'
+import { MessageHelper } from '../../helpers/messageHelper'
+import { MentionUtils } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
     public static readonly currentVersion = '13.0.0'
-    public static readonly currentPatchNotes = 
-    `\n* Opprettet MazariniClient som extender DiscordClient` +
-    `\n* AbstractCommands er refaktorert til å ikke lenger ha behov for egen instanse av messageHelper` 
+    public static readonly currentPatchNotes =
+        `\n* Opprettet MazariniClient som extender DiscordClient` +
+        `\n* Refaktorert main.ts. MazariniClient håndterer nå setup av listeners` +
+        `\n* AbstractCommands er refaktorert til å ikke lenger ha behov for egen instanse av messageHelper. Den ligger nå i client, med en getter for å fortsatt kunne gjøre this.messageHelper`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
