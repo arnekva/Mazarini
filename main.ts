@@ -37,6 +37,7 @@ export class MazariniBot {
     setupClient(client: MazariniClient) {
         moment.updateLocale('nb', {})
         this.client.setupListeners()
+        // this.client.createSlashCommands()
     }
 
     testContext() {
