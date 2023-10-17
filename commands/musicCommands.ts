@@ -1,9 +1,9 @@
-import { CacheType, ChatInputCommandInteraction, Client, Interaction, User } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Interaction, User } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { lfKey } from '../client-env'
+import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
-import { MessageHelper } from '../helpers/messageHelper'
 import { EmbedUtils } from '../utils/embedUtils'
 import { TextUtils } from '../utils/textUtils'
 const fetch = require('node-fetch')
@@ -60,8 +60,8 @@ export interface IMusicData {
 }
 
 export class Music extends AbstractCommands {
-    constructor(client: Client, messageHelper: MessageHelper) {
-        super(client, messageHelper)
+    constructor(client: MazariniClient) {
+        super(client)
     }
 
     private readonly baseUrl = 'http://ws.audioscrobbler.com/2.0/'

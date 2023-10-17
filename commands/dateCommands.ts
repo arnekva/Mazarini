@@ -1,10 +1,10 @@
-import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js'
 import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
-import { MessageHelper } from '../helpers/messageHelper'
 import { ferieItem, ICountdownItem } from '../interfaces/database/databaseInterface'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { dateRegex, DateUtils, timeRegex } from '../utils/dateUtils'
@@ -19,8 +19,8 @@ export interface dateValPair {
 }
 
 export class DateCommands extends AbstractCommands {
-    constructor(client: Client, messageHelper: MessageHelper) {
-        super(client, messageHelper)
+    constructor(client: MazariniClient) {
+        super(client)
     }
     private setReminder(interaction: ChatInputCommandInteraction<CacheType>) {
         const timeArray = (interaction.options.get('tid')?.value as string).split(':')

@@ -1,9 +1,9 @@
-import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, TextChannel } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, EmbedBuilder, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'
+import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
-import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { RandomUtils } from '../utils/randomUtils'
 import { SoundUtils } from '../utils/soundUtils'
@@ -87,8 +87,8 @@ function getValidDropCoordinate(xCircleCenter: number, yCircleCenter: number): d
 }
 
 export class GameCommands extends AbstractCommands {
-    constructor(client: Client, messageHelper: MessageHelper) {
-        super(client, messageHelper)
+    constructor(client: MazariniClient) {
+        super(client)
     }
 
     private async findDropLocation(interaction: ChatInputCommandInteraction<CacheType>) {

@@ -1,4 +1,4 @@
-import { MazariniClient } from './main'
+import { MazariniBot } from './main'
 
-const mazarini = new MazariniClient()
-mazarini.initClient()
+const mazarini = new MazariniBot()
+mazarini.initBot()

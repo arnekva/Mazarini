@@ -1,8 +1,8 @@
-import { ButtonInteraction, CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
+import { ButtonInteraction, CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
 import { EmojiHelper } from '../helpers/emojiHelper'
-import { MessageHelper } from '../helpers/messageHelper'
 import { SlashCommandHelper } from '../helpers/slashCommandHelper'
 const deckOfCards = require('deckofcards')
 
@@ -17,8 +17,8 @@ export class CardCommands extends AbstractCommands {
     private deck: any
     private aceValue: 1 | 14 = 14
 
-    constructor(client: Client, messageHelper: MessageHelper) {
-        super(client, messageHelper)
+    constructor(client: MazariniClient) {
+        super(client)
         this.deck = new deckOfCards.Deck()
     }
 

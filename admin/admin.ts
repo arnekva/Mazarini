@@ -1,24 +1,15 @@
 import { exec } from 'child_process'
-import {
-    ActivityType,
-    APIInteractionGuildMember,
-    CacheType,
-    ChatInputCommandInteraction,
-    Client,
-    GuildMember,
-    ModalSubmitInteraction,
-    TextChannel,
-} from 'discord.js'
+import { ActivityType, APIInteractionGuildMember, CacheType, ChatInputCommandInteraction, GuildMember, ModalSubmitInteraction, TextChannel } from 'discord.js'
 import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'
+import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
 import { LockingHandler } from '../handlers/lockingHandler'
 import { ClientHelper } from '../helpers/clientHelper'
 import { DatabaseHelper } from '../helpers/databaseHelper'
-import { MessageHelper } from '../helpers/messageHelper'
 import { dbPrefix, prefixList } from '../interfaces/database/databaseInterface'
-import { MazariniClient } from '../main'
+import { MazariniBot } from '../main'
 import { MentionUtils } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
 
@@ -28,8 +19,8 @@ const { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = req
 const pm2 = require('pm2')
 
 export class Admin extends AbstractCommands {
-    constructor(client: Client, messageHelper: MessageHelper) {
-        super(client, messageHelper)
+    constructor(client: MazariniClient) {
+        super(client)
     }
 
     private setSpecificValue(interaction: ChatInputCommandInteraction<CacheType>): void {
@@ -148,11 +139,11 @@ export class Admin extends AbstractCommands {
     }
 
     private getBotStatistics(interaction: ChatInputCommandInteraction<CacheType>) {
-        const start = MazariniClient.startTime
-        const numMessages = MazariniClient.numMessages
-        const numMessagesFromBot = MazariniClient.numMessagesFromBot
-        const numErrorMessages = MazariniClient.numMessagesNumErrorMessages
-        const numCommands = MazariniClient.numCommands
+        const start = MazariniBot.startTime
+        const numMessages = MazariniBot.numMessages
+        const numMessagesFromBot = MazariniBot.numMessagesFromBot
+        const numErrorMessages = MazariniBot.numMessagesNumErrorMessages
+        const numCommands = MazariniBot.numCommands
         console.log(moment(start).unix())
 
         const statsReply =
@@ -230,11 +221,11 @@ export class Admin extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, `${user.username} har mottatt en ${type} reward på ${chips} på grunn av *${reason}*`)
         DatabaseHelper.updateStorage({
             rocketLeagueTournaments: [
-                { 
-                    mode: "2v2",
-                    startsAt: "dato"
-                }
-            ]
+                {
+                    mode: '2v2',
+                    startsAt: 'dato',
+                },
+            ],
         })
     }
 

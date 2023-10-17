@@ -24,6 +24,7 @@ import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { UserUtils } from '../utils/userUtils'
 import { Commands, IInteractionCommand } from './commands'
+import { MazariniClient } from '../client/MazariniClient'
 const fetch = require('node-fetch')
 
 export class CommandRunner {
@@ -34,9 +35,9 @@ export class CommandRunner {
     polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê|å|æ|ê|è|é|à|á)*(ls)(e|a|å|o|i)|(pause)|(🌭)|(hotdog)|(sausage)|(hot-dog)/gi)
     helgeRegex = new RegExp(/(helg|Helg|hælj|hælg)(å|en|ene|a|e|æ)*|(weekend)/gi)
 
-    constructor(client: Client, messageHelper: MessageHelper) {
+    constructor(client: MazariniClient, messageHelper: MessageHelper) {
         this.messageHelper = messageHelper
-        this.commands = new Commands(client, messageHelper)
+        this.commands = new Commands(client)
     }
     async runCommands(message: Message) {
         try {

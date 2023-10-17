@@ -18,6 +18,7 @@ export class DatabaseHelper {
      */
     static getUser(userID: string): MazariniUser {
         // { [key: string]: MazariniUser }
+
         try {
             return JSON.parse(db.getData(`${folderPrefix}/${userID}/`)) as MazariniUser
         } catch (error: any) {

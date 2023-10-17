@@ -1,5 +1,6 @@
-import { ButtonInteraction, CacheType, ChatInputCommandInteraction, Client, ModalSubmitInteraction, StringSelectMenuInteraction } from 'discord.js'
+import { ButtonInteraction, CacheType, ChatInputCommandInteraction, ModalSubmitInteraction, StringSelectMenuInteraction } from 'discord.js'
 import { Admin } from '../admin/admin'
+import { MazariniClient } from '../client/MazariniClient'
 import { TrelloCommands } from '../commands/bot/trelloCommands'
 import { CardCommands } from '../commands/cardCommands'
 import { DateCommands } from '../commands/dateCommands'
@@ -24,7 +25,6 @@ import { TextCommands } from '../commands/textCommands'
 import { UserCommands } from '../commands/userCommands'
 import { WarzoneCommands } from '../commands/warzoneCommands'
 import { Weather } from '../commands/weatherCommands'
-import { MessageHelper } from '../helpers/messageHelper'
 import { PatchNotes } from '../patchnotes'
 
 export interface IInteractionCommand<T> {
@@ -47,8 +47,8 @@ export interface IInteractionElement {
 }
 
 export class Commands {
-    private client: Client
-    private messageHelper: MessageHelper
+    private client: MazariniClient
+
     private gameCommands: GameCommands
     private spinner: Spinner
     private adminCommands: Admin
@@ -76,36 +76,35 @@ export class Commands {
     private trelloCommands: TrelloCommands
     private pollCommands: PollCommands
 
-    constructor(client: Client, messageHelper: MessageHelper) {
+    constructor(client: MazariniClient) {
         this.client = client
-        this.messageHelper = messageHelper
-        this.gameCommands = new GameCommands(this.client, this.messageHelper)
-        this.spinner = new Spinner(this.client, this.messageHelper)
-        this.adminCommands = new Admin(this.client, this.messageHelper)
-        this.gamblingCommands = new GamblingCommands(this.client, this.messageHelper)
-        this.crimeCommands = new CrimeCommands(this.client, this.messageHelper)
-        this.moneyCommands = new MoneyCommands(this.client, this.messageHelper)
-        this.dateCommands = new DateCommands(this.client, this.messageHelper)
-        this.weatherCommands = new Weather(this.client, this.messageHelper)
-        this.jokeCommands = new JokeCommands(this.client, this.messageHelper)
-        this.warzoneCommands = new WarzoneCommands(this.client, this.messageHelper)
-        this.spotifyCommands = new SpotifyCommands(this.client, this.messageHelper)
-        this.testCommands = new TestCommands(this.client, this.messageHelper)
-        this.musicCommands = new Music(this.client, this.messageHelper)
-        this.memeCommands = new Meme(this.client, this.messageHelper)
-        this.userCommands = new UserCommands(this.client, this.messageHelper)
-        this.weatherCommands = new Weather(this.client, this.messageHelper)
-        this.patchNotes = new PatchNotes(this.client, this.messageHelper)
-        this.soundCommands = new SoundCommands(this.client, this.messageHelper)
-        this.cardCommands = new CardCommands(this.client, this.messageHelper)
-        this.drinksCommands = new DrinksCommands(this.client, this.messageHelper)
-        this.nameCommands = new NameCommands(this.client, this.messageHelper)
-        this.poletCommands = new PoletCommands(this.client, this.messageHelper)
-        this.linkCommands = new LinkCommands(this.client, this.messageHelper)
-        this.trelloCommands = new TrelloCommands(this.client, this.messageHelper)
-        this.textCommands = new TextCommands(this.client, this.messageHelper)
-        this.redBlackCommands = new RedBlackCommands(this.client, this.messageHelper)
-        this.pollCommands = new PollCommands(this.client, this.messageHelper)
+        this.gameCommands = new GameCommands(this.client)
+        this.spinner = new Spinner(this.client)
+        this.adminCommands = new Admin(this.client)
+        this.gamblingCommands = new GamblingCommands(this.client)
+        this.crimeCommands = new CrimeCommands(this.client)
+        this.moneyCommands = new MoneyCommands(this.client)
+        this.dateCommands = new DateCommands(this.client)
+        this.weatherCommands = new Weather(this.client)
+        this.jokeCommands = new JokeCommands(this.client)
+        this.warzoneCommands = new WarzoneCommands(this.client)
+        this.spotifyCommands = new SpotifyCommands(this.client)
+        this.testCommands = new TestCommands(this.client)
+        this.musicCommands = new Music(this.client)
+        this.memeCommands = new Meme(this.client)
+        this.userCommands = new UserCommands(this.client)
+        this.weatherCommands = new Weather(this.client)
+        this.patchNotes = new PatchNotes(this.client)
+        this.soundCommands = new SoundCommands(this.client)
+        this.cardCommands = new CardCommands(this.client)
+        this.drinksCommands = new DrinksCommands(this.client)
+        this.nameCommands = new NameCommands(this.client)
+        this.poletCommands = new PoletCommands(this.client)
+        this.linkCommands = new LinkCommands(this.client)
+        this.trelloCommands = new TrelloCommands(this.client)
+        this.textCommands = new TextCommands(this.client)
+        this.redBlackCommands = new RedBlackCommands(this.client)
+        this.pollCommands = new PollCommands(this.client)
     }
 
     getAllInteractionCommands() {

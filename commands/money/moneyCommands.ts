@@ -1,12 +1,8 @@
-import {
-    CacheType,
-    ChatInputCommandInteraction,
-    Client, Interaction
-} from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Interaction } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../general/commands'
 import { DatabaseHelper } from '../../helpers/databaseHelper'
-import { MessageHelper } from '../../helpers/messageHelper'
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
 import { MazariniUser } from '../../interfaces/database/databaseInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
@@ -18,8 +14,8 @@ export interface IDailyPriceClaim {
     wasAddedToday: boolean
 }
 export class MoneyCommands extends AbstractCommands {
-    constructor(client: Client, messageHelper: MessageHelper) {
-        super(client, messageHelper)
+    constructor(client: MazariniClient) {
+        super(client)
     }
 
     private vippsChips(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -65,8 +61,10 @@ export class MoneyCommands extends AbstractCommands {
         const chips = user.chips
         let embed = EmbedUtils.createSimpleEmbed(`💳 Lommeboken til ${name} 🏧`, `${chips} chips`)
         if (!target && user.hasBeenRobbed) {
-            embed = EmbedUtils.createSimpleEmbed(`💳 Lommeboken til ${name} 🏧`, `Hehe ser ut som noen har stjålet fra deg`
-                                                + `\nDu har nå ${TextUtils.formatMoney(chips)} chips`)
+            embed = EmbedUtils.createSimpleEmbed(
+                `💳 Lommeboken til ${name} 🏧`,
+                `Hehe ser ut som noen har stjålet fra deg` + `\nDu har nå ${TextUtils.formatMoney(chips)} chips`
+            )
             user.hasBeenRobbed = false
             DatabaseHelper.updateUser(user)
         }

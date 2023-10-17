@@ -1,15 +1,15 @@
-import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
-import { MessageHelper } from '../helpers/messageHelper'
 import { SlashCommandHelper } from '../helpers/slashCommandHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { RandomUtils } from '../utils/randomUtils'
 
 export class NameCommands extends AbstractCommands {
-    constructor(client: Client, messageHelper: MessageHelper) {
-        super(client, messageHelper)
+    constructor(client: MazariniClient) {
+        super(client)
     }
 
     private handleNameCommands(interaction: ChatInputCommandInteraction<CacheType>) {

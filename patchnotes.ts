@@ -1,19 +1,22 @@
-import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { environment } from './client-env'
+import { MazariniClient } from './client/MazariniClient'
 import { IInteractionElement } from './general/commands'
 import { DatabaseHelper } from './helpers/databaseHelper'
 import { MessageHelper } from './helpers/messageHelper'
 import { MentionUtils } from './utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '12.7.2'
-    public static readonly currentPatchNotes = `\n* Du skal ikke lenger havne i max hvis du ikke har vært fengslet tidligere på dagen`
+    public static readonly currentVersion = '13.0.0'
+    public static readonly currentPatchNotes = 
+    `\n* Opprettet MazariniClient som extender DiscordClient` +
+    `\n* AbstractCommands er refaktorert til å ikke lenger ha behov for egen instanse av messageHelper` 
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
-    constructor(client: Client, messageHelper: MessageHelper) {
-        super(client, messageHelper)
+    constructor(client: MazariniClient) {
+        super(client)
     }
 
     static getCurrentPatchNotes() {

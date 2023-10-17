@@ -5,7 +5,6 @@ import {
     ButtonStyle,
     CacheType,
     ChatInputCommandInteraction,
-    Client,
     EmbedBuilder,
     Interaction,
     Message,
@@ -13,6 +12,7 @@ import {
 import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { vinmonopoletKey } from '../client-env'
+import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { Languages } from '../helpers/languageHelpers'
@@ -59,8 +59,8 @@ export class PoletCommands extends AbstractCommands {
     static pressProductURL = 'https://www.vinmonopolet.no/vmpws/v2/vmp/products'
     static baseStoreID = '416'
 
-    constructor(client: Client, messageHelper: MessageHelper) {
-        super(client, messageHelper)
+    constructor(client: MazariniClient) {
+        super(client)
     }
 
     static async fetchPoletData(rawInteraction?: Interaction<CacheType>, storeId?: string) {

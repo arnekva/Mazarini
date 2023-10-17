@@ -1,13 +1,13 @@
-import { CacheType, ChatInputCommandInteraction, Client, Interaction } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Interaction } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
-import { MessageHelper } from '../helpers/messageHelper'
 import { PoletCommands } from './poletCommands'
 
 export class LinkCommands extends AbstractCommands {
-    constructor(client: Client, messageHelper: MessageHelper) {
-        super(client, messageHelper)
+    constructor(client: MazariniClient) {
+        super(client)
     }
 
     private async handleLinking(interaction: ChatInputCommandInteraction<CacheType>) {

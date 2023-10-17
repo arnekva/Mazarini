@@ -5,16 +5,15 @@ import {
     ButtonStyle,
     CacheType,
     ChatInputCommandInteraction,
-    Client,
     EmbedBuilder,
     SelectMenuComponentOptionData,
     StringSelectMenuInteraction,
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
 import { ActionMenuHelper } from '../helpers/actionMenuHelper'
 import { DatabaseHelper } from '../helpers/databaseHelper'
-import { MessageHelper } from '../helpers/messageHelper'
 import { ChipsStats, RulettStats } from '../interfaces/database/databaseInterface'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
@@ -22,8 +21,8 @@ import { Roles } from '../utils/roles'
 import { UserUtils } from '../utils/userUtils'
 
 export class UserCommands extends AbstractCommands {
-    constructor(client: Client, messageHelper: MessageHelper) {
-        super(client, messageHelper)
+    constructor(client: MazariniClient) {
+        super(client)
     }
 
     private async roleAssignment(interaction: ChatInputCommandInteraction<CacheType>) {

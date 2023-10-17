@@ -1,14 +1,9 @@
-import {
-    CacheType,
-    ChatInputCommandInteraction,
-    Client,
-    EmbedBuilder
-} from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../general/commands'
 import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
-import { MessageHelper } from '../../helpers/messageHelper'
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
 import { MiscUtils } from '../../utils/miscUtils'
 import { RandomUtils } from '../../utils/randomUtils'
@@ -19,8 +14,8 @@ export interface IDailyPriceClaim {
     wasAddedToday: boolean
 }
 export class GamblingCommands extends AbstractCommands {
-    constructor(client: Client, messageHelper: MessageHelper) {
-        super(client, messageHelper)
+    constructor(client: MazariniClient) {
+        super(client)
     }
 
     private diceGamble(interaction: ChatInputCommandInteraction<CacheType>) {

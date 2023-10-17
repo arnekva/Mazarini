@@ -1,11 +1,11 @@
 import { login, ModernWarfare, platforms, Warzone } from 'call-of-duty-api'
-import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction, User } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, EmbedBuilder, Interaction, User } from 'discord.js'
 import { Response } from 'node-fetch'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { actSSOCookie } from '../client-env'
+import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
-import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
 import { ObjectUtils } from '../utils/objectUtils'
 
@@ -103,8 +103,8 @@ interface BRDataOptions {
 }
 
 export class WarzoneCommands extends AbstractCommands {
-    constructor(client: Client, messageHelper: MessageHelper) {
-        super(client, messageHelper)
+    constructor(client: MazariniClient) {
+        super(client)
 
         login(actSSOCookie)
     }
@@ -427,7 +427,7 @@ export class WarzoneCommands extends AbstractCommands {
                     i += 1
                 }
                 if (!found) {
-                    this.messageHelper.replyToInteraction(interaction, 'Fant ikke playlist',  { hasBeenDefered: true })
+                    this.messageHelper.replyToInteraction(interaction, 'Fant ikke playlist', { hasBeenDefered: true })
                 }
             })
             .catch((error) => {

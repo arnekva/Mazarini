@@ -1,13 +1,13 @@
-import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import wiki from 'wikijs'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
-import { MessageHelper } from '../helpers/messageHelper'
 import { EmbedUtils } from '../utils/embedUtils'
 
 export class TextCommands extends AbstractCommands {
-    constructor(client: Client, messageHelper: MessageHelper) {
-        super(client, messageHelper)
+    constructor(client: MazariniClient) {
+        super(client)
     }
 
     private async searchWiki(interaction: ChatInputCommandInteraction<CacheType>) {

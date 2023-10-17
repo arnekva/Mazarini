@@ -1,14 +1,14 @@
-import { CacheType, ChatInputCommandInteraction, Client } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
-import { MessageHelper } from '../helpers/messageHelper'
 import { MentionUtils } from '../utils/mentionUtils'
 import { SoundUtils } from '../utils/soundUtils'
 import { UserUtils } from '../utils/userUtils'
 
 export class SoundCommands extends AbstractCommands {
-    constructor(client: Client, messageHelper: MessageHelper) {
-        super(client, messageHelper)
+    constructor(client: MazariniClient) {
+        super(client)
     }
 
     private async speak(interaction: ChatInputCommandInteraction<CacheType>) {

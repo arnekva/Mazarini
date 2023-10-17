@@ -34,7 +34,7 @@ import {
 } from 'discord.js'
 import { Stream } from 'stream'
 import { environment } from '../client-env'
-import { MazariniClient } from '../main'
+import { MazariniBot } from '../main'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { textArrays } from '../utils/textArrays'
@@ -141,7 +141,7 @@ export class MessageHelper {
                 payloadAsReply.ephemeral = !!options?.ephemeral
                 await interaction.reply(payloadAsReply).catch((e) => handleError(e))
             }
-            MazariniClient.numMessagesFromBot++
+            MazariniBot.numMessagesFromBot++
             return true
         }
         return false
@@ -166,7 +166,7 @@ export class MessageHelper {
             if (message.length >= 2000) {
                 const msgArr = message.match(/[\s\S]{1,1800}/g)
                 msgArr.forEach((msg, ind) => {
-                    if (!options?.dontIncrementMessageCounter) MazariniClient.numMessagesFromBot++
+                    if (!options?.dontIncrementMessageCounter) MazariniBot.numMessagesFromBot++
                     channel.send(msg)
                 })
                 return undefined
@@ -191,7 +191,7 @@ export class MessageHelper {
                     flags.push('SuppressEmbeds')
                 }
                 messageOptions.flags = flags
-                if (!options?.dontIncrementMessageCounter) MazariniClient.numMessagesFromBot++
+                if (!options?.dontIncrementMessageCounter) MazariniBot.numMessagesFromBot++
                 return channel.send(messageOptions)
             }
         }
@@ -326,12 +326,12 @@ export class MessageHelper {
     }
 
     sendLogMessage(msg: string, options?: IMessageOptions) {
-        MazariniClient.numMessagesNumErrorMessages++
+        MazariniBot.numMessagesNumErrorMessages++
         options ? (options.dontIncrementMessageCounter = true) : (options = { dontIncrementMessageCounter: true })
         return this.sendMessage(MentionUtils.CHANNEL_IDs.ACTION_LOG, msg, options)
     }
     sendGitLogMessage(msg: string, options?: IMessageOptions) {
-        MazariniClient.numMessagesNumErrorMessages++
+        MazariniBot.numMessagesNumErrorMessages++
         options ? (options.dontIncrementMessageCounter = true) : (options = { dontIncrementMessageCounter: true })
         return this.sendMessage(MentionUtils.CHANNEL_IDs.GIT_LOG, msg, options)
     }
@@ -345,7 +345,7 @@ export class MessageHelper {
                 replyChannel ? replyChannel.toString() : 'ingen'
             }.`
         )
-        MazariniClient.numMessagesNumErrorMessages++
+        MazariniBot.numMessagesNumErrorMessages++
         if (replyChannel && replyChannel.type === ChannelType.GuildText)
             return replyChannel.send(`${errorMessageToSend} ${MentionUtils.mentionRole(MentionUtils.ROLE_IDs.BOT_SUPPORT)}`)
         return undefined

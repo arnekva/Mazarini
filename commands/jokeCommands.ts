@@ -1,9 +1,9 @@
-import { APIEmbedField, CacheType, ChatInputCommandInteraction, Client, TextChannel } from 'discord.js'
+import { APIEmbedField, CacheType, ChatInputCommandInteraction, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
-import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
@@ -13,8 +13,8 @@ import { textArrays } from '../utils/textArrays'
 import { UserUtils } from '../utils/userUtils'
 
 export class JokeCommands extends AbstractCommands {
-    constructor(client: Client, messageHelper: MessageHelper) {
-        super(client, messageHelper)
+    constructor(client: MazariniClient) {
+        super(client)
     }
 
     private async mordi(interaction: ChatInputCommandInteraction<CacheType>) {

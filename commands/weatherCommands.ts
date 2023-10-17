@@ -1,8 +1,8 @@
-import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { openCageAPIKey, openWeatherAPIKey } from '../client-env'
+import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
-import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
 import { WeatherUtils } from '../utils/weatherUtils'
 const fetch = require('node-fetch')
@@ -27,8 +27,8 @@ export class Weather extends AbstractCommands {
     static baseUrl = 'https://api.met.no/weatherapi/locationforecast/2.0/complete'
     static iconUrl = 'https://api.met.no/images/weathericons/png/'
 
-    constructor(client: Client, messageHelper: MessageHelper) {
-        super(client, messageHelper)
+    constructor(client: MazariniClient) {
+        super(client)
     }
 
     static geocoder = NodeGeocoder({

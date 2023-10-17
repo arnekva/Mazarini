@@ -1,12 +1,12 @@
-import { CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, Interaction, Message, User } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, EmbedBuilder, Interaction, Message, User } from 'discord.js'
 import { Headers } from 'node-fetch'
 import { URLSearchParams } from 'url'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { spotifyClientID, spotifyClientSecret } from '../client-env'
+import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
-import { MessageHelper } from '../helpers/messageHelper'
 import { EmbedUtils } from '../utils/embedUtils'
 import { UserUtils } from '../utils/userUtils'
 import { Music } from './musicCommands'
@@ -15,8 +15,8 @@ const base64 = require('base-64')
 const request = require('request')
 const fetch = require('node-fetch')
 export class SpotifyCommands extends AbstractCommands {
-    constructor(client: Client, messageHelper: MessageHelper) {
-        super(client, messageHelper)
+    constructor(client: MazariniClient) {
+        super(client)
     }
 
     private getUsersCurrentSong(rawMessage: Message, content: string, args: string[]) {
@@ -120,7 +120,7 @@ export class SpotifyCommands extends AbstractCommands {
     }
 
     private async currentPlayingFromDiscord(interaction: Interaction<CacheType>, mode?: string, user?: User): Promise<string | EmbedBuilder> {
-        const _music = new Music(this.client, this.messageHelper)
+        const _music = new Music(this.client)
 
         const isAllActive = mode === 'active'
         const isFull = mode === 'full'

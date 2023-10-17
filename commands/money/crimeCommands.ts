@@ -1,9 +1,9 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, Client, EmbedBuilder, User } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, EmbedBuilder, User } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../general/commands'
 import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
-import { MessageHelper } from '../../helpers/messageHelper'
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
 import { JailState, MazariniUser } from '../../interfaces/database/databaseInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
@@ -17,8 +17,8 @@ export interface IDailyPriceClaim {
     wasAddedToday: boolean
 }
 export class CrimeCommands extends AbstractCommands {
-    constructor(client: Client, messageHelper: MessageHelper) {
-        super(client, messageHelper)
+    constructor(client: MazariniClient) {
+        super(client)
     }
     static jailBreakAttempts = 1
 

@@ -6,13 +6,12 @@ import {
     ButtonStyle,
     CacheType,
     ChatInputCommandInteraction,
-    Client,
     EmbedBuilder,
     Message,
 } from 'discord.js'
 import { AbstractCommands } from '../../../Abstracts/AbstractCommand'
+import { MazariniClient } from '../../../client/MazariniClient'
 import { IInteractionElement } from '../../../general/commands'
-import { MessageHelper } from '../../../helpers/messageHelper'
 import { CardCommands, ICardObject } from '../../cardCommands'
 import {
     gtButtonRow,
@@ -65,8 +64,8 @@ export class RedBlackCommands extends AbstractCommands {
     private giveTake: GiveTake
     private busride: BusRide
     public static aceValue: 1 | 14 | undefined = undefined
-    constructor(client: Client, messageHelper: MessageHelper) {
-        super(client, messageHelper)
+    constructor(client: MazariniClient) {
+        super(client)
         this.initGame()
     }
 
@@ -75,7 +74,7 @@ export class RedBlackCommands extends AbstractCommands {
         this.initiated = false
         this.stage = undefined
         this.playerList = new Array<IUserObject>()
-        this.deck = new CardCommands(this.client, this.messageHelper)
+        this.deck = new CardCommands(this.client)
         this.rules = defaultRules
         this.currentGtCard = undefined
         this.id = 0
@@ -283,7 +282,7 @@ export class RedBlackCommands extends AbstractCommands {
     }
 
     public async setupBusride(interaction: ButtonInteraction<CacheType>) {
-        const newDeck = new CardCommands(this.client, this.messageHelper)
+        const newDeck = new CardCommands(this.client)
         const id = Number(interaction.customId.split(';')[1])
         const loser = await this.getUserObjectById(id)
         this.busride = new BusRide(this.messageHelper, newDeck, this.embedMessage, this.gtTableMessage, loser)

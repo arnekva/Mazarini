@@ -5,15 +5,14 @@ import {
     ButtonStyle,
     CacheType,
     ChatInputCommandInteraction,
-    Client,
     EmbedBuilder,
     Message,
     ModalSubmitInteraction,
     StringSelectMenuInteraction,
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
-import { MessageHelper } from '../helpers/messageHelper'
 
 const defaultButtonRow = new ActionRowBuilder<ButtonBuilder>()
 defaultButtonRow.addComponents(
@@ -36,8 +35,8 @@ export class TestCommands extends AbstractCommands {
     private embed: EmbedBuilder
     private currentButtons: ActionRowBuilder<ButtonBuilder>
 
-    constructor(client: Client, messageHelper: MessageHelper) {
-        super(client, messageHelper)
+    constructor(client: MazariniClient) {
+        super(client)
         this.embedMessage = undefined
         this.buttonsMessage = undefined
         this.embed = undefined
