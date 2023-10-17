@@ -174,7 +174,8 @@ export class MazariniClient {
                 if (
                     (message.mentions.users.find((u) => u.id === MentionUtils.User_IDs.BOT_HOIE) ||
                         message.content.includes(`<@!${MentionUtils.User_IDs.BOT_HOIE}>`)) &&
-                    (message.type !== MessageType.Reply || environment === 'prod')
+                    message.type !== MessageType.Reply &&
+                    environment === 'prod'
                 ) {
                     message.reply(ArrayUtils.randomChoiceFromArray(textArrays.bentHoieLines))
                 }
