@@ -1,12 +1,6 @@
 import moment from 'moment'
 import { discordSecret } from './client-env'
 import { MazariniClient } from './client/MazariniClient'
-const { Util } = require('discord.js')
-
-const Discord = require('discord.js')
-const axon = require('pm2-axon')
-const sub = axon.socket('sub-emitter')
-const pm2 = require('pm2')
 
 export class MazariniBot {
     private client: MazariniClient
@@ -38,11 +32,5 @@ export class MazariniBot {
         moment.updateLocale('nb', {})
         this.client.setupListeners()
         // this.client.createSlashCommands()
-    }
-
-    testContext() {
-        return {
-            client: this.client,
-        }
     }
 }
