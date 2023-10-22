@@ -91,7 +91,9 @@ export class SpotifyCommands extends AbstractCommands {
 
     private async printSongFromSpotify(interaction: ChatInputCommandInteraction<CacheType>) {
         await interaction.deferReply()
-        let searchString = interaction.options.get('tittel')?.value as string
+        let searchStringTrack = interaction.options.get('track')?.value as string
+        let searchStringArtist = interaction.options.get('artist')?.value as string
+        let searchString = `${searchStringArtist} ${searchStringTrack}`
         let debugMode = false
         if (searchString.includes('debug')) {
             searchString = searchString.replace('debug', '')

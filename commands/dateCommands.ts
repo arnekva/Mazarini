@@ -171,9 +171,9 @@ export class DateCommands extends AbstractCommands {
         if (isNewCountdown) {
             if (event == 'fjern') {
                 this.messageHelper.replyToInteraction(interaction, `Fjernet countdownen din`, { ephemeral: true })
-                const cdIndex = countdowns.allCountdowns.findIndex((c) => c.ownerId === interaction.user.id)
-                if (cdIndex) {
-                    countdowns.allCountdowns[cdIndex] = undefined
+                const ownersCountdown = countdowns.allCountdowns.find((c) => c.ownerId === interaction.user.id)
+                if (ownersCountdown) {
+                    ArrayUtils.removeItemOnce(countdowns.allCountdowns, ownersCountdown)
                     DatabaseHelper.updateStorage({ countdown: countdowns })
                     return true
                 }
@@ -240,7 +240,7 @@ export class DateCommands extends AbstractCommands {
     private userHasMaxCountdowns(userId: string) {
         const cds = DatabaseHelper.getStorage().countdown
         if (!cds) return false
-        return cds.allCountdowns.filter((c) => c.ownerId === userId).length >= 1
+        return cds.allCountdowns.filter((c) => c.ownerId === userId).length >= 3
     }
 
     private findHolidaysInThisWeek(checkForNextWeeksMonday?: boolean) {
