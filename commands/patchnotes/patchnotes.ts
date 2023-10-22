@@ -7,11 +7,10 @@ import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { MessageHelper } from '../../helpers/messageHelper'
 import { MentionUtils } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '13.0.0'
+    public static readonly currentVersion = '13.0.1'
     public static readonly currentPatchNotes =
-        `\n* Opprettet MazariniClient som extender DiscordClient` +
-        `\n* Refaktorert main.ts. MazariniClient håndterer nå setup av listeners` +
-        `\n* AbstractCommands er refaktorert til å ikke lenger ha behov for egen instanse av messageHelper. Den ligger nå i client, med en getter for å fortsatt kunne gjøre this.messageHelper`
+        `\n* Rettet en feil som gjorde at /countdown fjern ikke fjernet countdown. Den fjerner den eldste` +
+        `\n* Rettet en feil som gjorde at gamle countdowns ikke ble slettet i weekly jobs`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
