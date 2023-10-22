@@ -36,7 +36,7 @@ export class ArrayUtils {
         return args.length >= amountWanted
     }
     /** Remove one instance of an object from the given array */
-    static removeItemOnce(array: any[], value: any) {
+    static removeItemOnce<T>(array: T[], value: any) {
         var i = 0
         while (i < array.length) {
             if (array[i] === value) {
