@@ -4,6 +4,7 @@ import { memeCommand } from './commandStorage/meme'
 import { musikkCommand } from './commandStorage/musikk'
 import { pickpocketCommand } from './commandStorage/pickpocket'
 import { rollCommand } from './commandStorage/roll'
+import { sangCommand } from './commandStorage/sang'
 import { stoppCommand } from './commandStorage/stopp'
 
 /** Easy way to get commands out from storage.
@@ -18,4 +19,5 @@ export namespace CommandStorage {
     export const PickpocketCommand = pickpocketCommand
     export const JailbreakCommand = jailbreakCommand
     export const JailCommand = jailCommand
+    export const SangCommand = sangCommand
 }
