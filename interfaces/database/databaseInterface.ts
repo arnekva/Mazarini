@@ -179,9 +179,11 @@ export interface MazariniCountdowns {
 }
 
 export interface RocketLeagueTournament {
+    id: number
     players: number
     starts: string | Date
     mode: string
+    shouldNotify?: boolean
 }
 
 export interface ValuePair {

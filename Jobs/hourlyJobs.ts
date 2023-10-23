@@ -15,9 +15,10 @@ export class HourJob {
     private checkForRLTournaments() {
         const tournaments = DatabaseHelper.getStorage().rocketLeagueTournaments
         if (tournaments) {
-            const nextTournaments = tournaments.filter((t) => new Date(t.starts).getHours() === new Date().getHours() + 1)
-            if (nextTournaments.length === 1) {
-                let message = `Det er ${nextTournaments.length} tournament${nextTournaments.length > 1 ? 's' : ''} om 1 time`
+            const nextTournaments = tournaments.filter((t) => new Date(t.starts).getHours() === new Date().getHours() + 1 && t.shouldNotify)
+
+            if (nextTournaments.length > 0) {
+                let message = `Det er ${nextTournaments.length} turnering${nextTournaments.length > 1 ? 'er' : ''} om 1 time`
                 nextTournaments.forEach((t) => {
                     message += `\n${t.players}v${t.players} - ${t.mode}`
                 })

@@ -42,6 +42,9 @@ export class DailyJobs {
                 const data = await res.json()
 
                 const tournaments = data.tournaments as RocketLeagueTournament[]
+                tournaments.forEach((t, idx) => {
+                    t.id = idx
+                })
                 DatabaseHelper.updateStorage({
                     rocketLeagueTournaments: tournaments,
                 })

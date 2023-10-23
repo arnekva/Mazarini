@@ -1,4 +1,4 @@
-import { CacheType, ChatInputCommandInteraction, EmbedBuilder, TextChannel } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, EmbedBuilder, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
@@ -330,15 +330,46 @@ export class GameCommands extends AbstractCommands {
         const currentTournaments = DatabaseHelper.getStorage().rocketLeagueTournaments
         if (currentTournaments) {
             const embed = EmbedUtils.createSimpleEmbed(
-                `RL Tournaments`,
-                `For ${DateUtils.formatDate(new Date())}`,
+                `Rocket League Tournaments`,
+                `For ${DateUtils.formatDate(new Date())}. Trykk på en av knappene for å bli varslet 1 time før turneringen starter`,
                 currentTournaments.map((tournament) => {
                     const date = new Date(tournament.starts)
                     return { name: `${tournament.players}v${tournament.players} - ${tournament.mode}`, value: `${DateUtils.getTimeFormatted(date)}` }
                 })
             )
+            const activeGameButtonRow = new ActionRowBuilder<ButtonBuilder>()
+            currentTournaments.forEach((t, idx) => {
+                activeGameButtonRow.addComponents(
+                    new ButtonBuilder({
+                        custom_id: `RL_TOURNAMENT;${t.id}`,
+                        style: ButtonStyle.Primary,
+                        label: `${t.players}v${t.players} ${DateUtils.getTimeFormatted(new Date(t.starts))}`,
+                        disabled: false,
+                        type: 2,
+                    })
+                )
+            })
+
             this.messageHelper.replyToInteraction(interaction, embed)
+            this.messageHelper.sendMessageWithComponents(interaction.channelId, [activeGameButtonRow])
         }
+    }
+
+    private createTournamentReminder(interaction: ButtonInteraction<CacheType>) {
+        const tournaments = DatabaseHelper.getStorage().rocketLeagueTournaments
+        const ids = interaction.customId.split(';')
+        const idToUpdate = Number(ids[1])
+        const tournamentToUpdate = tournaments.find((t) => {
+            return t.id === idToUpdate
+        })
+
+        if (tournamentToUpdate) {
+            tournamentToUpdate.shouldNotify = true
+        }
+        DatabaseHelper.updateStorage({
+            rocketLeagueTournaments: tournaments,
+        })
+        this.messageHelper.replyToInteraction(interaction, `Det vil bli sendt en påmeldng om denne turneringen 1 time før start`, { ephemeral: true })
     }
 
     public getAllInteractions(): IInteractionElement {
@@ -367,6 +398,14 @@ export class GameCommands extends AbstractCommands {
                         commandName: 'tournament',
                         command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                             this.rocketLeagueTournaments(interaction)
+                        },
+                    },
+                ],
+                buttonInteractionComands: [
+                    {
+                        commandName: 'RL_TOURNAMENT',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.createTournamentReminder(rawInteraction)
                         },
                     },
                 ],
