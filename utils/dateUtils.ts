@@ -180,8 +180,16 @@ export class DateUtils {
         return moment().isBefore(moment({ hour: hour, minute: minute }))
     }
 
-    static getCurrentTimeFormatted() {
-        return `${moment().format('HH:mm:ss DD-MM-YYYY ')}`
+    static getCurrentDateTimeFormatted() {
+        return this.getDateTimeFormatted()
+    }
+
+    static getDateTimeFormatted(date?: Date) {
+        return `${moment(date).format('HH:mm:ss DD-MM-YYYY ')}`
+    }
+
+    static getTimeFormatted(date?: Date) {
+        return `${moment(date).format('HH:mm')}`
     }
 
     static isDecember() {
