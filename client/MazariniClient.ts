@@ -88,7 +88,7 @@ export class MazariniClient extends Client {
                 msg += 'Boten ble restartet av en /restart, og prosjektet er oppdatert fra Git'
 
                 //TODO & FIXME: Move this out into gitUtils or something
-                await exec('git log --pretty=format:"%h%x09%an%x09%s"', async (error, stdout, stderr) => {
+                await exec('git log --pretty=format:"%h¶%an¶%s"  -n 15', async (error, stdout, stderr) => {
                     if (error) {
                         this.msgHelper.sendLogMessage(`Git log failet. Klarte ikke liste siste commit messages`)
                     }
@@ -99,16 +99,14 @@ export class MazariniClient extends Client {
                             const lastCommit = DatabaseHelper.getBotData('commit-id')
                             const indexOfLastID = allMessages.indexOf(lastCommit)
                             allMessages = allMessages.slice(0, indexOfLastID > 0 ? indexOfLastID : 1) //Only send last one if nothing is saved in the DB
+
                             const formatCommitLine = (line: string) => {
-                                const allWords = line.split(' ')
+                                const allWords = line.split('¶')
                                 const commitId = allWords[0]
                                 const commitAuthor = allWords[1].replace('arnekva-pf', 'Arne Kvaleberg')
                                 const commitMessage = allWords[2]
-                                const restOfSentence = `${commitId} ${commitAuthor} - ${commitMessage}`
-
-                                return `*${commitId}* - ${restOfSentence}`
+                                return `**${commitAuthor}** *${commitId}* - ${commitMessage}`
                             }
-
                             //Add commit messages to start-up message
                             this.msgHelper.sendGitLogMessage(
                                 `Følgende commits er lagt til i ${PatchNotes.currentVersion}:\n${allMessages.map((s) => formatCommitLine(s)).join('\n')}`,
