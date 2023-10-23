@@ -1,10 +1,12 @@
+import fetch from 'node-fetch'
+import { rapidApiKey } from '../client-env'
 import { IDailyPriceClaim } from '../commands/money/gamblingCommands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { RocketLeagueTournament } from '../interfaces/database/databaseInterface'
 import { DateUtils } from '../utils/dateUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
-
 export class DailyJobs {
     private messageHelper: MessageHelper
 
@@ -18,6 +20,35 @@ export class DailyJobs {
             this.updateJailAndJailbreakCounters()
         }
         this.checkForUserBirthdays()
+        this.updateRLTournaments()
+    }
+
+    private updateRLTournaments() {
+        const data = fetch('https://rocket-league1.p.rapidapi.com/tournaments/europe', {
+            headers: {
+                'User-Agent': 'RapidAPI Playground',
+                'Accept-Encoding': 'identity',
+                '_X-RapidAPI-Key': rapidApiKey,
+                get 'X-RapidAPI-Key'() {
+                    return this['_X-RapidAPI-Key']
+                },
+                set 'X-RapidAPI-Key'(value) {
+                    this['_X-RapidAPI-Key'] = value
+                },
+                'X-RapidAPI-Host': 'rocket-league1.p.rapidapi.com',
+            },
+        })
+            .then(async (res) => {
+                const data = await res.json()
+
+                const tournaments = data.tournaments as RocketLeagueTournament[]
+                DatabaseHelper.updateStorage({
+                    rocketLeagueTournaments: tournaments,
+                })
+            })
+            .catch((err) => {
+                this.messageHelper.sendLogMessage(`Klarte ikke hente Rocket League Tournaments. Error: \n${err}`)
+            })
     }
 
     private validateAndResetDailyClaims() {

@@ -58,7 +58,7 @@ export class UserCommands extends AbstractCommands {
                 .setTitle(`${interaction.user.username} har oppdatert statusen sin`)
                 .setDescription(`${statusText}`)
                 .setThumbnail(`${interaction.user.avatarURL()}`)
-                .setFooter({ text: `${DateUtils.getCurrentTimeFormatted()}` })
+                .setFooter({ text: `${DateUtils.getCurrentDateTimeFormatted()}` })
 
             this.messageHelper.replyToInteraction(interaction, embed)
         } else if (isVis) {
