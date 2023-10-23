@@ -327,15 +327,18 @@ export class GameCommands extends AbstractCommands {
     }
 
     private rocketLeagueTournaments(interaction: ChatInputCommandInteraction<CacheType>) {
+        const data = GameCommands.getRocketLeagueTournaments()
+
+        this.messageHelper.replyToInteraction(interaction, data.embed)
+        this.messageHelper.sendMessageWithComponents(interaction.channelId, [data.buttons])
+    }
+
+    static getRocketLeagueTournaments(): { embed: EmbedBuilder; buttons: ActionRowBuilder<ButtonBuilder> } | undefined {
         const currentTournaments = DatabaseHelper.getStorage().rocketLeagueTournaments
         if (currentTournaments) {
             const embed = EmbedUtils.createSimpleEmbed(
                 `Rocket League Tournaments`,
-                `For ${DateUtils.formatDate(new Date())}. Trykk på en av knappene for å bli varslet 1 time før turneringen starter`,
-                currentTournaments.map((tournament) => {
-                    const date = new Date(tournament.starts)
-                    return { name: `${tournament.players}v${tournament.players} - ${tournament.mode}`, value: `${DateUtils.getTimeFormatted(date)}` }
-                })
+                `For ${DateUtils.formatDate(new Date())}. Trykk på en av knappene for å bli varslet 1 time før turneringen starter`
             )
             const activeGameButtonRow = new ActionRowBuilder<ButtonBuilder>()
             currentTournaments.forEach((t, idx) => {
@@ -343,15 +346,35 @@ export class GameCommands extends AbstractCommands {
                     new ButtonBuilder({
                         custom_id: `RL_TOURNAMENT;${t.id}`,
                         style: ButtonStyle.Primary,
-                        label: `${t.players}v${t.players} ${DateUtils.getTimeFormatted(new Date(t.starts))}`,
+                        label: `${t.players}v${t.players} ${t.mode} ${DateUtils.getTimeFormatted(new Date(t.starts))}`,
                         disabled: false,
                         type: 2,
                     })
                 )
             })
+            return {
+                buttons: activeGameButtonRow,
+                embed: embed,
+            }
+        }
+        return undefined
+    }
 
-            this.messageHelper.replyToInteraction(interaction, embed)
-            this.messageHelper.sendMessageWithComponents(interaction.channelId, [activeGameButtonRow])
+    private getAllRLTournamentsAsEmbed() {
+        const currentTournaments = DatabaseHelper.getStorage().rocketLeagueTournaments
+        if (currentTournaments) {
+            const embed = EmbedUtils.createSimpleEmbed(
+                `Rocket League Tournaments`,
+                `For ${DateUtils.formatDate(new Date())}. Trykk på en av knappene for å bli varslet 1 time før turneringen starter`,
+                currentTournaments.map((tournament) => {
+                    const date = new Date(tournament.starts)
+                    return {
+                        name: `${tournament.players}v${tournament.players} - ${tournament.mode}`,
+                        value: `${DateUtils.getTimeFormatted(date)}`,
+                    }
+                })
+            )
+            return embed
         }
     }
 
