@@ -25,7 +25,7 @@ export class JobScheduler {
             const jobs = new DayJob(msgHelper, 'friday')
             jobs.runJobs()
         })
-        this.hourlyJobs = schedule.scheduleJob('0 * * * 5', async function () {
+        this.hourlyJobs = schedule.scheduleJob('0 * * * *', async function () {
             const jobs = new HourJob(msgHelper)
             jobs.runJobs()
         })
