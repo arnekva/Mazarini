@@ -105,7 +105,7 @@ export class MazariniClient extends Client {
                                 const commitId = allWords[0]
                                 const commitAuthor = allWords[1].replace('arnekva-pf', 'Arne Kvaleberg')
                                 const commitMessage = allWords[2]
-                                return `**${commitAuthor}** *${commitId}* - ${commitMessage}`
+                                return `*${commitAuthor}* *${commitId}* - ${commitMessage}`
                             }
                             //Add commit messages to start-up message
                             this.msgHelper.sendGitLogMessage(
