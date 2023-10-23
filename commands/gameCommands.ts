@@ -5,6 +5,8 @@ import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
+import { DateUtils } from '../utils/dateUtils'
+import { EmbedUtils } from '../utils/embedUtils'
 import { RandomUtils } from '../utils/randomUtils'
 import { SoundUtils } from '../utils/soundUtils'
 import { UserUtils } from '../utils/userUtils'
@@ -324,6 +326,23 @@ export class GameCommands extends AbstractCommands {
         return user.rocketLeagueStats
     }
 
+    private rocketLeagueTournaments(interaction: ChatInputCommandInteraction<CacheType>) {
+        const currentTournaments = DatabaseHelper.getStorage().rocketLeagueTournaments
+        if (currentTournaments) {
+            const notPrettiPrinted = currentTournaments
+            const embed = EmbedUtils.createSimpleEmbed(
+                `RL Tournaments`,
+                `For ${DateUtils.formatDate(new Date())}`,
+                currentTournaments.map((tournament) => {
+                    const date = new Date(tournament.starts)
+                    return { name: `${tournament.players}v${tournament.players} - ${tournament.mode}`, value: `${DateUtils.getTimeFormatted(date)}` }
+                })
+            )
+
+            this.messageHelper.replyToInteraction(interaction, embed)
+        }
+    }
+
     public getAllInteractions(): IInteractionElement {
         return {
             commands: {
@@ -344,6 +363,12 @@ export class GameCommands extends AbstractCommands {
                         commandName: 'rocket',
                         command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                             this.rocketLeagueRanks(interaction)
+                        },
+                    },
+                    {
+                        commandName: 'tournament',
+                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                            this.rocketLeagueTournaments(interaction)
                         },
                     },
                 ],
