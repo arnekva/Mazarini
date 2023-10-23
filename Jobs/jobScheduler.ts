@@ -1,6 +1,7 @@
 import { MessageHelper } from '../helpers/messageHelper'
 import { DailyJobs } from './dailyJobs'
 import { DayJob } from './dayJobs'
+import { HourJob } from './hourlyJobs'
 import { WeeklyJobs } from './weeklyJobs'
 
 const schedule = require('node-schedule')
@@ -8,6 +9,7 @@ export class JobScheduler {
     fridayJobs: any
     dailyJobs: any
     weeklyJobs: any
+    hourlyJobs: any
     constructor(msgHelper: MessageHelper) {
         this.dailyJobs = schedule.scheduleJob('0 6 * * *', async function () {
             const jobs = new DailyJobs(msgHelper)
@@ -21,6 +23,10 @@ export class JobScheduler {
         })
         this.fridayJobs = schedule.scheduleJob('0 16 * * 5', async function () {
             const jobs = new DayJob(msgHelper, 'friday')
+            jobs.runJobs()
+        })
+        this.hourlyJobs = schedule.scheduleJob('0 * * * 5', async function () {
+            const jobs = new HourJob(msgHelper)
             jobs.runJobs()
         })
     }

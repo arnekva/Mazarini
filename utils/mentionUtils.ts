@@ -34,6 +34,7 @@ export class MentionUtils {
         BOARD_UPDATES: '1106126900671303711',
         PATCH_NOTES: '1107973457909649418',
         GIT_LOG: '1107961906028888114',
+        ROCKET_LEAGUE: '938552433158811758',
     }
 
     static ROLE_IDs = {
@@ -43,7 +44,7 @@ export class MentionUtils {
     }
 
     static User_IDs = {
-        BOT_HOIE: '802945796457758760', 
+        BOT_HOIE: '802945796457758760',
         CLYDE: '1081004946872352958',
     }
 }

@@ -329,7 +329,6 @@ export class GameCommands extends AbstractCommands {
     private rocketLeagueTournaments(interaction: ChatInputCommandInteraction<CacheType>) {
         const currentTournaments = DatabaseHelper.getStorage().rocketLeagueTournaments
         if (currentTournaments) {
-            const notPrettiPrinted = currentTournaments
             const embed = EmbedUtils.createSimpleEmbed(
                 `RL Tournaments`,
                 `For ${DateUtils.formatDate(new Date())}`,
@@ -338,7 +337,6 @@ export class GameCommands extends AbstractCommands {
                     return { name: `${tournament.players}v${tournament.players} - ${tournament.mode}`, value: `${DateUtils.getTimeFormatted(date)}` }
                 })
             )
-
             this.messageHelper.replyToInteraction(interaction, embed)
         }
     }
