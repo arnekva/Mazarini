@@ -13,8 +13,7 @@ export class JobScheduler {
             const jobs = new DailyJobs(msgHelper)
             jobs.runJobs()
         })
-        const jobs = new DailyJobs(msgHelper)
-        jobs.updateRLTournaments()
+
         /** Runs once a week at mondays 06:00 */
         this.weeklyJobs = schedule.scheduleJob('0 6 * * 1', async function () {
             const jobs = new WeeklyJobs(msgHelper)
