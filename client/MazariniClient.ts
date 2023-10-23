@@ -87,7 +87,8 @@ export class MazariniClient extends Client {
             if (process.env['--restartedForGit'] || process.argv.includes('--restartedForGit')) {
                 msg += 'Boten ble restartet av en /restart, og prosjektet er oppdatert fra Git'
 
-                //TODO & FIXME: Move this out into gitUtils or something
+                //Uses ¶ to separate the params, so that we can easily split them later.
+                //TODO: Should be refactored out of there
                 await exec('git log --pretty=format:"%h¶%an¶%s"  -n 15', async (error, stdout, stderr) => {
                     if (error) {
                         this.msgHelper.sendLogMessage(`Git log failet. Klarte ikke liste siste commit messages`)
