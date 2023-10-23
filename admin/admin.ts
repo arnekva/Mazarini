@@ -219,14 +219,6 @@ export class Admin extends AbstractCommands {
         dbUser.chips += chips
         DatabaseHelper.updateUser(dbUser)
         this.messageHelper.replyToInteraction(interaction, `${user.username} har mottatt en ${type} reward på ${chips} på grunn av *${reason}*`)
-        DatabaseHelper.updateStorage({
-            rocketLeagueTournaments: [
-                {
-                    mode: '2v2',
-                    startsAt: 'dato',
-                },
-            ],
-        })
     }
 
     private async restartBot(interaction: ChatInputCommandInteraction<CacheType>) {
