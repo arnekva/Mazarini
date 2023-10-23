@@ -6,6 +6,7 @@ import { pickpocketCommand } from './commandStorage/pickpocket'
 import { rollCommand } from './commandStorage/roll'
 import { sangCommand } from './commandStorage/sang'
 import { stoppCommand } from './commandStorage/stopp'
+import { tournamentCommand } from './commandStorage/tournaments'
 
 /** Easy way to get commands out from storage.
  * Commands are stored so that they can easily be recreated/updated, and not have to be copied each time.
@@ -20,4 +21,5 @@ export namespace CommandStorage {
     export const JailbreakCommand = jailbreakCommand
     export const JailCommand = jailCommand
     export const SangCommand = sangCommand
+    export const TournamentCommand = tournamentCommand
 }
