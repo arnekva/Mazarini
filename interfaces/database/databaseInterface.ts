@@ -74,7 +74,7 @@ export interface MazariniUser {
 export interface MazariniStorage {
     /** Timer of when the storage was last updated. Updated automatically when storage is changed */
     updateTimer: number
-    rocketLeagueTournaments?: any //TODO: TYPE THIS
+    rocketLeagueTournaments?: RocketLeagueTournament[]
     /** List of countdowns */
     countdown?: MazariniCountdowns
     /** List of ferier */
@@ -173,8 +173,15 @@ export interface ICountdownItem {
     date: Date
     description: string
 }
+
 export interface MazariniCountdowns {
     allCountdowns?: ICountdownItem[]
+}
+
+export interface RocketLeagueTournament {
+    players: number
+    starts: string | Date
+    mode: string
 }
 
 export interface ValuePair {
