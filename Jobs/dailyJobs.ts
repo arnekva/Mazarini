@@ -24,7 +24,7 @@ export class DailyJobs {
         this.updateRLTournaments()
     }
 
-    updateRLTournaments() {
+    private updateRLTournaments() {
         const data = fetch('https://rocket-league1.p.rapidapi.com/tournaments/europe', {
             headers: {
                 'User-Agent': 'RapidAPI Playground',
