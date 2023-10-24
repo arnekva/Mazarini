@@ -290,7 +290,7 @@ export class MessageHelper {
         )[]
     ) {
         const textCh = this.findChannelById(channelID) as TextChannel
-        if (textCh) return textCh.send({ components: components })
+        if (textCh && components) return textCh.send({ components: components })
         return undefined
     }
 
