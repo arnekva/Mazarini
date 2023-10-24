@@ -68,6 +68,7 @@ export class MazariniClient extends Client {
         this.msgHelper = new MessageHelper(this)
         this.commandRunner = new CommandRunner(this, this.msgHelper)
         this.jobScheduler = new JobScheduler(this.msgHelper)
+
         this.errorHandler = new ErrorHandler(this.msgHelper)
     }
 

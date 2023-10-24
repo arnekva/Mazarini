@@ -11,6 +11,8 @@ export class JobScheduler {
     weeklyJobs: any
     hourlyJobs: any
     constructor(msgHelper: MessageHelper) {
+        const jobs = new DailyJobs(msgHelper)
+        jobs.updateRLTournaments()
         this.dailyJobs = schedule.scheduleJob('0 6 * * *', async function () {
             const jobs = new DailyJobs(msgHelper)
             jobs.runJobs()

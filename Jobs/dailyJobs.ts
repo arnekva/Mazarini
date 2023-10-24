@@ -1,5 +1,5 @@
 import fetch from 'node-fetch'
-import { rapidApiKey } from '../client-env'
+import { rapidApiKey2 } from '../client-env'
 import { GameCommands } from '../commands/gameCommands'
 import { IDailyPriceClaim } from '../commands/money/gamblingCommands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
@@ -24,12 +24,12 @@ export class DailyJobs {
         this.updateRLTournaments()
     }
 
-    private updateRLTournaments() {
+    updateRLTournaments() {
         const data = fetch('https://rocket-league1.p.rapidapi.com/tournaments/europe', {
             headers: {
                 'User-Agent': 'RapidAPI Playground',
                 'Accept-Encoding': 'identity',
-                '_X-RapidAPI-Key': rapidApiKey,
+                '_X-RapidAPI-Key': rapidApiKey2,
                 get 'X-RapidAPI-Key'() {
                     return this['_X-RapidAPI-Key']
                 },
