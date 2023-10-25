@@ -404,9 +404,11 @@ export class CrimeCommands extends AbstractCommands {
 
             if (daysLeftInJail && !isNaN(daysLeftInJail) && daysLeftInJail > 0) {
                 someoneInJail = true
+                const jailstate = user.jail.jailState
+                const showJailstate = jailstate === 'max' || jailstate === 'solitairy'
                 formattedMsg.addFields({
                     name: `${UserUtils.findUserById(user.id, interaction).username}`,
-                    value: `${daysLeftInJail} dag${daysLeftInJail > 1 ? 'er' : ''} igjen `,
+                    value: `${daysLeftInJail} dag${daysLeftInJail > 1 ? 'er' : ''} igjen ${showJailstate ? '(' + jailstate + ')' : ''}`,
                     inline: false,
                 })
             }
