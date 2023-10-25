@@ -43,18 +43,22 @@ export class DailyJobs {
                 const data = await res.json()
 
                 const tournaments = data.tournaments as RocketLeagueTournament[]
-                tournaments.forEach((t, idx) => {
-                    t.id = idx
-                })
-                DatabaseHelper.updateStorage({
-                    rocketLeagueTournaments: tournaments,
-                })
-                const msgData = GameCommands.getRocketLeagueTournaments()
-                this.messageHelper.sendMessage(
-                    MentionUtils.CHANNEL_IDs.ROCKET_LEAGUE,
-                    `Dagens turneringer. Trykk på en av knappene for å bli varslet 1 time før start`
-                )
-                this.messageHelper.sendMessageWithComponents(MentionUtils.CHANNEL_IDs.ROCKET_LEAGUE, [msgData.buttons])
+                if (!tournaments) {
+                    this.messageHelper.sendLogMessage(`Klarte ikke hente Rocket League turneringer`)
+                } else {
+                    tournaments.forEach((t, idx) => {
+                        t.id = idx
+                    })
+                    DatabaseHelper.updateStorage({
+                        rocketLeagueTournaments: tournaments,
+                    })
+                    const msgData = GameCommands.getRocketLeagueTournaments()
+                    this.messageHelper.sendMessage(
+                        MentionUtils.CHANNEL_IDs.ROCKET_LEAGUE,
+                        `Dagens turneringer. Trykk på en av knappene for å bli varslet 1 time før start`
+                    )
+                    this.messageHelper.sendMessageWithComponents(MentionUtils.CHANNEL_IDs.ROCKET_LEAGUE, [msgData.buttons])
+                }
             })
             .catch((err) => {
                 this.messageHelper.sendLogMessage(`Klarte ikke hente Rocket League Tournaments. Error: \n${err}`)
