@@ -189,7 +189,7 @@ export class DateCommands extends AbstractCommands {
             }
             const dateTab = dato.split('-').reverse().join('-')
 
-            const cdDate = moment(dateTab + ' ' + timestamp + ':00')
+            const cdDate = moment(dateTab + 'T' + timestamp + ':00')
 
             if (!cdDate.isValid() || DateUtils.dateHasPassed(cdDate.toDate())) {
                 return this.messageHelper.replyToInteraction(
