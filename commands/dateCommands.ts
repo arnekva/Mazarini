@@ -194,13 +194,15 @@ export class DateCommands extends AbstractCommands {
             if (!cdDate.isValid() || DateUtils.dateHasPassed(cdDate.toDate())) {
                 return this.messageHelper.replyToInteraction(
                     interaction,
-                    `  'Du har skrevet inn en ugyldig dato eller klokkeslett. <dd-mm-yyyy> <HH> <beskrivelse>. Husk at time er nødvendig - minutt og sekund frivillig (HH:MM:SS)'.`
+                    `  'Du har skrevet inn en ugyldig dato eller klokkeslett. <dd-mm-yyyy> <HH> <beskrivelse>. Husk at time er nødvendig - minutt og sekund frivillig (HH:MM:SS)'.`,
+                    { ephemeral: true }
                 )
             }
             if (this.userHasMaxCountdowns(interaction.user.id)) {
                 this.messageHelper.replyToInteraction(
                     interaction,
-                    `Du kan ha maks 3 countdowns. Bruk /countdown sett med teksten "fjern" for å fjerne alle, eller vent til de går ut.`
+                    `Du kan ha maks 3 countdowns. Bruk /countdown sett med teksten "fjern" for å fjerne alle, eller vent til de går ut.`,
+                    { ephemeral: true }
                 )
             } else {
                 const cdItem: ICountdownItem = {
@@ -210,7 +212,7 @@ export class DateCommands extends AbstractCommands {
                 }
                 countdowns.allCountdowns.push(cdItem)
                 DatabaseHelper.updateStorage({ countdown: countdowns })
-                this.messageHelper.replyToInteraction(interaction, `Din countdown for *${event}* er satt til ${cdDate.toLocaleString()}`)
+                this.messageHelper.replyToInteraction(interaction, `Din countdown for *${event}* er satt til ${cdDate.toLocaleString()}`, { ephemeral: true })
             }
         } else if (isPrinting) {
             let sendThisText = ''
