@@ -392,7 +392,7 @@ export class GameCommands extends AbstractCommands {
         DatabaseHelper.updateStorage({
             rocketLeagueTournaments: tournaments,
         })
-        this.messageHelper.replyToInteraction(interaction, `Det vil bli sendt en påmeldng om denne turneringen 1 time før start`, { ephemeral: true })
+        this.messageHelper.replyToInteraction(interaction, `Det vil bli sendt en påmelding om denne turneringen 1 time før start`, { ephemeral: true })
     }
 
     public getAllInteractions(): IInteractionElement {
