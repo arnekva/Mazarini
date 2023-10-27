@@ -35,51 +35,53 @@ export class Admin extends AbstractCommands {
             const dj = new DailyJobs(this.messageHelper)
             dj.runJobs()
             this.messageHelper.sendLogMessage(`Daily Jobs was forced to run by ${interaction.user.username}`)
-        }
-        let logMsg = ''
-        let hasAck = false
-        //Double check that all where supplied in the interaction
-        if (user && property && value) {
-            const dbUser = DatabaseHelper.getUntypedUser(user.id)
-            if (dbUser) {
-                const prop = dbUser[property] //Check if property exists on DB user
+        } else {
+            let logMsg = ''
+            let hasAck = false
 
-                if (prefixList.includes(property as dbPrefix) || prop) {
-                    let oldVal = dbUser[property] //Used for logging
+            //Double check that all where supplied in the interaction
+            if (user && property && value) {
+                const dbUser = DatabaseHelper.getUntypedUser(user.id)
+                if (dbUser) {
+                    const prop = dbUser[property] //Check if property exists on DB user
 
-                    if (typeof prop === 'object') {
-                        //if prop is an object, we need to find the value that should actually be set
-                        if (secondaryProperty && prop[secondaryProperty]) {
-                            oldVal = dbUser[property][secondaryProperty]
-                            //If the property within the object exists, we update it
-                            dbUser[property][secondaryProperty] = value
-                        } else {
-                            hasAck = true
+                    if (prefixList.includes(property as dbPrefix) || prop) {
+                        let oldVal = dbUser[property] //Used for logging
+
+                        if (typeof prop === 'object') {
+                            //if prop is an object, we need to find the value that should actually be set
+                            if (secondaryProperty && prop[secondaryProperty]) {
+                                oldVal = dbUser[property][secondaryProperty]
+                                //If the property within the object exists, we update it
+                                dbUser[property][secondaryProperty] = value
+                            } else {
+                                hasAck = true
+                                this.messageHelper.replyToInteraction(
+                                    interaction,
+                                    secondaryProperty
+                                        ? `Det ser ut som du prøver å sette en verdi på et objekt. Du må legge til verdien som skal settes på dette objektet ved bruk av argumentet "secondary".`
+                                        : `Du har prøvd å sette en verdi i objektet ${prop} og har brukt verdien ${secondaryProperty}. Denne finnes ikke på objektet, eller så mangler brukeren objektet.`,
+                                    { ephemeral: true }
+                                )
+                            }
+                        } else if (typeof prop === 'number') dbUser[property] = Number(value)
+                        else dbUser[property] = value
+
+                        DatabaseHelper.updateUser(dbUser)
+                        if (!hasAck)
                             this.messageHelper.replyToInteraction(
                                 interaction,
-                                secondaryProperty
-                                    ? `Det ser ut som du prøver å sette en verdi på et objekt. Du må legge til verdien som skal settes på dette objektet ved bruk av argumentet "secondary".`
-                                    : `Du har prøvd å sette en verdi i objektet ${prop} og har brukt verdien ${secondaryProperty}. Denne finnes ikke på objektet, eller så mangler brukeren objektet.`,
-                                { ephemeral: true }
+                                `Oppdaterte ${property} for ${user.username}. Ny verdi er ${value}, gammel verdi var ${oldVal}`
                             )
-                        }
-                    } else if (typeof prop === 'number') dbUser[property] = Number(value)
-                    else dbUser[property] = value
-
-                    DatabaseHelper.updateUser(dbUser)
-                    if (!hasAck)
-                        this.messageHelper.replyToInteraction(
-                            interaction,
-                            `Oppdaterte ${property} for ${user.username}. Ny verdi er ${value}, gammel verdi var ${oldVal}`
-                        )
-                    logMsg = `Setvalue ble brukt av ${interaction.user.username} for å sette verdi for bruker ${user.username} sin ${property}. Gammel verdi var ${oldVal}, ny verdi er ${value}`
-                } else {
-                    logMsg = `Setvalue ble brukt av ${interaction.user.username} for å sette verdi for bruker ${user.username} men brukte feil prefix. Prefix forsøkt brukt var ${property}`
+                        logMsg = `Setvalue ble brukt av ${interaction.user.username} for å sette verdi for bruker ${user.username} sin ${property}. Gammel verdi var ${oldVal}, ny verdi er ${value}`
+                    } else {
+                        logMsg = `Setvalue ble brukt av ${interaction.user.username} for å sette verdi for bruker ${user.username} men brukte feil prefix. Prefix forsøkt brukt var ${property}`
+                    }
                 }
+                if (environment === 'prod') this.messageHelper.sendLogMessage(logMsg)
+            } else {
+                this.messageHelper.replyToInteraction(interaction, `Alle nødvendige parametere ble ikke funnet. `, { ephemeral: true })
             }
-            if (environment === 'prod') this.messageHelper.sendLogMessage(logMsg)
-        } else {
-            this.messageHelper.replyToInteraction(interaction, `Alle nødvendige parametere ble ikke funnet. `, { ephemeral: true })
         }
     }
 
