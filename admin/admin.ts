@@ -34,6 +34,7 @@ export class Admin extends AbstractCommands {
         if (property === 'daily') {
             const dj = new DailyJobs(this.messageHelper)
             dj.runJobs()
+            this.messageHelper.sendLogMessage(`Daily Jobs was forced to run by ${interaction.user.username}`)
         }
         let logMsg = ''
         let hasAck = false
