@@ -9,6 +9,7 @@ import { LockingHandler } from '../handlers/lockingHandler'
 import { ClientHelper } from '../helpers/clientHelper'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { dbPrefix, prefixList } from '../interfaces/database/databaseInterface'
+import { DailyJobs } from '../Jobs/dailyJobs'
 import { MazariniBot } from '../main'
 import { MentionUtils } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
@@ -29,6 +30,11 @@ export class Admin extends AbstractCommands {
         const value = interaction.options.get('verdi')?.value
         const secondaryProperty = interaction.options.get('secondary')?.value as string | number
 
+        //TODO: REFACTOR
+        if (property === 'daily') {
+            const dj = new DailyJobs(this.messageHelper)
+            dj.runJobs()
+        }
         let logMsg = ''
         let hasAck = false
         //Double check that all where supplied in the interaction
