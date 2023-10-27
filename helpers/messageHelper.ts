@@ -103,11 +103,16 @@ export class MessageHelper {
     ): Promise<boolean> {
         const handleError = async (e: any) => {
             let msg: Message<boolean> | undefined
+            if (options.ephemeral) {
+                this.sendDM(interaction.user, messageContent)
+            } else {
+                if (typeof messageContent === 'object') msg = await this.sendFormattedMessage(interaction?.channelId, messageContent)
+                else msg = await this.sendMessage(interaction?.channelId, `${MentionUtils.mentionUser(interaction.user.id)} ${messageContent}`)
+            }
 
-            if (typeof messageContent === 'object') msg = await this.sendFormattedMessage(interaction?.channelId, messageContent)
-            else msg = await this.sendMessage(interaction?.channelId, `${MentionUtils.mentionUser(interaction.user.id)} ${messageContent}`)
-
-            let msgInfo = msg ? `Sendte en separat melding i stedet for interaksjonssvar.` : `Klarte heller ikke sende separat melding som svar`
+            let msgInfo = msg
+                ? `Sendte en ${options.ephemeral ? 'DM' : 'separat melding'} i stedet for interaksjonssvar.`
+                : `Klarte heller ikke sende separat melding som svar`
             if (options?.ephemeral) msgInfo += `\nMelding var ephemeral, men ble sendt public.`
             if (environment !== 'dev') {
                 let commandName: string | undefined = undefined
@@ -202,11 +207,21 @@ export class MessageHelper {
         return !!s.trim()
     }
 
-    sendDM(user: User, message: string) {
-        if (!this.checkForEmptyMessage(message)) {
-            return undefined
+    sendDM(user: User, message: string | EmbedBuilder) {
+        if (typeof message === 'object') {
+            message.addFields({
+                name: 'Usynlig',
+                value: 'Du brukte en interaction, men botten klarte ikke svare på den. Siden svaret skulle vært usynlig får du en DM heller',
+            })
+            user.send({
+                embeds: [message],
+            })
+        } else {
+            message += `\n\nDu brukte en interaction, men botten klarte ikke svare på den. Siden svaret skulle vært usynlig får du en DM heller`
+            user.send({
+                content: message,
+            })
         }
-        user.send(message)
     }
 
     reactWithThumbs(message: Message, reaction: thumbsReact) {
