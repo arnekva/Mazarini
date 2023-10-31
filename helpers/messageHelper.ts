@@ -103,7 +103,7 @@ export class MessageHelper {
     ): Promise<boolean> {
         const handleError = async (e: any) => {
             let msg: Message<boolean> | undefined
-            if (options.ephemeral) {
+            if (options?.ephemeral) {
                 this.sendDM(interaction.user, messageContent)
             } else {
                 if (typeof messageContent === 'object') msg = await this.sendFormattedMessage(interaction?.channelId, messageContent)
@@ -111,7 +111,7 @@ export class MessageHelper {
             }
 
             let msgInfo = msg
-                ? `Sendte en ${options.ephemeral ? 'DM' : 'separat melding'} i stedet for interaksjonssvar.`
+                ? `Sendte en ${options?.ephemeral ? 'DM' : 'separat melding'} i stedet for interaksjonssvar.`
                 : `Klarte heller ikke sende separat melding som svar`
             if (options?.ephemeral) msgInfo += `\nMelding var ephemeral, men ble sendt public.`
             if (environment !== 'dev') {
