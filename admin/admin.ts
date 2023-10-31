@@ -36,22 +36,22 @@ export class Admin extends AbstractCommands {
             dj.runJobs()
             this.messageHelper.sendLogMessage(`Daily Jobs was forced to run by ${interaction.user.username}`)
         } else if (property === 'force' && interaction.user.id === '245607554254766081') {
-            const users = DatabaseHelper.getAllUsers()
-            users.forEach((u) => {
-                u.chips = 0
-                u.jail = {
-                    attemptedJailbreaks: 0,
-                    daysInJail: 0,
-                    jailState: 'none',
-                    timesJailedToday: 0,
-                }
-                u.dailyClaim = 0
-                u.dailyClaimStreak = {
-                    streak: 0,
-                    wasAddedToday: false,
-                }
-                DatabaseHelper.updateUser(u)
-            })
+            // const users = DatabaseHelper.getAllUsers()
+            // users.forEach((u) => {
+            //     u.chips = 0
+            //     u.jail = {
+            //         attemptedJailbreaks: 0,
+            //         daysInJail: 0,
+            //         jailState: 'none',
+            //         timesJailedToday: 0,
+            //     }
+            //     u.dailyClaim = 0
+            //     u.dailyClaimStreak = {
+            //         streak: 0,
+            //         wasAddedToday: false,
+            //     }
+            //     DatabaseHelper.updateUser(u)
+            // })
         } else {
             let logMsg = ''
             let hasAck = false
