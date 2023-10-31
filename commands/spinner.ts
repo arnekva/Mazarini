@@ -76,14 +76,8 @@ export class Spinner extends AbstractCommands {
 
         if (min == 10 && sec == 59) {
             this.messageHelper.sendMessage(interaction?.channelId, 'gz med 10:59 bro')
-            user.chips += 975000000
-
-            this.messageHelper.sendMessage(interaction?.channelId, 'Du får 975 000 000 chips for det der mannen')
         } else if (min == 10) {
             this.messageHelper.sendMessage(interaction?.channelId, 'gz med 10 min bro')
-            user.chips += 95000000
-
-            this.messageHelper.sendMessage(interaction?.channelId, 'Du får 95 000 000 chips for det der mannen')
         }
 
         DatabaseHelper.updateUser(user)
@@ -93,19 +87,21 @@ export class Spinner extends AbstractCommands {
 
     private getSpinnerWinnings(min: number, seconds: number) {
         switch (min) {
+            case 4:
+                return 10
             case 5:
-                return 75
+                return 50
             case 6:
                 return 250
             case 7:
-                return 1250
+                return 575
             case 8:
-                return 5500
+                return 1250
             case 9:
-                return 150000
+                return 3000
             case 10:
-                if (seconds === 59) return 750000000
-                return 65750001
+                if (seconds === 59) return 7500
+                return 5000
 
             default:
                 return 0

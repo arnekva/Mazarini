@@ -91,7 +91,7 @@ export class MoneyCommands extends AbstractCommands {
         if (interaction) {
             const user = DatabaseHelper.getUser(interaction.user.id)
             const canClaim = user.dailyClaim
-            const dailyPrice = '500'
+            const dailyPrice = 100
             const hasFreeze = user.dailyFreezeCounter
             if (hasFreeze && !isNaN(hasFreeze) && hasFreeze > 0) {
                 return 'Du har frosset daily claimet ditt i ' + hasFreeze + ' dager til. Vent til da og prøv igjen'
@@ -164,11 +164,11 @@ export class MoneyCommands extends AbstractCommands {
         }
     }
 
-    private findAndIncrementValue(streak: number, dailyPrice: string, user: MazariniUser): { dailyChips: string } {
+    private findAndIncrementValue(streak: number, dailyPrice: number, user: MazariniUser): { dailyChips: string } {
         const additionalCoins = this.findAdditionalCoins(streak)
         const prestigeMultiplier = this.findPrestigeMultiplier(user.prestige)
 
-        const dailyChips = ((Number(dailyPrice) + Number(additionalCoins ?? 0)) * prestigeMultiplier).toFixed(0)
+        const dailyChips = ((dailyPrice + Number(additionalCoins ?? 0)) * prestigeMultiplier).toFixed(0)
         user.chips = user.chips + Number(dailyChips)
         user.dailyClaim = 1
         DatabaseHelper.updateUser(user)
@@ -178,15 +178,15 @@ export class MoneyCommands extends AbstractCommands {
 
     private findPrestigeMultiplier(p: number | undefined) {
         if (p && !isNaN(p) && p > 0) {
-            return 1 + 0.43752 * p
+            return 1 + 0.275 * p
         }
         return 1
     }
 
     private findAdditionalCoins(streak: number): number | undefined {
-        if (streak > 5) return 1000
-        if (streak > 3) return 475
-        if (streak >= 2) return 250
+        if (streak > 5) return 200
+        if (streak > 3) return 80
+        if (streak > 1) return 20
         return undefined
     }
 

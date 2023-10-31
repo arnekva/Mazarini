@@ -182,12 +182,13 @@ export class GamblingCommands extends AbstractCommands {
     private rollSlotMachine(interaction: ChatInputCommandInteraction<CacheType>) {
         const user = DatabaseHelper.getUser(interaction.user.id)
         const userMoney = user.chips
-        if (Number(userMoney) < 200) {
-            this.messageHelper.replyToInteraction(interaction, `Det koste 200 chips for å bruga maskinen, og du har kje råd bro`)
+        const cost = 100
+        if (Number(userMoney) < cost) {
+            this.messageHelper.replyToInteraction(interaction, `Det koste ${cost} chips for å bruga maskinen, og du har kje råd bro`)
         } else {
             //Remove 100 chips
             let emojiString = ''
-            const newMoneyVal = Number(userMoney) - 200
+            const newMoneyVal = Number(userMoney) - cost
             user.chips = newMoneyVal
             DatabaseHelper.updateUser(user)
             const randArray = []
@@ -249,7 +250,7 @@ export class GamblingCommands extends AbstractCommands {
             user.chips = newMoney
             DatabaseHelper.updateUser(user)
 
-            if (!hasSequence && amountOfCorrectNums.length < 1) msg.addFields({ name: 'Du tapte', value: '-200 chips' })
+            if (!hasSequence && amountOfCorrectNums.length < 1) msg.addFields({ name: 'Du tapte', value: `-${cost} chips` })
 
             this.messageHelper.replyToInteraction(interaction, msg)
         }
@@ -270,32 +271,32 @@ export class GamblingCommands extends AbstractCommands {
     private findSequenceWinningAmount(s: string) {
         switch (s) {
             case '123':
-                return 1500
+                return 200
             case '1234':
-                return 15500
+                return 950
             case '12345':
-                return 3575000
+                return 3000
             case '1337':
-                return 301337
+                return 1005
             default:
-                return 400
+                return 200
         }
     }
 
     private findSlotMachineWinningAmount(numCorrect: number) {
         switch (numCorrect) {
             case 2:
-                return 200
+                return 100
             case 3:
-                return 1750
+                return 250
             case 4:
-                return 14500
+                return 1000
             case 5:
-                return 475000
+                return 2750
             case 6:
-                return 35750000
+                return 10000
             default:
-                return 200
+                return 100
         }
     }
 
