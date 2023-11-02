@@ -7,8 +7,8 @@ import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { MessageHelper } from '../../helpers/messageHelper'
 import { MentionUtils } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '13.1.2'
-    public static readonly currentPatchNotes = `\n* Chips, jail og daily er resatt` + `\n* Chips payout er redusert i /spin, /daily, og /roll`
+    public static readonly currentVersion = '13.2.0'
+    public static readonly currentPatchNotes = `\n* Terning bruker nå Autocomplete for å forsøke å gi forslag om forrige tall`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
