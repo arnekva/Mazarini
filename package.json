@@ -9,7 +9,7 @@
         "stop:bg": "pm2 delete mazarini",
         "test": "mocha -r ts-node/register 'tests/**/*.ts'",
         "create:env": "echo export type env = 'dev' ^| 'prod';export const environment: env = 'dev';export const discordSecret = 'discSecret';export const spotifyClientID  = 'spotifyId';export const spotifyClientSecret = 'spotifyCS';export const mwPw  = 'mwPw';export const lfKey = 'lfKey';export const imgflip = {u: 'user', p: 'pw'};export const actSSOCookie  = 'actSSOCookie ';export const weatherAPIKey = 'weatherAPIKey' > client-env.ts ",
-        "create:db": "echo {\"users\": { }} > myDataBase.json ",
+        
         "build": "npm run create:env && npm test",
         "restart": "npm run stop:bg && git pull && npm run start:bg"
     },
@@ -21,7 +21,7 @@
         "@discordjs/voice": "^0.8.0",
         "@types/node": "^15.6.2",
         "base-64": "^1.0.0",
-        "call-of-duty-api": "^3.1.0",
+        "call-of-duty-api": "^4.0.0",
         "cheerio": "^1.0.0-rc.12",
         "clean-text-utils": "^1.1.17",
         "deckofcards": "^1.2.2",

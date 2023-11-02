@@ -2,7 +2,6 @@ import {
     ButtonInteraction,
     CacheType,
     ChatInputCommandInteraction,
-    Client,
     ContextMenuCommandInteraction,
     Interaction,
     InteractionType,
@@ -12,6 +11,7 @@ import {
 } from 'discord.js'
 import { Admin } from '../admin/admin'
 import { environment } from '../client-env'
+import { MazariniClient } from '../client/MazariniClient'
 import { illegalCommandsWhileInJail } from '../commands/money/crimeCommands'
 import { PoletCommands } from '../commands/poletCommands'
 import { LockingHandler } from '../handlers/lockingHandler'
@@ -24,7 +24,6 @@ import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { UserUtils } from '../utils/userUtils'
 import { Commands, IInteractionCommand } from './commands'
-import { MazariniClient } from '../client/MazariniClient'
 const fetch = require('node-fetch')
 
 export class CommandRunner {
@@ -97,10 +96,15 @@ export class CommandRunner {
         } else if (this.isLegalChannel(interaction)) {
             let hasAcknowledged = false
             //TODO: This might have to be refactored, by ContextMenuCommands are for now treated as regular ChatInputCommands, as they only have a commandName
-            if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
+            //Autocomplete Interactions are handled by this block, since they are triggered by ChatInputs.
+            if (interaction.isChatInputCommand() || interaction.isContextMenuCommand() || interaction.isAutocomplete()) {
                 this.commands.getAllTextCommands().forEach((cmd) => {
                     if (cmd.commandName === interaction.commandName) {
-                        this.runInteractionElement<ChatInputCommandInteraction<CacheType> | ContextMenuCommandInteraction<CacheType>>(cmd, interaction)
+                        if (interaction.isAutocomplete()) {
+                            cmd.autoCompleteCallback(interaction)
+                        } else {
+                            this.runInteractionElement<ChatInputCommandInteraction<CacheType> | ContextMenuCommandInteraction<CacheType>>(cmd, interaction)
+                        }
                         hasAcknowledged = true
                     }
                 })

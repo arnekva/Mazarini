@@ -3,9 +3,9 @@ import { jailbreakCommand } from './commandStorage/jailbreak'
 import { memeCommand } from './commandStorage/meme'
 import { musikkCommand } from './commandStorage/musikk'
 import { pickpocketCommand } from './commandStorage/pickpocket'
-import { rollCommand } from './commandStorage/roll'
 import { sangCommand } from './commandStorage/sang'
 import { stoppCommand } from './commandStorage/stopp'
+import { terningCommand } from './commandStorage/terning'
 import { tournamentCommand } from './commandStorage/tournaments'
 
 /** Easy way to get commands out from storage.
@@ -14,7 +14,6 @@ import { tournamentCommand } from './commandStorage/tournaments'
  */
 export namespace CommandStorage {
     export const MemeCommand = memeCommand
-    export const RollCommand = rollCommand
     export const MusicCommand = musikkCommand
     export const StoppCommand = stoppCommand
     export const PickpocketCommand = pickpocketCommand
@@ -22,4 +21,5 @@ export namespace CommandStorage {
     export const JailCommand = jailCommand
     export const SangCommand = sangCommand
     export const TournamentCommand = tournamentCommand
+    export const TerningCommand = terningCommand
 }

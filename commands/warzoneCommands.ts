@@ -1,4 +1,4 @@
-import { login, ModernWarfare, platforms, Warzone } from 'call-of-duty-api'
+import { login, ModernWarfare, platforms, Warzone, Warzone2 } from 'call-of-duty-api'
 import { CacheType, ChatInputCommandInteraction, EmbedBuilder, Interaction, User } from 'discord.js'
 import { Response } from 'node-fetch'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
@@ -181,7 +181,7 @@ export class WarzoneCommands extends AbstractCommands {
             const platform = this.translatePlatform(WZUser[0])
 
             try {
-                let data = await Warzone.combatHistory(gamertag, platform)
+                let data = (await Warzone.combatHistory(gamertag, platform)) as any
 
                 let tries = 1
                 while (!data?.data?.matches && tries < 3) {
@@ -255,8 +255,9 @@ export class WarzoneCommands extends AbstractCommands {
 
     private async findOverallBRData(gamertag: string, platform: platforms, interaction: Interaction<CacheType>, options?: BRDataOptions) {
         try {
-            const data = await Warzone.fullData(gamertag, platform)
+            const data = (await Warzone2.fullData('15822108823409596937')) as any
             let response = 'BR stats for <' + gamertag + '>'
+            console.log(data)
 
             const statsTyped = data.data.lifetime.mode.br.properties as CodBRStatsType
 
@@ -297,7 +298,7 @@ export class WarzoneCommands extends AbstractCommands {
 
     private async findWeeklyData(gamertag: string, platform: platforms, interaction: Interaction<CacheType>, options?: BRDataOptions) {
         try {
-            const data = await Warzone.fullData(gamertag, platform)
+            const data = (await Warzone.fullData(gamertag, platform)) as any
             let response = 'Weekly Warzone stats for <' + gamertag + '>'
 
             if (!data?.data?.weekly) {

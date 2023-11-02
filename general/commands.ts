@@ -1,4 +1,11 @@
-import { ButtonInteraction, CacheType, ChatInputCommandInteraction, ModalSubmitInteraction, StringSelectMenuInteraction } from 'discord.js'
+import {
+    AutocompleteInteraction,
+    ButtonInteraction,
+    CacheType,
+    ChatInputCommandInteraction,
+    ModalSubmitInteraction,
+    StringSelectMenuInteraction,
+} from 'discord.js'
 import { Admin } from '../admin/admin'
 import { MazariniClient } from '../client/MazariniClient'
 import { TrelloCommands } from '../commands/bot/trelloCommands'
@@ -28,8 +35,12 @@ import { WarzoneCommands } from '../commands/warzoneCommands'
 import { Weather } from '../commands/weatherCommands'
 
 export interface IInteractionCommand<T> {
+    /** Name of command */
     commandName: string
+    /** Callback to run when command is triggered */
     command: (rawInteraction: T) => void
+    /** If options have autocomplete, this callback will handle them */
+    autoCompleteCallback?: (rawInteraction: AutocompleteInteraction) => void
 }
 
 export interface IInteractionElement {
