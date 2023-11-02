@@ -1,4 +1,4 @@
-import { EmbedBuilder } from '@discordjs/builders'
+import { EmbedBuilder } from 'discord.js'
 import moment from 'moment'
 import { PoletCommands } from '../commands/poletCommands'
 import { DatabaseHelper } from '../helpers/databaseHelper'

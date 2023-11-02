@@ -439,7 +439,7 @@ export class WarzoneCommands extends AbstractCommands {
     private async handleWZInteraction(interaction: ChatInputCommandInteraction<CacheType>) {
         await interaction.deferReply()
         if (interaction) {
-            const wantedType = interaction.options.getString('mode') //"br", "weekly", "siste" or "rebirth" or "mw2mp"
+            const wantedType = interaction.options.get('mode')?.value as string //"br", "weekly", "siste" or "rebirth" or "mw2mp"
             const checkAnotherUser = interaction.options.get('bruker')?.user
 
             if (wantedType === 'br' || wantedType === 'weekly' || wantedType === 'rebirth') {

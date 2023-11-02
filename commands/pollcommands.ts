@@ -8,13 +8,7 @@ export class PollCommands extends AbstractCommands {
         super(client)
     }
 
-    private createPoll(interaction: ChatInputCommandInteraction<CacheType>) {
-        const characterToSplit = ','
-        const pollInfo = interaction.options.getString('beskrivelse', true)
-        const optionsFromInteraction = interaction.options.getString('valg', true)
-
-        const options = optionsFromInteraction.split(characterToSplit)
-    }
+    private createPoll(interaction: ChatInputCommandInteraction<CacheType>) {}
 
     getAllInteractions(): IInteractionElement {
         return {
