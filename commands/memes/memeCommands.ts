@@ -103,16 +103,14 @@ export class Meme extends AbstractCommands {
             })
     }
 
-    private filterMemes(interaction: AutocompleteInteraction) {
-        const input = interaction.options.getFocused().toLowerCase();
-        console.log(input);
-        
-        const options = memes.filter((meme: IMemeTemplate) => meme.name.toLowerCase().includes(input) 
-                                            || meme.tags.some(t => t.toLowerCase().includes(input)))
-                                            .slice(0,24)
-                                            .map((meme) => ({ name: `${meme.name} (${meme.box_count})`, value: meme.id}))
-        console.log(options);
-                                            
+    private filterMemes(interaction: AutocompleteInteraction<CacheType>) {
+        const optionList: any = interaction.options    
+        const input = optionList.getFocused().toLowerCase();        
+        const options = memes.filter((meme: IMemeTemplate) => 
+                                        meme.name.toLowerCase().includes(input) || 
+                                        meme.tags.some(t => t.toLowerCase().includes(input)))
+                                        .slice(0,24)
+                                        .map((meme) => ({ name: `${meme.name} (${meme.box_count})`, value: meme.id}))                                            
         interaction.respond(options)
     }
 
@@ -125,7 +123,7 @@ export class Meme extends AbstractCommands {
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                             this.getMeme(rawInteraction)
                         },
-                        autoCompleteCallback: (rawInteraction: AutocompleteInteraction) => {
+                        autoCompleteCallback: (rawInteraction: AutocompleteInteraction<CacheType>) => {
                             this.filterMemes(rawInteraction)
                         }
                     },
