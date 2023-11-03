@@ -46,5 +46,6 @@ export class MentionUtils {
     static User_IDs = {
         BOT_HOIE: '802945796457758760',
         CLYDE: '1081004946872352958',
+        MAGGI: '221739293889003520'
     }
 }
