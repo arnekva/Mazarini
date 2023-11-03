@@ -4,6 +4,7 @@ import { openCageAPIKey, openWeatherAPIKey } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
 import { DateUtils } from '../utils/dateUtils'
+import { MentionUtils } from '../utils/mentionUtils'
 import { WeatherUtils } from '../utils/weatherUtils'
 const fetch = require('node-fetch')
 const NodeGeocoder = require('node-geocoder')
@@ -163,7 +164,8 @@ export class Weather extends AbstractCommands {
                     {
                         commandName: 'weather',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            this.getWeatherForGivenCity(rawInteraction)
+                            if (rawInteraction.user.id === MentionUtils.User_IDs.MAGGI) this.messageHelper.replyToInteraction(rawInteraction, 'Sjekk Yr heller - Stivert har laget denne, så du kan jo ikke stole på den uansett')
+                            else this.getWeatherForGivenCity(rawInteraction)
                         },
                     },
                 ],

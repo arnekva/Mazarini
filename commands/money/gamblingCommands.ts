@@ -320,7 +320,8 @@ export class GamblingCommands extends AbstractCommands {
                     {
                         commandName: 'rulett',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            this.roulette(rawInteraction)
+                            if (rawInteraction.user.id === MentionUtils.User_IDs.MAGGI) this.messageHelper.replyToInteraction(rawInteraction, 'Denne vil du ikke bruke.. Stivert har sikkert rigget den')
+                            else this.roulette(rawInteraction)
                         },
                     },
                     {

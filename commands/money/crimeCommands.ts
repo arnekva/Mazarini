@@ -437,13 +437,15 @@ export class CrimeCommands extends AbstractCommands {
                     {
                         commandName: 'pickpocket',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            this.pickpocket(rawInteraction)
+                            if (rawInteraction.user.id === MentionUtils.User_IDs.MAGGI) this.messageHelper.replyToInteraction(rawInteraction, 'Fy søren.. Nå reddet jeg deg faktisk fra å bruke noe Stivert har laget')
+                            else this.pickpocket(rawInteraction)
                         },
                     },
                     {
                         commandName: 'jailbreak',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            this.jailbreak(rawInteraction)
+                            if (rawInteraction.user.id === MentionUtils.User_IDs.MAGGI) this.messageHelper.replyToInteraction(rawInteraction, 'Jailbreak? More like Botbreak av Stivert am i rite?')
+                            else this.jailbreak(rawInteraction)
                         },
                     },
                     {

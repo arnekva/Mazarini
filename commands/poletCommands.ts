@@ -19,6 +19,7 @@ import { Languages } from '../helpers/languageHelpers'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
+import { MentionUtils } from '../utils/mentionUtils'
 const fetch = require('node-fetch')
 
 interface exceptionHours {
@@ -313,7 +314,8 @@ export class PoletCommands extends AbstractCommands {
                     {
                         commandName: 'POLET_STOCK',
                         command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                            this.getProductStockForUser(rawInteraction)
+                            if (rawInteraction.user.id === MentionUtils.User_IDs.MAGGI) this.messageHelper.replyToInteraction(rawInteraction, 'Oi forsiktig nå! Denne har Stivert laget')
+                            else this.getProductStockForUser(rawInteraction)
                         },
                     },
                 ],
