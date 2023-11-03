@@ -5,6 +5,7 @@ import { IInteractionElement } from '../../general/commands'
 import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
+import { MentionUtils } from '../../utils/mentionUtils'
 import { MiscUtils } from '../../utils/miscUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { TextUtils } from '../../utils/textUtils'
@@ -333,11 +334,14 @@ export class GamblingCommands extends AbstractCommands {
                             console.log('in callback')
                             /** Matches sequence <<<  123 *(123 - 123)*   >>> */
                             const regEx = /([0-9]* \*\([0-9]*\ - [0-9]*\)\*)/gi
-                            const lastMsg = rawInteraction.channel.messages.cache.reverse().find((msg, key) => {
-                                const test = regEx.test(msg.content)
-                                regEx.lastIndex = 0
-                                return test
-                            })
+                            const lastMsg = rawInteraction.channel.messages.cache
+                                .reverse()
+                                .filter((msg) => msg.author.id === MentionUtils.User_IDs.BOT_HOIE)
+                                .find((msg, key) => {
+                                    const test = regEx.test(msg.content)
+                                    regEx.lastIndex = 0
+                                    return test
+                                })
                             if (lastMsg) {
                                 const content = lastMsg.content.slice(0, lastMsg.content.indexOf('*'))
                                 rawInteraction.respond([{ name: content, value: content }])
