@@ -282,7 +282,7 @@ export class Music extends AbstractCommands {
     }
 
     private async findLyrics(interaction: ChatInputCommandInteraction<CacheType>) {
-        interaction.deferReply()
+        await interaction.deferReply()
         const artist = interaction.options.get('artist')?.value as string
         const track = interaction.options.get('sang')?.value as string
         const timeStamp = interaction.options.get('tid')?.value as string
