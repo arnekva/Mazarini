@@ -234,8 +234,8 @@ export class CrimeCommands extends AbstractCommands {
         const victim = DatabaseHelper.getUser(target.id)
 
         if (await this.handleTheftEdgeCases(interaction, engager, victim, amountAsNum)) return
-
-        if (this.theftAttemptIsSuccessful(amountAsNum)) {
+        const theftAttempt = this.theftAttemptIsSuccessful(amountAsNum)
+        if (theftAttempt.success) {
             engager.chips += amountAsNum
             victim.chips -= amountAsNum
             victim.hasBeenRobbed = true
@@ -277,6 +277,9 @@ export class CrimeCommands extends AbstractCommands {
                     jailTypeString
             )
             this.messageHelper.replyToInteraction(interaction, embed)
+            this.messageHelper.sendLogMessage(
+                `${interaction.user.username} er blitt fengslet. Han hadde ${theftAttempt.chance} % sannsynlighet, men rullet ${theftAttempt.roll}`
+            )
         }
     }
 
@@ -324,16 +327,19 @@ export class CrimeCommands extends AbstractCommands {
         return false
     }
 
-    private theftAttemptIsSuccessful(amount: number) {
+    private theftAttemptIsSuccessful(amount: number): { success: boolean; chance: number; roll: number } {
         // a suiteable 1/x function where the probability of success rapidly approaches a limit of 0
-        const chanceOfSuccess = ((1)/(((amount/1000)/(2))+2.5))*250
+        const chanceOfSuccess = (1 / (amount / 1000 / 2 + 2.5)) * 250
         console.log('odds:', chanceOfSuccess)
 
         // need a roll with 3 decimals for proper accuracy given a high amount
         const roll = RandomUtils.getRandomInteger(0, 100000) / 1000
         console.log('roll:', roll)
-
-        return roll < chanceOfSuccess
+        return {
+            success: roll < chanceOfSuccess,
+            chance: chanceOfSuccess,
+            roll: roll,
+        }
     }
 
     private async jailbreak(interaction: ChatInputCommandInteraction<CacheType>) {
