@@ -326,7 +326,7 @@ export class CrimeCommands extends AbstractCommands {
 
     private theftAttemptIsSuccessful(amount: number) {
         // a suiteable 1/x function where the probability of success rapidly approaches a limit of 0
-        const chanceOfSuccess = (1 / (amount / 1000 / 2 + 10.1)) * 1000
+        const chanceOfSuccess = ((1)/(((amount/1000)/(2))+2.5))*250
         console.log('odds:', chanceOfSuccess)
 
         // need a roll with 3 decimals for proper accuracy given a high amount
