@@ -7,11 +7,11 @@ import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { MessageHelper } from '../../helpers/messageHelper'
 import { MentionUtils } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '13.3.0'
+    public static readonly currentVersion = '13.4.0'
     public static readonly currentPatchNotes =
-        `\n* Du kan nå bruke /lyrics for å se starten av teksten på en sang` +
-        `\n* Oppdatert pickpocket grafen` +
-        `\n* Det blir nå logget en melding når noen blir fengslet. Denne vil vise sannsynligheten han hadde for å klare det.`
+        `\n* /meme har nå fått seg en overhaul` +
+        `\n\t* Man kan nå søke blant 100+ memes` +
+        `\n\t* Har lagt til en option for "preview" hvor du kan velge å få se meme-en selv før du evt sender den`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
