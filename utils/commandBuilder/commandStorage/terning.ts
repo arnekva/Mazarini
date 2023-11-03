@@ -7,7 +7,7 @@ export const terningCommand: ISlashCommandItem = {
     options: [
         {
             name: 'sider',
-            description: 'velg meme du skal lage',
+            description: 'velg antall sider å trille',
             type: ApplicationCommandOptionType.Number,
             required: false,
             autocomplete: true,

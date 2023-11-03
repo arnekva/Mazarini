@@ -1,6 +1,6 @@
 import { CacheType, ChatInputCommandInteraction, Interaction, User } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { lfKey } from '../client-env'
+import { lfKey, musixMatchKey } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
@@ -281,6 +281,32 @@ export class Music extends AbstractCommands {
         } else return `Brukeren ${user?.username} har ikke knyttet til et Last.fm-brukernavn`
     }
 
+    private async findLyrics(interaction: ChatInputCommandInteraction<CacheType>) {
+        interaction.deferReply()
+        const artist = interaction.options.get('artist')?.value as string
+        const track = interaction.options.get('sang')?.value as string
+        const timeStamp = interaction.options.get('tid')?.value as string
+        const numLines = interaction.options.get('linjer')?.value as string
+
+        const searchTrack = await fetch(
+            `https://api.musixmatch.com/ws/1.1/matcher.lyrics.get?format=json&q_track=${track}&q_artist=${artist}&apikey=${musixMatchKey}`,
+            {
+                method: 'GET',
+            }
+        )
+        const data = await searchTrack.json()
+
+        const lyrics = data.message?.body?.lyrics?.lyrics_body as string
+        if (lyrics) {
+            const formattedLyrics = lyrics.replace('******* This Lyrics is NOT for Commercial use *******', '')
+            this.messageHelper.replyToInteraction(interaction, formattedLyrics, { hasBeenDefered: true })
+        } else {
+            this.messageHelper.replyToInteraction(interaction, `Fant ikke lyrics for ${track} av ${artist}`, { hasBeenDefered: true })
+        }
+        // const data = JSON.parse(searchTrack)
+        console.log(data.message?.body?.lyrics?.lyrics_body)
+    }
+
     getAllInteractions(): IInteractionElement {
         return {
             commands: {
@@ -289,6 +315,12 @@ export class Music extends AbstractCommands {
                         commandName: 'musikk',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                             this.handleMusicInteractions(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'lyrics',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.findLyrics(rawInteraction)
                         },
                     },
                 ],
