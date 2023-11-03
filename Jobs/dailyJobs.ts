@@ -1,6 +1,5 @@
 import fetch from 'node-fetch'
 import { rapidApiKey2 } from '../client-env'
-import { GameCommands } from '../commands/gameCommands'
 import { IDailyPriceClaim } from '../commands/money/gamblingCommands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -52,12 +51,12 @@ export class DailyJobs {
                     DatabaseHelper.updateStorage({
                         rocketLeagueTournaments: tournaments,
                     })
-                    const msgData = GameCommands.getRocketLeagueTournaments()
-                    this.messageHelper.sendMessage(
-                        MentionUtils.CHANNEL_IDs.ROCKET_LEAGUE,
-                        `Dagens turneringer. Trykk på en av knappene for å bli varslet 1 time før start`
-                    )
-                    this.messageHelper.sendMessageWithComponents(MentionUtils.CHANNEL_IDs.ROCKET_LEAGUE, [msgData.buttons])
+                    // const msgData = GameCommands.getRocketLeagueTournaments()
+                    // this.messageHelper.sendMessage(
+                    //     MentionUtils.CHANNEL_IDs.ROCKET_LEAGUE,
+                    //     `Dagens turneringer. Trykk på en av knappene for å bli varslet 1 time før start`
+                    // )
+                    // this.messageHelper.sendMessageWithComponents(MentionUtils.CHANNEL_IDs.ROCKET_LEAGUE, [msgData.buttons])
                 }
             })
             .catch((err) => {
