@@ -258,8 +258,6 @@ export class GamblingCommands extends AbstractCommands {
     }
 
     private async rollDice(interaction: ChatInputCommandInteraction<CacheType>) {
-        console.log('test')
-
         const customTarget = interaction.options.get('sider')?.value as number
         const diceTarget = customTarget ? customTarget : 6
         if (diceTarget <= 0) this.messageHelper.replyToInteraction(interaction, `Du kan ikke trille en terning med mindre enn 1 side`, { ephemeral: true })
@@ -331,7 +329,6 @@ export class GamblingCommands extends AbstractCommands {
                             this.rollDice(rawInteraction)
                         },
                         autoCompleteCallback(rawInteraction: AutocompleteInteraction<CacheType>) {
-                            console.log('in callback')
                             /** Matches sequence <<<  123 *(123 - 123)*   >>> */
                             const regEx = /([0-9]* \*\([0-9]*\ - [0-9]*\)\*)/gi
                             const lastMsg = rawInteraction.channel.messages.cache
