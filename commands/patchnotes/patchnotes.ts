@@ -7,8 +7,8 @@ import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { MessageHelper } from '../../helpers/messageHelper'
 import { MentionUtils } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '13.2.0'
-    public static readonly currentPatchNotes = `\n* Terning bruker nå Autocomplete for å forsøke å gi forslag om forrige tall`
+    public static readonly currentVersion = '13.3.0'
+    public static readonly currentPatchNotes = `\n* Du kan nå bruke /lyrics for å se starten av teksten på en sang`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

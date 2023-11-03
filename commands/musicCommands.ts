@@ -303,8 +303,6 @@ export class Music extends AbstractCommands {
         } else {
             this.messageHelper.replyToInteraction(interaction, `Fant ikke lyrics for ${track} av ${artist}`, { hasBeenDefered: true })
         }
-        // const data = JSON.parse(searchTrack)
-        console.log(data.message?.body?.lyrics?.lyrics_body)
     }
 
     getAllInteractions(): IInteractionElement {
