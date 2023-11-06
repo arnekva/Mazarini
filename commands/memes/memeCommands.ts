@@ -7,10 +7,9 @@ import { IInteractionElement } from '../../general/commands'
 import { MentionUtils } from '../../utils/mentionUtils'
 
 const fetch = require('node-fetch'),
-memes = require('../../memes.json')
+    memes = require('../../memes.json')
 
 export class Meme extends AbstractCommands {
-
     constructor(client: MazariniClient) {
         super(client)
     }
@@ -20,9 +19,9 @@ export class Meme extends AbstractCommands {
         const img = interaction.customId.split(';')[1]
         this.messageHelper.sendMessage(interaction.channelId, img)
         fetch(`https://discord.com/api/webhooks/${MentionUtils.User_IDs.BOT_HOIE}/${interaction.token}/messages/@original`, {
-                    method: 'DELETE',
-                })
-        interaction.deferUpdate()    
+            method: 'DELETE',
+        })
+        interaction.deferUpdate()
     }
 
     private async getMeme(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -31,17 +30,21 @@ export class Meme extends AbstractCommands {
             return this.messageHelper.replyToInteraction(interaction, 'https://i.imgur.com/ka7SslJ.jpg')
         }
         const meme = memes.find((meme) => meme.id == memeId)
-        if (!meme)
-            this.messageHelper.replyToInteraction(interaction, `her skjedde det ein feil. Hvis det skjer igjen tag @Bot-support`, {
+        console.log(meme)
+
+        if (!meme) {
+            this.messageHelper.replyToInteraction(interaction, `Denne memen finnes ikkje`, {
                 ephemeral: true,
                 hasBeenDefered: false,
             })
-        this.captionMeme(meme, interaction)
+        } else {
+            this.captionMeme(meme, interaction)
+        }
     }
 
     private async captionMeme(meme: IMemeTemplate, interaction: ChatInputCommandInteraction<CacheType>) {
         const preview = interaction.options.get('preview')?.value as boolean
-        await interaction.deferReply({ephemeral: preview})
+        await interaction.deferReply({ ephemeral: preview })
 
         const params = new URLSearchParams({
             username: imgflip.u,
@@ -81,12 +84,15 @@ export class Meme extends AbstractCommands {
                         if (el.data) {
                             if (preview) {
                                 const btn = sendMemeBtn(el.data.url)
-                                this.messageHelper.replyToInteraction(interaction, el.data.url, { ephemeral: true, hasBeenDefered: true },[btn])
+                                this.messageHelper.replyToInteraction(interaction, el.data.url, { ephemeral: true, hasBeenDefered: true }, [btn])
                             } else {
                                 this.messageHelper.replyToInteraction(interaction, el.data.url, { ephemeral: false, hasBeenDefered: true })
                             }
-                        }
-                        else this.messageHelper.replyToInteraction(interaction, `Klarte ikkje å laga et meme te deg bro`, { ephemeral: true, hasBeenDefered: true })
+                        } else
+                            this.messageHelper.replyToInteraction(interaction, `Klarte ikkje å laga et meme te deg bro`, {
+                                ephemeral: true,
+                                hasBeenDefered: true,
+                            })
                     })
                     .catch((error: any) => {
                         this.messageHelper.replyToInteraction(interaction, `her skjedde det ein feil. Hvis det skjer igjen tag @Bot-support`, {
@@ -104,13 +110,12 @@ export class Meme extends AbstractCommands {
     }
 
     private filterMemes(interaction: AutocompleteInteraction<CacheType>) {
-        const optionList: any = interaction.options    
-        const input = optionList.getFocused().toLowerCase();        
-        const options = memes.filter((meme: IMemeTemplate) => 
-                                        meme.name.toLowerCase().includes(input) || 
-                                        meme.tags.some(t => t.toLowerCase().includes(input)))
-                                        .slice(0,24)
-                                        .map((meme) => ({ name: `${meme.name} (${meme.box_count})`, value: meme.id}))                                            
+        const optionList: any = interaction.options
+        const input = optionList.getFocused().toLowerCase()
+        const options = memes
+            .filter((meme: IMemeTemplate) => meme.name.toLowerCase().includes(input) || meme.tags.some((t) => t.toLowerCase().includes(input)))
+            .slice(0, 24)
+            .map((meme) => ({ name: `${meme.name} (${meme.box_count})`, value: meme.id }))
         interaction.respond(options)
     }
 
@@ -121,12 +126,13 @@ export class Meme extends AbstractCommands {
                     {
                         commandName: 'meme',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            if (rawInteraction.user.id === MentionUtils.User_IDs.MAGGI) this.messageHelper.replyToInteraction(rawInteraction, 'Gitt at Stivert har laget denne er det kanskje et poeng å unngå den')
+                            if (rawInteraction.user.id === MentionUtils.User_IDs.MAGGI)
+                                this.messageHelper.replyToInteraction(rawInteraction, 'Gitt at Stivert har laget denne er det kanskje et poeng å unngå den')
                             else this.getMeme(rawInteraction)
                         },
                         autoCompleteCallback: (rawInteraction: AutocompleteInteraction<CacheType>) => {
                             this.filterMemes(rawInteraction)
-                        }
+                        },
                     },
                 ],
                 buttonInteractionComands: [
@@ -152,7 +158,7 @@ const sendMemeBtn = (img: any) => {
             type: 2,
         })
     )
-} 
+}
 
 export interface IMemeTemplate {
     id: string
