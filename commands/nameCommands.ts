@@ -68,9 +68,7 @@ export class NameCommands extends AbstractCommands {
 
     private getTextFromCommand(username: string) {
         const text: string = ArrayUtils.randomChoiceFromArray(DatabaseHelper.getTextCommandValueArray(username.toLowerCase()) ?? []) || 'Ingen tekst lagt til'
-        return `${text.startsWith('<:') ? '' : username} ${
-            ArrayUtils.randomChoiceFromArray(DatabaseHelper.getTextCommandValueArray(username.toLowerCase()) ?? []) || 'Ingen tekst lagt til'
-        }`
+        return `${text.startsWith('<:') ? '' : username} ${text || 'Ingen tekst lagt til'}`
     }
 
     private addTextValueFromInteraction(text: string, username: string): boolean {
