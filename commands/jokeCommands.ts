@@ -223,11 +223,11 @@ export class JokeCommands extends AbstractCommands {
             commands: {
                 interactionCommands: [
                     {
-                        commandName: 'wham',
+                        commandName: 'whamageddon',
                         command: async (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                             rawInteraction.deferReply()
-                            const msg = await this.messageHelper.findMessageById('1047851607863349338')
-                            if (msg) this.messageHelper.replyToInteraction(rawInteraction, `Whamageddon 2022 status:\n${msg.content}`, { hasBeenDefered: true })
+                            const msg = await this.messageHelper.findMessageById('1171557622164508765')
+                            if (msg) this.messageHelper.replyToInteraction(rawInteraction, `${msg.content}`, { hasBeenDefered: true })
                             else this.messageHelper.replyToInteraction(rawInteraction, `Statusen e ukjent`, { hasBeenDefered: true })
                         },
                     },
