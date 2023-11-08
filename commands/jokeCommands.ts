@@ -251,7 +251,7 @@ export class JokeCommands extends AbstractCommands {
                 const emb = EmbedUtils.createSimpleEmbed(`#Whamageddon`, `${MentionUtils.mentionUser(interaction.user.id)} gjekk på ein saftige smell. `)
                 this.messageHelper.sendFormattedMessage(MentionUtils.CHANNEL_IDs.GENERAL, emb)
             } else {
-                this.messageHelper.replyToInteraction(interaction, `Whamageddon starte ikkje før 01 Desember 09:00. Innte det kan du hørra på an så mye du vil`)
+                this.messageHelper.replyToInteraction(interaction, `Whamageddon starte ikkje før 01 Desember 08:00. Innte det kan du hørra på an så mye du vil`)
             }
         } else {
             const usersInWhamageddon = DatabaseHelper.getAllUsers().filter((u) => !!u.whamageddonLoss)
@@ -273,14 +273,10 @@ export class JokeCommands extends AbstractCommands {
             } else {
                 this.messageHelper.replyToInteraction(
                     interaction,
-                    isValidTimeFrame ? `Ingen har tapt Whamageddon ennå` : `Whamageddon starte 01. Desember 09:00`
+                    isValidTimeFrame ? `Ingen har tapt Whamageddon ennå` : `Whamageddon starte 01. Desember 08:00`
                 )
             }
         }
-        // interaction.deferReply()
-        // const msg = await this.messageHelper.findMessageById('1171557622164508765')
-        // if (msg) this.messageHelper.replyToInteraction(interaction, `${msg.content}`, { hasBeenDefered: true })
-        // else this.messageHelper.replyToInteraction(interaction, `Statusen e ukjent`, { hasBeenDefered: true })
     }
 
     getAllInteractions(): IInteractionElement {
