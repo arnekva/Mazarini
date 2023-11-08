@@ -4,4 +4,14 @@ import { ISlashCommandItem } from '../commandBuilder'
 export const whamageddonCommand: ISlashCommandItem = {
     commandName: 'whamageddon',
     commandDescription: 'se scoreboard for whamageddon',
+    subCommands: [
+        {
+            commandName: 'tapt',
+            commandDescription: 'Registrer at du tapte whamageddon',
+        },
+        {
+            commandName: 'vis',
+            commandDescription: 'Vis status',
+        },
+    ],
 }
