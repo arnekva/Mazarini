@@ -149,9 +149,21 @@ export class DateUtils {
     static dateHasPassed(d: Date) {
         return moment(d).isBefore(moment(), 'milliseconds') // || DateUtils.isToday(d, true)
     }
+    /** Returns an absolute number of the difference */
+    static getDaysBetweenDates(d1: Moment, d2: Moment) {
+        return Math.abs(d1.diff(d2, 'days'))
+    }
+    /** Returns an absolute number of the difference */
+    static getWeeksBetweenDates(d1: Moment, d2: Moment) {
+        return Math.abs(d1.diff(d2, 'weeks'))
+    }
 
-    static formatDate(d: Date) {
-        return `${DateUtils.addZero(d.getUTCDate())}.${DateUtils.addZero(d.getUTCMonth() + 1)}.${String(d.getUTCFullYear()).substring(2, 4)}`
+    static formatDate(d: Date, includeHours?: boolean) {
+        let dateString = `${DateUtils.addZero(d.getUTCDate())}.${DateUtils.addZero(d.getUTCMonth() + 1)}.${String(d.getUTCFullYear()).substring(2, 4)}`
+        if (includeHours) {
+            dateString += ` ${DateUtils.addZero(d.getHours())}:${DateUtils.addZero(d.getMinutes())}`
+        }
+        return dateString
     }
 
     static addZero(n: number) {
@@ -170,6 +182,9 @@ export class DateUtils {
 
     static isDateBefore(date1: Date, date2: Date) {
         return moment(date1).isBefore(moment(date2))
+    }
+    static currentDateIsBetween(date1: moment.MomentInput, date2: moment.MomentInput) {
+        return moment().isBetween(date1, date2) // moment(date1).isBefore(moment(date2))
     }
 
     static dateIsMaxXDaysInFuture(date: Date, numDays: number) {
