@@ -7,11 +7,10 @@ import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { MessageHelper } from '../../helpers/messageHelper'
 import { MentionUtils } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '13.4.0'
+    public static readonly currentVersion = '13.5.0'
     public static readonly currentPatchNotes =
-        `\n* /meme har nå fått seg en overhaul` +
-        `\n\t* Man kan nå søke blant 100+ memes` +
-        `\n\t* Har lagt til en option for "preview" hvor du kan velge å få se meme-en selv før du evt sender den`
+        `\n* Du kan nå se Whamageddon status med /Whamageddon vis` +
+        `\n* Du kan registrere at du tapte Whamageddon med /Whamageddon tapt. Den vil automatisk kalkulere antall slurker du skylder`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
