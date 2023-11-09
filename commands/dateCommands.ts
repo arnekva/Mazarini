@@ -227,7 +227,7 @@ export class DateCommands extends AbstractCommands {
                 printValues.push({
                     print:
                         `${!!text ? '\n' : ''}` +
-                        `${DateUtils.formatCountdownText(daysUntil, 'te ' + cd.description)} (${DateUtils.formatDate(new Date(cd.date), true)})`,
+                        `${DateUtils.formatCountdownText(daysUntil, 'te ' + cd.description)} *(${DateUtils.formatDate(new Date(cd.date), true)})*`,
                     date: cd.date,
                 })
             })
