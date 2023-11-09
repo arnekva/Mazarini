@@ -1,10 +1,20 @@
-import { ApplicationCommandOptionData, ApplicationCommandType, Client, ContextMenuCommandBuilder } from 'discord.js'
+import {
+    ApplicationCommandChoicesData,
+    ApplicationCommandOptionData,
+    ApplicationCommandOptionType,
+    ApplicationCommandType,
+    Client,
+    ContextMenuCommandBuilder,
+    SlashCommandBuilder,
+    SlashCommandSubcommandBuilder,
+} from 'discord.js'
 import { CommandStorage } from './commandStorage'
 
 export interface ISlashCommandItem {
     commandName: string
     commandDescription: string
     options?: ApplicationCommandOptionData[]
+    subCommands?: Omit<ISlashCommandItem, 'subCommands'>[]
 }
 export interface IContextMenuCommandItem {
     commandName: string
@@ -15,18 +25,75 @@ export namespace CommandBuilder {
     /** Creates a slash command based on given params
      */
     export const createSlashCommand = (params: ISlashCommandItem, client: Client) => {
-        client.application.commands.create({
-            name: params.commandName,
-            description: params.commandName,
-            options: params.options,
-            type: ApplicationCommandType.ChatInput,
+        //Use slashcommandbuilder to start a new command
+        const scb = new SlashCommandBuilder()
+        scb.setName(params.commandName)
+        scb.setDescription(params.commandDescription)
+        /** Helper function to add options with the given params to the given SlashCommandBuilder */
+        const addOptions = (option: ApplicationCommandOptionData, b: SlashCommandBuilder | SlashCommandSubcommandBuilder) => {
+            switch (option.type) {
+                case ApplicationCommandOptionType.String:
+                    const opt = option as ApplicationCommandChoicesData<string>
+                    b.addStringOption((a) => {
+                        a.setName(opt.name)
+                        a.setDescription(opt.description)
+                        if (opt.choices) {
+                            console.log('adding choices')
+
+                            a.addChoices(...opt.choices)
+                        }
+                        return a
+                    })
+                    break
+                case ApplicationCommandOptionType.Number:
+                    b.addNumberOption((a) => {
+                        a.setName(option.name)
+                        a.setDescription(option.description)
+
+                        return a
+                    })
+                    break
+                case ApplicationCommandOptionType.User:
+                    b.addUserOption((a) => {
+                        a.setName(option.name)
+                        a.setDescription(option.description)
+
+                        return a
+                    })
+                    break
+                case ApplicationCommandOptionType.Boolean:
+                    b.addBooleanOption((a) => {
+                        a.setName(option.name)
+                        a.setDescription(option.description)
+                        return a
+                    })
+                    break
+            }
+        }
+        //If any options are supplied, user helper function to add them
+        params.options?.forEach((option) => {
+            addOptions(option, scb)
         })
+        //If any subcommands are supplied, we create a new slashcommandSubcommandBuilder for each one
+        params.subCommands?.forEach((subC) => {
+            const localSCB = new SlashCommandSubcommandBuilder()
+            localSCB.setName(subC.commandName)
+            localSCB.setDescription(subC.commandDescription)
+            //Subcommands can also have options, so we use the helper function to add the options
+            subC.options?.forEach((o) => {
+                addOptions(o, localSCB)
+            })
+            //Finally, add the subcommand to the slash command
+            scb.addSubcommand(localSCB)
+        })
+        //Creates the slash command
+        client.application.commands.create(scb)
     }
 
     /** This command will automatically create all commands listed in it */
     export const createCommands = (client: Client) => {
-        CommandBuilder.createSlashCommand(CommandStorage.TerningCommand, client)
-        // CommandBuilder.deleteCommand('1156478926521126973', client)
+        // CommandBuilder.deleteCommand('1171558082007007312', client)
+        CommandBuilder.createSlashCommand(CommandStorage.SpotifyCommand, client)
         // CommandBuilder.deleteCommand('1025552134604861440', client)
         // CommandBuilder.createContextMenuCommand({ commandName: 'helg' }, client)
     }

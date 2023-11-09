@@ -5,9 +5,11 @@ import { memeCommand } from './commandStorage/meme'
 import { musikkCommand } from './commandStorage/musikk'
 import { pickpocketCommand } from './commandStorage/pickpocket'
 import { sangCommand } from './commandStorage/sang'
+import { spotifyCommand } from './commandStorage/spotify'
 import { stoppCommand } from './commandStorage/stopp'
 import { terningCommand } from './commandStorage/terning'
 import { tournamentCommand } from './commandStorage/tournaments'
+import { whamageddonCommand } from './commandStorage/whamageddon'
 
 /** Easy way to get commands out from storage.
  * Commands are stored so that they can easily be recreated/updated, and not have to be copied each time.
@@ -24,4 +26,6 @@ export namespace CommandStorage {
     export const TournamentCommand = tournamentCommand
     export const TerningCommand = terningCommand
     export const LyricsCommand = lyricsCommand
+    export const WhamageddonCommand = whamageddonCommand
+    export const SpotifyCommand = spotifyCommand
 }

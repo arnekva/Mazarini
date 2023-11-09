@@ -30,7 +30,6 @@ export class Meme extends AbstractCommands {
             return this.messageHelper.replyToInteraction(interaction, 'https://i.imgur.com/ka7SslJ.jpg')
         }
         const meme = memes.find((meme) => meme.id == memeId)
-        console.log(meme)
 
         if (!meme) {
             this.messageHelper.replyToInteraction(interaction, `Denne memen finnes ikkje`, {

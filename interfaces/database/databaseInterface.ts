@@ -68,6 +68,8 @@ export interface MazariniUser {
     userStats?: UserStats
     hasBeenRobbed?: boolean
     jail?: UserJail
+    /** Saved as date string */
+    whamageddonLoss?: string
 }
 
 /** Values or objects that can be cached. All props must be marked optional */

@@ -121,7 +121,12 @@ export class SpotifyCommands extends AbstractCommands {
         }
     }
 
-    private async currentPlayingFromDiscord(interaction: Interaction<CacheType>, mode?: string, user?: User): Promise<string | EmbedBuilder> {
+    private async currentPlayingFromDiscord(
+        interaction: Interaction<CacheType>,
+        mode?: string,
+        user?: User,
+        includeLyrics?: boolean
+    ): Promise<string | EmbedBuilder> {
         const _music = new Music(this.client)
 
         const isAllActive = mode === 'active'
@@ -195,6 +200,14 @@ export class SpotifyCommands extends AbstractCommands {
                     .setDescription(`${spotify?.state}`)
 
                 embed.addFields({ name: 'Album', value: spotify.assets.largeText ?? 'Ukjent album', inline: true })
+                if (includeLyrics) {
+                    const lyrics = await Music.fetchLyrcs(spotify?.state, spotify?.details)
+                    if (lyrics) {
+                        embed.addFields({ name: 'Tekst', value: lyrics })
+                    } else {
+                        embed.setFooter({ text: `Fant ingen tekst for sangen` })
+                    }
+                }
                 if (!!spotify?.url) embed.setURL(spotify.url)
                 if (spotify.assets) embed.setThumbnail(`${spotifyImageBaseUrl}/${imageUrl}`)
                 return embed
@@ -236,7 +249,8 @@ export class SpotifyCommands extends AbstractCommands {
             await interaction.deferReply() //Må defere reply siden botter har maks 3 sekund å svare på en interaction
             const mode = interaction.options.get('mode')?.value as string
             const user = interaction.options.get('user')?.user
-            const data = await this.currentPlayingFromDiscord(interaction, mode, user instanceof User ? user : undefined)
+            const includeLyrics = interaction.options.get('lyrics')?.value as boolean
+            const data = await this.currentPlayingFromDiscord(interaction, mode, user instanceof User ? user : undefined, includeLyrics)
             this.messageHelper.replyToInteraction(interaction, data, { hasBeenDefered: true })
         }
     }

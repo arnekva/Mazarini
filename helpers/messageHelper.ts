@@ -286,7 +286,7 @@ export class MessageHelper {
         return messageToReturn
     }
 
-    /** @deprecated Use sendMessage */
+    /** TODO: Merge this with sendMessage */
     async sendFormattedMessage(channel: TextChannel | string, newMessage: EmbedBuilder) {
         if (typeof channel === 'string') {
             const textCh = this.findChannelById(channel) as TextChannel

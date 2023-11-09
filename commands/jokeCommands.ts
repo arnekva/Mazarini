@@ -1,4 +1,5 @@
 import { APIEmbedField, CacheType, ChatInputCommandInteraction, TextChannel } from 'discord.js'
+import moment, { Moment } from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
@@ -218,17 +219,77 @@ export class JokeCommands extends AbstractCommands {
         )
     }
 
+    private whamageddon(interaction: ChatInputCommandInteraction<CacheType>) {
+        const isRegisterLoss = interaction.options.getSubcommand() === 'tapt'
+        const endDate = '24-12-2023 16:00'
+        const isValidTimeFrame = DateUtils.currentDateIsBetween(moment('01-12-2023 08:00', 'DD-MM-YYYY HH:mm'), moment(endDate, 'DD-MM-YYYY HH:mm'))
+
+        const calcSlurks = (d1: Moment) => {
+            let slurks = DateUtils.getDaysBetweenDates(d1, moment(endDate))
+
+            const shots = DateUtils.getWeeksBetweenDates(d1, moment(endDate))
+            return {
+                slurker: slurks,
+                shots: shots,
+            }
+        }
+        if (isRegisterLoss) {
+            if (isValidTimeFrame) {
+                const user = DatabaseHelper.getUser(interaction.user.id)
+                user.whamageddonLoss = moment().toISOString()
+                DatabaseHelper.updateUser(user)
+                const drinkData = calcSlurks(moment(user.whamageddonLoss))
+                this.messageHelper.replyToInteraction(
+                    interaction,
+                    `Kondolere. Ditt tap e registrert, og du må ta ${drinkData.slurker} slurker og ${
+                        drinkData.shots
+                    } shots. Eg melde dette te ${MentionUtils.mentionChannel(MentionUtils.CHANNEL_IDs.GENERAL)} for deg`,
+                    {
+                        ephemeral: true,
+                    }
+                )
+                const emb = EmbedUtils.createSimpleEmbed(`#Whamageddon`, `${MentionUtils.mentionUser(interaction.user.id)} gjekk på ein saftige smell. `)
+                this.messageHelper.sendFormattedMessage(MentionUtils.CHANNEL_IDs.GENERAL, emb)
+            } else {
+                this.messageHelper.replyToInteraction(
+                    interaction,
+                    `Whamageddon starte ikkje før 01 Desember 08:00. Fram te det kan du hørra på an så mye du vil`
+                )
+            }
+        } else {
+            const usersInWhamageddon = DatabaseHelper.getAllUsers().filter((u) => !!u.whamageddonLoss)
+            if (!!usersInWhamageddon.length) {
+                const embd = EmbedUtils.createSimpleEmbed(`Whamageddon 2023`, `Status`)
+                usersInWhamageddon.forEach((user) => {
+                    //Since moment takes time into account when calculating diff, set time to be 12:00 so it's always before the end time, otherwise it can return a lower
+                    //amount than expected
+                    const drinkData = calcSlurks(moment(user.whamageddonLoss.split(' ')[0], 'YYYY-MM-DD 12:00'))
+                    embd.addFields([
+                        {
+                            name: UserUtils.findUserById(user.id, interaction).username ?? 'Ukjent',
+                            value:
+                                DateUtils.formatDate(moment(user.whamageddonLoss).toDate(), true) + ` (${drinkData.slurker} slurker, ${drinkData.shots} shots)`,
+                        },
+                    ])
+                })
+                this.messageHelper.replyToInteraction(interaction, embd)
+            } else {
+                this.messageHelper.replyToInteraction(
+                    interaction,
+                    isValidTimeFrame ? `Ingen har tapt Whamageddon ennå` : `Whamageddon starte 01. Desember 08:00`
+                )
+            }
+        }
+    }
+
     getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [
                     {
-                        commandName: 'wham',
+                        commandName: 'whamageddon',
                         command: async (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            rawInteraction.deferReply()
-                            const msg = await this.messageHelper.findMessageById('1047851607863349338')
-                            if (msg) this.messageHelper.replyToInteraction(rawInteraction, `Whamageddon 2022 status:\n${msg.content}`, { hasBeenDefered: true })
-                            else this.messageHelper.replyToInteraction(rawInteraction, `Statusen e ukjent`, { hasBeenDefered: true })
+                            this.whamageddon(rawInteraction)
                         },
                     },
                     {
