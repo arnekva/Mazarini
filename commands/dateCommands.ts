@@ -5,9 +5,9 @@ import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
-import { ferieItem, ICountdownItem } from '../interfaces/database/databaseInterface'
+import { ICountdownItem, ferieItem } from '../interfaces/database/databaseInterface'
 import { ArrayUtils } from '../utils/arrayUtils'
-import { dateRegex, DateUtils, timeRegex } from '../utils/dateUtils'
+import { DateUtils, dateRegex, timeRegex } from '../utils/dateUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
 
@@ -225,7 +225,9 @@ export class DateCommands extends AbstractCommands {
                 const daysUntil = DateUtils.getTimeTo(new Date(cd.date))
                 const text = DateUtils.formatCountdownText(daysUntil, 'te ' + cd.description)
                 printValues.push({
-                    print: `${!!text ? '\n' : ''}` + `${DateUtils.formatCountdownText(daysUntil, 'te ' + cd.description)}`,
+                    print:
+                        `${!!text ? '\n' : ''}` +
+                        `${DateUtils.formatCountdownText(daysUntil, 'te ' + cd.description)} (${DateUtils.formatDate(new Date(cd.date), true)})`,
                     date: cd.date,
                 })
             })
