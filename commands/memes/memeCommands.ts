@@ -126,9 +126,7 @@ export class Meme extends AbstractCommands {
                     {
                         commandName: 'meme',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            if (rawInteraction.user.id === MentionUtils.User_IDs.MAGGI)
-                                this.messageHelper.replyToInteraction(rawInteraction, 'Gitt at Stivert har laget denne er det kanskje et poeng å unngå den')
-                            else this.getMeme(rawInteraction)
+                            this.getMeme(rawInteraction)
                         },
                         autoCompleteCallback: (rawInteraction: AutocompleteInteraction<CacheType>) => {
                             this.filterMemes(rawInteraction)
