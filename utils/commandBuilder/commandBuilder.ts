@@ -1,4 +1,5 @@
 import {
+    ApplicationCommandChoicesData,
     ApplicationCommandOptionData,
     ApplicationCommandOptionType,
     ApplicationCommandType,
@@ -32,10 +33,15 @@ export namespace CommandBuilder {
         const addOptions = (option: ApplicationCommandOptionData, b: SlashCommandBuilder | SlashCommandSubcommandBuilder) => {
             switch (option.type) {
                 case ApplicationCommandOptionType.String:
+                    const opt = option as ApplicationCommandChoicesData<string>
                     b.addStringOption((a) => {
-                        a.setName(option.name)
-                        a.setDescription(option.description)
+                        a.setName(opt.name)
+                        a.setDescription(opt.description)
+                        if (opt.choices) {
+                            console.log('adding choices')
 
+                            a.addChoices(...opt.choices)
+                        }
                         return a
                     })
                     break
@@ -52,6 +58,13 @@ export namespace CommandBuilder {
                         a.setName(option.name)
                         a.setDescription(option.description)
 
+                        return a
+                    })
+                    break
+                case ApplicationCommandOptionType.Boolean:
+                    b.addBooleanOption((a) => {
+                        a.setName(option.name)
+                        a.setDescription(option.description)
                         return a
                     })
                     break
@@ -80,7 +93,7 @@ export namespace CommandBuilder {
     /** This command will automatically create all commands listed in it */
     export const createCommands = (client: Client) => {
         // CommandBuilder.deleteCommand('1171558082007007312', client)
-        CommandBuilder.createSlashCommand(CommandStorage.WhamageddonCommand, client)
+        CommandBuilder.createSlashCommand(CommandStorage.SpotifyCommand, client)
         // CommandBuilder.deleteCommand('1025552134604861440', client)
         // CommandBuilder.createContextMenuCommand({ commandName: 'helg' }, client)
     }

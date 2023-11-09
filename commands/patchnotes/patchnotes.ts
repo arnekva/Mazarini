@@ -7,10 +7,8 @@ import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { MessageHelper } from '../../helpers/messageHelper'
 import { MentionUtils } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '13.5.0'
-    public static readonly currentPatchNotes =
-        `\n* Du kan nå se Whamageddon status med /Whamageddon vis` +
-        `\n* Du kan registrere at du tapte Whamageddon med /Whamageddon tapt. Den vil automatisk kalkulere antall slurker du skylder`
+    public static readonly currentVersion = '13.6.0'
+    public static readonly currentPatchNotes = `\n* Du kan nå få lyrics direkte i /spotify ved å sette lyrics til true`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

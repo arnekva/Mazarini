@@ -288,6 +288,15 @@ export class Music extends AbstractCommands {
         const timeStamp = interaction.options.get('tid')?.value as string
         const numLines = interaction.options.get('linjer')?.value as string
 
+        const lyrics = await Music.fetchLyrcs(track, artist)
+        if (lyrics) {
+            this.messageHelper.replyToInteraction(interaction, lyrics, { hasBeenDefered: true })
+        } else {
+            this.messageHelper.replyToInteraction(interaction, `Fant ikke lyrics for ${track} av ${artist}`, { hasBeenDefered: true })
+        }
+    }
+
+    static async fetchLyrcs(track: string, artist: string) {
         const searchTrack = await fetch(
             `https://api.musixmatch.com/ws/1.1/matcher.lyrics.get?format=json&q_track=${track}&q_artist=${artist}&apikey=${musixMatchKey}`,
             {
@@ -295,14 +304,15 @@ export class Music extends AbstractCommands {
             }
         )
         const data = await searchTrack.json()
-
-        const lyrics = data.message?.body?.lyrics?.lyrics_body as string
+        let lyrics = data.message?.body?.lyrics?.lyrics_body as string
         if (lyrics) {
-            const formattedLyrics = lyrics.replace('******* This Lyrics is NOT for Commercial use *******', '')
-            this.messageHelper.replyToInteraction(interaction, formattedLyrics, { hasBeenDefered: true })
-        } else {
-            this.messageHelper.replyToInteraction(interaction, `Fant ikke lyrics for ${track} av ${artist}`, { hasBeenDefered: true })
+            //Remove commercial use tag
+            lyrics = lyrics.replace('******* This Lyrics is NOT for Commercial use *******', '')
+            //Remove ellipsis and song id that is at the end of the string
+            const idx = lyrics.lastIndexOf('...')
+            if (idx) lyrics = lyrics.slice(0, idx + 3)
         }
+        return lyrics
     }
 
     getAllInteractions(): IInteractionElement {

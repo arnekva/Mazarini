@@ -251,7 +251,10 @@ export class JokeCommands extends AbstractCommands {
                 const emb = EmbedUtils.createSimpleEmbed(`#Whamageddon`, `${MentionUtils.mentionUser(interaction.user.id)} gjekk på ein saftige smell. `)
                 this.messageHelper.sendFormattedMessage(MentionUtils.CHANNEL_IDs.GENERAL, emb)
             } else {
-                this.messageHelper.replyToInteraction(interaction, `Whamageddon starte ikkje før 01 Desember 08:00. Innte det kan du hørra på an så mye du vil`)
+                this.messageHelper.replyToInteraction(
+                    interaction,
+                    `Whamageddon starte ikkje før 01 Desember 08:00. Fram te det kan du hørra på an så mye du vil`
+                )
             }
         } else {
             const usersInWhamageddon = DatabaseHelper.getAllUsers().filter((u) => !!u.whamageddonLoss)
