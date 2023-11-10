@@ -27,7 +27,7 @@ export const spotifyCommand: ISlashCommandItem = {
             commandDescription: 'vis status',
             options: [
                 {
-                    name: 'user',
+                    name: 'mode',
                     description: 'bruker du vil se data for',
                     type: ApplicationCommandOptionType.String,
                     required: true,

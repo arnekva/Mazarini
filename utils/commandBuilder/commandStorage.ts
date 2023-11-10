@@ -4,6 +4,7 @@ import { lyricsCommand } from './commandStorage/lyrics'
 import { memeCommand } from './commandStorage/meme'
 import { musikkCommand } from './commandStorage/musikk'
 import { pickpocketCommand } from './commandStorage/pickpocket'
+import { pollCommand } from './commandStorage/poll'
 import { sangCommand } from './commandStorage/sang'
 import { spotifyCommand } from './commandStorage/spotify'
 import { stoppCommand } from './commandStorage/stopp'
@@ -28,4 +29,5 @@ export namespace CommandStorage {
     export const LyricsCommand = lyricsCommand
     export const WhamageddonCommand = whamageddonCommand
     export const SpotifyCommand = spotifyCommand
+    export const PollCommand = pollCommand
 }

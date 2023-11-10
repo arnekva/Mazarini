@@ -38,10 +38,9 @@ export namespace CommandBuilder {
                         a.setName(opt.name)
                         a.setDescription(opt.description)
                         if (opt.choices) {
-                            console.log('adding choices')
-
                             a.addChoices(...opt.choices)
                         }
+                        if (opt.autocomplete) a.setAutocomplete(true)
                         return a
                     })
                     break
@@ -93,7 +92,7 @@ export namespace CommandBuilder {
     /** This command will automatically create all commands listed in it */
     export const createCommands = (client: Client) => {
         // CommandBuilder.deleteCommand('1171558082007007312', client)
-        CommandBuilder.createSlashCommand(CommandStorage.SpotifyCommand, client)
+        CommandBuilder.createSlashCommand(CommandStorage.PollCommand, client)
         // CommandBuilder.deleteCommand('1025552134604861440', client)
         // CommandBuilder.createContextMenuCommand({ commandName: 'helg' }, client)
     }

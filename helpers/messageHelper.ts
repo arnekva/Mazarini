@@ -311,7 +311,7 @@ export class MessageHelper {
 
     async sendMessageWithContentAndComponents(
         channelID: string,
-        content: string,
+        content: string | EmbedBuilder,
         components: (
             | APIActionRowComponent<APIMessageActionRowComponent>
             | JSONEncodable<APIActionRowComponent<APIMessageActionRowComponent>>
@@ -320,7 +320,14 @@ export class MessageHelper {
         )[]
     ) {
         const textCh = this.findChannelById(channelID) as TextChannel
-        if (textCh) return textCh.send({ content: content, components: components })
+
+        if (textCh) {
+            if (content instanceof EmbedBuilder) {
+                return textCh.send({ embeds: [content], components: components })
+            } else {
+                return textCh.send({ content: content, components: components })
+            }
+        }
         return undefined
     }
     /** @deprecated Use sendMessage */

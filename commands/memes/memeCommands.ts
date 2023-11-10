@@ -128,6 +128,8 @@ export class Meme extends AbstractCommands {
                             this.getMeme(rawInteraction)
                         },
                         autoCompleteCallback: (rawInteraction: AutocompleteInteraction<CacheType>) => {
+                            console.log('am filtering')
+
                             this.filterMemes(rawInteraction)
                         },
                     },

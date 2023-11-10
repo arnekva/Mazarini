@@ -1,5 +1,6 @@
 import { rocketLeagueDbData } from '../../commands/gameCommands'
 import { IDailyPriceClaim } from '../../commands/money/gamblingCommands'
+import { IPoll } from '../../commands/pollcommands'
 import { CodBRStatsType, CodStats } from '../../commands/warzoneCommands'
 
 export interface userValPair {
@@ -86,6 +87,7 @@ export interface MazariniStorage {
         /** Stringied feireItem */
         value: string
     }[]
+    polls?: IPoll[]
 }
 
 export type FavoritePol = {

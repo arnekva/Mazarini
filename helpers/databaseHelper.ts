@@ -194,6 +194,7 @@ export class DatabaseHelper {
     static defaultCache(): Partial<MazariniStorage> {
         return {
             updateTimer: moment().unix(),
+            polls: [],
         }
     }
 }
