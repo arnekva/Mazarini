@@ -238,7 +238,7 @@ export class Admin extends AbstractCommands {
 
     private async rewardUser(interaction: ChatInputCommandInteraction<CacheType>) {
         const type = interaction.options.get('type')?.value as string
-        const reason = interaction.options.get('type')?.value as string
+        const reason = interaction.options.get('reason')?.value as string
         const chips = interaction.options.get('chips')?.value as number
         const user = interaction.options.get('user')?.user
         const dbUser = DatabaseHelper.getUser(user.id)

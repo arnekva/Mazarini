@@ -123,7 +123,7 @@ export class MessageHelper {
                 this.sendLogMessage(
                     `${interaction.user.username} prøvde å bruke ${
                         commandName ? commandName : '<MANGLER CASE FOR DENNE TYPE COMMAND>'
-                    } i kanalen ${MentionUtils.mentionChannel(interaction?.channelId)}, men den feilet. \n${msgInfo}`
+                    } i kanalen ${MentionUtils.mentionChannel(interaction?.channelId)}, men den feilet. ${msgInfo}`
                 )
             }
             return false
