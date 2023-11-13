@@ -18,6 +18,7 @@ import {
     EmbedBuilder,
     InteractionEditReplyOptions,
     InteractionReplyOptions,
+    InteractionResponse,
     JSONEncodable,
     Message,
     MessageActionRowComponentBuilder,
@@ -100,7 +101,7 @@ export class MessageHelper {
         options?: IInteractionOptions,
         components?: MessageCompontent,
         files?: MessageFiles
-    ): Promise<boolean> {
+    ): Promise< InteractionResponse<boolean> | Message<boolean>> {
         const handleError = async (e: any) => {
             let msg: Message<boolean> | undefined
             if (options?.ephemeral) {
@@ -133,23 +134,25 @@ export class MessageHelper {
 
             payload.components = components
             payload.files = files
-
+            let reply: InteractionResponse<boolean> | Message<boolean> | undefined = undefined
             if (typeof messageContent === 'object') {
                 payload.embeds = [messageContent]
             } else {
                 payload.content = messageContent
             }
             if (options?.hasBeenDefered) {
-                await interaction.editReply(payload).catch((e) => handleError(e))
+                const r = await interaction.editReply(payload).catch((e) => handleError(e))
+                if (r instanceof Message) reply = r
             } else {
                 const payloadAsReply = payload as InteractionReplyOptions
                 payloadAsReply.ephemeral = !!options?.ephemeral
-                await interaction.reply(payloadAsReply).catch((e) => handleError(e))
+                const r = await interaction.reply(payloadAsReply).catch((e) => handleError(e))
+                if (r instanceof InteractionResponse) reply = r
             }
             MazariniBot.numMessagesFromBot++
-            return true
+            return reply
         }
-        return false
+        return undefined
     }
     /** @deprecated Use sendMessage */
     replyToInteractionWithSelectMenu(
