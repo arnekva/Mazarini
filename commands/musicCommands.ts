@@ -59,6 +59,12 @@ export interface IMusicData {
     coverArtUrl?: string
 }
 
+interface LastFMLibraryData {
+    name: string
+    playcount: string
+    imageUrl: string
+}
+
 export class Music extends AbstractCommands {
     constructor(client: MazariniClient) {
         super(client)
@@ -195,52 +201,139 @@ export class Music extends AbstractCommands {
 
     private async handleMusicInteractions(interaction: ChatInputCommandInteraction<CacheType>) {
         if (interaction) {
-            const options = interaction.options.get('data')?.value as string
-            const user = interaction.options.get('user')?.user
-            const timePeriod = interaction.options.get('periode')?.value as string
-            const isTracks = options === 'toptensongs'
-            const isArtist = options === 'toptenartist'
-            const isLastPlayed = options === 'lasttensongs'
-            const isTags = options === 'toptentags'
-            const isSongs = options === 'toptensongs' || isLastPlayed || options === 'toptenalbum'
-            const canHaveTimePriod = !!timePeriod && !isLastPlayed
-            const data = await this.findCommandForInteraction(interaction, options, user instanceof User ? user : undefined, timePeriod)
-            const findDataDescription = () => {
-                if (isArtist) return 'Topp 10 artister'
-                if (isLastPlayed) return 'Siste 10 sanger'
-                if (isTracks) return 'Topp 10 sanger'
-                if (isTags) return 'Topp 10 tags'
-                else return 'Topp 10 album'
-            }
-            const emb = EmbedUtils.createSimpleEmbed(
-                `Last.fm`,
-                `${findDataDescription()} for ${user instanceof User ? user.username : interaction.user.username} ${
-                    timePeriod && canHaveTimePriod ? '\n' + this.prettyprintPeriod(timePeriod) : ''
-                }`
-            )
-            if (typeof data === 'string') {
-                emb.addFields({
-                    name: 'Felt',
-                    value: data,
-                })
-            } else if (data.length) {
-                let additionalData = data.forEach((d, idx) => {
-                    const datePlayed = d.datePlayed ? d.datePlayed : ''
-                    d
-                    const additionalData = isLastPlayed ? datePlayed : d.numPlays + ' avspillinger'
-                    let extraData = !!additionalData ? `(${additionalData})` : ''
-                    if (d.isCurrentlyPlaying) extraData = '(spiller nå)'
+            const isShow = interaction.options.getSubcommand() === 'vis'
+            if (isShow) {
+                const options = interaction.options.get('data')?.value as string
+                const user = interaction.options.get('bruker')?.user
+                const timePeriod = interaction.options.get('periode')?.value as string
+                const isTracks = options === 'toptensongs'
+                const isArtist = options === 'toptenartist'
+                const isLastPlayed = options === 'lasttensongs'
+                const isTags = options === 'toptentags'
+                const isSongs = options === 'toptensongs' || isLastPlayed || options === 'toptenalbum'
+                const canHaveTimePriod = !!timePeriod && !isLastPlayed
+                const data = await this.findCommandForInteraction(interaction, options, user instanceof User ? user : undefined, timePeriod)
+                const findDataDescription = () => {
+                    if (isArtist) return 'Topp 10 artister'
+                    if (isLastPlayed) return 'Siste 10 sanger'
+                    if (isTracks) return 'Topp 10 sanger'
+                    if (isTags) return 'Topp 10 tags'
+                    else return 'Topp 10 album'
+                }
+                const emb = EmbedUtils.createSimpleEmbed(
+                    `Last.fm`,
+                    `${findDataDescription()} for ${user instanceof User ? user.username : interaction.user.username} ${
+                        timePeriod && canHaveTimePriod ? '\n' + this.prettyprintPeriod(timePeriod) : ''
+                    }`
+                )
+                if (typeof data === 'string') {
                     emb.addFields({
-                        name: d.track, //Last.fm returns artist in the track place, so it's always track here
-                        value: `${isArtist ? d.numPlays + ' avspillinger' : d.artist} ${isArtist ? '' : extraData}`,
+                        name: 'Felt',
+                        value: data,
                     })
-                })
-                if (data && data[0]?.totalNumPlaysInLibrary) emb.setFooter({ text: `${data[0].totalNumPlaysInLibrary}` })
+                } else if (data.length) {
+                    let additionalData = data.forEach((d, idx) => {
+                        const datePlayed = d.datePlayed ? d.datePlayed : ''
+                        d
+                        const additionalData = isLastPlayed ? datePlayed : d.numPlays + ' avspillinger'
+                        let extraData = !!additionalData ? `(${additionalData})` : ''
+                        if (d.isCurrentlyPlaying) extraData = '(spiller nå)'
+                        emb.addFields({
+                            name: d.track, //Last.fm returns artist in the track place, so it's always track here
+                            value: `${isArtist ? d.numPlays + ' avspillinger' : d.artist} ${isArtist ? '' : extraData}`,
+                        })
+                    })
+                    if (data && data[0]?.totalNumPlaysInLibrary) emb.setFooter({ text: `${data[0].totalNumPlaysInLibrary}` })
+                } else {
+                    //
+                }
+                if (emb.data.fields?.length) this.messageHelper.replyToInteraction(interaction, emb)
+                else this.messageHelper.replyToInteraction(interaction, `Fant ingen data`)
             } else {
-                //
+                //is searching
+                this.searchLibrary(interaction)
             }
-            if (emb.data.fields?.length) this.messageHelper.replyToInteraction(interaction, emb)
-            else this.messageHelper.replyToInteraction(interaction, `Fant ingen data`)
+        }
+    }
+
+    private async searchLibrary(interaction: ChatInputCommandInteraction<CacheType>) {
+        /** Get the URL with the specified URL param
+         */
+        const url = (pageNum: number) => {
+            return `${this.baseUrl}?method=library.getartists&api_key=${lfKey}&user=phedespelar&limit=1500&page=${pageNum}&format=json`
+        }
+        const artist = interaction.options.get('artist')?.value as string
+        const msg = await this.messageHelper.replyToInteraction(interaction, `Leter etter data ...`)
+        let librarySize = 0
+
+        /** Maps the received json data to a new object with only the needed data */
+        const mapData = (libraryData: any): LastFMLibraryData[] => {
+            return libraryData.map((artist, idx) => {
+                return {
+                    name: artist.name,
+                    playcount: artist?.playcount,
+                    imageUrl: artist.image.reverse()[0]['#text'] ?? '#', //Reverse since largest image is at the end
+                } as LastFMLibraryData
+            })
+        }
+
+        /** Searches the data for a result based on the input */
+        const findResult = (
+            search: string,
+            data: LastFMLibraryData[]
+        ): {
+            res: LastFMLibraryData
+            index: number
+        } => {
+            const index = data.findIndex((d) => {
+                return d.name.toLowerCase().includes(search.toLowerCase())
+            })
+            const result = data[index]
+            return {
+                res: result,
+                index: index,
+            }
+        }
+
+        let found = false
+        let pageCounter = 1
+
+        /** Prints the result with the given artist. Will also calculate position in the library */
+        const printResult = (result: LastFMLibraryData, index: number) => {
+            const position = (pageCounter - 1) * 1500 + index + 1
+            const embed = EmbedUtils.createSimpleEmbed(`${result.name}`, `${result.playcount} avspillinger`).setFooter({
+                text: `Nr. ${position} i biblioteket ditt`,
+            }) //.setThumbnail(result.imageUrl)
+            msg.edit({
+                embeds: [embed],
+                content: '',
+                options: {
+                    ephemeral: false,
+                },
+            })
+        }
+        let maxPage = 5
+        while (!found && pageCounter < maxPage) {
+            //Since there is max 1500 artist per page, we might need to to several fetches to find all artists.
+            //Data is sorted by most listened to, so we will likely hit it in the first try
+            const data = await fetch(url(pageCounter))
+            const dataJson = await data.json()
+            if (pageCounter === 1) {
+                //Update maxpage once if there is a lot of artists in the library
+                maxPage = Number(dataJson.artists['@attr'].totalPages)
+            }
+            const formattedData = mapData(dataJson.artists.artist)
+            const result = findResult(artist, formattedData)
+            if (result.res) {
+                printResult(result.res, result.index)
+                found = true
+            } else {
+                pageCounter += 1
+                if (pageCounter === 3) msg.edit(`Leter fortsatt ...`) //Small update to show that it's still looking
+            }
+        }
+        if (!found) {
+            msg.edit(`Fant ingenting i biblioteket ditt på *${artist}*.`)
         }
     }
 
@@ -320,7 +413,7 @@ export class Music extends AbstractCommands {
             commands: {
                 interactionCommands: [
                     {
-                        commandName: 'musikk',
+                        commandName: 'musikkbibliotek',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                             this.handleMusicInteractions(rawInteraction)
                         },
