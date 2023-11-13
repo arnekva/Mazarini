@@ -1,70 +1,88 @@
 import { ApplicationCommandOptionType } from 'discord.js'
 import { ISlashCommandItem } from '../commandBuilder'
 
-/** Saved version of the Musikk command */
-export const musikkCommand: ISlashCommandItem = {
-    commandName: 'musikk',
-    commandDescription: 'se statistikk for musikken din',
-    options: [
+/** Saved version of the Music command */
+export const musicCommand: ISlashCommandItem = {
+    commandName: 'musikkbibliotek',
+    commandDescription: 'lag en poll',
+    subCommands: [
         {
-            name: 'data',
-            description: 'Velg hvilke data som skal hentes',
-            type: ApplicationCommandOptionType.String,
-            required: true,
-            choices: [
+            commandName: 'vis',
+            commandDescription: 'Vis bibliotek',
+            options: [
                 {
-                    name: 'topp ti sanger',
-                    value: 'toptensongs',
+                    name: 'data',
+                    description: 'hva pollen handler om',
+                    type: ApplicationCommandOptionType.String,
+                    required: true,
+                    choices: [
+                        {
+                            name: 'topp ti sanger',
+                            value: 'toptensongs',
+                        },
+                        {
+                            name: 'topp ti artister',
+                            value: 'toptenartist',
+                        },
+                        {
+                            name: 'topp ti album',
+                            value: 'toptenalbum',
+                        },
+                        {
+                            name: 'siste ti sanger',
+                            value: 'lasttensongs',
+                        },
+                    ],
                 },
                 {
-                    name: 'topp ti artister',
-                    value: 'toptenartist',
+                    name: 'bruker',
+                    description: 'bruker du vil se data for',
+                    type: ApplicationCommandOptionType.User,
+                    required: false,
                 },
                 {
-                    name: 'topp ti album',
-                    value: 'toptenalbum',
-                },
-                {
-                    name: 'siste ti sanger',
-                    value: 'lasttensongs',
+                    name: 'periode',
+                    description: 'tidsperiode',
+                    type: ApplicationCommandOptionType.String,
+                    required: false,
+                    choices: [
+                        {
+                            name: 'all-time',
+                            value: 'overall',
+                        },
+                        {
+                            name: 'uke',
+                            value: '7day',
+                        },
+                        {
+                            name: 'måned',
+                            value: '1month',
+                        },
+                        {
+                            name: 'tre måneder',
+                            value: '3month',
+                        },
+                        {
+                            name: 'seks måneder',
+                            value: '6month',
+                        },
+                        {
+                            name: 'år',
+                            value: '12month',
+                        },
+                    ],
                 },
             ],
         },
         {
-            name: 'user',
-            description: 'user',
-            type: ApplicationCommandOptionType.User,
-            required: false,
-        },
-        {
-            name: 'periode',
-            description: 'tidsperiode',
-            type: ApplicationCommandOptionType.String,
-            required: false,
-            choices: [
+            commandName: 'søk',
+            commandDescription: 'søk i biblioteket ditt',
+            options: [
                 {
-                    name: 'overall',
-                    value: 'overall',
-                },
-                {
-                    name: 'week',
-                    value: '7day',
-                },
-                {
-                    name: 'month',
-                    value: '1month',
-                },
-                {
-                    name: 'three months',
-                    value: '3month',
-                },
-                {
-                    name: 'six months',
-                    value: '6month',
-                },
-                {
-                    name: 'year',
-                    value: '12month',
+                    name: 'artist',
+                    description: 'artisten du leter etter. Er ikke case sensitiv, men må skrives helt korrekt.',
+                    type: ApplicationCommandOptionType.String,
+                    required: true,
                 },
             ],
         },

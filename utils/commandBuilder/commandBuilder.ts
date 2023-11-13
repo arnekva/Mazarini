@@ -40,6 +40,7 @@ export namespace CommandBuilder {
                         if (opt.choices) {
                             a.addChoices(...opt.choices)
                         }
+                        a.setRequired(!!opt.required)
                         if (opt.autocomplete) a.setAutocomplete(true)
                         return a
                     })
@@ -92,8 +93,8 @@ export namespace CommandBuilder {
     /** This command will automatically create all commands listed in it */
     export const createCommands = (client: Client) => {
         // CommandBuilder.deleteCommand('1171558082007007312', client)
-        CommandBuilder.createSlashCommand(CommandStorage.PollCommand, client)
-        // CommandBuilder.deleteCommand('1025552134604861440', client)
+        CommandBuilder.createSlashCommand(CommandStorage.MusicCommand, client)
+        // CommandBuilder.deleteCommand('997144601146175631', client)
         // CommandBuilder.createContextMenuCommand({ commandName: 'helg' }, client)
     }
 
@@ -105,7 +106,9 @@ export namespace CommandBuilder {
         client.application.commands.create(data)
     }
 
-    /** Deletes a command with the given id */
+    /** Deletes a command with the given id
+     * To find the ID, use the command in a channel an log the interaction.commandId
+     */
     export const deleteCommand = (commandId: string, client: Client) => {
         client.application.commands.delete(commandId)
     }

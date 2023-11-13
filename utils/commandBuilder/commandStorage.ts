@@ -2,7 +2,7 @@ import { jailCommand } from './commandStorage/jail'
 import { jailbreakCommand } from './commandStorage/jailbreak'
 import { lyricsCommand } from './commandStorage/lyrics'
 import { memeCommand } from './commandStorage/meme'
-import { musikkCommand } from './commandStorage/musikk'
+import { musicCommand } from './commandStorage/musikk'
 import { pickpocketCommand } from './commandStorage/pickpocket'
 import { pollCommand } from './commandStorage/poll'
 import { sangCommand } from './commandStorage/sang'
@@ -18,7 +18,7 @@ import { whamageddonCommand } from './commandStorage/whamageddon'
  */
 export namespace CommandStorage {
     export const MemeCommand = memeCommand
-    export const MusicCommand = musikkCommand
+    export const MusicCommand = musicCommand
     export const StoppCommand = stoppCommand
     export const PickpocketCommand = pickpocketCommand
     export const JailbreakCommand = jailbreakCommand
