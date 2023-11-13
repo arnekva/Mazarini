@@ -60,6 +60,13 @@ interface IInteractionOptions {
     hasBeenDefered?: boolean
 }
 
+interface IMessageContent {
+    text?: string
+    embed?: EmbedBuilder
+    files?: MessageFiles
+    components?: MessageCompontent
+}
+
 type MessageCompontent = (
     | JSONEncodable<APIActionRowComponent<APIMessageActionRowComponent>>
     | ActionRowData<MessageActionRowComponentData | MessageActionRowComponentBuilder>
@@ -67,6 +74,12 @@ type MessageCompontent = (
 )[]
 
 type MessageFiles = (BufferResolvable | Stream | JSONEncodable<APIAttachment> | Attachment | AttachmentBuilder | AttachmentPayload)[]
+
+type OneProp<T> = {
+    [P in keyof T]-?: Record<P, T[P]>
+}[keyof T]
+
+type RequireAtLeastOne<T> = T & OneProp<T>
 
 export class MessageHelper {
     private client: Client
@@ -146,20 +159,18 @@ export class MessageHelper {
             MazariniBot.numMessagesFromBot++
             return reply
         }
+
         return undefined
     }
 
-    /** Sends a message and returns the sent message (as a promise) */
-    sendMessage(
-        channelId: string,
-        content: {
-            text?: string
-            embed?: EmbedBuilder
-            files?: MessageFiles
-            components?: MessageCompontent
-        },
-        options?: IMessageOptions
-    ) {
+    /**
+     *
+     * @param channelId Id of channel to send the message to
+     * @param content All properties are optional, but you must send at least one of them. Can be text, embed, components or file.
+     * @param options Options for the message, such as sending it as silent etc.
+     * @returns
+     */
+    sendMessage(channelId: string, content: RequireAtLeastOne<IMessageContent>, options?: IMessageOptions) {
         if (!!content.text && !this.messageHasContent(content.text)) {
             return this.sendLogMessage('En melding som ble forsøkt sendt var tom')
         }
