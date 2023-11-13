@@ -46,7 +46,7 @@ export class PollCommands extends AbstractCommands {
             this.buildVoteButtons(allOptions, row, opt, currPollId)
 
             this.messageHelper.replyToInteraction(interaction, `Startet en poll`, { ephemeral: true })
-            const msg = await this.messageHelper.sendMessageWithContentAndComponents(interaction.channelId, embed, [row])
+            const msg = await this.messageHelper.sendMessage(interaction.channelId, { embed: embed, components: [row] })
 
             const stPolls = this.pollsFromStorage
             stPolls.push({
@@ -112,7 +112,7 @@ export class PollCommands extends AbstractCommands {
                 opt,
                 id
             )
-            const msg = await this.messageHelper.sendMessageWithContentAndComponents(interaction.channelId, embed, [row])
+            const msg = await this.messageHelper.sendMessage(interaction.channelId, { embed: embed, components: [row] })
             poll.messageId = msg.id
             DatabaseHelper.updateStorage({
                 polls: polls,
@@ -169,7 +169,7 @@ export class PollCommands extends AbstractCommands {
                     opt,
                     pollId
                 )
-                const sentMsg = await this.messageHelper.sendMessageWithContentAndComponents(interaction.channelId, embed, [row])
+                const sentMsg = await this.messageHelper.sendMessage(interaction.channelId, { embed: embed, components: [row] })
                 // this.messageHelper.sendMessageWithComponents(interaction.channelId, [row])
                 poll.messageId = sentMsg.id
             }

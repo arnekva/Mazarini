@@ -17,7 +17,7 @@ export class Meme extends AbstractCommands {
 
     private async sendToAll(interaction: ButtonInteraction<CacheType>) {
         const img = interaction.customId.split(';')[1]
-        this.messageHelper.sendMessage(interaction.channelId, img)
+        this.messageHelper.sendMessage(interaction.channelId, { text: img })
         fetch(`https://discord.com/api/webhooks/${MentionUtils.User_IDs.BOT_HOIE}/${interaction.token}/messages/@original`, {
             method: 'DELETE',
         })

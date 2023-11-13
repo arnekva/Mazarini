@@ -1,5 +1,6 @@
 import fetch from 'node-fetch'
 import { rapidApiKey2 } from '../client-env'
+import { MazariniClient } from '../client/MazariniClient'
 import { IDailyPriceClaim } from '../commands/money/gamblingCommands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -9,9 +10,11 @@ import { MentionUtils } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
 export class DailyJobs {
     private messageHelper: MessageHelper
+    private client: MazariniClient
 
-    constructor(messageHelper: MessageHelper) {
+    constructor(messageHelper: MessageHelper, client: MazariniClient) {
         this.messageHelper = messageHelper
+        this.client = client
     }
 
     runJobs(onlyBd?: boolean) {
@@ -103,10 +106,9 @@ export class DailyJobs {
             const isBirthdayToday = DateUtils.isToday(new Date(date))
 
             if (isBirthdayToday) {
-                this.messageHelper.sendMessage(
-                    MentionUtils.CHANNEL_IDs.GENERAL,
-                    `Gratulerer med dagen ${UserUtils.findMemberByUserID(user.id, this.messageHelper.msgClient.guilds[0])}!`
-                )
+                this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.GENERAL, {
+                    text: `Gratulerer med dagen ${UserUtils.findMemberByUserID(user.id, this.client.guilds[0])}!`,
+                })
             }
         })
     }
@@ -131,7 +133,6 @@ export class DailyJobs {
 
     private logEvent() {
         const todaysTime = new Date().toLocaleTimeString()
-        this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.ACTION_LOG, `Daglige jobber kjørte ${todaysTime}`)
         console.log(`Daily jobs ran at ${todaysTime}`)
     }
 }

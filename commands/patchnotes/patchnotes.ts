@@ -7,7 +7,7 @@ import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { MessageHelper } from '../../helpers/messageHelper'
 import { MentionUtils } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '13.6.0'
+    public static readonly currentVersion = '14.0.0'
     public static readonly currentPatchNotes = `\n* Du kan nå få lyrics direkte i /spotify ved å sette lyrics til true`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
@@ -34,8 +34,8 @@ export class PatchNotes extends AbstractCommands {
 
     static publishPatchNotes(msgHelper: MessageHelper, rawInteraction?: ChatInputCommandInteraction<CacheType>) {
         const pn = PatchNotes.getCurrentPatchNotes()
-        msgHelper.sendMessage(MentionUtils.CHANNEL_IDs.BOT_UTVIKLING, pn)
-        msgHelper.sendMessage(MentionUtils.CHANNEL_IDs.PATCH_NOTES, pn)
+        msgHelper.sendMessage(MentionUtils.CHANNEL_IDs.BOT_UTVIKLING, { text: pn })
+        msgHelper.sendMessage(MentionUtils.CHANNEL_IDs.PATCH_NOTES, { text: pn })
         if (rawInteraction) {
             msgHelper.replyToInteraction(
                 rawInteraction,

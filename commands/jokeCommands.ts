@@ -9,6 +9,7 @@ import { ArrayUtils } from '../utils/arrayUtils'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { MentionUtils } from '../utils/mentionUtils'
+import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { textArrays } from '../utils/textArrays'
 import { UserUtils } from '../utils/userUtils'
@@ -122,7 +123,7 @@ export class JokeCommands extends AbstractCommands {
 
         let letterTab: string[] = text.split('')
 
-        let messageToReactTo = await this.messageHelper.findMessageById(msgId)
+        let messageToReactTo = await MessageUtils.findMessageById(msgId, this.client)
         if (!messageToReactTo) this.messageHelper.replyToInteraction(interaction, `Fant kje meldingen bro`, { ephemeral: true, hasBeenDefered: true })
 
         let usedLetter = ''
@@ -145,10 +146,10 @@ export class JokeCommands extends AbstractCommands {
         const id = interaction.options.get('melding-id')?.value as string
         this.messageHelper.replyToInteraction(interaction, 'Prøver å uwu-ifye meldingen hvis jeg finner den', { ephemeral: true })
         if (id && !isNaN(Number(id))) {
-            const msgToUwU = await this.messageHelper.findMessageById(id)
+            const msgToUwU = await MessageUtils.findMessageById(id, this.client)
             if (msgToUwU) {
                 const uwuIfiedText = JokeCommands.uwuText(msgToUwU.content)
-                this.messageHelper.sendMessage(interaction?.channelId, uwuIfiedText)
+                this.messageHelper.sendMessage(interaction?.channelId, { text: uwuIfiedText })
             }
         }
     }
@@ -203,7 +204,7 @@ export class JokeCommands extends AbstractCommands {
             dbUser.jail.daysInJail = prevSentence && !isNaN(prevSentence) && prevSentence > 0 ? prevSentence + 1 : 1
 
             dbUser.dailyFreezeCounter = 0
-            this.messageHelper.sendMessage(interaction.channelId, ':lock: Du e kje bare bonka, du e faktisk dømt te ein dag i fengsel og :lock:')
+            this.messageHelper.sendMessage(interaction.channelId, { text: ':lock: Du e kje bare bonka, du e faktisk dømt te ein dag i fengsel og :lock:' })
         }
         DatabaseHelper.updateUser(dbUser)
     }
@@ -249,7 +250,7 @@ export class JokeCommands extends AbstractCommands {
                     }
                 )
                 const emb = EmbedUtils.createSimpleEmbed(`#Whamageddon`, `${MentionUtils.mentionUser(interaction.user.id)} gjekk på ein saftige smell. `)
-                this.messageHelper.sendFormattedMessage(MentionUtils.CHANNEL_IDs.GENERAL, emb)
+                this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.GENERAL, { embed: emb })
             } else {
                 this.messageHelper.replyToInteraction(
                     interaction,

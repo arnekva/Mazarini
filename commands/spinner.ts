@@ -75,9 +75,9 @@ export class Spinner extends AbstractCommands {
         )
 
         if (min == 10 && sec == 59) {
-            this.messageHelper.sendMessage(interaction?.channelId, 'gz med 10:59 bro')
+            this.messageHelper.sendMessage(interaction?.channelId, { text: 'gz med 10:59 bro' })
         } else if (min == 10) {
-            this.messageHelper.sendMessage(interaction?.channelId, 'gz med 10 min bro')
+            this.messageHelper.sendMessage(interaction?.channelId, { text: 'gz med 10 min bro' })
         }
 
         DatabaseHelper.updateUser(user)

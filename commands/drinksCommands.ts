@@ -217,7 +217,7 @@ export class DrinksCommands extends AbstractCommands {
             let card: ICardObject = await this.deck.drawCard()
             if (card == undefined) {
                 this.messageHelper.replyToInteraction(interaction, 'Kortstokken er tom. Bruk knappen under dersom dere vil fortsette.')
-                this.messageHelper.sendMessageWithComponents(interaction?.channelId, [resetDeckButtonRow])
+                this.messageHelper.sendMessage(interaction?.channelId, { components: [resetDeckButtonRow] })
             } else {
                 const currentPlayer = this.getUserObjectById(this.turn)
                 this.turn = (this.turn + 1) % this.playerList.length
@@ -266,8 +266,8 @@ export class DrinksCommands extends AbstractCommands {
             interaction.deferUpdate()
         } else {
             this.messageHelper.replyToInteraction(interaction, 'Nu skal det drekjast')
-            this.embedMessage = await this.messageHelper.sendFormattedMessage(interaction?.channelId, this.embed)
-            this.buttonsMessage = await this.messageHelper.sendMessageWithComponents(interaction?.channelId, [this.currentButtons])
+            this.embedMessage = await this.messageHelper.sendMessage(interaction?.channelId, { embed: this.embed })
+            this.buttonsMessage = await this.messageHelper.sendMessage(interaction?.channelId, { components: [this.currentButtons] })
         }
     }
 
@@ -322,8 +322,8 @@ export class DrinksCommands extends AbstractCommands {
 
     public async resendMessages(interaction: ButtonInteraction<CacheType>) {
         this.deleteMessages()
-        this.embedMessage = await this.messageHelper.sendFormattedMessage(interaction?.channelId, this.embed)
-        this.buttonsMessage = await this.messageHelper.sendMessageWithComponents(interaction?.channelId, [this.currentButtons])
+        this.embedMessage = await this.messageHelper.sendMessage(interaction?.channelId, { embed: this.embed })
+        this.buttonsMessage = await this.messageHelper.sendMessage(interaction?.channelId, { components: [this.currentButtons] })
     }
 
     private deleteMessages() {

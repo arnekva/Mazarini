@@ -18,11 +18,11 @@ export class DayJob {
     }
 
     private itsWeekend() {
-        this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.GENERAL, `${ArrayUtils.randomChoiceFromArray(this.getHelgMessage())}`)
+        this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.GENERAL, { text: `${ArrayUtils.randomChoiceFromArray(this.getHelgMessage())}` })
     }
     private logEvent() {
         const todaysTime = new Date().toLocaleTimeString()
-        this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.ACTION_LOG, `Dag-job for ${this.day} kjørte ${todaysTime} `)
+        // this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.ACTION_LOG, `Dag-job for ${this.day} kjørte ${todaysTime} `)
     }
 
     private getHelgMessage() {

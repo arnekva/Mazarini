@@ -22,7 +22,7 @@ export class HourJob {
                 nextTournaments.forEach((t) => {
                     message += `\n${t.players}v${t.players} - ${t.mode}`
                 })
-                this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.ROCKET_LEAGUE, `${message}`)
+                this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.ROCKET_LEAGUE, { text: `${message}` })
             }
         }
     }

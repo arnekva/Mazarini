@@ -98,7 +98,7 @@ export class TrelloCommands extends AbstractCommands {
                     components: [this.menu, trelloButtons],
                 })
             } else {
-                this.cardsDropdownMessage = await this.messageHelper.sendMessageWithEmbedAndComponents(interaction.channelId, embed, [this.menu])
+                this.cardsDropdownMessage = await this.messageHelper.sendMessage(interaction.channelId, { embed: embed, components: [this.menu] })
             }
         } else {
             this.cardsDropdownMessage?.delete()
@@ -189,7 +189,7 @@ export class TrelloCommands extends AbstractCommands {
         this.moveMenu = ActionMenuHelper.createSelectMenu('TrelloMoveMenu;' + this.currentCard.id, 'Flytt til ...', options)
         let embed = EmbedUtils.createSimpleEmbed(`Flytt kort til annen liste`, 'Ingen liste valgt')
         interaction.deferUpdate()
-        this.moveCardMessage = await this.messageHelper.sendMessageWithEmbedAndComponents(interaction.channelId, embed, [this.moveMenu, cancelMoveBtnRow])
+        this.moveCardMessage = await this.messageHelper.sendMessage(interaction.channelId, { embed: embed, components: [this.moveMenu, cancelMoveBtnRow] })
     }
 
     private async handleMoveListSelected(selectMenu: StringSelectMenuInteraction<CacheType>) {

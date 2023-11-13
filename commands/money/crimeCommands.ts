@@ -52,12 +52,11 @@ export class CrimeCommands extends AbstractCommands {
             this.messageHelper.replyToInteraction(interaction, `En av dere har ikke råd til dette`, { ephemeral: true })
         } else {
             this.messageHelper.replyToInteraction(interaction, `Du har startet en krig mot ${target.username}`, { ephemeral: true })
-            await this.messageHelper.sendMessage(
-                interaction?.channelId,
-                `${interaction.user.username} vil gå til krig med deg ${MentionUtils.mentionUser(target.id)} for ${TextUtils.formatMoney(
+            await this.messageHelper.sendMessage(interaction?.channelId, {
+                text: `${interaction.user.username} vil gå til krig med deg ${MentionUtils.mentionUser(target.id)} for ${TextUtils.formatMoney(
                     amountAsNum
-                )} chips. Trykk på knappen for å godkjenne. Den som starter krigen ruller for 0-49.`
-            )
+                )} chips. Trykk på knappen for å godkjenne. Den som starter krigen ruller for 0-49.`,
+            })
 
             const row = new ActionRowBuilder<ButtonBuilder>()
 
@@ -70,7 +69,7 @@ export class CrimeCommands extends AbstractCommands {
                     type: 2,
                 })
             )
-            await this.messageHelper.sendMessageWithComponents(interaction?.channelId, [row])
+            await this.messageHelper.sendMessage(interaction?.channelId, { components: [row] })
         }
     }
 
@@ -151,10 +150,9 @@ export class CrimeCommands extends AbstractCommands {
                           { username: userAsMember.user.username, balance: victimValue, oldBalance: oldTarVal },
                       ]
 
-                this.messageHelper.sendMessage(
-                    interaction?.channelId,
-                    `${MentionUtils.mentionUser(engager.id)} ${MentionUtils.mentionUser(interaction.user.id)}`
-                )
+                this.messageHelper.sendMessage(interaction?.channelId, {
+                    text: `${MentionUtils.mentionUser(engager.id)} ${MentionUtils.mentionUser(interaction.user.id)}`,
+                })
                 const gambling = new EmbedBuilder().setTitle('⚔️ Krig ⚔️').setDescription(`${description}`)
                 users.forEach((user) => {
                     gambling.addFields({
@@ -187,7 +185,7 @@ export class CrimeCommands extends AbstractCommands {
                             type: 2,
                         })
                     )
-                    await this.messageHelper.sendMessageWithComponents(interaction?.channelId, [rematchRow])
+                    await this.messageHelper.sendMessage(interaction?.channelId, { components: [rematchRow] })
                 }
             }
         } else {
@@ -302,7 +300,9 @@ export class CrimeCommands extends AbstractCommands {
             DatabaseHelper.updateUser(engager)
             this.messageHelper.replyToInteraction(interaction, `Du prøve å stjela fra meg?? Du mysta nettopp alle chipså dine for det`)
             delay(5000).then(() =>
-                this.messageHelper.sendMessage(interaction.channelId, `:lock: Vet du.. det er faktisk ikke nok straff. Du får en dag i fengsel óg :lock:`)
+                this.messageHelper.sendMessage(interaction.channelId, {
+                    text: `:lock: Vet du.. det er faktisk ikke nok straff. Du får en dag i fengsel óg :lock:`,
+                })
             )
             return true
         } else if (victimIsEngager) {

@@ -42,7 +42,9 @@ export class DateCommands extends AbstractCommands {
                 } sekunder*`
             )
             setTimeout(() => {
-                this.messageHelper.sendMessage(interaction?.channelId, `***Påminnelse for ${MentionUtils.mentionUser(interaction.user.id)}***\n*${event}*`)
+                this.messageHelper.sendMessage(interaction?.channelId, {
+                    text: `***Påminnelse for ${MentionUtils.mentionUser(interaction.user.id)}***\n*${event}*`,
+                })
             }, timeout)
         }
     }

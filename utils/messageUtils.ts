@@ -1,4 +1,7 @@
-import { Message } from 'discord.js'
+import { Message, TextChannel } from 'discord.js'
+import { MazariniClient } from '../client/MazariniClient'
+import { MentionUtils } from './mentionUtils'
+import { UserUtils } from './userUtils'
 const leetReg = new RegExp(/(1337)/gi)
 
 export namespace MessageUtils {
@@ -30,5 +33,27 @@ export namespace MessageUtils {
             })
         }
         return arr
+    }
+
+    export const findMessageById = async (id: string, client: MazariniClient, onErr?: () => void): Promise<Message<boolean> | undefined> => {
+        const allChannels = [...client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
+        let messageToReturn
+
+        for (const channel of allChannels) {
+            if (
+                channel &&
+                channel.permissionsFor(UserUtils.findMemberByUserID(MentionUtils.User_IDs.BOT_HOIE, channel.guild)).toArray().includes('SendMessages')
+            ) {
+                await channel.messages
+                    .fetch(id)
+                    .then(async (message) => {
+                        messageToReturn = message
+                    })
+                    .catch((error) => {
+                        if (onErr) onErr()
+                    })
+            }
+        }
+        return messageToReturn
     }
 }

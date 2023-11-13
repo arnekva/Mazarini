@@ -141,14 +141,14 @@ export class PoletCommands extends AbstractCommands {
         const params = interaction.customId.split(';')
         const productId = params[1]
         const favoritePol = DatabaseHelper.getUser(interaction.user.id).favoritePol
-        if (favoritePol.latitude && favoritePol.longitude) {
+        if (favoritePol && favoritePol.latitude && favoritePol.longitude) {
             const stockData = await this.fetchProductStock(productId, favoritePol.latitude, favoritePol.longitude)
             const embed = new EmbedBuilder().setTitle(`${params[2]}`)
             const stores = stockData.stores.slice(0, 3)
-            if (stores.length === 0) {
+            if (stores?.length === 0) {
                 embed.setDescription(`${interaction.user.username} har ingen vinmonopol i nærheten med varen på lager`)
             } else {
-                embed.setDescription(`${interaction.user.username} sine ${stores.length ?? 0} nærmeste vinmonopol`)
+                embed.setDescription(`${interaction.user.username} sine ${stores?.length ?? 0} nærmeste vinmonopol`)
             }
             stores.forEach((store) => {
                 embed.addFields({ name: store.pointOfService.displayName, value: `Antall: ${store.stockInfo.stockLevel}`, inline: false })
@@ -234,66 +234,68 @@ export class PoletCommands extends AbstractCommands {
         if (content.includes('https://www.vinmonopolet.no/')) {
             const id = content.split('/p/')[1]
             if (id && !isNaN(Number(id))) {
-                try {
-                    const data = await PoletCommands.fetchProductDataFromId(id)
+                // try {
+                const data = await PoletCommands.fetchProductDataFromId(id)
 
-                    if (data) {
-                        const hasDesc = !!data.description.trim()
-                        const embed = EmbedUtils.createSimpleEmbed(`${data.name}`, `${hasDesc ? data.description : data.taste}`, [
-                            { name: `Lukt`, value: `${data.smell}` },
-                            { name: `Pris`, value: `${data.price.formattedValue}`, inline: true },
-                            { name: `Type`, value: `${data.main_category.name}`, inline: true },
-                            { name: `Årgang`, value: `${data.year === '0000' ? 'Ukjent' : data.year}`, inline: true },
-                            { name: `Volum`, value: `${data.volume.formattedValue}`, inline: true },
-                            { name: `Land`, value: `${data.main_country.name}`, inline: true },
-                            { name: `Alkohol`, value: `${data.alcohol.formattedValue}`, inline: true },
+                if (data) {
+                    const hasDesc = !!data.description.trim()
+                    const embed = EmbedUtils.createSimpleEmbed(`${data.name}`, `${hasDesc ? data.description : data.taste}`, [
+                        { name: `Lukt`, value: `${data.smell}` },
+                        { name: `Pris`, value: `${data.price.formattedValue}`, inline: true },
+                        { name: `Type`, value: `${data.main_category.name}`, inline: true },
+                        { name: `Årgang`, value: `${data.year === '0000' ? 'Ukjent' : data.year}`, inline: true },
+                        { name: `Volum`, value: `${data.volume.formattedValue}`, inline: true },
+                        { name: `Land`, value: `${data.main_country.name}`, inline: true },
+                        { name: `Alkohol`, value: `${data.alcohol.formattedValue}`, inline: true },
 
-                            { name: `Stil`, value: `${data.style?.name}`, inline: true },
-                        ])
-                        /** In case of wines, it will be something like [Pinot Noir 80%, Merlot 20%]
-                         * For liquers, ciders, etc. it may only be "Plommer, epler", since they dont display the percentage of the mix.
-                         */
-                        if (data.raastoff) {
-                            embed.addFields({
-                                name: `Innhold`,
-                                value: `${data.raastoff.map((rs) => `${rs.name} ${rs.percentage ? '(' + rs.percentage + '%)' : ''}`).join(', ')}`,
-                                inline: true,
-                            })
-                        }
-
-                        //Make sure to add some text if field does not exist, since the embed will crash if a field is empty
-                        //Also, in case a data value doesn't exist, we set it to "ukjent" for a better look
-                        embed?.data?.fields.forEach((f) => {
-                            if (!f.value) f.value = 'Ukjent'
-                            if (f.value.includes('undefined')) f.value = f.value.replace('undefined', 'Ukjent')
+                        { name: `Stil`, value: `${data.style?.name}`, inline: true },
+                    ])
+                    /** In case of wines, it will be something like [Pinot Noir 80%, Merlot 20%]
+                     * For liquers, ciders, etc. it may only be "Plommer, epler", since they dont display the percentage of the mix.
+                     */
+                    if (data.raastoff) {
+                        embed.addFields({
+                            name: `Innhold`,
+                            value: `${data.raastoff.map((rs) => `${rs.name} ${rs.percentage ? '(' + rs.percentage + '%)' : ''}`).join(', ')}`,
+                            inline: true,
                         })
-
-                        //Possible formats: product, thumbnail, zoom, cartIcon and superZoom (some may be identical or not exist at all.)
-                        //"zoom" seems to be the version used on the website, but still not all products have photos so it might be undefined
-                        const imageUrl = data.images.filter((img: any) => img.format === 'zoom')[0]?.url
-                        if (imageUrl) embed.setThumbnail(imageUrl)
-                        embed.setURL(`https://www.vinmonopolet.no${data.url}`)
-
-                        embed.setFooter({
-                            text: `Produsent: ${data.main_producer.name}, Distrikt: ${data.district?.name}, Sub-distrikt: ${data.sub_District?.name}`,
-                        })
-                        const poletStockButton = new ActionRowBuilder<ButtonBuilder>()
-                        poletStockButton.addComponents(
-                            new ButtonBuilder({
-                                custom_id: `POLET_STOCK;${data.code};${data.name}`,
-                                style: ButtonStyle.Primary,
-                                label: `Varelagerstatus`,
-                                disabled: false,
-                                type: 2,
-                            })
-                        )
-                        messageHelper.suppressEmbeds(message)
-                        messageHelper.sendFormattedMessage(message.channelId, embed)
-                        messageHelper.sendMessageWithComponents(message.channelId, [poletStockButton])
                     }
-                } catch (error) {
-                    messageHelper.sendLogMessage(`Klarte ikke hente produktinfo for id ${id}.\n${error}`)
+
+                    //Make sure to add some text if field does not exist, since the embed will crash if a field is empty
+                    //Also, in case a data value doesn't exist, we set it to "ukjent" for a better look
+                    embed?.data?.fields.forEach((f) => {
+                        if (!f.value) f.value = 'Ukjent'
+                        if (f.value.includes('undefined')) f.value = f.value.replace('undefined', 'Ukjent')
+                    })
+
+                    //Possible formats: product, thumbnail, zoom, cartIcon and superZoom (some may be identical or not exist at all.)
+                    //"zoom" seems to be the version used on the website, but still not all products have photos so it might be undefined
+                    const imageUrl = data.images.filter((img: any) => img.format === 'zoom')[0]?.url
+                    if (imageUrl) embed.setThumbnail(imageUrl)
+                    embed.setURL(`https://www.vinmonopolet.no${data.url}`)
+
+                    embed.setFooter({
+                        text: `Produsent: ${data.main_producer.name}, Distrikt: ${data.district?.name}, Sub-distrikt: ${data.sub_District?.name}`,
+                    })
+                    const poletStockButton = new ActionRowBuilder<ButtonBuilder>()
+                    poletStockButton.addComponents(
+                        new ButtonBuilder({
+                            custom_id: `POLET_STOCK;${data.code};${data.name}`,
+                            style: ButtonStyle.Primary,
+                            label: `Varelagerstatus`,
+                            disabled: false,
+                            type: 2,
+                        })
+                    )
+                    message.suppressEmbeds()
+                    messageHelper.sendMessage(message.channelId, { embed: embed })
+                    messageHelper.sendMessage(message.channelId, { components: [poletStockButton] })
                 }
+                // }
+                //  catch (error) {
+
+                //     messageHelper.sendLogMessage(`Klarte ikke hente produktinfo for id ${id}.\n${error}`)
+                // }
             }
         }
     }

@@ -1,5 +1,4 @@
 import {
-    ActionRowBuilder,
     ActionRowData,
     APIActionRowComponent,
     APIAttachment,
@@ -9,10 +8,8 @@ import {
     AttachmentPayload,
     BitFieldResolvable,
     BufferResolvable,
-    ButtonBuilder,
     ButtonInteraction,
     CacheType,
-    ChannelType,
     ChatInputCommandInteraction,
     Client,
     EmbedBuilder,
@@ -28,7 +25,6 @@ import {
     MessageFlagsString,
     ModalSubmitInteraction,
     RepliableInteraction,
-    SelectMenuBuilder,
     SelectMenuInteraction,
     TextChannel,
     User,
@@ -36,9 +32,7 @@ import {
 import { Stream } from 'stream'
 import { environment } from '../client-env'
 import { MazariniBot } from '../main'
-import { ArrayUtils } from '../utils/arrayUtils'
 import { MentionUtils } from '../utils/mentionUtils'
-import { textArrays } from '../utils/textArrays'
 import { UserUtils } from '../utils/userUtils'
 
 export type typeOfError = 'unauthorized' | 'error' | 'warning'
@@ -76,7 +70,7 @@ type MessageFiles = (BufferResolvable | Stream | JSONEncodable<APIAttachment> | 
 
 export class MessageHelper {
     private client: Client
-    botSupport = '863038817794392106'
+
     constructor(client: Client) {
         this.client = client
     }
@@ -101,14 +95,14 @@ export class MessageHelper {
         options?: IInteractionOptions,
         components?: MessageCompontent,
         files?: MessageFiles
-    ): Promise< InteractionResponse<boolean> | Message<boolean>> {
+    ): Promise<InteractionResponse<boolean> | Message<boolean>> {
         const handleError = async (e: any) => {
             let msg: Message<boolean> | undefined
             if (options?.ephemeral) {
                 this.sendDM(interaction.user, messageContent)
             } else {
-                if (typeof messageContent === 'object') msg = await this.sendFormattedMessage(interaction?.channelId, messageContent)
-                else msg = await this.sendMessage(interaction?.channelId, `${MentionUtils.mentionUser(interaction.user.id)} ${messageContent}`)
+                if (typeof messageContent === 'object') msg = await this.sendMessage(interaction?.channelId, { embed: messageContent })
+                else msg = await this.sendMessage(interaction?.channelId, { text: `${MentionUtils.mentionUser(interaction.user.id)} ${messageContent}` })
             }
 
             let msgInfo = msg
@@ -154,32 +148,33 @@ export class MessageHelper {
         }
         return undefined
     }
-    /** @deprecated Use sendMessage */
-    replyToInteractionWithSelectMenu(
-        interaction: ChatInputCommandInteraction<CacheType> | ModalSubmitInteraction<CacheType>,
-        content: ActionRowBuilder<SelectMenuBuilder>
-    ) {
-        interaction.reply({ content: 'Pong!', components: [content] })
-    }
 
     /** Sends a message and returns the sent message (as a promise) */
-    sendMessage(channelId: string, message: string, options?: IMessageOptions) {
-        if (!this.checkForEmptyMessage(message)) {
-            return this.sendLogMessageEmptyMessage('En melding som ble forsøkt sendt var tom', channelId)
+    sendMessage(
+        channelId: string,
+        content: {
+            text?: string
+            embed?: EmbedBuilder
+            files?: MessageFiles
+            components?: MessageCompontent
+        },
+        options?: IMessageOptions
+    ) {
+        if (!!content.text && !this.messageHasContent(content.text)) {
+            return this.sendLogMessage('En melding som ble forsøkt sendt var tom')
         }
 
         const channel = this.findChannelById(channelId) as TextChannel
-        let msg: Message | undefined
         if (channel && channel.permissionsFor(UserUtils.findMemberByUserID(MentionUtils.User_IDs.BOT_HOIE, channel.guild)).toArray().includes('SendMessages')) {
-            if (message.length >= 2000) {
-                const msgArr = message.match(/[\s\S]{1,1800}/g)
+            if (content.text && content.text.length >= 2000) {
+                const msgArr = content.text.match(/[\s\S]{1,1800}/g)
                 msgArr.forEach((msg, ind) => {
                     if (!options?.dontIncrementMessageCounter) MazariniBot.numMessagesFromBot++
                     channel.send(msg)
                 })
                 return undefined
             } else {
-                const messageOptions = { content: message } as MessageCreateOptions
+                const messageOptions = { content: content.text } as MessageCreateOptions
                 if (options?.noMentions) {
                     messageOptions.allowedMentions = {
                         roles: [],
@@ -187,6 +182,10 @@ export class MessageHelper {
                         repliedUser: true,
                     }
                 }
+                messageOptions.content = content.text
+                if (content.embed) messageOptions.embeds = [content.embed]
+                if (content.components) messageOptions.components = content.components
+                if (content.files) messageOptions.files = content.files
                 const flags = [] as BitFieldResolvable<
                     Extract<MessageFlagsString, 'SuppressEmbeds' | 'SuppressNotifications'>,
                     MessageFlags.SuppressEmbeds | MessageFlags.SuppressNotifications
@@ -206,7 +205,7 @@ export class MessageHelper {
         return undefined
     }
 
-    checkForEmptyMessage(s: string) {
+    private messageHasContent(s: string) {
         return !!s.trim()
     }
 
@@ -227,20 +226,8 @@ export class MessageHelper {
         }
     }
 
-    reactWithThumbs(message: Message, reaction: thumbsReact) {
-        message.react(reaction === 'up' ? '👍' : '👎')
-    }
-
-    reactWithCheckmark(message: Message) {
-        message.react('✅')
-    }
-
-    findChannelById(id: string) {
+    private findChannelById(id: string) {
         return this.client.channels.cache.find((c) => c.id === id)
-    }
-
-    reactWithRandomEmoji(message: Message) {
-        message.react(ArrayUtils.randomChoiceFromArray(textArrays.emojiesList))
     }
 
     /** Reply to a given message */
@@ -267,127 +254,10 @@ export class MessageHelper {
         message.reply(messageOptions)
     }
 
-    async findMessageById(id: string, onErr?: () => void): Promise<Message<boolean> | undefined> {
-        const allChannels = [...this.client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
-        let messageToReturn
-
-        for (const channel of allChannels) {
-            if (
-                channel &&
-                channel.permissionsFor(UserUtils.findMemberByUserID(MentionUtils.User_IDs.BOT_HOIE, channel.guild)).toArray().includes('SendMessages')
-            ) {
-                await channel.messages
-                    .fetch(id)
-                    .then(async (message) => {
-                        messageToReturn = message
-                    })
-                    .catch((error) => {
-                        if (onErr) onErr()
-                    })
-            }
-        }
-        return messageToReturn
-    }
-
-    /** TODO: Merge this with sendMessage */
-    async sendFormattedMessage(channel: TextChannel | string, newMessage: EmbedBuilder) {
-        if (typeof channel === 'string') {
-            const textCh = this.findChannelById(channel) as TextChannel
-            if (textCh) return textCh.send({ embeds: [newMessage] })
-        } else return channel.send({ embeds: [newMessage] })
-        return undefined
-    }
-
-    async sendMessageWithComponents(
-        channelID: string,
-        components: (
-            | APIActionRowComponent<APIMessageActionRowComponent>
-            | JSONEncodable<APIActionRowComponent<APIMessageActionRowComponent>>
-            | ActionRowData<any>
-            | ActionRowBuilder<ButtonBuilder>
-        )[]
-    ) {
-        const textCh = this.findChannelById(channelID) as TextChannel
-        if (textCh && components) return textCh.send({ components: components })
-        return undefined
-    }
-
-    async sendMessageWithContentAndComponents(
-        channelID: string,
-        content: string | EmbedBuilder,
-        components: (
-            | APIActionRowComponent<APIMessageActionRowComponent>
-            | JSONEncodable<APIActionRowComponent<APIMessageActionRowComponent>>
-            | ActionRowData<any>
-            | ActionRowBuilder<ButtonBuilder>
-        )[]
-    ) {
-        const textCh = this.findChannelById(channelID) as TextChannel
-
-        if (textCh) {
-            if (content instanceof EmbedBuilder) {
-                return textCh.send({ embeds: [content], components: components })
-            } else {
-                return textCh.send({ content: content, components: components })
-            }
-        }
-        return undefined
-    }
-    /** @deprecated Use sendMessage */
-    async sendMessageWithEmbedAndComponents(
-        channelID: string,
-        embed: EmbedBuilder,
-        components: (
-            | APIActionRowComponent<APIMessageActionRowComponent>
-            | JSONEncodable<APIActionRowComponent<APIMessageActionRowComponent>>
-            | ActionRowData<any>
-            | ActionRowBuilder<ButtonBuilder>
-            | ActionRowBuilder<SelectMenuBuilder>
-        )[]
-    ) {
-        const textCh = this.findChannelById(channelID) as TextChannel
-        if (textCh) return textCh.send({ embeds: [embed], components: components })
-        return undefined
-    }
-
     sendLogMessage(msg: string, options?: IMessageOptions) {
         MazariniBot.numMessagesNumErrorMessages++
         options ? (options.dontIncrementMessageCounter = true) : (options = { dontIncrementMessageCounter: true })
-        return this.sendMessage(MentionUtils.CHANNEL_IDs.ACTION_LOG, msg, options)
-    }
-    sendGitLogMessage(msg: string, options?: IMessageOptions) {
-        MazariniBot.numMessagesNumErrorMessages++
-        options ? (options.dontIncrementMessageCounter = true) : (options = { dontIncrementMessageCounter: true })
-        return this.sendMessage(MentionUtils.CHANNEL_IDs.GIT_LOG, msg, options)
-    }
 
-    /** @deprecated Log that an empty message was attempted sent by the bot */
-    sendLogMessageEmptyMessage(errorMessageToSend: string, channelId: string) {
-        const errorChannel = this.client.channels.cache.get(MentionUtils.CHANNEL_IDs.ACTION_LOG) as TextChannel
-        const replyChannel = this.client.channels.cache.get(channelId)
-        errorChannel.send(
-            `En tom melding ble forsøkt sendt. Forsøkte å sende til channel-ID ${channelId}. Channel-object er: ${
-                replyChannel ? replyChannel.toString() : 'ingen'
-            }.`
-        )
-        MazariniBot.numMessagesNumErrorMessages++
-        if (replyChannel && replyChannel.type === ChannelType.GuildText)
-            return replyChannel.send(`${errorMessageToSend} ${MentionUtils.mentionRole(MentionUtils.ROLE_IDs.BOT_SUPPORT)}`)
-        return undefined
-    }
-
-    sendMessageToBotUtvikling(channel: TextChannel, message: string) {
-        const errorChannel = channel.client.channels.cache.get('802716150484041751') as TextChannel
-        errorChannel.send(message)
-    }
-
-    /** Removes all embeds for a specific message */
-    suppressEmbeds(message: Message) {
-        message.suppressEmbeds(true)
-    }
-
-    //TODO: Refactor this
-    get msgClient() {
-        return this.client
+        return this.sendMessage(MentionUtils.CHANNEL_IDs.ACTION_LOG, { text: msg }, options)
     }
 }

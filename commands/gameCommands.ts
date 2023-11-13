@@ -330,7 +330,7 @@ export class GameCommands extends AbstractCommands {
         const data = GameCommands.getRocketLeagueTournaments()
 
         this.messageHelper.replyToInteraction(interaction, data.embed)
-        this.messageHelper.sendMessageWithComponents(interaction.channelId, [data.buttons])
+        this.messageHelper.sendMessage(interaction.channelId, { components: [data.buttons] })
     }
 
     static getRocketLeagueTournaments(): { embed: EmbedBuilder; buttons: ActionRowBuilder<ButtonBuilder> } | undefined {

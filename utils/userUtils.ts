@@ -112,16 +112,15 @@ export namespace UserUtils {
     }
 
     export const onAddedMember = async (member: GuildMember, msgHelper: MessageHelper) => {
-        const msg = await msgHelper.sendMessage(
-            '340626855990132747',
-            'Welcome to the Gulag, ' + (member.nickname ?? member.displayName) + '. Bruk commanden "/role" for å gi deg selv roller for å komme i gang'
-        )
+        const msg = await msgHelper.sendMessage('340626855990132747', {
+            text: 'Welcome to the Gulag, ' + (member.nickname ?? member.displayName) + '. Bruk commanden "/role" for å gi deg selv roller for å komme i gang',
+        })
         DatabaseHelper.getUser(member.id)
         msgHelper.sendLogMessage('En bruker ble med i Mazarini: ' + (member.nickname ?? member.displayName))
     }
 
     export const onMemberLeave = async (member: GuildMember | PartialGuildMember, msgHelper: MessageHelper) => {
-        msgHelper.sendMessage('340626855990132747', 'Farvell, ' + (member.nickname ?? member.displayName))
+        msgHelper.sendMessage('340626855990132747', { text: 'Farvell, ' + (member.nickname ?? member.displayName) })
         msgHelper.sendLogMessage('En bruker forlot Mazarini: ' + (member.nickname ?? member.displayName))
     }
 

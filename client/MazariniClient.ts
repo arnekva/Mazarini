@@ -18,6 +18,7 @@ import {
     Role,
     User,
 } from 'discord.js'
+import { JobScheduler } from '../Jobs/jobScheduler'
 import { environment } from '../client-env'
 import { PatchNotes } from '../commands/patchnotes/patchnotes'
 import { CommandRunner } from '../general/commandRunner'
@@ -25,7 +26,6 @@ import { ErrorHandler } from '../handlers/errorHandler'
 import { ClientHelper } from '../helpers/clientHelper'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { JobScheduler } from '../Jobs/jobScheduler'
 import { MazariniBot } from '../main'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { CommandBuilder } from '../utils/commandBuilder/commandBuilder'
@@ -67,7 +67,7 @@ export class MazariniClient extends Client {
         })
         this.msgHelper = new MessageHelper(this)
         this.commandRunner = new CommandRunner(this, this.msgHelper)
-        this.jobScheduler = new JobScheduler(this.msgHelper)
+        this.jobScheduler = new JobScheduler(this.msgHelper, this)
 
         this.errorHandler = new ErrorHandler(this.msgHelper)
     }
@@ -109,13 +109,20 @@ export class MazariniClient extends Client {
                                 const commitMessage = allWords[2]
                                 return `*${commitAuthor}* *${commitId}* - ${commitMessage}`
                             }
-                            //Add commit messages to start-up message
-                            this.msgHelper.sendGitLogMessage(
-                                `Følgende commits er lagt til i ${PatchNotes.currentVersion}:\n${allMessages.map((s) => formatCommitLine(s)).join('\n')}`,
+
+                            this.msgHelper.sendMessage(
+                                MentionUtils.CHANNEL_IDs.GIT_LOG,
+                                {
+                                    text: `Følgende commits er lagt til i ${PatchNotes.currentVersion}:\n${allMessages
+                                        .map((s) => formatCommitLine(s))
+                                        .join('\n')}`,
+                                },
                                 {
                                     supressEmbeds: true,
+                                    dontIncrementMessageCounter: true,
                                 }
                             )
+
                             //Update current id
                             DatabaseHelper.setBotData('commit-id', latestMessage)
                         }
@@ -185,7 +192,9 @@ export class MazariniClient extends Client {
             ) {
                 this.msgHelper.sendMessage(
                     actionLogId,
-                    `**En melding fra ** *${message?.author?.username}* **ble slettet av** *${executor?.username}*. **Innhold**: '*${message?.content}*'`,
+                    {
+                        text: `**En melding fra ** *${message?.author?.username}* **ble slettet av** *${executor?.username}*. **Innhold**: '*${message?.content}*'`,
+                    },
                     { noMentions: true }
                 )
             }
@@ -199,12 +208,12 @@ export class MazariniClient extends Client {
 
         this.on('channelDelete', (channel: DMChannel | NonThreadGuildBasedChannel) => {
             const id = MentionUtils.CHANNEL_IDs.ACTION_LOG
-            this.msgHelper.sendMessage(id, `Channel med ID ${channel.id} ble slettet`)
+            this.msgHelper.sendMessage(id, { text: `Channel med ID ${channel.id} ble slettet` })
         })
 
         this.on('guildBanAdd', (ban: GuildBan) => {
             const id = MentionUtils.CHANNEL_IDs.ACTION_LOG
-            this.msgHelper.sendMessage(id, `${ban.user.username} ble bannet pga ${ban?.reason}`)
+            this.msgHelper.sendMessage(id, { text: `${ban.user.username} ble bannet pga ${ban?.reason}` })
         })
 
         this.on('guildCreate', (guild: Guild) => {

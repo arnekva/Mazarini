@@ -2,7 +2,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, CacheType, EmbedBui
 import { EmojiHelper } from '../../../../helpers/emojiHelper'
 import { MessageHelper } from '../../../../helpers/messageHelper'
 import { CardCommands } from '../../../cardCommands'
-import { canadianBusrideButtonRow, TryAgainBtn } from '../redBlackButtonRows'
+import { TryAgainBtn, canadianBusrideButtonRow } from '../redBlackButtonRows'
 import { IBusRideCard, IUserObject } from '../redBlackInterfaces'
 
 export class BusRide {
@@ -126,8 +126,8 @@ export class BusRide {
 
     public async resendMessages(interaction: ButtonInteraction<CacheType>) {
         this.deleteMessages()
-        this.embedMessage = await this.messageHelper.sendFormattedMessage(interaction?.channelId, this.embed)
-        this.tableMessage = await this.messageHelper.sendMessageWithContentAndComponents(interaction.channelId, this.tableString, [this.currentButtons])
+        this.embedMessage = await this.messageHelper.sendMessage(interaction?.channelId, { embed: this.embed })
+        this.tableMessage = await this.messageHelper.sendMessage(interaction.channelId, { text: this.tableString, components: [this.currentButtons] })
     }
 
     private deleteMessages() {

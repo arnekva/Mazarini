@@ -197,7 +197,7 @@ export class CommandRunner {
 
             if (hasHelg) {
                 const val = await this.commands.dateFunc.checkForHelg()
-                this.messageHelper.sendMessage(message.channelId, val, { sendAsSilent: true })
+                this.messageHelper.sendMessage(message.channelId, { text: val }, { sendAsSilent: true })
             }
 
             if (message.attachments) {
@@ -207,7 +207,7 @@ export class CommandRunner {
             if (polseCounter > 0)
                 this.messageHelper.sendMessage(
                     message.channelId,
-                    'Hæ, ' + (polseCounter > 1 ? polseCounter + ' ' : '') + 'pølse' + (polseCounter > 1 ? 'r' : '') + '?',
+                    { text: 'Hæ, ' + (polseCounter > 1 ? polseCounter + ' ' : '') + 'pølse' + (polseCounter > 1 ? 'r' : '') + '?' },
                     { sendAsSilent: true }
                 )
 

@@ -53,7 +53,7 @@ export class WeeklyJobs {
                 })
             })
 
-            this.messageHelper.sendFormattedMessage(MentionUtils.CHANNEL_IDs.VINMONOPOLET, fmMessage)
+            this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.VINMONOPOLET, { embed: fmMessage })
         }
     }
     private async resetStatuses() {
@@ -70,7 +70,7 @@ export class WeeklyJobs {
 
     private logEvent() {
         const todaysTime = new Date().toLocaleTimeString()
-        this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.ACTION_LOG, `Ukentlige jobber kjørte ${todaysTime} (NAV-penger)`)
+        this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.ACTION_LOG, { text: `Ukentlige jobber kjørte ${todaysTime} (NAV-penger)` })
         console.log(`Weekly jobs ran at ${todaysTime}`)
     }
 }

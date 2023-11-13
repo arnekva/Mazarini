@@ -367,7 +367,7 @@ export class RedBlackCommands extends AbstractCommands {
             if (this.currentPlayer.cards.length >= 1) {
                 const cardsString = this.getCardsOnHandForUser(this.currentPlayer)
                 if (this.playerCardsMessage === undefined) {
-                    this.playerCardsMessage = await this.messageHelper.sendMessage(interaction.channelId, cardsString)
+                    this.playerCardsMessage = await this.messageHelper.sendMessage(interaction.channelId, { text: cardsString })
                 } else {
                     this.playerCardsMessage.edit({ content: cardsString })
                 }
@@ -416,7 +416,7 @@ export class RedBlackCommands extends AbstractCommands {
             interaction.deferUpdate()
         } else {
             this.messageHelper.replyToInteraction(interaction, 'Nu skal det drekjast')
-            this.embedMessage = await this.messageHelper.sendMessageWithEmbedAndComponents(interaction?.channelId, this.embed, [this.currentButtons])
+            this.embedMessage = await this.messageHelper.sendMessage(interaction?.channelId, { embed: this.embed, components: [this.currentButtons] })
         }
     }
 
@@ -429,7 +429,7 @@ export class RedBlackCommands extends AbstractCommands {
             this.rbRound = RedBlackRound.RedBlack
             this.updateStartMessage()
             this.messageHelper.replyToInteraction(interaction, 'Nu skal det drekjast')
-            this.embedMessage = await this.messageHelper.sendMessageWithEmbedAndComponents(interaction?.channelId, this.embed, [this.currentButtons])
+            this.embedMessage = await this.messageHelper.sendMessage(interaction?.channelId, { embed: this.embed, components: [this.currentButtons] })
         }
     }
 
@@ -474,17 +474,18 @@ export class RedBlackCommands extends AbstractCommands {
     public async resendMessages(interaction: ButtonInteraction<CacheType>) {
         this.deleteMessages()
         if (this.stage === GameStage.RedBlack) {
-            this.embedMessage = await this.messageHelper.sendMessageWithEmbedAndComponents(interaction?.channelId, this.embed, [this.currentButtons])
+            this.embedMessage = await this.messageHelper.sendMessage(interaction?.channelId, { embed: this.embed, components: [this.currentButtons] })
             if (!(this.rbRound === RedBlackRound.RedBlack)) {
                 const cardsString = this.getCardsOnHandForUser(this.currentPlayer)
-                this.playerCardsMessage = await this.messageHelper.sendMessage(interaction.channelId, cardsString)
+                this.playerCardsMessage = await this.messageHelper.sendMessage(interaction.channelId, { text: cardsString })
             }
         } else {
-            this.embedMessage = await this.messageHelper.sendFormattedMessage(interaction?.channelId, this.embed)
+            this.embedMessage = await this.messageHelper.sendMessage(interaction?.channelId, { embed: this.embed })
             if (this.stage === GameStage.GiveTake) {
-                this.gtTableMessage = await this.messageHelper.sendMessageWithContentAndComponents(interaction.channelId, this.gtTableString, [
-                    this.currentButtons,
-                ])
+                this.gtTableMessage = await this.messageHelper.sendMessage(interaction.channelId, {
+                    text: this.gtTableString,
+                    components: [this.currentButtons],
+                })
             }
         }
         interaction.deferUpdate()

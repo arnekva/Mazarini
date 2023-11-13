@@ -69,16 +69,16 @@ export class TestCommands extends AbstractCommands {
             interaction.deferUpdate()
         } else {
             this.messageHelper.replyToInteraction(interaction, 'Test')
-            this.embedMessage = await this.messageHelper.sendFormattedMessage(interaction?.channelId, this.embed)
-            this.buttonsMessage = await this.messageHelper.sendMessageWithComponents(interaction?.channelId, [this.currentButtons])
+            this.embedMessage = await this.messageHelper.sendMessage(interaction?.channelId, { embed: this.embed })
+            this.buttonsMessage = await this.messageHelper.sendMessage(interaction?.channelId, { components: [this.currentButtons] })
         }
     }
 
     //Flytt embed ned til bunnen
     private async resendMessages(interaction: ButtonInteraction<CacheType>) {
         this.deleteMessages()
-        this.embedMessage = await this.messageHelper.sendFormattedMessage(interaction?.channelId, this.embed)
-        this.buttonsMessage = await this.messageHelper.sendMessageWithComponents(interaction?.channelId, [this.currentButtons])
+        this.embedMessage = await this.messageHelper.sendMessage(interaction?.channelId, { embed: this.embed })
+        this.buttonsMessage = await this.messageHelper.sendMessage(interaction?.channelId, { components: [this.currentButtons] })
     }
 
     //Slett meldingene

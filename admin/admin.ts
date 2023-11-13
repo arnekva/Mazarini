@@ -32,7 +32,7 @@ export class Admin extends AbstractCommands {
 
         //TODO: REFACTOR
         if (property === 'daily') {
-            const dj = new DailyJobs(this.messageHelper)
+            const dj = new DailyJobs(this.messageHelper, this.client)
             dj.runJobs()
             this.messageHelper.sendLogMessage(`Daily Jobs was forced to run by ${interaction.user.username}`)
         } else if (property === 'force' && interaction.user.id === '245607554254766081') {
@@ -283,7 +283,7 @@ export class Admin extends AbstractCommands {
         const chatID = modalInteraction.fields.getTextInputValue('channelID')
         const text = modalInteraction.fields.getTextInputValue('messageInput')
 
-        this.messageHelper.sendMessage(chatID, text)
+        this.messageHelper.sendMessage(chatID, { text: text })
         this.messageHelper.replyToInteraction(modalInteraction, `Meldingen *${text}* ble sent til ${MentionUtils.mentionChannel(chatID)}`, { ephemeral: true })
         this.messageHelper.sendLogMessage(
             `${modalInteraction.user.username} sendte en melding som botten til kanalen ${MentionUtils.mentionChannel(chatID)} med innholdet '*${text}*'`

@@ -1,3 +1,4 @@
+import { MazariniClient } from '../client/MazariniClient'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DailyJobs } from './dailyJobs'
 import { DayJob } from './dayJobs'
@@ -10,9 +11,9 @@ export class JobScheduler {
     dailyJobs: any
     weeklyJobs: any
     hourlyJobs: any
-    constructor(msgHelper: MessageHelper) {
+    constructor(msgHelper: MessageHelper, client: MazariniClient) {
         this.dailyJobs = schedule.scheduleJob('0 6 * * *', async function () {
-            const jobs = new DailyJobs(msgHelper)
+            const jobs = new DailyJobs(msgHelper, client)
             jobs.runJobs()
         })
 
