@@ -8,7 +8,12 @@ import { MessageHelper } from '../../helpers/messageHelper'
 import { MentionUtils } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
     public static readonly currentVersion = '14.0.0'
-    public static readonly currentPatchNotes = `\n* Du kan nå få lyrics direkte i /spotify ved å sette lyrics til true`
+    public static readonly currentPatchNotes =
+        `\n* /musikk har blitt /musikkbibliotek. Du kan nå søke på artister med */musikkbibliotek søk* for å se antall avspillinger for spesifikke artister` +
+        `\n* Større refaktoreringer i messageHelper:` +
+        `\n * sendMessage tar nå inn et objekt som kan inneholde all payload; tekst, components, embeds og files.` +
+        `\n * replyToInteraction returnerer nå meldingen som ble sendt.` +
+        `\n * hjelpefunksjoner er flyttet til MessageUtils`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
