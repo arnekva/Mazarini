@@ -89,7 +89,7 @@ export class PollCommands extends AbstractCommands {
     get pollsFromStorage() {
         const polls = DatabaseHelper.getStorage().polls
 
-        if (!polls) DatabaseHelper.updateStorage({ polls: [] })
+        if (!polls) DatabaseHelper.updateStorage({ polls: [] }) 
         return polls
     }
 
@@ -99,15 +99,7 @@ export class PollCommands extends AbstractCommands {
         const poll = polls.find((p) => p.id === id)
         if (poll) {
             this.messageHelper.replyToInteraction(interaction, `Vise pollen under`, { ephemeral: true })
-            const embed = EmbedUtils.createSimpleEmbed(`Poll`, poll.desc || 'Enkel poll')
-            poll.options.forEach((option) => {
-                embed.addFields([
-                    {
-                        name: option.name,
-                        value: option.votes.length + ' stemmer',
-                    },
-                ])
-            })
+            const embed = this.getPollEmbed(poll, interaction)
             const row = new ActionRowBuilder<ButtonBuilder>()
             const opt: IPollOption[] = []
             this.buildVoteButtons(
@@ -142,8 +134,6 @@ export class PollCommands extends AbstractCommands {
             //If user has already voted for this option, remove the vote
             if (hasVotedForOption) {
                 ArrayUtils.removeItemOnce(currOption.votes, hasVotedForOption)
-
-                this.messageHelper.replyToInteraction(interaction, `Slettet stemmen din`, { ephemeral: true })
             } else {
                 //If multiple answers is not allowed, remove the other vote
                 const hasVotedForAnything = poll.options.find((o) => !!o.votes.find((c) => c.userId === userId))
@@ -157,33 +147,9 @@ export class PollCommands extends AbstractCommands {
                 poll.options[optionToVote].votes.push({
                     userId: userId,
                 })
-                this.messageHelper.replyToInteraction(interaction, `La til stemmen din ${cantHaveMoreThanOneVote ? ' og slettet din andre stemme' : ''}`, {
-                    ephemeral: true,
-                })
             }
 
-            const embed = EmbedUtils.createSimpleEmbed(`Poll`, poll.desc || 'Enkel poll')
-            poll.options.forEach((option) => {
-                embed.addFields([
-                    {
-                        name: option.name,
-                        value: option.votes.length + ' stemmer',
-                    },
-                ])
-            })
-            let allVotees: string[] = []
-            poll.options.forEach((option) => {
-                option.votes.forEach((vote) => {
-                    const user = UserUtils.findUserById(vote.userId, interaction)
-                    if (user) allVotees.push(user.username)
-                })
-            })
-            allVotees = ArrayUtils.removeAllDuplicates(allVotees)
-            let printNames = ''
-            if (allVotees.length === 0) printNames = 'ingen'
-            else if (allVotees.length === 1) printNames = allVotees[0]
-            else printNames = allVotees.slice(0, -1).join(',') + ' og ' + allVotees.slice(-1)
-            embed.setFooter({ text: `Stemt: ${printNames}` })
+            const embed = this.getPollEmbed(poll, interaction)
             const msg = interaction.channel.messages.cache.find((m) => m.id === poll.messageId)
             if (msg?.id && msg.editable) {
                 msg.edit({ embeds: [embed] })
@@ -197,13 +163,40 @@ export class PollCommands extends AbstractCommands {
                     pollId
                 )
                 const sentMsg = await this.messageHelper.sendMessage(interaction.channelId, { embed: embed, components: [row] })
-                // this.messageHelper.sendMessageWithComponents(interaction.channelId, [row])
                 poll.messageId = sentMsg.id
             }
             DatabaseHelper.updateStorage({
                 polls: polls,
             })
+            interaction.deferUpdate()
         }
+    }
+
+    private getPollEmbed(poll: IPoll, interaction) {
+        const embed = EmbedUtils.createSimpleEmbed(`Poll`, poll.desc || 'Enkel poll')
+        poll.options.forEach((option) => {
+            const voters = option.votes.map(x => UserUtils.findUserById(x.userId, interaction)?.username).toString()            
+            embed.addFields([
+                {
+                    name: option.name,
+                    value: option.votes.length + ` [stemmer](${"https://discord.com/channels/"+interaction.guildId} "${voters}")`,
+                },
+            ])
+        })
+        let allVotees: string[] = []
+        poll.options.forEach((option) => {
+            option.votes.forEach((vote) => {
+                const user = UserUtils.findUserById(vote.userId, interaction)
+                if (user) allVotees.push(user.username)
+            })
+        })
+        allVotees = ArrayUtils.removeAllDuplicates(allVotees)
+        let printNames = ''
+        if (allVotees.length === 0) printNames = 'ingen'
+        else if (allVotees.length === 1) printNames = allVotees[0]
+        else printNames = allVotees.slice(0, -1).join(',') + ' og ' + allVotees.slice(-1)
+        embed.setFooter({ text: `Stemt: ${printNames}` })
+        return embed
     }
 
     private filterPolls(interaction: AutocompleteInteraction<CacheType>) {
