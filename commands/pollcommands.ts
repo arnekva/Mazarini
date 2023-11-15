@@ -19,6 +19,7 @@ export interface IPoll {
     desc: string
     options: IPollOption[]
     messageId: string
+    multipleAnswers: boolean
 }
 export class PollCommands extends AbstractCommands {
     constructor(client: MazariniClient) {
@@ -32,6 +33,7 @@ export class PollCommands extends AbstractCommands {
         const isCreate = interaction.options.getSubcommand() === 'lag'
         if (isCreate) {
             const description = interaction.options.get('beskrivelse')?.value as string
+            const multipleAnswers = interaction.options.get('flersvar')?.value as boolean
             const options1 = interaction.options.get('1')?.value as string
             const options2 = interaction.options.get('2')?.value as string
             const options3 = interaction.options.get('3')?.value as string
@@ -54,6 +56,7 @@ export class PollCommands extends AbstractCommands {
                 options: opt,
                 messageId: msg.id,
                 desc: description,
+                multipleAnswers: !!multipleAnswers,
             })
             DatabaseHelper.updateStorage({
                 polls: stPolls,
@@ -130,21 +133,32 @@ export class PollCommands extends AbstractCommands {
 
         const polls = this.pollsFromStorage
         const poll = polls.find((p) => p.id === pollId)
+        //Has correct poll
         if (poll) {
-            //Has correct poll
-
+            const multipleAnswers = poll.multipleAnswers
             const currOption = poll.options.find((o) => o.id === votesFor)
             const hasVotedForOption = currOption.votes.find((v) => v?.userId === userId)
+            //If user has already voted for this option, remove the vote
             if (hasVotedForOption) {
-                const voteIndex = hasVotedForOption
                 ArrayUtils.removeItemOnce(currOption.votes, hasVotedForOption)
+
                 this.messageHelper.replyToInteraction(interaction, `Slettet stemmen din`, { ephemeral: true })
             } else {
+                //If multiple answers is not allowed, remove the other vote
+                const hasVotedForAnything = poll.options.find((o) => !!o.votes.find((c) => c.userId === userId))
+                const cantHaveMoreThanOneVote = !multipleAnswers && hasVotedForAnything
+                if (cantHaveMoreThanOneVote) {
+                    const voteToRemove = hasVotedForAnything.votes.find((c) => c.userId === userId)
+                    ArrayUtils.removeItemOnce(hasVotedForAnything.votes, voteToRemove)
+                }
+                //Add vote to poll
                 const optionToVote = poll.options.findIndex((o) => o.id === votesFor)
                 poll.options[optionToVote].votes.push({
                     userId: userId,
                 })
-                this.messageHelper.replyToInteraction(interaction, `La til stemmen din`, { ephemeral: true })
+                this.messageHelper.replyToInteraction(interaction, `La til stemmen din ${cantHaveMoreThanOneVote ? ' og slettet din andre stemme' : ''}`, {
+                    ephemeral: true,
+                })
             }
 
             const embed = EmbedUtils.createSimpleEmbed(`Poll`, poll.desc || 'Enkel poll')

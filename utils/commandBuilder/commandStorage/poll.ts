@@ -29,6 +29,7 @@ export const pollCommand: ISlashCommandItem = {
                     type: ApplicationCommandOptionType.String,
                     required: true,
                 },
+
                 {
                     name: '1',
                     description: 'valg',
@@ -45,19 +46,25 @@ export const pollCommand: ISlashCommandItem = {
                     name: '3',
                     description: 'valg',
                     type: ApplicationCommandOptionType.String,
-                    required: true,
+                    required: false,
                 },
                 {
                     name: '4',
                     description: 'valg',
                     type: ApplicationCommandOptionType.String,
-                    required: true,
+                    required: false,
                 },
                 {
                     name: '5',
                     description: 'valg',
                     type: ApplicationCommandOptionType.String,
-                    required: true,
+                    required: false,
+                },
+                {
+                    name: 'flersvar',
+                    description: 'svare på mer enn ett valg',
+                    type: ApplicationCommandOptionType.Boolean,
+                    required: false,
                 },
             ],
         },
