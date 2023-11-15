@@ -57,6 +57,11 @@ export class ArrayUtils {
         return array
     }
 
+    static removeAllDuplicates<T>(array: T[]) {
+        const uniq = [...new Set(array)]
+        return uniq as T[]
+    }
+
     static kanIkkjeTekster(hasEg?: boolean): string[] {
         const obj = hasEg ? `du` : 'han'
         return [
