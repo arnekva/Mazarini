@@ -5,6 +5,7 @@ import { IInteractionElement } from '../general/commands'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { EmbedUtils } from '../utils/embedUtils'
+import { UserUtils } from '../utils/userUtils'
 
 interface IPollVote {
     userId: string
@@ -170,7 +171,19 @@ export class PollCommands extends AbstractCommands {
                     },
                 ])
             })
-
+            let allVotees: string[] = []
+            poll.options.forEach((option) => {
+                option.votes.forEach((vote) => {
+                    const user = UserUtils.findUserById(vote.userId, interaction)
+                    if (user) allVotees.push(user.username)
+                })
+            })
+            allVotees = ArrayUtils.removeAllDuplicates(allVotees)
+            let printNames = ''
+            if (allVotees.length === 0) printNames = 'ingen'
+            else if (allVotees.length === 1) printNames = allVotees[0]
+            else printNames = allVotees.slice(0, -1).join(',') + ' og ' + allVotees.slice(-1)
+            embed.setFooter({ text: `Stemt: ${printNames}` })
             const msg = interaction.channel.messages.cache.find((m) => m.id === poll.messageId)
             if (msg?.id && msg.editable) {
                 msg.edit({ embeds: [embed] })

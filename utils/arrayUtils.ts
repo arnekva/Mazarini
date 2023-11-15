@@ -57,6 +57,7 @@ export class ArrayUtils {
         return array
     }
 
+    /** Will remove all duplicates from an array. Creates a set from the array and turns that set back into an array. Note that this does not manipulate original object */
     static removeAllDuplicates<T>(array: T[]) {
         const uniq = [...new Set(array)]
         return uniq as T[]
