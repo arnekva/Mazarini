@@ -133,9 +133,9 @@ export class DateCommands extends AbstractCommands {
                         const hourString = timeRemaining?.hours > 0 ? `${timeRemaining.hours} timer og ` : ''
                         const timeUntilString = `${dayString}${hourString}${timeRemaining?.minutes ?? 0} min`
                         const vacayString =
-                            `- ${username}: ` + isDuring
+                            `- ${username}: ` + (isDuring
                                 ? `${timeUntilString} igjen *(${DateUtils.formatDate(date2)})*\n`
-                                : `om ${timeUntilString} *(${DateUtils.formatDate(date1)}, ${vacationLength} dager ferie)*\n`
+                                : `om ${timeUntilString} *(${DateUtils.formatDate(date1)}, ${vacationLength} dager ferie)*\n`)
                         if (isDuring) vacayNowMap.set(date2, vacayString)
                         else vacayLaterMap.set(date2, vacayString)
                     }
