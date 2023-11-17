@@ -13,6 +13,7 @@ import {
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
+import { Ludo } from './games/ludo/ludo'
 
 const defaultButtonRow = new ActionRowBuilder<ButtonBuilder>()
 defaultButtonRow.addComponents(
@@ -43,7 +44,10 @@ export class TestCommands extends AbstractCommands {
         this.currentButtons = defaultButtonRow
     }
 
-    private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {}
+    private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+        const ludo = new Ludo(this.client)
+        ludo.updateBoard(interaction)
+    }
 
     private async testSelectMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {
         const value = selectMenu.values[0]

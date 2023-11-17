@@ -1,3 +1,4 @@
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../../client/MazariniClient'
 import { IInteractionElement } from '../../../general/commands'
@@ -22,9 +23,14 @@ export class Ludo extends AbstractCommands {
     private currentPlayer: LudoPlayer
     private boardState: any
 
+    private msg1Id: string
+    private msg2Id: string
+    private msg3Id: string
+
     constructor(client: MazariniClient) {
         super(client)
         this.players = []
+        this.msg1Id = this.msg2Id = this.msg3Id = ''
         this.createGame()
     }
 
@@ -52,15 +58,47 @@ export class Ludo extends AbstractCommands {
 
     */
 
-    async updateBoard(channelId: string) {
+    async updateBoard(interaction: ButtonInteraction | ChatInputCommandInteraction) {
         const board = LudoBoard.board(this.allPieces)
         const msgContent1 = board.board1
         const msgContent2 = board.board2
         const msgContent3 = board.board3
 
-        const msg1 = await this.messageHelper.sendMessage(channelId, { text: msgContent1 })
-        const msg2 = await this.messageHelper.sendMessage(channelId, { text: msgContent2 })
-        const msg3 = await this.messageHelper.sendMessage(channelId, { text: msgContent3 })
+        const msg1FromCache = interaction.channel.messages.cache.find((m) => m.id === this.msg1Id)
+        const msg2FromCache = interaction.channel.messages.cache.find((m) => m.id === this.msg2Id)
+        const msg3FromCache = interaction.channel.messages.cache.find((m) => m.id === this.msg3Id)
+
+        if (!msg1FromCache || !msg2FromCache || !msg3FromCache) {
+            const msg1 = await this.messageHelper.sendMessage(interaction.channelId, { text: msgContent1 })
+            const msg2 = await this.messageHelper.sendMessage(interaction.channelId, { text: msgContent2 })
+            const msg3 = await this.messageHelper.sendMessage(interaction.channelId, { text: msgContent3 })
+            this.msg1Id = msg1.id
+            this.msg2Id = msg2.id
+            this.msg3Id = msg3.id
+            const gameButtons = new ActionRowBuilder<ButtonBuilder>()
+            gameButtons.addComponents(
+                new ButtonBuilder({
+                    custom_id: 'LUDO_BTN_MOVE_1',
+                    style: ButtonStyle.Primary,
+                    label: `Brikke 1`,
+                    disabled: false,
+                    type: 2,
+                }),
+                new ButtonBuilder({
+                    custom_id: 'LUDO_BTN_MOVE_2',
+                    style: ButtonStyle.Success,
+                    label: `Brikke 2`,
+                    disabled: true,
+                    type: 2,
+                })
+            )
+            const msg4 = await this.messageHelper.sendMessage(interaction.channelId, { components: [gameButtons] })
+        } else {
+            msg1FromCache.edit({ content: msgContent1 })
+            msg2FromCache.edit({ content: msgContent2 })
+            msg3FromCache.edit({ content: msgContent3 })
+        }
+        console.log(this.msg1Id)
     }
 
     /** Returns a flat map of all player pieces */
@@ -74,7 +112,7 @@ export class Ludo extends AbstractCommands {
                 {
                     id: 0,
                     color: 'yellow',
-                    positionIndex: 1,
+                    positionIndex: 0,
                 },
                 {
                     id: 1,
@@ -119,13 +157,15 @@ export class Ludo extends AbstractCommands {
         }
     }
 
-    private increment() {
-        this.players[0].pieces[0].positionIndex += 0
+    private movePiece(interaction: ButtonInteraction<CacheType>) {
+        this.players[0].pieces[0].positionIndex += 1
 
-        this.updateBoard()
+        this.updateBoard(interaction)
+        interaction.deferUpdate()
     }
 
     getAllInteractions(): IInteractionElement {
+        const _this = this
         return {
             commands: {
                 interactionCommands: [
@@ -138,9 +178,9 @@ export class Ludo extends AbstractCommands {
                 ],
                 buttonInteractionComands: [
                     {
-                        commandName: 'LUDO_BTN',
-                        command(rawInteraction) {
-                            this.increment()
+                        commandName: 'LUDO_BTN_MOVE_1',
+                        command(rawInteraction: ButtonInteraction<CacheType>) {
+                            _this.movePiece(rawInteraction)
                         },
                     },
                 ],

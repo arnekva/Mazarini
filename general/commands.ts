@@ -14,6 +14,7 @@ import { DateCommands } from '../commands/dateCommands'
 import { RedBlackCommands } from '../commands/drinks/redBlack/redBlackCommands'
 import { DrinksCommands } from '../commands/drinksCommands'
 import { GameCommands } from '../commands/gameCommands'
+import { Ludo } from '../commands/games/ludo/ludo'
 import { JokeCommands } from '../commands/jokeCommands'
 import { LinkCommands } from '../commands/linkCommands'
 import { Meme } from '../commands/memes/memeCommands'
@@ -86,6 +87,7 @@ export class Commands {
     private redBlackCommands: RedBlackCommands
     private trelloCommands: TrelloCommands
     private pollCommands: PollCommands
+    private ludo: Ludo
 
     constructor(client: MazariniClient) {
         this.client = client
@@ -116,6 +118,7 @@ export class Commands {
         this.textCommands = new TextCommands(this.client)
         this.redBlackCommands = new RedBlackCommands(this.client)
         this.pollCommands = new PollCommands(this.client)
+        this.ludo = new Ludo(this.client)
     }
 
     getAllInteractionCommands() {
@@ -146,6 +149,7 @@ export class Commands {
             this.textCommands.getAllInteractions(),
             this.redBlackCommands.getAllInteractions(),
             this.trelloCommands.getAllInteractions(),
+            this.ludo.getAllInteractions(),
         ]
     }
 

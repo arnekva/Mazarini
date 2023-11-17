@@ -32,19 +32,10 @@ export class PatchNotes extends AbstractCommands {
         DatabaseHelper.setBotData('version', PatchNotes.currentVersion)
     }
 
-    static publishPatchNotes(msgHelper: MessageHelper, rawInteraction?: ChatInputCommandInteraction<CacheType>) {
+    static publishPatchNotes(msgHelper: MessageHelper) {
         const pn = PatchNotes.getCurrentPatchNotes()
         msgHelper.sendMessage(MentionUtils.CHANNEL_IDs.BOT_UTVIKLING, { text: pn })
         msgHelper.sendMessage(MentionUtils.CHANNEL_IDs.PATCH_NOTES, { text: pn })
-        if (rawInteraction) {
-            msgHelper.replyToInteraction(
-                rawInteraction,
-                `Patch notes sendt til ${MentionUtils.mentionChannel(MentionUtils.CHANNEL_IDs.BOT_UTVIKLING)} og ${MentionUtils.mentionChannel(
-                    MentionUtils.CHANNEL_IDs.PATCH_NOTES
-                )}`,
-                { ephemeral: true }
-            )
-        }
     }
 
     getAllInteractions(): IInteractionElement {

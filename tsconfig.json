@@ -2,7 +2,7 @@
     "compilerOptions": {
         "target": "es6",
         "lib": [
-            "es2019",
+            "es2020",
             "dom"
         ],
         "outDir": "bin",
@@ -20,7 +20,7 @@
         "noImplicitThis": false,
         "noImplicitReturns": false,
         "strictNullChecks": false,
-        "noImplicitAny": false
+        "noImplicitAny": false,
     },
     "formatterOptions": {
         "baseIndentSize": 0,
