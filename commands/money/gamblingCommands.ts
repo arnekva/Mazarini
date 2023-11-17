@@ -272,15 +272,21 @@ export class GamblingCommands extends AbstractCommands {
     private findSequenceWinningAmount(s: string) {
         switch (s) {
             case '123':
-                return 200
+                return 500
             case '1234':
-                return 950
+                return 5000
             case '12345':
-                return 3000
+                return 50000
+            case '123456':
+                return 500000
             case '1337':
-                return 1005
+                return 5000
+            case '8008':
+                return 5000
+            case '80085':
+                return 50000
             default:
-                return 200
+                return 500
         }
     }
 
@@ -289,13 +295,13 @@ export class GamblingCommands extends AbstractCommands {
             case 2:
                 return 100
             case 3:
-                return 250
+                return 500
             case 4:
-                return 1000
+                return 5000
             case 5:
-                return 2750
+                return 50000
             case 6:
-                return 10000
+                return 500000
             default:
                 return 100
         }

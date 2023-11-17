@@ -7,10 +7,8 @@ import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { MessageHelper } from '../../helpers/messageHelper'
 import { MentionUtils } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '14.1.0'
-    public static readonly currentPatchNotes =
-        `\n* /poll har nå en parameter som heter flervalg. Sett denne til True for å tillate et personer svarer på mer enn ett valg` +
-        `\n* Rettet en feil som gjorde at det kunne bli logget veldig mange feilmeldinger dersom en AutoComplete ikke ble besvart i koden`
+    public static readonly currentVersion = '14.1.1'
+    public static readonly currentPatchNotes = `\n* Økt utbetalinger i /roll og /spin`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
