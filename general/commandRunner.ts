@@ -95,13 +95,14 @@ export class CommandRunner {
             }
         } else if (this.isLegalChannel(interaction)) {
             let hasAcknowledged = false
-            //TODO: This might have to be refactored, by ContextMenuCommands are for now treated as regular ChatInputCommands, as they only have a commandName
-            //Autocomplete Interactions are handled by this block, since they are triggered by ChatInputs.
+            //TODO: This might have to be refactored, but ContextMenuCommands are for now treated as regular ChatInputCommands, as they only have a commandName
+            //Autocomplete Interactions are also handled by this block, since they are triggered by ChatInputs.
             if (interaction.isChatInputCommand() || interaction.isContextMenuCommand() || interaction.isAutocomplete()) {
                 this.commands.getAllTextCommands().forEach((cmd) => {
                     if (cmd.commandName === interaction.commandName) {
                         if (interaction.isAutocomplete()) {
-                            cmd.autoCompleteCallback(interaction)
+                            //Need to also check if autoCompleteCallback is present, since AutoComplete can trigger on normal input fields.
+                            if (cmd.autoCompleteCallback) cmd.autoCompleteCallback(interaction)
                         } else {
                             this.runInteractionElement<ChatInputCommandInteraction<CacheType> | ContextMenuCommandInteraction<CacheType>>(cmd, interaction)
                         }

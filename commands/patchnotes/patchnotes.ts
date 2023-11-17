@@ -7,13 +7,10 @@ import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { MessageHelper } from '../../helpers/messageHelper'
 import { MentionUtils } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '14.0.0'
+    public static readonly currentVersion = '14.1.0'
     public static readonly currentPatchNotes =
-        `\n* /musikk har blitt /musikkbibliotek. Du kan nå søke på artister med */musikkbibliotek søk* for å se antall avspillinger for spesifikke artister` +
-        `\n* Større refaktoreringer i messageHelper:` +
-        `\n * sendMessage tar nå inn et objekt som kan inneholde all payload; tekst, components, embeds og files.` +
-        `\n * replyToInteraction returnerer nå meldingen som ble sendt.` +
-        `\n * hjelpefunksjoner er flyttet til MessageUtils`
+        `\n* /poll har nå en parameter som heter flervalg. Sett denne til True for å tillate et personer svarer på mer enn ett valg` +
+        `\n* Rettet en feil som gjorde at det kunne bli logget veldig mange feilmeldinger dersom en AutoComplete ikke ble besvart i koden`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
