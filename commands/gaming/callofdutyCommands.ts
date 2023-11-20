@@ -1,16 +1,23 @@
-import { login, ModernWarfare, platforms, Warzone, Warzone2 } from 'call-of-duty-api'
+import { ModernWarfare, Warzone, Warzone2, platforms } from 'call-of-duty-api'
 import { CacheType, ChatInputCommandInteraction, EmbedBuilder, Interaction, User } from 'discord.js'
-import { Response } from 'node-fetch'
-import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { actSSOCookie } from '../client-env'
-import { MazariniClient } from '../client/MazariniClient'
-import { IInteractionElement } from '../general/commands'
-import { DatabaseHelper } from '../helpers/databaseHelper'
-import { DateUtils } from '../utils/dateUtils'
-import { ObjectUtils } from '../utils/objectUtils'
+import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { MazariniClient } from '../../client/MazariniClient'
+import { IInteractionElement } from '../../general/commands'
+import { DatabaseHelper } from '../../helpers/databaseHelper'
+import { ArrayUtils } from '../../utils/arrayUtils'
+import { ObjectUtils } from '../../utils/objectUtils'
+import { RandomUtils } from '../../utils/randomUtils'
+import { SoundUtils } from '../../utils/soundUtils'
+import { UserUtils } from '../../utils/userUtils'
 
-const fetch = require('node-fetch')
-
+interface dropCoordinate {
+    xDropCoordinate: number
+    yDropCoordinate: number
+}
+interface dropLocation {
+    coord: string[]
+    name: string
+}
 export interface CodStats {
     kills: number
     deaths: number
@@ -102,11 +109,121 @@ interface BRDataOptions {
     noSave?: boolean
 }
 
-export class WarzoneCommands extends AbstractCommands {
+const fetch = require('node-fetch')
+const striptags = require('striptags')
+const puppeteer = require('puppeteer')
+function getValidDropCoordinate(xCircleCenter: number, yCircleCenter: number): dropCoordinate {
+    // -2
+    const width: number = RandomUtils.getUnsecureRandomInteger(-3, 3)
+    const isIllegal = (xCoordinate: number, yCoordinate: number) => {
+        // A, B, I, J
+        const illegalXCoordinates = [0, 1, 8, 9]
+
+        const illegalYCoordinates = [0, 1, 9]
+        return (
+            illegalXCoordinates.includes(xCoordinate) ||
+            illegalYCoordinates.includes(yCoordinate) ||
+            xCoordinate < 0 ||
+            yCoordinate < 0 ||
+            xCoordinate > 9 ||
+            yCoordinate > 9
+        )
+    }
+
+    // 2
+    const abs = Math.abs(width)
+    const heightToTravel = 3 - abs
+
+    // -2 + 5 = 3, C
+    const xCoordinate: number = width + xCircleCenter
+
+    const height: number = RandomUtils.getUnsecureRandomInteger(-heightToTravel, heightToTravel)
+    // yCoordinate + 1 eller - 1
+    const yCoordinate = yCircleCenter + height
+
+    if (isIllegal(xCoordinate, yCoordinate)) {
+        return getValidDropCoordinate(xCircleCenter, yCircleCenter)
+    }
+
+    return { xDropCoordinate: xCoordinate, yDropCoordinate: yCoordinate }
+}
+
+export class CallOfDutyCommands extends AbstractCommands {
     constructor(client: MazariniClient) {
         super(client)
+    }
 
-        login(actSSOCookie)
+    private async findDropLocation(interaction: ChatInputCommandInteraction<CacheType>) {
+        let mapArray: string[] = []
+        let mapName = ''
+        await interaction.deferReply()
+        const map = interaction.options.get('map')?.value
+
+        if (map === 'almazrah') {
+            mapArray = alMazrah
+            mapName = 'Al Mazrah'
+        } else if (map === 'caldera') {
+            mapArray = calderaPoints
+            mapName = 'Caldera'
+        } else if (map === 'rebirth') {
+            mapArray = rebirthIsland
+            mapName = 'Rebirth Island'
+        } else if (map === 'fortune') {
+            mapArray = fortunesKeep
+            mapName = "Fortune's Keep"
+        }
+        const drop = `${ArrayUtils.randomChoiceFromArray(mapArray)}`
+        const emb = new EmbedBuilder().setTitle(drop).setDescription(`Droppunkt for ${mapName}`)
+        await this.messageHelper.replyToInteraction(interaction, emb, { hasBeenDefered: true })
+
+        const memb = UserUtils.findMemberByUserID(interaction.user.id, interaction)
+        if (memb?.voice?.channel) {
+            await SoundUtils.connectToVoiceAndSpeak(
+                {
+                    adapterCreator: interaction.guild?.voiceAdapterCreator,
+                    channelID: memb.voice?.channelId ?? 'None',
+                    guildID: interaction?.guildId ?? 'None',
+                },
+                `For ${mapName}, you are dropping in ${drop}`
+            )
+        }
+    }
+
+    private dropGrid(interaction: ChatInputCommandInteraction<CacheType>) {
+        const gridLetter = 'ABCDEFGHIJ'
+        const validNumbers = '2345678'
+        const illegalCenterCoordinates = ['A0', 'J0']
+
+        const grid = interaction.options.get('placement')?.value as string
+        const letter = grid.charAt(0)
+        const gridNumber = parseInt(grid.charAt(1))
+
+        if (!gridLetter.includes(letter) || !validNumbers.includes(validNumbers) || grid == '' || Number.isNaN(gridNumber)) {
+            this.messageHelper.replyToInteraction(interaction, 'Kan du ikkje i det minsta velga kor sirkelen e?', { ephemeral: true })
+        } else if (illegalCenterCoordinates.includes(grid)) {
+            this.messageHelper.replyToInteraction(
+                interaction,
+                'E det sirkelen din? Dokker e fucked... \n(Botten klare ikkje å regna ud koordinater for så små grids)',
+                { ephemeral: true }
+            )
+        } else {
+            // E5 = 5,5grid
+            const xCircleCenter = gridLetter.indexOf(letter)
+            const yCircleCenter = gridNumber
+
+            const { xDropCoordinate, yDropCoordinate }: dropCoordinate = getValidDropCoordinate(xCircleCenter, yCircleCenter)
+            const dropLoc = gridLetter[xDropCoordinate] + '' + yDropCoordinate + ''
+            let dropPlaces = ''
+            for (let i = 0; i < dropLocations.length; i++) {
+                dropLocations[i].coord.forEach((el) => {
+                    if (el == dropLoc) dropPlaces += '\n' + dropLocations[i].name
+                })
+            }
+            this.messageHelper.replyToInteraction(
+                interaction,
+                'Droppunkt for ' + gridLetter[xDropCoordinate] + yDropCoordinate + (dropPlaces ? '\nHer ligger: ' + dropPlaces : '')
+            )
+        }
     }
 
     static statsToInclude: codStatsKeyHeader[] = [
@@ -156,8 +273,8 @@ export class WarzoneCommands extends AbstractCommands {
 
     private findHeaderFromKey(key: string, isBr?: boolean) {
         return isBr
-            ? WarzoneCommands.BRstatsToInclude.filter((el) => el.key === key).pop()?.header
-            : WarzoneCommands.statsToInclude.filter((el) => el.key === key).pop()?.header
+            ? CallOfDutyCommands.BRstatsToInclude.filter((el) => el.key === key).pop()?.header
+            : CallOfDutyCommands.statsToInclude.filter((el) => el.key === key).pop()?.header
     }
 
     private translatePlatform(s: string) {
@@ -262,10 +379,10 @@ export class WarzoneCommands extends AbstractCommands {
             const statsTyped = data.data.lifetime.mode.br.properties as CodBRStatsType
 
             const orderedStats: Partial<CodBRStats> = {}
-            for (let i = 0; i < WarzoneCommands.BRstatsToInclude.length; i++) {
+            for (let i = 0; i < CallOfDutyCommands.BRstatsToInclude.length; i++) {
                 for (const [key, value] of Object.entries(statsTyped)) {
-                    if (key === WarzoneCommands.BRstatsToInclude[i].key) {
-                        orderedStats[WarzoneCommands.BRstatsToInclude[i].key] = Number(value)
+                    if (key === CallOfDutyCommands.BRstatsToInclude[i].key) {
+                        orderedStats[CallOfDutyCommands.BRstatsToInclude[i].key] = Number(value)
                     }
                 }
             }
@@ -296,92 +413,93 @@ export class WarzoneCommands extends AbstractCommands {
         }
     }
 
+    //Needs rewrite
     private async findWeeklyData(gamertag: string, platform: platforms, interaction: Interaction<CacheType>, options?: BRDataOptions) {
-        try {
-            const data = (await Warzone.fullData(gamertag, platform)) as any
-            let response = 'Weekly Warzone stats for <' + gamertag + '>'
+        // try {
+        //     const data = (await Warzone.fullData(gamertag, platform)) as any
+        //     let response = 'Weekly Warzone stats for <' + gamertag + '>'
 
-            if (!data?.data?.weekly) {
-                return 'Ingen data funnet for denne uken'
-            } else if (options?.rebirth && data.data.weekly.mode) {
-                return this.findWeeklyRebirthOnly(gamertag, data)
-            } else {
-                const statsTyped = data?.data?.weekly?.all?.properties as CodStats
+        //     if (!data?.data?.weekly) {
+        //         return 'Ingen data funnet for denne uken'
+        //     } else if (options?.rebirth && data.data.weekly.mode) {
+        //         return this.findWeeklyRebirthOnly(gamertag, data)
+        //     } else {
+        //         const statsTyped = data?.data?.weekly?.all?.properties as CodStats
 
-                const orderedStats: Partial<CodStats> = {}
-                for (let i = 0; i < WarzoneCommands.statsToInclude.length; i++) {
-                    for (const [key, value] of Object.entries(statsTyped)) {
-                        if (key === WarzoneCommands.statsToInclude[i].key) {
-                            if (key === 'damageTaken' && Number(statsTyped['damageTaken']) > Number(statsTyped['damageDone'])) {
-                                orderedStats['damageTaken'] = value + ' (flaut)'
-                            } else {
-                                orderedStats[WarzoneCommands.statsToInclude[i].key] = value
-                            }
-                        }
-                    }
-                    if (orderedStats.gulagDeaths && orderedStats.gulagKills) {
-                        //Inject gulag KD in
-                        orderedStats['gulagKd'] = parseFloat((orderedStats?.gulagKills / orderedStats?.gulagDeaths).toFixed(3))
-                    }
-                    if (orderedStats.damageDone && orderedStats.damageTaken) {
-                        orderedStats['damageDoneTakenRatio'] = Number(orderedStats.damageDone) / Number(orderedStats.damageTaken)
-                    }
-                }
-                const userStats = this.getUserStats(interaction)
-                const oldData = userStats
+        //         const orderedStats: Partial<CodStats> = {}
+        //         for (let i = 0; i < CallOfDutyCommands.statsToInclude.length; i++) {
+        //             for (const [key, value] of Object.entries(statsTyped)) {
+        //                 if (key === CallOfDutyCommands.statsToInclude[i].key) {
+        //                     if (key === 'damageTaken' && Number(statsTyped['damageTaken']) > Number(statsTyped['damageDone'])) {
+        //                         orderedStats['damageTaken'] = value + ' (flaut)'
+        //                     } else {
+        //                         orderedStats[CallOfDutyCommands.statsToInclude[i].key] = value
+        //                     }
+        //                 }
+        //             }
+        //             if (orderedStats.gulagDeaths && orderedStats.gulagKills) {
+        //                 //Inject gulag KD in
+        //                 orderedStats['gulagKd'] = parseFloat((orderedStats?.gulagKills / orderedStats?.gulagDeaths).toFixed(3))
+        //             }
+        //             if (orderedStats.damageDone && orderedStats.damageTaken) {
+        //                 orderedStats['damageDoneTakenRatio'] = Number(orderedStats.damageDone) / Number(orderedStats.damageTaken)
+        //             }
+        //         }
+        //         const userStats = this.getUserStats(interaction)
+        //         const oldData = userStats
 
-                const getValueFormatted = (key: string, value: string | Number) => {
-                    if (key === 'avgLifeTime')
-                        return `${DateUtils.secondsToMinutesAndSeconds(Number(value)).minutes.toFixed(0)} minutes and ${DateUtils.secondsToMinutesAndSeconds(
-                            Number(value)
-                        ).seconds.toFixed(0)} seconds`
-                    if (key === 'timePlayed')
-                        return `${DateUtils.secondsToHoursAndMinutes(Number(value)).hours.toFixed(0)} hours and ${DateUtils.secondsToHoursAndMinutes(
-                            Number(value)
-                        ).minutes.toFixed(0)} minutes.`
-                    if (key === 'damageTaken') return value
-                    return parseFloat(Number(value).toFixed(3))
-                }
+        //         const getValueFormatted = (key: string, value: string | Number) => {
+        //             if (key === 'avgLifeTime')
+        //                 return `${DateUtils.secondsToMinutesAndSeconds(Number(value)).minutes.toFixed(0)} minutes and ${DateUtils.secondsToMinutesAndSeconds(
+        //                     Number(value)
+        //                 ).seconds.toFixed(0)} seconds`
+        //             if (key === 'timePlayed')
+        //                 return `${DateUtils.secondsToHoursAndMinutes(Number(value)).hours.toFixed(0)} hours and ${DateUtils.secondsToHoursAndMinutes(
+        //                     Number(value)
+        //                 ).minutes.toFixed(0)} minutes.`
+        //             if (key === 'damageTaken') return value
+        //             return parseFloat(Number(value).toFixed(3))
+        //         }
 
-                for (const [key, value] of Object.entries(orderedStats)) {
-                    if (key === 'gulagKd' && orderedStats.gulagDeaths && orderedStats.gulagKills) {
-                        statsTyped['gulagKd'] = orderedStats['gulagKd'] ?? 0
-                    }
-                    if (key === 'damageDoneTakenRatio' && orderedStats.damageDone && orderedStats.damageTaken) {
-                        const compareDataString = () => {
-                            if (oldData && ObjectUtils.isObjKey(key, oldData) && !!oldData[key]) {
-                                return `${this.compareOldNewStats(value, oldData[key], key === 'timePlayed')}`
-                            }
-                            return ''
-                        }
-                        if (this.findHeaderFromKey(key, true))
-                            response += `\n${this.findHeaderFromKey(key, true)}: ${getValueFormatted(key, value)} ${compareDataString()}`
-                        response += `\nDamage Done/Taken ratio: ${(Number(orderedStats?.damageDone) / parseInt(orderedStats?.damageTaken.toString())).toFixed(
-                            3
-                        )} ${compareDataString()}`
+        //         for (const [key, value] of Object.entries(orderedStats)) {
+        //             if (key === 'gulagKd' && orderedStats.gulagDeaths && orderedStats.gulagKills) {
+        //                 statsTyped['gulagKd'] = orderedStats['gulagKd'] ?? 0
+        //             }
+        //             if (key === 'damageDoneTakenRatio' && orderedStats.damageDone && orderedStats.damageTaken) {
+        //                 const compareDataString = () => {
+        //                     if (oldData && ObjectUtils.isObjKey(key, oldData) && !!oldData[key]) {
+        //                         return `${this.compareOldNewStats(value, oldData[key], String(key).includes('timePlayed'))}`
+        //                     }
+        //                     return ''
+        //                 }
+        //                 if (this.findHeaderFromKey(key, true))
+        //                     response += `\n${this.findHeaderFromKey(key, true)}: ${getValueFormatted(key, value)} ${compareDataString()}`
+        //                 response += `\nDamage Done/Taken ratio: ${(Number(orderedStats?.damageDone) / parseInt(orderedStats?.damageTaken.toString())).toFixed(
+        //                     3
+        //                 )} ${compareDataString()}`
 
-                        statsTyped['damageDoneTakenRatio'] = orderedStats['damageDoneTakenRatio'] ?? 0
-                    } else if (this.findHeaderFromKey(key)) {
-                        const compareDataString = () => {
-                            if (oldData && ObjectUtils.isObjKey(key, oldData) && !!oldData[key]) {
-                                return `${this.compareOldNewStats(value, oldData[key], !this.isCorrectHeader({ key: key as CodStatsType, header: 'none' }))}`
-                            }
-                            return ''
-                        }
-                        response += `\n${this.findHeaderFromKey(key)}: ${getValueFormatted(key, value)} ${compareDataString()}`
-                    }
-                }
+        //                 statsTyped['damageDoneTakenRatio'] = orderedStats['damageDoneTakenRatio'] ?? 0
+        //             } else if (this.findHeaderFromKey(key)) {
+        //                 const compareDataString = () => {
+        //                     if (oldData && ObjectUtils.isObjKey(key, oldData) && !!oldData[key]) {
+        //                         return `${this.compareOldNewStats(value, oldData[key], !this.isCorrectHeader({ key: key as CodStatsType, header: 'none' }))}`
+        //                     }
+        //                     return ''
+        //                 }
+        //                 response += `\n${this.findHeaderFromKey(key)}: ${getValueFormatted(key, value)} ${compareDataString()}`
+        //             }
+        //         }
 
-                if (!options?.noSave) this.saveUserStats(interaction, statsTyped)
-                return response
-            }
-        } catch (error) {
+        //         if (!options?.noSave) this.saveUserStats(interaction, statsTyped)
+        //         return response
+        //     }
+        // } catch (error) {
             return `Fant ingen data (${gamertag} ${platform}). Hvis du vet at du ikke mangler data denne uken, prøv på ny om ca. ett minutt.`
-        }
+        // }
     }
 
     private isCorrectHeader(key: codStatsKeyHeader) {
-        return !!WarzoneCommands.statsToIncludeInSave.find((k) => k?.key === key?.key)?.header
+        return !!CallOfDutyCommands.statsToIncludeInSave.find((k) => k?.key === key?.key)?.header
     }
 
     private findWeeklyRebirthOnly(gamertag: string, data: any): string {
@@ -510,10 +628,24 @@ export class WarzoneCommands extends AbstractCommands {
         return user.codStats
     }
 
-    getAllInteractions(): IInteractionElement {
+   
+
+    public getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [
+                    {
+                        commandName: 'drop',
+                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                            this.findDropLocation(interaction)
+                        },
+                    },
+                    {
+                        commandName: 'grid',
+                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                            this.dropGrid(interaction)
+                        },
+                    },
                     {
                         commandName: 'stats',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
@@ -527,10 +659,100 @@ export class WarzoneCommands extends AbstractCommands {
                         },
                     },
                 ],
+                buttonInteractionComands: [],
             },
         }
     }
 }
+
+export const dropLocations: dropLocation[] = [
+    { name: 'Arsenal', coord: ['C1', 'D1', 'E1', 'D2'] },
+    { name: 'Docks', coord: ['F0', 'G0', 'F1', 'G1'] },
+    { name: 'Runway', coord: ['I1', 'H1', 'I2', 'H2'] },
+    { name: 'Beachhead', coord: ['I2', 'I3', 'H2', 'H3'] },
+    { name: 'Peak', coord: ['F3', 'G3', 'G4', 'F4'] },
+    { name: 'Mines', coord: ['E2', 'E3', 'E4', 'D3', 'D4'] },
+    { name: 'Ruins', coord: ['C2', 'B3', 'C3'] },
+    { name: 'Village', coord: ['B3', 'B4', 'C4', 'C5'] },
+    { name: 'Fields', coord: ['F5', 'G5', 'H5', 'E6', 'F6', 'G6', 'H5', 'H6'] },
+    { name: 'Sub Pen', coord: ['I5', 'I6', 'I7', 'H6'] },
+    { name: 'Resort', coord: ['H7', 'I7', 'H8', 'I8'] },
+    { name: 'Capital', coord: ['H9', 'G9', 'H8', 'G8', 'F8', 'F9'] },
+    { name: 'Power Plant', coord: ['D7', 'E7', 'F7', 'D8', 'E8', 'F8'] },
+    { name: 'Airfield', coord: ['D5', 'C6', 'C7', 'D6', 'D7', 'E6'] },
+    { name: 'Lagoon', coord: ['B5', 'B6', 'C6', 'C5'] },
+]
+export const calderaPoints = [
+    'Arsenal',
+    'Beachhead',
+    'Peak',
+    'Fields',
+    'Sub Pen',
+    'Resort',
+    'Docks',
+    'Runway',
+    'Capital',
+    'Power Plant',
+    'Airfield',
+    'Peak (men ikkje den sidetunnelen)',
+    'Mines',
+    'Ruins',
+    'Village',
+    'Lagoon',
+    'Storage Town',
+    'en plass squad leader bestemmer',
+]
+
+export const rebirthIsland = [
+    'Bioweapons Labs',
+    'Headquarters',
+    'Security Area',
+    'Chemical Eng.',
+    'Prison Block',
+    'Harbor',
+    'Decon Zone',
+    'Shore',
+    'Control Center',
+    'Factory',
+    'Living Quarters',
+
+    'en plass squad leader bestemmer',
+]
+export const fortunesKeep = [
+    'Lighthouse',
+    'Town',
+    'Overlook',
+    'en plass squad leader bestemmer',
+    'Terraces',
+    'Gatehouse',
+    'Grotto',
+    'Keep',
+    'Winery',
+    'Camp',
+    "Smuggler's Cove",
+    'Bay',
+    'Graveyard',
+]
+
+export const alMazrah = [
+    'Oasis',
+    'Taraq Village',
+    'Rohan Oil',
+    'Quarry',
+    'Port',
+    'Hydroelectric',
+    'Al Mazrah City',
+    'Caves',
+    "Sa'id City",
+    'Sawah Village',
+    'Sarrif Bay',
+    'Fortress',
+    'Airport',
+    'Ahkdar Village',
+    'Observatory',
+    'Marshlands',
+    'Al Sharim Pass',
+]
 
 function convertTime(seconds: number) {
     let days = Math.floor(seconds / 86400)

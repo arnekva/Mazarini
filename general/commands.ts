@@ -13,8 +13,9 @@ import { CardCommands } from '../commands/cardCommands'
 import { DateCommands } from '../commands/dateCommands'
 import { RedBlackCommands } from '../commands/drinks/redBlack/redBlackCommands'
 import { DrinksCommands } from '../commands/drinksCommands'
-import { GameCommands } from '../commands/gameCommands'
 import { Ludo } from '../commands/games/ludo/ludo'
+import { CallOfDutyCommands } from '../commands/gaming/callofdutyCommands'
+import { RocketLeagueCommands } from '../commands/gaming/rocketleagueCommands'
 import { JokeCommands } from '../commands/jokeCommands'
 import { LinkCommands } from '../commands/linkCommands'
 import { Meme } from '../commands/memes/memeCommands'
@@ -32,7 +33,6 @@ import { SpotifyCommands } from '../commands/spotifyCommands'
 import { TestCommands } from '../commands/testCommands'
 import { TextCommands } from '../commands/textCommands'
 import { UserCommands } from '../commands/userCommands'
-import { WarzoneCommands } from '../commands/warzoneCommands'
 import { Weather } from '../commands/weatherCommands'
 
 export interface IInteractionCommand<T> {
@@ -61,7 +61,6 @@ export interface IInteractionElement {
 export class Commands {
     private client: MazariniClient
 
-    private gameCommands: GameCommands
     private spinner: Spinner
     private adminCommands: Admin
     private gamblingCommands: GamblingCommands
@@ -70,7 +69,7 @@ export class Commands {
     private dateCommands: DateCommands
     private weatherCommands: Weather
     private jokeCommands: JokeCommands
-    private warzoneCommands: WarzoneCommands
+    private callOfDutyCommands: CallOfDutyCommands
     private spotifyCommands: SpotifyCommands
     private testCommands: TestCommands
     private musicCommands: Music
@@ -88,10 +87,10 @@ export class Commands {
     private trelloCommands: TrelloCommands
     private pollCommands: PollCommands
     private ludo: Ludo
+    private rocketLeagueCommands: RocketLeagueCommands
 
     constructor(client: MazariniClient) {
         this.client = client
-        this.gameCommands = new GameCommands(this.client)
         this.spinner = new Spinner(this.client)
         this.adminCommands = new Admin(this.client)
         this.gamblingCommands = new GamblingCommands(this.client)
@@ -100,7 +99,7 @@ export class Commands {
         this.dateCommands = new DateCommands(this.client)
         this.weatherCommands = new Weather(this.client)
         this.jokeCommands = new JokeCommands(this.client)
-        this.warzoneCommands = new WarzoneCommands(this.client)
+        this.callOfDutyCommands = new CallOfDutyCommands(this.client)
         this.spotifyCommands = new SpotifyCommands(this.client)
         this.testCommands = new TestCommands(this.client)
         this.musicCommands = new Music(this.client)
@@ -119,11 +118,11 @@ export class Commands {
         this.redBlackCommands = new RedBlackCommands(this.client)
         this.pollCommands = new PollCommands(this.client)
         this.ludo = new Ludo(this.client)
+        this.rocketLeagueCommands = new RocketLeagueCommands(this.client)
     }
 
     getAllInteractionCommands() {
         return [
-            this.gameCommands.getAllInteractions(),
             this.spinner.getAllInteractions(),
             this.jokeCommands.getAllInteractions(),
             this.adminCommands.getAllInteractions(),
@@ -131,7 +130,7 @@ export class Commands {
             this.crimeCommands.getAllInteractions(),
             this.moneyCommands.getAllInteractions(),
             this.dateCommands.getAllInteractions(),
-            this.warzoneCommands.getAllInteractions(),
+            this.callOfDutyCommands.getAllInteractions(),
             this.patchNotes.getAllInteractions(),
             this.spotifyCommands.getAllInteractions(),
             this.testCommands.getAllInteractions(),
@@ -150,6 +149,7 @@ export class Commands {
             this.redBlackCommands.getAllInteractions(),
             this.trelloCommands.getAllInteractions(),
             this.ludo.getAllInteractions(),
+            this.rocketLeagueCommands.getAllInteractions()
         ]
     }
 

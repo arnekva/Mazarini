@@ -1,7 +1,7 @@
-import { rocketLeagueDbData } from '../../commands/gameCommands'
+import { CodBRStatsType, CodStats } from '../../commands/gaming/callofdutyCommands'
+import { rocketLeagueDbData } from '../../commands/gaming/rocketleagueCommands'
 import { IDailyPriceClaim } from '../../commands/money/gamblingCommands'
 import { IPoll } from '../../commands/pollcommands'
-import { CodBRStatsType, CodStats } from '../../commands/warzoneCommands'
 
 export interface userValPair {
     key: string
