@@ -4,3 +4,4 @@ myDataBase.json
 package-lock.json
 ./myDataBase.json
 .VSCodeCounter/
+yarn.lock
