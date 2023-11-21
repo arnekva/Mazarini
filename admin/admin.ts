@@ -265,7 +265,7 @@ export class Admin extends AbstractCommands {
         )}. Henter data fra Git og restarter botten ...`
         const msg = await this.messageHelper.sendLogMessage(restartMsg)
 
-        await exec('git pull && pm2 restart mazarini -- --restartedForGit', async (error, stdout, stderr) => {
+        await exec(`git pull && pm2 restart mazarini -- --restartedForGit --${DatabaseHelper.getBotData('commit-id')}`, async (error, stdout, stderr) => {
             if (error) {
                 restartMsg += `\nKlarte ikke restarte: \n${error}`
                 msg.edit(restartMsg)

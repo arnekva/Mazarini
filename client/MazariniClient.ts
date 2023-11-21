@@ -129,8 +129,8 @@ export class MazariniClient extends Client {
                                 }
                             )
 
-                            //Update current id
-                            DatabaseHelper.setBotData('commit-id', latestMessage)
+                            //Update current id (slice away author and message, only keep first part of hash)
+                            DatabaseHelper.setBotData('commit-id', latestMessage.slice(0, 8))
                         }
                     }
                 })
