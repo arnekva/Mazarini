@@ -20,7 +20,7 @@ import {
 } from 'discord.js'
 // import { initializeApp } from 'firebase/app'
 import { JobScheduler } from '../Jobs/jobScheduler'
-import { environment, firebaseConfig } from '../client-env'
+import { environment } from '../client-env'
 import { PatchNotes } from '../commands/patchnotes/patchnotes'
 import { CommandRunner } from '../general/commandRunner'
 import { ErrorHandler } from '../handlers/errorHandler'
