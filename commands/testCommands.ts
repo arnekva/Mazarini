@@ -44,7 +44,7 @@ export class TestCommands extends AbstractCommands {
     }
 
     private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        this.client.firebase.testingFirestore()
+        // this.client.firebase.testingFirestore()
     }
 
     private async testSelectMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {

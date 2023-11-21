@@ -18,7 +18,7 @@ import {
     Role,
     User,
 } from 'discord.js'
-import { initializeApp } from "firebase/app"
+// import { initializeApp } from 'firebase/app'
 import { JobScheduler } from '../Jobs/jobScheduler'
 import { environment, firebaseConfig } from '../client-env'
 import { PatchNotes } from '../commands/patchnotes/patchnotes'
@@ -26,7 +26,7 @@ import { CommandRunner } from '../general/commandRunner'
 import { ErrorHandler } from '../handlers/errorHandler'
 import { ClientHelper } from '../helpers/clientHelper'
 import { DatabaseHelper } from '../helpers/databaseHelper'
-import { FirebaseHelper } from '../helpers/firebaseHelper'
+// import { FirebaseHelper } from '../helpers/firebaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniBot } from '../main'
 import { ArrayUtils } from '../utils/arrayUtils'
@@ -48,7 +48,7 @@ export class MazariniClient extends Client {
     /** Sets up listeners on pm2 process and will log any activity to the log channel */
     private errorHandler: ErrorHandler
 
-    private firebaseHelper: FirebaseHelper
+    // private firebaseHelper: FirebaseHelper
     constructor() {
         super({
             //Specifies intents needed to perform certain actions, i.e. what permissions the bot must have
@@ -75,7 +75,7 @@ export class MazariniClient extends Client {
         this.jobScheduler = new JobScheduler(this.msgHelper, this)
 
         this.errorHandler = new ErrorHandler(this.msgHelper)
-        this.setupFirebase()
+        // this.setupFirebase()
     }
 
     /** Starts property listeners for client.  */
@@ -266,10 +266,10 @@ export class MazariniClient extends Client {
         })
     }
 
-    setupFirebase() {
-        const firebaseApp = initializeApp(firebaseConfig)
-        this.firebaseHelper = new FirebaseHelper(firebaseApp)
-    }
+    // setupFirebase() {
+    //     const firebaseApp = initializeApp(firebaseConfig)
+    //     this.firebaseHelper = new FirebaseHelper(firebaseApp)
+    // }
 
     /** Run this to create slash commands from CommandBuilder. Will only run in dev mode */
     createSlashCommands() {
@@ -283,7 +283,7 @@ export class MazariniClient extends Client {
         return this.msgHelper
     }
 
-    get firebase() {
-        return this.firebaseHelper
-    }
+    // get firebase() {
+    //     return this.firebaseHelper
+    // }
 }
