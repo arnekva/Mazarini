@@ -13,7 +13,6 @@ import {
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
-import { Ludo } from './games/ludo/ludo'
 
 const defaultButtonRow = new ActionRowBuilder<ButtonBuilder>()
 defaultButtonRow.addComponents(
@@ -45,8 +44,7 @@ export class TestCommands extends AbstractCommands {
     }
 
     private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        const ludo = new Ludo(this.client)
-        ludo.updateBoard(interaction)
+        this.client.firebase.testingFirestore()
     }
 
     private async testSelectMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {
