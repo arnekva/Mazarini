@@ -262,7 +262,10 @@ export class MazariniClient extends Client {
         })
 
         this.on('error', function (error: Error) {
-            this.messageHelper.sendLogMessage('En feilmelding ble fanget opp. Error: \n ' + error)
+            if (environment === 'dev') {
+                if (error.message.toLowerCase().includes('load database'))
+                    console.warn('Database could not be loaded. Check for trailing characters and reload')
+            } else this.messageHelper.sendLogMessage('En feilmelding ble fanget opp. Error: \n ' + error)
         })
     }
 
