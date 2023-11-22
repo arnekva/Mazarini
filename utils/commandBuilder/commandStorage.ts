@@ -1,5 +1,6 @@
 import { jailCommand } from './commandStorage/jail'
 import { jailbreakCommand } from './commandStorage/jailbreak'
+import { ludoCommand } from './commandStorage/ludo'
 import { lyricsCommand } from './commandStorage/lyrics'
 import { memeCommand } from './commandStorage/meme'
 import { musicCommand } from './commandStorage/musikk'
@@ -30,4 +31,5 @@ export namespace CommandStorage {
     export const WhamageddonCommand = whamageddonCommand
     export const SpotifyCommand = spotifyCommand
     export const PollCommand = pollCommand
+    export const LudoCommand = ludoCommand
 }
