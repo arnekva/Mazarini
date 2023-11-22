@@ -1,7 +1,8 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, Message } from 'discord.js'
 import { AbstractCommands } from '../../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../../client/MazariniClient'
 import { IInteractionElement } from '../../../general/commands'
+import { RandomUtils } from '../../../utils/randomUtils'
 import { LudoBoard } from './boards'
 
 export type LudoColor = 'yellow' | 'green' | 'blue' | 'red'
@@ -23,16 +24,21 @@ export class Ludo extends AbstractCommands {
     private currentPlayer: LudoPlayer
     private boardState: any
 
+    //Holds game state message
+    private msg0Id: string
+    //Holds first part of board
     private msg1Id: string
+    //Holds second part of board
     private msg2Id: string
+    //Holds third part of board
     private msg3Id: string
+    //Holds buttonRow
     private msg4Id: string
 
     constructor(client: MazariniClient) {
         super(client)
         this.players = []
-        this.msg1Id = this.msg2Id = this.msg3Id = ''
-        this.createGame()
+        this.msg1Id = this.msg2Id = this.msg3Id = this.msg4Id = 'none'
     }
 
     createGame() {
@@ -60,19 +66,25 @@ export class Ludo extends AbstractCommands {
 
     */
 
-    async updateBoard(interaction: ButtonInteraction | ChatInputCommandInteraction) {
+    async updateBoard(interaction: ButtonInteraction | ChatInputCommandInteraction, diceRoll?: string) {
         const board = LudoBoard.board(this.allPieces)
+        const msgContent0 = 'Player rolled ' + diceRoll
         const msgContent1 = board.board1
         const msgContent2 = board.board2
         const msgContent3 = board.board3
         const msg4Content = this.buttonRow
 
-        const msg1FromCache = interaction.channel.messages.cache.find((m) => m.id === this.msg1Id)
-        const msg2FromCache = interaction.channel.messages.cache.find((m) => m.id === this.msg2Id)
-        const msg3FromCache = interaction.channel.messages.cache.find((m) => m.id === this.msg3Id)
-        const msg4FromCache = interaction.channel.messages.cache.find((m) => m.id === this.msg4Id)
+        const msg0FromCache = interaction.channel.messages.cache.get(this.msg0Id) //.find((m) => m.id === this.msg1Id)
+        const msg1FromCache = interaction.channel.messages.cache.get(this.msg1Id) //.find((m) => m.id === this.msg1Id)
+        const msg2FromCache = interaction.channel.messages.cache.get(this.msg2Id)
+        const msg3FromCache = interaction.channel.messages.cache.get(this.msg3Id)
+        const msg4FromCache = interaction.channel.messages.cache.get(this.msg4Id)
 
-        if (!msg1FromCache || !msg2FromCache || !msg3FromCache || !msg4FromCache) {
+        const updateRowMsg = (msg: Message, r: ActionRowBuilder<ButtonBuilder>) => {
+            msg.edit({ components: [r] })
+        }
+        if (!msg0FromCache || !msg1FromCache || !msg2FromCache || !msg3FromCache || !msg4FromCache) {
+            const msg0 = await this.messageHelper.sendMessage(interaction.channelId, { text: msgContent0 })
             const msg1 = await this.messageHelper.sendMessage(interaction.channelId, { text: msgContent1 })
             const msg2 = await this.messageHelper.sendMessage(interaction.channelId, { text: msgContent2 })
             const msg3 = await this.messageHelper.sendMessage(interaction.channelId, { text: msgContent3 })
@@ -80,17 +92,18 @@ export class Ludo extends AbstractCommands {
             const gameButtons = this.buttonRow
             const msg4 = await this.messageHelper.sendMessage(interaction.channelId, { components: [gameButtons] })
 
+            this.msg0Id = msg0.id
             this.msg1Id = msg1.id
             this.msg2Id = msg2.id
             this.msg3Id = msg3.id
             this.msg4Id = msg4.id
         } else {
+            msg0FromCache.edit({ content: msgContent0 })
             msg1FromCache.edit({ content: msgContent1 })
             msg2FromCache.edit({ content: msgContent2 })
             msg3FromCache.edit({ content: msgContent3 })
             msg4FromCache.edit({ components: [msg4Content] })
         }
-        console.log(this.msg1Id)
     }
 
     /** Returns a flat map of all player pieces */
@@ -104,7 +117,7 @@ export class Ludo extends AbstractCommands {
                 {
                     id: 0,
                     color: 'yellow',
-                    positionIndex: 0,
+                    positionIndex: 30,
                 },
                 {
                     id: 1,
@@ -160,18 +173,19 @@ export class Ludo extends AbstractCommands {
             }),
             new ButtonBuilder({
                 custom_id: 'LUDO_BTN_MOVE_2',
-                style: ButtonStyle.Success,
+                style: ButtonStyle.Danger,
                 label: `Brikke 2`,
-                disabled: true,
+                disabled: false,
                 type: 2,
             }),
         ])
     }
 
     private movePiece(interaction: ButtonInteraction<CacheType>) {
-        this.players[0].pieces[0].positionIndex += 1
+        const diceRoll = RandomUtils.getRandomInteger(1, 6)
+        this.players[0].pieces[0].positionIndex += diceRoll
         if (interaction.user.id === '245607554254766081') {
-            this.updateBoard(interaction)
+            this.updateBoard(interaction, diceRoll)
             interaction.deferUpdate()
         } else {
             this.messageHelper.replyToInteraction(interaction, 'pls no', { ephemeral: true })
@@ -179,22 +193,22 @@ export class Ludo extends AbstractCommands {
     }
 
     getAllInteractions(): IInteractionElement {
-        const _this = this
         return {
             commands: {
                 interactionCommands: [
                     {
                         commandName: 'ludo',
-                        command(rawInteraction) {
-                            console.log('tried it')
+                        command: (rawInteraction) => {
+                            this.createGame()
+                            this.updateBoard(rawInteraction)
                         },
                     },
                 ],
                 buttonInteractionComands: [
                     {
                         commandName: 'LUDO_BTN_MOVE_1',
-                        command(rawInteraction: ButtonInteraction<CacheType>) {
-                            _this.movePiece(rawInteraction)
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.movePiece(rawInteraction)
                         },
                     },
                 ],
