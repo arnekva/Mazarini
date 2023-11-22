@@ -52,6 +52,8 @@ interface IMessageOptions {
     supressEmbeds?: boolean
     /** This will make the message NOT count towards MazariniClient.numMessagesFromBot. Used when e.g. it's an error message being sent, as this increments numErrorMessages instead */
     dontIncrementMessageCounter?: boolean
+    /** Set to true to make a message be sent as tts. Text will appear as normal, but text will be read loud by TTS.  */
+    tts?: boolean
 }
 interface IInteractionOptions {
     /** Make the reply only visible to the engager */
@@ -197,6 +199,7 @@ export class MessageHelper {
                 if (content.embed) messageOptions.embeds = [content.embed]
                 if (content.components) messageOptions.components = content.components
                 if (content.files) messageOptions.files = content.files
+
                 const flags = [] as BitFieldResolvable<
                     Extract<MessageFlagsString, 'SuppressEmbeds' | 'SuppressNotifications'>,
                     MessageFlags.SuppressEmbeds | MessageFlags.SuppressNotifications
@@ -207,6 +210,9 @@ export class MessageHelper {
                 }
                 if (options?.supressEmbeds) {
                     flags.push('SuppressEmbeds')
+                }
+                if (options?.tts) {
+                    messageOptions.tts = true
                 }
                 messageOptions.flags = flags
                 if (!options?.dontIncrementMessageCounter) MazariniBot.numMessagesFromBot++

@@ -133,7 +133,8 @@ export class DateCommands extends AbstractCommands {
                         const hourString = timeRemaining?.hours > 0 ? `${timeRemaining.hours} timer og ` : ''
                         const timeUntilString = `${dayString}${hourString}${timeRemaining?.minutes ?? 0} min`
                         const vacayString =
-                            `- ${username}: ` + (isDuring
+                            `- ${username}: ` +
+                            (isDuring
                                 ? `${timeUntilString} igjen *(${DateUtils.formatDate(date2)})*\n`
                                 : `om ${timeUntilString} *(${DateUtils.formatDate(date1)}, ${vacationLength} dager ferie)*\n`)
                         if (isDuring) vacayNowMap.set(date2, vacayString)
@@ -353,10 +354,12 @@ export class DateCommands extends AbstractCommands {
                     const timeTo = DateUtils.getTimeTo(isFriday ? date : nextWeekendStart)
                     const isLessThan4HoursAway = timeTo?.days == 0 && timeTo?.hours < 4
                     const emoji = EmojiHelper.getHelgEmoji(this.client, isLessThan4HoursAway)
-
+                    const helgeFolelse = this.findHelgeFolelse()
                     if (isFriday && isAfter16) return 'Det e helg!'
 
-                    const textToPrint = `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg'} ${emoji}`
+                    const textToPrint = `til ${
+                        doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg'
+                    } ${emoji} (${helgeFolelse}% helgefølelse)`
 
                     let timeToPrint = DateUtils.formatCountdownText(timeTo, textToPrint) || 'Eg vettkje ka dag det e :('
                     if (!!hasHolidayInTheMiddleOfWeek && !this.isTodayHoliday()) {
@@ -370,6 +373,18 @@ export class DateCommands extends AbstractCommands {
             }
         }
         return timeUntil
+    }
+
+    private findHelgeFolelse() {
+        const date = moment()
+        const thisWeeksTuesday = moment().startOf('isoWeeks').add(1, 'days')
+        const isMonday = date.day() === 1
+        if (isMonday) {
+            return 0
+        } else {
+            const hoursSinceTuesday = DateUtils.getHoursSince(thisWeeksTuesday, undefined, true)
+            return Math.min(hoursSinceTuesday, 100)
+        }
     }
 
     public async checkForHelg(interaction?: ChatInputCommandInteraction<CacheType>) {

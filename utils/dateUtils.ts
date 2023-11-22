@@ -222,4 +222,10 @@ export class DateUtils {
     static dateIsClosestHour(d: Date) {
         return moment().minutes() >= 30 ? DateUtils.dateIsWithinNextHour(d) : DateUtils.dateIsWithinLastHour(d)
     }
+
+    /** Get hours since startDate. Uses current time if no endDate is supplied. */
+    static getHoursSince(startDate: Moment, endDate?: Moment, asRounded?: boolean) {
+        const hourSince = moment.duration((endDate ? endDate : moment()).diff(startDate)).asHours()
+        return asRounded ? Math.round(hourSince) : hourSince
+    }
 }
