@@ -11,6 +11,7 @@ import { EmbedUtils } from '../utils/embedUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
+import { RandomUtils } from '../utils/randomUtils'
 import { textArrays } from '../utils/textArrays'
 import { UserUtils } from '../utils/userUtils'
 
@@ -303,8 +304,7 @@ export class JokeCommands extends AbstractCommands {
             'https://media.giphy.com/media/g6pHoi8A9Bq1wPnl7t/giphy.gif',
             'https://media.giphy.com/media/b0iwoIDWrQvK2CARcz/giphy.gif'
         ]
-        let index = Math.floor(Math.random() * urls.length)
-        if (this.prevGifIndex == index) index = (index + 1)%urls.length
+        let index = RandomUtils.getRandomIntegerExcludingIndex(urls.length, this.prevGifIndex)
         this.prevGifIndex = index
         const randomGif = urls[index]
         this.messageHelper.replyToInteraction(interaction, 'Sender gif', {ephemeral: true})

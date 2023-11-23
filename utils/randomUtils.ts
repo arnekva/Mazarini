@@ -23,4 +23,10 @@ export namespace RandomUtils {
     export function getFiftyFifty(): boolean {
         return Math.random() < 0.5
     }
+
+    export function getRandomIntegerExcludingIndex(arrLength: number, exclude: number) {
+        let index = Math.floor(Math.random() * arrLength)
+        if (index == exclude) index = (index + 1)%arrLength
+        return index
+    }
 }
