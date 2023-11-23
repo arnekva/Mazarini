@@ -171,6 +171,24 @@ export namespace textArrays {
         'trunte rett inn i fisen te Thomas',
         'blei eid av et speil',
     ]
+
+    export const pointerBrothersUrls = [
+        'https://media.giphy.com/media/J4Mw9lsrAcbPguQYzI/giphy.gif',
+        'https://media.giphy.com/media/hkUZaeuLYmzZacPREb/giphy.gif',
+        'https://media.giphy.com/media/FvKKZHr9dut8Pib9Xn/giphy.gif',
+        'https://media.giphy.com/media/N3W7S8DdgCM879Q7Hb/giphy.gif',
+        'https://media.giphy.com/media/fp6lTKzl2TFUZGwiTh/giphy.gif',
+        'https://media.giphy.com/media/itEXKtGh6L58poh6M8/giphy.gif',
+        'https://media.giphy.com/media/OWVWdQKAuc6BVKdAxC/giphy.gif',
+        'https://media.giphy.com/media/0JfNw5BIQxJyShZLii/giphy.gif',
+        'https://media.giphy.com/media/Z5g2HJXiAw9QS6SfPu/giphy.gif',
+        'https://media.giphy.com/media/Vifm2PC00OVo9NdxRU/giphy.gif',
+        'https://media.giphy.com/media/g72AcRqnDcCj8XN92r/giphy.gif',
+        'https://media.giphy.com/media/rUbyUDYd32YV2VTgoN/giphy.gif',
+        'https://media.giphy.com/media/OkeTTaH6kH1Qs2SLWV/giphy.gif',
+        'https://media.giphy.com/media/g6pHoi8A9Bq1wPnl7t/giphy.gif',
+        'https://media.giphy.com/media/b0iwoIDWrQvK2CARcz/giphy.gif'
+    ]
 }
 
 export namespace globals {
