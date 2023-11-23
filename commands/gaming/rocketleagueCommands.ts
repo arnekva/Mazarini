@@ -209,7 +209,7 @@ export class RocketLeagueCommands extends AbstractCommands {
         const data = RocketLeagueCommands.getRocketLeagueTournaments()
 
         this.messageHelper.replyToInteraction(interaction, data.embed)
-        this.messageHelper.sendMessage(interaction.channelId, { components: [data.buttons]})
+        this.messageHelper.sendMessage(interaction.channelId, { components: [data.buttons] })
     }
 
     static getRocketLeagueTournaments(): { embed: EmbedBuilder; buttons: ActionRowBuilder<ButtonBuilder> } | undefined {
@@ -225,7 +225,7 @@ export class RocketLeagueCommands extends AbstractCommands {
                     new ButtonBuilder({
                         custom_id: `RL_TOURNAMENT;${t.id}`,
                         style: ButtonStyle.Primary,
-                        label: `${t.players}v${t.players} ${t.mode} ${DateUtils.getTimeFormatted(new Date(t.starts))}`,
+                        label: `${t.players}v${t.players} ${t.mode} ${DateUtils.getTimeFormatted(new Date(t.starts))}${t.shouldNotify ? ' (*)' : ''}`,
                         disabled: false,
                         type: 2,
                     })
