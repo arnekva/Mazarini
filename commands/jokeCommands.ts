@@ -15,6 +15,8 @@ import { textArrays } from '../utils/textArrays'
 import { UserUtils } from '../utils/userUtils'
 
 export class JokeCommands extends AbstractCommands {
+    private prevGifIndex: number
+
     constructor(client: MazariniClient) {
         super(client)
     }
@@ -301,7 +303,10 @@ export class JokeCommands extends AbstractCommands {
             'https://media.giphy.com/media/g6pHoi8A9Bq1wPnl7t/giphy.gif',
             'https://media.giphy.com/media/b0iwoIDWrQvK2CARcz/giphy.gif'
         ]
-        const randomGif = urls[(Math.floor(Math.random() * urls.length))]
+        let index = Math.floor(Math.random() * urls.length)
+        if (this.prevGifIndex == index) index += 1
+        this.prevGifIndex = index
+        const randomGif = urls[index]
         this.messageHelper.replyToInteraction(interaction, 'Sender gif', {ephemeral: true})
         this.messageHelper.sendMessage(interaction.channelId, {text: randomGif})
     }
