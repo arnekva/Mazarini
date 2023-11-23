@@ -354,12 +354,12 @@ export class DateCommands extends AbstractCommands {
                     const timeTo = DateUtils.getTimeTo(isFriday ? date : nextWeekendStart)
                     const isLessThan4HoursAway = timeTo?.days == 0 && timeTo?.hours < 4
                     const emoji = EmojiHelper.getHelgEmoji(this.client, isLessThan4HoursAway)
-                    const helgeFolelse = this.findHelgeFolelse()
-                    if (isFriday && isAfter16) return 'Det e helg!'
+                    if (isFriday && isAfter16) return `Det e helg!`
+                    
 
                     const textToPrint = `til ${
                         doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg'
-                    } ${emoji} (${helgeFolelse}% helgefølelse)`
+                    } ${emoji}`
 
                     let timeToPrint = DateUtils.formatCountdownText(timeTo, textToPrint) || 'Eg vettkje ka dag det e :('
                     if (!!hasHolidayInTheMiddleOfWeek && !this.isTodayHoliday()) {
@@ -376,22 +376,39 @@ export class DateCommands extends AbstractCommands {
     }
 
     private findHelgeFolelse() {
+        const day = moment().day()
+        if (day === 6) return 100
+        else if (day === 0) return this.getHelgFolelseDuringSunday()
+        else return this.getHelgFolelseDuringWeekday()
+    }
+
+    private getHelgFolelseDuringWeekday() {
         const date = moment()
-        const thisWeeksTuesday = moment().startOf('isoWeeks').add(1, 'days')
-        const isMonday = date.day() === 1
-        if (isMonday) {
-            return 0
-        } else {
-            const hoursSinceTuesday = DateUtils.getHoursSince(thisWeeksTuesday, undefined, true)
-            return Math.min(hoursSinceTuesday, 100)
-        }
+        const day = date.day() - 1
+        const hours = date.hour()
+        const minutes = date.minute()
+        const currentMinute = (((day*24) + hours) * 60) + minutes
+        const input = (currentMinute * 0.0148)
+        const percentage = Math.floor((((input-20)**(3))/(10000))*2)
+        return Math.max(Math.min(percentage, 100),0)
+    }
+
+    private getHelgFolelseDuringSunday() {
+        const date = moment()
+        const hours = date.hour()
+        const minutes = date.minute()
+        const currentMinute = (hours * 60) + minutes
+        const input = currentMinute * 0.0694
+        const percentage = Math.floor(((((-input+10)**(3))/(10000))*2)+100)
+        return Math.max(Math.min(percentage, 100),0)
     }
 
     public async checkForHelg(interaction?: ChatInputCommandInteraction<CacheType>) {
         const isHelg = this.isItHelg()
+        const helgeFolelse = this.findHelgeFolelse()        
         const val = (await isHelg) ? `Det e helg!` : `${await this.getTimeUntilHelgString()}`
-        if (interaction) this.messageHelper.replyToInteraction(interaction, val)
-        return val
+        if (interaction) this.messageHelper.replyToInteraction(interaction, val +  ` (${helgeFolelse}% helgefølelse)`)
+        return val +  ` (${helgeFolelse}% helgefølelse)`
     }
 
     private addUserBirthday(interaction: ChatInputCommandInteraction<CacheType>) {
