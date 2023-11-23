@@ -304,7 +304,7 @@ export class JokeCommands extends AbstractCommands {
             'https://media.giphy.com/media/b0iwoIDWrQvK2CARcz/giphy.gif'
         ]
         let index = Math.floor(Math.random() * urls.length)
-        if (this.prevGifIndex == index) index += 1
+        if (this.prevGifIndex == index) index = (index + 1)%urls.length
         this.prevGifIndex = index
         const randomGif = urls[index]
         this.messageHelper.replyToInteraction(interaction, 'Sender gif', {ephemeral: true})
