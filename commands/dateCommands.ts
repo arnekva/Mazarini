@@ -389,7 +389,8 @@ export class DateCommands extends AbstractCommands {
         const minutes = date.minute()
         const currentMinute = (((day*24) + hours) * 60) + minutes
         const input = (currentMinute * 0.0148)
-        const percentage = Math.floor((((input-20)**(3))/(10000))*2)
+        let percentage = +(((((input-20)**(3))/(10000))*2).toFixed(2))
+        if (percentage < 90) percentage = Math.floor(percentage)
         return Math.max(Math.min(percentage, 100),0)
     }
 
