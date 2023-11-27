@@ -1,15 +1,6 @@
-//https://openbase.com/js/node-json-db
 import moment from 'moment'
-import { JsonDB } from 'node-json-db'
-import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
 import { ChipsStats, MazariniStorage, MazariniUser, Meme, RulettStats, botDataPrefix } from '../interfaces/database/databaseInterface'
 import { FirebaseHelper } from './firebaseHelper'
-
-const db = new JsonDB(new Config('myDataBase', true, true, '/'))
-const folderPrefix = '/users'
-const storagePrefix = '/other'
-const botFolder = '/bot'
-const textCommandFolder = '/textCommand'
 
 export class DatabaseHelper {
     private db: FirebaseHelper
