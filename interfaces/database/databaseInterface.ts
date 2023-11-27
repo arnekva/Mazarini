@@ -3,10 +3,24 @@ import { rocketLeagueDbData } from '../../commands/gaming/rocketleagueCommands'
 import { IDailyPriceClaim } from '../../commands/money/gamblingCommands'
 import { IPoll } from '../../commands/pollcommands'
 
+export interface DatabaseStructure {
+    bot: BotData
+    memes: Meme[]
+    other: MazariniStorage
+    users: MazariniUser[]
+}
+
 export interface userValPair {
     key: string
     value: string
     opt?: any
+}
+
+export interface BotData {
+    commitId: string
+    status: string
+    statusType: number
+    version: string
 }
 
 export type botDataPrefix = 'status' | 'statusType' | 'version' | 'commit-id'
@@ -71,6 +85,7 @@ export interface MazariniUser {
     jail?: UserJail
     /** Saved as date string */
     whamageddonLoss?: string
+    textCommandStrings?: string[]
 }
 
 /** Values or objects that can be cached. All props must be marked optional */
@@ -188,6 +203,17 @@ export interface RocketLeagueTournament {
     starts: string | Date
     mode: string
     shouldNotify?: boolean
+}
+
+export interface Meme {
+    id: string
+    name: string
+    url: string
+    width: number
+    height: number
+    box_count: number
+    captions: number
+    tags: string[]
 }
 
 export interface ValuePair {

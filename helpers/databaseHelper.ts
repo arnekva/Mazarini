@@ -2,7 +2,8 @@
 import moment from 'moment'
 import { JsonDB } from 'node-json-db'
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig'
-import { botDataPrefix, ChipsStats, MazariniStorage, MazariniUser, RulettStats } from '../interfaces/database/databaseInterface'
+import { ChipsStats, MazariniStorage, MazariniUser, Meme, RulettStats, botDataPrefix } from '../interfaces/database/databaseInterface'
+import { FirebaseHelper } from './firebaseHelper'
 
 const db = new JsonDB(new Config('myDataBase', true, true, '/'))
 const folderPrefix = '/users'
@@ -11,57 +12,56 @@ const botFolder = '/bot'
 const textCommandFolder = '/textCommand'
 
 export class DatabaseHelper {
+    private db: FirebaseHelper
+
+    constructor(firebaseHelper: FirebaseHelper) {
+        this.db = firebaseHelper
+    }
+
     /**
      * Get a user object by ID.
      * @param userID ID of the user as a string
      * @returns
      */
-    static getUser(userID: string): MazariniUser {
-        // { [key: string]: MazariniUser }
+    public async getUser(userID: string): Promise<MazariniUser> {
+        let user = await this.db.getUser(userID)       
+        if (user) return user
+        return await this.addUser(DatabaseHelper.defaultUser(userID))
+    }
 
-        try {
-            return JSON.parse(db.getData(`${folderPrefix}/${userID}/`)) as MazariniUser
-        } catch (error: any) {
-            this.updateUser(this.defaultUser(userID, 'Ingen navn'))
-            return JSON.parse(db.getData(`${folderPrefix}/${userID}/`)) as MazariniUser
-        }
+    public async addUser(user: MazariniUser): Promise<MazariniUser> {
+        await this.db.saveUser(user)
+        return user
     }
 
     /** Get an untyped user object. Do not use unless you know what you are doing */
-    static getUntypedUser(userID: string): any | undefined {
+    public async getUntypedUser(userID: string): Promise<any> {
         try {
-            return JSON.parse(db.getData(`${folderPrefix}/${userID}/`)) as MazariniUser as any
+            return await this.db.getUser(userID) as MazariniUser as any
         } catch (error: any) {
             return undefined
         }
     }
 
     /** Update the user object in DB */
-    static updateUser(userObject: MazariniUser) {
-        const objToPush = JSON.stringify(userObject)
-        db.push(`${folderPrefix}/${userObject.id}/`, `${objToPush}`)
+    public updateUser(user: MazariniUser) {
+        this.db.updateUser(user)
     }
 
     /** Get the cache. Will create and return an empty object if it doesnt exist */
-    static getStorage(): MazariniStorage {
-        try {
-            return JSON.parse(db.getData(`${storagePrefix}/`)) as MazariniStorage
-        } catch (error: any) {
-            db.push(`${storagePrefix}/`, `${JSON.stringify(this.defaultCache())}`)
-            return JSON.parse(db.getData(`${storagePrefix}/`)) as MazariniStorage
-        }
+    public async getStorage(): Promise<MazariniStorage> {
+        return await this.db.getMazariniStorage()
     }
 
     /** Directly uppdates the storage with the given props.
      * Note that this will overwrite existing cache. Any data you want to keep must be added to the partial. Use getCache() to get the current cache value */
-    static updateStorage(props: Partial<Omit<MazariniStorage, 'updateTimer'>>) {
-        const cache = this.getStorage()
+    public async updateStorage(props: Partial<Omit<MazariniStorage, 'updateTimer'>>) {
+        const updates = {}
         for (const prop in props) {
-            cache[prop] = props[prop]
+            updates[`/other/${prop}`] = props[prop]
         }
-        cache.updateTimer = moment(new Date()).unix()
-        const objToPush = JSON.stringify(cache)
-        db.push(`${storagePrefix}/`, `${objToPush}`)
+        updates['/other/updateTimer'] = moment(new Date()).unix()
+        this.db.updateData(updates)
     }
 
     /** Update the chips stats property of a user stat object. Will set value of property to 1 if not created yet.
@@ -103,70 +103,53 @@ export class DatabaseHelper {
         }
     }
 
-    static getBotData(prefix: botDataPrefix) {
-        let data
-        try {
-            data = db.getData(`${botFolder}/${prefix}`)
-        } catch (error) {
-            //No data;
-        }
-        return data
+    public async getBotData(prefix: botDataPrefix) {
+        return await this.db.getBotData(prefix)
     }
 
-    static setBotData(prefix: botDataPrefix, value: any) {
-        db.push(`${botFolder}/${prefix}`, value)
+    public setBotData(prefix: botDataPrefix, value: any) {
+        const updates = {}
+        updates[`/bot/${prefix}`] = value
+        this.db.updateData(updates)
     }
 
-    static setTextCommandValue(commandName: string, value: any) {
-        db.push(`${textCommandFolder}/${commandName}[]`, value)
+    public setTextCommandValue(commandName: string, value: any) {
+        this.db.addTextCommands(commandName, value)
     }
-    static nukeTextCommand(commandName: string, value: any) {
-        db.delete(`${textCommandFolder}/${commandName}`)
+    public nukeTextCommand(commandName: string, index: number) {
+        this.db.deleteData(`textCommand/${commandName}/${index}`)
     }
-    static getTextCommandValueArray(commandName: string) {
-        let data
-        try {
-            data = db.getData(`${textCommandFolder}/${commandName}`)
-        } catch (error) {
-            //No data;
-        }
-        return data
-    }
-
-    /**
-     * This returns an object with all the id's as keys.
-     * @deprecated Use getAllUsers()
-     */
-    static getAllUserIdsAsObject() {
-        return db.getData('/users')
+    public async getTextCommandValueArray(commandName: string) {
+        return await this.db.getTextCommands(commandName)
     }
 
     /** Get a list of all database users */
-    static getAllUsers(): MazariniUser[] {
-        const users = db.getData('/users')
-        const typedUsersList = Object.values(users).map((u: string) => JSON.parse(u)) as MazariniUser[]
-        return typedUsersList
+    public async getAllUsers(): Promise<MazariniUser[]> {
+        return await this.db.getAllUsers()
     }
 
-    static deleteSpecificPrefixValues(prefix: keyof MazariniUser) {
-        const users = this.getAllUserIdsAsObject()
-        Object.keys(users).forEach((key) => {
-            const user = this.getUser(key)
-
+    //TODO: Refactor
+    public async deleteSpecificPrefixValues(prefix: keyof MazariniUser) {
+        const users = await this.getAllUsers()
+        users.forEach((user) => {
             if (prefix === 'status') {
                 user[prefix] = undefined
             } else if (prefix === 'dailyClaim') {
                 user[prefix] = 0
             }
-            DatabaseHelper.updateUser(user)
+            this.updateUser(user)
         })
+    }
+
+    public async getMemes(): Promise<Meme[]> {
+        return await this.db.getMemes()
     }
 
     static getProperty<T>(o: MazariniUser, name: keyof MazariniUser) {
         return o[name]
     }
 
-    static defaultUser(id: string, name: string): MazariniUser {
+    static defaultUser(id: string): MazariniUser {
         return {
             bonkCounter: 0,
             chips: 5000,

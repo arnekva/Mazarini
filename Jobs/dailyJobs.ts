@@ -2,7 +2,6 @@ import fetch from 'node-fetch'
 import { rapidApiKey2 } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
 import { IDailyPriceClaim } from '../commands/money/gamblingCommands'
-import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { RocketLeagueTournament } from '../interfaces/database/databaseInterface'
 import { DateUtils } from '../utils/dateUtils'
@@ -51,15 +50,9 @@ export class DailyJobs {
                     tournaments.forEach((t, idx) => {
                         t.id = idx
                     })
-                    DatabaseHelper.updateStorage({
+                    this.client.db.updateStorage({
                         rocketLeagueTournaments: tournaments,
                     })
-                    // const msgData = GameCommands.getRocketLeagueTournaments()
-                    // this.messageHelper.sendMessage(
-                    //     MentionUtils.CHANNEL_IDs.ROCKET_LEAGUE,
-                    //     `Dagens turneringer. Trykk på en av knappene for å bli varslet 1 time før start`
-                    // )
-                    // this.messageHelper.sendMessageWithComponents(MentionUtils.CHANNEL_IDs.ROCKET_LEAGUE, [msgData.buttons])
                 }
             })
             .catch((err) => {
@@ -67,11 +60,9 @@ export class DailyJobs {
             })
     }
 
-    private validateAndResetDailyClaims() {
-        const brukere = DatabaseHelper.getAllUserIdsAsObject()
-        Object.keys(brukere).forEach((userID: string) => {
-            const user = DatabaseHelper.getUser(userID)
-
+    private async validateAndResetDailyClaims() {
+        const users = await this.client.db.getAllUsers()
+        users.forEach((user) => {
             const userStreak = user.dailyClaimStreak
             if (!userStreak) return //Verify that the user as a streak/claim, otherwise skip
             const currentStreak = user.dailyClaimStreak
@@ -88,18 +79,16 @@ export class DailyJobs {
                 user.dailyClaimStreak = streak
             }
             user.dailyClaim = 0
-            DatabaseHelper.updateUser(user)
-            DatabaseHelper.deleteSpecificPrefixValues('dailyClaim')
+            this.client.db.updateUser(user)
+            this.client.db.deleteSpecificPrefixValues('dailyClaim')
         })
     }
 
-    private checkForUserBirthdays() {
-        const brukere = DatabaseHelper.getAllUserIdsAsObject()
+    private async checkForUserBirthdays() {
+        const users = await this.client.db.getAllUsers()
 
-        Object.keys(brukere).forEach((userID: string) => {
-            const user = DatabaseHelper.getUser(userID)
+        users.forEach((user) => {
             const birthday: string | undefined = user?.birthday
-
             if (!birthday) return
             const bdTab = birthday.split('-').map((d) => Number(d))
             const date = new Date(bdTab[2], bdTab[1], bdTab[0])
@@ -113,8 +102,8 @@ export class DailyJobs {
         })
     }
 
-    private updateJailAndJailbreakCounters() {
-        const users = DatabaseHelper.getAllUsers()
+    private async updateJailAndJailbreakCounters() {
+        const users = await this.client.db.getAllUsers()
         users.forEach((user) => {
             const daysLeftInJail = user.jail?.daysInJail
             if (user.jail) {
@@ -126,7 +115,7 @@ export class DailyJobs {
                 }
                 user.jail.attemptedJailbreaks = 0
                 user.jail.timesJailedToday = 0
-                DatabaseHelper.updateUser(user)
+                this.client.db.updateUser(user)
             }
         })
     }

@@ -3,7 +3,6 @@ import moment, { Moment } from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
-import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { DateUtils } from '../utils/dateUtils'
@@ -120,7 +119,7 @@ export class JokeCommands extends AbstractCommands {
     }
 
     private async reactWithLetters(interaction: ChatInputCommandInteraction<CacheType>) {
-        await interaction.deferReply()
+        await interaction.deferReply({ephemeral:true})
         const text = interaction.options.get('melding')?.value as string
         const msgId = interaction.options.get('melding-id')?.value as string
 
@@ -143,6 +142,7 @@ export class JokeCommands extends AbstractCommands {
                 console.log(error)
             }
         })
+        interaction.editReply(':white_check_mark:')
     }
 
     private async uWuIfyer(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -187,7 +187,7 @@ export class JokeCommands extends AbstractCommands {
 
         let bkCounter = 0
 
-        const dbUser = DatabaseHelper.getUser(user.id)
+        const dbUser = await this.client.db.getUser(user.id)
         bkCounter = dbUser.bonkCounter
         dbUser.bonkCounter++
 
@@ -209,7 +209,7 @@ export class JokeCommands extends AbstractCommands {
             dbUser.dailyFreezeCounter = 0
             this.messageHelper.sendMessage(interaction.channelId, { text: ':lock: Du e kje bare bonka, du e faktisk dømt te ein dag i fengsel og :lock:' })
         }
-        DatabaseHelper.updateUser(dbUser)
+        this.client.db.updateUser(dbUser)
     }
 
     private static uwuText(t: string) {
@@ -223,7 +223,7 @@ export class JokeCommands extends AbstractCommands {
         )
     }
 
-    private whamageddon(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async whamageddon(interaction: ChatInputCommandInteraction<CacheType>) {
         const isRegisterLoss = interaction.options.getSubcommand() === 'tapt'
         const endDate = '24-12-2023 16:00'
         const isValidTimeFrame = DateUtils.currentDateIsBetween(moment('01-12-2023 08:00', 'DD-MM-YYYY HH:mm'), moment(endDate, 'DD-MM-YYYY HH:mm'))
@@ -239,9 +239,9 @@ export class JokeCommands extends AbstractCommands {
         }
         if (isRegisterLoss) {
             if (isValidTimeFrame) {
-                const user = DatabaseHelper.getUser(interaction.user.id)
+                const user = await this.client.db.getUser(interaction.user.id)
                 user.whamageddonLoss = moment().toISOString()
-                DatabaseHelper.updateUser(user)
+                this.client.db.updateUser(user)
                 const drinkData = calcSlurks(moment(user.whamageddonLoss))
                 this.messageHelper.replyToInteraction(
                     interaction,
@@ -261,7 +261,8 @@ export class JokeCommands extends AbstractCommands {
                 )
             }
         } else {
-            const usersInWhamageddon = DatabaseHelper.getAllUsers().filter((u) => !!u.whamageddonLoss)
+            const users = await this.client.db.getAllUsers()
+            const usersInWhamageddon = users.filter((u) => !!u.whamageddonLoss)
             if (!!usersInWhamageddon.length) {
                 const embd = EmbedUtils.createSimpleEmbed(`Whamageddon 2023`, `Status`)
                 usersInWhamageddon.forEach((user) => {

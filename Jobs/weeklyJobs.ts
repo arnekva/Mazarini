@@ -1,16 +1,18 @@
 import { EmbedBuilder } from 'discord.js'
 import moment from 'moment'
+import { MazariniClient } from '../client/MazariniClient'
 import { PoletCommands } from '../commands/poletCommands'
-import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 
 export class WeeklyJobs {
     private messageHelper: MessageHelper
+    private client: MazariniClient
 
-    constructor(messageHelper: MessageHelper) {
+    constructor(messageHelper: MessageHelper, client: MazariniClient) {
         this.messageHelper = messageHelper
+        this.client = client
     }
     runJobs() {
         this.awardWeeklyChips()
@@ -19,15 +21,15 @@ export class WeeklyJobs {
         this.deleteOldCountdowns()
         // this.logEvent()
     }
-    private awardWeeklyChips() {
-        const brukere = DatabaseHelper.getAllUsers()
+    private async awardWeeklyChips() {
+        const brukere = await this.client.db.getAllUsers()
         brukere.forEach((user) => {
             user.chips += 1500
-            DatabaseHelper.updateUser(user)
+            this.client.db.updateUser(user)
         })
     }
     private async checkPoletHours() {
-        const data = await PoletCommands.fetchPoletData(undefined, '116')
+        const data = await PoletCommands.fetchPoletData('116')
         const dates = data.openingHours.exceptionHours.filter((eh) => {
             const now = moment()
             const input = moment(eh.date)
@@ -57,14 +59,15 @@ export class WeeklyJobs {
         }
     }
     private async resetStatuses() {
-        DatabaseHelper.deleteSpecificPrefixValues('status')
+        this.client.db.deleteSpecificPrefixValues('status')
     }
 
     private async deleteOldCountdowns() {
-        const countdowns = DatabaseHelper.getStorage().countdown
+        const storage = await this.client.db.getStorage()
+        const countdowns = storage?.countdown
         if (countdowns) {
             countdowns.allCountdowns = countdowns.allCountdowns.filter((c) => !DateUtils.dateHasPassed(c.date))
-            DatabaseHelper.updateStorage({ countdown: countdowns })
+            this.client.db.updateStorage({ countdown: countdowns })
         }
     }
 

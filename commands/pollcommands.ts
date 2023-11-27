@@ -2,7 +2,6 @@ import { ActionRowBuilder, AutocompleteInteraction, ButtonBuilder, ButtonInterac
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
-import { DatabaseHelper } from '../helpers/databaseHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { UserUtils } from '../utils/userUtils'
@@ -51,7 +50,7 @@ export class PollCommands extends AbstractCommands {
             this.messageHelper.replyToInteraction(interaction, `Startet en poll`, { ephemeral: true })
             const msg = await this.messageHelper.sendMessage(interaction.channelId, { embed: embed, components: [row] })
 
-            const stPolls = this.pollsFromStorage
+            const stPolls = await this.pollsFromStorage()
             stPolls.push({
                 id: currPollId,
                 options: opt,
@@ -59,7 +58,7 @@ export class PollCommands extends AbstractCommands {
                 desc: description,
                 multipleAnswers: !!multipleAnswers,
             })
-            DatabaseHelper.updateStorage({
+            this.client.db.updateStorage({
                 polls: stPolls,
             })
         } else {
@@ -86,16 +85,17 @@ export class PollCommands extends AbstractCommands {
         })
     }
 
-    get pollsFromStorage() {
-        const polls = DatabaseHelper.getStorage().polls
+    private async pollsFromStorage() {
+        const storage = await this.client.db.getStorage()
+        const polls = storage?.polls
 
-        if (!polls) DatabaseHelper.updateStorage({ polls: [] }) 
+        if (!polls) this.client.db.updateStorage({ polls: [] }) 
         return polls
     }
 
     private async showPoll(interaction: ChatInputCommandInteraction<CacheType>) {
         const id = interaction.options.get('pollnavn')?.value as string
-        const polls = this.pollsFromStorage
+        const polls = await this.pollsFromStorage()
         const poll = polls.find((p) => p.id === id)
         if (poll) {
             this.messageHelper.replyToInteraction(interaction, `Vise pollen under`, { ephemeral: true })
@@ -110,7 +110,7 @@ export class PollCommands extends AbstractCommands {
             )
             const msg = await this.messageHelper.sendMessage(interaction.channelId, { embed: embed, components: [row] })
             poll.messageId = msg.id
-            DatabaseHelper.updateStorage({
+            this.client.db.updateStorage({
                 polls: polls,
             })
         } else {
@@ -124,7 +124,7 @@ export class PollCommands extends AbstractCommands {
         const pollId = ids[2]
         const userId = interaction.user.id
 
-        const polls = this.pollsFromStorage
+        const polls = await this.pollsFromStorage()
         const poll = polls.find((p) => p.id === pollId)
         //Has correct poll
         if (poll) {
@@ -165,7 +165,7 @@ export class PollCommands extends AbstractCommands {
                 const sentMsg = await this.messageHelper.sendMessage(interaction.channelId, { embed: embed, components: [row] })
                 poll.messageId = sentMsg.id
             }
-            DatabaseHelper.updateStorage({
+            this.client.db.updateStorage({
                 polls: polls,
             })
             interaction.deferUpdate()
@@ -199,10 +199,11 @@ export class PollCommands extends AbstractCommands {
         return embed
     }
 
-    private filterPolls(interaction: AutocompleteInteraction<CacheType>) {
+    private async filterPolls(interaction: AutocompleteInteraction<CacheType>) {
         const optionList: any = interaction.options
         const input = optionList.getFocused().toLowerCase()
-        const polls = this.pollsFromStorage.filter((p) => p.desc.includes(input)).map((poll) => ({ name: `${poll.desc}`, value: poll.id }))
+        const pollsFromStorage = await this.pollsFromStorage()
+        const polls = pollsFromStorage.filter((p) => p.desc.includes(input)).map((poll) => ({ name: `${poll.desc}`, value: poll.id }))
         interaction.respond(polls)
     }
 

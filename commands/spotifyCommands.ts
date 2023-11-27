@@ -5,7 +5,6 @@ import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { spotifyClientID, spotifyClientSecret } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
-import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { EmbedUtils } from '../utils/embedUtils'
 import { UserUtils } from '../utils/userUtils'
@@ -162,7 +161,7 @@ export class SpotifyCommands extends AbstractCommands {
             if (users) {
                 const emb = EmbedUtils.createSimpleEmbed(`🎶 Musikk 🎶`, 'Fra alle')
                 for (let i = 0; i < users.length; i++) {
-                    const user = DatabaseHelper.getUser(users[i].id)
+                    const user = await this.client.db.getUser(users[i].id)
                     const lastFmName = user?.lastFMUsername
 
                     if (lastFmName) {
@@ -213,7 +212,7 @@ export class SpotifyCommands extends AbstractCommands {
                 return embed
             }
         } else {
-            const dbUser = DatabaseHelper.getUser(user?.id ?? interaction.user.id)
+            const dbUser = await this.client.db.getUser(user?.id ?? interaction.user.id)
             const lastFmName = dbUser.lastFMUsername
             if (!!lastFmName) {
                 const data = await _music.findLastFmData({

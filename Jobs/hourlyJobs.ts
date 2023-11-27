@@ -1,19 +1,22 @@
-import { DatabaseHelper } from '../helpers/databaseHelper'
+import { MazariniClient } from '../client/MazariniClient'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MentionUtils } from '../utils/mentionUtils'
 
 export class HourJob {
     private messageHelper: MessageHelper
+    private client: MazariniClient
 
-    constructor(messageHelper: MessageHelper) {
+    constructor(messageHelper: MessageHelper, client: MazariniClient) {
         this.messageHelper = messageHelper
+        this.client = client
     }
     runJobs() {
         this.checkForRLTournaments()
     }
 
-    private checkForRLTournaments() {
-        const tournaments = DatabaseHelper.getStorage().rocketLeagueTournaments
+    private async checkForRLTournaments() {
+        const storage = await this.client.db.getStorage()
+        const tournaments = storage?.rocketLeagueTournaments
         if (tournaments) {
             const nextTournaments = tournaments.filter((t) => new Date(t.starts).getHours() === new Date().getHours() + 1 && t.shouldNotify)
 

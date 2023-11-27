@@ -22,31 +22,32 @@ export class CrimeCommands extends AbstractCommands {
     }
     static jailBreakAttempts = 1
 
-    static checkBalance(users: { userID: string }[], amountAsNumber: number): boolean {
+    private async checkBalance(users: { userID: string }[], amountAsNumber: number): Promise<boolean> {
         let notEnough = false
-        users.forEach((u) => {
-            const balance = DatabaseHelper.getUser(u.userID).chips
+        users.forEach(async (u) => {
+            const user = await this.client.db.getUser(u.userID)
+            const balance = user.chips
             if (Number(balance) < amountAsNumber || Number(balance) === 0) notEnough = true
         })
         return notEnough
     }
 
-    static getUserWallets(engagerID: string, victimID: string): { engagerChips: number; victimChips: number } {
-        const engagerValue = DatabaseHelper.getUser(engagerID).chips
-        const victimValue = DatabaseHelper.getUser(victimID).chips
+    private async getUserWallets(engagerID: string, victimID: string): Promise<{ engagerChips: number; victimChips: number }> {
+        const engagerValue = await this.client.db.getUser(engagerID)
+        const victimValue = await this.client.db.getUser(victimID)
         return {
-            engagerChips: engagerValue,
-            victimChips: victimValue,
+            engagerChips: engagerValue.chips,
+            victimChips: victimValue.chips,
         }
     }
 
     private async krig(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, target: User, amount: number) {
-        const userWallets = CrimeCommands.getUserWallets(interaction.user.id, target.id)
+        const userWallets = await this.getUserWallets(interaction.user.id, target.id)
         const hasAmount = !!amount
 
         const largestPossibleValue = Math.min(userWallets.engagerChips, userWallets.victimChips)
         let amountAsNum = hasAmount ? Number(amount) : largestPossibleValue
-        const notEnoughChips = CrimeCommands.checkBalance([{ userID: interaction.user.id }, { userID: target.id }], amountAsNum)
+        const notEnoughChips = await this.checkBalance([{ userID: interaction.user.id }, { userID: target.id }], amountAsNum)
 
         if (notEnoughChips) {
             this.messageHelper.replyToInteraction(interaction, `En av dere har ikke råd til dette`, { ephemeral: true })
@@ -83,7 +84,7 @@ export class CrimeCommands extends AbstractCommands {
         /** Engager */
         const engagerUser = UserUtils.findUserById(engagerId, interaction)
         if (userAsMember.id === eligibleTargetId && interaction.message.components.length) {
-            const notEnoughChips = CrimeCommands.checkBalance([{ userID: engagerId }, { userID: eligibleTargetId }], amountAsNum)
+            const notEnoughChips = await this.checkBalance([{ userID: engagerId }, { userID: eligibleTargetId }], amountAsNum)
             if (notEnoughChips) {
                 this.messageHelper.replyToInteraction(interaction, `En av dere har ikke lenger råd til krigen`, { ephemeral: true })
             } else {
@@ -102,8 +103,8 @@ export class CrimeCommands extends AbstractCommands {
                     components: [row],
                 })
 
-                const engager = DatabaseHelper.getUser(engagerId)
-                const target = DatabaseHelper.getUser(eligibleTargetId)
+                const engager = await this.client.db.getUser(engagerId)
+                const target = await this.client.db.getUser(eligibleTargetId)
 
                 let engagerValue = engager.chips
                 let victimValue = target.chips
@@ -165,8 +166,8 @@ export class CrimeCommands extends AbstractCommands {
 
                 engager.chips = engagerValue
                 target.chips = victimValue
-                DatabaseHelper.updateUser(engager)
-                DatabaseHelper.updateUser(target)
+                this.client.db.updateUser(engager)
+                this.client.db.updateUser(target)
 
                 const rematchRow = new ActionRowBuilder<ButtonBuilder>()
 
@@ -228,8 +229,8 @@ export class CrimeCommands extends AbstractCommands {
         const amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('chips')?.value)
         const amountAsNum = Number(amount)
 
-        const engager = DatabaseHelper.getUser(interaction.user.id)
-        const victim = DatabaseHelper.getUser(target.id)
+        const engager = await this.client.db.getUser(interaction.user.id)
+        const victim = await this.client.db.getUser(target.id)
 
         if (await this.handleTheftEdgeCases(interaction, engager, victim, amountAsNum)) return
         const theftAttempt = this.theftAttemptIsSuccessful(amountAsNum)
@@ -237,8 +238,8 @@ export class CrimeCommands extends AbstractCommands {
             engager.chips += amountAsNum
             victim.chips -= amountAsNum
             victim.hasBeenRobbed = true
-            DatabaseHelper.updateUser(engager)
-            DatabaseHelper.updateUser(victim)
+            this.client.db.updateUser(engager)
+            this.client.db.updateUser(victim)
             const arneSuperior = await EmojiHelper.getEmoji('arnesuperior', interaction)
             this.messageHelper.replyToInteraction(
                 interaction,
@@ -261,7 +262,7 @@ export class CrimeCommands extends AbstractCommands {
             }
 
             engager.dailyFreezeCounter = 0
-            DatabaseHelper.updateUser(engager)
+            this.client.db.updateUser(engager)
             let jailTypeString = ``
             if (nextJailState === 'max') jailTypeString = '\nDu e nå i Maximum Security, og kan ikkje lenger briba vaktene'
             if (nextJailState === 'solitairy') jailTypeString = '\nDu e nå i Solitairy Confinement, og kan ikkje lenger rømma'
@@ -296,8 +297,8 @@ export class CrimeCommands extends AbstractCommands {
             if (!engager.jail) engager.jail = {}
             engager.jail.daysInJail = 1
             engager.jail.timesJailedToday = ++engager.jail.timesJailedToday
-            DatabaseHelper.updateUser(victim)
-            DatabaseHelper.updateUser(engager)
+            this.client.db.updateUser(victim)
+            this.client.db.updateUser(engager)
             this.messageHelper.replyToInteraction(interaction, `Du prøve å stjela fra meg?? Du mysta nettopp alle chipså dine for det`)
             delay(5000).then(() =>
                 this.messageHelper.sendMessage(interaction.channelId, {
@@ -307,14 +308,14 @@ export class CrimeCommands extends AbstractCommands {
             return true
         } else if (victimIsEngager) {
             engager.chips -= amountOrBalance
-            DatabaseHelper.updateUser(engager)
+            this.client.db.updateUser(engager)
             this.messageHelper.replyToInteraction(interaction, `Du prøve å stjela fra deg sjøl? Greit det ${kekw.id}`)
             return true
         } else if (isNegativeAmount) {
             engager.chips -= amountOrBalance
             victim.chips += amountOrBalance
-            DatabaseHelper.updateUser(engager)
-            DatabaseHelper.updateUser(victim)
+            this.client.db.updateUser(engager)
+            this.client.db.updateUser(victim)
             this.messageHelper.replyToInteraction(
                 interaction,
                 `Stjela ${TextUtils.formatMoney(amount)}? Du konne bare vippsa, bro ${kekw.id} \nGz ${MentionUtils.mentionUser(victim.id)}`
@@ -343,7 +344,7 @@ export class CrimeCommands extends AbstractCommands {
     }
 
     private async jailbreak(interaction: ChatInputCommandInteraction<CacheType>) {
-        const prisoner = DatabaseHelper.getUser(interaction.user.id)
+        const prisoner = await this.client.db.getUser(interaction.user.id)
         const daysLeftInJail = prisoner?.jail?.daysInJail
         const isBribe = interaction.options.get('bribe')?.value as boolean
         const jailState = prisoner.jail?.jailState
@@ -373,7 +374,7 @@ export class CrimeCommands extends AbstractCommands {
                     )
                 } else {
                     prisoner.chips -= bribePrice
-                    DatabaseHelper.updateUser(prisoner)
+                    this.client.db.updateUser(prisoner)
                 }
             }
             const prevAttempts = prisoner.jail.attemptedJailbreaks
@@ -395,17 +396,16 @@ export class CrimeCommands extends AbstractCommands {
                     `${MentionUtils.mentionUser(prisoner.id)} trilla to lige ${number1Emoji} ${number2Emoji} og har rømt fra fengsel!`
                 )
             }
-            DatabaseHelper.updateUser(prisoner)
+            this.client.db.updateUser(prisoner)
             this.messageHelper.replyToInteraction(interaction, message)
         }
     }
 
     private async printPrisoners(interaction: ChatInputCommandInteraction<CacheType>) {
         let formattedMsg = new EmbedBuilder().setTitle(':lock: Fengsel :lock:')
-        const users = DatabaseHelper.getAllUserIdsAsObject()
+        const users = await this.client.db.getAllUsers()
         let someoneInJail = false
-        Object.keys(users).forEach((userID: string) => {
-            const user = DatabaseHelper.getUser(userID)
+        users.forEach((user) => {
             const daysLeftInJail = user?.jail?.daysInJail
 
             if (daysLeftInJail && !isNaN(daysLeftInJail) && daysLeftInJail > 0) {

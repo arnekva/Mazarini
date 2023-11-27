@@ -2,7 +2,6 @@ import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
-import { DatabaseHelper } from '../helpers/databaseHelper'
 import { SlashCommandHelper } from '../helpers/slashCommandHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { RandomUtils } from '../utils/randomUtils'
@@ -12,7 +11,7 @@ export class NameCommands extends AbstractCommands {
         super(client)
     }
 
-    private handleNameCommands(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async handleNameCommands(interaction: ChatInputCommandInteraction<CacheType>) {
         const textToAdd = interaction.options.get('tekst')?.value as string
         const userTextIsAddedTo = interaction.options.get('bruker')?.value as string
         const textToDelete = SlashCommandHelper.getCleanNumberValue(interaction.options.get('indeks')?.value)
@@ -29,7 +28,7 @@ export class NameCommands extends AbstractCommands {
                 )
         } else if (textToDeleteUser) {
             if (!textToDelete) {
-                const texts = this.listTexts(textToDeleteUser)
+                const texts = await this.listTexts(textToDeleteUser)
                 if (texts) {
                     let text = ''
                     texts.forEach((t, i) => (text += `\n${i}: ${t}`))
@@ -38,19 +37,15 @@ export class NameCommands extends AbstractCommands {
                     this.messageHelper.replyToInteraction(interaction, 'Du skrev ikke inn et gyldig navn', { ephemeral: true })
                 }
             } else {
-                const deleted = this.removeTextValueFromInteraction(textToDelete, textToDeleteUser)
-                if (deleted) this.messageHelper.replyToInteraction(interaction, `Slettet indeks *${textToDelete}* for *${textToDeleteUser}*`)
-                else
-                    this.messageHelper.replyToInteraction(
-                        interaction,
-                        `Klarte ikke slette tekst. Enten manglet indeks (${textToDelete}) eller brukernavn (${textToDeleteUser})`
-                    )
+                this.removeTextValueFromInteraction(textToDelete, textToDeleteUser)
+                this.messageHelper.replyToInteraction(interaction, `Slettet indeks *${textToDelete}* for *${textToDeleteUser}*`)
+
             }
         } else if (personToLookUp) {
             if (personToLookUp === 'joiij') {
                 this.messageHelper.replyToInteraction(interaction, this.joiijText())
             } else {
-                this.messageHelper.replyToInteraction(interaction, this.getTextFromCommand(personToLookUp))
+                this.messageHelper.replyToInteraction(interaction, await this.getTextFromCommand(personToLookUp))
             }
         } else {
             this.messageHelper.replyToInteraction(interaction, 'En feil har skjedd')
@@ -66,33 +61,25 @@ export class NameCommands extends AbstractCommands {
         return `Joiij e der om ${hr === 0 ? '' : hr + ' ' + getHrLine(hr) + ' og '}${min} minutt!`
     }
 
-    private getTextFromCommand(username: string) {
-        const text: string = ArrayUtils.randomChoiceFromArray(DatabaseHelper.getTextCommandValueArray(username.toLowerCase()) ?? []) || 'Ingen tekst lagt til'
+    private async getTextFromCommand(username: string) {
+        const text: string = ArrayUtils.randomChoiceFromArray(await this.client.db.getTextCommandValueArray(username.toLowerCase()) ?? []) || 'Ingen tekst lagt til'
         return `${text.startsWith('<:') ? '' : username} ${text || 'Ingen tekst lagt til'}`
     }
 
     private addTextValueFromInteraction(text: string, username: string): boolean {
         if (this.getLegalTextCommandNames().includes(username) && text.length > 1) {
-            DatabaseHelper.setTextCommandValue(username, text)
+            this.client.db.setTextCommandValue(username, text)
             return true
         }
         return false
     }
 
-    private listTexts(username: string): string[] {
-        return DatabaseHelper.getTextCommandValueArray(username) as string[]
+    private async listTexts(username: string): Promise<string[]> {
+        return await this.client.db.getTextCommandValueArray(username) as string[]
     }
 
-    private removeTextValueFromInteraction(index: number, username: string): boolean {
-        const texts = DatabaseHelper.getTextCommandValueArray(username) as string[]
-        if (texts) {
-            texts.splice(index, 1)
-            DatabaseHelper.nukeTextCommand(username, texts)
-            texts.forEach((t) => DatabaseHelper.setTextCommandValue(username, t))
-            return true
-        } else {
-            return false
-        }
+    private async removeTextValueFromInteraction(index: number, username: string) {
+        this.client.db.nukeTextCommand(username, index) 
     }
 
     getAllInteractions(): IInteractionElement {

@@ -16,7 +16,6 @@ import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
 import { LockingHandler } from '../handlers/lockingHandler'
 import { ClientHelper } from '../helpers/clientHelper'
-import { DatabaseHelper } from '../helpers/databaseHelper'
 import { dbPrefix, prefixList } from '../interfaces/database/databaseInterface'
 import { DailyJobs } from '../Jobs/dailyJobs'
 import { MazariniBot } from '../main'
@@ -33,7 +32,7 @@ export class Admin extends AbstractCommands {
         super(client)
     }
 
-    private setSpecificValue(interaction: ChatInputCommandInteraction<CacheType>): void {
+    private async setSpecificValue(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
         const user = interaction.options.get('bruker')?.user
         const property = interaction.options.get('property')?.value as string | number
         const value = interaction.options.get('verdi')?.value
@@ -69,7 +68,7 @@ export class Admin extends AbstractCommands {
 
             //Double check that all where supplied in the interaction
             if (user && property && value) {
-                const dbUser = DatabaseHelper.getUntypedUser(user.id)
+                const dbUser = await this.client.db.getUntypedUser(user.id)
                 if (dbUser) {
                     const prop = dbUser[property] //Check if property exists on DB user
 
@@ -95,7 +94,7 @@ export class Admin extends AbstractCommands {
                         } else if (typeof prop === 'number') dbUser[property] = Number(value)
                         else dbUser[property] = value
 
-                        DatabaseHelper.updateUser(dbUser)
+                        this.client.db.updateUser(dbUser)
                         if (!hasAck)
                             this.messageHelper.replyToInteraction(
                                 interaction,
@@ -151,8 +150,8 @@ export class Admin extends AbstractCommands {
         const status = interaction.options.get('statustekst')?.value as string
         const hasUrl = status.includes('www.')
         const activityName = ActivityType[activity]
-        DatabaseHelper.setBotData('status', status)
-        DatabaseHelper.setBotData('statusType', activity)
+        this.client.db.setBotData('status', status)
+        this.client.db.setBotData('statusType', activity)
         this.messageHelper.sendLogMessage(`Bottens aktivitet er satt til '${activityName}' med teksten '${status}' av ${interaction.user.username}. `)
         this.messageHelper.replyToInteraction(interaction, `Bottens aktivitet er satt til '${activityName}' med teksten '${status}'`)
         ClientHelper.updatePresence(this.client, activity, status, hasUrl ? status : undefined)
@@ -175,12 +174,14 @@ export class Admin extends AbstractCommands {
         }
     }
 
-    private getBotStatistics(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async getBotStatistics(interaction: ChatInputCommandInteraction<CacheType>) {
+        interaction.deferReply()
         const start = MazariniBot.startTime
         const numMessages = MazariniBot.numMessages
         const numMessagesFromBot = MazariniBot.numMessagesFromBot
         const numErrorMessages = MazariniBot.numMessagesNumErrorMessages
         const numCommands = MazariniBot.numCommands
+        const storage = await this.client.db.getStorage()
         console.log(moment(start).unix())
 
         const statsReply =
@@ -195,7 +196,7 @@ export class Admin extends AbstractCommands {
             `\nAntall kommandoer: ${numCommands}` +
             `\nAntall logger: ${numErrorMessages}` +
             `\nAntall servere tilkoblet: ${this.client.guilds.cache.size}` +
-            `\nForrige oppdatering av storage: <t:${DatabaseHelper.getStorage().updateTimer}:R>` +
+            `\nForrige oppdatering av storage: <t:${storage?.updateTimer}:R>` +
             `\nKjørt siden: <t:${moment(start).unix()}:R>`
         this.messageHelper.replyToInteraction(interaction, statsReply)
     }
@@ -252,9 +253,9 @@ export class Admin extends AbstractCommands {
         const reason = interaction.options.get('reason')?.value as string
         const chips = interaction.options.get('chips')?.value as number
         const user = interaction.options.get('user')?.user
-        const dbUser = DatabaseHelper.getUser(user.id)
+        const dbUser = await this.client.db.getUser(user.id)
         dbUser.chips += chips
-        DatabaseHelper.updateUser(dbUser)
+        this.client.db.updateUser(dbUser)
         this.messageHelper.replyToInteraction(interaction, `${user.username} har mottatt en ${type} reward på ${chips} på grunn av *${reason}*`)
     }
 
@@ -264,8 +265,8 @@ export class Admin extends AbstractCommands {
             interaction.channelId
         )}. Henter data fra Git og restarter botten ...`
         const msg = await this.messageHelper.sendLogMessage(restartMsg)
-
-        await exec(`git pull && pm2 restart mazarini -- --restartedForGit --${DatabaseHelper.getBotData('commit-id')}`, async (error, stdout, stderr) => {
+        const commitId = await this.client.db.getBotData('commit-id')
+        await exec(`git pull && pm2 restart mazarini -- --restartedForGit --${commitId}`, async (error, stdout, stderr) => {
             if (error) {
                 restartMsg += `\nKlarte ikke restarte: \n${error}`
                 msg.edit(restartMsg)

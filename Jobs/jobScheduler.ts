@@ -19,7 +19,7 @@ export class JobScheduler {
 
         /** Runs once a week at mondays 06:00 */
         this.weeklyJobs = schedule.scheduleJob('0 6 * * 1', async function () {
-            const jobs = new WeeklyJobs(msgHelper)
+            const jobs = new WeeklyJobs(msgHelper, client)
             jobs.runJobs()
         })
         this.fridayJobs = schedule.scheduleJob('0 16 * * 5', async function () {
@@ -27,7 +27,7 @@ export class JobScheduler {
             jobs.runJobs()
         })
         this.hourlyJobs = schedule.scheduleJob('0 * * * *', async function () {
-            const jobs = new HourJob(msgHelper)
+            const jobs = new HourJob(msgHelper, client)
             jobs.runJobs()
         })
     }

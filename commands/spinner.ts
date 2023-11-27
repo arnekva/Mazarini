@@ -2,7 +2,6 @@ import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
-import { DatabaseHelper } from '../helpers/databaseHelper'
 import { RandomUtils } from '../utils/randomUtils'
 
 const weightedRandomObject = require('weighted-random-object')
@@ -59,8 +58,8 @@ export class Spinner extends AbstractCommands {
         super(client)
     }
 
-    private spinFromInteraction(interaction: ChatInputCommandInteraction<CacheType>) {
-        const user = DatabaseHelper.getUser(interaction.user.id)
+    private async spinFromInteraction(interaction: ChatInputCommandInteraction<CacheType>) {
+        const user = await this.client.db.getUser(interaction.user.id)
         const min = weightedRandomObject(spinMinutes).number
         const sec = RandomUtils.getRandomInteger(0, 60)
 
@@ -80,7 +79,7 @@ export class Spinner extends AbstractCommands {
             this.messageHelper.sendMessage(interaction?.channelId, { text: 'gz med 10 min bro' })
         }
 
-        DatabaseHelper.updateUser(user)
+        this.client.db.updateUser(user)
 
         this.incrementCounter(interaction.user.id)
     }
@@ -109,9 +108,9 @@ export class Spinner extends AbstractCommands {
     }
 
     private async incrementCounter(userID: string) {
-        const user = DatabaseHelper.getUser(userID)
+        const user = await this.client.db.getUser(userID)
         user.spinCounter++
-        DatabaseHelper.updateUser(user)
+        this.client.db.updateUser(user)
     }
 
     getAllInteractions(): IInteractionElement {

@@ -18,7 +18,7 @@ import { CallOfDutyCommands } from '../commands/gaming/callofdutyCommands'
 import { RocketLeagueCommands } from '../commands/gaming/rocketleagueCommands'
 import { JokeCommands } from '../commands/jokeCommands'
 import { LinkCommands } from '../commands/linkCommands'
-import { Meme } from '../commands/memes/memeCommands'
+import { MemeCommands } from '../commands/memes/memeCommands'
 import { CrimeCommands } from '../commands/money/crimeCommands'
 import { GamblingCommands } from '../commands/money/gamblingCommands'
 import { MoneyCommands } from '../commands/money/moneyCommands'
@@ -73,7 +73,7 @@ export class Commands {
     private spotifyCommands: SpotifyCommands
     private testCommands: TestCommands
     private musicCommands: Music
-    private memeCommands: Meme
+    private memeCommands: MemeCommands
     private userCommands: UserCommands
     private patchNotes: PatchNotes
     private soundCommands: SoundCommands
@@ -103,7 +103,7 @@ export class Commands {
         this.spotifyCommands = new SpotifyCommands(this.client)
         this.testCommands = new TestCommands(this.client)
         this.musicCommands = new Music(this.client)
-        this.memeCommands = new Meme(this.client)
+        this.memeCommands = new MemeCommands(this.client)
         this.userCommands = new UserCommands(this.client)
         this.weatherCommands = new Weather(this.client)
         this.patchNotes = new PatchNotes(this.client)

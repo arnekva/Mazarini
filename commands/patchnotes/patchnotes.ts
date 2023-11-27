@@ -7,8 +7,8 @@ import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { MessageHelper } from '../../helpers/messageHelper'
 import { MentionUtils } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '14.2.0'
-    public static readonly currentPatchNotes = `\n* Lagt til /pointerbrothers som får Høie til å sende en random pointerbrothers gif`
+    public static readonly currentVersion = '15.0.0'
+    public static readonly currentPatchNotes = `\n* Hele databasen har blitt refaktorert og flyttet til firebase`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
@@ -24,12 +24,12 @@ export class PatchNotes extends AbstractCommands {
         return 'Backlog:\n' + PatchNotes.trelloBoardUrl
     }
 
-    static compareAndSendPatchNotes(msgHelper: MessageHelper) {
-        const prev = DatabaseHelper.getBotData('version')
+    static async compareAndSendPatchNotes(msgHelper: MessageHelper, dbHelper: DatabaseHelper) {
+        const prev = await dbHelper.getBotData('version')
         if (prev && prev != PatchNotes.currentVersion && environment === 'prod') {
             PatchNotes.publishPatchNotes(msgHelper)
         }
-        DatabaseHelper.setBotData('version', PatchNotes.currentVersion)
+        dbHelper.setBotData('version', PatchNotes.currentVersion)
     }
 
     static publishPatchNotes(msgHelper: MessageHelper) {

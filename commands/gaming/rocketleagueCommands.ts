@@ -3,7 +3,6 @@ import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../general/commands'
-import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
 
@@ -46,7 +45,8 @@ export class RocketLeagueCommands extends AbstractCommands {
     }
 
     private async rocketLeagueRanks(interaction: ChatInputCommandInteraction<CacheType>) {
-        const userValue = DatabaseHelper.getUser(interaction.user.id).rocketLeagueUserString
+        const dbUser = await this.client.db.getUser(interaction.user.id)
+        const userValue = dbUser.rocketLeagueUserString
         let user
         if (userValue) user = userValue.split(';')
 
@@ -140,7 +140,7 @@ export class RocketLeagueCommands extends AbstractCommands {
                 threeVthree.mmr = segment?.stats?.rating?.value
             }
         }
-        let userData = this.getUserStats(interaction)
+        let userData = await this.getUserStats(interaction)
         let mmrDiff = ''
         const msgContent = new EmbedBuilder().setTitle(`Rocket League - ${name}`)
         const statsType = interaction.options.get('modus')?.value as string
@@ -193,27 +193,28 @@ export class RocketLeagueCommands extends AbstractCommands {
         return ``
     }
 
-    private saveUserStats(interaction: ChatInputCommandInteraction<CacheType>, stats: rocketLeagueDbData) {
-        const user = DatabaseHelper.getUser(interaction.user.id)
+    private async saveUserStats(interaction: ChatInputCommandInteraction<CacheType>, stats: rocketLeagueDbData) {
+        const user = await this.client.db.getUser(interaction.user.id)
         user.rocketLeagueStats = stats
-        DatabaseHelper.updateUser(user)
+        this.client.db.updateUser(user)
     }
 
-    private getUserStats(interaction: ChatInputCommandInteraction<CacheType>) {
-        const user = DatabaseHelper.getUser(interaction.user.id)
+    private async getUserStats(interaction: ChatInputCommandInteraction<CacheType>) {
+        const user = await this.client.db.getUser(interaction.user.id)
         if (user.rocketLeagueStats === undefined) return emptyStats
         return user.rocketLeagueStats
     }
 
-    private rocketLeagueTournaments(interaction: ChatInputCommandInteraction<CacheType>) {
-        const data = RocketLeagueCommands.getRocketLeagueTournaments()
+    private async rocketLeagueTournaments(interaction: ChatInputCommandInteraction<CacheType>) {
+        const data = await this.getRocketLeagueTournaments()
 
         this.messageHelper.replyToInteraction(interaction, data.embed)
         this.messageHelper.sendMessage(interaction.channelId, { components: [data.buttons] })
     }
 
-    static getRocketLeagueTournaments(): { embed: EmbedBuilder; buttons: ActionRowBuilder<ButtonBuilder> } | undefined {
-        const currentTournaments = DatabaseHelper.getStorage().rocketLeagueTournaments
+    private async getRocketLeagueTournaments(): Promise<{ embed: EmbedBuilder; buttons: ActionRowBuilder<ButtonBuilder> }> {
+        const storage = await this.client.db.getStorage()
+        const currentTournaments = storage?.rocketLeagueTournaments
         if (currentTournaments) {
             const embed = EmbedUtils.createSimpleEmbed(
                 `Rocket League Tournaments`,
@@ -239,8 +240,9 @@ export class RocketLeagueCommands extends AbstractCommands {
         return undefined
     }
 
-    private getAllRLTournamentsAsEmbed() {
-        const currentTournaments = DatabaseHelper.getStorage().rocketLeagueTournaments
+    private async getAllRLTournamentsAsEmbed() {
+        const storage = await this.client.db.getStorage()
+        const currentTournaments = storage?.rocketLeagueTournaments
         if (currentTournaments) {
             const embed = EmbedUtils.createSimpleEmbed(
                 `Rocket League Tournaments`,
@@ -257,8 +259,9 @@ export class RocketLeagueCommands extends AbstractCommands {
         }
     }
 
-    private createTournamentReminder(interaction: ButtonInteraction<CacheType>) {
-        const tournaments = DatabaseHelper.getStorage().rocketLeagueTournaments
+    private async createTournamentReminder(interaction: ButtonInteraction<CacheType>) {
+        const storage = await this.client.db.getStorage()
+        const tournaments = storage?.rocketLeagueTournaments
         const ids = interaction.customId.split(';')
         const idToUpdate = Number(ids[1])
         const tournamentToUpdate = tournaments.find((t) => {
@@ -268,7 +271,7 @@ export class RocketLeagueCommands extends AbstractCommands {
         if (tournamentToUpdate) {
             tournamentToUpdate.shouldNotify = true
         }
-        DatabaseHelper.updateStorage({
+        this.client.db.updateStorage({
             rocketLeagueTournaments: tournaments,
         })
         this.messageHelper.replyToInteraction(interaction, `Det vil bli sendt en påmelding om denne turneringen 1 time før start`, { ephemeral: true })

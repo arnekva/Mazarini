@@ -4,14 +4,20 @@ import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { imgflip } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../general/commands'
+import { Meme } from '../../interfaces/database/databaseInterface'
 import { MentionUtils } from '../../utils/mentionUtils'
 
-const fetch = require('node-fetch'),
-    memes = require('../../memes.json')
+const fetch = require('node-fetch')
 
-export class Meme extends AbstractCommands {
+export class MemeCommands extends AbstractCommands {
+    private memes: Meme[]
+
     constructor(client: MazariniClient) {
         super(client)
+    }
+
+    private async retrieveMemes() {
+        this.memes = await this.client.db.getMemes()
     }
     private readonly baseURL = 'https://api.imgflip.com/caption_image'
 
@@ -29,7 +35,7 @@ export class Meme extends AbstractCommands {
         if (memeId == '000') {
             return this.messageHelper.replyToInteraction(interaction, 'https://i.imgur.com/ka7SslJ.jpg')
         }
-        const meme = memes.find((meme) => meme.id == memeId)
+        const meme = this.memes.find((meme) => meme.id == memeId)
 
         if (!meme) {
             this.messageHelper.replyToInteraction(interaction, `Denne memen finnes ikkje`, {
@@ -41,7 +47,7 @@ export class Meme extends AbstractCommands {
         }
     }
 
-    private async captionMeme(meme: IMemeTemplate, interaction: ChatInputCommandInteraction<CacheType>) {
+    private async captionMeme(meme: Meme, interaction: ChatInputCommandInteraction<CacheType>) {
         const preview = interaction.options.get('preview')?.value as boolean
         await interaction.deferReply({ ephemeral: preview })
 
@@ -108,11 +114,12 @@ export class Meme extends AbstractCommands {
             })
     }
 
-    private filterMemes(interaction: AutocompleteInteraction<CacheType>) {
+    private async filterMemes(interaction: AutocompleteInteraction<CacheType>) {
+        if (!this.memes) await this.retrieveMemes()
         const optionList: any = interaction.options
         const input = optionList.getFocused().toLowerCase()
-        const options = memes
-            .filter((meme: IMemeTemplate) => meme.name.toLowerCase().includes(input) || meme.tags.some((t) => t.toLowerCase().includes(input)))
+        const options = this.memes
+            .filter((meme: Meme) => meme.name.toLowerCase().includes(input) || meme.tags.some((t) => t.toLowerCase().includes(input)))
             .slice(0, 24)
             .map((meme) => ({ name: `${meme.name} (${meme.box_count})`, value: meme.id }))
         interaction.respond(options)
@@ -128,8 +135,6 @@ export class Meme extends AbstractCommands {
                             this.getMeme(rawInteraction)
                         },
                         autoCompleteCallback: (rawInteraction: AutocompleteInteraction<CacheType>) => {
-                            console.log('am filtering')
-
                             this.filterMemes(rawInteraction)
                         },
                     },

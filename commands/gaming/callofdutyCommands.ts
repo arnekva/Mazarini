@@ -3,7 +3,6 @@ import { CacheType, ChatInputCommandInteraction, EmbedBuilder, Interaction, User
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../general/commands'
-import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { ArrayUtils } from '../../utils/arrayUtils'
 import { ObjectUtils } from '../../utils/objectUtils'
 import { RandomUtils } from '../../utils/randomUtils'
@@ -291,7 +290,8 @@ export class CallOfDutyCommands extends AbstractCommands {
     }
 
     private async getLastMatchData(interaction: Interaction<CacheType>, user?: User): Promise<string | EmbedBuilder> {
-        const WZUser = user ? this.getWZUserStringFromDB(user)?.split(';') : this.getWZUserStringFromDB(interaction.user)?.split(';')
+        const dbUser = user ? await this.getWZUserStringFromDB(user) : await this.getWZUserStringFromDB(interaction.user)
+        const WZUser = dbUser?.split(';')
         if (!WZUser) return user ? `Brukeren har ikkje kobla te brukernavn` : 'Du må knytta brukernavn te brukeren din fysste'
         else {
             const gamertag = WZUser[1]
@@ -350,7 +350,8 @@ export class CallOfDutyCommands extends AbstractCommands {
         let gamertag = ''
         let platform: platforms
 
-        const WZUser = user ? this.getWZUserStringFromDB(user)?.split(';') : this.getWZUserStringFromDB(rawInteraction.user)?.split(';')
+        const dbUser = user ? await this.getWZUserStringFromDB(user) : await this.getWZUserStringFromDB(rawInteraction.user)
+        const WZUser = dbUser?.split(';')
         if (!WZUser) {
             return user ? `Brukeren har ikkje kobla opp brukernavn` : 'Du må knytta brukernavn te brukeren din fysste'
         }
@@ -388,7 +389,7 @@ export class CallOfDutyCommands extends AbstractCommands {
             }
 
             orderedStats['winRatio'] = ((orderedStats?.wins ?? 0) / (orderedStats?.gamesPlayed ?? 1)) * 100
-            const userStats = this.getUserStats(interaction, true)
+            const userStats = await this.getUserStats(interaction, true)
             const oldData = userStats
 
             const getValueFormatted = (key: string, value: number) => {
@@ -577,7 +578,8 @@ export class CallOfDutyCommands extends AbstractCommands {
     }
 
     private async findMultiplayerStats(interaction: ChatInputCommandInteraction<CacheType>, user?: User) {
-        const WZUser = user ? this.getWZUserStringFromDB(user)?.split(';') : this.getWZUserStringFromDB(interaction.user)?.split(';')
+        const dbUser = user ? await this.getWZUserStringFromDB(user) : await this.getWZUserStringFromDB(interaction.user)
+        const WZUser = dbUser?.split(';')
         if (!WZUser) {
             return user ? `Brukeren har ikkje kobla opp brukernavn` : 'Du må knytta brukernavn te brukeren din fysste'
         }
@@ -588,8 +590,9 @@ export class CallOfDutyCommands extends AbstractCommands {
         return `Data: ${data}`
     }
 
-    private getWZUserStringFromDB(user: User) {
-        return DatabaseHelper.getUser(user.id)?.activisionUserString
+    private async getWZUserStringFromDB(user: User) {
+        const dbUser = await this.client.db.getUser(user.id)
+        return dbUser?.activisionUserString
     }
 
     /**
@@ -611,15 +614,15 @@ export class CallOfDutyCommands extends AbstractCommands {
     }
 
     /** Beware of stats: any */
-    private saveUserStats(interaction: Interaction<CacheType>, stats: CodStats | CodBRStatsType, isBR?: boolean) {
-        const user = DatabaseHelper.getUser(interaction.user.id)
+    private async saveUserStats(interaction: Interaction<CacheType>, stats: CodStats | CodBRStatsType, isBR?: boolean) {
+        const user = await this.client.db.getUser(interaction.user.id)
         if (isBR) user.codStatsBR = stats
         else user.codStats = stats
-        DatabaseHelper.updateUser(user)
+        this.client.db.updateUser(user)
     }
 
-    private getUserStats(interaction: Interaction<CacheType>, isBr?: boolean) {
-        const user = DatabaseHelper.getUser(interaction.user.id)
+    private async getUserStats(interaction: Interaction<CacheType>, isBr?: boolean) {
+        const user = await this.client.db.getUser(interaction.user.id)
         if (isBr) {
             if ((user.codStatsBR as any) === 'undefined') return {}
             return user.codStatsBR

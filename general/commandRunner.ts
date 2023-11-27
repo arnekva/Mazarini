@@ -15,7 +15,6 @@ import { MazariniClient } from '../client/MazariniClient'
 import { illegalCommandsWhileInJail } from '../commands/money/crimeCommands'
 import { PoletCommands } from '../commands/poletCommands'
 import { LockingHandler } from '../handlers/lockingHandler'
-import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { DateUtils } from '../utils/dateUtils'
@@ -29,12 +28,14 @@ const fetch = require('node-fetch')
 export class CommandRunner {
     private commands: Commands
     private messageHelper: MessageHelper
+    private client: MazariniClient
 
     lastUsedCommand = 'help'
     polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê|å|æ|ê|è|é|à|á)*(ls)(e|a|å|o|i)|(pause)|(🌭)|(hotdog)|(sausage)|(hot-dog)/gi)
     helgeRegex = new RegExp(/(helg|Helg|hælj|hælg)(å|en|ene|a|e|æ)*|(weekend)/gi)
 
     constructor(client: MazariniClient, messageHelper: MessageHelper) {
+        this.client = client
         this.messageHelper = messageHelper
         this.commands = new Commands(client)
     }
@@ -89,7 +90,7 @@ export class CommandRunner {
                     { ephemeral: true }
                 )
             }
-        } else if (this.isLegalChannel(interaction) && this.checkIfBlockedByJail(interaction)) {
+        } else if (this.isLegalChannel(interaction) && await this.checkIfBlockedByJail(interaction)) {
             if (interaction.isRepliable()) {
                 this.messageHelper.replyToInteraction(interaction, `Du e i fengsel, bro`, { ephemeral: true })
             }
@@ -164,8 +165,8 @@ export class CommandRunner {
         }
     }
 
-    checkIfBlockedByJail(interaction: Interaction<CacheType>) {
-        const user = DatabaseHelper.getUser(interaction.user.id)
+    async checkIfBlockedByJail(interaction: Interaction<CacheType>) {
+        const user = await this.client.db.getUser(interaction.user.id)        
         if (user.jail?.daysInJail && user.jail?.daysInJail > 0) {
             if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
                 return illegalCommandsWhileInJail.includes(interaction.commandName)
@@ -227,9 +228,9 @@ export class CommandRunner {
             if (idJoke == '1337') {
                 this.messageHelper.replyToMessage(message, 'nice, id-en te meldingen din inneholde 1337. Gz, du har vonne 1.000 chips', { sendAsSilent: true })
 
-                const user = DatabaseHelper.getUser(message.author.id)
+                const user = await this.client.db.getUser(message.author.id)
                 user.chips += 1000
-                DatabaseHelper.updateUser(user)
+                this.client.db.updateUser(user)
             }
         }
     }

@@ -14,7 +14,6 @@ import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { vinmonopoletKey } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
-import { DatabaseHelper } from '../helpers/databaseHelper'
 import { Languages } from '../helpers/languageHelpers'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
@@ -63,13 +62,10 @@ export class PoletCommands extends AbstractCommands {
         super(client)
     }
 
-    static async fetchPoletData(rawInteraction?: Interaction<CacheType>, storeId?: string) {
+    static async fetchPoletData(storeId: string, rawInteraction?: Interaction<CacheType>) {
         let id = PoletCommands.baseStoreID
         if (storeId) id = storeId
-        if (rawInteraction) {
-            id = DatabaseHelper.getUser(rawInteraction.user.id).favoritePol.id ?? '416'
-        }
-
+        
         const data = await fetch(`${PoletCommands.baseStoreDataURL}?storeId=${id}`, {
             method: 'GET',
             headers: {
@@ -140,7 +136,8 @@ export class PoletCommands extends AbstractCommands {
     public async getProductStockForUser(interaction: ButtonInteraction<CacheType>) {
         const params = interaction.customId.split(';')
         const productId = params[1]
-        const favoritePol = DatabaseHelper.getUser(interaction.user.id).favoritePol
+        const user = await this.client.db.getUser(interaction.user.id)
+        const favoritePol = user.favoritePol
         if (favoritePol && favoritePol.latitude && favoritePol.longitude) {
             const stockData = await this.fetchProductStock(productId, favoritePol.latitude, favoritePol.longitude)
             const embed = new EmbedBuilder().setTitle(`${params[2]}`)
@@ -161,7 +158,8 @@ export class PoletCommands extends AbstractCommands {
 
     private async getOpeningHours(rawInteraction: ChatInputCommandInteraction<CacheType>, storeId?: string) {
         await rawInteraction.deferReply()
-        const poletData = await PoletCommands.fetchPoletData(rawInteraction, storeId)
+        const user = await this.client.db.getUser(rawInteraction.user.id)
+        const poletData = await PoletCommands.fetchPoletData(storeId ?? user.favoritePol.id, rawInteraction)
 
         const fmMessage = new EmbedBuilder().setTitle(`${poletData.storeName} (${poletData.address.postalCode}, ${poletData.address.city}) `)
 

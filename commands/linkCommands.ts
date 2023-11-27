@@ -2,7 +2,6 @@ import { CacheType, ChatInputCommandInteraction, Interaction } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
-import { DatabaseHelper } from '../helpers/databaseHelper'
 import { PoletCommands } from './poletCommands'
 
 export class LinkCommands extends AbstractCommands {
@@ -25,15 +24,15 @@ export class LinkCommands extends AbstractCommands {
             const username = interaction.options.get('brukernavn')?.value as string
             msg = `Linket *${username}* *${platform}* til brukeren din for Warzone`
 
-            saved = this.linkWZName(interaction, platform, username)
+            saved = await this.linkWZName(interaction, platform, username)
         } else if (isRocket) {
             const platform = interaction.options.get('plattform')?.value as string
             const username = interaction.options.get('brukernavn')?.value as string
-            saved = this.linkRocketName(interaction, platform, username)
+            saved = await this.linkRocketName(interaction, platform, username)
             msg = `Linket *${username}* *${platform}* til brukeren din for Rocket League`
         } else if (isLastFM) {
             const username = interaction.options.get('brukernavn')?.value as string
-            saved = this.linkLastFMName(interaction, username)
+            saved = await this.linkLastFMName(interaction, username)
             msg = `Linket *${username}* til brukeren din for Last.fm`
         } else if (isVinmonopol) {
             const polID = interaction.options.get('vinmonopolid')?.value as string
@@ -46,46 +45,46 @@ export class LinkCommands extends AbstractCommands {
         else this.messageHelper.replyToInteraction(interaction, 'Klarte ikke hente brukernavn eller plattform', { hasBeenDefered: true })
     }
 
-    private linkWZName(rawInteraction: ChatInputCommandInteraction<CacheType>, platform?: string, username?: string): boolean {
+    private async linkWZName(rawInteraction: ChatInputCommandInteraction<CacheType>, platform?: string, username?: string): Promise<boolean> {
         if (!platform || !username) return false
-        const user = DatabaseHelper.getUser(rawInteraction.user.id)
+        const user = await this.client.db.getUser(rawInteraction.user.id)
         user.activisionUserString = `${platform};${username}`
-        DatabaseHelper.updateUser(user)
+        this.client.db.updateUser(user)
         return true
     }
 
-    private linkRocketName(rawInteraction: ChatInputCommandInteraction<CacheType>, platform?: string, username?: string): boolean {
+    private async linkRocketName(rawInteraction: ChatInputCommandInteraction<CacheType>, platform?: string, username?: string): Promise<boolean> {
         if (!platform || !username) return false
-        const user = DatabaseHelper.getUser(rawInteraction.user.id)
+        const user = await this.client.db.getUser(rawInteraction.user.id)
         user.rocketLeagueUserString = `${platform};${username}`
-        DatabaseHelper.updateUser(user)
+        this.client.db.updateUser(user)
         return true
     }
 
-    private linkLastFMName(rawInteraction: Interaction<CacheType>, username?: string): boolean {
+    private async linkLastFMName(rawInteraction: Interaction<CacheType>, username?: string): Promise<boolean> {
         if (!username) return false
-        const user = DatabaseHelper.getUser(rawInteraction.user.id)
+        const user = await this.client.db.getUser(rawInteraction.user.id)
         user.lastFMUsername = username
-        DatabaseHelper.updateUser(user)
+        this.client.db.updateUser(user)
         return true
     }
 
     async linkVinmonopolToUser(storeIdFromInteraction: string, userId: string): Promise<string> {
         const storeId = parseInt(storeIdFromInteraction)
         if (!isNaN(storeId) && storeId < 1000) {
-            const store = await PoletCommands.fetchPoletData(undefined, storeId.toString())
+            const store = await PoletCommands.fetchPoletData(storeId.toString())
             if (!store) {
                 return ''
             } else {
                 const storeCoord = store.address.gpsCoord.split(';')
-                const user = DatabaseHelper.getUser(userId)
+                const user = await this.client.db.getUser(userId)
                 const favoritePol = {
                     id: storeId.toString(),
                     latitude: storeCoord[0],
                     longitude: storeCoord[1],
                 }
                 user.favoritePol = favoritePol
-                DatabaseHelper.updateUser(user)
+                this.client.db.updateUser(user)
                 return `${store.storeName} (${store.storeId}), med adressen ${store.address.street} ${store.address.postalCode} ${store.address.city}`
             }
         } else {

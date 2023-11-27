@@ -18,15 +18,15 @@ import {
     Role,
     User,
 } from 'discord.js'
-// import { initializeApp } from 'firebase/app'
+import { initializeApp } from 'firebase/app'
 import { JobScheduler } from '../Jobs/jobScheduler'
-import { environment } from '../client-env'
+import { environment, firebaseConfig } from '../client-env'
 import { PatchNotes } from '../commands/patchnotes/patchnotes'
 import { CommandRunner } from '../general/commandRunner'
 import { ErrorHandler } from '../handlers/errorHandler'
 import { ClientHelper } from '../helpers/clientHelper'
 import { DatabaseHelper } from '../helpers/databaseHelper'
-// import { FirebaseHelper } from '../helpers/firebaseHelper'
+import { FirebaseHelper } from '../helpers/firebaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniBot } from '../main'
 import { ArrayUtils } from '../utils/arrayUtils'
@@ -48,7 +48,7 @@ export class MazariniClient extends Client {
     /** Sets up listeners on pm2 process and will log any activity to the log channel */
     private errorHandler: ErrorHandler
 
-    // private firebaseHelper: FirebaseHelper
+    private databaseHelper: DatabaseHelper
     constructor() {
         super({
             //Specifies intents needed to perform certain actions, i.e. what permissions the bot must have
@@ -75,7 +75,7 @@ export class MazariniClient extends Client {
         this.jobScheduler = new JobScheduler(this.msgHelper, this)
 
         this.errorHandler = new ErrorHandler(this.msgHelper)
-        // this.setupFirebase()
+        this.setupDatabase(this.msgHelper)
     }
 
     /** Starts property listeners for client.  */
@@ -104,7 +104,7 @@ export class MazariniClient extends Client {
                         let allMessages = stdout.split('\n')
                         const latestMessage = allMessages[0]
                         if (latestMessage) {
-                            const lastCommit = DatabaseHelper.getBotData('commit-id')
+                            const lastCommit = await this.databaseHelper.getBotData('commit-id')
                             const indexOfLastID = allMessages.indexOf(lastCommit)
                             allMessages = allMessages.slice(0, indexOfLastID > 0 ? indexOfLastID : 1) //Only send last one if nothing is saved in the DB
 
@@ -130,7 +130,7 @@ export class MazariniClient extends Client {
                             )
 
                             //Update current id (slice away author and message, only keep first part of hash)
-                            DatabaseHelper.setBotData('commit-id', latestMessage.slice(0, 8))
+                            this.db.setBotData('commit-id', latestMessage.slice(0, 8))
                         }
                     }
                 })
@@ -138,8 +138,8 @@ export class MazariniClient extends Client {
 
             if (environment == 'prod') this.msgHelper.sendLogMessage(msg)
 
-            ClientHelper.setStatusFromStorage(this)
-            PatchNotes.compareAndSendPatchNotes(this.msgHelper)
+            ClientHelper.setStatusFromStorage(this, this.databaseHelper)
+            PatchNotes.compareAndSendPatchNotes(this.msgHelper, this.databaseHelper)
 
             this.errorHandler.launchBusListeners()
         })
@@ -227,8 +227,9 @@ export class MazariniClient extends Client {
         })
 
         this.on('guildMemberAdd', async (member: GuildMember) => {
-            UserUtils.onAddedMember(member, this.msgHelper)
+            UserUtils.onAddedMember(member, this.msgHelper, this.databaseHelper)
         })
+        
         this.on('guildMemberRemove', (member: GuildMember | PartialGuildMember) => {
             UserUtils.onMemberLeave(member, this.msgHelper)
         })
@@ -269,10 +270,11 @@ export class MazariniClient extends Client {
         })
     }
 
-    // setupFirebase() {
-    //     const firebaseApp = initializeApp(firebaseConfig)
-    //     this.firebaseHelper = new FirebaseHelper(firebaseApp)
-    // }
+    setupDatabase(msgHelper: MessageHelper) {
+        const firebaseApp = initializeApp(firebaseConfig)
+        const fbHelper = new FirebaseHelper(firebaseApp, msgHelper)
+        this.databaseHelper = new DatabaseHelper(fbHelper)
+    }
 
     /** Run this to create slash commands from CommandBuilder. Will only run in dev mode */
     createSlashCommands() {
@@ -286,7 +288,7 @@ export class MazariniClient extends Client {
         return this.msgHelper
     }
 
-    // get firebase() {
-    //     return this.firebaseHelper
-    // }
+    get db() {
+        return this.databaseHelper
+    }
 }

@@ -3,7 +3,6 @@ import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
-import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { ICountdownItem, ferieItem } from '../interfaces/database/databaseInterface'
 import { ArrayUtils } from '../utils/arrayUtils'
@@ -50,17 +49,18 @@ export class DateCommands extends AbstractCommands {
     }
 
     //TODO: Fix this one
-    private registerFerie(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async registerFerie(interaction: ChatInputCommandInteraction<CacheType>) {
         const isSet = interaction.options.getSubcommand() === 'sett'
         const isVis = interaction.options.getSubcommand() === 'vis'
         const fromDate = interaction.options.get('fra-dato')?.value as string
         const toDate = interaction.options.get('til-dato')?.value as string
         const fromHours = interaction.options.get('fra-klokkeslett')?.value as string
-        let ferier = DatabaseHelper.getStorage().ferie
+        const storage = await this.client.db.getStorage()
+        let ferier = storage?.ferie
         if (!ferier) ferier = []
         if (fromDate === 'fjern' || toDate === 'fjern') {
             ferier = ferier.filter((f) => f.id !== interaction.user.id)
-            DatabaseHelper.updateStorage({ ferie: ferier })
+            this.client.db.updateStorage({ ferie: ferier })
         }
 
         /** Registrer ferier */
@@ -104,7 +104,7 @@ export class DateCommands extends AbstractCommands {
                         id: interaction.user.id,
                         value: JSON.stringify(feireObj),
                     })
-                DatabaseHelper.updateStorage({ ferie: ferier })
+                    this.client.db.updateStorage({ ferie: ferier })
                 this.messageHelper.replyToInteraction(interaction, `Ferien din er satt`, { ephemeral: true })
             } else {
                 this.messageHelper.replyToInteraction(
@@ -115,7 +115,8 @@ export class DateCommands extends AbstractCommands {
         } else {
             const vacayNowMap: Map<Date, string> = new Map<Date, string>()
             const vacayLaterMap: Map<Date, string> = new Map<Date, string>()
-            const ferier = DatabaseHelper.getStorage().ferie
+            const storage = await this.client.db.getStorage()
+            const ferier = storage?.ferie
             if (!ferier) return this.messageHelper.replyToInteraction(interaction, `Ingen har ferie i nærmeste fremtid`)
             /** Finn alle ferier og print dem hvis de er gyldige */
             ferier.forEach((ferie) => {
@@ -166,7 +167,8 @@ export class DateCommands extends AbstractCommands {
         const event = interaction.options.get('hendelse')?.value as string
         const dato = interaction.options.get('dato')?.value as string
         const timestamp = interaction.options.get('klokkeslett')?.value as string
-        let countdowns = DatabaseHelper.getStorage().countdown
+        const storage = await this.client.db.getStorage()
+        let countdowns = storage?.countdown
         if (!countdowns)
             countdowns = {
                 allCountdowns: [],
@@ -177,7 +179,7 @@ export class DateCommands extends AbstractCommands {
                 const ownersCountdown = countdowns.allCountdowns.find((c) => c.ownerId === interaction.user.id)
                 if (ownersCountdown) {
                     ArrayUtils.removeItemOnce(countdowns.allCountdowns, ownersCountdown)
-                    DatabaseHelper.updateStorage({ countdown: countdowns })
+                    this.client.db.updateStorage({ countdown: countdowns })
                     return true
                 }
                 return false
@@ -201,7 +203,7 @@ export class DateCommands extends AbstractCommands {
                     { ephemeral: true }
                 )
             }
-            if (this.userHasMaxCountdowns(interaction.user.id)) {
+            if (await this.userHasMaxCountdowns(interaction.user.id)) {
                 this.messageHelper.replyToInteraction(
                     interaction,
                     `Du kan ha maks 3 countdowns. Bruk /countdown sett med teksten "fjern" for å fjerne alle, eller vent til de går ut.`,
@@ -214,7 +216,7 @@ export class DateCommands extends AbstractCommands {
                     ownerId: interaction.user.id,
                 }
                 countdowns.allCountdowns.push(cdItem)
-                DatabaseHelper.updateStorage({ countdown: countdowns })
+                this.client.db.updateStorage({ countdown: countdowns })
                 this.messageHelper.replyToInteraction(interaction, `Din countdown for *${event}* er satt til ${cdDate.toLocaleString()}`, { ephemeral: true })
             }
         } else if (isPrinting) {
@@ -244,9 +246,10 @@ export class DateCommands extends AbstractCommands {
         }
     }
 
-    private userHasMaxCountdowns(userId: string) {
-        const cds = DatabaseHelper.getStorage().countdown
-        if (!cds) return false
+    private async userHasMaxCountdowns(userId: string) {
+        const storage = await this.client.db.getStorage()
+        const cds = storage?.countdown
+        if (!cds) return false        
         return cds.allCountdowns.filter((c) => c.ownerId === userId).length >= 3
     }
 
@@ -412,8 +415,8 @@ export class DateCommands extends AbstractCommands {
         return val +  ` (${helgeFolelse}% helgefølelse)`
     }
 
-    private addUserBirthday(interaction: ChatInputCommandInteraction<CacheType>) {
-        const user = DatabaseHelper.getUser(interaction.user.id)
+    private async addUserBirthday(interaction: ChatInputCommandInteraction<CacheType>) {
+        const user = await this.client.db.getUser(interaction.user.id)
         const birthDayFromArg = interaction.options.get('dato')?.value as string
         const birthday = user.birthday
         if (birthday && !birthDayFromArg) {
@@ -447,7 +450,7 @@ export class DateCommands extends AbstractCommands {
                 })
             } else {
                 user.birthday = dateString
-                DatabaseHelper.updateUser(user)
+                this.client.db.updateUser(user)
                 this.messageHelper.replyToInteraction(interaction, `Satte bursdagen din til ${dateString}`)
             }
         } else {

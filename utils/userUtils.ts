@@ -111,11 +111,11 @@ export namespace UserUtils {
         return undefined
     }
 
-    export const onAddedMember = async (member: GuildMember, msgHelper: MessageHelper) => {
+    export const onAddedMember = async (member: GuildMember, msgHelper: MessageHelper, dbHelper: DatabaseHelper) => {
         const msg = await msgHelper.sendMessage('340626855990132747', {
             text: 'Welcome to the Gulag, ' + (member.nickname ?? member.displayName) + '. Bruk commanden "/role" for å gi deg selv roller for å komme i gang',
         })
-        DatabaseHelper.getUser(member.id)
+        await dbHelper.getUser(member.id)
         msgHelper.sendLogMessage('En bruker ble med i Mazarini: ' + (member.nickname ?? member.displayName))
     }
 

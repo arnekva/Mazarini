@@ -2,7 +2,6 @@ import { CacheType, ChatInputCommandInteraction, Interaction } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../general/commands'
-import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
 import { MazariniUser } from '../../interfaces/database/databaseInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
@@ -18,12 +17,12 @@ export class MoneyCommands extends AbstractCommands {
         super(client)
     }
 
-    private vippsChips(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async vippsChips(interaction: ChatInputCommandInteraction<CacheType>) {
         const target = interaction.options.get('bruker')?.user
         const amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('chips')?.value)
 
-        const user = DatabaseHelper.getUser(interaction.user.id)
-        const targetUser = DatabaseHelper.getUser(target.id)
+        const user = await this.client.db.getUser(interaction.user.id)
+        const targetUser = await this.client.db.getUser(target.id)
         const userBalance = user.chips
 
         if (isNaN(amount) || amount < 0) {
@@ -33,8 +32,8 @@ export class MoneyCommands extends AbstractCommands {
             user.chips = oldChips - amount
             const newChips = targetUser.chips
             targetUser.chips = newChips + amount
-            DatabaseHelper.updateUser(user)
-            DatabaseHelper.updateUser(targetUser)
+            this.client.db.updateUser(user)
+            this.client.db.updateUser(targetUser)
             this.messageHelper.replyToInteraction(
                 interaction,
                 `${interaction.user.username} vippset ${MentionUtils.mentionUser(targetUser.id)} ${amount} chips.`
@@ -57,7 +56,7 @@ export class MoneyCommands extends AbstractCommands {
             id = target.id
             name = target.username
         }
-        const user = DatabaseHelper.getUser(id)
+        const user = await this.client.db.getUser(id)
         const chips = user.chips
         let embed = EmbedUtils.createSimpleEmbed(`💳 Lommeboken til ${name} 🏧`, `${chips} chips`)
         if (!target && user.hasBeenRobbed) {
@@ -66,20 +65,20 @@ export class MoneyCommands extends AbstractCommands {
                 `Hehe ser ut som noen har stjålet fra deg` + `\nDu har nå ${TextUtils.formatMoney(chips)} chips`
             )
             user.hasBeenRobbed = false
-            DatabaseHelper.updateUser(user)
+            this.client.db.updateUser(user)
         }
         this.messageHelper.replyToInteraction(interaction, embed)
     }
 
     /** Missing streak counter and increased reward */
-    private handleDailyClaimInteraction(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async handleDailyClaimInteraction(interaction: ChatInputCommandInteraction<CacheType>) {
         const numDays = Number(interaction.options.get('dager')?.value)
 
         if (!numDays) {
-            const reply = this.claimDailyChipsAndCoins(interaction)
+            const reply = await this.claimDailyChipsAndCoins(interaction)
             this.messageHelper.replyToInteraction(interaction, reply)
         } else if (numDays) {
-            const reply = this.freezeDailyClaim(interaction, numDays)
+            const reply = await this.freezeDailyClaim(interaction, numDays)
             this.messageHelper.replyToInteraction(interaction, reply)
         } else {
             //Usikker på om dager er obligatorisk, så håndter en eventuell feil intill bekreftet oblig.
@@ -87,9 +86,9 @@ export class MoneyCommands extends AbstractCommands {
         }
     }
 
-    private claimDailyChipsAndCoins(interaction: ChatInputCommandInteraction<CacheType>): string {
+    private async claimDailyChipsAndCoins(interaction: ChatInputCommandInteraction<CacheType>): Promise<string> {
         if (interaction) {
-            const user = DatabaseHelper.getUser(interaction.user.id)
+            const user = await this.client.db.getUser(interaction.user.id)
             const canClaim = user.dailyClaim
             const dailyPrice = 100
             const hasFreeze = user.dailyFreezeCounter
@@ -137,7 +136,7 @@ export class MoneyCommands extends AbstractCommands {
                     user.dailyClaimStreak.wasAddedToday = streak?.wasAddedToday ?? true
                 }
                 user.dailyClaim = 1
-                DatabaseHelper.updateUser(user)
+                this.client.db.updateUser(user)
                 return claimedMessage
             } else {
                 return 'Du har allerede hentet dine daglige chips. Prøv igjen i morgen etter klokken 06:00'
@@ -145,8 +144,8 @@ export class MoneyCommands extends AbstractCommands {
         } else return 'Klarte ikke hente daily'
     }
 
-    private freezeDailyClaim(interaction: Interaction<CacheType>, numDays: number): string {
-        const user = DatabaseHelper.getUser(interaction.user.id)
+    private async freezeDailyClaim(interaction: Interaction<CacheType>, numDays: number): Promise<string> {
+        const user = await this.client.db.getUser(interaction.user.id)
 
         const hasFreeze = user.dailyFreezeCounter
         if (isNaN(numDays) || numDays > 8) {
@@ -155,7 +154,7 @@ export class MoneyCommands extends AbstractCommands {
             return 'Du har allerede frosset daily claimet ditt i ' + hasFreeze + ' dager til'
         } else {
             user.dailyFreezeCounter = numDays
-            DatabaseHelper.updateUser(user)
+            this.client.db.updateUser(user)
             return (
                 'Du har frosset daily claimen din i ' +
                 numDays +
@@ -171,7 +170,7 @@ export class MoneyCommands extends AbstractCommands {
         const dailyChips = ((dailyPrice + Number(additionalCoins ?? 0)) * prestigeMultiplier).toFixed(0)
         user.chips = user.chips + Number(dailyChips)
         user.dailyClaim = 1
-        DatabaseHelper.updateUser(user)
+        this.client.db.updateUser(user)
 
         return { dailyChips: dailyChips }
     }

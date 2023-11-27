@@ -3,7 +3,6 @@ import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { lfKey, musixMatchKey } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
-import { DatabaseHelper } from '../helpers/databaseHelper'
 import { EmbedUtils } from '../utils/embedUtils'
 import { TextUtils } from '../utils/textUtils'
 const fetch = require('node-fetch')
@@ -259,7 +258,8 @@ export class Music extends AbstractCommands {
     private async searchLibrary(interaction: ChatInputCommandInteraction<CacheType>) {
         /** Get the URL with the specified URL param
          */
-        const username = DatabaseHelper.getUser(interaction.user.id)?.lastFMUsername
+        const user = await this.client.db.getUser(interaction.user.id)
+        const username = user?.lastFMUsername
         if (!username) {
             this.messageHelper.replyToInteraction(interaction, `Du må linka last.fm-brukeren din`, { ephemeral: true })
         } else {
@@ -343,7 +343,7 @@ export class Music extends AbstractCommands {
     }
 
     async findCommandForInteraction(interaction: Interaction<CacheType>, options: string, user?: User, period?: string): Promise<IMusicData[] | string> {
-        const fmUser = DatabaseHelper.getUser(user ? user?.id : interaction.user.id)
+        const fmUser = await this.client.db.getUser(user ? user?.id : interaction.user.id)
         if (fmUser.lastFMUsername) {
             let data: fetchData = {
                 user: fmUser.lastFMUsername,

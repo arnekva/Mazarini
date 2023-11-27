@@ -13,7 +13,6 @@ import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
 import { ActionMenuHelper } from '../helpers/actionMenuHelper'
-import { DatabaseHelper } from '../helpers/databaseHelper'
 import { ChipsStats, RulettStats } from '../interfaces/database/databaseInterface'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
@@ -45,14 +44,14 @@ export class UserCommands extends AbstractCommands {
         await this.messageHelper.sendMessage(interaction?.channelId, { components: [row] })
     }
 
-    private setStatus(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async setStatus(interaction: ChatInputCommandInteraction<CacheType>) {
         const isVis = interaction.options.getSubcommand() === 'vis'
         const isSet = interaction.options.getSubcommand() === 'sett'
         if (isSet) {
             const statusText = interaction.options.get('tekst')?.value as string
-            const user = DatabaseHelper.getUser(interaction.user.id)
+            const user = await this.client.db.getUser(interaction.user.id)
             user.status = statusText
-            DatabaseHelper.updateUser(user)
+            this.client.db.updateUser(user)
 
             const embed = new EmbedBuilder()
                 .setTitle(`${interaction.user.username} har oppdatert statusen sin`)
@@ -62,13 +61,12 @@ export class UserCommands extends AbstractCommands {
 
             this.messageHelper.replyToInteraction(interaction, embed)
         } else if (isVis) {
-            const val = DatabaseHelper.getAllUserIdsAsObject()
+            const users = await this.client.db.getAllUsers()
             const embed = new EmbedBuilder().setTitle('Statuser')
-            Object.keys(val).forEach((key) => {
-                const user = DatabaseHelper.getUser(key)
+            users.forEach((user) => {
                 const status = user?.status
                 if (status && status !== 'undefined') {
-                    const name = UserUtils.findUserById(key, interaction)?.username ?? 'Ukjent brukernavn'
+                    const name = UserUtils.findUserById(user.id, interaction)?.username ?? 'Ukjent brukernavn'
                     embed.addFields({ name: name, value: status })
                 }
             })
@@ -77,8 +75,8 @@ export class UserCommands extends AbstractCommands {
         }
     }
 
-    private findUserInfo(interaction: ChatInputCommandInteraction<CacheType>) {
-        const allUserTabs = DatabaseHelper.getUser(interaction.user.id)
+    private async findUserInfo(interaction: ChatInputCommandInteraction<CacheType>) {
+        const allUserTabs = await this.client.db.getUser(interaction.user.id)
 
         const options: SelectMenuComponentOptionData[] = Object.keys(allUserTabs).map((key) => ({
             label: key,
@@ -94,7 +92,7 @@ export class UserCommands extends AbstractCommands {
     private async handleUserInfoViewingMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {
         if (selectMenu.customId.split(';')[1] === selectMenu.user.id) {
             const value = selectMenu.values[0]
-            let userData = DatabaseHelper.getUser(selectMenu.user.id)[value]
+            let userData = await this.client.db.getUser(selectMenu.user.id)[value]
 
             if (typeof userData === 'object') {
                 userData = Object.entries(userData).map((entry, val) => {
@@ -125,8 +123,8 @@ export class UserCommands extends AbstractCommands {
         }
     }
 
-    private findUserStats(interaction: ChatInputCommandInteraction<CacheType>) {
-        const user = DatabaseHelper.getUser(interaction.user.id)
+    private async findUserStats(interaction: ChatInputCommandInteraction<CacheType>) {
+        const user = await this.client.db.getUser(interaction.user.id)
         const userStats = user.userStats?.chipsStats
         const rulettStats = user.userStats?.rulettStats
         let reply = ''

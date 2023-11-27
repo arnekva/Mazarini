@@ -18,9 +18,9 @@ export class ClientHelper {
         }
     }
 
-    static setStatusFromStorage(client: Client) {
-        const status = DatabaseHelper.getBotData('status') ?? 'Kaptein Sabeltann'
-        const activityType: Exclude<ActivityType, ActivityType.Custom> = DatabaseHelper.getBotData('statusType') ?? 'WATCHING'
+    static async setStatusFromStorage(client: Client, dbHelper: DatabaseHelper) {
+        const status = await dbHelper.getBotData('status') ?? 'Kaptein Sabeltann'
+        const activityType: Exclude<ActivityType, ActivityType.Custom> = await dbHelper.getBotData('statusType') ?? 'WATCHING'
         client.user?.setPresence({
             activities: [
                 {
