@@ -1,16 +1,13 @@
 import { exec } from 'child_process'
 import {
-    AuditLogEvent,
     CacheType,
     Client,
     DMChannel,
-    GatewayIntentBits,
     Guild,
     GuildBan,
     GuildMember,
     Interaction,
     Message,
-    MessageType,
     NonThreadGuildBasedChannel,
     PartialGuildMember,
     PartialMessage,
@@ -53,21 +50,21 @@ export class MazariniClient extends Client {
         super({
             //Specifies intents needed to perform certain actions, i.e. what permissions the bot must have
             intents: [
-                GatewayIntentBits.Guilds,
-                GatewayIntentBits.GuildMessages,
-                GatewayIntentBits.GuildInvites,
-                GatewayIntentBits.DirectMessages,
-                GatewayIntentBits.GuildBans,
-                GatewayIntentBits.GuildEmojisAndStickers,
-                GatewayIntentBits.GuildMembers,
-                GatewayIntentBits.MessageContent,
-                GatewayIntentBits.GuildMessageReactions,
-                GatewayIntentBits.GuildMessageTyping,
-                GatewayIntentBits.GuildPresences,
-                GatewayIntentBits.GuildWebhooks,
-                GatewayIntentBits.GuildIntegrations,
-                GatewayIntentBits.DirectMessageTyping,
-                GatewayIntentBits.GuildVoiceStates,
+                1, //  GatewayIntentBits.Guilds ,
+                512, //  GatewayIntentBits.GuildMessages,
+                64, // GatewayIntentBits.GuildInvites,
+                4096, // GatewayIntentBits.DirectMessages,
+                4, // GatewayIntentBits.GuildBans,
+                8, // GatewayIntentBits.GuildEmojisAndStickers,
+                2, //GatewayIntentBits.GuildMembers,
+                32768, // GatewayIntentBits.MessageContent,
+                1024, // GatewayIntentBits.GuildMessageReactions,
+                2048, //  GatewayIntentBits.GuildMessageTyping,
+                256, // GatewayIntentBits.GuildPresences,
+                32, //  GatewayIntentBits.GuildWebhooks,
+                16, //  GatewayIntentBits.GuildIntegrations,
+                16384, //  GatewayIntentBits.DirectMessageTyping,
+                128, //   GatewayIntentBits.GuildVoiceStates,
             ],
         })
         this.msgHelper = new MessageHelper(this)
@@ -151,7 +148,7 @@ export class MazariniClient extends Client {
             if (
                 message?.author?.id == MentionUtils.User_IDs.BOT_HOIE ||
                 message?.author?.id == MentionUtils.User_IDs.CLYDE ||
-                message?.type === MessageType.ChannelPinnedMessage ||
+                message?.type === 6 || // MessageType.ChannelPinnedMessage ||
                 !message?.author?.id
             ) {
                 //Do not react
@@ -160,7 +157,7 @@ export class MazariniClient extends Client {
                 if (
                     (message.mentions.users.find((u) => u.id === MentionUtils.User_IDs.BOT_HOIE) ||
                         message.content.includes(`<@!${MentionUtils.User_IDs.BOT_HOIE}>`)) &&
-                    message.type !== MessageType.Reply &&
+                    message.type !== 19 && // MessageType.Reply &&
                     environment === 'prod'
                 ) {
                     message.reply(ArrayUtils.randomChoiceFromArray(textArrays.bentHoieLines))
@@ -172,7 +169,7 @@ export class MazariniClient extends Client {
             if (!message.guild) return
             const fetchedLogs = await message?.guild.fetchAuditLogs({
                 limit: 1,
-                type: AuditLogEvent.MessageDelete,
+                type: 72, // AuditLogEvent.MessageDelete,
             })
             const actionLogId = MentionUtils.CHANNEL_IDs.ACTION_LOG
 
@@ -229,7 +226,7 @@ export class MazariniClient extends Client {
         this.on('guildMemberAdd', async (member: GuildMember) => {
             UserUtils.onAddedMember(member, this.msgHelper, this.databaseHelper)
         })
-        
+
         this.on('guildMemberRemove', (member: GuildMember | PartialGuildMember) => {
             UserUtils.onMemberLeave(member, this.msgHelper)
         })
