@@ -22,7 +22,7 @@ export class DailyJobs {
             await this.updateJailAndJailbreakCounters(users)
         }
         this.checkForUserBirthdays(users)
-        this.updateRLTournaments()
+        // this.updateRLTournaments()
     }
 
     private updateRLTournaments() {
@@ -61,10 +61,10 @@ export class DailyJobs {
     }
 
     private async validateAndResetDailyClaims(users: MazariniUser[]) {
-        const updates = {}
+        const updates = this.client.db.getUpdatesObject<'daily'>()
         users.forEach((user) => {
-            const daily = user.daily
-            if (!daily.streak) return //Verify that the user as a streak/claim, otherwise skip
+            const daily = user?.daily
+            if (!daily?.streak) return //Verify that the user as a streak/claim, otherwise skip
             //Check if user has frozen their streak
             const hasFrozenStreak = daily.dailyFreezeCounter
 
@@ -74,7 +74,9 @@ export class DailyJobs {
                 if (!daily.claimedToday) daily.streak = 0 //If not claimed today, also reset the streak
                 daily.claimedToday = false //Reset check for daily claim
             }
-            updates[`/users/${user.id}/daily`] = daily
+
+            const updatePath = this.client.db.getUserPathToUpdate(user.id, 'daily')
+            updates[updatePath] = daily
         })
         this.client.db.updateData(updates)
     }
@@ -96,7 +98,7 @@ export class DailyJobs {
     }
 
     private async updateJailAndJailbreakCounters(users: MazariniUser[]) {
-        const updates = {}
+        const updates = this.client.db.getUpdatesObject<'jail'>()
         users.forEach((user) => {
             const daysLeftInJail = user.jail?.daysInJail
             if (user.jail) {
@@ -108,7 +110,8 @@ export class DailyJobs {
                 }
                 user.jail.attemptedJailbreaks = 0
                 user.jail.timesJailedToday = 0
-                updates[`/users/${user.id}/jail`] = user.jail
+                const updatePath = this.client.db.getUserPathToUpdate(user.id, 'jail')
+                updates[updatePath] = user.jail
             }
         })
         this.client.db.updateData(updates)

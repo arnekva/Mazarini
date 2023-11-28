@@ -86,31 +86,33 @@ export class MoneyCommands extends AbstractCommands {
         if (interaction) {
             const user = await this.client.db.getUser(interaction.user.id)
             const canClaim = !user.daily?.claimedToday
+            console.log('in daily', canClaim, user.daily)
+
             const hasFreeze = user.daily?.dailyFreezeCounter
             if (hasFreeze && !isNaN(hasFreeze) && hasFreeze > 0) {
                 return 'Du har frosset daily claimet ditt i ' + hasFreeze + ' dager til. Vent til da og prøv igjen'
             } else if (canClaim) {
                 const updates = {}
-                const oldData = user.daily
+                const oldData: DailyReward = user.daily || { claimedToday: false, streak: 0 }
                 const newData: DailyReward = { streak: oldData?.streak + 1 ?? 1, claimedToday: true, prestige: oldData?.prestige ?? 0, dailyFreezeCounter: 0 }
 
                 const reward = this.findDailyReward(newData)
-                updates[`/users/${user.id}/chips`] = user.chips + reward
+                updates[`/users/${user.id}/chips`] = (user?.chips ?? 0) + reward
 
-                let claimedMessage = `Du har hentet dine daglige ${reward} chips ${
-                    newData.streak > 1 ? '(' + newData.streak + ' dager i streak)' : ''
-                } ${oldData?.prestige ? '(' + oldData?.prestige + ' prestige)' : ''}`
+                let claimedMessage = `Du har hentet dine daglige ${reward} chips ${newData.streak > 1 ? '(' + newData.streak + ' dager i streak)' : ''} ${
+                    oldData?.prestige ? '(' + oldData?.prestige + ' prestige)' : ''
+                }`
 
                 const maxLimit = 7
                 if (newData.streak >= maxLimit) {
                     newData.prestige = 1 + (newData.prestige ?? 0)
 
-                    claimedMessage += `\nDægårten! Du har henta daglige chips i ${
-                        newData.streak
-                    } dager i strekk! Gz dude, nå prestige du. Du e nå prestige ${newData.prestige} og får ${this.findPrestigeMultiplier(newData.prestige).toFixed(
+                    claimedMessage += `\nDægårten! Du har henta daglige chips i ${newData.streak} dager i strekk! Gz dude, nå prestige du. Du e nå prestige ${
+                        newData.prestige
+                    } og får ${this.findPrestigeMultiplier(newData.prestige).toFixed(
                         2
                     )}x i multiplier på alle daily's framøve! \n\n*Streaken din resettes nå te 1*`
-                    newData.streak = 1 
+                    newData.streak = 1
                 }
                 updates[`/users/${user.id}/daily`] = newData
                 this.client.db.updateData(updates)
