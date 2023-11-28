@@ -1,5 +1,5 @@
 import fetch from 'node-fetch'
-import { rapidApiKey2 } from '../client-env'
+import { rapidApiKey, rapidApiKey2 } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniUser, RocketLeagueTournament } from '../interfaces/database/databaseInterface'
@@ -22,15 +22,15 @@ export class DailyJobs {
             await this.updateJailAndJailbreakCounters(users)
         }
         this.checkForUserBirthdays(users)
-        if (!noRL) this.updateRLTournaments()
+        if (!noRL) this.updateRLTournaments(rapidApiKey)
     }
 
-    private updateRLTournaments() {
+    private updateRLTournaments(apiKey: string) {
         const data = fetch('https://rocket-league1.p.rapidapi.com/tournaments/europe', {
             headers: {
                 'User-Agent': 'RapidAPI Playground',
                 'Accept-Encoding': 'identity',
-                '_X-RapidAPI-Key': rapidApiKey2,
+                '_X-RapidAPI-Key': apiKey,
                 get 'X-RapidAPI-Key'() {
                     return this['_X-RapidAPI-Key']
                 },
@@ -57,6 +57,7 @@ export class DailyJobs {
             })
             .catch((err) => {
                 this.messageHelper.sendLogMessage(`Klarte ikke hente Rocket League Tournaments. Error: \n${err}`)
+                if (apiKey === rapidApiKey) this.updateRLTournaments(rapidApiKey2)
             })
     }
 
