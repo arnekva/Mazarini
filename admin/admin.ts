@@ -1,14 +1,5 @@
 import { exec } from 'child_process'
-import {
-    ActivityType,
-    APIInteractionGuildMember,
-    AttachmentBuilder,
-    CacheType,
-    ChatInputCommandInteraction,
-    GuildMember,
-    ModalSubmitInteraction,
-    TextChannel,
-} from 'discord.js'
+import { ActivityType, APIInteractionGuildMember, CacheType, ChatInputCommandInteraction, GuildMember, ModalSubmitInteraction, TextChannel } from 'discord.js'
 import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { environment } from '../client-env'
@@ -44,24 +35,8 @@ export class Admin extends AbstractCommands {
             dj.runJobs()
             this.messageHelper.sendLogMessage(`Daily Jobs was forced to run by ${interaction.user.username}`)
         } else if (property === 'force' && interaction.user.id === '245607554254766081') {
-            const db = new AttachmentBuilder('./myDataBase.json', { name: 'db.json' })
-            this.messageHelper.sendMessage(interaction.channelId, { files: [db] })
-            // const users = DatabaseHelper.getAllUsers()
-            // users.forEach((u) => {
-            //     u.chips = 0
-            //     u.jail = {
-            //         attemptedJailbreaks: 0,
-            //         daysInJail: 0,
-            //         jailState: 'none',
-            //         timesJailedToday: 0,
-            //     }
-            //     u.dailyClaim = 0
-            //     u.dailyClaimStreak = {
-            //         streak: 0,
-            //         wasAddedToday: false,
-            //     }
-            //     DatabaseHelper.updateUser(u)
-            // })
+            const dj = new DailyJobs(this.messageHelper, this.client)
+            dj.runJobs(undefined, true)
         } else {
             let logMsg = ''
             let hasAck = false

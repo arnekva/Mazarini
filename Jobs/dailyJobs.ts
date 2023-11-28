@@ -15,14 +15,14 @@ export class DailyJobs {
         this.client = client
     }
 
-    async runJobs(onlyBd?: boolean) {
+    async runJobs(onlyBd?: boolean, noRL?: boolean) {
         const users = await this.client.db.getAllUsers()
         if (!onlyBd) {
             await this.validateAndResetDailyClaims(users)
             await this.updateJailAndJailbreakCounters(users)
         }
         this.checkForUserBirthdays(users)
-        // this.updateRLTournaments()
+        if (!noRL) this.updateRLTournaments()
     }
 
     private updateRLTournaments() {
@@ -63,8 +63,8 @@ export class DailyJobs {
     private async validateAndResetDailyClaims(users: MazariniUser[]) {
         const updates = this.client.db.getUpdatesObject<'daily'>()
         users.forEach((user) => {
-            const daily = user?.daily
-            if (!daily?.streak) return //Verify that the user as a streak/claim, otherwise skip
+            const daily = user.daily
+            if (!daily.streak) return //Verify that the user as a streak/claim, otherwise skip
             //Check if user has frozen their streak
             const hasFrozenStreak = daily.dailyFreezeCounter
 
