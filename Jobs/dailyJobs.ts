@@ -1,9 +1,8 @@
 import fetch from 'node-fetch'
 import { rapidApiKey2 } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
-import { IDailyPriceClaim } from '../commands/money/gamblingCommands'
 import { MessageHelper } from '../helpers/messageHelper'
-import { RocketLeagueTournament } from '../interfaces/database/databaseInterface'
+import { MazariniUser, RocketLeagueTournament } from '../interfaces/database/databaseInterface'
 import { DateUtils } from '../utils/dateUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
@@ -16,12 +15,13 @@ export class DailyJobs {
         this.client = client
     }
 
-    runJobs(onlyBd?: boolean) {
+    async runJobs(onlyBd?: boolean) {
+        const users = await this.client.db.getAllUsers()
         if (!onlyBd) {
-            this.validateAndResetDailyClaims()
-            this.updateJailAndJailbreakCounters()
+            await this.validateAndResetDailyClaims(users)
+            await this.updateJailAndJailbreakCounters(users)
         }
-        this.checkForUserBirthdays()
+        this.checkForUserBirthdays(users)
         this.updateRLTournaments()
     }
 
@@ -60,33 +60,26 @@ export class DailyJobs {
             })
     }
 
-    private async validateAndResetDailyClaims() {
-        const users = await this.client.db.getAllUsers()
+    private async validateAndResetDailyClaims(users: MazariniUser[]) {
+        const updates = {}
         users.forEach((user) => {
-            const userStreak = user.dailyClaimStreak
-            if (!userStreak) return //Verify that the user as a streak/claim, otherwise skip
-            const currentStreak = user.dailyClaimStreak
-            if (!currentStreak) return
-            const streak: IDailyPriceClaim = { streak: currentStreak.streak, wasAddedToday: false }
+            const daily = user.daily
+            if (!daily.streak) return //Verify that the user as a streak/claim, otherwise skip
             //Check if user has frozen their streak
-            const hasFrozenStreak = user.dailyFreezeCounter
+            const hasFrozenStreak = daily.dailyFreezeCounter
 
             if (hasFrozenStreak && !isNaN(hasFrozenStreak) && hasFrozenStreak > 0) {
-                user.dailyFreezeCounter = user.dailyFreezeCounter ? --user.dailyFreezeCounter : 0
+                daily.dailyFreezeCounter = daily.dailyFreezeCounter ? --daily.dailyFreezeCounter : 0
             } else {
-                streak.wasAddedToday = false //Reset check for daily claim
-                if (!currentStreak.wasAddedToday) streak.streak = 0 //If not claimed today, also reset the streak
-                user.dailyClaimStreak = streak
+                if (!daily.claimedToday) daily.streak = 0 //If not claimed today, also reset the streak
+                daily.claimedToday = false //Reset check for daily claim
             }
-            user.dailyClaim = 0
-            this.client.db.updateUser(user)
-            this.client.db.deleteSpecificPrefixValues('dailyClaim')
+            updates[`/users/${user.id}/daily`] = daily
         })
+        this.client.db.updateData(updates)
     }
 
-    private async checkForUserBirthdays() {
-        const users = await this.client.db.getAllUsers()
-
+    private async checkForUserBirthdays(users: MazariniUser[]) {
         users.forEach((user) => {
             const birthday: string | undefined = user?.birthday
             if (!birthday) return
@@ -102,8 +95,8 @@ export class DailyJobs {
         })
     }
 
-    private async updateJailAndJailbreakCounters() {
-        const users = await this.client.db.getAllUsers()
+    private async updateJailAndJailbreakCounters(users: MazariniUser[]) {
+        const updates = {}
         users.forEach((user) => {
             const daysLeftInJail = user.jail?.daysInJail
             if (user.jail) {
@@ -115,9 +108,10 @@ export class DailyJobs {
                 }
                 user.jail.attemptedJailbreaks = 0
                 user.jail.timesJailedToday = 0
-                this.client.db.updateUser(user)
+                updates[`/users/${user.id}/jail`] = user.jail
             }
         })
+        this.client.db.updateData(updates)
     }
 
     private logEvent() {

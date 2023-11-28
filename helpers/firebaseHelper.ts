@@ -84,18 +84,7 @@ export class FirebaseHelper {
     }
 
     public async updateData(updates: object) {
-        update(ref(this.db, database), updates).catch((error) => {
-            this.messageHelper.sendLogMessage('Prøvde å oppdatere data, men feilet\n' + error + '\nForsøker å opprette dataen i databasen')
-            Object.keys(updates).forEach(async (key) => {
-                set(ref(this.db, `${database}${key}`), updates[key])
-                    .then(() => {
-                        this.messageHelper.sendLogMessage(`La til ${updates[key]} i databasen under ${key}`)
-                    })
-                    .catch((error) => {
-                        this.messageHelper.sendLogMessage(`Klarte ikke å legge til $${updates[key]} i databasen.`)
-                    })
-            })
-        })
+        update(ref(this.db, database), updates)
     }
 
     public async updateUser(user: MazariniUser) {

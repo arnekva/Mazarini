@@ -10,10 +10,6 @@ import { MiscUtils } from '../../utils/miscUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { TextUtils } from '../../utils/textUtils'
 
-export interface IDailyPriceClaim {
-    streak: number
-    wasAddedToday: boolean
-}
 export class GamblingCommands extends AbstractCommands {
     constructor(client: MazariniClient) {
         super(client)

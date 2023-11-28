@@ -1,6 +1,5 @@
 import { CodBRStatsType, CodStats } from '../../commands/gaming/callofdutyCommands'
 import { rocketLeagueDbData } from '../../commands/gaming/rocketleagueCommands'
-import { IDailyPriceClaim } from '../../commands/money/gamblingCommands'
 import { IPoll } from '../../commands/pollcommands'
 
 export interface DatabaseStructure {
@@ -75,10 +74,7 @@ export interface MazariniUser {
     rocketLeagueUserString?: string
     inventory?: any[]
     debuff?: any
-    dailyClaim?: number
-    dailyClaimStreak?: IDailyPriceClaim
-    dailyFreezeCounter?: number
-    prestige?: number
+    daily?: DailyReward
     favoritePol?: FavoritePol
     userStats?: UserStats
     hasBeenRobbed?: boolean
@@ -86,6 +82,13 @@ export interface MazariniUser {
     /** Saved as date string */
     whamageddonLoss?: string
     textCommandStrings?: string[]
+}
+
+export interface DailyReward {
+    streak: number
+    claimedToday: boolean
+    dailyFreezeCounter?: number
+    prestige?: number
 }
 
 /** Values or objects that can be cached. All props must be marked optional */

@@ -3,15 +3,11 @@ import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../general/commands'
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
-import { MazariniUser } from '../../interfaces/database/databaseInterface'
+import { DailyReward } from '../../interfaces/database/databaseInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { MentionUtils } from '../../utils/mentionUtils'
 import { TextUtils } from '../../utils/textUtils'
 
-export interface IDailyPriceClaim {
-    streak: number
-    wasAddedToday: boolean
-}
 export class MoneyCommands extends AbstractCommands {
     constructor(client: MazariniClient) {
         super(client)
@@ -89,54 +85,35 @@ export class MoneyCommands extends AbstractCommands {
     private async claimDailyChipsAndCoins(interaction: ChatInputCommandInteraction<CacheType>): Promise<string> {
         if (interaction) {
             const user = await this.client.db.getUser(interaction.user.id)
-            const canClaim = user.dailyClaim
-            const dailyPrice = 100
-            const hasFreeze = user.dailyFreezeCounter
+            const canClaim = !user.daily?.claimedToday
+            const hasFreeze = user.daily?.dailyFreezeCounter
             if (hasFreeze && !isNaN(hasFreeze) && hasFreeze > 0) {
                 return 'Du har frosset daily claimet ditt i ' + hasFreeze + ' dager til. Vent til da og prøv igjen'
-            } else if (canClaim === 0 || canClaim === undefined) {
-                const oldData = user.dailyClaimStreak
+            } else if (canClaim) {
+                const updates = {}
+                const oldData = user.daily
+                const newData: DailyReward = { streak: oldData?.streak + 1 ?? 1, claimedToday: true, prestige: oldData?.prestige ?? 0, dailyFreezeCounter: 0 }
 
-                let streak: IDailyPriceClaim = { streak: 1, wasAddedToday: true }
-                if (oldData) {
-                    const oldStreak = oldData
-                    streak = { streak: oldStreak?.streak + 1 ?? 1, wasAddedToday: true }
-                } else {
-                    streak = { streak: 1, wasAddedToday: true }
-                }
+                const reward = this.findDailyReward(newData)
+                updates[`/users/${user.id}/chips`] = user.chips + reward
 
-                const daily = this.findAndIncrementValue(streak.streak, dailyPrice, user)
-
-                const prestige = user.prestige
-                let claimedMessage = `Du har hentet dine daglige ${daily.dailyChips} chips ${
-                    streak.streak > 1 ? '(' + streak.streak + ' dager i streak)' : ''
-                } ${prestige ? '(' + prestige + ' prestige)' : ''}`
+                let claimedMessage = `Du har hentet dine daglige ${reward} chips ${
+                    newData.streak > 1 ? '(' + newData.streak + ' dager i streak)' : ''
+                } ${oldData?.prestige ? '(' + oldData?.prestige + ' prestige)' : ''}`
 
                 const maxLimit = 7
-                if (streak.streak >= maxLimit) {
-                    const remainingDays = streak.streak - maxLimit
-                    user.prestige = 1 + (user.prestige ?? 0)
-
-                    const prestige = user.prestige
+                if (newData.streak >= maxLimit) {
+                    newData.prestige = 1 + (newData.prestige ?? 0)
 
                     claimedMessage += `\nDægårten! Du har henta daglige chips i ${
-                        streak.streak
-                    } dager i strekk! Gz dude, nå prestige du. Du e nå prestige ${prestige} og får ${this.findPrestigeMultiplier(prestige).toFixed(
+                        newData.streak
+                    } dager i strekk! Gz dude, nå prestige du. Du e nå prestige ${newData.prestige} og får ${this.findPrestigeMultiplier(newData.prestige).toFixed(
                         2
-                    )}x i multiplier på alle daily's framøve! \n\n*Streaken din resettes nå te ${!!remainingDays ? remainingDays : '1'}*`
-                    streak = { streak: 1 + Math.max(remainingDays, 0), wasAddedToday: true }
+                    )}x i multiplier på alle daily's framøve! \n\n*Streaken din resettes nå te 1*`
+                    newData.streak = 1 
                 }
-                if (!user.dailyClaimStreak) {
-                    user.dailyClaimStreak = {
-                        streak: 1,
-                        wasAddedToday: true,
-                    }
-                } else {
-                    user.dailyClaimStreak.streak = streak?.streak ?? 1
-                    user.dailyClaimStreak.wasAddedToday = streak?.wasAddedToday ?? true
-                }
-                user.dailyClaim = 1
-                this.client.db.updateUser(user)
+                updates[`/users/${user.id}/daily`] = newData
+                this.client.db.updateData(updates)
                 return claimedMessage
             } else {
                 return 'Du har allerede hentet dine daglige chips. Prøv igjen i morgen etter klokken 06:00'
@@ -147,14 +124,15 @@ export class MoneyCommands extends AbstractCommands {
     private async freezeDailyClaim(interaction: Interaction<CacheType>, numDays: number): Promise<string> {
         const user = await this.client.db.getUser(interaction.user.id)
 
-        const hasFreeze = user.dailyFreezeCounter
+        const hasFreeze = user?.daily?.dailyFreezeCounter
         if (isNaN(numDays) || numDays > 8) {
             return 'Tallet var ikke gyldig'
         } else if (hasFreeze && hasFreeze > 0) {
             return 'Du har allerede frosset daily claimet ditt i ' + hasFreeze + ' dager til'
         } else {
-            user.dailyFreezeCounter = numDays
-            this.client.db.updateUser(user)
+            const updates = {}
+            updates[`/users/${user.id}/daily/dailyFreezeCounter`] = numDays
+            this.client.db.updateData(updates)
             return (
                 'Du har frosset daily claimen din i ' +
                 numDays +
@@ -163,16 +141,12 @@ export class MoneyCommands extends AbstractCommands {
         }
     }
 
-    private findAndIncrementValue(streak: number, dailyPrice: number, user: MazariniUser): { dailyChips: string } {
-        const additionalCoins = this.findAdditionalCoins(streak)
-        const prestigeMultiplier = this.findPrestigeMultiplier(user.prestige)
+    private findDailyReward(daily: DailyReward): number {
+        const dailyPrice = 100
+        const additionalCoins = this.findAdditionalCoins(daily.streak)
+        const prestigeMultiplier = this.findPrestigeMultiplier(daily.prestige)
 
-        const dailyChips = ((dailyPrice + Number(additionalCoins ?? 0)) * prestigeMultiplier).toFixed(0)
-        user.chips = user.chips + Number(dailyChips)
-        user.dailyClaim = 1
-        this.client.db.updateUser(user)
-
-        return { dailyChips: dailyChips }
+        return Math.floor((dailyPrice + Number(additionalCoins ?? 0)) * prestigeMultiplier)
     }
 
     private findPrestigeMultiplier(p: number | undefined) {

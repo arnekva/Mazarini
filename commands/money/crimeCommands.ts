@@ -12,10 +12,6 @@ import { RandomUtils } from '../../utils/randomUtils'
 import { TextUtils } from '../../utils/textUtils'
 import { UserUtils } from '../../utils/userUtils'
 
-export interface IDailyPriceClaim {
-    streak: number
-    wasAddedToday: boolean
-}
 export class CrimeCommands extends AbstractCommands {
     constructor(client: MazariniClient) {
         super(client)
@@ -261,7 +257,7 @@ export class CrimeCommands extends AbstractCommands {
                 timesJailedToday: ++engager.jail.timesJailedToday,
             }
 
-            engager.dailyFreezeCounter = 0
+            engager.daily.dailyFreezeCounter = 0
             this.client.db.updateUser(engager)
             let jailTypeString = ``
             if (nextJailState === 'max') jailTypeString = '\nDu e nå i Maximum Security, og kan ikkje lenger briba vaktene'

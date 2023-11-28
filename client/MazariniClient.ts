@@ -178,7 +178,7 @@ export class MazariniClient extends Client {
             if (!deletionLog) {
                 return
             }
-            const { executor, target } = deletionLog
+            const { executor, target }: any = deletionLog            
             const createdAt = { hours: new Date(deletionLog.createdAt).getHours(), min: new Date(deletionLog.createdAt).getMinutes() }
             const now = { hours: new Date().getHours(), min: new Date().getMinutes() }
             const timeMatches = (): boolean => {

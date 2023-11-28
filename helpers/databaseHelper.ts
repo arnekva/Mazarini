@@ -39,6 +39,10 @@ export class DatabaseHelper {
         this.db.updateUser(user)
     }
 
+    public updateData(updates: object) {
+        this.db.updateData(updates)
+    }
+
     /** Get the cache. Will create and return an empty object if it doesnt exist */
     public async getStorage(): Promise<MazariniStorage> {
         return await this.db.getMazariniStorage()
@@ -125,8 +129,6 @@ export class DatabaseHelper {
         users.forEach((user) => {
             if (prefix === 'status') {
                 user[prefix] = undefined
-            } else if (prefix === 'dailyClaim') {
-                user[prefix] = 0
             }
             this.updateUser(user)
         })
@@ -152,16 +154,18 @@ export class DatabaseHelper {
             birthday: undefined,
             codStats: undefined,
             codStatsBR: undefined,
-            dailyClaim: 0,
-            dailyClaimStreak: undefined,
-            dailyFreezeCounter: 0,
+            daily: {
+                streak: 0,
+                claimedToday: false,
+                dailyFreezeCounter: 0,
+                prestige: 0
+            },
             debuff: undefined,
             inventory: undefined,
             lastFMUsername: undefined,
             rocketLeagueUserString: undefined,
             shopItems: undefined,
             status: undefined,
-            prestige: 0,
         }
     }
 
