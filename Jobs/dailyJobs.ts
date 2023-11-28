@@ -64,8 +64,8 @@ export class DailyJobs {
     private async validateAndResetDailyClaims(users: MazariniUser[]) {
         const updates = this.client.db.getUpdatesObject<'daily'>()
         users.forEach((user) => {
-            const daily = user.daily
-            if (!daily.streak) return //Verify that the user as a streak/claim, otherwise skip
+            const daily = user?.daily
+            if (!daily?.streak) return //Verify that the user as a streak/claim, otherwise skip
             //Check if user has frozen their streak
             const hasFrozenStreak = daily.dailyFreezeCounter
 
