@@ -59,7 +59,7 @@ export interface MazariniUser {
     lastFMUsername?: string
     /** No. loans */
 
-    shopItems?: any //TODO Cast this
+    // shopItems?: any //TODO Cast this
     /** Cod weekly stats */
     codStats?: CodStats | CodBRStatsType
     /**Cod BR */
@@ -72,8 +72,8 @@ export interface MazariniUser {
     rocketLeagueStats?: rocketLeagueDbData
     /** Username for rocket league. username;platform */
     rocketLeagueUserString?: string
-    inventory?: any[]
-    debuff?: any
+    // inventory?: any[]
+    // debuff?: any
     daily?: DailyReward
     favoritePol?: FavoritePol
     userStats?: UserStats

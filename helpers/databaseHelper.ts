@@ -15,7 +15,7 @@ export class DatabaseHelper {
      * @returns
      */
     public async getUser(userID: string): Promise<MazariniUser> {
-        let user = await this.db.getUser(userID)       
+        let user = await this.db.getUser(userID)
         if (user) return user
         return await this.addUser(DatabaseHelper.defaultUser(userID))
     }
@@ -28,7 +28,7 @@ export class DatabaseHelper {
     /** Get an untyped user object. Do not use unless you know what you are doing */
     public async getUntypedUser(userID: string): Promise<any> {
         try {
-            return await this.db.getUser(userID) as MazariniUser as any
+            return (await this.db.getUser(userID)) as MazariniUser as any
         } catch (error: any) {
             return undefined
         }
@@ -142,6 +142,16 @@ export class DatabaseHelper {
         return o[name]
     }
 
+    getUserPathToUpdate(userid: string, prop: keyof MazariniUser) {
+        return `/users/${userid}/${prop}` // as `/users/${string}/${keyof MazariniUser}`
+    }
+
+    /** The generic is a keyof MazarinUser. Will cast error with "never" not being assignable if generic type is missing  */
+    getUpdatesObject<T extends keyof MazariniUser = never>(): { [path: string]: MazariniUser[T] } {
+        const updates: { [path: string]: MazariniUser[T] } = {}
+        return updates
+    }
+
     static defaultUser(id: string): MazariniUser {
         return {
             bonkCounter: 0,
@@ -149,7 +159,6 @@ export class DatabaseHelper {
             id: id,
             spinCounter: 0,
             warningCounter: 0,
-            ATHspin: '00',
             activisionUserString: undefined,
             birthday: undefined,
             codStats: undefined,
@@ -158,13 +167,10 @@ export class DatabaseHelper {
                 streak: 0,
                 claimedToday: false,
                 dailyFreezeCounter: 0,
-                prestige: 0
+                prestige: 0,
             },
-            debuff: undefined,
-            inventory: undefined,
             lastFMUsername: undefined,
             rocketLeagueUserString: undefined,
-            shopItems: undefined,
             status: undefined,
         }
     }
