@@ -103,7 +103,7 @@ export interface MazariniStorage {
         /** Id of user/owner */
         id: string
         /** Stringied feireItem */
-        value: string
+        value: ferieItem
     }[]
     polls?: IPoll[]
 }

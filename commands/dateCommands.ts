@@ -98,13 +98,13 @@ export class DateCommands extends AbstractCommands {
             const maxNumDays = 250
             if (DateUtils.isDateBefore(date1, date2) && DateUtils.dateIsMaxXDaysInFuture(date2, maxNumDays)) {
                 let hasFerie = ferier.find((f) => f.id === interaction.user.id)
-                if (hasFerie) hasFerie.value = JSON.stringify(feireObj)
+                if (hasFerie) hasFerie.value = feireObj
                 else
                     ferier.push({
                         id: interaction.user.id,
-                        value: JSON.stringify(feireObj),
+                        value: feireObj,
                     })
-                    this.client.db.updateStorage({ ferie: ferier })
+                this.client.db.updateStorage({ ferie: ferier })
                 this.messageHelper.replyToInteraction(interaction, `Ferien din er satt`, { ephemeral: true })
             } else {
                 this.messageHelper.replyToInteraction(
@@ -121,7 +121,7 @@ export class DateCommands extends AbstractCommands {
             /** Finn alle ferier og print dem hvis de er gyldige */
             ferier.forEach((ferie) => {
                 if (ferie.value) {
-                    const ferieEle = JSON.parse(ferie.value) as ferieItem
+                    const ferieEle = ferie.value
                     const date1 = moment(new Date(ferieEle.fromDate), 'DD-MM-YYYY').toDate()
                     const date2 = moment(new Date(ferieEle.toDate), 'DD-MM-YYYY').toDate()
                     if (!DateUtils.dateHasPassed(date2)) {
@@ -249,7 +249,7 @@ export class DateCommands extends AbstractCommands {
     private async userHasMaxCountdowns(userId: string) {
         const storage = await this.client.db.getStorage()
         const cds = storage?.countdown
-        if (!cds) return false        
+        if (!cds) return false
         return cds.allCountdowns.filter((c) => c.ownerId === userId).length >= 3
     }
 
@@ -358,11 +358,8 @@ export class DateCommands extends AbstractCommands {
                     const isLessThan4HoursAway = timeTo?.days == 0 && timeTo?.hours < 4
                     const emoji = EmojiHelper.getHelgEmoji(this.client, isLessThan4HoursAway)
                     if (isFriday && isAfter16) return `Det e helg!`
-                    
 
-                    const textToPrint = `til ${
-                        doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg'
-                    } ${emoji}`
+                    const textToPrint = `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg'} ${emoji}`
 
                     let timeToPrint = DateUtils.formatCountdownText(timeTo, textToPrint) || 'Eg vettkje ka dag det e :('
                     if (!!hasHolidayInTheMiddleOfWeek && !this.isTodayHoliday()) {
@@ -390,29 +387,29 @@ export class DateCommands extends AbstractCommands {
         const day = date.day() - 1
         const hours = date.hour()
         const minutes = date.minute()
-        const currentMinute = (((day*24) + hours) * 60) + minutes
-        const input = (currentMinute * 0.0148)
-        let percentage = +(((((input-20)**(3))/(10000))*2).toFixed(2))
+        const currentMinute = (day * 24 + hours) * 60 + minutes
+        const input = currentMinute * 0.0148
+        let percentage = +(((input - 20) ** 3 / 10000) * 2).toFixed(2)
         if (percentage < 90) percentage = Math.floor(percentage)
-        return Math.max(Math.min(percentage, 100),0)
+        return Math.max(Math.min(percentage, 100), 0)
     }
 
     private getHelgFolelseDuringSunday() {
         const date = moment()
         const hours = date.hour()
         const minutes = date.minute()
-        const currentMinute = (hours * 60) + minutes
+        const currentMinute = hours * 60 + minutes
         const input = currentMinute * 0.0694
-        const percentage = Math.floor(((((-input+10)**(3))/(10000))*2)+100)
-        return Math.max(Math.min(percentage, 100),0)
+        const percentage = Math.floor(((-input + 10) ** 3 / 10000) * 2 + 100)
+        return Math.max(Math.min(percentage, 100), 0)
     }
 
     public async checkForHelg(interaction?: ChatInputCommandInteraction<CacheType>) {
         const isHelg = this.isItHelg()
-        const helgeFolelse = this.findHelgeFolelse()        
+        const helgeFolelse = this.findHelgeFolelse()
         const val = (await isHelg) ? `Det e helg!` : `${await this.getTimeUntilHelgString()}`
-        if (interaction) this.messageHelper.replyToInteraction(interaction, val +  ` (${helgeFolelse}% helgefølelse)`)
-        return val +  ` (${helgeFolelse}% helgefølelse)`
+        if (interaction) this.messageHelper.replyToInteraction(interaction, val + ` (${helgeFolelse}% helgefølelse)`)
+        return val + ` (${helgeFolelse}% helgefølelse)`
     }
 
     private async addUserBirthday(interaction: ChatInputCommandInteraction<CacheType>) {

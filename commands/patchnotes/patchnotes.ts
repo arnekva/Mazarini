@@ -7,8 +7,8 @@ import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { MessageHelper } from '../../helpers/messageHelper'
 import { MentionUtils } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '15.0.2'
-    public static readonly currentPatchNotes = `\n* Fikset en feil som gjorde at dailyJobs kræsjet`
+    public static readonly currentVersion = '15.0.3'
+    public static readonly currentPatchNotes = `\n* Fikset en feil som gjorde at '/ferie vis' kræsjet`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
