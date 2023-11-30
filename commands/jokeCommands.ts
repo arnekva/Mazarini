@@ -119,7 +119,7 @@ export class JokeCommands extends AbstractCommands {
     }
 
     private async reactWithLetters(interaction: ChatInputCommandInteraction<CacheType>) {
-        await interaction.deferReply({ephemeral:true})
+        await interaction.deferReply({ ephemeral: true })
         const text = interaction.options.get('melding')?.value as string
         const msgId = interaction.options.get('melding-id')?.value as string
 
@@ -137,9 +137,9 @@ export class JokeCommands extends AbstractCommands {
             const emoji = usedLetter.includes(letter) ? MiscUtils.findLetterEmoji(letter, true, spaceCounter) : MiscUtils.findLetterEmoji(letter)
             usedLetter += letter
             try {
-                messageToReactTo.react(emoji).catch((error) => console.log(error))
+                messageToReactTo.react(emoji).catch((error) => this.messageHelper.sendLogMessage(`Fant ikke emoji for bokstaven '${letter}'.`))
             } catch (error) {
-                console.log(error)
+                this.messageHelper.sendLogMessage(`Fant ikke emoji for bokstaven '${letter}'.`)
             }
         })
         interaction.editReply(':white_check_mark:')
@@ -291,8 +291,8 @@ export class JokeCommands extends AbstractCommands {
         let index = RandomUtils.getRandomIntegerExcludingNumber(textArrays.pointerBrothersUrls.length, this.prevGifIndex)
         this.prevGifIndex = index
         const randomGif = textArrays.pointerBrothersUrls[index]
-        this.messageHelper.replyToInteraction(interaction, 'Sender gif', {ephemeral: true})
-        this.messageHelper.sendMessage(interaction.channelId, {text: randomGif})
+        this.messageHelper.replyToInteraction(interaction, 'Sender gif', { ephemeral: true })
+        this.messageHelper.sendMessage(interaction.channelId, { text: randomGif })
     }
 
     getAllInteractions(): IInteractionElement {
