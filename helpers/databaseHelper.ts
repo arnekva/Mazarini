@@ -127,8 +127,8 @@ export class DatabaseHelper {
     public async deleteSpecificPrefixValues(prefix: keyof MazariniUser) {
         const users = await this.getAllUsers()
         users.forEach((user) => {
-            if (prefix === 'status') {
-                user[prefix] = undefined
+            if (prefix === 'status' && !!user.status) {
+                user.status = undefined
             }
             this.updateUser(user)
         })

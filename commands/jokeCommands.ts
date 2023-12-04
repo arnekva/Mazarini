@@ -238,8 +238,10 @@ export class JokeCommands extends AbstractCommands {
             }
         }
         if (isRegisterLoss) {
-            if (isValidTimeFrame) {
-                const user = await this.client.db.getUser(interaction.user.id)
+            const user = await this.client.db.getUser(interaction.user.id)
+            if (!!user.whamageddonLoss) {
+                this.messageHelper.replyToInteraction(interaction, `Du har allerede registrert tapet ditt`, { ephemeral: true })
+            } else if (isValidTimeFrame) {
                 user.whamageddonLoss = moment().toISOString()
                 this.client.db.updateUser(user)
                 const drinkData = calcSlurks(moment(user.whamageddonLoss))
