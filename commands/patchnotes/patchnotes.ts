@@ -7,8 +7,9 @@ import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { MessageHelper } from '../../helpers/messageHelper'
 import { MentionUtils } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '15.0.4'
-    public static readonly currentPatchNotes = `\n* Fikset en feil som ga NaN på slurker og shots i /whamageddon vis`
+    public static readonly currentVersion = '15.0.5'
+    public static readonly currentPatchNotes =
+        `\n* Du kan ikke lenger registrere tapet ditt i whamageddon mer enn 1 gang` + `\n* Fikset en feil som gjorde at weekly jobs ikke kjørte`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

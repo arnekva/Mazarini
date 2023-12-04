@@ -14,11 +14,11 @@ export class WeeklyJobs {
         this.messageHelper = messageHelper
         this.client = client
     }
-    runJobs() {
-        this.awardWeeklyChips()
-        this.checkPoletHours()
-        this.resetStatuses()
-        this.deleteOldCountdowns()
+    async runJobs() {
+        await this.awardWeeklyChips()
+        await this.checkPoletHours()
+        await this.resetStatuses()
+        await this.deleteOldCountdowns()
         // this.logEvent()
     }
     private async awardWeeklyChips() {

@@ -9,10 +9,10 @@ import { LockingHandler } from '../handlers/lockingHandler'
 import { ClientHelper } from '../helpers/clientHelper'
 import { dbPrefix, prefixList } from '../interfaces/database/databaseInterface'
 import { DailyJobs } from '../Jobs/dailyJobs'
+import { WeeklyJobs } from '../Jobs/weeklyJobs'
 import { MazariniBot } from '../main'
 import { MentionUtils } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
-import { WeeklyJobs } from '../Jobs/weeklyJobs'
 
 const { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js')
 // const { exec } = require('child_process')
@@ -35,9 +35,7 @@ export class Admin extends AbstractCommands {
             const dj = new DailyJobs(this.messageHelper, this.client)
             dj.runJobs()
             this.messageHelper.sendLogMessage(`Daily Jobs was forced to run by ${interaction.user.username}`)
-        } else if (property === 'force' && interaction.user.id === '245607554254766081') {
-            const dj = new DailyJobs(this.messageHelper, this.client)
-            dj.runJobs(undefined, true)
+        } else if (property === 'weekly') {
             const wj = new WeeklyJobs(this.messageHelper, this.client)
             wj.runJobs()
         } else {
