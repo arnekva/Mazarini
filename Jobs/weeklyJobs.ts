@@ -24,8 +24,10 @@ export class WeeklyJobs {
     private async awardWeeklyChips() {
         const brukere = await this.client.db.getAllUsers()
         brukere.forEach((user) => {
-            user.chips += 1500
-            this.client.db.updateUser(user)
+            if (user.chips) {
+                user.chips += 1500
+                this.client.db.updateUser(user)
+            }
         })
     }
     private async checkPoletHours() {

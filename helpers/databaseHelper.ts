@@ -128,7 +128,7 @@ export class DatabaseHelper {
         const users = await this.getAllUsers()
         users.forEach((user) => {
             if (prefix === 'status' && !!user.status) {
-                user.status = undefined
+                delete user.status
             }
             this.updateUser(user)
         })
