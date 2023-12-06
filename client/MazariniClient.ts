@@ -28,7 +28,7 @@ import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniBot } from '../main'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { CommandBuilder } from '../utils/commandBuilder/commandBuilder'
-import { MentionUtils } from '../utils/mentionUtils'
+import { ChannelIds, MentionUtils } from '../utils/mentionUtils'
 import { textArrays } from '../utils/textArrays'
 import { UserUtils } from '../utils/userUtils'
 
@@ -114,7 +114,7 @@ export class MazariniClient extends Client {
                             }
 
                             this.msgHelper.sendMessage(
-                                MentionUtils.CHANNEL_IDs.GIT_LOG,
+                                ChannelIds.GIT_LOG,
                                 {
                                     text: `Følgende commits er lagt til i ${PatchNotes.currentVersion}:\n${allMessages
                                         .map((s) => formatCommitLine(s))
@@ -171,14 +171,14 @@ export class MazariniClient extends Client {
                 limit: 1,
                 type: 72, // AuditLogEvent.MessageDelete,
             })
-            const actionLogId = MentionUtils.CHANNEL_IDs.ACTION_LOG
+            const actionLogId = ChannelIds.ACTION_LOG
 
             const deletionLog = fetchedLogs.entries.first()
 
             if (!deletionLog) {
                 return
             }
-            const { executor, target }: any = deletionLog            
+            const { executor, target }: any = deletionLog
             const createdAt = { hours: new Date(deletionLog.createdAt).getHours(), min: new Date(deletionLog.createdAt).getMinutes() }
             const now = { hours: new Date().getHours(), min: new Date().getMinutes() }
             const timeMatches = (): boolean => {
@@ -186,8 +186,8 @@ export class MazariniClient extends Client {
             }
             if (
                 target?.id === message?.author?.id &&
-                message.channelId !== MentionUtils.CHANNEL_IDs.ACTION_LOG &&
-                message.channelId !== MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM_DEV &&
+                message.channelId !== ChannelIds.ACTION_LOG &&
+                message.channelId !== ChannelIds.LOKAL_BOT_SPAM_DEV &&
                 !message?.content?.includes('Laster data') &&
                 !message?.content?.includes('Henter data') &&
                 environment === 'prod' &&
@@ -210,12 +210,12 @@ export class MazariniClient extends Client {
         })
 
         this.on('channelDelete', (channel: DMChannel | NonThreadGuildBasedChannel) => {
-            const id = MentionUtils.CHANNEL_IDs.ACTION_LOG
+            const id = ChannelIds.ACTION_LOG
             this.msgHelper.sendMessage(id, { text: `Channel med ID ${channel.id} ble slettet` })
         })
 
         this.on('guildBanAdd', (ban: GuildBan) => {
-            const id = MentionUtils.CHANNEL_IDs.ACTION_LOG
+            const id = ChannelIds.ACTION_LOG
             this.msgHelper.sendMessage(id, { text: `${ban.user.username} ble bannet pga ${ban?.reason}` })
         })
 

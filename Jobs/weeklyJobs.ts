@@ -4,7 +4,7 @@ import { MazariniClient } from '../client/MazariniClient'
 import { PoletCommands } from '../commands/poletCommands'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
-import { MentionUtils } from '../utils/mentionUtils'
+import { ChannelIds } from '../utils/mentionUtils'
 
 export class WeeklyJobs {
     private messageHelper: MessageHelper
@@ -57,7 +57,7 @@ export class WeeklyJobs {
                 })
             })
 
-            this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.VINMONOPOLET, { embed: fmMessage })
+            this.messageHelper.sendMessage(ChannelIds.VINMONOPOLET, { embed: fmMessage })
         }
     }
     private async resetStatuses() {
@@ -75,7 +75,7 @@ export class WeeklyJobs {
 
     private logEvent() {
         const todaysTime = new Date().toLocaleTimeString()
-        this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.ACTION_LOG, { text: `Ukentlige jobber kjørte ${todaysTime} (NAV-penger)` })
+        this.messageHelper.sendMessage(ChannelIds.ACTION_LOG, { text: `Ukentlige jobber kjørte ${todaysTime} (NAV-penger)` })
         console.log(`Weekly jobs ran at ${todaysTime}`)
     }
 }

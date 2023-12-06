@@ -11,7 +11,7 @@ import { dbPrefix, prefixList } from '../interfaces/database/databaseInterface'
 import { DailyJobs } from '../Jobs/dailyJobs'
 import { WeeklyJobs } from '../Jobs/weeklyJobs'
 import { MazariniBot } from '../main'
-import { MentionUtils } from '../utils/mentionUtils'
+import { ChannelIds, MentionUtils } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
 
 const { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js')
@@ -262,7 +262,7 @@ export class Admin extends AbstractCommands {
             pm2?.disconnect()
         } else {
             await this.messageHelper.replyToInteraction(interaction, `Stopper lokale bot-er`)
-            if (interaction.channelId == MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM_DEV) process.exit()
+            if (interaction.channelId == ChannelIds.LOKAL_BOT_SPAM_DEV) process.exit()
             else await this.messageHelper.replyToInteraction(interaction, `Denne kommandoen kan ikke brukes her`, { ephemeral: true })
         }
     }

@@ -1,6 +1,6 @@
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
-import { MentionUtils } from '../utils/mentionUtils'
+import { ChannelIds } from '../utils/mentionUtils'
 
 type dayJobs = 'friday' | 'none'
 export class DayJob {
@@ -18,7 +18,7 @@ export class DayJob {
     }
 
     private itsWeekend() {
-        this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.GENERAL, { text: `${ArrayUtils.randomChoiceFromArray(this.getHelgMessage())}` })
+        this.messageHelper.sendMessage(ChannelIds.GENERAL, { text: `${ArrayUtils.randomChoiceFromArray(this.getHelgMessage())}` })
     }
     private logEvent() {
         const todaysTime = new Date().toLocaleTimeString()

@@ -18,7 +18,7 @@ import { LockingHandler } from '../handlers/lockingHandler'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { DateUtils } from '../utils/dateUtils'
-import { MentionUtils } from '../utils/mentionUtils'
+import { ChannelIds, MentionUtils } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { UserUtils } from '../utils/userUtils'
@@ -84,13 +84,11 @@ export class CommandRunner {
             if (interaction.isRepliable()) {
                 this.messageHelper.replyToInteraction(
                     interaction,
-                    `Interaksjoner er låst. Prøv å se ${MentionUtils.mentionChannel(
-                        MentionUtils.CHANNEL_IDs.BOT_UTVIKLING
-                    )} for informasjon, eller tag bot-support`,
+                    `Interaksjoner er låst. Prøv å se ${MentionUtils.mentionChannel(ChannelIds.BOT_UTVIKLING)} for informasjon, eller tag bot-support`,
                     { ephemeral: true }
                 )
             }
-        } else if (this.isLegalChannel(interaction) && await this.checkIfBlockedByJail(interaction)) {
+        } else if (this.isLegalChannel(interaction) && (await this.checkIfBlockedByJail(interaction))) {
             if (interaction.isRepliable()) {
                 this.messageHelper.replyToInteraction(interaction, `Du e i fengsel, bro`, { ephemeral: true })
             }
@@ -166,7 +164,7 @@ export class CommandRunner {
     }
 
     async checkIfBlockedByJail(interaction: Interaction<CacheType>) {
-        const user = await this.client.db.getUser(interaction.user.id)        
+        const user = await this.client.db.getUser(interaction.user.id)
         if (user.jail?.daysInJail && user.jail?.daysInJail > 0) {
             if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
                 return illegalCommandsWhileInJail.includes(interaction.commandName)
@@ -273,13 +271,11 @@ export class CommandRunner {
     isLegalChannel(interaction: Interaction | Message) {
         return (
             (environment === 'dev' &&
-                (interaction?.channel.id === MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM ||
-                    interaction?.channel.id === MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM_DEV ||
-                    interaction?.channel.id === MentionUtils.CHANNEL_IDs.STATS_SPAM ||
-                    interaction?.channel.id === MentionUtils.CHANNEL_IDs.GODMODE)) ||
-            (environment === 'prod' &&
-                interaction?.channel.id !== MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM &&
-                interaction.channelId !== MentionUtils.CHANNEL_IDs.LOKAL_BOT_SPAM_DEV)
+                (interaction?.channel.id === ChannelIds.LOKAL_BOT_SPAM ||
+                    interaction?.channel.id === ChannelIds.LOKAL_BOT_SPAM_DEV ||
+                    interaction?.channel.id === ChannelIds.STATS_SPAM ||
+                    interaction?.channel.id === ChannelIds.GODMODE)) ||
+            (environment === 'prod' && interaction?.channel.id !== ChannelIds.LOKAL_BOT_SPAM && interaction.channelId !== ChannelIds.LOKAL_BOT_SPAM_DEV)
         )
     }
 }

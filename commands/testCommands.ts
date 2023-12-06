@@ -13,6 +13,7 @@ import {
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../general/commands'
+import { ChannelIds } from '../utils/mentionUtils'
 
 const defaultButtonRow = new ActionRowBuilder<ButtonBuilder>()
 defaultButtonRow.addComponents(
@@ -44,9 +45,7 @@ export class TestCommands extends AbstractCommands {
     }
 
     private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        const user = await this.client.db.getUser(interaction.user.id)
-        user.chips = 20000
-        this.client.db.updateUser(user)        
+        this.messageHelper.sendMessage(ChannelIds.LOKAL_BOT_SPAM_DEV, { text: 'Test' })
     }
 
     private async testSelectMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {

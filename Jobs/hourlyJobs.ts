@@ -1,6 +1,6 @@
 import { MazariniClient } from '../client/MazariniClient'
 import { MessageHelper } from '../helpers/messageHelper'
-import { MentionUtils } from '../utils/mentionUtils'
+import { ChannelIds } from '../utils/mentionUtils'
 
 export class HourJob {
     private messageHelper: MessageHelper
@@ -25,7 +25,7 @@ export class HourJob {
                 nextTournaments.forEach((t) => {
                     message += `\n${t.players}v${t.players} - ${t.mode}`
                 })
-                this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.ROCKET_LEAGUE, { text: `${message}` })
+                this.messageHelper.sendMessage(ChannelIds.ROCKET_LEAGUE, { text: `${message}` })
             }
         }
     }

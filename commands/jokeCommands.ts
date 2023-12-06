@@ -7,7 +7,7 @@ import { EmojiHelper } from '../helpers/emojiHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
-import { MentionUtils } from '../utils/mentionUtils'
+import { ChannelIds, MentionUtils } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { RandomUtils } from '../utils/randomUtils'
@@ -228,7 +228,7 @@ export class JokeCommands extends AbstractCommands {
         const endDate = '2023-12-24 16:00'
         const isValidTimeFrame = DateUtils.currentDateIsBetween(moment('01-12-2023 08:00', 'DD-MM-YYYY HH:mm'), moment(endDate, 'DD-MM-YYYY HH:mm'))
 
-        const calcSlurks = (d1: Moment) => {            
+        const calcSlurks = (d1: Moment) => {
             const slurks = DateUtils.getDaysBetweenDates(d1, moment(endDate, 'YYYY-MM-DD 12:00')) + 1
 
             const shots = DateUtils.getWeeksBetweenDates(d1, moment(endDate, 'YYYY-MM-DD 12:00'))
@@ -249,13 +249,13 @@ export class JokeCommands extends AbstractCommands {
                     interaction,
                     `Kondolere. Ditt tap e registrert, og du må ta ${drinkData.slurker} slurker og ${
                         drinkData.shots
-                    } shots. Eg melde dette te ${MentionUtils.mentionChannel(MentionUtils.CHANNEL_IDs.GENERAL)} for deg`,
+                    } shots. Eg melde dette te ${MentionUtils.mentionChannel(ChannelIds.GENERAL)} for deg`,
                     {
                         ephemeral: true,
                     }
                 )
                 const emb = EmbedUtils.createSimpleEmbed(`#Whamageddon`, `${MentionUtils.mentionUser(interaction.user.id)} gjekk på ein saftige smell. `)
-                this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.GENERAL, { embed: emb })
+                this.messageHelper.sendMessage(ChannelIds.GENERAL, { embed: emb })
             } else {
                 this.messageHelper.replyToInteraction(
                     interaction,
@@ -269,7 +269,7 @@ export class JokeCommands extends AbstractCommands {
                 const embd = EmbedUtils.createSimpleEmbed(`Whamageddon 2023`, `Status`)
                 usersInWhamageddon.forEach((user) => {
                     //Since moment takes time into account when calculating diff, set time to be 12:00 so it's always before the end time, otherwise it can return a lower
-                    //amount than expected                    
+                    //amount than expected
                     const drinkData = calcSlurks(moment(user.whamageddonLoss))
                     embd.addFields([
                         {

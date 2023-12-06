@@ -1,10 +1,11 @@
+import moment from 'moment'
 import fetch from 'node-fetch'
 import { rapidApiKey, rapidApiKey2 } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniUser, RocketLeagueTournament } from '../interfaces/database/databaseInterface'
 import { DateUtils } from '../utils/dateUtils'
-import { MentionUtils } from '../utils/mentionUtils'
+import { ChannelIds } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
 export class DailyJobs {
     private messageHelper: MessageHelper
@@ -84,16 +85,15 @@ export class DailyJobs {
 
     private async checkForUserBirthdays(users: MazariniUser[]) {
         users.forEach((user) => {
-            const birthday: string | undefined = user?.birthday
-            if (!birthday) return
-            const bdTab = birthday.split('-').map((d) => Number(d))
-            const date = new Date(bdTab[2], bdTab[1], bdTab[0])
-            const isBirthdayToday = DateUtils.isToday(new Date(date))
-
-            if (isBirthdayToday) {
-                this.messageHelper.sendMessage(MentionUtils.CHANNEL_IDs.GENERAL, {
-                    text: `Gratulerer med dagen ${UserUtils.findMemberByUserID(user.id, this.client.guilds[0])}!`,
-                })
+            const birthday = user?.birthday
+            if (birthday) {
+                const date = moment.utc(`${birthday} 12:00`, 'DD-MM-YYYY HH:mm:ss') // new Date(bdTab[2], bdTab[1], bdTab[0])
+                const isBirthdayToday = DateUtils.isToday(date.toDate(), true)
+                if (isBirthdayToday) {
+                    this.messageHelper.sendMessage(ChannelIds.GENERAL, {
+                        text: `Gratulerer med dagen ${UserUtils.findMemberByUserID(user.id, this.client.guilds[0])}!`,
+                    })
+                }
             }
         })
     }

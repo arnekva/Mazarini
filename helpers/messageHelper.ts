@@ -32,7 +32,7 @@ import {
 import { Stream } from 'stream'
 import { environment } from '../client-env'
 import { MazariniBot } from '../main'
-import { MentionUtils } from '../utils/mentionUtils'
+import { ChannelIds, MentionUtils } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
 
 export type typeOfError = 'unauthorized' | 'error' | 'warning'
@@ -275,6 +275,6 @@ export class MessageHelper {
         MazariniBot.numMessagesNumErrorMessages++
         options ? (options.dontIncrementMessageCounter = true) : (options = { dontIncrementMessageCounter: true })
 
-        return this.sendMessage(MentionUtils.CHANNEL_IDs.ACTION_LOG, { text: msg }, options)
+        return this.sendMessage(ChannelIds.ACTION_LOG, { text: msg }, options)
     }
 }
