@@ -12,7 +12,7 @@ export namespace LudoBoard {
             ['⬛', '🟨', '⬛', '⬛', '⬛', '⬛', '⬛', '🟨', '⬜', '🟩', '⬜', '🟩', '⬛', '⬛', '⬛', '⬛', '⬛', '🟩', '⬛'],
             ['⬛', '🟨', '🟨', '🟨', '🟨', '🟨', '🟨', '🟨', '⬛', '🟩', '⬛', '🟩', '🟩', '🟩', '🟩', '🟩', '🟩', '🟩', '⬛'],
             ['⬛', '⬜', '🟨', '⬜', '⬜', '⬜', '⬜', '⬛', '⬛', '⬛', '⬛', '⬛', '⬜', '⬜', '⬜', '⬜', '⬜', '⬜', '⬛'],
-            ['⬛', '⬜', '🟨', '🟨', '🟨', '🟨', '🟨', '🟨', '⬛', '⬛', '⬛', '🟦', '🟦', '🟦', '🟦', '🟦', '🟦', '⬜', '⬛'],
+            ['⬛', '⬜', '🟥', '🟥', '🟥', '🟥', '🟥', '🟥', '⬛', '⬛', '⬛', '🟦', '🟦', '🟦', '🟦', '🟦', '🟦', '⬜', '⬛'], //TODO: Fix red->yellow
             ['⬛', '⬜', '⬜', '⬜', '⬜', '⬜', '⬜', '⬛', '⬛', '⬛', '⬛', '⬛', '⬜', '⬜', '⬜', '⬜', '🟦', '⬜', '⬛'],
             ['⬛', '🟥', '🟥', '🟥', '🟥', '🟥', '🟥', '🟥', '⬛', '🟥', '⬛', '🟦', '🟦', '🟦', '🟦', '🟦', '🟦', '🟦', '⬛'],
             ['⬛', '🟥', '⬛', '⬛', '⬛', '⬛', '⬛', '🟥', '⬜', '🟥', '⬜', '🟦', '⬛', '⬛', '⬛', '⬛', '⬛', '🟦', '⬛'],
@@ -26,9 +26,12 @@ export namespace LudoBoard {
 
         pieces.forEach((piece) => {
             if (piece?.positionIndex > 52 && piece.positionIndex < 100) {
+                console.log('a piece was stuck between 52 and 100', piece.positionIndex)
+
                 piece.positionIndex = piece.positionIndex - 52
             }
             const pos = LudoBoard.indexMap[piece.positionIndex]
+            if (piece.color === 'yellow') console.log(piece.positionIndex)
 
             emojiArray[pos[0]][pos[1]] = LudoBoard.findSquare(piece.color)
         })
@@ -135,5 +138,81 @@ export namespace LudoBoard {
         201: [3, 15],
         202: [5, 13],
         203: [5, 15],
+    }
+
+    export const pieceStartPosition = (color: LudoColor) => {
+        switch (color) {
+            case 'yellow':
+                return 43
+            case 'green':
+                return 1
+            case 'blue':
+                return 1
+            case 'red':
+                return 1
+        }
+    }
+
+    export const endStates = (color: LudoColor) => {
+        switch (color) {
+            case 'yellow':
+                return 106
+            case 'green':
+                return 206
+            case 'blue':
+                return 306
+            case 'red':
+                return 406
+        }
+    }
+    export const endPathStart = (color: LudoColor) => {
+        switch (color) {
+            case 'yellow':
+                return 40
+            case 'green':
+                return 1
+            case 'blue':
+                return 1
+            case 'red':
+                return 1
+        }
+    }
+
+    export const normalPathToEndPath = (color: LudoColor) => {
+        switch (color) {
+            case 'yellow':
+                return 110
+            case 'green':
+                return 210
+            case 'blue':
+                return 310
+            case 'red':
+                return 410
+        }
+    }
+    export const goalForColor = (color: LudoColor) => {
+        switch (color) {
+            case 'yellow':
+                return 115
+            case 'green':
+                return 215
+            case 'blue':
+                return 315
+            case 'red':
+                return 415
+        }
+    }
+
+    export const homeIndexes = (color: LudoColor) => {
+        switch (color) {
+            case 'yellow':
+                return [100, 101, 102, 103]
+            case 'green':
+                return [200, 201, 202, 203]
+            case 'blue':
+                return [300, 301, 302, 303]
+            case 'red':
+                return [400, 401, 402, 403]
+        }
     }
 }
