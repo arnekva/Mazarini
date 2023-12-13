@@ -68,6 +68,13 @@ export namespace CommandBuilder {
                         return a
                     })
                     break
+                case ApplicationCommandOptionType.Attachment:
+                    b.addAttachmentOption((a) => {
+                        a.setName(option.name)
+                        a.setDescription(option.description)
+                        return a
+                    })
+                    break
             }
         }
         //If any options are supplied, user helper function to add them
