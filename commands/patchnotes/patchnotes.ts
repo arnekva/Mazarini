@@ -7,8 +7,8 @@ import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { MessageHelper } from '../../helpers/messageHelper'
 import { ChannelIds } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '15.0.6'
-    public static readonly currentPatchNotes = `\n* Fikset en feil som gjorde at Høie ikke sendte bursdagshilsener` + `\n* Refaktorert MentionUtils.ChannelIds`
+    public static readonly currentVersion = '15.0.7'
+    public static readonly currentPatchNotes = `\n* Bugfix daily/weekly jobs` + `\n* Høie tracker nå stats for bruken av emojis`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
