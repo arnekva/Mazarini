@@ -33,6 +33,7 @@ export class CommandRunner {
     lastUsedCommand = 'help'
     polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê|å|æ|ê|è|é|à|á)*(ls)(e|a|å|o|i)|(pause)|(🌭)|(hotdog)|(sausage)|(hot-dog)/gi)
     helgeRegex = new RegExp(/(helg|Helg|hælj|hælg)(å|en|ene|a|e|æ)*|(weekend)/gi)
+    emojiRegex = new RegExp(/<:(\S+):(\d+)>/gi)
 
     constructor(client: MazariniClient, messageHelper: MessageHelper) {
         this.client = client
@@ -47,6 +48,8 @@ export class CommandRunner {
             await this.checkForCommand(message)
             /** Additional non-command checks */
             await this.checkMessageForJokes(message)
+
+            await this.trackEmojiStats(message)
 
             PoletCommands.checkForVinmonopolContent(message, this.messageHelper)
         } catch (error) {
@@ -277,5 +280,15 @@ export class CommandRunner {
                     interaction?.channel.id === ChannelIds.GODMODE)) ||
             (environment === 'prod' && interaction?.channel.id !== ChannelIds.LOKAL_BOT_SPAM && interaction.channelId !== ChannelIds.LOKAL_BOT_SPAM_DEV)
         )
+    }
+
+    async trackEmojiStats(message: Message) {
+        this.emojiRegex.lastIndex = 0
+        let match;
+        const emojiNames: string[] = []
+        while ((match = this.emojiRegex.exec(message.content))) {
+            if (match && match[2] === '340626855990132747') emojiNames.push(match[1])
+        }
+        if (emojiNames) this.client.db.updateEmojiMessageCounters(emojiNames)
     }
 }

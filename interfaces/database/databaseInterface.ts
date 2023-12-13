@@ -7,6 +7,7 @@ export interface DatabaseStructure {
     memes: Meme[]
     other: MazariniStorage
     users: MazariniUser[]
+    stats: MazariniStats
 }
 
 export interface userValPair {
@@ -20,6 +21,18 @@ export interface BotData {
     status: string
     statusType: number
     version: string
+}
+
+export interface MazariniStats {
+    emojis: EmojiStats[]
+}
+
+export interface EmojiStats {
+    name: string
+    timesUsedInMessages: number
+    timesUsedInReactions: number
+    added: Date[]
+    removed: Date[]
 }
 
 export type botDataPrefix = 'status' | 'statusType' | 'version' | 'commit-id'

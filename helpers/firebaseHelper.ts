@@ -1,8 +1,8 @@
 import { FirebaseApp } from 'firebase/app'
-import { Database, child, get, getDatabase, ref, remove, set, update } from 'firebase/database'
+import { Database, child, get, getDatabase, increment, ref, remove, set, update } from 'firebase/database'
 import { Firestore, getFirestore } from 'firebase/firestore'
 import { database } from '../client-env'
-import { BotData, DatabaseStructure, MazariniStorage, MazariniUser, Meme } from '../interfaces/database/databaseInterface'
+import { BotData, DatabaseStructure, EmojiStats, MazariniStats, MazariniStorage, MazariniUser, Meme } from '../interfaces/database/databaseInterface'
 import { MessageHelper } from './messageHelper'
 
 export class FirebaseHelper {
@@ -74,6 +74,14 @@ export class FirebaseHelper {
         return (await this.getData(`textCommand/${name}`)) as string[]
     }
 
+    public async getMazariniStats(): Promise<MazariniStats> {
+        return (await this.getData(`stats`)) as MazariniStats
+    }
+
+    public async getEmojiStats(name: string): Promise<EmojiStats> {
+        return (await this.getData(`stats/emojis/${name}`)) as EmojiStats
+    }
+
     public async getData(path: string): Promise<any> {
         const response = await get(child(ref(this.db), `${database}/${path}`))
         if (response.exists()) return response.val() as any
@@ -90,6 +98,15 @@ export class FirebaseHelper {
     public async updateUser(user: MazariniUser) {
         const updates = {}
         updates[`/users/${user.id}`] = user
+        await this.updateData(updates)
+    }
+
+    public async incrementData(paths: string[], negative?: boolean) {
+        const updates = {}
+        paths.forEach((path) => {
+            const num = paths.filter(x => x === path).length
+            updates[path] = increment(negative ? -num : num)
+        })
         await this.updateData(updates)
     }
 

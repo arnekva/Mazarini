@@ -152,6 +152,39 @@ export class DatabaseHelper {
         return updates
     }
 
+    public async registerEmojiStats(emojiName: string) {
+        let emoji = await this.db.getEmojiStats(emojiName)
+        const updates = {}
+        if (emoji) emoji.added.push(new Date())
+        else {
+            emoji = { name: emojiName, timesUsedInMessages: 0, timesUsedInReactions: 0, added: [new Date()], removed: []}
+        }
+        updates[`/stats/emojis/${emojiName}`] = emoji
+        this.db.updateData(updates)
+    }
+
+    public async registerEmojiRemoved(emojiName: string) {
+        let emoji = await this.db.getEmojiStats(emojiName)
+        const updates = {}
+        if (emoji) {
+            emoji.removed ? emoji.removed.push(new Date()) : emoji.removed = Array(1).fill(new Date())
+            updates[`/stats/emojis/${emojiName}`] = emoji
+            this.db.updateData(updates)
+        }
+    }
+
+    public updateEmojiMessageCounters(emojis: string[]) {
+        const paths = []
+        emojis.forEach((emoji) => paths.push(`/stats/emojis/${emoji}/timesUsedInMessages`))
+        this.db.incrementData(paths)
+    }
+
+    public updateEmojiReactionCounter(emoji: string, decrement: boolean = false) {
+        const path = []
+        path.push(`/stats/emojis/${emoji}/timesUsedInReactions`)
+        this.db.incrementData(path, decrement)
+    }
+
     static defaultUser(id: string): MazariniUser {
         return {
             bonkCounter: 0,

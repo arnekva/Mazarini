@@ -5,9 +5,11 @@ import {
     DMChannel,
     Guild,
     GuildBan,
+    GuildEmoji,
     GuildMember,
     Interaction,
     Message,
+    MessageReaction,
     NonThreadGuildBasedChannel,
     PartialGuildMember,
     PartialMessage,
@@ -214,6 +216,27 @@ export class MazariniClient extends Client {
             this.msgHelper.sendMessage(id, { text: `Channel med ID ${channel.id} ble slettet` })
         })
 
+        this.on('emojiCreate', (emoji: GuildEmoji) => {
+            if (emoji.guild.id == '340626855990132747') {
+                this.db.registerEmojiStats(emoji.name)
+            }
+            const id = ChannelIds.ACTION_LOG
+            this.msgHelper.sendMessage(id, { text: `Emoji med navn ${emoji.name} ble lagt til` })
+        })
+
+        this.on('emojiDelete', (emoji: GuildEmoji) => {
+            if (emoji.guild.id == '340626855990132747') {
+                this.db.registerEmojiRemoved(emoji.name)
+            }
+            const id = ChannelIds.ACTION_LOG
+            this.msgHelper.sendMessage(id, { text: `Emoji med navn ${emoji.name} ble slettet` })
+        })
+
+        this.on('emojiUpdate', (oldEmoji: GuildEmoji, newEmoji: GuildEmoji) => {
+            const id = ChannelIds.ACTION_LOG
+            this.msgHelper.sendMessage(id, { text: `Emoji med navn ${oldEmoji.name} ble oppdatert` })
+        })
+
         this.on('guildBanAdd', (ban: GuildBan) => {
             const id = ChannelIds.ACTION_LOG
             this.msgHelper.sendMessage(id, { text: `${ban.user.username} ble bannet pga ${ban?.reason}` })
@@ -243,8 +266,21 @@ export class MazariniClient extends Client {
         this.on('roleCreate', function (role: Role) {
             this.messageHelper.sendLogMessage('En ny rolle er opprettet: ' + role.name)
         })
+        
         this.on('roleDelete', function (role: Role) {
             this.messageHelper.sendLogMessage('En rolle er slettet: ' + role.name)
+        })
+
+        this.on('messageReactionAdd', (messageReaction: MessageReaction, user: User) => {
+            if (messageReaction.emoji instanceof GuildEmoji && messageReaction.emoji.guild.id == '340626855990132747') {
+                this.db.updateEmojiReactionCounter(messageReaction.emoji.name)
+            }
+        })
+
+        this.on('messageReactionRemove', (messageReaction: MessageReaction, user: User) => {
+            if (messageReaction.emoji instanceof GuildEmoji && messageReaction.emoji.guild.id == '340626855990132747') {
+                this.db.updateEmojiReactionCounter(messageReaction.emoji.name, true)
+            }
         })
 
         this.on('messageUpdate', (oldMessage: Message | PartialMessage, newMessage: Message | PartialMessage) => {
