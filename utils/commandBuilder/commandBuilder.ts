@@ -11,10 +11,15 @@ import {
 import { CommandStorage } from './commandStorage'
 
 export interface ISlashCommandItem {
+    /** Command name */
     commandName: string
+    /** Description of the command shown to user */
     commandDescription: string
     options?: ApplicationCommandOptionData[]
+    /** Subcommands, same setups as a normal command */
     subCommands?: Omit<ISlashCommandItem, 'subCommands'>[]
+    /** Add a guild id if this command is to be ONLY visible in the guild. Will not be a global command */
+    guildId?: string
 }
 export interface IContextMenuCommandItem {
     commandName: string
@@ -28,6 +33,7 @@ export namespace CommandBuilder {
         //Use slashcommandbuilder to start a new command
         const scb = new SlashCommandBuilder()
         scb.setName(params.commandName)
+
         scb.setDescription(params.commandDescription)
         /** Helper function to add options with the given params to the given SlashCommandBuilder */
         const addOptions = (option: ApplicationCommandOptionData, b: SlashCommandBuilder | SlashCommandSubcommandBuilder) => {
@@ -84,6 +90,7 @@ export namespace CommandBuilder {
         //If any subcommands are supplied, we create a new slashcommandSubcommandBuilder for each one
         params.subCommands?.forEach((subC) => {
             const localSCB = new SlashCommandSubcommandBuilder()
+
             localSCB.setName(subC.commandName)
             localSCB.setDescription(subC.commandDescription)
             //Subcommands can also have options, so we use the helper function to add the options
@@ -94,7 +101,7 @@ export namespace CommandBuilder {
             scb.addSubcommand(localSCB)
         })
         //Creates the slash command
-        client.application.commands.create(scb)
+        client.application.commands.create(scb, params?.guildId)
     }
 
     /** This command will automatically create all commands listed in it */
