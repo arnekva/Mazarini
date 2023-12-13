@@ -99,7 +99,7 @@ export class UserCommands extends AbstractCommands {
                     return `\n${entry[0]} - ${entry[1]}`
                 })
             }
-            userData.toString()
+
             await selectMenu.update({
                 embeds: [EmbedUtils.createSimpleEmbed(`Se brukerinfo for ${selectMenu.user.username}`, `Verdien for ${value} er ${userData}`)],
             })
