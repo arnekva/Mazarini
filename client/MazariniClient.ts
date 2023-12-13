@@ -30,7 +30,7 @@ import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniBot } from '../main'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { CommandBuilder } from '../utils/commandBuilder/commandBuilder'
-import { ChannelIds, MentionUtils } from '../utils/mentionUtils'
+import { ChannelIds, MentionUtils, ServerIds } from '../utils/mentionUtils'
 import { textArrays } from '../utils/textArrays'
 import { UserUtils } from '../utils/userUtils'
 
@@ -217,7 +217,7 @@ export class MazariniClient extends Client {
         })
 
         this.on('emojiCreate', (emoji: GuildEmoji) => {
-            if (emoji.guild.id == '340626855990132747') {
+            if (emoji.guild.id == ServerIds.MAZARINI) {
                 this.db.registerEmojiStats(emoji.name)
             }
             const id = ChannelIds.ACTION_LOG
@@ -225,7 +225,7 @@ export class MazariniClient extends Client {
         })
 
         this.on('emojiDelete', (emoji: GuildEmoji) => {
-            if (emoji.guild.id == '340626855990132747') {
+            if (emoji.guild.id == ServerIds.MAZARINI) {
                 this.db.registerEmojiRemoved(emoji.name)
             }
             const id = ChannelIds.ACTION_LOG
@@ -272,13 +272,13 @@ export class MazariniClient extends Client {
         })
 
         this.on('messageReactionAdd', (messageReaction: MessageReaction, user: User) => {
-            if (messageReaction.emoji instanceof GuildEmoji && messageReaction.emoji.guild.id == '340626855990132747') {
+            if (messageReaction.emoji instanceof GuildEmoji && messageReaction.emoji.guild.id == ServerIds.MAZARINI) {
                 this.db.updateEmojiReactionCounter(messageReaction.emoji.name)
             }
         })
 
         this.on('messageReactionRemove', (messageReaction: MessageReaction, user: User) => {
-            if (messageReaction.emoji instanceof GuildEmoji && messageReaction.emoji.guild.id == '340626855990132747') {
+            if (messageReaction.emoji instanceof GuildEmoji && messageReaction.emoji.guild.id == ServerIds.MAZARINI) {
                 this.db.updateEmojiReactionCounter(messageReaction.emoji.name, true)
             }
         })

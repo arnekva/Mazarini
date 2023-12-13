@@ -16,6 +16,13 @@ export enum ChannelIds {
     GIT_LOG = '1107961906028888114',
     ROCKET_LEAGUE = '938552433158811758',
 }
+
+export enum ServerIds {
+    MAZARINI = '340626855990132747',
+    MAZARINI_DEV = '1106124769797091338',
+    MAZARINI_DEV_2 = '1106128684882067460'
+}
+
 export class MentionUtils {
     /** Automatically creates a mention string from the provided user id */
     static mentionUser(id: string) {

@@ -18,7 +18,7 @@ import { LockingHandler } from '../handlers/lockingHandler'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { DateUtils } from '../utils/dateUtils'
-import { ChannelIds, MentionUtils } from '../utils/mentionUtils'
+import { ChannelIds, MentionUtils, ServerIds } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { UserUtils } from '../utils/userUtils'
@@ -283,12 +283,14 @@ export class CommandRunner {
     }
 
     async trackEmojiStats(message: Message) {
-        this.emojiRegex.lastIndex = 0
-        let match;
-        const emojiNames: string[] = []
-        while ((match = this.emojiRegex.exec(message.content))) {
-            if (match && match[2] === '340626855990132747') emojiNames.push(match[1])
+        if (message.guildId === ServerIds.MAZARINI) {
+            this.emojiRegex.lastIndex = 0
+            let match;
+            const emojiNames: string[] = []
+            while ((match = this.emojiRegex.exec(message.content))) {
+                if (match && message.guild.emojis.cache.get(match[2])) emojiNames.push(match[1])
+            }        
+            if (emojiNames) this.client.db.updateEmojiMessageCounters(emojiNames)
         }
-        if (emojiNames) this.client.db.updateEmojiMessageCounters(emojiNames)
     }
 }
