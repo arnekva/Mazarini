@@ -23,37 +23,35 @@ import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { UserUtils } from '../utils/userUtils'
 import { Commands, IInteractionCommand } from './commands'
+import { MessageChecker } from './messageChecker'
+import { MazariniTracker } from './mazariniTracker'
 const fetch = require('node-fetch')
 
 export class CommandRunner {
     private commands: Commands
-    private messageHelper: MessageHelper
+
     private client: MazariniClient
+    messageChecker: MessageChecker
 
     lastUsedCommand = 'help'
-    polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê|å|æ|ê|è|é|à|á)*(ls)(e|a|å|o|i)|(pause)|(🌭)|(hotdog)|(sausage)|(hot-dog)/gi)
-    helgeRegex = new RegExp(/(helg|Helg|hælj|hælg)(å|en|ene|a|e|æ)*|(weekend)/gi)
-    emojiRegex = new RegExp(/<:(\S+):(\d+)>/gi)
 
-    constructor(client: MazariniClient, messageHelper: MessageHelper) {
+    constructor(client: MazariniClient) {
         this.client = client
-        this.messageHelper = messageHelper
         this.commands = new Commands(client)
+        this.messageChecker = new MessageChecker(this.client)
     }
     async runCommands(message: Message) {
         try {
             /** Check if the bot is allowed to send messages in this channel */
-            if (!this.isLegalChannel(message) || this.checkIfLockedPath(message)) return
-            /**  Check message for text commands */
-            await this.checkForCommand(message)
+            if (!MessageUtils.isLegalChannel(message.channelId) || this.client.lockHandler.checkIfLockedPath(message)) return undefined
             /** Additional non-command checks */
-            await this.checkMessageForJokes(message)
+            await this.messageChecker.checkMessageForJokes(message)
 
-            await this.trackEmojiStats(message)
+            await this.client.tracker.trackEmojiStats(message)
 
-            PoletCommands.checkForVinmonopolContent(message, this.messageHelper)
+            PoletCommands.checkForVinmonopolContent(message, this.client.messageHelper)
         } catch (error) {
-            this.messageHelper.sendLogMessage(
+            this.client.messageHelper.sendLogMessage(
                 `Det oppstod en feil under kjøring av en command. Meldingen var fra ${message.author.username} i kanalen ${MentionUtils.mentionChannel(
                     message.channelId
                 )} med innholdet ${message.content}. Stacktrace: ` + error
@@ -61,41 +59,21 @@ export class CommandRunner {
         }
     }
 
-    checkIfLockedPath(interaction: Interaction<CacheType> | Message) {
-        let uId = '0'
-        let channelId = '0'
-        if (interaction instanceof Message) {
-            uId = interaction.author.id
-        } else {
-            uId = interaction.user.id
-        }
-        channelId = interaction?.channelId
-        if (Admin.isAuthorAdmin(UserUtils.findMemberByUserID(uId, interaction)) || interaction.guildId === '1106124769797091338') {
-            //Always allow admins to carry out interactions - this includes unlocking
-            return false
-        } else {
-            const lm = LockingHandler
-            if (lm.getbotLocked()) return true
-            if (lm.getlockedThread().includes(channelId)) return true
-            if (lm.getlockedUser().includes(uId)) return true
-            return false
-        }
-    }
     async checkForCommandInInteraction(interaction: Interaction<CacheType>) {
         /** Check if any part of the interaction is currently locked - if it is, do not proceed. Answer with an ephemeral message explaining the lock */
-        if (this.checkIfLockedPath(interaction)) {
+        if (this.client.lockHandler.checkIfLockedPath(interaction)) {
             if (interaction.isRepliable()) {
-                this.messageHelper.replyToInteraction(
+                this.client.messageHelper.replyToInteraction(
                     interaction,
                     `Interaksjoner er låst. Prøv å se ${MentionUtils.mentionChannel(ChannelIds.BOT_UTVIKLING)} for informasjon, eller tag bot-support`,
                     { ephemeral: true }
                 )
             }
-        } else if (this.isLegalChannel(interaction) && (await this.checkIfBlockedByJail(interaction))) {
+        } else if (MessageUtils.isLegalChannel(interaction.channelId) && (await this.checkIfBlockedByJail(interaction))) {
             if (interaction.isRepliable()) {
-                this.messageHelper.replyToInteraction(interaction, `Du e i fengsel, bro`, { ephemeral: true })
+                this.client.messageHelper.replyToInteraction(interaction, `Du e i fengsel, bro`, { ephemeral: true })
             }
-        } else if (this.isLegalChannel(interaction)) {
+        } else if (MessageUtils.isLegalChannel(interaction.channelId)) {
             let hasAcknowledged = false
             //TODO: This might have to be refactored, but ContextMenuCommands are for now treated as regular ChatInputCommands, as they only have a commandName
             //Autocomplete Interactions are also handled by this block, since they are triggered by ChatInputs.
@@ -143,7 +121,7 @@ export class CommandRunner {
                 if (environment === 'prod') {
                     const uncastInteraction = interaction as any
 
-                    this.messageHelper.sendLogMessage(
+                    this.client.messageHelper.sendLogMessage(
                         `En interaksjon ble forsøkt brukt i ${MentionUtils.mentionChannel(interaction.channelId)} av ${
                             interaction.user.username
                         }. Denne interaksjonen støttes ikke i prod. Kommando: ${
@@ -154,15 +132,6 @@ export class CommandRunner {
             }
 
             return undefined
-        }
-    }
-
-    /**
-     *  TEXT COMMANDS ARE NO LONGER IN USE - keep info message in transition period
-     */
-    async checkForCommand(message: Message) {
-        if (message.content.startsWith('!mz') && message.author.id === MentionUtils.User_IDs.BOT_HOIE) {
-            message.reply('Eg leide ikkje itte mz lenger. Du finne alle kommandoene med å skriva ein skråstreg i tekstfelte')
         }
     }
 
@@ -180,117 +149,5 @@ export class CommandRunner {
 
     runInteractionElement<InteractionTypes>(runningInteraction: IInteractionCommand<InteractionTypes>, interaction: InteractionTypes) {
         runningInteraction.command(interaction)
-    }
-
-    /** Checks for pølse, eivindpride etc. */
-    async checkMessageForJokes(message: Message) {
-        if (!this.checkIfLockedPath(message)) {
-            if (message.id === '802945796457758760') return
-
-            let matches
-            let polseCounter = 0
-            this.polseRegex.lastIndex = 0
-            while ((matches = this.polseRegex.exec(message.content))) {
-                if (matches) {
-                    polseCounter++
-                }
-            }
-            const hasHelg = this.helgeRegex.test(message.content)
-            this.helgeRegex.lastIndex = 0
-
-            if (hasHelg) {
-                const val = await this.commands.dateFunc.checkForHelg()
-                this.messageHelper.sendMessage(message.channelId, { text: val }, { sendAsSilent: true })
-            }
-
-            if (message.attachments) {
-                if (this.polseRegex.exec(message.attachments.first()?.name ?? '')) polseCounter++
-            }
-
-            if (polseCounter > 0)
-                this.messageHelper.sendMessage(
-                    message.channelId,
-                    { text: 'Hæ, ' + (polseCounter > 1 ? polseCounter + ' ' : '') + 'pølse' + (polseCounter > 1 ? 'r' : '') + '?' },
-                    { sendAsSilent: true }
-                )
-
-            //If eivind, eivindpride him
-            if (message.author.id == '239154365443604480' && message.guild) {
-                const react = message.guild.emojis.cache.find((emoji) => emoji.name == (DateUtils.isDecember() ? 'eivindclausepride' : 'eivindpride'))
-                //check for 10% chance of eivindpriding
-                if (MiscUtils.doesThisMessageNeedAnEivindPride(message.content, polseCounter) && react) message.react(react)
-            }
-
-            //TODO: Refactor this
-            if (message.author.id == '733320780707790898' && message.guild) {
-                this.applyJoiijJokes(message)
-            }
-            const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message)
-            if (idJoke == '1337') {
-                this.messageHelper.replyToMessage(message, 'nice, id-en te meldingen din inneholde 1337. Gz, du har vonne 1.000 chips', { sendAsSilent: true })
-
-                const user = await this.client.db.getUser(message.author.id)
-                user.chips += 1000
-                this.client.db.updateUser(user)
-            }
-        }
-    }
-
-    applyJoiijJokes(message: Message) {
-        //"733320780707790898" joiij
-        const numbers = MessageUtils.doesMessageContainNumber(message)
-        const kekw = message.client.emojis.cache.find((emoji) => emoji.name == 'kekw_animated')
-        let arg1
-        let arg2
-
-        if (numbers.length == 1) {
-            arg1 = numbers[0]
-            arg2 = numbers[0] * 5
-        } else if (numbers.length == 2) {
-            arg1 = numbers[0] + '-' + numbers[1]
-            arg2 = numbers[0] * 5 + '-' + numbers[1] * 5
-        }
-        const responses = [
-            'hahaha, du meine ' + arg2 + ', sant?',
-            arg2 + '*',
-            'det va vel litt vel ambisiøst.. ' + arg2 + ' hørres mer rett ud',
-            'hmm... ' + arg1 + ' ...føle eg har hørt den før 🤔',
-            arg1 + ' ja.. me lyge vel alle litt på CVen, hæ?',
-            arg1 + ' e det løgnaste eg har hørt',
-            arg1 + '? Komman Joiij, alle vett du meine ' + arg2,
-            `vedde hundre kroner på at du egentlig meine ${arg2}`,
-            `https://tenor.com/view/donald-trump-fake-news-gif-11382583`,
-        ]
-        if (numbers.length > 0 && numbers.length < 3) {
-            message.react(kekw ?? '😂')
-            this.messageHelper.replyToMessage(message, ArrayUtils.randomChoiceFromArray(responses))
-        }
-        if (message.mentions.roles.find((e) => e.id === MentionUtils.ROLE_IDs.WARZONE)) {
-            message.react(kekw ?? '😂')
-            this.messageHelper.replyToMessage(message, 'lol')
-        }
-    }
-
-    isLegalChannel(interaction: Interaction | Message) {
-        return (
-            (environment === 'dev' &&
-                (interaction?.channel.id === ChannelIds.LOKAL_BOT_SPAM ||
-                    interaction?.channel.id === ChannelIds.LOKAL_BOT_SPAM_DEV ||
-                    interaction?.channel.id === ChannelIds.STATS_SPAM ||
-                    interaction?.channel.id === ChannelIds.GODMODE)) ||
-            (environment === 'prod' && interaction?.channel.id !== ChannelIds.LOKAL_BOT_SPAM && interaction.channelId !== ChannelIds.LOKAL_BOT_SPAM_DEV)
-        )
-    }
-
-    async trackEmojiStats(message: Message) {
-        if (message.guildId === ServerIds.MAZARINI) {
-            this.emojiRegex.lastIndex = 0
-            let match
-            const emojiNames: string[] = []
-            while ((match = this.emojiRegex.exec(message.content))) {
-                if (match && message.guild.emojis.cache.get(match[2])) emojiNames.push(match[1])
-            }
-            if (emojiNames) this.client.db.updateEmojiMessageCounters(emojiNames)
-        }
     }
 }

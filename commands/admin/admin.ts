@@ -208,18 +208,18 @@ export class Admin extends AbstractCommands {
         const user = interaction.options.get('bruker')?.user
         let locked = false
         if (isBot) {
-            locked = !LockingHandler.getbotLocked()
-            LockingHandler.setBotLocked(!LockingHandler.getbotLocked())
+            locked = !this.client.lockHandler.getbotLocked()
+            this.client.lockHandler.setBotLocked(!this.client.lockHandler.getbotLocked())
         } else if (isChannel) {
-            if (LockingHandler.getlockedThread().includes(interaction?.channelId)) {
-                LockingHandler.removeThread(interaction?.channelId)
-            } else LockingHandler.setLockedThread(interaction?.channelId)
-            locked = LockingHandler.getlockedThread().includes(interaction?.channelId)
+            if (this.client.lockHandler.getlockedThread().includes(interaction?.channelId)) {
+                this.client.lockHandler.removeThread(interaction?.channelId)
+            } else this.client.lockHandler.setLockedThread(interaction?.channelId)
+            locked = this.client.lockHandler.getlockedThread().includes(interaction?.channelId)
         } else if (isUser) {
-            if (LockingHandler.getlockedUser().includes(user?.id)) {
-                LockingHandler.removeUserLock(user.id)
-            } else LockingHandler.setLockedUser(user.id)
-            locked = LockingHandler.getlockedUser().includes(user?.id)
+            if (this.client.lockHandler.getlockedUser().includes(user?.id)) {
+                this.client.lockHandler.removeUserLock(user.id)
+            } else this.client.lockHandler.setLockedUser(user.id)
+            locked = this.client.lockHandler.getlockedUser().includes(user?.id)
         }
         this.messageHelper.replyToInteraction(interaction, `${locked ? 'Låst' : 'Åpnet'}`)
     }

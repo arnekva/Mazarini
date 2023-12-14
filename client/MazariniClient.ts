@@ -29,10 +29,12 @@ import { FirebaseHelper } from '../helpers/firebaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniBot } from '../main'
 import { ArrayUtils } from '../utils/arrayUtils'
-import { CommandBuilder } from '../utils/commandBuilder/commandBuilder'
+import { CommandBuilder } from '../builders/commandBuilder/commandBuilder'
 import { ChannelIds, MentionUtils, ServerIds } from '../utils/mentionUtils'
 import { textArrays } from '../utils/textArrays'
 import { UserUtils } from '../utils/userUtils'
+import { LockingHandler } from '../handlers/lockingHandler'
+import { MazariniTracker } from '../general/mazariniTracker'
 
 const Discord = require('discord.js')
 
@@ -48,6 +50,10 @@ export class MazariniClient extends Client {
     private errorHandler: ErrorHandler
 
     private databaseHelper: DatabaseHelper
+
+    private lockingHandler: LockingHandler
+    private mazariniTracker: MazariniTracker
+
     constructor() {
         super({
             //Specifies intents needed to perform certain actions, i.e. what permissions the bot must have
@@ -70,8 +76,10 @@ export class MazariniClient extends Client {
             ],
         })
         this.msgHelper = new MessageHelper(this)
-        this.commandRunner = new CommandRunner(this, this.msgHelper)
+        this.commandRunner = new CommandRunner(this)
         this.jobScheduler = new JobScheduler(this.msgHelper, this)
+        this.lockingHandler = new LockingHandler()
+        this.mazariniTracker = new MazariniTracker(this)
 
         this.errorHandler = new ErrorHandler(this.msgHelper)
         this.setupDatabase(this.msgHelper)
@@ -266,7 +274,7 @@ export class MazariniClient extends Client {
         this.on('roleCreate', function (role: Role) {
             this.messageHelper.sendLogMessage('En ny rolle er opprettet: ' + role.name)
         })
-        
+
         this.on('roleDelete', function (role: Role) {
             this.messageHelper.sendLogMessage('En rolle er slettet: ' + role.name)
         })
@@ -285,7 +293,7 @@ export class MazariniClient extends Client {
 
         this.on('messageUpdate', (oldMessage: Message | PartialMessage, newMessage: Message | PartialMessage) => {
             if (!newMessage.pinned && !oldMessage.pinned && !!newMessage.author) {
-                this.commandRunner.checkMessageForJokes(newMessage as Message)
+                this.commandRunner.messageChecker.checkMessageForJokes(newMessage as Message)
                 if (newMessage.content && newMessage.content.startsWith('/') && !newMessage.content.startsWith('//')) {
                     //Dont trigger on TODO's
                     newMessage.reply(
@@ -323,5 +331,13 @@ export class MazariniClient extends Client {
 
     get db() {
         return this.databaseHelper
+    }
+
+    get lockHandler() {
+        return this.lockingHandler
+    }
+
+    get tracker() {
+        return this.mazariniTracker
     }
 }

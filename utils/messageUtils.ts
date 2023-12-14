@@ -1,7 +1,8 @@
 import { Message, TextChannel } from 'discord.js'
 import { MazariniClient } from '../client/MazariniClient'
-import { MentionUtils } from './mentionUtils'
+import { ChannelIds, MentionUtils } from './mentionUtils'
 import { UserUtils } from './userUtils'
+import { environment } from '../client-env'
 const leetReg = new RegExp(/(1337)/gi)
 
 export namespace MessageUtils {
@@ -55,5 +56,16 @@ export namespace MessageUtils {
             }
         }
         return messageToReturn
+    }
+
+    export const isLegalChannel = (channelId: string) => {
+        return (
+            (environment === 'dev' &&
+                (channelId === ChannelIds.LOKAL_BOT_SPAM ||
+                    channelId === ChannelIds.LOKAL_BOT_SPAM_DEV ||
+                    channelId === ChannelIds.STATS_SPAM ||
+                    channelId === ChannelIds.GODMODE)) ||
+            (environment === 'prod' && channelId !== ChannelIds.LOKAL_BOT_SPAM && channelId !== ChannelIds.LOKAL_BOT_SPAM_DEV)
+        )
     }
 }

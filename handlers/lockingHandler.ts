@@ -1,36 +1,63 @@
-export class LockingHandler {
-    private static botLocked: boolean = false
-    /** Array of user IDs */
-    private static lockedUser: string[] = []
-    private static lockedThread: string[] = []
+import { Interaction, CacheType, Message } from 'discord.js'
+import { Admin } from '../commands/admin/admin'
+import { UserUtils } from '../utils/userUtils'
+import { MazariniClient } from '../client/MazariniClient'
 
-    static setBotLocked(l: boolean) {
+export class LockingHandler {
+    private botLocked: boolean = false
+    /** Array of user IDs */
+    private lockedUser: string[] = []
+    private lockedThread: string[] = []
+
+    constructor() {}
+
+    setBotLocked(l: boolean) {
         this.botLocked = l
     }
 
-    static setLockedUser(userId: string) {
+    setLockedUser(userId: string) {
         this.lockedUser.push(userId)
     }
 
-    static setLockedThread(channelId: string) {
+    setLockedThread(channelId: string) {
         this.lockedThread.push(channelId)
     }
 
-    static removeThread(ci: string) {
+    removeThread(ci: string) {
         this.lockedThread = this.lockedThread.filter((t) => t !== ci)
     }
-    static removeUserLock(ci: string) {
+    removeUserLock(ci: string) {
         this.lockedUser = this.lockedUser.filter((t) => t !== ci)
     }
 
-    static getbotLocked() {
+    getbotLocked() {
         return this.botLocked
     }
 
-    static getlockedUser() {
+    getlockedUser() {
         return this.lockedUser
     }
-    static getlockedThread() {
+    getlockedThread() {
         return this.lockedThread
+    }
+
+    checkIfLockedPath(interaction: Interaction<CacheType> | Message) {
+        let uId = '0'
+        let channelId = '0'
+        if (interaction instanceof Message) {
+            uId = interaction.author.id
+        } else {
+            uId = interaction.user.id
+        }
+        channelId = interaction?.channelId
+        if (Admin.isAuthorAdmin(UserUtils.findMemberByUserID(uId, interaction)) || interaction.guildId === '1106124769797091338') {
+            //Always allow admins to carry out interactions - this includes unlocking
+            return false
+        } else {
+            if (this.getbotLocked()) return true
+            if (this.getlockedThread().includes(channelId)) return true
+            if (this.getlockedUser().includes(uId)) return true
+            return false
+        }
     }
 }

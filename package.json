@@ -1,9 +1,9 @@
 {
     "name": "mazarini",
-    "version": "10.3.0",
+    "version": "15.0.0",
     "description": "",
     "scripts": {
-        "start": "nodemon index.ts --ignore myDataBase.json",
+        "start": "nodemon index.ts",
         "add-to-start": "--exec \"npm run lint && node index\"",
         "start:bg": "pm2 --name mazarini start index.ts",
         "start:crashed": "pm2 delete mazarini  && pm2 --name mazarini start index.ts -a crashed",
