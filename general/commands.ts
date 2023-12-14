@@ -6,7 +6,7 @@ import {
     ModalSubmitInteraction,
     StringSelectMenuInteraction,
 } from 'discord.js'
-import { Admin } from '../admin/admin'
+import { Admin } from '../commands/admin/admin'
 import { MazariniClient } from '../client/MazariniClient'
 import { TrelloCommands } from '../commands/bot/trelloCommands'
 import { CardCommands } from '../commands/cardCommands'
@@ -149,7 +149,7 @@ export class Commands {
             this.redBlackCommands.getAllInteractions(),
             this.trelloCommands.getAllInteractions(),
             this.ludo.getAllInteractions(),
-            this.rocketLeagueCommands.getAllInteractions()
+            this.rocketLeagueCommands.getAllInteractions(),
         ]
     }
 

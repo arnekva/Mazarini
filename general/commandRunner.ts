@@ -9,7 +9,7 @@ import {
     ModalSubmitInteraction,
     StringSelectMenuInteraction,
 } from 'discord.js'
-import { Admin } from '../admin/admin'
+import { Admin } from '../commands/admin/admin'
 import { environment } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
 import { illegalCommandsWhileInJail } from '../commands/money/crimeCommands'
@@ -285,11 +285,11 @@ export class CommandRunner {
     async trackEmojiStats(message: Message) {
         if (message.guildId === ServerIds.MAZARINI) {
             this.emojiRegex.lastIndex = 0
-            let match;
+            let match
             const emojiNames: string[] = []
             while ((match = this.emojiRegex.exec(message.content))) {
                 if (match && message.guild.emojis.cache.get(match[2])) emojiNames.push(match[1])
-            }        
+            }
             if (emojiNames) this.client.db.updateEmojiMessageCounters(emojiNames)
         }
     }
