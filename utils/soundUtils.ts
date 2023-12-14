@@ -17,10 +17,6 @@ interface IVoiceConnectParams {
     adapterCreator: any //TODO: Type this
 }
 export class SoundUtils {
-    static speakText(client: Client, text: string) {}
-
-    static stopCurrentSay() {}
-
     static async connectToVoiceAndSpeak(params: IVoiceConnectParams, text: string) {
         const stream = discordTTS.getVoiceStream(text)
         const audioResource = createAudioResource(stream, { inputType: StreamType.Arbitrary, inlineVolume: true })

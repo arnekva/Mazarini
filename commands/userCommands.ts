@@ -16,8 +16,9 @@ import { ActionMenuHelper } from '../helpers/actionMenuHelper'
 import { ChipsStats, RulettStats } from '../interfaces/database/databaseInterface'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
-import { Roles } from '../utils/roles'
+
 import { UserUtils } from '../utils/userUtils'
+import { Roles } from '../utils/roles'
 
 export class UserCommands extends AbstractCommands {
     constructor(client: MazariniClient) {
