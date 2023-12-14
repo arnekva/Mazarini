@@ -1,7 +1,7 @@
 import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
-import { IInteractionElement } from '../general/commands'
+
 import { RandomUtils } from '../utils/randomUtils'
 
 const weightedRandomObject = require('weighted-random-object')
@@ -113,7 +113,7 @@ export class Spinner extends AbstractCommands {
         this.client.db.updateUser(user)
     }
 
-    getAllInteractions(): IInteractionElement {
+    getAllInteractions() {
         return {
             commands: {
                 interactionCommands: [

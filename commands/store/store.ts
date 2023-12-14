@@ -1,13 +1,12 @@
 import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
-import { IInteractionElement } from '../../general/commands'
 
 export class Store extends AbstractCommands {
     constructor(client: MazariniClient) {
         super(client)
     }
-    getAllInteractions(): IInteractionElement {
+    getAllInteractions() {
         return {
             commands: {
                 interactionCommands: [

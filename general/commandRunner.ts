@@ -22,9 +22,10 @@ import { ChannelIds, MentionUtils, ServerIds } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { UserUtils } from '../utils/userUtils'
-import { Commands, IInteractionCommand } from './commands'
+import { Commands } from './commands'
 import { MessageChecker } from './messageChecker'
 import { MazariniTracker } from './mazariniTracker'
+import { IInteractionCommand } from '../interfaces/interactionInterface'
 const fetch = require('node-fetch')
 
 export class CommandRunner {

@@ -1,7 +1,7 @@
 import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
-import { IInteractionElement } from '../../general/commands'
+
 import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
@@ -115,8 +115,7 @@ export class GamblingCommands extends AbstractCommands {
             if (won) {
                 const calculatedMoney = await this.calculatedNewMoneyValue(interaction.user.id, multiplier, valAsNum, userMoney)
                 newMoneyValue = calculatedMoney.newMoneyValue
-            }
-            else newMoneyValue = Number(userMoney) - valAsNum
+            } else newMoneyValue = Number(userMoney) - valAsNum
             user.chips = newMoneyValue
 
             DatabaseHelper.incrementChipsStats(user, won ? 'roulettWins' : 'rouletteLosses')
@@ -306,7 +305,7 @@ export class GamblingCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions(): IInteractionElement {
+    getAllInteractions() {
         return {
             commands: {
                 interactionCommands: [

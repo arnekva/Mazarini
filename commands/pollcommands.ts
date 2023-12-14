@@ -1,10 +1,11 @@
 import { ActionRowBuilder, AutocompleteInteraction, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
-import { IInteractionElement } from '../general/commands'
+
 import { ArrayUtils } from '../utils/arrayUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { UserUtils } from '../utils/userUtils'
+import { IInteractionElement } from '../interfaces/interactionInterface'
 
 interface IPollVote {
     userId: string
@@ -89,7 +90,7 @@ export class PollCommands extends AbstractCommands {
         const storage = await this.client.db.getStorage()
         const polls = storage?.polls
 
-        if (!polls) this.client.db.updateStorage({ polls: [] }) 
+        if (!polls) this.client.db.updateStorage({ polls: [] })
         return polls
     }
 
@@ -175,11 +176,11 @@ export class PollCommands extends AbstractCommands {
     private getPollEmbed(poll: IPoll, interaction) {
         const embed = EmbedUtils.createSimpleEmbed(`Poll`, poll.desc || 'Enkel poll')
         poll.options.forEach((option) => {
-            const voters = option.votes.map(x => UserUtils.findUserById(x.userId, interaction)?.username).toString()            
+            const voters = option.votes.map((x) => UserUtils.findUserById(x.userId, interaction)?.username).toString()
             embed.addFields([
                 {
                     name: option.name,
-                    value: option.votes.length + ` [stemmer](${"https://discord.com/channels/"+interaction.guildId} "${voters}")`,
+                    value: option.votes.length + ` [stemmer](${'https://discord.com/channels/' + interaction.guildId} "${voters}")`,
                 },
             ])
         })
@@ -207,7 +208,7 @@ export class PollCommands extends AbstractCommands {
         interaction.respond(polls)
     }
 
-    getAllInteractions(): IInteractionElement {
+    getAllInteractions() {
         return {
             commands: {
                 interactionCommands: [

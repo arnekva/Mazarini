@@ -1,5 +1,5 @@
 import { MazariniClient } from '../client/MazariniClient'
-import { IInteractionElement } from '../general/commands'
+import { IInteractionElement } from '../interfaces/interactionInterface'
 
 export abstract class AbstractCommands {
     /** Client reference */

@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, EmbedBuilder, Message } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
-import { IInteractionElement } from '../general/commands'
+
 import { ArrayUtils } from '../utils/arrayUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { RandomUtils } from '../utils/randomUtils'
@@ -446,7 +446,7 @@ export class DrinksCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions(): IInteractionElement {
+    getAllInteractions() {
         return {
             commands: {
                 interactionCommands: [

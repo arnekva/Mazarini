@@ -2,7 +2,6 @@ import { ModernWarfare, Warzone, Warzone2, platforms } from 'call-of-duty-api'
 import { CacheType, ChatInputCommandInteraction, EmbedBuilder, Interaction, User } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
-import { IInteractionElement } from '../../general/commands'
 import { ArrayUtils } from '../../utils/arrayUtils'
 import { ObjectUtils } from '../../utils/objectUtils'
 import { RandomUtils } from '../../utils/randomUtils'
@@ -495,7 +494,7 @@ export class CallOfDutyCommands extends AbstractCommands {
         //         return response
         //     }
         // } catch (error) {
-            return `Fant ingen data (${gamertag} ${platform}). Hvis du vet at du ikke mangler data denne uken, prøv på ny om ca. ett minutt.`
+        return `Fant ingen data (${gamertag} ${platform}). Hvis du vet at du ikke mangler data denne uken, prøv på ny om ca. ett minutt.`
         // }
     }
 
@@ -631,9 +630,7 @@ export class CallOfDutyCommands extends AbstractCommands {
         return user.codStats
     }
 
-   
-
-    public getAllInteractions(): IInteractionElement {
+    public getAllInteractions() {
         return {
             commands: {
                 interactionCommands: [

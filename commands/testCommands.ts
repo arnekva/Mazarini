@@ -12,7 +12,7 @@ import {
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
-import { IInteractionElement } from '../general/commands'
+
 import { ChannelIds } from '../utils/mentionUtils'
 
 const defaultButtonRow = new ActionRowBuilder<ButtonBuilder>()
@@ -121,7 +121,7 @@ export class TestCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions(): IInteractionElement {
+    getAllInteractions() {
         return {
             commands: {
                 interactionCommands: [

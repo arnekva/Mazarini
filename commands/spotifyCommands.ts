@@ -4,7 +4,7 @@ import { URLSearchParams } from 'url'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { spotifyClientID, spotifyClientSecret } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
-import { IInteractionElement } from '../general/commands'
+
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { EmbedUtils } from '../utils/embedUtils'
 import { UserUtils } from '../utils/userUtils'
@@ -254,7 +254,7 @@ export class SpotifyCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions(): IInteractionElement {
+    getAllInteractions() {
         return {
             commands: {
                 interactionCommands: [

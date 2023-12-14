@@ -1,7 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, Message } from 'discord.js'
 import { AbstractCommands } from '../../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../../client/MazariniClient'
-import { IInteractionElement } from '../../../general/commands'
 import { RandomUtils } from '../../../utils/randomUtils'
 import { LudoBoard } from './boards'
 const crypto = require('crypto')
@@ -294,7 +293,7 @@ export class Ludo extends AbstractCommands {
         }
     }
 
-    getAllInteractions(): IInteractionElement {
+    getAllInteractions() {
         return {
             commands: {
                 interactionCommands: [

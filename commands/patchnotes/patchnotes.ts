@@ -2,7 +2,7 @@ import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
-import { IInteractionElement } from '../../general/commands'
+
 import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { MessageHelper } from '../../helpers/messageHelper'
 import { ChannelIds } from '../../utils/mentionUtils'
@@ -38,7 +38,7 @@ export class PatchNotes extends AbstractCommands {
         msgHelper.sendMessage(ChannelIds.PATCH_NOTES, { text: patchNotes })
     }
 
-    getAllInteractions(): IInteractionElement {
+    getAllInteractions() {
         return {
             commands: {
                 interactionCommands: [

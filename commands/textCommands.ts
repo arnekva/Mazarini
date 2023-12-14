@@ -2,7 +2,7 @@ import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import wiki from 'wikijs'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
-import { IInteractionElement } from '../general/commands'
+
 import { EmbedUtils } from '../utils/embedUtils'
 
 export class TextCommands extends AbstractCommands {
@@ -49,7 +49,7 @@ export class TextCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions(): IInteractionElement {
+    getAllInteractions() {
         return {
             commands: {
                 interactionCommands: [

@@ -1,7 +1,7 @@
 import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
-import { IInteractionElement } from '../general/commands'
+
 import { SlashCommandHelper } from '../helpers/slashCommandHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { RandomUtils } from '../utils/randomUtils'
@@ -39,7 +39,6 @@ export class NameCommands extends AbstractCommands {
             } else {
                 this.removeTextValueFromInteraction(textToDelete, textToDeleteUser)
                 this.messageHelper.replyToInteraction(interaction, `Slettet indeks *${textToDelete}* for *${textToDeleteUser}*`)
-
             }
         } else if (personToLookUp) {
             if (personToLookUp === 'joiij') {
@@ -62,7 +61,8 @@ export class NameCommands extends AbstractCommands {
     }
 
     private async getTextFromCommand(username: string) {
-        const text: string = ArrayUtils.randomChoiceFromArray(await this.client.db.getTextCommandValueArray(username.toLowerCase()) ?? []) || 'Ingen tekst lagt til'
+        const text: string =
+            ArrayUtils.randomChoiceFromArray((await this.client.db.getTextCommandValueArray(username.toLowerCase())) ?? []) || 'Ingen tekst lagt til'
         return `${text.startsWith('<:') ? '' : username} ${text || 'Ingen tekst lagt til'}`
     }
 
@@ -75,14 +75,14 @@ export class NameCommands extends AbstractCommands {
     }
 
     private async listTexts(username: string): Promise<string[]> {
-        return await this.client.db.getTextCommandValueArray(username) as string[]
+        return (await this.client.db.getTextCommandValueArray(username)) as string[]
     }
 
     private async removeTextValueFromInteraction(index: number, username: string) {
-        this.client.db.nukeTextCommand(username, index) 
+        this.client.db.nukeTextCommand(username, index)
     }
 
-    getAllInteractions(): IInteractionElement {
+    getAllInteractions() {
         return {
             commands: {
                 interactionCommands: [

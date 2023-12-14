@@ -1,7 +1,7 @@
 import { CacheType, ChatInputCommandInteraction, Interaction } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
-import { IInteractionElement } from '../../general/commands'
+
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
 import { DailyReward } from '../../interfaces/database/databaseInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
@@ -165,7 +165,7 @@ export class MoneyCommands extends AbstractCommands {
         return undefined
     }
 
-    getAllInteractions(): IInteractionElement {
+    getAllInteractions() {
         return {
             commands: {
                 interactionCommands: [

@@ -3,7 +3,7 @@ import { URLSearchParams } from 'url'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { imgflip } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
-import { IInteractionElement } from '../../general/commands'
+
 import { Meme } from '../../interfaces/database/databaseInterface'
 import { MentionUtils } from '../../utils/mentionUtils'
 
@@ -125,7 +125,7 @@ export class MemeCommands extends AbstractCommands {
         interaction.respond(options)
     }
 
-    getAllInteractions(): IInteractionElement {
+    getAllInteractions() {
         return {
             commands: {
                 interactionCommands: [

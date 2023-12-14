@@ -13,7 +13,7 @@ import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { vinmonopoletKey } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
-import { IInteractionElement } from '../general/commands'
+
 import { Languages } from '../helpers/languageHelpers'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
@@ -65,7 +65,7 @@ export class PoletCommands extends AbstractCommands {
     static async fetchPoletData(storeId: string, rawInteraction?: Interaction<CacheType>) {
         let id = PoletCommands.baseStoreID
         if (storeId) id = storeId
-        
+
         const data = await fetch(`${PoletCommands.baseStoreDataURL}?storeId=${id}`, {
             method: 'GET',
             headers: {
@@ -298,7 +298,7 @@ export class PoletCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions(): IInteractionElement {
+    getAllInteractions() {
         return {
             commands: {
                 interactionCommands: [

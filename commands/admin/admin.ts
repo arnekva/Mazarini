@@ -4,8 +4,6 @@ import moment from 'moment'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
-import { IInteractionElement } from '../../general/commands'
-import { LockingHandler } from '../../handlers/lockingHandler'
 import { ClientHelper } from '../../helpers/clientHelper'
 import { dbPrefix, prefixList } from '../../interfaces/database/databaseInterface'
 import { DailyJobs } from '../../Jobs/dailyJobs'
@@ -13,6 +11,7 @@ import { WeeklyJobs } from '../../Jobs/weeklyJobs'
 import { MazariniBot } from '../../main'
 import { ChannelIds, MentionUtils } from '../../utils/mentionUtils'
 import { UserUtils } from '../../utils/userUtils'
+import { IInteractionElement } from '../../interfaces/interactionInterface'
 
 const { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js')
 // const { exec } = require('child_process')
@@ -278,7 +277,7 @@ export class Admin extends AbstractCommands {
         )
     }
 
-    getAllInteractions(): IInteractionElement {
+    getAllInteractions() {
         return {
             commands: {
                 interactionCommands: [
@@ -352,10 +351,6 @@ export class Admin extends AbstractCommands {
                 ],
             },
         }
-    }
-
-    getAllModalInteractions(): IInteractionElement[] {
-        return []
     }
 
     static isAuthorAdmin(member: GuildMember | APIInteractionGuildMember | null | undefined) {

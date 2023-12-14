@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, EmbedBuilder, User } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
-import { IInteractionElement } from '../../general/commands'
+
 import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
@@ -418,7 +418,7 @@ export class CrimeCommands extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, someoneInJail ? formattedMsg : 'Det er ingen i fengsel atm')
     }
 
-    getAllInteractions(): IInteractionElement {
+    getAllInteractions() {
         return {
             commands: {
                 interactionCommands: [

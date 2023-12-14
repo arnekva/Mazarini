@@ -2,7 +2,6 @@ import { CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js
 import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
-import { IInteractionElement } from '../general/commands'
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { ICountdownItem, ferieItem } from '../interfaces/database/databaseInterface'
 import { ArrayUtils } from '../utils/arrayUtils'
@@ -303,7 +302,7 @@ export class DateCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions(): IInteractionElement {
+    getAllInteractions() {
         return {
             commands: {
                 interactionCommands: [

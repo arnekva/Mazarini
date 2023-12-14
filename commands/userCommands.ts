@@ -11,7 +11,7 @@ import {
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
-import { IInteractionElement } from '../general/commands'
+
 import { ActionMenuHelper } from '../helpers/actionMenuHelper'
 import { ChipsStats, RulettStats } from '../interfaces/database/databaseInterface'
 import { DateUtils } from '../utils/dateUtils'
@@ -19,6 +19,7 @@ import { EmbedUtils } from '../utils/embedUtils'
 
 import { UserUtils } from '../utils/userUtils'
 import { Roles } from '../utils/roles'
+import { IInteractionElement } from '../interfaces/interactionInterface'
 
 export class UserCommands extends AbstractCommands {
     constructor(client: MazariniClient) {
@@ -192,7 +193,7 @@ export class UserCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions(): IInteractionElement {
+    getAllInteractions() {
         return {
             commands: {
                 interactionCommands: [

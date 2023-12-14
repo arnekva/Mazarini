@@ -11,7 +11,6 @@ import {
 } from 'discord.js'
 import { AbstractCommands } from '../../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../../client/MazariniClient'
-import { IInteractionElement } from '../../../general/commands'
 import { CardCommands, ICardObject } from '../../cardCommands'
 import {
     gtButtonRow,
@@ -563,7 +562,7 @@ export class RedBlackCommands extends AbstractCommands {
         return reply
     }
 
-    getAllInteractions(): IInteractionElement {
+    getAllInteractions() {
         return {
             commands: {
                 interactionCommands: [

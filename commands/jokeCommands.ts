@@ -2,7 +2,7 @@ import { APIEmbedField, CacheType, ChatInputCommandInteraction, TextChannel } fr
 import moment, { Moment } from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
-import { IInteractionElement } from '../general/commands'
+
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { DateUtils } from '../utils/dateUtils'
@@ -297,7 +297,7 @@ export class JokeCommands extends AbstractCommands {
         this.messageHelper.sendMessage(interaction.channelId, { text: randomGif })
     }
 
-    getAllInteractions(): IInteractionElement {
+    getAllInteractions() {
         return {
             commands: {
                 interactionCommands: [

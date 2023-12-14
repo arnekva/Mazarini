@@ -16,7 +16,6 @@ import {
 } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
-import { IInteractionElement } from '../../general/commands'
 import { ActionMenuHelper } from '../../helpers/actionMenuHelper'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { TrelloAPI } from './trelloAPI'
@@ -314,7 +313,7 @@ export class TrelloCommands extends AbstractCommands {
         return labelIdArray
     }
 
-    getAllInteractions(): IInteractionElement {
+    getAllInteractions() {
         return {
             commands: {
                 interactionCommands: [
