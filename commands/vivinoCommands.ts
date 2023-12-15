@@ -94,6 +94,9 @@ export class VivinoCommands extends AbstractCommands {
             const imageUrl = `https:${newestItem.object.image.location}`
 
             const thisYear = this.findRatingsThisYear(data)
+            console.log(thisYear[0].object.vintage.statistics)
+            console.log(thisYear[0].object.vintage.wine)
+
             const allCountries = thisYear.reduce(function (value, value2) {
                 return (
                     value[value2.object.vintage.wine.region.country]
@@ -102,14 +105,48 @@ export class VivinoCommands extends AbstractCommands {
                     value
                 )
             }, {})
-            const asValues = Object.entries(allCountries).sort((a, b) => (b[1] as number) - (a[1] as number))
-            console.log(asValues)
+            const countriesAsValues = Object.entries(allCountries).sort((a, b) => (b[1] as number) - (a[1] as number))
 
-            const embed = EmbedUtils.createSimpleEmbed(`Ditt vin-år`, `Du ratet ${thisYear.length} viner i 2023`)
-            asValues.forEach((val) => {
+            const allRegions = thisYear.reduce(function (value, value2) {
+                return (
+                    value[value2.object.vintage.wine.region.name]
+                        ? ++value[value2.object.vintage.wine.region.name]
+                        : (value[value2.object.vintage.wine.region.name] = 1),
+                    value
+                )
+            }, {})
+            const regionsAsValues = Object.entries(allRegions)
+                .sort((a, b) => (b[1] as number) - (a[1] as number))
+                .flat()
+
+            let totalRatings = 0
+            let highestRating = 0
+            const numRatings = thisYear.length
+            thisYear.forEach((review) => {
+                const rating = review.object.review.rating
+                totalRatings += rating
+                if (rating > highestRating) highestRating = rating
+            })
+            const ratingsAsValues = Object.entries(allRegions)
+                .sort((a, b) => (b[1] as number) - (a[1] as number))
+                .flat()
+
+            const embed = EmbedUtils.createSimpleEmbed(`Dette er ditt vin-år ${interaction.user.username}`, `Du ratet ${numRatings} viner i 2023`)
+            embed.addFields([
+                {
+                    name: 'Favorittregion',
+                    value: `${regionsAsValues[0]} (${regionsAsValues[1]} viner fra denne regionen)`,
+                },
+                {
+                    name: 'Gjennomsnittsrating',
+                    value: `${(totalRatings / numRatings).toFixed(2)} (høyeste rating var ${highestRating})`,
+                },
+            ])
+            countriesAsValues.forEach((val) => {
                 embed.addFields({
                     name: LanguageCodes[val[0].toUpperCase()],
                     value: val[1] + ' viner',
+                    inline: true,
                 })
             })
 
