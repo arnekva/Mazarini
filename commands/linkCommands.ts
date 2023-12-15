@@ -16,6 +16,7 @@ export class LinkCommands extends AbstractCommands {
         const isRocket = interaction.options.getSubcommand() === 'rocket'
         const isLastFM = interaction.options.getSubcommand() === 'lastfm'
         const isVinmonopol = interaction.options.getSubcommand() === 'vinmonopol'
+        const isVivino = interaction.options.getSubcommand() === 'vivino'
 
         let saved = false
         let msg = ''
@@ -39,6 +40,11 @@ export class LinkCommands extends AbstractCommands {
             const data = await this.linkVinmonopolToUser(polID, interaction.user.id)
             saved = !!data
             msg = `Vinmonopolet ${data} er lagret på brukeren din`
+        } else if (isVivino) {
+            const vivinoId = interaction.options.get('userid')?.value as string
+            const data = await this.linkVivinoId(interaction, vivinoId)
+            saved = !!data
+            msg = `Vivino id er lagret på brukeren din`
         }
 
         if (saved) this.messageHelper.replyToInteraction(interaction, msg, { hasBeenDefered: true })
@@ -65,6 +71,13 @@ export class LinkCommands extends AbstractCommands {
         if (!username) return false
         const user = await this.client.db.getUser(rawInteraction.user.id)
         user.lastFMUsername = username
+        this.client.db.updateUser(user)
+        return true
+    }
+    private async linkVivinoId(rawInteraction: Interaction<CacheType>, username?: string): Promise<boolean> {
+        if (!username) return false
+        const user = await this.client.db.getUser(rawInteraction.user.id)
+        user.vivinoId = username
         this.client.db.updateUser(user)
         return true
     }

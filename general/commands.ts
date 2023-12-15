@@ -1,13 +1,5 @@
-import {
-    AutocompleteInteraction,
-    ButtonInteraction,
-    CacheType,
-    ChatInputCommandInteraction,
-    ModalSubmitInteraction,
-    StringSelectMenuInteraction,
-} from 'discord.js'
-import { Admin } from '../commands/admin/admin'
 import { MazariniClient } from '../client/MazariniClient'
+import { Admin } from '../commands/admin/admin'
 import { TrelloCommands } from '../commands/bot/trelloCommands'
 import { CardCommands } from '../commands/cardCommands'
 import { DateCommands } from '../commands/dateCommands'
@@ -33,8 +25,9 @@ import { SpotifyCommands } from '../commands/spotifyCommands'
 import { TestCommands } from '../commands/testCommands'
 import { TextCommands } from '../commands/textCommands'
 import { UserCommands } from '../commands/userCommands'
+import { VivinoCommands } from '../commands/vivinoCommands'
 import { Weather } from '../commands/weatherCommands'
-import { IInteractionCommand, IInteractionElement } from '../interfaces/interactionInterface'
+import { IInteractionElement } from '../interfaces/interactionInterface'
 
 export class Commands {
     private client: MazariniClient
@@ -66,6 +59,7 @@ export class Commands {
     private pollCommands: PollCommands
     private ludo: Ludo
     private rocketLeagueCommands: RocketLeagueCommands
+    private vivinoCommands: VivinoCommands
 
     constructor(client: MazariniClient) {
         this.client = client
@@ -97,6 +91,7 @@ export class Commands {
         this.pollCommands = new PollCommands(this.client)
         this.ludo = new Ludo(this.client)
         this.rocketLeagueCommands = new RocketLeagueCommands(this.client)
+        this.vivinoCommands = new VivinoCommands(this.client)
     }
 
     getAllInteractionCommands(): IInteractionElement[] {
@@ -128,6 +123,7 @@ export class Commands {
             this.trelloCommands.getAllInteractions(),
             this.ludo.getAllInteractions(),
             this.rocketLeagueCommands.getAllInteractions(),
+            this.vivinoCommands.getAllInteractions(),
         ]
     }
 

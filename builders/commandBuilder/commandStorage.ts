@@ -12,6 +12,7 @@ import { spotifyCommand } from './commandStorage/spotify'
 import { stoppCommand } from './commandStorage/stopp'
 import { terningCommand } from './commandStorage/terning'
 import { tournamentCommand } from './commandStorage/tournaments'
+import { vivinoCommand } from './commandStorage/vivino'
 import { whamageddonCommand } from './commandStorage/whamageddon'
 
 /** Easy way to get commands out from storage.
@@ -34,4 +35,5 @@ export namespace CommandStorage {
     export const PollCommand = pollCommand
     export const LudoCommand = ludoCommand
     export const PointerBrothersCommand = pointerbrothersCommand
+    export const VivinoCommand = vivinoCommand
 }

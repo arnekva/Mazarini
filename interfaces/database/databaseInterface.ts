@@ -85,6 +85,7 @@ export interface MazariniUser {
     rocketLeagueStats?: rocketLeagueDbData
     /** Username for rocket league. username;platform */
     rocketLeagueUserString?: string
+    vivinoId?: string
     // inventory?: any[]
     // debuff?: any
     daily?: DailyReward

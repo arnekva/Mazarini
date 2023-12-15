@@ -12,9 +12,6 @@ import {
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
-import { EmbedUtils } from '../utils/embedUtils'
-import { LanguageCodes } from '../utils/languageUtils'
-import { VivinoCommands } from './vivinoCommands'
 
 const defaultButtonRow = new ActionRowBuilder<ButtonBuilder>()
 defaultButtonRow.addComponents(
@@ -46,41 +43,7 @@ export class TestCommands extends AbstractCommands {
         this.currentButtons = defaultButtonRow
     }
 
-    private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        const vvc = new VivinoCommands(this.client)
-        const data = await vvc.findData(interaction)
-
-        const newestItem = data[0]
-        const imageUrl = `https:${newestItem.object.image.location}`
-        // const embed = EmbedUtils.createSimpleEmbed(
-        //     `${newestItem.object.vintage.name} ${newestItem.object.vintage.year}`,
-        //     `${newestItem.object.review.rating} - ${newestItem.object.review.note}`
-        // )
-        //     .setThumbnail(imageUrl)
-        //     .setFooter({ text: `Totalt ${data.length} ratinger` })
-
-        const thisYear = vvc.findRatingsThisYear(data)
-        const allCountries = thisYear.reduce(function (value, value2) {
-            return (
-                value[value2.object.vintage.wine.region.country]
-                    ? ++value[value2.object.vintage.wine.region.country]
-                    : (value[value2.object.vintage.wine.region.country] = 1),
-                value
-            )
-        }, {})
-        const asValues = Object.entries(allCountries).sort((a, b) => (b[1] as number) - (a[1] as number))
-        console.log(asValues)
-
-        const embed = EmbedUtils.createSimpleEmbed(`Ditt vin-år`, `Du ratet ${thisYear.length} viner i 2023`)
-        asValues.forEach((val) => {
-            embed.addFields({
-                name: LanguageCodes[val[0].toUpperCase()],
-                value: val[1] + ' viner',
-            })
-        })
-
-        this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true })
-    }
+    private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {}
 
     private async testSelectMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {
         const value = selectMenu.values[0]
