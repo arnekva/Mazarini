@@ -141,7 +141,7 @@ export class CommandRunner {
     }
 
     runInteractionElement<InteractionTypes>(runningInteraction: IInteractionCommand<InteractionTypes>, interaction: InteractionTypes) {
-        if (runningInteraction.disabled)
+        if (runningInteraction.disabled && environment === 'prod')
             this.client.messageHelper.replyToInteraction(interaction as ChatInputCommandInteraction, `Denne kommandoen er ikke tilgjengelig`)
         else runningInteraction.command(interaction)
     }
