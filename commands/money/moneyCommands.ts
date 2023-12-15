@@ -76,9 +76,6 @@ export class MoneyCommands extends AbstractCommands {
         } else if (numDays) {
             const reply = await this.freezeDailyClaim(interaction, numDays)
             this.messageHelper.replyToInteraction(interaction, reply)
-        } else {
-            //Usikker på om dager er obligatorisk, så håndter en eventuell feil intill bekreftet oblig.
-            SlashCommandHelper.handleInteractionParameterError(interaction)
         }
     }
 
