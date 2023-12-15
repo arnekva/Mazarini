@@ -1,10 +1,10 @@
 import {
     AutocompleteInteraction,
-    ChatInputCommandInteraction,
-    CacheType,
     ButtonInteraction,
-    StringSelectMenuInteraction,
+    CacheType,
+    ChatInputCommandInteraction,
     ModalSubmitInteraction,
+    StringSelectMenuInteraction,
 } from 'discord.js'
 
 export interface IInteractionCommand<T> {
@@ -14,6 +14,8 @@ export interface IInteractionCommand<T> {
     command: (rawInteraction: T) => void
     /** If options have autocomplete, this callback will handle them */
     autoCompleteCallback?: (rawInteraction: AutocompleteInteraction) => void
+    /** If true, the production bot will not trigger this command */
+    disabled?: boolean
 }
 
 export interface IInteractionElement {

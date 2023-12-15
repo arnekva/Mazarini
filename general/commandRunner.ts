@@ -9,23 +9,15 @@ import {
     ModalSubmitInteraction,
     StringSelectMenuInteraction,
 } from 'discord.js'
-import { Admin } from '../commands/admin/admin'
 import { environment } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
 import { illegalCommandsWhileInJail } from '../commands/money/crimeCommands'
 import { PoletCommands } from '../commands/poletCommands'
-import { LockingHandler } from '../handlers/lockingHandler'
-import { MessageHelper } from '../helpers/messageHelper'
-import { ArrayUtils } from '../utils/arrayUtils'
-import { DateUtils } from '../utils/dateUtils'
-import { ChannelIds, MentionUtils, ServerIds } from '../utils/mentionUtils'
+import { IInteractionCommand } from '../interfaces/interactionInterface'
+import { ChannelIds, MentionUtils } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
-import { MiscUtils } from '../utils/miscUtils'
-import { UserUtils } from '../utils/userUtils'
 import { Commands } from './commands'
 import { MessageChecker } from './messageChecker'
-import { MazariniTracker } from './mazariniTracker'
-import { IInteractionCommand } from '../interfaces/interactionInterface'
 const fetch = require('node-fetch')
 
 export class CommandRunner {
@@ -149,6 +141,8 @@ export class CommandRunner {
     }
 
     runInteractionElement<InteractionTypes>(runningInteraction: IInteractionCommand<InteractionTypes>, interaction: InteractionTypes) {
-        runningInteraction.command(interaction)
+        if (runningInteraction.disabled)
+            this.client.messageHelper.replyToInteraction(interaction as ChatInputCommandInteraction, `Denne kommandoen er ikke tilgjengelig`)
+        else runningInteraction.command(interaction)
     }
 }

@@ -299,6 +299,7 @@ export class Ludo extends AbstractCommands {
                             this.createGame()
                             this.updateBoard(rawInteraction)
                         },
+                        disabled: true,
                     },
                 ],
                 buttonInteractionComands: [
