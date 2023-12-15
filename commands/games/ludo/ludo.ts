@@ -65,26 +65,24 @@ export class Ludo extends AbstractCommands {
 
     createGame() {
         const p1: LudoPlayer = {
-            color: 'yellow',
-            id: 0,
+            color: 'red',
+            id: 1,
             diceroll: 0,
-            pieces: this.getDefaultPiecesByColor('yellow'),
+            pieces: this.getDefaultPiecesByColor('red', 1),
         }
         const p2: LudoPlayer = {
-            color: 'green',
-            id: 0,
+            color: 'blue',
+            id: 2,
             diceroll: 0,
-            pieces: this.getDefaultPiecesByColor('green'),
+            pieces: this.getDefaultPiecesByColor('blue', 2),
         }
         this.players.push(p1, p2)
     }
 
     /*
     TODO:
-    Winning positions must be added
     Safe positions must be added
-    Default pieces should be placed in house
-
+   
     Needs some form of Async YeetOldBoards logic, such that it can be called to delete all old instances of ludo boards in the channel except current ones.
     Needs to be async so that the game can continue as normal while it deletes it in the background. Otherwise it will lag the server too much. Board should also be deleted on game completion
 
@@ -92,7 +90,7 @@ export class Ludo extends AbstractCommands {
 
     async updateBoard(interaction: ButtonInteraction | ChatInputCommandInteraction, diceRoll?: string) {
         const board = LudoBoard.board(this.allPieces)
-        const msgContent0 = 'Player rolled ' + diceRoll
+        const msgContent0 = 'Spiller trillet ' + (diceRoll ? diceRoll : 'ingenting')
         const msgContent1 = board.board1
         const msgContent2 = board.board2
         const msgContent3 = board.board3
@@ -145,55 +143,17 @@ export class Ludo extends AbstractCommands {
         return this.players.flatMap((p) => p.pieces)
     }
 
-    private getDefaultPiecesByColor(c: LudoColor): LudoPiece[] {
-        if (c === 'yellow') {
-            return [
-                {
-                    id: 0,
-                    color: 'yellow',
-                    positionIndex: 30,
-                },
-                {
-                    id: 1,
-                    color: 'yellow',
-                    positionIndex: 101,
-                },
-                {
-                    id: 2,
-                    color: 'yellow',
-                    positionIndex: 102,
-                },
-                {
-                    id: 3,
-                    color: 'yellow',
-                    positionIndex: 103,
-                },
-            ]
-        }
-        if (c === 'green') {
-            return [
-                {
-                    id: 4,
-                    color: 'green',
-                    positionIndex: 200,
-                },
-                {
-                    id: 5,
-                    color: 'green',
-                    positionIndex: 201,
-                },
-                {
-                    id: 6,
-                    color: 'green',
-                    positionIndex: 202,
-                },
-                {
-                    id: 7,
-                    color: 'green',
-                    positionIndex: 203,
-                },
-            ]
-        }
+    private getDefaultPiecesByColor(c: LudoColor, playerIdx): LudoPiece[] {
+        const pIdxStart = playerIdx + 4
+        const pieces: LudoPiece[] = LudoBoard.homeIndexes(c).map((hc, idx) => {
+            const piece: LudoPiece = {
+                id: pIdxStart + idx,
+                color: c,
+                positionIndex: hc,
+            }
+            return piece
+        })
+        return pieces
     }
 
     get buttonRow() {
@@ -201,7 +161,7 @@ export class Ludo extends AbstractCommands {
             new ButtonBuilder({
                 custom_id: 'LUDO_BTN_ROLL',
                 style: ButtonStyle.Success,
-                label: `Rull`,
+                label: `Trill`,
                 disabled: false,
                 type: 2,
             }),
@@ -228,69 +188,105 @@ export class Ludo extends AbstractCommands {
             }),
 
             new ButtonBuilder({
-                custom_id: 'LUDO_BTN_TAKE_OUT',
-                style: ButtonStyle.Danger,
-                label: `Flutt ut`,
+                custom_id: 'LUDO_BTN_MOVE_4',
+                style: ButtonStyle.Primary,
+                label: `Brikke 4`,
                 disabled: false,
                 type: 2,
             }),
         ])
     }
+    getCurrPlayer(interaction) {
+        return interaction.user.id === '245607554254766081' ? this.players[0] : this.players[1]
+    }
 
+    /** Moves the piece (by index supplied by the button command). Handles moving out, checking goal state, looping board and moving into goal path */
     private movePiece(interaction: ButtonInteraction<CacheType>, idx: number) {
-        const diceRoll = this.players[0].diceroll
-        this.players[0].pieces[idx - 1].positionIndex += diceRoll
-        console.log('Moving,', this.players[0].pieces[idx - 1].positionIndex)
+        const player = this.getCurrPlayer(interaction)
+        const piece = player.pieces[idx - 1]
 
-        this.checkPieceEndgameState(this.players[0].pieces[idx - 1], this.players[0].pieces[idx - 1].positionIndex - diceRoll)
-        if (interaction.user.id === '245607554254766081') {
+        if (this.isPieceInStart(piece)) {
+            if (player.diceroll === 6) {
+                this.moveOutPiece(piece)
+                this.updateBoard(interaction)
+                interaction.deferUpdate()
+            } else {
+                this.messageHelper.replyToInteraction(interaction, `Du kan bare flytte ut den brikken hvis du ruller 6`)
+            }
+        } else if (this.isPieceInGoal(piece)) {
+            this.messageHelper.replyToInteraction(interaction, `Du kan ikke flytte på en brikke som er i mål`)
+        } else {
+            const diceRoll = this.getCurrPlayer(interaction).diceroll
+            piece.positionIndex += diceRoll
+            console.log('Moving,', this.players[0].pieces[idx - 1].positionIndex)
+
+            const looping = this.handleBoardEnd(piece)
+            this.checkPieceEndgameState(piece, piece.positionIndex - diceRoll, looping)
             this.updateBoard(interaction, diceRoll.toString())
             interaction.deferUpdate()
-        } else {
-            this.messageHelper.replyToInteraction(interaction, 'pls no', { ephemeral: true })
         }
+    }
+
+    /** Check if the given piece is in a start position */
+    private isPieceInStart(p: LudoPiece) {
+        const home = LudoBoard.homeIndexes(p.color)
+        return home.includes(p.positionIndex)
+    }
+    /** Check if the given piece is in the goal index for its color */
+    private isPieceInGoal(p: LudoPiece) {
+        const goal = LudoBoard.goalForColor(p.color)
+        return p.positionIndex === goal
+    }
+
+    /** Handles a piece hitting "board edge", i.e. position reaching end of map. Will move it to index 0 (plus remaining) */
+    private handleBoardEnd(piece: LudoPiece) {
+        if (piece.positionIndex > 52 && piece.positionIndex < 100) {
+            console.log('a piece hit the end at 52', piece.positionIndex, 'moved to ' + (piece.positionIndex - 52))
+
+            piece.positionIndex = piece.positionIndex - 52
+            return true
+        }
+        return false
     }
 
     private rollDice(interaction: ButtonInteraction<CacheType>) {
         const diceRoll = RandomUtils.getRandomInteger(1, 6)
-        this.players[0].diceroll = diceRoll
-
+        this.getCurrPlayer(interaction).diceroll = diceRoll
+        interaction.deferUpdate()
         const msg0FromCache = interaction.channel.messages.cache.get(this.msg0.messageId)
         if (msg0FromCache) {
-            msg0FromCache.edit(`Spiller 1 trillet ${diceRoll}`)
+            msg0FromCache.edit(`Spiller ${this.getCurrPlayer(interaction).id} trillet ${diceRoll}`)
         }
     }
 
-    private checkPieceEndgameState(p: LudoPiece, oldPosition: number) {
+    /** Checks if a given piece has reached or surpassed it's goal entrance. Will move it into goal path instead of continuing on the board */
+    private checkPieceEndgameState(p: LudoPiece, oldPosition: number, didLoop: boolean) {
         console.log(p.positionIndex, LudoBoard.endStates(p.color), LudoBoard.endPathStart(p.color))
 
         //Piece is moving towards end game
         if (p.positionIndex >= LudoBoard.endPathStart(p.color) && p.positionIndex < 100 && oldPosition < LudoBoard.pieceStartPosition(p.color)) {
-            p.positionIndex = LudoBoard.normalPathToEndPath(p.color) + (p.positionIndex - LudoBoard.endPathStart(p.color))
+            p.positionIndex = LudoBoard.normalPathToEndPath(p.color) + (p.positionIndex - LudoBoard.endPathStart(p.color)) - 1
+
             console.log('Moving to endstate', p.positionIndex)
         }
         this.movePieceBackFromGoal(p)
     }
 
+    /** If the given piece has a index greater than it's goal index it will be moved back from the goal, as a player must roll the exact number to enter the goal */
     private movePieceBackFromGoal(p: LudoPiece) {
         const goalForColor = LudoBoard.goalForColor(p.color)
         if (p.positionIndex > goalForColor) {
-            console.log('is in goal?', p.positionIndex, goalForColor)
+            console.log('has moved past goal', p.positionIndex, goalForColor)
 
-            p.positionIndex = p.positionIndex - (p.positionIndex - goalForColor)
+            p.positionIndex = goalForColor - (p.positionIndex - goalForColor)
         } else if (p.positionIndex === goalForColor) {
             console.log('player is in goal')
         }
     }
 
-    private moveOutPiece(interaction: ButtonInteraction<CacheType>) {
-        const currPlayer = this.players[0]
-        if (currPlayer.diceroll === 6) {
-            const pieceToMove = currPlayer.pieces.find((p) => LudoBoard.homeIndexes(p.color).includes(p.positionIndex))
-            if (pieceToMove) {
-                pieceToMove.positionIndex = LudoBoard.pieceStartPosition(pieceToMove.color)
-            }
-        }
+    /** Moves a piece from its home to the correct start position on the board */
+    private moveOutPiece(piece: LudoPiece) {
+        piece.positionIndex = LudoBoard.pieceStartPosition(piece.color)
     }
 
     getAllInteractions() {
@@ -319,9 +315,15 @@ export class Ludo extends AbstractCommands {
                         },
                     },
                     {
-                        commandName: 'LUDO_BTN_TAKE_OUT',
+                        commandName: 'LUDO_BTN_MOVE_3',
                         command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                            this.moveOutPiece(rawInteraction)
+                            this.movePiece(rawInteraction, 3)
+                        },
+                    },
+                    {
+                        commandName: 'LUDO_BTN_MOVE_4',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.movePiece(rawInteraction, 4)
                         },
                     },
                     {
