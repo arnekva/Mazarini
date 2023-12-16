@@ -5,6 +5,15 @@ import { MazariniClient } from '../client/MazariniClient'
 import { EmbedUtils } from '../utils/embedUtils'
 import { LanguageCodes } from '../utils/languageUtils'
 const fetch = require('node-fetch')
+
+interface IVivinoReview {
+    id: number
+    rating: number
+    note: string
+    language: string
+    created_at: string
+    aggregated: boolean
+}
 interface IVivinoRating {
     id: number
     subject: {
@@ -65,14 +74,7 @@ interface IVivinoRating {
             location: string
             variations: any[]
         }
-        review: {
-            id: number
-            rating: number
-            note: string
-            language: string
-            created_at: string
-            aggregated: boolean
-        }
+        review: IVivinoReview
         updated_at: string
         created_at: string
         scanned_at: string
@@ -94,8 +96,7 @@ export class VivinoCommands extends AbstractCommands {
             const imageUrl = `https:${newestItem.object.image.location}`
 
             const thisYear = this.findRatingsThisYear(data)
-            console.log(thisYear[0].object.vintage.statistics)
-            console.log(thisYear[0].object.vintage.wine)
+            console.log(thisYear.length)
 
             const allCountries = thisYear.reduce(function (value, value2) {
                 return (
@@ -120,16 +121,22 @@ export class VivinoCommands extends AbstractCommands {
                 .flat()
 
             let totalRatings = 0
-            let highestRating = 0
+            let highestRating: IVivinoRating = undefined
+            let lowestRating: IVivinoRating = undefined
             const numRatings = thisYear.length
-            thisYear.forEach((review) => {
-                const rating = review.object.review.rating
+            console.log(thisYear[0])
+
+            thisYear.forEach((vivinoRating) => {
+                const review = vivinoRating?.object.review
+                const rating = vivinoRating?.object.review.rating
                 totalRatings += rating
-                if (rating > highestRating) highestRating = rating
+                if (!highestRating || review.rating > highestRating.object.review.rating) highestRating = vivinoRating
+                if (!lowestRating || review.rating < lowestRating.object.review.rating) lowestRating = vivinoRating
             })
             const ratingsAsValues = Object.entries(allRegions)
                 .sort((a, b) => (b[1] as number) - (a[1] as number))
                 .flat()
+            console.log(highestRating)
 
             const embed = EmbedUtils.createSimpleEmbed(`Dette er ditt vin-år ${interaction.user.username}`, `Du ratet ${numRatings} viner i 2023`)
             embed.addFields([
@@ -139,7 +146,15 @@ export class VivinoCommands extends AbstractCommands {
                 },
                 {
                     name: 'Gjennomsnittsrating',
-                    value: `${(totalRatings / numRatings).toFixed(2)} (høyeste rating var ${highestRating})`,
+                    value: `${(totalRatings / numRatings).toFixed(2)} (høyeste rating var ${highestRating}, laveste rating var ${lowestRating})`,
+                },
+                {
+                    name: 'Høyest rating',
+                    value: `Du ga ${highestRating.object.review.rating} som høyeste score til ${highestRating.object.vintage.name}. Om denne vinen skrev du: "${highestRating.object.review.note}`,
+                },
+                {
+                    name: 'Lavest rating',
+                    value: `Du ga ${lowestRating.object.review.rating} som laveste score til ${highestRating.object.vintage.name}. Om denne vinen skrev du: "${lowestRating.object.review.note}`,
                 },
             ])
             countriesAsValues.forEach((val) => {
