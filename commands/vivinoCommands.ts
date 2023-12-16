@@ -160,7 +160,7 @@ export class VivinoCommands extends AbstractCommands {
             countriesAsValues.forEach((val) => {
                 embed.addFields({
                     name: LanguageCodes[val[0].toUpperCase()],
-                    value: val[1] + ' viner',
+                    value: val[1] + ` ${val[1] === 1 ? 'vin' : 'viner'}`,
                     inline: true,
                 })
             })
