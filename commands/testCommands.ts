@@ -12,8 +12,6 @@ import {
 } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
-import { GameStateHandler } from '../handlers/gameStateHandler'
-import { LudoPlayer } from './games/ludo/ludo'
 
 const defaultButtonRow = new ActionRowBuilder<ButtonBuilder>()
 defaultButtonRow.addComponents(
@@ -27,18 +25,6 @@ defaultButtonRow.addComponents(
 )
 const fetch = require('node-fetch')
 
-const p1: LudoPlayer = {
-    color: 'red',
-    id: 1,
-    diceroll: 0,
-    pieces: undefined,
-}
-const p2: LudoPlayer = {
-    color: 'blue',
-    id: 2,
-    diceroll: 0,
-    pieces: undefined,
-}
 // NB: IKKE PUSH ENDRINGER I DENNE KLASSEN MED MINDRE DET ER GENERISKE HJELPEMETODER
 
 // Skall-klasse for testing av alt mulig random shit.
@@ -49,8 +35,7 @@ export class TestCommands extends AbstractCommands {
     private buttonsMessage: Message
     private embed: EmbedBuilder
     private currentButtons: ActionRowBuilder<ButtonBuilder>
-    private gsh: GameStateHandler<LudoPlayer>
-
+    // private gsh: GameStateHandler<LudoPlayer>
 
     constructor(client: MazariniClient) {
         super(client)
@@ -58,24 +43,24 @@ export class TestCommands extends AbstractCommands {
         this.buttonsMessage = undefined
         this.embed = undefined
         this.currentButtons = defaultButtonRow
-        this.gsh = new GameStateHandler<LudoPlayer>()
+        // this.gsh = new GameStateHandler<LudoPlayer>()
     }
 
     private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        const test1 = this.gsh.isPlayersTurn(p1)
-        console.log('test1: ', test1);
-        this.gsh.addPlayer(p1)
-        const test2 = this.gsh.isPlayersTurn(p1)
-        console.log('test2: ', test2);
-        const test3 = this.gsh.nextPlayer()
-        console.log('test3: ', test3);
-        this.gsh.addPlayer(p2)
-        const test4 = this.gsh.isPlayersTurn(p2)
-        console.log('test4: ', test4);
-        const test5 = this.gsh.nextPlayer()
-        console.log('test5: ', test5);
-        const test6 = this.gsh.isPlayersTurn(p2)
-        console.log('test6: ', test6);
+        // const test1 = this.gsh.isPlayersTurn(p1)
+        // console.log('test1: ', test1);
+        // this.gsh.addPlayer(p1)
+        // const test2 = this.gsh.isPlayersTurn(p1)
+        // console.log('test2: ', test2);
+        // const test3 = this.gsh.nextPlayer()
+        // console.log('test3: ', test3);
+        // this.gsh.addPlayer(p2)
+        // const test4 = this.gsh.isPlayersTurn(p2)
+        // console.log('test4: ', test4);
+        // const test5 = this.gsh.nextPlayer()
+        // console.log('test5: ', test5);
+        // const test6 = this.gsh.isPlayersTurn(p2)
+        // console.log('test6: ', test6);
     }
 
     private async testSelectMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {

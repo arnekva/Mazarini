@@ -1,6 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, Message } from 'discord.js'
 import { AbstractCommands } from '../../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../../client/MazariniClient'
+import { GameStateHandler } from '../../../handlers/gameStateHandler'
 import { RandomUtils } from '../../../utils/randomUtils'
 import { LudoBoard } from './boards'
 const crypto = require('crypto')
@@ -26,6 +27,7 @@ export class Ludo extends AbstractCommands {
     private turnCounter: number
     private currentPlayer: LudoPlayer
     private boardState: any
+    private gameStateHandler: GameStateHandler<LudoPlayer>
 
     //Holds game state message
     private msg0: LudoMessage
@@ -61,9 +63,11 @@ export class Ludo extends AbstractCommands {
             contentHash: 'invalid',
             messageId: 'none',
         }
+        this.gameStateHandler = new GameStateHandler<LudoPlayer>()
     }
 
     createGame() {
+        this.gameStateHandler
         const p1: LudoPlayer = {
             color: 'red',
             id: 1,
