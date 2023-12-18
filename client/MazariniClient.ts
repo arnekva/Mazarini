@@ -19,22 +19,22 @@ import {
 } from 'discord.js'
 import { initializeApp } from 'firebase/app'
 import { JobScheduler } from '../Jobs/jobScheduler'
+import { CommandBuilder } from '../builders/commandBuilder/commandBuilder'
 import { environment, firebaseConfig } from '../client-env'
 import { PatchNotes } from '../commands/patchnotes/patchnotes'
 import { CommandRunner } from '../general/commandRunner'
+import { MazariniTracker } from '../general/mazariniTracker'
 import { ErrorHandler } from '../handlers/errorHandler'
+import { LockingHandler } from '../handlers/lockingHandler'
 import { ClientHelper } from '../helpers/clientHelper'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { FirebaseHelper } from '../helpers/firebaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniBot } from '../main'
 import { ArrayUtils } from '../utils/arrayUtils'
-import { CommandBuilder } from '../builders/commandBuilder/commandBuilder'
 import { ChannelIds, MentionUtils, ServerIds } from '../utils/mentionUtils'
 import { textArrays } from '../utils/textArrays'
 import { UserUtils } from '../utils/userUtils'
-import { LockingHandler } from '../handlers/lockingHandler'
-import { MazariniTracker } from '../general/mazariniTracker'
 
 const Discord = require('discord.js')
 
@@ -112,8 +112,8 @@ export class MazariniClient extends Client {
                         const latestMessage = allMessages[0]
                         if (latestMessage) {
                             const lastCommit = await this.databaseHelper.getBotData('commit-id')
-                            const indexOfLastID = allMessages.indexOf(lastCommit)
-                            allMessages = allMessages.slice(0, indexOfLastID > 0 ? indexOfLastID : 1) //Only send last one if nothing is saved in the DB
+                            const indexOfLastID = allMessages.map((c) => c.slice(0, 8)).indexOf(lastCommit)
+                            allMessages = allMessages.slice(0, indexOfLastID > 0 ? indexOfLastID : 1)
 
                             const formatCommitLine = (line: string) => {
                                 const allWords = line.split('¶')

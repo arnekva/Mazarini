@@ -1,4 +1,3 @@
-import { exec } from 'child_process'
 import { Message } from 'discord.js'
 import { MazariniClient } from '../client/MazariniClient'
 import { HelgHelper } from '../helpers/helgHelper'
@@ -20,17 +19,6 @@ export class MessageChecker {
 
     /** Checks for pølse, eivindpride etc. */
     async checkMessageForJokes(message: Message) {
-        await exec('git log --pretty=format:"%h¶%an¶%s"  -n 15', async (error, stdout, stderr) => {
-            if (stdout) {
-                let allMessages = stdout.split('\n')
-                const latestMessage = allMessages[0]
-                if (latestMessage) {
-                    const lastCommit = await this.client.db.getBotData('commit-id')
-                    const indexOfLastID = allMessages.map((c) => c.slice(0, 8)).indexOf(lastCommit)
-                    allMessages = allMessages.slice(0, indexOfLastID > 0 ? indexOfLastID : 1)
-                }
-            }
-        })
         if (!this.client.lockHandler.checkIfLockedPath(message)) {
             if (message.id === '802945796457758760') return
 
