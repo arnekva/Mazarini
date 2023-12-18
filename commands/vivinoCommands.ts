@@ -27,7 +27,7 @@ interface IVivinoRating {
         visibility: string
         image: {
             location: string
-            variations: any //OBJECT
+            variations: any //TODO: Type this
         }
         statistics: {
             followers_count: number
@@ -51,9 +51,9 @@ interface IVivinoRating {
             year: string
             name: string
             statistics: any
-            organic_certification_id: any
-            certified_biodynamic: any
-            image: any
+            organic_certification_id: any //TODO: Type this
+            certified_biodynamic: any //TODO: Type this
+            image: any //TODO: Type this
             /** The specific wine */
             wine: {
                 id: number
@@ -72,12 +72,12 @@ interface IVivinoRating {
                 }
             }
             description: string
-            wine_critic_reviews: any[]
-            awards: any[]
+            wine_critic_reviews: any[] //TODO: Type this
+            awards: any[] //TODO: Type this
         }
         image: {
             location: string
-            variations: any[]
+            variations: any[] //TODO: Type this
         }
         review: IVivinoReview
         updated_at: string
@@ -140,7 +140,7 @@ export class VivinoCommands extends AbstractCommands {
             if (img) {
                 embed.setThumbnail(`https:${img}`)
             }
-           embed.addFields([
+            embed.addFields([
                 {
                     name: 'Favorittregion',
                     value: `${regionsAsValues[0]} (${regionsAsValues[1]} viner fra denne regionen)`,
