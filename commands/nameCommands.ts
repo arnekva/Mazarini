@@ -27,7 +27,7 @@ export class NameCommands extends AbstractCommands {
                     `Klarte ikke legge til tekst. Enten manglet tekst (${textToAdd}) eller brukernavn (${userTextIsAddedTo})`
                 )
         } else if (textToDeleteUser) {
-            if (!textToDelete) {
+            if (textToDelete === undefined) {
                 const texts = await this.listTexts(textToDeleteUser)
                 if (texts) {
                     let text = ''
