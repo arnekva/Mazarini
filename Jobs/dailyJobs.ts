@@ -1,3 +1,4 @@
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js'
 import moment from 'moment'
 import fetch from 'node-fetch'
 import { rapidApiKey, rapidApiKey2 } from '../client-env'
@@ -5,6 +6,7 @@ import { MazariniClient } from '../client/MazariniClient'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniUser, RocketLeagueTournament } from '../interfaces/database/databaseInterface'
 import { DateUtils } from '../utils/dateUtils'
+import { EmbedUtils } from '../utils/embedUtils'
 import { ChannelIds } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
 export class DailyJobs {
@@ -54,6 +56,23 @@ export class DailyJobs {
                     this.client.db.updateStorage({
                         rocketLeagueTournaments: tournaments,
                     })
+                    const embed = EmbedUtils.createSimpleEmbed(
+                        `Rocket League Tournaments`,
+                        `For ${DateUtils.formatDate(new Date())}. Trykk på en av knappene for å bli varslet 1 time før turneringen starter`
+                    )
+                    const activeGameButtonRow = new ActionRowBuilder<ButtonBuilder>()
+                    tournaments.forEach((t, idx) => {
+                        activeGameButtonRow.addComponents(
+                            new ButtonBuilder({
+                                custom_id: `RL_TOURNAMENT;${t.id}`,
+                                style: ButtonStyle.Primary,
+                                label: `${t.players}v${t.players} ${t.mode} ${DateUtils.getTimeFormatted(new Date(t.starts))}${t.shouldNotify ? ' (*)' : ''}`,
+                                disabled: false,
+                                type: 2,
+                            })
+                        )
+                    })
+                    this.messageHelper.sendMessage(ChannelIds.ROCKET_LEAGUE, {embed: embed, components: [activeGameButtonRow]}, {sendAsSilent: true})
                 }
             })
             .catch((err) => {
