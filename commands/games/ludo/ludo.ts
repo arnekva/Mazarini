@@ -15,6 +15,7 @@ export interface LudoPiece {
 }
 interface LudoPlayer {
     id: string
+    playerName: string
     color: LudoColor
     pieces: LudoPiece[]
     diceroll?: number
@@ -33,7 +34,7 @@ export class Ludo extends AbstractCommands {
     private startMessageId: string
 
     //Holds game state message
-    private msg0: LudoMessage
+    private gameStateMessage: LudoMessage
     //Holds first part of board
     private msg1: LudoMessage
     //Holds second part of board
@@ -50,7 +51,7 @@ export class Ludo extends AbstractCommands {
             contentHash: 'invalid',
             messageId: 'none',
         }
-        this.msg0 = {
+        this.gameStateMessage = {
             contentHash: 'invalid',
             messageId: 'none',
         }
@@ -79,7 +80,6 @@ export class Ludo extends AbstractCommands {
     }
 
     joinGame(interaction: ButtonInteraction) {
-        if (interaction.user.id === '293489109048229888') return
         const pIndex = this.gameStateHandler.allPlayers.length
         if (pIndex > 3) {
             this.messageHelper.replyToInteraction(interaction, `Spillet er fult`, { ephemeral: true })
@@ -90,6 +90,7 @@ export class Ludo extends AbstractCommands {
             const player: LudoPlayer = {
                 color: playerColor,
                 id: interaction.user.id,
+                playerName: interaction.user.username,
                 diceroll: undefined,
                 pieces: this.getDefaultPiecesByColor(playerColor, pIndex),
                 remainingRolls: 3,
@@ -112,19 +113,19 @@ export class Ludo extends AbstractCommands {
 
     async updateBoard(interaction: ButtonInteraction | ChatInputCommandInteraction, diceRoll?: string) {
         const board = LudoBoard.board(this.allPieces)
-        const msgContent0 = `Spiller ${this.gameStateHandler.getCurrentPlayer().id} sin tur!`
+        const gameStateMsgContent = `Spiller ${this.gameStateHandler.getCurrentPlayer().playerName} sin tur!`
         const msgContent1 = board.board1
         const msgContent2 = board.board2
         const msgContent3 = board.board3
         const msgContent4 = this.buttonRow
 
-        const msg0FromCache = interaction.channel.messages.cache.get(this.msg0.messageId) //.find((m) => m.id === this.msg1Id)
+        const gameStateMessageFromCache = interaction.channel.messages.cache.get(this.gameStateMessage.messageId) //.find((m) => m.id === this.msg1Id)
         const msg1FromCache = interaction.channel.messages.cache.get(this.msg1.messageId) //.find((m) => m.id === this.msg1Id)
         const msg2FromCache = interaction.channel.messages.cache.get(this.msg2.messageId)
         const msg3FromCache = interaction.channel.messages.cache.get(this.msg3.messageId)
         const msg4FromCache = interaction.channel.messages.cache.get(this.msg4.messageId)
 
-        const msg0ShouldUpdate = this.msg0.contentHash !== msgContent0
+        const gameStateShouldUpdate = this.gameStateMessage.contentHash !== gameStateMsgContent
         const msg1ShouldUpdate = this.msg1.contentHash !== msgContent1
         const msg2ShouldUpdate = this.msg2.contentHash !== msgContent2
         const msg3ShouldUpdate = this.msg3.contentHash !== msgContent3
@@ -132,28 +133,28 @@ export class Ludo extends AbstractCommands {
         const updateRowMsg = (msg: Message, r: ActionRowBuilder<ButtonBuilder>) => {
             msg.edit({ components: [r] })
         }
-        if (!msg0FromCache || !msg1FromCache || !msg2FromCache || !msg3FromCache || !msg4FromCache) {
-            const msg0 = await this.messageHelper.sendMessage(interaction.channelId, { text: msgContent0 })
+        if (!gameStateMessageFromCache || !msg1FromCache || !msg2FromCache || !msg3FromCache || !msg4FromCache) {
             const msg1 = await this.messageHelper.sendMessage(interaction.channelId, { text: msgContent1 })
             const msg2 = await this.messageHelper.sendMessage(interaction.channelId, { text: msgContent2 })
             const msg3 = await this.messageHelper.sendMessage(interaction.channelId, { text: msgContent3 })
+            const gameStateMessage = await this.messageHelper.sendMessage(interaction.channelId, { text: gameStateMsgContent })
 
             const gameButtons = this.buttonRow
             const msg4 = await this.messageHelper.sendMessage(interaction.channelId, { components: [gameButtons] })
 
-            this.msg0.messageId = msg0.id
+            this.gameStateMessage.messageId = gameStateMessage.id
             this.msg1.messageId = msg1.id
             this.msg2.messageId = msg2.id
             this.msg3.messageId = msg3.id
             this.msg4.messageId = msg4.id
         } else {
-            if (msg0ShouldUpdate) await msg0FromCache.edit({ content: msgContent0 })
+            if (gameStateShouldUpdate) await gameStateMessageFromCache.edit({ content: gameStateMsgContent })
             if (msg1ShouldUpdate) await msg1FromCache.edit({ content: msgContent1 })
             if (msg2ShouldUpdate) await msg2FromCache.edit({ content: msgContent2 })
             if (msg3ShouldUpdate) await msg3FromCache.edit({ content: msgContent3 })
             if (msg4ShouldUpdate) await msg4FromCache.edit({ components: [msgContent4] })
         }
-        this.msg0.contentHash = msgContent0
+        this.gameStateMessage.contentHash = gameStateMsgContent
         this.msg1.contentHash = msgContent1
         this.msg2.contentHash = msgContent2
         this.msg3.contentHash = msgContent3
@@ -166,7 +167,7 @@ export class Ludo extends AbstractCommands {
     }
 
     private updateBoardStateMessage(interaction: ButtonInteraction | ChatInputCommandInteraction, content: string) {
-        const msg0FromCache = interaction.channel.messages.cache.get(this.msg0.messageId) //.find((m) => m.id === this.msg1Id)
+        const msg0FromCache = interaction.channel.messages.cache.get(this.gameStateMessage.messageId) //.find((m) => m.id === this.msg1Id)
         if (msg0FromCache) msg0FromCache.edit(content)
     }
 
@@ -196,6 +197,7 @@ export class Ludo extends AbstractCommands {
                 if (player.diceroll === 6) {
                     this.moveOutPiece(piece)
                     this.updateBoard(interaction)
+                    player.diceroll = undefined
                     interaction.deferUpdate()
                 } else {
                     this.messageHelper.replyToInteraction(interaction, `Du kan bare flytte ut den brikken hvis du ruller 6`)
@@ -214,19 +216,19 @@ export class Ludo extends AbstractCommands {
                 if (player.diceroll !== 6) {
                     this.goToNextTurn(interaction)
                 } else {
-                    player.remainingRolls = 1
                     this.updateBoardStateMessage(interaction, `${player.id} får trille på ny`)
                 }
-                player.diceroll = undefined
+               
             }
         }
     }
 
     private goToNextTurn(interaction: ButtonInteraction<CacheType>) {
+        this.gameStateHandler.getCurrentPlayer().diceroll = undefined
         this.gameStateHandler.nextPlayer()
         this.setCurrentPlayersDiceRollAmount()
 
-        this.updateBoardStateMessage(interaction, `Det er spiller ${this.gameStateHandler.getCurrentPlayer().id} sin tur`)
+        this.updateBoardStateMessage(interaction, `Det er spiller ${this.gameStateHandler.getCurrentPlayer().playerName} sin tur`)
     }
 
     /** set remaining dice rolls based on position of the pieces */
@@ -254,8 +256,10 @@ export class Ludo extends AbstractCommands {
     }
     /** Check if the given piece is in the goal index for its color */
     private isPieceInGoal(p: LudoPiece) {
-        const goal = LudoBoard.goalForColor(p.color)
-        return p.positionIndex === goal
+        if (p?.color) {
+            const goal = LudoBoard.goalForColor(p.color)
+            return p.positionIndex === goal
+        } else return false
     }
 
     /** Handles a piece hitting "board edge", i.e. position reaching end of map. Will move it to index 0 (plus remaining) */
@@ -272,12 +276,11 @@ export class Ludo extends AbstractCommands {
         if (player.remainingRolls > 0) {
             const diceRoll = RandomUtils.getRandomInteger(1, 6)
             player.diceroll = diceRoll
-            player.remainingRolls = player.remainingRolls - 1
-
+            player.remainingRolls = diceRoll === 6 ? 1 : player.remainingRolls - 1
             interaction.deferUpdate()
-            const msg0FromCache = interaction.channel.messages.cache.get(this.msg0.messageId)
+            const msg0FromCache = interaction.channel.messages.cache.get(this.gameStateMessage.messageId)
             if (msg0FromCache) {
-                msg0FromCache.edit(`Spiller ${this.gameStateHandler.getCurrentPlayer().id} trillet ${diceRoll}`)
+                msg0FromCache.edit(`${this.gameStateHandler.getCurrentPlayer().playerName} trillet ${diceRoll}`)
             }
             //If player has spent all rolls and are still stuck after 3 attempts, go to next turn
             if (player.remainingRolls === 0 && this.areAllPlayerPiecesAtHome(player) && player.diceroll !== 6) {
@@ -304,8 +307,6 @@ export class Ludo extends AbstractCommands {
     private movePieceBackFromGoal(p: LudoPiece) {
         const goalForColor = LudoBoard.goalForColor(p.color)
         if (p.positionIndex > goalForColor) {
-            console.log('has moved past goal', p.positionIndex, goalForColor)
-
             p.positionIndex = goalForColor - (p.positionIndex - goalForColor)
         } else if (p.positionIndex === goalForColor) {
             console.log('player is in goal')
