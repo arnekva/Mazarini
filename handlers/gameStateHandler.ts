@@ -1,3 +1,4 @@
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js'
 
 export class GameStateHandler<Player> {
     private players: Player[]
@@ -32,4 +33,28 @@ export class GameStateHandler<Player> {
         return this.currentPlayer
     }
 
+    get allPlayers() {
+        return this.players
+    }
+
+    public getStartComponents(gameId: string) {
+        const gameSetupButtonRow = new ActionRowBuilder<ButtonBuilder>()
+        gameSetupButtonRow.addComponents(
+            new ButtonBuilder({
+                custom_id: `${gameId}_JOIN`,
+                style: ButtonStyle.Primary,
+                label: `Bli med!`,
+                disabled: false,
+                type: 2,
+            }),
+            new ButtonBuilder({
+                custom_id: `${gameId}_START`,
+                style: ButtonStyle.Success,
+                label: `🍷 Start 🍷`,
+                disabled: false,
+                type: 2,
+            })
+        )
+        return gameSetupButtonRow
+    }
 }

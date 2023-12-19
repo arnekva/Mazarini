@@ -268,4 +268,11 @@ export namespace LudoBoard {
                 return [400, 401, 402, 403]
         }
     }
+
+    export const getColorByIndex = (i: number): LudoColor => {
+        if (i === 0) return 'yellow'
+        else if (i === 1) return 'green'
+        else if (i === 2) return 'blue'
+        else return 'red'
+    }
 }

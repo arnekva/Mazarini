@@ -2,6 +2,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheT
 import { AbstractCommands } from '../../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../../client/MazariniClient'
 import { GameStateHandler } from '../../../handlers/gameStateHandler'
+import { EmbedUtils } from '../../../utils/embedUtils'
 import { RandomUtils } from '../../../utils/randomUtils'
 import { LudoBoard } from './boards'
 const crypto = require('crypto')
@@ -13,21 +14,23 @@ export interface LudoPiece {
     isSafe?: boolean
 }
 interface LudoPlayer {
-    diceroll: number
-    id: number
+    id: string
     color: LudoColor
     pieces: LudoPiece[]
+    diceroll?: number
+    remainingRolls: number
 }
 interface LudoMessage {
     messageId: string
     contentHash: string
 }
 export class Ludo extends AbstractCommands {
-    private players: LudoPlayer[]
     private turnCounter: number
     private currentPlayer: LudoPlayer
     private boardState: any
     private gameStateHandler: GameStateHandler<LudoPlayer>
+    private initiatedBy: string
+    private startMessageId: string
 
     //Holds game state message
     private msg0: LudoMessage
@@ -42,7 +45,7 @@ export class Ludo extends AbstractCommands {
 
     constructor(client: MazariniClient) {
         super(client)
-        this.players = []
+
         this.msg1 = {
             contentHash: 'invalid',
             messageId: 'none',
@@ -66,35 +69,50 @@ export class Ludo extends AbstractCommands {
         this.gameStateHandler = new GameStateHandler<LudoPlayer>()
     }
 
-    createGame() {
-        this.gameStateHandler
-        const p1: LudoPlayer = {
-            color: 'red',
-            id: 1,
-            diceroll: 0,
-            pieces: this.getDefaultPiecesByColor('red', 1),
-        }
-        const p2: LudoPlayer = {
-            color: 'blue',
-            id: 2,
-            diceroll: 0,
-            pieces: this.getDefaultPiecesByColor('blue', 2),
-        }
-        this.players.push(p1, p2)
+    async createGame(interaction: ButtonInteraction | ChatInputCommandInteraction) {
+        this.initiatedBy = interaction.user.id
+        const embd = EmbedUtils.createSimpleEmbed(`Ludo`, `Bli med på Ludo`)
+        const controls = this.gameStateHandler.getStartComponents(`LUDO`)
+        this.messageHelper.replyToInteraction(interaction, `Starter ludo`, { ephemeral: true })
+        const startMsg = await this.messageHelper.sendMessage(interaction.channelId, { embed: embd, components: [controls] })
+        this.startMessageId = startMsg.id
     }
 
-    /*
-    TODO:
-    Safe positions must be added
-   
-    Needs some form of Async YeetOldBoards logic, such that it can be called to delete all old instances of ludo boards in the channel except current ones.
-    Needs to be async so that the game can continue as normal while it deletes it in the background. Otherwise it will lag the server too much. Board should also be deleted on game completion
+    joinGame(interaction: ButtonInteraction) {
+        if (interaction.user.id === '293489109048229888') return
+        const pIndex = this.gameStateHandler.allPlayers.length
+        if (pIndex > 3) {
+            this.messageHelper.replyToInteraction(interaction, `Spillet er fult`, { ephemeral: true })
+        } else if (this.gameStateHandler.allPlayers.find((p) => p.id === interaction.user.id)) {
+            this.messageHelper.replyToInteraction(interaction, `Du er allerede med`, { ephemeral: true })
+        } else {
+            const playerColor = LudoBoard.getColorByIndex(pIndex)
+            const player: LudoPlayer = {
+                color: playerColor,
+                id: interaction.user.id,
+                diceroll: undefined,
+                pieces: this.getDefaultPiecesByColor(playerColor, pIndex),
+                remainingRolls: 3,
+            }
+            this.gameStateHandler.addUniquePlayer(player)
+            const startMsg = interaction.channel.messages.cache.get(this.startMessageId)
+            const embd = EmbedUtils.createSimpleEmbed(`Ludo`, `${this.gameStateHandler.allPlayers.length} spillere`)
+            if (startMsg) startMsg.edit({ embeds: [embd] })
+            interaction.deferUpdate()
+        }
+    }
 
-    */
+    startGame(interaction: ButtonInteraction | ChatInputCommandInteraction) {
+        if (interaction.user.id === this.initiatedBy) {
+            this.updateBoard(interaction)
+        } else {
+            this.messageHelper.replyToInteraction(interaction, `Bare den som initierte spillet kan starte det`)
+        }
+    }
 
     async updateBoard(interaction: ButtonInteraction | ChatInputCommandInteraction, diceRoll?: string) {
         const board = LudoBoard.board(this.allPieces)
-        const msgContent0 = 'Spiller trillet ' + (diceRoll ? diceRoll : 'ingenting')
+        const msgContent0 = `Spiller ${this.gameStateHandler.getCurrentPlayer().id} sin tur!`
         const msgContent1 = board.board1
         const msgContent2 = board.board2
         const msgContent3 = board.board3
@@ -144,7 +162,12 @@ export class Ludo extends AbstractCommands {
 
     /** Returns a flat map of all player pieces */
     get allPieces(): LudoPiece[] {
-        return this.players.flatMap((p) => p.pieces)
+        return this.gameStateHandler.allPlayers.flatMap((p) => p.pieces)
+    }
+
+    private updateBoardStateMessage(interaction: ButtonInteraction | ChatInputCommandInteraction, content: string) {
+        const msg0FromCache = interaction.channel.messages.cache.get(this.msg0.messageId) //.find((m) => m.id === this.msg1Id)
+        if (msg0FromCache) msg0FromCache.edit(content)
     }
 
     private getDefaultPiecesByColor(c: LudoColor, playerIdx): LudoPiece[] {
@@ -160,75 +183,68 @@ export class Ludo extends AbstractCommands {
         return pieces
     }
 
-    get buttonRow() {
-        return new ActionRowBuilder<ButtonBuilder>().addComponents([
-            new ButtonBuilder({
-                custom_id: 'LUDO_BTN_ROLL',
-                style: ButtonStyle.Success,
-                label: `Trill`,
-                disabled: false,
-                type: 2,
-            }),
-            new ButtonBuilder({
-                custom_id: 'LUDO_BTN_MOVE_1',
-                style: ButtonStyle.Primary,
-                label: `Brikke 1`,
-                disabled: false,
-                type: 2,
-            }),
-            new ButtonBuilder({
-                custom_id: 'LUDO_BTN_MOVE_2',
-                style: ButtonStyle.Primary,
-                label: `Brikke 2`,
-                disabled: false,
-                type: 2,
-            }),
-            new ButtonBuilder({
-                custom_id: 'LUDO_BTN_MOVE_3',
-                style: ButtonStyle.Primary,
-                label: `Brikke 3`,
-                disabled: false,
-                type: 2,
-            }),
-
-            new ButtonBuilder({
-                custom_id: 'LUDO_BTN_MOVE_4',
-                style: ButtonStyle.Primary,
-                label: `Brikke 4`,
-                disabled: false,
-                type: 2,
-            }),
-        ])
-    }
-    getCurrPlayer(interaction) {
-        return interaction.user.id === '245607554254766081' ? this.players[0] : this.players[1]
-    }
-
     /** Moves the piece (by index supplied by the button command). Handles moving out, checking goal state, looping board and moving into goal path */
     private movePiece(interaction: ButtonInteraction<CacheType>, idx: number) {
-        const player = this.getCurrPlayer(interaction)
+        const player = this.gameStateHandler.getCurrentPlayer()
         const piece = player.pieces[idx - 1]
-
-        if (this.isPieceInStart(piece)) {
-            if (player.diceroll === 6) {
-                this.moveOutPiece(piece)
-                this.updateBoard(interaction)
-                interaction.deferUpdate()
-            } else {
-                this.messageHelper.replyToInteraction(interaction, `Du kan bare flytte ut den brikken hvis du ruller 6`)
-            }
-        } else if (this.isPieceInGoal(piece)) {
-            this.messageHelper.replyToInteraction(interaction, `Du kan ikke flytte på en brikke som er i mål`)
+        if (interaction.user.id !== player.id) {
+            this.messageHelper.replyToInteraction(interaction, `Det er ikke din tur`, { ephemeral: true })
+        } else if (!player.diceroll) {
+            this.messageHelper.replyToInteraction(interaction, `Du må trille terningen først`, { ephemeral: true })
         } else {
-            const diceRoll = this.getCurrPlayer(interaction).diceroll
-            piece.positionIndex += diceRoll
-            console.log('Moving,', this.players[0].pieces[idx - 1].positionIndex)
+            if (this.isPieceInStart(piece)) {
+                if (player.diceroll === 6) {
+                    this.moveOutPiece(piece)
+                    this.updateBoard(interaction)
+                    interaction.deferUpdate()
+                } else {
+                    this.messageHelper.replyToInteraction(interaction, `Du kan bare flytte ut den brikken hvis du ruller 6`)
+                }
+            } else if (this.isPieceInGoal(piece)) {
+                this.messageHelper.replyToInteraction(interaction, `Du kan ikke flytte på en brikke som er i mål`)
+            } else {
+                const diceRoll = this.gameStateHandler.getCurrentPlayer().diceroll
+                piece.positionIndex += diceRoll
+                const looping = this.handleBoardEnd(piece)
+                this.checkPieceEndgameState(piece, piece.positionIndex - diceRoll, looping)
+                this.updateBoard(interaction, diceRoll.toString())
+                interaction.deferUpdate()
 
-            const looping = this.handleBoardEnd(piece)
-            this.checkPieceEndgameState(piece, piece.positionIndex - diceRoll, looping)
-            this.updateBoard(interaction, diceRoll.toString())
-            interaction.deferUpdate()
+                //Reset dice roll for next turn
+                if (player.diceroll !== 6) {
+                    this.goToNextTurn(interaction)
+                } else {
+                    player.remainingRolls = 1
+                    this.updateBoardStateMessage(interaction, `${player.id} får trille på ny`)
+                }
+                player.diceroll = undefined
+            }
         }
+    }
+
+    private goToNextTurn(interaction: ButtonInteraction<CacheType>) {
+        this.gameStateHandler.nextPlayer()
+        this.setCurrentPlayersDiceRollAmount()
+
+        this.updateBoardStateMessage(interaction, `Det er spiller ${this.gameStateHandler.getCurrentPlayer().id} sin tur`)
+    }
+
+    /** set remaining dice rolls based on position of the pieces */
+    private setCurrentPlayersDiceRollAmount() {
+        const player = this.gameStateHandler.getCurrentPlayer()
+        const areAllPiecesAtHome = this.areAllPlayerPiecesAtHome(player)
+
+        if (areAllPiecesAtHome) {
+            player.remainingRolls = 3
+        } else {
+            player.remainingRolls = 1
+        }
+    }
+
+    private areAllPlayerPiecesAtHome(p: LudoPlayer) {
+        return p.pieces.every((p, idx) => {
+            return LudoBoard.homeIndexes(p.color).includes(p.positionIndex)
+        })
     }
 
     /** Check if the given piece is in a start position */
@@ -245,8 +261,6 @@ export class Ludo extends AbstractCommands {
     /** Handles a piece hitting "board edge", i.e. position reaching end of map. Will move it to index 0 (plus remaining) */
     private handleBoardEnd(piece: LudoPiece) {
         if (piece.positionIndex > 52 && piece.positionIndex < 100) {
-            console.log('a piece hit the end at 52', piece.positionIndex, 'moved to ' + (piece.positionIndex - 52))
-
             piece.positionIndex = piece.positionIndex - 52
             return true
         }
@@ -254,24 +268,34 @@ export class Ludo extends AbstractCommands {
     }
 
     private rollDice(interaction: ButtonInteraction<CacheType>) {
-        const diceRoll = RandomUtils.getRandomInteger(1, 6)
-        this.getCurrPlayer(interaction).diceroll = diceRoll
-        interaction.deferUpdate()
-        const msg0FromCache = interaction.channel.messages.cache.get(this.msg0.messageId)
-        if (msg0FromCache) {
-            msg0FromCache.edit(`Spiller ${this.getCurrPlayer(interaction).id} trillet ${diceRoll}`)
+        const player = this.gameStateHandler.getCurrentPlayer()
+        if (player.remainingRolls > 0) {
+            const diceRoll = RandomUtils.getRandomInteger(1, 6)
+            player.diceroll = diceRoll
+            player.remainingRolls = player.remainingRolls - 1
+
+            interaction.deferUpdate()
+            const msg0FromCache = interaction.channel.messages.cache.get(this.msg0.messageId)
+            if (msg0FromCache) {
+                msg0FromCache.edit(`Spiller ${this.gameStateHandler.getCurrentPlayer().id} trillet ${diceRoll}`)
+            }
+            //If player has spent all rolls and are still stuck after 3 attempts, go to next turn
+            if (player.remainingRolls === 0 && this.areAllPlayerPiecesAtHome(player) && player.diceroll !== 6) {
+                this.goToNextTurn(interaction)
+            }
+        } else {
+            if (this.areAllPlayerPiecesAtHome(player)) {
+                this.goToNextTurn(interaction)
+            }
+            this.messageHelper.replyToInteraction(interaction, `Du kan ikke trille flere ganger denne runden`, { ephemeral: true })
         }
     }
 
     /** Checks if a given piece has reached or surpassed it's goal entrance. Will move it into goal path instead of continuing on the board */
     private checkPieceEndgameState(p: LudoPiece, oldPosition: number, didLoop: boolean) {
-        console.log(p.positionIndex, LudoBoard.endStates(p.color), LudoBoard.endPathStart(p.color))
-
         //Piece is moving towards end game
         if (p.positionIndex >= LudoBoard.endPathStart(p.color) && p.positionIndex < 100 && oldPosition < LudoBoard.pieceStartPosition(p.color)) {
             p.positionIndex = LudoBoard.normalPathToEndPath(p.color) + (p.positionIndex - LudoBoard.endPathStart(p.color)) - 1
-
-            console.log('Moving to endstate', p.positionIndex)
         }
         this.movePieceBackFromGoal(p)
     }
@@ -293,6 +317,48 @@ export class Ludo extends AbstractCommands {
         piece.positionIndex = LudoBoard.pieceStartPosition(piece.color)
     }
 
+    get buttonRow() {
+        const player = this.gameStateHandler.getCurrentPlayer()
+        return new ActionRowBuilder<ButtonBuilder>().addComponents([
+            new ButtonBuilder({
+                custom_id: 'LUDO_BTN_ROLL',
+                style: ButtonStyle.Success,
+                label: `Trill`,
+                disabled: false,
+                type: 2,
+            }),
+            new ButtonBuilder({
+                custom_id: 'LUDO_BTN_MOVE_1',
+                style: ButtonStyle.Primary,
+                label: `Brikke 1`,
+                disabled: this.isPieceInGoal(player.pieces[0]),
+                type: 2,
+            }),
+            new ButtonBuilder({
+                custom_id: 'LUDO_BTN_MOVE_2',
+                style: ButtonStyle.Primary,
+                label: `Brikke 2`,
+                disabled: this.isPieceInGoal(player.pieces[2]),
+                type: 2,
+            }),
+            new ButtonBuilder({
+                custom_id: 'LUDO_BTN_MOVE_3',
+                style: ButtonStyle.Primary,
+                label: `Brikke 3`,
+                disabled: this.isPieceInGoal(player.pieces[3]),
+                type: 2,
+            }),
+
+            new ButtonBuilder({
+                custom_id: 'LUDO_BTN_MOVE_4',
+                style: ButtonStyle.Primary,
+                label: `Brikke 4`,
+                disabled: this.isPieceInGoal(player.pieces[4]),
+                type: 2,
+            }),
+        ])
+    }
+
     getAllInteractions() {
         return {
             commands: {
@@ -300,13 +366,24 @@ export class Ludo extends AbstractCommands {
                     {
                         commandName: 'ludo',
                         command: (rawInteraction) => {
-                            this.createGame()
-                            this.updateBoard(rawInteraction)
+                            this.createGame(rawInteraction)
                         },
                         disabled: true,
                     },
                 ],
                 buttonInteractionComands: [
+                    {
+                        commandName: 'LUDO_START',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.startGame(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'LUDO_JOIN',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.joinGame(rawInteraction)
+                        },
+                    },
                     {
                         commandName: 'LUDO_BTN_MOVE_1',
                         command: (rawInteraction: ButtonInteraction<CacheType>) => {
