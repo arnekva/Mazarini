@@ -268,12 +268,22 @@ export class RocketLeagueCommands extends AbstractCommands {
         })
 
         if (tournamentToUpdate) {
-            tournamentToUpdate.shouldNotify = true
+            if (tournamentToUpdate.shouldNotify) {
+                this.messageHelper.replyToInteraction(
+                    interaction,
+                    `Det er allerede opprettet en påminnelse for denne turneringen. Det blir varslet 1 time før start`,
+                    { ephemeral: true }
+                )
+            } else {
+                this.messageHelper.replyToInteraction(interaction, `Det vil bli sendt en påminnelse om denne turneringen 1 time før start`, { ephemeral: true })
+
+                tournamentToUpdate.shouldNotify = true
+
+                this.client.db.updateStorage({
+                    rocketLeagueTournaments: tournaments,
+                })
+            }
         }
-        this.client.db.updateStorage({
-            rocketLeagueTournaments: tournaments,
-        })
-        this.messageHelper.replyToInteraction(interaction, `Det vil bli sendt en påmelding om denne turneringen 1 time før start`, { ephemeral: true })
     }
 
     public getAllInteractions() {
