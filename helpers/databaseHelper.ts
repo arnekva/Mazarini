@@ -173,6 +173,18 @@ export class DatabaseHelper {
         }
     }
 
+    public async registerEmojiUpdated(oldEmojiName: string, newEmojiName: string) {
+        if (oldEmojiName != newEmojiName) {
+            let emoji = await this.db.getEmojiStats(oldEmojiName)
+            const updates = {}
+            if (emoji) {
+                updates[`/stats/emojis/${oldEmojiName}`] = null
+                updates[`/stats/emojis/${newEmojiName}`] = emoji
+                this.db.updateData(updates)
+            }
+        }
+    }
+
     public updateEmojiMessageCounters(emojis: string[]) {
         const paths = []
         emojis.forEach((emoji) => paths.push(`/stats/emojis/${emoji}/timesUsedInMessages`))
