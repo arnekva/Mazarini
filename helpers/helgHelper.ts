@@ -50,58 +50,60 @@ export namespace HelgHelper {
     export const getTimeUntilHelgString = async (includeEmoji?: MazariniClient) => {
         const isHelg = HelgHelper.isItHelg()
         const holidays = HelgHelper.findHolidaysInThisWeek()
+        console.log('helg?')
+
         let timeUntil = ''
         let hasHolidayInTheMiddleOfWeek = ''
-        if (!isHelg) {
-            let hasFoundWeekendStart = false
-            holidays.forEach((day) => {
-                if (!hasFoundWeekendStart) {
-                    const currentDaysDate = new Date(day.date)
 
-                    if (currentDaysDate.getDay() === HelgHelper.findWeekendStart()?.getDay()) {
-                        hasFoundWeekendStart = true
-                        timeUntil += `${DateUtils.formatCountdownText(DateUtils.getTimeTo(currentDaysDate), `til langhelgå så starte med ${day.name}`)}\n`
-                    } else
-                        hasHolidayInTheMiddleOfWeek = timeUntil = `${DateUtils.formatCountdownText(
-                            DateUtils.getTimeTo(currentDaysDate),
-                            `til fridagen ${day.name}`
-                        )}\n`
-                }
-            })
+        let hasFoundWeekendStart = false
+        holidays.forEach((day) => {
             if (!hasFoundWeekendStart) {
-                const possibleWeekendStart = HelgHelper.findWeekendStart()
+                const currentDaysDate = new Date(day.date)
 
-                if (possibleWeekendStart) {
-                    timeUntil += DateUtils.formatCountdownText(DateUtils.getTimeTo(possibleWeekendStart), 'til langhelg')
-                } else {
-                    const doesNextWeekHaveHolidayOnMonday = HelgHelper.nextWeekHasHolidayOnMonday()[0]
-                    moment.locale('nb')
-                    const date = moment()
-                    const isFriday = date.day() === 5
-                    const isAfter16 = date.hours() >= 16
-                    const nextWeekendStart = moment(DateUtils.nextWeekdayDate(5))
-                    const isHoliday = HelgHelper.isTodayHoliday()
-                    nextWeekendStart.hours(16).minutes(0).seconds(0)
-                    date.hours(16).minute(0).seconds(0)
+                if (currentDaysDate.getDay() === HelgHelper.findWeekendStart()?.getDay()) {
+                    hasFoundWeekendStart = true
+                    timeUntil += `${DateUtils.formatCountdownText(DateUtils.getTimeTo(currentDaysDate), `til langhelgå så starte med ${day.name}`)}\n`
+                } else
+                    hasHolidayInTheMiddleOfWeek = timeUntil = `${DateUtils.formatCountdownText(
+                        DateUtils.getTimeTo(currentDaysDate),
+                        `til fridagen ${day.name}`
+                    )}\n`
+            }
+        })
+        if (!hasFoundWeekendStart) {
+            const possibleWeekendStart = HelgHelper.findWeekendStart()
 
-                    const timeTo = DateUtils.getTimeTo(isFriday ? date : nextWeekendStart)
-                    const isLessThan4HoursAway = timeTo?.days == 0 && timeTo?.hours < 4
-                    const emoji = includeEmoji ? EmojiHelper.getHelgEmoji(includeEmoji, isLessThan4HoursAway) : ''
-                    if (isFriday && isAfter16) return `Det e helg!`
+            if (possibleWeekendStart) {
+                timeUntil += DateUtils.formatCountdownText(DateUtils.getTimeTo(possibleWeekendStart), 'til langhelg')
+            } else {
+                const doesNextWeekHaveHolidayOnMonday = HelgHelper.nextWeekHasHolidayOnMonday()[0]
+                moment.locale('nb')
+                const date = moment()
+                const isFriday = date.day() === 5
+                const isAfter16 = date.hours() >= 16
+                const nextWeekendStart = moment(DateUtils.nextWeekdayDate(5))
+                const isHoliday = HelgHelper.isTodayHoliday()
+                nextWeekendStart.hours(16).minutes(0).seconds(0)
+                date.hours(16).minute(0).seconds(0)
 
-                    const textToPrint = `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg'} ${emoji}`
+                const timeTo = DateUtils.getTimeTo(isFriday ? date : nextWeekendStart)
+                const isLessThan4HoursAway = timeTo?.days == 0 && timeTo?.hours < 4
+                const emoji = includeEmoji ? EmojiHelper.getHelgEmoji(includeEmoji, isLessThan4HoursAway) : ''
+                if (isFriday && isAfter16) return `Det e ${doesNextWeekHaveHolidayOnMonday ? `langhelg (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg'}!`
 
-                    let timeToPrint = DateUtils.formatCountdownText(timeTo, textToPrint) || 'Eg vettkje ka dag det e :('
-                    if (!!hasHolidayInTheMiddleOfWeek && !isHoliday) {
-                        timeToPrint += `\n${hasHolidayInTheMiddleOfWeek}`
-                    }
-                    if (isHoliday) {
-                        return 'Det e fridag i dag! Og ' + timeToPrint
-                    }
-                    return timeToPrint
+                const textToPrint = `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg'} ${emoji}`
+
+                let timeToPrint = DateUtils.formatCountdownText(timeTo, textToPrint) || 'Eg vettkje ka dag det e :('
+                if (!!hasHolidayInTheMiddleOfWeek && !isHoliday) {
+                    timeToPrint += `\n${hasHolidayInTheMiddleOfWeek}`
                 }
+                if (isHoliday) {
+                    return 'Det e fridag i dag! Og ' + timeToPrint
+                }
+                return timeToPrint
             }
         }
+
         return timeUntil
     }
 
@@ -137,14 +139,22 @@ export namespace HelgHelper {
     export const checkForHelg = async (interaction?: ChatInputCommandInteraction<CacheType>, client?: MazariniClient) => {
         const isHelg = HelgHelper.isItHelg()
         const helgeFolelse = HelgHelper.findHelgeFolelse()
-        const val = (await isHelg) ? `Det e helg!` : `${await HelgHelper.getTimeUntilHelgString(client)}`
+        const val = `${await HelgHelper.getTimeUntilHelgString(client)}`
+        console.log('hello')
+
         if (interaction && client) client.messageHelper.replyToInteraction(interaction, val + ` (${helgeFolelse}% helgefølelse)`)
         return val + ` (${helgeFolelse}% helgefølelse)`
     }
 
     export const findHolidaysInThisWeek = (checkForNextWeeksMonday?: boolean) => {
         moment.locale('en')
-        const holidaysFromYear = holidays(new Date().getFullYear())
+
+        const currentWeekIsLastInYear = moment().week() === moment().weeksInYear()
+        const year = new Date().getFullYear() + (currentWeekIsLastInYear && checkForNextWeeksMonday ? 1 : 0)
+        console.log(currentWeekIsLastInYear, moment().week(), moment().weeksInYear())
+        console.log('am here')
+
+        const holidaysFromYear = holidays(year)
 
         const holidaysThisWeek: { name: string; date: string }[] = []
         /** FIXME: Sets locale to en to avoid mess with js dates for the time being. Need to add 1 days to start of week since that would be sunday in en locale.

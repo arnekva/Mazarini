@@ -170,16 +170,18 @@ export class MessageHelper {
      * @param channelId Id of channel to send the message to
      * @param content All properties are optional, but you must send at least one of them. Can be text, embed, components or file.
      * @param options Options for the message, such as sending it as silent etc.
-     * @returns
+     * @returns a message if sent succesfully, undefined if error log message is sent
      */
     sendMessage(channelId: string, content: RequireAtLeastOne<IMessageContent>, options?: IMessageOptions): Promise<Message | undefined> {
         if (!!content.text && !this.messageHasContent(content.text)) {
-            return this.sendLogMessage('En melding som ble forsøkt sendt var tom')
+            this.sendLogMessage('En melding som ble forsøkt sendt var tom')
+            return undefined
         }
 
         const channel = this.findChannelById(channelId) as TextChannel
         if (channel && channel.permissionsFor(UserUtils.findMemberByUserID(MentionUtils.User_IDs.BOT_HOIE, channel.guild)).toArray().includes('SendMessages')) {
             if (content.text && content.text.length >= 2000) {
+                this.sendLogMessage(`En melding med flere enn 2000 tegn ble forsøkt sendt. Meldingen blir splittet`)
                 const msgArr = content.text.match(/[\s\S]{1,1800}/g)
                 msgArr.forEach((msg, ind) => {
                     if (!options?.dontIncrementMessageCounter) MazariniBot.numMessagesFromBot++
