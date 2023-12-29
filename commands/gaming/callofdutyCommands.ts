@@ -374,8 +374,6 @@ export class CallOfDutyCommands extends AbstractCommands {
         try {
             const data = (await Warzone2.fullData('15822108823409596937')) as any
             let response = 'BR stats for <' + gamertag + '>'
-            console.log(data)
-
             const statsTyped = data.data.lifetime.mode.br.properties as CodBRStatsType
 
             const orderedStats: Partial<CodBRStats> = {}

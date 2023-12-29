@@ -1,9 +1,8 @@
-import { ChatInputCommandInteraction, CacheType } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import moment from 'moment'
-import { DateCommands } from '../commands/dateCommands'
+import { MazariniClient } from '../client/MazariniClient'
 import { DateUtils } from '../utils/dateUtils'
 import { EmojiHelper } from './emojiHelper'
-import { MazariniClient } from '../client/MazariniClient'
 const holidays = require('holidays-norway').default
 
 export namespace HelgHelper {
@@ -81,6 +80,7 @@ export namespace HelgHelper {
                     const isFriday = date.day() === 5
                     const isAfter16 = date.hours() >= 16
                     const nextWeekendStart = moment(DateUtils.nextWeekdayDate(5))
+                    const isHoliday = HelgHelper.isTodayHoliday()
                     nextWeekendStart.hours(16).minutes(0).seconds(0)
                     date.hours(16).minute(0).seconds(0)
 
@@ -92,10 +92,10 @@ export namespace HelgHelper {
                     const textToPrint = `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg'} ${emoji}`
 
                     let timeToPrint = DateUtils.formatCountdownText(timeTo, textToPrint) || 'Eg vettkje ka dag det e :('
-                    if (!!hasHolidayInTheMiddleOfWeek && !HelgHelper.isTodayHoliday()) {
+                    if (!!hasHolidayInTheMiddleOfWeek && !isHoliday) {
                         timeToPrint += `\n${hasHolidayInTheMiddleOfWeek}`
                     }
-                    if (HelgHelper.isTodayHoliday()) {
+                    if (isHoliday) {
                         return 'Det e fridag i dag! Og ' + timeToPrint
                     }
                     return timeToPrint

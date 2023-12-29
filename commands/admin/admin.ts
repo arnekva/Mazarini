@@ -11,7 +11,6 @@ import { WeeklyJobs } from '../../Jobs/weeklyJobs'
 import { MazariniBot } from '../../main'
 import { ChannelIds, MentionUtils } from '../../utils/mentionUtils'
 import { UserUtils } from '../../utils/userUtils'
-import { IInteractionElement } from '../../interfaces/interactionInterface'
 
 const { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js')
 // const { exec } = require('child_process')
@@ -157,8 +156,6 @@ export class Admin extends AbstractCommands {
         const numErrorMessages = MazariniBot.numMessagesNumErrorMessages
         const numCommands = MazariniBot.numCommands
         const storage = await this.client.db.getStorage()
-        console.log(moment(start).unix())
-
         const statsReply =
             `Statistikk (fra og med oppstart ${start.toLocaleDateString('nb', {
                 weekday: 'long',

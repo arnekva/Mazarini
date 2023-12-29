@@ -123,7 +123,7 @@ export class MessageHelper {
             let msgInfo = msg
                 ? `Sendte en ${options?.ephemeral ? 'DM' : 'separat melding'} i stedet for interaksjonssvar.`
                 : `Klarte heller ikke sende separat melding som svar`
-            if (options?.ephemeral) msgInfo += `\nMelding var ephemeral, men ble sendt public.`
+            if (options?.ephemeral) msgInfo += `\nMelding var ephemeral, så svaret ble sendt på DM`
             if (environment !== 'dev') {
                 let commandName: string | undefined = undefined
                 if (interaction.isChatInputCommand()) commandName = interaction.commandName

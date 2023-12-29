@@ -83,8 +83,6 @@ export class MoneyCommands extends AbstractCommands {
         if (interaction) {
             const user = await this.client.db.getUser(interaction.user.id)
             const canClaim = !user.daily?.claimedToday
-            console.log('in daily', canClaim, user.daily)
-
             const hasFreeze = user.daily?.dailyFreezeCounter
             if (hasFreeze && !isNaN(hasFreeze) && hasFreeze > 0) {
                 return 'Du har frosset daily claimet ditt i ' + hasFreeze + ' dager til. Vent til da og prøv igjen'
