@@ -241,6 +241,9 @@ export class MazariniClient extends Client {
         })
 
         this.on('emojiUpdate', (oldEmoji: GuildEmoji, newEmoji: GuildEmoji) => {
+            if (newEmoji.guild.id == ServerIds.MAZARINI) {
+                this.db.registerEmojiUpdated(oldEmoji.name, newEmoji.name)
+            }
             const id = ChannelIds.ACTION_LOG
             this.msgHelper.sendMessage(id, { text: `Emoji med navn ${oldEmoji.name} ble oppdatert` })
         })
