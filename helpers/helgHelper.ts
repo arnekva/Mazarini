@@ -50,8 +50,6 @@ export namespace HelgHelper {
     export const getTimeUntilHelgString = async (includeEmoji?: MazariniClient) => {
         const isHelg = HelgHelper.isItHelg()
         const holidays = HelgHelper.findHolidaysInThisWeek()
-        console.log('helg?')
-
         let timeUntil = ''
         let hasHolidayInTheMiddleOfWeek = ''
 
@@ -140,8 +138,6 @@ export namespace HelgHelper {
         const isHelg = HelgHelper.isItHelg()
         const helgeFolelse = HelgHelper.findHelgeFolelse()
         const val = `${await HelgHelper.getTimeUntilHelgString(client)}`
-        console.log('hello')
-
         if (interaction && client) client.messageHelper.replyToInteraction(interaction, val + ` (${helgeFolelse}% helgefølelse)`)
         return val + ` (${helgeFolelse}% helgefølelse)`
     }
@@ -151,9 +147,6 @@ export namespace HelgHelper {
 
         const currentWeekIsLastInYear = moment().week() === moment().weeksInYear()
         const year = new Date().getFullYear() + (currentWeekIsLastInYear && checkForNextWeeksMonday ? 1 : 0)
-        console.log(currentWeekIsLastInYear, moment().week(), moment().weeksInYear())
-        console.log('am here')
-
         const holidaysFromYear = holidays(year)
 
         const holidaysThisWeek: { name: string; date: string }[] = []

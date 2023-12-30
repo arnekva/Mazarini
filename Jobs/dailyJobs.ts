@@ -18,17 +18,22 @@ export class DailyJobs {
         this.client = client
     }
 
-    async runJobs(onlyBd?: boolean, noRL?: boolean) {
-        const users = await this.client.db.getAllUsers()
-        if (!onlyBd) {
+    async runJobs(onlyRl?: boolean) {
+        if (onlyRl) {
+            this.updateRLTournaments(rapidApiKey)
+        } else {
+            const users = await this.client.db.getAllUsers()
             await this.validateAndResetDailyClaims(users)
             await this.updateJailAndJailbreakCounters(users)
+            this.checkForUserBirthdays(users)
+            this.updateRLTournaments(rapidApiKey)
         }
-        this.checkForUserBirthdays(users)
-        if (!noRL) this.updateRLTournaments(rapidApiKey)
     }
 
     private updateRLTournaments(apiKey: string) {
+        const retryFetch = () => {
+            if (apiKey === rapidApiKey) this.updateRLTournaments(rapidApiKey2)
+        }
         const data = fetch('https://rocket-league1.p.rapidapi.com/tournaments/europe', {
             headers: {
                 'User-Agent': 'RapidAPI Playground',
@@ -48,7 +53,12 @@ export class DailyJobs {
 
                 const tournaments = data.tournaments as RocketLeagueTournament[]
                 if (!tournaments) {
-                    this.messageHelper.sendLogMessage(`Klarte ikke hente Rocket League turneringer`)
+                    this.messageHelper.sendLogMessage(
+                        `Klarte ikke hente Rocket League turneringer. Det var ingen turneringer i objektet fra fetchen. ${
+                            apiKey === rapidApiKey ? 'Forsøker å hente på ny' : 'Fetch 2 feilet også'
+                        }`
+                    )
+                    retryFetch()
                 } else {
                     tournaments.forEach((t, idx) => {
                         t.id = idx
@@ -72,12 +82,12 @@ export class DailyJobs {
                             })
                         )
                     })
-                    this.messageHelper.sendMessage(ChannelIds.ROCKET_LEAGUE, {embed: embed, components: [activeGameButtonRow]}, {sendAsSilent: true})
+                    this.messageHelper.sendMessage(ChannelIds.ROCKET_LEAGUE, { embed: embed, components: [activeGameButtonRow] }, { sendAsSilent: true })
                 }
             })
             .catch((err) => {
                 this.messageHelper.sendLogMessage(`Klarte ikke hente Rocket League Tournaments. Error: \n${err}`)
-                if (apiKey === rapidApiKey) this.updateRLTournaments(rapidApiKey2)
+                retryFetch()
             })
     }
 
