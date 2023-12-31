@@ -120,6 +120,7 @@ export interface MazariniStorage {
         value: ferieItem
     }[]
     polls?: IPoll[]
+    scheduledMessages?: IScheduledMessage[]
 }
 
 export type FavoritePol = {
@@ -245,6 +246,13 @@ export interface prefixVal {
     anyName: string
 }
 
+export interface IScheduledMessage {
+    message: string
+    /** Saved as unix timestamp */
+    dateToSendOn: number
+    channelId: string
+}
+
 export const prefixList: dbPrefix[] = [
     'birthday',
     'spinCounter',
@@ -258,8 +266,6 @@ export const prefixList: dbPrefix[] = [
     'activisionUserString',
     'codStatsBR',
     'codStats',
-    'codStats',
-    'codStatsBR',
     'lastFMUsername',
     'bonkCounter',
     'warningCounter',

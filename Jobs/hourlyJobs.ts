@@ -1,5 +1,6 @@
 import { MazariniClient } from '../client/MazariniClient'
 import { MessageHelper } from '../helpers/messageHelper'
+import { ArrayUtils } from '../utils/arrayUtils'
 import { ChannelIds } from '../utils/mentionUtils'
 
 export class HourJob {
@@ -10,11 +11,12 @@ export class HourJob {
         this.messageHelper = messageHelper
         this.client = client
     }
-    runJobs() {
-        this.checkForRLTournaments()
+    async runJobs() {
+        await this.checkForUpcomingRLTournaments()
+        await this.sendScheduledMessage()
     }
 
-    private async checkForRLTournaments() {
+    private async checkForUpcomingRLTournaments() {
         const storage = await this.client.db.getStorage()
         const tournaments = storage?.rocketLeagueTournaments
         if (tournaments) {
@@ -27,6 +29,26 @@ export class HourJob {
                 })
                 this.messageHelper.sendMessage(ChannelIds.ROCKET_LEAGUE, { text: `${message}` })
             }
+        }
+    }
+
+    private async sendScheduledMessage() {
+        const shceduledMessages = (await this.client.db.getStorage())?.scheduledMessages
+        if (shceduledMessages) {
+            const messagesToSend = shceduledMessages.filter((msg) => {
+                const date = new Date(msg.dateToSendOn * 1000)
+                const today = new Date()
+                console.log(date, today)
+
+                const dateMatches = date.getDay() === today.getDay() && date.getMonth() === today.getMonth()
+                const timeMatches = date.getHours() === today.getHours()
+                return dateMatches && timeMatches
+            })
+            messagesToSend.forEach((msg) => {
+                this.messageHelper.sendMessage(msg.channelId, { text: msg.message })
+                ArrayUtils.removeItemOnce(shceduledMessages, msg)
+            })
+            this.client.db.updateStorage({ scheduledMessages: shceduledMessages })
         }
     }
 }

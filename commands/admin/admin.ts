@@ -176,12 +176,21 @@ export class Admin extends AbstractCommands {
     private async buildSendModal(interaction: ChatInputCommandInteraction<CacheType>) {
         if (interaction) {
             const modal = new ModalBuilder().setCustomId(Admin.adminSendModalID).setTitle('Send melding som Høie')
+            const today = new Date()
             const channelID = new TextInputBuilder()
                 .setCustomId('channelID')
                 // The label is the prompt the user sees for this input
                 .setLabel('ID-en til kanalen meldingen skal sendes til')
                 .setPlaceholder(`${interaction.channelId}`)
                 .setValue(`${interaction.channelId}`)
+                // Short means only a single line of text
+                .setStyle(TextInputStyle.Short)
+            const scheduledDate = new TextInputBuilder()
+                .setCustomId('scheduledDate')
+                // The label is the prompt the user sees for this input
+                .setLabel('Planlegg til senere (DD:MM:YYYY HH:mm)')
+                .setPlaceholder(`${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()} ${today.getHours()}:${today.getMinutes()}`)
+                .setRequired(false)
                 // Short means only a single line of text
                 .setStyle(TextInputStyle.Short)
 
@@ -193,7 +202,8 @@ export class Admin extends AbstractCommands {
 
             const firstActionRow = new ActionRowBuilder().addComponents(channelID)
             const secondActionRow = new ActionRowBuilder().addComponents(message)
-            modal.addComponents(firstActionRow, secondActionRow)
+            const thirdActionRow = new ActionRowBuilder().addComponents(scheduledDate)
+            modal.addComponents(firstActionRow, secondActionRow, thirdActionRow)
             await interaction.showModal(modal)
         }
     }
@@ -266,12 +276,33 @@ export class Admin extends AbstractCommands {
     private handleAdminSendModalDialog(modalInteraction: ModalSubmitInteraction) {
         const chatID = modalInteraction.fields.getTextInputValue('channelID')
         const text = modalInteraction.fields.getTextInputValue('messageInput')
+        const schedule = modalInteraction.fields.getTextInputValue('scheduledDate')
+        const date = moment(schedule, 'DD-MM-YYYY HH:mm')
+        if (schedule) {
+            console.log(date)
 
-        this.messageHelper.sendMessage(chatID, { text: text })
-        this.messageHelper.replyToInteraction(modalInteraction, `Meldingen *${text}* ble sent til ${MentionUtils.mentionChannel(chatID)}`, { ephemeral: true })
-        this.messageHelper.sendLogMessage(
-            `${modalInteraction.user.username} sendte en melding som botten til kanalen ${MentionUtils.mentionChannel(chatID)} med innholdet '*${text}*'`
-        )
+            this.messageHelper.scheduleMessage(text, chatID, date)
+            this.messageHelper.replyToInteraction(
+                modalInteraction,
+                `Meldingen *${text}* vil sendes til ${MentionUtils.mentionChannel(chatID)} ${date.toString()}`,
+                {
+                    ephemeral: true,
+                }
+            )
+            this.messageHelper.sendLogMessage(
+                `${modalInteraction.user.username} planla en melding til ${MentionUtils.mentionChannel(
+                    chatID
+                )} med innholdet '*${text}*', som vil sendes ${date.toString()}`
+            )
+        } else {
+            this.messageHelper.sendMessage(chatID, { text: text })
+            this.messageHelper.replyToInteraction(modalInteraction, `Meldingen *${text}* ble sent til ${MentionUtils.mentionChannel(chatID)}`, {
+                ephemeral: true,
+            })
+            this.messageHelper.sendLogMessage(
+                `${modalInteraction.user.username} sendte en melding som botten til kanalen ${MentionUtils.mentionChannel(chatID)} med innholdet '*${text}*'`
+            )
+        }
     }
 
     getAllInteractions() {

@@ -11,7 +11,6 @@ import {
     ButtonInteraction,
     CacheType,
     ChatInputCommandInteraction,
-    Client,
     EmbedBuilder,
     InteractionEditReplyOptions,
     InteractionReplyOptions,
@@ -29,8 +28,10 @@ import {
     TextChannel,
     User,
 } from 'discord.js'
+import { Moment } from 'moment'
 import { Stream } from 'stream'
 import { environment } from '../client-env'
+import { MazariniClient } from '../client/MazariniClient'
 import { MazariniBot } from '../main'
 import { ChannelIds, MentionUtils } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
@@ -84,9 +85,9 @@ type OneProp<T> = {
 type RequireAtLeastOne<T> = T & OneProp<T>
 
 export class MessageHelper {
-    private client: Client
+    private client: MazariniClient
 
-    constructor(client: Client) {
+    constructor(client: MazariniClient) {
         this.client = client
     }
 
@@ -278,5 +279,18 @@ export class MessageHelper {
         options ? (options.dontIncrementMessageCounter = true) : (options = { dontIncrementMessageCounter: true })
 
         return this.sendMessage(ChannelIds.ACTION_LOG, { text: msg }, options)
+    }
+
+    async scheduleMessage(msg: string, channelId: string, date: Moment) {
+        const storage = await this.client.db.getStorage()
+        if (!storage?.scheduledMessages) {
+            storage['scheduledMessages'] = []
+        }
+        if (storage?.scheduledMessages) {
+            storage.scheduledMessages.push({ message: msg, dateToSendOn: date.unix(), channelId: channelId })
+        }
+        this.client.db.updateStorage({
+            scheduledMessages: storage.scheduledMessages,
+        })
     }
 }
