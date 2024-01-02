@@ -38,8 +38,6 @@ export class HourJob {
             const messagesToSend = shceduledMessages.filter((msg) => {
                 const date = new Date(msg.dateToSendOn * 1000)
                 const today = new Date()
-                console.log(date, today)
-
                 const dateMatches = date.getDay() === today.getDay() && date.getMonth() === today.getMonth()
                 const timeMatches = date.getHours() === today.getHours()
                 return dateMatches && timeMatches

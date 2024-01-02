@@ -218,7 +218,6 @@ export class Ludo extends AbstractCommands {
                 } else {
                     this.updateBoardStateMessage(interaction, `${player.id} får trille på ny`)
                 }
-               
             }
         }
     }
@@ -316,6 +315,32 @@ export class Ludo extends AbstractCommands {
     /** Moves a piece from its home to the correct start position on the board */
     private moveOutPiece(piece: LudoPiece) {
         piece.positionIndex = LudoBoard.pieceStartPosition(piece.color)
+    }
+
+    /** Check if any pieces are colliding with the supplied one. If colors dont match current one, it will be kicked back */
+    private checkCollision(p: LudoPiece) {
+        const allPieces = this.allPieces
+        const collision = allPieces.filter((piece) => piece.positionIndex === p.positionIndex && p.color !== piece.color && piece !== p)
+        if (collision) {
+            console.log('A collision occured, attempting to kick back')
+
+            collision.forEach((piece) => {
+                const piecesInColor = this.getAllPiecesOfColor(piece.color)
+                const homePositionsForColor = LudoBoard.homeIndexes(piece.color).filter((hi) => !piecesInColor.find((p) => p.positionIndex === hi))
+
+                piece.positionIndex = homePositionsForColor[0]
+            })
+        }
+    }
+
+    private updateGameStateMessage() {
+        //Det er X sin tur
+        //Brikke Y og Z står på samme plass
+        //Etc?
+    }
+
+    private getAllPiecesOfColor(c: LudoColor) {
+        return this.allPieces.filter((p) => p.color === c)
     }
 
     get buttonRow() {
