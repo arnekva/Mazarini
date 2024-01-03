@@ -216,7 +216,7 @@ export class RocketLeagueCommands extends AbstractCommands {
         const currentTournaments = storage?.rocketLeagueTournaments
         if (currentTournaments) {
             const embed = EmbedUtils.createSimpleEmbed(
-                `Rocket League Tournaments`,
+                `Rocket League Turneringer`,
                 `For ${DateUtils.formatDate(new Date())}. Trykk på en av knappene for å bli varslet 1 time før turneringen starter`
             )
             const activeGameButtonRow = new ActionRowBuilder<ButtonBuilder>()

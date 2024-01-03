@@ -60,6 +60,7 @@ export class DailyJobs {
                     )
                     retryFetch()
                 } else {
+                    //FIXME: This codeblock is repeated here and and rocketLeagueCommands. Should be refactored
                     tournaments.forEach((t, idx) => {
                         t.id = idx
                     })
@@ -67,7 +68,7 @@ export class DailyJobs {
                         rocketLeagueTournaments: tournaments,
                     })
                     const embed = EmbedUtils.createSimpleEmbed(
-                        `Rocket League Tournaments`,
+                        `Rocket League Turningeringer`,
                         `For ${DateUtils.formatDate(new Date())}. Trykk på en av knappene for å bli varslet 1 time før turneringen starter`
                     )
                     const activeGameButtonRow = new ActionRowBuilder<ButtonBuilder>()

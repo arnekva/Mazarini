@@ -1,6 +1,7 @@
 import { MazariniClient } from '../client/MazariniClient'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
+import { EmbedUtils } from '../utils/embedUtils'
 import { ChannelIds } from '../utils/mentionUtils'
 
 export class HourJob {
@@ -23,11 +24,14 @@ export class HourJob {
             const nextTournaments = tournaments.filter((t) => new Date(t.starts).getHours() === new Date().getHours() + 1 && t.shouldNotify)
 
             if (nextTournaments.length > 0) {
-                let message = `Det er ${nextTournaments.length} turnering${nextTournaments.length > 1 ? 'er' : ''} om 1 time`
+                const embed = EmbedUtils.createSimpleEmbed(
+                    `🚗 Rocket League Turnering ⚽`,
+                    ` Det er ${nextTournaments.length} turnering${nextTournaments.length > 1 ? 'er' : ''} om 1 time`
+                )
                 nextTournaments.forEach((t) => {
-                    message += `\n${t.players}v${t.players} - ${t.mode}`
+                    embed.addFields({ name: `${t.players}v${t.players}`, value: `${t.mode}` })
                 })
-                this.messageHelper.sendMessage(ChannelIds.ROCKET_LEAGUE, { text: `${message}` })
+                this.messageHelper.sendMessage(ChannelIds.ROCKET_LEAGUE, { embed: embed })
             }
         }
     }
