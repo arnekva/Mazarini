@@ -78,11 +78,10 @@ type MessageCompontent = (
 
 type MessageFiles = (BufferResolvable | Stream | JSONEncodable<APIAttachment> | Attachment | AttachmentBuilder | AttachmentPayload)[]
 
-type OneProp<T> = {
-    [P in keyof T]-?: Record<P, T[P]>
-}[keyof T]
-
-type RequireAtLeastOne<T> = T & OneProp<T>
+type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
+    {
+        [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>
+    }[Keys]
 
 export class MessageHelper {
     private client: MazariniClient
@@ -169,11 +168,12 @@ export class MessageHelper {
     /**
      *
      * @param channelId Id of channel to send the message to
-     * @param content All properties are optional, but you must send at least one of them. Can be text, embed, components or file.
+     * @param content Text or Embed MUST be sent in, as the message sent must have text. If they are not added, an error will be thrown when the message is sent. Components or files are also added here
      * @param options Options for the message, such as sending it as silent etc.
      * @returns a message if sent succesfully, undefined if error log message is sent
      */
-    sendMessage(channelId: string, content: RequireAtLeastOne<IMessageContent>, options?: IMessageOptions): Promise<Message | undefined> {
+    sendMessage(channelId: string, content: RequireAtLeastOne<IMessageContent, 'text' | 'embed'>, options?: IMessageOptions): Promise<Message | undefined> {
+        //
         if (!!content.text && !this.messageHasContent(content.text)) {
             this.sendLogMessage('En melding som ble forsøkt sendt var tom')
             return undefined
@@ -256,6 +256,7 @@ export class MessageHelper {
             Extract<MessageFlagsString, 'SuppressEmbeds' | 'SuppressNotifications'>,
             MessageFlags.SuppressEmbeds | MessageFlags.SuppressNotifications
         >[]
+
         const messageOptions = { content: content } as MessageCreateOptions
         if (options?.noMentions) {
             messageOptions.allowedMentions = {
