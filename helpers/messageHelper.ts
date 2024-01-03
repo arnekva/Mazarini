@@ -172,7 +172,11 @@ export class MessageHelper {
      * @param options Options for the message, such as sending it as silent etc.
      * @returns a message if sent succesfully, undefined if error log message is sent
      */
-    sendMessage(channelId: string, content: RequireAtLeastOne<IMessageContent, 'text' | 'embed'>, options?: IMessageOptions): Promise<Message | undefined> {
+    sendMessage(
+        channelId: string,
+        content: RequireAtLeastOne<IMessageContent, 'text' | 'embed' | 'components'>,
+        options?: IMessageOptions
+    ): Promise<Message | undefined> {
         //
         if (!!content.text && !this.messageHasContent(content.text)) {
             this.sendLogMessage('En melding som ble forsøkt sendt var tom')
