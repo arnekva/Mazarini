@@ -137,6 +137,9 @@ export class MessageHelper {
                     } i kanalen ${MentionUtils.mentionChannel(interaction?.channelId)}, men den feilet. ${msgInfo}`
                 )
             }
+            if (environment === 'dev') {
+                console.error('En feilmelding har oppstått under svar på en interaksjon. Msginfo:' + msgInfo)
+            }
             return false
         }
         if (!interaction.replied) {
