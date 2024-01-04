@@ -13,13 +13,11 @@ import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
 
 import { ActionMenuHelper } from '../helpers/actionMenuHelper'
-import { ChipsStats, RulettStats } from '../interfaces/database/databaseInterface'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 
-import { UserUtils } from '../utils/userUtils'
 import { Roles } from '../utils/roles'
-import { IInteractionElement } from '../interfaces/interactionInterface'
+import { UserUtils } from '../utils/userUtils'
 
 export class UserCommands extends AbstractCommands {
     constructor(client: MazariniClient) {
@@ -124,75 +122,7 @@ export class UserCommands extends AbstractCommands {
             this.messageHelper.replyToInteraction(interaction, `Det oppstod en feil med rollene. Prøv igjen senere`, { ephemeral: true })
         }
     }
-
-    private async findUserStats(interaction: ChatInputCommandInteraction<CacheType>) {
-        const user = await this.client.db.getUser(interaction.user.id)
-        const userStats = user.userStats?.chipsStats
-        const rulettStats = user.userStats?.rulettStats
-        let reply = ''
-        if (userStats) {
-            reply += '**Gambling**\n'
-            reply += Object.entries(userStats)
-                .map((stat) => {
-                    return `${this.findPrettyNameForChipsKey(stat[0] as keyof ChipsStats)}: ${stat[1]}`
-                })
-                .sort()
-                .join('\n')
-        }
-        if (rulettStats) {
-            reply += '\n\n**Rulett**\n'
-            reply += Object.entries(rulettStats)
-                .map((stat) => {
-                    return `${this.findPrettyNameForRulettKey(stat[0] as keyof RulettStats)}: ${stat[1]}`
-                })
-                .sort()
-                .join('\n')
-        }
-        if (reply == '') {
-            reply = 'Du har ingen statistikk å visa'
-        }
-        this.messageHelper.replyToInteraction(interaction, reply)
-    }
-
-    private findPrettyNameForChipsKey(prop: keyof ChipsStats) {
-        switch (prop) {
-            case 'gambleLosses':
-                return 'Gambling tap'
-            case 'gambleWins':
-                return 'Gambling gevinst'
-            case 'krigLosses':
-                return 'Krig tap'
-            case 'krigWins':
-                return 'Krig seier'
-            case 'roulettWins':
-                return 'Rulett gevinst'
-            case 'rouletteLosses':
-                return 'Rulett tap'
-            case 'slotLosses':
-                return 'Roll tap'
-            case 'slotWins':
-                return 'Roll gevinst'
-            default:
-                return 'Ukjent'
-        }
-    }
-    private findPrettyNameForRulettKey(prop: keyof RulettStats) {
-        switch (prop) {
-            case 'black':
-                return 'Svart'
-            case 'green':
-                return 'Grønn'
-            case 'red':
-                return 'Rød'
-            case 'even':
-                return 'Partall'
-            case 'odd':
-                return 'Oddetall'
-            default:
-                return 'Ukjent'
-        }
-    }
-
+    
     getAllInteractions() {
         return {
             commands: {
@@ -213,12 +143,6 @@ export class UserCommands extends AbstractCommands {
                         commandName: 'role',
                         command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                             this.roleAssignment(interaction)
-                        },
-                    },
-                    {
-                        commandName: 'brukerstats',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            this.findUserStats(rawInteraction)
                         },
                     },
                 ],

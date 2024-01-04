@@ -664,12 +664,12 @@ export class CallOfDutyCommands extends AbstractCommands {
                             this.dropGrid(interaction)
                         },
                     },
-                    {
-                        commandName: 'stats',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            this.handleWZInteraction(rawInteraction)
-                        },
-                    },
+                    // {
+                    //     commandName: 'stats',
+                    //     command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                    //         this.handleWZInteraction(rawInteraction)
+                    //     },
+                    // }, 
                     {
                         commandName: 'playlist',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {

@@ -22,6 +22,7 @@ import { PollCommands } from '../commands/pollcommands'
 import { SoundCommands } from '../commands/soundCommands'
 import { Spinner } from '../commands/spinner'
 import { SpotifyCommands } from '../commands/spotifyCommands'
+import { StatsCommands } from '../commands/statsCommands'
 import { TestCommands } from '../commands/testCommands'
 import { TextCommands } from '../commands/textCommands'
 import { UserCommands } from '../commands/userCommands'
@@ -60,6 +61,7 @@ export class Commands {
     private ludo: Ludo
     private rocketLeagueCommands: RocketLeagueCommands
     private vivinoCommands: VivinoCommands
+    private statsCommands: StatsCommands
 
     constructor(client: MazariniClient) {
         this.client = client
@@ -92,6 +94,7 @@ export class Commands {
         this.ludo = new Ludo(this.client)
         this.rocketLeagueCommands = new RocketLeagueCommands(this.client)
         this.vivinoCommands = new VivinoCommands(this.client)
+        this.statsCommands = new StatsCommands(this.client)
     }
 
     getAllInteractionCommands(): IInteractionElement[] {
@@ -124,6 +127,7 @@ export class Commands {
             this.ludo.getAllInteractions(),
             this.rocketLeagueCommands.getAllInteractions(),
             this.vivinoCommands.getAllInteractions(),
+            this.statsCommands.getAllInteractions()
         ]
     }
 

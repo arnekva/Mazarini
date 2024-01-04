@@ -9,6 +9,7 @@ import { pointerbrothersCommand } from './commandStorage/pointerbrothers'
 import { pollCommand } from './commandStorage/poll'
 import { sangCommand } from './commandStorage/sang'
 import { spotifyCommand } from './commandStorage/spotify'
+import { statsCommand } from './commandStorage/stats'
 import { stoppCommand } from './commandStorage/stopp'
 import { terningCommand } from './commandStorage/terning'
 import { tournamentCommand } from './commandStorage/tournaments'
@@ -36,4 +37,5 @@ export namespace CommandStorage {
     export const LudoCommand = ludoCommand
     export const PointerBrothersCommand = pointerbrothersCommand
     export const VivinoCommand = vivinoCommand
+    export const StatsCommand = statsCommand
 }

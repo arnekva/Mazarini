@@ -197,6 +197,10 @@ export class DatabaseHelper {
         this.db.incrementData(path, decrement)
     }
 
+    public async getEmojiStats(): Promise<Object> {
+        return await this.db.getData('stats/emojis') as Object
+    }
+
     static defaultUser(id: string): MazariniUser {
         return {
             bonkCounter: 0,
