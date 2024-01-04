@@ -2,6 +2,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheT
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
+import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
 
@@ -286,7 +287,7 @@ export class RocketLeagueCommands extends AbstractCommands {
         }
     }
 
-    public getAllInteractions() {
+    public getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [

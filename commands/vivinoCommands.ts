@@ -2,6 +2,7 @@ import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
+import { IInteractionElement } from '../interfaces/interactionInterface'
 import { EmbedUtils } from '../utils/embedUtils'
 import { LanguageCodes } from '../utils/languageUtils'
 const fetch = require('node-fetch')
@@ -215,7 +216,7 @@ export class VivinoCommands extends AbstractCommands {
         return data.filter((d) => moment(d.object.review.created_at).year() === currYear)
     }
 
-    getAllInteractions() {
+    getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [

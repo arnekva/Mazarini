@@ -2,6 +2,7 @@ import { ModernWarfare, Warzone, Warzone2, platforms } from 'call-of-duty-api'
 import { CacheType, ChatInputCommandInteraction, EmbedBuilder, Interaction, User } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
+import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { ArrayUtils } from '../../utils/arrayUtils'
 import { ObjectUtils } from '../../utils/objectUtils'
 import { RandomUtils } from '../../utils/randomUtils'
@@ -527,20 +528,24 @@ export class CallOfDutyCommands extends AbstractCommands {
 
         let currentPlaylistCard = await this.fetchWeeklyTrelloCard(currentPlaylistID, false)
         if (currentPlaylistCard) foundCurrent = true
-        if (!currentPlaylistCard) {            
-            currentPlaylistCard = await this.fetchWeeklyTrelloCard(pastPlaylistsID, true)   
-        }        
+        if (!currentPlaylistCard) {
+            currentPlaylistCard = await this.fetchWeeklyTrelloCard(pastPlaylistsID, true)
+        }
         if (!currentPlaylistCard) this.messageHelper.replyToInteraction(interaction, 'Fant ikke playlist', { hasBeenDefered: true })
         else {
             let cardId = currentPlaylistCard.id
             let attachmentId = currentPlaylistCard.idAttachmentCover
             const response = await fetch('https://api.trello.com/1/cards/' + cardId + '/attachments/' + attachmentId)
-            const data = await response.json()            
+            const data = await response.json()
             if (foundCurrent) {
                 this.messageHelper.replyToInteraction(interaction, data.url, { hasBeenDefered: true })
             } else {
-                this.messageHelper.replyToInteraction(interaction, 'Fant ikke nåværende playlist. Sender forrige tilgjengelige da den trolig fortsatt er aktiv.', { hasBeenDefered: true })
-                this.messageHelper.sendMessage(interaction.channelId, {text: data.url})
+                this.messageHelper.replyToInteraction(
+                    interaction,
+                    'Fant ikke nåværende playlist. Sender forrige tilgjengelige da den trolig fortsatt er aktiv.',
+                    { hasBeenDefered: true }
+                )
+                this.messageHelper.sendMessage(interaction.channelId, { text: data.url })
             }
         }
     }
@@ -552,10 +557,10 @@ export class CallOfDutyCommands extends AbstractCommands {
         const now = new Date()
 
         const response = await fetch(`https://api.trello.com/1/lists/${trelloList}/cards`)
-        const data = await response.json()        
+        const data = await response.json()
         if (!data) return null
         while (!found && i < data.length) {
-            if (data[i].name.startsWith('Playlist |')) {                        
+            if (data[i].name.startsWith('Playlist |')) {
                 let start = new Date(data[i].start)
                 let end = new Date(data[i].due)
                 if (now > start && now < end) {
@@ -563,13 +568,12 @@ export class CallOfDutyCommands extends AbstractCommands {
                 } else if (getMostRecent) {
                     if (!mostRecent) mostRecent = data[i]
                     let currentEnd = new Date(mostRecent.due)
-                    mostRecent = end > currentEnd ? data[i] : mostRecent                            
+                    mostRecent = end > currentEnd ? data[i] : mostRecent
                 }
             }
             i += 1
-        }        
+        }
         return mostRecent
-        
     }
 
     private async handleWZInteraction(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -648,7 +652,7 @@ export class CallOfDutyCommands extends AbstractCommands {
         return user.codStats
     }
 
-    public getAllInteractions() {
+    public getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [
@@ -669,7 +673,7 @@ export class CallOfDutyCommands extends AbstractCommands {
                     //     command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                     //         this.handleWZInteraction(rawInteraction)
                     //     },
-                    // }, 
+                    // },
                     {
                         commandName: 'playlist',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {

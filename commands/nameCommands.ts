@@ -3,6 +3,7 @@ import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
 
 import { SlashCommandHelper } from '../helpers/slashCommandHelper'
+import { IInteractionElement } from '../interfaces/interactionInterface'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { RandomUtils } from '../utils/randomUtils'
 
@@ -82,7 +83,7 @@ export class NameCommands extends AbstractCommands {
         this.client.db.nukeTextCommand(username, index)
     }
 
-    getAllInteractions() {
+    getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [

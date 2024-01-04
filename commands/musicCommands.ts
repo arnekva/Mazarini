@@ -3,6 +3,7 @@ import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { lfKey, musixMatchKey } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
 
+import { IInteractionElement } from '../interfaces/interactionInterface'
 import { EmbedUtils } from '../utils/embedUtils'
 import { TextUtils } from '../utils/textUtils'
 const fetch = require('node-fetch')
@@ -413,7 +414,7 @@ export class Music extends AbstractCommands {
         return lyrics
     }
 
-    getAllInteractions() {
+    getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [

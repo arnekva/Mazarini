@@ -2,6 +2,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheT
 import { AbstractCommands } from '../../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../../client/MazariniClient'
 import { GameStateHandler } from '../../../handlers/gameStateHandler'
+import { IInteractionElement } from '../../../interfaces/interactionInterface'
 import { EmbedUtils } from '../../../utils/embedUtils'
 import { RandomUtils } from '../../../utils/randomUtils'
 import { LudoBoard } from './boards'
@@ -385,7 +386,7 @@ export class Ludo extends AbstractCommands {
         ])
     }
 
-    getAllInteractions() {
+    getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [

@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
-import { Commands } from '../general/commands'
+import { Commands } from '../general/Commands.1'
 import { MazariniBot } from '../main'
 
 describe('Commands test', () => {

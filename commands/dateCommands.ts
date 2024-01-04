@@ -2,13 +2,13 @@ import { CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js
 import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
-import { EmojiHelper } from '../helpers/emojiHelper'
+import { HelgHelper } from '../helpers/helgHelper'
 import { ICountdownItem, ferieItem } from '../interfaces/database/databaseInterface'
+import { IInteractionElement } from '../interfaces/interactionInterface'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { DateUtils, dateRegex, timeRegex } from '../utils/dateUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
-import { HelgHelper } from '../helpers/helgHelper'
 
 export interface dateValPair {
     print: string
@@ -302,7 +302,7 @@ export class DateCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions() {
+    getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [

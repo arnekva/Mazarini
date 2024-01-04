@@ -16,6 +16,7 @@ import { MazariniClient } from '../client/MazariniClient'
 
 import { Languages } from '../helpers/languageHelpers'
 import { MessageHelper } from '../helpers/messageHelper'
+import { IInteractionElement } from '../interfaces/interactionInterface'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 const fetch = require('node-fetch')
@@ -298,7 +299,7 @@ export class PoletCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions() {
+    getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [

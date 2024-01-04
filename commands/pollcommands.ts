@@ -2,10 +2,10 @@ import { ActionRowBuilder, AutocompleteInteraction, ButtonBuilder, ButtonInterac
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
 
+import { IInteractionElement } from '../interfaces/interactionInterface'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { UserUtils } from '../utils/userUtils'
-import { IInteractionElement } from '../interfaces/interactionInterface'
 
 interface IPollVote {
     userId: string
@@ -208,7 +208,7 @@ export class PollCommands extends AbstractCommands {
         interaction.respond(polls)
     }
 
-    getAllInteractions() {
+    getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [

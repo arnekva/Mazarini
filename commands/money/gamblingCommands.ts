@@ -5,6 +5,7 @@ import { MazariniClient } from '../../client/MazariniClient'
 import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
+import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { MentionUtils } from '../../utils/mentionUtils'
 import { MiscUtils } from '../../utils/miscUtils'
 import { RandomUtils } from '../../utils/randomUtils'
@@ -305,7 +306,7 @@ export class GamblingCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions() {
+    getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [

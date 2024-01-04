@@ -16,6 +16,7 @@ import { ActionMenuHelper } from '../helpers/actionMenuHelper'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 
+import { IInteractionElement } from '../interfaces/interactionInterface'
 import { Roles } from '../utils/roles'
 import { UserUtils } from '../utils/userUtils'
 
@@ -122,8 +123,8 @@ export class UserCommands extends AbstractCommands {
             this.messageHelper.replyToInteraction(interaction, `Det oppstod en feil med rollene. Prøv igjen senere`, { ephemeral: true })
         }
     }
-    
-    getAllInteractions() {
+
+    getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [

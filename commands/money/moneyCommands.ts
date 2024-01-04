@@ -4,6 +4,7 @@ import { MazariniClient } from '../../client/MazariniClient'
 
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
 import { DailyReward } from '../../interfaces/database/databaseInterface'
+import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { MentionUtils } from '../../utils/mentionUtils'
 import { TextUtils } from '../../utils/textUtils'
@@ -160,7 +161,7 @@ export class MoneyCommands extends AbstractCommands {
         return undefined
     }
 
-    getAllInteractions() {
+    getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [

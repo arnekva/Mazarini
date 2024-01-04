@@ -2,6 +2,7 @@ import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
 
+import { IInteractionElement } from '../interfaces/interactionInterface'
 import { MentionUtils } from '../utils/mentionUtils'
 import { SoundUtils } from '../utils/soundUtils'
 import { UserUtils } from '../utils/userUtils'
@@ -33,7 +34,7 @@ export class SoundCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions() {
+    getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [

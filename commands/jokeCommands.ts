@@ -13,6 +13,7 @@ import { MiscUtils } from '../utils/miscUtils'
 import { RandomUtils } from '../utils/randomUtils'
 import { textArrays } from '../utils/textArrays'
 import { UserUtils } from '../utils/userUtils'
+import { IInteractionElement } from '../interfaces/interactionInterface'
 
 export class JokeCommands extends AbstractCommands {
     private prevGifIndex: number
@@ -297,7 +298,7 @@ export class JokeCommands extends AbstractCommands {
         this.messageHelper.sendMessage(interaction.channelId, { text: randomGif })
     }
 
-    getAllInteractions() {
+    getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [

@@ -6,6 +6,7 @@ import { spotifyClientID, spotifyClientSecret } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
 
 import { EmojiHelper } from '../helpers/emojiHelper'
+import { IInteractionElement } from '../interfaces/interactionInterface'
 import { EmbedUtils } from '../utils/embedUtils'
 import { UserUtils } from '../utils/userUtils'
 import { Music } from './musicCommands'
@@ -254,7 +255,7 @@ export class SpotifyCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions() {
+    getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [

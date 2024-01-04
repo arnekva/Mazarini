@@ -3,6 +3,7 @@ import wiki from 'wikijs'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
 
+import { IInteractionElement } from '../interfaces/interactionInterface'
 import { EmbedUtils } from '../utils/embedUtils'
 
 export class TextCommands extends AbstractCommands {
@@ -49,7 +50,7 @@ export class TextCommands extends AbstractCommands {
         }
     }
 
-    getAllInteractions() {
+    getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [

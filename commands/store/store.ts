@@ -6,7 +6,7 @@ export class Store extends AbstractCommands {
     constructor(client: MazariniClient) {
         super(client)
     }
-    getAllInteractions() {
+    getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [

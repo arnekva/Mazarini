@@ -3,6 +3,7 @@ import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { openCageAPIKey, openWeatherAPIKey } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
 
+import { IInteractionElement } from '../interfaces/interactionInterface'
 import { DateUtils } from '../utils/dateUtils'
 import { WeatherUtils } from '../utils/weatherUtils'
 const fetch = require('node-fetch')
@@ -156,7 +157,7 @@ export class Weather extends AbstractCommands {
         return res[0] as GeoLocation
     }
 
-    getAllInteractions() {
+    getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [

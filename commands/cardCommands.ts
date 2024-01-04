@@ -4,6 +4,7 @@ import { MazariniClient } from '../client/MazariniClient'
 
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { SlashCommandHelper } from '../helpers/slashCommandHelper'
+import { IInteractionElement } from '../interfaces/interactionInterface'
 const deckOfCards = require('deckofcards')
 
 export interface ICardObject {
@@ -191,7 +192,7 @@ export class CardCommands extends AbstractCommands {
         this.aceValue = v
     }
 
-    getAllInteractions() {
+    getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [

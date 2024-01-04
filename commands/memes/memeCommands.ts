@@ -5,6 +5,7 @@ import { imgflip } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 
 import { Meme } from '../../interfaces/database/databaseInterface'
+import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { MentionUtils } from '../../utils/mentionUtils'
 
 const fetch = require('node-fetch')
@@ -125,7 +126,7 @@ export class MemeCommands extends AbstractCommands {
         interaction.respond(options)
     }
 
-    getAllInteractions() {
+    getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [

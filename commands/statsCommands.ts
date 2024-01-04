@@ -1,15 +1,11 @@
-import {
-    AutocompleteInteraction,
-    CacheType,
-    ChatInputCommandInteraction
-} from 'discord.js'
+import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
 
 import { EmojiHelper } from '../helpers/emojiHelper'
 import { ChipsStats, EmojiStats, RulettStats } from '../interfaces/database/databaseInterface'
+import { IInteractionElement } from '../interfaces/interactionInterface'
 import { EmbedUtils } from '../utils/embedUtils'
-
 
 export class StatsCommands extends AbstractCommands {
     private emojiStats: EmojiStats[]
@@ -100,35 +96,42 @@ export class StatsCommands extends AbstractCommands {
         const input = interaction.options.get('emojinavn')?.value as string
         const sortedByMessages = this.emojiStats.slice().sort((a, b) => a.timesUsedInMessages - b.timesUsedInMessages)
         const sortedByReactions = this.emojiStats.slice().sort((a, b) => a.timesUsedInReactions - b.timesUsedInReactions)
-        const nMostUsedInMessages = sortedByMessages.findIndex(emoji => emoji.name == input)
-        const nMostUsedInReactions = sortedByReactions.findIndex(emoji => emoji.name == input)
-        const emojiStat = sortedByReactions.find(emoji => emoji.name === input)
+        const nMostUsedInMessages = sortedByMessages.findIndex((emoji) => emoji.name == input)
+        const nMostUsedInReactions = sortedByReactions.findIndex((emoji) => emoji.name == input)
+        const emojiStat = sortedByReactions.find((emoji) => emoji.name === input)
         const emoji = await EmojiHelper.getEmoji(input, interaction)
         const embed = EmbedUtils.createSimpleEmbed(`Statistikk for ${emoji.id}`, input)
         embed.addFields(
-            {name: 'Brukt i meldinger', value: `${emojiStat.timesUsedInMessages} (#${nMostUsedInMessages})`, inline: false},
-            {name: 'Brukt i reaksjoner', value: `${emojiStat.timesUsedInReactions} (#${nMostUsedInReactions})`, inline: false},
-            {name: 'Lagt til', value: emojiStat.added.toString(), inline: false},
+            { name: 'Brukt i meldinger', value: `${emojiStat.timesUsedInMessages} (#${nMostUsedInMessages})`, inline: false },
+            { name: 'Brukt i reaksjoner', value: `${emojiStat.timesUsedInReactions} (#${nMostUsedInReactions})`, inline: false },
+            { name: 'Lagt til', value: emojiStat.added.toString(), inline: false }
         )
-        
-        this.messageHelper.replyToInteraction(interaction, embed, {hasBeenDefered: true}) 
+
+        this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true })
     }
 
-    private async getTopEmojiStats(interaction: ChatInputCommandInteraction<CacheType>) {    
-        await this.fetchEmojiStats()    
+    private async getTopEmojiStats(interaction: ChatInputCommandInteraction<CacheType>) {
+        await this.fetchEmojiStats()
         const data = interaction.options.get('data')?.value as string
         const limit = interaction.options.get('antall')?.value as number
         const ignore = interaction.options.get('ignorer')?.value as string
-        let sortEmojis: (a: EmojiStats, b: EmojiStats) => number = ignore ?
-            ignore === 'ignoreMessages' ? (a,b) => a.timesUsedInReactions - b.timesUsedInReactions 
-                                        : (a,b) => a.timesUsedInMessages - b.timesUsedInMessages
-                                        : (a,b) => (((a.timesUsedInReactions ?? 0) + (a.timesUsedInMessages ?? 0)) - ((b.timesUsedInReactions ?? 0) + (b.timesUsedInMessages ?? 0)))
+        let sortEmojis: (a: EmojiStats, b: EmojiStats) => number = ignore
+            ? ignore === 'ignoreMessages'
+                ? (a, b) => a.timesUsedInReactions - b.timesUsedInReactions
+                : (a, b) => a.timesUsedInMessages - b.timesUsedInMessages
+            : (a, b) => (a.timesUsedInReactions ?? 0) + (a.timesUsedInMessages ?? 0) - ((b.timesUsedInReactions ?? 0) + (b.timesUsedInMessages ?? 0))
 
-        const sortedStats = this.emojiStats.slice().sort((a, b) => data === 'top' ? sortEmojis(b,a) : sortEmojis(a,b)).slice(0, limit ?? 10)
-        const embed = EmbedUtils.createSimpleEmbed(`Statistikk for de ${limit ?? 10} ${data === 'top' ? "mest" : "minst"} brukte emojiene`, ignore ? `Teller ikke med ${ignore === 'ignoreMessages' ? 'meldinger' : 'reaksjoner'}` : ' ')
+        const sortedStats = this.emojiStats
+            .slice()
+            .sort((a, b) => (data === 'top' ? sortEmojis(b, a) : sortEmojis(a, b)))
+            .slice(0, limit ?? 10)
+        const embed = EmbedUtils.createSimpleEmbed(
+            `Statistikk for de ${limit ?? 10} ${data === 'top' ? 'mest' : 'minst'} brukte emojiene`,
+            ignore ? `Teller ikke med ${ignore === 'ignoreMessages' ? 'meldinger' : 'reaksjoner'}` : ' '
+        )
         const fields = await this.getFields(sortedStats, ignore, interaction)
         embed.addFields(fields)
-        this.messageHelper.replyToInteraction(interaction, embed, {hasBeenDefered: true}) 
+        this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true })
     }
 
     private async getFields(stats: EmojiStats[], ignore: string, interaction: ChatInputCommandInteraction<CacheType>) {
@@ -137,12 +140,8 @@ export class StatsCommands extends AbstractCommands {
             const inMessages = `${stat.timesUsedInMessages ?? 0} meldinger`
             const inReactions = `${stat.timesUsedInReactions ?? 0} reaksjoner`
             const total = `${(stat.timesUsedInReactions ?? 0) + (stat.timesUsedInMessages ?? 0)} totalt`
-            const info = ignore ? ignore === 'ignoreMessages' ? inReactions
-                                                              : inMessages
-                                                              : `${inMessages}\n${inReactions}\n${total}`
-            return (
-                {name: `${i+1}. ${emoji.id}`, value: info, inline: true}
-            )
+            const info = ignore ? (ignore === 'ignoreMessages' ? inReactions : inMessages) : `${inMessages}\n${inReactions}\n${total}`
+            return { name: `${i + 1}. ${emoji.id}`, value: info, inline: true }
         })
         const retVal = await Promise.all(fields)
         return retVal
@@ -150,7 +149,7 @@ export class StatsCommands extends AbstractCommands {
 
     private async executeStatsSubCommand(interaction: ChatInputCommandInteraction<CacheType>) {
         const cmdGroup = interaction.options.getSubcommandGroup()
-        const cmd = interaction.options.getSubcommand()        
+        const cmd = interaction.options.getSubcommand()
         if (cmdGroup && cmdGroup === 'emoji') this.getEmojiStats(interaction)
         else if (!cmdGroup && cmd === 'bruker') this.findUserStats(interaction)
     }
@@ -168,21 +167,22 @@ export class StatsCommands extends AbstractCommands {
 
     private async fetchEmojiStats() {
         const now = new Date()
-        if (!this.emojiStats || ((now.getTime() - this.lastFetched.getTime()) > 60000)) {  //hent stats på nytt hvis det er har gått mer enn 1min (= utdaterte stats)              
+        if (!this.emojiStats || now.getTime() - this.lastFetched.getTime() > 60000) {
+            //hent stats på nytt hvis det er har gått mer enn 1min (= utdaterte stats)
             const emojis = await this.client.db.getEmojiStats()
             const emojiStatsArray: EmojiStats[] = Object.values(emojis).map(({ added, name, timesUsedInMessages, timesUsedInReactions, removed }) => ({
                 added,
                 name,
                 timesUsedInMessages,
                 timesUsedInReactions,
-                removed  
-              }));
-            this.emojiStats = emojiStatsArray.filter(stat => stat.name !== undefined)
+                removed,
+            }))
+            this.emojiStats = emojiStatsArray.filter((stat) => stat.name !== undefined)
             this.lastFetched = now
         }
     }
 
-    getAllInteractions() {
+    getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [

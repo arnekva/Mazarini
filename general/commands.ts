@@ -127,7 +127,7 @@ export class Commands {
             this.ludo.getAllInteractions(),
             this.rocketLeagueCommands.getAllInteractions(),
             this.vivinoCommands.getAllInteractions(),
-            this.statsCommands.getAllInteractions()
+            this.statsCommands.getAllInteractions(),
         ]
     }
 

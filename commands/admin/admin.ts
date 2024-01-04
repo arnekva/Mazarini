@@ -6,6 +6,7 @@ import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { ClientHelper } from '../../helpers/clientHelper'
 import { dbPrefix, prefixList } from '../../interfaces/database/databaseInterface'
+import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { DailyJobs } from '../../Jobs/dailyJobs'
 import { WeeklyJobs } from '../../Jobs/weeklyJobs'
 import { MazariniBot } from '../../main'
@@ -305,7 +306,7 @@ export class Admin extends AbstractCommands {
         }
     }
 
-    getAllInteractions() {
+    getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [

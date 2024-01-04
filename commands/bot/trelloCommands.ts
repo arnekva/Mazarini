@@ -17,6 +17,7 @@ import {
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 import { ActionMenuHelper } from '../../helpers/actionMenuHelper'
+import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { TrelloAPI } from './trelloAPI'
 import { INewTrelloCard, ITrelloCard, ITrelloLabel, ITrelloList } from './trelloInterfaces'
@@ -313,7 +314,7 @@ export class TrelloCommands extends AbstractCommands {
         return labelIdArray
     }
 
-    getAllInteractions() {
+    getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [
