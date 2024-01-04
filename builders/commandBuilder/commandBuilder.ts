@@ -7,6 +7,7 @@ import {
     ContextMenuCommandBuilder,
     SlashCommandBuilder,
     SlashCommandSubcommandBuilder,
+    SlashCommandSubcommandGroupBuilder
 } from 'discord.js'
 import { CommandStorage } from './commandStorage'
 
@@ -16,8 +17,10 @@ export interface ISlashCommandItem {
     /** Description of the command shown to user */
     commandDescription: string
     options?: ApplicationCommandOptionData[]
+    /** Subcommand groups. Adds an extra layer of command grouping */
+    subCommandGroups?: Omit<ISlashCommandItem, 'subCommandGroups'|'options'>[]
     /** Subcommands, same setups as a normal command */
-    subCommands?: Omit<ISlashCommandItem, 'subCommands'>[]
+    subCommands?: Omit<ISlashCommandItem, 'subCommands'|'subCommandGroups'>[]
     /** Add a guild id if this command is to be ONLY visible in the guild. Will not be a global command */
     guildId?: string
 }
@@ -100,6 +103,24 @@ export namespace CommandBuilder {
             //Finally, add the subcommand to the slash command
             scb.addSubcommand(localSCB)
         })
+        params.subCommandGroups?.forEach((subGroup) => {
+            const localSubGroup = new SlashCommandSubcommandGroupBuilder()
+            localSubGroup.setName(subGroup.commandName)
+            localSubGroup.setDescription(subGroup.commandDescription)
+            subGroup.subCommands?.forEach((subC) => {
+                const localSCB = new SlashCommandSubcommandBuilder()
+    
+                localSCB.setName(subC.commandName)
+                localSCB.setDescription(subC.commandDescription)
+                //Subcommands can also have options, so we use the helper function to add the options
+                subC.options?.forEach((o) => {
+                    addOptions(o, localSCB)
+                })
+                //Finally, add the subcommand to the slash command
+                localSubGroup.addSubcommand(localSCB)
+            })
+            scb.addSubcommandGroup(localSubGroup)
+        })
         //Creates the slash command
         client.application.commands.create(scb, params?.guildId)
     }
@@ -107,7 +128,7 @@ export namespace CommandBuilder {
     /** This command will automatically create all commands listed in it */
     export const createCommands = (client: Client) => {
         // CommandBuilder.deleteCommand('1171558082007007312', client)
-        CommandBuilder.createSlashCommand(CommandStorage.VivinoCommand, client)
+        CommandBuilder.createSlashCommand(CommandStorage.StatsCommand, client)
         // CommandBuilder.deleteCommand('997144601146175631', client)
         // CommandBuilder.createContextMenuCommand({ commandName: 'helg' }, client)
     }
