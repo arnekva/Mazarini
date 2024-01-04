@@ -5,7 +5,7 @@ import { MazariniClient } from '../client/MazariniClient'
 
 import { EmbedUtils } from '../utils/embedUtils'
 import { TextUtils } from '../utils/textUtils'
-const fetch = require('node-fetch')
+
 export type musicCommand = 'top'
 
 export type topMethods = 'songs' | 'artist' | 'album' | 'tags'

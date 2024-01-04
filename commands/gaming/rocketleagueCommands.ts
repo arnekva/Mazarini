@@ -34,7 +34,7 @@ const emptyStats: rocketLeagueDbData = {
     stats: { wins: '0', goals: '0', mvp: '0', saves: '0', assists: '0', shots: '0', goalShotRatio: '0' },
     mmr: { mmr1v1: '0', mmr2v2: '0', mmr3v3: '0' },
 }
-const fetch = require('node-fetch')
+
 const striptags = require('striptags')
 const puppeteer = require('puppeteer')
 

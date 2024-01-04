@@ -7,8 +7,6 @@ import { MazariniClient } from '../../client/MazariniClient'
 import { Meme } from '../../interfaces/database/databaseInterface'
 import { MentionUtils } from '../../utils/mentionUtils'
 
-const fetch = require('node-fetch')
-
 export class MemeCommands extends AbstractCommands {
     private memes: Meme[]
 
@@ -81,7 +79,7 @@ export class MemeCommands extends AbstractCommands {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
             },
-            body: params,
+            body: JSON.stringify(params),
         })
             .then((res: any) => {
                 res.json()

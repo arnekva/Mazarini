@@ -5,7 +5,6 @@ import { MazariniClient } from '../client/MazariniClient'
 
 import { DateUtils } from '../utils/dateUtils'
 import { WeatherUtils } from '../utils/weatherUtils'
-const fetch = require('node-fetch')
 const NodeGeocoder = require('node-geocoder')
 
 interface GeoLocation {

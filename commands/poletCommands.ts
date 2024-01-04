@@ -18,7 +18,6 @@ import { Languages } from '../helpers/languageHelpers'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
-const fetch = require('node-fetch')
 
 interface exceptionHours {
     date: string
@@ -101,7 +100,6 @@ export class PoletCommands extends AbstractCommands {
                 scheme: 'https',
                 redirect: 'follow',
                 encoding: 'null',
-                gzip: true,
             },
         })
         return await data.json()
@@ -126,7 +124,6 @@ export class PoletCommands extends AbstractCommands {
                     scheme: 'https',
                     redirect: 'follow',
                     encoding: 'null',
-                    gzip: true,
                 },
             }
         )

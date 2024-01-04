@@ -4,7 +4,6 @@ import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
 import { EmbedUtils } from '../utils/embedUtils'
 import { LanguageCodes } from '../utils/languageUtils'
-const fetch = require('node-fetch')
 
 interface IVivinoReview {
     id: number

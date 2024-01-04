@@ -18,7 +18,6 @@ import { ChannelIds, MentionUtils } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { Commands } from './commands'
 import { MessageChecker } from './messageChecker'
-const fetch = require('node-fetch')
 
 export class CommandRunner {
     private commands: Commands

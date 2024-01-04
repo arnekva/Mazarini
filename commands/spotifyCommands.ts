@@ -12,7 +12,7 @@ import { Music } from './musicCommands'
 const SpotifyWebApi = require('spotify-web-api-node')
 const base64 = require('base-64')
 const request = require('request')
-const fetch = require('node-fetch')
+
 export class SpotifyCommands extends AbstractCommands {
     constructor(client: MazariniClient) {
         super(client)
@@ -51,17 +51,22 @@ export class SpotifyCommands extends AbstractCommands {
 
         var urlencoded = new URLSearchParams()
         urlencoded.append('grant_type', 'client_credentials')
-
+        myHeaders.raw()
         const requestOptions = {
             method: 'POST',
-            headers: myHeaders,
-            body: urlencoded,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                Authorization: `Basic ${base64.encode(spotifyClientID + ':' + spotifyClientSecret)}`,
+            },
+            body: JSON.stringify(urlencoded),
+            // body: urlencoded,
             redirect: 'follow',
-        }
+        } as RequestInit
 
-        let res = await fetch('https://accounts.spotify.com/api/token', requestOptions)
-        res = await res.json()
-        return res.access_token
+        const res = await fetch('https://accounts.spotify.com/api/token', requestOptions)
+        const data = await res.json()
+
+        return data.access_token
     }
 
     cleanSearchString(s: string) {
