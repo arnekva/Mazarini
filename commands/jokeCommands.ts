@@ -294,8 +294,8 @@ export class JokeCommands extends AbstractCommands {
         let index = RandomUtils.getRandomIntegerExcludingNumber(textArrays.pointerBrothersUrls.length, this.prevGifIndex)
         this.prevGifIndex = index
         const randomGif = textArrays.pointerBrothersUrls[index]
-        this.messageHelper.replyToInteraction(interaction, 'Sender gif', { ephemeral: true })
-        this.messageHelper.sendMessage(interaction.channelId, { text: randomGif })
+        this.messageHelper.replyToInteraction(interaction, randomGif)
+        //this.messageHelper.sendMessage(interaction.channelId, { text: randomGif })
     }
 
     getAllInteractions(): IInteractionElement {
