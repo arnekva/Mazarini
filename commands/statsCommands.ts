@@ -94,16 +94,16 @@ export class StatsCommands extends AbstractCommands {
 
     private async findSingleEmojiStats(interaction: ChatInputCommandInteraction<CacheType>) {
         const input = interaction.options.get('emojinavn')?.value as string
-        const sortedByMessages = this.emojiStats.slice().sort((a, b) => a.timesUsedInMessages - b.timesUsedInMessages)
-        const sortedByReactions = this.emojiStats.slice().sort((a, b) => a.timesUsedInReactions - b.timesUsedInReactions)
-        const nMostUsedInMessages = sortedByMessages.findIndex((emoji) => emoji.name == input)
-        const nMostUsedInReactions = sortedByReactions.findIndex((emoji) => emoji.name == input)
-        const emojiStat = sortedByReactions.find((emoji) => emoji.name === input)
+        const emojiStat = this.emojiStats.find((emoji) => emoji.name === input)
+        const sortedByMessages = this.emojiStats.slice().sort((a, b) => b.timesUsedInMessages - a.timesUsedInMessages)
+        const sortedByReactions = this.emojiStats.slice().sort((a, b) => b.timesUsedInReactions - a.timesUsedInReactions)
+        const nMostUsedInMessages = sortedByMessages.findIndex((emoji) => emoji.timesUsedInMessages == emojiStat.timesUsedInMessages)
+        const nMostUsedInReactions = sortedByReactions.findIndex((emoji) => emoji.timesUsedInReactions == emojiStat.timesUsedInReactions)
         const emoji = await EmojiHelper.getEmoji(input, interaction)
         const embed = EmbedUtils.createSimpleEmbed(`Statistikk for ${emoji.id}`, input)
         embed.addFields(
-            { name: 'Brukt i meldinger', value: `${emojiStat.timesUsedInMessages} (#${nMostUsedInMessages})`, inline: false },
-            { name: 'Brukt i reaksjoner', value: `${emojiStat.timesUsedInReactions} (#${nMostUsedInReactions})`, inline: false },
+            { name: 'Meldinger', value: `${emojiStat.timesUsedInMessages} ( #${nMostUsedInMessages + 1} mest brukt )`, inline: false },
+            { name: 'Reaksjoner', value: `${emojiStat.timesUsedInReactions} ( #${nMostUsedInReactions + 1} mest brukt )`, inline: false },
             { name: 'Lagt til', value: emojiStat.added.toString(), inline: false }
         )
 
@@ -113,8 +113,9 @@ export class StatsCommands extends AbstractCommands {
     private async getTopEmojiStats(interaction: ChatInputCommandInteraction<CacheType>) {
         await this.fetchEmojiStats()
         const data = interaction.options.get('data')?.value as string
-        const limit = interaction.options.get('antall')?.value as number
+        let limit = interaction.options.get('antall')?.value as number
         const ignore = interaction.options.get('ignorer')?.value as string
+        limit = limit && limit < 25 && limit > 0 ? limit : 9
         let sortEmojis: (a: EmojiStats, b: EmojiStats) => number = ignore
             ? ignore === 'ignoreMessages'
                 ? (a, b) => a.timesUsedInReactions - b.timesUsedInReactions
@@ -124,7 +125,7 @@ export class StatsCommands extends AbstractCommands {
         const sortedStats = this.emojiStats
             .slice()
             .sort((a, b) => (data === 'top' ? sortEmojis(b, a) : sortEmojis(a, b)))
-            .slice(0, limit ?? 10)
+            .slice(0, limit)
         const embed = EmbedUtils.createSimpleEmbed(
             `Statistikk for de ${limit ?? 10} ${data === 'top' ? 'mest' : 'minst'} brukte emojiene`,
             ignore ? `Teller ikke med ${ignore === 'ignoreMessages' ? 'meldinger' : 'reaksjoner'}` : ' '
