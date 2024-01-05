@@ -95,6 +95,7 @@ export class StatsCommands extends AbstractCommands {
     private async findSingleEmojiStats(interaction: ChatInputCommandInteraction<CacheType>) {
         const input = interaction.options.get('emojinavn')?.value as string
         const emojiStat = this.emojiStats.find((emoji) => emoji.name === input)
+        if (!emojiStat) return this.messageHelper.replyToInteraction(interaction, 'Fant ikke emojien du søkte etter', { hasBeenDefered: true })
         const sortedByMessages = this.emojiStats.slice().sort((a, b) => b.timesUsedInMessages - a.timesUsedInMessages)
         const sortedByReactions = this.emojiStats.slice().sort((a, b) => b.timesUsedInReactions - a.timesUsedInReactions)
         const nMostUsedInMessages = sortedByMessages.findIndex((emoji) => emoji.timesUsedInMessages == emojiStat.timesUsedInMessages)
