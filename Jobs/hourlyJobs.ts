@@ -37,7 +37,7 @@ export class HourJob {
     }
 
     private async sendScheduledMessage() {
-        const shceduledMessages = (await this.client.db.getStorage())?.scheduledMessages
+        let shceduledMessages = (await this.client.db.getStorage())?.scheduledMessages
         if (shceduledMessages) {
             const messagesToSend = shceduledMessages.filter((msg) => {
                 const date = new Date(msg.dateToSendOn * 1000)
@@ -48,7 +48,7 @@ export class HourJob {
             })
             messagesToSend.forEach((msg) => {
                 this.messageHelper.sendMessage(msg.channelId, { text: msg.message })
-                ArrayUtils.removeItemOnce(shceduledMessages, msg)
+                shceduledMessages = ArrayUtils.removeItemOnce(shceduledMessages, msg)
             })
             this.client.db.updateStorage({ scheduledMessages: shceduledMessages })
         }
