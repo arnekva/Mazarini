@@ -38,7 +38,7 @@ export class MessageChecker {
                 const val = await HelgHelper.checkForHelg(undefined, this.client)
                 this.client.messageHelper.sendMessage(message.channelId, { text: val }, { sendAsSilent: true })
             }
-            const matchedCountdowns = this.client.storageCache.countdown?.allCountdowns?.filter((c) => {
+            const matchedCountdowns = this.client.storageCache?.countdown?.allCountdowns?.filter((c) => {
                 const regex = new RegExp('(' + c.tags.join(')|(') + ')')
                 return regex.test(message.content)
             })
