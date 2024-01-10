@@ -35,6 +35,7 @@ import { ArrayUtils } from '../utils/arrayUtils'
 import { ChannelIds, MentionUtils, ServerIds } from '../utils/mentionUtils'
 import { textArrays } from '../utils/textArrays'
 import { UserUtils } from '../utils/userUtils'
+import { MazariniStorage } from '../interfaces/database/databaseInterface'
 
 const Discord = require('discord.js')
 
@@ -53,6 +54,9 @@ export class MazariniClient extends Client {
 
     private lockingHandler: LockingHandler
     private mazariniTracker: MazariniTracker
+
+    /** Cache of the Mazarini Storage from the database. Is pulled on startup, and updated during saving events. */
+    private cache: Partial<MazariniStorage>
 
     constructor() {
         super({
@@ -143,6 +147,13 @@ export class MazariniClient extends Client {
                 })
             }
 
+            //Oppretter ikke cache i dev mode
+            if (environment === 'prod') {
+                this.db.getStorage().then((storage) => {
+                    this.cache = storage
+                })
+                msg += '\nCache er opprettet'
+            }
             if (environment == 'prod') this.msgHelper.sendLogMessage(msg)
 
             ClientHelper.setStatusFromStorage(this, this.databaseHelper)
@@ -342,5 +353,9 @@ export class MazariniClient extends Client {
 
     get tracker() {
         return this.mazariniTracker
+    }
+
+    get storageCache() {
+        return this.cache
     }
 }

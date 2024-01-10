@@ -9,6 +9,7 @@ import { ArrayUtils } from '../utils/arrayUtils'
 import { DateUtils, dateRegex, timeRegex } from '../utils/dateUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
+import { DatabaseHelper } from '../helpers/databaseHelper'
 
 export interface dateValPair {
     print: string
