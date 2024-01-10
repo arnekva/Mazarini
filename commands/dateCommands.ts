@@ -165,6 +165,7 @@ export class DateCommands extends AbstractCommands {
         const event = interaction.options.get('hendelse')?.value as string
         const dato = interaction.options.get('dato')?.value as string
         const timestamp = interaction.options.get('klokkeslett')?.value as string
+        const tags = interaction.options.get('tags')?.value as string
         const storage = await this.client.db.getStorage()
         let countdowns = storage?.countdown
         if (!countdowns)
@@ -208,10 +209,12 @@ export class DateCommands extends AbstractCommands {
                     { ephemeral: true }
                 )
             } else {
+                const tagTab = tags.split(',')
                 const cdItem: ICountdownItem = {
                     date: cdDate.toDate(),
                     description: event,
                     ownerId: interaction.user.id,
+                    tags: tagTab,
                 }
                 countdowns.allCountdowns.push(cdItem)
                 this.client.db.updateStorage({ countdown: countdowns })
