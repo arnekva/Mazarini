@@ -1,4 +1,4 @@
-# Mazarini Bot
+# Mazarini Bot 15.4
 
 ## Installering og Kjøring
 
