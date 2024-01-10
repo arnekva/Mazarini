@@ -27,9 +27,6 @@ interface LudoMessage {
     contentHash: string
 }
 export class Ludo extends AbstractCommands {
-    private turnCounter: number
-    private currentPlayer: LudoPlayer
-    private boardState: any
     private gameStateHandler: GameStateHandler<LudoPlayer>
     private initiatedBy: string
     private startMessageId: string

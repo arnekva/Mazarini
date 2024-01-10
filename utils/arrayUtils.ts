@@ -13,8 +13,8 @@ export class ArrayUtils {
         return arr[randomNumber] as T
     }
 
-    /** Remove one instance of an object from the given array */
-    static removeItemOnce<T>(array: T[], value: any) {
+    /** Remove all instances of an object from the given array */
+    static removeItemAll<T>(array: T[], value: any) {
         var i = 0
         while (i < array.length) {
             if (array[i] === value) {
@@ -26,8 +26,8 @@ export class ArrayUtils {
         return array
     }
 
-    /** Remove all instances of a object from the given array */
-    static removeItemAll(array: any[], value: any) {
+    /** Remove an instance of a object from the given array */
+    static removeItemOnce<T>(array: T[], value: any) {
         var index = array.indexOf(value)
         if (index > -1) {
             array.splice(index, 1)

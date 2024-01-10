@@ -226,8 +226,11 @@ export class JokeCommands extends AbstractCommands {
 
     private async whamageddon(interaction: ChatInputCommandInteraction<CacheType>) {
         const isRegisterLoss = interaction.options.getSubcommand() === 'tapt'
-        const endDate = '2023-12-24 16:00'
-        const isValidTimeFrame = DateUtils.currentDateIsBetween(moment('01-12-2023 08:00', 'DD-MM-YYYY HH:mm'), moment(endDate, 'DD-MM-YYYY HH:mm'))
+        const endDate = `${new Date().getFullYear()}-12-24 16:00`
+        const isValidTimeFrame = DateUtils.currentDateIsBetween(
+            moment(`01-12-${new Date().getFullYear()} 16:00`, 'DD-MM-YYYY HH:mm'),
+            moment(endDate, 'DD-MM-YYYY HH:mm')
+        )
 
         const calcSlurks = (d1: Moment) => {
             const slurks = DateUtils.getDaysBetweenDates(d1, moment(endDate, 'YYYY-MM-DD 12:00')) + 1
@@ -267,7 +270,7 @@ export class JokeCommands extends AbstractCommands {
             const users = await this.client.db.getAllUsers()
             const usersInWhamageddon = users.filter((u) => !!u.whamageddonLoss)
             if (!!usersInWhamageddon.length) {
-                const embd = EmbedUtils.createSimpleEmbed(`Whamageddon 2023`, `Status`)
+                const embd = EmbedUtils.createSimpleEmbed(`Whamageddon ${new Date().getFullYear()}`, `Status`)
                 usersInWhamageddon.forEach((user) => {
                     //Since moment takes time into account when calculating diff, set time to be 12:00 so it's always before the end time, otherwise it can return a lower
                     //amount than expected
