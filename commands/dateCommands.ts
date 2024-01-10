@@ -180,6 +180,7 @@ export class DateCommands extends AbstractCommands {
                 if (ownersCountdown) {
                     ArrayUtils.removeItemOnce(countdowns.allCountdowns, ownersCountdown)
                     this.client.db.updateStorage({ countdown: countdowns })
+                    this.client.storageCache.countdown = countdowns
                     return true
                 }
                 return false
@@ -219,6 +220,7 @@ export class DateCommands extends AbstractCommands {
                 }
                 countdowns.allCountdowns.push(cdItem)
                 this.client.db.updateStorage({ countdown: countdowns })
+                this.client.storageCache.countdown = countdowns
                 this.messageHelper.replyToInteraction(interaction, `Din countdown for *${event}* er satt til ${cdDate.toLocaleString()}`, { ephemeral: true })
             }
         } else if (isPrinting) {

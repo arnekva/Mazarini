@@ -295,5 +295,6 @@ export class MessageHelper {
         this.client.db.updateStorage({
             scheduledMessages: storage.scheduledMessages,
         })
+        this.client.storageCache.scheduledMessages = storage.scheduledMessages
     }
 }

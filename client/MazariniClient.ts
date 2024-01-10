@@ -355,6 +355,7 @@ export class MazariniClient extends Client {
         return this.mazariniTracker
     }
 
+    /** TODO: Implement this better */
     get storageCache() {
         return this.cache
     }

@@ -38,7 +38,15 @@ export class MessageChecker {
                 const val = await HelgHelper.checkForHelg(undefined, this.client)
                 this.client.messageHelper.sendMessage(message.channelId, { text: val }, { sendAsSilent: true })
             }
-            // const countdownTags = this.client.storageCache?.countdown?.allCountdowns?.map((c) => c.)
+            const matchedCountdowns = this.client.storageCache.countdown?.allCountdowns?.filter((c) => {
+                const regex = new RegExp('(' + c.tags.join(')|(') + ')')
+                return regex.test(message.content)
+            })
+            if (matchedCountdowns) {
+                matchedCountdowns.forEach((c) => {
+                    //TODO: Send tid igjen til countdown er ferdig
+                })
+            }
 
             if (message.attachments) {
                 if (this.polseRegex.exec(message.attachments.first()?.name ?? '')) polseCounter++
