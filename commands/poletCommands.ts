@@ -19,6 +19,7 @@ import { MessageHelper } from '../helpers/messageHelper'
 import { IInteractionElement } from '../interfaces/interactionInterface'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
+import { ChannelIds, MentionUtils } from '../utils/mentionUtils'
 const fetch = require('node-fetch')
 
 interface exceptionHours {
@@ -57,6 +58,7 @@ export class PoletCommands extends AbstractCommands {
     static baseStoreDataURL = 'https://apis.vinmonopolet.no/stores/v0/details'
     static baseProductURL = 'https://apis.vinmonopolet.no/products/v0/details-normal'
     static pressProductURL = 'https://www.vinmonopolet.no/vmpws/v2/vmp/products'
+    static barCodeURL = 'https://www.vinmonopolet.no/vmpws/v2/vmp/products/barCodeSearch'
     static baseStoreID = '416'
 
     constructor(client: MazariniClient) {
@@ -85,8 +87,8 @@ export class PoletCommands extends AbstractCommands {
         })
         return (await data.json())[0] as PoletData
     }
-    static async fetchProductDataFromId(productId: string) {
-        const data = await fetch(`${PoletCommands.pressProductURL}/${productId}?fields=FULL`, {
+    static async fetchProductDataFromId(productId: string, isBarCode?: boolean) {
+        const data = await fetch(`${isBarCode ? PoletCommands.barCodeURL : PoletCommands.pressProductURL}/${productId}?fields=FULL`, {
             method: 'GET',
             headers: {
                 'Ocp-Apim-Subscription-Key': vinmonopoletKey,
@@ -230,13 +232,16 @@ export class PoletCommands extends AbstractCommands {
     //TODO & FIXME: Move this out of commandRunner - also remove commented fields
     static async checkForVinmonopolContent(message: Message, messageHelper: MessageHelper) {
         const content = message.content
-        if (content.includes('https://www.vinmonopolet.no/')) {
-            const id = content.split('/p/')[1]
+        const barCodeRegex = /\d{9,15}/gi
+        const hasUrl = content.includes('https://www.vinmonopolet.no/')
+        const hasBarCode = barCodeRegex.test(content) && message.channelId === ChannelIds.VINMONOPOLET
+        if (hasUrl || hasBarCode) {
+            const id = hasBarCode ? content : content.split('/p/')[1]
             if (id && !isNaN(Number(id))) {
                 // try {
-                const data = await PoletCommands.fetchProductDataFromId(id)
+                const data = await PoletCommands.fetchProductDataFromId(id, hasBarCode)
 
-                if (data) {
+                if (data && !data?.errors) {
                     const hasDesc = !!data.description.trim()
                     const embed = EmbedUtils.createSimpleEmbed(`${data.name}`, `${hasDesc ? data.description : data.taste}`, [
                         { name: `Lukt`, value: `${data.smell}` },
@@ -289,6 +294,12 @@ export class PoletCommands extends AbstractCommands {
                     message.suppressEmbeds()
                     messageHelper.sendMessage(message.channelId, { embed: embed })
                     messageHelper.sendMessage(message.channelId, { components: [poletStockButton] })
+                } else {
+                    messageHelper.sendLogMessage(
+                        `En strekkode ble sendt i ${MentionUtils.mentionChannel(message.channelId)}, men ingen vare ble funnet på id ${content}. Feil: ${
+                            data?.errors[0]?.message
+                        }`
+                    )
                 }
                 // }
                 //  catch (error) {

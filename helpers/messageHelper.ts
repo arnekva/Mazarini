@@ -149,7 +149,12 @@ export class MessageHelper {
             payload.files = files
             let reply: InteractionResponse<boolean> | Message<boolean> | undefined = undefined
             if (typeof messageContent === 'object') {
-                payload.embeds = [messageContent]
+                if (messageContent.data?.fields?.length > 25) {
+                    console.warn('En embed med mer enn 25 fields ble forsøkt sendt.')
+                    this.sendLogMessage(`En embed med mer enn 25 fields ble forsøkt sendt. Melding ble sendt uten en embed`)
+                } else {
+                    payload.embeds = [messageContent]
+                }
             } else {
                 payload.content = messageContent
             }
