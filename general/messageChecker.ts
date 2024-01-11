@@ -39,7 +39,8 @@ export class MessageChecker {
                 this.client.messageHelper.sendMessage(message.channelId, { text: val }, { sendAsSilent: true })
             }
             const matchedCountdowns = this.client.storageCache?.countdown?.allCountdowns?.filter((c) => {
-                const regex = new RegExp('(' + c.tags.join(')|(') + ')')
+                if (!c.tags) return false
+                const regex = new RegExp('(' + c.tags?.join(')|(') + ')')
                 return regex.test(message.content)
             })
             if (matchedCountdowns) {
