@@ -19,7 +19,7 @@ import { MessageHelper } from '../helpers/messageHelper'
 import { IInteractionElement } from '../interfaces/interactionInterface'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
-import { ChannelIds, MentionUtils } from '../utils/mentionUtils'
+import { MentionUtils } from '../utils/mentionUtils'
 const fetch = require('node-fetch')
 
 interface exceptionHours {
@@ -229,12 +229,12 @@ export class PoletCommands extends AbstractCommands {
         return 'Stengt'
     }
 
-    //TODO & FIXME: Move this out of commandRunner - also remove commented fields
+    //TODO & FIXME: Is this the best placement for this function?
     static async checkForVinmonopolContent(message: Message, messageHelper: MessageHelper) {
         const content = message.content
         const barCodeRegex = /\d{9,15}/gi
         const hasUrl = content.includes('https://www.vinmonopolet.no/')
-        const hasBarCode = barCodeRegex.test(content) && message.channelId === ChannelIds.VINMONOPOLET
+        const hasBarCode = barCodeRegex.test(content)
         if (hasUrl || hasBarCode) {
             const id = hasBarCode ? content : content.split('/p/')[1]
             if (id && !isNaN(Number(id))) {
