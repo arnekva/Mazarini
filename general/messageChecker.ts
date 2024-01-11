@@ -11,6 +11,7 @@ export class MessageChecker {
     private client: MazariniClient
     polseRegex = new RegExp(/(p)(ø|ö|y|e|o|a|u|i|ô|ò|ó|â|ê|å|æ|ê|è|é|à|á)*(ls)(e|a|å|o|i)|(pause)|(🌭)|(hotdog)|(sausage)|(hot-dog)/gi)
     helgeRegex = new RegExp(/(helg|Helg|hælj|hælg)(å|en|ene|a|e|æ)*|(weekend)/gi)
+
     emojiRegex = new RegExp(/<:(\S+):(\d+)>/gi)
 
     constructor(client: MazariniClient) {
@@ -36,6 +37,15 @@ export class MessageChecker {
             if (hasHelg) {
                 const val = await HelgHelper.checkForHelg(undefined, this.client)
                 this.client.messageHelper.sendMessage(message.channelId, { text: val }, { sendAsSilent: true })
+            }
+            const matchedCountdowns = this.client.storageCache?.countdown?.allCountdowns?.filter((c) => {
+                const regex = new RegExp('(' + c.tags.join(')|(') + ')')
+                return regex.test(message.content)
+            })
+            if (matchedCountdowns) {
+                matchedCountdowns.forEach((c) => {
+                    //TODO: Send tid igjen til countdown er ferdig
+                })
             }
 
             if (message.attachments) {

@@ -209,6 +209,7 @@ export interface ICountdownItem {
     ownerId: string
     date: Date
     description: string
+    tags?: string[]
 }
 
 export interface MazariniCountdowns {
