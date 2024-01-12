@@ -138,7 +138,7 @@ export class MessageHelper {
                 )
             }
             if (environment === 'dev') {
-                console.error('En feilmelding har oppstått under svar på en interaksjon. Msginfo:' + msgInfo)
+                console.error('En feilmelding har oppstått under svar på en interaksjon. Error:' + e)
             }
             return false
         }
