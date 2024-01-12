@@ -1,5 +1,6 @@
 import {
     ApplicationCommandChoicesData,
+    ApplicationCommandOptionChoiceData,
     ApplicationCommandOptionData,
     ApplicationCommandOptionType,
     ApplicationCommandType,
@@ -56,9 +57,14 @@ export namespace CommandBuilder {
                     break
                 case ApplicationCommandOptionType.Number:
                     b.addNumberOption((a) => {
+                        const opt = option as ApplicationCommandChoicesData<number>
                         a.setName(option.name)
                         a.setDescription(option.description)
-
+                        if (opt.choices) {
+                           
+                            a.addChoices(...(opt.choices))
+                        }
+                        a.setRequired(!!opt.required)
                         return a
                     })
                     break
