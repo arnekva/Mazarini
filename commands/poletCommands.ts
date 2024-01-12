@@ -17,6 +17,7 @@ import { MazariniClient } from '../client/MazariniClient'
 import { Languages } from '../helpers/languageHelpers'
 import { MessageHelper } from '../helpers/messageHelper'
 import { IInteractionElement } from '../interfaces/interactionInterface'
+import { BarcodeUtils } from '../utils/barcodeUtils'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { MentionUtils } from '../utils/mentionUtils'
@@ -234,9 +235,20 @@ export class PoletCommands extends AbstractCommands {
         const content = message.content
         const barCodeRegex = /\d{9,15}/gi
         const hasUrl = content.includes('https://www.vinmonopolet.no/')
-        const hasBarCode = barCodeRegex.test(content)
+        let hasBarCode = barCodeRegex.test(content)
+        let barcode = content
+        if (!hasUrl && !hasBarCode && message.attachments?.first()?.url) {
+            const msg = await messageHelper.sendMessage(message.channelId, { text: 'Sjekker bilde for strekkode...' })
+            barcode = await BarcodeUtils.decodeImage(message.attachments.first().url);
+            if (barcode) {
+                hasBarCode = true
+                msg.delete()
+            } else {
+                msg.edit('Fant ingen strekkode.')
+            }
+        }
         if (hasUrl || hasBarCode) {
-            const id = hasBarCode ? content : content.split('/p/')[1]
+            const id = hasBarCode ? barcode : content.split('/p/')[1]
             if (id && !isNaN(Number(id))) {
                 // try {
                 const data = await PoletCommands.fetchProductDataFromId(id, hasBarCode)
