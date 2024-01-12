@@ -8,7 +8,7 @@ export const vivinoCommand: ISlashCommandItem = {
     options: [
         {
             name: 'year',
-            description: 'årstall du vil sjekke for',
+            description: 'årstall du vil sjekke',
             type: ApplicationCommandOptionType.Number,
             required: false,
             choices: [
