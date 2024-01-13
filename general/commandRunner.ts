@@ -42,7 +42,7 @@ export class CommandRunner {
 
             await this.client.tracker.trackEmojiStats(message)
 
-            if (message.channelId === ChannelIds.VINMONOPOLET) PoletCommands.checkForVinmonopolContent(message, this.client.messageHelper)
+            if (message.channelId === ChannelIds.VINMONOPOLET || environment === "dev") PoletCommands.checkForVinmonopolContent(message, this.client.messageHelper)
         } catch (error) {
             this.client.messageHelper.sendLogMessage(
                 `Det oppstod en feil under kjøring av en command. Meldingen var fra ${message.author.username} i kanalen ${MentionUtils.mentionChannel(
