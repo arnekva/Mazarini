@@ -274,7 +274,7 @@ export class PoletCommands extends AbstractCommands {
                     let description = `${hasDesc ? data.description : data.taste}`
                     if(hasBarCode){
                         const fetchedScore = await PoletCommands.fetchScore(barcode)
-                        if(fetchedScore){
+                        if(fetchedScore && fetchedScore?.payload?.rows){
                         description += `\nVinify score: ${fetchedScore.payload.rows[0].mainProfile.averagePoints} poeng (${fetchedScore.payload.rows[0].mainProfile.numberOfRates} ratinger)`
                         }
                     }
