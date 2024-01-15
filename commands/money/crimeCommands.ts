@@ -45,8 +45,9 @@ export class CrimeCommands extends AbstractCommands {
         const largestPossibleValue = Math.min(userWallets.engagerChips, userWallets.victimChips)
         let amountAsNum = hasAmount ? Number(amount) : largestPossibleValue
         const notEnoughChips = await this.checkBalance([{ userID: interaction.user.id }, { userID: target.id }], amountAsNum)
-
-        if (notEnoughChips) {
+        if (amountAsNum >= 0) {
+            this.messageHelper.replyToInteraction(interaction, `Dere må krige om minst 1 chip`, { ephemeral: true })
+        } else if (notEnoughChips) {
             this.messageHelper.replyToInteraction(interaction, `En av dere har ikke råd til dette`, { ephemeral: true })
         } else {
             this.messageHelper.replyToInteraction(interaction, `Du har startet en krig mot ${target.username}`, { ephemeral: true })
@@ -425,6 +426,7 @@ export class CrimeCommands extends AbstractCommands {
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                             const target = rawInteraction.options.get('bruker')?.user
                             const amount = SlashCommandHelper.getCleanNumberValue(rawInteraction.options.get('chips')?.value)
+
                             this.krig(rawInteraction, target, amount)
                         },
                     },
