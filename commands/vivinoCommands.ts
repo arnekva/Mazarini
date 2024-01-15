@@ -97,8 +97,8 @@ export class VivinoCommands extends AbstractCommands {
         const user = await this.client.db.getUser(interaction.user.id)
         if (user.vivinoId) {
             const data = await this.findData(user.vivinoId)
-
-            const thisYear = this.findRatingsThisYear(data)
+            const yearToCheck = interaction.options.get('year')?.value as number
+            const thisYear = this.findRatingsThisYear(data, yearToCheck)
             const allCountries = thisYear.reduce(function (value, value2) {
                 return (
                     value[value2.object.vintage.wine.region.country]
@@ -136,7 +136,7 @@ export class VivinoCommands extends AbstractCommands {
                 if (!oldestRating || (!!year && year < Number(oldestRating.object.vintage.year))) oldestRating = vivinoRating
             })
 
-            const embed = EmbedUtils.createSimpleEmbed(`Dette er ditt vin-år ${interaction.user.username}`, `Du ratet ${numRatings} viner i 2023`)
+            const embed = EmbedUtils.createSimpleEmbed(`Dette er ditt vin-år ${interaction.user.username}`, `Du ratet ${numRatings} viner i ${yearToCheck}`)
             const img = highestRating.object.image?.location || lowestRating.object.image?.location
             if (img) {
                 embed.setThumbnail(`https:${img}`)
@@ -210,10 +210,9 @@ export class VivinoCommands extends AbstractCommands {
         return flatList
     }
 
-    findRatingsThisYear(data: IVivinoRating[]) {
-        const currYear = moment().year()
-
-        return data.filter((d) => moment(d.object.review.created_at).year() === currYear)
+    findRatingsThisYear(data: IVivinoRating[], year?: number) {
+       
+        return year ? data.filter((d) => moment(d.object.review.created_at).year() === year):data
     }
 
     getAllInteractions(): IInteractionElement {

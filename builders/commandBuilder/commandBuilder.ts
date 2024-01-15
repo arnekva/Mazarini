@@ -1,5 +1,6 @@
 import {
     ApplicationCommandChoicesData,
+    ApplicationCommandOptionChoiceData,
     ApplicationCommandOptionData,
     ApplicationCommandOptionType,
     ApplicationCommandType,
@@ -56,9 +57,14 @@ export namespace CommandBuilder {
                     break
                 case ApplicationCommandOptionType.Number:
                     b.addNumberOption((a) => {
+                        const opt = option as ApplicationCommandChoicesData<number>
                         a.setName(option.name)
                         a.setDescription(option.description)
-
+                        if (opt.choices) {
+                           
+                            a.addChoices(...(opt.choices))
+                        }
+                        a.setRequired(!!opt.required)
                         return a
                     })
                     break
@@ -128,7 +134,7 @@ export namespace CommandBuilder {
     /** This command will automatically create all commands listed in it */
     export const createCommands = (client: Client) => {
         // CommandBuilder.deleteCommand('1171558082007007312', client)
-        CommandBuilder.createSlashCommand(CommandStorage.StatsCommand, client)
+        CommandBuilder.createSlashCommand(CommandStorage.VivinoCommand, client)
         // CommandBuilder.deleteCommand('997144601146175631', client)
         // CommandBuilder.createContextMenuCommand({ commandName: 'helg' }, client)
     }

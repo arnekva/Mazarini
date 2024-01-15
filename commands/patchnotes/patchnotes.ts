@@ -6,12 +6,11 @@ import { MazariniClient } from '../../client/MazariniClient'
 import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { MessageHelper } from '../../helpers/messageHelper'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
-import { ChannelIds, MentionUtils } from '../../utils/mentionUtils'
+import { ChannelIds } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '15.5.0'
-    public static readonly currentPatchNotes = `\n* Du kan nå sende strekkoden på produktet til ${MentionUtils.mentionChannel(
-        ChannelIds.VINMONOPOLET
-    )} og få samme informasjon som om du sender lenken til nettsiden for produktet`
+    public static readonly currentVersion = '15.6.0'
+    public static readonly currentPatchNotes = `\n* Du kan nå velge år for /vivino. Du kan også ikke spesifisere året og få full data`
+                                             + `\n* Bilder sendt i #vinmonopolet vil nå bli sjekket for strekkode`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
