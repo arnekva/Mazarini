@@ -362,15 +362,11 @@ export class CrimeCommands extends AbstractCommands {
             if (isBribe) {
                 const userChips = prisoner.chips
                 const bribePrice = Math.floor(Math.max(userChips * 0.2, 10000))
-                const canBribe = jailState !== 'max'
-                if (userChips < bribePrice || !canBribe) {
-                    return this.messageHelper.replyToInteraction(
-                        interaction,
-                        canBribe ? `Du har kje råd te briben.` : 'Du kan kje briba maximum security guards',
-                        {
-                            ephemeral: true,
-                        }
-                    )
+
+                if (userChips < bribePrice) {
+                    return this.messageHelper.replyToInteraction(interaction, `Du har kje råd te briben.`, {
+                        ephemeral: true,
+                    })
                 } else {
                     prisoner.chips -= bribePrice
                     this.client.db.updateUser(prisoner)
