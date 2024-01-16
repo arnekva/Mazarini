@@ -262,7 +262,7 @@ export class CrimeCommands extends AbstractCommands {
             engager.daily.dailyFreezeCounter = 0
             this.client.db.updateUser(engager)
             let jailTypeString = ``
-            if (nextJailState === 'max') jailTypeString = '\nDu e nå i Maximum Security, og kan ikkje lenger briba vaktene'
+            if (nextJailState === 'max') jailTypeString = '\nDu e nå i Maximum Security, og får ikkje lenger gratis rømningsforsøk.'
             if (nextJailState === 'solitairy') jailTypeString = '\nDu e nå i Solitairy Confinement, og kan ikkje lenger rømma'
             const siren = await EmojiHelper.getEmoji('redbluesiren', interaction)
             let embed = EmbedUtils.createSimpleEmbed(
