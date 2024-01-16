@@ -17,7 +17,7 @@ export class CrimeCommands extends AbstractCommands {
     constructor(client: MazariniClient) {
         super(client)
     }
-    static jailBreakAttempts = 1
+    static jailBreakAttempts = 3
 
     private async checkBalance(users: { userID: string }[], amountAsNumber: number): Promise<boolean> {
         let notEnough = false
@@ -346,12 +346,16 @@ export class CrimeCommands extends AbstractCommands {
 
         if (!daysLeftInJail || isNaN(daysLeftInJail) || daysLeftInJail == 0) {
             this.messageHelper.replyToInteraction(interaction, `Ka er det du prøve å bryta ud av?`, { ephemeral: true })
-        } else if ((prisoner.jail.attemptedJailbreaks ?? 0) >= CrimeCommands.jailBreakAttempts && !isBribe) {
-            this.messageHelper.replyToInteraction(interaction, `Du har bare ${CrimeCommands.jailBreakAttempts} rømningsforsøk per dag itte fengsling`, {
+        } else if (jailState === 'max' && !isBribe) {
+            this.messageHelper.replyToInteraction(interaction, `Du kan nok dessverre bare briba deg te rømningsforsøk i Maximum Security`, {
                 ephemeral: true,
             })
         } else if (jailState === 'solitairy') {
             this.messageHelper.replyToInteraction(interaction, `Det går kje an å rømma fra Solitairy Confinement :(`, {
+                ephemeral: true,
+            })
+        } else if ((prisoner.jail.attemptedJailbreaks ?? 0) >= CrimeCommands.jailBreakAttempts && !isBribe) {
+            this.messageHelper.replyToInteraction(interaction, `Du har bare ${CrimeCommands.jailBreakAttempts} rømningsforsøk per dag itte fengsling`, {
                 ephemeral: true,
             })
         } else {

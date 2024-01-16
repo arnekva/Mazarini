@@ -8,9 +8,10 @@ import { MessageHelper } from '../../helpers/messageHelper'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { ChannelIds } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '15.6.0'
-    public static readonly currentPatchNotes = `\n* Du kan nå velge år for /vivino. Du kan også ikke spesifisere året og få full data`
-                                             + `\n* Bilder sendt i #vinmonopolet vil nå bli sjekket for strekkode`
+    public static readonly currentVersion = '15.6.1'
+    public static readonly currentPatchNotes =
+        `\n* Du har nå 3 rømningsforsøk med /jailbreak` +
+        `\n* Du har nå ingen gratis rømningsforsøk hvis du er i Maximum Security, kun bribe. Solitairy har ingen endringer (her må man vente ut tiden)`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
