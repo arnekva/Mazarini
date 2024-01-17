@@ -211,7 +211,7 @@ export class DateCommands extends AbstractCommands {
                     { ephemeral: true }
                 )
             } else {
-                const tagTab = tags.split(',')
+                const tagTab = tags ? tags.split(',') : []
                 const cdItem: ICountdownItem = {
                     date: cdDate.toDate(),
                     description: event,
