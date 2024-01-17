@@ -242,7 +242,9 @@ export class CrimeCommands extends AbstractCommands {
             this.messageHelper.replyToInteraction(
                 interaction,
                 `Hehe det va jo lett ${arneSuperior.id} ` +
-                    `\nGz med nye ${TextUtils.formatMoney(amountAsNum)} på konto - oppe i ${TextUtils.formatMoney(engager.chips)} nå`,
+                    `\nGz med nye ${TextUtils.formatMoney(amountAsNum)} på konto - oppe i ${TextUtils.formatMoney(
+                        engager.chips
+                    )} nå. (${theftAttempt.chance.toFixed(3)}% sannsynlighet, du rullet ${theftAttempt.roll})`,
                 { ephemeral: true }
             )
         } else {
