@@ -1,3 +1,4 @@
+import { countdownCommand } from './commandStorage/countdown'
 import { jailCommand } from './commandStorage/jail'
 import { jailbreakCommand } from './commandStorage/jailbreak'
 import { ludoCommand } from './commandStorage/ludo'
@@ -38,4 +39,5 @@ export namespace CommandStorage {
     export const PointerBrothersCommand = pointerbrothersCommand
     export const VivinoCommand = vivinoCommand
     export const StatsCommand = statsCommand
+    export const CountdownCommand = countdownCommand
 }
