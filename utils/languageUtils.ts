@@ -251,4 +251,5 @@ export const LanguageCodes = {
     ZA: 'Sør-Afrika',
     ZM: 'Zambia',
     ZW: 'Zimbabwe',
+    ZZ: 'Ukjent',
 }

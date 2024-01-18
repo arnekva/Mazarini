@@ -99,24 +99,29 @@ export class VivinoCommands extends AbstractCommands {
             const data = await this.findData(user.vivinoId)
             const yearToCheck = interaction.options.get('year')?.value as number
             const thisYear = this.findRatingsThisYear(data, yearToCheck)
-            const allCountries = thisYear.reduce(function (value, value2) {
-                return (
-                    value[value2.object.vintage.wine.region.country]
-                        ? ++value[value2.object.vintage.wine.region.country]
-                        : (value[value2.object.vintage.wine.region.country] = 1),
-                    value
-                )
-            }, {})
-            const countriesAsValues = Object.entries(allCountries).sort((a, b) => (b[1] as number) - (a[1] as number))
 
-            const allRegions = thisYear.reduce(function (value, value2) {
-                return (
-                    value[value2.object.vintage.wine.region.name]
-                        ? ++value[value2.object.vintage.wine.region.name]
-                        : (value[value2.object.vintage.wine.region.name] = 1),
-                    value
-                )
-            }, {})
+            const allCountries = thisYear
+                .filter((v) => v.object.vintage.wine.region?.country)
+                .reduce(function (value, value2) {
+                    return (
+                        value[value2.object.vintage.wine.region.country]
+                            ? ++value[value2.object.vintage.wine.region.country]
+                            : (value[value2.object.vintage.wine.region.country] = 1),
+                        value
+                    )
+                }, {})
+            let countriesAsValues = Object.entries(allCountries).sort((a, b) => (b[1] as number) - (a[1] as number))
+
+            const allRegions = thisYear
+                .filter((v) => v.object.vintage.wine.region)
+                .reduce(function (value, value2) {
+                    return (
+                        value[value2.object.vintage.wine.region.name]
+                            ? ++value[value2.object.vintage.wine.region.name]
+                            : (value[value2.object.vintage.wine.region.name] = 1),
+                        value
+                    )
+                }, {})
             const regionsAsValues = Object.entries(allRegions)
                 .sort((a, b) => (b[1] as number) - (a[1] as number))
                 .flat()
@@ -136,7 +141,10 @@ export class VivinoCommands extends AbstractCommands {
                 if (!oldestRating || (!!year && year < Number(oldestRating.object.vintage.year))) oldestRating = vivinoRating
             })
 
-            const embed = EmbedUtils.createSimpleEmbed(`Dette er ditt vin-år ${interaction.user.username}`, `Du ratet ${numRatings} viner i ${yearToCheck}`)
+            const embed = EmbedUtils.createSimpleEmbed(
+                `Vivino - ${interaction.user.username}`,
+                yearToCheck ? `Du ratet ${numRatings} viner i ${yearToCheck}` : `Du har rated ${numRatings} viner`
+            )
             const img = highestRating.object.image?.location || lowestRating.object.image?.location
             if (img) {
                 embed.setThumbnail(`https:${img}`)
@@ -158,7 +166,7 @@ export class VivinoCommands extends AbstractCommands {
                     name: 'Lavest rating',
                     value: `Du ga ${lowestRating.object.review.rating} som laveste score til ${
                         highestRating.object.vintage.name
-                    }. Om denne vinen skrev du: "${lowestRating.object.review.note.replace(/ *\@\[[^\]]*]/, '')}"`,
+                    }. Om denne vinen skrev du: "${lowestRating.object.review.note.replace(/ *@\[[^\]]*]/, '')}"`,
                 },
                 {
                     name: 'Eldste vin',
@@ -169,13 +177,22 @@ export class VivinoCommands extends AbstractCommands {
                     value: `Du har drukket viner fra ${Object.keys(allCountries).length} land, og ${Object.keys(allRegions).length} forskjellige regioner`,
                 },
             ])
-            countriesAsValues.forEach((val) => {
+            const hasTooManyRows = countriesAsValues.length > 17
+
+            const countries = hasTooManyRows ? countriesAsValues.slice(0, 17) : countriesAsValues
+            countries.forEach((val) => {
                 embed.addFields({
                     name: LanguageCodes[val[0].toUpperCase()],
                     value: val[1] + ` ${val[1] === 1 ? 'vin' : 'viner'}`,
                     inline: true,
                 })
             })
+            if (hasTooManyRows) {
+                let count = 0
+                const extraStuff = countriesAsValues.slice(17, countriesAsValues.length)
+                extraStuff.forEach((c) => (count += c[1] as number))
+                embed.addFields([{ name: 'Andre land', value: `${count} viner`, inline: true }])
+            }
 
             this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true })
         } else {
@@ -197,7 +214,7 @@ export class VivinoCommands extends AbstractCommands {
         let hasMore = true
         let lastId
         while (hasMore) {
-            let nextPage = await fetchData(lastId)
+            const nextPage = await fetchData(lastId)
 
             const localData = await nextPage.json()
             const localList = Object.values(localData) as IVivinoRating[]
@@ -211,7 +228,18 @@ export class VivinoCommands extends AbstractCommands {
     }
 
     findRatingsThisYear(data: IVivinoRating[], year?: number) {
-        return year ? data.filter((d) => moment(d.object.review.created_at).year() === year) : data
+        const fixedData = data.map((v) => {
+            if (!v.object.vintage.wine.region) {
+                v.object.vintage.wine.region = {
+                    class: { country_code: 'zz', id: 1 },
+                    country: 'zz',
+                    id: 1,
+                    name: 'Ukjent',
+                }
+            }
+            return v
+        })
+        return year ? fixedData.filter((d) => moment(d.object.review.created_at).year() === year) : fixedData
     }
 
     getAllInteractions(): IInteractionElement {
