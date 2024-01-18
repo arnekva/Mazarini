@@ -1,31 +1,9 @@
-import moment, { Moment } from 'moment'
+import moment, {Moment} from 'moment'
 
 export const dateRegex = new RegExp(/^(0[1-9]|[12][0-9]|3[01])[-](0[1-9]|1[012])[-](19|20)\d\d$/) ///^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\d\d$/ old
 /** Checks a string against 24hr format HH:MM */
 export const timeRegex = new RegExp(/([01]?[0-9]|2[0-3]):[0-5][0-9]/)
-export function getWeekNumber(d: Date) {
-    // Copy date so don't modify original
-    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
-    // Set to nearest Thursday: current date + 4 - current day number Make
-    // Sunday's day number 7
-    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7))
-    // Get first day of year
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
-    // Calculate full weeks to nearest Thursday
-    const weekNo = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
 
-    const weekStartDate = new Date(d.getTime())
-    weekStartDate.setUTCDate(weekStartDate.getUTCDate() - 3)
-
-    const weekEndDate = new Date(d.getTime())
-    weekEndDate.setUTCDate(weekEndDate.getUTCDate() + 3)
-
-    return [d.getUTCFullYear(), weekNo, weekStartDate, weekEndDate] as const
-}
-
-export const isValidDate = (o: any) => {
-    return new Date(o).toString() !== 'Invalid Date'
-}
 export interface countdownTime {
     days: number
     hours: number
@@ -77,7 +55,7 @@ export class DateUtils {
      * @params day_in_week - Day to search for (e.g. 5 for friday)
      */
     static nextWeekdayDate(day_in_week: number) {
-        var ret = moment()
+        const ret = moment()
         ret.date(ret.date() + ((day_in_week - 1 - ret.day() + 7) % 7) + 1)
         return ret
     }
@@ -90,7 +68,7 @@ export class DateUtils {
         return Math.floor(t / 3600)
     }
 
-    static secondsToHoursAndMinutes(t: number): { hours: number; minutes: number } {
+    static secondsToHoursAndMinutes(t: number): {hours: number; minutes: number} {
         const hours = this.secondsToHours(t)
         const minutes = this.secondsToMinutes(t) - hours * 60
         return {
@@ -98,7 +76,7 @@ export class DateUtils {
             minutes: minutes,
         }
     }
-    static secondsToMinutesAndSeconds(t: number): { minutes: number; seconds: number } {
+    static secondsToMinutesAndSeconds(t: number): {minutes: number; seconds: number} {
         const minutes = this.secondsToMinutes(t)
 
         const seconds = t - minutes * 60
@@ -175,7 +153,7 @@ export class DateUtils {
 
     /** Checks if the string supplied is today (e.g. "monday")  */
     static isDateNameToday(day: string) {
-        const dateName = new Date().toLocaleDateString('no', { weekday: 'long' })
+        const dateName = new Date().toLocaleDateString('no', {weekday: 'long'})
 
         return dateName.toLowerCase() === day.toLowerCase()
     }
@@ -192,7 +170,7 @@ export class DateUtils {
     }
 
     static isHourMinuteBefore(hour: number, minute: number) {
-        return moment().isBefore(moment({ hour: hour, minute: minute }))
+        return moment().isBefore(moment({hour: hour, minute: minute}))
     }
 
     static getCurrentDateTimeFormatted() {
