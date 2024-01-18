@@ -1,8 +1,8 @@
-import { Message, TextChannel } from 'discord.js'
-import { MazariniClient } from '../client/MazariniClient'
-import { ChannelIds, MentionUtils } from './mentionUtils'
-import { UserUtils } from './userUtils'
-import { environment } from '../client-env'
+import {Message, TextChannel} from 'discord.js'
+import {MazariniClient} from '../client/MazariniClient'
+import {ChannelIds, MentionUtils} from './mentionUtils'
+import {UserUtils} from './userUtils'
+import {environment} from '../client-env'
 const leetReg = new RegExp(/(1337)/gi)
 
 export namespace MessageUtils {
@@ -14,7 +14,7 @@ export namespace MessageUtils {
     }
 
     export const doesMessageContainNumber = (message: Message) => {
-        let arr = new Array<number>()
+        const arr = new Array<number>()
         const content = message.content
         if (/\d/.test(content)) {
             const words = content.split(' ')
@@ -22,11 +22,11 @@ export namespace MessageUtils {
                 if (/^(\d+-?)+\d+$/.test(value)) {
                     const numbers = value.split('-')
                     numbers.forEach(function (number) {
-                        let num = Number(number)
+                        const num = Number(number)
                         arr.push(num)
                     })
                 } else {
-                    let num = Number(value)
+                    const num = Number(value)
                     if (!isNaN(num)) {
                         arr.push(num)
                     }
@@ -38,7 +38,7 @@ export namespace MessageUtils {
 
     export const findMessageById = async (id: string, client: MazariniClient, onErr?: () => void): Promise<Message<boolean> | undefined> => {
         const allChannels = [...client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
-        let messageToReturn
+        let messageToReturn: Message<boolean> | PromiseLike<Message<boolean>>
 
         for (const channel of allChannels) {
             if (
@@ -50,7 +50,8 @@ export namespace MessageUtils {
                     .then(async (message) => {
                         messageToReturn = message
                     })
-                    .catch((error) => {
+                    .catch(() => {
+                        //error
                         if (onErr) onErr()
                     })
             }
