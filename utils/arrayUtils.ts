@@ -1,6 +1,5 @@
-import { dateValPair } from '../commands/dateCommands'
-import { ValuePair } from '../interfaces/database/databaseInterface'
-import { RandomUtils } from './randomUtils'
+import {dateValPair} from '../commands/dateCommands'
+import {RandomUtils} from './randomUtils'
 
 export class ArrayUtils {
     static sortDateStringArray(array: dateValPair[]) {
@@ -15,7 +14,7 @@ export class ArrayUtils {
 
     /** Remove all instances of an object from the given array */
     static removeItemAll<T>(array: T[], value: any) {
-        var i = 0
+        let i = 0
         while (i < array.length) {
             if (array[i] === value) {
                 array.splice(i, 1)
@@ -28,7 +27,7 @@ export class ArrayUtils {
 
     /** Remove an instance of a object from the given array */
     static removeItemOnce<T>(array: T[], value: any) {
-        var index = array.indexOf(value)
+        const index = array.indexOf(value)
         if (index > -1) {
             array.splice(index, 1)
         }
