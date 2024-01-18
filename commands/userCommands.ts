@@ -17,7 +17,6 @@ import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 
 import { IInteractionElement } from '../interfaces/interactionInterface'
-import { Roles } from '../utils/roles'
 import { UserUtils } from '../utils/userUtils'
 
 export class UserCommands extends AbstractCommands {
@@ -26,7 +25,12 @@ export class UserCommands extends AbstractCommands {
     }
 
     private async roleAssignment(interaction: ChatInputCommandInteraction<CacheType>) {
-        const roles = Roles.allRoles
+        const roles = [
+            { name: 'Battlefield', id: '886600170328952882', emoji: '🖐️' },
+            { name: 'Warzone', id: '735253573025267883', emoji: '🙌' },
+            { name: 'CoD Multiplayer', id: '1035476337135198238', emoji: '🤙' },
+            { name: 'Rocket League', id: '928708534047244400', emoji: '👋' },
+        ]
 
         const row = new ActionRowBuilder<ButtonBuilder>()
 

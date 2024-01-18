@@ -1,6 +1,6 @@
+import { exec } from 'child_process'
 import {
     CacheType,
-    ClientEvents,
     DMChannel,
     Guild,
     GuildBan,
@@ -16,18 +16,17 @@ import {
     Role,
     User,
 } from 'discord.js'
-import { MazariniClient } from './MazariniClient'
-import { CommandRunner } from '../general/commandRunner'
-import { exec } from 'child_process'
 import { environment } from '../client-env'
 import { PatchNotes } from '../commands/patchnotes/patchnotes'
+import { CommandRunner } from '../general/commandRunner'
+import { ErrorHandler } from '../handlers/errorHandler'
 import { ClientHelper } from '../helpers/clientHelper'
 import { MazariniBot } from '../main'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { ChannelIds, MentionUtils, ServerIds } from '../utils/mentionUtils'
 import { textArrays } from '../utils/textArrays'
 import { UserUtils } from '../utils/userUtils'
-import { ErrorHandler } from '../handlers/errorHandler'
+import { MazariniClient } from './MazariniClient'
 
 /** NOT IN USE
  *  Testing sub-properties and functions
@@ -42,16 +41,6 @@ export class ClientListener {
         this.commandRunner = new CommandRunner(this.client)
         this.errorHandler = new ErrorHandler(this.client.messageHelper)
     }
-    // listeners = {
-    //     on: () => {
-    //         return <K extends keyof ClientEvents>(action: K, clb: () => void) => {
-    //             true
-    //         }
-    //     },
-    //     test: () => {
-    //         return false
-    //     },
-    // }
 
     setupListeners() {
         this.client.on('ready', async () => {
