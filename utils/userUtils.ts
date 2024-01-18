@@ -12,8 +12,8 @@ import {
     Role,
     User,
 } from 'discord.js'
-import { DatabaseHelper } from '../helpers/databaseHelper'
-import { MessageHelper } from '../helpers/messageHelper'
+import {DatabaseHelper} from '../helpers/databaseHelper'
+import {MessageHelper} from '../helpers/messageHelper'
 const diff = require('deep-diff')
 export namespace UserUtils {
     /**
@@ -102,7 +102,7 @@ export namespace UserUtils {
         if (a === b) return undefined
         if (a == null || b == null) return undefined
 
-        for (var i = 0; i < a.length; ++i) {
+        for (let i = 0; i < a.length; ++i) {
             if (a[i] !== b[i]) {
                 if (a.length > b.length) return a[i] as Role
                 else return b[i] as Role
@@ -112,15 +112,15 @@ export namespace UserUtils {
     }
 
     export const onAddedMember = async (member: GuildMember, msgHelper: MessageHelper, dbHelper: DatabaseHelper) => {
-        const msg = await msgHelper.sendMessage('340626855990132747', {
+        await msgHelper.sendMessage('340626855990132747', {
             text: 'Welcome to the Gulag, ' + (member.nickname ?? member.displayName) + '. Bruk commanden "/role" for å gi deg selv roller for å komme i gang',
         })
         await dbHelper.getUser(member.id)
         msgHelper.sendLogMessage('En bruker ble med i Mazarini: ' + (member.nickname ?? member.displayName))
     }
 
-    export const onMemberLeave = async (member: GuildMember | PartialGuildMember, msgHelper: MessageHelper) => {
-        msgHelper.sendMessage('340626855990132747', { text: 'Farvell, ' + (member.nickname ?? member.displayName) })
+    export const onMemberLeave = (member: GuildMember | PartialGuildMember, msgHelper: MessageHelper) => {
+        msgHelper.sendMessage('340626855990132747', {text: 'Farvell, ' + (member.nickname ?? member.displayName)})
         msgHelper.sendLogMessage('En bruker forlot Mazarini: ' + (member.nickname ?? member.displayName))
     }
 
@@ -137,14 +137,15 @@ export namespace UserUtils {
         if (newMember.id === '802945796457758760') return //Ikke gjør noe når bot oppdateres
         if (oldMember.id === '802945796457758760') return
         if (oldMember.user.username === 'MazariniBot') return
-        const diffCalc = diff.diff
+
         const differences = diff(oldMember, newMember)
-        const whatChanged = await UserUtils.compareMember(oldMember, newMember)
-        let changesString = ''
+        let whatChanged = await UserUtils.compareMember(oldMember, newMember)
+
         if (differences) {
             differences.forEach((change: any, index: number) => {
-                changesString += change.path + (index == differences.length ? ' ' : ',')
+                whatChanged += change.path + (index == differences.length ? ' ' : ',')
             })
+
             msgHelper.sendLogMessage('Oppdatert bruker ' + (oldMember.nickname ?? oldMember.displayName) + ': ' + whatChanged + '.')
         }
     }

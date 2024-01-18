@@ -8,7 +8,6 @@ import {
     StreamType,
     VoiceConnectionStatus,
 } from '@discordjs/voice'
-import { Client } from 'discord.js'
 const discordTTS = require('discord-tts')
 
 interface IVoiceConnectParams {
@@ -19,9 +18,9 @@ interface IVoiceConnectParams {
 export class SoundUtils {
     static async connectToVoiceAndSpeak(params: IVoiceConnectParams, text: string) {
         const stream = discordTTS.getVoiceStream(text)
-        const audioResource = createAudioResource(stream, { inputType: StreamType.Arbitrary, inlineVolume: true })
+        const audioResource = createAudioResource(stream, {inputType: StreamType.Arbitrary, inlineVolume: true})
         let voiceConnection: any
-        let audioPlayer = new AudioPlayer()
+        const audioPlayer = new AudioPlayer()
         if (!voiceConnection || voiceConnection?.status === VoiceConnectionStatus.Disconnected) {
             voiceConnection = joinVoiceChannel({
                 channelId: params.channelID,

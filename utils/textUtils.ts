@@ -1,8 +1,6 @@
-import { Message } from 'discord.js'
-
 export namespace TextUtils {
     export function reverseMessageString(str: string) {
-        const splitOnEmojiChar = str.split(/\<([^<>]+)\>/g)
+        const splitOnEmojiChar = str.split(/<([^<>]+)>/g) //Used to have \ before < and >
         let retString = ''
         if (splitOnEmojiChar.length > 1) {
             splitOnEmojiChar.forEach((seq) => {
@@ -19,7 +17,7 @@ export namespace TextUtils {
     }
 
     export function replaceLast(mainString: string, searchString: string, replaceWith: string) {
-        var a = mainString.split('')
+        const a = mainString.split('')
         a[mainString.lastIndexOf(searchString)] = replaceWith
         return a.join('')
     }

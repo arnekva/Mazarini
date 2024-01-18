@@ -1,5 +1,3 @@
-import { dbPrefix } from '../interfaces/database/databaseInterface'
-
 export namespace ObjectUtils {
     export const isObject = (o: any) => {
         return typeof o === 'object'
