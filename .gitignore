@@ -1,7 +1,5 @@
 node_modules
 client-env.ts
-myDataBase.json
 package-lock.json
-./myDataBase.json
 .VSCodeCounter/
 yarn.lock
