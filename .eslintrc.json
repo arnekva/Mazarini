@@ -28,10 +28,6 @@
         "@typescript-eslint/no-unused-vars": "warn",
         "require-await": "warn",
         "prefer-const": "warn",
-        "linebreak-style": [
-            "error",
-            "unix"
-        ],
         "semi": [
             "error",
             "never"

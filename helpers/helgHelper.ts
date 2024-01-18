@@ -88,7 +88,7 @@ export namespace HelgHelper {
                 const isLessThan4HoursAway = timeTo?.days == 0 && timeTo?.hours < 4
                 const emoji = includeEmoji ? EmojiHelper.getHelgEmoji(includeEmoji, isLessThan4HoursAway) : ''
                 if (isFriday && isAfter16) return `Det e ${doesNextWeekHaveHolidayOnMonday ? `langhelg (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg'}!`
-                if(isHelg) return `Det e helg!`
+                if (isHelg) return `Det e helg!`
                 const textToPrint = `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg'} ${emoji}`
 
                 let timeToPrint = DateUtils.formatCountdownText(timeTo, textToPrint) || 'Eg vettkje ka dag det e :('
