@@ -18,8 +18,8 @@ export class MoneyCommands extends AbstractCommands {
         const target = interaction.options.get('bruker')?.user
         const amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('chips')?.value)
 
-        const user = await this.client.db.getUser(interaction.user.id)
-        const targetUser = await this.client.db.getUser(target.id)
+        const user = await this.client.database.getUser(interaction.user.id)
+        const targetUser = await this.client.database.getUser(target.id)
         const userBalance = user.chips
 
         if (isNaN(amount) || amount < 0) {
@@ -29,8 +29,8 @@ export class MoneyCommands extends AbstractCommands {
             user.chips = oldChips - amount
             const newChips = targetUser.chips
             targetUser.chips = newChips + amount
-            this.client.db.updateUser(user)
-            this.client.db.updateUser(targetUser)
+            this.client.database.updateUser(user)
+            this.client.database.updateUser(targetUser)
             this.messageHelper.replyToInteraction(
                 interaction,
                 `${interaction.user.username} vippset ${MentionUtils.mentionUser(targetUser.id)} ${amount} chips.`
@@ -53,7 +53,7 @@ export class MoneyCommands extends AbstractCommands {
             id = target.id
             name = target.username
         }
-        const user = await this.client.db.getUser(id)
+        const user = await this.client.database.getUser(id)
         const chips = user.chips
         let embed = EmbedUtils.createSimpleEmbed(`💳 Lommeboken til ${name} 🏧`, `${chips} chips`)
         if (!target && user.hasBeenRobbed) {
@@ -62,7 +62,7 @@ export class MoneyCommands extends AbstractCommands {
                 `Hehe ser ut som noen har stjålet fra deg` + `\nDu har nå ${TextUtils.formatMoney(chips)} chips`
             )
             user.hasBeenRobbed = false
-            this.client.db.updateUser(user)
+            this.client.database.updateUser(user)
         }
         this.messageHelper.replyToInteraction(interaction, embed)
     }
@@ -82,7 +82,7 @@ export class MoneyCommands extends AbstractCommands {
 
     private async claimDailyChipsAndCoins(interaction: ChatInputCommandInteraction<CacheType>): Promise<string> {
         if (interaction) {
-            const user = await this.client.db.getUser(interaction.user.id)
+            const user = await this.client.database.getUser(interaction.user.id)
             const canClaim = !user.daily?.claimedToday
             const hasFreeze = user.daily?.dailyFreezeCounter
             if (hasFreeze && !isNaN(hasFreeze) && hasFreeze > 0) {
@@ -111,7 +111,7 @@ export class MoneyCommands extends AbstractCommands {
                     newData.streak = 1
                 }
                 updates[`/users/${user.id}/daily`] = newData
-                this.client.db.updateData(updates)
+                this.client.database.updateData(updates)
                 return claimedMessage
             } else {
                 return 'Du har allerede hentet dine daglige chips. Prøv igjen i morgen etter klokken 06:00'
@@ -120,7 +120,7 @@ export class MoneyCommands extends AbstractCommands {
     }
 
     private async freezeDailyClaim(interaction: Interaction<CacheType>, numDays: number): Promise<string> {
-        const user = await this.client.db.getUser(interaction.user.id)
+        const user = await this.client.database.getUser(interaction.user.id)
 
         const hasFreeze = user?.daily?.dailyFreezeCounter
         if (isNaN(numDays) || numDays > 8) {
@@ -130,7 +130,7 @@ export class MoneyCommands extends AbstractCommands {
         } else {
             const updates = {}
             updates[`/users/${user.id}/daily/dailyFreezeCounter`] = numDays
-            this.client.db.updateData(updates)
+            this.client.database.updateData(updates)
             return (
                 'Du har frosset daily claimen din i ' +
                 numDays +

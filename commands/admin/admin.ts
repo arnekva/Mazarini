@@ -43,7 +43,7 @@ export class Admin extends AbstractCommands {
 
             //Double check that all where supplied in the interaction
             if (user && property && value) {
-                const dbUser = await this.client.db.getUntypedUser(user.id)
+                const dbUser = await this.client.database.getUntypedUser(user.id)
                 if (dbUser) {
                     const prop = dbUser[property] //Check if property exists on DB user
 
@@ -69,7 +69,7 @@ export class Admin extends AbstractCommands {
                         } else if (typeof prop === 'number') dbUser[property] = Number(value)
                         else dbUser[property] = value
 
-                        this.client.db.updateUser(dbUser)
+                        this.client.database.updateUser(dbUser)
                         if (!hasAck)
                             this.messageHelper.replyToInteraction(
                                 interaction,
@@ -125,8 +125,8 @@ export class Admin extends AbstractCommands {
         const status = interaction.options.get('statustekst')?.value as string
         const hasUrl = status.includes('www.')
         const activityName = ActivityType[activity]
-        this.client.db.setBotData('status', status)
-        this.client.db.setBotData('statusType', activity)
+        this.client.database.setBotData('status', status)
+        this.client.database.setBotData('statusType', activity)
         this.messageHelper.sendLogMessage(`Bottens aktivitet er satt til '${activityName}' med teksten '${status}' av ${interaction.user.username}. `)
         this.messageHelper.replyToInteraction(interaction, `Bottens aktivitet er satt til '${activityName}' med teksten '${status}'`)
         ClientHelper.updatePresence(this.client, activity, status, hasUrl ? status : undefined)
@@ -156,7 +156,7 @@ export class Admin extends AbstractCommands {
         const numMessagesFromBot = MazariniBot.numMessagesFromBot
         const numErrorMessages = MazariniBot.numMessagesNumErrorMessages
         const numCommands = MazariniBot.numCommands
-        const storage = await this.client.db.getStorage()
+        const storage = await this.client.database.getStorage()
         const statsReply =
             `Statistikk (fra og med oppstart ${start.toLocaleDateString('nb', {
                 weekday: 'long',
@@ -236,9 +236,9 @@ export class Admin extends AbstractCommands {
         const reason = interaction.options.get('reason')?.value as string
         const chips = interaction.options.get('chips')?.value as number
         const user = interaction.options.get('user')?.user
-        const dbUser = await this.client.db.getUser(user.id)
+        const dbUser = await this.client.database.getUser(user.id)
         dbUser.chips += chips
-        this.client.db.updateUser(dbUser)
+        this.client.database.updateUser(dbUser)
         this.messageHelper.replyToInteraction(interaction, `${user.username} har mottatt en ${type} reward på ${chips} på grunn av *${reason}*`)
     }
 
@@ -248,7 +248,7 @@ export class Admin extends AbstractCommands {
             interaction.channelId
         )}. Henter data fra Git og restarter botten ...`
         const msg = await this.messageHelper.sendLogMessage(restartMsg)
-        const commitId = await this.client.db.getBotData('commit-id')
+        const commitId = await this.client.database.getBotData('commit-id')
         await exec(`git pull && pm2 restart mazarini -- --restartedForGit --${commitId}`, async (error, stdout, stderr) => {
             if (error) {
                 restartMsg += `\nKlarte ikke restarte: \n${error}`

@@ -17,7 +17,7 @@ export class GamblingCommands extends AbstractCommands {
     }
 
     private async diceGamble(interaction: ChatInputCommandInteraction<CacheType>) {
-        const user = await this.client.db.getUser(interaction.user.id)
+        const user = await this.client.database.getUser(interaction.user.id)
         const amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('chips')?.value)
         const userMoney = user.chips
         let chipsToGamble = amount
@@ -39,7 +39,7 @@ export class GamblingCommands extends AbstractCommands {
                 DatabaseHelper.incrementChipsStats(user, 'gambleLosses')
             }
             user.chips = newMoneyValue
-            this.client.db.updateUser(user)
+            this.client.database.updateUser(user)
 
             const gambling = new EmbedBuilder()
                 .setTitle('Gambling 🎲')
@@ -58,7 +58,7 @@ export class GamblingCommands extends AbstractCommands {
     }
 
     private async roulette(interaction: ChatInputCommandInteraction<CacheType>) {
-        const user = await this.client.db.getUser(interaction.user.id)
+        const user = await this.client.database.getUser(interaction.user.id)
         let userMoney = user.chips
         const isForNumber = interaction.options.getSubcommand() === 'tall'
         const isForCategory = interaction.options.getSubcommand() === 'kategori'
@@ -134,7 +134,7 @@ export class GamblingCommands extends AbstractCommands {
                 DatabaseHelper.incrementRulettStats(user, 'black')
             }
 
-            this.client.db.updateUser(user)
+            this.client.database.updateUser(user)
 
             const gambling = new EmbedBuilder()
                 .setTitle('Rulett 🎲')
@@ -168,7 +168,7 @@ export class GamblingCommands extends AbstractCommands {
         valAsNum: number,
         userMoney: number
     ): Promise<{ newMoneyValue: number; interestAmount: number; rate: number }> {
-        const user = await this.client.db.getUser(id)
+        const user = await this.client.database.getUser(id)
 
         let newMoneyValue = 0
         let interest = 0
@@ -180,7 +180,7 @@ export class GamblingCommands extends AbstractCommands {
     }
 
     private async rollSlotMachine(interaction: ChatInputCommandInteraction<CacheType>) {
-        const user = await this.client.db.getUser(interaction.user.id)
+        const user = await this.client.database.getUser(interaction.user.id)
         const userMoney = user.chips
         const cost = 100
         if (Number(userMoney) < cost) {
@@ -190,7 +190,7 @@ export class GamblingCommands extends AbstractCommands {
             let emojiString = ''
             const newMoneyVal = Number(userMoney) - cost
             user.chips = newMoneyVal
-            this.client.db.updateUser(user)
+            this.client.database.updateUser(user)
             const randArray = []
             for (let i = 0; i < 6; i++) {
                 randArray.push(RandomUtils.getRandomInteger(0, 9))
@@ -248,7 +248,7 @@ export class GamblingCommands extends AbstractCommands {
             const currentMoney = user.chips
             const newMoney = Number(currentMoney) + winnings
             user.chips = newMoney
-            this.client.db.updateUser(user)
+            this.client.database.updateUser(user)
 
             if (!hasSequence && amountOfCorrectNums.length < 1) msg.addFields({ name: 'Du tapte', value: `-${cost} chips` })
 

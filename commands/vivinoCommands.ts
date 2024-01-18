@@ -94,7 +94,7 @@ export class VivinoCommands extends AbstractCommands {
 
     private async createYearInReview(interaction: ChatInputCommandInteraction<CacheType>) {
         interaction.deferReply()
-        const user = await this.client.db.getUser(interaction.user.id)
+        const user = await this.client.database.getUser(interaction.user.id)
         if (user.vivinoId) {
             const data = await this.findData(user.vivinoId)
             const yearToCheck = interaction.options.get('year')?.value as number
@@ -211,8 +211,7 @@ export class VivinoCommands extends AbstractCommands {
     }
 
     findRatingsThisYear(data: IVivinoRating[], year?: number) {
-       
-        return year ? data.filter((d) => moment(d.object.review.created_at).year() === year):data
+        return year ? data.filter((d) => moment(d.object.review.created_at).year() === year) : data
     }
 
     getAllInteractions(): IInteractionElement {

@@ -42,7 +42,8 @@ export class CommandRunner {
 
             await this.client.tracker.trackEmojiStats(message)
 
-            if (message.channelId === ChannelIds.VINMONOPOLET || environment === "dev") PoletCommands.checkForVinmonopolContent(message, this.client.messageHelper)
+            if (message.channelId === ChannelIds.VINMONOPOLET || environment === 'dev')
+                PoletCommands.checkForVinmonopolContent(message, this.client.messageHelper)
         } catch (error) {
             this.client.messageHelper.sendLogMessage(
                 `Det oppstod en feil under kjøring av en command. Meldingen var fra ${message.author.username} i kanalen ${MentionUtils.mentionChannel(
@@ -129,7 +130,7 @@ export class CommandRunner {
     }
 
     async checkIfBlockedByJail(interaction: Interaction<CacheType>) {
-        const user = await this.client.db.getUser(interaction.user.id)
+        const user = await this.client.database.getUser(interaction.user.id)
         if (user.jail?.daysInJail && user.jail?.daysInJail > 0) {
             if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
                 return illegalCommandsWhileInJail.includes(interaction.commandName)

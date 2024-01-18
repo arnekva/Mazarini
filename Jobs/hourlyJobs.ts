@@ -18,7 +18,7 @@ export class HourJob {
     }
 
     private async checkForUpcomingRLTournaments() {
-        const storage = await this.client.db.getStorage()
+        const storage = await this.client.database.getStorage()
         const tournaments = storage?.rocketLeagueTournaments
         if (tournaments) {
             const nextTournaments = tournaments.filter((t) => new Date(t.starts).getHours() === new Date().getHours() + 1 && t.shouldNotify)
@@ -37,7 +37,7 @@ export class HourJob {
     }
 
     private async sendScheduledMessage() {
-        let shceduledMessages = (await this.client.db.getStorage())?.scheduledMessages
+        let shceduledMessages = (await this.client.database.getStorage())?.scheduledMessages
         if (shceduledMessages) {
             const messagesToSend = shceduledMessages.filter((msg) => {
                 const date = new Date(msg.dateToSendOn * 1000)
@@ -50,7 +50,7 @@ export class HourJob {
                 this.messageHelper.sendMessage(msg.channelId, { text: msg.message })
                 shceduledMessages = ArrayUtils.removeItemOnce(shceduledMessages, msg)
             })
-            this.client.db.updateStorage({ scheduledMessages: shceduledMessages })
+            this.client.database.updateStorage({ scheduledMessages: shceduledMessages })
         }
     }
 }

@@ -22,7 +22,7 @@ export class DailyJobs {
         if (onlyRl) {
             this.updateRLTournaments(rapidApiKey)
         } else {
-            const users = await this.client.db.getAllUsers()
+            const users = await this.client.database.getAllUsers()
             await this.validateAndResetDailyClaims(users)
             await this.updateJailAndJailbreakCounters(users)
             this.checkForUserBirthdays(users)
@@ -64,7 +64,7 @@ export class DailyJobs {
                     tournaments.forEach((t, idx) => {
                         t.id = idx
                     })
-                    this.client.db.updateStorage({
+                    this.client.database.updateStorage({
                         rocketLeagueTournaments: tournaments,
                     })
                     const embed = EmbedUtils.createSimpleEmbed(
@@ -93,7 +93,7 @@ export class DailyJobs {
     }
 
     private async validateAndResetDailyClaims(users: MazariniUser[]) {
-        const updates = this.client.db.getUpdatesObject<'daily'>()
+        const updates = this.client.database.getUpdatesObject<'daily'>()
         users.forEach((user) => {
             const daily = user?.daily
             if (!daily?.streak) return //Verify that the user as a streak/claim, otherwise skip
@@ -107,10 +107,10 @@ export class DailyJobs {
                 daily.claimedToday = false //Reset check for daily claim
             }
 
-            const updatePath = this.client.db.getUserPathToUpdate(user.id, 'daily')
+            const updatePath = this.client.database.getUserPathToUpdate(user.id, 'daily')
             updates[updatePath] = daily
         })
-        this.client.db.updateData(updates)
+        this.client.database.updateData(updates)
     }
 
     private async checkForUserBirthdays(users: MazariniUser[]) {
@@ -129,7 +129,7 @@ export class DailyJobs {
     }
 
     private async updateJailAndJailbreakCounters(users: MazariniUser[]) {
-        const updates = this.client.db.getUpdatesObject<'jail'>()
+        const updates = this.client.database.getUpdatesObject<'jail'>()
         users.forEach((user) => {
             const daysLeftInJail = user.jail?.daysInJail
             if (user.jail) {
@@ -141,11 +141,11 @@ export class DailyJobs {
                 }
                 user.jail.attemptedJailbreaks = 0
                 user.jail.timesJailedToday = 0
-                const updatePath = this.client.db.getUserPathToUpdate(user.id, 'jail')
+                const updatePath = this.client.database.getUserPathToUpdate(user.id, 'jail')
                 updates[updatePath] = user.jail
             }
         })
-        this.client.db.updateData(updates)
+        this.client.database.updateData(updates)
     }
 
     private logEvent() {

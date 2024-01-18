@@ -290,14 +290,14 @@ export class MessageHelper {
     }
 
     async scheduleMessage(msg: string, channelId: string, date: Moment) {
-        const storage = await this.client.db.getStorage()
+        const storage = await this.client.database.getStorage()
         if (!storage?.scheduledMessages) {
             storage['scheduledMessages'] = []
         }
         if (storage?.scheduledMessages) {
             storage.scheduledMessages.push({ message: msg, dateToSendOn: date.unix(), channelId: channelId })
         }
-        this.client.db.updateStorage({
+        this.client.database.updateStorage({
             scheduledMessages: storage.scheduledMessages,
         })
         this.client.storageCache.scheduledMessages = storage.scheduledMessages

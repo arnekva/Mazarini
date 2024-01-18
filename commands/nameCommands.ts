@@ -63,24 +63,24 @@ export class NameCommands extends AbstractCommands {
 
     private async getTextFromCommand(username: string) {
         const text: string =
-            ArrayUtils.randomChoiceFromArray((await this.client.db.getTextCommandValueArray(username.toLowerCase())) ?? []) || 'Ingen tekst lagt til'
+            ArrayUtils.randomChoiceFromArray((await this.client.database.getTextCommandValueArray(username.toLowerCase())) ?? []) || 'Ingen tekst lagt til'
         return `${text.startsWith('<:') ? '' : username} ${text || 'Ingen tekst lagt til'}`
     }
 
     private addTextValueFromInteraction(text: string, username: string): boolean {
         if (this.getLegalTextCommandNames().includes(username) && text.length > 1) {
-            this.client.db.setTextCommandValue(username, text)
+            this.client.database.setTextCommandValue(username, text)
             return true
         }
         return false
     }
 
     private async listTexts(username: string): Promise<string[]> {
-        return (await this.client.db.getTextCommandValueArray(username)) as string[]
+        return (await this.client.database.getTextCommandValueArray(username)) as string[]
     }
 
     private async removeTextValueFromInteraction(index: number, username: string) {
-        this.client.db.nukeTextCommand(username, index)
+        this.client.database.nukeTextCommand(username, index)
     }
 
     getAllInteractions(): IInteractionElement {

@@ -45,7 +45,7 @@ export class RocketLeagueCommands extends AbstractCommands {
     }
 
     private async rocketLeagueRanks(interaction: ChatInputCommandInteraction<CacheType>) {
-        const dbUser = await this.client.db.getUser(interaction.user.id)
+        const dbUser = await this.client.database.getUser(interaction.user.id)
         const userValue = dbUser.rocketLeagueUserString
         let user
         if (userValue) user = userValue.split(';')
@@ -194,13 +194,13 @@ export class RocketLeagueCommands extends AbstractCommands {
     }
 
     private async saveUserStats(interaction: ChatInputCommandInteraction<CacheType>, stats: rocketLeagueDbData) {
-        const user = await this.client.db.getUser(interaction.user.id)
+        const user = await this.client.database.getUser(interaction.user.id)
         user.rocketLeagueStats = stats
-        this.client.db.updateUser(user)
+        this.client.database.updateUser(user)
     }
 
     private async getUserStats(interaction: ChatInputCommandInteraction<CacheType>) {
-        const user = await this.client.db.getUser(interaction.user.id)
+        const user = await this.client.database.getUser(interaction.user.id)
         if (user.rocketLeagueStats === undefined) return emptyStats
         return user.rocketLeagueStats
     }
@@ -213,7 +213,7 @@ export class RocketLeagueCommands extends AbstractCommands {
     }
 
     private async getRocketLeagueTournaments(): Promise<{ embed: EmbedBuilder; buttons: ActionRowBuilder<ButtonBuilder> }> {
-        const storage = await this.client.db.getStorage()
+        const storage = await this.client.database.getStorage()
         const currentTournaments = storage?.rocketLeagueTournaments
         if (currentTournaments) {
             const embed = EmbedUtils.createSimpleEmbed(
@@ -241,7 +241,7 @@ export class RocketLeagueCommands extends AbstractCommands {
     }
 
     private async getAllRLTournamentsAsEmbed() {
-        const storage = await this.client.db.getStorage()
+        const storage = await this.client.database.getStorage()
         const currentTournaments = storage?.rocketLeagueTournaments
         if (currentTournaments) {
             const embed = EmbedUtils.createSimpleEmbed(
@@ -260,7 +260,7 @@ export class RocketLeagueCommands extends AbstractCommands {
     }
 
     private async createTournamentReminder(interaction: ButtonInteraction<CacheType>) {
-        const storage = await this.client.db.getStorage()
+        const storage = await this.client.database.getStorage()
         const tournaments = storage?.rocketLeagueTournaments
         const ids = interaction.customId.split(';')
         const idToUpdate = Number(ids[1])
@@ -280,7 +280,7 @@ export class RocketLeagueCommands extends AbstractCommands {
 
                 tournamentToUpdate.shouldNotify = true
 
-                this.client.db.updateStorage({
+                this.client.database.updateStorage({
                     rocketLeagueTournaments: tournaments,
                 })
             }

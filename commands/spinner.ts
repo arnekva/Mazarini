@@ -60,7 +60,7 @@ export class Spinner extends AbstractCommands {
     }
 
     private async spinFromInteraction(interaction: ChatInputCommandInteraction<CacheType>) {
-        const user = await this.client.db.getUser(interaction.user.id)
+        const user = await this.client.database.getUser(interaction.user.id)
         const min = weightedRandomObject(spinMinutes).number
         const sec = RandomUtils.getRandomInteger(0, 60)
 
@@ -80,7 +80,7 @@ export class Spinner extends AbstractCommands {
             this.messageHelper.sendMessage(interaction?.channelId, { text: 'gz med 10 min bro' })
         }
 
-        this.client.db.updateUser(user)
+        this.client.database.updateUser(user)
 
         this.incrementCounter(interaction.user.id)
     }
@@ -109,9 +109,9 @@ export class Spinner extends AbstractCommands {
     }
 
     private async incrementCounter(userID: string) {
-        const user = await this.client.db.getUser(userID)
+        const user = await this.client.database.getUser(userID)
         user.spinCounter++
-        this.client.db.updateUser(user)
+        this.client.database.updateUser(user)
     }
 
     getAllInteractions(): IInteractionElement {

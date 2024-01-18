@@ -111,18 +111,18 @@ export class PoletCommands extends AbstractCommands {
         return await data.json()
     }
 
-    static async fetchScore(barCode: string){
+    static async fetchScore(barCode: string) {
         //TODO: Allow normal search if no barcode (i.e. search for product id) https://wines-ws.vinify.app/wines/search/4878001
-        const data = await fetch(`https://wines-ws.vinify.app/wines?gtin=${barCode}`,{
-            method: "GET",
+        const data = await fetch(`https://wines-ws.vinify.app/wines?gtin=${barCode}`, {
+            method: 'GET',
             headers: {
-                method: "GET",
+                method: 'GET',
                 path: `/wines?gtin=${barCode}`,
-                "x-device-type":"ios",
-                "x-api-key": vinKey,
-                "user-agent": vinUserAgent,
-                authorization: `Bearer ${vinBearer}`
-            }
+                'x-device-type': 'ios',
+                'x-api-key': vinKey,
+                'user-agent': vinUserAgent,
+                authorization: `Bearer ${vinBearer}`,
+            },
         })
         return await data.json()
     }
@@ -156,7 +156,7 @@ export class PoletCommands extends AbstractCommands {
     public async getProductStockForUser(interaction: ButtonInteraction<CacheType>) {
         const params = interaction.customId.split(';')
         const productId = params[1]
-        const user = await this.client.db.getUser(interaction.user.id)
+        const user = await this.client.database.getUser(interaction.user.id)
         const favoritePol = user.favoritePol
         if (favoritePol && favoritePol.latitude && favoritePol.longitude) {
             const stockData = await this.fetchProductStock(productId, favoritePol.latitude, favoritePol.longitude)
@@ -178,7 +178,7 @@ export class PoletCommands extends AbstractCommands {
 
     private async getOpeningHours(rawInteraction: ChatInputCommandInteraction<CacheType>, storeId?: string) {
         await rawInteraction.deferReply()
-        const user = await this.client.db.getUser(rawInteraction.user.id)
+        const user = await this.client.database.getUser(rawInteraction.user.id)
         const poletData = await PoletCommands.fetchPoletData(storeId ?? user.favoritePol.id, rawInteraction)
 
         const fmMessage = new EmbedBuilder().setTitle(`${poletData.storeName} (${poletData.address.postalCode}, ${poletData.address.city}) `)
@@ -255,7 +255,7 @@ export class PoletCommands extends AbstractCommands {
         let barcode = content
         if (!hasUrl && !hasBarCode && message.attachments?.first()?.url) {
             const msg = await messageHelper.sendMessage(message.channelId, { text: 'Sjekker bilde for strekkode...' })
-            barcode = await BarcodeUtils.decodeImage(message.attachments.first().url);
+            barcode = await BarcodeUtils.decodeImage(message.attachments.first().url)
             if (barcode) {
                 hasBarCode = true
                 msg.delete()
@@ -268,14 +268,14 @@ export class PoletCommands extends AbstractCommands {
             if (id && !isNaN(Number(id))) {
                 // try {
                 const data = await PoletCommands.fetchProductDataFromId(id, hasBarCode)
-               
+
                 if (data && !data?.errors) {
                     const hasDesc = !!data.description.trim()
                     let description = `${hasDesc ? data.description : data.taste}`
-                    if(hasBarCode){
+                    if (hasBarCode) {
                         const fetchedScore = await PoletCommands.fetchScore(barcode)
-                        if(fetchedScore && fetchedScore?.payload?.rows){
-                        description += `\nVinify score: ${fetchedScore.payload.rows[0].mainProfile.averagePoints} poeng (${fetchedScore.payload.rows[0].mainProfile.numberOfRates} ratinger)`
+                        if (fetchedScore && fetchedScore?.payload?.rows) {
+                            description += `\nVinify score: ${fetchedScore.payload.rows[0].mainProfile.averagePoints} poeng (${fetchedScore.payload.rows[0].mainProfile.numberOfRates} ratinger)`
                         }
                     }
                     const embed = EmbedUtils.createSimpleEmbed(`${data.name}`, description, [
@@ -290,8 +290,6 @@ export class PoletCommands extends AbstractCommands {
                         { name: `Stil`, value: `${data.style?.name}`, inline: true },
                     ])
 
-                    
-                    
                     /** In case of wines, it will be something like [Pinot Noir 80%, Merlot 20%]
                      * For liquers, ciders, etc. it may only be "Plommer, epler", since they dont display the percentage of the mix.
                      */

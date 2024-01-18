@@ -259,7 +259,7 @@ export class Music extends AbstractCommands {
     private async searchLibrary(interaction: ChatInputCommandInteraction<CacheType>) {
         /** Get the URL with the specified URL param
          */
-        const user = await this.client.db.getUser(interaction.user.id)
+        const user = await this.client.database.getUser(interaction.user.id)
         const username = user?.lastFMUsername
         if (!username) {
             this.messageHelper.replyToInteraction(interaction, `Du må linka last.fm-brukeren din`, { ephemeral: true })
@@ -344,7 +344,7 @@ export class Music extends AbstractCommands {
     }
 
     async findCommandForInteraction(interaction: Interaction<CacheType>, options: string, user?: User, period?: string): Promise<IMusicData[] | string> {
-        const fmUser = await this.client.db.getUser(user ? user?.id : interaction.user.id)
+        const fmUser = await this.client.database.getUser(user ? user?.id : interaction.user.id)
         if (fmUser.lastFMUsername) {
             let data: fetchData = {
                 user: fmUser.lastFMUsername,

@@ -18,7 +18,7 @@ export class MazariniTracker {
             while ((match = this.emojiRegex.exec(message.content))) {
                 if (match && message.guild.emojis.cache.get(match[2])) emojiNames.push(match[1])
             }
-            if (emojiNames) this.client.db.updateEmojiMessageCounters(emojiNames)
+            if (emojiNames) this.client.database.updateEmojiMessageCounters(emojiNames)
         }
     }
 }

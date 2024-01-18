@@ -16,7 +16,7 @@ export class StatsCommands extends AbstractCommands {
     }
 
     private async findUserStats(interaction: ChatInputCommandInteraction<CacheType>) {
-        const user = await this.client.db.getUser(interaction.user.id)
+        const user = await this.client.database.getUser(interaction.user.id)
         const userStats = user.userStats?.chipsStats
         const rulettStats = user.userStats?.rulettStats
         let reply = ''
@@ -171,7 +171,7 @@ export class StatsCommands extends AbstractCommands {
         const now = new Date()
         if (!this.emojiStats || now.getTime() - this.lastFetched.getTime() > 60000) {
             //hent stats på nytt hvis det er har gått mer enn 1min (= utdaterte stats)
-            const emojis = await this.client.db.getEmojiStats()
+            const emojis = await this.client.database.getEmojiStats()
             const emojiStatsArray: EmojiStats[] = Object.values(emojis).map(({ added, name, timesUsedInMessages, timesUsedInReactions, removed }) => ({
                 added,
                 name,

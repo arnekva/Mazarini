@@ -1,24 +1,24 @@
-import {Client} from 'discord.js'
-import {initializeApp} from 'firebase/app'
-import {JobScheduler} from '../Jobs/jobScheduler'
-import {CommandBuilder} from '../builders/commandBuilder/commandBuilder'
-import {environment, firebaseConfig} from '../client-env'
+import { Client } from 'discord.js'
+import { initializeApp } from 'firebase/app'
+import { JobScheduler } from '../Jobs/jobScheduler'
+import { CommandBuilder } from '../builders/commandBuilder/commandBuilder'
+import { environment, firebaseConfig } from '../client-env'
 
-import {CommandRunner} from '../general/commandRunner'
-import {MazariniTracker} from '../general/mazariniTracker'
-import {ErrorHandler} from '../handlers/errorHandler'
-import {LockingHandler} from '../handlers/lockingHandler'
-import {ClientHelper} from '../helpers/clientHelper'
-import {DatabaseHelper} from '../helpers/databaseHelper'
-import {FirebaseHelper} from '../helpers/firebaseHelper'
-import {MessageHelper} from '../helpers/messageHelper'
-import {MazariniBot} from '../main'
-import {ArrayUtils} from '../utils/arrayUtils'
-import {ChannelIds, MentionUtils, ServerIds} from '../utils/mentionUtils'
-import {textArrays} from '../utils/textArrays'
-import {UserUtils} from '../utils/userUtils'
-import {MazariniStorage} from '../interfaces/database/databaseInterface'
-import {ClientListener} from './ClientListeners'
+import { CommandRunner } from '../general/commandRunner'
+import { MazariniTracker } from '../general/mazariniTracker'
+import { ErrorHandler } from '../handlers/errorHandler'
+import { LockingHandler } from '../handlers/lockingHandler'
+import { ClientHelper } from '../helpers/clientHelper'
+import { DatabaseHelper } from '../helpers/databaseHelper'
+import { FirebaseHelper } from '../helpers/firebaseHelper'
+import { MessageHelper } from '../helpers/messageHelper'
+import { MazariniBot } from '../main'
+import { ArrayUtils } from '../utils/arrayUtils'
+import { ChannelIds, MentionUtils, ServerIds } from '../utils/mentionUtils'
+import { textArrays } from '../utils/textArrays'
+import { UserUtils } from '../utils/userUtils'
+import { MazariniStorage } from '../interfaces/database/databaseInterface'
+import { ClientListener } from './ClientListeners'
 
 const Discord = require('discord.js')
 
@@ -86,7 +86,7 @@ export class MazariniClient extends Client {
         return this.msgHelper
     }
 
-    get db() {
+    get database() {
         return this.databaseHelper
     }
 

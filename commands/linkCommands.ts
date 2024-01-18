@@ -54,32 +54,32 @@ export class LinkCommands extends AbstractCommands {
 
     private async linkWZName(rawInteraction: ChatInputCommandInteraction<CacheType>, platform?: string, username?: string): Promise<boolean> {
         if (!platform || !username) return false
-        const user = await this.client.db.getUser(rawInteraction.user.id)
+        const user = await this.client.database.getUser(rawInteraction.user.id)
         user.activisionUserString = `${platform};${username}`
-        this.client.db.updateUser(user)
+        this.client.database.updateUser(user)
         return true
     }
 
     private async linkRocketName(rawInteraction: ChatInputCommandInteraction<CacheType>, platform?: string, username?: string): Promise<boolean> {
         if (!platform || !username) return false
-        const user = await this.client.db.getUser(rawInteraction.user.id)
+        const user = await this.client.database.getUser(rawInteraction.user.id)
         user.rocketLeagueUserString = `${platform};${username}`
-        this.client.db.updateUser(user)
+        this.client.database.updateUser(user)
         return true
     }
 
     private async linkLastFMName(rawInteraction: Interaction<CacheType>, username?: string): Promise<boolean> {
         if (!username) return false
-        const user = await this.client.db.getUser(rawInteraction.user.id)
+        const user = await this.client.database.getUser(rawInteraction.user.id)
         user.lastFMUsername = username
-        this.client.db.updateUser(user)
+        this.client.database.updateUser(user)
         return true
     }
     private async linkVivinoId(rawInteraction: Interaction<CacheType>, username?: string): Promise<boolean> {
         if (!username) return false
-        const user = await this.client.db.getUser(rawInteraction.user.id)
+        const user = await this.client.database.getUser(rawInteraction.user.id)
         user.vivinoId = username
-        this.client.db.updateUser(user)
+        this.client.database.updateUser(user)
         return true
     }
 
@@ -91,14 +91,14 @@ export class LinkCommands extends AbstractCommands {
                 return ''
             } else {
                 const storeCoord = store.address.gpsCoord.split(';')
-                const user = await this.client.db.getUser(userId)
+                const user = await this.client.database.getUser(userId)
                 const favoritePol = {
                     id: storeId.toString(),
                     latitude: storeCoord[0],
                     longitude: storeCoord[1],
                 }
                 user.favoritePol = favoritePol
-                this.client.db.updateUser(user)
+                this.client.database.updateUser(user)
                 return `${store.storeName} (${store.storeId}), med adressen ${store.address.street} ${store.address.postalCode} ${store.address.city}`
             }
         } else {

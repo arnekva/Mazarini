@@ -54,12 +54,12 @@ export class DateCommands extends AbstractCommands {
         const fromDate = interaction.options.get('fra-dato')?.value as string
         const toDate = interaction.options.get('til-dato')?.value as string
         const fromHours = interaction.options.get('fra-klokkeslett')?.value as string
-        const storage = await this.client.db.getStorage()
+        const storage = await this.client.database.getStorage()
         let ferier = storage?.ferie
         if (!ferier) ferier = []
         if (fromDate === 'fjern' || toDate === 'fjern') {
             ferier = ferier.filter((f) => f.id !== interaction.user.id)
-            this.client.db.updateStorage({ ferie: ferier })
+            this.client.database.updateStorage({ ferie: ferier })
         }
 
         /** Registrer ferier */
@@ -103,7 +103,7 @@ export class DateCommands extends AbstractCommands {
                         id: interaction.user.id,
                         value: feireObj,
                     })
-                this.client.db.updateStorage({ ferie: ferier })
+                this.client.database.updateStorage({ ferie: ferier })
                 this.messageHelper.replyToInteraction(interaction, `Ferien din er satt`, { ephemeral: true })
             } else {
                 this.messageHelper.replyToInteraction(
@@ -114,7 +114,7 @@ export class DateCommands extends AbstractCommands {
         } else {
             const vacayNowMap: Map<Date, string> = new Map<Date, string>()
             const vacayLaterMap: Map<Date, string> = new Map<Date, string>()
-            const storage = await this.client.db.getStorage()
+            const storage = await this.client.database.getStorage()
             const ferier = storage?.ferie
             if (!ferier) return this.messageHelper.replyToInteraction(interaction, `Ingen har ferie i nærmeste fremtid`)
             /** Finn alle ferier og print dem hvis de er gyldige */
@@ -167,7 +167,7 @@ export class DateCommands extends AbstractCommands {
         const dato = interaction.options.get('dato')?.value as string
         const timestamp = interaction.options.get('klokkeslett')?.value as string
         const tags = interaction.options.get('tags')?.value as string
-        const storage = await this.client.db.getStorage()
+        const storage = await this.client.database.getStorage()
         let countdowns = storage?.countdown
         if (!countdowns)
             countdowns = {
@@ -179,7 +179,7 @@ export class DateCommands extends AbstractCommands {
                 const ownersCountdown = countdowns.allCountdowns.find((c) => c.ownerId === interaction.user.id)
                 if (ownersCountdown) {
                     ArrayUtils.removeItemOnce(countdowns.allCountdowns, ownersCountdown)
-                    this.client.db.updateStorage({ countdown: countdowns })
+                    this.client.database.updateStorage({ countdown: countdowns })
                     this.client.storageCache.countdown = countdowns
                     return true
                 }
@@ -219,7 +219,7 @@ export class DateCommands extends AbstractCommands {
                     tags: tagTab,
                 }
                 countdowns.allCountdowns.push(cdItem)
-                this.client.db.updateStorage({ countdown: countdowns })
+                this.client.database.updateStorage({ countdown: countdowns })
                 this.client.storageCache.countdown = countdowns
                 this.messageHelper.replyToInteraction(interaction, `Din countdown for *${event}* er satt til ${cdDate.toLocaleString()}`, { ephemeral: true })
             }
@@ -235,7 +235,7 @@ export class DateCommands extends AbstractCommands {
                 const text = DateUtils.formatCountdownText(daysUntil, 'te ' + cd.description)
                 printValues.push({
                     print:
-                        `${!!text ? '\n' : ''}` +
+                        `${text ? '\n' : ''}` +
                         `${DateUtils.formatCountdownText(daysUntil, 'te ' + cd.description)} *(${DateUtils.formatDate(new Date(cd.date), true)})*`,
                     date: cd.date,
                 })
@@ -255,14 +255,14 @@ export class DateCommands extends AbstractCommands {
     }
 
     private async userHasMaxCountdowns(userId: string) {
-        const storage = await this.client.db.getStorage()
+        const storage = await this.client.database.getStorage()
         const cds = storage?.countdown
         if (!cds) return false
         return cds.allCountdowns.filter((c) => c.ownerId === userId).length >= 3
     }
 
     private async addUserBirthday(interaction: ChatInputCommandInteraction<CacheType>) {
-        const user = await this.client.db.getUser(interaction.user.id)
+        const user = await this.client.database.getUser(interaction.user.id)
         const birthDayFromArg = interaction.options.get('dato')?.value as string
         const birthday = user.birthday
         if (birthday && !birthDayFromArg) {
@@ -296,7 +296,7 @@ export class DateCommands extends AbstractCommands {
                 })
             } else {
                 user.birthday = dateString
-                this.client.db.updateUser(user)
+                this.client.database.updateUser(user)
                 this.messageHelper.replyToInteraction(interaction, `Satte bursdagen din til ${dateString}`)
             }
         } else {

@@ -95,7 +95,7 @@ export class JokeCommands extends AbstractCommands {
         }
     }
 
-    private async reactToManyMessages(interaction: ChatInputCommandInteraction<CacheType>, emojiName: string) {
+    private reactToManyMessages(interaction: ChatInputCommandInteraction<CacheType>, emojiName: string) {
         this.messageHelper.replyToInteraction(interaction, 'Eivindprider sendt', { ephemeral: true })
         try {
             const channel = interaction?.channel as TextChannel
@@ -111,11 +111,11 @@ export class JokeCommands extends AbstractCommands {
                     })
                     .catch((error: any) => {})
             }
-        } catch (error) {}
+        } catch (error) {
+            this.messageHelper.sendLogMessage(`Noe gikk galt i reactToManyMessages`)
+        }
         if (interaction.guild) {
             const react = interaction.guild.emojis.cache.find((emoji) => emoji.name == 'eivindpride')
-            if (react) {
-            }
         }
     }
 
@@ -188,7 +188,7 @@ export class JokeCommands extends AbstractCommands {
 
         let bkCounter = 0
 
-        const dbUser = await this.client.db.getUser(user.id)
+        const dbUser = await this.client.database.getUser(user.id)
         bkCounter = dbUser.bonkCounter
         dbUser.bonkCounter++
 
@@ -210,7 +210,7 @@ export class JokeCommands extends AbstractCommands {
             dbUser.daily.dailyFreezeCounter = 0
             this.messageHelper.sendMessage(interaction.channelId, { text: ':lock: Du e kje bare bonka, du e faktisk dømt te ein dag i fengsel og :lock:' })
         }
-        this.client.db.updateUser(dbUser)
+        this.client.database.updateUser(dbUser)
     }
 
     private static uwuText(t: string) {
@@ -242,12 +242,12 @@ export class JokeCommands extends AbstractCommands {
             }
         }
         if (isRegisterLoss) {
-            const user = await this.client.db.getUser(interaction.user.id)
-            if (!!user.whamageddonLoss) {
+            const user = await this.client.database.getUser(interaction.user.id)
+            if (user.whamageddonLoss) {
                 this.messageHelper.replyToInteraction(interaction, `Du har allerede registrert tapet ditt`, { ephemeral: true })
             } else if (isValidTimeFrame) {
                 user.whamageddonLoss = moment().toISOString()
-                this.client.db.updateUser(user)
+                this.client.database.updateUser(user)
                 const drinkData = calcSlurks(moment(user.whamageddonLoss))
                 this.messageHelper.replyToInteraction(
                     interaction,
@@ -267,9 +267,9 @@ export class JokeCommands extends AbstractCommands {
                 )
             }
         } else {
-            const users = await this.client.db.getAllUsers()
+            const users = await this.client.database.getAllUsers()
             const usersInWhamageddon = users.filter((u) => !!u.whamageddonLoss)
-            if (!!usersInWhamageddon.length) {
+            if (usersInWhamageddon.length) {
                 const embd = EmbedUtils.createSimpleEmbed(`Whamageddon ${new Date().getFullYear()}`, `Status`)
                 usersInWhamageddon.forEach((user) => {
                     //Since moment takes time into account when calculating diff, set time to be 12:00 so it's always before the end time, otherwise it can return a lower

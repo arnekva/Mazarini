@@ -16,18 +16,18 @@ import {
     Role,
     User,
 } from 'discord.js'
-import {MazariniClient} from './MazariniClient'
-import {CommandRunner} from '../general/commandRunner'
-import {exec} from 'child_process'
-import {environment} from '../client-env'
-import {PatchNotes} from '../commands/patchnotes/patchnotes'
-import {ClientHelper} from '../helpers/clientHelper'
-import {MazariniBot} from '../main'
-import {ArrayUtils} from '../utils/arrayUtils'
-import {ChannelIds, MentionUtils, ServerIds} from '../utils/mentionUtils'
-import {textArrays} from '../utils/textArrays'
-import {UserUtils} from '../utils/userUtils'
-import {ErrorHandler} from '../handlers/errorHandler'
+import { MazariniClient } from './MazariniClient'
+import { CommandRunner } from '../general/commandRunner'
+import { exec } from 'child_process'
+import { environment } from '../client-env'
+import { PatchNotes } from '../commands/patchnotes/patchnotes'
+import { ClientHelper } from '../helpers/clientHelper'
+import { MazariniBot } from '../main'
+import { ArrayUtils } from '../utils/arrayUtils'
+import { ChannelIds, MentionUtils, ServerIds } from '../utils/mentionUtils'
+import { textArrays } from '../utils/textArrays'
+import { UserUtils } from '../utils/userUtils'
+import { ErrorHandler } from '../handlers/errorHandler'
 
 /** NOT IN USE
  *  Testing sub-properties and functions
@@ -78,7 +78,7 @@ export class ClientListener {
                         let allMessages = stdout.split('\n')
                         const latestMessage = allMessages[0]
                         if (latestMessage) {
-                            const lastCommit = await this.client.db.getBotData('commit-id')
+                            const lastCommit = await this.client.database.getBotData('commit-id')
                             const indexOfLastID = allMessages.map((c) => c.slice(0, 8)).indexOf(lastCommit)
                             allMessages = allMessages.slice(0, indexOfLastID > 0 ? indexOfLastID : 1)
 
@@ -104,7 +104,7 @@ export class ClientListener {
                             )
 
                             //Update current id (slice away author and message, only keep first part of hash)
-                            this.client.db.setBotData('commit-id', latestMessage.slice(0, 8))
+                            this.client.database.setBotData('commit-id', latestMessage.slice(0, 8))
                         }
                     }
                 })
@@ -112,15 +112,15 @@ export class ClientListener {
 
             //Oppretter ikke cache i dev mode
             if (environment === 'prod') {
-                this.client.db.getStorage().then((storage) => {
+                this.client.database.getStorage().then((storage) => {
                     this.client.storageCache = storage
                 })
                 msg += '\nCache er opprettet'
                 this.client.messageHelper.sendLogMessage(msg)
             }
 
-            ClientHelper.setStatusFromStorage(this.client, this.client.db)
-            PatchNotes.compareAndSendPatchNotes(this.client.messageHelper, this.client.db)
+            ClientHelper.setStatusFromStorage(this.client, this.client.database)
+            PatchNotes.compareAndSendPatchNotes(this.client.messageHelper, this.client.database)
 
             this.errorHandler.launchBusListeners()
         })
@@ -162,9 +162,9 @@ export class ClientListener {
             if (!deletionLog) {
                 return
             }
-            const {executor, target}: any = deletionLog
-            const createdAt = {hours: new Date(deletionLog.createdAt).getHours(), min: new Date(deletionLog.createdAt).getMinutes()}
-            const now = {hours: new Date().getHours(), min: new Date().getMinutes()}
+            const { executor, target }: any = deletionLog
+            const createdAt = { hours: new Date(deletionLog.createdAt).getHours(), min: new Date(deletionLog.createdAt).getMinutes() }
+            const now = { hours: new Date().getHours(), min: new Date().getMinutes() }
             const timeMatches = (): boolean => {
                 return createdAt.hours === now.hours && createdAt.min === now.min
             }
@@ -182,7 +182,7 @@ export class ClientListener {
                     {
                         text: `**En melding fra ** *${message?.author?.username}* **ble slettet av** *${executor?.username}*. **Innhold**: '*${message?.content}*'`,
                     },
-                    {noMentions: true}
+                    { noMentions: true }
                 )
             }
         })
@@ -195,36 +195,36 @@ export class ClientListener {
 
         this.client.on('channelDelete', (channel: DMChannel | NonThreadGuildBasedChannel) => {
             const id = ChannelIds.ACTION_LOG
-            this.client.messageHelper.sendMessage(id, {text: `Channel med ID ${channel.id} ble slettet`})
+            this.client.messageHelper.sendMessage(id, { text: `Channel med ID ${channel.id} ble slettet` })
         })
 
         this.client.on('emojiCreate', (emoji: GuildEmoji) => {
             if (emoji.guild.id == ServerIds.MAZARINI) {
-                this.client.db.registerEmojiStats(emoji.name)
+                this.client.database.registerEmojiStats(emoji.name)
             }
             const id = ChannelIds.ACTION_LOG
-            this.client.messageHelper.sendMessage(id, {text: `Emoji med navn ${emoji.name} ble lagt til`})
+            this.client.messageHelper.sendMessage(id, { text: `Emoji med navn ${emoji.name} ble lagt til` })
         })
 
         this.client.on('emojiDelete', (emoji: GuildEmoji) => {
             if (emoji.guild.id == ServerIds.MAZARINI) {
-                this.client.db.registerEmojiRemoved(emoji.name)
+                this.client.database.registerEmojiRemoved(emoji.name)
             }
             const id = ChannelIds.ACTION_LOG
-            this.client.messageHelper.sendMessage(id, {text: `Emoji med navn ${emoji.name} ble slettet`})
+            this.client.messageHelper.sendMessage(id, { text: `Emoji med navn ${emoji.name} ble slettet` })
         })
 
         this.client.on('emojiUpdate', (oldEmoji: GuildEmoji, newEmoji: GuildEmoji) => {
             if (newEmoji.guild.id == ServerIds.MAZARINI) {
-                this.client.db.registerEmojiUpdated(oldEmoji.name, newEmoji.name)
+                this.client.database.registerEmojiUpdated(oldEmoji.name, newEmoji.name)
             }
             const id = ChannelIds.ACTION_LOG
-            this.client.messageHelper.sendMessage(id, {text: `Emoji med navn ${oldEmoji.name} ble oppdatert`})
+            this.client.messageHelper.sendMessage(id, { text: `Emoji med navn ${oldEmoji.name} ble oppdatert` })
         })
 
         this.client.on('guildBanAdd', (ban: GuildBan) => {
             const id = ChannelIds.ACTION_LOG
-            this.client.messageHelper.sendMessage(id, {text: `${ban.user.username} ble bannet pga ${ban?.reason}`})
+            this.client.messageHelper.sendMessage(id, { text: `${ban.user.username} ble bannet pga ${ban?.reason}` })
         })
 
         this.client.on('guildCreate', (guild: Guild) => {
@@ -232,7 +232,7 @@ export class ClientListener {
         })
 
         this.client.on('guildMemberAdd', async (member: GuildMember) => {
-            UserUtils.onAddedMember(member, this.client.messageHelper, this.client.db)
+            UserUtils.onAddedMember(member, this.client.messageHelper, this.client.database)
         })
 
         this.client.on('guildMemberRemove', (member: GuildMember | PartialGuildMember) => {
@@ -258,13 +258,13 @@ export class ClientListener {
 
         this.client.on('messageReactionAdd', (messageReaction: MessageReaction, user: User) => {
             if (messageReaction.emoji instanceof GuildEmoji && messageReaction.emoji.guild.id == ServerIds.MAZARINI) {
-                this.client.db.updateEmojiReactionCounter(messageReaction.emoji.name)
+                this.client.database.updateEmojiReactionCounter(messageReaction.emoji.name)
             }
         })
 
         this.client.on('messageReactionRemove', (messageReaction: MessageReaction, user: User) => {
             if (messageReaction.emoji instanceof GuildEmoji && messageReaction.emoji.guild.id == ServerIds.MAZARINI) {
-                this.client.db.updateEmojiReactionCounter(messageReaction.emoji.name, true)
+                this.client.database.updateEmojiReactionCounter(messageReaction.emoji.name, true)
             }
         })
 

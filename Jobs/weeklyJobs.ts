@@ -22,11 +22,11 @@ export class WeeklyJobs {
         // this.logEvent()
     }
     private async awardWeeklyChips() {
-        const brukere = await this.client.db.getAllUsers()
+        const brukere = await this.client.database.getAllUsers()
         brukere.forEach((user) => {
             if (user.chips) {
                 user.chips += 1500
-                this.client.db.updateUser(user)
+                this.client.database.updateUser(user)
             }
         })
     }
@@ -61,15 +61,15 @@ export class WeeklyJobs {
         }
     }
     private async resetStatuses() {
-        this.client.db.deleteSpecificPrefixValues('status')
+        this.client.database.deleteSpecificPrefixValues('status')
     }
 
     private async deleteOldCountdowns() {
-        const storage = await this.client.db.getStorage()
+        const storage = await this.client.database.getStorage()
         const countdowns = storage?.countdown
         if (countdowns) {
             countdowns.allCountdowns = countdowns.allCountdowns.filter((c) => !DateUtils.dateHasPassed(c.date))
-            this.client.db.updateStorage({ countdown: countdowns })
+            this.client.database.updateStorage({ countdown: countdowns })
         }
     }
 

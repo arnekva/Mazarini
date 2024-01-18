@@ -612,7 +612,7 @@ export class CallOfDutyCommands extends AbstractCommands {
     }
 
     private async getWZUserStringFromDB(user: User) {
-        const dbUser = await this.client.db.getUser(user.id)
+        const dbUser = await this.client.database.getUser(user.id)
         return dbUser?.activisionUserString
     }
 
@@ -636,14 +636,14 @@ export class CallOfDutyCommands extends AbstractCommands {
 
     /** Beware of stats: any */
     private async saveUserStats(interaction: Interaction<CacheType>, stats: CodStats | CodBRStatsType, isBR?: boolean) {
-        const user = await this.client.db.getUser(interaction.user.id)
+        const user = await this.client.database.getUser(interaction.user.id)
         if (isBR) user.codStatsBR = stats
         else user.codStats = stats
-        this.client.db.updateUser(user)
+        this.client.database.updateUser(user)
     }
 
     private async getUserStats(interaction: Interaction<CacheType>, isBr?: boolean) {
-        const user = await this.client.db.getUser(interaction.user.id)
+        const user = await this.client.database.getUser(interaction.user.id)
         if (isBr) {
             if ((user.codStatsBR as any) === 'undefined') return {}
             return user.codStatsBR

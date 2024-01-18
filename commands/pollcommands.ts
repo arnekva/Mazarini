@@ -59,7 +59,7 @@ export class PollCommands extends AbstractCommands {
                 desc: description,
                 multipleAnswers: !!multipleAnswers,
             })
-            this.client.db.updateStorage({
+            this.client.database.updateStorage({
                 polls: stPolls,
             })
         } else {
@@ -87,10 +87,10 @@ export class PollCommands extends AbstractCommands {
     }
 
     private async pollsFromStorage() {
-        const storage = await this.client.db.getStorage()
+        const storage = await this.client.database.getStorage()
         const polls = storage?.polls
 
-        if (!polls) this.client.db.updateStorage({ polls: [] })
+        if (!polls) this.client.database.updateStorage({ polls: [] })
         return polls
     }
 
@@ -111,7 +111,7 @@ export class PollCommands extends AbstractCommands {
             )
             const msg = await this.messageHelper.sendMessage(interaction.channelId, { embed: embed, components: [row] })
             poll.messageId = msg.id
-            this.client.db.updateStorage({
+            this.client.database.updateStorage({
                 polls: polls,
             })
         } else {
@@ -166,7 +166,7 @@ export class PollCommands extends AbstractCommands {
                 const sentMsg = await this.messageHelper.sendMessage(interaction.channelId, { embed: embed, components: [row] })
                 poll.messageId = sentMsg.id
             }
-            this.client.db.updateStorage({
+            this.client.database.updateStorage({
                 polls: polls,
             })
             interaction.deferUpdate()

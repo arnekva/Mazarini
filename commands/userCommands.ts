@@ -50,9 +50,9 @@ export class UserCommands extends AbstractCommands {
         const isSet = interaction.options.getSubcommand() === 'sett'
         if (isSet) {
             const statusText = interaction.options.get('tekst')?.value as string
-            const user = await this.client.db.getUser(interaction.user.id)
+            const user = await this.client.database.getUser(interaction.user.id)
             user.status = statusText
-            this.client.db.updateUser(user)
+            this.client.database.updateUser(user)
 
             const embed = new EmbedBuilder()
                 .setTitle(`${interaction.user.username} har oppdatert statusen sin`)
@@ -62,7 +62,7 @@ export class UserCommands extends AbstractCommands {
 
             this.messageHelper.replyToInteraction(interaction, embed)
         } else if (isVis) {
-            const users = await this.client.db.getAllUsers()
+            const users = await this.client.database.getAllUsers()
             const embed = new EmbedBuilder().setTitle('Statuser')
             users.forEach((user) => {
                 const status = user?.status
@@ -77,7 +77,7 @@ export class UserCommands extends AbstractCommands {
     }
 
     private async findUserInfo(interaction: ChatInputCommandInteraction<CacheType>) {
-        const allUserTabs = await this.client.db.getUser(interaction.user.id)
+        const allUserTabs = await this.client.database.getUser(interaction.user.id)
 
         const options: SelectMenuComponentOptionData[] = Object.keys(allUserTabs).map((key) => ({
             label: key,
@@ -93,7 +93,7 @@ export class UserCommands extends AbstractCommands {
     private async handleUserInfoViewingMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {
         if (selectMenu.customId.split(';')[1] === selectMenu.user.id) {
             const value = selectMenu.values[0]
-            let userData = await this.client.db.getUser(selectMenu.user.id)[value]
+            let userData = await this.client.database.getUser(selectMenu.user.id)[value]
 
             if (typeof userData === 'object') {
                 userData = Object.entries(userData).map((entry, val) => {

@@ -77,9 +77,9 @@ export class MessageChecker {
                     sendAsSilent: true,
                 })
 
-                const user = await this.client.db.getUser(message.author.id)
+                const user = await this.client.database.getUser(message.author.id)
                 user.chips += 1000
-                this.client.db.updateUser(user)
+                this.client.database.updateUser(user)
             }
         }
     }

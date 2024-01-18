@@ -15,7 +15,7 @@ export class DatabaseHelper {
      * @returns
      */
     public async getUser(userID: string): Promise<MazariniUser> {
-        let user = await this.db.getUser(userID)
+        const user = await this.db.getUser(userID)
         if (user) return user
         return await this.addUser(DatabaseHelper.defaultUser(userID))
     }
@@ -50,7 +50,7 @@ export class DatabaseHelper {
 
     /** Directly uppdates the storage with the given props.
      * Note that this will overwrite existing cache. Any data you want to keep must be added to the partial. Use getCache() to get the current cache value */
-    public async updateStorage(props: Partial<Omit<MazariniStorage, 'updateTimer'>>) {
+    public updateStorage(props: Partial<Omit<MazariniStorage, 'updateTimer'>>) {
         const updates = {}
         for (const prop in props) {
             updates[`/other/${prop}`] = props[prop]
@@ -157,7 +157,7 @@ export class DatabaseHelper {
         const updates = {}
         if (emoji) emoji.added.push(new Date())
         else {
-            emoji = { name: emojiName, timesUsedInMessages: 0, timesUsedInReactions: 0, added: [new Date()], removed: []}
+            emoji = { name: emojiName, timesUsedInMessages: 0, timesUsedInReactions: 0, added: [new Date()], removed: [] }
         }
         updates[`/stats/emojis/${emojiName}`] = emoji
         this.db.updateData(updates)
@@ -167,7 +167,7 @@ export class DatabaseHelper {
         let emoji = await this.db.getEmojiStats(emojiName)
         const updates = {}
         if (emoji) {
-            emoji.removed ? emoji.removed.push(new Date()) : emoji.removed = Array(1).fill(new Date())
+            emoji.removed ? emoji.removed.push(new Date()) : (emoji.removed = Array(1).fill(new Date()))
             updates[`/stats/emojis/${emojiName}`] = emoji
             this.db.updateData(updates)
         }
@@ -197,8 +197,8 @@ export class DatabaseHelper {
         this.db.incrementData(path, decrement)
     }
 
-    public async getEmojiStats(): Promise<Object> {
-        return await this.db.getData('stats/emojis') as Object
+    public async getEmojiStats(): Promise<object> {
+        return (await this.db.getData('stats/emojis')) as object
     }
 
     static defaultUser(id: string): MazariniUser {

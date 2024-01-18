@@ -18,7 +18,7 @@ export class MemeCommands extends AbstractCommands {
     }
 
     private async retrieveMemes() {
-        this.memes = await this.client.db.getMemes()
+        this.memes = await this.client.database.getMemes()
     }
     private readonly baseURL = 'https://api.imgflip.com/caption_image'
 
