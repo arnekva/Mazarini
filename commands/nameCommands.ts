@@ -79,7 +79,7 @@ export class NameCommands extends AbstractCommands {
         return (await this.client.database.getTextCommandValueArray(username)) as string[]
     }
 
-    private async removeTextValueFromInteraction(index: number, username: string) {
+    private removeTextValueFromInteraction(index: number, username: string) {
         this.client.database.nukeTextCommand(username, index)
     }
 

@@ -1,7 +1,7 @@
 import { EmbedBuilder } from 'discord.js'
 import moment from 'moment'
 import { MazariniClient } from '../client/MazariniClient'
-import { PoletCommands } from '../commands/poletCommands'
+import { PoletCommands } from '../commands/drinks/poletCommands'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
 import { ChannelIds } from '../utils/mentionUtils'

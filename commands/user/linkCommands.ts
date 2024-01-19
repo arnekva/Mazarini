@@ -1,9 +1,9 @@
 import { CacheType, ChatInputCommandInteraction, Interaction } from 'discord.js'
-import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { MazariniClient } from '../client/MazariniClient'
+import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { MazariniClient } from '../../client/MazariniClient'
 
-import { IInteractionElement } from '../interfaces/interactionInterface'
-import { PoletCommands } from './poletCommands'
+import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { PoletCommands } from '../drinks/poletCommands'
 
 export class LinkCommands extends AbstractCommands {
     constructor(client: MazariniClient) {

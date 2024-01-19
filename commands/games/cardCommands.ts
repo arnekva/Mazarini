@@ -1,10 +1,10 @@
 import { ButtonInteraction, CacheType, ChatInputCommandInteraction } from 'discord.js'
-import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { MazariniClient } from '../client/MazariniClient'
+import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { MazariniClient } from '../../client/MazariniClient'
 
-import { EmojiHelper } from '../helpers/emojiHelper'
-import { SlashCommandHelper } from '../helpers/slashCommandHelper'
-import { IInteractionElement } from '../interfaces/interactionInterface'
+import { EmojiHelper } from '../../helpers/emojiHelper'
+import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
+import { IInteractionElement } from '../../interfaces/interactionInterface'
 const deckOfCards = require('deckofcards')
 
 export interface ICardObject {

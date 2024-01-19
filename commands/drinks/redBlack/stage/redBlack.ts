@@ -1,4 +1,4 @@
-import { ICardObject } from '../../../cardCommands'
+import { ICardObject } from '../../../games/cardCommands'
 import { RedBlackCommands } from '../redBlackCommands'
 import { RedBlackRound } from '../redBlackInterfaces'
 

@@ -10,9 +10,9 @@ import {
     ModalSubmitInteraction,
     StringSelectMenuInteraction,
 } from 'discord.js'
-import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { MazariniClient } from '../client/MazariniClient'
-import { IInteractionElement } from '../interfaces/interactionInterface'
+import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { MazariniClient } from '../../client/MazariniClient'
+import { IInteractionElement } from '../../interfaces/interactionInterface'
 
 const defaultButtonRow = new ActionRowBuilder<ButtonBuilder>()
 defaultButtonRow.addComponents(

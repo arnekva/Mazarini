@@ -1,7 +1,7 @@
 import { ButtonInteraction, CacheType } from 'discord.js'
 import { EmojiHelper } from '../../../../helpers/emojiHelper'
 import { RandomUtils } from '../../../../utils/randomUtils'
-import { CardCommands } from '../../../cardCommands'
+import { CardCommands } from '../../../games/cardCommands'
 import { RedBlackCommands } from '../redBlackCommands'
 import { IGameRules, IGiveTakeCard } from '../redBlackInterfaces'
 

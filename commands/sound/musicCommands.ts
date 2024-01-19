@@ -1,11 +1,11 @@
 import { CacheType, ChatInputCommandInteraction, Interaction, User } from 'discord.js'
-import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { lfKey, musixMatchKey } from '../client-env'
-import { MazariniClient } from '../client/MazariniClient'
+import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { lfKey, musixMatchKey } from '../../client-env'
+import { MazariniClient } from '../../client/MazariniClient'
 
-import { IInteractionElement } from '../interfaces/interactionInterface'
-import { EmbedUtils } from '../utils/embedUtils'
-import { TextUtils } from '../utils/textUtils'
+import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { EmbedUtils } from '../../utils/embedUtils'
+import { TextUtils } from '../../utils/textUtils'
 const fetch = require('node-fetch')
 export type musicCommand = 'top'
 
@@ -76,8 +76,10 @@ export class Music extends AbstractCommands {
         switch (c) {
             case 'topp':
                 if (s as topMethods) return this.findTopMethod(s)
+                break
             case 'weekly':
                 if (s as weeklyMethods) return this.findWeeklyMethod(s)
+                break
             case 'siste':
                 if (s as weeklyMethods) return this.findLastPlayedSongs(s)
         }
@@ -153,9 +155,7 @@ export class Music extends AbstractCommands {
                             : dataParam.method.cmd.includes('weekly') || dataParam.method.cmd.includes('recent')
                         const isWeekly = dataParam.method.cmd.includes('weekly')
                         const isNotRecent = !dataParam.method.cmd.includes('recent')
-                        const totalPlaycount = info['user']?.playcount ?? '1'
-
-                        let prop
+                        // const totalPlaycount = info['user']?.playcount ?? '1'
 
                         const strippedMethod = dataParam.method.cmd.replace('user.get', '')
 
@@ -163,9 +163,10 @@ export class Music extends AbstractCommands {
                             ? strippedMethod.replace('weekly', '').replace('chart', '')
                             : TextUtils.replaceLast(strippedMethod.replace('top', '').replace('recent', ''), 's', '')
 
-                        prop = topData[strippedMethod][methodWithoutGet] as { name: string; playcount: string; artist?: { name: string } }[]
-                        if (!!prop) {
-                            prop.forEach((element: any, index) => {
+                        const prop = topData[strippedMethod][methodWithoutGet] as { name: string; playcount: string; artist?: { name: string } }[]
+                        if (prop) {
+                            prop.forEach((element: any) => {
+                                // eslint-disable-next-line no-prototype-builtins
                                 const isCurrentlyPlaying = !isNotRecent && element.hasOwnProperty('@attr')
                                 const localData: IMusicData = {
                                     username: dataParam.username,
@@ -184,9 +185,13 @@ export class Music extends AbstractCommands {
 
                         // return retMessage
                     })
-                    .catch((error: any) => {})
+                    .catch((error: any) => {
+                        this.messageHelper.sendLogMessage(`Feilmelding i findLastFmData, innerste nivå. ${error}`)
+                    })
             })
-            .catch((error: any) => {})
+            .catch((error: any) => {
+                this.messageHelper.sendLogMessage(`Feilmelding i findLastFmData, ytterste nivå. ${error}`)
+            })
         return data
     }
 
@@ -210,7 +215,7 @@ export class Music extends AbstractCommands {
                 const isArtist = options === 'toptenartist'
                 const isLastPlayed = options === 'lasttensongs'
                 const isTags = options === 'toptentags'
-                const isSongs = options === 'toptensongs' || isLastPlayed || options === 'toptenalbum'
+                // const isSongs = options === 'toptensongs' || isLastPlayed || options === 'toptenalbum'
                 const canHaveTimePriod = !!timePeriod && !isLastPlayed
                 const data = await this.findCommandForInteraction(interaction, options, user instanceof User ? user : undefined, timePeriod)
                 const findDataDescription = () => {
@@ -232,11 +237,11 @@ export class Music extends AbstractCommands {
                         value: data,
                     })
                 } else if (data.length) {
-                    let additionalData = data.forEach((d, idx) => {
+                    data.forEach((d) => {
                         const datePlayed = d.datePlayed ? d.datePlayed : ''
                         d
                         const additionalData = isLastPlayed ? datePlayed : d.numPlays + ' avspillinger'
-                        let extraData = !!additionalData ? `(${additionalData})` : ''
+                        let extraData = additionalData ? `(${additionalData})` : ''
                         if (d.isCurrentlyPlaying) extraData = '(spiller nå)'
                         emb.addFields({
                             name: d.track, //Last.fm returns artist in the track place, so it's always track here
@@ -269,11 +274,10 @@ export class Music extends AbstractCommands {
             }
             const artist = interaction.options.get('artist')?.value as string
             const msg = await this.messageHelper.replyToInteraction(interaction, `Leter etter data ...`)
-            let librarySize = 0
 
             /** Maps the received json data to a new object with only the needed data */
             const mapData = (libraryData: any): LastFMLibraryData[] => {
-                return libraryData.map((artist, idx) => {
+                return libraryData.map((artist) => {
                     return {
                         name: artist.name,
                         playcount: artist?.playcount,
@@ -346,7 +350,7 @@ export class Music extends AbstractCommands {
     async findCommandForInteraction(interaction: Interaction<CacheType>, options: string, user?: User, period?: string): Promise<IMusicData[] | string> {
         const fmUser = await this.client.database.getUser(user ? user?.id : interaction.user.id)
         if (fmUser.lastFMUsername) {
-            let data: fetchData = {
+            const data: fetchData = {
                 user: fmUser.lastFMUsername,
                 method: { cmd: '', desc: '' },
                 limit: '10',
@@ -384,8 +388,6 @@ export class Music extends AbstractCommands {
         await interaction.deferReply()
         const artist = interaction.options.get('artist')?.value as string
         const track = interaction.options.get('sang')?.value as string
-        const timeStamp = interaction.options.get('tid')?.value as string
-        const numLines = interaction.options.get('linjer')?.value as string
 
         const lyrics = await Music.fetchLyrcs(track, artist)
         if (lyrics) {

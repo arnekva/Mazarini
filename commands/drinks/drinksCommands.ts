@@ -1,12 +1,12 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, EmbedBuilder, Message } from 'discord.js'
-import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { MazariniClient } from '../client/MazariniClient'
+import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { MazariniClient } from '../../client/MazariniClient'
 
-import { IInteractionElement } from '../interfaces/interactionInterface'
-import { ArrayUtils } from '../utils/arrayUtils'
-import { MentionUtils } from '../utils/mentionUtils'
-import { RandomUtils } from '../utils/randomUtils'
-import { CardCommands, ICardObject } from './cardCommands'
+import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { ArrayUtils } from '../../utils/arrayUtils'
+import { MentionUtils } from '../../utils/mentionUtils'
+import { RandomUtils } from '../../utils/randomUtils'
+import { CardCommands, ICardObject } from '../games/cardCommands'
 
 interface IUserObject {
     name: string

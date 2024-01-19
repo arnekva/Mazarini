@@ -1,11 +1,11 @@
 import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction } from 'discord.js'
-import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { MazariniClient } from '../client/MazariniClient'
+import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { MazariniClient } from '../../client/MazariniClient'
 
-import { EmojiHelper } from '../helpers/emojiHelper'
-import { ChipsStats, EmojiStats, RulettStats } from '../interfaces/database/databaseInterface'
-import { IInteractionElement } from '../interfaces/interactionInterface'
-import { EmbedUtils } from '../utils/embedUtils'
+import { EmojiHelper } from '../../helpers/emojiHelper'
+import { ChipsStats, EmojiStats, RulettStats } from '../../interfaces/database/databaseInterface'
+import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { EmbedUtils } from '../../utils/embedUtils'
 
 export class StatsCommands extends AbstractCommands {
     private emojiStats: EmojiStats[]

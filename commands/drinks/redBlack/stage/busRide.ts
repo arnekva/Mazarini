@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, CacheType, EmbedBuilder, Message } from 'discord.js'
 import { EmojiHelper } from '../../../../helpers/emojiHelper'
 import { MessageHelper } from '../../../../helpers/messageHelper'
-import { CardCommands } from '../../../cardCommands'
+import { CardCommands } from '../../../games/cardCommands'
 import { TryAgainBtn, canadianBusrideButtonRow } from '../redBlackButtonRows'
 import { IBusRideCard, IUserObject } from '../redBlackInterfaces'
 

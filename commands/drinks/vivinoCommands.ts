@@ -1,10 +1,10 @@
 import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import moment from 'moment'
-import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { MazariniClient } from '../client/MazariniClient'
-import { IInteractionElement } from '../interfaces/interactionInterface'
-import { EmbedUtils } from '../utils/embedUtils'
-import { LanguageCodes } from '../utils/languageUtils'
+import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { MazariniClient } from '../../client/MazariniClient'
+import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { EmbedUtils } from '../../utils/embedUtils'
+import { LanguageCodes } from '../../utils/languageUtils'
 const fetch = require('node-fetch')
 
 interface IVivinoReview {

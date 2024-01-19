@@ -10,17 +10,17 @@ import {
     Message,
 } from 'discord.js'
 import moment from 'moment'
-import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { vinBearer, vinKey, vinUserAgent, vinmonopoletKey } from '../client-env'
-import { MazariniClient } from '../client/MazariniClient'
+import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { vinBearer, vinKey, vinUserAgent, vinmonopoletKey } from '../../client-env'
+import { MazariniClient } from '../../client/MazariniClient'
 
-import { Languages } from '../helpers/languageHelpers'
-import { MessageHelper } from '../helpers/messageHelper'
-import { IInteractionElement } from '../interfaces/interactionInterface'
-import { BarcodeUtils } from '../utils/barcodeUtils'
-import { DateUtils } from '../utils/dateUtils'
-import { EmbedUtils } from '../utils/embedUtils'
-import { MentionUtils } from '../utils/mentionUtils'
+import { Languages } from '../../helpers/languageHelpers'
+import { MessageHelper } from '../../helpers/messageHelper'
+import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { BarcodeUtils } from '../../utils/barcodeUtils'
+import { DateUtils } from '../../utils/dateUtils'
+import { EmbedUtils } from '../../utils/embedUtils'
+import { MentionUtils } from '../../utils/mentionUtils'
 const fetch = require('node-fetch')
 
 interface exceptionHours {
@@ -238,7 +238,7 @@ export class PoletCommands extends AbstractCommands {
     }
 
     private isStoreOpen(closingTime: string) {
-        let split = closingTime.split(':')
+        const split = closingTime.split(':')
         if (split.length === 2) {
             const hourMin: number[] = split.map((t) => Number(t))
             if (DateUtils.isHourMinuteBefore(hourMin[0], hourMin[1])) return 'Åpent'

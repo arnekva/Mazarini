@@ -9,15 +9,15 @@ import {
     SelectMenuComponentOptionData,
     StringSelectMenuInteraction,
 } from 'discord.js'
-import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { MazariniClient } from '../client/MazariniClient'
+import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { MazariniClient } from '../../client/MazariniClient'
 
-import { ActionMenuHelper } from '../helpers/actionMenuHelper'
-import { DateUtils } from '../utils/dateUtils'
-import { EmbedUtils } from '../utils/embedUtils'
+import { ActionMenuHelper } from '../../helpers/actionMenuHelper'
+import { DateUtils } from '../../utils/dateUtils'
+import { EmbedUtils } from '../../utils/embedUtils'
 
-import { IInteractionElement } from '../interfaces/interactionInterface'
-import { UserUtils } from '../utils/userUtils'
+import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { UserUtils } from '../../utils/userUtils'
 
 export class UserCommands extends AbstractCommands {
     constructor(client: MazariniClient) {

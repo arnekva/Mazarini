@@ -1,9 +1,9 @@
 import { CacheType, ChatInputCommandInteraction } from 'discord.js'
-import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { MazariniClient } from '../client/MazariniClient'
+import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { MazariniClient } from '../../client/MazariniClient'
 
-import { IInteractionElement } from '../interfaces/interactionInterface'
-import { RandomUtils } from '../utils/randomUtils'
+import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { RandomUtils } from '../../utils/randomUtils'
 
 const weightedRandomObject = require('weighted-random-object')
 

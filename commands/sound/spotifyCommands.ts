@@ -1,14 +1,14 @@
 import { CacheType, ChatInputCommandInteraction, EmbedBuilder, Interaction, Message, User } from 'discord.js'
 import { Headers } from 'node-fetch'
 import { URLSearchParams } from 'url'
-import { AbstractCommands } from '../Abstracts/AbstractCommand'
-import { spotifyClientID, spotifyClientSecret } from '../client-env'
-import { MazariniClient } from '../client/MazariniClient'
+import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { spotifyClientID, spotifyClientSecret } from '../../client-env'
+import { MazariniClient } from '../../client/MazariniClient'
 
-import { EmojiHelper } from '../helpers/emojiHelper'
-import { IInteractionElement } from '../interfaces/interactionInterface'
-import { EmbedUtils } from '../utils/embedUtils'
-import { UserUtils } from '../utils/userUtils'
+import { EmojiHelper } from '../../helpers/emojiHelper'
+import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { EmbedUtils } from '../../utils/embedUtils'
+import { UserUtils } from '../../utils/userUtils'
 import { Music } from './musicCommands'
 const SpotifyWebApi = require('spotify-web-api-node')
 const base64 = require('base-64')
@@ -46,11 +46,11 @@ export class SpotifyCommands extends AbstractCommands {
      *  @returns Access Token for API
      */
     private async authorize() {
-        let myHeaders = new Headers()
+        const myHeaders = new Headers()
         myHeaders.append('Authorization', `Basic ${base64.encode(spotifyClientID + ':' + spotifyClientSecret)}`)
         myHeaders.append('Content-Type', 'application/x-www-form-urlencoded')
 
-        var urlencoded = new URLSearchParams()
+        const urlencoded = new URLSearchParams()
         urlencoded.append('grant_type', 'client_credentials')
 
         const requestOptions = {
@@ -75,7 +75,6 @@ export class SpotifyCommands extends AbstractCommands {
     }
 
     private async searchForSongOnSpotifyAPI(track: string, artist?: string) {
-        const _msgHelper = this.messageHelper
         const auth = await this.authorize() //Autoriser appen
         const spotifyApi = new SpotifyWebApi({
             clientId: spotifyClientID,
@@ -91,8 +90,8 @@ export class SpotifyCommands extends AbstractCommands {
 
     private async printSongFromSpotify(interaction: ChatInputCommandInteraction<CacheType>) {
         await interaction.deferReply()
-        let searchStringTrack = interaction.options.get('track')?.value as string
-        let searchStringArtist = interaction.options.get('artist')?.value as string
+        const searchStringTrack = interaction.options.get('track')?.value as string
+        const searchStringArtist = interaction.options.get('artist')?.value as string
         let searchString = `${searchStringArtist} ${searchStringTrack}`
         let debugMode = false
         if (searchString.includes('debug')) {
@@ -152,7 +151,6 @@ export class SpotifyCommands extends AbstractCommands {
         }
 
         if (isFull) {
-            let musicRet: string | EmbedBuilder
             const users = interaction?.guild?.members?.cache.map((u) => {
                 return {
                     id: u.user.id,
@@ -208,14 +206,14 @@ export class SpotifyCommands extends AbstractCommands {
                         embed.setFooter({ text: `Fant ingen tekst for sangen` })
                     }
                 }
-                if (!!spotify?.url) embed.setURL(spotify.url)
+                if (spotify?.url) embed.setURL(spotify.url)
                 if (spotify.assets) embed.setThumbnail(`${spotifyImageBaseUrl}/${imageUrl}`)
                 return embed
             }
         } else {
             const dbUser = await this.client.database.getUser(user?.id ?? interaction.user.id)
             const lastFmName = dbUser.lastFMUsername
-            if (!!lastFmName) {
+            if (lastFmName) {
                 const data = await _music.findLastFmData({
                     user: lastFmName,
                     includeNameInOutput: true,

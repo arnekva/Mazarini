@@ -1,5 +1,5 @@
-import { Message } from "discord.js"
-import { ICardObject } from "../../cardCommands"
+import { Message } from 'discord.js'
+import { ICardObject } from '../../games/cardCommands'
 
 export interface IUserObject {
     name: string
@@ -18,7 +18,7 @@ export enum RedBlackRound {
     UpDown = 'UpDown',
     InsideOutside = 'InsideOutside',
     Suit = 'Suit',
-    Finished = 'Finished'
+    Finished = 'Finished',
 }
 
 export interface IGiveTakeGame {
@@ -45,7 +45,6 @@ export interface IBusRideCard {
 export interface IGiveTakeTable {
     levels: IGiveTakeLevel[]
     current: IGiveTakeCard
-
 }
 
 export interface IGiveTakeLevel {
@@ -68,13 +67,13 @@ export interface IGiveTakeLevel {
 export enum GameStage {
     RedBlack = 'RedBlack',
     GiveTake = 'GiveTake',
-    BusRide = 'BusRide'
+    BusRide = 'BusRide',
 }
 
 export enum IBusRide {
     Standard = 'Standard',
     Canadian = 'Canadian',
-    BergenLightRail = 'BergenLightRail'
+    BergenLightRail = 'BergenLightRail',
 }
 
 export interface IGameRules {

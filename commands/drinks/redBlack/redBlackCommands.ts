@@ -12,7 +12,7 @@ import {
 import { AbstractCommands } from '../../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../../client/MazariniClient'
 import { IInteractionElement } from '../../../interfaces/interactionInterface'
-import { CardCommands, ICardObject } from '../../cardCommands'
+import { CardCommands, ICardObject } from '../../games/cardCommands'
 import {
     gtButtonRow,
     gtStartButtonRow,
