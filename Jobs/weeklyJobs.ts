@@ -24,7 +24,7 @@ export class WeeklyJobs {
     private async awardWeeklyChips() {
         const brukere = await this.client.database.getAllUsers()
         brukere.forEach((user) => {
-            if (user.chips) {
+            if (user.chips !== undefined) {
                 user.chips += 1500
                 this.client.database.updateUser(user)
             }
@@ -39,7 +39,7 @@ export class WeeklyJobs {
         })
         if (data && data?.openingHours?.exceptionHours?.length > 0) {
             const fmMessage = new EmbedBuilder()
-                .setTitle(`Det er endrede åpningstider på polet denne ${!!dates.length ? 'uken' : 'måneden'}`)
+                .setTitle(`Det er endrede åpningstider på polet denne ${dates.length ? 'uken' : 'måneden'}`)
                 .setDescription(`Bruker ${data.storeName} (${data.address.postalCode}, ${data.address.city}) som utgangspunkt`)
 
             data.openingHours.exceptionHours.forEach((h, index) => {
@@ -61,7 +61,7 @@ export class WeeklyJobs {
         }
     }
     private async resetStatuses() {
-        this.client.database.deleteSpecificPrefixValues('status')
+        await this.client.database.deleteSpecificPrefixValues('status')
     }
 
     private async deleteOldCountdowns() {
