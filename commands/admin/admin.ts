@@ -239,7 +239,9 @@ export class Admin extends AbstractCommands {
         const dbUser = await this.client.database.getUser(user.id)
         dbUser.chips += chips
         this.client.database.updateUser(dbUser)
-        this.messageHelper.replyToInteraction(interaction, `${user.username} har mottatt en ${type} reward på ${chips} på grunn av *${reason}*`)
+        const text = `${user.username} har mottatt en ${type} reward på ${chips} på grunn av *${reason}*`
+        this.messageHelper.replyToInteraction(interaction, text)
+        this.messageHelper.sendLogMessage(`${text}. Kanal: ${MentionUtils.mentionChannel(interaction.channelId)}. `)
     }
 
     private async restartBot(interaction: ChatInputCommandInteraction<CacheType>) {
