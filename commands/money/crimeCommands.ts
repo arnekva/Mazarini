@@ -40,7 +40,7 @@ export class CrimeCommands extends AbstractCommands {
     }
 
     private async krig(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, target: User, amount: number) {
-        interaction.deferReply()
+        await interaction.deferReply({ ephemeral: true })
         const userWallets = await this.getUserWallets(interaction.user.id, target.id)
         const hasAmount = !!amount
 
