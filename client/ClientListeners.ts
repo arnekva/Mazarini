@@ -106,6 +106,15 @@ export class ClientListener {
                 })
                 msg += '\nCache er opprettet'
                 this.client.messageHelper.sendLogMessage(msg)
+            } else {
+                this.client.storageCache = {
+                    countdown: {},
+                    ferie: [],
+                    polls: [],
+                    rocketLeagueTournaments: [],
+                    scheduledMessages: [],
+                    updateTimer: -1,
+                }
             }
 
             ClientHelper.setStatusFromStorage(this.client, this.client.database)
