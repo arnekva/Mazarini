@@ -72,7 +72,7 @@ export class DailyJobs {
                         `For ${DateUtils.formatDate(new Date())}. Trykk på en av knappene for å bli varslet 1 time før turneringen starter`
                     )
                     const activeGameButtonRow = new ActionRowBuilder<ButtonBuilder>()
-                    tournaments.forEach((t, idx) => {
+                    tournaments.forEach((t) => {
                         activeGameButtonRow.addComponents(
                             new ButtonBuilder({
                                 custom_id: `RL_TOURNAMENT;${t.id}`,
@@ -92,7 +92,7 @@ export class DailyJobs {
             })
     }
 
-    private async validateAndResetDailyClaims(users: MazariniUser[]) {
+    private validateAndResetDailyClaims(users: MazariniUser[]) {
         const updates = this.client.database.getUpdatesObject<'daily'>()
         users.forEach((user) => {
             const daily = user?.daily
@@ -113,7 +113,7 @@ export class DailyJobs {
         this.client.database.updateData(updates)
     }
 
-    private async checkForUserBirthdays(users: MazariniUser[]) {
+    private checkForUserBirthdays(users: MazariniUser[]) {
         users.forEach((user) => {
             const birthday = user?.birthday
             if (birthday) {

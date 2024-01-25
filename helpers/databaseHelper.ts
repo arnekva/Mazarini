@@ -152,6 +152,11 @@ export class DatabaseHelper {
         return updates
     }
 
+    // getUpdatesObjectFromKey(k: keyof MazariniUser){
+
+    //     return this.getUpdatesObject<k in Maza>()
+    // }
+
     public async registerEmojiStats(emojiName: string) {
         let emoji = await this.db.getEmojiStats(emojiName)
         const updates = {}

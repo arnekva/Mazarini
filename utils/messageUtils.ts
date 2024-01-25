@@ -1,8 +1,8 @@
-import {Message, TextChannel} from 'discord.js'
-import {MazariniClient} from '../client/MazariniClient'
-import {ChannelIds, MentionUtils} from './mentionUtils'
-import {UserUtils} from './userUtils'
-import {environment} from '../client-env'
+import { Message, TextChannel } from 'discord.js'
+import { environment } from '../client-env'
+import { MazariniClient } from '../client/MazariniClient'
+import { ChannelIds, MentionUtils } from './mentionUtils'
+import { UserUtils } from './userUtils'
 const leetReg = new RegExp(/(1337)/gi)
 
 export namespace MessageUtils {

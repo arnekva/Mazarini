@@ -19,13 +19,14 @@ export class CrimeCommands extends AbstractCommands {
     }
     static jailBreakAttempts = 3
 
-    private async checkBalance(users: { userID: string }[], amountAsNumber: number): Promise<boolean> {
+    private async checkBalance(userID: string[], amountAsNumber: number): Promise<boolean> {
         let notEnough = false
-        users.forEach(async (u) => {
-            const user = await this.client.database.getUser(u.userID)
+        for (const u of userID) {
+            const user = await this.client.database.getUser(u)
             const balance = user.chips
             if (Number(balance) < amountAsNumber || Number(balance) === 0) notEnough = true
-        })
+        }
+
         return notEnough
     }
 
@@ -39,18 +40,20 @@ export class CrimeCommands extends AbstractCommands {
     }
 
     private async krig(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, target: User, amount: number) {
+        interaction.deferReply()
         const userWallets = await this.getUserWallets(interaction.user.id, target.id)
         const hasAmount = !!amount
 
         const largestPossibleValue = Math.min(userWallets.engagerChips, userWallets.victimChips)
         const amountAsNum = hasAmount ? Number(amount) : largestPossibleValue
-        const notEnoughChips = await this.checkBalance([{ userID: interaction.user.id }, { userID: target.id }], amountAsNum)
+        const notEnoughChips = await this.checkBalance([interaction.user.id, target.id], amountAsNum)
+
         if (amountAsNum <= 0) {
-            this.messageHelper.replyToInteraction(interaction, `Dere må krige om minst 1 chip`, { ephemeral: true })
+            this.messageHelper.replyToInteraction(interaction, `Dere må krige om minst 1 chip`, { ephemeral: true, hasBeenDefered: true })
         } else if (notEnoughChips) {
-            this.messageHelper.replyToInteraction(interaction, `En av dere har ikke råd til dette`, { ephemeral: true })
+            this.messageHelper.replyToInteraction(interaction, `En av dere har ikke råd til dette`, { ephemeral: true, hasBeenDefered: true })
         } else {
-            this.messageHelper.replyToInteraction(interaction, `Du har startet en krig mot ${target.username}`, { ephemeral: true })
+            this.messageHelper.replyToInteraction(interaction, `Du har startet en krig mot ${target.username}`, { ephemeral: true, hasBeenDefered: true })
             await this.messageHelper.sendMessage(interaction?.channelId, {
                 text: `${interaction.user.username} vil gå til krig med deg ${MentionUtils.mentionUser(target.id)} for ${TextUtils.formatMoney(
                     amountAsNum
@@ -82,7 +85,7 @@ export class CrimeCommands extends AbstractCommands {
         /** Engager */
         const engagerUser = UserUtils.findUserById(engagerId, interaction)
         if (userAsMember.id === eligibleTargetId && interaction.message.components.length) {
-            const notEnoughChips = await this.checkBalance([{ userID: engagerId }, { userID: eligibleTargetId }], amountAsNum)
+            const notEnoughChips = await this.checkBalance([engagerId, eligibleTargetId], amountAsNum)
             if (notEnoughChips) {
                 this.messageHelper.replyToInteraction(interaction, `En av dere har ikke lenger råd til krigen`, { ephemeral: true })
             } else {
