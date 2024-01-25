@@ -60,19 +60,20 @@ export namespace HelgHelper {
 
                 if (currentDaysDate.getDay() === HelgHelper.findWeekendStart()?.getDay()) {
                     hasFoundWeekendStart = true
-                    timeUntil += `${DateUtils.formatCountdownText(DateUtils.getTimeTo(currentDaysDate), `til langhelgå så starte med ${day.name}`)}\n`
+                    timeUntil += `${DateUtils.formatCountdownText(DateUtils.getTimeTo(currentDaysDate), {
+                        textEnding: `til langhelgå så starte med ${day.name}`,
+                    })}\n`
                 } else
-                    hasHolidayInTheMiddleOfWeek = timeUntil = `${DateUtils.formatCountdownText(
-                        DateUtils.getTimeTo(currentDaysDate),
-                        `til fridagen ${day.name}`
-                    )}\n`
+                    hasHolidayInTheMiddleOfWeek = timeUntil = `${DateUtils.formatCountdownText(DateUtils.getTimeTo(currentDaysDate), {
+                        textEnding: `til fridagen ${day.name}`,
+                    })}\n`
             }
         })
         if (!hasFoundWeekendStart) {
             const possibleWeekendStart = HelgHelper.findWeekendStart()
 
             if (possibleWeekendStart) {
-                timeUntil += DateUtils.formatCountdownText(DateUtils.getTimeTo(possibleWeekendStart), 'til langhelg')
+                timeUntil += DateUtils.formatCountdownText(DateUtils.getTimeTo(possibleWeekendStart), { textEnding: 'til langhelg' })
             } else {
                 const doesNextWeekHaveHolidayOnMonday = HelgHelper.nextWeekHasHolidayOnMonday()[0]
                 moment.locale('nb')
@@ -91,7 +92,7 @@ export namespace HelgHelper {
                 if (isHelg) return `Det e helg!`
                 const textToPrint = `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg'} ${emoji}`
 
-                let timeToPrint = DateUtils.formatCountdownText(timeTo, textToPrint) || 'Eg vettkje ka dag det e :('
+                let timeToPrint = DateUtils.formatCountdownText(timeTo, { textEnding: textToPrint }) || 'Eg vettkje ka dag det e :('
                 if (!!hasHolidayInTheMiddleOfWeek && !isHoliday) {
                     timeToPrint += `\n${hasHolidayInTheMiddleOfWeek}`
                 }

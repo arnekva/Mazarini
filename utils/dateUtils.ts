@@ -1,4 +1,4 @@
-import moment, {Moment} from 'moment'
+import moment, { Moment } from 'moment'
 
 export const dateRegex = new RegExp(/^(0[1-9]|[12][0-9]|3[01])[-](0[1-9]|1[012])[-](19|20)\d\d$/) ///^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\d\d$/ old
 /** Checks a string against 24hr format HH:MM */
@@ -68,7 +68,7 @@ export class DateUtils {
         return Math.floor(t / 3600)
     }
 
-    static secondsToHoursAndMinutes(t: number): {hours: number; minutes: number} {
+    static secondsToHoursAndMinutes(t: number): { hours: number; minutes: number } {
         const hours = this.secondsToHours(t)
         const minutes = this.secondsToMinutes(t) - hours * 60
         return {
@@ -76,7 +76,7 @@ export class DateUtils {
             minutes: minutes,
         }
     }
-    static secondsToMinutesAndSeconds(t: number): {minutes: number; seconds: number} {
+    static secondsToMinutesAndSeconds(t: number): { minutes: number; seconds: number } {
         const minutes = this.secondsToMinutes(t)
 
         const seconds = t - minutes * 60
@@ -106,21 +106,30 @@ export class DateUtils {
         return compareDate.getDate() == today.getDate() && compareDate.getMonth() == today.getMonth() + (ignoreMonthOffset ? 0 : 1)
     }
 
-    static formatCountdownText(dateObj: countdownTime | undefined, textEnding: string, finishedText?: string, noTextEnding?: boolean) {
-        if (!dateObj) return finishedText ?? ''
+    static formatCountdownText(
+        dateObj: countdownTime | undefined,
+        params?: {
+            textEnding?: string
+            finishedText?: string
+            noTextEnding?: boolean
+            usesOm?: boolean
+            ignoreSeconds?: boolean
+        }
+    ) {
+        if (!dateObj) return params?.finishedText ?? ''
         const timeTab: string[] = []
-        let timeString = 'Det er'
+        let timeString = params?.usesOm ? 'Om' : 'Det er'
 
         if (dateObj.days > 0) timeTab.push(' ' + dateObj.days + ` ${dateObj.days == 1 ? 'dag' : 'dager'}`)
         if (dateObj.hours > 0) timeTab.push(' ' + dateObj.hours + ` ${dateObj.hours == 1 ? 'time' : 'timer'}`)
         if (dateObj.minutes > 0) timeTab.push(' ' + dateObj.minutes + ` ${dateObj.minutes == 1 ? 'minutt' : 'minutter'}`)
-        if (dateObj.seconds > 0) timeTab.push(' ' + dateObj.seconds + ` ${dateObj.seconds == 1 ? 'sekund' : 'sekunder'}`)
-        if (timeTab.length < 1) return noTextEnding ? '' : textEnding + ' er ferdig!'
+        if (dateObj.seconds > 0 && !params?.ignoreSeconds) timeTab.push(' ' + dateObj.seconds + ` ${dateObj.seconds == 1 ? 'sekund' : 'sekunder'}`)
+        if (timeTab.length < 1) return params?.noTextEnding ? '' : params.textEnding + ' er ferdig!'
         timeTab.forEach((text, index) => {
             timeString += text
             if (index <= timeTab.length - 2 && timeTab.length > 1) timeString += index == timeTab.length - 2 ? ' og' : ','
         })
-        timeString += ' ' + textEnding
+        if (params?.textEnding) timeString += ' ' + params.textEnding
         return timeString
     }
 
@@ -153,7 +162,7 @@ export class DateUtils {
 
     /** Checks if the string supplied is today (e.g. "monday")  */
     static isDateNameToday(day: string) {
-        const dateName = new Date().toLocaleDateString('no', {weekday: 'long'})
+        const dateName = new Date().toLocaleDateString('no', { weekday: 'long' })
 
         return dateName.toLowerCase() === day.toLowerCase()
     }
@@ -170,7 +179,7 @@ export class DateUtils {
     }
 
     static isHourMinuteBefore(hour: number, minute: number) {
-        return moment().isBefore(moment({hour: hour, minute: minute}))
+        return moment().isBefore(moment({ hour: hour, minute: minute }))
     }
 
     static getCurrentDateTimeFormatted() {
