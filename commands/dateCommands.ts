@@ -7,9 +7,9 @@ import { ICountdownItem, ferieItem } from '../interfaces/database/databaseInterf
 import { IInteractionElement } from '../interfaces/interactionInterface'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { DateUtils, dateRegex, timeRegex } from '../utils/dateUtils'
+import { EmbedUtils } from '../utils/embedUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
-import { DatabaseHelper } from '../helpers/databaseHelper'
 
 export interface dateValPair {
     print: string
@@ -224,29 +224,26 @@ export class DateCommands extends AbstractCommands {
                 this.messageHelper.replyToInteraction(interaction, `Din countdown for *${event}* er satt til ${cdDate.toLocaleString()}`, { ephemeral: true })
             }
         } else if (isPrinting) {
-            let sendThisText = ''
-
-            const printValues: dateValPair[] = []
             if (countdowns?.allCountdowns?.length < 1) {
-                return this.messageHelper.replyToInteraction(interaction, `Det er ingen aktive countdowns`)
+                return this.messageHelper.replyToInteraction(interaction, `Det er ingen aktive countdowner`)
             }
-            countdowns.allCountdowns.forEach((cd) => {
-                const daysUntil = DateUtils.getTimeTo(new Date(cd.date))
-                const text = DateUtils.formatCountdownText(daysUntil, 'te ' + cd.description)
-                printValues.push({
-                    print:
-                        `${text ? '\n' : ''}` +
-                        `${DateUtils.formatCountdownText(daysUntil, 'te ' + cd.description)} *(${DateUtils.formatDate(new Date(cd.date), true)})*`,
-                    date: cd.date,
+            const embed = EmbedUtils.createSimpleEmbed(`⌛ Countdown ⏳`, `${countdowns.allCountdowns.length} countdowner`)
+            countdowns.allCountdowns
+                .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                .forEach((cd) => {
+                    const daysUntil = DateUtils.getTimeTo(new Date(cd.date))
+                    embed.addFields([
+                        {
+                            name: cd.description,
+                            value: `${DateUtils.formatCountdownText(daysUntil, { usesOm: true, noTextEnding: true })} \n*${DateUtils.formatDate(
+                                new Date(cd.date),
+                                true
+                            )}*`,
+                        },
+                    ])
                 })
-            })
 
-            ArrayUtils.sortDateStringArray(printValues)
-            printValues.forEach((el) => {
-                sendThisText += el.print
-            })
-            if (!sendThisText) sendThisText = 'Det er ingen aktive countdowner'
-            this.messageHelper.replyToInteraction(interaction, sendThisText)
+            this.messageHelper.replyToInteraction(interaction, embed)
         }
     }
 
@@ -280,12 +277,10 @@ export class DateCommands extends AbstractCommands {
             if (DateUtils.isToday(date)) {
                 this.messageHelper.replyToInteraction(interaction, 'Du har bursdag i dag! gz')
             } else {
-                const timeUntilBirthday = DateUtils.formatCountdownText(
-                    DateUtils.getTimeTo(date),
-                    `til ${interaction.user.username} sin bursdag.`,
-                    undefined,
-                    true
-                )
+                const timeUntilBirthday = DateUtils.formatCountdownText(DateUtils.getTimeTo(date), {
+                    textEnding: `til ${interaction.user.username} sin bursdag.`,
+                    noTextEnding: true,
+                })
                 this.messageHelper.replyToInteraction(interaction, timeUntilBirthday ?? 'Klarte ikke regne ut')
             }
         } else if (birthDayFromArg) {
