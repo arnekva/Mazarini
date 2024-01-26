@@ -77,6 +77,19 @@ export class Ludo extends AbstractCommands {
         this.startMessageId = startMsg.id
     }
 
+    //TODO:
+    //Kick pieces back to home when touched by another player
+    //Goal message
+    //Kick player out of GSH turns when won
+    //Message update when two pieces are on the same position
+    //Use new icons for pieces (number must correspond to pieceindex)
+    //Add safe spaces (use another color on path block for these)
+    //Add spam timeouts - anti-maggi features, spamming button = timeout where presses wont register
+    //Add a '/ludo settings' subcommand
+    //  - That can reset the board message (i.e. wipe cached messages and re-send state)
+    //  - That can set who's turn it is
+    //  - 
+
     joinGame(interaction: ButtonInteraction) {
         const pIndex = this.gameStateHandler.allPlayers.length
         if (pIndex > 3) {
