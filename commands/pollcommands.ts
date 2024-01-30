@@ -187,10 +187,11 @@ export class PollCommands extends AbstractCommands {
         })
         let allVotees: string[] = []
         poll.options.forEach((option) => {
-            option.votes.forEach((vote) => {
-                const user = UserUtils.findUserById(vote.userId, interaction)
-                if (user) allVotees.push(user.username)
-            })
+            if (option.votes)
+                option.votes.forEach((vote) => {
+                    const user = UserUtils.findUserById(vote.userId, interaction)
+                    if (user) allVotees.push(user.username)
+                })
         })
         allVotees = ArrayUtils.removeAllDuplicates(allVotees)
         let printNames = ''
