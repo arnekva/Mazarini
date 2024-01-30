@@ -8,11 +8,9 @@ import { MessageHelper } from '../../helpers/messageHelper'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { ChannelIds } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '15.7.0'
+    public static readonly currentVersion = '15.7.1'
     public static readonly currentPatchNotes =
-        `\n* Countdown bruker nå embed` +
-        `\n* Fikset en feil som gjorde at du kunne gå til krig mot noen med så stor sum du ville` +
-        `\n* Diverse feilrettinger`
+        `\n* Rettet en feil som gjorde at animerte emojier ikke ble tracket` + `\n* Rettet en feil som gjorde at man ikke kunne stemme på polls`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

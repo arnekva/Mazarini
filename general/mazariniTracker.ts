@@ -4,13 +4,15 @@ import { ServerIds } from '../utils/mentionUtils'
 
 export class MazariniTracker {
     private client: MazariniClient
-    emojiRegex = new RegExp(/<:(\S+):(\d+)>/gi)
+    emojiRegex = new RegExp(/<(a)?:(\S+):(\d+)>/gi)
 
     constructor(client: MazariniClient) {
         this.client = client
     }
 
     public async trackEmojiStats(message: Message) {
+        console.log(message.content)
+
         if (message.guildId === ServerIds.MAZARINI) {
             this.emojiRegex.lastIndex = 0
             let match
