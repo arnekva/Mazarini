@@ -145,9 +145,17 @@ export class PollCommands extends AbstractCommands {
                 }
                 //Add vote to poll
                 const optionToVote = poll.options.findIndex((o) => o.id === votesFor)
-                poll.options[optionToVote].votes.push({
-                    userId: userId,
-                })
+                if (poll.options[optionToVote].votes) {
+                    poll.options[optionToVote].votes.push({
+                        userId: userId,
+                    })
+                } else {
+                    poll.options[optionToVote].votes = [
+                        {
+                            userId: userId,
+                        },
+                    ]
+                }
             }
 
             const embed = this.getPollEmbed(poll, interaction)
