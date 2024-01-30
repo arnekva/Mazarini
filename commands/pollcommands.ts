@@ -176,11 +176,11 @@ export class PollCommands extends AbstractCommands {
     private getPollEmbed(poll: IPoll, interaction) {
         const embed = EmbedUtils.createSimpleEmbed(`Poll`, poll.desc || 'Enkel poll')
         poll.options.forEach((option) => {
-            const voters = option.votes.map((x) => UserUtils.findUserById(x.userId, interaction)?.username).toString()
+            const voters = option.votes?.map((x) => UserUtils.findUserById(x.userId, interaction)?.username).toString()
             embed.addFields([
                 {
                     name: option.name,
-                    value: option.votes.length + ` [stemmer](${'https://discord.com/channels/' + interaction.guildId} "${voters}")`,
+                    value: option.votes.length + ` [stemmer](${'https://discord.com/channels/' + interaction.guildId} "${voters ? voters : ''}")`,
                 },
             ])
         })
