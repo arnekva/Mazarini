@@ -182,7 +182,7 @@ export class RocketLeagueCommands extends AbstractCommands {
         return true
     }
 
-    private compareOldNewStats(current?: string | Number | undefined, storedData?: string | number | undefined, ignoreCompare?: boolean) {
+    private compareOldNewStats(current?: string | number | undefined, storedData?: string | number | undefined, ignoreCompare?: boolean) {
         if (!current || !storedData) return ''
         if (ignoreCompare) return ''
         const currentStats = Number(current)

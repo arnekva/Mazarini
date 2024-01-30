@@ -131,7 +131,7 @@ export class PollCommands extends AbstractCommands {
         if (poll) {
             const multipleAnswers = poll.multipleAnswers
             const currOption = poll.options.find((o) => o.id === votesFor)
-            const hasVotedForOption = currOption.votes.find((v) => v?.userId === userId)
+            const hasVotedForOption = currOption.votes?.find((v) => v?.userId === userId)
             //If user has already voted for this option, remove the vote
             if (hasVotedForOption) {
                 ArrayUtils.removeItemOnce(currOption.votes, hasVotedForOption)
