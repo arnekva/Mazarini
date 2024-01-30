@@ -180,7 +180,8 @@ export class PollCommands extends AbstractCommands {
             embed.addFields([
                 {
                     name: option.name,
-                    value: option.votes.length + ` [stemmer](${'https://discord.com/channels/' + interaction.guildId} "${voters ? voters : ''}")`,
+                    value:
+                        (option.votes?.length ? option.votes?.length : 0) + ` [stemmer](${'https://discord.com/channels/' + interaction.guildId} "${voters}")`,
                 },
             ])
         })
