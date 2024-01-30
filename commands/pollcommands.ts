@@ -137,7 +137,7 @@ export class PollCommands extends AbstractCommands {
                 ArrayUtils.removeItemOnce(currOption.votes, hasVotedForOption)
             } else {
                 //If multiple answers is not allowed, remove the other vote
-                const hasVotedForAnything = poll.options.find((o) => !!o.votes.find((c) => c.userId === userId))
+                const hasVotedForAnything = poll.options.find((o) => (o.votes ? !!o.votes.find((c) => c.userId === userId) : undefined))
                 const cantHaveMoreThanOneVote = !multipleAnswers && hasVotedForAnything
                 if (cantHaveMoreThanOneVote) {
                     const voteToRemove = hasVotedForAnything.votes.find((c) => c.userId === userId)
