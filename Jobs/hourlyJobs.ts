@@ -2,7 +2,7 @@ import { MazariniClient } from '../client/MazariniClient'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { EmbedUtils } from '../utils/embedUtils'
-import { ChannelIds } from '../utils/mentionUtils'
+import { ChannelIds, MentionUtils } from '../utils/mentionUtils'
 
 export class HourJob {
     private messageHelper: MessageHelper
@@ -48,6 +48,7 @@ export class HourJob {
             })
             messagesToSend.forEach((msg) => {
                 this.messageHelper.sendMessage(msg.channelId, { text: msg.message })
+                this.messageHelper.sendLogMessage(`En planlagt melding ble sendt til ${MentionUtils.mentionChannel(msg.channelId)}`)
                 shceduledMessages = ArrayUtils.removeItemOnce(shceduledMessages, msg)
             })
             this.client.database.updateStorage({ scheduledMessages: shceduledMessages })

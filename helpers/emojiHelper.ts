@@ -11,6 +11,8 @@ type emojiObject = {
     name: string
     id: string
 }
+
+export type JobStatus = 'success' | 'failed' | 'not sendt'
 export class EmojiHelper {
     static async getEmoji(emojiType: string, accessPoint: Message | Interaction<CacheType> | Client<boolean>): Promise<emojiReturnType> {
         const ap = accessPoint instanceof Client ? accessPoint : accessPoint.client
@@ -24,5 +26,17 @@ export class EmojiHelper {
         const emojis = Array.from(ap.emojis.cache.filter((emoji) => emoji.name.includes(isGeggi ? 'geggiexcited' : 'catmygling')))
         const emoji = emojis.length === 1 ? emojis[0] : ArrayUtils.randomChoiceFromArray(emojis)
         return emoji[1]
+    }
+
+    static getStatusEmoji(s: JobStatus) {
+        switch (s) {
+            case 'success':
+                return '✅'
+
+            case 'failed':
+                return '⛔️'
+            case 'not sendt':
+                return '☑️'
+        }
     }
 }

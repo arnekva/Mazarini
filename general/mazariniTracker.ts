@@ -11,13 +11,13 @@ export class MazariniTracker {
     }
 
     public async trackEmojiStats(message: Message) {
-        console.log(message.content)
-
-        if (message.guildId === ServerIds.MAZARINI) {
+        if (true || message.guildId === ServerIds.MAZARINI) {
             this.emojiRegex.lastIndex = 0
             let match
             const emojiNames: string[] = []
             while ((match = this.emojiRegex.exec(message.content))) {
+                console.log('has match', match[2], message.guild.emojis.cache)
+
                 if (match && message.guild.emojis.cache.get(match[2])) emojiNames.push(match[1])
             }
             if (emojiNames) this.client.database.updateEmojiMessageCounters(emojiNames)
