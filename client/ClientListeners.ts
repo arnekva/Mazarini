@@ -27,6 +27,7 @@ import { ChannelIds, MentionUtils, ServerIds } from '../utils/mentionUtils'
 import { textArrays } from '../utils/textArrays'
 import { UserUtils } from '../utils/userUtils'
 import { MazariniClient } from './MazariniClient'
+import { EmbedUtils } from '../utils/embedUtils'
 
 /** NOT IN USE
  *  Testing sub-properties and functions
@@ -175,13 +176,22 @@ export class ClientListener {
                 environment === 'prod' &&
                 timeMatches()
             ) {
+                const hasEmbed = message.embeds[0]?.data
+
                 this.client.messageHelper.sendMessage(
                     actionLogId,
                     {
-                        text: `**En melding fra ** *${message?.author?.username}* **ble slettet av** *${executor?.username}*. **Innhold**: '*${message?.content}*'`,
+                        text: `**En melding fra ** *${message?.author?.username}* **ble slettet av** *${executor?.username}*. **Innhold**: '*${
+                            hasEmbed ? 'Embedded melding:' : message?.content
+                        }*'`,
                     },
                     { noMentions: true }
                 )
+                if (hasEmbed) {
+                    const embed = EmbedUtils.createSimpleEmbed(hasEmbed.title, hasEmbed.description)
+                    if (hasEmbed.fields) embed.addFields(hasEmbed.fields)
+                    this.client.messageHelper.sendMessage(actionLogId, { embed: embed })
+                }
             }
         })
 

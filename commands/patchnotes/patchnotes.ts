@@ -6,11 +6,10 @@ import { MazariniClient } from '../../client/MazariniClient'
 import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { MessageHelper } from '../../helpers/messageHelper'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
-import { ChannelIds } from '../../utils/mentionUtils'
+import { ChannelIds, MentionUtils } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '15.7.1'
-    public static readonly currentPatchNotes =
-        `\n* Rettet en feil som gjorde at animerte emojier ikke ble tracket` + `\n* Rettet en feil som gjorde at man ikke kunne stemme på polls`
+    public static readonly currentVersion = '15.7.2'
+    public static readonly currentPatchNotes = `\n* Botten vil nå også logge embedded meldinger til ${MentionUtils.mentionChannel(ChannelIds.ACTION_LOG)}`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
