@@ -261,7 +261,7 @@ export class GamblingCommands extends AbstractCommands {
         const diceTarget = customTarget ? customTarget : 6
         if (diceTarget <= 0) this.messageHelper.replyToInteraction(interaction, `Du kan ikke trille en terning med mindre enn 1 side`, { ephemeral: true })
         else {
-            const explanation = !!customTarget ? `*(1 - ${customTarget})*` : ``
+            const explanation = customTarget ? `*(1 - ${customTarget})*` : ``
             const number = RandomUtils.getRandomInteger(1, diceTarget)
             const numberEmoji = customTarget ? number : (await EmojiHelper.getEmoji(`dice_${number}`, interaction)).id
             this.messageHelper.replyToInteraction(interaction, `${numberEmoji} ${explanation}`)
@@ -335,11 +335,11 @@ export class GamblingCommands extends AbstractCommands {
                         },
                         autoCompleteCallback(rawInteraction: AutocompleteInteraction<CacheType>) {
                             /** Matches sequence <<<  123 *(123 - 123)*   >>> */
-                            const regEx = /([0-9]* \*\([0-9]*\ - [0-9]*\)\*)/gi
+                            const regEx = /([0-9]* \*\([0-9]* - [0-9]*\)\*)/gi
                             const lastMsg = rawInteraction.channel.messages.cache
                                 .reverse()
                                 .filter((msg) => msg.author.id === MentionUtils.User_IDs.BOT_HOIE)
-                                .find((msg, key) => {
+                                .find((msg) => {
                                     const test = regEx.test(msg.content)
                                     regEx.lastIndex = 0
                                     return test

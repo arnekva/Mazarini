@@ -1,24 +1,23 @@
-import { asposeClientID, asposeClientSecret } from "../client-env";
+import { asposeClientID, asposeClientSecret } from '../client-env'
 
 const fetch = require('node-fetch')
-
 
 export namespace BarcodeUtils {
     export async function decodeImage(input: string) {
         const token = await getToken()
-        
-        const response: any = await fetch('https://api.aspose.cloud/v3.0/barcode/recognize?Type=EAN13&Timeout=30000&url='+input, {
+
+        const response: any = await fetch('https://api.aspose.cloud/v3.0/barcode/recognize?Type=EAN13&Timeout=30000&url=' + input, {
             method: 'POST',
             headers: {
                 Accept: 'application/json',
-                Authorization: `Bearer ${token}`
+                Authorization: `Bearer ${token}`,
             },
         })
         const res = await response.json()
         return res.barcodes[0]?.barcodeValue ?? undefined
     }
 
-    async function getToken() {
+    export async function getToken() {
         const requestBody = new URLSearchParams()
         requestBody.append('grant_type', 'client_credentials')
         requestBody.append('client_id', asposeClientID)
@@ -27,12 +26,11 @@ export namespace BarcodeUtils {
             method: 'POST',
             headers: {
                 Accept: 'application/json',
-                ContentType: 'application/x-www-form-urlencoded'
+                ContentType: 'application/x-www-form-urlencoded',
             },
-            body: requestBody
+            body: requestBody,
         })
-        const res = await response.json()        
+        const res = await response.json()
         return res.access_token
     }
 }
-
