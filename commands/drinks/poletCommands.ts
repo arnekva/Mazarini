@@ -254,14 +254,10 @@ export class PoletCommands extends AbstractCommands {
         let hasBarCode = barCodeRegex.test(content)
         let barcode = content
         if (!hasUrl && !hasBarCode && message.attachments?.first()?.url) {
-            const msg = await messageHelper.sendMessage(message.channelId, { text: 'Sjekker bilde for strekkode...' })
+            const msg = await messageHelper.sendLogMessage('Sjekker bilde for strekkode...')
             barcode = await BarcodeUtils.decodeImage(message.attachments.first().url)
-            if (barcode) {
-                hasBarCode = true
-                msg.delete()
-            } else {
-                msg.edit('Fant ingen strekkode.')
-            }
+            msg.edit(`Fant ${barcode ? '' : 'ikke '}i bilde sendt i kanalen ${MentionUtils.mentionChannel(message.channelId)}`)
+            hasBarCode = !!barcode
         }
         if (hasUrl || hasBarCode) {
             const id = hasBarCode ? barcode : content.split('/p/')[1]
