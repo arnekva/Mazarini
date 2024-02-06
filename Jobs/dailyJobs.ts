@@ -142,7 +142,7 @@ export class DailyJobs {
                 const isBirthdayToday = DateUtils.isToday(date.toDate(), true)
                 if (isBirthdayToday) {
                     this.messageHelper.sendMessage(ChannelIds.GENERAL, {
-                        text: `Gratulerer med dagen ${UserUtils.findMemberByUserID(user.id, this.client.guilds[0])}!`,
+                        text: `Gratulerer med dagen ${UserUtils.findUserById(user.id, this.client)}!`,
                     })
                     status = 'success'
                 }

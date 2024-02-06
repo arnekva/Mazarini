@@ -1,6 +1,5 @@
 import {
     AuditLogEvent,
-    ButtonInteraction,
     CacheType,
     ChatInputCommandInteraction,
     Guild,
@@ -12,8 +11,9 @@ import {
     Role,
     User,
 } from 'discord.js'
-import {DatabaseHelper} from '../helpers/databaseHelper'
-import {MessageHelper} from '../helpers/messageHelper'
+import { MazariniClient } from '../client/MazariniClient'
+import { DatabaseHelper } from '../helpers/databaseHelper'
+import { MessageHelper } from '../helpers/messageHelper'
 const diff = require('deep-diff')
 export namespace UserUtils {
     /**
@@ -44,8 +44,10 @@ export namespace UserUtils {
      * @param rawMessage needed to find the guild
      * @returns User object or undefined
      */
-    export const findUserById = (id: string, rawMessage: Message | ChatInputCommandInteraction | ButtonInteraction) => {
-        return rawMessage.client.users.cache.find((user) => user.id == id)
+    export const findUserById = (id: string, searchable: Message | Interaction<CacheType> | MazariniClient) => {
+        return searchable instanceof MazariniClient
+            ? searchable.users?.cache.find((m) => m.id === id)
+            : searchable.guild?.client?.users?.cache.find((m) => m.id === id)
     }
 
     /**
@@ -120,7 +122,7 @@ export namespace UserUtils {
     }
 
     export const onMemberLeave = (member: GuildMember | PartialGuildMember, msgHelper: MessageHelper) => {
-        msgHelper.sendMessage('340626855990132747', {text: 'Farvell, ' + (member.nickname ?? member.displayName)})
+        msgHelper.sendMessage('340626855990132747', { text: 'Farvell, ' + (member.nickname ?? member.displayName) })
         msgHelper.sendLogMessage('En bruker forlot Mazarini: ' + (member.nickname ?? member.displayName))
     }
 
