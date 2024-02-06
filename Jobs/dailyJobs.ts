@@ -1,8 +1,8 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js'
 import moment from 'moment'
 import fetch from 'node-fetch'
 import { rapidApiKey, rapidApiKey2 } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
+import { RocketLeagueCommands } from '../commands/gaming/rocketleagueCommands'
 import { EmojiHelper, JobStatus } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniUser, RocketLeagueTournament } from '../interfaces/database/databaseInterface'
@@ -75,30 +75,23 @@ export class DailyJobs {
                     status = 'failed'
                     retryFetch()
                 } else {
-                    //FIXME: This codeblock is repeated here and and rocketLeagueCommands. Should be refactored
                     tournaments.forEach((t, idx) => {
                         t.id = idx
                     })
-                    this.client.database.updateStorage({
-                        rocketLeagueTournaments: tournaments,
-                    })
-                    const embed = EmbedUtils.createSimpleEmbed(
-                        `Rocket League Turningeringer`,
-                        `For ${DateUtils.formatDate(new Date())}. Trykk på en av knappene for å bli varslet 1 time før turneringen starter`
+
+                    const embed = RocketLeagueCommands.getEmbed()
+                    const activeGameButtonRow = RocketLeagueCommands.getButtonRow(tournaments)
+                    const msg = await this.messageHelper.sendMessage(
+                        ChannelIds.ROCKET_LEAGUE,
+                        { embed: embed, components: [activeGameButtonRow] },
+                        { sendAsSilent: true }
                     )
-                    const activeGameButtonRow = new ActionRowBuilder<ButtonBuilder>()
-                    tournaments.forEach((t) => {
-                        activeGameButtonRow.addComponents(
-                            new ButtonBuilder({
-                                custom_id: `RL_TOURNAMENT;${t.id}`,
-                                style: ButtonStyle.Primary,
-                                label: `${t.players}v${t.players} ${t.mode} ${DateUtils.getTimeFormatted(new Date(t.starts))}${t.shouldNotify ? ' (*)' : ''}`,
-                                disabled: false,
-                                type: 2,
-                            })
-                        )
+                    this.client.database.updateStorage({
+                        rocketLeagueTournaments: {
+                            mainMessageId: msg.id,
+                            tournaments: tournaments,
+                        },
                     })
-                    this.messageHelper.sendMessage(ChannelIds.ROCKET_LEAGUE, { embed: embed, components: [activeGameButtonRow] }, { sendAsSilent: true })
                     status = 'success'
                 }
             })

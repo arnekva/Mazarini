@@ -19,7 +19,7 @@ export class HourJob {
 
     private async checkForUpcomingRLTournaments() {
         const storage = await this.client.database.getStorage()
-        const tournaments = storage?.rocketLeagueTournaments
+        const tournaments = storage?.rocketLeagueTournaments?.tournaments
         if (tournaments) {
             const nextTournaments = tournaments.filter((t) => new Date(t.starts).getHours() === new Date().getHours() + 1 && t.shouldNotify)
 

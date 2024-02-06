@@ -23,11 +23,11 @@ import { ErrorHandler } from '../handlers/errorHandler'
 import { ClientHelper } from '../helpers/clientHelper'
 import { MazariniBot } from '../main'
 import { ArrayUtils } from '../utils/arrayUtils'
+import { EmbedUtils } from '../utils/embedUtils'
 import { ChannelIds, MentionUtils, ServerIds } from '../utils/mentionUtils'
 import { textArrays } from '../utils/textArrays'
 import { UserUtils } from '../utils/userUtils'
 import { MazariniClient } from './MazariniClient'
-import { EmbedUtils } from '../utils/embedUtils'
 
 /** NOT IN USE
  *  Testing sub-properties and functions
@@ -112,7 +112,7 @@ export class ClientListener {
                     countdown: {},
                     ferie: [],
                     polls: [],
-                    rocketLeagueTournaments: [],
+                    rocketLeagueTournaments: { mainMessageId: '', tournaments: [] },
                     scheduledMessages: [],
                     updateTimer: -1,
                 }

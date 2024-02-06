@@ -2,9 +2,11 @@ import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheT
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
+import { RocketLeagueTournament } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
+import { MessageUtils } from '../../utils/messageUtils'
 
 interface rocketLeagueStats {
     modeName?: string
@@ -214,35 +216,43 @@ export class RocketLeagueCommands extends AbstractCommands {
 
     private async getRocketLeagueTournaments(): Promise<{ embed: EmbedBuilder; buttons: ActionRowBuilder<ButtonBuilder> }> {
         const storage = await this.client.database.getStorage()
-        const currentTournaments = storage?.rocketLeagueTournaments
+        const currentTournaments = storage?.rocketLeagueTournaments?.tournaments
         if (currentTournaments) {
-            const embed = EmbedUtils.createSimpleEmbed(
-                `Rocket League Turneringer`,
-                `For ${DateUtils.formatDate(new Date())}. Trykk på en av knappene for å bli varslet 1 time før turneringen starter`
-            )
-            const activeGameButtonRow = new ActionRowBuilder<ButtonBuilder>()
-            currentTournaments.forEach((t, idx) => {
-                activeGameButtonRow.addComponents(
-                    new ButtonBuilder({
-                        custom_id: `RL_TOURNAMENT;${t.id}`,
-                        style: ButtonStyle.Primary,
-                        label: `${t.players}v${t.players} ${t.mode} ${DateUtils.getTimeFormatted(new Date(t.starts))}${t.shouldNotify ? ' (*)' : ''}`,
-                        disabled: false,
-                        type: 2,
-                    })
-                )
-            })
             return {
-                buttons: activeGameButtonRow,
-                embed: embed,
+                buttons: RocketLeagueCommands.getButtonRow(currentTournaments),
+                embed: RocketLeagueCommands.getEmbed(),
             }
         }
         return undefined
     }
 
+    static getEmbed() {
+        const embed = EmbedUtils.createSimpleEmbed(
+            `Rocket League Turneringer`,
+            `For ${DateUtils.formatDate(new Date())}. Trykk på en av knappene for å bli varslet 1 time før turneringen starter`
+        )
+        return embed
+    }
+
+    static getButtonRow(rt: RocketLeagueTournament[]) {
+        const activeGameButtonRow = new ActionRowBuilder<ButtonBuilder>()
+        rt.forEach((t, idx) => {
+            activeGameButtonRow.addComponents(
+                new ButtonBuilder({
+                    custom_id: `RL_TOURNAMENT;${t.id}`,
+                    style: ButtonStyle.Primary,
+                    label: `${t.players}v${t.players} ${t.mode} ${DateUtils.getTimeFormatted(new Date(t.starts))}${t.shouldNotify ? ' (*)' : ''}`,
+                    disabled: false,
+                    type: 2,
+                })
+            )
+        })
+        return activeGameButtonRow
+    }
+
     private async getAllRLTournamentsAsEmbed() {
         const storage = await this.client.database.getStorage()
-        const currentTournaments = storage?.rocketLeagueTournaments
+        const currentTournaments = storage?.rocketLeagueTournaments.tournaments
         if (currentTournaments) {
             const embed = EmbedUtils.createSimpleEmbed(
                 `Rocket League Tournaments`,
@@ -261,7 +271,7 @@ export class RocketLeagueCommands extends AbstractCommands {
 
     private async createTournamentReminder(interaction: ButtonInteraction<CacheType>) {
         const storage = await this.client.database.getStorage()
-        const tournaments = storage?.rocketLeagueTournaments
+        const tournaments = storage?.rocketLeagueTournaments?.tournaments
         const ids = interaction.customId.split(';')
         const idToUpdate = Number(ids[1])
         const tournamentToUpdate = tournaments.find((t) => {
@@ -280,8 +290,15 @@ export class RocketLeagueCommands extends AbstractCommands {
 
                 tournamentToUpdate.shouldNotify = true
 
+                const mainMsg = await MessageUtils.findMessageById(storage.rocketLeagueTournaments.mainMessageId, this.client)
+                if (mainMsg) {
+                    mainMsg.edit({ components: [RocketLeagueCommands.getButtonRow(tournaments)] })
+                }
                 this.client.database.updateStorage({
-                    rocketLeagueTournaments: tournaments,
+                    rocketLeagueTournaments: {
+                        mainMessageId: storage.rocketLeagueTournaments.mainMessageId ?? 'Unknown',
+                        tournaments: tournaments,
+                    },
                 })
             }
         }

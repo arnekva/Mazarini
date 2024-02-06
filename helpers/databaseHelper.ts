@@ -49,7 +49,7 @@ export class DatabaseHelper {
     }
 
     /** Directly uppdates the storage with the given props.
-     * Note that this will overwrite existing cache. Any data you want to keep must be added to the partial. Use getCache() to get the current cache value */
+     * Note that this will overwrite existing cache. Any data you want to keep must be added to the partial. Use getStorage() to get the current cache value */
     public updateStorage(props: Partial<Omit<MazariniStorage, 'updateTimer'>>) {
         const updates = {}
         for (const prop in props) {

@@ -105,11 +105,20 @@ export interface DailyReward {
     prestige?: number
 }
 
+interface ISavedMessage {
+    messageId: string
+    purpose?: 'rocket-league'
+}
+
 /** Values or objects that can be cached. All props must be marked optional */
 export interface MazariniStorage {
     /** Timer of when the storage was last updated. Updated automatically when storage is changed */
     updateTimer: number
-    rocketLeagueTournaments?: RocketLeagueTournament[]
+    rocketLeagueTournaments?: {
+        mainMessageId: string
+        tournaments: RocketLeagueTournament[]
+    }
+
     /** List of countdowns */
     countdown?: MazariniCountdowns
     /** List of ferier */
@@ -121,6 +130,7 @@ export interface MazariniStorage {
     }[]
     polls?: IPoll[]
     scheduledMessages?: IScheduledMessage[]
+    savedMessages?: ISavedMessage[]
 }
 
 export type FavoritePol = {
