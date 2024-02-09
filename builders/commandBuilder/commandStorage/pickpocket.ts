@@ -15,7 +15,7 @@ export const pickpocketCommand: ISlashCommandItem = {
         {
             name: 'chips',
             description: 'hvor mye prøver du å stjele',
-            type: ApplicationCommandOptionType.Number,
+            type: ApplicationCommandOptionType.Integer,
             required: true,
         },
     ],

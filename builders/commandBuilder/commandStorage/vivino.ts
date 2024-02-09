@@ -9,7 +9,7 @@ export const vivinoCommand: ISlashCommandItem = {
         {
             name: 'year',
             description: 'årstall du vil sjekke',
-            type: ApplicationCommandOptionType.Number,
+            type: ApplicationCommandOptionType.Integer,
             required: false,
             choices: [
                 {
@@ -24,6 +24,7 @@ export const vivinoCommand: ISlashCommandItem = {
                     name: '2022',
                     value: 2022,
                 },
-            ]
-        },]
+            ],
+        },
+    ],
 }

@@ -32,7 +32,7 @@ export const statsCommand: ISlashCommandItem = {
                             description: 'emojien du vil se statistikk for',
                             type: ApplicationCommandOptionType.String,
                             required: true,
-                            autocomplete: true
+                            autocomplete: true,
                         },
                     ],
                 },
@@ -46,27 +46,27 @@ export const statsCommand: ISlashCommandItem = {
                             type: ApplicationCommandOptionType.String,
                             required: true,
                             choices: [
-                                { name: "topp", value: "top"},
-                                { name: "bunn", value: "bottom"},
-                            ]
+                                { name: 'topp', value: 'top' },
+                                { name: 'bunn', value: 'bottom' },
+                            ],
                         },
                         {
                             name: 'antall',
                             description: 'default 10',
-                            type: ApplicationCommandOptionType.Number,
+                            type: ApplicationCommandOptionType.Integer,
                         },
                         {
                             name: 'ignorer',
                             description: 'default sjekkes både meldinger og reaksjoner',
                             type: ApplicationCommandOptionType.String,
                             choices: [
-                                { name: "meldinger", value: "ignoreMessages"},
-                                { name: "reaksjoner", value: "ignoreReactions"},
-                            ]
+                                { name: 'meldinger', value: 'ignoreMessages' },
+                                { name: 'reaksjoner', value: 'ignoreReactions' },
+                            ],
                         },
                     ],
                 },
-            ]
+            ],
         },
     ],
 }

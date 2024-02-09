@@ -6,12 +6,12 @@ import { MazariniClient } from '../../client/MazariniClient'
 import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { MessageHelper } from '../../helpers/messageHelper'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
-import { ChannelIds, MentionUtils } from '../../utils/mentionUtils'
+import { ChannelIds } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '15.8.0'
+    public static readonly currentVersion = '15.8.1'
     public static readonly currentPatchNotes =
-        `\n* Rocket League tournament-knappene vil nå automatisk bli oppdatert med en stjerne (*) for å vise at en reminder er satt. Merk at det kan ta noen sekunder før knappene blir oppdatert` +
-        `\n* Bursdager er fikset og vil nå sende melding til ${MentionUtils.mentionChannel(ChannelIds.GENERAL)} igjen`
+        `\n* Rettet en feil i parametertypene til noen kommandoer som gjorde at de kunne ta inn desimaltall i stedet for kun heltall` +
+        `\n* Rettet en feil som gjorde at autocomplete til /terning i noen tilfeller kunne feile`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

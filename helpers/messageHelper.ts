@@ -118,7 +118,7 @@ export class MessageHelper {
                 this.sendDM(interaction.user, messageContent)
             } else {
                 if (typeof messageContent === 'object') msg = await this.sendMessage(interaction?.channelId, { embed: messageContent })
-                else msg = await this.sendMessage(interaction?.channelId, { text: `${MentionUtils.mentionUser(interaction.user.id)} ${messageContent}` })
+                else msg = await this.sendMessage(interaction?.channelId, { text: `${messageContent} ${MentionUtils.mentionUser(interaction.user.id)} ` })
             }
 
             let msgInfo = msg

@@ -209,7 +209,7 @@ export class RocketLeagueCommands extends AbstractCommands {
 
     private async rocketLeagueTournaments(interaction: ChatInputCommandInteraction<CacheType>) {
         const data = await this.getRocketLeagueTournaments()
-
+        
         this.messageHelper.replyToInteraction(interaction, data.embed)
         this.messageHelper.sendMessage(interaction.channelId, { components: [data.buttons] })
     }

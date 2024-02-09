@@ -56,6 +56,7 @@ export class MazariniClient extends Client {
         this.clientListener = new ClientListener(this)
         this.setupDatabase(this.msgHelper)
         this.clientListener.setupListeners()
+      
     }
 
     /** Starts property listeners for client.  */

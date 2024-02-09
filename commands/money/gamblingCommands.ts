@@ -342,6 +342,7 @@ export class GamblingCommands extends AbstractCommands {
                                 .find((msg) => {
                                     const test = regEx.test(msg.content)
                                     regEx.lastIndex = 0
+                                    
                                     return test
                                 })
                             if (lastMsg) {

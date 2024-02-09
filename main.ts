@@ -24,7 +24,7 @@ export class MazariniBot {
 
         await this.client.login(discordSecret)
         console.log('Logged in, starting setup')
-
+        // this.client.createSlashCommands()
         moment.updateLocale('nb', {})
     }
 }
