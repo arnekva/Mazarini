@@ -112,9 +112,9 @@ export class CrimeCommands extends AbstractCommands {
 
                 const shouldAlwaysLose = engager.id === interaction.user.id
                 let roll = RandomUtils.getRandomInteger(0, 100)
-                if ((engager.id === '239154365443604480' && roll < 50) || (target.id === '239154365443604480' && roll > 50)) {
-                    roll = RandomUtils.getRandomInteger(0, 100)
-                }
+                // if ((engager.id === '239154365443604480' && roll < 50) || (target.id === '239154365443604480' && roll > 50)) {
+                //     roll = RandomUtils.getRandomInteger(0, 100)
+                // }
                 let description = `Terningen trillet: ${roll}/100. ${
                     roll < 51 ? (roll == 50 ? 'Bot Høie' : engagerUser.username) : userAsMember.user.username
                 } vant! 💰💰`
