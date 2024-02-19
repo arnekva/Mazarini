@@ -188,7 +188,7 @@ export class ClientListener {
                     { noMentions: true }
                 )
                 if (hasEmbed) {
-                    const embed = EmbedUtils.createSimpleEmbed(hasEmbed.title, hasEmbed.description)
+                    const embed = EmbedUtils.createSimpleEmbed(hasEmbed.title || "Mangler tittel", hasEmbed.description || "Mangler beskrivelse")
                     if (hasEmbed.fields) embed.addFields(hasEmbed.fields)
                     this.client.messageHelper.sendMessage(actionLogId, { embed: embed })
                 }

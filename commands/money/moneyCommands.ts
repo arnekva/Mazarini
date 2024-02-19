@@ -149,7 +149,7 @@ export class MoneyCommands extends AbstractCommands {
 
     private findPrestigeMultiplier(p: number | undefined) {
         if (p && !isNaN(p) && p > 0) {
-            return 1 + 0.275 * p
+            return 1 + 0.305 * p
         }
         return 1
     }
