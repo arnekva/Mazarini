@@ -1,4 +1,4 @@
-import { CacheType, ChatInputCommandInteraction, Interaction } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, EmbedBuilder, Interaction } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 
@@ -80,13 +80,16 @@ export class MoneyCommands extends AbstractCommands {
         }
     }
 
-    private async claimDailyChipsAndCoins(interaction: ChatInputCommandInteraction<CacheType>): Promise<string> {
-        if (interaction) {
+    private async claimDailyChipsAndCoins(interaction: ChatInputCommandInteraction<CacheType>): Promise<EmbedBuilder> {
+        const embed = new EmbedBuilder()
+        embed.setTitle(`📅 Daily 🗓️`)
+
             const user = await this.client.database.getUser(interaction.user.id)
             const canClaim = !user.daily?.claimedToday
             const hasFreeze = user.daily?.dailyFreezeCounter
             if (hasFreeze && !isNaN(hasFreeze) && hasFreeze > 0) {
-                return 'Du har frosset daily claimet ditt i ' + hasFreeze + ' dager til. Vent til da og prøv igjen'
+                embed.setDescription('Du har frosset daily claimet ditt i ' + hasFreeze + ' dager til. Vent til da og prøv igjen')
+              
             } else if (canClaim) {
                 const updates = {}
                 const oldData: DailyReward = user.daily || { claimedToday: false, streak: 0 }
@@ -94,29 +97,27 @@ export class MoneyCommands extends AbstractCommands {
 
                 const reward = this.findDailyReward(newData)
                 updates[`/users/${user.id}/chips`] = (user?.chips ?? 0) + reward
-
-                let claimedMessage = `Du har hentet dine daglige ${reward} chips ${newData.streak > 1 ? '(' + newData.streak + ' dager i streak)' : ''} ${
-                    oldData?.prestige ? '(' + oldData?.prestige + ' prestige)' : ''
-                }`
-
+                embed.setDescription(`Du har henta dine daglige ${reward} chips`)
+                embed.addFields([{name: "Streak", value: `${newData.streak ?? 1} + ' dager`}, {name: "Prestige", value: `${oldData?.prestige ?? 1}` }])
                 const maxLimit = 7
                 if (newData.streak >= maxLimit) {
                     newData.prestige = 1 + (newData.prestige ?? 0)
-
-                    claimedMessage += `\nDægårten! Du har henta daglige chips i ${newData.streak} dager i strekk! Gz dude, nå prestige du. Du e nå prestige ${
-                        newData.prestige
-                    } og får ${this.findPrestigeMultiplier(newData.prestige).toFixed(
-                        2
-                    )}x i multiplier på alle daily's framøve! \n\n*Streaken din resettes nå te 1*`
+                    embed.addFields([{
+                        name: "Prestige opp", value: `\nDægårten! Du har henta daglige chips i ${newData.streak} dager i strekk! Gz dude, nå prestige du. Du e nå prestige ${
+                            newData.prestige
+                        } og får ${this.findPrestigeMultiplier(newData.prestige).toFixed(
+                            2
+                        )}x i multiplier på alle daily's framøve! \n\n*Streaken din resettes nå te 1*`
+                    }])
+                  
                     newData.streak = 1
                 }
                 updates[`/users/${user.id}/daily`] = newData
                 this.client.database.updateData(updates)
-                return claimedMessage
+                return embed
             } else {
-                return 'Du har allerede hentet dine daglige chips. Prøv igjen i morgen etter klokken 06:00'
+                return embed.setDescription("Du har allerede henta daily i dag. Vent te imårå klokkå 06:00")
             }
-        } else return 'Klarte ikke hente daily'
     }
 
     private async freezeDailyClaim(interaction: Interaction<CacheType>, numDays: number): Promise<string> {
