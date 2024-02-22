@@ -112,7 +112,6 @@ export class MoneyCommands extends AbstractCommands {
                         } og får ${this.findPrestigeMultiplier(newData.prestige).toFixed(
                             2
                         )}x i multiplier på alle daily's framøve! \n\n*Streaken din resettes nå te 1*`,
-                        inline: true,
                     },
                 ])
 
