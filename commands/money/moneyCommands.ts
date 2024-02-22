@@ -98,8 +98,8 @@ export class MoneyCommands extends AbstractCommands {
             updates[`/users/${user.id}/chips`] = (user?.chips ?? 0) + reward
             embed.setDescription(`Du har henta dine daglige ${reward} chips`)
             embed.addFields([
-                { name: 'Streak', value: `${newData.streak ?? 1}` + ' dager' },
-                { name: 'Prestige', value: `${oldData?.prestige ?? 1}` },
+                { name: 'Streak', value: `${newData.streak ?? 1}` + ' dager', inline: true },
+                { name: 'Prestige', value: `${oldData?.prestige ?? 1}`, inline: true },
             ])
             const maxLimit = 7
             if (newData.streak >= maxLimit) {
@@ -112,6 +112,7 @@ export class MoneyCommands extends AbstractCommands {
                         } og får ${this.findPrestigeMultiplier(newData.prestige).toFixed(
                             2
                         )}x i multiplier på alle daily's framøve! \n\n*Streaken din resettes nå te 1*`,
+                        inline: true,
                     },
                 ])
 
