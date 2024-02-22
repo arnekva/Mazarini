@@ -160,19 +160,19 @@ export class VivinoCommands extends AbstractCommands {
                 },
                 {
                     name: 'Høyest rating',
-                    value: `Du ga ${highestRating.object.review.rating} som høyeste score til ${
-                        highestRating.object.vintage.name
-                    }. Om denne vinen skrev du: "${highestRating.object.review?.note?.replace(/ *@\[[^\]]*]/, '')}"`,
+                    value: `Du ga ${highestRating.object.review.rating} som høyeste score til ${highestRating.object.vintage.name}. Om denne vinen skrev du: "${
+                        highestRating.object.review?.note?.replace(/ *@\[[^\]]*]/, '') ?? '*ingen kommentar om vinen*'
+                    }"`,
                 },
                 {
                     name: 'Lavest rating',
-                    value: `Du ga ${lowestRating.object.review.rating} som laveste score til ${
-                        lowestRating.object.vintage.name
-                    }. Om denne vinen skrev du: "${lowestRating?.object?.review?.note?.replace(/ *@\[[^\]]*]/, '')}"`,
+                    value: `Du ga ${lowestRating.object.review.rating} som laveste score til ${lowestRating.object.vintage.name}. Om denne vinen skrev du: "${
+                        lowestRating?.object?.review?.note?.replace(/ *@\[[^\]]*]/, '') ?? '*ingen kommentar om vinen*'
+                    }"`,
                 },
                 {
                     name: 'Eldste vin',
-                    value: `Den eldste vinen du rated var fra ${oldestRating.object.vintage.year}`,
+                    value: `Den eldste vinen du rated var fra ${oldestRating.object.vintage.year ?? '*ukjent år*'}`,
                 },
                 {
                     name: `Land og Regioner`,
