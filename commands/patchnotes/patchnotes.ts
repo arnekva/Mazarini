@@ -8,10 +8,10 @@ import { MessageHelper } from '../../helpers/messageHelper'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { ChannelIds } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '15.8.1'
+    public static readonly currentVersion = '15.8.2'
     public static readonly currentPatchNotes =
-        `\n* Rettet en feil i parametertypene til noen kommandoer som gjorde at de kunne ta inn desimaltall i stedet for kun heltall` +
-        `\n* Rettet en feil som gjorde at autocomplete til /terning i noen tilfeller kunne feile`
+        `\n* Fikset en feil i /vivino som gjorde at navnet på laveste ratede ved en feil var satt til høyeste ratede vin` +
+        `\n* Daily claim er nå embed, samt økt prestige multiplier litt`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
