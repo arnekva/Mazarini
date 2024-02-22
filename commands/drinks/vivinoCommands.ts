@@ -160,7 +160,9 @@ export class VivinoCommands extends AbstractCommands {
                 },
                 {
                     name: 'Høyest rating',
-                    value: `Du ga ${highestRating.object.review.rating} som høyeste score til ${highestRating.object.vintage.name}. Om denne vinen skrev du: "${highestRating.object.review?.note}"`,
+                    value: `Du ga ${highestRating.object.review.rating} som høyeste score til ${
+                        highestRating.object.vintage.name
+                    }. Om denne vinen skrev du: "${highestRating.object.review?.note?.replace(/ *@\[[^\]]*]/, '')}"`,
                 },
                 {
                     name: 'Lavest rating',
