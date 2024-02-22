@@ -156,17 +156,17 @@ export class VivinoCommands extends AbstractCommands {
                 },
                 {
                     name: 'Gjennomsnittsrating',
-                    value: `${(totalRatings / numRatings).toFixed(2)}`,
+                    value: `${(totalRatings / numRatings)?.toFixed(2) ?? 'Ukjent'}`,
                 },
                 {
                     name: 'Høyest rating',
-                    value: `Du ga ${highestRating.object.review.rating} som høyeste score til ${highestRating.object.vintage.name}. Om denne vinen skrev du: "${highestRating.object.review.note}"`,
+                    value: `Du ga ${highestRating.object.review.rating} som høyeste score til ${highestRating.object.vintage.name}. Om denne vinen skrev du: "${highestRating.object.review?.note}"`,
                 },
                 {
                     name: 'Lavest rating',
                     value: `Du ga ${lowestRating.object.review.rating} som laveste score til ${
                         lowestRating.object.vintage.name
-                    }. Om denne vinen skrev du: "${lowestRating.object.review.note.replace(/ *@\[[^\]]*]/, '')}"`,
+                    }. Om denne vinen skrev du: "${lowestRating?.object?.review?.note?.replace(/ *@\[[^\]]*]/, '')}"`,
                 },
                 {
                     name: 'Eldste vin',
