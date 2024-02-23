@@ -208,7 +208,7 @@ export class ClientListener {
 
         this.client.on('emojiCreate', (emoji: GuildEmoji) => {
             if (emoji.guild.id == ServerIds.MAZARINI) {
-                this.client.database.registerEmojiStats(emoji.name)
+                this.client.database.registerEmojiStats(emoji.name, emoji.animated)
             }
             const id = ChannelIds.ACTION_LOG
             this.client.messageHelper.sendMessage(id, { text: `Emoji med navn ${emoji.name} ble lagt til` })

@@ -157,12 +157,12 @@ export class DatabaseHelper {
     //     return this.getUpdatesObject<k in Maza>()
     // }
 
-    public async registerEmojiStats(emojiName: string) {
+    public async registerEmojiStats(emojiName: string, animated: boolean) {
         let emoji = await this.db.getEmojiStats(emojiName)
         const updates = {}
         if (emoji) emoji.added.push(new Date())
         else {
-            emoji = { name: emojiName, timesUsedInMessages: 0, timesUsedInReactions: 0, added: [new Date()], removed: [] }
+            emoji = { name: emojiName, timesUsedInMessages: 0, timesUsedInReactions: 0, added: [new Date()], removed: [], animated: animated }
         }
         updates[`/stats/emojis/${emojiName}`] = emoji
         this.db.updateData(updates)

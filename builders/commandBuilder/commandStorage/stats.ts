@@ -64,6 +64,15 @@ export const statsCommand: ISlashCommandItem = {
                                 { name: 'reaksjoner', value: 'ignoreReactions' },
                             ],
                         },
+                        {
+                            name: 'animert',
+                            description: 'default sjekkes både animerte og ikke animerte',
+                            type: ApplicationCommandOptionType.String,
+                            choices: [
+                                { name: 'ignorer animert', value: 'ignoreAnimated' },
+                                { name: 'kun animert', value: 'ignoreNonAnimated' },
+                            ],
+                        },
                     ],
                 },
             ],

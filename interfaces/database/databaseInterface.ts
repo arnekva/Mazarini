@@ -33,6 +33,7 @@ export interface EmojiStats {
     timesUsedInReactions: number
     added: Date[]
     removed: Date[]
+    animated: boolean
 }
 
 export type botDataPrefix = 'status' | 'statusType' | 'version' | 'commit-id'

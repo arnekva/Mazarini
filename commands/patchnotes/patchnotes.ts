@@ -8,10 +8,9 @@ import { MessageHelper } from '../../helpers/messageHelper'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { ChannelIds } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '15.8.2'
+    public static readonly currentVersion = '15.8.3'
     public static readonly currentPatchNotes =
-        `\n* Fikset en feil i /vivino som gjorde at navnet på laveste ratede ved en feil var satt til høyeste ratede vin` +
-        `\n* Daily claim er nå embed, samt økt prestige multiplier litt`
+        `\n* Lagt til "animert" som parameter på emojistats`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

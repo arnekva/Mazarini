@@ -116,19 +116,24 @@ export class StatsCommands extends AbstractCommands {
         const data = interaction.options.get('data')?.value as string
         let limit = interaction.options.get('antall')?.value as number
         const ignore = interaction.options.get('ignorer')?.value as string
+        const animated = interaction.options.get('animert')?.value as string
         limit = limit && limit < 25 && limit > 0 ? limit : 9
         let sortEmojis: (a: EmojiStats, b: EmojiStats) => number = ignore
             ? ignore === 'ignoreMessages'
                 ? (a, b) => a.timesUsedInReactions - b.timesUsedInReactions
                 : (a, b) => a.timesUsedInMessages - b.timesUsedInMessages
             : (a, b) => (a.timesUsedInReactions ?? 0) + (a.timesUsedInMessages ?? 0) - ((b.timesUsedInReactions ?? 0) + (b.timesUsedInMessages ?? 0))
-
+        let filterEmojis: (x: EmojiStats) => boolean = animated 
+            ? animated === 'ignoreAnimated' ? (x) => !x.animated : (x) => x.animated
+            : () => true
         const sortedStats = this.emojiStats
             .slice()
+            .filter(filterEmojis)
             .sort((a, b) => (data === 'top' ? sortEmojis(b, a) : sortEmojis(a, b)))
             .slice(0, limit)
         const embed = EmbedUtils.createSimpleEmbed(
-            `Statistikk for de ${limit ?? 10} ${data === 'top' ? 'mest' : 'minst'} brukte emojiene`,
+            `Statistikk for de ${sortedStats.length < limit ? sortedStats.length : limit} ${data === 'top' ? 'mest' : 'minst'}`
+            + ` brukte ${animated ? animated === 'ignoreAnimated' ? 'ikke-animerte ' : 'animerte ' : ''}emojiene`,
             ignore ? `Teller ikke med ${ignore === 'ignoreMessages' ? 'meldinger' : 'reaksjoner'}` : ' '
         )
         const fields = await this.getFields(sortedStats, ignore, interaction)
@@ -172,12 +177,13 @@ export class StatsCommands extends AbstractCommands {
         if (!this.emojiStats || now.getTime() - this.lastFetched.getTime() > 60000) {
             //hent stats på nytt hvis det er har gått mer enn 1min (= utdaterte stats)
             const emojis = await this.client.database.getEmojiStats()
-            const emojiStatsArray: EmojiStats[] = Object.values(emojis).map(({ added, name, timesUsedInMessages, timesUsedInReactions, removed }) => ({
+            const emojiStatsArray: EmojiStats[] = Object.values(emojis).map(({ added, name, timesUsedInMessages, timesUsedInReactions, removed, animated }) => ({
                 added,
                 name,
                 timesUsedInMessages,
                 timesUsedInReactions,
                 removed,
+                animated
             }))
             this.emojiStats = emojiStatsArray.filter((stat) => stat.name !== undefined)
             this.lastFetched = now
