@@ -16,10 +16,8 @@ export class MazariniTracker {
             let match
             const emojiNames: string[] = []
             while ((match = this.emojiRegex.exec(message.content))) {
-                console.log('has match', match[2], message.guild.emojis.cache)
-
-                if (match && message.guild.emojis.cache.get(match[2])) emojiNames.push(match[1])
-            }
+                if (match && message.guild.emojis.cache.get(match[3])) emojiNames.push(match[2])
+            }            
             if (emojiNames) this.client.database.updateEmojiMessageCounters(emojiNames)
         }
     }
