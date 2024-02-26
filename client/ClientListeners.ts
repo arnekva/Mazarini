@@ -25,6 +25,7 @@ import { MazariniBot } from '../main'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { ChannelIds, MentionUtils, ServerIds } from '../utils/mentionUtils'
+import { MessageUtils } from '../utils/messageUtils'
 import { textArrays } from '../utils/textArrays'
 import { UserUtils } from '../utils/userUtils'
 import { MazariniClient } from './MazariniClient'
@@ -277,7 +278,7 @@ export class ClientListener {
         })
 
         this.client.on('messageUpdate', (oldMessage: Message | PartialMessage, newMessage: Message | PartialMessage) => {
-            if (!newMessage.pinned && !oldMessage.pinned && !!newMessage.author) {
+            if (!newMessage.pinned && !oldMessage.pinned && !!newMessage.author && MessageUtils.isLegalChannel(newMessage.channelId)) {
                 this.commandRunner.messageChecker.checkMessageForJokes(newMessage as Message)
             }
         })
