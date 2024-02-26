@@ -118,12 +118,12 @@ export class StatsCommands extends AbstractCommands {
         const ignore = interaction.options.get('ignorer')?.value as string
         const animated = interaction.options.get('animert')?.value as string
         limit = limit && limit < 25 && limit > 0 ? limit : 9
-        let sortEmojis: (a: EmojiStats, b: EmojiStats) => number = ignore
+        const sortEmojis: (a: EmojiStats, b: EmojiStats) => number = ignore
             ? ignore === 'ignoreMessages'
                 ? (a, b) => a.timesUsedInReactions - b.timesUsedInReactions
                 : (a, b) => a.timesUsedInMessages - b.timesUsedInMessages
             : (a, b) => (a.timesUsedInReactions ?? 0) + (a.timesUsedInMessages ?? 0) - ((b.timesUsedInReactions ?? 0) + (b.timesUsedInMessages ?? 0))
-        let filterEmojis: (x: EmojiStats) => boolean = animated 
+        const filterEmojis: (x: EmojiStats) => boolean = animated 
             ? animated === 'ignoreAnimated' ? (x) => !x.animated : (x) => x.animated
             : () => true
         const sortedStats = this.emojiStats
@@ -142,19 +142,20 @@ export class StatsCommands extends AbstractCommands {
     }
 
     private async getFields(stats: EmojiStats[], ignore: string, interaction: ChatInputCommandInteraction<CacheType>) {
-        const fields = await stats.map(async (stat, i, arr) => {
+        const fields = stats.map(async (stat, i) => {
             const emoji = await EmojiHelper.getEmoji(stat.name, interaction)
+            const emojiName = emoji.id === '<Fant ikke emojien>' ? stat.name : emoji.id
             const inMessages = `${stat.timesUsedInMessages ?? 0} meldinger`
             const inReactions = `${stat.timesUsedInReactions ?? 0} reaksjoner`
             const total = `${(stat.timesUsedInReactions ?? 0) + (stat.timesUsedInMessages ?? 0)} totalt`
             const info = ignore ? (ignore === 'ignoreMessages' ? inReactions : inMessages) : `${inMessages}\n${inReactions}\n${total}`
-            return { name: `${i + 1}. ${emoji.id}`, value: info, inline: true }
+            return { name: `${i + 1}. ${emojiName}`, value: info, inline: true }
         })
         const retVal = await Promise.all(fields)
         return retVal
     }
 
-    private async executeStatsSubCommand(interaction: ChatInputCommandInteraction<CacheType>) {
+    private executeStatsSubCommand(interaction: ChatInputCommandInteraction<CacheType>) {
         const cmdGroup = interaction.options.getSubcommandGroup()
         const cmd = interaction.options.getSubcommand()
         if (cmdGroup && cmdGroup === 'emoji') this.getEmojiStats(interaction)

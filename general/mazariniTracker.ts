@@ -10,8 +10,8 @@ export class MazariniTracker {
         this.client = client
     }
 
-    public async trackEmojiStats(message: Message) {
-        if (true || message.guildId === ServerIds.MAZARINI) {
+    public trackEmojiStats(message: Message) {
+        if (message.guildId === ServerIds.MAZARINI) {
             this.emojiRegex.lastIndex = 0
             let match
             const emojiNames: string[] = []
