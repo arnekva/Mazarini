@@ -169,7 +169,7 @@ export class DatabaseHelper {
     }
 
     public async registerEmojiRemoved(emojiName: string) {
-        let emoji = await this.db.getEmojiStats(emojiName)
+        const emoji = await this.db.getEmojiStats(emojiName)
         const updates = {}
         if (emoji) {
             emoji.removed ? emoji.removed.push(new Date()) : (emoji.removed = Array(1).fill(new Date()))
@@ -180,7 +180,8 @@ export class DatabaseHelper {
 
     public async registerEmojiUpdated(oldEmojiName: string, newEmojiName: string) {
         if (oldEmojiName != newEmojiName) {
-            let emoji = await this.db.getEmojiStats(oldEmojiName)
+            const emoji = await this.db.getEmojiStats(oldEmojiName)
+            emoji.name = newEmojiName
             const updates = {}
             if (emoji) {
                 updates[`/stats/emojis/${oldEmojiName}`] = null
