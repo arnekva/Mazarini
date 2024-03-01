@@ -264,7 +264,7 @@ export class GamblingCommands extends AbstractCommands {
             const explanation = customTarget ? `*(1 - ${customTarget})*` : ``
             const number = RandomUtils.getRandomInteger(1, diceTarget)
             const numberEmoji = customTarget ? number : (await EmojiHelper.getEmoji(`dice_${number}`, interaction)).id
-            this.messageHelper.replyToInteraction(interaction, `${numberEmoji} ${explanation}`)
+            this.messageHelper.replyToInteraction(interaction, `${numberEmoji} ${explanation}`, {sendAsSilent: true})
         }
     }
 

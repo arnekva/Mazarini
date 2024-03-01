@@ -61,6 +61,8 @@ interface IInteractionOptions {
     ephemeral?: boolean
     /** If the interaction has been defered, this option MUST be set for the reply to work. This will edit the reply instead of attempting to send a new answer */
     hasBeenDefered?: boolean
+    /** Settings this to true will send the message without users getting a sound notification. A new message icon (circle) will still appear */
+    sendAsSilent?: boolean
 }
 
 interface IMessageContent {
@@ -164,6 +166,11 @@ export class MessageHelper {
             } else {
                 const payloadAsReply = payload as InteractionReplyOptions
                 payloadAsReply.ephemeral = !!options?.ephemeral
+                
+                if (options?.sendAsSilent) {
+                    //@ts-expect-error This flag works, but is not supported by discordjs
+                    payloadAsReply.flags = [4096]
+                }
                 const r = await interaction.reply(payloadAsReply).catch((e) => handleError(e))
                 if (r instanceof InteractionResponse) reply = r
             }
