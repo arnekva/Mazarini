@@ -14,6 +14,7 @@ export namespace BarcodeUtils {
             },
         })
         const res = await response.json()
+        if (!res.barcodes) return undefined
         return res.barcodes[0]?.barcodeValue ?? undefined
     }
 
