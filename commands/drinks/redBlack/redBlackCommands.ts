@@ -129,11 +129,12 @@ export class RedBlackCommands extends AbstractCommands {
             this.giveTake = new GiveTake(this.deck, this.rules)
             await this.giveTake.generateGiveTakeTable(interaction)
             this.currentButtons = gtStartButtonRow
+            this.updateGiveTakeGameMessage()
             this.gtTableString = await this.giveTake.printGiveTakeTable(interaction)
             await this.resendMessages(interaction)
             // this.gtTableMessage = await this.messageHelper.sendMessageWithContentAndComponents(interaction.channelId, this.gtTableString, [this.currentButtons])
             this.currentButtons = gtButtonRow
-            interaction.deferUpdate()
+            // interaction.deferUpdate()
         } else if (this.stage === GameStage.GiveTake) {
             // Do stuff
         }
@@ -177,7 +178,7 @@ export class RedBlackCommands extends AbstractCommands {
         //This is to prevent spam-clicking next before anyone can add their card
         const updateMessage = () => {
             this.gtTableMessage.edit({ content: this.gtTableString, components: [this.currentButtons] })
-            this.updateGiveTakeGameMessage(undefined, '')
+            this.updateGiveTakeGameMessage()
         }
         this.currentButtons.components[1].setDisabled(true)
         updateMessage()
@@ -195,7 +196,7 @@ export class RedBlackCommands extends AbstractCommands {
             return await this.messageHelper.replyToInteraction(interaction, 'Du kan ikke legge kort', { ephemeral: true })
         }
         const placedCard = user.cards.splice(index, 1).pop()
-        this.updateGiveTakeGameMessage(placedCard, user.name)
+        this.updateGiveTakeGameMessage(user.name, placedCard)
         interaction.deferUpdate()
     }
 
@@ -309,11 +310,11 @@ export class RedBlackCommands extends AbstractCommands {
         return this.currentGtCard.card.number == userCard.number
     }
 
-    private updateGiveTakeGameMessage(card: ICardObject, username: string) {
+    private updateGiveTakeGameMessage(username?: string, card?: ICardObject) {
         let combinedString = ''
         if (card) {
             this.putDownCardsThisRound.push(
-                `${username} la ned ${this.deck.getTranslation(card.suit)} ${CardCommands.numberToString(card.number)} ${this.deck.getTranslation(card.suit)}`
+                `${username} la ned ${this.deck.getTranslation(card.suit)} ${card.number != 10 ? CardCommands.numberToString(card.number) : 10} ${this.deck.getTranslation(card.suit)}`
             )
         }
         this.putDownCardsThisRound.forEach((card) => {
@@ -322,8 +323,13 @@ export class RedBlackCommands extends AbstractCommands {
 
         const formattedMsg = new EmbedBuilder()
             .setTitle('Gi eller Ta')
-            .setThumbnail(this.currentGtCard.card.url)
-            .setDescription(`${this.generateGiveTakeCardString()}:` + `\n\n${combinedString}`)
+
+        if (this.currentGtCard) {
+            formattedMsg.setThumbnail(this.currentGtCard.card.url)
+                        .setDescription(`${this.generateGiveTakeCardString()}:` + `\n\n${combinedString}`)
+        } else {
+            formattedMsg.setDescription(`Start runden ved å trykke på 'Snu første' når dere er klar 🍷`)
+        }
 
         this.embed = formattedMsg
         this.embedMessage.edit({ embeds: [this.embed], components: null })
@@ -339,7 +345,7 @@ export class RedBlackCommands extends AbstractCommands {
 
     private async updateRedBlackGameMessage(drawnCard: ICardObject, interaction: ButtonInteraction<CacheType>, correct: boolean) {
         let roundName = RedBlack.getPrettyRoundName(this.rbRound)
-        const formattedMsg = new EmbedBuilder().setTitle(`${roundName} - ${this.rbSips} slurk${this.rbSips > 1 ? 'er' : ''}`)
+        const formattedMsg = new EmbedBuilder().setTitle(`${roundName}: ${this.rbSips} slurk${this.rbSips > 1 ? 'er' : ''}`)
         if (drawnCard) {
             formattedMsg
                 .setThumbnail(drawnCard.url)
@@ -350,7 +356,7 @@ export class RedBlackCommands extends AbstractCommands {
             if (this.isEndOfRound()) {
                 this.handleRoundChange()
                 roundName = RedBlack.getPrettyRoundName(this.rbRound)
-                formattedMsg.setTitle(`${roundName} - ${this.rbSips} slurk${this.rbSips > 1 ? 'er' : ''}`)
+                formattedMsg.setTitle(`${roundName}: ${this.rbSips} slurk${this.rbSips > 1 ? 'er' : ''}`)
             }
         }
         if (this.rbRound === RedBlackRound.Finished) {
