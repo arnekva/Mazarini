@@ -60,6 +60,7 @@ export class RedBlack {
         [RedBlackRound.InsideOutside, 'Innenfor eller utenfor'],
         [RedBlackRound.UpDown, 'Opp eller ned'],
         [RedBlackRound.Suit, 'Hvilken type'],
+        [RedBlackRound.Finished, 'Hvilken type'],
     ])
     static guessTranslations: Map<string, string> = new Map<string, string>([
         ['red', 'rød'],

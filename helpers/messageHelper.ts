@@ -168,7 +168,8 @@ export class MessageHelper {
                 payloadAsReply.ephemeral = !!options?.ephemeral
                 
                 if (options?.sendAsSilent) {
-                    //@ts-expect-error This flag works, but is not supported by discordjs
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    //@ts-ignore
                     payloadAsReply.flags = [4096]
                 }
                 const r = await interaction.reply(payloadAsReply).catch((e) => handleError(e))

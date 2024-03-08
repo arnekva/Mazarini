@@ -50,7 +50,7 @@ export class CardCommands extends AbstractCommands {
             [7, '7'],
             [8, '8'],
             [9, '9'],
-            [10, '10'],
+            [10, 'T'],
             [11, 'J'],
             [12, 'Q'],
             [13, 'K'],
@@ -78,9 +78,12 @@ export class CardCommands extends AbstractCommands {
         ['D', ' ♢ '],
     ])
 
-    public static transformNumber(number: string | number) {
-        if (typeof number == 'string') return CardCommands.numberTranslations().get(number)
-        if (typeof number == 'number') return CardCommands.reverseNumberTranslations().get(number)
+    public static stringToNumber(number: string) {
+        return CardCommands.numberTranslations().get(number)
+    }
+
+    public static numberToString(number: number) {
+        return CardCommands.reverseNumberTranslations().get(number)
     }
 
     public getTranslation(param: string) {
@@ -90,11 +93,11 @@ export class CardCommands extends AbstractCommands {
 
     public getStringPrint(card: ICardObject) {
         const suit = this.getTranslation(card.suit)
-        const num = this.getTranslation(String(card.number))
+        const num = this.getTranslation(CardCommands.numberToString(card.number))
         return `${suit} ${num} ${suit}`
     }
 
-    public async createCardObject(card: string, interaction: ButtonInteraction<CacheType> = undefined) {
+    public async createCardObject(card: string, interaction: ButtonInteraction<CacheType> | ChatInputCommandInteraction<CacheType>) {
         const number = CardCommands.numberTranslations(this.aceValue).get(card.substring(0, 1))
         const suit = card.substring(1, 2)
         if (interaction !== undefined) {
@@ -105,7 +108,7 @@ export class CardCommands extends AbstractCommands {
         return { number: number, suit: suit, printString: undefined, url: undefined }
     }
 
-    public async drawCard(interaction: ButtonInteraction<CacheType> = undefined) {
+    public async drawCard(interaction: ButtonInteraction<CacheType> | ChatInputCommandInteraction<CacheType>) {
         let card = this.deck.draw()
 
         if (card === undefined) {
@@ -161,7 +164,7 @@ export class CardCommands extends AbstractCommands {
                         amount = remaining
                     }
                     for (let i = 0; i < amount; i++) {
-                        const card = this.drawCard()
+                        const card = this.drawCard(interaction)
 
                         let number = CardCommands.cardTranslations.get(card.toString().substring(0, 1))
                         let suite: string = this.getTranslation(card.toString().substring(1, 2))

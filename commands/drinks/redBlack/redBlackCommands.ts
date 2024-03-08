@@ -35,12 +35,12 @@ const defaultRules: IGameRules = {
     busRide: IBusRide.Canadian,
 }
 
-const testData: IUserObject[] = [
-    //legge til en ephemeral message på hver user? :thinking:
-    { name: 'PhedeSpelar', id: 0, cards: new Array<ICardObject>() },
-    { name: 'Eivind', id: 1, cards: new Array<ICardObject>() },
-    { name: 'Deadmaggi', id: 2, cards: new Array<ICardObject>() },
-]
+// const testData: IUserObject[] = [
+//     //legge til en ephemeral message på hver user? :thinking:
+//     { name: 'PhedeSpelar', id: 0, cards: new Array<ICardObject>() },
+//     { name: 'Eivind', id: 1, cards: new Array<ICardObject>() },
+//     { name: 'Deadmaggi', id: 2, cards: new Array<ICardObject>() },
+// ]
 
 export class RedBlackCommands extends AbstractCommands {
     private playerList: IUserObject[]
@@ -206,7 +206,7 @@ export class RedBlackCommands extends AbstractCommands {
         return await this.messageHelper.replyToInteraction(interaction, cardsString, { ephemeral: true })
     }
 
-    public async revealLoser(interaction: ButtonInteraction<CacheType>) {
+    public revealLoser(interaction: ButtonInteraction<CacheType>) {
         this.gtTableMessage.edit({ content: '** **', components: [] })
         const losers: Array<IUserObject> = this.calculateLoser()
         this.embed.setTitle('Taperen er...').setThumbnail(undefined)
@@ -258,7 +258,7 @@ export class RedBlackCommands extends AbstractCommands {
     private calculateLoser() {
         let losers = new Array<IUserObject>()
         let loser = this.playerList[0]
-        for (var i = 1; i < this.playerList.length; i++) {
+        for (let i = 1; i < this.playerList.length; i++) {
             const potentialLoser = this.playerList[i]
             if (potentialLoser.cards.length > loser.cards.length) {
                 loser = potentialLoser
@@ -289,15 +289,15 @@ export class RedBlackCommands extends AbstractCommands {
         this.busride.setupCanadianBusride(interaction)
     }
 
-    public async busrideGuess(interaction: ButtonInteraction<CacheType>) {
+    public busrideGuess(interaction: ButtonInteraction<CacheType>) {
         this.busride.guessCanadian(interaction)
     }
 
-    public async busrideReset(interaction: ButtonInteraction<CacheType>) {
+    public busrideReset(interaction: ButtonInteraction<CacheType>) {
         this.busride.resetCanadian(interaction)
     }
 
-    public async moveBus(interaction: ButtonInteraction<CacheType>) {
+    public moveBus(interaction: ButtonInteraction<CacheType>) {
         this.busride.resendMessages(interaction)
     }
 
@@ -313,7 +313,7 @@ export class RedBlackCommands extends AbstractCommands {
         let combinedString = ''
         if (card) {
             this.putDownCardsThisRound.push(
-                `${username} la ned ${this.deck.getTranslation(card.suit)} ${CardCommands.transformNumber(card.number)} ${this.deck.getTranslation(card.suit)}`
+                `${username} la ned ${this.deck.getTranslation(card.suit)} ${CardCommands.numberToString(card.number)} ${this.deck.getTranslation(card.suit)}`
             )
         }
         this.putDownCardsThisRound.forEach((card) => {
@@ -405,7 +405,7 @@ export class RedBlackCommands extends AbstractCommands {
             .indexOf(username)
     }
 
-    private async getUserObjectById(id2: number) {
+    private getUserObjectById(id2: number) {
         const index = this.playerList.map((e) => e.id).indexOf(id2)
         return this.playerList[index]
     }
@@ -433,7 +433,7 @@ export class RedBlackCommands extends AbstractCommands {
         }
     }
 
-    public async joinGame(interaction: ButtonInteraction<CacheType>) {
+    public joinGame(interaction: ButtonInteraction<CacheType>) {
         const newUser = interaction.user
         if (!this.playerList.find((player) => player.name == newUser.username)) {
             const user: IUserObject = { name: newUser.username, id: this.id, cards: new Array<ICardObject>() }
@@ -460,7 +460,7 @@ export class RedBlackCommands extends AbstractCommands {
     }
 
     private updateStartMessage() {
-        let formattedMsg = new EmbedBuilder().setTitle('Rød eller Svart :thinking:').setDescription('Følgende spelare er klare for å drikke litt (masse):')
+        const formattedMsg = new EmbedBuilder().setTitle('Rød eller Svart :thinking:').setDescription('Følgende spelare er klare for å drikke litt (masse):')
         this.playerList.forEach((player) => {
             formattedMsg.addFields({
                 name: player.name,
@@ -504,7 +504,7 @@ export class RedBlackCommands extends AbstractCommands {
         }
     }
 
-    public async resetDeck(interaction: ButtonInteraction<CacheType>) {
+    public resetDeck(interaction: ButtonInteraction<CacheType>) {
         const msg = this.deck.resetDeck()
         this.messageHelper.replyToInteraction(interaction, msg)
     }

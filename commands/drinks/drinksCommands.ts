@@ -11,6 +11,7 @@ import { CardCommands, ICardObject } from '../games/cardCommands'
 interface IUserObject {
     name: string
     id: number
+    userId: string
     card: ICardObject
     mates: IUserObject[]
 }
@@ -62,11 +63,11 @@ resetDeckButtonRow.addComponents(
     })
 )
 
-const testData = [
-    { name: 'PhedeSpelar', id: 0, card: { number: '', suite: '', printString: '' }, mates: [] },
-    { name: 'Eivind', id: 1, card: { number: '', suite: '', printString: '' }, mates: [] },
-    { name: 'Deadmaggi', id: 2, card: { number: '', suite: '', printString: '' }, mates: [] },
-]
+// const testData = [
+//     { name: 'PhedeSpelar', id: 0, card: { number: '', suite: '', printString: '' }, mates: [] },
+//     { name: 'Eivind', id: 1, card: { number: '', suite: '', printString: '' }, mates: [] },
+//     { name: 'Deadmaggi', id: 2, card: { number: '', suite: '', printString: '' }, mates: [] },
+// ]
 
 export class DrinksCommands extends AbstractCommands {
     private playerList: IUserObject[]
@@ -96,12 +97,11 @@ export class DrinksCommands extends AbstractCommands {
         this.currentButtons = gameSetupButtonRow
     }
 
-    private setCardOnUser(username: string, card: string) {
-        let userObject = this.getUserObject(username)
-        let cardObject = this.createCardObject(card)
-        // userObject.card = cardObject
+    private setCardOnUser(username: string, card: ICardObject) {
+        const userObject = this.getUserObject(username)
+        userObject.card = this.simplifyPrintString(card)
         this.playerList[this.getUserIndex(username)] = userObject
-        return cardObject
+        return card
     }
 
     private getUserObject(username: string) {
@@ -203,26 +203,22 @@ export class DrinksCommands extends AbstractCommands {
         return mustDrink
     }
 
-    private createCardObject(card: string) {
-        let number = CardCommands.transformNumber(card.substring(0, 1))
-        let suite = card.substring(1, 2)
-        // let printNumber = this.deck.getTranslation(number)
-        let printSuite = this.deck.getTranslation(suite)
-        // let printString = printSuite + printNumber + printSuite
-        // const cardObject: ICardObject = { number: number, suite: suite, printString: printString }
-        return //cardObject
+    private simplifyPrintString(card: ICardObject) {
+        const printString = this.deck.getStringPrint(card)
+        const cardObject: ICardObject = { ...card, printString: printString }
+        return cardObject
     }
 
     public async drawCard(interaction: ButtonInteraction<CacheType>) {
         if (this.playerList.find((player) => player.name == interaction.user.username)) {
-            let card: ICardObject = await this.deck.drawCard()
+            const card: ICardObject = await this.deck.drawCard(interaction)            
             if (card == undefined) {
                 this.messageHelper.replyToInteraction(interaction, 'Kortstokken er tom. Bruk knappen under dersom dere vil fortsette.')
                 this.messageHelper.sendMessage(interaction?.channelId, { components: [resetDeckButtonRow] })
             } else {
                 const currentPlayer = this.getUserObjectById(this.turn)
                 this.turn = (this.turn + 1) % this.playerList.length
-                //this.setCardOnUser(currentPlayer.name, card)
+                this.setCardOnUser(currentPlayer.name, card)
                 const mustDrink = this.checkWhoMustDrink(currentPlayer.name, currentPlayer.id, currentPlayer.card)
                 this.updateActiveGameMessage(mustDrink, currentPlayer)
                 this.replyToInteraction(interaction)
@@ -233,15 +229,15 @@ export class DrinksCommands extends AbstractCommands {
     }
 
     private updateActiveGameMessage(mustDrink: Array<IUserObject>, currentPlayer: IUserObject) {
-        let formattedMsg = new EmbedBuilder().setTitle('Electricity ⚡').setDescription('Kort på bordet:')
+        const formattedMsg = new EmbedBuilder().setTitle('Electricity ⚡').setDescription('Kort på bordet:')
 
         let infinite = false
         if (mustDrink.length === this.playerList.length) {
             infinite = this.isInfinite()
         }
-        let sips = infinite && this.shouldChugOnLoop ? '♾' : mustDrink.length
+        const sips = infinite && this.shouldChugOnLoop ? '♾' : mustDrink.length
         this.playerList.forEach((player) => {
-            let playerName = player.id == currentPlayer?.id ? MentionUtils.mentionUser(player.id.toString()) : player.name
+            let playerName = player.id == (currentPlayer?.id + 1)%this.playerList.length ? `🫵 ${player.name}` : player.name
             playerName += mustDrink.length > 1 && mustDrink.includes(player) ? ' 🍷x' + sips : ''
             formattedMsg.addFields({
                 name: playerName,
@@ -283,11 +279,11 @@ export class DrinksCommands extends AbstractCommands {
         }
     }
 
-    public async joinElectricity(interaction: ButtonInteraction<CacheType>) {
+    public joinElectricity(interaction: ButtonInteraction<CacheType>) {
         const newUser = interaction.user
         if (!this.playerList.find((player) => player.name == newUser.username)) {
             const userCard: ICardObject = { number: 0, suit: '', printString: '', url: '' }
-            const user: IUserObject = { name: newUser.username, id: this.id, card: userCard, mates: [] }
+            const user: IUserObject = { name: newUser.username, id: this.id, userId: newUser.id, card: userCard, mates: [] }
             this.playerList.push(user)
             this.id++
             this.updateStartMessage()
@@ -310,7 +306,7 @@ export class DrinksCommands extends AbstractCommands {
     }
 
     private updateStartMessage() {
-        let formattedMsg = new EmbedBuilder().setTitle('Electricity ⚡').setDescription('Følgende spelare er klare for å drikke litt (masse):')
+        const formattedMsg = new EmbedBuilder().setTitle('Electricity ⚡').setDescription('Følgende spelare er klare for å drikke litt (masse):')
         this.playerList.forEach((player) => {
             formattedMsg.addFields({
                 name: player.name,
@@ -334,7 +330,7 @@ export class DrinksCommands extends AbstractCommands {
         this.buttonsMessage = undefined
     }
 
-    public async resetDeck(interaction: ButtonInteraction<CacheType>) {
+    public resetDeck(interaction: ButtonInteraction<CacheType>) {
         const msg = this.deck.resetDeck()
         this.messageHelper.replyToInteraction(interaction, msg)
     }
@@ -414,7 +410,7 @@ export class DrinksCommands extends AbstractCommands {
         }
         if (addPlayer) {
             const mockCard: ICardObject = { number: 0, suit: '', printString: '', url: '' }
-            const user: IUserObject = { name: addPlayer.username, id: this.id++, card: mockCard, mates: [] as IUserObject[] }
+            const user: IUserObject = { name: addPlayer.username, id: this.id++, userId: addPlayer.id, card: mockCard, mates: [] as IUserObject[] }
             this.playerList.push(user)
             reply += `\nLa til ${user.name} i spillet på plass ${user.id}`
         }
