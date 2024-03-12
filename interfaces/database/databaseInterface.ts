@@ -34,6 +34,7 @@ export interface EmojiStats {
     added: Date[]
     removed: Date[]
     animated: boolean
+    weeklyAverage?: number
 }
 
 export type botDataPrefix = 'status' | 'statusType' | 'version' | 'commit-id'

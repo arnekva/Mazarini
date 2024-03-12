@@ -94,65 +94,67 @@ export class StatsCommands extends AbstractCommands {
 
     private async findSingleEmojiStats(interaction: ChatInputCommandInteraction<CacheType>) {
         const input = interaction.options.get('emojinavn')?.value as string
+        this.getEmojiAverages()
         const emojiStat = this.emojiStats.find((emoji) => emoji.name === input)
         if (!emojiStat) return this.messageHelper.replyToInteraction(interaction, 'Fant ikke emojien du søkte etter', { hasBeenDefered: true })
         const sortedByMessages = this.emojiStats.slice().sort((a, b) => b.timesUsedInMessages - a.timesUsedInMessages)
         const sortedByReactions = this.emojiStats.slice().sort((a, b) => b.timesUsedInReactions - a.timesUsedInReactions)
+        const sortedByAverage = this.emojiStats.slice().sort((a, b) => b.weeklyAverage - a.weeklyAverage)
         const nMostUsedInMessages = sortedByMessages.findIndex((emoji) => emoji.timesUsedInMessages == emojiStat.timesUsedInMessages)
         const nMostUsedInReactions = sortedByReactions.findIndex((emoji) => emoji.timesUsedInReactions == emojiStat.timesUsedInReactions)
+        const nMostUsedOnAverage = sortedByAverage.findIndex((emoji) => emoji.weeklyAverage == emojiStat.weeklyAverage)
         const emoji = await EmojiHelper.getEmoji(input, interaction)
         const embed = EmbedUtils.createSimpleEmbed(`Statistikk for ${emoji.id}`, input)
         embed.addFields(
             { name: 'Meldinger', value: `${emojiStat.timesUsedInMessages} ( #${nMostUsedInMessages + 1} mest brukt )`, inline: false },
             { name: 'Reaksjoner', value: `${emojiStat.timesUsedInReactions} ( #${nMostUsedInReactions + 1} mest brukt )`, inline: false },
-            { name: 'Lagt til', value: emojiStat.added.toString(), inline: false }
+            { name: 'Gj.snitt bruk / uke', value: `${emojiStat.weeklyAverage} ( #${nMostUsedOnAverage + 1} mest brukt )`, inline: false },
+            { name: 'Lagt til', value: emojiStat.added[0].toString(), inline: false }
         )
 
         this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true })
     }
 
     private async getTopEmojiStats(interaction: ChatInputCommandInteraction<CacheType>) {
-        await this.fetchEmojiStats()
+        await this.fetchEmojiStats()        
+        this.getEmojiAverages()        
         const data = interaction.options.get('data')?.value as string
         let limit = interaction.options.get('antall')?.value as number
-        const ignore = interaction.options.get('ignorer')?.value as string
-        const animated = interaction.options.get('animert')?.value as string
+        const sorting = interaction.options.get('sortering')?.value as string
+        const type = interaction.options.get('type')?.value as string
         limit = limit && limit < 25 && limit > 0 ? limit : 9
-        const sortEmojis: (a: EmojiStats, b: EmojiStats) => number = ignore
-            ? ignore === 'ignoreMessages'
-                ? (a, b) => a.timesUsedInReactions - b.timesUsedInReactions
-                : (a, b) => a.timesUsedInMessages - b.timesUsedInMessages
-            : (a, b) => (a.timesUsedInReactions ?? 0) + (a.timesUsedInMessages ?? 0) - ((b.timesUsedInReactions ?? 0) + (b.timesUsedInMessages ?? 0))
-        const filterEmojis: (x: EmojiStats) => boolean = animated 
-            ? animated === 'ignoreAnimated' ? (x) => !x.animated : (x) => x.animated
-            : () => true
         const sortedStats = this.emojiStats
             .slice()
-            .filter(filterEmojis)
-            .sort((a, b) => (data === 'top' ? sortEmojis(b, a) : sortEmojis(a, b)))
+            .filter((x) => filterEmojiStats(x, type))
+            .sort((a, b) => data === 'top' ? sortEmojiStats(b,a,sorting) : sortEmojiStats(a,b,sorting))
             .slice(0, limit)
         const embed = EmbedUtils.createSimpleEmbed(
             `Statistikk for de ${sortedStats.length < limit ? sortedStats.length : limit} ${data === 'top' ? 'mest' : 'minst'}`
-            + ` brukte ${animated ? animated === 'ignoreAnimated' ? 'ikke-animerte ' : 'animerte ' : ''}emojiene`,
-            ignore ? `Teller ikke med ${ignore === 'ignoreMessages' ? 'meldinger' : 'reaksjoner'}` : ' '
+            + ` brukte ${type === 'standard' ? 'ikke-animerte ' : type === 'animert' ? 'animerte ' : ''}emojiene`,
+            `Sortert etter ${sorting ?? 'total'}`
         )
-        const fields = await this.getFields(sortedStats, ignore, interaction)
+        const fields = await this.getFields(sortedStats, sorting, interaction)
         embed.addFields(fields)
         this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true })
     }
 
-    private async getFields(stats: EmojiStats[], ignore: string, interaction: ChatInputCommandInteraction<CacheType>) {
+    private async getFields(stats: EmojiStats[], sorting: string, interaction: ChatInputCommandInteraction<CacheType>) {
         const fields = stats.map(async (stat, i) => {
             const emoji = await EmojiHelper.getEmoji(stat.name, interaction)
             const emojiName = emoji.id === '<Fant ikke emojien>' ? stat.name : emoji.id
-            const inMessages = `${stat.timesUsedInMessages ?? 0} meldinger`
-            const inReactions = `${stat.timesUsedInReactions ?? 0} reaksjoner`
-            const total = `${(stat.timesUsedInReactions ?? 0) + (stat.timesUsedInMessages ?? 0)} totalt`
-            const info = ignore ? (ignore === 'ignoreMessages' ? inReactions : inMessages) : `${inMessages}\n${inReactions}\n${total}`
+            const inMessages = `${this.boldStat('meldinger', sorting)}${stat.timesUsedInMessages ?? 0} meldinger${this.boldStat('meldinger', sorting)}`
+            const inReactions = `${this.boldStat('reaksjoner', sorting)}${stat.timesUsedInReactions ?? 0} reaksjoner${this.boldStat('reaksjoner', sorting)}`
+            const total = `${this.boldStat('total', sorting)}${(stat.timesUsedInReactions ?? 0) + (stat.timesUsedInMessages ?? 0)} totalt${this.boldStat('total', sorting)}`
+            const average = `${this.boldStat('gjennomsnitt', sorting)}Gj.snitt/uke: ${stat.weeklyAverage}${this.boldStat('gjennomsnitt', sorting)}`
+            const info = `${inMessages}\n${inReactions}\n${total}\n\n${average}\n‎ `
             return { name: `${i + 1}. ${emojiName}`, value: info, inline: true }
         })
         const retVal = await Promise.all(fields)
         return retVal
+    }
+
+    private boldStat(stat: string, sorting: string) {
+        return stat === sorting || (stat === 'total' && sorting == undefined) ? '**' : ''
     }
 
     private executeStatsSubCommand(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -188,7 +190,29 @@ export class StatsCommands extends AbstractCommands {
             }))
             this.emojiStats = emojiStatsArray.filter((stat) => stat.name !== undefined)
             this.lastFetched = now
+            return
+        } else {
+            return
         }
+    }
+
+    private getEmojiAverages() {
+        this.emojiStats.forEach((stat) => {
+            stat.weeklyAverage = this.calculateAverage(stat)            
+        })
+    }
+
+    private calculateAverage(stat: EmojiStats) {
+        const now = new Date()
+        let totalDaysInUse = 0
+        for (let i = 0; i < stat.added.length; i++) {
+            const startTime = stat.removed && stat.removed.length > i ? new Date(stat.removed[i]) : now
+            const endTime = new Date(stat.added[i])
+            const days = (startTime.getTime() - endTime.getTime()) / (1000 * 60 * 60 * 24)                
+            totalDaysInUse += Math.round(days)
+        }            
+        const average = (stat.timesUsedInMessages + stat.timesUsedInReactions)/(Math.ceil((totalDaysInUse > 0 ? totalDaysInUse : 1)/7))
+        return Math.round((average + Number.EPSILON) * 10) / 10
     }
 
     getAllInteractions(): IInteractionElement {
@@ -209,5 +233,40 @@ export class StatsCommands extends AbstractCommands {
                 selectMenuInteractionCommands: [],
             },
         }
+    }
+}
+
+const sortByMessages: (a: EmojiStats, b: EmojiStats) => number = (a,b) => a.timesUsedInMessages - b.timesUsedInMessages
+const sortByReactions: (a: EmojiStats, b: EmojiStats) => number = (a,b) => a.timesUsedInReactions - b.timesUsedInReactions
+const sortByAverage: (a: EmojiStats, b: EmojiStats) => number = (a,b) => a.weeklyAverage - b.weeklyAverage
+const sortByTotal: (a: EmojiStats, b: EmojiStats) => number = (a,b) => ((a.timesUsedInReactions ?? 0) + (a.timesUsedInMessages ?? 0)) - ((b.timesUsedInReactions ?? 0) + (b.timesUsedInMessages ?? 0))
+
+const sortEmojiStats: (a: EmojiStats, b: EmojiStats, sorting: string) => number = (a, b, sort) => {
+    switch (sort) {
+        case 'meldinger':
+            return sortByMessages(a,b)
+        case 'reaksjoner':
+            return sortByReactions(a,b)
+        case 'gjennomsnitt':
+            return sortByAverage(a,b)
+        case 'total':            
+            return sortByTotal(a,b)
+        default:
+            return sortByTotal(a,b)
+    }
+}
+
+const filterOnNotAnimated: (x: EmojiStats) => boolean = (x) => !x.animated
+const filterOnAnimated: (x: EmojiStats) => boolean = (x) => x.animated 
+const filterEmojiStats: (x: EmojiStats, filter: string) => boolean = (x, filter) => {
+    switch (filter) {
+        case 'standard':
+            return filterOnNotAnimated(x)
+        case 'animert':
+            return filterOnAnimated(x)
+        case 'alle':
+            return true
+        default:
+            return true
     }
 }
