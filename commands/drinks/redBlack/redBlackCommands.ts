@@ -29,6 +29,7 @@ import { GameStage, IBusRide, IGameRules, IGiveTakeCard, IUserObject, RedBlackRo
 import { BusRide } from './stage/busRide'
 import { GiveTake } from './stage/giveTake'
 import { RedBlack } from './stage/redBlack'
+import { MentionUtils } from '../../../utils/mentionUtils'
 
 const defaultRules: IGameRules = {
     gtLevelSips: [2, 4, 6, 8, Number.POSITIVE_INFINITY],
@@ -350,8 +351,8 @@ export class RedBlackCommands extends AbstractCommands {
             formattedMsg
                 .setThumbnail(drawnCard.url)
                 .setDescription(
-                    `${interaction.user.username} gjettet: ${RedBlack.getTranslatedGuessValue(interaction.customId.split(';')[2])} og fikk kortet til høyre` +
-                        `\n🍷 ${correct ? 'Gi' : 'Drikk'} ${this.rbSips} slurk${this.rbSips > 1 ? 'er' : ''} 🍷\n\n\n`
+                    `**${interaction.user.username}** gjettet: ${RedBlack.getTranslatedGuessValue(interaction.customId.split(';')[2])} og fikk kortet til høyre` +
+                        `\n\n**🍷 ${correct ? 'Gi' : 'Drikk'} ${this.rbSips} slurk${this.rbSips > 1 ? 'er' : ''} 🍷**\n\n\n`
                 )
             if (this.isEndOfRound()) {
                 this.handleRoundChange()
@@ -365,9 +366,12 @@ export class RedBlackCommands extends AbstractCommands {
         } else {
             const fields = [] as APIEmbedField[]
             if (this.currentPlayer.cards.length >= 1) fields.push({ name: ' ', value: ' ' }, { name: ' ', value: ' ' }, { name: ' ', value: ' ' })
+            const user = interaction.client.users.cache.find((user) => user.username == this.currentPlayer.name)
+            const userMention = MentionUtils.mentionUser(user.id)
             fields.push({
-                name: `**${this.currentPlayer.name} sin tur.**`,
-                value: `${this.currentPlayer.cards.length >= 1 ? '\n(se kort på hånd under knappene)' : ' '}`,
+                name: `Neste:`,
+                value: `${userMention}\n${this.currentPlayer.cards.length >= 1 ? '\n(se kort på hånd under knappene)' : ' '}`,
+                inline: false
             })
             formattedMsg.addFields(...fields)
             if (this.currentPlayer.cards.length >= 1) {
@@ -541,8 +545,8 @@ export class RedBlackCommands extends AbstractCommands {
                     break
                 }
                 case 'instillinger': {
-                    const options = this.setRedBlackOptions(interaction)
-                    this.messageHelper.replyToInteraction(interaction, options)
+                    // const options = this.setRedBlackOptions(interaction)
+                    // this.messageHelper.replyToInteraction(interaction, options)
                     break
                 }
                 default: {
@@ -554,20 +558,20 @@ export class RedBlackCommands extends AbstractCommands {
         }
     }
 
-    private setRedBlackOptions(interaction: ChatInputCommandInteraction<CacheType>): string {
-        //TODO: implementer
-        const mate = interaction.options.get('mate')?.user
-        const chugOnLoop = interaction.options.get('chug-on-loop')?.value as boolean | undefined
-        const addPlayer = interaction.options.get('add')?.user
-        let reply = ``
-        if (addPlayer) {
-            // const mockCard: ICardObject = { number: '', suite: '', printString: '', url: '' }
-            const user: IUserObject = { name: addPlayer.username, id: this.id++, cards: new Array<ICardObject>() }
-            this.playerList.push(user)
-            reply += `\nLa til ${user.name} i spillet på plass ${user.id}`
-        }
-        return reply
-    }
+    // private setRedBlackOptions(interaction: ChatInputCommandInteraction<CacheType>): string {
+    //     //TODO: implementer
+    //     const mate = interaction.options.get('mate')?.user
+    //     const chugOnLoop = interaction.options.get('chug-on-loop')?.value as boolean | undefined
+    //     const addPlayer = interaction.options.get('add')?.user
+    //     let reply = ``
+    //     if (addPlayer) {
+    //         // const mockCard: ICardObject = { number: '', suite: '', printString: '', url: '' }
+    //         const user: IUserObject = { name: addPlayer.username, id: this.id++, cards: new Array<ICardObject>() }
+    //         this.playerList.push(user)
+    //         reply += `\nLa til ${user.name} i spillet på plass ${user.id}`
+    //     }
+    //     return reply
+    // }
 
     getAllInteractions(): IInteractionElement {
         return {
