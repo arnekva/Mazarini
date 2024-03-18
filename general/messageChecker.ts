@@ -118,4 +118,11 @@ export class MessageChecker {
             this.client.messageHelper.replyToMessage(message, 'lol')
         }
     }
+
+    checkMessageForHolidays(message: Message) {
+        const holidayString = HelgHelper.checkMessageForHolidays(message.content)
+        if (holidayString) {
+            this.client.messageHelper.sendMessage(message.channelId, { text: holidayString }, { sendAsSilent: true })
+        }
+    }
 }

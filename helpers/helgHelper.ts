@@ -1,7 +1,7 @@
 import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import moment from 'moment'
 import { MazariniClient } from '../client/MazariniClient'
-import { DateUtils } from '../utils/dateUtils'
+import { DateUtils, countdownTime } from '../utils/dateUtils'
 import { EmojiHelper } from './emojiHelper'
 const holidays = require('holidays-norway').default
 
@@ -177,5 +177,36 @@ export namespace HelgHelper {
         /** set locale back to nb */
         moment.locale('nb')
         return holidaysThisWeek
+    }
+
+    const holidayChecks: IHolidayCheck[] = [
+        {holidayName: 'påske', keywords: ['påske','easter'], holidayStart: 'skjærtorsdag', printEnd: 'til påskeferie (skjærtorsdag)!'},
+        {holidayName: 'kristi himmelfartsdag', keywords: ['kristi himmelfartsdag', 'himmelsprett', 'kristihimmelfartsdag'], holidayStart: 'kristi himmelsprettsdag', printEnd: 'til Kristi Himmelfartsdag!'},
+        {holidayName: 'pinse', keywords: ['pinse'], holidayStart: '2. pinsedag', printEnd: 'til 2. pinsedag (langhelg)!'},
+        {holidayName: '17. mai', keywords: ['17. mai', 'nasjonaldag', '17mai', '17.mai'], holidayStart: '17. mai', printEnd: 'til 17. mai!'},
+        {holidayName: 'jul', keywords: ['jul','christmas'], holidayStart: '1. juledag', printEnd: 'til juleferie!'},
+        {holidayName: 'nyttår', keywords: ['nyttår','new year'], holidayStart: 'nyttårsaften', printEnd: 'til nyttårsaften!'},
+    ]
+
+    export interface IHolidayCheck {
+        holidayName: string
+        keywords: string[]
+        holidayStart: string
+        printEnd: string
+    }
+
+    export const checkMessageForHolidays = (msg: string) => {
+        const holiday: IHolidayCheck = holidayChecks.find((holiday) => holiday.keywords.some((keyword) => msg.toLowerCase().includes(keyword.toLowerCase())))
+        if (holiday) {
+            moment.locale('en')
+            const year = new Date().getFullYear()
+            const holidaysFromYear: {name: string, date:string}[] = holidays(year)
+            const holidayDateObject = holidaysFromYear.find((hdo) => hdo.name.toLowerCase() === holiday.holidayStart.toLowerCase())
+            if (holidayDateObject) {
+                const countdownObj: countdownTime = DateUtils.getTimeTo(new Date(holidayDateObject.date))
+                return DateUtils.formatCountdownText(countdownObj, {textEnding: holiday.printEnd})
+            }
+        }
+        return undefined
     }
 }

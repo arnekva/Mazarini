@@ -8,9 +8,10 @@ import { MessageHelper } from '../../helpers/messageHelper'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { ChannelIds } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '15.9.0'
+    public static readonly currentVersion = '15.10.0'
     public static readonly currentPatchNotes =
-        `\n* Lagt til statistikk på gjennomsnittsbruk av en emoji i uken`
+        `\n* Lagt til en rekke nye triggere på div høytider`
+        + `\n* /rødsvart tagger nå neste spiller i den første delen av spillet`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

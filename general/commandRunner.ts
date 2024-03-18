@@ -40,6 +40,8 @@ export class CommandRunner {
             /** Additional non-command checks */
             await this.messageChecker.checkMessageForJokes(message)
 
+            this.messageChecker.checkMessageForHolidays(message)
+
             await this.client.tracker.trackEmojiStats(message)
 
             if (message.channelId === ChannelIds.VINMONOPOLET || environment === 'dev')
