@@ -179,15 +179,6 @@ export namespace HelgHelper {
         return holidaysThisWeek
     }
 
-    const holidayChecks: IHolidayCheck[] = [
-        {holidayName: 'påske', keywords: ['påske','easter'], holidayStart: 'skjærtorsdag', printEnd: 'til påskeferie (skjærtorsdag)!'},
-        {holidayName: 'kristi himmelfartsdag', keywords: ['kristi himmelfartsdag', 'himmelsprett', 'kristihimmelfartsdag'], holidayStart: 'kristi himmelsprettsdag', printEnd: 'til Kristi Himmelfartsdag!'},
-        {holidayName: 'pinse', keywords: ['pinse'], holidayStart: '2. pinsedag', printEnd: 'til 2. pinsedag (langhelg)!'},
-        {holidayName: '17. mai', keywords: ['17. mai', 'nasjonaldag', '17mai', '17.mai'], holidayStart: '17. mai', printEnd: 'til 17. mai!'},
-        {holidayName: 'jul', keywords: ['jul','christmas'], holidayStart: '1. juledag', printEnd: 'til juleferie!'},
-        {holidayName: 'nyttår', keywords: ['nyttår','new year'], holidayStart: 'nyttårsaften', printEnd: 'til nyttårsaften!'},
-    ]
-
     export interface IHolidayCheck {
         holidayName: string
         keywords: string[]
@@ -195,6 +186,16 @@ export namespace HelgHelper {
         printEnd: string
     }
 
+    const holidayChecks: IHolidayCheck[] = [
+        {holidayName: 'påske', keywords: ['påske','easter'], holidayStart: 'skjærtorsdag', printEnd: 'til påskeferie (skjærtorsdag)!'},
+        {holidayName: 'kristi himmelfartsdag', keywords: ['kristi himmelfartsdag', 'himmelsprett', 'kristihimmelfartsdag'], holidayStart: 'kristi himmelsprettsdag', printEnd: 'til Kristi Himmelfartsdag!'},
+        {holidayName: 'pinse', keywords: ['pinse'], holidayStart: '2. pinsedag', printEnd: 'til 2. pinsedag (langhelg)!'},
+        {holidayName: '17. mai', keywords: ['17. mai', 'nasjonaldag', '17mai', '17.mai'], holidayStart: '17. mai', printEnd: 'til 17. mai!'},
+        {holidayName: 'arbeidernes dag', keywords: ['labour', 'labor','arbeider', '1.mai', '1. mai', '1mai'], holidayStart: '1. mai', printEnd: 'til arbeidernes dag!'},
+        {holidayName: 'jul', keywords: ['jul','christmas'], holidayStart: '1. juledag', printEnd: 'til juleferie!'},
+        {holidayName: 'nyttår', keywords: ['nyttår','new year'], holidayStart: 'nyttårsaften', printEnd: 'til nyttårsaften!'},
+    ]
+    
     export const checkMessageForHolidays = (msg: string) => {
         const holiday: IHolidayCheck = holidayChecks.find((holiday) => holiday.keywords.some((keyword) => msg.toLowerCase().includes(keyword.toLowerCase())))
         if (holiday) {
