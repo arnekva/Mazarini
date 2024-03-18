@@ -205,9 +205,11 @@ export namespace HelgHelper {
             const holidayDateObject = holidaysFromYear.find((hdo) => hdo.name.toLowerCase() === holiday.holidayStart.toLowerCase())
             if (holidayDateObject) {
                 const countdownObj: countdownTime = DateUtils.getTimeTo(new Date(holidayDateObject.date))
+                moment.locale('nb')
                 return DateUtils.formatCountdownText(countdownObj, {textEnding: holiday.printEnd})
             }
         }
+        moment.locale('nb')
         return undefined
     }
 }
