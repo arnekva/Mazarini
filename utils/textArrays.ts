@@ -78,18 +78,29 @@ export namespace textArrays {
     ]
 
     export const bentHoieLines = [
-        'Ka du tagge meg for?',
+        'Tagga meg her og tagga meg der, ikkje gidd',
+        'Stemme det',
+        'hallais',
+        'Gratulere, du fekk 1000 chips for den taggen der. not.',
+        'det e meg ja',
+        'sakki, der e du ja',
+        'javel?',
+        'nei',
+        'ja',
+        'kanskje, kanskje ikkje',
+        'jadda, stemme det',
+        'serr?',
+        'fine magda',
+        'fine kenneth',
+        'W',
+        'L',
+        'based',
+        'basert',
+        'ingen kommentar',
+        'henvise te advokaten min',
+        '//TODO: Skriv inn svar her',
         'Har kje tid te å svara, ska ud me mordi',
-        'Fuck off, e ude å fyre',
-        '💩',
-        'Någen så kan oppdatera meg på tennis-fronten her, faen ka?',
         'E på date me mor te Eivind atm, kan kje svara',
-        'Har dokkor hørt om Gustav Vigeland?',
-        'Hæ, pølse?',
-        'Fyre deg',
-        'Fyre deg OG mordi',
-        'hold kjeft bror, tagge du meg ein gang te fyre eg deg',
-        'Trodde det va det stygga tryne ditt eg såg, faen gjør du her?',
     ]
 
     export const emojiesList = [
@@ -187,7 +198,7 @@ export namespace textArrays {
         'https://media.giphy.com/media/rUbyUDYd32YV2VTgoN/giphy.gif',
         'https://media.giphy.com/media/OkeTTaH6kH1Qs2SLWV/giphy.gif',
         'https://media.giphy.com/media/g6pHoi8A9Bq1wPnl7t/giphy.gif',
-        'https://media.giphy.com/media/b0iwoIDWrQvK2CARcz/giphy.gif'
+        'https://media.giphy.com/media/b0iwoIDWrQvK2CARcz/giphy.gif',
     ]
 }
 
