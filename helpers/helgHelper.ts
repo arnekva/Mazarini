@@ -47,7 +47,7 @@ export namespace HelgHelper {
         return mondayHoliday
     }
 
-    export const getTimeUntilHelgString = async (includeEmoji?: MazariniClient) => {
+    export const getTimeUntilHelgString = (includeEmoji?: MazariniClient) => {
         const isHelg = HelgHelper.isItHelg()
         const holidays = HelgHelper.findHolidaysInThisWeek()
         let timeUntil = ''
@@ -137,7 +137,6 @@ export namespace HelgHelper {
     }
 
     export const checkForHelg = async (interaction?: ChatInputCommandInteraction<CacheType>, client?: MazariniClient) => {
-        const isHelg = HelgHelper.isItHelg()
         const helgeFolelse = HelgHelper.findHelgeFolelse()
         const val = `${await HelgHelper.getTimeUntilHelgString(client)}`
         if (interaction && client) client.messageHelper.replyToInteraction(interaction, val + ` (${helgeFolelse}% helgefølelse)`)
@@ -206,7 +205,7 @@ export namespace HelgHelper {
             if (holidayDateObject) {
                 const countdownObj: countdownTime = DateUtils.getTimeTo(new Date(holidayDateObject.date))
                 moment.locale('nb')
-                return DateUtils.formatCountdownText(countdownObj, {textEnding: holiday.printEnd})
+                return countdownObj ? DateUtils.formatCountdownText(countdownObj, {textEnding: holiday.printEnd}) : undefined
             }
         }
         moment.locale('nb')
