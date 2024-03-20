@@ -192,7 +192,7 @@ export namespace HelgHelper {
         {holidayName: 'pinse', keywords: ['pinse'], holidayStart: '2. pinsedag', printEnd: 'til 2. pinsedag (langhelg)!', countdownHourOffset: 0},
         {holidayName: '17. mai', keywords: ['17. mai', 'nasjonaldag', '17mai', '17.mai'], holidayStart: '17. mai', printEnd: 'til 17. mai!', countdownHourOffset: 0},
         {holidayName: 'arbeidernes dag', keywords: ['labour', 'labor','arbeider', '1.mai', '1. mai', '1mai'], holidayStart: '1. mai', printEnd: 'til arbeidernes dag!', countdownHourOffset: 0},
-        {holidayName: 'jul', keywords: ['jul','christmas'], holidayStart: '1. juledag', printEnd: 'til juleferie!', countdownHourOffset: -12},
+        {holidayName: 'jul', keywords: ['jul','christmas'], holidayStart: '1. juledag', printEnd: 'til juleferie!', countdownHourOffset: -32},
         {holidayName: 'nyttår', keywords: ['nyttår','new year'], holidayStart: 'nyttårsaften', printEnd: 'til nyttår!', countdownHourOffset: 24},
     ]
     
