@@ -182,17 +182,18 @@ export namespace HelgHelper {
         holidayName: string
         keywords: string[]
         holidayStart: string
+        countdownHourOffset: number
         printEnd: string
     }
 
     const holidayChecks: IHolidayCheck[] = [
-        {holidayName: 'påske', keywords: ['påske','easter'], holidayStart: 'skjærtorsdag', printEnd: 'til påskeferie (skjærtorsdag)!'},
-        {holidayName: 'kristi himmelfartsdag', keywords: ['kristi himmelfartsdag', 'himmelsprett', 'kristihimmelfartsdag'], holidayStart: 'kristi himmelsprettsdag', printEnd: 'til Kristi Himmelfartsdag!'},
-        {holidayName: 'pinse', keywords: ['pinse'], holidayStart: '2. pinsedag', printEnd: 'til 2. pinsedag (langhelg)!'},
-        {holidayName: '17. mai', keywords: ['17. mai', 'nasjonaldag', '17mai', '17.mai'], holidayStart: '17. mai', printEnd: 'til 17. mai!'},
-        {holidayName: 'arbeidernes dag', keywords: ['labour', 'labor','arbeider', '1.mai', '1. mai', '1mai'], holidayStart: '1. mai', printEnd: 'til arbeidernes dag!'},
-        {holidayName: 'jul', keywords: ['jul','christmas'], holidayStart: '1. juledag', printEnd: 'til juleferie!'},
-        {holidayName: 'nyttår', keywords: ['nyttår','new year'], holidayStart: 'nyttårsaften', printEnd: 'til nyttårsaften!'},
+        {holidayName: 'påske', keywords: ['påske','easter'], holidayStart: 'skjærtorsdag', printEnd: 'til påskeferie!', countdownHourOffset: -12},
+        {holidayName: 'kristi himmelfartsdag', keywords: ['kristi himmelfartsdag', 'himmelsprett', 'kristihimmelfartsdag'], holidayStart: 'kristi himmelsprettsdag', printEnd: 'til Kristi Himmelfartsdag!', countdownHourOffset: 0},
+        {holidayName: 'pinse', keywords: ['pinse'], holidayStart: '2. pinsedag', printEnd: 'til 2. pinsedag (langhelg)!', countdownHourOffset: 0},
+        {holidayName: '17. mai', keywords: ['17. mai', 'nasjonaldag', '17mai', '17.mai'], holidayStart: '17. mai', printEnd: 'til 17. mai!', countdownHourOffset: 0},
+        {holidayName: 'arbeidernes dag', keywords: ['labour', 'labor','arbeider', '1.mai', '1. mai', '1mai'], holidayStart: '1. mai', printEnd: 'til arbeidernes dag!', countdownHourOffset: 0},
+        {holidayName: 'jul', keywords: ['jul','christmas'], holidayStart: '1. juledag', printEnd: 'til juleferie!', countdownHourOffset: -12},
+        {holidayName: 'nyttår', keywords: ['nyttår','new year'], holidayStart: 'nyttårsaften', printEnd: 'til nyttår!', countdownHourOffset: 24},
     ]
     
     export const checkMessageForHolidays = (msg: string) => {
@@ -200,13 +201,20 @@ export namespace HelgHelper {
         if (holiday) {
             moment.locale('en')
             const year = new Date().getFullYear()
-            const holidaysFromYear: {name: string, date:string}[] = holidays(year)
-            const holidayDateObject = holidaysFromYear.find((hdo) => hdo.name.toLowerCase() === holiday.holidayStart.toLowerCase())
-            if (holidayDateObject) {
-                const countdownObj: countdownTime = DateUtils.getTimeTo(new Date(holidayDateObject.date))
-                moment.locale('nb')
-                return countdownObj ? DateUtils.formatCountdownText(countdownObj, {textEnding: holiday.printEnd}) : undefined
+            let holidaysFromYear: {name: string, date:string}[] = holidays(year)
+            let holidayDateObject = holidaysFromYear.find((hdo) => hdo.name.toLowerCase() === holiday.holidayStart.toLowerCase())
+            let date = new Date(holidayDateObject.date)
+            date.setHours(date.getHours() + holiday.countdownHourOffset - 1) //subtracting 1h due to zulu time            
+            if (DateUtils.dateHasPassed(date)) {
+                holidaysFromYear = holidays(year+1)
+                holidayDateObject = holidaysFromYear.find((hdo) => hdo.name.toLowerCase() === holiday.holidayStart.toLowerCase())
+                date = new Date(holidayDateObject.date)
+                date.setHours(date.getHours() + holiday.countdownHourOffset - 1) //subtracting 1h due to zulu time
             }
+            const countdownObj: countdownTime = DateUtils.getTimeTo(date)
+            moment.locale('nb')
+            return countdownObj ? DateUtils.formatCountdownText(countdownObj, {textEnding: holiday.printEnd}) : undefined
+            
         }
         moment.locale('nb')
         return undefined
