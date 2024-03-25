@@ -146,7 +146,7 @@ export class MoneyCommands extends AbstractCommands {
     }
 
     private findDailyReward(daily: DailyReward): number {
-        const dailyPrice = 100
+        const dailyPrice = 200
         const additionalCoins = this.findAdditionalCoins(daily.streak)
         const prestigeMultiplier = this.findPrestigeMultiplier(daily.prestige)
 
@@ -155,15 +155,15 @@ export class MoneyCommands extends AbstractCommands {
 
     private findPrestigeMultiplier(p: number | undefined) {
         if (p && !isNaN(p) && p > 0) {
-            return 1 + 0.34 * p
+            return 1 + 0.375 * p
         }
         return 1
     }
 
     private findAdditionalCoins(streak: number): number | undefined {
-        if (streak > 5) return 350
-        if (streak > 3) return 160
-        if (streak > 1) return 80
+        if (streak > 5) return 300
+        if (streak > 3) return 150
+        if (streak > 1) return 100
         return undefined
     }
 
