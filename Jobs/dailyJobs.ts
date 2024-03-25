@@ -70,7 +70,7 @@ export class DailyJobs {
                     this.messageHelper.sendLogMessage(
                         `Klarte ikke hente Rocket League turneringer. Det var ingen turneringer i objektet fra fetchen. ${
                             apiKey === rapidApiKey ? 'Forsøker å hente på ny' : 'Fetch 2 feilet også'
-                        }`
+                        }. JSON Resultat: ${data}`
                     )
                     status = 'failed'
                     retryFetch()
