@@ -72,8 +72,8 @@ export class MessageChecker {
                 this.applyJoiijJokes(message)
             }
             const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message)
-            if (idJoke == '1337') {
-                this.client.messageHelper.replyToMessage(message, 'nice, id-en te meldingen din inneholde 1337. Gz, du har vonne 1.000 chips', {
+            if (idJoke !== 'none') {
+                this.client.messageHelper.replyToMessage(message, `nice, id-en te meldingen din inneholde ${idJoke}. Gz, du har vonne 1000 chips`, {
                     sendAsSilent: true,
                 })
 
