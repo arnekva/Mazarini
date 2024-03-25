@@ -46,7 +46,15 @@ export class DailyJobs {
         let status: JobStatus = 'success'
         const retryFetch = () => {
             if (apiKey === rapidApiKey) this.updateRLTournaments(rapidApiKey2)
-            else status = 'failed'
+            else {
+                status = 'failed'
+                this.client.database.updateStorage({
+                    rocketLeagueTournaments: {
+                        mainMessageId: '',
+                        tournaments: [],
+                    },
+                })
+            }
         }
         await fetch('https://rocket-league1.p.rapidapi.com/tournaments/europe', {
             headers: {
