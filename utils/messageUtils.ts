@@ -4,12 +4,15 @@ import { MazariniClient } from '../client/MazariniClient'
 import { ChannelIds, MentionUtils } from './mentionUtils'
 import { UserUtils } from './userUtils'
 const leetReg = new RegExp(/(1337)/gi)
+const eightReg = new RegExp(/(8008)/gi)
 
 export namespace MessageUtils {
     export const doesMessageIdHaveCoolNumber = (message: Message) => {
         const msgId = message.id
         leetReg.lastIndex = 0
+        eightReg.lastIndex = 0
         if (leetReg.test(msgId)) return '1337'
+        if (eightReg.test(msgId)) return '8008'
         return 'none'
     }
 

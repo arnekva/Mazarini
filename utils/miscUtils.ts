@@ -1,7 +1,7 @@
 import { ArrayUtils } from './arrayUtils'
 import { RandomUtils } from './randomUtils'
 
-const prideReg = new RegExp(/(xD)|(:3)|(pls)|(dritt)|(tinder)|(date)|(pølse)|(eivindpride)|(pride)|(rip)/gi)
+const prideReg = new RegExp(/(xD)|(:3)|(pls)|(dritt)|(tinder)|(date)|(pølse)|(eivindpride)|(pride)|(rip)|(søren)|(malin)/gi)
 
 export namespace MiscUtils {
     export function doesThisMessageNeedAnEivindPride(content: string, polseCounter: number) {
