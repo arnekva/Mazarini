@@ -209,7 +209,7 @@ export class RocketLeagueCommands extends AbstractCommands {
 
     private async rocketLeagueTournaments(interaction: ChatInputCommandInteraction<CacheType>) {
         const data = await this.getRocketLeagueTournaments()
-        
+
         this.messageHelper.replyToInteraction(interaction, data.embed)
         this.messageHelper.sendMessage(interaction.channelId, { components: [data.buttons] })
     }
@@ -290,16 +290,16 @@ export class RocketLeagueCommands extends AbstractCommands {
 
                 tournamentToUpdate.shouldNotify = true
 
-                const mainMsg = await MessageUtils.findMessageById(storage.rocketLeagueTournaments.mainMessageId, this.client)
-                if (mainMsg) {
-                    mainMsg.edit({ components: [RocketLeagueCommands.getButtonRow(tournaments)] })
-                }
                 this.client.database.updateStorage({
                     rocketLeagueTournaments: {
                         mainMessageId: storage.rocketLeagueTournaments.mainMessageId ?? 'Unknown',
                         tournaments: tournaments,
                     },
                 })
+                const mainMsg = await MessageUtils.findMessageById(storage.rocketLeagueTournaments.mainMessageId, this.client)
+                if (mainMsg) {
+                    mainMsg.edit({ components: [RocketLeagueCommands.getButtonRow(tournaments)] })
+                }
             }
         }
     }
