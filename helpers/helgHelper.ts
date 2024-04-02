@@ -66,7 +66,8 @@ export namespace HelgHelper {
                 } else
                     hasHolidayInTheMiddleOfWeek = timeUntil = `${DateUtils.formatCountdownText(DateUtils.getTimeTo(currentDaysDate), {
                         textEnding: `til fridagen ${day.name}`,
-                    })}\n`
+                        includeLinebreak: true,
+                    })}`
             }
         })
         if (!hasFoundWeekendStart) {
@@ -93,7 +94,9 @@ export namespace HelgHelper {
                 const textToPrint = `til ${doesNextWeekHaveHolidayOnMonday ? `langhelg! (${doesNextWeekHaveHolidayOnMonday.name})` : 'helg'} ${emoji}`
 
                 let timeToPrint = DateUtils.formatCountdownText(timeTo, { textEnding: textToPrint }) || 'Eg vettkje ka dag det e :('
-                if (!!hasHolidayInTheMiddleOfWeek && !isHoliday) {
+                if (hasHolidayInTheMiddleOfWeek !== '' && !isHoliday) {
+                    console.log('does have, <' + hasHolidayInTheMiddleOfWeek + '>', hasHolidayInTheMiddleOfWeek)
+
                     timeToPrint += `\n${hasHolidayInTheMiddleOfWeek}`
                 }
                 if (isHoliday) {
@@ -119,7 +122,7 @@ export namespace HelgHelper {
         const hours = date.hour()
         const minutes = date.minute()
         const seconds = date.second()
-        const currentSecond = ((day * 24 + hours) * 60 + minutes) * 60 + seconds        
+        const currentSecond = ((day * 24 + hours) * 60 + minutes) * 60 + seconds
         const input = currentSecond * 0.00024645365
         let percentage = +(((input - 20) ** 3 / 10000) * 2).toFixed(2)
         if (percentage < 90) percentage = Math.floor(percentage)
@@ -140,6 +143,8 @@ export namespace HelgHelper {
         const helgeFolelse = HelgHelper.findHelgeFolelse()
         const val = `${await HelgHelper.getTimeUntilHelgString(client)}`
         if (interaction && client) client.messageHelper.replyToInteraction(interaction, val + ` (${helgeFolelse}% helgefølelse)`)
+        console.log(val)
+
         return val + ` (${helgeFolelse}% helgefølelse)`
     }
 
@@ -187,34 +192,51 @@ export namespace HelgHelper {
     }
 
     const holidayChecks: IHolidayCheck[] = [
-        {holidayName: 'påske', keywords: ['påske','easter'], holidayStart: 'skjærtorsdag', printEnd: 'til påskeferie!', countdownHourOffset: -12},
-        {holidayName: 'kristi himmelfartsdag', keywords: ['kristi himmelfartsdag', 'himmelsprett', 'kristihimmelfartsdag'], holidayStart: 'kristi himmelsprettsdag', printEnd: 'til Kristi Himmelfartsdag!', countdownHourOffset: 0},
-        {holidayName: 'pinse', keywords: ['pinse'], holidayStart: '2. pinsedag', printEnd: 'til 2. pinsedag (langhelg)!', countdownHourOffset: 0},
-        {holidayName: '17. mai', keywords: ['17. mai', 'nasjonaldag', '17mai', '17.mai'], holidayStart: '17. mai', printEnd: 'til 17. mai!', countdownHourOffset: 0},
-        {holidayName: 'arbeidernes dag', keywords: ['labour', 'labor','arbeider', '1.mai', '1. mai', '1mai'], holidayStart: '1. mai', printEnd: 'til arbeidernes dag!', countdownHourOffset: 0},
-        {holidayName: 'jul', keywords: ['jul','christmas'], holidayStart: '1. juledag', printEnd: 'til juleferie!', countdownHourOffset: -32},
-        {holidayName: 'nyttår', keywords: ['nyttår','new year'], holidayStart: 'nyttårsaften', printEnd: 'til nyttår!', countdownHourOffset: 24},
+        { holidayName: 'påske', keywords: ['påske', 'easter'], holidayStart: 'skjærtorsdag', printEnd: 'til påskeferie!', countdownHourOffset: -12 },
+        {
+            holidayName: 'kristi himmelfartsdag',
+            keywords: ['kristi himmelfartsdag', 'himmelsprett', 'kristihimmelfartsdag'],
+            holidayStart: 'kristi himmelsprettsdag',
+            printEnd: 'til Kristi Himmelfartsdag!',
+            countdownHourOffset: 0,
+        },
+        { holidayName: 'pinse', keywords: ['pinse'], holidayStart: '2. pinsedag', printEnd: 'til 2. pinsedag (langhelg)!', countdownHourOffset: 0 },
+        {
+            holidayName: '17. mai',
+            keywords: ['17. mai', 'nasjonaldag', '17mai', '17.mai'],
+            holidayStart: '17. mai',
+            printEnd: 'til 17. mai!',
+            countdownHourOffset: 0,
+        },
+        {
+            holidayName: 'arbeidernes dag',
+            keywords: ['labour', 'labor', 'arbeider', '1.mai', '1. mai', '1mai'],
+            holidayStart: '1. mai',
+            printEnd: 'til arbeidernes dag!',
+            countdownHourOffset: 0,
+        },
+        { holidayName: 'jul', keywords: ['jul', 'christmas'], holidayStart: '1. juledag', printEnd: 'til juleferie!', countdownHourOffset: -32 },
+        { holidayName: 'nyttår', keywords: ['nyttår', 'new year'], holidayStart: 'nyttårsaften', printEnd: 'til nyttår!', countdownHourOffset: 24 },
     ]
-    
+
     export const checkMessageForHolidays = (msg: string) => {
         const holiday: IHolidayCheck = holidayChecks.find((holiday) => holiday.keywords.some((keyword) => msg.toLowerCase().includes(keyword.toLowerCase())))
         if (holiday) {
             moment.locale('en')
             const year = new Date().getFullYear()
-            let holidaysFromYear: {name: string, date:string}[] = holidays(year)
+            let holidaysFromYear: { name: string; date: string }[] = holidays(year)
             let holidayDateObject = holidaysFromYear.find((hdo) => hdo.name.toLowerCase() === holiday.holidayStart.toLowerCase())
             let date = new Date(holidayDateObject.date)
-            date.setHours(date.getHours() + holiday.countdownHourOffset - 1) //subtracting 1h due to zulu time            
+            date.setHours(date.getHours() + holiday.countdownHourOffset - 1) //subtracting 1h due to zulu time
             if (DateUtils.dateHasPassed(date)) {
-                holidaysFromYear = holidays(year+1)
+                holidaysFromYear = holidays(year + 1)
                 holidayDateObject = holidaysFromYear.find((hdo) => hdo.name.toLowerCase() === holiday.holidayStart.toLowerCase())
                 date = new Date(holidayDateObject.date)
                 date.setHours(date.getHours() + holiday.countdownHourOffset - 1) //subtracting 1h due to zulu time
             }
             const countdownObj: countdownTime = DateUtils.getTimeTo(date)
             moment.locale('nb')
-            return countdownObj ? DateUtils.formatCountdownText(countdownObj, {textEnding: holiday.printEnd}) : undefined
-            
+            return countdownObj ? DateUtils.formatCountdownText(countdownObj, { textEnding: holiday.printEnd }) : undefined
         }
         moment.locale('nb')
         return undefined

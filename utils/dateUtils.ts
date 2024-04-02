@@ -114,6 +114,7 @@ export class DateUtils {
             noTextEnding?: boolean
             usesOm?: boolean
             ignoreSeconds?: boolean
+            includeLinebreak?: boolean
         }
     ) {
         if (!dateObj) return params?.finishedText ?? ''
@@ -130,6 +131,7 @@ export class DateUtils {
             if (index <= timeTab.length - 2 && timeTab.length > 1) timeString += index == timeTab.length - 2 ? ' og' : ','
         })
         if (params?.textEnding) timeString += ' ' + params.textEnding
+        if (params?.includeLinebreak) timeString += '\n'
         return timeString
     }
 
