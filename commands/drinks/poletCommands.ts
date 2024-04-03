@@ -333,11 +333,6 @@ export class PoletCommands extends AbstractCommands {
                         }`
                     )
                 }
-                // }
-                //  catch (error) {
-
-                //     messageHelper.sendLogMessage(`Klarte ikke hente produktinfo for id ${id}.\n${error}`)
-                // }
             }
         }
     }
