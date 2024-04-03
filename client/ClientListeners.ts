@@ -189,7 +189,7 @@ export class ClientListener {
                     { noMentions: true }
                 )
                 if (hasEmbed) {
-                    const embed = EmbedUtils.createSimpleEmbed(hasEmbed.title || "Mangler tittel", hasEmbed.description || "Mangler beskrivelse")
+                    const embed = EmbedUtils.createSimpleEmbed(hasEmbed.title || 'Mangler tittel', hasEmbed.description || 'Mangler beskrivelse')
                     if (hasEmbed.fields) embed.addFields(hasEmbed.fields)
                     this.client.messageHelper.sendMessage(actionLogId, { embed: embed })
                 }
@@ -279,7 +279,7 @@ export class ClientListener {
 
         this.client.on('messageUpdate', (oldMessage: Message | PartialMessage, newMessage: Message | PartialMessage) => {
             if (!newMessage.pinned && !oldMessage.pinned && !!newMessage.author && MessageUtils.isLegalChannel(newMessage.channelId)) {
-                this.commandRunner.messageChecker.checkMessageForJokes(newMessage as Message)
+                this.commandRunner.messageChecker.checkMessageForJokes(newMessage as Message, true)
             }
         })
 
