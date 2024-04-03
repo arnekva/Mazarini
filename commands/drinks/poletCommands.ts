@@ -266,7 +266,7 @@ export class PoletCommands extends AbstractCommands {
                 const data = await PoletCommands.fetchProductDataFromId(id, hasBarCode)
 
                 if (data && !data?.errors) {
-                    const hasDesc = !!data.description.trim()
+                    const hasDesc = !!data.description?.trim()
                     let description = `${hasDesc ? data.description : data.taste}`
                     if (hasBarCode) {
                         const fetchedScore = await PoletCommands.fetchScore(barcode)
