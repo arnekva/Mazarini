@@ -279,9 +279,9 @@ export class PoletCommands extends AbstractCommands {
                         { name: `Pris`, value: `${data.price.formattedValue}`, inline: true },
                         { name: `Type`, value: `${data.main_category.name}`, inline: true },
                         { name: `Årgang`, value: `${data.year === '0000' ? 'Ukjent' : data.year}`, inline: true },
-                        { name: `Volum`, value: `${data.volume.formattedValue}`, inline: true },
-                        { name: `Land`, value: `${data.main_country.name}`, inline: true },
-                        { name: `Alkohol`, value: `${data.alcohol.formattedValue}`, inline: true },
+                        { name: `Volum`, value: `${data.volume?.formattedValue}`, inline: true },
+                        { name: `Land`, value: `${data.main_country?.name}`, inline: true },
+                        { name: `Alkohol`, value: `${data.alcohol?.formattedValue}`, inline: true },
 
                         { name: `Stil`, value: `${data.style?.name}`, inline: true },
                     ])
