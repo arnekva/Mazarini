@@ -311,7 +311,7 @@ export class PoletCommands extends AbstractCommands {
                     embed.setURL(`https://www.vinmonopolet.no${data.url}`)
 
                     embed.setFooter({
-                        text: `Produsent: ${data.main_producer.name}, Distrikt: ${data.district?.name}, Sub-distrikt: ${data.sub_District?.name}`,
+                        text: `Produsent: ${data.main_producer?.name}, Distrikt: ${data.district?.name}, Sub-distrikt: ${data.sub_District?.name}`,
                     })
                     const poletStockButton = new ActionRowBuilder<ButtonBuilder>()
                     poletStockButton.addComponents(
