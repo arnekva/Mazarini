@@ -266,7 +266,7 @@ export class PoletCommands extends AbstractCommands {
                 const data = await PoletCommands.fetchProductDataFromId(id, hasBarCode)
 
                 if (data && !data?.errors) {
-                    const hasDesc = !!data.description.trim()
+                    const hasDesc = !!data.description?.trim()
                     let description = `${hasDesc ? data.description : data.taste}`
                     if (hasBarCode) {
                         const fetchedScore = await PoletCommands.fetchScore(barcode)
@@ -279,9 +279,9 @@ export class PoletCommands extends AbstractCommands {
                         { name: `Pris`, value: `${data.price.formattedValue}`, inline: true },
                         { name: `Type`, value: `${data.main_category.name}`, inline: true },
                         { name: `Årgang`, value: `${data.year === '0000' ? 'Ukjent' : data.year}`, inline: true },
-                        { name: `Volum`, value: `${data.volume.formattedValue}`, inline: true },
-                        { name: `Land`, value: `${data.main_country.name}`, inline: true },
-                        { name: `Alkohol`, value: `${data.alcohol.formattedValue}`, inline: true },
+                        { name: `Volum`, value: `${data.volume?.formattedValue}`, inline: true },
+                        { name: `Land`, value: `${data.main_country?.name}`, inline: true },
+                        { name: `Alkohol`, value: `${data.alcohol?.formattedValue}`, inline: true },
 
                         { name: `Stil`, value: `${data.style?.name}`, inline: true },
                     ])
@@ -311,7 +311,7 @@ export class PoletCommands extends AbstractCommands {
                     embed.setURL(`https://www.vinmonopolet.no${data.url}`)
 
                     embed.setFooter({
-                        text: `Produsent: ${data.main_producer.name}, Distrikt: ${data.district?.name}, Sub-distrikt: ${data.sub_District?.name}`,
+                        text: `Produsent: ${data.main_producer?.name}, Distrikt: ${data.district?.name}, Sub-distrikt: ${data.sub_District?.name}`,
                     })
                     const poletStockButton = new ActionRowBuilder<ButtonBuilder>()
                     poletStockButton.addComponents(
@@ -333,11 +333,6 @@ export class PoletCommands extends AbstractCommands {
                         }`
                     )
                 }
-                // }
-                //  catch (error) {
-
-                //     messageHelper.sendLogMessage(`Klarte ikke hente produktinfo for id ${id}.\n${error}`)
-                // }
             }
         }
     }

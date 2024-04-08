@@ -32,20 +32,20 @@ export class MazariniClient extends Client {
             //Specifies intents needed to perform certain actions, i.e. what permissions the bot must have
             intents: [
                 1, //  GatewayIntentBits.Guilds ,
-                512, //  GatewayIntentBits.GuildMessages,
-                64, // GatewayIntentBits.GuildInvites,
-                4096, // GatewayIntentBits.DirectMessages,
+                2, //GatewayIntentBits.GuildMembers,
                 4, // GatewayIntentBits.GuildBans,
                 8, // GatewayIntentBits.GuildEmojisAndStickers,
-                2, //GatewayIntentBits.GuildMembers,
-                32768, // GatewayIntentBits.MessageContent,
+                16, //  GatewayIntentBits.GuildIntegrations,
+                32, //  GatewayIntentBits.GuildWebhooks,
+                64, // GatewayIntentBits.GuildInvites,
+                128, //   GatewayIntentBits.GuildVoiceStates,
+                256, // GatewayIntentBits.GuildPresences,
+                512, //  GatewayIntentBits.GuildMessages,
                 1024, // GatewayIntentBits.GuildMessageReactions,
                 2048, //  GatewayIntentBits.GuildMessageTyping,
-                256, // GatewayIntentBits.GuildPresences,
-                32, //  GatewayIntentBits.GuildWebhooks,
-                16, //  GatewayIntentBits.GuildIntegrations,
+                4096, // GatewayIntentBits.DirectMessages,
                 16384, //  GatewayIntentBits.DirectMessageTyping,
-                128, //   GatewayIntentBits.GuildVoiceStates,
+                32768, // GatewayIntentBits.MessageContent,
             ],
         })
         this.msgHelper = new MessageHelper(this)
@@ -56,7 +56,6 @@ export class MazariniClient extends Client {
         this.clientListener = new ClientListener(this)
         this.setupDatabase(this.msgHelper)
         this.clientListener.setupListeners()
-      
     }
 
     /** Starts property listeners for client.  */

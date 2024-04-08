@@ -19,7 +19,7 @@ export class MessageChecker {
     }
 
     /** Checks for pølse, eivindpride etc. */
-    async checkMessageForJokes(message: Message) {
+    async checkMessageForJokes(message: Message, ignoreRewards?: boolean) {
         if (!this.client.lockHandler.checkIfLockedPath(message)) {
             if (message.id === '802945796457758760') return
 
@@ -72,7 +72,7 @@ export class MessageChecker {
                 this.applyJoiijJokes(message)
             }
             const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message)
-            if (idJoke !== 'none') {
+            if (idJoke !== 'none' && !ignoreRewards) {
                 this.client.messageHelper.replyToMessage(message, `nice, id-en te meldingen din inneholde ${idJoke}. Gz, du har vonne 1000 chips`, {
                     sendAsSilent: true,
                 })
