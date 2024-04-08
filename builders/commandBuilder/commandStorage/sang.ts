@@ -7,7 +7,7 @@ export const sangCommand: ISlashCommandItem = {
     commandDescription: 'søk etter en sang',
     options: [
         {
-            name: 'track',
+            name: 'sang',
             description: 'navn på sang',
             type: ApplicationCommandOptionType.String,
             required: true,

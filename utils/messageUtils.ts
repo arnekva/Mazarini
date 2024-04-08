@@ -12,7 +12,6 @@ export namespace MessageUtils {
         leetReg.lastIndex = 0
         eightReg.lastIndex = 0
         if (leetReg.test(msgId)) return '1337'
-        if (eightReg.test(msgId)) return '8008'
         return 'none'
     }
 

@@ -7,28 +7,16 @@ export const lyricsCommand: ISlashCommandItem = {
     commandDescription: 'finn lyrics for sangen',
     options: [
         {
-            name: 'artist',
-            description: 'navn på artist',
-            type: ApplicationCommandOptionType.String,
-            required: true,
-        },
-        {
             name: 'sang',
             description: 'navn på sang',
             type: ApplicationCommandOptionType.String,
             required: true,
         },
-        // {
-        //     name: 'tidspunkt',
-        //     description: 'tidspunkt for lyrics',
-        //     type: ApplicationCommandOptionType.String,
-        //     required: false,
-        // },
-        // {
-        //     name: 'linjer',
-        //     description: 'antall linjer (default 2)',
-        //     type: ApplicationCommandOptionType.String,
-        //     required: false,
-        // },
+        {
+            name: 'artist',
+            description: 'navn på artist',
+            type: ApplicationCommandOptionType.String,
+            required: true,
+        },
     ],
 }
