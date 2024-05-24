@@ -28,6 +28,7 @@ interface rocketLeagueMMR {
     mmr1v1?: string
     mmr2v2?: string
     mmr3v3?: string
+    tournament: string
 }
 export interface rocketLeagueDbData {
     stats: rocketLeagueLifetime
@@ -35,7 +36,7 @@ export interface rocketLeagueDbData {
 }
 const emptyStats: rocketLeagueDbData = {
     stats: { wins: '0', goals: '0', mvp: '0', saves: '0', assists: '0', shots: '0', goalShotRatio: '0' },
-    mmr: { mmr1v1: '0', mmr2v2: '0', mmr3v3: '0' },
+    mmr: { mmr1v1: '0', mmr2v2: '0', mmr3v3: '0', tournament: '0' },
 }
 const fetch = require('node-fetch')
 const striptags = require('striptags')
@@ -104,6 +105,7 @@ export class RocketLeagueCommands extends AbstractCommands {
         let threeVthree: rocketLeagueStats = {}
         let twoVtwo: rocketLeagueStats = {}
         let oneVone: rocketLeagueStats = {}
+        let tournament: rocketLeagueStats = {}
         let lifetimeStats: rocketLeagueLifetime = {}
         if (!segments) {
             interaction.editReply('Fetch til Rocket League API feilet')
@@ -122,26 +124,32 @@ export class RocketLeagueCommands extends AbstractCommands {
                 lifetimeStats.wins = segment.stats.wins.value
                 lifetimeStats.shots = segment.stats.shots.value
                 lifetimeStats.goalShotRatio = Number(segment.stats.goalShotRatio.value).toFixed(2)
-            } else if (segment.metadata.name === 'Ranked Duel 1v1') {
+            } else if (segment.type === "playlist" && segment.metadata.name === 'Ranked Duel 1v1') {
                 oneVone.rank = segment?.stats?.tier?.metadata?.name
                 oneVone.division = segment?.stats?.division?.metadata?.name
                 oneVone.modeName = segment?.metadata?.name
                 oneVone.iconURL = segment.stats?.tier?.metadata?.iconUrl
                 oneVone.mmr = segment?.stats?.rating?.value
-            } else if (segment.metadata.name === 'Ranked Doubles 2v2') {
+            } else if (segment.type === "playlist" && segment.metadata.name === 'Ranked Doubles 2v2') {                
                 twoVtwo.rank = segment?.stats?.tier?.metadata?.name
                 twoVtwo.division = segment?.stats?.division?.metadata?.name
                 twoVtwo.modeName = segment?.metadata?.name
                 twoVtwo.iconURL = segment.stats?.tier?.metadata?.iconUrl
                 twoVtwo.mmr = segment?.stats?.rating?.value
-            } else if (segment.metadata.name === 'Ranked Standard 3v3') {
+            } else if (segment.type === "playlist" && segment.metadata.name === 'Ranked Standard 3v3') {
                 threeVthree.rank = segment?.stats?.tier?.metadata?.name
                 threeVthree.division = segment?.stats?.division?.metadata?.name
                 threeVthree.modeName = segment?.metadata?.name
                 threeVthree.iconURL = segment.stats?.tier?.metadata?.iconUrl
                 threeVthree.mmr = segment?.stats?.rating?.value
+            } else if (segment.type === "playlist" && segment.metadata.name === 'Tournament Matches') {
+                tournament.rank = segment?.stats?.tier?.metadata?.name
+                tournament.division = segment?.stats?.division?.metadata?.name
+                tournament.modeName = segment?.metadata?.name
+                tournament.iconURL = segment.stats?.tier?.metadata?.iconUrl
+                tournament.mmr = segment?.stats?.rating?.value
             }
-        }
+        }        
         let userData = await this.getUserStats(interaction)
         let mmrDiff = ''
         const msgContent = new EmbedBuilder().setTitle(`Rocket League - ${name}`)
@@ -161,6 +169,11 @@ export class RocketLeagueCommands extends AbstractCommands {
             msgContent.addFields([{ name: `${oneVone.modeName}`, value: `${oneVone.rank} ${oneVone.division}\n${oneVone.mmr} MMR ${mmrDiff}` }])
             if (oneVone.iconURL) msgContent.setThumbnail(oneVone.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
             userData.mmr.mmr1v1 = oneVone.mmr
+        } else if (statsType.toLowerCase() === 'tournament') {
+            mmrDiff = this.compareOldNewStats(tournament.mmr, userData.mmr?.tournament, false)
+            msgContent.addFields([{ name: `${tournament.modeName}`, value: `${tournament.rank} ${tournament.division}\n${tournament.mmr} MMR ${mmrDiff}` }])
+            if (tournament.iconURL) msgContent.setThumbnail(tournament.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
+            userData.mmr.tournament = tournament.mmr
         } else {
             const goalDiff = this.compareOldNewStats(lifetimeStats.goals, userData.stats?.goals, false)
             const winDiff = this.compareOldNewStats(lifetimeStats.wins, userData.stats?.wins, false)

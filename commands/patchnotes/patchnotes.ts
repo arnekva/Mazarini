@@ -8,10 +8,17 @@ import { MessageHelper } from '../../helpers/messageHelper'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { ChannelIds } from '../../utils/mentionUtils'
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '15.10.0'
+    public static readonly currentVersion = '15.11.0'
     public static readonly currentPatchNotes =
-        `\n* Lagt til en rekke nye triggere på div høytider`
-        + `\n* /rødsvart tagger nå neste spiller i den første delen av spillet`
+        `\n* Fikset rocket league stats og lagt til en ny modus - tournament`
+        + `\n* Lagt inn logikk i /terning for å håndtere deathroll`
+        + `\n * Ingen grense på hvor mange brukere som er med i en runde`
+        + `\n * Ingen grense på hvor mange samtidige runder som pågår`
+        + `\n * Triller du på nytt på din egen terning vil dette starte et nytt, parallelt spill`
+        + `\n * Autocomplete vil alltid foreslå terning i følgende rekkefølge`
+        + `\n   * Runder du allerede er med i`
+        + `\n   * Runder du kan bli med i (straks noe triller for andre gang i en runde, kan den ikke lenger joines)`
+        + `\n   * Standard trill på 10 000 - som starter en ny runde`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

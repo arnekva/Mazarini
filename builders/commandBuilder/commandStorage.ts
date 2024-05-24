@@ -8,6 +8,7 @@ import { musicCommand } from './commandStorage/musikk'
 import { pickpocketCommand } from './commandStorage/pickpocket'
 import { pointerbrothersCommand } from './commandStorage/pointerbrothers'
 import { pollCommand } from './commandStorage/poll'
+import { rocketCommand } from './commandStorage/rocket'
 import { sangCommand } from './commandStorage/sang'
 import { spotifyCommand } from './commandStorage/spotify'
 import { statsCommand } from './commandStorage/stats'
@@ -40,4 +41,5 @@ export namespace CommandStorage {
     export const VivinoCommand = vivinoCommand
     export const StatsCommand = statsCommand
     export const CountdownCommand = countdownCommand
+    export const RocketCommand = rocketCommand
 }
