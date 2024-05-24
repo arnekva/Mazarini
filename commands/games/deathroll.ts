@@ -3,7 +3,6 @@ import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 
 import { IInteractionElement } from '../../interfaces/interactionInterface'
-import { MentionUtils } from '../../utils/mentionUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { randomUUID } from 'crypto'
 
@@ -36,7 +35,7 @@ export class Deathroll extends AbstractCommands {
             const game = this.getGame(user.username, diceTarget)
             const roll = RandomUtils.getRandomInteger(1, diceTarget)
             this.updateGame(game, user.username, roll)
-            if (roll == 1) this.endGame(game, user.id, diceTarget) 
+            if (roll == 1) this.endGame(game) 
             this.messageHelper.replyToInteraction(interaction, `${roll} *(1 - ${diceTarget})*`, {sendAsSilent: true})
         }
     }
@@ -77,7 +76,7 @@ export class Deathroll extends AbstractCommands {
         game.lastToRoll = username
     }
 
-    private endGame(finishedGame: DRGame, userID: string, diceTarget: number) {
+    private endGame(finishedGame: DRGame) {
         this.drGames = this.drGames.filter(game => game.id != finishedGame.id)
         this.client.database.registerDeathrollStats(finishedGame)
     }
