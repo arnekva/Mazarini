@@ -1,7 +1,7 @@
 import moment from 'moment'
+import { DRGame } from '../commands/games/deathroll'
 import { ChipsStats, MazariniStorage, MazariniUser, Meme, RulettStats, botDataPrefix } from '../interfaces/database/databaseInterface'
 import { FirebaseHelper } from './firebaseHelper'
-import { DRGame } from '../commands/games/deathroll'
 
 export class DatabaseHelper {
     private db: FirebaseHelper
@@ -209,7 +209,24 @@ export class DatabaseHelper {
     }
 
     public registerDeathrollStats(game: DRGame) {
-        
+        game.players.forEach(async (player) => {
+            const user = await this.getUser(player.userID)
+            if (user) {
+                if (!user.deathrollStats) {
+                    user.deathrollStats = {
+                        totalGames: 0,
+                        totalLosses: 0,
+                    }
+                }
+                user.deathrollStats.totalGames++
+                if (game.lastToRoll === user.id) {
+                    const lastRoll = game.players.map((p) => p.roll).sort((a, b) => a - b)[1]
+                    if (lastRoll > (user.deathrollStats.biggestLoss ?? 0)) user.deathrollStats.biggestLoss = lastRoll
+                    user.deathrollStats.totalLosses++
+                }
+                this.updateUser(user)
+            }
+        })
     }
 
     static defaultUser(id: string): MazariniUser {
@@ -219,17 +236,17 @@ export class DatabaseHelper {
             id: id,
             spinCounter: 0,
             warningCounter: 0,
-            activisionUserString: "",
-            birthday: "",
+            activisionUserString: '',
+            birthday: '',
             daily: {
                 streak: 0,
                 claimedToday: false,
                 dailyFreezeCounter: 0,
                 prestige: 0,
             },
-            lastFMUsername: "",
-            rocketLeagueUserString: "",
-            status: "",
+            lastFMUsername: '',
+            rocketLeagueUserString: '',
+            status: '',
         }
     }
 

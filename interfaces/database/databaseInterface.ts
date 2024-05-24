@@ -98,6 +98,13 @@ export interface MazariniUser {
     /** Saved as date string */
     whamageddonLoss?: string
     textCommandStrings?: string[]
+    deathrollStats?: {
+        totalGames: number
+        totalLosses: number
+        weeklyWins?: number
+        weeklyGames?: number
+        biggestLoss?: number
+    }
 }
 
 export interface DailyReward {

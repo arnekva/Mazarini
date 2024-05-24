@@ -3,3 +3,4 @@ client-env.ts
 package-lock.json
 .VSCodeCounter/
 yarn.lock
+./myDataBase.json
