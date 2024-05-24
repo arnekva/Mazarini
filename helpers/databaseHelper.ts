@@ -1,6 +1,7 @@
 import moment from 'moment'
 import { ChipsStats, MazariniStorage, MazariniUser, Meme, RulettStats, botDataPrefix } from '../interfaces/database/databaseInterface'
 import { FirebaseHelper } from './firebaseHelper'
+import { DRGame } from '../commands/games/deathroll'
 
 export class DatabaseHelper {
     private db: FirebaseHelper
@@ -207,6 +208,10 @@ export class DatabaseHelper {
         return (await this.db.getData('stats/emojis')) as object
     }
 
+    public registerDeathrollStats(game: DRGame) {
+        
+    }
+
     static defaultUser(id: string): MazariniUser {
         return {
             bonkCounter: 0,
@@ -214,19 +219,17 @@ export class DatabaseHelper {
             id: id,
             spinCounter: 0,
             warningCounter: 0,
-            activisionUserString: undefined,
-            birthday: undefined,
-            codStats: undefined,
-            codStatsBR: undefined,
+            activisionUserString: "",
+            birthday: "",
             daily: {
                 streak: 0,
                 claimedToday: false,
                 dailyFreezeCounter: 0,
                 prestige: 0,
             },
-            lastFMUsername: undefined,
-            rocketLeagueUserString: undefined,
-            status: undefined,
+            lastFMUsername: "",
+            rocketLeagueUserString: "",
+            status: "",
         }
     }
 

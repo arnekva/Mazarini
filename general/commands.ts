@@ -7,6 +7,7 @@ import { PoletCommands } from '../commands/drinks/poletCommands'
 import { RedBlackCommands } from '../commands/drinks/redBlack/redBlackCommands'
 import { VivinoCommands } from '../commands/drinks/vivinoCommands'
 import { CardCommands } from '../commands/games/cardCommands'
+import { Deathroll } from '../commands/games/deathroll'
 import { Ludo } from '../commands/games/ludo/ludo'
 import { CallOfDutyCommands } from '../commands/gaming/callofdutyCommands'
 import { RocketLeagueCommands } from '../commands/gaming/rocketleagueCommands'
@@ -62,6 +63,7 @@ export class Commands {
     private rocketLeagueCommands: RocketLeagueCommands
     private vivinoCommands: VivinoCommands
     private statsCommands: StatsCommands
+    private deathroll: Deathroll
 
     constructor(client: MazariniClient) {
         this.client = client
@@ -95,6 +97,7 @@ export class Commands {
         this.rocketLeagueCommands = new RocketLeagueCommands(this.client)
         this.vivinoCommands = new VivinoCommands(this.client)
         this.statsCommands = new StatsCommands(this.client)
+        this.deathroll = new Deathroll(this.client)
     }
 
     getAllInteractionCommands(): IInteractionElement[] {
@@ -128,6 +131,7 @@ export class Commands {
             this.rocketLeagueCommands.getAllInteractions(),
             this.vivinoCommands.getAllInteractions(),
             this.statsCommands.getAllInteractions(),
+            this.deathroll.getAllInteractions(),
         ]
     }
 

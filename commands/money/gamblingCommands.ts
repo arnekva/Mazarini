@@ -256,18 +256,6 @@ export class GamblingCommands extends AbstractCommands {
         }
     }
 
-    private async rollDice(interaction: ChatInputCommandInteraction<CacheType>) {
-        const customTarget = interaction.options.get('sider')?.value as number
-        const diceTarget = customTarget ? customTarget : 6
-        if (diceTarget <= 0) this.messageHelper.replyToInteraction(interaction, `Du kan ikke trille en terning med mindre enn 1 side`, { ephemeral: true })
-        else {
-            const explanation = customTarget ? `*(1 - ${customTarget})*` : ``
-            const number = RandomUtils.getRandomInteger(1, diceTarget)
-            const numberEmoji = customTarget ? number : (await EmojiHelper.getEmoji(`dice_${number}`, interaction)).id
-            this.messageHelper.replyToInteraction(interaction, `${numberEmoji} ${explanation}`, {sendAsSilent: true})
-        }
-    }
-
     private findSequenceWinningAmount(s: string) {
         switch (s) {
             case '123':
@@ -326,29 +314,6 @@ export class GamblingCommands extends AbstractCommands {
                         commandName: 'rulett',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                             this.roulette(rawInteraction)
-                        },
-                    },
-                    {
-                        commandName: 'terning',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            this.rollDice(rawInteraction)
-                        },
-                        autoCompleteCallback(rawInteraction: AutocompleteInteraction<CacheType>) {
-                            /** Matches sequence <<<  123 *(123 - 123)*   >>> */
-                            const regEx = /([0-9]* \*\([0-9]* - [0-9]*\)\*)/gi
-                            const lastMsg = rawInteraction.channel.messages.cache
-                                .reverse()
-                                .filter((msg) => msg.author.id === MentionUtils.User_IDs.BOT_HOIE)
-                                .find((msg) => {
-                                    const test = regEx.test(msg.content)
-                                    regEx.lastIndex = 0
-                                    
-                                    return test
-                                })
-                            if (lastMsg) {
-                                const content = lastMsg.content.slice(0, lastMsg.content.indexOf('*'))
-                                rawInteraction.respond([{ name: content, value: content }])
-                            }
                         },
                     },
                 ],

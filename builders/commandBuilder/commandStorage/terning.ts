@@ -9,7 +9,7 @@ export const terningCommand: ISlashCommandItem = {
             name: 'sider',
             description: 'velg antall sider å trille',
             type: ApplicationCommandOptionType.Integer,
-            required: false,
+            required: true,
             autocomplete: true,
         },
     ],
