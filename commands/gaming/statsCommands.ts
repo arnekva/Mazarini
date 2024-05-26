@@ -3,7 +3,7 @@ import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 
 import { EmojiHelper } from '../../helpers/emojiHelper'
-import { ChipsStats, EmojiStats, RulettStats } from '../../interfaces/database/databaseInterface'
+import { ChipsStats, DeathrollStats, EmojiStats, RulettStats } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
 
@@ -19,29 +19,56 @@ export class StatsCommands extends AbstractCommands {
         const user = await this.client.database.getUser(interaction.user.id)
         const userStats = user.userStats?.chipsStats
         const rulettStats = user.userStats?.rulettStats
+        const deathrollStats = user.userStats?.deathrollStats
         let reply = ''
-        if (userStats) {
-            reply += '**Gambling**\n'
-            reply += Object.entries(userStats)
+
+        const getStats = (prettyName: (a: string) => string, props: ChipsStats | DeathrollStats | RulettStats) => {
+            return Object.entries(props)
                 .map((stat) => {
-                    return `${this.findPrettyNameForChipsKey(stat[0] as keyof ChipsStats)}: ${stat[1]}`
+                    return `${prettyName(stat[0])}: ${stat[1]}`
                 })
                 .sort()
                 .join('\n')
         }
+        if (deathrollStats) {
+            reply += 'Stats:\n**Deathroll**\n'
+            reply += getStats((a: keyof DeathrollStats) => this.findPrettyNameForDeathrollKey(a), deathrollStats)
+            // Object.entries(deathrollStats)
+            //     .map((stat) => {
+            //         return `${this.findPrettyNameForDeathrollKey(stat[0] as keyof DeathrollStats)}: ${stat[1]}`
+            //     })
+            //     .sort()
+            //     .join('\n')
+        }
+        if (userStats) {
+            reply += '\n\n**Gambling**\n'
+            reply += getStats((a: keyof ChipsStats) => this.findPrettyNameForChipsKey(a), userStats)
+        }
         if (rulettStats) {
             reply += '\n\n**Rulett**\n'
-            reply += Object.entries(rulettStats)
-                .map((stat) => {
-                    return `${this.findPrettyNameForRulettKey(stat[0] as keyof RulettStats)}: ${stat[1]}`
-                })
-                .sort()
-                .join('\n')
+            reply += getStats((a: keyof RulettStats) => this.findPrettyNameForRulettKey(a), rulettStats)
         }
         if (reply == '') {
             reply = 'Du har ingen statistikk å visa'
         }
         this.messageHelper.replyToInteraction(interaction, reply)
+    }
+
+    private findPrettyNameForDeathrollKey(prop: keyof DeathrollStats) {
+        switch (prop) {
+            case 'totalGames':
+                return 'Deathroll spill'
+            case 'totalLosses':
+                return 'Deathroll tap'
+            case 'weeklyGames':
+                return 'Ukentlige spill'
+            case 'weeklyLosses':
+                return 'Ukentlige tap'
+            case 'biggestLoss':
+                return 'Største tap'
+            default:
+                return 'Ukjent'
+        }
     }
 
     private findPrettyNameForChipsKey(prop: keyof ChipsStats) {
@@ -116,8 +143,8 @@ export class StatsCommands extends AbstractCommands {
     }
 
     private async getTopEmojiStats(interaction: ChatInputCommandInteraction<CacheType>) {
-        await this.fetchEmojiStats()        
-        this.getEmojiAverages()        
+        await this.fetchEmojiStats()
+        this.getEmojiAverages()
         const data = interaction.options.get('data')?.value as string
         let limit = interaction.options.get('antall')?.value as number
         const sorting = interaction.options.get('sortering')?.value as string
@@ -126,11 +153,11 @@ export class StatsCommands extends AbstractCommands {
         const sortedStats = this.emojiStats
             .slice()
             .filter((x) => filterEmojiStats(x, type))
-            .sort((a, b) => data === 'top' ? sortEmojiStats(b,a,sorting) : sortEmojiStats(a,b,sorting))
+            .sort((a, b) => (data === 'top' ? sortEmojiStats(b, a, sorting) : sortEmojiStats(a, b, sorting)))
             .slice(0, limit)
         const embed = EmbedUtils.createSimpleEmbed(
-            `Statistikk for de ${sortedStats.length < limit ? sortedStats.length : limit} ${data === 'top' ? 'mest' : 'minst'}`
-            + ` brukte ${type === 'standard' ? 'ikke-animerte ' : type === 'animert' ? 'animerte ' : ''}emojiene`,
+            `Statistikk for de ${sortedStats.length < limit ? sortedStats.length : limit} ${data === 'top' ? 'mest' : 'minst'}` +
+                ` brukte ${type === 'standard' ? 'ikke-animerte ' : type === 'animert' ? 'animerte ' : ''}emojiene`,
             `Sortert etter ${sorting ?? 'total'}`
         )
         const fields = await this.getFields(sortedStats, sorting, interaction)
@@ -144,7 +171,10 @@ export class StatsCommands extends AbstractCommands {
             const emojiName = emoji.id === '<Fant ikke emojien>' ? stat.name : emoji.id
             const inMessages = `${this.boldStat('meldinger', sorting)}${stat.timesUsedInMessages ?? 0} meldinger${this.boldStat('meldinger', sorting)}`
             const inReactions = `${this.boldStat('reaksjoner', sorting)}${stat.timesUsedInReactions ?? 0} reaksjoner${this.boldStat('reaksjoner', sorting)}`
-            const total = `${this.boldStat('total', sorting)}${(stat.timesUsedInReactions ?? 0) + (stat.timesUsedInMessages ?? 0)} totalt${this.boldStat('total', sorting)}`
+            const total = `${this.boldStat('total', sorting)}${(stat.timesUsedInReactions ?? 0) + (stat.timesUsedInMessages ?? 0)} totalt${this.boldStat(
+                'total',
+                sorting
+            )}`
             const average = `${this.boldStat('gjennomsnitt', sorting)}Gj.snitt/uke: ${stat.weeklyAverage}${this.boldStat('gjennomsnitt', sorting)}`
             const info = `${inMessages}\n${inReactions}\n${total}\n\n${average}\n‎ `
             return { name: `${i + 1}. ${emojiName}`, value: info, inline: true }
@@ -180,14 +210,16 @@ export class StatsCommands extends AbstractCommands {
         if (!this.emojiStats || now.getTime() - this.lastFetched.getTime() > 60000) {
             //hent stats på nytt hvis det er har gått mer enn 1min (= utdaterte stats)
             const emojis = await this.client.database.getEmojiStats()
-            const emojiStatsArray: EmojiStats[] = Object.values(emojis).map(({ added, name, timesUsedInMessages, timesUsedInReactions, removed, animated }) => ({
-                added,
-                name,
-                timesUsedInMessages,
-                timesUsedInReactions,
-                removed,
-                animated
-            }))
+            const emojiStatsArray: EmojiStats[] = Object.values(emojis).map(
+                ({ added, name, timesUsedInMessages, timesUsedInReactions, removed, animated }) => ({
+                    added,
+                    name,
+                    timesUsedInMessages,
+                    timesUsedInReactions,
+                    removed,
+                    animated,
+                })
+            )
             this.emojiStats = emojiStatsArray.filter((stat) => stat.name !== undefined)
             this.lastFetched = now
             return
@@ -198,7 +230,7 @@ export class StatsCommands extends AbstractCommands {
 
     private getEmojiAverages() {
         this.emojiStats.forEach((stat) => {
-            stat.weeklyAverage = this.calculateAverage(stat)            
+            stat.weeklyAverage = this.calculateAverage(stat)
         })
     }
 
@@ -208,10 +240,10 @@ export class StatsCommands extends AbstractCommands {
         for (let i = 0; i < stat.added.length; i++) {
             const startTime = stat.removed && stat.removed.length > i ? new Date(stat.removed[i]) : now
             const endTime = new Date(stat.added[i])
-            const days = (startTime.getTime() - endTime.getTime()) / (1000 * 60 * 60 * 24)                
+            const days = (startTime.getTime() - endTime.getTime()) / (1000 * 60 * 60 * 24)
             totalDaysInUse += Math.round(days)
-        }            
-        const average = (stat.timesUsedInMessages + stat.timesUsedInReactions)/(Math.ceil((totalDaysInUse > 0 ? totalDaysInUse : 1)/7))
+        }
+        const average = (stat.timesUsedInMessages + stat.timesUsedInReactions) / Math.ceil((totalDaysInUse > 0 ? totalDaysInUse : 1) / 7)
         return Math.round((average + Number.EPSILON) * 10) / 10
     }
 
@@ -236,28 +268,29 @@ export class StatsCommands extends AbstractCommands {
     }
 }
 
-const sortByMessages: (a: EmojiStats, b: EmojiStats) => number = (a,b) => a.timesUsedInMessages - b.timesUsedInMessages
-const sortByReactions: (a: EmojiStats, b: EmojiStats) => number = (a,b) => a.timesUsedInReactions - b.timesUsedInReactions
-const sortByAverage: (a: EmojiStats, b: EmojiStats) => number = (a,b) => a.weeklyAverage - b.weeklyAverage
-const sortByTotal: (a: EmojiStats, b: EmojiStats) => number = (a,b) => ((a.timesUsedInReactions ?? 0) + (a.timesUsedInMessages ?? 0)) - ((b.timesUsedInReactions ?? 0) + (b.timesUsedInMessages ?? 0))
+const sortByMessages: (a: EmojiStats, b: EmojiStats) => number = (a, b) => a.timesUsedInMessages - b.timesUsedInMessages
+const sortByReactions: (a: EmojiStats, b: EmojiStats) => number = (a, b) => a.timesUsedInReactions - b.timesUsedInReactions
+const sortByAverage: (a: EmojiStats, b: EmojiStats) => number = (a, b) => a.weeklyAverage - b.weeklyAverage
+const sortByTotal: (a: EmojiStats, b: EmojiStats) => number = (a, b) =>
+    (a.timesUsedInReactions ?? 0) + (a.timesUsedInMessages ?? 0) - ((b.timesUsedInReactions ?? 0) + (b.timesUsedInMessages ?? 0))
 
 const sortEmojiStats: (a: EmojiStats, b: EmojiStats, sorting: string) => number = (a, b, sort) => {
     switch (sort) {
         case 'meldinger':
-            return sortByMessages(a,b)
+            return sortByMessages(a, b)
         case 'reaksjoner':
-            return sortByReactions(a,b)
+            return sortByReactions(a, b)
         case 'gjennomsnitt':
-            return sortByAverage(a,b)
-        case 'total':            
-            return sortByTotal(a,b)
+            return sortByAverage(a, b)
+        case 'total':
+            return sortByTotal(a, b)
         default:
-            return sortByTotal(a,b)
+            return sortByTotal(a, b)
     }
 }
 
 const filterOnNotAnimated: (x: EmojiStats) => boolean = (x) => !x.animated
-const filterOnAnimated: (x: EmojiStats) => boolean = (x) => x.animated 
+const filterOnAnimated: (x: EmojiStats) => boolean = (x) => x.animated
 const filterEmojiStats: (x: EmojiStats, filter: string) => boolean = (x, filter) => {
     switch (filter) {
         case 'standard':

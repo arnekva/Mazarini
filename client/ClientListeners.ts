@@ -17,11 +17,12 @@ import {
     User,
 } from 'discord.js'
 import { environment } from '../client-env'
-import { PatchNotes } from '../commands/patchnotes/patchnotes'
+
 import { CommandRunner } from '../general/commandRunner'
 import { ErrorHandler } from '../handlers/errorHandler'
 import { ClientHelper } from '../helpers/clientHelper'
 import { MazariniBot } from '../main'
+import { PatchNotes } from '../patchnotes'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { ChannelIds, MentionUtils, ServerIds } from '../utils/mentionUtils'

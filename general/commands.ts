@@ -19,7 +19,7 @@ import { GamblingCommands } from '../commands/money/gamblingCommands'
 import { MoneyCommands } from '../commands/money/moneyCommands'
 import { Spinner } from '../commands/money/spinner'
 import { NameCommands } from '../commands/nameCommands'
-import { PatchNotes } from '../commands/patchnotes/patchnotes'
+
 import { PollCommands } from '../commands/pollcommands'
 import { Music } from '../commands/sound/musicCommands'
 import { SoundCommands } from '../commands/sound/soundCommands'
@@ -30,6 +30,7 @@ import { LinkCommands } from '../commands/user/linkCommands'
 import { UserCommands } from '../commands/user/userCommands'
 import { Weather } from '../commands/weatherCommands'
 import { IInteractionElement } from '../interfaces/interactionInterface'
+import { PatchNotes } from '../patchnotes'
 
 export class Commands {
     private client: MazariniClient

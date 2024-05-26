@@ -212,17 +212,21 @@ export class DatabaseHelper {
         game.players.forEach(async (player) => {
             const user = await this.getUser(player.userID)
             if (user) {
-                if (!user.deathrollStats) {
-                    user.deathrollStats = {
-                        totalGames: 0,
-                        totalLosses: 0,
-                    }
+                const defaultStats = {
+                    totalGames: 0,
+                    totalLosses: 0,
                 }
-                user.deathrollStats.totalGames++
+                if (!user.userStats)
+                    user.userStats = {
+                        deathrollStats: defaultStats,
+                    }
+                else if (!user.userStats.deathrollStats) user.userStats.deathrollStats = defaultStats
+
+                user.userStats.deathrollStats.totalGames++
                 if (game.lastToRoll === user.id) {
                     const lastRoll = game.players.map((p) => p.roll).sort((a, b) => a - b)[1]
-                    if (lastRoll > (user.deathrollStats.biggestLoss ?? 0)) user.deathrollStats.biggestLoss = lastRoll
-                    user.deathrollStats.totalLosses++
+                    if (lastRoll > (user.userStats.deathrollStats.biggestLoss ?? 0)) user.userStats.deathrollStats.biggestLoss = lastRoll
+                    user.userStats.deathrollStats.totalLosses++
                 }
                 this.updateUser(user)
             }

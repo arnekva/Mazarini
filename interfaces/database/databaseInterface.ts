@@ -98,13 +98,6 @@ export interface MazariniUser {
     /** Saved as date string */
     whamageddonLoss?: string
     textCommandStrings?: string[]
-    deathrollStats?: {
-        totalGames: number
-        totalLosses: number
-        weeklyWins?: number
-        weeklyGames?: number
-        biggestLoss?: number
-    }
 }
 
 export interface DailyReward {
@@ -150,6 +143,14 @@ export type FavoritePol = {
 export type UserStats = {
     chipsStats?: ChipsStats
     rulettStats?: RulettStats
+    deathrollStats?: DeathrollStats
+}
+export interface DeathrollStats {
+    totalGames: number
+    totalLosses: number
+    weeklyLosses?: number
+    weeklyGames?: number
+    biggestLoss?: number
 }
 export type dbPrefix =
     | 'birthday'
