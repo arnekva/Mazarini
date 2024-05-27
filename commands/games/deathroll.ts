@@ -34,7 +34,7 @@ export class Deathroll extends AbstractCommands {
             const roll = RandomUtils.getRandomInteger(1, diceTarget)
             this.updateGame(game, user.id, roll)
             if (roll == 1) this.endGame(game)
-            this.messageHelper.replyToInteraction(interaction, `${roll} *(1 - ${diceTarget})*`, { sendAsSilent: true })
+            this.messageHelper.replyToInteraction(interaction, `${roll} *(1 - ${diceTarget})*`, { sendAsSilent: game.players.length > 1 })
         }
     }
 
