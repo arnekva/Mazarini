@@ -25,7 +25,7 @@ export class StatsCommands extends AbstractCommands {
         const getStats = (prettyName: (a: string) => string, props: ChipsStats | DeathrollStats | RulettStats) => {
             return Object.entries(props)
                 .map((stat) => {
-                    return `${prettyName(stat[0])}: ${stat[1]}`
+                    return `${prettyName(stat[0])}: ${Array.isArray(stat) ? stat.join(', ') : stat[1]}`
                 })
                 .sort()
                 .join('\n')

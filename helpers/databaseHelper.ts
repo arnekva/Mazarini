@@ -225,7 +225,15 @@ export class DatabaseHelper {
                 user.userStats.deathrollStats.totalGames++
                 if (game.lastToRoll === user.id) {
                     const lastRoll = game.players.map((p) => p.roll).sort((a, b) => a - b)[1]
-                    if (lastRoll > (user.userStats.deathrollStats.biggestLoss ?? 0)) user.userStats.deathrollStats.biggestLoss = lastRoll
+                    if (!user.userStats.deathrollStats.biggestLoss) {
+                        user.userStats.deathrollStats.biggestLoss = [lastRoll]
+                    } else {
+                        user.userStats.deathrollStats.biggestLoss.push(lastRoll)
+                        if (user.userStats.deathrollStats.biggestLoss.length > 10) {
+                            user.userStats.deathrollStats.biggestLoss.sort((a, b) => a - b)
+                            user.userStats.deathrollStats.biggestLoss.shift()
+                        }
+                    }
                     user.userStats.deathrollStats.totalLosses++
                 }
                 this.updateUser(user)

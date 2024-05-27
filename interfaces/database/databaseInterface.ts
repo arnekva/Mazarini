@@ -150,7 +150,7 @@ export interface DeathrollStats {
     totalLosses: number
     weeklyLosses?: number
     weeklyGames?: number
-    biggestLoss?: number
+    biggestLoss?: number[]
 }
 export type dbPrefix =
     | 'birthday'
