@@ -8,12 +8,11 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '16.0.0'
+    public static readonly currentVersion = '16.1.0'
     public static readonly currentPatchNotes =
-        `\n* Fikset rocket league stats og lagt til en ny modus - tournament` +
-        `\n* Lagt inn logikk i /terning for å håndtere deathroll` +
-        `\n* Deathroll stats blir lagret` +
-        `\n* Deathroll stats kan vises sammen med andre stats i /stats bruker`
+        `\n* Oppretter bare deathroll spill (som dermed lagres stats for) dersom første trill er over 100` +
+        `\n* Gjort om "/stats bruker" til å være en embed` +
+        `\n * Lagt til valgfritt parameter "kategori"`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
