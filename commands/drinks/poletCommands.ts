@@ -283,10 +283,14 @@ export class PoletCommands extends AbstractCommands {
                     const hasDesc = !!data.description?.trim()
                     let description = `${hasDesc ? data.description : data.taste}`
                     if (hasBarCode) {
-                        const fetchedScore = await PoletCommands.fetchScore(barcode)
+                        try {
+                            const fetchedScore = await PoletCommands.fetchScore(barcode)
 
-                        if (fetchedScore && fetchedScore?.payload?.rows?.length > 0) {
-                            description += `\nVinify score: ${fetchedScore.payload.rows[0].mainProfile.averagePoints} poeng (${fetchedScore.payload.rows[0].mainProfile.numberOfRates} ratinger)`
+                            if (fetchedScore && fetchedScore?.payload?.rows?.length > 0) {
+                                description += `\nVinify score: ${fetchedScore.payload.rows[0].mainProfile.averagePoints} poeng (${fetchedScore.payload.rows[0].mainProfile.numberOfRates} ratinger)`
+                            }
+                        } catch (error) {
+                            messageHelper.sendLogMessage(`Score fetch was aborted after 6000ms. Error: ${error}`)
                         }
                     }
                     const embed = EmbedUtils.createSimpleEmbed(`${data.name}`, description, [
