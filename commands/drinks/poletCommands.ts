@@ -252,29 +252,39 @@ export class PoletCommands extends AbstractCommands {
         const barCodeRegex = /\d{9,15}/gi
         const hasUrl = content.includes('https://www.vinmonopolet.no/')
         let hasBarCode = barCodeRegex.test(content)
-        let barcode: any = content
+        let barcodes: any = content
         if (!hasUrl && !hasBarCode && message.attachments?.first()?.url) {
             const msg = await messageHelper.sendLogMessage('Sjekker bilde for strekkode...')
-            barcode = await BarcodeUtils.decodeImage(message.attachments.first().url)
-            msg.edit(`Fant ${barcode ? '' : 'ikke '}strekkode i bilde sendt i kanalen ${MentionUtils.mentionChannel(message.channelId)}`)
-            hasBarCode = !!barcode
+            barcodes = await BarcodeUtils.decodeImage(message.attachments.first().url, msg)            
+            msg.edit(`Fant ${barcodes ? '' : 'ikke '}strekkode i bilde sendt i kanalen ${MentionUtils.mentionChannel(message.channelId)}`)
+            hasBarCode = !!barcodes
         }
         if (hasUrl || hasBarCode) {
-            const id = hasBarCode ? barcode : content.split('/p/')[1]
+            const id = hasBarCode ? barcodes[0] : content.split('/p/')[1]
             if (id && !isNaN(Number(id))) {
-                // try {
-                let data = await PoletCommands.fetchProductDataFromId(id, hasBarCode)
-                data = hasBarCode ? await PoletCommands.fetchProductDataFromId(data.code, false) : data
-
+                
+                let data: any = undefined
+                let barcode: any = undefined
+                if (!hasBarCode) data = await PoletCommands.fetchProductDataFromId(content.split('/p/')[1], false)
+                else {
+                    let found = false
+                    for (let i = 0; !found && i < barcodes?.length; i++) {
+                        data = await PoletCommands.fetchProductDataFromId(barcodes[i], true)
+                        barcode = barcodes[i]
+                        found = !data?.errors
+                    }
+                    data = await PoletCommands.fetchProductDataFromId(data.code, false)
+                }
+                
                 if (data && !data?.errors) {
                     const hasDesc = !!data.description?.trim()
                     let description = `${hasDesc ? data.description : data.taste}`
                     if (hasBarCode) {
                         const fetchedScore = await PoletCommands.fetchScore(barcode)
-                        if (fetchedScore && fetchedScore?.payload?.rows) {
+                        if (fetchedScore && fetchedScore?.payload?.rows?.length > 0) {
                             description += `\nVinify score: ${fetchedScore.payload.rows[0].mainProfile.averagePoints} poeng (${fetchedScore.payload.rows[0].mainProfile.numberOfRates} ratinger)`
                         }
-                    }                    
+                    }        
                     const embed = EmbedUtils.createSimpleEmbed(`${data.name}`, description, [
                         { name: `Lukt`, value: `${data.smell}` },
                         { name: `Pris`, value: `${data.price.formattedValue}`, inline: true },
@@ -312,7 +322,7 @@ export class PoletCommands extends AbstractCommands {
                     embed.setURL(`https://www.vinmonopolet.no${data.url}`)
 
                     embed.setFooter({
-                        text: `Produsent: ${data.main_producer?.name}, Distrikt: ${data.district?.name}, Sub-distrikt: ${data.sub_District?.name}`,
+                        text: `Produsent: ${data.main_producer?.name}${data.district?.name ? `, Distrikt: ${data.district?.name}` : ''}${data.sub_District?.name ? `, Sub-distrikt: ${data.sub_District?.name}` : ''}`,
                     })
                     const poletStockButton = new ActionRowBuilder<ButtonBuilder>()
                     poletStockButton.addComponents(
