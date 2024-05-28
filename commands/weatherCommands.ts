@@ -135,8 +135,8 @@ export class Weather extends AbstractCommands {
     private getTodaysTimeseries(data: any) {
         let nowIndex = 0
         const timeSeries = data.properties.timeseries
-        for (var i = 0; i < timeSeries.length; i++) {
-            let date = new Date(timeSeries[i].time)
+        for (let i = 0; i < timeSeries.length; i++) {
+            const date = new Date(timeSeries[i].time)
             if (DateUtils.dateIsWithinLastHour(date)) {
                 nowIndex = i
             }

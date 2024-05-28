@@ -139,7 +139,7 @@ export class DatabaseHelper {
         return await this.db.getMemes()
     }
 
-    static getProperty<T>(o: MazariniUser, name: keyof MazariniUser) {
+    static getProperty(o: MazariniUser, name: keyof MazariniUser) {
         return o[name]
     }
 
