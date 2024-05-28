@@ -26,86 +26,47 @@ export class StatsCommands extends AbstractCommands {
         const embed = EmbedUtils.createSimpleEmbed(`Statistikk for ${UserUtils.findUserById(user.id, this.client).username}`, ' ')
         
         if (deathrollStats && (!category || category === 'deathroll')) {
-            const prettyName = (a: keyof DeathrollStats) => this.findPrettyNameForDeathrollKey(a)
-            this.addFieldsForStats(embed, prettyName, deathrollStats, ':game_die: Deathroll :game_die:')
+            embed.addFields(this.getDeathrollStatFields(deathrollStats))
         }
         if (userStats && (!category || category === 'gambling')) {
-            const prettyName = (a: keyof ChipsStats) => this.findPrettyNameForChipsKey(a)
-            this.addFieldsForStats(embed, prettyName, userStats, ':moneybag: Gambling :moneybag:')
+            embed.addFields(this.getGamblingStatFields(userStats))
         }
         if (rulettStats && (!category || category === 'rulett')) {
-            const prettyName = (a: keyof RulettStats) => this.findPrettyNameForRulettKey(a)
-            this.addFieldsForStats(embed, prettyName, rulettStats, ':o: Rulett :o:')
+            embed.addFields(this.getRouletteStatFields(rulettStats))
         }
         this.messageHelper.replyToInteraction(interaction, embed)
     }
 
-    private addFieldsForStats(embed: EmbedBuilder, prettyName: (a: string) => string, props: ChipsStats | DeathrollStats | RulettStats, header: string) {
-        // if (embed.data?.fields?.length) embed.addFields({ name: '\u200B', value: '\u200B' })
-        embed.addFields({ name: '\u200B', value: `**${header}**` })
-        const fields = Object.entries(props)
-        .map((stat) => ({ name: `${Array.isArray(stat[1]) ? stat[1].sort((a,b) => b-a)[0] : stat[1]}`, value: prettyName(stat[0]), inline: true})).sort((a, b) => ('' + a.value).localeCompare(b.value))
-        for (let i = 0; i < (fields.length % 3); i++) {
-            fields.push({ name: '\u200B', value: '\u200B', inline: true })
-        }
-        embed.addFields(fields)
-        
+    private getDeathrollStatFields(stats: DeathrollStats) {
+        return [{ name: '\u200B', value: `**:game_die: Deathroll :game_die:**` },
+                ...this.getWinLossRatioFieldRow('Games', (stats.totalGames-stats.totalLosses), stats.totalLosses, true),
+                { name: 'Største tap', value: `${stats.biggestLoss?.sort((a,b) => b-a).join(', ') ?? ''}` }]
     }
 
-    private findPrettyNameForDeathrollKey(prop: keyof DeathrollStats) {
-        switch (prop) {
-            case 'totalGames':
-                return 'Spill'
-            case 'totalLosses':
-                return 'Tap'
-            case 'weeklyGames':
-                return 'Ukentlige spill'
-            case 'weeklyLosses':
-                return 'Ukentlige tap'
-            case 'biggestLoss':
-                return 'Største tap'
-            default:
-                return 'Ukjent'
-        }
+    private getGamblingStatFields(stats: ChipsStats) {
+        return [{ name: '\u200B', value: `**:moneybag: Gambling :moneybag:**` },
+                ...this.getWinLossRatioFieldRow('Gambling ', stats.gambleWins, stats.gambleLosses),
+                ...this.getWinLossRatioFieldRow('Rulett ', stats.roulettWins, stats.rouletteLosses),
+                ...this.getWinLossRatioFieldRow('Roll ', stats.slotWins, stats.slotLosses),
+                ...this.getWinLossRatioFieldRow('Krig ', stats.krigWins, stats.krigLosses)
+                ]
     }
 
-    private findPrettyNameForChipsKey(prop: keyof ChipsStats) {
-        switch (prop) {
-            case 'gambleLosses':
-                return 'Tap'
-            case 'gambleWins':
-                return 'Gevinst'
-            case 'krigLosses':
-                return 'Krig tap'
-            case 'krigWins':
-                return 'Krig seier'
-            case 'roulettWins':
-                return 'Rulett gevinst'
-            case 'rouletteLosses':
-                return 'Rulett tap'
-            case 'slotLosses':
-                return 'Roll tap'
-            case 'slotWins':
-                return 'Roll gevinst'
-            default:
-                return 'Ukjent'
-        }
+    private getRouletteStatFields(stats: RulettStats) {
+        return [{ name: '\u200B', value: `**:o: Rulett :o:**` },
+                { name: 'Svart', value: `${stats.black ?? 0}`, inline: true },
+                { name: 'Rød', value: `${stats.red ?? 0}`, inline: true },
+                { name: 'Grønn', value: `${stats.green ?? 0}`, inline: true },
+                { name: 'Partall', value: `${stats.even ?? 0}`, inline: true },
+                { name: 'Oddetall', value: `${stats.odd ?? 0}`, inline: true },
+                { name: '\u200B', value: '\u200B', inline: true }]
     }
-    private findPrettyNameForRulettKey(prop: keyof RulettStats) {
-        switch (prop) {
-            case 'black':
-                return 'Svart'
-            case 'green':
-                return 'Grønn'
-            case 'red':
-                return 'Rød'
-            case 'even':
-                return 'Partall'
-            case 'odd':
-                return 'Oddetall'
-            default:
-                return 'Ukjent'
-        }
+
+    private getWinLossRatioFieldRow(stat: string, won: number, lost: number, focusOnLoss: boolean = false) {
+        won = won ?? 0, lost = lost ?? 0
+        return [{ name: `${stat}`, value: `${won+lost}`, inline: true },
+                { name: `${focusOnLoss ? 'Tapt' : 'Vunnet'}`, value: `${focusOnLoss ? lost : won}`, inline: true },
+                { name: `${focusOnLoss ? 'Loss' : 'Win'}%`, value: `${(((focusOnLoss ? lost : won)/((won+lost) > 0 ? (won+lost) : 1))*100).toFixed(1)}`, inline: true }]
     }
 
     private async getEmojiStats(interaction: ChatInputCommandInteraction<CacheType>) {
