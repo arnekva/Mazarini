@@ -35,10 +35,10 @@ export class TrelloAPI {
         const url = TrelloCommands.baseUrl +
             `cards/${card.id}?key=${trelloApiKey}&token=${trelloToken}&`
 
-        const data = new URLSearchParams();
-        data.append('name', card.name);
-        data.append('desc', card.desc);
-        data.append('idList', card.idList);
+        const data = new URLSearchParams()
+        data.append('name', card.name)
+        data.append('desc', card.desc)
+        data.append('idList', card.idList)
         card.idLabels.forEach((id) => data.append('idLabels', id))
             
         const response: ITrelloCard = await fetch(url + data, {
@@ -91,7 +91,7 @@ export class TrelloAPI {
             },
         })).json()
 
-        let cards = new Map<string, ITrelloCard>()
+        const cards = new Map<string, ITrelloCard>()
         response.forEach((card) => {                   
             cards.set(card.id, card)
         })  
@@ -108,7 +108,7 @@ export class TrelloAPI {
                 Accept: 'application/json',
             },
         })).json()
-        let labels = new Map<string, ITrelloLabel>()
+        const labels = new Map<string, ITrelloLabel>()
         response.forEach((label) => {            
             labels.set(label.name.toLowerCase(), label)
         })
@@ -125,7 +125,7 @@ export class TrelloAPI {
                 Accept: 'application/json',
             },
         })).json()
-        let lists = new Map<string, ITrelloList>()
+        const lists = new Map<string, ITrelloList>()
         response.forEach((list) => {    
             lists.set(list.id, list)
         })

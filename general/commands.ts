@@ -1,6 +1,6 @@
 import { MazariniClient } from '../client/MazariniClient'
 import { Admin } from '../commands/admin/admin'
-import { TrelloCommands } from '../commands/bot/trelloCommands'
+import { TrelloCommands } from '../commands/trello/trelloCommands'
 import { DateCommands } from '../commands/dateCommands'
 import { DrinksCommands } from '../commands/drinks/drinksCommands'
 import { PoletCommands } from '../commands/drinks/poletCommands'
