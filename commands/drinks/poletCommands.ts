@@ -20,6 +20,7 @@ import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { BarcodeUtils } from '../../utils/barcodeUtils'
 import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
+import { FetchUtils } from '../../utils/fetchUtils'
 import { MentionUtils } from '../../utils/mentionUtils'
 const fetch = require('node-fetch')
 
@@ -70,7 +71,7 @@ export class PoletCommands extends AbstractCommands {
         let id = PoletCommands.baseStoreID
         if (storeId) id = storeId
 
-        const data = await fetch(`${PoletCommands.baseStoreDataURL}?storeId=${id}`, {
+        const data = await FetchUtils.fetchWithTimeout(`${PoletCommands.baseStoreDataURL}?storeId=${id}`, {
             method: 'GET',
             headers: {
                 'Ocp-Apim-Subscription-Key': vinmonopoletKey,
@@ -113,11 +114,9 @@ export class PoletCommands extends AbstractCommands {
 
     static async fetchScore(barCode: string) {
         //TODO: Allow normal search if no barcode (i.e. search for product id) https://wines-ws.vinify.app/wines/search/4878001
-        const controller = new AbortController()
-        setTimeout(() => {
-            controller.abort()
-        }, 12000)
-        const data = await fetch(`https://wines-ws.vinify.app/wines?gtin=${barCode}`, {
+        console.log('trying to fetch')
+
+        const data = await FetchUtils.fetchWithTimeout(`https://wines-ws.vinify.app/wines?gtin=${barCode}`, {
             method: 'GET',
             headers: {
                 method: 'GET',
@@ -127,7 +126,6 @@ export class PoletCommands extends AbstractCommands {
                 'user-agent': vinUserAgent,
                 authorization: `Bearer ${vinBearer}`,
             },
-            signal: controller.signal,
         })
 
         return await data.json()
@@ -286,6 +284,7 @@ export class PoletCommands extends AbstractCommands {
                     let description = `${hasDesc ? data.description : data.taste}`
                     if (hasBarCode) {
                         const fetchedScore = await PoletCommands.fetchScore(barcode)
+
                         if (fetchedScore && fetchedScore?.payload?.rows?.length > 0) {
                             description += `\nVinify score: ${fetchedScore.payload.rows[0].mainProfile.averagePoints} poeng (${fetchedScore.payload.rows[0].mainProfile.numberOfRates} ratinger)`
                         }
