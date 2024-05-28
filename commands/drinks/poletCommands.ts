@@ -252,18 +252,19 @@ export class PoletCommands extends AbstractCommands {
         const barCodeRegex = /\d{9,15}/gi
         const hasUrl = content.includes('https://www.vinmonopolet.no/')
         let hasBarCode = barCodeRegex.test(content)
-        let barcode = content
+        let barcode: any = content
         if (!hasUrl && !hasBarCode && message.attachments?.first()?.url) {
             const msg = await messageHelper.sendLogMessage('Sjekker bilde for strekkode...')
             barcode = await BarcodeUtils.decodeImage(message.attachments.first().url)
-            msg.edit(`Fant ${barcode ? '' : 'ikke '}i bilde sendt i kanalen ${MentionUtils.mentionChannel(message.channelId)}`)
+            msg.edit(`Fant ${barcode ? '' : 'ikke '}strekkode i bilde sendt i kanalen ${MentionUtils.mentionChannel(message.channelId)}`)
             hasBarCode = !!barcode
         }
         if (hasUrl || hasBarCode) {
             const id = hasBarCode ? barcode : content.split('/p/')[1]
             if (id && !isNaN(Number(id))) {
                 // try {
-                const data = await PoletCommands.fetchProductDataFromId(id, hasBarCode)
+                let data = await PoletCommands.fetchProductDataFromId(id, hasBarCode)
+                data = hasBarCode ? await PoletCommands.fetchProductDataFromId(data.code, false) : data
 
                 if (data && !data?.errors) {
                     const hasDesc = !!data.description?.trim()
@@ -273,7 +274,7 @@ export class PoletCommands extends AbstractCommands {
                         if (fetchedScore && fetchedScore?.payload?.rows) {
                             description += `\nVinify score: ${fetchedScore.payload.rows[0].mainProfile.averagePoints} poeng (${fetchedScore.payload.rows[0].mainProfile.numberOfRates} ratinger)`
                         }
-                    }
+                    }                    
                     const embed = EmbedUtils.createSimpleEmbed(`${data.name}`, description, [
                         { name: `Lukt`, value: `${data.smell}` },
                         { name: `Pris`, value: `${data.price.formattedValue}`, inline: true },
