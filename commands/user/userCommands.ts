@@ -96,8 +96,9 @@ export class UserCommands extends AbstractCommands {
 
     private async handleUserInfoViewingMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {
         if (selectMenu.customId.split(';')[1] === selectMenu.user.id) {
-            const value = selectMenu.values[0]
-            let userData = await this.client.database.getUser(selectMenu.user.id)[value]
+            const value = selectMenu.values[0]            
+            const user = await this.client.database.getUser(selectMenu.user.id)
+            let userData = user[value]
 
             if (typeof userData === 'object') {
                 userData = Object.entries(userData).map((entry, val) => {
