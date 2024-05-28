@@ -4,6 +4,7 @@ import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { RandomUtils } from '../../utils/randomUtils'
+import { MentionUtils } from '../../utils/mentionUtils'
 
 export interface DRPlayer {
     userID: string
@@ -30,18 +31,23 @@ export class Deathroll extends AbstractCommands {
         if (diceTarget <= 0) this.messageHelper.replyToInteraction(interaction, `Du kan ikke trille en terning med mindre enn 1 side`, { ephemeral: true })
         else {
             const user = interaction.user
-            const game = this.getGame(user.id, diceTarget)
+            const game = this.getGame(user.id, diceTarget)            
             const roll = RandomUtils.getRandomInteger(1, diceTarget)
-            this.updateGame(game, user.id, roll)
-            if (roll == 1) this.endGame(game)
-            this.messageHelper.replyToInteraction(interaction, `${roll} *(1 - ${diceTarget})*`, { sendAsSilent: game.players.length > 1 })
+            if (game) {
+                this.updateGame(game, user.id, roll)
+                if (roll == 1) {
+                    this.checkForLossOnFirstRoll(game, diceTarget)
+                    this.endGame(game)
+                }
+            }
+            this.messageHelper.replyToInteraction(interaction, `${roll} *(1 - ${diceTarget})*`, { sendAsSilent: ((game?.players?.length) ?? 2) > 1 })
         }
     }
 
     private getGame(userID: string, diceTarget: number) {
         let game = this.findActiveGame(userID, diceTarget)
         if (!game) game = this.joinGame(this.checkForAvailableGame(userID, diceTarget), userID)
-        return game ?? this.registerNewGame(userID)
+        return game ?? (diceTarget > 100 ? this.registerNewGame(userID) : undefined)
     }
 
     private findActiveGame(userID: string, diceTarget: number) {
@@ -83,6 +89,12 @@ export class Deathroll extends AbstractCommands {
         game.lastToRoll = userID
     }
 
+    private checkForLossOnFirstRoll(game: DRGame, diceTarget: number) {
+        if (game.players.length === 1) {
+            game.players.push({ userID: MentionUtils.User_IDs.BOT_HOIE, roll: diceTarget})
+        }
+    }
+
     private endGame(finishedGame: DRGame) {
         this.drGames = this.drGames.filter((game) => game.id != finishedGame.id)
         this.client.database.registerDeathrollStats(finishedGame)
@@ -101,7 +113,7 @@ export class Deathroll extends AbstractCommands {
         )
     }
 
-    private autoCompleteDice(interaction: AutocompleteInteraction<CacheType>) {
+    private autoCompleteDice(interaction: AutocompleteInteraction<CacheType>) {        
         let game = this.getActiveGameForUser(interaction.user.id)
         if (!game) game = this.checkForAvailableGame(interaction.user.id)
         if (game) {
