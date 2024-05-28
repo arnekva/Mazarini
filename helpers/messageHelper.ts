@@ -194,6 +194,8 @@ export class MessageHelper {
             this.sendLogMessage('En melding som ble forsøkt sendt var tom')
             return undefined
         }
+        
+        if (environment === 'dev') channelId = ChannelIds.LOKAL_BOT_SPAM_DEV // Global overwrite to avoid sending dev-environment messages to main server
 
         const channel = this.findChannelById(channelId) as TextChannel
         if (channel && channel.permissionsFor(UserUtils.findMemberByUserID(MentionUtils.User_IDs.BOT_HOIE, channel.guild)).toArray().includes('SendMessages')) {
