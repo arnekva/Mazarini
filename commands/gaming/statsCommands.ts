@@ -1,4 +1,4 @@
-import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction } from 'discord.js'
+import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, EmbedBuilder, User } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 
@@ -6,6 +6,7 @@ import { EmojiHelper } from '../../helpers/emojiHelper'
 import { ChipsStats, DeathrollStats, EmojiStats, RulettStats } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
+import { UserUtils } from '../../utils/userUtils'
 
 export class StatsCommands extends AbstractCommands {
     private emojiStats: EmojiStats[]
@@ -16,50 +17,47 @@ export class StatsCommands extends AbstractCommands {
     }
 
     private async findUserStats(interaction: ChatInputCommandInteraction<CacheType>) {
-        const user = await this.client.database.getUser(interaction.user.id)
+        const userParam = interaction.options.get('bruker')?.user
+        const category = interaction.options.get('kategori')?.value as string
+        const user = await this.client.database.getUser(userParam && userParam instanceof User ? userParam.id : interaction.user.id)
         const userStats = user.userStats?.chipsStats
         const rulettStats = user.userStats?.rulettStats
         const deathrollStats = user.userStats?.deathrollStats
-        let reply = ''
+        const embed = EmbedUtils.createSimpleEmbed(`Statistikk for ${UserUtils.findUserById(user.id, this.client).username}`, ' ')
+        
+        if (deathrollStats && (!category || category === 'deathroll')) {
+            const prettyName = (a: keyof DeathrollStats) => this.findPrettyNameForDeathrollKey(a)
+            this.addFieldsForStats(embed, prettyName, deathrollStats, ':game_die: Deathroll :game_die:')
+        }
+        if (userStats && (!category || category === 'gambling')) {
+            const prettyName = (a: keyof ChipsStats) => this.findPrettyNameForChipsKey(a)
+            this.addFieldsForStats(embed, prettyName, userStats, ':moneybag: Gambling :moneybag:')
+        }
+        if (rulettStats && (!category || category === 'rulett')) {
+            const prettyName = (a: keyof RulettStats) => this.findPrettyNameForRulettKey(a)
+            this.addFieldsForStats(embed, prettyName, rulettStats, ':o: Rulett :o:')
+        }
+        this.messageHelper.replyToInteraction(interaction, embed)
+    }
 
-        const getStats = (prettyName: (a: string) => string, props: ChipsStats | DeathrollStats | RulettStats) => {
-            return Object.entries(props)
-                .map((stat) => {
-                    return `${prettyName(stat[0])}: ${Array.isArray(stat) ? stat.join(', ') : stat[1]}`
-                })
-                .sort()
-                .join('\n')
+    private addFieldsForStats(embed: EmbedBuilder, prettyName: (a: string) => string, props: ChipsStats | DeathrollStats | RulettStats, header: string) {
+        // if (embed.data?.fields?.length) embed.addFields({ name: '\u200B', value: '\u200B' })
+        embed.addFields({ name: '\u200B', value: `**${header}**` })
+        const fields = Object.entries(props)
+        .map((stat) => ({ name: `${Array.isArray(stat[1]) ? stat[1].sort((a,b) => b-a)[0] : stat[1]}`, value: prettyName(stat[0]), inline: true})).sort((a, b) => ('' + a.value).localeCompare(b.value))
+        for (let i = 0; i < (fields.length % 3); i++) {
+            fields.push({ name: '\u200B', value: '\u200B', inline: true })
         }
-        if (deathrollStats) {
-            reply += 'Stats:\n**Deathroll**\n'
-            reply += getStats((a: keyof DeathrollStats) => this.findPrettyNameForDeathrollKey(a), deathrollStats)
-            // Object.entries(deathrollStats)
-            //     .map((stat) => {
-            //         return `${this.findPrettyNameForDeathrollKey(stat[0] as keyof DeathrollStats)}: ${stat[1]}`
-            //     })
-            //     .sort()
-            //     .join('\n')
-        }
-        if (userStats) {
-            reply += '\n\n**Gambling**\n'
-            reply += getStats((a: keyof ChipsStats) => this.findPrettyNameForChipsKey(a), userStats)
-        }
-        if (rulettStats) {
-            reply += '\n\n**Rulett**\n'
-            reply += getStats((a: keyof RulettStats) => this.findPrettyNameForRulettKey(a), rulettStats)
-        }
-        if (reply == '') {
-            reply = 'Du har ingen statistikk å visa'
-        }
-        this.messageHelper.replyToInteraction(interaction, reply)
+        embed.addFields(fields)
+        
     }
 
     private findPrettyNameForDeathrollKey(prop: keyof DeathrollStats) {
         switch (prop) {
             case 'totalGames':
-                return 'Deathroll spill'
+                return 'Spill'
             case 'totalLosses':
-                return 'Deathroll tap'
+                return 'Tap'
             case 'weeklyGames':
                 return 'Ukentlige spill'
             case 'weeklyLosses':
@@ -74,9 +72,9 @@ export class StatsCommands extends AbstractCommands {
     private findPrettyNameForChipsKey(prop: keyof ChipsStats) {
         switch (prop) {
             case 'gambleLosses':
-                return 'Gambling tap'
+                return 'Tap'
             case 'gambleWins':
-                return 'Gambling gevinst'
+                return 'Gevinst'
             case 'krigLosses':
                 return 'Krig tap'
             case 'krigWins':

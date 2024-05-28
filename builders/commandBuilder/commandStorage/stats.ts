@@ -15,6 +15,16 @@ export const statsCommand: ISlashCommandItem = {
                     description: 'bruker du vil se statistikk for - default deg selv',
                     type: ApplicationCommandOptionType.User,
                 },
+                {
+                    name: 'kategori',
+                    description: 'hvilken kategori av statistikk vil du se - default alle',
+                    type: ApplicationCommandOptionType.String,
+                    choices: [
+                        { name: 'deathroll', value: 'deathroll' },
+                        { name: 'gambling', value: 'gambling' },
+                        { name: 'rulett', value: 'rulett' },
+                    ],
+                },
             ],
         },
     ],
