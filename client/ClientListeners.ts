@@ -145,7 +145,9 @@ export class ClientListener {
                     message.type !== 19 && // MessageType.Reply &&
                     environment === 'prod'
                 ) {
-                    message.reply(ArrayUtils.randomChoiceFromArray(textArrays.bentHoieLines))
+                    const isQuestion = message.content.endsWith('?')
+
+                    message.reply(ArrayUtils.randomChoiceFromArray(isQuestion ? textArrays.bentHoieLinesAnswers : textArrays.bentHoieLines))
                 }
             }
         })
