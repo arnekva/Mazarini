@@ -166,19 +166,18 @@ export namespace MiscUtils {
             `${user1} har skamfese`,
             `${user1} feis på ${user2}`,
             `${user1} fise så ${user2} riste`,
-            `${user1} fise så han riste`,
             `${user1} traff ${user2} i fjese`,
             `${user1} blei troffen i fjese av ${user2}`,
             `${user1} feis, men ${user2} brukte speil`,
-            `${user1} feis, men ${user2} brukte speil. ${user1} brukte skjold, så ${user2} blei fort eid der ja`,
             `${user1} traff ${user2} rett i fleisen`,
             `${user1} va på besøg hos ${user2} og nuka dassen`,
             `${user1} lukta ${user2} sin fis, men den som kjente sendte`,
-            `${user1} va på besøg hos ${user2} og nuka dassen`,
             `${user1} slapp ein silent but deadly ein på ${user2} `,
-            `${user1}: "Har du fese?". ${user2}: "DEN SÅ KJENTE SENDTE" `,
             `${user1} feis på Thomas`,
-            `Yo, ${user1}, gidde du roa deg, eg prøve å sova her. Heila huse riste`,
+            `${user1} dreid på seg`,
+            `${user1}? Har du drede på deg? Lokte jaffal sånn`,
+            `${user2}? Har du drede på deg? Lokte jaffal sånn`,
+            `${user1} e ein liden prompegutt ja`,
         ]
     }
 }

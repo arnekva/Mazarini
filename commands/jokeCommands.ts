@@ -1,9 +1,10 @@
-import { APIEmbedField, CacheType, ChatInputCommandInteraction, TextChannel } from 'discord.js'
+import { APIEmbedField, CacheType, ChatInputCommandInteraction, TextChannel, ThreadMemberManager, User } from 'discord.js'
 import moment, { Moment } from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
 
 import { EmojiHelper } from '../helpers/emojiHelper'
+import { IInteractionElement } from '../interfaces/interactionInterface'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
@@ -13,7 +14,6 @@ import { MiscUtils } from '../utils/miscUtils'
 import { RandomUtils } from '../utils/randomUtils'
 import { textArrays } from '../utils/textArrays'
 import { UserUtils } from '../utils/userUtils'
-import { IInteractionElement } from '../interfaces/interactionInterface'
 
 export class JokeCommands extends AbstractCommands {
     private prevGifIndex: number
@@ -161,10 +161,19 @@ export class JokeCommands extends AbstractCommands {
     private harFese(interaction: ChatInputCommandInteraction<CacheType>) {
         const channel = interaction?.channel as TextChannel
         const role = this.getRoleBasedOnChannel(interaction?.channelId)
+        console.log(interaction?.channelId, role)
 
-        const randomUser = role ? channel.members.filter((m) => m.roles.cache.get(role) !== undefined).random() : channel.members.random()
+        const memberList = role ? channel.members.filter((m) => m.roles.cache.get(role) !== undefined) : channel.members
+        let user: User
+        //Threads doesnt have normal members for some reason
+        //FIXME: We should probably refactor this somehow
+        if (channel.members instanceof ThreadMemberManager && interaction.channel.isThread()) {
+            user = interaction.channel.guildMembers.random().user
+        } else {
+            user = memberList.random().user
+        }
         const authorName = interaction.user.username
-        const randomName = randomUser.user.username
+        const randomName = user.username
         const phese = MiscUtils.findFeseText(authorName, randomName)
         const reply = `${phese}`
 
