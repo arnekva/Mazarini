@@ -95,7 +95,7 @@ export namespace textArrays {
         'njææææææ',
         'tror kje det',
         'tror det',
-        'Hvis neste tall e 1, ja sa. Hvis det e 0, så nei: 0', //hehe
+        'Hvis neste tall e 1, så ja. Hvis det e 0, så nei: 0', //hehe
         'eg e kje sikker på om eg kan svare på det spørsmålet',
         'ingen kommentar',
         'litt usikker faktisk',
