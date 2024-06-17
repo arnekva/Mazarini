@@ -1,4 +1,4 @@
-import { APIEmbedField, CacheType, ChatInputCommandInteraction, TextChannel, ThreadMemberManager, User } from 'discord.js'
+import { APIEmbedField, CacheType, ChatInputCommandInteraction, TextChannel, User } from 'discord.js'
 import moment, { Moment } from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
@@ -158,22 +158,22 @@ export class JokeCommands extends AbstractCommands {
         }
     }
 
-    private harFese(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async harFese(interaction: ChatInputCommandInteraction<CacheType>) {
         const channel = interaction?.channel as TextChannel
         const role = this.getRoleBasedOnChannel(interaction?.channelId)
-        console.log(interaction?.channelId, role)
 
         const memberList = role ? channel.members.filter((m) => m.roles.cache.get(role) !== undefined) : channel.members
         let user: User
-        //Threads doesnt have normal members for some reason
-        //FIXME: We should probably refactor this somehow
-        if (channel.members instanceof ThreadMemberManager && interaction.channel.isThread()) {
-            user = interaction.channel.guildMembers.random().user
+        const thread = interaction.channel
+        //Threads doesn't hold members the same way as normal channels, so we need to fetch them
+        if (thread.isThread()) {
+            user = (await thread.members.fetch()).random().user
         } else {
             user = memberList.random().user
         }
         const authorName = interaction.user.username
         const randomName = user.username
+
         const phese = MiscUtils.findFeseText(authorName, randomName)
         const reply = `${phese}`
 
