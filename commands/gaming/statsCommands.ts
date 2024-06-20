@@ -1,4 +1,4 @@
-import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, EmbedBuilder, User } from 'discord.js'
+import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, User } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 
@@ -24,7 +24,7 @@ export class StatsCommands extends AbstractCommands {
         const rulettStats = user.userStats?.rulettStats
         const deathrollStats = user.userStats?.deathrollStats
         const embed = EmbedUtils.createSimpleEmbed(`Statistikk for ${UserUtils.findUserById(user.id, this.client).username}`, ' ')
-        
+
         if (deathrollStats && (!category || category === 'deathroll')) {
             embed.addFields(this.getDeathrollStatFields(deathrollStats))
         }
@@ -38,38 +38,48 @@ export class StatsCommands extends AbstractCommands {
     }
 
     private getDeathrollStatFields(stats: DeathrollStats) {
-        return [{ name: '\u200B', value: `**:game_die: Deathroll :game_die:**` },
-                ...this.getWinLossRatioFieldRow('Ukens games', ((stats.weeklyGames ?? 0)-(stats.weeklyLosses ?? 0)), stats.weeklyLosses ?? 0, true),
-                ...this.getWinLossRatioFieldRow('Totalt', (stats.totalGames-stats.totalLosses), stats.totalLosses, true),
-                { name: 'Tapsrekke', value: `${stats.currentLossStreak ?? 0}`, inline: true },
-                { name: 'ATH tapsrekke', value: `${stats.longestLossStreak ?? 0}`, inline: true },
-                { name: 'Største tap', value: `${stats.biggestLoss?.sort((a,b) => b-a).join(', ') ?? ''}` }]
+        return [
+            { name: '\u200B', value: `**:game_die: Deathroll :game_die:**` },
+            ...this.getWinLossRatioFieldRow('Ukens games', (stats.weeklyGames ?? 0) - (stats.weeklyLosses ?? 0), stats.weeklyLosses ?? 0, true),
+            ...this.getWinLossRatioFieldRow('Totalt', stats.totalGames - stats.totalLosses, stats.totalLosses, true),
+            { name: 'Tapsrekke', value: `${stats.currentLossStreak ?? 0}`, inline: true },
+            { name: 'ATH tapsrekke', value: `${stats.longestLossStreak ?? 0}`, inline: true },
+            { name: 'Største tap', value: `${stats.biggestLoss?.sort((a, b) => b - a).join(', ') ?? 'Ingen'}` },
+        ]
     }
 
     private getGamblingStatFields(stats: ChipsStats) {
-        return [{ name: '\u200B', value: `**:moneybag: Gambling :moneybag:**` },
-                ...this.getWinLossRatioFieldRow('Gambling ', stats.gambleWins, stats.gambleLosses),
-                ...this.getWinLossRatioFieldRow('Rulett ', stats.roulettWins, stats.rouletteLosses),
-                ...this.getWinLossRatioFieldRow('Roll ', stats.slotWins, stats.slotLosses),
-                ...this.getWinLossRatioFieldRow('Krig ', stats.krigWins, stats.krigLosses)
-                ]
+        return [
+            { name: '\u200B', value: `**:moneybag: Gambling :moneybag:**` },
+            ...this.getWinLossRatioFieldRow('Gambling ', stats.gambleWins, stats.gambleLosses),
+            ...this.getWinLossRatioFieldRow('Rulett ', stats.roulettWins, stats.rouletteLosses),
+            ...this.getWinLossRatioFieldRow('Roll ', stats.slotWins, stats.slotLosses),
+            ...this.getWinLossRatioFieldRow('Krig ', stats.krigWins, stats.krigLosses),
+        ]
     }
 
     private getRouletteStatFields(stats: RulettStats) {
-        return [{ name: '\u200B', value: `**:o: Rulett :o:**` },
-                { name: 'Svart', value: `${stats.black ?? 0}`, inline: true },
-                { name: 'Rød', value: `${stats.red ?? 0}`, inline: true },
-                { name: 'Grønn', value: `${stats.green ?? 0}`, inline: true },
-                { name: 'Partall', value: `${stats.even ?? 0}`, inline: true },
-                { name: 'Oddetall', value: `${stats.odd ?? 0}`, inline: true },
-                { name: '\u200B', value: '\u200B', inline: true }]
+        return [
+            { name: '\u200B', value: `**:o: Rulett :o:**` },
+            { name: 'Svart', value: `${stats.black ?? 0}`, inline: true },
+            { name: 'Rød', value: `${stats.red ?? 0}`, inline: true },
+            { name: 'Grønn', value: `${stats.green ?? 0}`, inline: true },
+            { name: 'Partall', value: `${stats.even ?? 0}`, inline: true },
+            { name: 'Oddetall', value: `${stats.odd ?? 0}`, inline: true },
+            { name: '\u200B', value: '\u200B', inline: true },
+        ]
     }
 
     private getWinLossRatioFieldRow(stat: string, won: number, lost: number, focusOnLoss: boolean = false) {
-        won = won ?? 0, lost = lost ?? 0
-        return [{ name: `${stat}`, value: `${((won ?? 0)+(lost ?? 0))}`, inline: true },
-                { name: `${focusOnLoss ? 'Tapt' : 'Vunnet'}`, value: `${focusOnLoss ? lost ?? 0 : won ?? 0}`, inline: true },
-                { name: `${focusOnLoss ? 'Loss' : 'Win'}%`, value: `${(((focusOnLoss ? lost : won)/((won+lost) > 0 ? (won+lost) : 1))*100).toFixed(1)}`, inline: true }]
+        return [
+            { name: `${stat}`, value: `${(won ?? 0) + (lost ?? 0)}`, inline: true },
+            { name: `${focusOnLoss ? 'Tapt' : 'Vunnet'}`, value: `${focusOnLoss ? lost ?? 0 : won ?? 0}`, inline: true },
+            {
+                name: `${focusOnLoss ? 'Loss' : 'Win'}%`,
+                value: `${(((focusOnLoss ? lost : won) / (won + lost > 0 ? won + lost : 1)) * 100).toFixed(1)}`,
+                inline: true,
+            },
+        ]
     }
 
     private async getEmojiStats(interaction: ChatInputCommandInteraction<CacheType>) {
