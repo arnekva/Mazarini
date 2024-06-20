@@ -254,12 +254,19 @@ export class DatabaseHelper {
 
     public async findAndRewardWeeklyDeathrollWinner() {
         const users = await this.getAllUsers()
-        const winner = users.filter(user => (user.userStats?.deathrollStats?.weeklyGames ?? 0) > 1).sort((a,b) => (a.userStats.deathrollStats.weeklyLosses/a.userStats.deathrollStats.weeklyGames) - (b.userStats.deathrollStats.weeklyLosses/b.userStats.deathrollStats.weeklyGames))[0]
+        const sorted = users.filter(user => (user.userStats?.deathrollStats?.weeklyGames ?? 0) > 1).sort((a,b) => this.getUserLossRatio(a) - this.getUserLossRatio(b))
+        const winners = sorted.filter(user => this.getUserLossRatio(user) == this.getUserLossRatio(sorted[0])).sort((a,b) => b.userStats.deathrollStats.weeklyGames - a.userStats.deathrollStats.weeklyGames)
+        if (winners.length > 1 && winners[1].userStats.deathrollStats.weeklyGames == winners[0].userStats.deathrollStats.weeklyGames) return undefined
+        const winner = winners[0]
         if (winner) {
             winner.chips += (100 * winner.userStats.deathrollStats.weeklyGames)
             this.updateUser(winner)
         }
         return winner
+    }
+
+    private getUserLossRatio(user: MazariniUser) {
+        return (user.userStats?.deathrollStats?.weeklyLosses ?? 0)/(user.userStats?.deathrollStats?.weeklyGames ?? 1)
     }
 
     public async resetWeeklyDeathrollStats() {
