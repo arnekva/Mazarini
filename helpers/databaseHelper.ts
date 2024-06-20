@@ -212,17 +212,23 @@ export class DatabaseHelper {
         game.players.forEach(async (player) => {
             const user = await this.getUser(player.userID)
             if (user) {
-                const defaultStats = {
-                    totalGames: 0,
-                    totalLosses: 0,
+                const defaultStats = { //avoid null-references
+                    totalGames: user.userStats?.deathrollStats?.totalGames ?? 0,
+                    totalLosses: user.userStats?.deathrollStats?.totalLosses ?? 0,
+                    weeklyGames: user.userStats?.deathrollStats?.weeklyGames ?? 0,
+                    weeklyLosses: user.userStats?.deathrollStats?.weeklyLosses ?? 0,
+                    currentLossStreak: user.userStats?.deathrollStats?.currentLossStreak ?? 0,
+                    longestLossStreak: user.userStats?.deathrollStats?.longestLossStreak ?? 0,
+                    biggestLoss: user.userStats?.deathrollStats?.biggestLoss ?? []
                 }
                 if (!user.userStats)
                     user.userStats = {
                         deathrollStats: defaultStats,
                     }
-                else if (!user.userStats.deathrollStats) user.userStats.deathrollStats = defaultStats
+                else user.userStats.deathrollStats = defaultStats
 
                 user.userStats.deathrollStats.totalGames++
+                user.userStats.deathrollStats.weeklyGames++
                 if (game.lastToRoll === user.id) {
                     const lastRoll = game.players.map((p) => p.roll).sort((a, b) => a - b)[1]
                     if (!user.userStats.deathrollStats.biggestLoss) {
@@ -235,9 +241,33 @@ export class DatabaseHelper {
                         }
                     }
                     user.userStats.deathrollStats.totalLosses++
+                    user.userStats.deathrollStats.weeklyLosses++
+                    user.userStats.deathrollStats.currentLossStreak++
+                    if (user.userStats.deathrollStats.currentLossStreak > user.userStats.deathrollStats.longestLossStreak) user.userStats.deathrollStats.longestLossStreak = user.userStats.deathrollStats.currentLossStreak
+                } else {
+                    user.userStats.deathrollStats.currentLossStreak = 0
                 }
                 this.updateUser(user)
             }
+        })
+    }
+
+    public async findAndRewardWeeklyDeathrollWinner() {
+        const users = await this.getAllUsers()
+        const winner = users.filter(user => (user.userStats?.deathrollStats?.weeklyGames ?? 0) > 1).sort((a,b) => (a.userStats.deathrollStats.weeklyLosses/a.userStats.deathrollStats.weeklyGames) - (b.userStats.deathrollStats.weeklyLosses/b.userStats.deathrollStats.weeklyGames))[0]
+        if (winner) {
+            winner.chips += (100 * winner.userStats.deathrollStats.weeklyGames)
+            this.updateUser(winner)
+        }
+        return winner
+    }
+
+    public async resetWeeklyDeathrollStats() {
+        const users = await this.getAllUsers()
+        users.filter(user => (user.userStats?.deathrollStats?.weeklyGames ?? 0) > 0).forEach(user => {
+            user.userStats.deathrollStats.weeklyGames = 0
+            user.userStats.deathrollStats.weeklyLosses = 0
+            this.updateUser(user)
         })
     }
 

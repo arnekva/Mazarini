@@ -6,7 +6,7 @@ import { EmojiHelper, JobStatus } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
-import { ChannelIds } from '../utils/mentionUtils'
+import { ChannelIds, MentionUtils, ThreadIds } from '../utils/mentionUtils'
 
 export class WeeklyJobs {
     private messageHelper: MessageHelper
@@ -26,6 +26,8 @@ export class WeeklyJobs {
         embed.addFields({ name: 'Status reset', value: EmojiHelper.getStatusEmoji(statusReset) })
         const deleteOldCountdowns = await this.deleteOldCountdowns()
         embed.addFields({ name: 'Countdown sletting', value: EmojiHelper.getStatusEmoji(deleteOldCountdowns) })
+        const resetWeeklyDeathrollStats = await this.resetWeeklyDeathrollStats()
+        embed.addFields({ name: 'Weekly deathroll reset', value: EmojiHelper.getStatusEmoji(resetWeeklyDeathrollStats) })
         const todaysTime = new Date().toLocaleTimeString()
         embed.setFooter({ text: todaysTime })
         this.messageHelper.sendMessage(ChannelIds.ACTION_LOG, { embed: embed })
@@ -93,5 +95,17 @@ export class WeeklyJobs {
             this.client.database.updateStorage({ countdown: countdowns })
         }
         return hasDeleted ? 'success' : 'not sendt'
+    }
+
+    private async resetWeeklyDeathrollStats(): Promise<JobStatus> {
+        const winner = await this.client.database.findAndRewardWeeklyDeathrollWinner()
+        if (winner) {
+            const embed = EmbedUtils.createSimpleEmbed(`:game_die: Ukens deathrollvinner er... :game_die:`, `${MentionUtils.mentionUser(winner.id)}!`
+                        + `\nDu tapte ${winner.userStats.deathrollStats.weeklyLosses > 0 ? 'bare ' : 'faktisk '}${((winner.userStats.deathrollStats.weeklyLosses/winner.userStats.deathrollStats.weeklyGames)*100).toFixed(1)}% av spillene dine forrige uke.` 
+                        + `\n\n:moneybag: Det er lavest av alle, og du vinne ${100 * winner.userStats.deathrollStats.weeklyGames} chips! :moneybag:`)
+            this.messageHelper.sendMessage(ThreadIds.GENERAL_TERNING, {embed: embed})
+        }
+        await this.client.database.resetWeeklyDeathrollStats()
+        return 'success'
     }
 }

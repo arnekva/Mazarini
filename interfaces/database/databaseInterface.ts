@@ -151,6 +151,8 @@ export interface DeathrollStats {
     weeklyLosses?: number
     weeklyGames?: number
     biggestLoss?: number[]
+    currentLossStreak?: number
+    longestLossStreak?: number
 }
 export type dbPrefix =
     | 'birthday'

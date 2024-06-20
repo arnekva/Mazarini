@@ -39,7 +39,10 @@ export class StatsCommands extends AbstractCommands {
 
     private getDeathrollStatFields(stats: DeathrollStats) {
         return [{ name: '\u200B', value: `**:game_die: Deathroll :game_die:**` },
-                ...this.getWinLossRatioFieldRow('Games', (stats.totalGames-stats.totalLosses), stats.totalLosses, true),
+                ...this.getWinLossRatioFieldRow('Ukens games', ((stats.weeklyGames ?? 0)-(stats.weeklyLosses ?? 0)), stats.weeklyLosses ?? 0, true),
+                ...this.getWinLossRatioFieldRow('Totalt', (stats.totalGames-stats.totalLosses), stats.totalLosses, true),
+                { name: 'Tapsrekke', value: `${stats.currentLossStreak ?? 0}`, inline: true },
+                { name: 'ATH tapsrekke', value: `${stats.longestLossStreak ?? 0}`, inline: true },
                 { name: 'Største tap', value: `${stats.biggestLoss?.sort((a,b) => b-a).join(', ') ?? ''}` }]
     }
 
@@ -64,8 +67,8 @@ export class StatsCommands extends AbstractCommands {
 
     private getWinLossRatioFieldRow(stat: string, won: number, lost: number, focusOnLoss: boolean = false) {
         won = won ?? 0, lost = lost ?? 0
-        return [{ name: `${stat}`, value: `${won+lost}`, inline: true },
-                { name: `${focusOnLoss ? 'Tapt' : 'Vunnet'}`, value: `${focusOnLoss ? lost : won}`, inline: true },
+        return [{ name: `${stat}`, value: `${((won ?? 0)+(lost ?? 0))}`, inline: true },
+                { name: `${focusOnLoss ? 'Tapt' : 'Vunnet'}`, value: `${focusOnLoss ? lost ?? 0 : won ?? 0}`, inline: true },
                 { name: `${focusOnLoss ? 'Loss' : 'Win'}%`, value: `${(((focusOnLoss ? lost : won)/((won+lost) > 0 ? (won+lost) : 1))*100).toFixed(1)}`, inline: true }]
     }
 

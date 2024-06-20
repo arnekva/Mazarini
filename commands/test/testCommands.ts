@@ -13,6 +13,10 @@ import {
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { UserUtils } from '../../utils/userUtils'
+import { EmojiHelper } from '../../helpers/emojiHelper'
+import { MentionUtils, ServerIds, ThreadIds } from '../../utils/mentionUtils'
+import { EmbedUtils } from '../../utils/embedUtils'
 
 const defaultButtonRow = new ActionRowBuilder<ButtonBuilder>()
 defaultButtonRow.addComponents(
@@ -48,20 +52,14 @@ export class TestCommands extends AbstractCommands {
     }
 
     private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        // const test1 = this.gsh.isPlayersTurn(p1)
-        // console.log('test1: ', test1);
-        // this.gsh.addPlayer(p1)
-        // const test2 = this.gsh.isPlayersTurn(p1)
-        // console.log('test2: ', test2);
-        // const test3 = this.gsh.nextPlayer()
-        // console.log('test3: ', test3);
-        // this.gsh.addPlayer(p2)
-        // const test4 = this.gsh.isPlayersTurn(p2)
-        // console.log('test4: ', test4);
-        // const test5 = this.gsh.nextPlayer()
-        // console.log('test5: ', test5);
-        // const test6 = this.gsh.isPlayersTurn(p2)
-        // console.log('test6: ', test6);
+        // const winner = await this.client.database.findAndRewardWeeklyDeathrollWinner()
+        // if (winner) {
+        //     const embed = EmbedUtils.createSimpleEmbed(`:game_die: Ukens deathrollvinner er... :game_die:`, `${MentionUtils.mentionUser(winner.id)}!`
+        //                 + `\nDu tapte ${winner.userStats.deathrollStats.weeklyLosses > 0 ? 'bare ' : 'faktisk '}${((winner.userStats.deathrollStats.weeklyLosses/winner.userStats.deathrollStats.weeklyGames)*100).toFixed(1)}% av spillene dine forrige uke.` 
+        //                 + `\n\n:moneybag: Det er lavest av alle, og du vinne ${100 * winner.userStats.deathrollStats.weeklyGames} chips! :moneybag:`)
+        //     this.messageHelper.sendMessage(ThreadIds.LOCALHOST_TEST, {embed: embed})
+        // }
+        // this.client.database.resetWeeklyDeathrollStats()
     }
 
     private async testSelectMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {
