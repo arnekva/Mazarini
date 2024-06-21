@@ -92,12 +92,12 @@ export class RedBlackCommands extends AbstractCommands {
         this.busride = undefined
     }
 
-    private async drawCard(interaction: ButtonInteraction<CacheType>) {
+    private async drawCard() {
         if (this.deck.getRemainingCards() > 0) {
-            return await this.deck.drawCard(interaction)
+            return await this.deck.drawCard()
         }
         this.deck.shuffleDeck()
-        return await this.deck.drawCard(interaction)
+        return await this.deck.drawCard()
     }
 
     public isEndOfRound() {
@@ -147,7 +147,7 @@ export class RedBlackCommands extends AbstractCommands {
         if (!this.verifyUsersTurn(interaction.user.username)) {
             return this.messageHelper.replyToInteraction(interaction, 'Det er ikke din tur', { ephemeral: true })
         }
-        const card = await this.drawCard(interaction)
+        const card = await this.drawCard()
         const prevCards = this.getCardsOnUser(interaction.user.username)
         const copy = prevCards.map((card) => ({ ...card }))
 
@@ -326,7 +326,7 @@ export class RedBlackCommands extends AbstractCommands {
             .setTitle('Gi eller Ta')
 
         if (this.currentGtCard) {
-            formattedMsg.setThumbnail(this.currentGtCard.card.url)
+            formattedMsg.setThumbnail(this.currentGtCard.card.image)
                         .setDescription(`${this.generateGiveTakeCardString()}:` + `\n\n${combinedString}`)
         } else {
             formattedMsg.setDescription(`Start runden ved å trykke på 'Snu første' når dere er klar 🍷`)
@@ -349,7 +349,7 @@ export class RedBlackCommands extends AbstractCommands {
         const formattedMsg = new EmbedBuilder().setTitle(`${roundName}: ${this.rbSips} slurk${this.rbSips > 1 ? 'er' : ''}`)
         if (drawnCard) {
             formattedMsg
-                .setThumbnail(drawnCard.url)
+                .setThumbnail(drawnCard.image)
                 .setDescription(
                     `**${interaction.user.username}** gjettet: ${RedBlack.getTranslatedGuessValue(interaction.customId.split(';')[2])} og fikk kortet til høyre` +
                         `\n\n**🍷 ${correct ? 'Gi' : 'Drikk'} ${this.rbSips} slurk${this.rbSips > 1 ? 'er' : ''} 🍷**\n\n\n`
@@ -390,7 +390,7 @@ export class RedBlackCommands extends AbstractCommands {
     private getCardsOnHandForUser(user: IUserObject) {
         let printCards: string = ''
         user.cards.forEach((card) => {
-            printCards += `${card.printString} `
+            printCards += `${card.emoji} `
         })
         return printCards
     }

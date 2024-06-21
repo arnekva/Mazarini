@@ -34,7 +34,7 @@ export class BusRide {
 
     public async setupCanadianBusride(interaction: ButtonInteraction<CacheType>) {
         this.cardsOnTable = new Array<IBusRideCard>()
-        const startCard = { card: await this.drawCard(interaction), revealed: true }
+        const startCard = { card: await this.drawCard(), revealed: true }
         this.cardsOnTable[0] = startCard
         await this.setNewCards(6, interaction)
         this.embed = new EmbedBuilder().setTitle('Busstur').setDescription(`Kos deg på tur, ${this.loser.name}!`)
@@ -46,7 +46,7 @@ export class BusRide {
         let cardsString = ''
         const faceCard = (await EmojiHelper.getEmoji('faceCard', interaction)).id
         for (var i = 0; i < 7; i++) {
-            cardsString += this.cardsOnTable[i].revealed ? `${this.cardsOnTable[i].card.printString} ` : `${faceCard} `
+            cardsString += this.cardsOnTable[i].revealed ? `${this.cardsOnTable[i].card.emoji} ` : `${faceCard} `
         }
         this.tableString = cardsString
         this.currentButtons = correct ? canadianBusrideButtonRow : TryAgainBtn
@@ -72,17 +72,17 @@ export class BusRide {
 
     private async setNewCards(i: number, interaction: ButtonInteraction<CacheType>) {
         for (var y = 1; y <= i; y++) {
-            let card = { card: await this.drawCard(interaction), revealed: false }
+            let card = { card: await this.drawCard(), revealed: false }
             this.cardsOnTable[y] = card
         }
     }
 
-    private async drawCard(interaction: ButtonInteraction<CacheType>) {
+    private async drawCard() {
         if (this.deck.getRemainingCards() > 0) {
-            return await this.deck.drawCard(interaction)
+            return await this.deck.drawCard()
         }
         this.deck.shuffleDeck()
-        return await this.deck.drawCard(interaction)
+        return await this.deck.drawCard()
     }
 
     public async guessCanadian(interaction: ButtonInteraction<CacheType>) {
