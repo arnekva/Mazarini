@@ -150,6 +150,7 @@ export interface DeathrollStats {
     totalLosses: number
     weeklyLosses?: number
     weeklyGames?: number
+    weeklyLossSum?: number
     biggestLoss?: number[]
     currentLossStreak?: number
     longestLossStreak?: number

@@ -1,9 +1,9 @@
-import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, User } from 'discord.js'
+import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, EmbedBuilder, User } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 
 import { EmojiHelper } from '../../helpers/emojiHelper'
-import { ChipsStats, DeathrollStats, EmojiStats, RulettStats } from '../../interfaces/database/databaseInterface'
+import { ChipsStats, DeathrollStats, EmojiStats, MazariniUser, RulettStats } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { UserUtils } from '../../utils/userUtils'
@@ -23,63 +23,54 @@ export class StatsCommands extends AbstractCommands {
         const userStats = user.userStats?.chipsStats
         const rulettStats = user.userStats?.rulettStats
         const deathrollStats = user.userStats?.deathrollStats
-        const embed = EmbedUtils.createSimpleEmbed(`Statistikk for ${UserUtils.findUserById(user.id, this.client).username}`, ' ')
-
-        if (deathrollStats && (!category || category === 'deathroll')) {
-            embed.addFields(this.getDeathrollStatFields(deathrollStats))
+        let embed = EmbedUtils.createSimpleEmbed(`Du har ingen statistikk`, ` `)
+        
+        if (deathrollStats && category === 'deathroll') {
+            embed = this.getDeathrollEmbed(deathrollStats, user)
         }
-        if (userStats && (!category || category === 'gambling')) {
-            embed.addFields(this.getGamblingStatFields(userStats))
+        if (userStats && category === 'gambling') {
+            embed = this.getGamblingEmbed(userStats, user)
         }
-        if (rulettStats && (!category || category === 'rulett')) {
-            embed.addFields(this.getRouletteStatFields(rulettStats))
+        if (rulettStats && category === 'rulett') {
+            embed = this.getRouletteEmbed(rulettStats, user)
         }
         this.messageHelper.replyToInteraction(interaction, embed)
     }
 
-    private getDeathrollStatFields(stats: DeathrollStats) {
-        return [
-            { name: '\u200B', value: `**:game_die: Deathroll :game_die:**` },
-            ...this.getWinLossRatioFieldRow('Ukens games', (stats.weeklyGames ?? 0) - (stats.weeklyLosses ?? 0), stats.weeklyLosses ?? 0, true),
-            ...this.getWinLossRatioFieldRow('Totalt', stats.totalGames - stats.totalLosses, stats.totalLosses, true),
-            { name: 'Tapsrekke', value: `${stats.currentLossStreak ?? 0}`, inline: true },
-            { name: 'ATH tapsrekke', value: `${stats.longestLossStreak ?? 0}`, inline: true },
-            { name: 'Største tap', value: `${stats.biggestLoss?.sort((a, b) => b - a).join(', ') ?? 'Ingen'}` },
-        ]
+    private getDeathrollEmbed(stats: DeathrollStats, user: MazariniUser) {
+        return EmbedUtils.createSimpleEmbed(`**:game_die: Deathroll :game_die:**`, `Statistikk for ${UserUtils.findUserById(user.id, this.client).username}`)
+        .addFields([{ name: 'Weekly', value: `${stats.weeklyGames} / ${stats.weeklyLosses} | **${(stats.weeklyLosses/(stats.weeklyGames ? stats.weeklyGames : 1)*100).toFixed(1)}%**`, inline: true },
+                    { name: '\u200B', value: '\u200B', inline: true },
+                    { name: 'Avg loss', value: `${((stats.weeklyLossSum ?? 0)/(stats.weeklyLosses ? stats.weeklyLosses : 1)).toFixed(1)}`, inline: true },
+                    { name: 'All-time', value: `${stats.totalGames} / ${stats.totalLosses} | **${(stats.totalLosses/(stats.totalGames ? stats.totalGames : 1)*100).toFixed(1)}%**`, inline: true },
+                    { name: '\u200B', value: '\u200B', inline: true },
+                    { name: 'Streak | ATH', value: `${stats.currentLossStreak ?? 0} | ${stats.longestLossStreak ?? 0}`, inline: true }])
+        .setFooter({ text: `Største tap:\n${stats.biggestLoss?.sort((a,b) => b-a).join(', ') ?? ''}` })
     }
 
-    private getGamblingStatFields(stats: ChipsStats) {
-        return [
-            { name: '\u200B', value: `**:moneybag: Gambling :moneybag:**` },
-            ...this.getWinLossRatioFieldRow('Gambling ', stats.gambleWins, stats.gambleLosses),
-            ...this.getWinLossRatioFieldRow('Rulett ', stats.roulettWins, stats.rouletteLosses),
-            ...this.getWinLossRatioFieldRow('Roll ', stats.slotWins, stats.slotLosses),
-            ...this.getWinLossRatioFieldRow('Krig ', stats.krigWins, stats.krigLosses),
-        ]
+    private getGamblingEmbed(stats: ChipsStats, user: MazariniUser) {
+        return EmbedUtils.createSimpleEmbed(`**:moneybag: Gambling :moneybag:**`, `Statistikk for ${UserUtils.findUserById(user.id, this.client).username}`)
+        .addFields([...this.getWinLossRatioFieldRow('Gambling ', stats.gambleWins, stats.gambleLosses),
+                    ...this.getWinLossRatioFieldRow('Rulett ', stats.roulettWins, stats.rouletteLosses),
+                    ...this.getWinLossRatioFieldRow('Roll ', stats.slotWins, stats.slotLosses),
+                    ...this.getWinLossRatioFieldRow('Krig ', stats.krigWins, stats.krigLosses)])
     }
 
-    private getRouletteStatFields(stats: RulettStats) {
-        return [
-            { name: '\u200B', value: `**:o: Rulett :o:**` },
-            { name: 'Svart', value: `${stats.black ?? 0}`, inline: true },
-            { name: 'Rød', value: `${stats.red ?? 0}`, inline: true },
-            { name: 'Grønn', value: `${stats.green ?? 0}`, inline: true },
-            { name: 'Partall', value: `${stats.even ?? 0}`, inline: true },
-            { name: 'Oddetall', value: `${stats.odd ?? 0}`, inline: true },
-            { name: '\u200B', value: '\u200B', inline: true },
-        ]
+    private getRouletteEmbed(stats: RulettStats, user: MazariniUser) {
+        return EmbedUtils.createSimpleEmbed(`**:o: Rulett :o:**`, `Statistikk for ${UserUtils.findUserById(user.id, this.client).username}`)
+        .addFields([{ name: 'Svart', value: `${stats.black ?? 0}`, inline: true },
+                    { name: 'Rød', value: `${stats.red ?? 0}`, inline: true },
+                    { name: 'Grønn', value: `${stats.green ?? 0}`, inline: true },
+                    { name: 'Partall', value: `${stats.even ?? 0}`, inline: true },
+                    { name: 'Oddetall', value: `${stats.odd ?? 0}`, inline: true },
+                    { name: '\u200B', value: '\u200B', inline: true }])
     }
 
     private getWinLossRatioFieldRow(stat: string, won: number, lost: number, focusOnLoss: boolean = false) {
-        return [
-            { name: `${stat}`, value: `${(won ?? 0) + (lost ?? 0)}`, inline: true },
-            { name: `${focusOnLoss ? 'Tapt' : 'Vunnet'}`, value: `${focusOnLoss ? lost ?? 0 : won ?? 0}`, inline: true },
-            {
-                name: `${focusOnLoss ? 'Loss' : 'Win'}%`,
-                value: `${(((focusOnLoss ? lost : won) / (won + lost > 0 ? won + lost : 1)) * 100).toFixed(1)}`,
-                inline: true,
-            },
-        ]
+        won = won ?? 0, lost = lost ?? 0
+        return [{ name: `${stat}`, value: `${((won ?? 0)+(lost ?? 0))}`, inline: true },
+                { name: `${focusOnLoss ? 'Tapt' : 'Vunnet'}`, value: `${focusOnLoss ? lost ?? 0 : won ?? 0}`, inline: true },
+                { name: `${focusOnLoss ? 'Loss' : 'Win'}%`, value: `${(((focusOnLoss ? lost : won)/((won+lost) > 0 ? (won+lost) : 1))*100).toFixed(1)}`, inline: true }]
     }
 
     private async getEmojiStats(interaction: ChatInputCommandInteraction<CacheType>) {

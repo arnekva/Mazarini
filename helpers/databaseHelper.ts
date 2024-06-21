@@ -217,6 +217,7 @@ export class DatabaseHelper {
                     totalLosses: user.userStats?.deathrollStats?.totalLosses ?? 0,
                     weeklyGames: user.userStats?.deathrollStats?.weeklyGames ?? 0,
                     weeklyLosses: user.userStats?.deathrollStats?.weeklyLosses ?? 0,
+                    weeklyLossSum: user.userStats?.deathrollStats?.weeklyLossSum ?? 0,
                     currentLossStreak: user.userStats?.deathrollStats?.currentLossStreak ?? 0,
                     longestLossStreak: user.userStats?.deathrollStats?.longestLossStreak ?? 0,
                     biggestLoss: user.userStats?.deathrollStats?.biggestLoss ?? []
@@ -242,6 +243,7 @@ export class DatabaseHelper {
                     }
                     user.userStats.deathrollStats.totalLosses++
                     user.userStats.deathrollStats.weeklyLosses++
+                    user.userStats.deathrollStats.weeklyLossSum+=lastRoll
                     user.userStats.deathrollStats.currentLossStreak++
                     if (user.userStats.deathrollStats.currentLossStreak > user.userStats.deathrollStats.longestLossStreak) user.userStats.deathrollStats.longestLossStreak = user.userStats.deathrollStats.currentLossStreak
                 } else {
@@ -274,6 +276,7 @@ export class DatabaseHelper {
         users.filter(user => (user.userStats?.deathrollStats?.weeklyGames ?? 0) > 0).forEach(user => {
             user.userStats.deathrollStats.weeklyGames = 0
             user.userStats.deathrollStats.weeklyLosses = 0
+            user.userStats.deathrollStats.weeklyLossSum = 0
             this.updateUser(user)
         })
     }
