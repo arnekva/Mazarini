@@ -1,85 +1,96 @@
 import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
-import { GameStateHandler } from '../../handlers/gameStateHandler'
+import { GameStateHandler, GamePlayer } from '../../handlers/gameStateHandler'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
-interface BlackjackPlayer {
+import { CardCommands, ICardObject } from './cardCommands'
+import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
+interface BlackjackPlayer extends GamePlayer {
     id: string
     playerName: string
-    hand: string[]
+    hand: ICardObject[]
+    stake?: number
 }
+
 export class Blackjack extends AbstractCommands {
     private gameStateHandler: GameStateHandler<BlackjackPlayer>
+    private deck: CardCommands
+    private dealer: BlackjackPlayer
 
     constructor(client: MazariniClient) {
         super(client)
         this.gameStateHandler = new GameStateHandler<BlackjackPlayer>()
-    }
-    private startBlackjack(interaction: ChatInputCommandInteraction<CacheType>) {
-        const player: BlackjackPlayer = {
-            id: interaction.user.id,
-            playerName: interaction.user.username,
-            hand: [],
-        }
-
-        // Deal initial cards to the player
-        this.dealCard(player)
-        this.dealCard(player)
-
-        // Check if player has blackjack
-        if (this.calculateHandValue(player.hand) === 21) {
-            interaction.reply(`Congratulations ${player.playerName}! You have blackjack!`)
-            return
-        }
-
-        // Deal initial cards to the dealer
-        const dealer: BlackjackPlayer = {
-            id: 'dealer',
-            playerName: 'Dealer',
-            hand: [],
-        }
-        this.dealCard(dealer)
-        this.dealCard(dealer)
-
-        // Show player's hand and one of the dealer's cards
-        interaction.reply(`Your hand: ${player.hand.join(', ')}`)
-        interaction.followUp(`Dealer's hand: ${dealer.hand[0]}, ?`)
+        this.deck = new CardCommands(client, 6)
     }
 
-    private dealCard(player: BlackjackPlayer) {
-        // Generate a random card and add it to the player's hand
-        const card = this.generateRandomCard()
+    private async buyIn(interaction: ChatInputCommandInteraction<CacheType>) {
+        const user = await this.client.database.getUser(interaction.user.id)
+        let userMoney = user.chips
+        const stake = SlashCommandHelper.getCleanNumberValue(interaction.options.get('satsing')?.value)
+        if (Number(stake) > Number(userMoney) || !userMoney || userMoney < 0) {
+            this.messageHelper.replyToInteraction(interaction, 'Du har ikke nok penger til å gamble så mye. Ta å spin fidget spinneren litt for någe cash', {ephemeral: true})
+        } else if (this.gameStateHandler.hasPlayerJoined(user.id)) {
+            this.messageHelper.replyToInteraction(interaction, 'Du er allerede med i spillet', {ephemeral: true})
+        } else {
+            this.gameStateHandler.addUniquePlayer({id: user.id, playerName: interaction.user.username, hand: [], stake: stake})
+        }
+    }
+    // private startBlackjack(interaction: ChatInputCommandInteraction<CacheType>) {
+    //     // const player: BlackjackPlayer = {
+    //     //     id: interaction.user.id,
+    //     //     playerName: interaction.user.username,
+    //     //     hand: [],
+    //     // }
+
+    //     // // Deal initial cards to the player
+    //     // this.dealCard(player)
+    //     // this.dealCard(player)
+
+    //     // // Check if player has blackjack
+    //     // if (this.calculateHandValue(player.hand) === 21) {
+    //     //     interaction.reply(`Congratulations ${player.playerName}! You have blackjack!`)
+    //     //     return
+    //     // }
+
+    //     // Deal initial cards to the dealer
+    //     this.dealer = {
+    //         id: 'dealer',
+    //         playerName: 'Bot Høie',
+    //         hand: [],
+    //     }
+    //     this.dealCard(this.dealer)
+    //     this.dealCard(this.dealer)
+
+    //     // Show player's hand and one of the dealer's cards
+    //     interaction.reply(`Your hand: ${player.hand.join(', ')}`)
+    //     interaction.followUp(`Dealer's hand: ${dealer.hand[0]}, ?`)
+    // }
+
+    private async dealCard(player: BlackjackPlayer) {
+        // draw a card and add it to the player's hand
+        const card = await this.deck.drawCard()
         player.hand.push(card)
     }
 
-    private generateRandomCard(): string {
-        // Generate a random card from a deck of cards
-        const cards = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
-        const randomIndex = Math.floor(Math.random() * cards.length)
-        return cards[randomIndex]
-    }
-
-    private calculateHandValue(hand: string[]): number {
+    private calculateHandValue(hand: ICardObject[]): number {
         // Calculate the value of a hand in blackjack
         let value = 0
         let hasAce = false
 
         for (const card of hand) {
-            if (card === 'A') {
+            if (card.rank === 'A') {
                 value += 11
                 hasAce = true
-            } else if (card === 'K' || card === 'Q' || card === 'J') {
+            } else if (['T', 'J', 'Q', 'K'].includes(card.rank)) {
                 value += 10
             } else {
-                value += parseInt(card)
+                value += parseInt(card.rank)
             }
         }
-
         // Adjust the value if the hand contains an Ace
         if (value > 21 && hasAce) {
             value -= 10
         }
-
         return value
     }
 
@@ -90,7 +101,7 @@ export class Blackjack extends AbstractCommands {
                     {
                         commandName: 'blackjack',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            this.startBlackjack(rawInteraction)
+                            // this.startBlackjack(rawInteraction)
                         },
                     },
                 ],

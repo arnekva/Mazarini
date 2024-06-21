@@ -1,6 +1,10 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js'
 
-export class GameStateHandler<Player> {
+export interface GamePlayer {
+    id: string
+}
+
+export class GameStateHandler<Player extends GamePlayer> {
     private players: Player[]
     private currentPlayer: Player
 
@@ -31,6 +35,10 @@ export class GameStateHandler<Player> {
 
     public getCurrentPlayer() {
         return this.currentPlayer
+    }
+
+    public hasPlayerJoined(id: string) {
+        return this.players.some(player => player.id === id)
     }
 
     get allPlayers() {
