@@ -5,22 +5,29 @@ import { MazariniClient } from '../../client/MazariniClient'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { RandomUtils } from '../../utils/randomUtils'
 const deckOfCards = require('deckofcards')
 
 export interface ICardObject {
     number: number
     suit: string
-    printString: string
-    url: string
+    rank?: string
+    emoji: string
+    image: string
 }
 
 export class CardCommands extends AbstractCommands {
-    private deck: any
+    private deck: any[]
     private aceValue: 1 | 14 = 14
+    private numberOfDecks: number
 
-    constructor(client: MazariniClient) {
+    constructor(client: MazariniClient, numberOfDecks: number = 1) {
         super(client)
-        this.deck = new deckOfCards.Deck()
+        this.deck = [new deckOfCards.Deck()]
+        for (let i = 1; i < numberOfDecks; i++) {
+            this.deck.push(new deckOfCards.Deck()) //Todo: fix
+        }
+        this.numberOfDecks = numberOfDecks
     }
 
     static numberTranslations = (customAceValue?: number): Map<string, number> => {
@@ -97,34 +104,40 @@ export class CardCommands extends AbstractCommands {
         return `${suit} ${num} ${suit}`
     }
 
-    public async createCardObject(card: string, interaction: ButtonInteraction<CacheType> | ChatInputCommandInteraction<CacheType>) {
+    public async createCardObject(card: string) {
         const number = CardCommands.numberTranslations(this.aceValue).get(card.substring(0, 1))
+        const rank = card.substring(0, 1)
         const suit = card.substring(1, 2)
-        if (interaction !== undefined) {
-            const emoji = await EmojiHelper.getEmoji(card, interaction)
-            const emojiUrl = `https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?size=96&quality=lossless`
-            return { number: number, suit: suit, printString: emoji.id, url: emojiUrl }
-        }
-        return { number: number, suit: suit, printString: undefined, url: undefined }
+        const emoji = await EmojiHelper.getEmoji(card, this.client)
+        const image = `https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?size=96&quality=lossless`
+        return { number: number, suit: suit, rank: rank, emoji: emoji.id, image: image }
     }
 
-    public async drawCard(interaction: ButtonInteraction<CacheType> | ChatInputCommandInteraction<CacheType>) {
-        let card = this.deck.draw()
+    public async drawCard() {
+        const deck = RandomUtils.getRandomInteger(1, this.deck.length)
+        const card = this.deck[deck-1].draw() 
 
         if (card === undefined) {
-            return undefined
+            if (this.deck.length > 1) {
+                this.deck.splice(deck-1, 1)
+                return this.drawCard()
+            } else {
+                return undefined
+            }
         }
-
-        return await this.createCardObject(card.toString(), interaction)
+        return await this.createCardObject(card.toString())
     }
 
     public resetDeck(): string {
-        this.deck.reset()
+        this.deck = [new deckOfCards.Deck()]
+        for (let i = 1; i < this.numberOfDecks; i++) {
+            this.deck.push(new deckOfCards.Deck()) //Todo: fix
+        }
         return 'Kortstokken er nullstilt og stokket'
     }
 
     public shuffleDeck() {
-        this.deck.shuffle()
+        this.deck.forEach(deck => deck.shuffle())
         return 'Kortstokken er stokket'
     }
 
@@ -134,14 +147,16 @@ export class CardCommands extends AbstractCommands {
     }
 
     public getRemainingCards() {
-        let cards = this.deck.toString()
-        const regex = new RegExp('C|D|S|H')
-        if (!regex.test(cards)) {
-            return 0
-        } else {
-            let cardArray: string[] = cards.split(',')
-            return cardArray.length
-        }
+        let totalCards = 0
+        this.deck.forEach(deck => {
+            let cards = deck.toString()
+            const regex = new RegExp('C|D|S|H')
+            if (regex.test(cards)) {
+                let cardArray: string[] = cards.split(',')
+                totalCards += cardArray.length
+            }
+        })
+        return totalCards
     }
 
     private cardSwitch(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -164,7 +179,7 @@ export class CardCommands extends AbstractCommands {
                         amount = remaining
                     }
                     for (let i = 0; i < amount; i++) {
-                        const card = this.drawCard(interaction)
+                        const card = this.drawCard()
 
                         let number = CardCommands.cardTranslations.get(card.toString().substring(0, 1))
                         let suite: string = this.getTranslation(card.toString().substring(1, 2))

@@ -31,7 +31,7 @@ export class GiveTake {
         for (var i = 1; i < levels; i++) {
             for (var y = 1; y <= 3; y++) {
                 this.gtTable.set(key++, {
-                    card: await this.drawCard(interaction),
+                    card: await this.drawCard(),
                     give: y == 1 || y == 3,
                     take: y == 2 || y == 3,
                     sips: this.rules.gtLevelSips[i - 1],
@@ -39,15 +39,15 @@ export class GiveTake {
                 })
             }
         }
-        this.gtTable.set(key, { card: await this.drawCard(interaction), give: false, take: true, sips: this.rules.gtLevelSips[levels - 1], revealed: false })
+        this.gtTable.set(key, { card: await this.drawCard(), give: false, take: true, sips: this.rules.gtLevelSips[levels - 1], revealed: false })
     }
 
-    private async drawCard(interaction: ButtonInteraction<CacheType>) {
+    private async drawCard() {
         if (this.deck.getRemainingCards() > 0) {
-            return await this.deck.drawCard(interaction)
+            return await this.deck.drawCard()
         }
         this.deck.shuffleDeck()
-        return await this.deck.drawCard(interaction)
+        return await this.deck.drawCard()
     }
 
     public async printGiveTakeTable(interaction: ButtonInteraction<CacheType>) {
@@ -57,16 +57,16 @@ export class GiveTake {
         const chugCard = this.gtTable.get(iterateId--)
         const emptyCard = (await EmojiHelper.getEmoji('emptyCard', interaction)).id
         const faceCard = (await EmojiHelper.getEmoji('faceCard', interaction)).id
-        tableString += `${emptyCard} ${chugCard.revealed ? chugCard.card.printString : faceCard}`
+        tableString += `${emptyCard} ${chugCard.revealed ? chugCard.card.emoji : faceCard}`
 
         for (var i = levels - 1; i > 0; i--) {
             tableString += '\n\n'
             const gtCard = this.gtTable.get(iterateId--)
             const tCard = this.gtTable.get(iterateId--)
             const gCard = this.gtTable.get(iterateId--)
-            const gtCardStr = gtCard.revealed ? `${gtCard.card.printString} ` : `${faceCard} `
-            const tCardStr = tCard.revealed ? `${tCard.card.printString} ` : `${faceCard} `
-            const gCardStr = gCard.revealed ? `${gCard.card.printString} ` : `${faceCard} `
+            const gtCardStr = gtCard.revealed ? `${gtCard.card.emoji} ` : `${faceCard} `
+            const tCardStr = tCard.revealed ? `${tCard.card.emoji} ` : `${faceCard} `
+            const gCardStr = gCard.revealed ? `${gCard.card.emoji} ` : `${faceCard} `
             tableString += gCardStr + tCardStr + gtCardStr
         }
         return tableString

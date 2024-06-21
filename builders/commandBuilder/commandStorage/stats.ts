@@ -11,19 +11,20 @@ export const statsCommand: ISlashCommandItem = {
             commandDescription: 'Tidligere /brukerstats',
             options: [
                 {
-                    name: 'bruker',
-                    description: 'bruker du vil se statistikk for - default deg selv',
-                    type: ApplicationCommandOptionType.User,
-                },
-                {
                     name: 'kategori',
                     description: 'hvilken kategori av statistikk vil du se - default alle',
                     type: ApplicationCommandOptionType.String,
+                    required: true,
                     choices: [
                         { name: 'deathroll', value: 'deathroll' },
                         { name: 'gambling', value: 'gambling' },
                         { name: 'rulett', value: 'rulett' },
                     ],
+                },
+                {
+                    name: 'bruker',
+                    description: 'bruker du vil se statistikk for - default deg selv',
+                    type: ApplicationCommandOptionType.User,
                 },
             ],
         },

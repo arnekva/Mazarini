@@ -205,13 +205,13 @@ export class DrinksCommands extends AbstractCommands {
 
     private simplifyPrintString(card: ICardObject) {
         const printString = this.deck.getStringPrint(card)
-        const cardObject: ICardObject = { ...card, printString: printString }
+        const cardObject: ICardObject = { ...card, emoji: printString }
         return cardObject
     }
 
     public async drawCard(interaction: ButtonInteraction<CacheType>) {
         if (this.playerList.find((player) => player.name == interaction.user.username)) {
-            const card: ICardObject = await this.deck.drawCard(interaction)            
+            const card: ICardObject = await this.deck.drawCard()            
             if (card == undefined) {
                 this.messageHelper.replyToInteraction(interaction, 'Kortstokken er tom. Bruk knappen under dersom dere vil fortsette.')
                 this.messageHelper.sendMessage(interaction?.channelId, { components: [resetDeckButtonRow] })
@@ -241,7 +241,7 @@ export class DrinksCommands extends AbstractCommands {
             playerName += mustDrink.length > 1 && mustDrink.includes(player) ? ' 🍷x' + sips : ''
             formattedMsg.addFields({
                 name: playerName,
-                value: player.card.printString + ' ',
+                value: player.card.emoji + ' ',
                 inline: false,
             })
         })
@@ -282,7 +282,7 @@ export class DrinksCommands extends AbstractCommands {
     public joinElectricity(interaction: ButtonInteraction<CacheType>) {
         const newUser = interaction.user
         if (!this.playerList.find((player) => player.name == newUser.username)) {
-            const userCard: ICardObject = { number: 0, suit: '', printString: '', url: '' }
+            const userCard: ICardObject = { number: 0, suit: '', emoji: '', image: '' }
             const user: IUserObject = { name: newUser.username, id: this.id, userId: newUser.id, card: userCard, mates: [] }
             this.playerList.push(user)
             this.id++
@@ -409,7 +409,7 @@ export class DrinksCommands extends AbstractCommands {
             reply += `\nChug on loop: ${this.shouldChugOnLoop}`
         }
         if (addPlayer) {
-            const mockCard: ICardObject = { number: 0, suit: '', printString: '', url: '' }
+            const mockCard: ICardObject = { number: 0, suit: '', emoji: '', image: '' }
             const user: IUserObject = { name: addPlayer.username, id: this.id++, userId: addPlayer.id, card: mockCard, mates: [] as IUserObject[] }
             this.playerList.push(user)
             reply += `\nLa til ${user.name} i spillet på plass ${user.id}`
