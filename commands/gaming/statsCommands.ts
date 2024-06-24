@@ -115,7 +115,7 @@ export class StatsCommands extends AbstractCommands {
         limit = limit && limit < 25 && limit > 0 ? limit : 9
         const sortedStats = this.emojiStats
             .slice()
-            .filter((x) => filterEmojiStats(x, type))
+            .filter((x) => filterEmojiStats(x, type, data === 'top'))
             .sort((a, b) => (data === 'top' ? sortEmojiStats(b, a, sorting) : sortEmojiStats(a, b, sorting)))
             .slice(0, limit)
         const embed = EmbedUtils.createSimpleEmbed(
@@ -212,7 +212,7 @@ export class StatsCommands extends AbstractCommands {
 
     getAllInteractions(): IInteractionElement {
         return {
-            commands: {
+            commands: { 
                 interactionCommands: [
                     {
                         commandName: 'stats',
@@ -254,15 +254,17 @@ const sortEmojiStats: (a: EmojiStats, b: EmojiStats, sorting: string) => number 
 
 const filterOnNotAnimated: (x: EmojiStats) => boolean = (x) => !x.animated
 const filterOnAnimated: (x: EmojiStats) => boolean = (x) => x.animated
-const filterEmojiStats: (x: EmojiStats, filter: string) => boolean = (x, filter) => {
+const filterEmojiStats: (x: EmojiStats, filter: string, top: boolean) => boolean = (x, filter, top) => {    
     switch (filter) {
         case 'standard':
-            return filterOnNotAnimated(x)
+            return filterOnNotAnimated(x) && (top || !isRemoved(x)) 
         case 'animert':
-            return filterOnAnimated(x)
+            return filterOnAnimated(x) && (top || !isRemoved(x)) 
         case 'alle':
-            return true
+            return true && (top || !isRemoved(x)) 
         default:
-            return true
+            return true && (top || !isRemoved(x)) 
     }
 }
+
+const isRemoved: (x: EmojiStats) => boolean = (x) => x.removed && new Date(x.removed[x.removed.length-1]) > new Date(x.added[x.added.length-1])
