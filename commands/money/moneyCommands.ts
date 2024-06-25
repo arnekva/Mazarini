@@ -64,7 +64,7 @@ export class MoneyCommands extends AbstractCommands {
             user.hasBeenRobbed = false
             this.client.database.updateUser(user)
         }
-        this.messageHelper.replyToInteraction(interaction, embed)
+        this.messageHelper.replyToInteraction(interaction, embed, {ephemeral: true})
     }
 
     /** Missing streak counter and increased reward */
