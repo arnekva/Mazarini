@@ -256,7 +256,7 @@ export class DatabaseHelper {
 
     public async findAndRewardWeeklyDeathrollWinner() {
         const users = await this.getAllUsers()
-        const sorted = users.filter(user => (user.userStats?.deathrollStats?.weeklyGames ?? 0) > 1).sort((a,b) => this.getUserLossRatio(a) - this.getUserLossRatio(b))
+        const sorted = users.filter(user => (user.userStats?.deathrollStats?.weeklyGames ?? 0) > 9).sort((a,b) => this.getUserLossRatio(a) - this.getUserLossRatio(b))
         const winners = sorted.filter(user => this.getUserLossRatio(user) == this.getUserLossRatio(sorted[0])).sort((a,b) => b.userStats.deathrollStats.weeklyGames - a.userStats.deathrollStats.weeklyGames)
         if (winners.length > 1 && winners[1].userStats.deathrollStats.weeklyGames == winners[0].userStats.deathrollStats.weeklyGames) return undefined
         const winner = winners[0]
