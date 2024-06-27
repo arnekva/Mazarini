@@ -71,7 +71,7 @@ export class Deathroll extends AbstractCommands {
             (game) =>
                 game.joinable &&
                 !game.players.some((player) => player.userID == userID) &&
-                (!diceTarget || game.players.some((player) => player.roll == diceTarget))
+                (!diceTarget || (game.players.some((player) => player.roll == diceTarget) && (Math.min(...game.players.map(x => x.roll)) == diceTarget)))
         )
     }
 
