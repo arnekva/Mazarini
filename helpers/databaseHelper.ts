@@ -3,6 +3,11 @@ import { DRGame } from '../commands/games/deathroll'
 import { ChipsStats, MazariniStorage, MazariniUser, Meme, RulettStats, botDataPrefix } from '../interfaces/database/databaseInterface'
 import { FirebaseHelper } from './firebaseHelper'
 
+export interface DeathRollStats {
+    userId: string
+    didGetNewBiggestLoss: boolean
+    isOnATHLossStreak: boolean
+}
 export class DatabaseHelper {
     private db: FirebaseHelper
 
@@ -208,11 +213,20 @@ export class DatabaseHelper {
         return (await this.db.getData('stats/emojis')) as object
     }
 
-    public registerDeathrollStats(game: DRGame) {
-        game.players.forEach(async (player) => {
+    public async registerDeathrollStats(game: DRGame): Promise<DeathRollStats[]> {
+        const drStats: DeathRollStats[] = []
+        for (let i = 0; i < game.players.length; i++) {
+            const player = game.players[i]
+
             const user = await this.getUser(player.userID)
+            const currStat: DeathRollStats = {
+                didGetNewBiggestLoss: false,
+                isOnATHLossStreak: false,
+                userId: player.userID,
+            }
             if (user) {
-                const defaultStats = { //avoid null-references
+                const defaultStats = {
+                    //avoid null-references
                     totalGames: user.userStats?.deathrollStats?.totalGames ?? 0,
                     totalLosses: user.userStats?.deathrollStats?.totalLosses ?? 0,
                     weeklyGames: user.userStats?.deathrollStats?.weeklyGames ?? 0,
@@ -220,7 +234,7 @@ export class DatabaseHelper {
                     weeklyLossSum: user.userStats?.deathrollStats?.weeklyLossSum ?? 0,
                     currentLossStreak: user.userStats?.deathrollStats?.currentLossStreak ?? 0,
                     longestLossStreak: user.userStats?.deathrollStats?.longestLossStreak ?? 0,
-                    biggestLoss: user.userStats?.deathrollStats?.biggestLoss ?? []
+                    biggestLoss: user.userStats?.deathrollStats?.biggestLoss ?? [],
                 }
                 if (!user.userStats)
                     user.userStats = {
@@ -240,45 +254,59 @@ export class DatabaseHelper {
                             user.userStats.deathrollStats.biggestLoss.sort((a, b) => a - b)
                             user.userStats.deathrollStats.biggestLoss.shift()
                         }
+                        if (user.userStats.deathrollStats.biggestLoss.includes(lastRoll)) {
+                            currStat.didGetNewBiggestLoss = true
+                        }
                     }
                     user.userStats.deathrollStats.totalLosses++
                     user.userStats.deathrollStats.weeklyLosses++
-                    user.userStats.deathrollStats.weeklyLossSum+=lastRoll
+                    user.userStats.deathrollStats.weeklyLossSum += lastRoll
                     user.userStats.deathrollStats.currentLossStreak++
-                    if (user.userStats.deathrollStats.currentLossStreak > user.userStats.deathrollStats.longestLossStreak) user.userStats.deathrollStats.longestLossStreak = user.userStats.deathrollStats.currentLossStreak
+                    if (user.userStats.deathrollStats.currentLossStreak > user.userStats.deathrollStats.longestLossStreak) {
+                        currStat.isOnATHLossStreak = true
+                        user.userStats.deathrollStats.longestLossStreak = user.userStats.deathrollStats.currentLossStreak
+                    }
                 } else {
                     user.userStats.deathrollStats.currentLossStreak = 0
                 }
+                drStats.push(currStat)
                 this.updateUser(user)
             }
-        })
+        }
+        return drStats
     }
 
     public async findAndRewardWeeklyDeathrollWinner() {
         const users = await this.getAllUsers()
-        const sorted = users.filter(user => (user.userStats?.deathrollStats?.weeklyGames ?? 0) > 9).sort((a,b) => this.getUserLossRatio(a) - this.getUserLossRatio(b))
-        const winners = sorted.filter(user => this.getUserLossRatio(user) == this.getUserLossRatio(sorted[0])).sort((a,b) => b.userStats.deathrollStats.weeklyGames - a.userStats.deathrollStats.weeklyGames)
+        const sorted = users
+            .filter((user) => (user.userStats?.deathrollStats?.weeklyGames ?? 0) > 9)
+            .sort((a, b) => this.getUserLossRatio(a) - this.getUserLossRatio(b))
+        const winners = sorted
+            .filter((user) => this.getUserLossRatio(user) == this.getUserLossRatio(sorted[0]))
+            .sort((a, b) => b.userStats.deathrollStats.weeklyGames - a.userStats.deathrollStats.weeklyGames)
         if (winners.length > 1 && winners[1].userStats.deathrollStats.weeklyGames == winners[0].userStats.deathrollStats.weeklyGames) return undefined
         const winner = winners[0]
         if (winner) {
-            winner.chips += (100 * winner.userStats.deathrollStats.weeklyGames)
+            winner.chips += 100 * winner.userStats.deathrollStats.weeklyGames
             this.updateUser(winner)
         }
         return winner
     }
 
     private getUserLossRatio(user: MazariniUser) {
-        return (user.userStats?.deathrollStats?.weeklyLosses ?? 0)/(user.userStats?.deathrollStats?.weeklyGames ?? 1)
+        return (user.userStats?.deathrollStats?.weeklyLosses ?? 0) / (user.userStats?.deathrollStats?.weeklyGames ?? 1)
     }
 
     public async resetWeeklyDeathrollStats() {
         const users = await this.getAllUsers()
-        users.filter(user => (user.userStats?.deathrollStats?.weeklyGames ?? 0) > 0).forEach(user => {
-            user.userStats.deathrollStats.weeklyGames = 0
-            user.userStats.deathrollStats.weeklyLosses = 0
-            user.userStats.deathrollStats.weeklyLossSum = 0
-            this.updateUser(user)
-        })
+        users
+            .filter((user) => (user.userStats?.deathrollStats?.weeklyGames ?? 0) > 0)
+            .forEach((user) => {
+                user.userStats.deathrollStats.weeklyGames = 0
+                user.userStats.deathrollStats.weeklyLosses = 0
+                user.userStats.deathrollStats.weeklyLossSum = 0
+                this.updateUser(user)
+            })
     }
 
     static defaultUser(id: string): MazariniUser {

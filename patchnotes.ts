@@ -8,11 +8,13 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '16.4.0'
-    public static readonly currentPatchNotes = `\n* Skrevet om /stats bruker`
-                                             + `\n * Kategori er obligatorisk`
-                                             + `\n * Deathrollstats tar mindre plass`
-                                             + `\n * Lagt til gjennomsnittstallet man taper på (weekly)`
+    public static readonly currentVersion = '16.5.0'
+    public static readonly currentPatchNotes =
+        `\n* Gjort om rewards for deathroll` +
+        `\n * Ingen weekly reward` +
+        `\n * Du får 1000 chips hvis du sender en annen spiller på ATH loss streak` +
+        `\n * Du får 1000 chips hvis en annen spiller triller et tall som havner på biggest losses` +
+        `\n * Du får chips når du triller visse tall i et game`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
