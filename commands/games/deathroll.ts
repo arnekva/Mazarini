@@ -34,8 +34,8 @@ export class Deathroll extends AbstractCommands {
         else {
             const user = interaction.user
             const game = this.getGame(user.id, diceTarget)
-            let roll = RandomUtils.getRandomInteger(1, diceTarget)
-            if (interaction.user.id === '245607554254766081' && roll < 2) roll = 2
+            const roll = RandomUtils.getRandomInteger(1, diceTarget)
+
             let additionalMessage = ''
             if (game) {
                 this.updateGame(game, user.id, roll)
