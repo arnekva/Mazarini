@@ -63,13 +63,13 @@ export class Deathroll extends AbstractCommands {
 
     private rewardPlayersOnGameEnd(s: DeathRollStats[]) {
         //TODO: Make this pretty
-        const playerHsATHStreak = s.find((p) => p.isOnATHLossStreak)
-        const playerHasBiggestLoss = s.find((p) => p.didGetNewBiggestLoss)
+        const playerHsATHStreak = s.find((p) => p.isOnATHLossStreak && p.isOnATHLossStreak > 0)
+        const playerHasBiggestLoss = s.find((p) => p.didGetNewBiggestLoss && p.didGetNewBiggestLoss > 0)
         const remainingPlayers = s.filter((p) => !p.didGetNewBiggestLoss && !p.isOnATHLossStreak)
 
         if (remainingPlayers.length !== s.length) {
-            let reward = playerHsATHStreak ? 1000 : 0
-            if (playerHasBiggestLoss) reward += 1000
+            let reward = playerHsATHStreak ? playerHsATHStreak.isOnATHLossStreak * 250 : 0
+            if (playerHasBiggestLoss) reward += playerHasBiggestLoss.didGetNewBiggestLoss * 50
             remainingPlayers.forEach((p) => {
                 this.updateUserChips(p.userId, reward)
             })

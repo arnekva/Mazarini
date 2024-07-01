@@ -5,8 +5,8 @@ import { FirebaseHelper } from './firebaseHelper'
 
 export interface DeathRollStats {
     userId: string
-    didGetNewBiggestLoss: boolean
-    isOnATHLossStreak: boolean
+    didGetNewBiggestLoss: number
+    isOnATHLossStreak: number
 }
 export class DatabaseHelper {
     private db: FirebaseHelper
@@ -220,8 +220,8 @@ export class DatabaseHelper {
 
             const user = await this.getUser(player.userID)
             const currStat: DeathRollStats = {
-                didGetNewBiggestLoss: false,
-                isOnATHLossStreak: false,
+                didGetNewBiggestLoss: 0,
+                isOnATHLossStreak: 0,
                 userId: player.userID,
             }
             if (user) {
@@ -255,7 +255,7 @@ export class DatabaseHelper {
                             user.userStats.deathrollStats.biggestLoss.shift()
                         }
                         if (user.userStats.deathrollStats.biggestLoss.includes(lastRoll)) {
-                            currStat.didGetNewBiggestLoss = true
+                            currStat.didGetNewBiggestLoss = lastRoll
                         }
                     }
                     user.userStats.deathrollStats.totalLosses++
@@ -263,7 +263,7 @@ export class DatabaseHelper {
                     user.userStats.deathrollStats.weeklyLossSum += lastRoll
                     user.userStats.deathrollStats.currentLossStreak++
                     if (user.userStats.deathrollStats.currentLossStreak > user.userStats.deathrollStats.longestLossStreak) {
-                        currStat.isOnATHLossStreak = true
+                        currStat.isOnATHLossStreak = user.userStats.deathrollStats.currentLossStreak
                         user.userStats.deathrollStats.longestLossStreak = user.userStats.deathrollStats.currentLossStreak
                     }
                 } else {
