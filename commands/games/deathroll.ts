@@ -50,7 +50,7 @@ export class Deathroll extends AbstractCommands {
                     this.rewardPlayersOnGameEnd(stats)
                     stats.forEach((stat) => {
                         const username = UserUtils.findUserById(stat.userId, interaction)?.username ?? 'Ukjent'
-                        if (stat.didGetNewBiggestLoss) additionalMessage += `\n*(${username} fikk ny rekord for største tap)*`
+                        if (stat.didGetNewBiggestLoss) additionalMessage += `\n*(${username} fikk et nytt tall inn på topplisten av største tap)*`
                         if (stat.isOnATHLossStreak) additionalMessage += `\n*(${username} har ny ATH loss streak)*`
                     })
                 }
