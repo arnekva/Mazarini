@@ -40,9 +40,16 @@ export class Deathroll extends AbstractCommands {
             if (game) {
                 this.updateGame(game, user.id, roll)
                 const rollReward = this.getRollReward(roll)
+                if (roll === diceTarget) {
+                    const targetRollReward = this.getTargetRollReward(diceTarget)
+                    if (targetRollReward.reward) {
+                        this.updateUserChips(user.id, targetRollReward.reward)
+                        if (!targetRollReward.silent) additionalMessage += `*(+${targetRollReward.reward} chips)*`
+                    }
+                }
                 if (rollReward) {
                     this.updateUserChips(user.id, rollReward)
-                    additionalMessage = `*(+${rollReward} chips)*`
+                    additionalMessage += `*(+${rollReward} chips)*`
                 }
                 if (roll == 1) {
                     this.checkForLossOnFirstRoll(game, diceTarget)
@@ -82,14 +89,45 @@ export class Deathroll extends AbstractCommands {
         this.client.database.updateUser(dbUser)
     }
 
+    getTargetRollReward(r: number): {
+        reward: number
+        silent: boolean
+    } {
+        let reward = 0
+        let silent = false
+        if (r < 100) {
+            reward = r
+            silent = true
+        } else reward = r * 10
+
+        return {
+            reward: reward,
+            silent: silent,
+        }
+    }
+
     private getRollReward(r: number) {
         switch (r) {
             case 69:
-                return 500
+                return 690
+            case 123:
+                return 1230
+            case 1234:
+                return 12340
+            case 12345:
+                return 123450
+            case 6969:
+                return 6969
+            case 420:
+                return 4200
+            case 666:
+                return 6666
+            case 777:
+                return 7777
             case 1337:
-                return 1000
+                return 13370
             case 8008:
-                return 1000
+                return 80085
             default:
                 return 0
         }

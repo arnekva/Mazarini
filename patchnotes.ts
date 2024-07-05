@@ -8,8 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '16.5.1'
-    public static readonly currentPatchNotes = `\n* Deathroll rewards er nå mer dynamiske`
+    public static readonly currentVersion = '16.5.2'
+    public static readonly currentPatchNotes = `\n* Flere rewards på Deathroll. Du får nå også reward hvis du triller likt som målet. Under 100 gir 1x, over gir 10x `
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
