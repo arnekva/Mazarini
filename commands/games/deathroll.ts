@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto'
 import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction } from 'discord.js'
+import moment from 'moment'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 import { DeathRollStats } from '../../helpers/databaseHelper'
@@ -22,6 +23,8 @@ export interface DRGame {
 
 export class Deathroll extends AbstractCommands {
     private drGames: DRGame[]
+
+    static lastRollTimeStamp = moment()
 
     constructor(client: MazariniClient) {
         super(client)
@@ -62,8 +65,10 @@ export class Deathroll extends AbstractCommands {
                     })
                 }
             }
+            const isLongSinceLastRoll = moment().diff(Deathroll.lastRollTimeStamp, 'seconds') > 15
+            Deathroll.lastRollTimeStamp = moment()
             this.messageHelper.replyToInteraction(interaction, `${roll} *(1 - ${diceTarget})*  ${additionalMessage}`, {
-                sendAsSilent: (game?.players?.length ?? 2) > 1,
+                sendAsSilent: isLongSinceLastRoll ? false : (game?.players?.length ?? 2) > 1,
             })
         }
     }
