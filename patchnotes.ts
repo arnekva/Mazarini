@@ -8,7 +8,7 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '16.4.1'
+    public static readonly currentVersion = '16.5.3'
     public static readonly currentPatchNotes = `\n* */spell* og andre kommandoer som søker etter meldinger skal nå fungere i threads`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion

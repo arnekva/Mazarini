@@ -91,7 +91,6 @@ export namespace textArrays {
         'haha, nei',
         'haha, ja',
         'haha, kanskje',
-        'haha, kanskje ikke',
         'njææææææ',
         'tror kje det',
         'tror det',
@@ -99,7 +98,7 @@ export namespace textArrays {
         'eg e kje sikker på om eg kan svare på det spørsmålet',
         'ingen kommentar',
         'litt usikker faktisk',
-        'på en måte ja',
+        'på ein måte ja',
         'wtf, nei',
         'wtf, ja',
         'Rektigt',
@@ -120,10 +119,8 @@ export namespace textArrays {
         '//TODO: Skriv inn svar her',
         'Shoutout te mordi',
         'bent hoie e kje her akkurat nå, prøv igjen seinare',
-        "can't talk, on the phone with Erna atm",
-        'dåkke e så jævla irriteranes, kan kje svara på det spørsmålet',
         'får kje lov av mamma',
-        'gje meg en god grunn te å svare på det spørsmålet',
+        'gje meg en god grunn te å svare på det',
         'haha, nei',
         'ikkje nå',
         'ja?',
@@ -133,7 +130,6 @@ export namespace textArrays {
         'nei',
         'ok',
         'pass',
-
         'E på date me mor te Eivind atm, kan kje svara',
     ]
 

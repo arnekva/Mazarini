@@ -6,7 +6,7 @@ import { EmojiHelper, JobStatus } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
-import { ChannelIds, MentionUtils, ThreadIds } from '../utils/mentionUtils'
+import { ChannelIds } from '../utils/mentionUtils'
 
 export class WeeklyJobs {
     private messageHelper: MessageHelper
@@ -98,13 +98,13 @@ export class WeeklyJobs {
     }
 
     private async resetWeeklyDeathrollStats(): Promise<JobStatus> {
-        const winner = await this.client.database.findAndRewardWeeklyDeathrollWinner()
-        if (winner) {
-            const embed = EmbedUtils.createSimpleEmbed(`:game_die: Ukens deathrollvinner er... :game_die:`, `${MentionUtils.mentionUser(winner.id)}!`
-                        + `\nDu tapte ${winner.userStats.deathrollStats.weeklyLosses > 0 ? 'bare ' : 'faktisk '}${((winner.userStats.deathrollStats.weeklyLosses/winner.userStats.deathrollStats.weeklyGames)*100).toFixed(1)}% av spillene dine forrige uke.` 
-                        + `\n\n:moneybag: Det er lavest av alle, og du vinne ${100 * winner.userStats.deathrollStats.weeklyGames} chips! :moneybag:`)
-            this.messageHelper.sendMessage(ThreadIds.GENERAL_TERNING, {embed: embed})
-        }
+        // const winner = await this.client.database.findAndRewardWeeklyDeathrollWinner()
+        // if (winner) {
+        //     const embed = EmbedUtils.createSimpleEmbed(`:game_die: Ukens deathrollvinner er... :game_die:`, `${MentionUtils.mentionUser(winner.id)}!`
+        //                 + `\nDu tapte ${winner.userStats.deathrollStats.weeklyLosses > 0 ? 'bare ' : 'faktisk '}${((winner.userStats.deathrollStats.weeklyLosses/winner.userStats.deathrollStats.weeklyGames)*100).toFixed(1)}% av spillene dine forrige uke.`
+        //                 + `\n\n:moneybag: Det er lavest av alle, og du vinne ${100 * winner.userStats.deathrollStats.weeklyGames} chips! :moneybag:`)
+        //     this.messageHelper.sendMessage(ThreadIds.GENERAL_TERNING, {embed: embed})
+        // }
         await this.client.database.resetWeeklyDeathrollStats()
         return 'success'
     }

@@ -2,9 +2,11 @@ import { randomUUID } from 'crypto'
 import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
+import { DeathRollStats } from '../../helpers/databaseHelper'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
-import { RandomUtils } from '../../utils/randomUtils'
 import { MentionUtils } from '../../utils/mentionUtils'
+import { RandomUtils } from '../../utils/randomUtils'
+import { UserUtils } from '../../utils/userUtils'
 
 export interface DRPlayer {
     userID: string
@@ -26,21 +28,108 @@ export class Deathroll extends AbstractCommands {
         this.drGames = new Array<DRGame>()
     }
 
-    private rollDice(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async rollDice(interaction: ChatInputCommandInteraction<CacheType>) {
         const diceTarget = interaction.options.get('sider')?.value as number
         if (diceTarget <= 0) this.messageHelper.replyToInteraction(interaction, `Du kan ikke trille en terning med mindre enn 1 side`, { ephemeral: true })
         else {
             const user = interaction.user
-            const game = this.getGame(user.id, diceTarget)            
+            const game = this.getGame(user.id, diceTarget)
             const roll = RandomUtils.getRandomInteger(1, diceTarget)
+
+            let additionalMessage = ''
             if (game) {
                 this.updateGame(game, user.id, roll)
+                const rollReward = this.getRollReward(roll)
+                if (roll === diceTarget) {
+                    const targetRollReward = this.getTargetRollReward(diceTarget)
+                    if (targetRollReward.reward) {
+                        this.updateUserChips(user.id, targetRollReward.reward)
+                        if (!targetRollReward.silent) additionalMessage += `*(+${targetRollReward.reward} chips)*`
+                    }
+                }
+                if (rollReward) {
+                    this.updateUserChips(user.id, rollReward)
+                    additionalMessage += `*(+${rollReward} chips)*`
+                }
                 if (roll == 1) {
                     this.checkForLossOnFirstRoll(game, diceTarget)
-                    this.endGame(game)
+                    const stats = await this.endGame(game)
+                    this.rewardPlayersOnGameEnd(stats)
+                    stats.forEach((stat) => {
+                        const username = UserUtils.findUserById(stat.userId, interaction)?.username ?? 'Ukjent'
+                        if (stat.didGetNewBiggestLoss) additionalMessage += `\n*(${username} fikk et nytt tall inn på topplisten av største tap)*`
+                        if (stat.isOnATHLossStreak) additionalMessage += `\n*(${username} har ny ATH loss streak)*`
+                    })
                 }
             }
-            this.messageHelper.replyToInteraction(interaction, `${roll} *(1 - ${diceTarget})*`, { sendAsSilent: ((game?.players?.length) ?? 2) > 1 })
+            this.messageHelper.replyToInteraction(interaction, `${roll} *(1 - ${diceTarget})*  ${additionalMessage}`, {
+                sendAsSilent: (game?.players?.length ?? 2) > 1,
+            })
+        }
+    }
+
+    private rewardPlayersOnGameEnd(s: DeathRollStats[]) {
+        //TODO: Make this pretty
+        const playerHsATHStreak = s.find((p) => p.isOnATHLossStreak && p.isOnATHLossStreak > 0)
+        const playerHasBiggestLoss = s.find((p) => p.didGetNewBiggestLoss && p.didGetNewBiggestLoss > 0)
+        const remainingPlayers = s.filter((p) => !p.didGetNewBiggestLoss && !p.isOnATHLossStreak)
+
+        if (remainingPlayers.length !== s.length) {
+            let reward = playerHsATHStreak ? playerHsATHStreak.isOnATHLossStreak * 250 : 0
+            if (playerHasBiggestLoss) reward += playerHasBiggestLoss.didGetNewBiggestLoss * 50
+            remainingPlayers.forEach((p) => {
+                this.updateUserChips(p.userId, reward)
+            })
+        }
+    }
+
+    private async updateUserChips(userId: string, chips: number) {
+        const dbUser = await this.client.database.getUser(userId)
+        dbUser.chips += chips
+        this.client.database.updateUser(dbUser)
+    }
+
+    getTargetRollReward(r: number): {
+        reward: number
+        silent: boolean
+    } {
+        let reward = 0
+        let silent = false
+        if (r < 100) {
+            reward = r
+            silent = true
+        } else reward = r * 10
+
+        return {
+            reward: reward,
+            silent: silent,
+        }
+    }
+
+    private getRollReward(r: number) {
+        switch (r) {
+            case 69:
+                return 690
+            case 123:
+                return 1230
+            case 1234:
+                return 12340
+            case 12345:
+                return 123450
+            case 6969:
+                return 6969
+            case 420:
+                return 4200
+            case 666:
+                return 6666
+            case 777:
+                return 7777
+            case 1337:
+                return 13370
+            case 8008:
+                return 80085
+            default:
+                return 0
         }
     }
 
@@ -71,7 +160,7 @@ export class Deathroll extends AbstractCommands {
             (game) =>
                 game.joinable &&
                 !game.players.some((player) => player.userID == userID) &&
-                (!diceTarget || game.players.some((player) => player.roll == diceTarget))
+                (!diceTarget || (game.players.some((player) => player.roll == diceTarget) && Math.min(...game.players.map((x) => x.roll)) == diceTarget))
         )
     }
 
@@ -91,13 +180,13 @@ export class Deathroll extends AbstractCommands {
 
     private checkForLossOnFirstRoll(game: DRGame, diceTarget: number) {
         if (game.players.length === 1) {
-            game.players.push({ userID: MentionUtils.User_IDs.BOT_HOIE, roll: diceTarget})
+            game.players.push({ userID: MentionUtils.User_IDs.BOT_HOIE, roll: diceTarget })
         }
     }
 
     private endGame(finishedGame: DRGame) {
         this.drGames = this.drGames.filter((game) => game.id != finishedGame.id)
-        this.client.database.registerDeathrollStats(finishedGame)
+        return this.client.database.registerDeathrollStats(finishedGame)
     }
 
     private getActiveGameForUser(userID: string) {
@@ -113,7 +202,7 @@ export class Deathroll extends AbstractCommands {
         )
     }
 
-    private autoCompleteDice(interaction: AutocompleteInteraction<CacheType>) {        
+    private autoCompleteDice(interaction: AutocompleteInteraction<CacheType>) {
         let game = this.getActiveGameForUser(interaction.user.id)
         if (!game) game = this.checkForAvailableGame(interaction.user.id)
         if (game) {
