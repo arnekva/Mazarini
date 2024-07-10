@@ -63,7 +63,6 @@ export namespace MessageUtils {
     }
 
     export const isLegalChannel = (channelId: string) => {
-        return true
         return (
             (environment === 'dev' &&
                 (channelId === ChannelIds.LOKAL_BOT_SPAM ||
