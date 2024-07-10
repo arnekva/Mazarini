@@ -72,9 +72,8 @@ export class Deathroll extends AbstractCommands {
             })
         }
     }
-
+    //TODO: Make this pretty
     private rewardPlayersOnGameEnd(s: DeathRollStats[]) {
-        //TODO: Make this pretty
         const playerHsATHStreak = s.find((p) => p.isOnATHLossStreak && p.isOnATHLossStreak > 0)
         const playerHasBiggestLoss = s.find((p) => p.didGetNewBiggestLoss && p.didGetNewBiggestLoss > 0)
         const remainingPlayers = s.filter((p) => !p.didGetNewBiggestLoss && !p.isOnATHLossStreak)
