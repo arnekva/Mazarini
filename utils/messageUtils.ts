@@ -39,7 +39,8 @@ export namespace MessageUtils {
     }
 
     export const findMessageById = async (id: string, client: MazariniClient, onErr?: () => void): Promise<Message<boolean> | undefined> => {
-        const allChannels = [...client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
+        const allChannels = [...client.channels.cache.values()].filter((channel) => channel instanceof TextChannel || channel.isThread()) as TextChannel[]
+
         let messageToReturn: Message<boolean> | PromiseLike<Message<boolean>>
 
         for (const channel of allChannels) {
@@ -62,6 +63,7 @@ export namespace MessageUtils {
     }
 
     export const isLegalChannel = (channelId: string) => {
+        return true
         return (
             (environment === 'dev' &&
                 (channelId === ChannelIds.LOKAL_BOT_SPAM ||

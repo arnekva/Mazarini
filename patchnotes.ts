@@ -8,11 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '16.4.0'
-    public static readonly currentPatchNotes = `\n* Skrevet om /stats bruker`
-                                             + `\n * Kategori er obligatorisk`
-                                             + `\n * Deathrollstats tar mindre plass`
-                                             + `\n * Lagt til gjennomsnittstallet man taper på (weekly)`
+    public static readonly currentVersion = '16.4.1'
+    public static readonly currentPatchNotes = `\n* */spell* og andre kommandoer som søker etter meldinger skal nå fungere i threads`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
