@@ -8,8 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '16.5.5'
-    public static readonly currentPatchNotes = `\n* */terning* skal ikke lenger sende silent melding hvis det er lenger enn 15 sekund siden forrige trill`
+    public static readonly currentVersion = '16.5.6'
+    public static readonly currentPatchNotes = `\n* Reverserer 16.5.5`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

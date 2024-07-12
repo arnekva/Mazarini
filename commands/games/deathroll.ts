@@ -68,7 +68,7 @@ export class Deathroll extends AbstractCommands {
             const isLongSinceLastRoll = moment().diff(Deathroll.lastRollTimeStamp, 'seconds') > 15
             Deathroll.lastRollTimeStamp = moment()
             this.messageHelper.replyToInteraction(interaction, `${roll} *(1 - ${diceTarget})*  ${additionalMessage}`, {
-                sendAsSilent: isLongSinceLastRoll ? false : (game?.players?.length ?? 2) > 1,
+                sendAsSilent: (game?.players?.length ?? 2) > 1,
             })
         }
     }
