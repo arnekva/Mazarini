@@ -1,3 +1,4 @@
+import { blackjackCommand } from './commandStorage/blackjack'
 import { countdownCommand } from './commandStorage/countdown'
 import { jailCommand } from './commandStorage/jail'
 import { jailbreakCommand } from './commandStorage/jailbreak'
@@ -42,4 +43,5 @@ export namespace CommandStorage {
     export const StatsCommand = statsCommand
     export const CountdownCommand = countdownCommand
     export const RocketCommand = rocketCommand
+    export const BlackjackCommand = blackjackCommand
 }

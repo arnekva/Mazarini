@@ -41,6 +41,10 @@ export class GameStateHandler<Player extends GamePlayer> {
         return this.players.some(player => player.id === id)
     }
 
+    public getPlayer(id: string) {
+        return this.players.find(player => player.id === id)
+    }
+
     get allPlayers() {
         return this.players
     }

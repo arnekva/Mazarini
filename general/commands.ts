@@ -31,6 +31,7 @@ import { UserCommands } from '../commands/user/userCommands'
 import { Weather } from '../commands/weatherCommands'
 import { IInteractionElement } from '../interfaces/interactionInterface'
 import { PatchNotes } from '../patchnotes'
+import { Blackjack } from '../commands/games/blackjack'
 
 export class Commands {
     private client: MazariniClient
@@ -65,6 +66,7 @@ export class Commands {
     private vivinoCommands: VivinoCommands
     private statsCommands: StatsCommands
     private deathroll: Deathroll
+    private blackjack: Blackjack
 
     constructor(client: MazariniClient) {
         this.client = client
@@ -99,6 +101,7 @@ export class Commands {
         this.vivinoCommands = new VivinoCommands(this.client)
         this.statsCommands = new StatsCommands(this.client)
         this.deathroll = new Deathroll(this.client)
+        this.blackjack = new Blackjack(this.client)
     }
 
     getAllInteractionCommands(): IInteractionElement[] {
@@ -133,6 +136,7 @@ export class Commands {
             this.vivinoCommands.getAllInteractions(),
             this.statsCommands.getAllInteractions(),
             this.deathroll.getAllInteractions(),
+            this.blackjack.getAllInteractions(),
         ]
     }
 
