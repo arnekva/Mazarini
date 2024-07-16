@@ -92,7 +92,6 @@ export class Admin extends AbstractCommands {
 
         const allChannels = [...this.client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
 
-        
         const id = interaction.options.get('melding-id')?.value as string
         const replyString = interaction.options.get('tekst')?.value as string
         let hasFoundMsgOrThrewError = false
@@ -254,7 +253,7 @@ export class Admin extends AbstractCommands {
         )}. Henter data fra Git og restarter botten ...`
         const msg = await this.messageHelper.sendLogMessage(restartMsg)
         const commitId = await this.client.database.getBotData('commit-id')
-        await exec(`git pull && pm2 restart mazarini -- --restartedForGit --${commitId}`, async (error, stdout, stderr) => {
+        await exec(`git pull`, async (error, stdout, stderr) => {
             if (error) {
                 restartMsg += `\nKlarte ikke restarte: \n${error}`
                 msg.edit(restartMsg)
