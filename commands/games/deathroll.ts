@@ -11,7 +11,7 @@ import { UserUtils } from '../../utils/userUtils'
 
 export interface DRPlayer {
     userID: string
-    roll: number
+    rolls: number[]
 }
 
 export interface DRGame {
@@ -23,9 +23,7 @@ export interface DRGame {
 
 export class Deathroll extends AbstractCommands {
     private drGames: DRGame[]
-
-    static lastRollTimeStamp = moment()
-
+    
     constructor(client: MazariniClient) {
         super(client)
         this.drGames = new Array<DRGame>()
@@ -41,7 +39,7 @@ export class Deathroll extends AbstractCommands {
 
             let additionalMessage = ''
             if (game) {
-                this.updateGame(game, user.id, roll)
+                this.updateGame(game, user.id, roll)                
                 const rollReward = this.getRollReward(roll)
                 if (roll === diceTarget) {
                     const targetRollReward = this.getTargetRollReward(diceTarget)
@@ -65,9 +63,8 @@ export class Deathroll extends AbstractCommands {
                     })
                 }
             }
-            const isLongSinceLastRoll = moment().diff(Deathroll.lastRollTimeStamp, 'seconds') > 15
-            Deathroll.lastRollTimeStamp = moment()
-            this.messageHelper.replyToInteraction(interaction, `${roll} *(1 - ${diceTarget})*  ${additionalMessage}`, {
+            const bold = (game?.players?.length ?? 0) == 1 ? '**' : ''
+            this.messageHelper.replyToInteraction(interaction, `${bold}${roll} *(1 - ${diceTarget})*${bold}  ${additionalMessage}`, {
                 sendAsSilent: (game?.players?.length ?? 2) > 1,
             })
         }
@@ -147,13 +144,13 @@ export class Deathroll extends AbstractCommands {
         return this.drGames.find(
             (game) =>
                 game.players.some((player) => player.userID == userID && this.isPlayersTurn(game, player)) &&
-                game.players.some((player) => player.userID != userID && player.roll == diceTarget)
+                game.players.some((player) => player.userID != userID && Math.min(...player.rolls) == diceTarget)
         )
     }
 
     private joinGame(game: DRGame, userID: string) {
         if (game && game.joinable) {
-            game.players.push({ userID: userID, roll: undefined })
+            game.players.push({ userID: userID, rolls: [] })
             return game
         }
         return undefined
@@ -162,14 +159,14 @@ export class Deathroll extends AbstractCommands {
     private checkForAvailableGame(userID: string, diceTarget?: number) {
         return this.drGames.find(
             (game) =>
-                game.joinable &&
-                !game.players.some((player) => player.userID == userID) &&
-                (!diceTarget || (game.players.some((player) => player.roll == diceTarget) && Math.min(...game.players.map((x) => x.roll)) == diceTarget))
+                game.joinable && //game is joinable
+                !game.players.some((player) => player.userID == userID) && //player hasn't already joined
+                (!diceTarget || Math.min(...game.players.map((x) => x.rolls).flat()) == diceTarget)
         )
     }
 
     private registerNewGame(userID: string) {
-        const p1: DRPlayer = { userID: userID, roll: undefined }
+        const p1: DRPlayer = { userID: userID, rolls: [] }
         const game: DRGame = { id: randomUUID(), players: [p1], joinable: true, lastToRoll: undefined }
         this.drGames.push(game)
         return game
@@ -177,14 +174,14 @@ export class Deathroll extends AbstractCommands {
 
     private updateGame(game: DRGame, userID: string, newRoll: number) {
         const currentPlayer = game.players.find((player) => player.userID == userID)
-        if (game.joinable && currentPlayer.roll) game.joinable = false
-        currentPlayer.roll = newRoll
+        if (game.joinable && currentPlayer.rolls?.length > 0) game.joinable = false
+        currentPlayer.rolls.push(newRoll)
         game.lastToRoll = userID
     }
 
     private checkForLossOnFirstRoll(game: DRGame, diceTarget: number) {
         if (game.players.length === 1) {
-            game.players.push({ userID: MentionUtils.User_IDs.BOT_HOIE, roll: diceTarget })
+            game.players.push({ userID: MentionUtils.User_IDs.BOT_HOIE, rolls: [diceTarget] })
         }
     }
 
@@ -201,7 +198,7 @@ export class Deathroll extends AbstractCommands {
         const playerIndex = game.players.findIndex((player) => player.userID == currentPlayer.userID)
         const previousPlayer = game.players[Math.abs(playerIndex + game.players.length - 1) % game.players.length]
         return (
-            !game.players.some((player) => player.roll < previousPlayer.roll && player.userID != previousPlayer.userID) &&
+            !game.players.some((player) => player.userID != previousPlayer.userID && Math.min(...player.rolls) < Math.min(...previousPlayer.rolls)) &&
             game.lastToRoll != currentPlayer.userID
         )
     }
@@ -210,10 +207,10 @@ export class Deathroll extends AbstractCommands {
         let game = this.getActiveGameForUser(interaction.user.id)
         if (!game) game = this.checkForAvailableGame(interaction.user.id)
         if (game) {
-            const diceTarget = Math.min(...game.players.map((p) => p.roll))
+            const diceTarget = Math.min(...game.players.map((p) => p.rolls).flat())
             return interaction.respond([{ name: `${diceTarget}`, value: diceTarget }])
         }
-        return interaction.respond([{ name: '10000', value: 10000 }])
+        return interaction.respond([{ name: '100000', value: 100000 }])
     }
 
     getAllInteractions(): IInteractionElement {
