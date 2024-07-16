@@ -119,8 +119,8 @@ export class Blackjack extends AbstractCommands {
         const player = game.players[0]
         const dealer = game.dealer
         const embed = EmbedUtils.createSimpleEmbed(`Blackjack`, `Du har satset ${player.stake} chips - lykke til!`)
-        const board = `${dealer.profilePicture}\n${dealer.hand[0].emoji} ${this.faceCard}`
-        + `\n\n\n${player.hand[0].emoji} ${player.hand[1].emoji}\n${player.profilePicture}`
+        const board = `${dealer.profilePicture}\t${dealer.hand[0].emoji} ${this.faceCard}`
+        + `\n\n\n${player.profilePicture}\t${player.hand[0].emoji} ${player.hand[1].emoji}`
         game.messages.embedContent = embed
         game.messages.tableContent = board
         game.messages.buttonRow = hitStandButtonRow(game.id)
@@ -141,12 +141,11 @@ export class Blackjack extends AbstractCommands {
     private async updateBoard(game: BlackjackGame, reveal: boolean) {
         const player = game.players[0]
         const dealer = game.dealer
-        let board = `${dealer.profilePicture}\n`
+        let board = `${dealer.profilePicture}\t`
         if (!reveal) board += `${dealer.hand[0].emoji} ${this.faceCard}`
         else dealer.hand.forEach(card => board += `${card.emoji} `)
-        board += `\n\n\n`
+        board += `\n\n\n${player.profilePicture}\t`
         player.hand.forEach(card => board += `${card.emoji} `)
-        board += `\n${player.profilePicture}`
         game.messages.tableContent = board
         game.messages.table.edit({ content: board })
     }
