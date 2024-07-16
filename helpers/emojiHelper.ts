@@ -1,5 +1,7 @@
-import { CacheType, Client, GuildEmoji, Interaction, Message } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, Client, GuildEmoji, Interaction, Message } from 'discord.js'
 import { ArrayUtils } from '../utils/arrayUtils'
+import { ServerIds } from '../utils/mentionUtils'
+import { UserUtils } from '../utils/userUtils'
 
 export type emojiType = 'kekw_animated' | 'catJAM' | 'eyebrows'
 export interface emojiReturnType {
@@ -38,5 +40,10 @@ export class EmojiHelper {
             case 'not sendt':
                 return '☑️'
         }
+    }
+
+    static async createProfileEmoji(interaction: ChatInputCommandInteraction<CacheType>) {
+        const profilePic = UserUtils.findUserById(interaction.user.id, interaction).displayAvatarURL()
+        await interaction.client.guilds.cache.get(ServerIds.MAZARINI_DEV_2).emojis.create({ attachment: profilePic, name: interaction.user.username})
     }
 }
