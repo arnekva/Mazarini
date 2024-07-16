@@ -253,7 +253,7 @@ export class Admin extends AbstractCommands {
         )}. Henter data fra Git og restarter botten ...`
         const msg = await this.messageHelper.sendLogMessage(restartMsg)
         const commitId = await this.client.database.getBotData('commit-id')
-        await exec(`git pull`, async (error, stdout, stderr) => {
+        await exec(`git pull && pm2 restart mazarini -- --restartedForGit --${commitId}`, async (error, stdout, stderr) => {
             if (error) {
                 restartMsg += `\nKlarte ikke restarte: \n${error}`
                 msg.edit(restartMsg)
@@ -284,6 +284,8 @@ export class Admin extends AbstractCommands {
         const schedule = modalInteraction.fields.getTextInputValue('scheduledDate')
         const date = moment(schedule, 'DD-MM-YYYY HH:mm')
         if (schedule) {
+            console.log(date)
+
             this.messageHelper.scheduleMessage(text, chatID, date)
             this.messageHelper.replyToInteraction(
                 modalInteraction,
