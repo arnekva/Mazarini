@@ -284,8 +284,6 @@ export class Admin extends AbstractCommands {
         const schedule = modalInteraction.fields.getTextInputValue('scheduledDate')
         const date = moment(schedule, 'DD-MM-YYYY HH:mm')
         if (schedule) {
-            console.log(date)
-
             this.messageHelper.scheduleMessage(text, chatID, date)
             this.messageHelper.replyToInteraction(
                 modalInteraction,
