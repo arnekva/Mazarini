@@ -49,7 +49,7 @@ export class MazariniClient extends Client {
             ],
         })
         this.msgHelper = new MessageHelper(this)
-
+        console.log('test endringer ble med')
         this.jobScheduler = new JobScheduler(this.msgHelper, this)
         this.lockingHandler = new LockingHandler()
         this.mazariniTracker = new MazariniTracker(this)
