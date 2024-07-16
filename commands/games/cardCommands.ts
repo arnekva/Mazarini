@@ -113,14 +113,14 @@ export class CardCommands extends AbstractCommands {
         return { number: number, suit: suit, rank: rank, emoji: emoji.id, image: image }
     }
 
-    public async drawCard() {
+    public async drawCard(): Promise<ICardObject> {
         const deck = RandomUtils.getRandomInteger(1, this.deck.length)
         const card = this.deck[deck-1].draw() 
 
         if (card === undefined) {
             if (this.deck.length > 1) {
                 this.deck.splice(deck-1, 1)
-                return this.drawCard()
+                return await this.drawCard()
             } else {
                 return undefined
             }
@@ -159,7 +159,7 @@ export class CardCommands extends AbstractCommands {
         return totalCards
     }
 
-    private cardSwitch(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async cardSwitch(interaction: ChatInputCommandInteraction<CacheType>) {
         const isTrekk = interaction.options.getSubcommand() === 'trekk'
         const isReset = interaction.options.getSubcommand() === 'resett'
         const isShufle = interaction.options.getSubcommand() === 'stokk'
@@ -179,11 +179,8 @@ export class CardCommands extends AbstractCommands {
                         amount = remaining
                     }
                     for (let i = 0; i < amount; i++) {
-                        const card = this.drawCard()
-
-                        let number = CardCommands.cardTranslations.get(card.toString().substring(0, 1))
-                        let suite: string = this.getTranslation(card.toString().substring(1, 2))
-                        drawPile += `${suite.trim()} ${number} ${suite.trim()}\n`
+                        const card = await this.drawCard()
+                        drawPile += `${card.emoji}\n`
                     }
                     this.messageHelper.replyToInteraction(interaction, drawPile)
                 } else {
