@@ -473,7 +473,7 @@ export class CrimeCommands extends AbstractCommands {
     }
 }
 
-export const illegalCommandsWhileInJail = ['krig', 'pickpocket', 'KRIG', 'KRIG_REMATCH', 'vipps', 'daily', 'gamble', 'roll', 'rulett', 'spin']
+export const illegalCommandsWhileInJail = ['krig', 'pickpocket', 'KRIG', 'KRIG_REMATCH', 'vipps', 'daily', 'gamble', 'roll', 'rulett', 'spin', 'blackjack']
 
 function delay(time) {
     return new Promise((resolve) => setTimeout(resolve, time))
