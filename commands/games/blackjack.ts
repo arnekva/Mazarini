@@ -160,21 +160,27 @@ export class Blackjack extends AbstractCommands {
 
     private async stand(game: BlackjackGame, player: BlackjackPlayer) {
         let dealer = game.dealer
-        while (this.calculateHandValue(dealer.hand) < 17) {
-            await this.dealCard(game, dealer)
+        const naturalBlackJack = (player.hand.length == 2) && (this.calculateHandValue(player.hand) == 21) && (this.calculateHandValue(dealer.hand) != 21)
+        if (!naturalBlackJack) {
+            while (this.calculateHandValue(dealer.hand) < 17) {
+                await this.dealCard(game, dealer)
+            }
         }
         await this.updateBoard(game, true)
-        this.resolveGame(game)
+        this.resolveGame(game, naturalBlackJack)
     }
 
-    private async resolveGame(game: BlackjackGame) {
+    private async resolveGame(game: BlackjackGame, naturalBlackJack: boolean) {
         const mb = ':moneybag:'
         const player = game.players[0]
         const dealer = game.dealer
         const dealerHand = this.calculateHandValue(dealer.hand)
         const playerHand = this.calculateHandValue(player.hand)
         const symbol = await EmojiHelper.getEmoji('ace_jack', this.client)
-        if (playerHand == 21 && dealerHand != 21) {
+        if (naturalBlackJack) {
+            game.messages.embedContent = EmbedUtils.createSimpleEmbed(`${symbol.id} Blackjack ${symbol.id}`, `${mb} Du fikk en naturlig blackjack og vinner ${player.stake * 3} chips! ${mb}`)
+            this.rewardPlayer(player, player.stake * 3)
+        } else if (playerHand == 21 && dealerHand != 21) {
             game.messages.embedContent = EmbedUtils.createSimpleEmbed(`${symbol.id} Blackjack ${symbol.id}`, `Dealer fikk **${dealerHand}**\n\n${mb} Du fikk blackjack og vinner ${player.stake * 3} chips! ${mb}`)
             this.rewardPlayer(player, player.stake * 3)
         } else if (dealerHand < playerHand || dealerHand > 21) {
@@ -201,7 +207,7 @@ export class Blackjack extends AbstractCommands {
         const user = await this.client.database.getUser(player.id)
         game.messages.buttonRow = gameFinishedRow(game.id)
         game.messages.buttons.edit({ components: [game.messages.buttonRow]})
-        game.messages.embedContent = EmbedUtils.createSimpleEmbed(`:money_with_wings: Busted :money_with_wings:`, `Du trakk over 21 og mistet chipsene dine`)
+        game.messages.embedContent = EmbedUtils.createSimpleEmbed(`:shaking_face: Busted :shaking_face:`, `Du trakk over 21\n\n:money_with_wings: Du tapte ${player.stake} chips :money_with_wings:`)
         game.messages.embed.edit({ embeds: [game.messages.embedContent]})
     }
 
