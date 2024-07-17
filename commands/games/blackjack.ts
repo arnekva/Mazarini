@@ -9,6 +9,7 @@ import { randomUUID } from 'crypto'
 import { UserUtils } from '../../utils/userUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { EmojiHelper } from '../../helpers/emojiHelper'
+import { ChannelIds } from '../../utils/mentionUtils'
 interface BlackjackPlayer extends GamePlayer {
     id: string
     playerName: string
@@ -100,7 +101,7 @@ export class Blackjack extends AbstractCommands {
 
             this.faceCard = (await EmojiHelper.getEmoji('faceCard', this.client)).id
 
-            this.generateSimpleTable(game)
+            await this.generateSimpleTable(game)
             this.printGame(game, interaction)
         }
     }
@@ -118,7 +119,9 @@ export class Blackjack extends AbstractCommands {
     private async generateSimpleTable(game: BlackjackGame) {
         const player = game.players[0]
         const dealer = game.dealer
-        const embed = EmbedUtils.createSimpleEmbed(`Blackjack`, `Du har satset ${player.stake} chips - lykke til!`)
+        const symbol = await EmojiHelper.getEmoji('ace_jack', this.client)
+        const chips = await EmojiHelper.getEmoji('chips', this.client)
+        const embed = EmbedUtils.createSimpleEmbed(`${symbol.id} Blackjack ${symbol.id}`, `Du har satset ${player.stake} chips ${chips.id}`)
         const board = `${dealer.profilePicture}\t${dealer.hand[0].emoji} ${this.faceCard}`
         + `\n\n\n${player.profilePicture}\t${player.hand[0].emoji} ${player.hand[1].emoji}`
         game.messages.embedContent = embed
@@ -172,21 +175,26 @@ export class Blackjack extends AbstractCommands {
         const dealer = game.dealer
         const dealerHand = this.calculateHandValue(dealer.hand)
         const playerHand = this.calculateHandValue(player.hand)
+        const symbol = await EmojiHelper.getEmoji('ace_jack', this.client)
         if (playerHand == 21 && dealerHand != 21) {
-            game.messages.embedContent = EmbedUtils.createSimpleEmbed(`Blackjack`, `Dealer fikk **${dealerHand}**\n\n${mb + mb + mb} Du fikk blackjack og vinner ${player.stake * 3} chips! ${mb + mb + mb}`)
+            game.messages.embedContent = EmbedUtils.createSimpleEmbed(`${symbol.id} Blackjack ${symbol.id}`, `Dealer fikk **${dealerHand}**\n\n${mb} Du fikk blackjack og vinner ${player.stake * 3} chips! ${mb}`)
             this.rewardPlayer(player, player.stake * 3)
         } else if (dealerHand < playerHand || dealerHand > 21) {
-            game.messages.embedContent = EmbedUtils.createSimpleEmbed(`Blackjack`, `Dealer fikk **${dealerHand}**\n\n${mb + mb} Du vinner ${player.stake * 2} chips! ${mb + mb}`)
+            game.messages.embedContent = EmbedUtils.createSimpleEmbed(`${symbol.id} Blackjack ${symbol.id}`, `Dealer fikk **${dealerHand}**\n\n${mb} Du vinner ${player.stake * 2} chips! ${mb}`)
             this.rewardPlayer(player, player.stake * 2)
         } else if (dealerHand == playerHand) {
-            game.messages.embedContent = EmbedUtils.createSimpleEmbed(`Blackjack`, `Dealer fikk **${dealerHand}** - samme som deg\n\n:recycle: Du får tilbake innsatsen på ${player.stake} chips :recycle:`)
+            game.messages.embedContent = EmbedUtils.createSimpleEmbed(`${symbol.id} Blackjack ${symbol.id}`, `Dealer fikk **${dealerHand}** - samme som deg\n\n:recycle: Du får tilbake innsatsen på ${player.stake} chips :recycle:`)
             this.rewardPlayer(player, player.stake)
         } else if (dealerHand > playerHand) {
-            game.messages.embedContent = EmbedUtils.createSimpleEmbed(`Blackjack`, `Dealer fikk **${dealerHand}**\n\n:money_with_wings: Du tapte :money_with_wings:`)
+            game.messages.embedContent = EmbedUtils.createSimpleEmbed(`${symbol.id} Blackjack ${symbol.id}`, `Dealer fikk **${dealerHand}**\n\n:money_with_wings: Du tapte ${player.stake} chips :money_with_wings:`)
         }
         game.messages.buttonRow = deleteMessagesButtonRow(game.id)
         game.messages.embed.edit({ embeds: [game.messages.embedContent]})
         game.messages.buttons.edit({ components: [game.messages.buttonRow]})
+        setTimeout(() => {
+            game.messages.buttons.delete()
+            game.messages.table.delete()
+        }, 30000)
     }
 
     private async rewardPlayer(player: BlackjackPlayer, amount: number) {
@@ -201,11 +209,15 @@ export class Blackjack extends AbstractCommands {
         game.messages.buttons.edit({ components: [game.messages.buttonRow]})
         game.messages.embedContent = EmbedUtils.createSimpleEmbed(`:money_with_wings: Busted :money_with_wings:`, `Du trakk over 21 og mistet chipsene dine`)
         game.messages.embed.edit({ embeds: [game.messages.embedContent]})
+        setTimeout(() => {
+            game.messages.buttons.delete()
+            game.messages.table.delete()
+        }, 30000)
     }
 
     private async deleteGame(game: BlackjackGame) {
         await game.messages.buttons.delete()
-        await game.messages.embed.delete()
+        // await game.messages.embed.delete()
         await game.messages.table.delete()
         const index = this.games.findIndex(elem => elem.id == game.id)
         this.games.splice(index, 1)
@@ -237,12 +249,12 @@ export class Blackjack extends AbstractCommands {
     private calculateHandValue(hand: ICardObject[]): number {
         // Calculate the value of a hand in blackjack
         let value = 0
-        let hasAce = false
+        let aces = 0
 
         for (const card of hand) {
             if (card.rank === 'A') {
                 value += 11
-                hasAce = true
+                aces += 1
             } else if (['T', 'J', 'Q', 'K'].includes(card.rank)) {
                 value += 10
             } else {
@@ -250,8 +262,10 @@ export class Blackjack extends AbstractCommands {
             }
         }
         // Adjust the value if the hand contains an Ace
-        if (value > 21 && hasAce) {
+        let i = 0
+        while (value > 21 && aces > i) {
             value -= 10
+            i++
         }
         return value
     }

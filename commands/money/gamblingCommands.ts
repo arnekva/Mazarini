@@ -40,9 +40,8 @@ export class GamblingCommands extends AbstractCommands {
             }
             user.chips = newMoneyValue
             this.client.database.updateUser(user)
-
             const gambling = new EmbedBuilder()
-                .setTitle('Gambling 🎲')
+                .setTitle('🎲 Gambling 🎲')
                 .setDescription(
                     `${interaction.user.username} gamblet ${TextUtils.formatMoney(chipsToGamble)} av ${TextUtils.formatMoney(
                         Number(userMoney)
@@ -135,9 +134,9 @@ export class GamblingCommands extends AbstractCommands {
             }
 
             this.client.database.updateUser(user)
-
+            const emoji = await EmojiHelper.getEmoji('roulette', this.client)
             const gambling = new EmbedBuilder()
-                .setTitle('Rulett 🎲')
+                .setTitle(`${emoji.id} Rulett ${emoji.id}`)
                 .setDescription(
                     `${interaction.user.username} satset ${TextUtils.formatMoney(valAsNum)} av ${TextUtils.formatMoney(userMoney)} chips på ${
                         isForCategory ? this.getPrettyName(betOn.toString()) : betOn
@@ -198,8 +197,8 @@ export class GamblingCommands extends AbstractCommands {
             randArray.forEach((num) => {
                 emojiString += MiscUtils.findLetterEmoji(num.toString())
             })
-
-            const msg = new EmbedBuilder().setTitle('🎰 Gambling 🎰').setDescription(`${emojiString}`).setFields()
+            const emoji = ':slot_machine:'
+            const msg = new EmbedBuilder().setTitle(`${emoji} Slots ${emoji}`).setDescription(`${emojiString}`).setFields()
 
             const amountOfCorrectNums: { val: number; num: number }[] = []
             const sequenceWins = ['123', '1234', '12345', '123456', '1337', '80085']
