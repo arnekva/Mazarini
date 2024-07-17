@@ -8,11 +8,10 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '16.6.0'
-    public static readonly currentPatchNotes = `\n* Fikset /kort kommandoene`
-                                             + `\n* Nye deathroll-games er nå uthevet i bold`
-                                             + `\n* Økt standard-terningen til 100K`
-                                             + `\n* Lagt til ny kommando /blackjack som gir deg nok en ny måte å gamble på`
+    public static readonly currentVersion = '16.6.1'
+    public static readonly currentPatchNotes = `\n* Bugfix blackjack`
+                                             + `\n* Liten refresh på diverse gambling embeds`
+                                             + `\n* Lagt til "Spill igjen" knapp på blackjack`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

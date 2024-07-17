@@ -6,10 +6,8 @@ import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { CardCommands, ICardObject } from './cardCommands'
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
 import { randomUUID } from 'crypto'
-import { UserUtils } from '../../utils/userUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { EmojiHelper } from '../../helpers/emojiHelper'
-import { ChannelIds } from '../../utils/mentionUtils'
 interface BlackjackPlayer extends GamePlayer {
     id: string
     playerName: string
@@ -129,7 +127,7 @@ export class Blackjack extends AbstractCommands {
         game.messages.buttonRow = hitStandButtonRow(game.id)
     }
 
-    private async printGame(game: BlackjackGame, interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+    private async printGame(game: BlackjackGame, interaction?: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
         game.messages.embed = game.messages.embed 
                             ? await game.messages.embed.edit({ embeds: [game.messages.embedContent]})
                             : await this.messageHelper.replyToInteraction(interaction, game.messages.embedContent)
@@ -188,13 +186,9 @@ export class Blackjack extends AbstractCommands {
         } else if (dealerHand > playerHand) {
             game.messages.embedContent = EmbedUtils.createSimpleEmbed(`${symbol.id} Blackjack ${symbol.id}`, `Dealer fikk **${dealerHand}**\n\n:money_with_wings: Du tapte ${player.stake} chips :money_with_wings:`)
         }
-        game.messages.buttonRow = deleteMessagesButtonRow(game.id)
+        game.messages.buttonRow = gameFinishedRow(game.id)
         game.messages.embed.edit({ embeds: [game.messages.embedContent]})
         game.messages.buttons.edit({ components: [game.messages.buttonRow]})
-        setTimeout(() => {
-            game.messages.buttons.delete()
-            game.messages.table.delete()
-        }, 30000)
     }
 
     private async rewardPlayer(player: BlackjackPlayer, amount: number) {
@@ -205,14 +199,10 @@ export class Blackjack extends AbstractCommands {
 
     private async busted(game: BlackjackGame, player: BlackjackPlayer) {
         const user = await this.client.database.getUser(player.id)
-        game.messages.buttonRow = deleteMessagesButtonRow(game.id)
+        game.messages.buttonRow = gameFinishedRow(game.id)
         game.messages.buttons.edit({ components: [game.messages.buttonRow]})
         game.messages.embedContent = EmbedUtils.createSimpleEmbed(`:money_with_wings: Busted :money_with_wings:`, `Du trakk over 21 og mistet chipsene dine`)
         game.messages.embed.edit({ embeds: [game.messages.embedContent]})
-        setTimeout(() => {
-            game.messages.buttons.delete()
-            game.messages.table.delete()
-        }, 30000)
     }
 
     private async deleteGame(game: BlackjackGame) {
@@ -221,6 +211,30 @@ export class Blackjack extends AbstractCommands {
         await game.messages.table.delete()
         const index = this.games.findIndex(elem => elem.id == game.id)
         this.games.splice(index, 1)
+    }
+
+    private async playAgain(interaction: ButtonInteraction<CacheType>, game: BlackjackGame, player: BlackjackPlayer) {
+        const user = await this.client.database.getUser(player.id)
+        let userMoney = user.chips
+        if (Number(player.stake) > Number(userMoney) || !userMoney || userMoney < 0) {
+            const emoji = await EmojiHelper.getEmoji('arneouf', this.client)
+            game.messages.embedContent = EmbedUtils.createSimpleEmbed(`${emoji.id} Fattig ${emoji.id}`, `Du har ikke råd til en ny`)
+            await game.messages.embed.edit({ embeds: [game.messages.embedContent]})
+        } else {
+            user.chips -= player.stake
+            this.client.database.updateUser(user)
+
+            game.dealer.hand = new Array<ICardObject>
+            player.hand = new Array<ICardObject>
+
+            await this.dealCard(game, player)
+            await this.dealCard(game, player)
+            await this.dealCard(game, game.dealer)
+            await this.dealCard(game, game.dealer)
+
+            await this.generateSimpleTable(game)
+            this.printGame(game, interaction)
+        }
     }
 
     private getGame(interaction: ButtonInteraction<CacheType>) {
@@ -280,6 +294,16 @@ export class Blackjack extends AbstractCommands {
     //     }
     // } 
 
+    private verifyUserAndCallMethod(interaction: ButtonInteraction<CacheType>, callback: (game, player) => void) {
+        const game = this.getGame(interaction)
+        const player = this.getPlayer(interaction, game)
+        if (player) {
+            interaction.deferUpdate()
+            callback(game, player)
+        }
+        else this.messageHelper.replyToInteraction(interaction, 'du er ikke med i dette spillet', {ephemeral: true})
+    }
+
     getAllInteractions(): IInteractionElement {
         return {
             commands: {
@@ -298,25 +322,13 @@ export class Blackjack extends AbstractCommands {
                     {
                         commandName: 'BLACKJACK_HIT',
                         command: (interaction: ButtonInteraction<CacheType>) => {
-                            const game = this.getGame(interaction)
-                            const player = this.getPlayer(interaction, game)
-                            if (player) {
-                                interaction.deferUpdate()
-                                this.hit(game, player)
-                            }
-                            else this.messageHelper.replyToInteraction(interaction, 'du er ikke med i dette spillet', {ephemeral: true})
+                            this.verifyUserAndCallMethod(interaction, (game, player) => this.hit(game, player))
                         },
                     },
                     {
                         commandName: 'BLACKJACK_STAND',
                         command: (interaction: ButtonInteraction<CacheType>) => {
-                            const game = this.getGame(interaction)
-                            const player = this.getPlayer(interaction, game)
-                            if (player) {
-                                interaction.deferUpdate()
-                                this.stand(game, player)
-                            }
-                            else this.messageHelper.replyToInteraction(interaction, 'du er ikke med i dette spillet', {ephemeral: true})
+                            this.verifyUserAndCallMethod(interaction, (game, player) => this.stand(game, player))
                         },
                     },
                     {
@@ -327,6 +339,12 @@ export class Blackjack extends AbstractCommands {
                             this.deleteGame(game)
                             // const player = this.checkIfPlayersTurn(interaction)
                             // if (player) this.hit(player)
+                        },
+                    },
+                    {
+                        commandName: 'BLACKJACK_PLAY_AGAIN',
+                        command: (interaction: ButtonInteraction<CacheType>) => {
+                            this.verifyUserAndCallMethod(interaction, (game, player) => this.playAgain(interaction, game, player))
                         },
                     },
                 ],
@@ -352,7 +370,14 @@ const hitStandButtonRow = (id: string) => new ActionRowBuilder<ButtonBuilder>().
     })
 )
 
-const deleteMessagesButtonRow = (id: string) => new ActionRowBuilder<ButtonBuilder>().addComponents(
+const gameFinishedRow = (id: string) => new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder({
+        custom_id: `BLACKJACK_PLAY_AGAIN;${id}`,
+        style: ButtonStyle.Success,
+        label: `Nytt spill`,
+        disabled: false,
+        type: 2,
+    }),
     new ButtonBuilder({
         custom_id: `BLACKJACK_REMOVE;${id}`,
         style: ButtonStyle.Primary,
