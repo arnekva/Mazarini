@@ -17,7 +17,7 @@ export class CrimeCommands extends AbstractCommands {
     constructor(client: MazariniClient) {
         super(client)
     }
-    static jailBreakAttempts = 3
+    static jailBreakAttempts = 1
 
     private async checkBalance(userID: string[], amountAsNumber: number): Promise<boolean> {
         let notEnough = false
@@ -366,15 +366,14 @@ export class CrimeCommands extends AbstractCommands {
         } else {
             if (isBribe) {
                 const userChips = prisoner.chips
-                const bribePrice = Math.floor(Math.max(userChips * 0.2, 10000))
+                const bribePrice = Math.floor(Math.max(userChips * 0.2, 5000))
 
                 if (userChips < bribePrice) {
                     return this.messageHelper.replyToInteraction(interaction, `Du har kje råd te briben.`, {
                         ephemeral: true,
                     })
                 } else {
-                    prisoner.chips -= bribePrice
-                    this.client.database.updateUser(prisoner)
+                    this.client.bank.takeMoney(prisoner, bribePrice)
                 }
             }
             const prevAttempts = prisoner.jail.attemptedJailbreaks
@@ -473,7 +472,7 @@ export class CrimeCommands extends AbstractCommands {
     }
 }
 
-export const illegalCommandsWhileInJail = ['krig', 'pickpocket', 'KRIG', 'KRIG_REMATCH', 'vipps', 'daily', 'gamble', 'roll', 'rulett', 'spin', 'blackjack']
+export const illegalCommandsWhileInJail = ['pickpocket'] // Old jail system: ['krig', 'pickpocket', 'KRIG', 'KRIG_REMATCH', 'vipps', 'daily', 'gamble', 'roll', 'rulett', 'spin', 'blackjack']
 
 function delay(time) {
     return new Promise((resolve) => setTimeout(resolve, time))

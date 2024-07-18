@@ -19,14 +19,17 @@ export interface DRGame {
     players: DRPlayer[]
     joinable: boolean
     lastToRoll: string
+    initialTarget: number
 }
 
 export class Deathroll extends AbstractCommands {
     private drGames: DRGame[]
+    private rewardPot: number
     
     constructor(client: MazariniClient) {
         super(client)
         this.drGames = new Array<DRGame>()
+        this.rewardPot = 0
     }
 
     private async rollDice(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -40,22 +43,12 @@ export class Deathroll extends AbstractCommands {
             let additionalMessage = ''
             if (game) {
                 this.updateGame(game, user.id, roll)                
-                const rollReward = this.getRollReward(roll)
-                if (roll === diceTarget) {
-                    const targetRollReward = this.getTargetRollReward(diceTarget)
-                    if (targetRollReward.reward) {
-                        this.updateUserChips(user.id, targetRollReward.reward)
-                        if (!targetRollReward.silent) additionalMessage += `*(+${targetRollReward.reward} chips)*`
-                    }
-                }
-                if (rollReward) {
-                    this.updateUserChips(user.id, rollReward)
-                    additionalMessage += `*(+${rollReward} chips)*`
-                }
+                additionalMessage += this.checkForReward(roll, diceTarget)
+                additionalMessage += await this.checkIfPotWon(game, roll, user.id)
                 if (roll == 1) {
                     this.checkForLossOnFirstRoll(game, diceTarget)
                     const stats = await this.endGame(game)
-                    this.rewardPlayersOnGameEnd(stats)
+                    additionalMessage += this.rewardPlayersOnGameEnd(stats)
                     stats.forEach((stat) => {
                         const username = UserUtils.findUserById(stat.userId, interaction)?.username ?? 'Ukjent'
                         if (stat.didGetNewBiggestLoss) additionalMessage += `\n*(${username} fikk et nytt tall inn på topplisten av største tap)*`
@@ -73,44 +66,32 @@ export class Deathroll extends AbstractCommands {
     private rewardPlayersOnGameEnd(s: DeathRollStats[]) {
         const playerHsATHStreak = s.find((p) => p.isOnATHLossStreak && p.isOnATHLossStreak > 0)
         const playerHasBiggestLoss = s.find((p) => p.didGetNewBiggestLoss && p.didGetNewBiggestLoss > 0)
-        const remainingPlayers = s.filter((p) => !p.didGetNewBiggestLoss && !p.isOnATHLossStreak)
 
-        if (remainingPlayers.length !== s.length) {
-            let reward = playerHsATHStreak ? playerHsATHStreak.isOnATHLossStreak * 250 : 0
-            if (playerHasBiggestLoss) reward += playerHasBiggestLoss.didGetNewBiggestLoss * 50
-            remainingPlayers.forEach((p) => {
-                this.updateUserChips(p.userId, reward)
-            })
-        }
+        let reward = playerHsATHStreak ? playerHsATHStreak.isOnATHLossStreak * 250 : 0
+        if (playerHasBiggestLoss) reward += playerHasBiggestLoss.didGetNewBiggestLoss * 50
+        this.rewardPot += reward
+        return (reward > 100) ? `(pott + ${reward} = ${this.rewardPot} chips)` : '' 
     }
 
-    private async updateUserChips(userId: string, chips: number) {
+    private async rewardPotToUser(userId: string) {
         const dbUser = await this.client.database.getUser(userId)
-        dbUser.chips += chips
-        this.client.database.updateUser(dbUser)
+        const rewarded = this.client.bank.giveMoney(dbUser, this.rewardPot)
+        this.rewardPot -= rewarded
+        const jailed = this.rewardPot > 0
+        return `Nice\nDu vinner potten på ${this.rewardPot + rewarded} chips! ${jailed ? `(men du får bare ${rewarded} siden du er i fengsel)\nPotten er fortsatt på ${this.rewardPot} chips` : ''}`
     }
 
-    getTargetRollReward(r: number): {
-        reward: number
-        silent: boolean
-    } {
-        let reward = 0
-        let silent = false
-        if (r < 100) {
-            reward = r
-            silent = true
-        } else reward = r * 10
-
-        return {
-            reward: reward,
-            silent: silent,
+    private checkForReward(roll: number, diceTarget: number) {
+        let totalAdded = this.getRollReward(roll)
+        if (roll === diceTarget) {
+            totalAdded += (roll > 100) ? (roll*10) : roll
         }
+        this.rewardPot += totalAdded
+        return (totalAdded > 100) ? `(pott + ${totalAdded} = ${this.rewardPot} chips)` : '' 
     }
 
     private getRollReward(r: number) {
         switch (r) {
-            case 69:
-                return 690
             case 123:
                 return 1230
             case 1234:
@@ -134,10 +115,17 @@ export class Deathroll extends AbstractCommands {
         }
     }
 
+    private async checkIfPotWon(game: DRGame, roll: number, userid: string) {
+        if (roll == 69 && game.initialTarget >= 10000) {
+            return await this.rewardPotToUser(userid)
+        }
+        return ''
+    }
+
     private getGame(userID: string, diceTarget: number) {
         let game = this.findActiveGame(userID, diceTarget)
         if (!game) game = this.joinGame(this.checkForAvailableGame(userID, diceTarget), userID)
-        return game ?? (diceTarget > 100 ? this.registerNewGame(userID) : undefined)
+        return game ?? (diceTarget > 100 ? this.registerNewGame(userID, diceTarget) : undefined)
     }
 
     private findActiveGame(userID: string, diceTarget: number) {
@@ -165,9 +153,9 @@ export class Deathroll extends AbstractCommands {
         )
     }
 
-    private registerNewGame(userID: string) {
+    private registerNewGame(userID: string, diceTarget: number) {
         const p1: DRPlayer = { userID: userID, rolls: [] }
-        const game: DRGame = { id: randomUUID(), players: [p1], joinable: true, lastToRoll: undefined }
+        const game: DRGame = { id: randomUUID(), players: [p1], joinable: true, lastToRoll: undefined, initialTarget: diceTarget }
         this.drGames.push(game)
         return game
     }

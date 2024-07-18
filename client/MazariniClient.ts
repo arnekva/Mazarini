@@ -11,6 +11,7 @@ import { FirebaseHelper } from '../helpers/firebaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniStorage } from '../interfaces/database/databaseInterface'
 import { ClientListener } from './ClientListeners'
+import { MoneyHelper } from '../helpers/moneyHelper'
 
 const Discord = require('discord.js')
 
@@ -26,6 +27,7 @@ export class MazariniClient extends Client {
     /** Cache of the Mazarini Storage from the database. Is pulled on startup, and updated during saving events. */
     private cache: Partial<MazariniStorage>
     private clientListener: ClientListener
+    private moneyHelper: MoneyHelper
 
     constructor() {
         super({
@@ -53,6 +55,7 @@ export class MazariniClient extends Client {
         this.lockingHandler = new LockingHandler()
         this.mazariniTracker = new MazariniTracker(this)
         this.clientListener = new ClientListener(this)
+        this.moneyHelper = new MoneyHelper(this)
         this.setupDatabase(this.msgHelper)
         this.clientListener.setupListeners()
     }
@@ -79,6 +82,10 @@ export class MazariniClient extends Client {
 
     get database() {
         return this.databaseHelper
+    }
+
+    get bank() {
+        return this.moneyHelper
     }
 
     get lockHandler() {

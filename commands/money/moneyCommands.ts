@@ -94,8 +94,8 @@ export class MoneyCommands extends AbstractCommands {
             const oldData: DailyReward = user.daily || { claimedToday: false, streak: 0 }
             const newData: DailyReward = { streak: oldData?.streak + 1 ?? 1, claimedToday: true, prestige: oldData?.prestige ?? 0, dailyFreezeCounter: 0 }
 
-            const reward = this.findDailyReward(newData)
-            updates[`/users/${user.id}/chips`] = (user?.chips ?? 0) + reward
+            let reward = this.findDailyReward(newData)
+            reward = this.client.bank.giveMoney(user, reward)
             embed.setDescription(`Du har henta dine daglige ${reward} chips`)
             embed.addFields([
                 { name: 'Streak', value: `${newData.streak ?? 1}` + ' dager', inline: true },

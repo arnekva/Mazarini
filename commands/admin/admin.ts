@@ -236,10 +236,10 @@ export class Admin extends AbstractCommands {
     private async rewardUser(interaction: ChatInputCommandInteraction<CacheType>) {
         const type = interaction.options.get('type')?.value as string
         const reason = interaction.options.get('reason')?.value as string
-        const chips = interaction.options.get('chips')?.value as number
+        let chips = interaction.options.get('chips')?.value as number
         const user = interaction.options.get('user')?.user
         const dbUser = await this.client.database.getUser(user.id)
-        dbUser.chips += chips
+        chips = this.client.bank.giveMoney(dbUser, chips)
         this.client.database.updateUser(dbUser)
         const text = `${user.username} har mottatt en ${type} reward på ${chips} på grunn av *${reason}*`
         this.messageHelper.replyToInteraction(interaction, text)

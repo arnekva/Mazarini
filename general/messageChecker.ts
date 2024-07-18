@@ -73,13 +73,12 @@ export class MessageChecker {
             }
             const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message)
             if (idJoke !== 'none' && !ignoreRewards) {
-                this.client.messageHelper.replyToMessage(message, `nice, id-en te meldingen din inneholde ${idJoke}. Gz, du har vonne 1000 chips`, {
+                let reward = 1000
+                const user = await this.client.database.getUser(message.author.id)
+                reward = this.client.bank.giveMoney(user, reward)
+                this.client.messageHelper.replyToMessage(message, `nice, id-en te meldingen din inneholde ${idJoke}. Gz, du har vonne ${reward} chips`, {
                     sendAsSilent: true,
                 })
-
-                const user = await this.client.database.getUser(message.author.id)
-                user.chips += 1000
-                this.client.database.updateUser(user)
             }
         }
     }

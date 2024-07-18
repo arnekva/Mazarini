@@ -38,8 +38,7 @@ export class WeeklyJobs {
         if (!brukere) status = 'failed'
         brukere.forEach((user) => {
             if (user.chips !== undefined) {
-                user.chips += 1500
-                this.client.database.updateUser(user)
+                this.client.bank.giveMoney(user, 1500)
                 status = 'success'
             }
         })

@@ -64,9 +64,9 @@ export class Spinner extends AbstractCommands {
         const min = weightedRandomObject(spinMinutes).number
         const sec = RandomUtils.getRandomInteger(0, 60)
 
-        const winnings = this.getSpinnerWinnings(Number(min), Number(sec))
+        let winnings = this.getSpinnerWinnings(Number(min), Number(sec))
         if (winnings > 0) {
-            user.chips += winnings
+            winnings = this.client.bank.giveMoney(user, winnings)
         }
         const winningsText = winnings > 0 ? `Du får ${winnings} chips.` : ''
         this.messageHelper.replyToInteraction(
@@ -79,8 +79,6 @@ export class Spinner extends AbstractCommands {
         } else if (min == 10) {
             this.messageHelper.sendMessage(interaction?.channelId, { text: 'gz med 10 min bro' })
         }
-
-        this.client.database.updateUser(user)
 
         this.incrementCounter(interaction.user.id)
     }

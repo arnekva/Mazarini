@@ -72,15 +72,13 @@ export class Blackjack extends AbstractCommands {
 
     private async simpleGame(interaction: ChatInputCommandInteraction<CacheType>) {
         const user = await this.client.database.getUser(interaction.user.id)
-        let userMoney = user.chips
-        const stake = SlashCommandHelper.getCleanNumberValue(interaction.options.get('satsing')?.value)
-        if (Number(stake) > Number(userMoney) || !userMoney || userMoney < 0) {
-            this.messageHelper.replyToInteraction(interaction, '"Du kan ikke spille om så mye" elns', {ephemeral: true})
-        } else if (Number(stake) <= 0) {
+        const stake = Number(SlashCommandHelper.getCleanNumberValue(interaction.options.get('satsing')?.value))
+        if (stake <= 0) {
             this.messageHelper.replyToInteraction(interaction, 'Ugyldig satsing', {ephemeral: true})
+        } else if (!this.client.bank.userCanAfford(user, stake)) {
+            this.messageHelper.replyToInteraction(interaction, '"Du kan ikke spille om så mye" elns', {ephemeral: true})
         } else {
-            user.chips -= stake
-            this.client.database.updateUser(user)
+            this.client.bank.takeMoney(user, stake)
 
             const playerPicture = await this.getProfilePicture(interaction)
             const player: BlackjackPlayer = {id: user.id, playerName: interaction.user.username, hand: new Array<ICardObject>, stake: stake, profilePicture: playerPicture}
@@ -199,8 +197,7 @@ export class Blackjack extends AbstractCommands {
 
     private async rewardPlayer(player: BlackjackPlayer, amount: number) {
         const user = await this.client.database.getUser(player.id)
-        user.chips += amount
-        this.client.database.updateUser(user)
+        this.client.bank.giveUnrestrictedMoney(user, amount)
     }
 
     private async busted(game: BlackjackGame, player: BlackjackPlayer) {
@@ -221,14 +218,12 @@ export class Blackjack extends AbstractCommands {
 
     private async playAgain(interaction: ButtonInteraction<CacheType>, game: BlackjackGame, player: BlackjackPlayer) {
         const user = await this.client.database.getUser(player.id)
-        let userMoney = user.chips
-        if (Number(player.stake) > Number(userMoney) || !userMoney || userMoney < 0) {
+        if (!this.client.bank.userCanAfford(user, player.stake)) {
             const emoji = await EmojiHelper.getEmoji('arneouf', this.client)
             game.messages.embedContent = EmbedUtils.createSimpleEmbed(`${emoji.id} Fattig ${emoji.id}`, `Du har ikke råd til en ny`)
             await game.messages.embed.edit({ embeds: [game.messages.embedContent]})
         } else {
-            user.chips -= player.stake
-            this.client.database.updateUser(user)
+            this.client.bank.takeMoney(user, player.stake)
 
             game.dealer.hand = new Array<ICardObject>
             player.hand = new Array<ICardObject>
@@ -320,7 +315,6 @@ export class Blackjack extends AbstractCommands {
                             const subCommand = interaction.options.getSubcommand()
                             if (subCommand.toLowerCase() === 'solo') this.simpleGame(interaction)
                             else if (subCommand.toLowerCase() === 'vanlig') this.messageHelper.replyToInteraction(interaction, 'Denne er ikke klar enda', {ephemeral: true})
-                            // this.startBlackjack(rawInteraction)
                         },
                     },
                 ],
@@ -340,11 +334,7 @@ export class Blackjack extends AbstractCommands {
                     {
                         commandName: 'BLACKJACK_REMOVE',
                         command: (interaction: ButtonInteraction<CacheType>) => {
-                            interaction.deferUpdate()
-                            const game = this.getGame(interaction)
-                            this.deleteGame(game)
-                            // const player = this.checkIfPlayersTurn(interaction)
-                            // if (player) this.hit(player)
+                            this.verifyUserAndCallMethod(interaction, (game, player) => this.deleteGame(game))
                         },
                     },
                     {
