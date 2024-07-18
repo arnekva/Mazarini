@@ -136,8 +136,7 @@ export class GamblingCommands extends AbstractCommands {
             this.client.database.updateUser(user)
             const emoji = await EmojiHelper.getEmoji('roulette', this.client)
             const gambling = new EmbedBuilder()
-                .setTitle(`Rulett`)
-                .setThumbnail(emoji.urlId)
+                .setTitle(`Rulett`).setThumbnail(`https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?size=96&quality=lossless`)
                 .setDescription(
                     `${interaction.user.username} satset ${TextUtils.formatMoney(valAsNum)} av ${TextUtils.formatMoney(userMoney)} chips på ${
                         isForCategory ? this.getPrettyName(betOn.toString()) : betOn
