@@ -297,6 +297,16 @@ export class DatabaseHelper {
         return (user.userStats?.deathrollStats?.weeklyLosses ?? 0) / (user.userStats?.deathrollStats?.weeklyGames ?? 1)
     }
 
+    public async getDeathrollPot() {
+        return await this.db.getData('other/deathrollPot') as number
+    }
+
+    public saveDeathrollPot(amount: number) {
+        const updates = {}
+        updates[`/other/deathrollPot`] = amount
+        this.db.updateData(updates)
+    }
+
     public async resetWeeklyDeathrollStats() {
         const users = await this.getAllUsers()
         users

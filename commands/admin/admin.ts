@@ -152,7 +152,7 @@ export class Admin extends AbstractCommands {
     }
 
     private async getBotStatistics(interaction: ChatInputCommandInteraction<CacheType>) {
-        interaction.deferReply()
+        await interaction.deferReply()
         const start = MazariniBot.startTime
         const numMessages = MazariniBot.numMessages
         const numMessagesFromBot = MazariniBot.numMessagesFromBot
@@ -173,7 +173,7 @@ export class Admin extends AbstractCommands {
             `\nAntall servere tilkoblet: ${this.client.guilds.cache.size}` +
             `\nForrige oppdatering av storage: <t:${storage?.updateTimer}:R>` +
             `\nKjørt siden: <t:${moment(start).unix()}:R>`
-        this.messageHelper.replyToInteraction(interaction, statsReply)
+        this.messageHelper.replyToInteraction(interaction, statsReply, {hasBeenDefered: true})
     }
 
     private async buildSendModal(interaction: ChatInputCommandInteraction<CacheType>) {

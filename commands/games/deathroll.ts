@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto'
-import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction } from 'discord.js'
+import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js'
 import moment from 'moment'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
@@ -8,6 +8,7 @@ import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { MentionUtils } from '../../utils/mentionUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { UserUtils } from '../../utils/userUtils'
+import { EmbedUtils } from '../../utils/embedUtils'
 
 export interface DRPlayer {
     userID: string
@@ -29,7 +30,15 @@ export class Deathroll extends AbstractCommands {
     constructor(client: MazariniClient) {
         super(client)
         this.drGames = new Array<DRGame>()
-        this.rewardPot = 0
+        this.retrieveDeathrollPot()
+    }
+
+    private retrieveDeathrollPot() {
+        setTimeout(() => {
+            this.client.database.getDeathrollPot()
+            .then(value => this.rewardPot = value ?? 0)
+        }, 5000)
+        
     }
 
     private async rollDice(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -48,7 +57,7 @@ export class Deathroll extends AbstractCommands {
                 if (roll == 1) {
                     this.checkForLossOnFirstRoll(game, diceTarget)
                     const stats = await this.endGame(game)
-                    additionalMessage += this.rewardPlayersOnGameEnd(stats)
+                    additionalMessage += this.rewardPlayersOnGameEnd(stats, diceTarget)
                     stats.forEach((stat) => {
                         const username = UserUtils.findUserById(stat.userId, interaction)?.username ?? 'Ukjent'
                         if (stat.didGetNewBiggestLoss) additionalMessage += `\n*(${username} fikk et nytt tall inn på topplisten av største tap)*`
@@ -63,31 +72,35 @@ export class Deathroll extends AbstractCommands {
         }
     }
     //TODO: Make this pretty
-    private rewardPlayersOnGameEnd(s: DeathRollStats[]) {
+    private rewardPlayersOnGameEnd(s: DeathRollStats[], diceTarget: number) {
         const playerHsATHStreak = s.find((p) => p.isOnATHLossStreak && p.isOnATHLossStreak > 0)
         const playerHasBiggestLoss = s.find((p) => p.didGetNewBiggestLoss && p.didGetNewBiggestLoss > 0)
 
         let reward = playerHsATHStreak ? playerHsATHStreak.isOnATHLossStreak * 250 : 0
         if (playerHasBiggestLoss) reward += playerHasBiggestLoss.didGetNewBiggestLoss * 50
+        else if (diceTarget >= 100) reward += diceTarget * 25
         this.rewardPot += reward
-        return (reward > 100) ? `(pott + ${reward} = ${this.rewardPot} chips)` : '' 
+        if (reward > 0) this.saveRewardPot()
+        return (reward >= 100) ? `(pott + ${reward} = ${this.rewardPot} chips)` : '' 
     }
 
     private async rewardPotToUser(userId: string) {
         const dbUser = await this.client.database.getUser(userId)
         const rewarded = this.client.bank.giveMoney(dbUser, this.rewardPot)
         this.rewardPot -= rewarded
+        if (rewarded > 0) this.saveRewardPot()
         const jailed = this.rewardPot > 0
         return `Nice\nDu vinner potten på ${this.rewardPot + rewarded} chips! ${jailed ? `(men du får bare ${rewarded} siden du er i fengsel)\nPotten er fortsatt på ${this.rewardPot} chips` : ''}`
     }
 
-    private checkForReward(roll: number, diceTarget: number) {
+    private checkForReward(roll: number, diceTarget: number) { 
         let totalAdded = this.getRollReward(roll)
         if (roll === diceTarget) {
-            totalAdded += (roll > 100) ? (roll*10) : roll
+            totalAdded += (roll >= 100) ? (roll*10) : roll
         }
         this.rewardPot += totalAdded
-        return (totalAdded > 100) ? `(pott + ${totalAdded} = ${this.rewardPot} chips)` : '' 
+        if (totalAdded > 0) this.saveRewardPot()
+        return (totalAdded >= 100) ? `(pott + ${totalAdded} = ${this.rewardPot} chips)` : '' 
     }
 
     private getRollReward(r: number) {
@@ -120,6 +133,10 @@ export class Deathroll extends AbstractCommands {
             return await this.rewardPotToUser(userid)
         }
         return ''
+    }
+
+    private saveRewardPot() {
+        this.client.database.saveDeathrollPot(this.rewardPot)
     }
 
     private getGame(userID: string, diceTarget: number) {
@@ -198,7 +215,22 @@ export class Deathroll extends AbstractCommands {
             const diceTarget = Math.min(...game.players.map((p) => p.rolls).flat())
             return interaction.respond([{ name: `${diceTarget}`, value: diceTarget }])
         }
-        return interaction.respond([{ name: '100000', value: 100000 }])
+        return interaction.respond([{ name: '10000', value: 10000 }])
+    }
+
+    private printCurrentState(interaction: ChatInputCommandInteraction<CacheType>) {
+        const embed = EmbedUtils.createSimpleEmbed('Deathroll state', `${this.rewardPot} chips i potten`)
+        const fields = this.drGames.map((game, i) => {
+            const lastToRollIndex = game.players.findIndex(player => player.userID === game.lastToRoll)
+            const nextPlayer = game.players[Math.abs(lastToRollIndex + 1) % game.players.length]
+            const previousRoll = Math.min(...game.players.map((x) => x.rolls).flat())
+            // const getName = (p1: DRPlayer) => `${p1.userID === nextPlayer.userID ? '**' : ''}${UserUtils.findMemberByUserID(p1.userID, interaction).user.username}${p1.userID === nextPlayer.userID ? '**' : ''}`
+            let stateString = game.players.reduce((acc, player) => acc += `${UserUtils.findMemberByUserID(player.userID, interaction).user.username}, `, '')
+            stateString = stateString.substring(0, stateString.length-2) + `\n:hourglass: **${UserUtils.findMemberByUserID(nextPlayer.userID, interaction).user.username}** :hourglass: (${previousRoll}) `
+            return { name: `Game ${i+1}`, value: stateString }
+        })
+        embed.addFields(fields)
+        this.messageHelper.replyToInteraction(interaction, embed)
     }
 
     getAllInteractions(): IInteractionElement {
@@ -213,6 +245,12 @@ export class Deathroll extends AbstractCommands {
                         autoCompleteCallback: (rawInteraction: AutocompleteInteraction<CacheType>) => {
                             this.autoCompleteDice(rawInteraction)
                         },
+                    },
+                    {
+                        commandName: 'deathroll',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.printCurrentState(rawInteraction)
+                        }
                     },
                 ],
             },

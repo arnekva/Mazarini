@@ -8,19 +8,10 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '17.0.0'
-    public static readonly currentPatchNotes = `\n* Rewards på diverse /terning scenarioer samles nå i en felles pott`
-                                             + `\n  * Spillere får ikke lenger dette utbetalt direkte`
-                                             + `\n  * Spilleren som først triller 69 på et deathroll spill som startet på 10000 eller høyere, claimer hele potten`
-                                             + `\n* Jail er skrevet om og fungerer nå som følger:`
-                                             + `\n  * /pickpocket er eneste command som sperres`
-                                             + `\n  * Den fengslede får kun utbetalt 25% av "gratis" rewards`
-                                             + `\n  * Gratis /jailbreak forsøk reduseres til 1`
-                                             + `\n  * Kostnaden for en jailbreak bribe reduseres til 5000`
-                                             + `\n* Startet refaktorering for sentralisering av chips-styring i en MoneyHelper som kan nås ved client.bank`
-                                             + `\n* Alle knapper til /blackjack kan nå kun brukes av den som startet spillet`
-                                             + `\n* Lagt til logikk for naturlig blackjack`
-                                             + `\n* Bilder i #localhost sjekkes ikke lenger for strekkode`
+    public static readonly currentVersion = '17.0.1'
+    public static readonly currentPatchNotes = `\n* Lagrer nå deathroll-potten i db`
+                                             + `\n* Lagt til ny command /deathroll for å vise aktive spill`
+                                             + `\n* Bugfix /botstats`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

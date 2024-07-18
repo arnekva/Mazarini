@@ -133,6 +133,7 @@ export interface MazariniStorage {
     polls?: IPoll[]
     scheduledMessages?: IScheduledMessage[]
     savedMessages?: ISavedMessage[]
+    deathrollPot?: number
 }
 
 export type FavoritePol = {
