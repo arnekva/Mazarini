@@ -134,6 +134,7 @@ export interface MazariniStorage {
     scheduledMessages?: IScheduledMessage[]
     savedMessages?: ISavedMessage[]
     deathrollPot?: number
+    weeklyDeathrollChallenges?: DeathrollChallenge[]
 }
 
 export type FavoritePol = {
@@ -197,6 +198,30 @@ export interface betObjectReturned {
     positivePeople: string
     negativePeople: string
     messageId: string
+}
+
+export interface DeathrollChallenge {
+    type: ChallengeType
+    variable: number
+    description: string
+    reward: number
+    progressTrackers: PlayerChallengeTracker[]
+}
+
+export enum ChallengeType { 
+    consecutiveWins,
+    weeklyGames,
+    numberOfPlayers,
+    consecutiveTwos,
+    lossFromValueHigherThan,
+    gameFewerThanXRolls,
+    gameMoreThanXRolls
+}
+
+export interface PlayerChallengeTracker {
+    id: string
+    counter?: number
+    completed: boolean
 }
 
 export interface itemsBoughtAtStore {

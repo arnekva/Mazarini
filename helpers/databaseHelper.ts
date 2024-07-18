@@ -319,6 +319,11 @@ export class DatabaseHelper {
             })
     }
 
+    public async getWeeklyDeathrollChallenges() {
+        const storage = await this.db.getMazariniStorage()
+        return storage.weeklyDeathrollChallenges
+    }
+
     static defaultUser(id: string): MazariniUser {
         return {
             bonkCounter: 0,
