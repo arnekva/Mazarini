@@ -136,7 +136,8 @@ export class GamblingCommands extends AbstractCommands {
             this.client.database.updateUser(user)
             const emoji = await EmojiHelper.getEmoji('roulette', this.client)
             const gambling = new EmbedBuilder()
-                .setTitle(`${emoji.id} Rulett ${emoji.id}`)
+                .setTitle(`Rulett`)
+                .setThumbnail(emoji.urlId)
                 .setDescription(
                     `${interaction.user.username} satset ${TextUtils.formatMoney(valAsNum)} av ${TextUtils.formatMoney(userMoney)} chips på ${
                         isForCategory ? this.getPrettyName(betOn.toString()) : betOn
