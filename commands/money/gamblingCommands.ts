@@ -41,7 +41,7 @@ export class GamblingCommands extends AbstractCommands {
             user.chips = newMoneyValue
             this.client.database.updateUser(user)
             const gambling = new EmbedBuilder()
-                .setTitle('🎲 Gambling 🎲')
+                .setTitle('Gambling').setThumbnail(`https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/08397f37-85aa-4dd4-b304-84834a375a8a/d1o03g8-011b5bf9-51f7-43e8-8a7b-8da86769c224.gif?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiJcL2ZcLzA4Mzk3ZjM3LTg1YWEtNGRkNC1iMzA0LTg0ODM0YTM3NWE4YVwvZDFvMDNnOC0wMTFiNWJmOS01MWY3LTQzZTgtOGE3Yi04ZGE4Njc2OWMyMjQuZ2lmIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.tEE2wyy0d0ebn1PbxLe38yZbg2aIG7Ao1qH3Kvx7Zss`)
                 .setDescription(
                     `${interaction.user.username} gamblet ${TextUtils.formatMoney(chipsToGamble)} av ${TextUtils.formatMoney(
                         Number(userMoney)
@@ -134,9 +134,8 @@ export class GamblingCommands extends AbstractCommands {
             }
 
             this.client.database.updateUser(user)
-            const emoji = await EmojiHelper.getEmoji('roulette', this.client)
             const gambling = new EmbedBuilder()
-                .setTitle(`Rulett`).setThumbnail(`https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?size=96&quality=lossless`)
+                .setTitle(`Rulett`).setThumbnail(`https://media0.giphy.com/media/mGEV8Tb7Jbl8m5SU9r/200w.gif?cid=6c09b9528ipu2y611a8wamivnqsszq3l1yn56z0fvcqb6da2&ep=v1_internal_gif_by_id&rid=200w.gif&ct=s`)
                 .setDescription(
                     `${interaction.user.username} satset ${TextUtils.formatMoney(valAsNum)} av ${TextUtils.formatMoney(userMoney)} chips på ${
                         isForCategory ? this.getPrettyName(betOn.toString()) : betOn
@@ -197,8 +196,7 @@ export class GamblingCommands extends AbstractCommands {
             randArray.forEach((num) => {
                 emojiString += MiscUtils.findLetterEmoji(num.toString())
             })
-            const emoji = ':slot_machine:'
-            const msg = new EmbedBuilder().setTitle(`${emoji} Slots ${emoji}`).setDescription(`${emojiString}`).setFields()
+            const msg = new EmbedBuilder().setTitle(`Slots`).setThumbnail('https://media.tenor.com/images/01f2fce15461365c59981176ece3791d/tenor.gif').setDescription(`${emojiString}`).setFields()
 
             const amountOfCorrectNums: { val: number; num: number }[] = []
             const sequenceWins = ['123', '1234', '12345', '123456', '1337', '80085']

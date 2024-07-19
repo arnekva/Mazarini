@@ -8,10 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '17.0.1'
-    public static readonly currentPatchNotes = `\n* Lagrer nå deathroll-potten i db`
-                                             + `\n* Lagt til ny command /deathroll for å vise aktive spill`
-                                             + `\n* Bugfix /botstats`
+    public static readonly currentVersion = '17.0.2'
+    public static readonly currentPatchNotes = `\n* Oppdatert diverse embeds til å bruke thumbnail-gif`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

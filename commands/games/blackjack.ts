@@ -115,9 +115,10 @@ export class Blackjack extends AbstractCommands {
     private async generateSimpleTable(game: BlackjackGame) {
         const player = game.players[0]
         const dealer = game.dealer
-        const symbol = await EmojiHelper.getEmoji('ace_jack', this.client)
         const chips = await EmojiHelper.getEmoji('chips', this.client)
-        const embed = EmbedUtils.createSimpleEmbed(`${symbol.id} Blackjack ${symbol.id}`, `Du har satset ${player.stake} chips ${chips.id}`)
+        const embed = new EmbedBuilder()
+        .setTitle(`Blackjack`).setThumbnail('https://cdn.discordapp.com/attachments/1106130420308922378/1263758500564172872/hoie.png?ex=669b6652&is=669a14d2&hm=34702fa6ce9aa9bafb5300909fc4e455de08931106dc3a5a64a24d49dece95b2&')
+        .setDescription(`Du har satset ${player.stake} chips ${chips.id}`)
         const board = `${dealer.profilePicture}\t${dealer.hand[0].emoji} ${this.faceCard}`
         + `\n\n\n${player.profilePicture}\t${player.hand[0].emoji} ${player.hand[1].emoji}`
         game.messages.embedContent = embed
@@ -174,21 +175,20 @@ export class Blackjack extends AbstractCommands {
         const dealer = game.dealer
         const dealerHand = this.calculateHandValue(dealer.hand)
         const playerHand = this.calculateHandValue(player.hand)
-        const symbol = await EmojiHelper.getEmoji('ace_jack', this.client)
         if (naturalBlackJack) {
-            game.messages.embedContent = EmbedUtils.createSimpleEmbed(`${symbol.id} Blackjack ${symbol.id}`, `${mb} Du fikk en naturlig blackjack og vinner ${player.stake * 3} chips! ${mb}`)
+            game.messages.embedContent = game.messages.embedContent.setDescription(`${mb} Du fikk en naturlig blackjack og vinner ${player.stake * 3} chips! ${mb}`)
             this.rewardPlayer(player, player.stake * 3)
         } else if (playerHand == 21 && dealerHand != 21) {
-            game.messages.embedContent = EmbedUtils.createSimpleEmbed(`${symbol.id} Blackjack ${symbol.id}`, `Dealer fikk **${dealerHand}**\n\n${mb} Du fikk blackjack og vinner ${player.stake * 3} chips! ${mb}`)
+            game.messages.embedContent = game.messages.embedContent.setDescription(`Dealer fikk **${dealerHand}**\n\n${mb} Du fikk blackjack og vinner ${player.stake * 3} chips! ${mb}`)
             this.rewardPlayer(player, player.stake * 3)
         } else if (dealerHand < playerHand || dealerHand > 21) {
-            game.messages.embedContent = EmbedUtils.createSimpleEmbed(`${symbol.id} Blackjack ${symbol.id}`, `Dealer fikk **${dealerHand}**\n\n${mb} Du vinner ${player.stake * 2} chips! ${mb}`)
+            game.messages.embedContent = game.messages.embedContent.setDescription(`Dealer fikk **${dealerHand}**\n\n${mb} Du vinner ${player.stake * 2} chips! ${mb}`)
             this.rewardPlayer(player, player.stake * 2)
         } else if (dealerHand == playerHand) {
-            game.messages.embedContent = EmbedUtils.createSimpleEmbed(`${symbol.id} Blackjack ${symbol.id}`, `Dealer fikk **${dealerHand}** - samme som deg\n\n:recycle: Du får tilbake innsatsen på ${player.stake} chips :recycle:`)
+            game.messages.embedContent = game.messages.embedContent.setDescription(`Dealer fikk **${dealerHand}** - samme som deg\n\n:recycle: Du får tilbake innsatsen på ${player.stake} chips :recycle:`)
             this.rewardPlayer(player, player.stake)
         } else if (dealerHand > playerHand) {
-            game.messages.embedContent = EmbedUtils.createSimpleEmbed(`${symbol.id} Blackjack ${symbol.id}`, `Dealer fikk **${dealerHand}**\n\n:money_with_wings: Du tapte ${player.stake} chips :money_with_wings:`)
+            game.messages.embedContent = game.messages.embedContent.setDescription(`Dealer fikk **${dealerHand}**\n\n:money_with_wings: Du tapte ${player.stake} chips :money_with_wings:`)
         }
         game.messages.buttonRow = gameFinishedRow(game.id)
         game.messages.embed.edit({ embeds: [game.messages.embedContent]})
@@ -204,7 +204,7 @@ export class Blackjack extends AbstractCommands {
         const user = await this.client.database.getUser(player.id)
         game.messages.buttonRow = gameFinishedRow(game.id)
         game.messages.buttons.edit({ components: [game.messages.buttonRow]})
-        game.messages.embedContent = EmbedUtils.createSimpleEmbed(`:shaking_face: Busted :shaking_face:`, `Du trakk over 21\n\n:money_with_wings: Du tapte ${player.stake} chips :money_with_wings:`)
+        game.messages.embedContent = game.messages.embedContent.setTitle('Busted').setDescription(`Du trakk over 21\n\n:money_with_wings: Du tapte ${player.stake} chips :money_with_wings:`)
         game.messages.embed.edit({ embeds: [game.messages.embedContent]})
     }
 
@@ -220,7 +220,7 @@ export class Blackjack extends AbstractCommands {
         const user = await this.client.database.getUser(player.id)
         if (!this.client.bank.userCanAfford(user, player.stake)) {
             const emoji = await EmojiHelper.getEmoji('arneouf', this.client)
-            game.messages.embedContent = EmbedUtils.createSimpleEmbed(`${emoji.id} Fattig ${emoji.id}`, `Du har ikke råd til en ny`)
+            game.messages.embedContent = game.messages.embedContent.setThumbnail(`https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?size=96&quality=lossless`).setDescription(`Du har ikke råd til en ny`)
             await game.messages.embed.edit({ embeds: [game.messages.embedContent]})
         } else {
             this.client.bank.takeMoney(user, player.stake)

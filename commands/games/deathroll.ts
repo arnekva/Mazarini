@@ -227,7 +227,8 @@ export class Deathroll extends AbstractCommands {
             // const getName = (p1: DRPlayer) => `${p1.userID === nextPlayer.userID ? '**' : ''}${UserUtils.findMemberByUserID(p1.userID, interaction).user.username}${p1.userID === nextPlayer.userID ? '**' : ''}`
             let stateString = game.players.reduce((acc, player) => acc += `${UserUtils.findMemberByUserID(player.userID, interaction).user.username}, `, '')
             stateString = stateString.substring(0, stateString.length-2) + `\n:hourglass: **${UserUtils.findMemberByUserID(nextPlayer.userID, interaction).user.username}** :hourglass: (${previousRoll}) `
-            return { name: `Game ${i+1}`, value: stateString }
+            const joinable = game.joinable ? ':unlock:' : ':lock:'
+            return { name: `Game ${i+1} ${joinable}`, value: stateString }
         })
         embed.addFields(fields)
         this.messageHelper.replyToInteraction(interaction, embed)
