@@ -41,7 +41,7 @@ export class GamblingCommands extends AbstractCommands {
             user.chips = newMoneyValue
             this.client.database.updateUser(user)
             const gambling = new EmbedBuilder()
-                .setTitle('Gambling').setThumbnail(`https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/08397f37-85aa-4dd4-b304-84834a375a8a/d1o03g8-011b5bf9-51f7-43e8-8a7b-8da86769c224.gif?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiJcL2ZcLzA4Mzk3ZjM3LTg1YWEtNGRkNC1iMzA0LTg0ODM0YTM3NWE4YVwvZDFvMDNnOC0wMTFiNWJmOS01MWY3LTQzZTgtOGE3Yi04ZGE4Njc2OWMyMjQuZ2lmIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.tEE2wyy0d0ebn1PbxLe38yZbg2aIG7Ao1qH3Kvx7Zss`)
+                .setTitle('Gambling').setThumbnail(`https://pngimg.com/d/dice_PNG51.png`)
                 .setDescription(
                     `${interaction.user.username} gamblet ${TextUtils.formatMoney(chipsToGamble)} av ${TextUtils.formatMoney(
                         Number(userMoney)
