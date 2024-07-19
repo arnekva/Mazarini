@@ -64,7 +64,7 @@ export class NameCommands extends AbstractCommands {
     private async getTextFromCommand(username: string) {
         const text: string =
             ArrayUtils.randomChoiceFromArray((await this.client.database.getTextCommandValueArray(username.toLowerCase())) ?? []) || 'Ingen tekst lagt til'
-        return `${text.startsWith('<:') ? '' : username} ${text || 'Ingen tekst lagt til'}`
+        return `${text.startsWith('<:') ? '' : username} ${text || 'Emojies støttes ikke i /navn. Fjern denne'}`
     }
 
     private addTextValueFromInteraction(text: string, username: string): boolean {
