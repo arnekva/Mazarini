@@ -100,7 +100,7 @@ export class Deathroll extends AbstractCommands {
         const sameDigits = new RegExp(/^([0-9])\1*$/gi).test(roll.toString())
         if (sameDigits) totalAdded += roll > 100 ? roll * 10 : roll //FIXME: Fix this attrocity pls
 
-        const allDigitsExceptFirstAreZero = new RegExp(/^[1-9]\d*0+$/gi).test(roll.toString())
+        const allDigitsExceptFirstAreZero = new RegExp(/^[1-9]0*$/gi).test(roll.toString())
         if (allDigitsExceptFirstAreZero) totalAdded += roll > 100 ? roll * 10 : 0
 
         this.rewardPot += totalAdded
