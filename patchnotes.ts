@@ -8,9 +8,12 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '17.0.2'
-    public static readonly currentPatchNotes = `\n* Oppdatert diverse embeds til å bruke thumbnail-gif`
-
+    public static readonly currentVersion = '17.1.0'
+    public static readonly currentPatchNotes =
+        `\n* Terning gir nå flere rewards:` +
+        `* Hvis alle tall er like i en roll får du nå *roll * 10* i reward (hvis det er under 100 får du bare *roll*)` +
+        `* Hvis det er hele hundreder eller tusener får du roll * 10 (hvis det er under 100 får du ingenting) (f.eks 500, 700, 1000, 50000 osv - hvis alle siffer utenom første er 0)` +
+        `* Noen ekstra spesialtall som 1996, 1997 og 6969 (m.m.) er lagt til som rewards`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 

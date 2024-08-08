@@ -1,14 +1,13 @@
 import { randomUUID } from 'crypto'
-import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js'
-import moment from 'moment'
+import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 import { DeathRollStats } from '../../helpers/databaseHelper'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { EmbedUtils } from '../../utils/embedUtils'
 import { MentionUtils } from '../../utils/mentionUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { UserUtils } from '../../utils/userUtils'
-import { EmbedUtils } from '../../utils/embedUtils'
 
 export interface DRPlayer {
     userID: string
@@ -26,7 +25,7 @@ export interface DRGame {
 export class Deathroll extends AbstractCommands {
     private drGames: DRGame[]
     private rewardPot: number
-    
+
     constructor(client: MazariniClient) {
         super(client)
         this.drGames = new Array<DRGame>()
@@ -35,10 +34,8 @@ export class Deathroll extends AbstractCommands {
 
     private retrieveDeathrollPot() {
         setTimeout(() => {
-            this.client.database.getDeathrollPot()
-            .then(value => this.rewardPot = value ?? 0)
+            this.client.database.getDeathrollPot().then((value) => (this.rewardPot = value ?? 0))
         }, 5000)
-        
     }
 
     private async rollDice(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -51,7 +48,7 @@ export class Deathroll extends AbstractCommands {
 
             let additionalMessage = ''
             if (game) {
-                this.updateGame(game, user.id, roll)                
+                this.updateGame(game, user.id, roll)
                 additionalMessage += this.checkForReward(roll, diceTarget)
                 additionalMessage += await this.checkIfPotWon(game, roll, user.id)
                 if (roll == 1) {
@@ -81,7 +78,7 @@ export class Deathroll extends AbstractCommands {
         else if (diceTarget >= 100) reward += diceTarget * 25
         this.rewardPot += reward
         if (reward > 0) this.saveRewardPot()
-        return (reward >= 100) ? `(pott + ${reward} = ${this.rewardPot} chips)` : '' 
+        return reward >= 100 ? `(pott + ${reward} = ${this.rewardPot} chips)` : ''
     }
 
     private async rewardPotToUser(userId: string) {
@@ -90,17 +87,25 @@ export class Deathroll extends AbstractCommands {
         this.rewardPot -= rewarded
         if (rewarded > 0) this.saveRewardPot()
         const jailed = this.rewardPot > 0
-        return `Nice\nDu vinner potten på ${this.rewardPot + rewarded} chips! ${jailed ? `(men du får bare ${rewarded} siden du er i fengsel)\nPotten er fortsatt på ${this.rewardPot} chips` : ''}`
+        return `Nice\nDu vinner potten på ${this.rewardPot + rewarded} chips! ${
+            jailed ? `(men du får bare ${rewarded} siden du er i fengsel)\nPotten er fortsatt på ${this.rewardPot} chips` : ''
+        }`
     }
 
-    private checkForReward(roll: number, diceTarget: number) { 
+    private checkForReward(roll: number, diceTarget: number) {
         let totalAdded = this.getRollReward(roll)
         if (roll === diceTarget) {
-            totalAdded += (roll >= 100) ? (roll*10) : roll
+            totalAdded += roll >= 100 ? roll * 10 : roll
         }
+        const sameDigits = new RegExp(/^([0-9])\1*$/gi).test(roll.toString())
+        if (sameDigits) totalAdded += roll > 100 ? roll * 10 : roll //FIXME: Fix this attrocity pls
+
+        const allDigitsExceptFirstAreZero = new RegExp(/^[1-9]\d*0+$/gi).test(roll.toString())
+        if (allDigitsExceptFirstAreZero) totalAdded += roll > 100 ? roll * 10 : 0
+
         this.rewardPot += totalAdded
         if (totalAdded > 0) this.saveRewardPot()
-        return (totalAdded >= 100) ? `(pott + ${totalAdded} = ${this.rewardPot} chips)` : '' 
+        return totalAdded >= 100 ? `(pott + ${totalAdded} = ${this.rewardPot} chips)` : ''
     }
 
     private getRollReward(r: number) {
@@ -115,14 +120,22 @@ export class Deathroll extends AbstractCommands {
                 return 6969
             case 420:
                 return 4200
-            case 666:
-                return 6666
-            case 777:
-                return 7777
+            case 6868:
+                return 101
+            case 6669:
+                return 6690
+            case 669:
+                return 669
             case 1337:
                 return 13370
+            case 1996:
+                return 9999
+            case 1997:
+                return 101
             case 8008:
                 return 80085
+            case 1881:
+                return 1881
             default:
                 return 0
         }
@@ -221,14 +234,16 @@ export class Deathroll extends AbstractCommands {
     private printCurrentState(interaction: ChatInputCommandInteraction<CacheType>) {
         const embed = EmbedUtils.createSimpleEmbed('Deathroll state', `${this.rewardPot} chips i potten`)
         const fields = this.drGames.map((game, i) => {
-            const lastToRollIndex = game.players.findIndex(player => player.userID === game.lastToRoll)
+            const lastToRollIndex = game.players.findIndex((player) => player.userID === game.lastToRoll)
             const nextPlayer = game.players[Math.abs(lastToRollIndex + 1) % game.players.length]
             const previousRoll = Math.min(...game.players.map((x) => x.rolls).flat())
             // const getName = (p1: DRPlayer) => `${p1.userID === nextPlayer.userID ? '**' : ''}${UserUtils.findMemberByUserID(p1.userID, interaction).user.username}${p1.userID === nextPlayer.userID ? '**' : ''}`
-            let stateString = game.players.reduce((acc, player) => acc += `${UserUtils.findMemberByUserID(player.userID, interaction).user.username}, `, '')
-            stateString = stateString.substring(0, stateString.length-2) + `\n:hourglass: **${UserUtils.findMemberByUserID(nextPlayer.userID, interaction).user.username}** :hourglass: (${previousRoll}) `
+            let stateString = game.players.reduce((acc, player) => (acc += `${UserUtils.findMemberByUserID(player.userID, interaction).user.username}, `), '')
+            stateString =
+                stateString.substring(0, stateString.length - 2) +
+                `\n:hourglass: **${UserUtils.findMemberByUserID(nextPlayer.userID, interaction).user.username}** :hourglass: (${previousRoll}) `
             const joinable = game.joinable ? ':unlock:' : ':lock:'
-            return { name: `Game ${i+1} ${joinable}`, value: stateString }
+            return { name: `Game ${i + 1} ${joinable}`, value: stateString }
         })
         embed.addFields(fields)
         this.messageHelper.replyToInteraction(interaction, embed)
@@ -251,7 +266,7 @@ export class Deathroll extends AbstractCommands {
                         commandName: 'deathroll',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                             this.printCurrentState(rawInteraction)
-                        }
+                        },
                     },
                 ],
             },
