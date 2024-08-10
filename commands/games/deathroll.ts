@@ -97,9 +97,15 @@ export class Deathroll extends AbstractCommands {
         if (roll === diceTarget) {
             totalAdded += roll >= 100 ? roll * 10 : roll
         }
+        //Checks if all digits are the same (e.g. 111, 2222, 5555)
         const sameDigits = new RegExp(/^([0-9])\1*$/gi).test(roll.toString())
-        if (sameDigits) totalAdded += roll > 100 ? roll * 10 : roll //FIXME: Fix this attrocity pls
+        if (sameDigits) totalAdded += roll > 100 ? roll * 10 : roll 
 
+        //Check if digits are in ascending order (e.g. 1234 or 5678)
+        const isConsecutiveDigits = roll.toString().split("").sort((a,b) => Number(a) - Number(b)).join("") === roll.toString()
+        if(isConsecutiveDigits) totalAdded += roll > 100 ? roll * 10 : roll
+
+        //Check if ONLY the first digits is a non-zero (e.g. 40, 500, 6000, 20000)
         const allDigitsExceptFirstAreZero = new RegExp(/^[1-9]0*$/gi).test(roll.toString())
         if (allDigitsExceptFirstAreZero) totalAdded += roll > 100 ? roll * 10 : 0
 
@@ -110,12 +116,6 @@ export class Deathroll extends AbstractCommands {
 
     private getRollReward(r: number) {
         switch (r) {
-            case 123:
-                return 1230
-            case 1234:
-                return 12340
-            case 12345:
-                return 123450
             case 6969:
                 return 6969
             case 420:
