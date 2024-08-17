@@ -8,12 +8,11 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '17.1.0'
+    public static readonly currentVersion = '17.1.1'
     public static readonly currentPatchNotes =
-        `\n* Terning gir nå flere rewards:` +
-        `* Hvis alle tall er like i en roll får du nå *roll * 10* i reward (hvis det er under 100 får du bare *roll*)` +
-        `* Hvis det er hele hundreder eller tusener får du roll * 10 (hvis det er under 100 får du ingenting) (f.eks 500, 700, 1000, 50000 osv - hvis alle siffer utenom første er 0)` +
-        `* Noen ekstra spesialtall som 1996, 1997 og 6969 (m.m.) er lagt til som rewards`
+        `\n* Fjernet at tall i stigende rekkefølge gir chips-reward i deathroll` +
+        `\n* Fikset en feil som gjorde at enkle tall talt som runde tall og derfor la til små mengder chips i potten` +
+        `\n* Senket multiplieren til runde tall fra 10 til 3 når tallet er over hundre`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 

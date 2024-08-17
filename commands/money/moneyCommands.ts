@@ -155,14 +155,14 @@ export class MoneyCommands extends AbstractCommands {
 
     private findPrestigeMultiplier(p: number | undefined) {
         if (p && !isNaN(p) && p > 0) {
-            return 1 + 0.3475 * p
+            return 1 + 0.348 * p
         }
         return 1
     }
 
     private findAdditionalCoins(streak: number): number | undefined {
-        if (streak > 5) return 200
-        if (streak > 3) return 130
+        if (streak > 5) return 210
+        if (streak > 3) return 140
         if (streak > 1) return 90
         return undefined
     }

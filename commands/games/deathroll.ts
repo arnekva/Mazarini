@@ -94,20 +94,19 @@ export class Deathroll extends AbstractCommands {
 
     private checkForReward(roll: number, diceTarget: number) {
         let totalAdded = this.getRollReward(roll)
-        if (roll === diceTarget) {
-            totalAdded += roll >= 100 ? roll * 10 : roll
+        let multiplier = 1
+
+        const addToPot = (amount: number, overHundredMultiplier?: number) => {
+            totalAdded += amount * (overHundredMultiplier || 1)
         }
+        if (roll === diceTarget) addToPot(roll, 10)
+
         //Checks if all digits are the same (e.g. 111, 2222, 5555)
         const sameDigits = new RegExp(/^([0-9])\1*$/gi).test(roll.toString())
-        if (sameDigits) totalAdded += roll > 100 ? roll * 10 : roll 
-
-        //Check if digits are in ascending order (e.g. 1234 or 5678)
-        const isConsecutiveDigits = roll.toString().split("").sort((a,b) => Number(a) - Number(b)).join("") === roll.toString()
-        if(isConsecutiveDigits) totalAdded += roll > 100 ? roll * 10 : roll
-
+        if (sameDigits) addToPot(roll, 10)
         //Check if ONLY the first digits is a non-zero (e.g. 40, 500, 6000, 20000)
-        const allDigitsExceptFirstAreZero = new RegExp(/^[1-9]0*$/gi).test(roll.toString())
-        if (allDigitsExceptFirstAreZero) totalAdded += roll > 100 ? roll * 10 : 0
+        const allDigitsExceptFirstAreZero = new RegExp(/^[1-9]0+$/gi).test(roll.toString())
+        if (allDigitsExceptFirstAreZero) addToPot(roll, 3)
 
         this.rewardPot += totalAdded
         if (totalAdded > 0) this.saveRewardPot()
@@ -136,6 +135,12 @@ export class Deathroll extends AbstractCommands {
                 return 80085
             case 1881:
                 return 1881
+            case 123:
+                return 123
+            case 1234:
+                return 12340
+            case 12345:
+                return 123450
             default:
                 return 0
         }
