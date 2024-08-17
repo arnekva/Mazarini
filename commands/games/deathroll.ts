@@ -95,9 +95,11 @@ export class Deathroll extends AbstractCommands {
     private checkForReward(roll: number, diceTarget: number) {
         let totalAdded = this.getRollReward(roll)
         let multiplier = 1
+        const lowRoll = roll < 100
 
-        const addToPot = (amount: number, overHundredMultiplier?: number) => {
-            totalAdded += amount * (overHundredMultiplier || 1)
+        const addToPot = (amount: number, multiplierIncrease: number) => {
+            totalAdded += amount
+            if (!lowRoll) multiplier += multiplierIncrease
         }
         if (roll === diceTarget) addToPot(roll, 10)
 
@@ -108,9 +110,10 @@ export class Deathroll extends AbstractCommands {
         const allDigitsExceptFirstAreZero = new RegExp(/^[1-9]0+$/gi).test(roll.toString())
         if (allDigitsExceptFirstAreZero) addToPot(roll, 3)
 
-        this.rewardPot += totalAdded
+        const finalAmount = totalAdded * multiplier
+        this.rewardPot += finalAmount
         if (totalAdded > 0) this.saveRewardPot()
-        return totalAdded >= 100 ? `(pott + ${totalAdded} = ${this.rewardPot} chips)` : ''
+        return totalAdded >= 100 ? `(pott + ${finalAmount} = ${this.rewardPot} chips)` : ''
     }
 
     private getRollReward(r: number) {
