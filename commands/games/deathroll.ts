@@ -99,6 +99,7 @@ export class Deathroll extends AbstractCommands {
 
         const addToPot = (amount: number, multiplierIncrease: number) => {
             totalAdded += amount
+            //TODO: Add stacking here probably? i.e. do amount * multiplier * otherMultiplier etc...
             if (!lowRoll) multiplier += multiplierIncrease
         }
         if (roll === diceTarget) addToPot(roll, 10)
