@@ -8,12 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '17.2.0'
-    public static readonly currentPatchNotes =
-        `\n* Multiplierene i deathroll er nå stackende` +
-        `\n* Fjernet at tall i stigende rekkefølge gir chips-reward i deathroll` +
-        `\n* Fikset en feil som gjorde at enkle tall talt som runde tall og derfor la til små mengder chips i potten` +
-        `\n* Senket multiplieren til runde tall fra 10 til 3 når tallet er over hundre`
+    public static readonly currentVersion = '17.2.1'
+    public static readonly currentPatchNotes = `\n* Daily jobs kjører nå kl. 05:00 (ned fra 06:00)`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 

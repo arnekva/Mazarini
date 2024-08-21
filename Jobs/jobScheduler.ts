@@ -12,7 +12,7 @@ export class JobScheduler {
     weeklyJobs: any
     hourlyJobs: any
     constructor(msgHelper: MessageHelper, client: MazariniClient) {
-        this.dailyJobs = schedule.scheduleJob('0 6 * * *', async function () {
+        this.dailyJobs = schedule.scheduleJob('0 5 * * *', async function () {
             const jobs = new DailyJobs(msgHelper, client)
             jobs.runJobs()
         })
