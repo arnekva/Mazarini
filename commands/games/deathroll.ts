@@ -68,7 +68,9 @@ export class Deathroll extends AbstractCommands {
                         )
                         const oldPot = this.rewardPot
                         this.rewardPot = shuffledPot
-                        additionalMessage += `\n*(SHUFFLE! Potten ble shufflet fra ${oldPot} til ${shuffledPot} chips)*`
+                        additionalMessage += `${
+                            additionalMessage.length > 0 ? '\nShuffle! ' : 'Shuffle!\n'
+                        }Potten ble shufflet fra ${oldPot} til ${shuffledPot} chips!`
                     }
                 }
                 if (roll == 1) {
@@ -78,7 +80,7 @@ export class Deathroll extends AbstractCommands {
                     stats.forEach((stat) => {
                         const username = UserUtils.findUserById(stat.userId, interaction)?.username ?? 'Ukjent'
                         if (stat.didGetNewBiggestLoss) additionalMessage += `\n*(${username} fikk et nytt tall inn på topplisten av største tap)*`
-                        if (stat.isOnATHLossStreak) additionalMessage += `\n*(${username} har ny ATH loss streak)*`
+                        if (stat.isOnATHLossStreak) additionalMessage += `\n*(${username} har ny ATH loss streak på ${stat.isOnATHLossStreak})*`
                     })
                 }
             }

@@ -8,10 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '17.2.2'
-    public static readonly currentPatchNotes = 
-    `\n* Deathroll-potten vil nå shuffles hvis rollen er en shufflet versjon av target.` +
-    `\n* Fikset teksten i /daily for å vise riktig tidspunktman kan hente neste daily.` 
+    public static readonly currentVersion = '17.2.3'
+    public static readonly currentPatchNotes = `\n* Fikset formattering på Deathroll shuffle`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
