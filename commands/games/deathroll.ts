@@ -51,6 +51,26 @@ export class Deathroll extends AbstractCommands {
                 this.updateGame(game, user.id, roll)
                 additionalMessage += this.checkForReward(roll, diceTarget)
                 additionalMessage += await this.checkIfPotWon(game, roll, user.id)
+
+                if (roll > 100) {
+                    //Check if roll is a shuffled variant of the target number
+                    const rollAsString = roll.toString()
+                    const targetAsString = diceTarget.toString()
+                    const shuffled = rollAsString.split('').sort().join('') === targetAsString.split('').sort().join('')
+                    if (shuffled) {
+                        //Shuffle the reward pot digits into a new number in random order
+                        const shuffledPot = parseInt(
+                            this.rewardPot
+                                .toString()
+                                .split('')
+                                .sort(() => Math.random() - 0.5)
+                                .join('')
+                        )
+                        const oldPot = this.rewardPot
+                        this.rewardPot = shuffledPot
+                        additionalMessage += `\n*(SHUFFLE! Potten ble shufflet fra ${oldPot} til ${shuffledPot} chips)*`
+                    }
+                }
                 if (roll == 1) {
                     this.checkForLossOnFirstRoll(game, diceTarget)
                     const stats = await this.endGame(game)

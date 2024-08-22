@@ -121,7 +121,7 @@ export class MoneyCommands extends AbstractCommands {
             this.client.database.updateData(updates)
             return embed
         } else {
-            return embed.setDescription('Du har allerede henta daily i dag. Vent te imårå klokkå 06:00')
+            return embed.setDescription('Du har allerede henta daily i dag. Vent te imårå klokkå 05:00')
         }
     }
 
