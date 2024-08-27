@@ -3,6 +3,7 @@ import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction } from 
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 import { DeathRollStats } from '../../helpers/databaseHelper'
+import { EmojiHelper } from '../../helpers/emojiHelper'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { MentionUtils } from '../../utils/mentionUtils'
@@ -79,6 +80,7 @@ export class Deathroll extends AbstractCommands {
                     additionalMessage += this.rewardPlayersOnGameEnd(stats, diceTarget)
                     stats.forEach((stat) => {
                         const username = UserUtils.findUserById(stat.userId, interaction)?.username ?? 'Ukjent'
+                        if (diceTarget > 30 && RandomUtils.getRndBetween0and100() > 40) additionalMessage += ` ${EmojiHelper.getEmoji('kekw', interaction)}`
                         if (stat.didGetNewBiggestLoss) additionalMessage += `\n*(${username} fikk et nytt tall inn på topplisten av største tap)*`
                         if (stat.isOnATHLossStreak) additionalMessage += `\n*(${username} har ny ATH loss streak på ${stat.isOnATHLossStreak})*`
                     })
@@ -95,8 +97,8 @@ export class Deathroll extends AbstractCommands {
         const playerHsATHStreak = s.find((p) => p.isOnATHLossStreak && p.isOnATHLossStreak > 0)
         const playerHasBiggestLoss = s.find((p) => p.didGetNewBiggestLoss && p.didGetNewBiggestLoss > 0)
 
-        let reward = playerHsATHStreak ? playerHsATHStreak.isOnATHLossStreak * 250 : 0
-        if (playerHasBiggestLoss) reward += playerHasBiggestLoss.didGetNewBiggestLoss * 50
+        let reward = playerHsATHStreak ? playerHsATHStreak.isOnATHLossStreak * 1000 : 0
+        if (playerHasBiggestLoss) reward += playerHasBiggestLoss.didGetNewBiggestLoss * 75
         else if (diceTarget >= 100) reward += diceTarget * 25
         this.rewardPot += reward
         if (reward > 0) this.saveRewardPot()
@@ -144,7 +146,7 @@ export class Deathroll extends AbstractCommands {
     private getRollReward(r: number) {
         switch (r) {
             case 6969:
-                return 6969
+                return 69690
             case 420:
                 return 4200
             case 6868:
@@ -156,7 +158,7 @@ export class Deathroll extends AbstractCommands {
             case 1337:
                 return 13370
             case 1996:
-                return 9999
+                return 19999
             case 1997:
                 return 101
             case 8008:
@@ -164,7 +166,7 @@ export class Deathroll extends AbstractCommands {
             case 1881:
                 return 1881
             case 123:
-                return 123
+                return 1230
             case 1234:
                 return 12340
             case 12345:
