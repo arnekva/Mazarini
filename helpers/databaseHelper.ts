@@ -1,12 +1,13 @@
 import moment from 'moment'
 import { DRGame } from '../commands/games/deathroll'
-import { ChipsStats, MazariniStorage, MazariniUser, Meme, RulettStats, botDataPrefix } from '../interfaces/database/databaseInterface'
+import { botDataPrefix, ChipsStats, MazariniStorage, MazariniUser, Meme, RulettStats } from '../interfaces/database/databaseInterface'
 import { FirebaseHelper } from './firebaseHelper'
 
 export interface DeathRollStats {
     userId: string
     didGetNewBiggestLoss: number
     isOnATHLossStreak: number
+    currentLossStreak?: number
 }
 export class DatabaseHelper {
     private db: FirebaseHelper
@@ -245,7 +246,10 @@ export class DatabaseHelper {
                 user.userStats.deathrollStats.totalGames++
                 user.userStats.deathrollStats.weeklyGames++
                 if (game.lastToRoll === user.id) {
-                    const lastRoll = game.players.map((p) => p.rolls).flat().sort((a, b) => a - b)[1]
+                    const lastRoll = game.players
+                        .map((p) => p.rolls)
+                        .flat()
+                        .sort((a, b) => a - b)[1]
                     if (!user.userStats.deathrollStats.biggestLoss) {
                         user.userStats.deathrollStats.biggestLoss = [lastRoll]
                     } else {
@@ -266,7 +270,9 @@ export class DatabaseHelper {
                         currStat.isOnATHLossStreak = user.userStats.deathrollStats.currentLossStreak
                         user.userStats.deathrollStats.longestLossStreak = user.userStats.deathrollStats.currentLossStreak
                     }
+                    currStat.currentLossStreak = user.userStats.deathrollStats.currentLossStreak
                 } else {
+                    currStat.currentLossStreak = 0
                     user.userStats.deathrollStats.currentLossStreak = 0
                 }
                 drStats.push(currStat)
@@ -298,7 +304,7 @@ export class DatabaseHelper {
     }
 
     public async getDeathrollPot() {
-        return await this.db.getData('other/deathrollPot') as number
+        return (await this.db.getData('other/deathrollPot')) as number
     }
 
     public saveDeathrollPot(amount: number) {

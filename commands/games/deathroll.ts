@@ -83,6 +83,7 @@ export class Deathroll extends AbstractCommands {
                         if (diceTarget > 30 && RandomUtils.getRndBetween0and100() > 40) additionalMessage += ` ${EmojiHelper.getEmoji('kekw', interaction)}`
                         if (stat.didGetNewBiggestLoss) additionalMessage += `\n*(${username} fikk et nytt tall inn på topplisten av største tap)*`
                         if (stat.isOnATHLossStreak) additionalMessage += `\n*(${username} har ny ATH loss streak på ${stat.isOnATHLossStreak})*`
+                        else if (stat.currentLossStreak) additionalMessage += `\n*(${username} er på en ${stat.currentLossStreak} loss streak)*`
                     })
                 }
             }
@@ -94,10 +95,10 @@ export class Deathroll extends AbstractCommands {
     }
     //TODO: Make this pretty
     private rewardPlayersOnGameEnd(s: DeathRollStats[], diceTarget: number) {
-        const playerHsATHStreak = s.find((p) => p.isOnATHLossStreak && p.isOnATHLossStreak > 0)
+        const playerHasStreak = s.find((p) => (p.isOnATHLossStreak && p.isOnATHLossStreak > 0) || p.currentLossStreak > 4)
         const playerHasBiggestLoss = s.find((p) => p.didGetNewBiggestLoss && p.didGetNewBiggestLoss > 0)
 
-        let reward = playerHsATHStreak ? playerHsATHStreak.isOnATHLossStreak * 1000 : 0
+        let reward = playerHasStreak ? playerHasStreak.currentLossStreak * 1000 : 0
         if (playerHasBiggestLoss) reward += playerHasBiggestLoss.didGetNewBiggestLoss * 75
         else if (diceTarget >= 100) reward += diceTarget * 25
         this.rewardPot += reward
