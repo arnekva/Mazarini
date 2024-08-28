@@ -83,7 +83,7 @@ export class Deathroll extends AbstractCommands {
                         if (diceTarget > 30 && RandomUtils.getRndBetween0and100() > 40) additionalMessage += ` ${EmojiHelper.getEmoji('kekw', interaction)}`
                         if (stat.didGetNewBiggestLoss) additionalMessage += `\n*(${username} fikk et nytt tall inn på topplisten av største tap)*`
                         if (stat.isOnATHLossStreak) additionalMessage += `\n*(${username} har ny ATH loss streak på ${stat.isOnATHLossStreak})*`
-                        else if (stat.currentLossStreak) additionalMessage += `\n*(${username} er på en ${stat.currentLossStreak} loss streak)*`
+                        else if (stat.currentLossStreak > 4) additionalMessage += `\n*(${username} er på en ${stat.currentLossStreak} loss streak)*`
                     })
                 }
             }
