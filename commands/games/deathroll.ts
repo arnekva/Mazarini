@@ -95,10 +95,12 @@ export class Deathroll extends AbstractCommands {
     }
     //TODO: Make this pretty
     private rewardPlayersOnGameEnd(s: DeathRollStats[], diceTarget: number) {
-        const playerHasStreak = s.find((p) => (p.isOnATHLossStreak && p.isOnATHLossStreak > 0) || p.currentLossStreak > 4)
+        const playerHasATHStreak = s.find((p) => p.isOnATHLossStreak && p.isOnATHLossStreak > 0)
+        const playerHasStreak = s.find((p) => p.currentLossStreak > 4)
         const playerHasBiggestLoss = s.find((p) => p.didGetNewBiggestLoss && p.didGetNewBiggestLoss > 0)
 
-        let reward = playerHasStreak ? playerHasStreak.currentLossStreak * 1000 : 0
+        let reward = playerHasATHStreak ? playerHasATHStreak.currentLossStreak * 2000 : 0
+        if (playerHasStreak && !playerHasATHStreak) reward += playerHasStreak.currentLossStreak * 1000
         if (playerHasBiggestLoss) reward += playerHasBiggestLoss.didGetNewBiggestLoss * 75
         else if (diceTarget >= 100) reward += diceTarget * 25
         this.rewardPot += reward
