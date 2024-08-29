@@ -55,9 +55,9 @@ export class Deathroll extends AbstractCommands {
 
                 if (roll > 100 && roll !== diceTarget) {
                     //Check if roll is a shuffled variant of the target number
-                    const rollAsString = roll.toString()
+                    const rollAsString: string = roll.toString()
                     const targetAsString = diceTarget.toString()
-                    const shuffled = rollAsString.split('').sort().join('') === targetAsString.split('').sort().join('')
+                    const shuffled = rollAsString.replace(/0/g, '').split('').sort().join('') === targetAsString.split('').sort().join('')
                     if (shuffled) {
                         //Shuffle the reward pot digits into a new number in random order
                         const shuffledPot = parseInt(
@@ -78,11 +78,11 @@ export class Deathroll extends AbstractCommands {
                     this.checkForLossOnFirstRoll(game, diceTarget)
                     const stats = await this.endGame(game)
                     additionalMessage += this.rewardPlayersOnGameEnd(stats, diceTarget)
-                    const kek =  (await EmojiHelper.getEmoji('kekw', interaction)).id
+                    const kek = (await EmojiHelper.getEmoji('kekw', interaction)).id
                     stats.forEach((stat) => {
                         const username = UserUtils.findUserById(stat.userId, interaction)?.username ?? 'Ukjent'
                         if (diceTarget > 30 && RandomUtils.getRndBetween0and100() > 40) {
-                            additionalMessage += `${kek}`
+                            additionalMessage += ` ${kek}`
                         }
                         if (stat.didGetNewBiggestLoss) additionalMessage += `\n*(${username} fikk et nytt tall inn på topplisten av største tap)*`
                         if (stat.isOnATHLossStreak) additionalMessage += `\n*(${username} har ny ATH loss streak på ${stat.isOnATHLossStreak})*`
