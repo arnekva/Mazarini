@@ -57,7 +57,7 @@ export class Deathroll extends AbstractCommands {
                     //Check if roll is a shuffled variant of the target number
                     const rollAsString: string = roll.toString()
                     const targetAsString = diceTarget.toString()
-                    const shuffled = rollAsString.replace(/0/g, '').split('').sort().join('') === targetAsString.split('').sort().join('')
+                    const shuffled = rollAsString.replace(/0/g, '').split('').sort().join('') === targetAsString.replace(/0/g, '').split('').sort().join('')
                     if (shuffled) {
                         //Shuffle the reward pot digits into a new number in random order
                         const shuffledPot = parseInt(
