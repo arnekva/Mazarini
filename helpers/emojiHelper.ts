@@ -16,6 +16,7 @@ type emojiObject = {
 
 export type JobStatus = 'success' | 'failed' | 'not sendt'
 export class EmojiHelper {
+    //FIXME: No reason for this to be async?
     static async getEmoji(emojiType: string, accessPoint: Message | Interaction<CacheType> | Client<boolean>): Promise<emojiReturnType> {
         const ap = accessPoint instanceof Client ? accessPoint : accessPoint.client
         const emojiObj = ap.emojis.cache.find((emoji) => emoji.name == emojiType)
@@ -44,6 +45,6 @@ export class EmojiHelper {
 
     static async createProfileEmoji(interaction: ChatInputCommandInteraction<CacheType>) {
         const profilePic = UserUtils.findUserById(interaction.user.id, interaction).displayAvatarURL()
-        await interaction.client.guilds.cache.get(ServerIds.MAZARINI_DEV_2).emojis.create({ attachment: profilePic, name: interaction.user.username})
+        await interaction.client.guilds.cache.get(ServerIds.MAZARINI_DEV_2).emojis.create({ attachment: profilePic, name: interaction.user.username })
     }
 }
