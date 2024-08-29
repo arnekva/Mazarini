@@ -78,10 +78,10 @@ export class Deathroll extends AbstractCommands {
                     this.checkForLossOnFirstRoll(game, diceTarget)
                     const stats = await this.endGame(game)
                     additionalMessage += this.rewardPlayersOnGameEnd(stats, diceTarget)
+                    const kek = await EmojiHelper.getEmoji('kekw', interaction)
                     stats.forEach((stat) => {
                         const username = UserUtils.findUserById(stat.userId, interaction)?.username ?? 'Ukjent'
                         if (diceTarget > 30 && RandomUtils.getRndBetween0and100() > 40) {
-                            const kek = EmojiHelper.getEmoji('kekw', interaction)
                             additionalMessage += `${kek}`
                         }
                         if (stat.didGetNewBiggestLoss) additionalMessage += `\n*(${username} fikk et nytt tall inn på topplisten av største tap)*`
