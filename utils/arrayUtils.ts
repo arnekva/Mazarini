@@ -1,5 +1,5 @@
-import {dateValPair} from '../commands/dateCommands'
-import {RandomUtils} from './randomUtils'
+import { dateValPair } from '../commands/dateCommands'
+import { RandomUtils } from './randomUtils'
 
 export class ArrayUtils {
     static sortDateStringArray(array: dateValPair[]) {
@@ -38,5 +38,27 @@ export class ArrayUtils {
     static removeAllDuplicates<T>(array: T[]) {
         const uniq = [...new Set(array)]
         return uniq as T[]
+    }
+
+    /** Randmly shuffles the given array */
+    static shuffleArray<T>(array: T[]) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1))
+            const temp = array[i]
+            array[i] = array[j]
+            array[j] = temp
+        }
+        return array
+    }
+
+    static areArraysEqual<T>(a: T[], b: T[]) {
+        if (a === b) return true
+        if (a == null || b == null) return false
+        if (a.length !== b.length) return false
+
+        for (let i = 0; i < a.length; ++i) {
+            if (a[i] !== b[i]) return false
+        }
+        return true
     }
 }

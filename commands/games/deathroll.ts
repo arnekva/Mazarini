@@ -5,6 +5,7 @@ import { MazariniClient } from '../../client/MazariniClient'
 import { DeathRollStats } from '../../helpers/databaseHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { ArrayUtils } from '../../utils/arrayUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { MentionUtils } from '../../utils/mentionUtils'
 import { RandomUtils } from '../../utils/randomUtils'
@@ -60,13 +61,17 @@ export class Deathroll extends AbstractCommands {
                     const shuffled = rollAsString.replace(/0/g, '').split('').sort().join('') === targetAsString.replace(/0/g, '').split('').sort().join('')
                     if (shuffled) {
                         //Shuffle the reward pot digits into a new number in random order
-                        const shuffledPot = parseInt(
-                            this.rewardPot
-                                .toString()
-                                .split('')
-                                .sort(() => Math.random() - 0.5)
-                                .join('')
-                        )
+                        const potArray = this.rewardPot.toString().split('')
+
+                        let shuffledPot = this.rewardPot
+
+                        //Make sure we dont go infinitely if the Pot contains only one unique digit
+                        const regEx = new RegExp(/^([0-9])\1*$/gi)
+
+                        while (shuffledPot === this.rewardPot && !regEx.test(shuffledPot.toString())) {
+                            shuffledPot = parseInt(ArrayUtils.shuffleArray(potArray).join(''))
+                        }
+
                         const oldPot = this.rewardPot
                         this.rewardPot = shuffledPot
                         additionalMessage += `${

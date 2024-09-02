@@ -8,8 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '17.3.1'
-    public static readonly currentPatchNotes = `\n* Deathroll shuffle ser nå bort i fra 0 når den sjekker. Altså vil 1051 -> 115 gi en shuffle`
+    public static readonly currentVersion = '17.3.2'
+    public static readonly currentPatchNotes = `\n* Deathroll shuffle kan ikke lenger shuffle til samme tall som det var før. Shufflingen er også mer tilfeldig nå.`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 

@@ -82,7 +82,6 @@ export namespace textArrays {
         'nei',
         'selvfølgelig',
         'seff',
-        'aldri livet',
         'kanskje ... kanskje ikke. ikkje.',
         'jess',
         'ehh, nei',
