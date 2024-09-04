@@ -57,7 +57,7 @@ export class Deathroll extends AbstractCommands {
                 additionalMessage += this.checkForReward(roll, diceTarget)
                 additionalMessage += await this.checkIfPotWon(game, roll, user.id)
 
-                if (roll > 100 && roll !== diceTarget) {
+                if (roll >= 100 && roll !== diceTarget) {
                     //Check if roll is a shuffled variant of the target number
                     const rollAsString: string = roll.toString()
                     const targetAsString = diceTarget.toString()
