@@ -99,9 +99,12 @@ export class Deathroll extends AbstractCommands {
                 }
             }
             const bold = (game?.players?.length ?? 0) == 1 ? '**' : ''
-            this.messageHelper.replyToInteraction(interaction, `${bold}${roll} *(1 - ${diceTarget})*${bold}  ${additionalMessage}`, {
-                sendAsSilent: (game?.players?.length ?? 2) > 1,
-            })
+            const waitTme = (roll == 1 && Math.random() < (diceTarget/1000)) ? 5000 : 0 // Økende sannsynlighet for å bli tomasa jo større tapet er
+            setTimeout(() => {
+                this.messageHelper.replyToInteraction(interaction, `${bold}${roll} *(1 - ${diceTarget})*${bold}  ${additionalMessage}`, {
+                    sendAsSilent: (game?.players?.length ?? 2) > 1,
+                })
+            }, waitTme)
         }
     }
     //TODO: Make this pretty
