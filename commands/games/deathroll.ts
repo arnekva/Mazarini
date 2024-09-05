@@ -131,6 +131,12 @@ export class Deathroll extends AbstractCommands {
     }
 
     private checkForReward(roll: number, diceTarget: number) {
+        if (roll == 9 && diceTarget == 11 && Math.random() < 0.5) { // 50% sjanse for minus i potten ved 9-11
+            const removed = this.rewardPot >= 2977 ? 2977 : this.rewardPot
+            this.rewardPot -= removed
+            if (removed > 0) this.saveRewardPot()
+            return removed > 0 ? `(pott - ${removed} = ${this.rewardPot} chips)\nNever forget :coffin:` : ''
+        }
         let totalAdded = this.getRollReward(roll)
         const multipliers: number[] = [1]
         const lowRoll = roll < 100

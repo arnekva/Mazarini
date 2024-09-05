@@ -15,6 +15,7 @@ interface BlackjackPlayer extends GamePlayer {
     stake?: number
     stand?: boolean
     profilePicture: string
+    allIn: boolean
 }
 
 interface BlackjackGame {
@@ -72,19 +73,20 @@ export class Blackjack extends AbstractCommands {
 
     private async simpleGame(interaction: ChatInputCommandInteraction<CacheType>) {
         const user = await this.client.database.getUser(interaction.user.id)
-        const stake = Number(SlashCommandHelper.getCleanNumberValue(interaction.options.get('satsing')?.value))
-        if (stake <= 0) {
-            this.messageHelper.replyToInteraction(interaction, 'Ugyldig satsing', {ephemeral: true})
-        } else if (!this.client.bank.userCanAfford(user, stake)) {
-            this.messageHelper.replyToInteraction(interaction, '"Du kan ikke spille om så mye" elns', {ephemeral: true})
-        } else {
+        const amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('satsing')?.value)
+        const userMoney = user.chips
+        let stake = amount
+
+        if (!amount || amount > userMoney || isNaN(amount)) stake = userMoney
+        if (amount < 1) stake = 1
+        if (userMoney && userMoney >= stake) {
             this.client.bank.takeMoney(user, stake)
 
             const playerPicture = await this.getProfilePicture(interaction)
-            const player: BlackjackPlayer = {id: user.id, playerName: interaction.user.username, hand: new Array<ICardObject>, stake: stake, profilePicture: playerPicture}
+            const player: BlackjackPlayer = {id: user.id, playerName: interaction.user.username, hand: new Array<ICardObject>, stake: stake, profilePicture: playerPicture, allIn: !amount}
             
             const dealerPicture = (await EmojiHelper.getEmoji('mazarinibot', this.client)).id
-            const dealer: BlackjackPlayer = {id: 'dealer', playerName: 'Bot Høie', hand: new Array<ICardObject>, stake: stake, profilePicture: dealerPicture}
+            const dealer: BlackjackPlayer = {id: 'dealer', playerName: 'Bot Høie', hand: new Array<ICardObject>, stake: stake, profilePicture: dealerPicture, allIn: false}
             
             const messages: BlackjackMessages = { embedContent: undefined, tableContent: undefined, buttonRow: undefined }
             const game: BlackjackGame = { id: randomUUID(), players: [player], dealer: dealer, deck: new CardCommands(this.client, 6), messages: messages }
@@ -99,6 +101,8 @@ export class Blackjack extends AbstractCommands {
 
             await this.generateSimpleTable(game)
             this.printGame(game, interaction)
+        } else {
+            this.messageHelper.replyToInteraction(interaction, `Du må ha minst 1 chip for å spille blackjack :'(`)
         }
     }
 
@@ -218,6 +222,7 @@ export class Blackjack extends AbstractCommands {
 
     private async playAgain(interaction: ButtonInteraction<CacheType>, game: BlackjackGame, player: BlackjackPlayer) {
         const user = await this.client.database.getUser(player.id)
+        player.stake = player.allIn ? user.chips : player.stake
         if (!this.client.bank.userCanAfford(user, player.stake)) {
             const emoji = await EmojiHelper.getEmoji('arneouf', this.client)
             game.messages.embedContent = game.messages.embedContent.setThumbnail(`https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?size=96&quality=lossless`).setDescription(`Du har ikke råd til en ny`)

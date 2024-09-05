@@ -14,7 +14,7 @@ export const blackjackCommand: ISlashCommandItem = {
                     name: 'satsing',
                     description: 'hvor mye du vil spille for',
                     type: ApplicationCommandOptionType.Integer,
-                    required: true
+                    required: false
                 },
             ],
         },
