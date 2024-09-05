@@ -267,16 +267,13 @@ export class Deathroll extends AbstractCommands {
     }
 
     private getActiveGameForUser(userID: string) {
-        return this.drGames.find((game) => game.players.some((player) => player.userID == userID && this.isPlayersTurn(game, player)))
+        return this.drGames.find((game) => game.players.length > 1 && game.players.some((player) => player.userID == userID && this.isPlayersTurn(game, player)))
     }
 
     private isPlayersTurn(game: DRGame, currentPlayer: DRPlayer) {
-        const playerIndex = game.players.findIndex((player) => player.userID == currentPlayer.userID)
-        const previousPlayer = game.players[Math.abs(playerIndex + game.players.length - 1) % game.players.length]
-        return (
-            !game.players.some((player) => player.userID != previousPlayer.userID && Math.min(...player.rolls) < Math.min(...previousPlayer.rolls)) &&
-            game.lastToRoll != currentPlayer.userID
-        )
+        const lastToRollIndex = game.players.findIndex((player) => player.userID === game.lastToRoll)
+        const nextPlayer = game.players[Math.abs(lastToRollIndex + 1) % game.players.length]
+        return nextPlayer.userID == currentPlayer.userID
     }
 
     private autoCompleteDice(interaction: AutocompleteInteraction<CacheType>) {
