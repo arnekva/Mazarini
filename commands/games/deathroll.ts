@@ -61,7 +61,7 @@ export class Deathroll extends AbstractCommands {
     private async rollDice(interaction: ChatInputCommandInteraction<CacheType>) {
         const diceTarget = interaction.options.get('sider')?.value as number
         if (diceTarget > 9999999999) {
-            this.messageHelper.replyToInteraction(interaction, `Du kan ikke trille en terning med mer enn 11 sifre`, { ephemeral: true })
+            this.messageHelper.replyToInteraction(interaction, `Du kan ikke trille en terning med mer enn 10 sifre`, { ephemeral: true })
         } else if (diceTarget <= 0)
             this.messageHelper.replyToInteraction(interaction, `Du kan ikke trille en terning med mindre enn 1 side`, { ephemeral: true })
         else {
