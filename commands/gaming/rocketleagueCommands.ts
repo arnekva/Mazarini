@@ -250,15 +250,17 @@ export class RocketLeagueCommands extends AbstractCommands {
     static getButtonRow(rt: RocketLeagueTournament[]) {
         const activeGameButtonRow = new ActionRowBuilder<ButtonBuilder>()
         rt.forEach((t, idx) => {
-            activeGameButtonRow.addComponents(
-                new ButtonBuilder({
-                    custom_id: `RL_TOURNAMENT;${t.id}`,
-                    style: ButtonStyle.Primary,
-                    label: `${t.players}v${t.players} ${t.mode} ${DateUtils.getTimeFormatted(new Date(t.starts))}${t.shouldNotify ? ' (*)' : ''}`,
-                    disabled: false,
-                    type: 2,
-                })
-            )
+            if (t.mode.toLowerCase() == 'soccer') {
+                activeGameButtonRow.addComponents(
+                    new ButtonBuilder({
+                        custom_id: `RL_TOURNAMENT;${t.id}`,
+                        style: ButtonStyle.Primary,
+                        label: `${t.players}v${t.players} ${t.mode} ${DateUtils.getTimeFormatted(new Date(t.starts))}${t.shouldNotify ? ' (*)' : ''}`,
+                        disabled: false,
+                        type: 2,
+                    })
+                )
+            }
         })
         return activeGameButtonRow
     }
