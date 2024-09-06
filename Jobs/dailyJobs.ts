@@ -42,7 +42,7 @@ export class DailyJobs {
         }
     }
 
-    private async updateRLTournaments(apiKey: string): Promise<JobStatus> {
+    public async updateRLTournaments(apiKey: string): Promise<JobStatus> {
         let status: JobStatus = 'success'
         const retryFetch = () => {
             if (apiKey === rapidApiKey) this.updateRLTournaments(rapidApiKey2)

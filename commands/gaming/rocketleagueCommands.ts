@@ -1,12 +1,13 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, EmbedBuilder, TextChannel } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
-import { environment } from '../../client-env'
+import { environment, rapidApiKey } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { RocketLeagueTournament } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { MessageUtils } from '../../utils/messageUtils'
+import { DailyJobs } from '../../Jobs/dailyJobs'
 
 interface rocketLeagueStats {
     modeName?: string
@@ -222,19 +223,26 @@ export class RocketLeagueCommands extends AbstractCommands {
 
     private async rocketLeagueTournaments(interaction: ChatInputCommandInteraction<CacheType>) {
         const data = await this.getRocketLeagueTournaments()
-
-        this.messageHelper.replyToInteraction(interaction, data.embed)
-        this.messageHelper.sendMessage(interaction.channelId, { components: [data.buttons] })
+        if (data) {
+            this.messageHelper.replyToInteraction(interaction, data.embed)
+            this.messageHelper.sendMessage(interaction.channelId, { components: [data.buttons] })
+        } else {
+            this.messageHelper.replyToInteraction(interaction, 'Trigger DayJobs...', {ephemeral: true})
+        }
     }
 
     private async getRocketLeagueTournaments(): Promise<{ embed: EmbedBuilder; buttons: ActionRowBuilder<ButtonBuilder> }> {
         const storage = await this.client.database.getStorage()
         const currentTournaments = storage?.rocketLeagueTournaments?.tournaments
-        if (currentTournaments) {
+        if (currentTournaments && DateUtils.isToday(new Date(currentTournaments[0].starts))) {
             return {
                 buttons: RocketLeagueCommands.getButtonRow(currentTournaments),
                 embed: RocketLeagueCommands.getEmbed(),
             }
+        } else {
+            this.messageHelper.sendLogMessage('Fant ikke RL Tournaments i storage. Forsøker å hente dem fra API.')
+            const dayJobs = new DailyJobs(this.messageHelper, this.client)
+            dayJobs.updateRLTournaments(rapidApiKey)
         }
         return undefined
     }
