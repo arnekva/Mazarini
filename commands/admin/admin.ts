@@ -173,7 +173,7 @@ export class Admin extends AbstractCommands {
             `\nAntall servere tilkoblet: ${this.client.guilds.cache.size}` +
             `\nForrige oppdatering av storage: <t:${storage?.updateTimer}:R>` +
             `\nKjørt siden: <t:${moment(start).unix()}:R>`
-        this.messageHelper.replyToInteraction(interaction, statsReply, {hasBeenDefered: true})
+        this.messageHelper.replyToInteraction(interaction, statsReply, { hasBeenDefered: true })
     }
 
     private async buildSendModal(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -253,6 +253,7 @@ export class Admin extends AbstractCommands {
         )}. Henter data fra Git og restarter botten ...`
         const msg = await this.messageHelper.sendLogMessage(restartMsg)
         const commitId = await this.client.database.getBotData('commit-id')
+        await this.client.onRestart()
         await exec(`git pull && pm2 restart mazarini -- --restartedForGit --${commitId}`, async (error, stdout, stderr) => {
             if (error) {
                 restartMsg += `\nKlarte ikke restarte: \n${error}`
@@ -284,8 +285,6 @@ export class Admin extends AbstractCommands {
         const schedule = modalInteraction.fields.getTextInputValue('scheduledDate')
         const date = moment(schedule, 'DD-MM-YYYY HH:mm')
         if (schedule) {
-            console.log(date)
-
             this.messageHelper.scheduleMessage(text, chatID, date)
             this.messageHelper.replyToInteraction(
                 modalInteraction,

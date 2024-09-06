@@ -312,6 +312,15 @@ export class DatabaseHelper {
         updates[`/other/deathrollPot`] = amount
         this.db.updateData(updates)
     }
+    public saveDeathrollGames(games: DRGame[]) {
+        const updates = {}
+        updates[`/other/deathrollGames`] = games
+        this.db.updateData(updates)
+    }
+
+    public async getDeathrollGames() {
+        return (await this.db.getData('/other/deathrollGames')) as DRGame[]
+    }
 
     public async resetWeeklyDeathrollStats() {
         const users = await this.getAllUsers()

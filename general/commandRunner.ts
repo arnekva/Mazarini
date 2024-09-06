@@ -44,7 +44,8 @@ export class CommandRunner {
 
             await this.client.tracker.trackEmojiStats(message)
 
-            if (message.channelId === ChannelIds.VINMONOPOLET) // legg til  {|| environment === 'dev'} i if-en hvis bilder skal sjekkes i localhost
+            if (message.channelId === ChannelIds.VINMONOPOLET)
+                // legg til  {|| environment === 'dev'} i if-en hvis bilder skal sjekkes i localhost
                 PoletCommands.checkForVinmonopolContent(message, this.client.messageHelper)
         } catch (error) {
             this.client.messageHelper.sendLogMessage(
@@ -129,6 +130,10 @@ export class CommandRunner {
 
             return undefined
         }
+    }
+
+    async runSave() {
+        return await this.commands.doSaveAllCommands()
     }
 
     async checkIfBlockedByJail(interaction: Interaction<CacheType>) {

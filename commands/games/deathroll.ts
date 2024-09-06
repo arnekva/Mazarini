@@ -30,8 +30,26 @@ export class Deathroll extends AbstractCommands {
 
     constructor(client: MazariniClient) {
         super(client)
-        this.drGames = new Array<DRGame>()
+
+        this.setGamesFromDB()
         this.retrieveDeathrollPot()
+    }
+
+    private setGamesFromDB() {
+        setTimeout(async () => {
+            const oldGames = await this.fetchSavedGames()
+
+            if (oldGames) this.drGames = oldGames
+            else this.drGames = new Array<DRGame>()
+        }, 5000)
+    }
+
+    public saveActiveGamesToDatabase() {
+        this.client.database.saveDeathrollGames(this.drGames)
+    }
+
+    private async fetchSavedGames() {
+        return await this.client.database.getDeathrollGames()
     }
 
     private retrieveDeathrollPot() {
@@ -42,7 +60,7 @@ export class Deathroll extends AbstractCommands {
 
     private async rollDice(interaction: ChatInputCommandInteraction<CacheType>) {
         const diceTarget = interaction.options.get('sider')?.value as number
-        if (diceTarget > 99999999999) {
+        if (diceTarget > 9999999999) {
             this.messageHelper.replyToInteraction(interaction, `Du kan ikke trille en terning med mer enn 11 sifre`, { ephemeral: true })
         } else if (diceTarget <= 0)
             this.messageHelper.replyToInteraction(interaction, `Du kan ikke trille en terning med mindre enn 1 side`, { ephemeral: true })
@@ -99,7 +117,7 @@ export class Deathroll extends AbstractCommands {
                 }
             }
             const bold = (game?.players?.length ?? 0) == 1 ? '**' : ''
-            const waitTme = (roll == 1 && Math.random() < (diceTarget/1000)) ? 5000 : 0 // Økende sannsynlighet for å bli tomasa jo større tapet er
+            const waitTme = roll == 1 && Math.random() < diceTarget / 1000 ? 5000 : 0 // Økende sannsynlighet for å bli tomasa jo større tapet er
             setTimeout(() => {
                 this.messageHelper.replyToInteraction(interaction, `${bold}${roll} *(1 - ${diceTarget})*${bold}  ${additionalMessage}`, {
                     sendAsSilent: (game?.players?.length ?? 2) > 1,
@@ -134,7 +152,8 @@ export class Deathroll extends AbstractCommands {
     }
 
     private checkForReward(roll: number, diceTarget: number) {
-        if (roll == 9 && diceTarget == 11 && Math.random() < 0.5) { // 50% sjanse for minus i potten ved 9-11
+        if (roll == 9 && diceTarget == 11 && Math.random() < 0.5) {
+            // 50% sjanse for minus i potten ved 9-11
             const removed = this.rewardPot >= 2977 ? 2977 : this.rewardPot
             this.rewardPot -= removed
             if (removed > 0) this.saveRewardPot()
@@ -267,7 +286,9 @@ export class Deathroll extends AbstractCommands {
     }
 
     private getActiveGameForUser(userID: string) {
-        return this.drGames.find((game) => game.players.length > 1 && game.players.some((player) => player.userID == userID && this.isPlayersTurn(game, player)))
+        return this.drGames?.find(
+            (game) => game.players.length > 1 && game.players.some((player) => player.userID == userID && this.isPlayersTurn(game, player))
+        )
     }
 
     private isPlayersTurn(game: DRGame, currentPlayer: DRPlayer) {
@@ -302,6 +323,11 @@ export class Deathroll extends AbstractCommands {
         })
         embed.addFields(fields)
         this.messageHelper.replyToInteraction(interaction, embed)
+    }
+
+    override async onSave() {
+        await this.saveActiveGamesToDatabase()
+        return true
     }
 
     getAllInteractions(): IInteractionElement {

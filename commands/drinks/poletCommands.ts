@@ -11,7 +11,7 @@ import {
 } from 'discord.js'
 import moment from 'moment'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
-import { vinBearer, vinKey, vinUserAgent, vinmonopoletKey } from '../../client-env'
+import { vinBearer, vinKey, vinmonopoletKey, vinUserAgent } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 
 import { Languages } from '../../helpers/languageHelpers'
@@ -114,7 +114,6 @@ export class PoletCommands extends AbstractCommands {
 
     static async fetchScore(barCode: string) {
         //TODO: Allow normal search if no barcode (i.e. search for product id) https://wines-ws.vinify.app/wines/search/4878001
-        console.log('trying to fetch')
 
         const data = await FetchUtils.fetchWithTimeout(`https://wines-ws.vinify.app/wines?gtin=${barCode}`, {
             method: 'GET',

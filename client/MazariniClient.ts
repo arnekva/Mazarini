@@ -1,17 +1,17 @@
 import { Client } from 'discord.js'
 import { initializeApp } from 'firebase/app'
-import { JobScheduler } from '../Jobs/jobScheduler'
 import { CommandBuilder } from '../builders/commandBuilder/commandBuilder'
 import { environment, firebaseConfig } from '../client-env'
+import { JobScheduler } from '../Jobs/jobScheduler'
 
 import { MazariniTracker } from '../general/mazariniTracker'
 import { LockingHandler } from '../handlers/lockingHandler'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { FirebaseHelper } from '../helpers/firebaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { MoneyHelper } from '../helpers/moneyHelper'
 import { MazariniStorage } from '../interfaces/database/databaseInterface'
 import { ClientListener } from './ClientListeners'
-import { MoneyHelper } from '../helpers/moneyHelper'
 
 const Discord = require('discord.js')
 
@@ -74,6 +74,13 @@ export class MazariniClient extends Client {
             //Uncomment to run command creation
             CommandBuilder.createCommands(this)
         }
+    }
+
+    /** This will run before a restart happens */
+    async onRestart(): Promise<boolean> {
+        this.messageHelper.sendLogMessage('Running Save for all command classes')
+        await this.clientListener.commandRunner.runSave()
+        return true
     }
 
     get messageHelper() {

@@ -8,8 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '17.3.3'
-    public static readonly currentPatchNotes = `\n* Du kan ikke lenger trille terninger med mer enn 11 siffer`
+    public static readonly currentVersion = '17.4.0'
+    public static readonly currentPatchNotes = `\n* Deathroll games lagres nå slik at restarter av botten ikke lenger påvirker spillene`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 

@@ -1,6 +1,5 @@
 import { MazariniClient } from '../client/MazariniClient'
 import { Admin } from '../commands/admin/admin'
-import { TrelloCommands } from '../commands/trello/trelloCommands'
 import { DateCommands } from '../commands/dateCommands'
 import { DrinksCommands } from '../commands/drinks/drinksCommands'
 import { PoletCommands } from '../commands/drinks/poletCommands'
@@ -19,7 +18,9 @@ import { GamblingCommands } from '../commands/money/gamblingCommands'
 import { MoneyCommands } from '../commands/money/moneyCommands'
 import { Spinner } from '../commands/money/spinner'
 import { NameCommands } from '../commands/nameCommands'
+import { TrelloCommands } from '../commands/trello/trelloCommands'
 
+import { Blackjack } from '../commands/games/blackjack'
 import { PollCommands } from '../commands/pollcommands'
 import { Music } from '../commands/sound/musicCommands'
 import { SoundCommands } from '../commands/sound/soundCommands'
@@ -31,7 +32,6 @@ import { UserCommands } from '../commands/user/userCommands'
 import { Weather } from '../commands/weatherCommands'
 import { IInteractionElement } from '../interfaces/interactionInterface'
 import { PatchNotes } from '../patchnotes'
-import { Blackjack } from '../commands/games/blackjack'
 
 export class Commands {
     private client: MazariniClient
@@ -138,6 +138,40 @@ export class Commands {
             this.deathroll.getAllInteractions(),
             this.blackjack.getAllInteractions(),
         ]
+    }
+
+    async doSaveAllCommands() {
+        this.spinner.onSave()
+        this.jokeCommands.onSave()
+        this.adminCommands.onSave()
+        this.gamblingCommands.onSave()
+        this.crimeCommands.onSave()
+        this.moneyCommands.onSave()
+        this.dateCommands.onSave()
+        this.callOfDutyCommands.onSave()
+        this.patchNotes.onSave()
+        this.spotifyCommands.onSave()
+        this.testCommands.onSave()
+        this.musicCommands.onSave()
+        this.memeCommands.onSave()
+        this.userCommands.onSave()
+        this.pollCommands.onSave()
+        this.weatherCommands.onSave()
+        this.soundCommands.onSave()
+        this.cardCommands.onSave()
+        this.drinksCommands.onSave()
+        this.nameCommands.onSave()
+        this.poletCommands.onSave()
+        this.linkCommands.onSave()
+        this.textCommands.onSave()
+        this.redBlackCommands.onSave()
+        this.trelloCommands.onSave()
+        this.ludo.onSave()
+        this.rocketLeagueCommands.onSave()
+        this.vivinoCommands.onSave()
+        this.statsCommands.onSave()
+        await this.deathroll.onSave()
+        this.blackjack.onSave()
     }
 
     getAllTextCommands() {
