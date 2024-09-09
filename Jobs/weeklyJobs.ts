@@ -17,7 +17,7 @@ export class WeeklyJobs {
         this.client = client
     }
     async runJobs() {
-        const embed = EmbedUtils.createSimpleEmbed(`Weekly Jobs`, `Kjører 4 jobber`)
+        const embed = EmbedUtils.createSimpleEmbed(`Weekly Jobs`, `Kjører 5 jobber`)
         const weeklyPayout = await this.awardWeeklyChips()
         embed.addFields({ name: 'NAV-Penger', value: EmojiHelper.getStatusEmoji(weeklyPayout) })
         const polet = await this.checkPoletHours()
