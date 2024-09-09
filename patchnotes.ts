@@ -8,8 +8,10 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '17.4.0'
-    public static readonly currentPatchNotes = `\n* Deathroll games lagres nå slik at restarter av botten ikke lenger påvirker spillene`
+    public static readonly currentVersion = '17.5.0'
+    public static readonly currentPatchNotes = `\n* Fikset en bug som gjorde at deathroll games kunne henge seg opp og bli unplayable`
+                                             + `\n* Høie sender nå en knapp hver morgen som man kan trykke på for å claime daily`
+                                             + `\n* Fjernet required parameter på /rocket. Nå vises alle stats hvis man ikke spesifiserer en gruppe`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 

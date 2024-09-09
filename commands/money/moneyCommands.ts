@@ -1,4 +1,4 @@
-import { CacheType, ChatInputCommandInteraction, EmbedBuilder, Interaction } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, EmbedBuilder, Interaction } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 
@@ -6,8 +6,9 @@ import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
 import { DailyReward } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
-import { MentionUtils } from '../../utils/mentionUtils'
+import { ChannelIds, MentionUtils } from '../../utils/mentionUtils'
 import { TextUtils } from '../../utils/textUtils'
+import { MessageHelper } from '../../helpers/messageHelper'
 
 export class MoneyCommands extends AbstractCommands {
     constructor(client: MazariniClient) {
@@ -68,8 +69,8 @@ export class MoneyCommands extends AbstractCommands {
     }
 
     /** Missing streak counter and increased reward */
-    private async handleDailyClaimInteraction(interaction: ChatInputCommandInteraction<CacheType>) {
-        const numDays = Number(interaction.options.get('dager')?.value)
+    private async handleDailyClaimInteraction(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+        const numDays = interaction.isButton() ? undefined : Number(interaction.options.get('dager')?.value)
 
         if (!numDays) {
             const reply = await this.claimDailyChipsAndCoins(interaction)
@@ -80,7 +81,7 @@ export class MoneyCommands extends AbstractCommands {
         }
     }
 
-    private async claimDailyChipsAndCoins(interaction: ChatInputCommandInteraction<CacheType>): Promise<EmbedBuilder> {
+    private async claimDailyChipsAndCoins(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>): Promise<EmbedBuilder> {
         const embed = new EmbedBuilder()
         embed.setTitle(`📅  Daily  🗓️`)
 
@@ -167,6 +168,19 @@ export class MoneyCommands extends AbstractCommands {
         return undefined
     }
 
+    static sendDailyClaimButton(msgHelper: MessageHelper) {
+        const dailyClaimButton = new ActionRowBuilder<ButtonBuilder>().addComponents(
+            new ButtonBuilder({
+                custom_id: `DAILY_CLAIM`,
+                style: ButtonStyle.Primary,
+                label: `Claim daily reward`,
+                disabled: false,
+                type: 2,
+            })
+        )
+        msgHelper.sendMessage(ChannelIds.LAS_VEGAS, {components: [dailyClaimButton]}, {sendAsSilent: true})
+    }
+
     getAllInteractions(): IInteractionElement {
         return {
             commands: {
@@ -190,7 +204,17 @@ export class MoneyCommands extends AbstractCommands {
                         },
                     },
                 ],
+                buttonInteractionComands: [
+                    {
+                        commandName: 'DAILY_CLAIM',
+                        command: (interaction: ButtonInteraction<CacheType>) => {
+                            this.handleDailyClaimInteraction(interaction)
+                        },
+                    },
+                ]
             },
         }
     }
+    
 }
+

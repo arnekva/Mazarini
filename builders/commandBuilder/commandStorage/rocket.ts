@@ -10,7 +10,7 @@ export const rocketCommand: ISlashCommandItem = {
             name: 'modus',
             description: 'Hvilke stats vil du hente?',
             type: ApplicationCommandOptionType.String,
-            required: true,
+            required: false,
             choices: [
                 { name: '1v1', value: '1v1' },
                 { name: '2v2', value: '2v2' },

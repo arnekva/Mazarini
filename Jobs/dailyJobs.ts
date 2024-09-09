@@ -10,6 +10,7 @@ import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { ChannelIds } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
+import { MoneyCommands } from '../commands/money/moneyCommands'
 export class DailyJobs {
     private messageHelper: MessageHelper
     private client: MazariniClient
@@ -131,6 +132,7 @@ export class DailyJobs {
             updates[updatePath] = daily
         })
         this.client.database.updateData(updates)
+        MoneyCommands.sendDailyClaimButton(this.messageHelper)
         return status
     }
 
