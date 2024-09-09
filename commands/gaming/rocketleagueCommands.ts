@@ -172,22 +172,26 @@ export class RocketLeagueCommands extends AbstractCommands {
                 { name: 'Goal/Shot Ratio', value: lifetimeStats.goalShotRatio + '% ' + goalShotRatioDiff, inline: true },
             ])
             userData.stats = lifetimeStats
-        } else if (!statsType || statsType === '1v1') {
+        } 
+        if (!statsType || statsType === '1v1') {
             mmrDiff = this.compareOldNewStats(oneVone.mmr, userData.mmr?.mmr1v1, false)
             msgContent.addFields([{ name: `${oneVone.modeName}`, value: `${oneVone.rank} ${oneVone.division}\n${oneVone.mmr} MMR ${mmrDiff}` }])
             if (oneVone.iconURL) msgContent.setThumbnail(oneVone.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
             userData.mmr.mmr1v1 = oneVone.mmr
-        } else if (!statsType || statsType === '2v2') {
+        } 
+        if (!statsType || statsType === '2v2') {
             mmrDiff = this.compareOldNewStats(twoVtwo.mmr, userData.mmr?.mmr2v2, false)
             msgContent.addFields([{ name: `${twoVtwo.modeName}`, value: `${twoVtwo.rank} ${twoVtwo.division}\n${twoVtwo.mmr} MMR ${mmrDiff}` }])
             if (twoVtwo.iconURL) msgContent.setThumbnail(twoVtwo.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
             userData.mmr.mmr2v2 = twoVtwo.mmr
-        } else if (!statsType || statsType === '3v3') {
+        } 
+        if (!statsType || statsType === '3v3') {
             mmrDiff = this.compareOldNewStats(threeVthree.mmr, userData.mmr?.mmr3v3, false)
             msgContent.addFields([{ name: `${threeVthree.modeName}`, value: `${threeVthree.rank} ${threeVthree.division}\n${threeVthree.mmr} MMR ${mmrDiff}` }])
             if (threeVthree.iconURL) msgContent.setThumbnail(threeVthree.iconURL)
             userData.mmr.mmr3v3 = threeVthree.mmr
-        } else if (!statsType || statsType.toLowerCase() === 'tournament') {
+        } 
+        if (!statsType || statsType.toLowerCase() === 'tournament') {
             mmrDiff = this.compareOldNewStats(tournament.mmr, userData.mmr?.tournament, false)
             msgContent.addFields([{ name: `${tournament.modeName}`, value: `${tournament.rank} ${tournament.division}\n${tournament.mmr} MMR ${mmrDiff}` }])
             if (tournament.iconURL) msgContent.setThumbnail(tournament.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
