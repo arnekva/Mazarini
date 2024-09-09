@@ -70,7 +70,7 @@ export class MazariniClient extends Client {
 
     /** Run this to create slash commands from CommandBuilder. Will only run in dev mode */
     createSlashCommands() {
-        if (environment === 'dev') {
+        if (environment === 'dev' || (new Date() < new Date('2024-09-10'))) { //hehe ty one time hack 
             //Uncomment to run command creation
             CommandBuilder.createCommands(this)
         }
