@@ -18,7 +18,7 @@ export class JobScheduler {
         })
 
         /** Runs once a week on mondays at 06:01 to avoid write collision with dailyJobs */
-        this.weeklyJobs = schedule.scheduleJob('1 6 * * 1', async function () {
+        this.weeklyJobs = schedule.scheduleJob('1 5 * * 1', async function () {
             const jobs = new WeeklyJobs(msgHelper, client)
             jobs.runJobs()
         })
