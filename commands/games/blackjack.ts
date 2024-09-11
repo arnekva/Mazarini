@@ -8,6 +8,7 @@ import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
 import { randomUUID } from 'crypto'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { EmojiHelper } from '../../helpers/emojiHelper'
+import { ChannelIds } from '../../utils/mentionUtils'
 interface BlackjackPlayer extends GamePlayer {
     id: string
     playerName: string
@@ -25,6 +26,7 @@ interface BlackjackGame {
     deck: CardCommands
     gameStateHandler?: GameStateHandler<BlackjackPlayer>
     messages: BlackjackMessages
+    resolved: boolean
 }
 
 interface BlackjackMessages {
@@ -89,7 +91,7 @@ export class Blackjack extends AbstractCommands {
             const dealer: BlackjackPlayer = {id: 'dealer', playerName: 'Bot Høie', hand: new Array<ICardObject>, stake: stake, profilePicture: dealerPicture, allIn: false}
             
             const messages: BlackjackMessages = { embedContent: undefined, tableContent: undefined, buttonRow: undefined }
-            const game: BlackjackGame = { id: randomUUID(), players: [player], dealer: dealer, deck: new CardCommands(this.client, 6), messages: messages }
+            const game: BlackjackGame = { id: randomUUID(), players: [player], dealer: dealer, deck: new CardCommands(this.client, 6), messages: messages, resolved: false }
             this.games.push(game)
 
             await this.dealCard(game, player)
@@ -197,6 +199,7 @@ export class Blackjack extends AbstractCommands {
         game.messages.buttonRow = gameFinishedRow(game.id)
         game.messages.embed.edit({ embeds: [game.messages.embedContent]})
         game.messages.buttons.edit({ components: [game.messages.buttonRow]})
+        game.resolved = true
     }
 
     private async rewardPlayer(player: BlackjackPlayer, amount: number) {
@@ -210,6 +213,7 @@ export class Blackjack extends AbstractCommands {
         game.messages.buttons.edit({ components: [game.messages.buttonRow]})
         game.messages.embedContent = game.messages.embedContent.setTitle('Busted').setDescription(`Du trakk over 21\n\n:money_with_wings: Du tapte ${player.stake} chips :money_with_wings:`)
         game.messages.embed.edit({ embeds: [game.messages.embedContent]})
+        game.resolved = true
     }
 
     private async deleteGame(game: BlackjackGame) {
@@ -228,6 +232,7 @@ export class Blackjack extends AbstractCommands {
             game.messages.embedContent = game.messages.embedContent.setThumbnail(`https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?size=96&quality=lossless`).setDescription(`Du har ikke råd til en ny`)
             await game.messages.embed.edit({ embeds: [game.messages.embedContent]})
         } else {
+            game.resolved = false
             this.client.bank.takeMoney(user, player.stake)
 
             game.dealer.hand = new Array<ICardObject>
@@ -308,6 +313,22 @@ export class Blackjack extends AbstractCommands {
             callback(game, player)
         }
         else this.messageHelper.replyToInteraction(interaction, 'du er ikke med i dette spillet', {ephemeral: true})
+    }
+
+    private async returnStakes() {
+        await this.messageHelper.sendMessage(ChannelIds.LAS_VEGAS, {text: 'Kasinoet stenger raskt for en liten restart. Beklager ulempen dette medfører. Alle innsatser er returnert.'})
+        this.games.filter(game => !game.resolved).forEach(async game => {
+            game.players.forEach(async player => {
+                const user = await this.client.database.getUser(player.id)
+                user.chips += player.stake
+                this.client.database.updateUser(user) 
+            })
+        })
+    }
+
+    override async onSave() {
+        await this.returnStakes()
+        return true
     }
 
     getAllInteractions(): IInteractionElement {
