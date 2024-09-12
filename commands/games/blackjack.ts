@@ -316,13 +316,15 @@ export class Blackjack extends AbstractCommands {
     }
 
     private async returnStakes() {
-        await this.messageHelper.sendMessage(ChannelIds.LAS_VEGAS, {text: 'Kasinoet stenger raskt for en liten restart. Beklager ulempen dette medfører. Alle innsatser er returnert.'})
         this.games.filter(game => !game.resolved).forEach(async game => {
             game.players.forEach(async player => {
                 const user = await this.client.database.getUser(player.id)
                 user.chips += player.stake
                 this.client.database.updateUser(user) 
+                game.messages.embedContent = game.messages.embedContent.setTitle('Stengt').setDescription(`Kasinoet ble dessverre uanmeldt stengt av en /restart. Du har fått tilbake dine ${player.stake} chips`)
             })
+            await game.messages.embed.edit({ embeds: [game.messages.embedContent]})
+            await this.deleteGame(game)
         })
     }
 
