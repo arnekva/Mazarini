@@ -9,7 +9,7 @@ import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
     public static readonly currentVersion = '17.5.2'
-    public static readonly currentPatchNotes = `\n* Deathroll games lagres nå slik at restarter av botten ikke lenger påvirker spillene`
+    public static readonly currentPatchNotes = `\n* Fikset en feil som gjorde at trill under 10 i Terning talt som "like tall" og derfor ga chips`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
