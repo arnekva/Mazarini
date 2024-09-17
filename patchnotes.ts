@@ -8,8 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '17.5.1'
-    public static readonly currentPatchNotes = `\n* Returnerer nå innsatser i blackjack dersom det er aktive games ved en restart`
+    public static readonly currentVersion = '17.5.2'
+    public static readonly currentPatchNotes = `\n* Deathroll games lagres nå slik at restarter av botten ikke lenger påvirker spillene`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
