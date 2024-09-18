@@ -8,8 +8,11 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '17.5.3'
-    public static readonly currentPatchNotes = `\n* Pickpocket sannsynlighet tilsvarer nå andelen av offeret sine chips man prøver å stjele`
+    public static readonly currentVersion = '17.6.0'
+    public static readonly currentPatchNotes = `\n* Du kan nå velge om du vil prøve å rømme fra fengsel, eller om du vil forsøke å frame-e noen andre`
+                                             + `\n  * Rømningsforsøk har en 1/6 sjanse for å lykkes`
+                                             + `\n  * Frame-forsøk har en 1/10 sjanse for å lykkes`
+                                             + `\n* Pickpocket sannsynlighet har blitt endret og tilsvarer nå andelen av offeret sine chips man prøver å stjele`
                                              + `\n  * Stjele 100 av 1000 chips har 90% successrate`
                                              + `\n  * Stjele 50 000 av 100 000 har 50% successrate`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion

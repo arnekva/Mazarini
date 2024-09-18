@@ -49,6 +49,8 @@ export interface UserJail {
     jailState?: JailState
     /** Counter for how many times a user has been jailed today. Used to calculate next sentence state */
     timesJailedToday?: number
+    //** Counter of attempted frame jobs current day */
+    attemptedFrameJobs?: number
 }
 
 export interface MazariniUser {

@@ -1,6 +1,7 @@
 import { blackjackCommand } from './commandStorage/blackjack'
 import { countdownCommand } from './commandStorage/countdown'
 import { deathrollCommand } from './commandStorage/deathroll'
+import { frameCommand } from './commandStorage/frame'
 import { jailCommand } from './commandStorage/jail'
 import { jailbreakCommand } from './commandStorage/jailbreak'
 import { ludoCommand } from './commandStorage/ludo'
@@ -46,4 +47,5 @@ export namespace CommandStorage {
     export const RocketCommand = rocketCommand
     export const BlackjackCommand = blackjackCommand
     export const DeathrollCommand = deathrollCommand
+    export const FrameCommand = frameCommand
 }

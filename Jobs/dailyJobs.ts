@@ -168,6 +168,7 @@ export class DailyJobs {
                 }
                 user.jail.attemptedJailbreaks = 0
                 user.jail.timesJailedToday = 0
+                user.jail.attemptedFrameJobs = 0
                 const updatePath = this.client.database.getUserPathToUpdate(user.id, 'jail')
                 updates[updatePath] = user.jail
                 status = 'success'

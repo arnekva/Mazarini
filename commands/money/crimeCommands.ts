@@ -18,6 +18,7 @@ export class CrimeCommands extends AbstractCommands {
         super(client)
     }
     static jailBreakAttempts = 1
+    static frameJobAttempts = 1
 
     private async checkBalance(userID: string[], amountAsNumber: number): Promise<boolean> {
         let notEnough = false
@@ -226,7 +227,7 @@ export class CrimeCommands extends AbstractCommands {
     }
 
     private async pickpocket(interaction: ChatInputCommandInteraction<CacheType>) {
-        const target = interaction.options.get('bruker')?.user
+        const target = interaction.options.get('user')?.user
         const amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('chips')?.value)
         const amountAsNum = Number(amount)
 
@@ -271,7 +272,7 @@ export class CrimeCommands extends AbstractCommands {
             if (nextJailState === 'solitairy') jailTypeString = '\nDu e nå i Solitairy Confinement, og kan ikkje lenger rømma'
             const siren = await EmojiHelper.getEmoji('redbluesiren', interaction)
             let embed = EmbedUtils.createSimpleEmbed(
-                `${siren.id}  Caught in 4K ${siren.id}`,
+                `${siren.id} Caught in 4K ${siren.id}`,
                 `${MentionUtils.mentionUser(engager.id)} har blitt tatt i å prøva å stjela ${TextUtils.formatMoney(amountAsNum)} fra ${MentionUtils.mentionUser(
                     victim.id
                 )}` +
@@ -375,6 +376,10 @@ export class CrimeCommands extends AbstractCommands {
             this.messageHelper.replyToInteraction(interaction, `Du har bare ${CrimeCommands.jailBreakAttempts} rømningsforsøk per dag itte fengsling`, {
                 ephemeral: true,
             })
+        } else if ((prisoner.jail.attemptedFrameJobs ?? 0) >= CrimeCommands.frameJobAttempts) {
+            this.messageHelper.replyToInteraction(interaction, `Du har allerede prøvd å legge skylden på noen andre`, {
+                ephemeral: true,
+            })
         } else {
             if (isBribe) {
                 const userChips = prisoner.chips
@@ -433,6 +438,63 @@ export class CrimeCommands extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, someoneInJail ? formattedMsg : 'Det er ingen i fengsel atm')
     }
 
+    private async frameSomeone(interaction: ChatInputCommandInteraction<CacheType>) {
+        const user = await this.client.database.getUser(interaction.user.id)
+        const targetUser = interaction.options.get('user')?.user        
+        const target = await this.client.database.getUser(targetUser.id)
+        const userDaysLeftInJail = user?.jail?.daysInJail
+        const targetDaysLeftInJail = target?.jail?.daysInJail
+        const roll = Math.random()
+        if (!(userDaysLeftInJail && !isNaN(userDaysLeftInJail) && userDaysLeftInJail > 0)) {
+            return this.messageHelper.replyToInteraction(interaction, 'Du er ikke i fengsel, bro', { ephemeral: true })
+        } else if (targetDaysLeftInJail && !isNaN(targetDaysLeftInJail) && targetDaysLeftInJail > 0) {
+            return this.messageHelper.replyToInteraction(interaction, `${targetUser.username} er allerede i fengsel med deg`, { ephemeral: true })
+        } else if ((user.jail.attemptedJailbreaks ?? 0) >= CrimeCommands.jailBreakAttempts) {
+            this.messageHelper.replyToInteraction(interaction, `Ingen tror på deg når du allerede har prøvd å rømme i dag`, {
+                ephemeral: true,
+            })
+        } else if ((user.jail.attemptedFrameJobs ?? 0) >= CrimeCommands.frameJobAttempts) {
+            this.messageHelper.replyToInteraction(interaction, `Du har allerede prøvd å legge skylden på noen andre`, {
+                ephemeral: true,
+            })
+        } else if (roll < 0.1) {
+            user.jail.daysInJail = 0
+            user.jail.attemptedFrameJobs += 1
+            this.client.database.updateUser(user)
+            const prevJailState = target.jail?.jailState
+            let nextJailState: JailState = 'standard'
+            if (target.jail?.timesJailedToday > 0) {
+                if (prevJailState === 'none') nextJailState = 'standard'
+                if (prevJailState === 'standard') nextJailState = 'max'
+                if (prevJailState === 'max') nextJailState = 'solitairy'
+            }
+            target.jail = {
+                daysInJail: 4,
+                jailState: nextJailState,
+                timesJailedToday: ++target.jail.timesJailedToday,
+            }
+            this.client.database.updateUser(target)
+            let jailTypeString = ``
+            if (nextJailState === 'max') jailTypeString = '\nDu e nå i Maximum Security, og får ikkje lenger gratis rømningsforsøk.'
+            if (nextJailState === 'solitairy') jailTypeString = '\nDu e nå i Solitairy Confinement, og kan ikkje lenger rømma'
+            const siren = await EmojiHelper.getEmoji('redbluesiren', interaction)
+            let embed = EmbedUtils.createSimpleEmbed(
+                `${siren.id} Nye bevis ${siren.id}`,
+                `${MentionUtils.mentionUser(user.id)} løslates med umiddelbar virkning da nye bevis har kommet frem! ` +
+                    `\n:lock: ${MentionUtils.mentionUser(target.id)} var den faktiske skyldige og dømmes dermed te ${target.jail.daysInJail} dager i fengsel :lock:`
+                    + jailTypeString
+            )
+            this.messageHelper.replyToInteraction(interaction, 'Beklager så mye for misforståelsen', {ephemeral: true})
+            this.messageHelper.sendMessage(interaction.channelId, {embed: embed})          
+        } else {
+            const prevAttempts = user.jail.attemptedFrameJobs
+            user.jail.attemptedFrameJobs = prevAttempts && !isNaN(prevAttempts) ? prevAttempts + 1 : 1
+            this.client.database.updateUser(user)
+            return this.messageHelper.replyToInteraction(interaction, 'Ingen tror på deg.', { ephemeral: true })
+        }
+        
+    }
+
     getAllInteractions(): IInteractionElement {
         return {
             commands: {
@@ -462,6 +524,12 @@ export class CrimeCommands extends AbstractCommands {
                         commandName: 'jail',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                             this.printPrisoners(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'frame',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.frameSomeone(rawInteraction)
                         },
                     },
                 ],
