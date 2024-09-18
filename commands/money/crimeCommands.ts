@@ -440,7 +440,7 @@ export class CrimeCommands extends AbstractCommands {
 
     private async frameSomeone(interaction: ChatInputCommandInteraction<CacheType>) {
         const user = await this.client.database.getUser(interaction.user.id)
-        const targetUser = interaction.options.get('user')?.user        
+        const targetUser = interaction.options.get('bruker')?.user        
         const target = await this.client.database.getUser(targetUser.id)
         const userDaysLeftInJail = user?.jail?.daysInJail
         const targetDaysLeftInJail = target?.jail?.daysInJail
