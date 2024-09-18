@@ -227,7 +227,7 @@ export class CrimeCommands extends AbstractCommands {
     }
 
     private async pickpocket(interaction: ChatInputCommandInteraction<CacheType>) {
-        const target = interaction.options.get('user')?.user
+        const target = interaction.options.get('bruker')?.user
         const amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('chips')?.value)
         const amountAsNum = Number(amount)
 
