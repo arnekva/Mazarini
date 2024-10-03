@@ -26,7 +26,7 @@ import { PollCommands } from '../commands/pollcommands'
 import { Music } from '../commands/sound/musicCommands'
 import { SoundCommands } from '../commands/sound/soundCommands'
 import { SpotifyCommands } from '../commands/sound/spotifyCommands'
-import { TestCommands } from '../commands/test/testCommands'
+// import { TestCommands } from '../commands/test/testCommands'
 import { TextCommands } from '../commands/textCommands'
 import { LinkCommands } from '../commands/user/linkCommands'
 import { UserCommands } from '../commands/user/userCommands'
@@ -47,7 +47,7 @@ export class Commands {
     private jokeCommands: JokeCommands
     private callOfDutyCommands: CallOfDutyCommands
     private spotifyCommands: SpotifyCommands
-    private testCommands: TestCommands
+    // private testCommands: TestCommands
     private musicCommands: Music
     private memeCommands: MemeCommands
     private userCommands: UserCommands
@@ -83,7 +83,7 @@ export class Commands {
         this.jokeCommands = new JokeCommands(this.client)
         this.callOfDutyCommands = new CallOfDutyCommands(this.client)
         this.spotifyCommands = new SpotifyCommands(this.client)
-        this.testCommands = new TestCommands(this.client)
+        // this.testCommands = new TestCommands(this.client)
         this.musicCommands = new Music(this.client)
         this.memeCommands = new MemeCommands(this.client)
         this.userCommands = new UserCommands(this.client)
@@ -121,7 +121,7 @@ export class Commands {
             this.callOfDutyCommands.getAllInteractions(),
             this.patchNotes.getAllInteractions(),
             this.spotifyCommands.getAllInteractions(),
-            this.testCommands.getAllInteractions(),
+            // this.testCommands.getAllInteractions(),
             this.musicCommands.getAllInteractions(),
             this.memeCommands.getAllInteractions(),
             this.userCommands.getAllInteractions(),
@@ -158,7 +158,7 @@ export class Commands {
         this.callOfDutyCommands.onSave()
         this.patchNotes.onSave()
         this.spotifyCommands.onSave()
-        this.testCommands.onSave()
+        // this.testCommands.onSave()
         this.musicCommands.onSave()
         this.memeCommands.onSave()
         this.userCommands.onSave()
