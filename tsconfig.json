@@ -6,7 +6,7 @@
             "dom"
         ],
         "outDir": "bin",
-        "module": "es2020",
+        "module": "ESNext",
         "removeComments": true,
         "moduleResolution": "node",
         "typeRoots": [
