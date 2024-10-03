@@ -5,7 +5,6 @@
     "scripts": {
         "start": "nodemon index.ts",
         "add-to-start": "--exec \"npm run lint && node index\"",
-        "start:bg": "pm2 --name mazarini start index.ts",
         "start:bg": "pm2 --name mazarini start index.ts --watch",
         "start:crashed": "pm2 delete mazarini  && pm2 --name mazarini start index.ts -a crashed",
         "stop:bg": "pm2 delete mazarini",
