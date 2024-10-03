@@ -21,6 +21,7 @@ import { NameCommands } from '../commands/nameCommands'
 import { TrelloCommands } from '../commands/trello/trelloCommands'
 
 import { Blackjack } from '../commands/games/blackjack'
+import { DailyClaimCommands } from '../commands/money/dailyClaimCommands'
 import { PollCommands } from '../commands/pollcommands'
 import { Music } from '../commands/sound/musicCommands'
 import { SoundCommands } from '../commands/sound/soundCommands'
@@ -32,8 +33,6 @@ import { UserCommands } from '../commands/user/userCommands'
 import { Weather } from '../commands/weatherCommands'
 import { IInteractionElement } from '../interfaces/interactionInterface'
 import { PatchNotes } from '../patchnotes'
-import { LootboxCommands } from '../commands/store/lootboxCommands'
-import { DailyClaimCommands } from '../commands/money/dailyClaimCommands'
 
 export class Commands {
     private client: MazariniClient
@@ -69,7 +68,7 @@ export class Commands {
     private statsCommands: StatsCommands
     private deathroll: Deathroll
     private blackjack: Blackjack
-    private lootboxCommands: LootboxCommands
+    // private lootboxCommands: LootboxCommands
     private dailyClaimCommands: DailyClaimCommands
 
     constructor(client: MazariniClient) {
@@ -106,7 +105,7 @@ export class Commands {
         this.statsCommands = new StatsCommands(this.client)
         this.deathroll = new Deathroll(this.client)
         this.blackjack = new Blackjack(this.client)
-        this.lootboxCommands = new LootboxCommands(this.client)
+        // this.lootboxCommands = new LootboxCommands(this.client)
         this.dailyClaimCommands = new DailyClaimCommands(this.client)
     }
 
@@ -143,7 +142,7 @@ export class Commands {
             this.statsCommands.getAllInteractions(),
             this.deathroll.getAllInteractions(),
             this.blackjack.getAllInteractions(),
-            this.lootboxCommands.getAllInteractions(),
+            // this.lootboxCommands.getAllInteractions(),
             this.dailyClaimCommands.getAllInteractions(),
         ]
     }
@@ -180,7 +179,7 @@ export class Commands {
         this.statsCommands.onSave()
         await this.deathroll.onSave()
         this.blackjack.onSave()
-        this.lootboxCommands.onSave()
+        // this.lootboxCommands.onSave()
         this.dailyClaimCommands.onSave()
     }
 

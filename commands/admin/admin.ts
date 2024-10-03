@@ -5,15 +5,14 @@ import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { ClientHelper } from '../../helpers/clientHelper'
-import { dbPrefix, LootboxQuality, prefixList } from '../../interfaces/database/databaseInterface'
+import { dbPrefix, prefixList } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { DailyJobs } from '../../Jobs/dailyJobs'
 import { WeeklyJobs } from '../../Jobs/weeklyJobs'
 import { MazariniBot } from '../../main'
+import { EmbedUtils } from '../../utils/embedUtils'
 import { ChannelIds, MentionUtils } from '../../utils/mentionUtils'
 import { UserUtils } from '../../utils/userUtils'
-import { LootboxCommands } from '../store/lootboxCommands'
-import { EmbedUtils } from '../../utils/embedUtils'
 
 const { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js')
 // const { exec } = require('child_process')
@@ -245,18 +244,24 @@ export class Admin extends AbstractCommands {
         const text = `${MentionUtils.mentionUser(user.id)} har mottatt en reward på ${chips} chips på grunn av *${reason}*`
         const embed = EmbedUtils.createSimpleEmbed('Reward', text)
         this.messageHelper.replyToInteraction(interaction, embed)
-        this.messageHelper.sendLogMessage(`${user.username} har mottatt en reward på ${chips} chips på grunn av *${reason}*. Kanal: ${MentionUtils.mentionChannel(interaction.channelId)}. `)
+        this.messageHelper.sendLogMessage(
+            `${user.username} har mottatt en reward på ${chips} chips på grunn av *${reason}*. Kanal: ${MentionUtils.mentionChannel(interaction.channelId)}. `
+        )
     }
 
     private async rewardUserWithLootbox(interaction: ChatInputCommandInteraction<CacheType>) {
         const reason = interaction.options.get('reason')?.value as string
         let quality = interaction.options.get('quality')?.value as string
         const user = interaction.options.get('user')?.user
-        const lootButton = LootboxCommands.getDailyLootboxRewardButton(user.id, quality)
+        // const lootButton = LootboxCommands.getDailyLootboxRewardButton(user.id, quality)
         const text = `${MentionUtils.mentionUser(user.id)} har mottatt en reward på en ${quality} lootbox på grunn av *${reason}*`
         const embed = EmbedUtils.createSimpleEmbed('Reward', text)
-        this.messageHelper.replyToInteraction(interaction, embed, undefined, [lootButton])
-        this.messageHelper.sendLogMessage(`${user.username} har mottatt en reward på en ${quality} lootbox på grunn av *${reason}*. Kanal: ${MentionUtils.mentionChannel(interaction.channelId)}. `)
+        // this.messageHelper.replyToInteraction(interaction, embed, undefined, [lootButton])
+        this.messageHelper.sendLogMessage(
+            `${user.username} har mottatt en reward på en ${quality} lootbox på grunn av *${reason}*. Kanal: ${MentionUtils.mentionChannel(
+                interaction.channelId
+            )}. `
+        )
     }
 
     private async restartBot(interaction: ChatInputCommandInteraction<CacheType>) {

@@ -1,13 +1,28 @@
-import { ActionRowBuilder, AttachmentBuilder, AutocompleteInteraction, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, InteractionResponse, Message } from 'discord.js'
+import {
+    ActionRowBuilder,
+    AttachmentBuilder,
+    AutocompleteInteraction,
+    ButtonBuilder,
+    ButtonInteraction,
+    ButtonStyle,
+    CacheType,
+    ChatInputCommandInteraction,
+} from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
-import { IInteractionElement } from '../../interfaces/interactionInterface'
-import { ICollectableSeries, ICollectibleColorCounter, ILootbox, ItemColor, ItemRarity, IUserCollectable, LootboxQuality, MazariniUser } from '../../interfaces/database/databaseInterface'
-import { MoneyHelper } from '../../helpers/moneyHelper'
-import { RandomUtils } from '../../utils/randomUtils'
 import { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
-import { EmojiHelper } from '../../helpers/emojiHelper'
-import { TextUtils } from '../../utils/textUtils'
+import {
+    ICollectableSeries,
+    ICollectibleColorCounter,
+    ILootbox,
+    ItemColor,
+    ItemRarity,
+    IUserCollectable,
+    LootboxQuality,
+    MazariniUser,
+} from '../../interfaces/database/databaseInterface'
+import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { RandomUtils } from '../../utils/randomUtils'
 import { textArrays } from '../../utils/textArrays'
 
 export class LootboxCommands extends AbstractCommands {
@@ -17,7 +32,7 @@ export class LootboxCommands extends AbstractCommands {
 
     constructor(client: MazariniClient) {
         super(client)
-        this.imageGenerator = new ImageGenerationHelper(client)
+        // this.imageGenerator = new ImageGenerationHelper(client)
     }
 
     static getDailyLootboxRewardButton(userId: string, quality: string): ActionRowBuilder<ButtonBuilder> {
@@ -35,10 +50,9 @@ export class LootboxCommands extends AbstractCommands {
     private async openLootboxFromButton(interaction: ButtonInteraction<CacheType>) {
         const lootboxOwnerId = interaction.customId.split(';')[1]
         if (interaction.user.id === lootboxOwnerId) {
-            interaction.message.edit({components: []})
+            interaction.message.edit({ components: [] })
             await this.openAndRegisterLootbox(interaction)
-        } 
-        else this.messageHelper.replyToInteraction(interaction, 'Det er ikke din boks dessverre', {ephemeral: true})
+        } else this.messageHelper.replyToInteraction(interaction, 'Det er ikke din boks dessverre', { ephemeral: true })
     }
 
     private async openAndRegisterLootbox(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
@@ -52,7 +66,7 @@ export class LootboxCommands extends AbstractCommands {
             quality = interaction.customId.split(';')[2]
         }
         const box = await this.resolveLootbox(quality)
-        if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction)) return 
+        if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction)) return
         const rewardedItem = await this.calculateRewardItem(box, series)
         this.registerItemOnUser(user, rewardedItem)
         this.revealCollectable(interaction, rewardedItem)
@@ -60,12 +74,12 @@ export class LootboxCommands extends AbstractCommands {
 
     private async resolveLootbox(quality: string): Promise<ILootbox> {
         if (!this.lootboxes) this.lootboxes = await this.client.database.getLootboxes()
-        return this.lootboxes.find(box => box.quality === quality)
+        return this.lootboxes.find((box) => box.quality === quality)
     }
 
     private checkBalanceAndTakeMoney(user: MazariniUser, box: ILootbox, interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
         const moneyWasTaken = this.client.bank.takeMoney(user, box.price)
-        if (!moneyWasTaken) this.messageHelper.replyToInteraction(interaction, 'Du har kje råd te den', { ephemeral: true})
+        if (!moneyWasTaken) this.messageHelper.replyToInteraction(interaction, 'Du har kje råd te den', { ephemeral: true })
         return moneyWasTaken
     }
 
@@ -88,13 +102,13 @@ export class LootboxCommands extends AbstractCommands {
         const rarityItems = this.getRarityItems(seriesOrDefault, rarity)
         const item = RandomUtils.getRandomItemFromList(rarityItems)
         const inventory = this.getRandomColor(colored)
-        return { name: item, series: seriesOrDefault.name, rarity: rarity, inventory: inventory}
+        return { name: item, series: seriesOrDefault.name, rarity: rarity, inventory: inventory }
     }
 
     private async getSeriesOrDefault(series: string): Promise<ICollectableSeries> {
         const lootboxSeries = await this.getSeries()
-        const seriesName = (series && series !== '') ? series : lootboxSeries.sort((a,b) => b.added.getTime() - a.added.getTime())[0].name
-        return lootboxSeries.find(x => x.name === seriesName) ?? lootboxSeries[0]
+        const seriesName = series && series !== '' ? series : lootboxSeries.sort((a, b) => b.added.getTime() - a.added.getTime())[0].name
+        return lootboxSeries.find((x) => x.name === seriesName) ?? lootboxSeries[0]
     }
 
     private async getSeries(): Promise<ICollectableSeries[]> {
@@ -115,9 +129,9 @@ export class LootboxCommands extends AbstractCommands {
         let color: ItemColor = undefined
         if (!colored) {
             color = ItemColor.None
-        } else if (roll < 1/6) {
+        } else if (roll < 1 / 6) {
             color = ItemColor.Diamond // 1/6 chance for diamond
-        } else if (roll < 1/3) {
+        } else if (roll < 1 / 3) {
             color = ItemColor.Gold // 2/6 chance for gold
         } else {
             color = ItemColor.Silver // 3/6 chance for silver
@@ -126,20 +140,26 @@ export class LootboxCommands extends AbstractCommands {
             none: color === ItemColor.None ? 1 : 0,
             silver: color === ItemColor.Silver ? 1 : 0,
             gold: color === ItemColor.Gold ? 1 : 0,
-            diamond: color === ItemColor.Diamond ? 1 : 0
+            diamond: color === ItemColor.Diamond ? 1 : 0,
         }
     }
 
     private async registerItemOnUser(user: MazariniUser, item: IUserCollectable) {
-        let itemAlreadyCollected = user.collectables?.some(collectible => collectible.name === item.name)
+        let itemAlreadyCollected = user.collectables?.some((collectible) => collectible.name === item.name)
         if (itemAlreadyCollected) {
-            user.collectables = user.collectables.map(el => el.name === item.name 
-                                                    ? {...el, inventory: {
-                                                        none: el.inventory.none + item.inventory.none,
-                                                        silver: el.inventory.silver + item.inventory.silver,
-                                                        gold: el.inventory.gold + item.inventory.gold,
-                                                        diamond: el.inventory.diamond + item.inventory.diamond
-                                                    }} : el);
+            user.collectables = user.collectables.map((el) =>
+                el.name === item.name
+                    ? {
+                          ...el,
+                          inventory: {
+                              none: el.inventory.none + item.inventory.none,
+                              silver: el.inventory.silver + item.inventory.silver,
+                              gold: el.inventory.gold + item.inventory.gold,
+                              diamond: el.inventory.diamond + item.inventory.diamond,
+                          },
+                      }
+                    : el
+            )
         } else {
             user.collectables = user.collectables ?? new Array<IUserCollectable>()
             user.collectables.push(item)
@@ -147,7 +167,7 @@ export class LootboxCommands extends AbstractCommands {
         this.client.database.updateUser(user)
     }
 
-    private async revealCollectable( interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, item: IUserCollectable) {
+    private async revealCollectable(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, item: IUserCollectable) {
         const msg = await this.messageHelper.replyToInteraction(interaction, RandomUtils.getRandomItemFromList(textArrays.gifWaitTexts))
         let updateText = true
         let usedTexts: string[] = new Array<string>()
@@ -155,15 +175,15 @@ export class LootboxCommands extends AbstractCommands {
             if (updateText) {
                 const text = RandomUtils.getRandomItemFromListWithExclusions(textArrays.gifLongWaitTexts, usedTexts)
                 usedTexts.push(text)
-                msg.edit({content: `${text}`})
+                msg.edit({ content: `${text}` })
                 setTimeout(refreshMsg, 7000)
             }
         }, 7000)
-        this.imageGenerator.generateRevealGifForCollectable(item).then(gif => {            
+        this.imageGenerator.generateRevealGifForCollectable(item).then((gif) => {
             updateText = false
-            const file = new AttachmentBuilder(gif, {name: "collectable.gif"})
-            msg.edit({content: 'Okei nå kommer den:'})
-            this.messageHelper.sendMessage(interaction.channelId, {files: [file]}) 
+            const file = new AttachmentBuilder(gif, { name: 'collectable.gif' })
+            msg.edit({ content: 'Okei nå kommer den:' })
+            this.messageHelper.sendMessage(interaction.channelId, { files: [file] })
         })
     }
 
@@ -171,11 +191,7 @@ export class LootboxCommands extends AbstractCommands {
         const series = await this.getSeries()
         const optionList: any = interaction.options
         const input = optionList.getFocused().toLowerCase()
-		interaction.respond(
-			series
-            .filter(series => series.name.toLowerCase().includes(input))
-            .map(series => ({ name: series.name, value: series.name }))
-		)
+        interaction.respond(series.filter((series) => series.name.toLowerCase().includes(input)).map((series) => ({ name: series.name, value: series.name })))
     }
 
     private async printInventory(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -183,9 +199,9 @@ export class LootboxCommands extends AbstractCommands {
         const user = await this.client.database.getUser(interaction.user.id)
         const seriesParam = interaction.options.get('series')?.value as string
         const series = await this.getSeriesOrDefault(seriesParam)
-        const img = await this.imageGenerator.generateImageForCollectables(user.collectables.filter(item => item.series === series.name))
-        const file = new AttachmentBuilder(img, {name: "inventory.png"})
-        this.messageHelper.replyToInteraction(interaction, '', {hasBeenDefered: true}, undefined, [file]) 
+        const img = await this.imageGenerator.generateImageForCollectables(user.collectables.filter((item) => item.series === series.name))
+        const file = new AttachmentBuilder(img, { name: 'inventory.png' })
+        this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, undefined, [file])
     }
 
     private executeLootSubCommand(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -194,7 +210,7 @@ export class LootboxCommands extends AbstractCommands {
         if (!cmdGroup && cmd === 'box') this.openAndRegisterLootbox(interaction)
         else if (!cmdGroup && cmd === 'inventory') this.printInventory(interaction)
     }
-    
+
     getAllInteractions(): IInteractionElement {
         return {
             commands: {
@@ -206,7 +222,7 @@ export class LootboxCommands extends AbstractCommands {
                         },
                         autoCompleteCallback: (interaction: AutocompleteInteraction<CacheType>) => {
                             this.seriesAutocomplete(interaction)
-                        }
+                        },
                     },
                 ],
                 buttonInteractionComands: [
@@ -226,45 +242,47 @@ export const basicLootbox: ILootbox = {
     quality: LootboxQuality.Basic,
     price: 5000,
     probabilities: {
-        common: 100/100, // 75% 
-        rare: 25/100, // 15% 
-        epic: 10/100, //8% 
-        legendary: 2/100, // 2% 
-        color: 1/5 // 20% 
-    }
+        common: 100 / 100, // 75%
+        rare: 25 / 100, // 15%
+        epic: 10 / 100, //8%
+        legendary: 2 / 100, // 2%
+        color: 1 / 5, // 20%
+    },
 }
 
 export const premiumLootbox: ILootbox = {
     quality: LootboxQuality.Premium,
     price: 20000,
     probabilities: {
-        common: 100/100, // 50% 
-        rare: 50/100, // 30% 
-        epic: 20/100, // 16% 
-        legendary: 4/100, // 4% 
-        color: 1/3 // 33% 
-    }
+        common: 100 / 100, // 50%
+        rare: 50 / 100, // 30%
+        epic: 20 / 100, // 16%
+        legendary: 4 / 100, // 4%
+        color: 1 / 3, // 33%
+    },
 }
 
 export const eliteLootbox: ILootbox = {
     quality: LootboxQuality.Elite,
     price: 50000,
     probabilities: {
-        common: 0, // 0% 
-        rare: 100/100, // 60% 
-        epic: 40/100, // 30% 
-        legendary: 10/100, // 10% 
-        color: 1/2 // 50% 
-    }
+        common: 0, // 0%
+        rare: 100 / 100, // 60%
+        epic: 40 / 100, // 30%
+        legendary: 10 / 100, // 10%
+        color: 1 / 2, // 50%
+    },
 }
 
 export const lootboxMock: ILootbox[] = [basicLootbox, premiumLootbox, eliteLootbox]
 
-export const lootSeriesMock: ICollectableSeries[] = [{
-    name: 'mazarini',
-    added: new Date(),
-    common: ['arne_satisfied', 'fole', 'geggi_satisfied', 'arne_superior', 'crycatthumbsup'],
-    rare: ['choke', 'maggi_scared', 'arne', 'geggi_excited', 'hhhhheeehhhhhh'],
-    epic: ['pointerbrothers1', 'pointerbrothers2', 'shrekstare'],
-    legendary: ['polse', 'hoie', 'eivindpride'],
-}]
+export const lootSeriesMock: ICollectableSeries[] = [
+    {
+        name: 'mazarini',
+        added: new Date(),
+        common: ['arne_satisfied', 'fole', 'geggi_satisfied', 'arne_superior', 'crycatthumbsup'],
+        rare: ['choke', 'maggi_scared', 'arne', 'geggi_excited', 'hhhhheeehhhhhh'],
+        epic: ['pointerbrothers1', 'pointerbrothers2', 'shrekstare'],
+        legendary: ['polse', 'hoie', 'eivindpride'],
+    },
+]
