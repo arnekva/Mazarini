@@ -33,6 +33,7 @@ export class Deathroll extends AbstractCommands {
 
         this.setGamesFromDB()
         this.retrieveDeathrollPot()
+        this.reRollWinningNumbers()
     }
 
     private setGamesFromDB() {
@@ -41,6 +42,16 @@ export class Deathroll extends AbstractCommands {
 
             if (oldGames) this.drGames = oldGames
             else this.drGames = new Array<DRGame>()
+        }, 5000)
+    }
+
+    private reRollWinningNumbers() {
+        setTimeout(async () => {
+            let winningNumbers = new Array<number>()
+            winningNumbers.push(RandomUtils.getRandomInteger(70, 200))
+            winningNumbers.push(RandomUtils.getRandomInteger(70, 200))
+            winningNumbers.push(RandomUtils.getRandomInteger(70, 200))
+            this.client.cache.deathrollWinningNumbers = winningNumbers
         }, 5000)
     }
 
@@ -77,28 +88,7 @@ export class Deathroll extends AbstractCommands {
 
                 if (roll >= 100 && roll !== diceTarget) {
                     //Check if roll is a shuffled variant of the target number
-                    const rollAsString: string = roll.toString()
-                    const targetAsString = diceTarget.toString()
-                    const shuffled = rollAsString.replace(/0/g, '').split('').sort().join('') === targetAsString.replace(/0/g, '').split('').sort().join('')
-                    if (shuffled) {
-                        //Shuffle the reward pot digits into a new number in random order
-                        const potArray = this.rewardPot.toString().split('')
-
-                        let shuffledPot = this.rewardPot
-
-                        //Make sure we dont go infinitely if the Pot contains only one unique digit
-                        const regEx = new RegExp(/^([0-9])\1*$/gi)
-
-                        while (shuffledPot === this.rewardPot && !regEx.test(shuffledPot.toString())) {
-                            shuffledPot = parseInt(ArrayUtils.shuffleArray(potArray).join(''))
-                        }
-
-                        const oldPot = this.rewardPot
-                        this.rewardPot = shuffledPot
-                        additionalMessage += `${
-                            additionalMessage.length > 0 ? '\nShuffle! ' : 'Shuffle!\n'
-                        }Potten ble shufflet fra ${oldPot} til ${shuffledPot} chips!`
-                    }
+                    additionalMessage = this.checkForShuffle(roll, diceTarget, additionalMessage)
                 }
                 if (roll == 1) {
                     this.checkForLossOnFirstRoll(game, diceTarget)
@@ -125,6 +115,35 @@ export class Deathroll extends AbstractCommands {
             }, waitTme)
         }
     }
+
+    private checkForShuffle(roll: number, target: number, additionalMessage: string): string {
+        let msg = additionalMessage
+        const rollAsString: string = roll.toString()
+        const targetAsString = target.toString()
+        const shuffled = rollAsString.replace(/0/g, '').split('').sort().join('') === targetAsString.replace(/0/g, '').split('').sort().join('')
+        if (shuffled) {
+            //Shuffle the reward pot digits into a new number in random order
+            const potArray = this.rewardPot.toString()
+            const dontShuffle = potArray.substring(0,potArray.length-targetAsString.length)
+            const shuffle = potArray.substring(dontShuffle.length,potArray.length)
+
+            let shuffledPot = shuffle
+
+            //Make sure we dont go infinitely if the Pot contains only one unique digit
+            const regEx = new RegExp(/^([0-9])\1*$/gi)
+
+            while (shuffledPot === shuffle && !regEx.test(shuffledPot)) {
+                shuffledPot = ArrayUtils.shuffleArray(shuffle.split('')).join('')
+            }
+
+            const oldPot = this.rewardPot
+            this.rewardPot = parseInt(dontShuffle + shuffledPot)
+            msg +=`${
+                additionalMessage.length > 0 ? '\nShuffle! ' : 'Shuffle!\n'
+            }Potten ble shufflet fra ${oldPot} til ${this.rewardPot} chips!`
+        }
+        return msg
+    }
     //TODO: Make this pretty
     private rewardPlayersOnGameEnd(s: DeathRollStats[], diceTarget: number) {
         const playerHasATHStreak = s.find((p) => p.isOnATHLossStreak && p.isOnATHLossStreak > 0)
@@ -132,9 +151,9 @@ export class Deathroll extends AbstractCommands {
         const playerHasBiggestLoss = s.find((p) => p.didGetNewBiggestLoss && p.didGetNewBiggestLoss > 0)
 
         let reward = playerHasATHStreak ? playerHasATHStreak.currentLossStreak * 2000 : 0
-        if (playerHasStreak && !playerHasATHStreak) reward += playerHasStreak.currentLossStreak * 1000
-        if (playerHasBiggestLoss) reward += playerHasBiggestLoss.didGetNewBiggestLoss * 75
-        else if (diceTarget >= 100) reward += diceTarget * 25
+        if (playerHasStreak && !playerHasATHStreak) reward += (playerHasStreak.currentLossStreak-4) * 1000
+        if (playerHasBiggestLoss) reward += playerHasBiggestLoss.didGetNewBiggestLoss * 50
+        else if (diceTarget >= 100) reward += diceTarget * 10
         this.rewardPot += reward
         if (reward > 0) this.saveRewardPot()
         return reward >= 100 ? `(pott + ${reward} = ${this.rewardPot} chips)` : ''
@@ -171,10 +190,10 @@ export class Deathroll extends AbstractCommands {
 
         //Checks if all digits are the same (e.g. 111, 2222, 5555)
         const sameDigits = new RegExp(/^([0-9])\1*$/gi).test(roll.toString())
-        if (sameDigits && roll > 10) addToPot(roll, 10)
+        if (sameDigits && roll > 10) addToPot(roll, 1)
         //Check if ONLY the first digits is a non-zero (e.g. 40, 500, 6000, 20000)
         const allDigitsExceptFirstAreZero = new RegExp(/^[1-9]0+$/gi).test(roll.toString())
-        if (allDigitsExceptFirstAreZero) addToPot(roll, 3)
+        if (allDigitsExceptFirstAreZero) addToPot(roll, 1)
 
         multipliers.forEach((m) => {
             totalAdded *= m
@@ -219,7 +238,7 @@ export class Deathroll extends AbstractCommands {
     }
 
     private async checkIfPotWon(game: DRGame, roll: number, userid: string) {
-        if (roll == 69 && game.initialTarget >= 10000) {
+        if ([...this.client.cache.deathrollWinningNumbers, 69].includes(roll) && game.initialTarget >= 10000) {
             return await this.rewardPotToUser(userid)
         }
         return ''

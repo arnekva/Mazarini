@@ -22,9 +22,15 @@ export class MoneyHelper {
         this.client.database.updateUser(user)
     }
 
-    takeMoney(user: MazariniUser, amount: number) {
-        user.chips -= amount
-        this.client.database.updateUser(user)
+    // checks if user can afford. returns true if money was taken
+    takeMoney(user: MazariniUser, amount: number): boolean {
+        const canAfford = this.userCanAfford(user, amount)
+        if (canAfford) {
+            user.chips -= amount
+            this.client.database.updateUser(user)
+            return true
+        }
+        return false
     }
 
     userCanAfford(user: MazariniUser, amount: number) {

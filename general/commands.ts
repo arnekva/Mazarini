@@ -32,6 +32,8 @@ import { UserCommands } from '../commands/user/userCommands'
 import { Weather } from '../commands/weatherCommands'
 import { IInteractionElement } from '../interfaces/interactionInterface'
 import { PatchNotes } from '../patchnotes'
+import { LootboxCommands } from '../commands/store/lootboxCommands'
+import { DailyClaimCommands } from '../commands/money/dailyClaimCommands'
 
 export class Commands {
     private client: MazariniClient
@@ -67,6 +69,8 @@ export class Commands {
     private statsCommands: StatsCommands
     private deathroll: Deathroll
     private blackjack: Blackjack
+    private lootboxCommands: LootboxCommands
+    private dailyClaimCommands: DailyClaimCommands
 
     constructor(client: MazariniClient) {
         this.client = client
@@ -102,6 +106,8 @@ export class Commands {
         this.statsCommands = new StatsCommands(this.client)
         this.deathroll = new Deathroll(this.client)
         this.blackjack = new Blackjack(this.client)
+        this.lootboxCommands = new LootboxCommands(this.client)
+        this.dailyClaimCommands = new DailyClaimCommands(this.client)
     }
 
     getAllInteractionCommands(): IInteractionElement[] {
@@ -137,6 +143,8 @@ export class Commands {
             this.statsCommands.getAllInteractions(),
             this.deathroll.getAllInteractions(),
             this.blackjack.getAllInteractions(),
+            this.lootboxCommands.getAllInteractions(),
+            this.dailyClaimCommands.getAllInteractions(),
         ]
     }
 
@@ -172,6 +180,8 @@ export class Commands {
         this.statsCommands.onSave()
         await this.deathroll.onSave()
         this.blackjack.onSave()
+        this.lootboxCommands.onSave()
+        this.dailyClaimCommands.onSave()
     }
 
     getAllTextCommands() {

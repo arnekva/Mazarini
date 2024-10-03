@@ -5,13 +5,15 @@ import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { ClientHelper } from '../../helpers/clientHelper'
-import { dbPrefix, prefixList } from '../../interfaces/database/databaseInterface'
+import { dbPrefix, LootboxQuality, prefixList } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { DailyJobs } from '../../Jobs/dailyJobs'
 import { WeeklyJobs } from '../../Jobs/weeklyJobs'
 import { MazariniBot } from '../../main'
 import { ChannelIds, MentionUtils } from '../../utils/mentionUtils'
 import { UserUtils } from '../../utils/userUtils'
+import { LootboxCommands } from '../store/lootboxCommands'
+import { EmbedUtils } from '../../utils/embedUtils'
 
 const { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js')
 // const { exec } = require('child_process')
@@ -233,17 +235,28 @@ export class Admin extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, `${locked ? 'Låst' : 'Åpnet'}`)
     }
 
-    private async rewardUser(interaction: ChatInputCommandInteraction<CacheType>) {
-        const type = interaction.options.get('type')?.value as string
+    private async rewardUserWithChips(interaction: ChatInputCommandInteraction<CacheType>) {
         const reason = interaction.options.get('reason')?.value as string
         let chips = interaction.options.get('chips')?.value as number
         const user = interaction.options.get('user')?.user
         const dbUser = await this.client.database.getUser(user.id)
         chips = this.client.bank.giveMoney(dbUser, chips)
         this.client.database.updateUser(dbUser)
-        const text = `${user.username} har mottatt en ${type} reward på ${chips} på grunn av *${reason}*`
-        this.messageHelper.replyToInteraction(interaction, text)
-        this.messageHelper.sendLogMessage(`${text}. Kanal: ${MentionUtils.mentionChannel(interaction.channelId)}. `)
+        const text = `${MentionUtils.mentionUser(user.id)} har mottatt en reward på ${chips} chips på grunn av *${reason}*`
+        const embed = EmbedUtils.createSimpleEmbed('Reward', text)
+        this.messageHelper.replyToInteraction(interaction, embed)
+        this.messageHelper.sendLogMessage(`${user.username} har mottatt en reward på ${chips} chips på grunn av *${reason}*. Kanal: ${MentionUtils.mentionChannel(interaction.channelId)}. `)
+    }
+
+    private async rewardUserWithLootbox(interaction: ChatInputCommandInteraction<CacheType>) {
+        const reason = interaction.options.get('reason')?.value as string
+        let quality = interaction.options.get('quality')?.value as string
+        const user = interaction.options.get('user')?.user
+        const lootButton = LootboxCommands.getDailyLootboxRewardButton(user.id, quality)
+        const text = `${MentionUtils.mentionUser(user.id)} har mottatt en reward på en ${quality} lootbox på grunn av *${reason}*`
+        const embed = EmbedUtils.createSimpleEmbed('Reward', text)
+        this.messageHelper.replyToInteraction(interaction, embed, undefined, [lootButton])
+        this.messageHelper.sendLogMessage(`${user.username} har mottatt en reward på en ${quality} lootbox på grunn av *${reason}*. Kanal: ${MentionUtils.mentionChannel(interaction.channelId)}. `)
     }
 
     private async restartBot(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -344,7 +357,9 @@ export class Admin extends AbstractCommands {
                     {
                         commandName: 'reward',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            this.rewardUser(rawInteraction)
+                            const subCommand = rawInteraction.options.getSubcommand()
+                            if (subCommand === 'chips') this.rewardUserWithChips(rawInteraction)
+                            else if (subCommand === 'lootbox') this.rewardUserWithLootbox(rawInteraction)
                         },
                     },
                     {

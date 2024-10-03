@@ -220,6 +220,29 @@ export namespace textArrays {
         'https://media.giphy.com/media/g6pHoi8A9Bq1wPnl7t/giphy.gif',
         'https://media.giphy.com/media/b0iwoIDWrQvK2CARcz/giphy.gif',
     ]
+
+    export const gifLongWaitTexts = [
+        "Snart klar! Må bare få boksen te å åpna seg",
+        "Ventetid e bare en del av sjarmen, sant?",
+        "2 sek - någen ringte på",
+        "Ka e vel et par sekunder te?",
+        "Ta deg ein kaffi, så komme boksen snart!",
+        "Vent litt, eg må bare fikse håret først!",
+        "Me e snart i boks!",
+        "Tok lenger tid enn forventa dette her",
+        "Det e kje helt enkelt dette her - bare vent litt.", 
+        "Sko ønska eg og kunne samla på loot",
+        "Eg ane faktisk ikkje ka dette blir", 
+        "Denne blir bra - eg kjenne det på meg!", 
+        "Øyeblikk, snakke med mor te Eivind...",
+    ]
+
+    export const gifWaitTexts = [
+        "Generere ett stykk standard rare",
+        "Ska se ka eg finner ",
+        "Gi meg någen sekunder...", 
+        "Loot skal du få... om litt", 
+    ]
 }
 
 export namespace globals {

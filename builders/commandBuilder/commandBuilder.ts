@@ -3,11 +3,14 @@ import {
     ApplicationCommandOptionData,
     ApplicationCommandOptionType,
     ApplicationCommandType,
+    ApplicationCommandUserOptionData,
     Client,
     ContextMenuCommandBuilder,
+    Permissions,
     SlashCommandBuilder,
     SlashCommandSubcommandBuilder,
     SlashCommandSubcommandGroupBuilder,
+    User,
 } from 'discord.js'
 import { CommandStorage } from './commandStorage'
 
@@ -23,6 +26,7 @@ export interface ISlashCommandItem {
     subCommands?: Omit<ISlashCommandItem, 'subCommands' | 'subCommandGroups'>[]
     /** Add a guild id if this command is to be ONLY visible in the guild. Will not be a global command */
     guildId?: string
+    permissions?: Permissions | bigint | number | null | undefined
 }
 export interface IContextMenuCommandItem {
     commandName: string
@@ -38,6 +42,7 @@ export namespace CommandBuilder {
         scb.setName(params.commandName)
 
         scb.setDescription(params.commandDescription)
+        if (params.permissions) scb.setDefaultMemberPermissions(params.permissions)
         /** Helper function to add options with the given params to the given SlashCommandBuilder */
         const addOptions = (option: ApplicationCommandOptionData, b: SlashCommandBuilder | SlashCommandSubcommandBuilder) => {
             switch (option.type) {
@@ -69,9 +74,10 @@ export namespace CommandBuilder {
                     break
                 case ApplicationCommandOptionType.User:
                     b.addUserOption((a) => {
+                        const opt = option as ApplicationCommandUserOptionData
                         a.setName(option.name)
                         a.setDescription(option.description)
-
+                        a.setRequired(!!opt.required)
                         return a
                     })
                     break
@@ -133,7 +139,7 @@ export namespace CommandBuilder {
     /** This command will automatically create all commands listed in it */
     export const createCommands = (client: Client) => {
         // CommandBuilder.deleteCommand('1171558082007007312', client)
-        CommandBuilder.createSlashCommand(CommandStorage.FrameCommand, client)
+        CommandBuilder.createSlashCommand(CommandStorage.RewardCommand, client)
         // CommandBuilder.deleteCommand('997144601146175631', client)
         // CommandBuilder.createContextMenuCommand({ commandName: 'helg' }, client)
     }

@@ -235,7 +235,7 @@ export class CrimeCommands extends AbstractCommands {
         const victim = await this.client.database.getUser(target.id)
 
         if (await this.handleTheftEdgeCases(interaction, engager, victim, amountAsNum)) return
-        const theftAttempt = this.theftAttemptIsSuccessful2(amountAsNum, victim.chips)
+        const theftAttempt = this.theftAttemptIsSuccessful(amountAsNum)
         if (theftAttempt.success) {
             engager.chips += amountAsNum
             victim.chips -= amountAsNum
@@ -335,7 +335,7 @@ export class CrimeCommands extends AbstractCommands {
     // based on fixed probability curve
     private theftAttemptIsSuccessful(amount: number): { success: boolean; chance: number; roll: number } {
         // a suiteable 1/x function where the probability of success rapidly approaches a limit of 0
-        const chanceOfSuccess = (1 / (amount / 1000 / 2 + 2.5)) * 250
+        const chanceOfSuccess = (1 / ((amount / 500) + 2.5)) * 250
         // need a roll with 3 decimals for proper accuracy given a high amount
         const roll = RandomUtils.getRandomInteger(0, 100000) / 1000
         return {

@@ -30,7 +30,7 @@ import {
 } from 'discord.js'
 import { Moment } from 'moment'
 import { Stream } from 'stream'
-import { environment } from '../client-env'
+import { environment, secretDevelopment } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
 import { MazariniBot } from '../main'
 import { ChannelIds, MentionUtils } from '../utils/mentionUtils'
@@ -195,7 +195,7 @@ export class MessageHelper {
             return undefined
         }
         
-        if (environment === 'dev') channelId = ChannelIds.LOKAL_BOT_SPAM_DEV // Global overwrite to avoid sending dev-environment messages to main server
+        if (environment === 'dev') channelId = secretDevelopment ? ChannelIds.LOKAL_BOT_SECRET : ChannelIds.LOKAL_BOT_SPAM_DEV // Global overwrite to avoid sending dev-environment messages to main server
 
         const channel = this.findChannelById(channelId) as TextChannel
         if (channel && channel.permissionsFor(UserUtils.findMemberByUserID(MentionUtils.User_IDs.BOT_HOIE, channel.guild)).toArray().includes('SendMessages')) {
@@ -293,6 +293,7 @@ export class MessageHelper {
     }
 
     sendLogMessage(msg: string, options?: IMessageOptions) {
+        if (environment === 'dev') return
         MazariniBot.numMessagesNumErrorMessages++
         options ? (options.dontIncrementMessageCounter = true) : (options = { dontIncrementMessageCounter: true })
 
@@ -310,6 +311,5 @@ export class MessageHelper {
         this.client.database.updateStorage({
             scheduledMessages: storage.scheduledMessages,
         })
-        this.client.storageCache.scheduledMessages = storage.scheduledMessages
     }
 }

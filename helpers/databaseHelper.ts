@@ -1,7 +1,8 @@
 import moment from 'moment'
 import { DRGame } from '../commands/games/deathroll'
-import { botDataPrefix, ChipsStats, MazariniStorage, MazariniUser, Meme, RulettStats } from '../interfaces/database/databaseInterface'
+import { botDataPrefix, ChipsStats, ICollectableSeries, ILootbox, MazariniStorage, MazariniUser, Meme, RulettStats } from '../interfaces/database/databaseInterface'
 import { FirebaseHelper } from './firebaseHelper'
+import { lootboxMock, lootSeriesMock } from '../commands/store/lootboxCommands'
 
 export interface DeathRollStats {
     userId: string
@@ -332,6 +333,27 @@ export class DatabaseHelper {
                 user.userStats.deathrollStats.weeklyLossSum = 0
                 this.updateUser(user)
             })
+    }
+
+    public async setLootboxes(boxes: ILootbox[]) {
+        const updates = {}
+        updates[`/other/loot/boxes`] = boxes
+        this.db.updateData(updates)
+    }
+
+    public async getLootboxes() {
+        return (await this.db.getData('/other/loot/boxes')) as ILootbox[]
+    }
+
+    public async addLootboxSeries(series: ICollectableSeries) {
+        const updates = {}
+        const currentSeries = await this.getLootboxSeries() ?? []
+        updates[`/other/loot/series`] = [...currentSeries, series]
+        this.db.updateData(updates)
+    }
+
+    public async getLootboxSeries() {
+        return (await this.db.getData('/other/loot/series')) as ICollectableSeries[]
     }
 
     static defaultUser(id: string): MazariniUser {

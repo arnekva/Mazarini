@@ -29,4 +29,13 @@ export namespace RandomUtils {
         if (num == exclude) num = (num + 1)%length
         return num
     }
+
+    export function getRandomItemFromList(list: any[]) {
+        return list[Math.floor(Math.random()*list.length)]
+    }
+
+    export function getRandomItemFromListWithExclusions(list: any[], exclusions: any[]) {
+        const newList = list.filter(item => !exclusions.includes(item))
+        return newList[Math.floor(Math.random()*newList.length)]
+    }
 }

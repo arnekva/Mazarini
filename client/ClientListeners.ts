@@ -102,24 +102,6 @@ export class ClientListener {
                 })
             }
 
-            //Oppretter ikke cache i dev mode
-            if (environment === 'prod') {
-                this.client.database.getStorage().then((storage) => {
-                    this.client.storageCache = storage
-                })
-                msg += '\nCache er opprettet'
-                this.client.messageHelper.sendLogMessage(msg)
-            } else {
-                this.client.storageCache = {
-                    countdown: {},
-                    ferie: [],
-                    polls: [],
-                    rocketLeagueTournaments: { mainMessageId: '', tournaments: [] },
-                    scheduledMessages: [],
-                    updateTimer: -1,
-                }
-            }
-
             ClientHelper.setStatusFromStorage(this.client, this.client.database)
             PatchNotes.compareAndSendPatchNotes(this.client.messageHelper, this.client.database)
 

@@ -100,6 +100,7 @@ export interface MazariniUser {
     /** Saved as date string */
     whamageddonLoss?: string
     textCommandStrings?: string[]
+    collectables?: IUserCollectable[]
 }
 
 export interface DailyReward {
@@ -107,6 +108,68 @@ export interface DailyReward {
     claimedToday: boolean
     dailyFreezeCounter?: number
     prestige?: number
+}
+
+export interface ILootSystem {
+    boxes: ILootbox[]
+    series: ICollectableSeries[]
+}
+
+export interface ICollectableSeries {
+    name: string
+    added: Date
+    common: string[]
+    rare: string[]
+    epic: string[]
+    legendary: string[]
+}
+
+export interface IUserCollectable {
+    name: string
+    series: string
+    rarity: ItemRarity
+    inventory: ICollectibleColorCounter
+}
+
+export interface ICollectibleColorCounter {
+    none: number
+    silver: number
+    gold: number
+    diamond: number
+}
+
+export enum ItemRarity {
+    Common = 'common',
+    Rare = 'rare',
+    Epic = 'epic',
+    Legendary = 'legendary',
+}
+
+export enum ItemColor {
+    None = 'none',
+    Silver = 'silver',
+    Gold = 'gold',
+    Diamond = 'diamond'
+}
+
+export enum LootboxQuality {
+    Basic = 'basic',
+    Premium = 'premium',
+    Elite = 'elite'
+}
+
+export interface ILootbox {
+    quality: LootboxQuality
+    price: number
+    probabilities: ILootboxDistribution
+}
+
+export interface ILootboxDistribution {
+    common: number
+    rare: number
+    epic: number
+    legendary: number
+    color: number
 }
 
 interface ISavedMessage {
@@ -136,6 +199,11 @@ export interface MazariniStorage {
     scheduledMessages?: IScheduledMessage[]
     savedMessages?: ISavedMessage[]
     deathrollPot?: number
+    loot?: ILootSystem
+}
+
+export interface ICache {
+    deathrollWinningNumbers: number[]
 }
 
 export type FavoritePol = {

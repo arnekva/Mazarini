@@ -11,6 +11,7 @@ import { EmbedUtils } from '../utils/embedUtils'
 import { ChannelIds } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
 import { MoneyCommands } from '../commands/money/moneyCommands'
+import { RandomUtils } from '../utils/randomUtils'
 export class DailyJobs {
     private messageHelper: MessageHelper
     private client: MazariniClient
@@ -26,17 +27,19 @@ export class DailyJobs {
         } else {
             //TODO: This could be refactored
             const users = await this.client.database.getAllUsers()
-            const embed = EmbedUtils.createSimpleEmbed(`Daily Jobs`, `Kjører 4 jobber`)
-
-            const claim = await this.validateAndResetDailyClaims(users)
+            const embed = EmbedUtils.createSimpleEmbed(`Daily Jobs`, `Kjører 5 jobber`)
+            
+            const claim = this.validateAndResetDailyClaims(users)
             embed.addFields({ name: 'Daily claim', value: EmojiHelper.getStatusEmoji(claim) })
             const jail = await this.updateJailAndJailbreakCounters(users)
             embed.addFields({ name: 'Jail status', value: EmojiHelper.getStatusEmoji(jail) })
             const bd = this.checkForUserBirthdays(users)
             embed.addFields({ name: 'Bursdager', value: EmojiHelper.getStatusEmoji(bd) })
             const rl = await this.updateRLTournaments(rapidApiKey)
-
             embed.addFields({ name: 'Rocket League turnering', value: EmojiHelper.getStatusEmoji(rl) })
+            const drWinNum = this.reRollWinningNumbers()
+            embed.addFields({ name: 'Tilfeldige deathroll vinnertall', value: EmojiHelper.getStatusEmoji(drWinNum)})
+
             const todaysTime = new Date().toLocaleTimeString()
             embed.setFooter({ text: todaysTime })
             this.messageHelper.sendMessage(ChannelIds.ACTION_LOG, { embed: embed })
@@ -112,27 +115,28 @@ export class DailyJobs {
         return status
     }
 
+    private reRollWinningNumbers() {
+        const status: JobStatus = 'success'
+        let winningNumbers = new Array<number>()
+        winningNumbers.push(RandomUtils.getRandomInteger(70, 200))
+        winningNumbers.push(RandomUtils.getRandomInteger(70, 200))
+        winningNumbers.push(RandomUtils.getRandomInteger(70, 200))
+        this.client.cache.deathrollWinningNumbers = winningNumbers
+        return status
+    }
+
     private validateAndResetDailyClaims(users: MazariniUser[]): JobStatus {
         const updates = this.client.database.getUpdatesObject<'daily'>()
         const status: JobStatus = 'success' //No good way to verify yet?
         users.forEach((user, idx) => {
             const daily = user?.daily
             if (!daily?.streak) return //Verify that the user as a streak/claim, otherwise skip
-            //Check if user has frozen their streak
-            const hasFrozenStreak = daily.dailyFreezeCounter
-
-            if (hasFrozenStreak && !isNaN(hasFrozenStreak) && hasFrozenStreak > 0) {
-                daily.dailyFreezeCounter = daily.dailyFreezeCounter ? --daily.dailyFreezeCounter : 0
-            } else {
-                if (!daily.claimedToday) daily.streak = 0 //If not claimed today, also reset the streak
-                daily.claimedToday = false //Reset check for daily claim
-            }
-
+            if (!daily.claimedToday) daily.streak = 0 //If not claimed today, also reset the streak
+            daily.claimedToday = false //Reset check for daily claim
             const updatePath = this.client.database.getUserPathToUpdate(user.id, 'daily')
             updates[updatePath] = daily
         })
         this.client.database.updateData(updates)
-        MoneyCommands.sendDailyClaimButton(this.messageHelper)
         return status
     }
 

@@ -10,7 +10,7 @@ import { DatabaseHelper } from '../helpers/databaseHelper'
 import { FirebaseHelper } from '../helpers/firebaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MoneyHelper } from '../helpers/moneyHelper'
-import { MazariniStorage } from '../interfaces/database/databaseInterface'
+import { ICache, MazariniStorage } from '../interfaces/database/databaseInterface'
 import { ClientListener } from './ClientListeners'
 
 const Discord = require('discord.js')
@@ -25,7 +25,7 @@ export class MazariniClient extends Client {
     private lockingHandler: LockingHandler
     private mazariniTracker: MazariniTracker
     /** Cache of the Mazarini Storage from the database. Is pulled on startup, and updated during saving events. */
-    private cache: Partial<MazariniStorage>
+    private clientCache: Partial<ICache>
     private clientListener: ClientListener
     private moneyHelper: MoneyHelper
 
@@ -51,10 +51,11 @@ export class MazariniClient extends Client {
             ],
         })
         this.msgHelper = new MessageHelper(this)
-        this.jobScheduler = new JobScheduler(this.msgHelper, this)
+        this.jobScheduler = environment === 'prod' ? new JobScheduler(this.msgHelper, this) : undefined
         this.lockingHandler = new LockingHandler()
         this.mazariniTracker = new MazariniTracker(this)
         this.clientListener = new ClientListener(this)
+        this.clientCache = { deathrollWinningNumbers: []}
         this.moneyHelper = new MoneyHelper(this)
         this.setupDatabase(this.msgHelper)
         this.clientListener.setupListeners()
@@ -103,11 +104,10 @@ export class MazariniClient extends Client {
         return this.mazariniTracker
     }
 
-    /** TODO: Implement this better */
-    get storageCache() {
-        return this.cache
+    get cache() {
+        return this.clientCache
     }
-    set storageCache(cache: Partial<MazariniStorage>) {
-        this.cache = cache
+    set cache(cache: Partial<ICache>) {
+        this.clientCache = cache
     }
 }

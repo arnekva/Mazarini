@@ -1,4 +1,4 @@
-import { CacheType, ChatInputCommandInteraction, Client, GuildEmoji, Interaction, Message } from 'discord.js'
+import { ApplicationEmoji, CacheType, ChatInputCommandInteraction, Client, GuildEmoji, Interaction, Message } from 'discord.js'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { ServerIds } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
@@ -6,7 +6,7 @@ import { UserUtils } from '../utils/userUtils'
 export type emojiType = 'kekw_animated' | 'catJAM' | 'eyebrows'
 export interface emojiReturnType {
     id: string
-    emojiObject?: GuildEmoji
+    emojiObject?: GuildEmoji | ApplicationEmoji
     urlId?: string | number
 }
 type emojiObject = {
@@ -20,6 +20,13 @@ export class EmojiHelper {
     static async getEmoji(emojiType: string, accessPoint: Message | Interaction<CacheType> | Client<boolean>): Promise<emojiReturnType> {
         const ap = accessPoint instanceof Client ? accessPoint : accessPoint.client
         const emojiObj = ap.emojis.cache.find((emoji) => emoji.name == emojiType)
+        if (!emojiObj) return { id: '<Fant ikke emojien>' }
+        return { id: `<${emojiObj.animated ? 'a' : ''}:${emojiObj.name}:${emojiObj?.id}>`, emojiObject: emojiObj, urlId: emojiObj?.id }
+    }
+
+    static async getApplicationEmoji(emojiType: string, client: Client<boolean>): Promise<emojiReturnType> {     
+        const appEmojis = await client.application.emojis.fetch()           
+        const emojiObj = appEmojis.find((emoji) => emoji.name == emojiType)
         if (!emojiObj) return { id: '<Fant ikke emojien>' }
         return { id: `<${emojiObj.animated ? 'a' : ''}:${emojiObj.name}:${emojiObj?.id}>`, emojiObject: emojiObj, urlId: emojiObj?.id }
     }
