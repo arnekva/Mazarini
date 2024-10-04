@@ -2,15 +2,12 @@ import {
     ApplicationCommandChoicesData,
     ApplicationCommandOptionData,
     ApplicationCommandOptionType,
-    ApplicationCommandType,
     ApplicationCommandUserOptionData,
     Client,
-    ContextMenuCommandBuilder,
     Permissions,
     SlashCommandBuilder,
     SlashCommandSubcommandBuilder,
     SlashCommandSubcommandGroupBuilder,
-    User,
 } from 'discord.js'
 import { CommandStorage } from './commandStorage'
 
@@ -147,10 +144,10 @@ export namespace CommandBuilder {
     /** This will create a new context menu command. These commands functions almost identical as a ChatInputCommand, and is run by CommandRunner as if it is - but it has a "target" property
      * so that you can identify which message/user the rightclick was triggered on.
      */
-    export const createContextMenuCommand = (params: IContextMenuCommandItem, client: Client) => {
-        const data = new ContextMenuCommandBuilder().setName(params.commandName).setType(ApplicationCommandType.Message)
-        client.application.commands.create(data)
-    }
+    // export const createContextMenuCommand = (params: IContextMenuCommandItem, client: Client) => {
+    //     const data = new ContextMenuCommandBuilder().setName(params.commandName).setType(ApplicationCommandType.Message)
+    //     client.application.commands.create(data)
+    // }
 
     /** Deletes a command with the given id
      * To find the ID, use the command in a channel an log the interaction.commandId

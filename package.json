@@ -53,16 +53,12 @@
         "wikijs": "^6.4.1"
     },
     "devDependencies": {
-        "@types/chai": "^4.3.0",
-        "@types/mocha": "^9.1.0",
         "@types/node-fetch": "^2.6.2",
         "@typescript-eslint/eslint-plugin": "^6.12.0",
         "@typescript-eslint/parser": "^6.12.0",
-        "chai": "^4.3.6",
         "eslint": "^7.32.0",
         "eslint-config-airbnb": "^18.2.1",
         "eslint-import-resolver-typescript": "^2.4.0",
-        "mocha": "^9.2.2",
         "pm2": "^5.3.0",
         "prettier": "^2.3.0",
         "prettier-plugin-organize-imports": "^2.0.0",
