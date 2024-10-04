@@ -13,6 +13,7 @@ import { MazariniBot } from '../../main'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { ChannelIds, MentionUtils } from '../../utils/mentionUtils'
 import { UserUtils } from '../../utils/userUtils'
+import { LootboxCommands } from '../store/lootboxCommands'
 
 const { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js')
 // const { exec } = require('child_process')
@@ -253,10 +254,10 @@ export class Admin extends AbstractCommands {
         const reason = interaction.options.get('reason')?.value as string
         let quality = interaction.options.get('quality')?.value as string
         const user = interaction.options.get('user')?.user
-        // const lootButton = LootboxCommands.getDailyLootboxRewardButton(user.id, quality)
+        const lootButton = LootboxCommands.getDailyLootboxRewardButton(user.id, quality)
         const text = `${MentionUtils.mentionUser(user.id)} har mottatt en reward på en ${quality} lootbox på grunn av *${reason}*`
         const embed = EmbedUtils.createSimpleEmbed('Reward', text)
-        // this.messageHelper.replyToInteraction(interaction, embed, undefined, [lootButton])
+        this.messageHelper.replyToInteraction(interaction, embed, undefined, [lootButton])
         this.messageHelper.sendLogMessage(
             `${user.username} har mottatt en reward på en ${quality} lootbox på grunn av *${reason}*. Kanal: ${MentionUtils.mentionChannel(
                 interaction.channelId
