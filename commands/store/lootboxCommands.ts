@@ -32,7 +32,7 @@ export class LootboxCommands extends AbstractCommands {
 
     constructor(client: MazariniClient) {
         super(client)
-        // this.imageGenerator = new ImageGenerationHelper(client)
+        this.imageGenerator = new ImageGenerationHelper(client)
     }
 
     static getDailyLootboxRewardButton(userId: string, quality: string): ActionRowBuilder<ButtonBuilder> {
