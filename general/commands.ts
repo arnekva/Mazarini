@@ -27,12 +27,14 @@ import { Music } from '../commands/sound/musicCommands'
 import { SoundCommands } from '../commands/sound/soundCommands'
 import { SpotifyCommands } from '../commands/sound/spotifyCommands'
 // import { TestCommands } from '../commands/test/testCommands'
+import { LootboxCommands } from '../commands/store/lootboxCommands'
 import { TextCommands } from '../commands/textCommands'
 import { LinkCommands } from '../commands/user/linkCommands'
 import { UserCommands } from '../commands/user/userCommands'
 import { Weather } from '../commands/weatherCommands'
 import { IInteractionElement } from '../interfaces/interactionInterface'
 import { PatchNotes } from '../patchnotes'
+import { TestCommands } from '../commands/test/testCommands'
 
 export class Commands {
     private client: MazariniClient
@@ -47,7 +49,7 @@ export class Commands {
     private jokeCommands: JokeCommands
     private callOfDutyCommands: CallOfDutyCommands
     private spotifyCommands: SpotifyCommands
-    // private testCommands: TestCommands
+    private testCommands: TestCommands
     private musicCommands: Music
     private memeCommands: MemeCommands
     private userCommands: UserCommands
@@ -68,7 +70,7 @@ export class Commands {
     private statsCommands: StatsCommands
     private deathroll: Deathroll
     private blackjack: Blackjack
-    // private lootboxCommands: LootboxCommands
+    private lootboxCommands: LootboxCommands
     private dailyClaimCommands: DailyClaimCommands
 
     constructor(client: MazariniClient) {
@@ -83,7 +85,7 @@ export class Commands {
         this.jokeCommands = new JokeCommands(this.client)
         this.callOfDutyCommands = new CallOfDutyCommands(this.client)
         this.spotifyCommands = new SpotifyCommands(this.client)
-        // this.testCommands = new TestCommands(this.client)
+        this.testCommands = new TestCommands(this.client)
         this.musicCommands = new Music(this.client)
         this.memeCommands = new MemeCommands(this.client)
         this.userCommands = new UserCommands(this.client)
@@ -105,7 +107,7 @@ export class Commands {
         this.statsCommands = new StatsCommands(this.client)
         this.deathroll = new Deathroll(this.client)
         this.blackjack = new Blackjack(this.client)
-        // this.lootboxCommands = new LootboxCommands(this.client)
+        this.lootboxCommands = new LootboxCommands(this.client)
         this.dailyClaimCommands = new DailyClaimCommands(this.client)
     }
 
@@ -121,7 +123,7 @@ export class Commands {
             this.callOfDutyCommands.getAllInteractions(),
             this.patchNotes.getAllInteractions(),
             this.spotifyCommands.getAllInteractions(),
-            // this.testCommands.getAllInteractions(),
+            this.testCommands.getAllInteractions(),
             this.musicCommands.getAllInteractions(),
             this.memeCommands.getAllInteractions(),
             this.userCommands.getAllInteractions(),
@@ -142,7 +144,7 @@ export class Commands {
             this.statsCommands.getAllInteractions(),
             this.deathroll.getAllInteractions(),
             this.blackjack.getAllInteractions(),
-            // this.lootboxCommands.getAllInteractions(),
+            this.lootboxCommands.getAllInteractions(),
             this.dailyClaimCommands.getAllInteractions(),
         ]
     }
@@ -158,7 +160,7 @@ export class Commands {
         this.callOfDutyCommands.onSave()
         this.patchNotes.onSave()
         this.spotifyCommands.onSave()
-        // this.testCommands.onSave()
+        this.testCommands.onSave()
         this.musicCommands.onSave()
         this.memeCommands.onSave()
         this.userCommands.onSave()
@@ -179,7 +181,7 @@ export class Commands {
         this.statsCommands.onSave()
         await this.deathroll.onSave()
         this.blackjack.onSave()
-        // this.lootboxCommands.onSave()
+        this.lootboxCommands.onSave()
         this.dailyClaimCommands.onSave()
     }
 
