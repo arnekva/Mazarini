@@ -166,7 +166,7 @@ export class MessageHelper {
             } else {
                 const payloadAsReply = payload as InteractionReplyOptions
                 payloadAsReply.ephemeral = !!options?.ephemeral
-                
+
                 if (options?.sendAsSilent) {
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     //@ts-ignore
@@ -194,7 +194,7 @@ export class MessageHelper {
             this.sendLogMessage('En melding som ble forsøkt sendt var tom')
             return undefined
         }
-        
+
         if (environment === 'dev') channelId = secretDevelopment ? ChannelIds.LOKAL_BOT_SECRET : ChannelIds.LOKAL_BOT_SPAM_DEV // Global overwrite to avoid sending dev-environment messages to main server
 
         const channel = this.findChannelById(channelId) as TextChannel

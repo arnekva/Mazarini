@@ -24,7 +24,7 @@ import {
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { RandomUtils } from '../../utils/randomUtils'
 import { textArrays } from '../../utils/textArrays'
-
+const fs = require('fs')
 export class LootboxCommands extends AbstractCommands {
     private imageGenerator: ImageGenerationHelper
     private lootboxes: ILootbox[]
@@ -174,6 +174,7 @@ export class LootboxCommands extends AbstractCommands {
         setTimeout(async function refreshMsg() {
             if (updateText) {
                 const text = RandomUtils.getRandomItemFromListWithExclusions(textArrays.gifLongWaitTexts, usedTexts)
+                if (!text) updateText = false
                 usedTexts.push(text)
                 msg.edit({ content: `${text}` })
                 setTimeout(refreshMsg, 7000)
@@ -182,6 +183,13 @@ export class LootboxCommands extends AbstractCommands {
         this.imageGenerator.generateRevealGifForCollectable(item).then((gif) => {
             updateText = false
             const file = new AttachmentBuilder(gif, { name: 'collectable.gif' })
+
+            fs.writeFile('./graphics/file.gif', gif, function (err) {
+                if (err) {
+                    return console.log(err)
+                }
+                console.log('The file was saved!')
+            })
             msg.edit({ content: 'Okei nå kommer den:' })
             this.messageHelper.sendMessage(interaction.channelId, { files: [file] })
         })

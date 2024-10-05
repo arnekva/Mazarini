@@ -95,8 +95,6 @@ export namespace HelgHelper {
 
                 let timeToPrint = DateUtils.formatCountdownText(timeTo, { textEnding: textToPrint }) || 'Eg vettkje ka dag det e :('
                 if (hasHolidayInTheMiddleOfWeek !== '' && !isHoliday) {
-                    console.log('does have, <' + hasHolidayInTheMiddleOfWeek + '>', hasHolidayInTheMiddleOfWeek)
-
                     timeToPrint += `\n${hasHolidayInTheMiddleOfWeek}`
                 }
                 if (isHoliday) {
@@ -143,7 +141,6 @@ export namespace HelgHelper {
         const helgeFolelse = HelgHelper.findHelgeFolelse()
         const val = `${await HelgHelper.getTimeUntilHelgString(client)}`
         if (interaction && client) client.messageHelper.replyToInteraction(interaction, val + ` (${helgeFolelse}% helgefølelse)`)
-        console.log(val)
 
         return val + ` (${helgeFolelse}% helgefølelse)`
     }

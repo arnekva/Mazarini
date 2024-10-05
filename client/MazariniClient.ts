@@ -10,7 +10,7 @@ import { DatabaseHelper } from '../helpers/databaseHelper'
 import { FirebaseHelper } from '../helpers/firebaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MoneyHelper } from '../helpers/moneyHelper'
-import { ICache, MazariniStorage } from '../interfaces/database/databaseInterface'
+import { ICache } from '../interfaces/database/databaseInterface'
 import { ClientListener } from './ClientListeners'
 
 const Discord = require('discord.js')
@@ -49,13 +49,16 @@ export class MazariniClient extends Client {
                 16384, //  GatewayIntentBits.DirectMessageTyping,
                 32768, // GatewayIntentBits.MessageContent,
             ],
+            rest: {
+                timeout: 60000,
+            },
         })
         this.msgHelper = new MessageHelper(this)
         this.jobScheduler = environment === 'prod' ? new JobScheduler(this.msgHelper, this) : undefined
         this.lockingHandler = new LockingHandler()
         this.mazariniTracker = new MazariniTracker(this)
         this.clientListener = new ClientListener(this)
-        this.clientCache = { deathrollWinningNumbers: []}
+        this.clientCache = { deathrollWinningNumbers: [] }
         this.moneyHelper = new MoneyHelper(this)
         this.setupDatabase(this.msgHelper)
         this.clientListener.setupListeners()
@@ -71,7 +74,8 @@ export class MazariniClient extends Client {
 
     /** Run this to create slash commands from CommandBuilder. Will only run in dev mode */
     createSlashCommands() {
-        if (environment === 'dev' || (new Date() < new Date('2024-09-19'))) { //hehe ty one time hack 
+        if (environment === 'dev' || new Date() < new Date('2024-09-19')) {
+            //hehe ty one time hack
             //Uncomment to run command creation
             CommandBuilder.createCommands(this)
         }
