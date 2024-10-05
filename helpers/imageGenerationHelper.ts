@@ -84,14 +84,41 @@ export class ImageGenerationHelper {
     }
 
     public async generateRevealGifForCollectable(collectable: IUserCollectable): Promise<Buffer> {
+        console.log(
+            ' Generation started',
+            `${new Date().toLocaleDateString('nb', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            })} ${new Date().toLocaleTimeString('nb')}`
+        )
+
         const backgroundWithItem = await this.getBackgroundWithItem(collectable)
         const lightrayAndText = await this.getLightrayAndText(collectable)
         const revealBackground = await sharp(backgroundWithItem)
             .composite([{ input: lightrayAndText, top: ratios.lightrayTop, left: 0 }])
             .toBuffer()
-
+        console.log(
+            'Reveal background done',
+            `${new Date().toLocaleDateString('nb', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            })} ${new Date().toLocaleTimeString('nb')}`
+        )
         const gifUrl = 'graphics/sf_kino.gif'
         const gifBuffer = fs.readFileSync(gifUrl)
+        console.log(
+            'FS read done',
+            `${new Date().toLocaleDateString('nb', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            })} ${new Date().toLocaleTimeString('nb')}`
+        )
 
         return await this.overlayGif(revealBackground, gifBuffer)
     }
@@ -184,16 +211,53 @@ export class ImageGenerationHelper {
 
     private async overlayGif(background: Buffer, gifOverlay: Buffer) {
         //takes two input paths.
+        console.log(
+            ' Overlay started',
+            `${new Date().toLocaleDateString('nb', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            })} ${new Date().toLocaleTimeString('nb')}`
+        )
 
         const overlay = sharp(gifOverlay, { animated: true }) //make sure animated is true.
         const metadata = await overlay.metadata() //We'll use the gif metadata to normalize the background.
+        console.log(
+            'Metadata collected',
+            `${new Date().toLocaleDateString('nb', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            })} ${new Date().toLocaleTimeString('nb')}`
+        )
 
         const backgroundImg = sharp(background).resize(metadata.width, metadata.pageHeight) //We are resizing here to normalize background with gif.
         const imgRoll = backgroundImg.extend({ bottom: metadata.pageHeight * (metadata.pages - 1), extendWith: 'repeat' }) //Must extend to repeat how ever many pages (frames) are in the gif.
+        console.log(
+            'sharp resized and extended',
+            `${new Date().toLocaleDateString('nb', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            })} ${new Date().toLocaleTimeString('nb')}`
+        )
 
         const result = imgRoll.composite([{ input: await overlay.toBuffer(), gravity: 'north', animated: true }]).gif(
             { progressive: metadata.isProgressive, delay: metadata.delay, loop: 1, effort: 8 }
             //Just copying the metadata from the gif to the output format (not sure this is necessary).
+        )
+
+        console.log(
+            'Buffer creation starts:',
+            `${new Date().toLocaleDateString('nb', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            })} ${new Date().toLocaleTimeString('nb')}`
         )
 
         const resInfo = await result.toBuffer()

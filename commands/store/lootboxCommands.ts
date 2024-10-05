@@ -183,13 +183,13 @@ export class LootboxCommands extends AbstractCommands {
         this.imageGenerator.generateRevealGifForCollectable(item).then((gif) => {
             updateText = false
             const file = new AttachmentBuilder(gif, { name: 'collectable.gif' })
-
-            fs.writeFile('./graphics/file.gif', gif, function (err) {
-                if (err) {
-                    return console.log(err)
-                }
-                console.log('The file was saved!')
-            })
+            console.log('File has been generated, uploading')
+            // fs.writeFile('./graphics/file.gif', gif, function (err) {
+            //     if (err) {
+            //         return console.log(err)
+            //     }
+            //     console.log('The file was saved!')
+            // })
             msg.edit({ content: 'Okei nå kommer den:' })
             this.messageHelper.sendMessage(interaction.channelId, { files: [file] })
         })
