@@ -5,3 +5,5 @@ package-lock.json
 yarn.lock
 ./myDataBase.json
 myDataBase.json
+./graphics/file.gif
+./graphics/file.gif
