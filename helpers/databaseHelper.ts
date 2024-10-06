@@ -1,6 +1,6 @@
 import moment from 'moment'
 import { DRGame } from '../commands/games/deathroll'
-import { botDataPrefix, ChipsStats, ICollectableSeries, ILootbox, MazariniStorage, MazariniUser, Meme, RulettStats } from '../interfaces/database/databaseInterface'
+import { botDataPrefix, ChipsStats, ICollectableSeries, ILootbox, IUserCollectable, MazariniStorage, MazariniUser, Meme, RulettStats } from '../interfaces/database/databaseInterface'
 import { FirebaseHelper } from './firebaseHelper'
 import { lootboxMock, lootSeriesMock } from '../commands/store/lootboxCommands'
 
@@ -354,6 +354,16 @@ export class DatabaseHelper {
 
     public async getLootboxSeries() {
         return (await this.db.getData('/other/loot/series')) as ICollectableSeries[]
+    }
+
+    public async getFromStorage(path: string): Promise<ArrayBuffer> {
+        const ref = this.db.getStorageRef(path)
+        return this.db.getStorageData(ref)
+    }
+
+    public async uploadLootGif(path: string, gif: Buffer) {
+        const ref = this.db.getStorageRef(path)
+        this.db.uploadToStorage(ref, gif)
     }
 
     static defaultUser(id: string): MazariniUser {

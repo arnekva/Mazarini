@@ -168,31 +168,23 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private async revealCollectable(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, item: IUserCollectable) {
-        const msg = await this.messageHelper.replyToInteraction(interaction, RandomUtils.getRandomItemFromList(textArrays.gifWaitTexts))
-        let updateText = true
-        let usedTexts: string[] = new Array<string>()
-        setTimeout(async function refreshMsg() {
-            if (updateText) {
-                const text = RandomUtils.getRandomItemFromListWithExclusions(textArrays.gifLongWaitTexts, usedTexts)
-                if (!text) updateText = false
-                usedTexts.push(text)
-                msg.edit({ content: `${text}` })
-                setTimeout(refreshMsg, 7000)
-            }
-        }, 7000)
-        this.imageGenerator.generateRevealGifForCollectable(item).then((gif) => {
-            updateText = false
-            const file = new AttachmentBuilder(gif, { name: 'collectable.gif' })
-            console.log('File has been generated, uploading')
-            // fs.writeFile('./graphics/file.gif', gif, function (err) {
-            //     if (err) {
-            //         return console.log(err)
-            //     }
-            //     console.log('The file was saved!')
-            // })
-            msg.edit({ content: 'Okei nå kommer den:' })
-            this.messageHelper.sendMessage(interaction.channelId, { files: [file] })
-        })
+        await interaction.deferReply()
+        const path = this.getGifPath(item)
+        const buffer = Buffer.from(await this.client.database.getFromStorage(path))
+        const file = new AttachmentBuilder(buffer, {name: 'collectable.gif'})
+        this.messageHelper.replyToInteraction(interaction, '', {hasBeenDefered: true}, undefined, [file])
+    }
+
+    private getGifPath(item: IUserCollectable): string {
+        const color = this.getColorForNewItem(item)
+        return `loot/${item.series}/${item.name}_${color}.gif`
+    }
+
+    private getColorForNewItem(item: IUserCollectable): ItemColor {
+        if (item.inventory.diamond === 1) return ItemColor.Diamond
+        else if (item.inventory.gold === 1) return ItemColor.Gold
+        else if (item.inventory.silver === 1) return ItemColor.Silver
+        else return ItemColor.None
     }
 
     private async seriesAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
