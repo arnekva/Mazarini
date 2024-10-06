@@ -101,6 +101,9 @@ export class ClientListener {
                     }
                 })
             }
+            if (environment === 'prod') {
+                this.client.messageHelper.sendLogMessage(msg)
+            }
 
             ClientHelper.setStatusFromStorage(this.client, this.client.database)
             PatchNotes.compareAndSendPatchNotes(this.client.messageHelper, this.client.database)
