@@ -199,7 +199,11 @@ export class LootboxCommands extends AbstractCommands {
         const series = await this.getSeries()
         const optionList: any = interaction.options
         const input = optionList.getFocused().toLowerCase()
-        interaction.respond(series.filter((series) => series.name.toLowerCase().includes(input)).map((series) => ({ name: series.name, value: series.name })))
+		interaction.respond(
+			series
+            .filter(series => series.name.toLowerCase().includes(input))
+            .map(series => ({ name: series.name, value: series.name })) 
+		)
     }
 
     private async printInventory(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -207,9 +211,9 @@ export class LootboxCommands extends AbstractCommands {
         const user = await this.client.database.getUser(interaction.user.id)
         const seriesParam = interaction.options.get('series')?.value as string
         const series = await this.getSeriesOrDefault(seriesParam)
-        const img = await this.imageGenerator.generateImageForCollectables(user.collectables.filter((item) => item.series === series.name))
-        const file = new AttachmentBuilder(img, { name: 'inventory.png' })
-        this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, undefined, [file])
+        const img = await this.imageGenerator.generateImageForCollectables(user.collectables?.filter(item => item.series === series.name))
+        const file = new AttachmentBuilder(img, { name: 'inventory.png' }) 
+        this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, undefined, [file]) 
     }
 
     private executeLootSubCommand(interaction: ChatInputCommandInteraction<CacheType>) {

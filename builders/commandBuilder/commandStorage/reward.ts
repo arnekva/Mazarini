@@ -19,12 +19,12 @@ export const rewardCommand: ISlashCommandItem = {
                 {
                     name: 'chips',
                     description: 'hvor mye chips skal brukeren få?',
-                    type: ApplicationCommandOptionType.Number,
+                    type: ApplicationCommandOptionType.Integer,
                     required: true
                 },
                 {
                     name: 'reason',
-                    description: 'begrunnelse',
+                    description: 'begrunnelse', 
                     type: ApplicationCommandOptionType.String,
                     required: true,
                 },

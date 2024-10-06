@@ -1,5 +1,6 @@
 import { blackjackCommand } from './commandStorage/blackjack'
 import { countdownCommand } from './commandStorage/countdown'
+import { dailyCommand } from './commandStorage/daily'
 import { deathrollCommand } from './commandStorage/deathroll'
 import { frameCommand } from './commandStorage/frame'
 import { jailCommand } from './commandStorage/jail'
@@ -54,4 +55,5 @@ export namespace CommandStorage {
     export const TestCommand = testCommand
     export const LootboxCommand = lootboxCommand
     export const RewardCommand = rewardCommand
+    export const DailyCommand = dailyCommand
 }

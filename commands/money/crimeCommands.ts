@@ -262,7 +262,7 @@ export class CrimeCommands extends AbstractCommands {
             engager.jail = {
                 daysInJail: 4,
                 jailState: nextJailState,
-                timesJailedToday: ++engager.jail.timesJailedToday,
+                timesJailedToday: engager.jail?.timesJailedToday ? ++engager.jail.timesJailedToday : 1,
             }
 
             engager.daily.dailyFreezeCounter = 0

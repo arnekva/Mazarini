@@ -265,12 +265,13 @@ export class ImageGenerationHelper {
     }
 
     public async generateImageForCollectables(collectables: IUserCollectable[]): Promise<Buffer> {
+        const background = fs.readFileSync(`graphics/inventory_bg.png`) 
+        if (!collectables) return background
+        const canvas = await getCanvasImage({buffer: background}) 
         const imageTemplate: ICollectableImage = inventoryTemplate
         const images = await this.getImageSeriesForCollectables(collectables, imageTemplate)
-        const background = fs.readFileSync(`graphics/inventory_bg.png`)
-        const canvas = await getCanvasImage({ buffer: background })
-        images.push({ ...inventoryOptions, canvasImage: canvas })
-        const collection = new UltimateTextToImage('', { ...imageTemplate.options, images: images }).render().toBuffer()
+        images.push({...inventoryOptions, canvasImage: canvas})
+        const collection = new UltimateTextToImage("", {...imageTemplate.options, images: images}).render().toBuffer()
         return collection
     }
 
