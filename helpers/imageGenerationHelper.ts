@@ -246,7 +246,7 @@ export class ImageGenerationHelper {
         )
 
         const result = imgRoll.composite([{ input: await overlay.toBuffer(), gravity: 'north', animated: true }]).gif(
-            { progressive: metadata.isProgressive, delay: metadata.delay, loop: 1, effort: 8 }
+            { progressive: metadata.isProgressive, delay: metadata.delay, loop: 1, effort: 1 }
             //Just copying the metadata from the gif to the output format (not sure this is necessary).
         )
 
