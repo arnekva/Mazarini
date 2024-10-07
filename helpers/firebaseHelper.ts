@@ -28,8 +28,8 @@ export class FirebaseHelper {
         return storageRef(this.storage, path);
     }
 
-    public uploadToStorage(ref: StorageReference, gif: Buffer) {
-        uploadBytes(ref, gif)
+    public uploadToStorage(ref: StorageReference, data: Buffer) {
+        uploadBytes(ref, data)
     }
 
     public async saveData(data: DatabaseStructure) {
