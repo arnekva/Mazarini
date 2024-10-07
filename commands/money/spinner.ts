@@ -92,9 +92,9 @@ export class Spinner extends AbstractCommands {
             case 5:
                 return 100
             case 6:
-                return 250
+                return 300
             case 7:
-                return 575
+                return 700
             case 8:
                 return 1250
             case 9:
