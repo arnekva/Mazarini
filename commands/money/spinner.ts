@@ -67,7 +67,8 @@ export class Spinner extends AbstractCommands {
         let winnings = this.getSpinnerWinnings(Number(min), Number(sec))
         const canWinMore = !user.dailySpinRewards || user.dailySpinRewards < 10
         if (winnings > 0 && canWinMore) {
-            user.dailySpinRewards++ //Line below will also update this
+            if (!user.dailySpinRewards) user.dailySpinRewards = 1
+            else user.dailySpinRewards++ //Line below will also update this
             winnings = this.client.bank.giveMoney(user, winnings)
         }
         const winningsText = winnings > 0 && canWinMore ? `Du får ${winnings} chips.` : ''
