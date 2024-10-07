@@ -65,7 +65,7 @@ export class Spinner extends AbstractCommands {
         const sec = RandomUtils.getRandomInteger(0, 60)
 
         let winnings = this.getSpinnerWinnings(Number(min), Number(sec))
-        const canWinMore = user.dailySpinRewards < 10
+        const canWinMore = !user.dailySpinRewards || user.dailySpinRewards < 10
         if (winnings > 0 && canWinMore) {
             user.dailySpinRewards++ //Line below will also update this
             winnings = this.client.bank.giveMoney(user, winnings)
