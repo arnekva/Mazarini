@@ -203,7 +203,7 @@ export class LootboxCommands extends AbstractCommands {
         const user = await this.client.database.getUser(interaction.user.id)
         const seriesParam = interaction.options.get('series')?.value as string
         const series = await this.getSeriesOrDefault(seriesParam)
-        const img = await this.imageGenerator.generateImageForCollectables(user.collectables?.filter(item => item.series === series.name))
+        const img = await this.imageGenerator.generateImageForCollectables(user.collectables?.filter(item => item.series === series.name).sort((a,b) => a.name.localeCompare(b.name)))
         const file = new AttachmentBuilder(img, { name: 'inventory.png' }) 
         this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, undefined, [file]) 
     }
