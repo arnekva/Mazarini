@@ -46,8 +46,8 @@ export class Deathroll extends AbstractCommands {
     }
 
     private reRollWinningNumbers() {
-        setTimeout(async () => {
-            let winningNumbers = new Array<number>()
+        setTimeout(() => {
+            const winningNumbers = new Array<number>()
             winningNumbers.push(RandomUtils.getRandomInteger(70, 200))
             winningNumbers.push(RandomUtils.getRandomInteger(70, 200))
             winningNumbers.push(RandomUtils.getRandomInteger(70, 200))

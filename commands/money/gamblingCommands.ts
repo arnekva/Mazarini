@@ -1,12 +1,10 @@
-import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 
 import { DatabaseHelper } from '../../helpers/databaseHelper'
-import { EmojiHelper } from '../../helpers/emojiHelper'
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
-import { MentionUtils } from '../../utils/mentionUtils'
 import { MiscUtils } from '../../utils/miscUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { TextUtils } from '../../utils/textUtils'
@@ -28,8 +26,8 @@ export class GamblingCommands extends AbstractCommands {
             const roll = RandomUtils.getRandomInteger(0, 100)
 
             let newMoneyValue = 0
-            let multiplier = this.getMultiplier(roll)
-            const calculatedValue = await this.calculatedNewMoneyValue(interaction.user.id, multiplier, chipsToGamble, userMoney)
+            const multiplier = this.getMultiplier(roll)
+            const calculatedValue = this.calculatedNewMoneyValue(interaction.user.id, multiplier, chipsToGamble, userMoney)
 
             if (roll >= 50) {
                 newMoneyValue = calculatedValue.newMoneyValue
@@ -58,7 +56,7 @@ export class GamblingCommands extends AbstractCommands {
 
     private async roulette(interaction: ChatInputCommandInteraction<CacheType>) {
         const user = await this.client.database.getUser(interaction.user.id)
-        let userMoney = user.chips
+        const userMoney = user.chips
         const isForNumber = interaction.options.getSubcommand() === 'tall'
         const isForCategory = interaction.options.getSubcommand() === 'kategori'
 
@@ -113,7 +111,7 @@ export class GamblingCommands extends AbstractCommands {
             let newMoneyValue = 0
 
             if (won) {
-                const calculatedMoney = await this.calculatedNewMoneyValue(interaction.user.id, multiplier, valAsNum, userMoney)
+                const calculatedMoney = this.calculatedNewMoneyValue(interaction.user.id, multiplier, valAsNum, userMoney)
                 newMoneyValue = calculatedMoney.newMoneyValue
             } else newMoneyValue = Number(userMoney) - valAsNum
             user.chips = newMoneyValue
@@ -160,17 +158,16 @@ export class GamblingCommands extends AbstractCommands {
         return 2
     }
 
-    private async calculatedNewMoneyValue(
+    private calculatedNewMoneyValue(
         id: string,
         multiplier: number,
         valAsNum: number,
         userMoney: number
-    ): Promise<{ newMoneyValue: number; interestAmount: number; rate: number }> {
-        const user = await this.client.database.getUser(id)
+    ): { newMoneyValue: number; interestAmount: number; rate: number } {
 
         let newMoneyValue = 0
-        let interest = 0
-        let rate = 0
+        const interest = 0
+        const rate = 0
 
         newMoneyValue = Number(userMoney) + multiplier * valAsNum - interest - valAsNum
 
@@ -222,7 +219,7 @@ export class GamblingCommands extends AbstractCommands {
             let winnings = 0
             if (amountOfCorrectNums.length > 0) {
                 amountOfCorrectNums.forEach((correctNum) => {
-                    let currentWinnings = this.findSlotMachineWinningAmount(correctNum.num + 1)
+                    const currentWinnings = this.findSlotMachineWinningAmount(correctNum.num + 1)
                     winnings += currentWinnings
                     msg.addFields({ name: `${correctNum.val}`, value: `Kom ${correctNum.num + 1} ganger på rad. Du har vunnet ${currentWinnings} chips` })
                 })

@@ -23,8 +23,7 @@ import {
 } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { RandomUtils } from '../../utils/randomUtils'
-import { textArrays } from '../../utils/textArrays'
-const fs = require('fs')
+
 export class LootboxCommands extends AbstractCommands {
     private imageGenerator: ImageGenerationHelper
     private lootboxes: ILootbox[]
@@ -144,8 +143,8 @@ export class LootboxCommands extends AbstractCommands {
         }
     }
 
-    private async registerItemOnUser(user: MazariniUser, item: IUserCollectable) {
-        let itemAlreadyCollected = user.collectables?.some((collectible) => collectible.name === item.name)
+    private registerItemOnUser(user: MazariniUser, item: IUserCollectable) {
+        const itemAlreadyCollected = user.collectables?.some((collectible) => collectible.name === item.name)
         if (itemAlreadyCollected) {
             user.collectables = user.collectables.map((el) =>
                 el.name === item.name

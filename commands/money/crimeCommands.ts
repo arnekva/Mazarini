@@ -112,7 +112,7 @@ export class CrimeCommands extends AbstractCommands {
                 let victimValue = target.chips
 
                 const shouldAlwaysLose = engager.id === interaction.user.id
-                let roll = RandomUtils.getRandomInteger(0, 100)
+                const roll = RandomUtils.getRandomInteger(0, 100)
                 // if ((engager.id === '239154365443604480' && roll < 50) || (target.id === '239154365443604480' && roll > 50)) {
                 //     roll = RandomUtils.getRandomInteger(0, 100)
                 // }
@@ -271,7 +271,7 @@ export class CrimeCommands extends AbstractCommands {
             if (nextJailState === 'max') jailTypeString = '\nDu e nå i Maximum Security, og får ikkje lenger gratis rømningsforsøk.'
             if (nextJailState === 'solitairy') jailTypeString = '\nDu e nå i Solitairy Confinement, og kan ikkje lenger rømma'
             const siren = await EmojiHelper.getEmoji('redbluesiren', interaction)
-            let embed = EmbedUtils.createSimpleEmbed(
+            const embed = EmbedUtils.createSimpleEmbed(
                 `${siren.id} Caught in 4K ${siren.id}`,
                 `${MentionUtils.mentionUser(engager.id)} har blitt tatt i å prøva å stjela ${TextUtils.formatMoney(amountAsNum)} fra ${MentionUtils.mentionUser(
                     victim.id
@@ -418,7 +418,7 @@ export class CrimeCommands extends AbstractCommands {
     }
 
     private async printPrisoners(interaction: ChatInputCommandInteraction<CacheType>) {
-        let formattedMsg = new EmbedBuilder().setTitle(':lock: Fengsel :lock:')
+        const formattedMsg = new EmbedBuilder().setTitle(':lock: Fengsel :lock:')
         const users = await this.client.database.getAllUsers()
         let someoneInJail = false
         users.forEach((user) => {
@@ -478,7 +478,7 @@ export class CrimeCommands extends AbstractCommands {
             if (nextJailState === 'max') jailTypeString = '\nDu e nå i Maximum Security, og får ikkje lenger gratis rømningsforsøk.'
             if (nextJailState === 'solitairy') jailTypeString = '\nDu e nå i Solitairy Confinement, og kan ikkje lenger rømma'
             const siren = await EmojiHelper.getEmoji('redbluesiren', interaction)
-            let embed = EmbedUtils.createSimpleEmbed(
+            const embed = EmbedUtils.createSimpleEmbed(
                 `${siren.id} Nye bevis ${siren.id}`,
                 `${MentionUtils.mentionUser(user.id)} løslates med umiddelbar virkning da nye bevis har kommet frem! ` +
                     `\n:lock: ${MentionUtils.mentionUser(target.id)} var den faktiske skyldige og dømmes dermed te ${target.jail.daysInJail} dager i fengsel :lock:`

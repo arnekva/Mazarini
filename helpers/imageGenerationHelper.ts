@@ -128,13 +128,12 @@ export class ImageGenerationHelper {
         const resizedLightray = sharp(lightray)
             .resize({ fit: sharp.fit.cover, width: ratios.lightrayScaleWidth })
             .resize({ fit: sharp.fit.cover, width: revealWidth, height: ratios.lightrayScaleHeight })
-        const meta = await resizedLightray.metadata()
-        const text = await this.getHeaderText(collectable, meta)
+        const text = await this.getHeaderText(collectable)
         const lr = await resizedLightray.toBuffer()
         return sharp(lr).composite(text).toBuffer()
     }
 
-    private async getHeaderText(collectable: IUserCollectable, meta: sharp.Metadata): Promise<sharp.OverlayOptions[]> {
+    private async getHeaderText(collectable: IUserCollectable): Promise<sharp.OverlayOptions[]> {
         registerFont('graphics/fonts/WorkSans-Medium.ttf', { family: 'Work Sans', weight: 500 })
         const fontSize = 50
         const header = `${TextUtils.capitalizeFirstLetter(collectable.name)}`
@@ -164,14 +163,14 @@ export class ImageGenerationHelper {
             .toBuffer()
     }
 
-    private async compositeBuffers(background: Buffer, overlay: Buffer, top?: number, left?: number): Promise<Buffer> {
+    private compositeBuffers(background: Buffer, overlay: Buffer, top?: number, left?: number): Promise<Buffer> {
         return sharp(background)
             .composite([{ input: overlay, gravity: 'center', top: top, left: left }])
             .toBuffer()
     }
 
     private getOutlineText(text: Buffer, outline: Buffer, topOffset: number, leftOffset: number, layers: number): sharp.OverlayOptions[] {
-        let texts: sharp.OverlayOptions[] = new Array<sharp.OverlayOptions>()
+        const texts: sharp.OverlayOptions[] = new Array<sharp.OverlayOptions>()
         for (let x = -layers; x <= layers; x++) {
             for (let y = -layers; y <= layers; y++) {
                 texts.push({ input: outline, top: topOffset + x, left: leftOffset + y })
@@ -209,7 +208,7 @@ export class ImageGenerationHelper {
     }
 
     private async getImageSeriesForCollectables(collectables: IUserCollectable[], imageTemplate: ICollectableImage): Promise<IImage[]> {
-        let images: IImage[] = new Array<IImage>()
+        const images: IImage[] = new Array<IImage>()
         // Sort items into rarities and assign a specific coordinate to each
         const commonImages = await this.getImagesForRarity(
             collectables.filter((item) => item.rarity === ItemRarity.Common),
@@ -235,7 +234,7 @@ export class ImageGenerationHelper {
     }
 
     private async getImagesForRarity(collectables: IUserCollectable[], coords: IItemShadowCoordinates[]): Promise<IImage[]> {
-        let images: IImage[] = new Array<IImage>()
+        const images: IImage[] = new Array<IImage>()
         let i = 0
         for (const item of collectables) {
             const collectedColors = this.getNumberOfColorsCollected(item)
@@ -247,7 +246,7 @@ export class ImageGenerationHelper {
     }
 
     private async getImagesForAllCollectableColors(item: IUserCollectable, coords: IItemShadowCoordinates[]): Promise<IImage[]> {
-        let images: IImage[] = new Array<IImage>()
+        const images: IImage[] = new Array<IImage>()
         let i = 0
         if (item.inventory.none > 0) {
             const noneImages = await this.getImagesForSingleCollectable(item, ItemColor.None, coords[i])
@@ -277,7 +276,7 @@ export class ImageGenerationHelper {
         const emojiImageBuffer = await this.getPngBufferForWebpUrl(url)
         const resizedItem = await sharp(emojiImageBuffer).resize({ fit: sharp.fit.inside, width: 75 }).toBuffer()
         const canvas = await getCanvasImage({ buffer: resizedItem })
-        let emojiImageArray: IImage[] = [{ ...this.getImageCoordinates(coord, canvas, 1), canvasImage: canvas }] // Must have layer 1
+        const emojiImageArray: IImage[] = [{ ...this.getImageCoordinates(coord, canvas, 1), canvasImage: canvas }] // Must have layer 1
         const collectableBackground = await this.getItemBackgroundImage(color, coord)
         if (collectableBackground) emojiImageArray.push(collectableBackground)
         const inventoryCounter = await this.getItemInventoryImage(item, color, coord)
@@ -296,8 +295,8 @@ export class ImageGenerationHelper {
     }
 
     private async getPngBufferForWebpUrl(url: string): Promise<Buffer> {
-        let webpImage = await fetch(url)
-        let buffer = Buffer.from(await webpImage.arrayBuffer())
+        const webpImage = await fetch(url)
+        const buffer = Buffer.from(await webpImage.arrayBuffer())
         const image = await sharp(buffer).toFormat('png').toBuffer()
         return image
     }
@@ -415,7 +414,7 @@ function generateTemplateForSize(imageWidth: number, imageHeight: number, horizo
 
 // Gets the center of shadow-box
 function generateCoordinates(initialX: number, initialY: number, widthToNext: number, heightToNext: number) {
-    let coordinates: IItemShadowCoordinates[] = new Array<IItemShadowCoordinates>()
+    const coordinates: IItemShadowCoordinates[] = new Array<IItemShadowCoordinates>()
     for (let row = 0; row < 2; row++) {
         for (let column = 0; column < 10; column++) {
             coordinates.push({
