@@ -9,9 +9,8 @@ import { MazariniUser, RocketLeagueTournament } from '../interfaces/database/dat
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { ChannelIds } from '../utils/mentionUtils'
-import { UserUtils } from '../utils/userUtils'
-import { MoneyCommands } from '../commands/money/moneyCommands'
 import { RandomUtils } from '../utils/randomUtils'
+import { UserUtils } from '../utils/userUtils'
 export class DailyJobs {
     private messageHelper: MessageHelper
     private client: MazariniClient
@@ -28,9 +27,11 @@ export class DailyJobs {
             //TODO: This could be refactored
             const users = await this.client.database.getAllUsers()
             const embed = EmbedUtils.createSimpleEmbed(`Daily Jobs`, `Kjører 5 jobber`)
-            
+
             const claim = this.validateAndResetDailyClaims(users)
             embed.addFields({ name: 'Daily claim', value: EmojiHelper.getStatusEmoji(claim) })
+            const dailySpin = this.resetDailySpinReward(users)
+            embed.addFields({ name: 'Daily spin', value: EmojiHelper.getStatusEmoji(dailySpin) })
             const jail = await this.updateJailAndJailbreakCounters(users)
             embed.addFields({ name: 'Jail status', value: EmojiHelper.getStatusEmoji(jail) })
             const bd = this.checkForUserBirthdays(users)
@@ -38,7 +39,7 @@ export class DailyJobs {
             const rl = await this.updateRLTournaments(rapidApiKey)
             embed.addFields({ name: 'Rocket League turnering', value: EmojiHelper.getStatusEmoji(rl) })
             const drWinNum = this.reRollWinningNumbers()
-            embed.addFields({ name: 'Tilfeldige deathroll vinnertall', value: EmojiHelper.getStatusEmoji(drWinNum)})
+            embed.addFields({ name: 'Tilfeldige deathroll vinnertall', value: EmojiHelper.getStatusEmoji(drWinNum) })
 
             const todaysTime = new Date().toLocaleTimeString()
             embed.setFooter({ text: todaysTime })
@@ -180,6 +181,13 @@ export class DailyJobs {
         })
         this.client.database.updateData(updates)
         return status
+    }
+
+    private resetDailySpinReward(users: MazariniUser[]): JobStatus {
+        users.forEach((u) => {
+            u.dailySpinRewards = 0
+        })
+        return 'success'
     }
 
     private logEvent() {

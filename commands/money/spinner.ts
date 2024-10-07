@@ -65,10 +65,12 @@ export class Spinner extends AbstractCommands {
         const sec = RandomUtils.getRandomInteger(0, 60)
 
         let winnings = this.getSpinnerWinnings(Number(min), Number(sec))
-        if (winnings > 0) {
+        const canWinMore = user.dailySpinRewards < 10
+        if (winnings > 0 && canWinMore) {
+            user.dailySpinRewards++ //Line below will also update this
             winnings = this.client.bank.giveMoney(user, winnings)
         }
-        const winningsText = winnings > 0 ? `Du får ${winnings} chips.` : ''
+        const winningsText = winnings > 0 && canWinMore ? `Du får ${winnings} chips.` : ''
         this.messageHelper.replyToInteraction(
             interaction,
             interaction.user.username + ' spant fidget spinneren sin i ' + min + ' minutt og ' + sec + ' sekund!' + ` ${winningsText}`

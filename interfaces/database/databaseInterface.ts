@@ -74,8 +74,7 @@ export interface MazariniUser {
     bonkCounter: number
 
     lastFMUsername?: string
-    /** No. loans */
-
+    dailySpinRewards?: number
     // shopItems?: any //TODO Cast this
     /** Cod weekly stats */
     codStats?: CodStats | CodBRStatsType
@@ -149,13 +148,13 @@ export enum ItemColor {
     None = 'none',
     Silver = 'silver',
     Gold = 'gold',
-    Diamond = 'diamond'
+    Diamond = 'diamond',
 }
 
 export enum LootboxQuality {
     Basic = 'basic',
     Premium = 'premium',
-    Elite = 'elite'
+    Elite = 'elite',
 }
 
 export interface ILootbox {
