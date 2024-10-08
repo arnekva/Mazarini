@@ -9,6 +9,7 @@ import {
     ChatInputCommandInteraction,
 } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
 import {
@@ -200,10 +201,19 @@ export class LootboxCommands extends AbstractCommands {
 		// )
     }
 
-    private async firstItemAutocomplete(interaction: AutocompleteInteraction<CacheType>, user: MazariniUser) {
-        // const collectables = user.collectables.sort((a,b) => `${a.series}_${a.name}`.localeCompare(`${b.series}_${b.name}`))
-        // Wait - refactor data structure of IUserCollectable
+    private firstItemAutocomplete(interaction: AutocompleteInteraction<CacheType>, user: MazariniUser) {
+        const optionList: any = interaction.options
+        const collectables = user.collectables.sort((a,b) => `${a.series}_${a.name}_${a.color}`.localeCompare(`${b.series}_${b.name}_${b.color}`))
+        interaction.respond(
+			collectables
+            .filter(item => `${item.series}_${item.name}_${item.color}`.includes(optionList.getFocused()))
+            .map(item => ({ name: `${item.series}_${item.name}_${item.color}`, value: `${item.series}_${item.name}_${item.color}` })) 
+		)
     }
+
+    private secondaryItemsAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
+
+    } 
 
     private verifyValidItemInput(item: string) {
 
@@ -250,10 +260,14 @@ export class LootboxCommands extends AbstractCommands {
                     {
                         commandName: 'loot',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            this.executeLootSubCommand(rawInteraction)
+                            const subGroup = rawInteraction.options.getSubcommandGroup()
+                            if (environment === 'prod' && subGroup && subGroup === 'trade') this.messageHelper.replyToInteraction(rawInteraction, 'Sorry, denne er ikke klar enda', {ephemeral: true})
+                            else this.executeLootSubCommand(rawInteraction)
                         },
                         autoCompleteCallback: (interaction: AutocompleteInteraction<CacheType>) => {
-                            this.delegateAutocomplete(interaction)
+                            const subGroup = interaction.options.getSubcommandGroup()
+                            if (environment === 'prod' && subGroup && subGroup === 'trade') interaction.respond([{name: 'Sorry, denne er ikke klar enda', value: 'NOT_READY'}])
+                            else this.delegateAutocomplete(interaction)
                         },
                     },
                 ],
