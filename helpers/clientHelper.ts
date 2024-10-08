@@ -19,8 +19,9 @@ export class ClientHelper {
     }
 
     static setDisplayNameMode(client: Client, type: 'offline' | 'online') {
-        const x = client.guilds.cache.first()
-        x.members.me.setNickname(`${type === 'offline' ? '[RESTARTING]' : ''} Bot Høie`)
+        client.guilds.cache.forEach((guild) => {
+            guild.members.me.setNickname(`${type === 'offline' ? '[RESTARTING]' : ''} Bot Høie`)
+        })
     }
 
     static async setStatusFromStorage(client: Client, dbHelper: DatabaseHelper) {
