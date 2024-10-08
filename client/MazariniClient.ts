@@ -62,8 +62,10 @@ export class MazariniClient extends Client {
         this.clientCache = { deathrollWinningNumbers: [] }
         this.moneyHelper = new MoneyHelper(this)
         this.setupDatabase(this.msgHelper)
-        ClientHelper.setDisplayNameMode(this, 'online')
+
         this.clientListener.setupListeners()
+
+        ClientHelper.setDisplayNameMode(this, 'online')
     }
 
     /** Starts property listeners for client.  */
