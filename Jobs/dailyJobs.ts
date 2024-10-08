@@ -184,9 +184,13 @@ export class DailyJobs {
     }
 
     private resetDailySpinReward(users: MazariniUser[]): JobStatus {
-        users.forEach((u) => {
-            u.dailySpinRewards = 0
+        const updates = this.client.database.getUpdatesObject<'dailySpinRewards'>()
+        users.forEach((user) => {
+            user.dailySpinRewards = 0
+            const updatePath = this.client.database.getUserPathToUpdate(user.id, 'dailySpinRewards')
+            updates[updatePath] = user.dailySpinRewards
         })
+        this.client.database.updateData(updates)
         return 'success'
     }
 
