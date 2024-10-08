@@ -64,8 +64,6 @@ export class MazariniClient extends Client {
         this.setupDatabase(this.msgHelper)
 
         this.clientListener.setupListeners()
-
-        ClientHelper.setDisplayNameMode(this, 'online')
     }
 
     /** Starts property listeners for client.  */

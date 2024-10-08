@@ -8,8 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '18.0.2'
-    public static readonly currentPatchNotes = `\n* /spin kan nå gi maks 10 rewards daglig. Nullstilles 05:00`
+    public static readonly currentVersion = '18.0.3'
+    public static readonly currentPatchNotes = `\n* Høie vil nå endre navnet sitt til '[RESTARTING] Bot Høie' når den starter på nytt. Dette for å gi en indikasjon på at den er nede.`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 

@@ -104,7 +104,7 @@ export class ClientListener {
             if (environment === 'prod') {
                 this.client.messageHelper.sendLogMessage(msg)
             }
-
+            ClientHelper.setDisplayNameMode(this.client, 'online')
             ClientHelper.setStatusFromStorage(this.client, this.client.database)
             PatchNotes.compareAndSendPatchNotes(this.client.messageHelper, this.client.database)
 

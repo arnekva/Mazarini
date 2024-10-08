@@ -18,9 +18,10 @@ export class ClientHelper {
         }
     }
 
+    /** Changes the Bots nickname depending on it's status */
     static setDisplayNameMode(client: Client, type: 'offline' | 'online') {
         client.guilds.cache.forEach((guild) => {
-            guild.members.me.setNickname(`${type === 'offline' ? '[RESTARTING]' : ''} Bot Høie`)
+            guild.members.me.setNickname(`${type === 'offline' ? '[RESTARTING] ' : ''}Bot Høie`)
         })
     }
 
