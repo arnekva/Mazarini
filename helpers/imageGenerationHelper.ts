@@ -96,11 +96,10 @@ export class ImageGenerationHelper {
     }
 
     private async getBackgroundWithItem(collectable: IUserCollectable): Promise<Buffer> {
-        const color = this.getColorForNewItem(collectable)
         const background = fs.readFileSync('graphics/background.png')
         const resizedBg = await sharp(background).resize({ fit: sharp.fit.cover, width: revealWidth, height: revealHeight }).toBuffer()
-        const halo = await this.getHalo(color)
-        const item = await this.getItemBuffer(collectable, color)
+        const halo = await this.getHalo(collectable.color)
+        const item = await this.getItemBuffer(collectable)
         let backgroundBuffer = resizedBg
         if (halo) {
             const coords = await ratios.itemCoords(halo)
@@ -116,8 +115,8 @@ export class ImageGenerationHelper {
         return await this.resize(halo, false, ratios.halo)
     }
 
-    private async getItemBuffer(collectable: IUserCollectable, color: ItemColor): Promise<Buffer> {
-        const itemUrl = await this.getEmojiImageUrl(collectable, color)
+    private async getItemBuffer(collectable: IUserCollectable): Promise<Buffer> {
+        const itemUrl = await this.getEmojiImageUrl(collectable)
         const item = await fetch(itemUrl)
         const itemBuffer = Buffer.from(await item.arrayBuffer())
         return await this.resize(itemBuffer, false, ratios.item)
@@ -237,61 +236,34 @@ export class ImageGenerationHelper {
         const images: IImage[] = new Array<IImage>()
         let i = 0
         for (const item of collectables) {
-            const collectedColors = this.getNumberOfColorsCollected(item)
-            const itemImages = await this.getImagesForAllCollectableColors(item, coords.slice(i, i + collectedColors))
+            const itemImages = await this.getImagesForSingleCollectable(item, coords[i])
             images.push(...itemImages)
-            i += collectedColors
-        }
-        return images
-    }
-
-    private async getImagesForAllCollectableColors(item: IUserCollectable, coords: IItemShadowCoordinates[]): Promise<IImage[]> {
-        const images: IImage[] = new Array<IImage>()
-        let i = 0
-        if (item.inventory.none > 0) {
-            const noneImages = await this.getImagesForSingleCollectable(item, ItemColor.None, coords[i])
-            images.push(...noneImages)
-            i++
-        }
-        if (item.inventory.silver > 0) {
-            const noneImages = await this.getImagesForSingleCollectable(item, ItemColor.Silver, coords[i])
-            images.push(...noneImages)
-            i++
-        }
-        if (item.inventory.gold > 0) {
-            const noneImages = await this.getImagesForSingleCollectable(item, ItemColor.Gold, coords[i])
-            images.push(...noneImages)
-            i++
-        }
-        if (item.inventory.diamond > 0) {
-            const noneImages = await this.getImagesForSingleCollectable(item, ItemColor.Diamond, coords[i])
-            images.push(...noneImages)
             i++
         }
         return images
     }
 
-    private async getImagesForSingleCollectable(item: IUserCollectable, color: ItemColor, coord: IItemShadowCoordinates): Promise<IImage[]> {
-        const url = await this.getEmojiImageUrl(item, color)
+    private async getImagesForSingleCollectable(item: IUserCollectable, coord: IItemShadowCoordinates): Promise<IImage[]> {
+        const url = await this.getEmojiImageUrl(item)
         const emojiImageBuffer = await this.getPngBufferForWebpUrl(url)
         const resizedItem = await sharp(emojiImageBuffer).resize({ fit: sharp.fit.inside, width: 75 }).toBuffer()
         const canvas = await getCanvasImage({ buffer: resizedItem })
         const emojiImageArray: IImage[] = [{ ...this.getImageCoordinates(coord, canvas, 1), canvasImage: canvas }] // Must have layer 1
-        const collectableBackground = await this.getItemBackgroundImage(color, coord)
+        const collectableBackground = await this.getItemBackgroundImage(item.color, coord)
         if (collectableBackground) emojiImageArray.push(collectableBackground)
-        const inventoryCounter = await this.getItemInventoryImage(item, color, coord)
+        const inventoryCounter = await this.getItemInventoryImage(item, coord)
         if (inventoryCounter) emojiImageArray.push(inventoryCounter)
         return emojiImageArray
     }
 
-    private async getEmojiImageUrl(item: IUserCollectable, color: ItemColor): Promise<string> {
-        const name = this.buildEmojiName(item, color)
+    private async getEmojiImageUrl(item: IUserCollectable): Promise<string> {
+        const name = this.buildEmojiName(item)
         const emoji = await EmojiHelper.getApplicationEmoji(name, this.client)
         return `https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?size=96&quality=lossless`
     }
 
-    private buildEmojiName(item: IUserCollectable, color: ItemColor): string {
-        return `${item.series}_${item.name}_${color.charAt(0)}`.toLowerCase()
+    private buildEmojiName(item: IUserCollectable): string {
+        return `${item.series}_${item.name}_${item.color.charAt(0)}`.toLowerCase()
     }
 
     private async getPngBufferForWebpUrl(url: string): Promise<Buffer> {
@@ -320,14 +292,13 @@ export class ImageGenerationHelper {
         }
     }
 
-    private async getItemInventoryImage(item: IUserCollectable, color: ItemColor, coord: IItemShadowCoordinates): Promise<IImage> {
-        const amount = this.getInventoryForColor(item, color)
-        if (amount <= 1) return undefined
+    private async getItemInventoryImage(item: IUserCollectable, coord: IItemShadowCoordinates): Promise<IImage> {
+        if (item.amount <= 1) return undefined
         const bg = fs.readFileSync(`graphics/number_bg.png`)
         const resizedBg = await sharp(bg).resize({ fit: sharp.fit.inside, height: 50 }).toBuffer()
         const bgMeta = await sharp(resizedBg).metadata()
         const fontSize = 50
-        const amountBuffer = new UltimateTextToImage(`${amount}`, {
+        const amountBuffer = new UltimateTextToImage(`${item.amount}`, {
             fontFamily: 'Work Sans',
             fontColor: '#ffffff',
             fontSize: fontSize,
@@ -348,21 +319,6 @@ export class ImageGenerationHelper {
         return { ...amountCoord, canvasImage: canvas }
     }
 
-    private getInventoryForColor(item: IUserCollectable, color: ItemColor): number {
-        if (color === ItemColor.None) return item.inventory.none
-        else if (color === ItemColor.Silver) return item.inventory.silver
-        else if (color === ItemColor.Gold) return item.inventory.gold
-        else if (color === ItemColor.Diamond) return item.inventory.diamond
-        else return 0
-    }
-
-    private getColorForNewItem(item: IUserCollectable): ItemColor {
-        if (item.inventory.diamond === 1) return ItemColor.Diamond
-        else if (item.inventory.gold === 1) return ItemColor.Gold
-        else if (item.inventory.silver === 1) return ItemColor.Silver
-        else return ItemColor.None
-    }
-
     // Places the counter in the top right corner of the item
     private getInventoryCoordinates(coord: IItemShadowCoordinates, img: Image): IImageCoordinates {
         return {
@@ -377,15 +333,6 @@ export class ImageGenerationHelper {
 
     private percentage(initialNumber: number, percentage: number): number {
         return Math.ceil((initialNumber / 100) * percentage)
-    }
-
-    private getNumberOfColorsCollected(item: IUserCollectable): number {
-        let counter = 0
-        counter += item.inventory.none > 0 ? 1 : 0
-        counter += item.inventory.silver > 0 ? 1 : 0
-        counter += item.inventory.gold > 0 ? 1 : 0
-        counter += item.inventory.diamond > 0 ? 1 : 0
-        return counter
     }
 }
 

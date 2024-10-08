@@ -127,14 +127,8 @@ export interface IUserCollectable {
     name: string
     series: string
     rarity: ItemRarity
-    inventory: ICollectibleColorCounter
-}
-
-export interface ICollectibleColorCounter {
-    none: number
-    silver: number
-    gold: number
-    diamond: number
+    color: ItemColor
+    amount: number
 }
 
 export enum ItemRarity {

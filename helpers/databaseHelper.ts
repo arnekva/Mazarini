@@ -1,8 +1,7 @@
 import moment from 'moment'
 import { DRGame } from '../commands/games/deathroll'
-import { botDataPrefix, ChipsStats, ICollectableSeries, ILootbox, IUserCollectable, MazariniStorage, MazariniUser, Meme, RulettStats } from '../interfaces/database/databaseInterface'
+import { botDataPrefix, ChipsStats, ICollectableSeries, ILootbox, MazariniStorage, MazariniUser, Meme, RulettStats } from '../interfaces/database/databaseInterface'
 import { FirebaseHelper } from './firebaseHelper'
-import { lootboxMock, lootSeriesMock } from '../commands/store/lootboxCommands'
 
 export interface DeathRollStats {
     userId: string

@@ -13,13 +13,12 @@ import { MazariniClient } from '../../client/MazariniClient'
 import { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
 import {
     ICollectableSeries,
-    ICollectibleColorCounter,
     ILootbox,
     ItemColor,
     ItemRarity,
     IUserCollectable,
     LootboxQuality,
-    MazariniUser,
+    MazariniUser
 } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { RandomUtils } from '../../utils/randomUtils'
@@ -100,8 +99,8 @@ export class LootboxCommands extends AbstractCommands {
         const seriesOrDefault = await this.getSeriesOrDefault(series)
         const rarityItems = this.getRarityItems(seriesOrDefault, rarity)
         const item = RandomUtils.getRandomItemFromList(rarityItems)
-        const inventory = this.getRandomColor(colored)
-        return { name: item, series: seriesOrDefault.name, rarity: rarity, inventory: inventory }
+        const color = this.getRandomColor(colored)
+        return { name: item, series: seriesOrDefault.name, rarity: rarity, color: color, amount: 1 }
     }
 
     private async getSeriesOrDefault(series: string): Promise<ICollectableSeries> {
@@ -123,40 +122,20 @@ export class LootboxCommands extends AbstractCommands {
         else return undefined
     }
 
-    private getRandomColor(colored: boolean): ICollectibleColorCounter {
+    private getRandomColor(colored: boolean): ItemColor {
         const roll = Math.random()
-        let color: ItemColor = undefined
-        if (!colored) {
-            color = ItemColor.None
-        } else if (roll < 1 / 6) {
-            color = ItemColor.Diamond // 1/6 chance for diamond
-        } else if (roll < 1 / 3) {
-            color = ItemColor.Gold // 2/6 chance for gold
-        } else {
-            color = ItemColor.Silver // 3/6 chance for silver
-        }
-        return {
-            none: color === ItemColor.None ? 1 : 0,
-            silver: color === ItemColor.Silver ? 1 : 0,
-            gold: color === ItemColor.Gold ? 1 : 0,
-            diamond: color === ItemColor.Diamond ? 1 : 0,
-        }
+        if (!colored) return ItemColor.None
+        else if (roll < 1 / 6) return ItemColor.Diamond // 1/6 chance for diamond
+        else if (roll < 1 / 3) return ItemColor.Gold // 2/6 chance for gold
+        else return ItemColor.Silver // 3/6 chance for silver
     }
 
     private registerItemOnUser(user: MazariniUser, item: IUserCollectable) {
-        const itemAlreadyCollected = user.collectables?.some((collectible) => collectible.name === item.name)
+        const itemAlreadyCollected = user.collectables?.some((collectible) => collectible.name === item.name && collectible.color === item.color)
         if (itemAlreadyCollected) {
             user.collectables = user.collectables.map((el) =>
                 el.name === item.name
-                    ? {
-                          ...el,
-                          inventory: {
-                              none: el.inventory.none + item.inventory.none,
-                              silver: el.inventory.silver + item.inventory.silver,
-                              gold: el.inventory.gold + item.inventory.gold,
-                              diamond: el.inventory.diamond + item.inventory.diamond,
-                          },
-                      }
+                    ? {...el, amount: el.amount + item.amount}
                     : el
             )
         } else {
@@ -175,15 +154,7 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private getGifPath(item: IUserCollectable): string {
-        const color = this.getColorForNewItem(item)
-        return `loot/${item.series}/${item.name}_${color}.gif`
-    }
-
-    private getColorForNewItem(item: IUserCollectable): ItemColor {
-        if (item.inventory.diamond === 1) return ItemColor.Diamond
-        else if (item.inventory.gold === 1) return ItemColor.Gold
-        else if (item.inventory.silver === 1) return ItemColor.Silver
-        else return ItemColor.None
+        return `loot/${item.series}/${item.name}_${item.color}.gif`
     }
 
     private async seriesAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
@@ -202,9 +173,59 @@ export class LootboxCommands extends AbstractCommands {
         const user = await this.client.database.getUser(interaction.user.id)
         const seriesParam = interaction.options.get('series')?.value as string
         const series = await this.getSeriesOrDefault(seriesParam)
-        const img = await this.imageGenerator.generateImageForCollectables(user.collectables?.filter(item => item.series === series.name).sort((a,b) => a.name.localeCompare(b.name)))
+        const img = await this.imageGenerator.generateImageForCollectables(user.collectables?.filter(item => item.series === series.name).sort((a,b) => `${a.name}_${this.getColorOrder(a.color)}`.localeCompare(`${b.name}_${this.getColorOrder(b.color)}`)))
         const file = new AttachmentBuilder(img, { name: 'inventory.png' }) 
         this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, undefined, [file]) 
+    }
+
+    private getColorOrder(color: ItemColor) {
+        if (color === ItemColor.None) return 1
+        else if (color === ItemColor.Silver) return 2
+        else if (color === ItemColor.Gold) return 3
+        else if (color === ItemColor.Diamond) return 4
+    }
+
+    private async itemAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
+        const user = await this.client.database.getUser(interaction.user.id)
+        const optionList: any = interaction.options
+        const focused = optionList._hoistedOptions.find(option => option.focused)
+        if (focused.name === 'item1') return this.firstItemAutocomplete(interaction, user)
+        const allItems = optionList._hoistedOptions
+        
+        
+		// interaction.respond(
+		// 	series
+        //     .filter(series => series.name.toLowerCase().includes(input))
+        //     .map(series => ({ name: series.name, value: series.name })) 
+		// )
+    }
+
+    private async firstItemAutocomplete(interaction: AutocompleteInteraction<CacheType>, user: MazariniUser) {
+        // const collectables = user.collectables.sort((a,b) => `${a.series}_${a.name}`.localeCompare(`${b.series}_${b.name}`))
+        // Wait - refactor data structure of IUserCollectable
+    }
+
+    private verifyValidItemInput(item: string) {
+
+    }
+
+    private getRarityByItemName(item: string) {
+
+    }
+
+    private tradeItems(interaction: ChatInputCommandInteraction<CacheType>) {
+        const cmd = interaction.options.getSubcommand()
+        // Check all input is of same rarity and pass rarity to 
+        if (cmd === 'in') this.tradeIn(interaction)
+        else if (cmd === 'up') this.tradeUp(interaction)
+    }
+
+    private async tradeIn(interaction: ChatInputCommandInteraction<CacheType>) {
+
+    }
+
+    private async tradeUp(interaction: ChatInputCommandInteraction<CacheType>) {
+        
     }
 
     private executeLootSubCommand(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -212,6 +233,14 @@ export class LootboxCommands extends AbstractCommands {
         const cmd = interaction.options.getSubcommand()
         if (!cmdGroup && cmd === 'box') this.openAndRegisterLootbox(interaction)
         else if (!cmdGroup && cmd === 'inventory') this.printInventory(interaction)
+        else if (cmdGroup && cmdGroup === 'trade') this.tradeItems(interaction)
+    }
+
+    private delegateAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
+        const optionList: any = interaction.options
+        const focused = optionList._hoistedOptions.find(option => option.focused)
+        if (focused.name === 'series') this.seriesAutocomplete(interaction)
+        else if (focused.name.includes('item')) this.itemAutocomplete(interaction)
     }
 
     getAllInteractions(): IInteractionElement {
@@ -224,7 +253,7 @@ export class LootboxCommands extends AbstractCommands {
                             this.executeLootSubCommand(rawInteraction)
                         },
                         autoCompleteCallback: (interaction: AutocompleteInteraction<CacheType>) => {
-                            this.seriesAutocomplete(interaction)
+                            this.delegateAutocomplete(interaction)
                         },
                     },
                 ],
