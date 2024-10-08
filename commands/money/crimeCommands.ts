@@ -552,7 +552,7 @@ export class CrimeCommands extends AbstractCommands {
     }
 }
 
-export const illegalCommandsWhileInJail = ['pickpocket'] // Old jail system: ['krig', 'pickpocket', 'KRIG', 'KRIG_REMATCH', 'vipps', 'daily', 'gamble', 'roll', 'rulett', 'spin', 'blackjack']
+export const illegalCommandsWhileInJail = ['pickpocket', 'daily'] // Old jail system: ['krig', 'pickpocket', 'KRIG', 'KRIG_REMATCH', 'vipps', 'daily', 'gamble', 'roll', 'rulett', 'spin', 'blackjack']
 
 function delay(time) {
     return new Promise((resolve) => setTimeout(resolve, time))
