@@ -135,7 +135,7 @@ export class LootboxCommands extends AbstractCommands {
         const itemAlreadyCollected = user.collectables?.some((collectible) => collectible.name === item.name && collectible.color === item.color)
         if (itemAlreadyCollected) {
             user.collectables = user.collectables.map((el) =>
-                el.name === item.name
+                this.collectableToString(el) === this.collectableToString(item)
                     ? {...el, amount: el.amount + item.amount}
                     : el
             )
@@ -144,6 +144,10 @@ export class LootboxCommands extends AbstractCommands {
             user.collectables.push(item)
         }
         this.client.database.updateUser(user)
+    }
+
+    private collectableToString(item: IUserCollectable) {
+        return `${item.series};${item.rarity};${item.name};${item.color}`
     }
 
     private async revealCollectable(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, item: IUserCollectable) {
