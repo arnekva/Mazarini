@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto'
 import {
     ActionRowBuilder,
     AttachmentBuilder,
@@ -9,7 +10,6 @@ import {
     ChatInputCommandInteraction,
 } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
-import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
 import {
@@ -18,20 +18,29 @@ import {
     ItemColor,
     ItemRarity,
     IUserCollectable,
-    LootboxQuality,
     MazariniUser
 } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { EmbedUtils } from '../../utils/embedUtils'
 import { RandomUtils } from '../../utils/randomUtils'
+
+interface IPendingTrade {
+    userId: string
+    tradingIn: IUserCollectable[]
+    receiving: ItemRarity
+    series: string
+}
 
 export class LootboxCommands extends AbstractCommands {
     private imageGenerator: ImageGenerationHelper
     private lootboxes: ILootbox[]
     private series: ICollectableSeries[]
+    private pendingTrades: Map<string, IPendingTrade>
 
     constructor(client: MazariniClient) {
         super(client)
         this.imageGenerator = new ImageGenerationHelper(client)
+        this.pendingTrades = new Map<string, IPendingTrade>()
     }
 
     static getDailyLootboxRewardButton(userId: string, quality: string): ActionRowBuilder<ButtonBuilder> {
@@ -131,7 +140,7 @@ export class LootboxCommands extends AbstractCommands {
         else return ItemColor.Silver // 3/6 chance for silver
     }
 
-    private registerItemOnUser(user: MazariniUser, item: IUserCollectable) {
+    private registerItemOnUser(user: MazariniUser, item: IUserCollectable) {        
         const itemAlreadyCollected = user.collectables?.some((collectible) => collectible.name === item.name && collectible.color === item.color)
         if (itemAlreadyCollected) {
             user.collectables = user.collectables.map((el) =>
@@ -143,6 +152,34 @@ export class LootboxCommands extends AbstractCommands {
             user.collectables = user.collectables ?? new Array<IUserCollectable>()
             user.collectables.push(item)
         }
+        this.client.database.updateUser(user)
+    }
+
+    private removeItemsFromUser(items: IUserCollectable[], user: MazariniUser): IUserCollectable[] {
+        let filtered = user.collectables
+        items.forEach(item => {
+            filtered = filtered.map((el) =>
+                (this.collectableToString(el) === this.collectableToString(item))
+                    ? {...el, amount: el.amount - item.amount}
+                    : el
+            )
+        })
+        return filtered.filter(item => item.amount > 0)
+    }
+
+    private registerTradeOnUser(itemsWithTradedRemoved: IUserCollectable[], rewardedItem: IUserCollectable, user: MazariniUser) {
+        const itemAlreadyCollected = itemsWithTradedRemoved.some((collectible) => this.collectableToString(collectible) === this.collectableToString(rewardedItem))
+        if (itemAlreadyCollected) {
+            itemsWithTradedRemoved = itemsWithTradedRemoved.map((el) =>
+                this.collectableToString(el) === this.collectableToString(rewardedItem)
+                    ? {...el, amount: el.amount + rewardedItem.amount}
+                    : el
+            )
+        } else {
+            itemsWithTradedRemoved = itemsWithTradedRemoved ?? new Array<IUserCollectable>()
+            itemsWithTradedRemoved.push(rewardedItem)
+        }
+        user.collectables = itemsWithTradedRemoved
         this.client.database.updateUser(user)
     }
 
@@ -190,56 +227,214 @@ export class LootboxCommands extends AbstractCommands {
         else if (color === ItemColor.Diamond) return 4
     }
 
+    private getRarityOrder(rarity: ItemRarity) {
+        if (rarity === ItemRarity.Common) return 1
+        else if (rarity === ItemRarity.Rare) return 2
+        else if (rarity === ItemRarity.Epic) return 3
+        else if (rarity === ItemRarity.Legendary) return 4
+    }
+
     private async itemAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
         const user = await this.client.database.getUser(interaction.user.id)
         const optionList: any = interaction.options
         const focused = optionList._hoistedOptions.find(option => option.focused)
-        if (focused.name === 'item1') return this.firstItemAutocomplete(interaction, user)
-        const allItems = optionList._hoistedOptions
-        
-        
-		// interaction.respond(
-		// 	series
-        //     .filter(series => series.name.toLowerCase().includes(input))
-        //     .map(series => ({ name: series.name, value: series.name })) 
-		// )
+        const isTradeUp = interaction.options.getSubcommand() === 'up'
+        if (focused.name === 'item1') this.firstItemAutocomplete(interaction, user, isTradeUp)
+        else this.secondaryItemsAutocomplete(interaction, user, isTradeUp)
     }
 
-    private firstItemAutocomplete(interaction: AutocompleteInteraction<CacheType>, user: MazariniUser) {
+    private firstItemAutocomplete(interaction: AutocompleteInteraction<CacheType>, user: MazariniUser, filterOutLegendaries: boolean) {
         const optionList: any = interaction.options
-        const collectables = user.collectables.sort((a,b) => `${a.series}_${a.name}_${a.color}`.localeCompare(`${b.series}_${b.name}_${b.color}`))
+        const collectables = this.getSortedCollectables(user, filterOutLegendaries)
         interaction.respond(
 			collectables
-            .filter(item => `${item.series}_${item.name}_${item.color}`.includes(optionList.getFocused()))
-            .map(item => ({ name: `${item.series}_${item.name}_${item.color}`, value: `${item.series}_${item.name}_${item.color}` })) 
+            .filter(item => this.collectableToString(item).includes(optionList.getFocused().toLowerCase()))
+            .slice(0,25)
+            .map(item => ({ name: `${item.name} (${item.color})`, value: this.collectableToString(item) })) 
 		)
     }
 
-    private secondaryItemsAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
-
+    private secondaryItemsAutocomplete(interaction: AutocompleteInteraction<CacheType>, user: MazariniUser, filterOutLegendaries: boolean) {
+        const optionList: any = interaction.options
+        const allItems = optionList._hoistedOptions
+        const filter = this.getSortFilter(allItems.find(item => item.name === 'item1')?.value)        
+        const collectables = this.getSortedCollectables(user, filterOutLegendaries, filter)
+        const filteredCollectables = this.removeSelectedItems(collectables, allItems)
+        interaction.respond(
+			filteredCollectables
+            .filter(item => this.collectableToString(item).includes(optionList.getFocused().toLowerCase()))
+            .slice(0,25)
+            .map(item => ({ name: `${item.name} (${item.color})`, value: this.collectableToString(item) })) 
+		)
     } 
 
-    private verifyValidItemInput(item: string) {
-
+    private getSortedCollectables(user: MazariniUser, filterOutLegendaries: boolean, filter?: { series: string, rarity: string }) {
+        const filtered = user.collectables
+                .filter(item => !filter || (filter.series === item.series && filter.rarity === item.rarity))
+                .sort((a,b) => this.collectableSortString(a).localeCompare(this.collectableSortString(b)))
+        if (filterOutLegendaries) return filtered.filter(item => item.rarity !== ItemRarity.Legendary)
+        else return filtered
     }
 
-    private getRarityByItemName(item: string) {
-
+    private collectableSortString(item: IUserCollectable) {
+        return `${item.series}_${this.getRarityOrder(item.rarity)}_${item.name}_${this.getColorOrder(item.color)}`
     }
 
-    private tradeItems(interaction: ChatInputCommandInteraction<CacheType>) {
-        const cmd = interaction.options.getSubcommand()
-        // Check all input is of same rarity and pass rarity to 
-        if (cmd === 'in') this.tradeIn(interaction)
-        else if (cmd === 'up') this.tradeUp(interaction)
+    private getSortFilter(input: string): { series: string, rarity: string } {
+        if (!input) return undefined
+        const split = input.split(';')        
+        if (split.length === 4) return { series: split[0], rarity: split[1] }
+        else return undefined
     }
 
-    private async tradeIn(interaction: ChatInputCommandInteraction<CacheType>) {
-
+    private removeSelectedItems(collectables: IUserCollectable[], inputs: any[]) {
+        let filtered = collectables.slice()
+        inputs.filter(input => !input.focused).forEach(input => {
+            const split = input.value.split(';')
+            if (split.length === 4) {
+                filtered = filtered.map((el) =>
+                    (el.name === split[2] && el.color === split[3])
+                        ? {...el, amount: el.amount - 1}
+                        : el
+                )
+            }
+        })
+        return filtered.filter(item => item.amount > 0)
     }
 
-    private async tradeUp(interaction: ChatInputCommandInteraction<CacheType>) {
+    private verifyInputIsValid(inputs: any[], user: MazariniUser) {
+        return this.formatIsCorrect(inputs)
+            && this.isSameSeriesAndRarity(inputs)
+            && this.allItemsAreOwned(this.inputsToIUserCollectables(inputs), user)
+    }
+
+    private formatIsCorrect(inputs: any[]) {
+        console.log('checking format')        
+        return inputs.every(input => input.value.split(';').length === 4)
+    }
+
+    private isSameSeriesAndRarity(inputs: any[]) {
+        console.log('checking same series and rarity')
+        const filter = this.getSortFilter(inputs.find(item => item.name === 'item1').value)
+        console.log(filter)
         
+        if (!filter) return false
+        return inputs.every(input => {
+            const split = input.value.split(';')
+            console.log(split)
+            
+            return filter.series === split[0] && filter.rarity === split[1]
+        })
+    }
+
+    private inputsToIUserCollectables(inputs: any[]): IUserCollectable[] {
+        const collectables: IUserCollectable[] = new Array<IUserCollectable>()
+        inputs.forEach(input => {
+            const split = input.value.split(';')
+            collectables.push({
+                series: split[0],
+                rarity: split[1],
+                name: split[2],
+                color: split[3],
+                amount: 1
+            })
+        })
+        return collectables
+    }
+
+    private allItemsAreOwned(inputs: IUserCollectable[], user: MazariniUser) {
+        console.log('checking all items are owned')
+        let collectables = user.collectables.slice()
+        let foundAll = true
+        inputs.forEach(input => {
+            let found = false
+            collectables = collectables.map((item) => {
+                if (this.collectableToString(item) === this.collectableToString(input)) {
+                    found = true
+                    return {...item, amount: item.amount - 1}
+                } else {
+                    return item
+                }
+            })
+            if (!found) foundAll = false
+            collectables = collectables.filter(item => item.amount > 0)
+        })
+        return foundAll
+    }
+
+    private async tradeItems(interaction: ChatInputCommandInteraction<CacheType>) {
+        const user = await this.client.database.getUser(interaction.user.id)
+        const optionList: any = interaction.options
+        const allItems = optionList._hoistedOptions
+        console.log(allItems)
+        
+        if (!this.verifyInputIsValid(allItems, user)) {
+            return this.messageHelper.replyToInteraction(interaction, 'Du har ugyldig input. Sørg for å velge fra de foreslåtte parameterne når du velger trade gjenstander.')
+        }
+        const inputAsCollectables = this.inputsToIUserCollectables(allItems)
+        const tradingToRarity = this.getResultingTradeRarity(inputAsCollectables[0].rarity, allItems.length)
+        const pendingTrade: IPendingTrade = { userId: interaction.user.id, receiving: tradingToRarity, tradingIn: inputAsCollectables, series: inputAsCollectables[0].series }
+        const tradeID = randomUUID()
+        this.pendingTrades.set(tradeID, pendingTrade)
+        const collectableNames = this.getCollectableNamesPrintString(inputAsCollectables)
+        const embed = EmbedUtils.createSimpleEmbed('Trade', `Er du sikker på at du vil bytte: \n${collectableNames}\nfor en ny ${tradingToRarity} gjenstand?`)
+        const buttons = tradeButtons(tradeID)
+        this.messageHelper.replyToInteraction(interaction, embed, undefined, [buttons])
+    }
+
+    private getCollectableNamesPrintString(collectables: IUserCollectable[]): string {
+        const mergedCollectables = collectables.reduce((acc, current) => {
+            const existing = acc.find(item => this.collectableToString(item) === this.collectableToString(current))
+            if (existing) existing.amount += current.amount          
+            else acc.push({ ...current })
+            return acc
+        }, new Array<IUserCollectable>())
+        return mergedCollectables.reduce((acc, current) => {
+            return acc + `${current.amount}x ${current.name} (${current.color})\n`
+        }, '\n')
+    }
+
+    private getResultingTradeRarity(rarity: ItemRarity, paramLength: number): ItemRarity {
+        if (paramLength === 3) return rarity
+        else if (rarity === ItemRarity.Common) return ItemRarity.Rare
+        else if (rarity === ItemRarity.Rare) return ItemRarity.Epic
+        else if (rarity === ItemRarity.Epic) return ItemRarity.Legendary
+    }
+
+    private async confirmTrade(interaction: ButtonInteraction<CacheType>) {
+        const user = await this.client.database.getUser(interaction.user.id)
+        const pendingTrade = this.getPendingTrade(interaction)
+        if (!(pendingTrade.userId === interaction.user.id)) return interaction.deferUpdate()
+        if (!this.allItemsAreOwned(pendingTrade.tradingIn, user)) {
+            await this.messageHelper.replyToInteraction(interaction, 'Du har ikke alle gjenstandene du prøver å bytte inn.')
+            return this.cancelTrade(interaction)
+        }
+        const collectableNames = this.getCollectableNamesPrintString(pendingTrade.tradingIn)
+        const embed = EmbedUtils.createSimpleEmbed('Trade', `Bytter inn: \n${collectableNames}\nfor en ${pendingTrade.receiving} gjenstand`)
+        interaction.message.edit({ embeds: [embed], components: [] })
+        const colored = Math.random() < (1/5) // Color chance for trades is set here!
+        const rewardedItem = await this.getRandomItemForRarity(pendingTrade.receiving, pendingTrade.series, colored) 
+        const tradedItemsRemoved = this.removeItemsFromUser(pendingTrade.tradingIn, user)
+        this.registerTradeOnUser(tradedItemsRemoved, rewardedItem, user)
+        this.revealCollectable(interaction, rewardedItem)
+        this.deletePendingTrade(interaction)
+    }
+
+    private cancelTrade(interaction: ButtonInteraction<CacheType>) {
+        const pendingTrade = this.getPendingTrade(interaction)
+        if (!(pendingTrade.userId === interaction.user.id)) return interaction.deferUpdate()
+        interaction.message.delete()
+        this.deletePendingTrade(interaction)
+    }
+
+    private getPendingTrade(interaction: ButtonInteraction<CacheType>) {
+        const tradeID = interaction.customId.split(';')[1]
+        return this.pendingTrades.get(tradeID)
+    }
+
+    private deletePendingTrade(interaction: ButtonInteraction<CacheType>) {
+        const tradeID = interaction.customId.split(';')[1]
+        return this.pendingTrades.delete(tradeID)
     }
 
     private executeLootSubCommand(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -264,14 +459,10 @@ export class LootboxCommands extends AbstractCommands {
                     {
                         commandName: 'loot',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            const subGroup = rawInteraction.options.getSubcommandGroup()
-                            if (environment === 'prod' && subGroup && subGroup === 'trade') this.messageHelper.replyToInteraction(rawInteraction, 'Sorry, denne er ikke klar enda', {ephemeral: true})
-                            else this.executeLootSubCommand(rawInteraction)
+                            this.executeLootSubCommand(rawInteraction)
                         },
                         autoCompleteCallback: (interaction: AutocompleteInteraction<CacheType>) => {
-                            const subGroup = interaction.options.getSubcommandGroup()
-                            if (environment === 'prod' && subGroup && subGroup === 'trade') interaction.respond([{name: 'Sorry, denne er ikke klar enda', value: 'NOT_READY'}])
-                            else this.delegateAutocomplete(interaction)
+                            this.delegateAutocomplete(interaction)
                         },
                     },
                 ],
@@ -282,57 +473,39 @@ export class LootboxCommands extends AbstractCommands {
                             this.openLootboxFromButton(rawInteraction)
                         },
                     },
+                    {
+                        commandName: 'LOOT_TRADE_CONFIRM',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.confirmTrade(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'LOOT_TRADE_CANCEL',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.cancelTrade(rawInteraction)
+                        },
+                    },
                 ],
             },
         }
     }
 }
 
-export const basicLootbox: ILootbox = {
-    quality: LootboxQuality.Basic,
-    price: 5000,
-    probabilities: {
-        common: 100 / 100, // 75%
-        rare: 25 / 100, // 15%
-        epic: 10 / 100, //8%
-        legendary: 2 / 100, // 2%
-        color: 1 / 5, // 20%
-    },
+const tradeButtons = (tradeID: string) => {
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder({
+            custom_id: `LOOT_TRADE_CONFIRM;${tradeID}`,
+            style: ButtonStyle.Primary,
+            label: `Bekreft`,
+            disabled: false,
+            type: 2,
+        }),
+        new ButtonBuilder({
+            custom_id: `LOOT_TRADE_CANCEL;${tradeID}`,
+            style: ButtonStyle.Secondary,
+            label: `Avbryt`,
+            disabled: false,
+            type: 2,
+        })
+    )
 }
-
-export const premiumLootbox: ILootbox = {
-    quality: LootboxQuality.Premium,
-    price: 20000,
-    probabilities: {
-        common: 100 / 100, // 50%
-        rare: 50 / 100, // 30%
-        epic: 20 / 100, // 16%
-        legendary: 4 / 100, // 4%
-        color: 1 / 3, // 33%
-    },
-}
-
-export const eliteLootbox: ILootbox = {
-    quality: LootboxQuality.Elite,
-    price: 50000,
-    probabilities: {
-        common: 0, // 0%
-        rare: 100 / 100, // 60%
-        epic: 40 / 100, // 30%
-        legendary: 10 / 100, // 10%
-        color: 1 / 2, // 50%
-    },
-}
-
-export const lootboxMock: ILootbox[] = [basicLootbox, premiumLootbox, eliteLootbox]
-
-export const lootSeriesMock: ICollectableSeries[] = [
-    {
-        name: 'mazarini',
-        added: new Date(),
-        common: ['arne_satisfied', 'fole', 'geggi_satisfied', 'arne_superior', 'crycatthumbsup'],
-        rare: ['choke', 'maggi_scared', 'arne', 'geggi_excited', 'hhhhheeehhhhhh'],
-        epic: ['pointerbrothers1', 'pointerbrothers2', 'shrekstare'],
-        legendary: ['polse', 'hoie', 'eivindpride'],
-    },
-]
