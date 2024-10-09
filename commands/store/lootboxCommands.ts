@@ -309,20 +309,14 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private formatIsCorrect(inputs: any[]) {
-        console.log('checking format')        
         return inputs.every(input => input.value.split(';').length === 4)
     }
 
     private isSameSeriesAndRarity(inputs: any[]) {
-        console.log('checking same series and rarity')
         const filter = this.getSortFilter(inputs.find(item => item.name === 'item1').value)
-        console.log(filter)
-        
         if (!filter) return false
         return inputs.every(input => {
-            const split = input.value.split(';')
-            console.log(split)
-            
+            const split = input.value.split(';')            
             return filter.series === split[0] && filter.rarity === split[1]
         })
     }
@@ -343,7 +337,6 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private allItemsAreOwned(inputs: IUserCollectable[], user: MazariniUser) {
-        console.log('checking all items are owned')
         let collectables = user.collectables.slice()
         let foundAll = true
         inputs.forEach(input => {
@@ -365,9 +358,7 @@ export class LootboxCommands extends AbstractCommands {
     private async tradeItems(interaction: ChatInputCommandInteraction<CacheType>) {
         const user = await this.client.database.getUser(interaction.user.id)
         const optionList: any = interaction.options
-        const allItems = optionList._hoistedOptions
-        console.log(allItems)
-        
+        const allItems = optionList._hoistedOptions        
         if (!this.verifyInputIsValid(allItems, user)) {
             return this.messageHelper.replyToInteraction(interaction, 'Du har ugyldig input. Sørg for å velge fra de foreslåtte parameterne når du velger trade gjenstander.')
         }
