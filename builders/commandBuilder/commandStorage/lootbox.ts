@@ -18,8 +18,8 @@ export const lootboxCommand: ISlashCommandItem = {
                     required: true,
                     choices: [
                         { name: 'Basic 5K', value: 'basic' },
-                        { name: 'Premium 20K', value: 'premium' },
-                        { name: 'Elite 50K', value: 'elite' },
+                        { name: 'Premium 10K', value: 'premium' },
+                        { name: 'Elite 25K', value: 'elite' },
                     ],
                 },
                 {
