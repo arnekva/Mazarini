@@ -1,14 +1,12 @@
+import { randomUUID } from 'crypto'
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, EmbedBuilder, InteractionResponse, Message } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
-import { GameStateHandler, GamePlayer } from '../../handlers/gameStateHandler'
+import { GamePlayer, GameStateHandler } from '../../handlers/gameStateHandler'
+import { EmojiHelper } from '../../helpers/emojiHelper'
+import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { CardCommands, ICardObject } from './cardCommands'
-import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
-import { randomUUID } from 'crypto'
-import { EmbedUtils } from '../../utils/embedUtils'
-import { EmojiHelper } from '../../helpers/emojiHelper'
-import { ChannelIds } from '../../utils/mentionUtils'
 interface BlackjackPlayer extends GamePlayer {
     id: string
     playerName: string
@@ -228,7 +226,7 @@ export class Blackjack extends AbstractCommands {
         const user = await this.client.database.getUser(player.id)
         player.stake = player.allIn ? user.chips : player.stake
         if (!this.client.bank.userCanAfford(user, player.stake)) {
-            const emoji = await EmojiHelper.getEmoji('arneouf', this.client)
+            const emoji = await EmojiHelper.getApplicationEmoji('arneouf', this.client)
             game.messages.embedContent = game.messages.embedContent.setThumbnail(`https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?size=96&quality=lossless`).setDescription(`Du har ikke råd til en ny`)
             await game.messages.embed.edit({ embeds: [game.messages.embedContent]})
         } else {
