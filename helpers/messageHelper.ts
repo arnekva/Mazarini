@@ -115,6 +115,9 @@ export class MessageHelper {
         files?: MessageFiles
     ): Promise<InteractionResponse<boolean> | Message<boolean>> {
         const handleError = async (e: any) => {
+            if (environment === 'prod') {
+                this.sendLogMessage(`handleError: En feilmelding har oppstått under svar på en interaksjon. Feilmelding:\n${e}`)
+            }
             let msg: Message<boolean> | undefined
             if (options?.ephemeral) {
                 this.sendDM(interaction.user, messageContent)
