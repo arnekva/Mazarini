@@ -60,34 +60,32 @@ export class Spinner extends AbstractCommands {
     }
 
     private async spinFromInteraction(interaction: ChatInputCommandInteraction<CacheType>) {
-        const user = await this.client.database.getUser(interaction.user.id)
         const min = weightedRandomObject(spinMinutes).number
-        const sec = RandomUtils.getRandomInteger(0, 60)
+        const sec = RandomUtils.getRandomInteger(0, 59)
 
         let winnings = this.getSpinnerWinnings(Number(min), Number(sec))
-        const canWinMore = !user.dailySpinRewards || user.dailySpinRewards < 10
         let text = ``
-        if (winnings > 0 && canWinMore) {
-            if (!user.dailySpinRewards) user.dailySpinRewards = 1
-            else {
-                user.dailySpinRewards++ //This will be updated by giveMoney below
-                if (user.dailySpinRewards === 10) text = `Du har nå brukt opp dagens spinn`
+        if (winnings > 0) {
+            const user = await this.client.database.getUser(interaction.user.id)
+            const canWinMore = !user.dailySpinRewards || user.dailySpinRewards < 10
+            if (canWinMore) {
+                if (!user.dailySpinRewards) user.dailySpinRewards = 1
+                else {
+                    user.dailySpinRewards++ //This will be updated by giveMoney below
+                    if (user.dailySpinRewards === 10) text = `Du har nå brukt opp dagens spinn`
+                }
+                winnings = this.client.bank.giveMoney(user, winnings)
+                text += winnings > 0 && canWinMore ? `Du får ${winnings} chips.` : ''
             }
-            winnings = this.client.bank.giveMoney(user, winnings)
-            text += winnings > 0 && canWinMore ? `Du får ${winnings} chips.` : ''
         }
-        this.messageHelper.replyToInteraction(
-            interaction,
-            interaction.user.username + ' spant fidget spinneren sin i ' + min + ' minutt og ' + sec + ' sekund!' + ` ${text}`
-        )
+        const secMsg = sec > 0 ? ' og ' + sec + ' sekund!' : '!'
+        this.messageHelper.replyToInteraction(interaction, interaction.user.username + ' spant fidget spinneren sin i ' + min + ' minutt' + secMsg + ` ${text}`)
 
         if (min == 10 && sec == 59) {
             this.messageHelper.sendMessage(interaction?.channelId, { text: 'gz med 10:59 bro' })
         } else if (min == 10) {
             this.messageHelper.sendMessage(interaction?.channelId, { text: 'gz med 10 min bro' })
         }
-
-        this.incrementCounter(interaction.user.id)
     }
 
     private getSpinnerWinnings(min: number, seconds: number) {
