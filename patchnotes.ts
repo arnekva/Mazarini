@@ -8,9 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '18.2.1'
-    public static readonly currentPatchNotes = `* Differansen mellom terningen du trilte, og tallet du vant hasjen på, legges nå til i hasjen før den utbetales (med mindre hasjen er 0, fordi memes)`
-                                             + `  * Eks: hasjen er på 1000 chips, du triller 69 på en 500-terning, du får 1000 + (500-69) = 1431`
+    public static readonly currentVersion = '18.2.2'
+    public static readonly currentPatchNotes = `* Lagt til en cut-off på /deathroll game-fields`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 

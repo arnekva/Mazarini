@@ -334,7 +334,6 @@ export class Deathroll extends AbstractCommands {
             const lastToRollIndex = game.players.findIndex((player) => player.userID === game.lastToRoll)
             const nextPlayer = game.players[Math.abs(lastToRollIndex + 1) % game.players.length]
             const previousRoll = Math.min(...game.players.map((x) => x.rolls).flat())
-            // const getName = (p1: DRPlayer) => `${p1.userID === nextPlayer.userID ? '**' : ''}${UserUtils.findMemberByUserID(p1.userID, interaction).user.username}${p1.userID === nextPlayer.userID ? '**' : ''}`
             let stateString = game.players.reduce((acc, player) => (acc += `${UserUtils.findMemberByUserID(player.userID, interaction).user.username}, `), '')
             stateString =
                 stateString.substring(0, stateString.length - 2) +
@@ -342,7 +341,9 @@ export class Deathroll extends AbstractCommands {
             const joinable = game.joinable ? ':unlock:' : ':lock:'
             return { name: `Game ${i + 1} ${joinable}`, value: stateString }
         })
-        embed.addFields(fields)
+        const shortenedFieldList = fields.slice(0, 24)
+        embed.addFields(shortenedFieldList)
+        if (fields.length > 25) embed.setFooter({text: `+ ${fields.length - 25} games`})
         this.messageHelper.replyToInteraction(interaction, embed)
     }
 
