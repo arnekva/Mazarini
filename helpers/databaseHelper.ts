@@ -245,26 +245,23 @@ export class DatabaseHelper {
 
                 user.userStats.deathrollStats.totalGames++
                 user.userStats.deathrollStats.weeklyGames++
-                if (game.lastToRoll === user.id) {
-                    const lastRoll = game.players
-                        .map((p) => p.rolls)
-                        .flat()
-                        .sort((a, b) => a - b)[1]
+
+                if (game.nextToRoll === user.id) {
                     if (!user.userStats.deathrollStats.biggestLoss) {
-                        user.userStats.deathrollStats.biggestLoss = [lastRoll]
+                        user.userStats.deathrollStats.biggestLoss = [game.lastRoll]
                     } else {
-                        user.userStats.deathrollStats.biggestLoss.push(lastRoll)
+                        user.userStats.deathrollStats.biggestLoss.push(game.lastRoll)
                         if (user.userStats.deathrollStats.biggestLoss.length > 10) {
                             user.userStats.deathrollStats.biggestLoss.sort((a, b) => a - b)
                             user.userStats.deathrollStats.biggestLoss.shift()
                         }
-                        if (user.userStats.deathrollStats.biggestLoss.includes(lastRoll)) {
-                            currStat.didGetNewBiggestLoss = lastRoll
+                        if (user.userStats.deathrollStats.biggestLoss.includes(game.lastRoll)) {
+                            currStat.didGetNewBiggestLoss = game.lastRoll
                         }
                     }
                     user.userStats.deathrollStats.totalLosses++
                     user.userStats.deathrollStats.weeklyLosses++
-                    user.userStats.deathrollStats.weeklyLossSum += lastRoll
+                    user.userStats.deathrollStats.weeklyLossSum += game.lastRoll
                     user.userStats.deathrollStats.currentLossStreak++
                     if (user.userStats.deathrollStats.currentLossStreak > user.userStats.deathrollStats.longestLossStreak) {
                         currStat.isOnATHLossStreak = user.userStats.deathrollStats.currentLossStreak

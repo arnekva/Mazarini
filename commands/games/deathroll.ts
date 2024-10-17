@@ -20,7 +20,8 @@ export interface DRGame {
     id: string
     players: DRPlayer[]
     joinable: boolean
-    lastToRoll: string
+    lastRoll: number
+    nextToRoll: string
     initialTarget: number
 }
 
@@ -82,7 +83,7 @@ export class Deathroll extends AbstractCommands {
 
             let additionalMessage = ''
             if (game) {
-                this.updateGame(game, user.id, roll)
+                if (roll > 1) this.updateGame(game, user.id, roll) // Don't update if loss (easier to register stats)
                 additionalMessage += this.checkForReward(roll, diceTarget)
                 additionalMessage += await this.checkIfPotWon(game, roll, diceTarget, user.id)
 
@@ -257,11 +258,7 @@ export class Deathroll extends AbstractCommands {
     }
 
     private findActiveGame(userID: string, diceTarget: number) {
-        return this.drGames.find(
-            (game) =>
-                game.players.some((player) => player.userID == userID && this.isPlayersTurn(game, player)) &&
-                game.players.some((player) => player.userID != userID && Math.min(...player.rolls) == diceTarget)
-        )
+        return this.drGames.find(game => game.nextToRoll === userID && game.lastRoll === diceTarget)
     }
 
     private joinGame(game: DRGame, userID: string) {
@@ -273,26 +270,29 @@ export class Deathroll extends AbstractCommands {
     }
 
     private checkForAvailableGame(userID: string, diceTarget?: number) {
-        return this.drGames.find(
+        return this.drGames?.find(
             (game) =>
                 game.joinable && //game is joinable
                 !game.players.some((player) => player.userID == userID) && //player hasn't already joined
-                (!diceTarget || Math.min(...game.players.map((x) => x.rolls).flat()) == diceTarget)
+                (!diceTarget || game.lastRoll === diceTarget)
         )
     }
 
     private registerNewGame(userID: string, diceTarget: number) {
         const p1: DRPlayer = { userID: userID, rolls: [] }
-        const game: DRGame = { id: randomUUID(), players: [p1], joinable: true, lastToRoll: undefined, initialTarget: diceTarget }
+        const game: DRGame = { id: randomUUID(), players: [p1], joinable: true, lastRoll: diceTarget, nextToRoll: userID, initialTarget: diceTarget }
         this.drGames.push(game)
         return game
     }
 
     private updateGame(game: DRGame, userID: string, newRoll: number) {
-        const currentPlayer = game.players.find((player) => player.userID == userID)
+        const currentPlayerIndex = game.players.findIndex((player) => player.userID == userID)
+        const currentPlayer = game.players[currentPlayerIndex]
         if (game.joinable && currentPlayer.rolls?.length > 0) game.joinable = false
         currentPlayer.rolls.push(newRoll)
-        game.lastToRoll = userID
+        game.lastRoll = newRoll
+        const nextPlayerIndex = Math.abs(currentPlayerIndex + 1) % game.players.length
+        game.nextToRoll = game.players[nextPlayerIndex].userID
     }
 
     private checkForLossOnFirstRoll(game: DRGame, diceTarget: number) {
@@ -307,15 +307,7 @@ export class Deathroll extends AbstractCommands {
     }
 
     private getActiveGameForUser(userID: string) {
-        return this.drGames?.find(
-            (game) => game.players.length > 1 && game.players.some((player) => player.userID == userID && this.isPlayersTurn(game, player))
-        )
-    }
-
-    private isPlayersTurn(game: DRGame, currentPlayer: DRPlayer) {
-        const lastToRollIndex = game.players.findIndex((player) => player.userID === game.lastToRoll)
-        const nextPlayer = game.players[Math.abs(lastToRollIndex + 1) % game.players.length]
-        return nextPlayer.userID == currentPlayer.userID
+        return this.drGames?.find(game => game.nextToRoll === userID && game.players.length > 1)
     }
 
     private autoCompleteDice(interaction: AutocompleteInteraction<CacheType>) {
@@ -330,18 +322,15 @@ export class Deathroll extends AbstractCommands {
 
     private printCurrentState(interaction: ChatInputCommandInteraction<CacheType>) {
         const embed = EmbedUtils.createSimpleEmbed('Deathroll state', `${this.rewardPot} chips i potten`)
-        const fields = this.drGames.map((game, i) => {
-            const lastToRollIndex = game.players.findIndex((player) => player.userID === game.lastToRoll)
-            const nextPlayer = game.players[Math.abs(lastToRollIndex + 1) % game.players.length]
-            const previousRoll = Math.min(...game.players.map((x) => x.rolls).flat())
+        const fields = this.drGames?.map((game, i) => {
             let stateString = game.players.reduce((acc, player) => (acc += `${UserUtils.findMemberByUserID(player.userID, interaction).user.username}, `), '')
             stateString =
                 stateString.substring(0, stateString.length - 2) +
-                `\n:hourglass: **${UserUtils.findMemberByUserID(nextPlayer.userID, interaction).user.username}** :hourglass: (${previousRoll}) `
+                `\n:hourglass: **${UserUtils.findMemberByUserID(game.nextToRoll, interaction).user.username}** :hourglass: (${game.lastRoll}) `
             const joinable = game.joinable ? ':unlock:' : ':lock:'
             return { name: `Game ${i + 1} ${joinable}`, value: stateString }
         })
-        const shortenedFieldList = fields.slice(0, 24)
+        const shortenedFieldList = fields.slice(0, 25)
         embed.addFields(shortenedFieldList)
         if (fields.length > 25) embed.setFooter({text: `+ ${fields.length - 25} games`})
         this.messageHelper.replyToInteraction(interaction, embed)
