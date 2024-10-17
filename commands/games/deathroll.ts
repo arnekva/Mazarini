@@ -84,7 +84,7 @@ export class Deathroll extends AbstractCommands {
             if (game) {
                 this.updateGame(game, user.id, roll)
                 additionalMessage += this.checkForReward(roll, diceTarget)
-                additionalMessage += await this.checkIfPotWon(game, roll, user.id)
+                additionalMessage += await this.checkIfPotWon(game, roll, diceTarget, user.id)
 
                 if (roll >= 100 && roll !== diceTarget) {
                     //Check if roll is a shuffled variant of the target number
@@ -159,13 +159,14 @@ export class Deathroll extends AbstractCommands {
         return reward >= 100 ? `(pott + ${reward} = ${this.rewardPot} chips)` : ''
     }
 
-    private async rewardPotToUser(userId: string) {
+    private async rewardPotToUser(userId: string, addToPot: number) {
         const dbUser = await this.client.database.getUser(userId)
-        const rewarded = this.client.bank.giveMoney(dbUser, this.rewardPot)
-        this.rewardPot -= rewarded
+        const initalPot = this.rewardPot
+        const rewarded = this.client.bank.giveMoney(dbUser, (this.rewardPot + addToPot))
+        this.rewardPot = (this.rewardPot + addToPot) - rewarded
         if (rewarded > 0) this.saveRewardPot()
         const jailed = this.rewardPot > 0
-        return `Nice\nDu vinner potten på ${this.rewardPot + rewarded} chips! ${
+        return `Nice\nDu vinner potten på ${initalPot} ${addToPot > 0 ? '(+'+addToPot+') ' : ''}chips! ${
             jailed ? `(men du får bare ${rewarded} siden du er i fengsel)\nPotten er fortsatt på ${this.rewardPot} chips` : ''
         }`
     }
@@ -237,9 +238,10 @@ export class Deathroll extends AbstractCommands {
         }
     }
 
-    private async checkIfPotWon(game: DRGame, roll: number, userid: string) {
+    private async checkIfPotWon(game: DRGame, roll: number, diceTarget: number, userid: string) {
         if ([...this.client.cache.deathrollWinningNumbers, 69].includes(roll) && game.initialTarget >= 10000) {
-            return await this.rewardPotToUser(userid)
+            const addToPot = this.rewardPot > 0 ? (diceTarget-roll) : 0
+            return await this.rewardPotToUser(userid, addToPot)
         }
         return ''
     }
