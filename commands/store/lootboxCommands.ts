@@ -62,7 +62,7 @@ export class LootboxCommands extends AbstractCommands {
         if (interaction.user.id === lootboxOwnerId) {
             interaction.message.edit({ components: [] })
             await this.openAndRegisterLootbox(interaction)
-        } else this.messageHelper.replyToInteraction(interaction, 'Det er ikke din boks dessverre', { ephemeral: true })
+        } else this.messageHelper.replyToInteraction(interaction, 'Det er ikke din boks dessverre', { ephemeral: true, hasBeenDefered: true })
     }
 
     private async openAndRegisterLootbox(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
@@ -89,7 +89,7 @@ export class LootboxCommands extends AbstractCommands {
 
     private checkBalanceAndTakeMoney(user: MazariniUser, box: ILootbox, interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
         const moneyWasTaken = this.client.bank.takeMoney(user, box.price)
-        if (!moneyWasTaken) this.messageHelper.replyToInteraction(interaction, 'Du har kje råd te den', { ephemeral: true })
+        if (!moneyWasTaken) this.messageHelper.replyToInteraction(interaction, 'Du har kje råd te den', { ephemeral: true, hasBeenDefered: true })
         return moneyWasTaken
     }
 
@@ -360,7 +360,7 @@ export class LootboxCommands extends AbstractCommands {
         const optionList: any = interaction.options
         const allItems = optionList._hoistedOptions        
         if (!this.verifyInputIsValid(allItems, user)) {
-            return this.messageHelper.replyToInteraction(interaction, 'Du har ugyldig input. Sørg for å velge fra de foreslåtte parameterne når du velger trade gjenstander.')
+            return this.messageHelper.replyToInteraction(interaction, 'Du har ugyldig input. Sørg for å velge fra de foreslåtte parameterne når du velger trade gjenstander.', {hasBeenDefered: true})
         }
         const inputAsCollectables = this.inputsToIUserCollectables(allItems)
         const tradingToRarity = this.getResultingTradeRarity(inputAsCollectables[0].rarity, allItems.length)
@@ -370,7 +370,7 @@ export class LootboxCommands extends AbstractCommands {
         const collectableNames = this.getCollectableNamesPrintString(inputAsCollectables)
         const embed = EmbedUtils.createSimpleEmbed('Trade', `Er du sikker på at du vil bytte: \n${collectableNames}\nfor en ny ${tradingToRarity} gjenstand?`)
         const buttons = tradeButtons(tradeID)
-        this.messageHelper.replyToInteraction(interaction, embed, undefined, [buttons])
+        this.messageHelper.replyToInteraction(interaction, embed, {hasBeenDefered: true}, [buttons])
     }
 
     private getCollectableNamesPrintString(collectables: IUserCollectable[]): string {
