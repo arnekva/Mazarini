@@ -393,11 +393,13 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private async confirmTrade(interaction: ButtonInteraction<CacheType>) {
+        const deferred = await this.messageHelper.deferReply(interaction)
+        if (!deferred) return this.messageHelper.sendMessage(interaction.channelId, {text: 'Noe gikk galt med interactionen. Prøv igjen.'})
         const user = await this.client.database.getUser(interaction.user.id)
         const pendingTrade = this.getPendingTrade(interaction)
         if (!(pendingTrade.userId === interaction.user.id)) return interaction.deferUpdate()
         if (!this.allItemsAreOwned(pendingTrade.tradingIn, user)) {
-            await this.messageHelper.replyToInteraction(interaction, 'Du har ikke alle gjenstandene du prøver å bytte inn.')
+            await this.messageHelper.replyToInteraction(interaction, 'Du har ikke alle gjenstandene du prøver å bytte inn.', {hasBeenDefered: true})
             return this.cancelTrade(interaction)
         }
         const collectableNames = this.getCollectableNamesPrintString(pendingTrade.tradingIn)
