@@ -331,7 +331,7 @@ export class DatabaseHelper {
             })
     }
 
-    public async setLootboxes(boxes: ILootbox[]) {
+    public setLootboxes(boxes: ILootbox[]) {
         const updates = {}
         updates[`/other/loot/boxes`] = boxes
         this.db.updateData(updates)
@@ -357,7 +357,7 @@ export class DatabaseHelper {
         return this.db.getStorageData(ref)
     }
 
-    public async uploadLootGif(path: string, gif: Buffer) {
+    public uploadLootGif(path: string, gif: Buffer) {
         const ref = this.db.getStorageRef(path)
         this.db.uploadToStorage(ref, gif)
     }

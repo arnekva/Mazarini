@@ -315,4 +315,29 @@ export class MessageHelper {
             scheduledMessages: storage.scheduledMessages,
         })
     }
+
+    /**
+     * Send a message to the specified channel. Content can be of several types.
+     * @param interaction Interaction to defer
+     * @returns true if deferred succesfully, false if an error occured
+     */
+    async deferReply(interaction:
+        | ChatInputCommandInteraction<CacheType>
+        | ModalSubmitInteraction<CacheType>
+        | SelectMenuInteraction<CacheType>
+        | ButtonInteraction<CacheType>
+        | RepliableInteraction<CacheType>) {
+            try 
+            {
+                await interaction.deferReply()
+                return true
+            }
+            catch(error)
+            {
+                let details = ' i kanalen ' + MentionUtils.mentionChannel(interaction.channelId)
+                if (interaction.isChatInputCommand()) details = `\nInteraction: ${interaction?.options.getSubcommand()}`
+                this.sendLogMessage('Klarte ikke å deferReply-e en interaction' + details)
+                return false
+            }
+        }
 }

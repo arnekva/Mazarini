@@ -8,8 +8,9 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '18.2.3'
-    public static readonly currentPatchNotes = `* Performance improvements på /terning`
+    public static readonly currentVersion = '18.2.4'
+    public static readonly currentPatchNotes = `* Bedre håndtering av deferReply`
+                                             + `\n  * Lootboxer vil ikke lenger bli kjøpt i det skjulte dersom noe går galt. Nå vil man heller få beskjed om å prøve på nytt.`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 

@@ -56,6 +56,8 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private async openLootboxFromButton(interaction: ButtonInteraction<CacheType>) {
+        const deferred = await this.messageHelper.deferReply(interaction)
+        if (!deferred) return this.messageHelper.sendMessage(interaction.channelId, {text: 'Noe gikk galt med interactionen. Prøv igjen.'})
         const lootboxOwnerId = interaction.customId.split(';')[1]
         if (interaction.user.id === lootboxOwnerId) {
             interaction.message.edit({ components: [] })
@@ -188,7 +190,6 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private async revealCollectable(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, item: IUserCollectable) {
-        await interaction.deferReply()
         const path = this.getGifPath(item)
         const buffer = Buffer.from(await this.client.database.getFromStorage(path))
         const file = new AttachmentBuilder(buffer, {name: 'collectable.gif'})
@@ -211,7 +212,6 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private async printInventory(interaction: ChatInputCommandInteraction<CacheType>) {
-        await interaction.deferReply()
         const user = await this.client.database.getUser(interaction.user.id)
         const seriesParam = interaction.options.get('series')?.value as string
         const series = await this.getSeriesOrDefault(seriesParam)
@@ -428,7 +428,9 @@ export class LootboxCommands extends AbstractCommands {
         return this.pendingTrades.delete(tradeID)
     }
 
-    private executeLootSubCommand(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async executeLootSubCommand(interaction: ChatInputCommandInteraction<CacheType>) {
+        const deferred = await this.messageHelper.deferReply(interaction)
+        if (!deferred) return this.messageHelper.sendMessage(interaction.channelId, {text: 'Noe gikk galt med interactionen. Prøv igjen.'})
         const cmdGroup = interaction.options.getSubcommandGroup()
         const cmd = interaction.options.getSubcommand()
         if (!cmdGroup && cmd === 'box') this.openAndRegisterLootbox(interaction)

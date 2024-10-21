@@ -21,4 +21,8 @@ export abstract class AbstractCommands {
     get messageHelper() {
         return this.client.messageHelper
     }
+
+    get database() {
+        return this.client.database
+    }
 }
