@@ -4,7 +4,7 @@ import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { imgflip } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 
-import { Meme } from '../../interfaces/database/databaseInterface'
+import { Meme, MemeBox } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { MentionUtils } from '../../utils/mentionUtils'
 
@@ -22,7 +22,7 @@ export class MemeCommands extends AbstractCommands {
     }
     private readonly baseURL = 'https://api.imgflip.com/caption_image'
 
-    private async sendToAll(interaction: ButtonInteraction<CacheType>) {
+    private sendToAll(interaction: ButtonInteraction<CacheType>) {
         const img = interaction.customId.split(';')[1]
         this.messageHelper.sendMessage(interaction.channelId, { text: img })
         fetch(`https://discord.com/api/webhooks/${MentionUtils.User_IDs.BOT_HOIE}/${interaction.token}/messages/@original`, {
@@ -31,7 +31,7 @@ export class MemeCommands extends AbstractCommands {
         interaction.deferUpdate()
     }
 
-    private async getMeme(interaction: ChatInputCommandInteraction<CacheType>) {
+    private getMeme(interaction: ChatInputCommandInteraction<CacheType>) {
         const memeId = interaction.options.get('meme')?.value as string
         if (memeId == '000') {
             return this.messageHelper.replyToInteraction(interaction, 'https://i.imgur.com/ka7SslJ.jpg')
@@ -52,7 +52,7 @@ export class MemeCommands extends AbstractCommands {
         const preview = interaction.options.get('preview')?.value as boolean
         await interaction.deferReply({ ephemeral: preview })
 
-        const params = new URLSearchParams({
+        let params = new URLSearchParams({
             username: imgflip.u,
             password: imgflip.p,
             template_id: meme.id,
@@ -60,23 +60,9 @@ export class MemeCommands extends AbstractCommands {
             text1: 'toget',
             max_font_size: '25',
         })
-        if (meme.box_count > 0) {
-            const text = interaction.options.get('tekst-1')?.value as string
-            params.append('boxes[0][text]', text ?? ' ')
-        }
-        if (meme.box_count > 1) {
-            const text = interaction.options.get('tekst-2')?.value as string
-            params.append('boxes[1][text]', text ?? ' ')
-        }
-        if (meme.box_count > 2) {
-            const text = interaction.options.get('tekst-3')?.value as string
-            params.append('boxes[2][text]', text ?? ' ')
-        }
-        if (meme.box_count > 3) {
-            const text = interaction.options.get('tekst-4')?.value as string
-            params.append('boxes[3][text]', text ?? ' ')
-        }
-
+        
+        params = this.getBoxes(meme, params, interaction)
+        
         fetch(this.baseURL, {
             method: 'POST',
             headers: {
@@ -94,17 +80,21 @@ export class MemeCommands extends AbstractCommands {
                             } else {
                                 this.messageHelper.replyToInteraction(interaction, el.data.url, { ephemeral: false, hasBeenDefered: true })
                             }
-                        } else
+                        } else {
                             this.messageHelper.replyToInteraction(interaction, `Klarte ikkje å laga et meme te deg bro`, {
                                 ephemeral: true,
                                 hasBeenDefered: true,
                             })
+                            this.messageHelper.sendLogMessage('Klarte ikke å generere meme\n', el)
+                            
+                        }
                     })
                     .catch((error: any) => {
                         this.messageHelper.replyToInteraction(interaction, `her skjedde det ein feil. Hvis det skjer igjen tag @Bot-support`, {
                             ephemeral: true,
                             hasBeenDefered: true,
                         })
+                        this.messageHelper.sendLogMessage('Klarte ikke å parse meme json\n', error)
                     })
             })
             .catch((error: any) => {
@@ -112,7 +102,26 @@ export class MemeCommands extends AbstractCommands {
                     ephemeral: true,
                     hasBeenDefered: true,
                 })
+                this.messageHelper.sendLogMessage('Klarte ikke å request-e en meme\n', error)
             })
+    }
+
+    private getBoxes(meme: Meme, params: URLSearchParams, interaction: ChatInputCommandInteraction<CacheType>) {
+        for (let i = 0; i < meme.box_count; i++) {
+            const text = interaction.options.get(`tekst-${i+1}`)?.value as string
+            params.append(`boxes[${i}][text]`, text ?? ' ')
+            
+            const box: MemeBox = (meme.boxes?.length ?? 0) > i ? meme.boxes[i] : undefined
+            if (box) {
+                if (box.x) params.append(`boxes[${i}][x]`, `${box.x}`)
+                if (box.y) params.append(`boxes[${i}][y]`, `${box.y}`)
+                if (box.width) params.append(`boxes[${i}][width]`, `${box.width}`) 
+                if (box.height) params.append(`boxes[${i}][height]`, `${box.height}`)
+                if (box.color) params.append(`boxes[${i}][color]`, `${box.color}` )
+                if (box.outline_color) params.append(`boxes[${i}][outline_color]`, `${box.outline_color}`)
+            }
+        }
+        return params
     }
 
     private async filterMemes(interaction: AutocompleteInteraction<CacheType>) {
@@ -175,30 +184,3 @@ export interface IMemeTemplate {
     captions: number
     tags: string[]
 }
-// export const memeMap: Map<string, IMemeTemplate> = new Map<string, IMemeTemplate>([
-//     ['sjosyk', { id: 'sjosyk', name: 'Økonomisk sjøsyk', numberOfBoxes: 0 }],
-//     ['26433458', { id: '26433458', name: "Timmy's dad", numberOfBoxes: 2 }],
-//     ['322841258', { id: '322841258', name: 'Anakin', numberOfBoxes: 3 }],
-//     ['217743513', { id: '217743513', name: 'Uno draw 25', numberOfBoxes: 2 }],
-//     ['438680', { id: '438680', name: 'Batman slapping Robin', numberOfBoxes: 2 }],
-//     ['124822590', { id: '124822590', name: 'Exit off ramp', numberOfBoxes: 3 }],
-//     ['102156234', { id: '102156234', name: 'Special needs Spongebob', numberOfBoxes: 2 }],
-//     ['131940431', { id: '131940431', name: "Gru's plan", numberOfBoxes: 4 }],
-//     ['87743020', { id: '87743020', name: 'Two buttons', numberOfBoxes: 3 }],
-//     ['178591752', { id: '178591752', name: 'Tuxedo Winnie The Pooh', numberOfBoxes: 2 }],
-//     ['21735', { id: '21735', name: 'The Rock driving', numberOfBoxes: 2 }],
-//     ['84341851', { id: '84341851', name: 'Darth Kermit', numberOfBoxes: 2 }],
-//     ['155067746', { id: '155067746', name: 'Surprised Pikachu', numberOfBoxes: 3 }],
-//     ['119139145', { id: '119139145', name: 'Blue button', numberOfBoxes: 2 }],
-//     ['180190441', { id: '180190441', name: "They're the same picture", numberOfBoxes: 3 }],
-//     ['79132341', { id: '79132341', name: 'Stick in bike wheel', numberOfBoxes: 3 }],
-//     ['27813981', { id: '27813981', name: 'Hide the pain Harold', numberOfBoxes: 2 }],
-//     ['148909805', { id: '148909805', name: 'Avoid eye contact', numberOfBoxes: 2 }],
-//     ['61579', { id: '61579', name: 'One does not simply', numberOfBoxes: 2 }],
-//     ['252600902', { id: '252600902', name: 'Space - always has been', numberOfBoxes: 2 }],
-//     ['4087833', { id: '4087833', name: 'Waiting skeleton', numberOfBoxes: 2 }],
-//     ['129242436', { id: '129242436', name: 'Change my mind', numberOfBoxes: 2 }],
-//     ['181913649', { id: '181913649', name: 'Drake hotline bling', numberOfBoxes: 2 }],
-//     ['80707627', { id: '80707627', name: 'Sad Pablo Escobar', numberOfBoxes: 3 }],
-//     ['166969924', { id: '166969924', name: 'Flex tape', numberOfBoxes: 3 }],
-// ])

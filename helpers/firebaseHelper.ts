@@ -17,6 +17,7 @@ export class FirebaseHelper {
         this.firebaseApp = firebaseApp
         this.db = getDatabase(firebaseApp)
         this.firestore = getFirestore(firebaseApp)
+        this.messageHelper = messageHelper
         this.storage = getStorage(firebaseApp)
     }
 
@@ -106,23 +107,23 @@ export class FirebaseHelper {
         }
     }
 
-    public async updateData(updates: object) {
+    public updateData(updates: object) {
         update(ref(this.db, database), updates)
     }
 
-    public async updateUser(user: MazariniUser) {
+    public updateUser(user: MazariniUser) {
         const updates = {}
         updates[`/users/${user.id}`] = user
-        await this.updateData(updates)
+        this.updateData(updates)
     }
 
-    public async incrementData(paths: string[], negative?: boolean) {
+    public incrementData(paths: string[], negative?: boolean) {
         const updates = {}
         paths.forEach((path) => {
             const num = paths.filter(x => x === path).length
             updates[path] = increment(negative ? -num : num)
         })
-        await this.updateData(updates)
+        this.updateData(updates)
     }
 
     public async deleteData(path: string) {

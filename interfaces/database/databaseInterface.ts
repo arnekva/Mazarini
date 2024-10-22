@@ -320,6 +320,16 @@ export interface Meme {
     box_count: number
     captions: number
     tags: string[]
+    boxes?: MemeBox[]
+}
+
+export interface MemeBox {
+    x?: number
+    y?: number
+    width?: number
+    height?: number
+    color?: string
+    outline_color?: string
 }
 
 export interface ValuePair {
