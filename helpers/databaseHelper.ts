@@ -214,17 +214,13 @@ export class DatabaseHelper {
         return (await this.db.getData('stats/emojis')) as object
     }
 
-    public async registerDeathrollStats(game: DRGame): Promise<DeathRollStats[]> {
-        const drStats: DeathRollStats[] = []
+    public async registerDeathrollStats(game: DRGame): Promise<DeathRollStats> {
+        let loserStats: DeathRollStats = {didGetNewBiggestLoss: 0, isOnATHLossStreak: 0, userId: ''}
         for (let i = 0; i < game.players.length; i++) {
             const player = game.players[i]
 
             const user = await this.getUser(player.userID)
-            const currStat: DeathRollStats = {
-                didGetNewBiggestLoss: 0,
-                isOnATHLossStreak: 0,
-                userId: player.userID,
-            }
+            
             if (user) {
                 const defaultStats = {
                     //avoid null-references
@@ -246,7 +242,12 @@ export class DatabaseHelper {
                 user.userStats.deathrollStats.totalGames++
                 user.userStats.deathrollStats.weeklyGames++
 
-                if (game.nextToRoll === user.id) {
+                if (game.loserID === user.id) {
+                    const currStat: DeathRollStats = {
+                        didGetNewBiggestLoss: 0,
+                        isOnATHLossStreak: 0,
+                        userId: player.userID,
+                    }
                     if (!user.userStats.deathrollStats.biggestLoss) {
                         user.userStats.deathrollStats.biggestLoss = [game.lastRoll]
                     } else {
@@ -268,15 +269,14 @@ export class DatabaseHelper {
                         user.userStats.deathrollStats.longestLossStreak = user.userStats.deathrollStats.currentLossStreak
                     }
                     currStat.currentLossStreak = user.userStats.deathrollStats.currentLossStreak
+                    loserStats = currStat
                 } else {
-                    currStat.currentLossStreak = 0
                     user.userStats.deathrollStats.currentLossStreak = 0
                 }
-                drStats.push(currStat)
                 this.updateUser(user)
             }
         }
-        return drStats
+        return loserStats
     }
 
     public async findAndRewardWeeklyDeathrollWinner() {

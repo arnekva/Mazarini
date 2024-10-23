@@ -8,9 +8,10 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '18.2.4'
-    public static readonly currentPatchNotes = `* Bedre håndtering av deferReply`
-                                             + `\n  * Lootboxer vil ikke lenger bli kjøpt i det skjulte dersom noe går galt. Nå vil man heller få beskjed om å prøve på nytt.`
+    public static readonly currentVersion = '18.3.0'
+    public static readonly currentPatchNotes = `* Du får nå valget om å takke nei til hasjen og samtidig legge til 2k i den`
+                                             + `\n* Fikset en feil ved håndtering av Arne som prøver å claime loot traden din`
+                                             + `\n* Fikset en feil som registrerte Arne sitt syretap på geggi <:hhhhheeehhhhhh:1255794610433953793>`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 

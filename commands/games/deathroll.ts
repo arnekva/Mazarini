@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto'
-import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction } from 'discord.js'
+import { ActionRowBuilder, AutocompleteInteraction, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 import { DeathRollStats } from '../../helpers/databaseHelper'
@@ -7,7 +7,7 @@ import { EmojiHelper } from '../../helpers/emojiHelper'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { ArrayUtils } from '../../utils/arrayUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
-import { MentionUtils } from '../../utils/mentionUtils'
+import { MentionUtils, ThreadIds } from '../../utils/mentionUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { UserUtils } from '../../utils/userUtils'
 
@@ -23,6 +23,7 @@ export interface DRGame {
     lastRoll: number
     nextToRoll: string
     initialTarget: number
+    loserID?: string
 }
 
 export class Deathroll extends AbstractCommands {
@@ -83,7 +84,7 @@ export class Deathroll extends AbstractCommands {
 
             let additionalMessage = ''
             if (game) {
-                if (roll > 1) this.updateGame(game, user.id, roll) // Don't update if loss (easier to register stats)
+                this.updateGame(game, user.id, roll) 
                 additionalMessage += this.checkForReward(roll, diceTarget)
                 additionalMessage += await this.checkIfPotWon(game, roll, diceTarget, user.id)
 
@@ -93,22 +94,20 @@ export class Deathroll extends AbstractCommands {
                 }
                 if (roll == 1) {
                     this.checkForLossOnFirstRoll(game, diceTarget)
-                    const stats = await this.endGame(game)
-                    additionalMessage += this.rewardPlayersOnGameEnd(stats, diceTarget)
+                    const stat = await this.endGame(game)
+                    additionalMessage += this.addToPotOnGameEnd(stat, diceTarget)
                     const kek = (await EmojiHelper.getEmoji('kekw', interaction)).id
-                    stats.forEach((stat) => {
-                        const username = UserUtils.findUserById(stat.userId, interaction)?.username ?? 'Ukjent'
-                        if (diceTarget > 30 && RandomUtils.getRndBetween0and100() > 40) {
-                            additionalMessage += ` ${kek}`
-                        }
-                        if (stat.didGetNewBiggestLoss) additionalMessage += `\n*(${username} fikk et nytt tall inn på topplisten av største tap)*`
-                        if (stat.isOnATHLossStreak) additionalMessage += `\n*(${username} har ny ATH loss streak på ${stat.isOnATHLossStreak})*`
-                        else if (stat.currentLossStreak > 4) additionalMessage += `\n*(${username} er på en ${stat.currentLossStreak} loss streak)*`
-                    })
+                    const username = UserUtils.findUserById(stat.userId, interaction)?.username ?? 'Ukjent'
+                    if (diceTarget > 30 && RandomUtils.getRndBetween0and100() > 40) {
+                        additionalMessage += ` ${kek}`
+                    }
+                    if (stat.didGetNewBiggestLoss) additionalMessage += `\n*(${username} fikk et nytt tall inn på topplisten av største tap)*`
+                    if (stat.isOnATHLossStreak) additionalMessage += `\n*(${username} har ny ATH loss streak på ${stat.isOnATHLossStreak})*`
+                    else if (stat.currentLossStreak > 4) additionalMessage += `\n*(${username} er på en ${stat.currentLossStreak} loss streak)*`
                 }
             }
             const bold = (game?.players?.length ?? 0) == 1 ? '**' : ''
-            const waitTme = roll == 1 && Math.random() < diceTarget / 1000 ? 5000 : 0 // Økende sannsynlighet for å bli tomasa jo større tapet er
+            const waitTme = ((Math.random() < 0.01) || (roll == 1 && Math.random() < diceTarget / 1000)) ? 5000 : 0 // Økende sannsynlighet for å bli tomasa jo større tapet er | generelt 1% sannsynlig å bli tomasa
             setTimeout(() => {
                 this.messageHelper.replyToInteraction(interaction, `${bold}${roll} *(1 - ${diceTarget})*${bold}  ${additionalMessage}`, {
                     sendAsSilent: (game?.players?.length ?? 2) > 1,
@@ -145,35 +144,23 @@ export class Deathroll extends AbstractCommands {
         }
         return msg
     }
-    //TODO: Make this pretty
-    private rewardPlayersOnGameEnd(s: DeathRollStats[], diceTarget: number) {
-        const playerHasATHStreak = s.find((p) => p.isOnATHLossStreak && p.isOnATHLossStreak > 0)
-        const playerHasStreak = s.find((p) => p.currentLossStreak > 4)
-        const playerHasBiggestLoss = s.find((p) => p.didGetNewBiggestLoss && p.didGetNewBiggestLoss > 0)
 
-        let reward = playerHasATHStreak ? playerHasATHStreak.currentLossStreak * 2000 : 0
-        if (playerHasStreak && !playerHasATHStreak) reward += (playerHasStreak.currentLossStreak-4) * 1000
-        if (playerHasBiggestLoss) reward += playerHasBiggestLoss.didGetNewBiggestLoss * 50
+    private addToPotOnGameEnd(stat: DeathRollStats, diceTarget: number) {
+        const playerHasATHStreak = (stat.isOnATHLossStreak && stat.isOnATHLossStreak > 0)
+        const playerHasStreak = stat.currentLossStreak > 4
+        const playerHasBiggestLoss = (stat.didGetNewBiggestLoss && stat.didGetNewBiggestLoss > 0)
+
+        let reward = playerHasATHStreak ? stat.currentLossStreak * 2000 : 0
+        if (playerHasStreak && !playerHasATHStreak) reward += (stat.currentLossStreak-4) * 1000
+        if (playerHasBiggestLoss) reward += stat.didGetNewBiggestLoss * 50
         else if (diceTarget >= 100) reward += diceTarget * 10
         this.rewardPot += reward
         if (reward > 0) this.saveRewardPot()
         return reward >= 100 ? `(pott + ${reward} = ${this.rewardPot} chips)` : ''
     }
-
-    private async rewardPotToUser(userId: string, addToPot: number) {
-        const dbUser = await this.client.database.getUser(userId)
-        const initalPot = this.rewardPot
-        const rewarded = this.client.bank.giveMoney(dbUser, (this.rewardPot + addToPot))
-        this.rewardPot = (this.rewardPot + addToPot) - rewarded
-        if (rewarded > 0) this.saveRewardPot()
-        const jailed = this.rewardPot > 0
-        return `Nice\nDu vinner potten på ${initalPot} ${addToPot > 0 ? '(+'+addToPot+') ' : ''}chips! ${
-            jailed ? `(men du får bare ${rewarded} siden du er i fengsel)\nPotten er fortsatt på ${this.rewardPot} chips` : ''
-        }`
-    }
-
+    
     private checkForReward(roll: number, diceTarget: number) {
-        if (roll == 9 && diceTarget == 11 && Math.random() < 0.5) {
+        if (roll == 9 && diceTarget == 11 && Math.random() < 0.25) {
             // 50% sjanse for minus i potten ved 9-11
             const removed = this.rewardPot >= 2977 ? 2977 : this.rewardPot
             this.rewardPot -= removed
@@ -207,36 +194,10 @@ export class Deathroll extends AbstractCommands {
     }
 
     private getRollReward(r: number) {
-        switch (r) {
-            case 6969:
-                return 69690
-            case 420:
-                return 4200
-            case 6868:
-                return 101
-            case 6669:
-                return 6690
-            case 669:
-                return 669
-            case 1337:
-                return 13370
-            case 1996:
-                return 19999
-            case 1997:
-                return 101
-            case 8008:
-                return 80085
-            case 1881:
-                return 1881
-            case 123:
-                return 1230
-            case 1234:
-                return 12340
-            case 12345:
-                return 123450
-            default:
-                return 0
-        }
+        if (r in [1996, 1997, 1881, 1337]) return r
+        else if (r in [6969, 420, 123, 1234, 12345]) return r * 10
+        else if (r === 8008) return 80085
+        else return 0
     }
 
     private async checkIfPotWon(game: DRGame, roll: number, diceTarget: number, userid: string) {
@@ -247,8 +208,47 @@ export class Deathroll extends AbstractCommands {
         return ''
     }
 
+    private async rewardPotToUser(userId: string, addToPot: number) {
+        const dbUser = await this.client.database.getUser(userId)
+        const initalPot = this.rewardPot
+        const rewarded = this.client.bank.giveMoney(dbUser, (this.rewardPot + addToPot))
+        this.rewardPot = (this.rewardPot + addToPot) - rewarded
+        if (rewarded > 0) this.saveRewardPot()
+        this.sendNoThanksButton(userId, rewarded)
+        const jailed = this.rewardPot > 0
+        return `Nice\nDu vinner potten på ${initalPot} ${addToPot > 0 ? '(+'+addToPot+') ' : ''}chips! ${
+            jailed ? `(men du får bare ${rewarded} siden du er i fengsel)\nPotten er fortsatt på ${this.rewardPot} chips` : ''
+        }`
+    }
+
     private saveRewardPot() {
         this.client.database.saveDeathrollPot(this.rewardPot)
+    }
+
+    private sendNoThanksButton(userId: string, rewarded: number) {
+        const button = noThanksButton(userId, rewarded)
+        setTimeout(() => {
+            this.messageHelper.sendMessage(ThreadIds.GENERAL_TERNING, {components: [button]})
+        }, 500)
+    }
+
+    private async handleNoThanks(interaction: ButtonInteraction<CacheType>) {
+        const params = interaction.customId.split(';')
+        const userId = params[1]
+        if (interaction.user.id !== userId) return interaction.deferUpdate()
+        await interaction.deferReply()
+        const amount = Number(params[2])
+        const user = await this.client.database.getUser(userId)
+        const hasTheMoney = this.client.bank.takeMoney(user, amount)
+        if (hasTheMoney) {
+            this.rewardPot = this.rewardPot + amount + 2000
+            this.saveRewardPot()
+            this.messageHelper.replyToInteraction(interaction, `Du ville ikke ha ${amount} chips altså? \nJaja, potten er på ${this.rewardPot} chips nå da`, {hasBeenDefered: true})
+        } else {
+            const huh = await EmojiHelper.getEmoji('kekhuh', interaction)
+            this.messageHelper.replyToInteraction(interaction, 'Du kan ikke "takke nei" til chipsene hvis du allerede har mistet dem ' + huh.id, {hasBeenDefered: true})
+        }
+        interaction.message.delete()
     }
 
     private getGame(userID: string, diceTarget: number) {
@@ -286,13 +286,17 @@ export class Deathroll extends AbstractCommands {
     }
 
     private updateGame(game: DRGame, userID: string, newRoll: number) {
-        const currentPlayerIndex = game.players.findIndex((player) => player.userID == userID)
-        const currentPlayer = game.players[currentPlayerIndex]
-        if (game.joinable && currentPlayer.rolls?.length > 0) game.joinable = false
-        currentPlayer.rolls.push(newRoll)
-        game.lastRoll = newRoll
-        const nextPlayerIndex = Math.abs(currentPlayerIndex + 1) % game.players.length
-        game.nextToRoll = game.players[nextPlayerIndex].userID
+        if (newRoll === 1) {
+            game.loserID = userID
+        } else {
+            const currentPlayerIndex = game.players.findIndex((player) => player.userID == userID)
+            const currentPlayer = game.players[currentPlayerIndex]
+            if (game.joinable && currentPlayer.rolls?.length > 0) game.joinable = false
+            currentPlayer.rolls.push(newRoll)
+            game.lastRoll = newRoll
+            const nextPlayerIndex = Math.abs(currentPlayerIndex + 1) % game.players.length
+            game.nextToRoll = game.players[nextPlayerIndex].userID
+        }
     }
 
     private checkForLossOnFirstRoll(game: DRGame, diceTarget: number) {
@@ -361,7 +365,28 @@ export class Deathroll extends AbstractCommands {
                         },
                     },
                 ],
+                buttonInteractionComands: [
+                    {
+                        commandName: 'DEATHROLL_NO_THANKS',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.handleNoThanks(rawInteraction)
+                        },
+                    }
+                ],
             },
         }
     }
+}
+
+
+const noThanksButton = (userId: string, rewarded: number) => {
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder({
+            custom_id: `DEATHROLL_NO_THANKS;${userId};${rewarded}`,
+            style: ButtonStyle.Primary,
+            label: `Nei takk (+2k chips)`,
+            disabled: false,
+            type: 2,
+        })
+    )
 }

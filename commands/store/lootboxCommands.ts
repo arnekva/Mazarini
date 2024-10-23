@@ -11,6 +11,7 @@ import {
 } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
+import { EmojiHelper } from '../../helpers/emojiHelper'
 import { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
 import {
     ICollectableSeries,
@@ -397,7 +398,10 @@ export class LootboxCommands extends AbstractCommands {
         if (!deferred) return this.messageHelper.sendMessage(interaction.channelId, {text: 'Noe gikk galt med interactionen. Prøv igjen.'})
         const user = await this.client.database.getUser(interaction.user.id)
         const pendingTrade = this.getPendingTrade(interaction)
-        if (!(pendingTrade.userId === interaction.user.id)) return interaction.deferUpdate()
+        if (!(pendingTrade.userId === interaction.user.id)) {
+            const really = await EmojiHelper.getEmoji('geggireally', interaction)
+            return this.messageHelper.replyToInteraction(interaction, `${really.id}`, {hasBeenDefered: true})
+        } 
         if (!this.allItemsAreOwned(pendingTrade.tradingIn, user)) {
             await this.messageHelper.replyToInteraction(interaction, 'Du har ikke alle gjenstandene du prøver å bytte inn.', {hasBeenDefered: true})
             return this.cancelTrade(interaction)

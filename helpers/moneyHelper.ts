@@ -1,5 +1,5 @@
-import { MazariniUser } from "../interfaces/database/databaseInterface"
 import { MazariniClient } from "../client/MazariniClient"
+import { MazariniUser } from "../interfaces/database/databaseInterface"
 
 export class MoneyHelper {
 
@@ -37,7 +37,7 @@ export class MoneyHelper {
         return user.chips && user.chips >= amount
     }
 
-    private applyRestrictions(user: MazariniUser, money: number) {
+    applyRestrictions(user: MazariniUser, money: number) {
         if ((user.jail?.daysInJail ?? 0) > 0) {
             return Math.floor(money * this.jail_multiplier)
         }
