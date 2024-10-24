@@ -194,8 +194,8 @@ export class Deathroll extends AbstractCommands {
     }
 
     private getRollReward(r: number) {
-        if (r in [1996, 1997, 1881, 1337]) return r
-        else if (r in [6969, 420, 123, 1234, 12345]) return r * 10
+        if ([1996, 1997, 1881, 1337].includes(r)) return r
+        else if ([6969, 420, 123, 1234, 12345].includes(r)) return r * 10
         else if (r === 8008) return 80085
         else return 0
     }
