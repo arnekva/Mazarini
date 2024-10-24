@@ -107,7 +107,7 @@ export class Deathroll extends AbstractCommands {
                 }
             }
             const bold = (game?.players?.length ?? 0) == 1 ? '**' : ''
-            const waitTme = ((Math.random() < 0.01) || (roll == 1 && Math.random() < diceTarget / 1000)) ? 5000 : 0 // Økende sannsynlighet for å bli tomasa jo større tapet er | generelt 1% sannsynlig å bli tomasa
+            const waitTme = ((Math.random() < 0.001) || (roll == 1 && Math.random() < diceTarget / 1000)) ? 5000 : 0 // Økende sannsynlighet for å bli tomasa jo større tapet er | generelt 0.1% sannsynlig å bli tomasa
             setTimeout(() => {
                 this.messageHelper.replyToInteraction(interaction, `${bold}${roll} *(1 - ${diceTarget})*${bold}  ${additionalMessage}`, {
                     sendAsSilent: (game?.players?.length ?? 2) > 1,
@@ -258,7 +258,7 @@ export class Deathroll extends AbstractCommands {
     }
 
     private findActiveGame(userID: string, diceTarget: number) {
-        return this.drGames.find(game => game.nextToRoll === userID && game.lastRoll === diceTarget)
+        return this.drGames.find(game => game.nextToRoll === userID && game.lastRoll === diceTarget && game.players.length > 1)
     }
 
     private joinGame(game: DRGame, userID: string) {
