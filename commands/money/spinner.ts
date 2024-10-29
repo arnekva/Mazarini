@@ -36,7 +36,7 @@ const spinMinutes: RandomUtils.WeightedItem[] = [
     },
     {
         value: 7,
-        weight: 3,
+        weight: 4,
     },
     {
         value: 8,
