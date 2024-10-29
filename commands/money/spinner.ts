@@ -5,52 +5,50 @@ import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { RandomUtils } from '../../utils/randomUtils'
 
-const weightedRandomObject = require('weighted-random-object')
-
-const spinMinutes = [
+const spinMinutes: RandomUtils.WeightedItem[] = [
     {
-        number: '0',
-        weight: 30,
+        value: 0,
+        weight: 25,
     },
     {
-        number: '1',
-        weight: 30,
+        value: 1,
+        weight: 22,
     },
     {
-        number: '2',
-        weight: 17,
+        value: 2,
+        weight: 15,
     },
     {
-        number: '3',
+        value: 3,
+        weight: 10,
+    },
+    {
+        value: 4,
         weight: 7,
     },
     {
-        number: '4',
+        value: 5,
         weight: 6,
     },
     {
-        number: '5',
+        value: 6,
         weight: 5,
     },
     {
-        number: '6',
-        weight: 2.75,
+        value: 7,
+        weight: 3,
     },
     {
-        number: '7',
-        weight: 1.3,
+        value: 8,
+        weight: 3,
     },
     {
-        number: '8',
-        weight: 0.75,
+        value: 9,
+        weight: 2,
     },
     {
-        number: '9',
-        weight: 0.11,
-    },
-    {
-        number: '10',
-        weight: 0.06,
+        value: 10,
+        weight: 1,
     },
 ]
 
@@ -60,7 +58,7 @@ export class Spinner extends AbstractCommands {
     }
 
     private async spinFromInteraction(interaction: ChatInputCommandInteraction<CacheType>) {
-        const min = weightedRandomObject(spinMinutes).number
+        const min = RandomUtils.chooseWeightedItem(spinMinutes)
         const sec = RandomUtils.getRandomInteger(0, 59)
 
         let winnings = this.getSpinnerWinnings(Number(min), Number(sec))
@@ -97,14 +95,14 @@ export class Spinner extends AbstractCommands {
             case 6:
                 return 300
             case 7:
-                return 700
+                return 900
             case 8:
                 return 1250
             case 9:
-                return 5000
+                return 4000
             case 10:
-                if (seconds === 59) return 40000
-                return 20000
+                if (seconds === 59) return 30000
+                return 10000
 
             default:
                 return 0

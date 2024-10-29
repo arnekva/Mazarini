@@ -26,16 +26,36 @@ export namespace RandomUtils {
 
     export function getRandomIntegerExcludingNumber(length: number, exclude: number) {
         let num = Math.floor(Math.random() * length)
-        if (num == exclude) num = (num + 1)%length
+        if (num == exclude) num = (num + 1) % length
         return num
     }
 
     export function getRandomItemFromList(list: any[]) {
-        return list[Math.floor(Math.random()*list.length)]
+        return list[Math.floor(Math.random() * list.length)]
     }
 
     export function getRandomItemFromListWithExclusions(list: any[], exclusions: any[]) {
-        const newList = list.filter(item => !exclusions.includes(item))
-        return newList[Math.floor(Math.random()*newList.length)]
+        const newList = list.filter((item) => !exclusions.includes(item))
+        return newList[Math.floor(Math.random() * newList.length)]
+    }
+
+    export type WeightedItem = { value: number; weight: number }
+    export function chooseWeightedItem(items: WeightedItem[]): number {
+        // Calculate the total weight sum
+        const totalWeight = items.reduce((sum, item) => sum + item.weight, 0)
+
+        // Generate a random number between 0 and totalWeight
+        let random = Math.random() * totalWeight
+
+        // Iterate over the items and return the one where the cumulative weight exceeds random
+        for (const item of items) {
+            if (random < item.weight) {
+                return item.value
+            }
+            random -= item.weight
+        }
+
+        // Fallback return; in theory this shouldn't be reached
+        return items[items.length - 1].value
     }
 }
