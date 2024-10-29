@@ -8,47 +8,47 @@ import { RandomUtils } from '../../utils/randomUtils'
 const spinMinutes: RandomUtils.WeightedItem[] = [
     {
         value: 0,
-        weight: 25,
+        weight: 30,
     },
     {
         value: 1,
-        weight: 22,
+        weight: 30,
     },
     {
         value: 2,
-        weight: 15,
+        weight: 17,
     },
     {
         value: 3,
-        weight: 10,
-    },
-    {
-        value: 4,
         weight: 7,
     },
     {
-        value: 5,
+        value: 4,
         weight: 6,
     },
     {
-        value: 6,
+        value: 5,
         weight: 5,
     },
     {
+        value: 6,
+        weight: 2.75,
+    },
+    {
         value: 7,
-        weight: 4,
+        weight: 1.3,
     },
     {
         value: 8,
-        weight: 3,
+        weight: 0.75,
     },
     {
         value: 9,
-        weight: 2,
+        weight: 0.11,
     },
     {
         value: 10,
-        weight: 1,
+        weight: 0.06,
     },
 ]
 

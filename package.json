@@ -28,7 +28,6 @@
         "deep-diff": "^1.0.2",
         "discord-tts": "^1.2.2",
         "discord.js": "^14.16.2",
-        "ffmpeg-static": "^4.4.1",
         "firebase": "^10.6.0",
         "holidays-norway": "^1.1.0",
         "image-charts": "^6.1.19",
