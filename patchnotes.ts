@@ -8,11 +8,10 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '18.3.1'
+    public static readonly currentVersion = '18.3.2'
     public static readonly currentPatchNotes =
-        `* Logging av brukerendringer vil nå gi mer informasjon` +
-        `\n* Oppdatert sannsynlighetene for å få diverse tall i /spin` +
-        `\nTeknisk:\n* Fjerner npm modul 'weighted-random-object' (så får vi se om Co-Pilot cooket opp en bra erstatning eller ei) `
+        `* Det er nå ett garantert skjult hasj-utbetalingstall mellom 75, 100, 125, 150, 200 og 10000 (5 tall totalt)` +
+        `\n* Prøver å øke hyppigheten av utbetaling slik at det ikke blir så enorme chips differanser` 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
