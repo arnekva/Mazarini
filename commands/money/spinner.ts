@@ -8,31 +8,31 @@ import { RandomUtils } from '../../utils/randomUtils'
 const spinMinutes: RandomUtils.WeightedItem[] = [
     {
         value: 0,
-        weight: 30,
+        weight: 38.39,
     },
     {
         value: 1,
-        weight: 30,
+        weight: 23.73,
     },
     {
         value: 2,
-        weight: 17,
+        weight: 14.66,
     },
     {
         value: 3,
-        weight: 7,
+        weight: 9.06,
     },
     {
         value: 4,
-        weight: 6,
+        weight: 5.6,
     },
     {
         value: 5,
-        weight: 5,
+        weight: 3.46,
     },
     {
         value: 6,
-        weight: 2.75,
+        weight: 2.14,
     },
     {
         value: 7,
@@ -40,15 +40,15 @@ const spinMinutes: RandomUtils.WeightedItem[] = [
     },
     {
         value: 8,
-        weight: 0.75,
+        weight: 0.82,
     },
     {
         value: 9,
-        weight: 0.11,
+        weight: 0.51,
     },
     {
         value: 10,
-        weight: 0.06,
+        weight: 0.31,
     },
 ]
 
@@ -70,7 +70,7 @@ export class Spinner extends AbstractCommands {
                 if (!user.dailySpinRewards) user.dailySpinRewards = 1
                 else {
                     user.dailySpinRewards++ //This will be updated by giveMoney below
-                    if (user.dailySpinRewards === 10) text = `Du har nå brukt opp dagens spinn`
+                    if (user.dailySpinRewards === 10) text = `\nDu har nå brukt opp dagens spinn\n`
                 }
                 winnings = this.client.bank.giveMoney(user, winnings)
                 text += winnings > 0 && canWinMore ? `Du får ${winnings} chips.` : ''
@@ -88,21 +88,25 @@ export class Spinner extends AbstractCommands {
 
     private getSpinnerWinnings(min: number, seconds: number) {
         switch (min) {
-            case 4:
+            case 2:
                 return 50
-            case 5:
+            case 3:
                 return 100
+            case 4:
+                return 200
+            case 5:
+                return 400
             case 6:
-                return 300
+                return 800
             case 7:
-                return 900
+                return 1600
             case 8:
-                return 1250
+                return 3200
             case 9:
-                return 4000
+                return 6400
             case 10:
                 if (seconds === 59) return 30000
-                return 10000
+                return 12800
 
             default:
                 return 0
