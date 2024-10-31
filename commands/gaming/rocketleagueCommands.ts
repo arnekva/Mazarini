@@ -1,13 +1,14 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, EmbedBuilder, TextChannel } from 'discord.js'
+import puppeteer from 'puppeteer-core'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { environment, rapidApiKey } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { RocketLeagueTournament } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { DailyJobs } from '../../Jobs/dailyJobs'
 import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { MessageUtils } from '../../utils/messageUtils'
-import { DailyJobs } from '../../Jobs/dailyJobs'
 
 interface rocketLeagueStats {
     modeName?: string
@@ -39,9 +40,8 @@ const emptyStats: rocketLeagueDbData = {
     stats: { wins: '0', goals: '0', mvp: '0', saves: '0', assists: '0', shots: '0', goalShotRatio: '0' },
     mmr: { mmr1v1: '0', mmr2v2: '0', mmr3v3: '0', tournament: '0' },
 }
-const fetch = require('node-fetch')
+
 const striptags = require('striptags')
-const puppeteer = require('puppeteer')
 
 export class RocketLeagueCommands extends AbstractCommands {
     constructor(client: MazariniClient) {
@@ -66,10 +66,6 @@ export class RocketLeagueCommands extends AbstractCommands {
         const name = user[1]
         const url = `https://api.tracker.gg/api/v2/rocket-league/standard/profile/${platform}/${name}`
 
-        const headers = {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
-        }
-
         //Need to specify executable path on Raspberry Pi, as it for some reason doesn't like the Puppeteer-supplied chromium version. Should work on Windows/Mac.
         let browser
         if (environment === 'prod')
@@ -80,6 +76,7 @@ export class RocketLeagueCommands extends AbstractCommands {
         else
             browser = await puppeteer.launch({
                 headless: true,
+                executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
             })
         const page = await browser.newPage()
         page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36')
@@ -103,11 +100,11 @@ export class RocketLeagueCommands extends AbstractCommands {
         }
         const segments = response.data.segments
 
-        let threeVthree: rocketLeagueStats = {}
-        let twoVtwo: rocketLeagueStats = {}
-        let oneVone: rocketLeagueStats = {}
-        let tournament: rocketLeagueStats = {}
-        let lifetimeStats: rocketLeagueLifetime = {}
+        const threeVthree: rocketLeagueStats = {}
+        const twoVtwo: rocketLeagueStats = {}
+        const oneVone: rocketLeagueStats = {}
+        const tournament: rocketLeagueStats = {}
+        const lifetimeStats: rocketLeagueLifetime = {}
         if (!segments) {
             interaction.editReply('Fetch til Rocket League API feilet')
         }
@@ -125,33 +122,33 @@ export class RocketLeagueCommands extends AbstractCommands {
                 lifetimeStats.wins = segment.stats.wins.value
                 lifetimeStats.shots = segment.stats.shots.value
                 lifetimeStats.goalShotRatio = Number(segment.stats.goalShotRatio.value).toFixed(2)
-            } else if (segment.type === "playlist" && segment.metadata.name === 'Ranked Duel 1v1') {
+            } else if (segment.type === 'playlist' && segment.metadata.name === 'Ranked Duel 1v1') {
                 oneVone.rank = segment?.stats?.tier?.metadata?.name
                 oneVone.division = segment?.stats?.division?.metadata?.name
                 oneVone.modeName = segment?.metadata?.name
                 oneVone.iconURL = segment.stats?.tier?.metadata?.iconUrl
                 oneVone.mmr = segment?.stats?.rating?.value
-            } else if (segment.type === "playlist" && segment.metadata.name === 'Ranked Doubles 2v2') {                
+            } else if (segment.type === 'playlist' && segment.metadata.name === 'Ranked Doubles 2v2') {
                 twoVtwo.rank = segment?.stats?.tier?.metadata?.name
                 twoVtwo.division = segment?.stats?.division?.metadata?.name
                 twoVtwo.modeName = segment?.metadata?.name
                 twoVtwo.iconURL = segment.stats?.tier?.metadata?.iconUrl
                 twoVtwo.mmr = segment?.stats?.rating?.value
-            } else if (segment.type === "playlist" && segment.metadata.name === 'Ranked Standard 3v3') {
+            } else if (segment.type === 'playlist' && segment.metadata.name === 'Ranked Standard 3v3') {
                 threeVthree.rank = segment?.stats?.tier?.metadata?.name
                 threeVthree.division = segment?.stats?.division?.metadata?.name
                 threeVthree.modeName = segment?.metadata?.name
                 threeVthree.iconURL = segment.stats?.tier?.metadata?.iconUrl
                 threeVthree.mmr = segment?.stats?.rating?.value
-            } else if (segment.type === "playlist" && segment.metadata.name === 'Tournament Matches') {
+            } else if (segment.type === 'playlist' && segment.metadata.name === 'Tournament Matches') {
                 tournament.rank = segment?.stats?.tier?.metadata?.name
                 tournament.division = segment?.stats?.division?.metadata?.name
                 tournament.modeName = segment?.metadata?.name
                 tournament.iconURL = segment.stats?.tier?.metadata?.iconUrl
                 tournament.mmr = segment?.stats?.rating?.value
             }
-        }        
-        let userData = await this.getUserStats(interaction)
+        }
+        const userData = await this.getUserStats(interaction)
         let mmrDiff = ''
         const msgContent = new EmbedBuilder().setTitle(`Rocket League - ${name}`)
         const statsType = interaction.options.get('modus')?.value as string
@@ -172,31 +169,31 @@ export class RocketLeagueCommands extends AbstractCommands {
                 { name: 'Goal/Shot Ratio', value: lifetimeStats.goalShotRatio + '% ' + goalShotRatioDiff, inline: true },
             ])
             userData.stats = lifetimeStats
-        } 
+        }
         if (!statsType || statsType === '1v1') {
             mmrDiff = this.compareOldNewStats(oneVone.mmr, userData.mmr?.mmr1v1, false)
             msgContent.addFields([{ name: `${oneVone.modeName}`, value: `${oneVone.rank} ${oneVone.division}\n${oneVone.mmr} MMR ${mmrDiff}` }])
             if (oneVone.iconURL) msgContent.setThumbnail(oneVone.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
             userData.mmr.mmr1v1 = oneVone.mmr
-        } 
+        }
         if (!statsType || statsType === '2v2') {
             mmrDiff = this.compareOldNewStats(twoVtwo.mmr, userData.mmr?.mmr2v2, false)
             msgContent.addFields([{ name: `${twoVtwo.modeName}`, value: `${twoVtwo.rank} ${twoVtwo.division}\n${twoVtwo.mmr} MMR ${mmrDiff}` }])
             if (twoVtwo.iconURL) msgContent.setThumbnail(twoVtwo.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
             userData.mmr.mmr2v2 = twoVtwo.mmr
-        } 
+        }
         if (!statsType || statsType === '3v3') {
             mmrDiff = this.compareOldNewStats(threeVthree.mmr, userData.mmr?.mmr3v3, false)
             msgContent.addFields([{ name: `${threeVthree.modeName}`, value: `${threeVthree.rank} ${threeVthree.division}\n${threeVthree.mmr} MMR ${mmrDiff}` }])
             if (threeVthree.iconURL) msgContent.setThumbnail(threeVthree.iconURL)
             userData.mmr.mmr3v3 = threeVthree.mmr
-        } 
+        }
         if (!statsType || statsType.toLowerCase() === 'tournament') {
             mmrDiff = this.compareOldNewStats(tournament.mmr, userData.mmr?.tournament, false)
             msgContent.addFields([{ name: `${tournament.modeName}`, value: `${tournament.rank} ${tournament.division}\n${tournament.mmr} MMR ${mmrDiff}` }])
             if (tournament.iconURL) msgContent.setThumbnail(tournament.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
             userData.mmr.tournament = tournament.mmr
-        } 
+        }
         if (!statsType) msgContent.setThumbnail('https://www.pngkey.com/png/full/15-158249_rocket-league-logo.png')
         this.saveUserStats(interaction, userData)
         interaction.editReply({ embeds: [msgContent] })
@@ -232,7 +229,7 @@ export class RocketLeagueCommands extends AbstractCommands {
             this.messageHelper.replyToInteraction(interaction, data.embed)
             this.messageHelper.sendMessage(interaction.channelId, { components: [data.buttons] })
         } else {
-            this.messageHelper.replyToInteraction(interaction, 'Trigger DayJobs...', {ephemeral: true})
+            this.messageHelper.replyToInteraction(interaction, 'Trigger DayJobs...', { ephemeral: true })
         }
     }
 
@@ -262,7 +259,7 @@ export class RocketLeagueCommands extends AbstractCommands {
 
     static getButtonRow(rt: RocketLeagueTournament[]) {
         const activeGameButtonRow = new ActionRowBuilder<ButtonBuilder>()
-        rt.forEach((t, idx) => {
+        rt.forEach((t) => {
             if (t.mode.toLowerCase() == 'soccer') {
                 activeGameButtonRow.addComponents(
                     new ButtonBuilder({

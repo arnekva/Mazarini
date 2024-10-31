@@ -1,9 +1,9 @@
 import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import moment from 'moment'
 import { MazariniClient } from '../client/MazariniClient'
+import { Holidays } from '../general/misc/holidays'
 import { DateUtils, countdownTime } from '../utils/dateUtils'
 import { EmojiHelper } from './emojiHelper'
-const holidays = require('holidays-norway').default
 
 export namespace HelgHelper {
     //TODO: Refactor out of here
@@ -150,7 +150,7 @@ export namespace HelgHelper {
 
         const currentWeekIsLastInYear = moment().week() === moment().weeksInYear()
         const year = new Date().getFullYear() + (currentWeekIsLastInYear && checkForNextWeeksMonday ? 1 : 0)
-        const holidaysFromYear = holidays(year)
+        const holidaysFromYear = Holidays.getNorwegianPublicHolidays(year)
 
         const holidaysThisWeek: { name: string; date: string }[] = []
         /** FIXME: Sets locale to en to avoid mess with js dates for the time being. Need to add 1 days to start of week since that would be sunday in en locale.
@@ -221,12 +221,12 @@ export namespace HelgHelper {
         if (holiday) {
             moment.locale('en')
             const year = new Date().getFullYear()
-            let holidaysFromYear: { name: string; date: string }[] = holidays(year)
+            let holidaysFromYear: { name: string; date: string }[] = Holidays.getNorwegianPublicHolidays(year)
             let holidayDateObject = holidaysFromYear.find((hdo) => hdo.name.toLowerCase() === holiday.holidayStart.toLowerCase())
             let date = new Date(holidayDateObject.date)
             date.setHours(date.getHours() + holiday.countdownHourOffset - 1) //subtracting 1h due to zulu time
             if (DateUtils.dateHasPassed(date)) {
-                holidaysFromYear = holidays(year + 1)
+                holidaysFromYear = Holidays.getNorwegianPublicHolidays(year + 1)
                 holidayDateObject = holidaysFromYear.find((hdo) => hdo.name.toLowerCase() === holiday.holidayStart.toLowerCase())
                 date = new Date(holidayDateObject.date)
                 date.setHours(date.getHours() + holiday.countdownHourOffset - 1) //subtracting 1h due to zulu time

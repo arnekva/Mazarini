@@ -81,12 +81,12 @@ export class Music extends AbstractCommands {
                 if (s as weeklyMethods) return this.findWeeklyMethod(s)
                 break
             case 'siste':
-                if (s as weeklyMethods) return this.findLastPlayedSongs(s)
+                if (s as weeklyMethods) return this.findLastPlayedSongs()
         }
         return this.findTopMethod(s)
     }
 
-    private findLastPlayedSongs(m: string) {
+    private findLastPlayedSongs() {
         return 'user.' + 'getrecenttracks'
     }
 
@@ -149,7 +149,8 @@ export class Music extends AbstractCommands {
         ])
             .then(async ([resTop, resInfo]) => {
                 await Promise.all([resTop.json(), resInfo.json()])
-                    .then(([topData, info]) => {
+                    .then(([topData]) => {
+                        //,info
                         const isFormattedWithHashtag = notWeeklyOrRecent
                             ? true
                             : dataParam.method.cmd.includes('weekly') || dataParam.method.cmd.includes('recent')

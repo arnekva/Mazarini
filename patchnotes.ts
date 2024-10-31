@@ -8,10 +8,12 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '18.3.2'
+    public static readonly currentVersion = '18.4.0'
     public static readonly currentPatchNotes =
-        `* Det er nå ett garantert skjult hasj-utbetalingstall mellom 75, 100, 125, 150, 200 og 10000 (5 tall totalt)` +
-        `\n* Prøver å øke hyppigheten av utbetaling slik at det ikke blir så enorme chips differanser` 
+        `* Bare tekniske endringer denne gangen.` +
+        `\n* Fjernet 5 npm moduler` +
+        `\n* Endret puppeteer til å bruke puppeteer-core, og dermed bruke lokal chromium i stedet. ` +
+        `\n* Dette burde redusere prosjektstørrelsen med ca 50%`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
