@@ -5,52 +5,50 @@ import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { RandomUtils } from '../../utils/randomUtils'
 
-const weightedRandomObject = require('weighted-random-object')
-
-const spinMinutes = [
+const spinMinutes: RandomUtils.WeightedItem[] = [
     {
-        number: '0',
-        weight: 30,
+        value: 0,
+        weight: 38.39,
     },
     {
-        number: '1',
-        weight: 30,
+        value: 1,
+        weight: 23.73,
     },
     {
-        number: '2',
-        weight: 17,
+        value: 2,
+        weight: 14.66,
     },
     {
-        number: '3',
-        weight: 7,
+        value: 3,
+        weight: 9.06,
     },
     {
-        number: '4',
-        weight: 6,
+        value: 4,
+        weight: 5.6,
     },
     {
-        number: '5',
-        weight: 5,
+        value: 5,
+        weight: 3.46,
     },
     {
-        number: '6',
-        weight: 2.75,
+        value: 6,
+        weight: 2.14,
     },
     {
-        number: '7',
+        value: 7,
         weight: 1.3,
     },
     {
-        number: '8',
-        weight: 0.75,
+        value: 8,
+        weight: 0.82,
     },
     {
-        number: '9',
-        weight: 0.11,
+        value: 9,
+        weight: 0.51,
     },
     {
-        number: '10',
-        weight: 0.06,
+        value: 10,
+        weight: 0.31,
     },
 ]
 
@@ -60,7 +58,7 @@ export class Spinner extends AbstractCommands {
     }
 
     private async spinFromInteraction(interaction: ChatInputCommandInteraction<CacheType>) {
-        const min = weightedRandomObject(spinMinutes).number
+        const min = RandomUtils.chooseWeightedItem(spinMinutes)
         const sec = RandomUtils.getRandomInteger(0, 59)
 
         let winnings = this.getSpinnerWinnings(Number(min), Number(sec))
@@ -72,7 +70,7 @@ export class Spinner extends AbstractCommands {
                 if (!user.dailySpinRewards) user.dailySpinRewards = 1
                 else {
                     user.dailySpinRewards++ //This will be updated by giveMoney below
-                    if (user.dailySpinRewards === 10) text = `Du har nå brukt opp dagens spinn`
+                    if (user.dailySpinRewards === 10) text = `\nDu har nå brukt opp dagens spinn\n`
                 }
                 winnings = this.client.bank.giveMoney(user, winnings)
                 text += winnings > 0 && canWinMore ? `Du får ${winnings} chips.` : ''
@@ -90,21 +88,25 @@ export class Spinner extends AbstractCommands {
 
     private getSpinnerWinnings(min: number, seconds: number) {
         switch (min) {
-            case 4:
+            case 2:
                 return 50
-            case 5:
+            case 3:
                 return 100
+            case 4:
+                return 200
+            case 5:
+                return 400
             case 6:
-                return 300
+                return 800
             case 7:
-                return 700
+                return 1600
             case 8:
-                return 1250
+                return 3200
             case 9:
-                return 5000
+                return 6400
             case 10:
-                if (seconds === 59) return 40000
-                return 20000
+                if (seconds === 59) return 30000
+                return 12800
 
             default:
                 return 0

@@ -128,11 +128,20 @@ export namespace UserUtils {
 
     export const onUserUpdate = (oldUser: User | PartialUser, newUser: User | PartialUser, msgHelper: MessageHelper) => {
         if (oldUser.id === '802945796457758760') return
+
+        const keyDifference = Object.fromEntries(Object.entries(newUser).filter(([k, v]) => oldUser[k] !== v))
+        const vals = Object.entries(keyDifference)
+            .map(([key, value]) => `${key}: ${value}`)
+            .join(' /// ')
+
         msgHelper.sendLogMessage(
             'Oppdatert bruker:   ' +
                 newUser.username +
                 `
-        ${oldUser.toString()} -${newUser.toString()}`
+            
+        ${oldUser.toString()} - ${newUser.toString()}: Følgende keys er oppdatert: ${Object.keys(keyDifference).join(
+                    ', '
+                )}. \nVerdier som er endret blir forsøkt sendt her: ${vals}`
         )
     }
     export const onMemberUpdate = async (oldMember: GuildMember | PartialGuildMember, newMember: GuildMember, msgHelper: MessageHelper) => {

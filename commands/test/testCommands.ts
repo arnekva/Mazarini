@@ -1,5 +1,6 @@
 import {
     ActionRowBuilder,
+    AutocompleteInteraction,
     ButtonBuilder,
     ButtonInteraction,
     ButtonStyle,
@@ -51,10 +52,8 @@ export class TestCommands extends AbstractCommands {
         // this.gsh = new GameStateHandler<LudoPlayer>()
     }
 
-    private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {        
-        const defer = true
-        if (defer) await interaction.deferReply()
-        this.messageHelper.replyToInteraction(interaction, 'test', {hasBeenDefered: defer})
+    private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {          
+        this.messageHelper.replyToInteraction(interaction, `Test`)  
     }
 
     private async testSelectMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {
@@ -130,6 +129,19 @@ export class TestCommands extends AbstractCommands {
         }
     }
 
+    private itemAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
+        const optionList: any = interaction.options
+        const input = optionList.getFocused().toLowerCase()
+        console.log(optionList._hoistedOptions)
+        console.log(input)
+        
+		// interaction.respond(
+		// 	series
+        //     .filter(series => series.name.toLowerCase().includes(input))
+        //     .map(series => ({ name: series.name, value: series.name })) 
+		// )
+    }
+
     getAllInteractions(): IInteractionElement {
         return {
             commands: {
@@ -139,6 +151,9 @@ export class TestCommands extends AbstractCommands {
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                             if (environment === 'prod') this.messageHelper.replyToInteraction(rawInteraction, 'Denne kan kun brukes i dev-miljø', {ephemeral: true})
                             else this.testSwitch(rawInteraction)
+                        },
+                        autoCompleteCallback: (interaction: AutocompleteInteraction<CacheType>) => {
+                            this.itemAutocomplete(interaction)
                         },
                     },
                 ],
@@ -243,3 +258,45 @@ export class TestCommands extends AbstractCommands {
 //     this.client.database.uploadLootGif(`loot/mazarini/${item}_diamond.gif`, diamond)
 // }
 // console.log('DOOOOOOOOOOOOOOONE');
+
+
+// const memes = await this.database.getMemes()
+// memes.push(memeTemplate)
+// const updates = {}
+// updates[`/memes`] = memes
+// this.database.updateData(updates)
+
+// this.messageHelper.replyToInteraction(interaction, `Laster opp nytt meme template`)  
+
+// const memeTemplate: Meme = {
+//     id: '',
+//     name: '',
+//     url: '',
+//     width: ,
+//     height: ,
+//     box_count: ,
+//     captions: ,
+//     tags: [''],
+// //     boxes: [{
+// //         x: ,
+// //         y: ,
+// //         width: ,
+// //         height: ,
+// //         color: '#ffffff'
+// //     },
+// //     {
+// //         x: ,
+// //         y: ,
+// //         width: ,
+// //         height: ,
+// //         color: '#ffffff'
+// //     },
+// //     {
+// //         x: ,
+// //         y: ,
+// //         width: ,
+// //         height: ,
+// //         color: '#ffffff'
+// //     },
+// //     ]
+// }

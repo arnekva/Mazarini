@@ -124,6 +124,7 @@ export class ClientListener {
                 //Do not react
             } else {
                 this.commandRunner.runCommands(message)
+
                 if (
                     (message.mentions.users.find((u) => u.id === MentionUtils.User_IDs.BOT_HOIE) ||
                         message.content.includes(`<@!${MentionUtils.User_IDs.BOT_HOIE}>`)) &&

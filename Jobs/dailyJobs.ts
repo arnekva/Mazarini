@@ -118,10 +118,12 @@ export class DailyJobs {
 
     private reRollWinningNumbers() {
         const status: JobStatus = 'success'
-        let winningNumbers = new Array<number>()
-        winningNumbers.push(RandomUtils.getRandomInteger(70, 200))
-        winningNumbers.push(RandomUtils.getRandomInteger(70, 200))
-        winningNumbers.push(RandomUtils.getRandomInteger(70, 200))
+        const winningNumbers = new Array<number>()
+        winningNumbers.push(RandomUtils.getRandomInteger(75, 100))
+        winningNumbers.push(RandomUtils.getRandomInteger(101, 125))
+        winningNumbers.push(RandomUtils.getRandomInteger(126, 150))
+        winningNumbers.push(RandomUtils.getRandomInteger(151, 200))
+        winningNumbers.push(RandomUtils.getRandomInteger(201, 10000))
         this.client.cache.deathrollWinningNumbers = winningNumbers
         return status
     }
