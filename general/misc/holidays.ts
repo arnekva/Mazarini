@@ -75,6 +75,15 @@ export namespace Holidays {
         // New Year's Eve (Nyttårsaften)
         holidays.push({ name: 'Nyttårsaften', date: moment(`${year}-12-31`).format('YYYY-MM-DD') })
 
+        holidays.push({ name: '1. mai', date: moment().year(year).month('may').date(1).format('YYYY-MM-DD') })
+        holidays.push({ name: '17. mai', date: moment().year(year).month('may').date(17).format('YYYY-MM-DD') })
+        holidays.push({ name: 'Julaften', date: moment().year(year).month('december').date(24).format('YYYY-MM-DD') })
+        holidays.push({ name: '1. Juledag', date: moment().year(year).month('december').date(25).format('YYYY-MM-DD') })
+        holidays.push({ name: '2. Juledag', date: moment().year(year).month('december').date(26).format('YYYY-MM-DD') })
+        holidays.push({
+            name: '1. mai',
+            date: moment().year(year).month('may').date(1).format('YYYY-MM-DD'),
+        })
         return holidays
     }
 }

@@ -2,7 +2,7 @@ import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import moment from 'moment'
 import { MazariniClient } from '../client/MazariniClient'
 import { Holidays } from '../general/misc/holidays'
-import { DateUtils, countdownTime } from '../utils/dateUtils'
+import { countdownTime, DateUtils } from '../utils/dateUtils'
 import { EmojiHelper } from './emojiHelper'
 
 export namespace HelgHelper {
@@ -193,27 +193,27 @@ export namespace HelgHelper {
         {
             holidayName: 'kristi himmelfartsdag',
             keywords: ['kristi himmelfartsdag', 'himmelsprett', 'kristihimmelfartsdag'],
-            holidayStart: 'kristi himmelsprettsdag',
+            holidayStart: 'kristi himmelfartsdag',
             printEnd: 'til Kristi Himmelfartsdag!',
             countdownHourOffset: 0,
         },
         { holidayName: 'pinse', keywords: ['pinse'], holidayStart: '2. pinsedag', printEnd: 'til 2. pinsedag (langhelg)!', countdownHourOffset: 0 },
         {
             holidayName: '17. mai',
-            keywords: ['17. mai', 'nasjonaldag', '17mai', '17.mai'],
+            keywords: ['17. mai', 'nasjonaldag', '17mai', '17.mai', '17 mai'],
             holidayStart: '17. mai',
             printEnd: 'til 17. mai!',
             countdownHourOffset: 0,
         },
         {
             holidayName: 'arbeidernes dag',
-            keywords: ['labour', 'labor', 'arbeider', '1.mai', '1. mai', '1mai'],
+            keywords: ['labour', 'labor', 'arbeider', '1.mai', '1. mai', '1mai', '1 mai'],
             holidayStart: '1. mai',
             printEnd: 'til arbeidernes dag!',
             countdownHourOffset: 0,
         },
         { holidayName: 'jul', keywords: ['jul', 'christmas'], holidayStart: '1. juledag', printEnd: 'til juleferie!', countdownHourOffset: -32 },
-        { holidayName: 'nyttår', keywords: ['nyttår', 'new year'], holidayStart: 'nyttårsaften', printEnd: 'til nyttår!', countdownHourOffset: 24 },
+        { holidayName: 'nyttår', keywords: ['nyttår', 'new year', 'newyear'], holidayStart: 'nyttårsaften', printEnd: 'til nyttår!', countdownHourOffset: 24 },
     ]
 
     export const checkMessageForHolidays = (msg: string) => {
