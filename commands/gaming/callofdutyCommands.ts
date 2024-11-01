@@ -660,13 +660,7 @@ export class CallOfDutyCommands extends AbstractCommands {
                             // this.dropGrid(interaction)
                         },
                     },
-                    {
-                        commandName: 'stats',
-                        disabled: true,
-                        command: () => {
-                            // this.handleWZInteraction(rawInteraction)
-                        },
-                    },
+
                     {
                         commandName: 'playlist',
                         disabled: true,

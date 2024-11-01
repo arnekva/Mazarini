@@ -81,6 +81,8 @@ export class CommandRunner {
                             //Need to also check if autoCompleteCallback is present, since AutoComplete can trigger on normal input fields.
                             if (cmd.autoCompleteCallback) cmd.autoCompleteCallback(interaction)
                         } else {
+                            console.log(cmd)
+
                             this.runInteractionElement<ChatInputCommandInteraction<CacheType> | ContextMenuCommandInteraction<CacheType>>(cmd, interaction)
                         }
                         hasAcknowledged = true
@@ -149,7 +151,7 @@ export class CommandRunner {
     }
 
     runInteractionElement<InteractionTypes>(runningInteraction: IInteractionCommand<InteractionTypes>, interaction: InteractionTypes) {
-        if (runningInteraction.disabled && environment === 'prod')
+        if (runningInteraction.disabled)
             this.client.messageHelper.replyToInteraction(interaction as ChatInputCommandInteraction, `Denne kommandoen er ikke tilgjengelig`)
         else runningInteraction.command(interaction)
     }
