@@ -98,6 +98,7 @@ export class Deathroll extends AbstractCommands {
             if (game) {
                 this.updateGame(game, user.id, roll)
                 additionalMessage += this.checkForReward(roll, diceTarget)
+                additionalMessage += this.checkForJokes(roll, diceTarget, user.id)
                 additionalMessage += await this.checkIfPotWon(game, roll, diceTarget, user.id)
 
                 if (roll >= 100 && roll !== diceTarget) {
@@ -169,14 +170,31 @@ export class Deathroll extends AbstractCommands {
         return reward >= 100 ? `(pott + ${reward} = ${this.rewardPot} chips)` : ''
     }
 
-    private checkForReward(roll: number, diceTarget: number) {
-        if (roll == 9 && diceTarget == 11 && Math.random() < 0.25) {
-            // 50% sjanse for minus i potten ved 9-11
-            const removed = this.rewardPot >= 2977 ? 2977 : this.rewardPot
-            this.rewardPot -= removed
-            if (removed > 0) this.saveRewardPot()
-            return removed > 0 ? `(pott - ${removed} = ${this.rewardPot} chips)\nNever forget :coffin:` : ''
+    private checkForJokes(roll: number, diceTarget: number, userId: string) {
+        if (diceTarget == 11) {
+            if (roll == 9 && Math.random() < 0.25) {
+                const removed = this.rewardPot >= 2977 ? 2977 : this.rewardPot
+                this.rewardPot -= removed
+                if (removed > 0) this.saveRewardPot()
+                return removed > 0 ? `(pott - ${removed} = ${this.rewardPot} chips)\nNever forget :coffin:` : ''
+            } else if (roll == 7) {
+                return '\n' + RandomUtils.getRandomItemFromList([
+                    'hæ, pølse?',
+                    'alle pølser kr 29 (unntatt baconpølse)',
+                    'alle pølser kr 29',
+                    'hadde tilbud på pølser forrige uke',
+                    'har bedre pølser enn Narvesen',
+                    'hæ?',
+                    ''
+                ])
+            }
+        } else if (roll == 11 && userId === MentionUtils.User_IDs.THOMAS) {
+            return '\nHadde vært sykt løye om det var 2mas som skulle trille på denne da <:pointerbrothers1:1177653110852825158>'
         }
+        return ''
+    }
+
+    private checkForReward(roll: number, diceTarget: number) {
         let totalAdded = this.getRollReward(roll)
         const multipliers: number[] = [1]
         const lowRoll = roll < 100
