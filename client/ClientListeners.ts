@@ -58,16 +58,10 @@ export class ClientListener {
             let msg = 'Boten er nå live i production mode. '
 
             //TODO: Work out this stuff
-            if (
-                process.env['--restartedForGit'] ||
-                process.argv.includes('--restartedForGit') ||
-                process.argv.includes('restartedForGit') ||
-                process.env['restartedForGit']
-            ) {
-                msg += 'Boten ble restartet av en /restart, og prosjektet er oppdatert fra Git'
 
-                //Uses ¶ to separate the params, so that we can easily split them later.
-                //TODO: Should be refactored out of there
+            //Uses ¶ to separate the params, so that we can easily split them later.
+            //TODO: Should be refactored out of there
+            if (environment === 'prod') {
                 await exec('git log --pretty=format:"%h¶%an¶%s"  -n 15', async (error, stdout) => {
                     if (error) {
                         this.client.messageHelper.sendLogMessage(`Git log failet. Klarte ikke liste siste commit messages`)
@@ -106,9 +100,8 @@ export class ClientListener {
                         }
                     }
                 })
-            } else {
-                msg += '\nIngen restartedForGit flagg ble funnet. Boten ble sannsynligvis ikke restartet av en /restart'
             }
+
             if (environment === 'prod') {
                 this.client.messageHelper.sendLogMessage(msg)
             }
