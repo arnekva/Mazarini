@@ -57,7 +57,13 @@ export class ClientListener {
             )
             let msg = 'Boten er nå live i production mode. '
 
-            if (process.env['--restartedForGit'] || process.argv.includes('--restartedForGit') || process.argv.includes('restartedForGit')) {
+            //TODO: Work out this stuff
+            if (
+                process.env['--restartedForGit'] ||
+                process.argv.includes('--restartedForGit') ||
+                process.argv.includes('restartedForGit') ||
+                process.env['restartedForGit']
+            ) {
                 msg += 'Boten ble restartet av en /restart, og prosjektet er oppdatert fra Git'
 
                 //Uses ¶ to separate the params, so that we can easily split them later.
