@@ -98,7 +98,7 @@ export class Deathroll extends AbstractCommands {
             if (game) {
                 this.updateGame(game, user.id, roll)
                 additionalMessage += this.checkForReward(roll, diceTarget)
-                additionalMessage += this.checkForJokes(roll, diceTarget, user.id)
+                additionalMessage += this.checkForJokes(roll, diceTarget, game.nextToRoll)
                 additionalMessage += await this.checkIfPotWon(game, roll, diceTarget, user.id)
 
                 if (roll >= 100 && roll !== diceTarget) {
@@ -170,7 +170,7 @@ export class Deathroll extends AbstractCommands {
         return reward >= 100 ? `(pott + ${reward} = ${this.rewardPot} chips)` : ''
     }
 
-    private checkForJokes(roll: number, diceTarget: number, userId: string) {
+    private checkForJokes(roll: number, diceTarget: number, nextToRoll: string) {
         if (diceTarget == 11) {
             if (roll == 9 && Math.random() < 0.25) {
                 const removed = this.rewardPot >= 2977 ? 2977 : this.rewardPot
@@ -188,7 +188,7 @@ export class Deathroll extends AbstractCommands {
                     ''
                 ])
             }
-        } else if (roll == 11 && userId === MentionUtils.User_IDs.THOMAS) {
+        } else if (roll == 11 && nextToRoll === MentionUtils.User_IDs.THOMAS) {
             return '\nHadde vært sykt løye om det var 2mas som skulle trille på denne da <:pointerbrothers1:1177653110852825158>'
         }
         return ''
