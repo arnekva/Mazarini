@@ -47,16 +47,26 @@ export class Deathroll extends AbstractCommands {
         }, 5000)
     }
 
-    private reRollWinningNumbers() {
+    private reRollWinningNumbers(printOldNumbers = false) {
         setTimeout(() => {
-            const winningNumbers = new Array<number>()
-            winningNumbers.push(RandomUtils.getRandomInteger(75, 100))
-            winningNumbers.push(RandomUtils.getRandomInteger(101, 125))
-            winningNumbers.push(RandomUtils.getRandomInteger(126, 150))
-            winningNumbers.push(RandomUtils.getRandomInteger(151, 200))
-            winningNumbers.push(RandomUtils.getRandomInteger(201, 10000))
-            this.client.cache.deathrollWinningNumbers = winningNumbers
+            if (printOldNumbers) this.printOldNumbers()
+            this.client.cache.deathrollWinningNumbers = Deathroll.getRollWinningNumbers()
         }, 5000)
+    }
+
+    //TODO: Should probably be refactored to somewhere else
+    static getRollWinningNumbers() {
+        const winningNumbers = new Array<number>()
+        winningNumbers.push(RandomUtils.getRandomInteger(75, 100))
+        winningNumbers.push(RandomUtils.getRandomInteger(101, 125))
+        winningNumbers.push(RandomUtils.getRandomInteger(126, 150))
+        winningNumbers.push(RandomUtils.getRandomInteger(151, 200))
+        winningNumbers.push(RandomUtils.getRandomInteger(201, 10000))
+        return winningNumbers
+    }
+
+    public printOldNumbers() {
+        this.messageHelper.sendLogMessage(`De forrige skjulte tallene var:` + this.client.cache.deathrollWinningNumbers?.join(', '))
     }
 
     public saveActiveGamesToDatabase() {
@@ -201,7 +211,11 @@ export class Deathroll extends AbstractCommands {
     }
 
     private async checkIfPotWon(game: DRGame, roll: number, diceTarget: number, userid: string) {
-        if ([...this.client.cache.deathrollWinningNumbers, 69].includes(roll) && game.initialTarget >= 10000) {
+        const wonOnRandomNumber = this.client.cache.deathrollWinningNumbers.includes(roll)
+        const wonOnStandard = roll === 69
+        const hasWon = wonOnRandomNumber || wonOnStandard
+        if (hasWon && game.initialTarget >= 10000) {
+            if (wonOnRandomNumber) this.reRollWinningNumbers(true)
             const addToPot = this.rewardPot > 0 ? diceTarget - roll : 0
             return await this.rewardPotToUser(userid, addToPot)
         }
@@ -345,7 +359,7 @@ export class Deathroll extends AbstractCommands {
     }
 
     override async onSave() {
-        this.messageHelper.sendLogMessage(`De skjulte tallene var:` + this.client.cache.deathrollWinningNumbers.join(', '))
+        this.printOldNumbers()
         await this.saveActiveGamesToDatabase()
         return true
     }

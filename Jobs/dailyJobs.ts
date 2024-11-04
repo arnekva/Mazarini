@@ -2,6 +2,7 @@ import moment from 'moment'
 import fetch from 'node-fetch'
 import { rapidApiKey, rapidApiKey2 } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
+import { Deathroll } from '../commands/games/deathroll'
 import { RocketLeagueCommands } from '../commands/gaming/rocketleagueCommands'
 import { EmojiHelper, JobStatus } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -9,7 +10,6 @@ import { MazariniUser, RocketLeagueTournament } from '../interfaces/database/dat
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { ChannelIds } from '../utils/mentionUtils'
-import { RandomUtils } from '../utils/randomUtils'
 import { UserUtils } from '../utils/userUtils'
 export class DailyJobs {
     private messageHelper: MessageHelper
@@ -118,13 +118,9 @@ export class DailyJobs {
 
     private reRollWinningNumbers() {
         const status: JobStatus = 'success'
-        const winningNumbers = new Array<number>()
-        winningNumbers.push(RandomUtils.getRandomInteger(75, 100))
-        winningNumbers.push(RandomUtils.getRandomInteger(101, 125))
-        winningNumbers.push(RandomUtils.getRandomInteger(126, 150))
-        winningNumbers.push(RandomUtils.getRandomInteger(151, 200))
-        winningNumbers.push(RandomUtils.getRandomInteger(201, 10000))
-        this.client.cache.deathrollWinningNumbers = winningNumbers
+
+        this.messageHelper.sendLogMessage(`De forrige skjulte tallene var:` + this.client.cache.deathrollWinningNumbers?.join(', '))
+        this.client.cache.deathrollWinningNumbers = Deathroll.getRollWinningNumbers()
         return status
     }
 
