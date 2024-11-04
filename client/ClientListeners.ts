@@ -57,7 +57,7 @@ export class ClientListener {
             )
             let msg = 'Boten er nå live i production mode. '
 
-            if (process.env['--restartedForGit'] || process.argv.includes('--restartedForGit')) {
+            if (process.env['--restartedForGit'] || process.argv.includes('--restartedForGit') || process.argv.includes('restartedForGit')) {
                 msg += 'Boten ble restartet av en /restart, og prosjektet er oppdatert fra Git'
 
                 //Uses ¶ to separate the params, so that we can easily split them later.
@@ -100,6 +100,8 @@ export class ClientListener {
                         }
                     }
                 })
+            } else {
+                msg += '\nIngen restartedForGit flagg ble funnet. Boten ble sannsynligvis ikke restartet av en /restart'
             }
             if (environment === 'prod') {
                 this.client.messageHelper.sendLogMessage(msg)
