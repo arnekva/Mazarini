@@ -22,7 +22,6 @@
         "base-64": "^1.0.0",
         "canvas": "^2.11.2",
         "deckofcards": "^1.2.2",
-        "deep-diff": "^1.0.2",
         "discord.js": "^14.16.2",
         "firebase": "^10.6.0",
         "image-charts": "^6.1.19",

@@ -14,7 +14,7 @@ import {
 import { MazariniClient } from '../client/MazariniClient'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-const diff = require('deep-diff')
+
 export namespace UserUtils {
     /**
      * Get a Member object by supplying a user id
@@ -130,34 +130,35 @@ export namespace UserUtils {
         if (oldUser.id === '802945796457758760') return
 
         const keyDifference = Object.fromEntries(Object.entries(newUser).filter(([k, v]) => oldUser[k] !== v))
+        const keyDifferenceOld = Object.fromEntries(Object.entries(oldUser).filter(([k, v]) => newUser[k] !== v))
         const vals = Object.entries(keyDifference)
-            .map(([key, value]) => `${key}: ${value}`)
-            .join(' /// ')
+            .map(([key, value]) => `\n**${key}:** ${JSON.stringify(value)} \nGammel verdi:\n ${JSON.stringify(keyDifferenceOld[key])}`)
+            .join(' ')
 
         msgHelper.sendLogMessage(
             'Oppdatert bruker:   ' +
                 newUser.username +
-                `
-            
-        ${oldUser.toString()} - ${newUser.toString()}: Følgende keys er oppdatert: ${Object.keys(keyDifference).join(
-                    ', '
-                )}. \nVerdier som er endret blir forsøkt sendt her: ${vals}`
+                `. Følgende keys er oppdatert: ${Object.keys(keyDifference).join(', ')}. \nVerdier som er endret blir forsøkt sendt her: ${vals}`
         )
     }
+
     export const onMemberUpdate = async (oldMember: GuildMember | PartialGuildMember, newMember: GuildMember, msgHelper: MessageHelper) => {
         if (newMember.id === '802945796457758760') return //Ikke gjør noe når bot oppdateres
         if (oldMember.id === '802945796457758760') return
         if (oldMember.user.username === 'MazariniBot') return
 
-        const differences = diff(oldMember, newMember)
-        let whatChanged = await UserUtils.compareMember(oldMember, newMember)
+        if (oldMember.id === '802945796457758760') return
 
-        if (differences) {
-            differences.forEach((change: any, index: number) => {
-                whatChanged += change.path + (index == differences.length ? ' ' : ',')
-            })
+        const keyDifference = Object.fromEntries(Object.entries(newMember).filter(([k, v]) => oldMember[k] !== v))
+        const keyDifferenceOld = Object.fromEntries(Object.entries(oldMember).filter(([k, v]) => newMember[k] !== v))
+        const vals = Object.entries(keyDifference)
+            .map(([key, value]) => `\n**${key}:** ${JSON.stringify(value)} \nGammel verdi:\n ${JSON.stringify(keyDifferenceOld[key])}`)
+            .join(' ')
 
-            msgHelper.sendLogMessage('Oppdatert bruker ' + (oldMember.nickname ?? oldMember.displayName) + ': ' + whatChanged + '.')
-        }
+        msgHelper.sendLogMessage(
+            'Oppdatert member:   ' +
+                newMember.user.username +
+                `. Følgende keys er oppdatert: ${Object.keys(keyDifference).join(', ')}. \nVerdier som er endret blir forsøkt sendt her: ${vals}`
+        )
     }
 }
