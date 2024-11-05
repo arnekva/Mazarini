@@ -185,11 +185,19 @@ export class Deathroll extends AbstractCommands {
                     'hadde tilbud på pølser forrige uke',
                     'har bedre pølser enn Narvesen',
                     'hæ?',
-                    ''
+                    '','','','','',''
                 ])
             }
         } else if (roll == 11 && nextToRoll === MentionUtils.User_IDs.THOMAS) {
-            return '\nHadde vært sykt løye om det var 2mas som skulle trille på denne da <:pointerbrothers1:1177653110852825158>'
+            const mas2 = MentionUtils.mentionUser(nextToRoll)
+            return '\n' + RandomUtils.getRandomItemFromList([
+                `denne er garantert safe ${mas2}`,
+                `${mas2} sykt nice at terning er rig-proof, eller ka? <:pointerbrothers2:1215405291382767706>`,
+                `${mas2} nå som eg har begynt å påpeke an er an ikke så farlig vel?`,
+                `rart hvordan ingen andre har problemer med denne`,
+                '<:pointerbrothers1:1177653110852825158>',
+                '','','','',''
+            ])
         }
         return ''
     }
