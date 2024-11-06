@@ -141,7 +141,7 @@ export class UserCommands extends AbstractCommands {
 
     private async buildSettingsModal(interaction: ChatInputCommandInteraction<CacheType>) {
         if (interaction) {
-            const modal = new ModalBuilder().setCustomId(UserCommands.userSettingsId).setTitle('Dine Instillinger')
+            const modal = new ModalBuilder().setCustomId(UserCommands.userSettingsId).setTitle('Dine Innstillinger')
             const user = await this.database.getUser(interaction.user.id)
             const safeGamble = new TextInputBuilder()
                 .setCustomId('safeGambleValue')
@@ -173,7 +173,7 @@ export class UserCommands extends AbstractCommands {
                     user.userSettings = { safeGambleValue: num }
                 }
                 this.database.updateUser(user)
-                this.messageHelper.replyToInteraction(modalInteraction, 'Dine instillinger er nå oppdatert', { ephemeral: true })
+                this.messageHelper.replyToInteraction(modalInteraction, 'Dine innstillinger er nå oppdatert', { ephemeral: true })
             }
         } else {
             this.messageHelper.replyToInteraction(modalInteraction, 'Ingenting ble oppdatert', { ephemeral: true })
@@ -187,7 +187,7 @@ export class UserCommands extends AbstractCommands {
             commands: {
                 interactionCommands: [
                     {
-                        commandName: 'brukerinstillinger',
+                        commandName: 'brukerinnstillinger',
                         command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                             this.updateUserSettings(interaction)
                         },
