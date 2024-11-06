@@ -8,13 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '18.5.0'
-    public static readonly currentPatchNotes =
-        `* Fikset en feil som gjorde at du kunne bli tagget i log-kanalen når det skjedde en automatisert endring på brukeren din` +
-        `\n * Fikset en feil som gjorde at verdiene av endringene ikke alltid ble sendt` +
-        `\n * De gamle verdiene vil nå også logges slik at det er lettere å se hva som har blitt endret` +
-        `\n * Samme endringer gjelder også for onMemberUpdate` +
-        `\n * Fjerner node module deep-diff`
+    public static readonly currentVersion = '18.6.0'
+    public static readonly currentPatchNotes = `* Du kan nå sette grense for automatisk kalkulering av gambleinnsats ved å bruke /brukerinstillinger, slik at du ikke med en feil gambler for mye. Den er av som default, og du kan nullstille den ved å skrive 0`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

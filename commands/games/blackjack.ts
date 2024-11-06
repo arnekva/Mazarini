@@ -1,5 +1,15 @@
 import { randomUUID } from 'crypto'
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, EmbedBuilder, InteractionResponse, Message } from 'discord.js'
+import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonInteraction,
+    ButtonStyle,
+    CacheType,
+    ChatInputCommandInteraction,
+    EmbedBuilder,
+    InteractionResponse,
+    Message,
+} from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GamePlayer, GameStateHandler } from '../../handlers/gameStateHandler'
@@ -22,7 +32,7 @@ interface BlackjackPlayer extends GamePlayer {
 interface PlayerHand {
     cards: ICardObject[]
     stand: boolean
-    doubleDown: boolean 
+    doubleDown: boolean
     isSplitAce?: boolean
 }
 
@@ -77,7 +87,7 @@ export class Blackjack extends AbstractCommands {
     // }
 
     private async getArrowEmoji() {
-        this.arrowEmoji = this.arrowEmoji ?? await EmojiHelper.getApplicationEmoji('arrow_left', this.client)
+        this.arrowEmoji = this.arrowEmoji ?? (await EmojiHelper.getApplicationEmoji('arrow_left', this.client))
         return this.arrowEmoji
     }
 
@@ -86,34 +96,56 @@ export class Blackjack extends AbstractCommands {
         const amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('satsing')?.value)
         const userMoney = user.chips
         let stake = amount
-
-        if (!amount || amount > userMoney || isNaN(amount)) stake = userMoney
-        if (amount < 1) stake = 1
-        if (userMoney && userMoney >= stake) {
-            this.client.bank.takeMoney(user, stake)
-
-            const playerPicture = await this.getProfilePicture(interaction)
-            const hand: PlayerHand = { cards: new Array<ICardObject>, stand: false, doubleDown: false }
-            const player: BlackjackPlayer = {id: user.id, name: interaction.user.username, hands: [hand], currentHandIndex: 0, stake: stake, profilePicture: playerPicture, allIn: !amount}
-            
-            const dealerPicture = (await EmojiHelper.getEmoji('mazarinibot', this.client)).id
-            const dealer: BlackjackDealer = {id: 'dealer', name: 'Bot Høie', hand: new Array<ICardObject>, profilePicture: dealerPicture }
-            
-            const messages: BlackjackMessages = { embedContent: undefined, tableContent: undefined, buttonRow: undefined }
-            const game: BlackjackGame = { id: randomUUID(), players: [player], dealer: dealer, deck: new CardCommands(this.client, 6), messages: messages, resolved: false }
-            this.games.push(game)
-
-            await this.dealCard(game, player.hands[0].cards)
-            await this.dealCard(game, player.hands[0].cards)
-            await this.dealCard(game, dealer.hand)
-            await this.dealCard(game, dealer.hand)
-
-            this.faceCard = (await EmojiHelper.getEmoji('faceCard', this.client)).id
-
-            await this.generateSimpleTable(game)
-            this.printGame(game, interaction)
+        const didntSpecifyAmount = !amount || amount > userMoney || isNaN(amount)
+        if (didntSpecifyAmount && user.userSettings?.safeGambleValue && userMoney >= user.userSettings.safeGambleValue) {
+            this.messageHelper.replyToInteraction(
+                interaction,
+                `Din grensa e på ${user.userSettings.safeGambleValue}, og du har ${user.chips} chips. Du må skriva inn beløpet manuelt for å spela.`
+            )
         } else {
-            this.messageHelper.replyToInteraction(interaction, `Du må ha minst 1 chip for å spille blackjack :'(`)
+            if (didntSpecifyAmount) stake = userMoney
+            if (amount < 1) stake = 1
+            if (userMoney && userMoney >= stake) {
+                this.client.bank.takeMoney(user, stake)
+
+                const playerPicture = await this.getProfilePicture(interaction)
+                const hand: PlayerHand = { cards: new Array<ICardObject>(), stand: false, doubleDown: false }
+                const player: BlackjackPlayer = {
+                    id: user.id,
+                    name: interaction.user.username,
+                    hands: [hand],
+                    currentHandIndex: 0,
+                    stake: stake,
+                    profilePicture: playerPicture,
+                    allIn: !amount,
+                }
+
+                const dealerPicture = (await EmojiHelper.getEmoji('mazarinibot', this.client)).id
+                const dealer: BlackjackDealer = { id: 'dealer', name: 'Bot Høie', hand: new Array<ICardObject>(), profilePicture: dealerPicture }
+
+                const messages: BlackjackMessages = { embedContent: undefined, tableContent: undefined, buttonRow: undefined }
+                const game: BlackjackGame = {
+                    id: randomUUID(),
+                    players: [player],
+                    dealer: dealer,
+                    deck: new CardCommands(this.client, 6),
+                    messages: messages,
+                    resolved: false,
+                }
+                this.games.push(game)
+
+                await this.dealCard(game, player.hands[0].cards)
+                await this.dealCard(game, player.hands[0].cards)
+                await this.dealCard(game, dealer.hand)
+                await this.dealCard(game, dealer.hand)
+
+                this.faceCard = (await EmojiHelper.getEmoji('faceCard', this.client)).id
+
+                await this.generateSimpleTable(game)
+                this.printGame(game, interaction)
+            } else {
+                this.messageHelper.replyToInteraction(interaction, `Du må ha minst 1 chip for å spille blackjack :'(`)
+            }
         }
     }
 
@@ -132,34 +164,40 @@ export class Blackjack extends AbstractCommands {
         const dealer = game.dealer
         const chips = await EmojiHelper.getEmoji('chips', this.client)
         const embed = new EmbedBuilder()
-        .setTitle(`Blackjack`).setThumbnail('https://cdn.discordapp.com/attachments/1106130420308922378/1263758500564172872/hoie.png?ex=669b6652&is=669a14d2&hm=34702fa6ce9aa9bafb5300909fc4e455de08931106dc3a5a64a24d49dece95b2&')
-        .setDescription(`Du har satset ${player.stake} chips ${chips.id}`)
-        const board = `${dealer.profilePicture}\t${dealer.hand[0].emoji} ${this.faceCard}`
-        + `\n\n\n${player.profilePicture}\t${player.hands[0].cards[0].emoji} ${player.hands[0].cards[1].emoji}`
+            .setTitle(`Blackjack`)
+            .setThumbnail(
+                'https://cdn.discordapp.com/attachments/1106130420308922378/1263758500564172872/hoie.png?ex=669b6652&is=669a14d2&hm=34702fa6ce9aa9bafb5300909fc4e455de08931106dc3a5a64a24d49dece95b2&'
+            )
+            .setDescription(`Du har satset ${player.stake} chips ${chips.id}`)
+        const board =
+            `${dealer.profilePicture}\t${dealer.hand[0].emoji} ${this.faceCard}` +
+            `\n\n\n${player.profilePicture}\t${player.hands[0].cards[0].emoji} ${player.hands[0].cards[1].emoji}`
         game.messages.embedContent = embed
         game.messages.tableContent = board
         game.messages.buttonRow = await this.getButtonRow(game, player)
     }
 
     private async printGame(game: BlackjackGame, interaction?: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        game.messages.embed = game.messages.embed 
-                            ? await game.messages.embed.edit({ embeds: [game.messages.embedContent]})
-                            : await this.messageHelper.replyToInteraction(interaction, game.messages.embedContent)
-        game.messages.table = game.messages.table 
-                            ? await game.messages.table.edit({ content: game.messages.tableContent})
-                            : await this.messageHelper.sendMessage(interaction?.channelId, { text: game.messages.tableContent}) 
-        game.messages.buttons = game.messages.buttons 
-                              ? await game.messages.buttons.edit({ components: [game.messages.buttonRow]})
-                              : await this.messageHelper.sendMessage(interaction?.channelId, { components: [game.messages.buttonRow]})
+        game.messages.embed = game.messages.embed
+            ? await game.messages.embed.edit({ embeds: [game.messages.embedContent] })
+            : await this.messageHelper.replyToInteraction(interaction, game.messages.embedContent)
+        game.messages.table = game.messages.table
+            ? await game.messages.table.edit({ content: game.messages.tableContent })
+            : await this.messageHelper.sendMessage(interaction?.channelId, { text: game.messages.tableContent })
+        game.messages.buttons = game.messages.buttons
+            ? await game.messages.buttons.edit({ components: [game.messages.buttonRow] })
+            : await this.messageHelper.sendMessage(interaction?.channelId, { components: [game.messages.buttonRow] })
     }
 
     private async getButtonRow(game: BlackjackGame, player: BlackjackPlayer) {
         const buttonRow = hitStandButtonRow(game.id)
         if (player.hands[player.currentHandIndex].cards.length === 2) {
             const user = await this.client.database.getUser(player.id)
-            if (this.canDoubleDown(player.hands[player.currentHandIndex])) buttonRow.addComponents(doubleDownBtn(game.id, this.client.bank.userCanAfford(user, player.stake)))
-            if (this.canSplit(player.hands[player.currentHandIndex].cards)) buttonRow.addComponents(splitBtn(game.id, this.client.bank.userCanAfford(user, player.stake)))
-            if (this.canInsure(game, player)) buttonRow.addComponents(insuranceBtn(game.id, this.client.bank.userCanAfford(user, Math.ceil(player.stake/2))))
+            if (this.canDoubleDown(player.hands[player.currentHandIndex]))
+                buttonRow.addComponents(doubleDownBtn(game.id, this.client.bank.userCanAfford(user, player.stake)))
+            if (this.canSplit(player.hands[player.currentHandIndex].cards))
+                buttonRow.addComponents(splitBtn(game.id, this.client.bank.userCanAfford(user, player.stake)))
+            if (this.canInsure(game, player)) buttonRow.addComponents(insuranceBtn(game.id, this.client.bank.userCanAfford(user, Math.ceil(player.stake / 2))))
         }
         return buttonRow
     }
@@ -172,7 +210,7 @@ export class Blackjack extends AbstractCommands {
 
     private canSplit(hand: ICardObject[]) {
         if (hand.length !== 2) return false
-        return (hand[0].number === hand[1].number) || (['T','J','Q','K'].includes(hand[0].rank) && ['T','J','Q','K'].includes(hand[1].rank))
+        return hand[0].number === hand[1].number || (['T', 'J', 'Q', 'K'].includes(hand[0].rank) && ['T', 'J', 'Q', 'K'].includes(hand[1].rank))
     }
 
     private canInsure(game: BlackjackGame, player: BlackjackPlayer) {
@@ -182,28 +220,28 @@ export class Blackjack extends AbstractCommands {
     private async updateBoard(game: BlackjackGame, reveal: boolean) {
         const player = game.players[0]
         const dealer = game.dealer
-        const allHandsBusted = player.hands.every(hand => this.calculateHandValue(hand.cards) > 21)
+        const allHandsBusted = player.hands.every((hand) => this.calculateHandValue(hand.cards) > 21)
         const arrow = await this.getArrowEmoji()
         let board = `${dealer.profilePicture}\t`
         if (!reveal) board += `${dealer.hand[0].emoji} ${this.faceCard}`
-        else dealer.hand.forEach(card => board += `${card.emoji} `)
+        else dealer.hand.forEach((card) => (board += `${card.emoji} `))
         board += `\n`
         player.hands.forEach((hand, index) => {
             board += `\n\n${player.profilePicture}\t`
-            hand.cards.forEach(card => board += `${card.emoji} `)
+            hand.cards.forEach((card) => (board += `${card.emoji} `))
             if (!allHandsBusted && index === player.currentHandIndex && player.hands.length > 1) board += ` ${arrow.id}`
         })
         game.messages.tableContent = board
         game.messages.table.edit({ content: board })
         if (!reveal && !allHandsBusted) {
             game.messages.buttonRow = await this.getButtonRow(game, player)
-            game.messages.buttons.edit({ components: [game.messages.buttonRow]})
+            game.messages.buttons.edit({ components: [game.messages.buttonRow] })
         }
     }
 
     private async updateButtons(game: BlackjackGame, player: BlackjackPlayer) {
         game.messages.buttonRow = await this.getButtonRow(game, player)
-        await game.messages.buttons.edit({ components: [game.messages.buttonRow]})
+        await game.messages.buttons.edit({ components: [game.messages.buttonRow] })
     }
 
     private async hit(game: BlackjackGame, player: BlackjackPlayer) {
@@ -214,12 +252,11 @@ export class Blackjack extends AbstractCommands {
         const drawCapped = this.drawIsCapped(player.hands[player.currentHandIndex])
         if (busted || drawCapped) {
             if (busted && player.hands.length === 1) this.busted(game, player)
-            else if (player.currentHandIndex < (player.hands.length -1)) {
+            else if (player.currentHandIndex < player.hands.length - 1) {
                 player.currentHandIndex++
-                this.updateEmbed(game, player) 
+                this.updateEmbed(game, player)
                 this.updateButtons(game, player)
-            }
-            else this.dealToDealer(game, player)
+            } else this.dealToDealer(game, player)
         }
     }
 
@@ -230,19 +267,22 @@ export class Blackjack extends AbstractCommands {
     }
 
     private stand(game: BlackjackGame, player: BlackjackPlayer) {
-        if (player.currentHandIndex < (player.hands.length -1)) {
+        if (player.currentHandIndex < player.hands.length - 1) {
             player.currentHandIndex++
             // this.dealCard(game, player.hands[player.currentHandIndex].cards)
             this.updateEmbed(game, player)
             this.updateBoard(game, false)
-        }
-        else this.dealToDealer(game, player)
+        } else this.dealToDealer(game, player)
     }
 
     private async dealToDealer(game: BlackjackGame, player: BlackjackPlayer) {
         const dealer = game.dealer
-        const allHandsBusted = player.hands.every(hand => this.calculateHandValue(hand.cards) > 21)
-        const naturalBlackJack = (player.hands.length === 1) && (player.hands[player.currentHandIndex].cards.length == 2) && (this.calculateHandValue(player.hands[player.currentHandIndex].cards) == 21) && (this.calculateHandValue(dealer.hand) != 21)
+        const allHandsBusted = player.hands.every((hand) => this.calculateHandValue(hand.cards) > 21)
+        const naturalBlackJack =
+            player.hands.length === 1 &&
+            player.hands[player.currentHandIndex].cards.length == 2 &&
+            this.calculateHandValue(player.hands[player.currentHandIndex].cards) == 21 &&
+            this.calculateHandValue(dealer.hand) != 21
         if (!naturalBlackJack && !allHandsBusted) {
             while (this.calculateHandValue(dealer.hand) < 17) {
                 await this.dealCard(game, dealer.hand)
@@ -254,12 +294,13 @@ export class Blackjack extends AbstractCommands {
 
     private checkInsurance(game: BlackjackGame, player: BlackjackPlayer) {
         const dealerBlackjack = game.dealer.hand[0].rank === 'A' && game.dealer.hand[1].number === 10
-        return (player.insurance && dealerBlackjack) ? Math.floor(player.stake*1.5) : 0
+        return player.insurance && dealerBlackjack ? Math.floor(player.stake * 1.5) : 0
     }
 
     private async split(interaction: ButtonInteraction<CacheType>, game: BlackjackGame, player: BlackjackPlayer) {
         const user = await this.client.database.getUser(player.id)
-        if (!this.client.bank.takeMoney(user, player.stake)) return this.messageHelper.sendMessage(interaction.channelId, {text: `Du har ikke råd til en split, ${MentionUtils.mentionUser(user.id)}`})
+        if (!this.client.bank.takeMoney(user, player.stake))
+            return this.messageHelper.sendMessage(interaction.channelId, { text: `Du har ikke råd til en split, ${MentionUtils.mentionUser(user.id)}` })
         const isAce = player.hands[player.currentHandIndex].cards[1].rank === 'A'
         const newHand: PlayerHand = { cards: [player.hands[player.currentHandIndex].cards[1]], stand: false, doubleDown: false, isSplitAce: isAce }
         player.hands[player.currentHandIndex].cards = [player.hands[player.currentHandIndex].cards[0]]
@@ -271,7 +312,8 @@ export class Blackjack extends AbstractCommands {
 
     private async doubleDown(interaction: ButtonInteraction<CacheType>, game: BlackjackGame, player: BlackjackPlayer) {
         const user = await this.client.database.getUser(player.id)
-        if (!this.client.bank.takeMoney(user, player.stake)) return this.messageHelper.sendMessage(interaction.channelId, {text: `Du har ikke råd til å double down, ${MentionUtils.mentionUser(user.id)}`})
+        if (!this.client.bank.takeMoney(user, player.stake))
+            return this.messageHelper.sendMessage(interaction.channelId, { text: `Du har ikke råd til å double down, ${MentionUtils.mentionUser(user.id)}` })
         player.hands[player.currentHandIndex].doubleDown = true
         this.updateEmbed(game, player)
         this.updateButtons(game, player)
@@ -279,7 +321,8 @@ export class Blackjack extends AbstractCommands {
 
     private async insurance(interaction: ButtonInteraction<CacheType>, game: BlackjackGame, player: BlackjackPlayer) {
         const user = await this.client.database.getUser(player.id)
-        if (!this.client.bank.takeMoney(user, Math.ceil(player.stake/2))) return this.messageHelper.sendMessage(interaction.channelId, {text: `Du har ikke råd til insurance, ${MentionUtils.mentionUser(user.id)}`})
+        if (!this.client.bank.takeMoney(user, Math.ceil(player.stake / 2)))
+            return this.messageHelper.sendMessage(interaction.channelId, { text: `Du har ikke råd til insurance, ${MentionUtils.mentionUser(user.id)}` })
         player.insurance = true
         this.updateEmbed(game, player)
         this.updateButtons(game, player)
@@ -291,13 +334,13 @@ export class Blackjack extends AbstractCommands {
         const chips = await EmojiHelper.getEmoji('chips', this.client)
         let description = ''
         for (let i = 0; i < player.hands.length; i++) {
-            const gameNr = player.hands.length > 1 ? `på ${i+1}. hånd ` : '' 
+            const gameNr = player.hands.length > 1 ? `på ${i + 1}. hånd ` : ''
             const bet = player.hands[i].doubleDown ? `doubled down på` : 'satset'
-            description += `Du har ${bet} ${player.stake} chips ${gameNr}${chips.id}\n`                             
+            description += `Du har ${bet} ${player.stake} chips ${gameNr}${chips.id}\n`
         }
         description += insurance + currentHand
         game.messages.embedContent = game.messages.embedContent.setDescription(description)
-        await game.messages.embed.edit({ embeds: [game.messages.embedContent]})
+        await game.messages.embed.edit({ embeds: [game.messages.embedContent] })
     }
 
     private resolveGame(game: BlackjackGame, naturalBlackJack: boolean) {
@@ -313,7 +356,7 @@ export class Blackjack extends AbstractCommands {
         } else {
             description = `Dealer fikk **${dealerHand}**\n\n`
             for (let i = 0; i < player.hands.length; i++) {
-                const gameNr = player.hands.length > 1 ? `Game ${i+1}: ` : ''
+                const gameNr = player.hands.length > 1 ? `Game ${i + 1}: ` : ''
                 const hand = player.hands[i]
                 const playerHand = this.calculateHandValue(hand.cards)
                 const stake = player.stake * (hand.doubleDown ? 2 : 1)
@@ -327,19 +370,19 @@ export class Blackjack extends AbstractCommands {
                     reward += stake
                 } else if (dealerHand > playerHand) {
                     description += `${gameNr}Du fikk ${playerHand} og taper ${stake} chips :money_with_wings:\n`
-                }   
-            } 
-        } 
+                }
+            }
+        }
         const insuranceClaim = this.checkInsurance(game, player)
         if (insuranceClaim > 0) {
             description += `Du var klok som kjøpte insurance og får tilbake ${insuranceClaim} chips på den ${mb}`
             reward += insuranceClaim
-        } 
+        }
         this.rewardPlayer(player, Math.floor(reward))
         game.messages.embedContent = game.messages.embedContent.setDescription(description)
         game.messages.buttonRow = gameFinishedRow(game.id)
-        game.messages.embed.edit({ embeds: [game.messages.embedContent]})
-        game.messages.buttons.edit({ components: [game.messages.buttonRow]})
+        game.messages.embed.edit({ embeds: [game.messages.embedContent] })
+        game.messages.buttons.edit({ components: [game.messages.buttonRow] })
         game.resolved = true
     }
 
@@ -350,9 +393,11 @@ export class Blackjack extends AbstractCommands {
 
     private busted(game: BlackjackGame, player: BlackjackPlayer) {
         game.messages.buttonRow = gameFinishedRow(game.id)
-        game.messages.buttons.edit({ components: [game.messages.buttonRow]})
-        game.messages.embedContent = game.messages.embedContent.setTitle('Busted').setDescription(`Du trakk over 21\n\n:money_with_wings: Du tapte ${player.stake} chips :money_with_wings:`)
-        game.messages.embed.edit({ embeds: [game.messages.embedContent]})
+        game.messages.buttons.edit({ components: [game.messages.buttonRow] })
+        game.messages.embedContent = game.messages.embedContent
+            .setTitle('Busted')
+            .setDescription(`Du trakk over 21\n\n:money_with_wings: Du tapte ${player.stake} chips :money_with_wings:`)
+        game.messages.embed.edit({ embeds: [game.messages.embedContent] })
         game.resolved = true
     }
 
@@ -360,7 +405,7 @@ export class Blackjack extends AbstractCommands {
         await game.messages.buttons.delete()
         // await game.messages.embed.delete()
         await game.messages.table.delete()
-        const index = this.games.findIndex(elem => elem.id == game.id)
+        const index = this.games.findIndex((elem) => elem.id == game.id)
         this.games.splice(index, 1)
     }
 
@@ -369,13 +414,15 @@ export class Blackjack extends AbstractCommands {
         player.stake = player.allIn ? user.chips : player.stake
         if (!this.client.bank.userCanAfford(user, player.stake)) {
             const emoji = await EmojiHelper.getApplicationEmoji('arneouf', this.client)
-            game.messages.embedContent = game.messages.embedContent.setThumbnail(`https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?size=96&quality=lossless`).setDescription(`Du har ikke råd til en ny`)
-            await game.messages.embed.edit({ embeds: [game.messages.embedContent]})
+            game.messages.embedContent = game.messages.embedContent
+                .setThumbnail(`https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?size=96&quality=lossless`)
+                .setDescription(`Du har ikke råd til en ny`)
+            await game.messages.embed.edit({ embeds: [game.messages.embedContent] })
         } else {
             game.resolved = false
             this.client.bank.takeMoney(user, player.stake)
 
-            game.dealer.hand = new Array<ICardObject>
+            game.dealer.hand = new Array<ICardObject>()
             const hand: PlayerHand = { cards: new Array<ICardObject>(), stand: false, doubleDown: false }
             player.hands = [hand]
             player.currentHandIndex = 0
@@ -393,11 +440,11 @@ export class Blackjack extends AbstractCommands {
 
     private getGame(interaction: ButtonInteraction<CacheType>) {
         const gameId = interaction.customId.split(';')[1]
-        return this.games.find(game => game.id == gameId)
+        return this.games.find((game) => game.id == gameId)
     }
 
     private getPlayer(interaction: ButtonInteraction<CacheType>, game: BlackjackGame) {
-        return game.players.find(player => player.id == interaction.user.id)
+        return game.players.find((player) => player.id == interaction.user.id)
     }
 
     private async dealCard(game: BlackjackGame, hand: ICardObject[]) {
@@ -438,7 +485,7 @@ export class Blackjack extends AbstractCommands {
     //         if (interaction.isButton()) interaction.deferUpdate()
     //         return player
     //     }
-    // } 
+    // }
 
     private verifyUserAndCallMethod(interaction: ButtonInteraction<CacheType>, callback: (game: BlackjackGame, player?: BlackjackPlayer) => void) {
         const game = this.getGame(interaction)
@@ -446,21 +493,22 @@ export class Blackjack extends AbstractCommands {
         if (player) {
             interaction.deferUpdate()
             callback(game, player)
-        }
-        else this.messageHelper.replyToInteraction(interaction, 'du er ikke med i dette spillet', {ephemeral: true})
+        } else this.messageHelper.replyToInteraction(interaction, 'du er ikke med i dette spillet', { ephemeral: true })
     }
 
     private async returnStakes() {
-        for (const game of this.games.filter(game => !game.resolved)) {
+        for (const game of this.games.filter((game) => !game.resolved)) {
             for (const player of game.players) {
                 const user = await this.client.database.getUser(player.id)
-                let refundedChips = (player.stake * player.hands.length)
-                if (player.insurance) refundedChips += Math.ceil(player.stake/2)
+                let refundedChips = player.stake * player.hands.length
+                if (player.insurance) refundedChips += Math.ceil(player.stake / 2)
                 user.chips += refundedChips
-                this.client.database.updateUser(user) 
-                game.messages.embedContent = game.messages.embedContent.setTitle('Stengt').setDescription(`Kasinoet ble dessverre uanmeldt stengt av en /restart. Du har fått tilbake dine ${refundedChips} chips`)
+                this.client.database.updateUser(user)
+                game.messages.embedContent = game.messages.embedContent
+                    .setTitle('Stengt')
+                    .setDescription(`Kasinoet ble dessverre uanmeldt stengt av en /restart. Du har fått tilbake dine ${refundedChips} chips`)
             }
-            await game.messages.embed.edit({ embeds: [game.messages.embedContent]})
+            await game.messages.embed.edit({ embeds: [game.messages.embedContent] })
             await this.deleteGame(game)
         }
     }
@@ -479,7 +527,8 @@ export class Blackjack extends AbstractCommands {
                         command: (interaction: ChatInputCommandInteraction<CacheType>) => {
                             const subCommand = interaction.options.getSubcommand()
                             if (subCommand.toLowerCase() === 'solo') this.simpleGame(interaction)
-                            else if (subCommand.toLowerCase() === 'vanlig') this.messageHelper.replyToInteraction(interaction, 'Denne er ikke klar enda', {ephemeral: true})
+                            else if (subCommand.toLowerCase() === 'vanlig')
+                                this.messageHelper.replyToInteraction(interaction, 'Denne er ikke klar enda', { ephemeral: true })
                         },
                     },
                 ],
@@ -532,60 +581,65 @@ export class Blackjack extends AbstractCommands {
     }
 }
 
-const hitStandButtonRow = (id: string) => new ActionRowBuilder<ButtonBuilder>().addComponents(
+const hitStandButtonRow = (id: string) =>
+    new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder({
+            custom_id: `BLACKJACK_HIT;${id}`,
+            style: ButtonStyle.Primary,
+            label: `Trekk`,
+            disabled: false,
+            type: 2,
+        }),
+        new ButtonBuilder({
+            custom_id: `BLACKJACK_STAND;${id}`,
+            style: ButtonStyle.Success,
+            label: `Stå`,
+            disabled: false,
+            type: 2,
+        })
+    )
+
+const gameFinishedRow = (id: string) =>
+    new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder({
+            custom_id: `BLACKJACK_PLAY_AGAIN;${id}`,
+            style: ButtonStyle.Success,
+            label: `Nytt spill`,
+            disabled: false,
+            type: 2,
+        }),
+        new ButtonBuilder({
+            custom_id: `BLACKJACK_REMOVE;${id}`,
+            style: ButtonStyle.Primary,
+            label: `Ferdig`,
+            disabled: false,
+            type: 2,
+        })
+    )
+
+const doubleDownBtn = (id: string, canAfford: boolean) =>
     new ButtonBuilder({
-        custom_id: `BLACKJACK_HIT;${id}`,
+        custom_id: `BLACKJACK_DOUBLE_DOWN;${id}`,
         style: ButtonStyle.Primary,
-        label: `Trekk`,
-        disabled: false,
-        type: 2,
-    }),
-    new ButtonBuilder({
-        custom_id: `BLACKJACK_STAND;${id}`,
-        style: ButtonStyle.Success,
-        label: `Stå`,
-        disabled: false,
+        label: `Double Down`,
+        disabled: !canAfford,
         type: 2,
     })
-)
 
-const gameFinishedRow = (id: string) => new ActionRowBuilder<ButtonBuilder>().addComponents(
+const splitBtn = (id: string, canAfford: boolean) =>
     new ButtonBuilder({
-        custom_id: `BLACKJACK_PLAY_AGAIN;${id}`,
-        style: ButtonStyle.Success,
-        label: `Nytt spill`,
-        disabled: false,
-        type: 2,
-    }),
-    new ButtonBuilder({
-        custom_id: `BLACKJACK_REMOVE;${id}`,
+        custom_id: `BLACKJACK_SPLIT;${id}`,
         style: ButtonStyle.Primary,
-        label: `Ferdig`,
-        disabled: false,
+        label: `Split`,
+        disabled: !canAfford,
         type: 2,
     })
-)
 
-const doubleDownBtn = (id: string, canAfford: boolean) => new ButtonBuilder({
-    custom_id: `BLACKJACK_DOUBLE_DOWN;${id}`,
-    style: ButtonStyle.Primary,
-    label: `Double Down`,
-    disabled: !canAfford,
-    type: 2,
-})
-
-const splitBtn = (id: string, canAfford: boolean) => new ButtonBuilder({
-    custom_id: `BLACKJACK_SPLIT;${id}`,
-    style: ButtonStyle.Primary,
-    label: `Split`,
-    disabled: !canAfford,
-    type: 2,
-})
-
-const insuranceBtn = (id: string, canAfford: boolean) => new ButtonBuilder({
-    custom_id: `BLACKJACK_INSURANCE;${id}`,
-    style: ButtonStyle.Primary,
-    label: `Insurance`,
-    disabled: !canAfford,
-    type: 2,
-})
+const insuranceBtn = (id: string, canAfford: boolean) =>
+    new ButtonBuilder({
+        custom_id: `BLACKJACK_INSURANCE;${id}`,
+        style: ButtonStyle.Primary,
+        label: `Insurance`,
+        disabled: !canAfford,
+        type: 2,
+    })

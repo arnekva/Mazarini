@@ -178,26 +178,41 @@ export class Deathroll extends AbstractCommands {
                 if (removed > 0) this.saveRewardPot()
                 return removed > 0 ? `(pott - ${removed} = ${this.rewardPot} chips)\nNever forget :coffin:` : ''
             } else if (roll == 7) {
-                return '\n' + RandomUtils.getRandomItemFromList([
-                    'hæ, pølse?',
-                    'alle pølser kr 29 (unntatt baconpølse)',
-                    'alle pølser kr 29',
-                    'hadde tilbud på pølser forrige uke',
-                    'har bedre pølser enn Narvesen',
-                    'hæ?',
-                    '','','','','',''
-                ])
+                return (
+                    '\n' +
+                    RandomUtils.getRandomItemFromList([
+                        'hæ, pølse?',
+                        'alle pølser kr 29 (unntatt baconpølse)',
+                        'alle pølser kr 29',
+                        'hadde tilbud på pølser forrige uke',
+                        'har bedre pølser enn Narvesen',
+                        'hæ?',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                    ])
+                )
             }
         } else if (roll == 11 && nextToRoll === MentionUtils.User_IDs.THOMAS) {
             const mas2 = MentionUtils.mentionUser(nextToRoll)
-            return '\n' + RandomUtils.getRandomItemFromList([
-                `denne er garantert safe ${mas2}`,
-                `${mas2} sykt nice at terning er rig-proof, eller ka? <:pointerbrothers2:1215405291382767706>`,
-                `${mas2} nå som eg har begynt å påpeke an er an ikke så farlig vel?`,
-                `rart hvordan ingen andre har problemer med denne`,
-                '<:pointerbrothers1:1177653110852825158>',
-                '','','','',''
-            ])
+            return (
+                '\n' +
+                RandomUtils.getRandomItemFromList([
+                    `denne er garantert safe ${mas2}`,
+                    `${mas2} sykt nice at terning er rig-proof, eller ka? <:pointerbrothers2:1215405291382767706>`,
+                    `${mas2} nå som eg har begynt å påpeke an er an ikke så farlig vel?`,
+                    `rart hvordan ingen andre har problemer med denne`,
+                    '<:pointerbrothers1:1177653110852825158>',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                ])
+            )
         }
         return ''
     }
@@ -361,6 +376,7 @@ export class Deathroll extends AbstractCommands {
     private autoCompleteDice(interaction: AutocompleteInteraction<CacheType>) {
         let game = this.getActiveGameForUser(interaction.user.id)
         if (!game) game = this.checkForAvailableGame(interaction.user.id)
+
         if (game) {
             const diceTarget = Math.min(...game.players.map((p) => p.rolls).flat())
             return interaction.respond([{ name: `${diceTarget}`, value: diceTarget }])

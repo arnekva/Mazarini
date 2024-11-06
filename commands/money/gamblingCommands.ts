@@ -19,38 +19,47 @@ export class GamblingCommands extends AbstractCommands {
         const amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('chips')?.value)
         const userMoney = user.chips
         let chipsToGamble = amount
+        const didntSpecifyAmount = !amount || amount > userMoney || isNaN(amount)
 
-        if (!amount || amount > userMoney || isNaN(amount)) chipsToGamble = userMoney
-        if (amount < 1) chipsToGamble = 1
-        if (userMoney) {
-            const roll = RandomUtils.getRandomInteger(0, 100)
-
-            let newMoneyValue = 0
-            const multiplier = this.getMultiplier(roll)
-            const calculatedValue = this.calculatedNewMoneyValue(interaction.user.id, multiplier, chipsToGamble, userMoney)
-
-            if (roll >= 50) {
-                newMoneyValue = calculatedValue.newMoneyValue
-                DatabaseHelper.incrementChipsStats(user, 'gambleWins')
-            } else {
-                newMoneyValue = Number(userMoney) - chipsToGamble
-                DatabaseHelper.incrementChipsStats(user, 'gambleLosses')
-            }
-            user.chips = newMoneyValue
-            this.client.database.updateUser(user)
-            const gambling = new EmbedBuilder()
-                .setTitle('Gambling').setThumbnail(`https://pngimg.com/d/dice_PNG51.png`)
-                .setDescription(
-                    `${interaction.user.username} gamblet ${TextUtils.formatMoney(chipsToGamble)} av ${TextUtils.formatMoney(
-                        Number(userMoney)
-                    )} chips.\nTerningen trillet: ${roll}/100. Du ${
-                        roll >= 50 ? 'vant! 💰💰 (' + Number(multiplier) + 'x)' : 'tapte 💸💸'
-                    }\nDu har nå ${TextUtils.formatMoney(newMoneyValue)} chips.`
-                )
-            if (roll >= 100) gambling.addFields({ name: `Trillet 100!`, value: `Du trillet 100 og vant ${multiplier} ganger så mye som du satset!` })
-            this.messageHelper.replyToInteraction(interaction, gambling)
+        if (didntSpecifyAmount && user.userSettings?.safeGambleValue && userMoney >= user.userSettings.safeGambleValue) {
+            this.messageHelper.replyToInteraction(
+                interaction,
+                `Din grensa e på ${user.userSettings.safeGambleValue}, og du har ${user.chips} chips. Du må skriva inn beløpet manuelt for å gambla.`
+            )
         } else {
-            this.messageHelper.replyToInteraction(interaction, `Du må ha minst 1 chip for å gambla :'(`)
+            if (didntSpecifyAmount) chipsToGamble = userMoney
+            if (amount < 1) chipsToGamble = 1
+            if (userMoney) {
+                const roll = RandomUtils.getRandomInteger(0, 100)
+
+                let newMoneyValue = 0
+                const multiplier = this.getMultiplier(roll)
+                const calculatedValue = this.calculatedNewMoneyValue(interaction.user.id, multiplier, chipsToGamble, userMoney)
+
+                if (roll >= 50) {
+                    newMoneyValue = calculatedValue.newMoneyValue
+                    DatabaseHelper.incrementChipsStats(user, 'gambleWins')
+                } else {
+                    newMoneyValue = Number(userMoney) - chipsToGamble
+                    DatabaseHelper.incrementChipsStats(user, 'gambleLosses')
+                }
+                user.chips = newMoneyValue
+                this.client.database.updateUser(user)
+                const gambling = new EmbedBuilder()
+                    .setTitle('Gambling')
+                    .setThumbnail(`https://pngimg.com/d/dice_PNG51.png`)
+                    .setDescription(
+                        `${interaction.user.username} gamblet ${TextUtils.formatMoney(chipsToGamble)} av ${TextUtils.formatMoney(
+                            Number(userMoney)
+                        )} chips.\nTerningen trillet: ${roll}/100. Du ${
+                            roll >= 50 ? 'vant! 💰💰 (' + Number(multiplier) + 'x)' : 'tapte 💸💸'
+                        }\nDu har nå ${TextUtils.formatMoney(newMoneyValue)} chips.`
+                    )
+                if (roll >= 100) gambling.addFields({ name: `Trillet 100!`, value: `Du trillet 100 og vant ${multiplier} ganger så mye som du satset!` })
+                this.messageHelper.replyToInteraction(interaction, gambling)
+            } else {
+                this.messageHelper.replyToInteraction(interaction, `Du må ha minst 1 chip for å gambla :'(`)
+            }
         }
     }
 
@@ -133,7 +142,10 @@ export class GamblingCommands extends AbstractCommands {
 
             this.client.database.updateUser(user)
             const gambling = new EmbedBuilder()
-                .setTitle(`Rulett`).setThumbnail(`https://media0.giphy.com/media/mGEV8Tb7Jbl8m5SU9r/200w.gif?cid=6c09b9528ipu2y611a8wamivnqsszq3l1yn56z0fvcqb6da2&ep=v1_internal_gif_by_id&rid=200w.gif&ct=s`)
+                .setTitle(`Rulett`)
+                .setThumbnail(
+                    `https://media0.giphy.com/media/mGEV8Tb7Jbl8m5SU9r/200w.gif?cid=6c09b9528ipu2y611a8wamivnqsszq3l1yn56z0fvcqb6da2&ep=v1_internal_gif_by_id&rid=200w.gif&ct=s`
+                )
                 .setDescription(
                     `${interaction.user.username} satset ${TextUtils.formatMoney(valAsNum)} av ${TextUtils.formatMoney(userMoney)} chips på ${
                         isForCategory ? this.getPrettyName(betOn.toString()) : betOn
@@ -164,7 +176,6 @@ export class GamblingCommands extends AbstractCommands {
         valAsNum: number,
         userMoney: number
     ): { newMoneyValue: number; interestAmount: number; rate: number } {
-
         let newMoneyValue = 0
         const interest = 0
         const rate = 0
@@ -193,7 +204,11 @@ export class GamblingCommands extends AbstractCommands {
             randArray.forEach((num) => {
                 emojiString += MiscUtils.findLetterEmoji(num.toString())
             })
-            const msg = new EmbedBuilder().setTitle(`Slots`).setThumbnail('https://media.tenor.com/images/01f2fce15461365c59981176ece3791d/tenor.gif').setDescription(`${emojiString}`).setFields()
+            const msg = new EmbedBuilder()
+                .setTitle(`Slots`)
+                .setThumbnail('https://media.tenor.com/images/01f2fce15461365c59981176ece3791d/tenor.gif')
+                .setDescription(`${emojiString}`)
+                .setFields()
 
             const amountOfCorrectNums: { val: number; num: number }[] = []
             const sequenceWins = ['123', '1234', '12345', '123456', '1337', '80085']
