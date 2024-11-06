@@ -1,6 +1,6 @@
 {
     "name": "mazarini",
-    "version": "15.10.0",
+    "version": "18.16.0",
     "description": "",
     "scripts": {
         "start": "nodemon index.ts",
