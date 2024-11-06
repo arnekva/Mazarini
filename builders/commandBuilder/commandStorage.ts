@@ -22,6 +22,7 @@ import { stoppCommand } from './commandStorage/stopp'
 import { terningCommand } from './commandStorage/terning'
 import { testCommand } from './commandStorage/test'
 import { tournamentCommand } from './commandStorage/tournaments'
+import { userSettingsCommand } from './commandStorage/usersettings'
 import { vivinoCommand } from './commandStorage/vivino'
 import { whamageddonCommand } from './commandStorage/whamageddon'
 
@@ -56,4 +57,5 @@ export namespace CommandStorage {
     export const LootboxCommand = lootboxCommand
     export const RewardCommand = rewardCommand
     export const DailyCommand = dailyCommand
+    export const userSettings = userSettingsCommand
 }

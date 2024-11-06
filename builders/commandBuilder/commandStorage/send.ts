@@ -1,5 +1,5 @@
-import { ApplicationCommandOptionType } from "discord.js";
-import { ISlashCommandItem } from "../commandBuilder";
+import { ApplicationCommandOptionType } from 'discord.js'
+import { ISlashCommandItem } from '../commandBuilder'
 
 export const sendCommand: ISlashCommandItem = {
     commandName: 'send',
@@ -10,6 +10,7 @@ export const sendCommand: ISlashCommandItem = {
             description: 'velg meme du skal lage',
             type: ApplicationCommandOptionType.String,
             required: true,
-            autocomplete: true
-        },]
+            autocomplete: true,
+        },
+    ],
 }

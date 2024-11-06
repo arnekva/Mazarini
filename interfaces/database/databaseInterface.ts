@@ -100,6 +100,9 @@ export interface MazariniUser {
     whamageddonLoss?: string
     textCommandStrings?: string[]
     collectables?: IUserCollectable[]
+    userSettings?: {
+        safeGambleValue?: number
+    }
 }
 
 export interface DailyReward {

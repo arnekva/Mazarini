@@ -6,8 +6,12 @@ import {
     CacheType,
     ChatInputCommandInteraction,
     EmbedBuilder,
+    ModalBuilder,
+    ModalSubmitInteraction,
     SelectMenuComponentOptionData,
     StringSelectMenuInteraction,
+    TextInputBuilder,
+    TextInputStyle,
 } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
@@ -96,7 +100,7 @@ export class UserCommands extends AbstractCommands {
 
     private async handleUserInfoViewingMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {
         if (selectMenu.customId.split(';')[1] === selectMenu.user.id) {
-            const value = selectMenu.values[0]            
+            const value = selectMenu.values[0]
             const user = await this.client.database.getUser(selectMenu.user.id)
             let userData = user[value]
 
@@ -129,10 +133,65 @@ export class UserCommands extends AbstractCommands {
         }
     }
 
+    private updateUserSettings(interaction: ChatInputCommandInteraction<CacheType>) {
+        this.buildSettingsModal(interaction)
+
+        // this.messageHelper.replyToInteraction(interaction, embed)
+    }
+
+    private async buildSettingsModal(interaction: ChatInputCommandInteraction<CacheType>) {
+        if (interaction) {
+            const modal = new ModalBuilder().setCustomId(UserCommands.userSettingsId).setTitle('Dine Instillinger')
+            const user = await this.database.getUser(interaction.user.id)
+            const safeGamble = new TextInputBuilder()
+                .setCustomId('safeGambleValue')
+                // The label is the prompt the user sees for this input
+                .setLabel('Sett høyeste verdi for auto-gamble. 0 slår av')
+                .setPlaceholder(`0`)
+                .setValue(`${user.userSettings?.safeGambleValue ?? 0}`)
+                .setRequired(false)
+                // Short means only a single line of text
+                .setStyle(TextInputStyle.Short)
+
+            //FIXME: Typing doesn't work here for some reason
+            const firstActionRow: any = new ActionRowBuilder().addComponents(safeGamble)
+
+            modal.addComponents(firstActionRow)
+            await interaction.showModal(modal)
+        }
+    }
+
+    private async handleAdminSendModalDialog(modalInteraction: ModalSubmitInteraction) {
+        const safeGamble = modalInteraction.fields.getTextInputValue('safeGambleValue')
+        if (safeGamble) {
+            const num = Number(safeGamble)
+            if (isNaN(num)) this.messageHelper.replyToInteraction(modalInteraction, 'Du må skrive et tall', { ephemeral: true })
+            else {
+                const user = await this.database.getUser(modalInteraction.user.id)
+                if (user.userSettings) user.userSettings.safeGambleValue = num
+                else {
+                    user.userSettings = { safeGambleValue: num }
+                }
+                this.database.updateUser(user)
+                this.messageHelper.replyToInteraction(modalInteraction, 'Dine instillinger er nå oppdatert', { ephemeral: true })
+            }
+        } else {
+            this.messageHelper.replyToInteraction(modalInteraction, 'Ingenting ble oppdatert', { ephemeral: true })
+        }
+    }
+
+    static userSettingsId = 'userSettingsModal'
+
     getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 interactionCommands: [
+                    {
+                        commandName: 'brukerinstillinger',
+                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                            this.updateUserSettings(interaction)
+                        },
+                    },
                     {
                         commandName: 'status',
                         command: (interaction: ChatInputCommandInteraction<CacheType>) => {
@@ -165,6 +224,14 @@ export class UserCommands extends AbstractCommands {
                         commandName: 'USER_INFO_MENU',
                         command: (rawInteraction: StringSelectMenuInteraction<CacheType>) => {
                             this.handleUserInfoViewingMenu(rawInteraction)
+                        },
+                    },
+                ],
+                modalInteractionCommands: [
+                    {
+                        commandName: UserCommands.userSettingsId,
+                        command: (rawInteraction: ModalSubmitInteraction<CacheType>) => {
+                            this.handleAdminSendModalDialog(rawInteraction)
                         },
                     },
                 ],
