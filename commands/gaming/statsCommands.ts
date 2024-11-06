@@ -1,4 +1,4 @@
-import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, EmbedBuilder, User } from 'discord.js'
+import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, User } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 
@@ -24,7 +24,7 @@ export class StatsCommands extends AbstractCommands {
         const rulettStats = user.userStats?.rulettStats
         const deathrollStats = user.userStats?.deathrollStats
         let embed = EmbedUtils.createSimpleEmbed(`Du har ingen statistikk`, ` `)
-        
+
         if (deathrollStats && category === 'deathroll') {
             embed = this.getDeathrollEmbed(deathrollStats, user)
         }
@@ -39,38 +39,64 @@ export class StatsCommands extends AbstractCommands {
 
     private getDeathrollEmbed(stats: DeathrollStats, user: MazariniUser) {
         return EmbedUtils.createSimpleEmbed(`**:game_die: Deathroll :game_die:**`, `Statistikk for ${UserUtils.findUserById(user.id, this.client).username}`)
-        .addFields([{ name: 'Weekly', value: `${stats.weeklyGames} / ${stats.weeklyLosses} | **${(stats.weeklyLosses/(stats.weeklyGames ? stats.weeklyGames : 1)*100).toFixed(1)}%**`, inline: true },
-                    { name: '\u200B', value: '\u200B', inline: true },
-                    { name: 'Avg loss', value: `${((stats.weeklyLossSum ?? 0)/(stats.weeklyLosses ? stats.weeklyLosses : 1)).toFixed(1)}`, inline: true },
-                    { name: 'All-time', value: `${stats.totalGames} / ${stats.totalLosses} | **${(stats.totalLosses/(stats.totalGames ? stats.totalGames : 1)*100).toFixed(1)}%**`, inline: true },
-                    { name: '\u200B', value: '\u200B', inline: true },
-                    { name: 'Streak | ATH', value: `${stats.currentLossStreak ?? 0} | ${stats.longestLossStreak ?? 0}`, inline: true }])
-        .setFooter({ text: `Største tap:\n${stats.biggestLoss?.sort((a,b) => b-a).join(', ') ?? ''}` })
+            .addFields([
+                {
+                    name: 'Weekly',
+                    value: `${stats.weeklyGames} / ${stats.weeklyLosses} | **${(
+                        (stats.weeklyLosses / (stats.weeklyGames ? stats.weeklyGames : 1)) *
+                        100
+                    ).toFixed(1)}%**`,
+                    inline: true,
+                },
+                { name: '\u200B', value: '\u200B', inline: true },
+                { name: 'Avg loss', value: `${((stats.weeklyLossSum ?? 0) / (stats.weeklyLosses ? stats.weeklyLosses : 1)).toFixed(1)}`, inline: true },
+                {
+                    name: 'All-time',
+                    value: `${stats.totalGames} / ${stats.totalLosses} | **${((stats.totalLosses / (stats.totalGames ? stats.totalGames : 1)) * 100).toFixed(
+                        1
+                    )}%**`,
+                    inline: true,
+                },
+                { name: '\u200B', value: '\u200B', inline: true },
+                { name: 'Streak | ATH', value: `${stats.currentLossStreak ?? 0} | ${stats.longestLossStreak ?? 0}`, inline: true },
+            ])
+            .setFooter({ text: `Største tap:\n${stats.biggestLoss?.sort((a, b) => b - a).join(', ') ?? ''}` })
     }
 
     private getGamblingEmbed(stats: ChipsStats, user: MazariniUser) {
-        return EmbedUtils.createSimpleEmbed(`**:moneybag: Gambling :moneybag:**`, `Statistikk for ${UserUtils.findUserById(user.id, this.client).username}`)
-        .addFields([...this.getWinLossRatioFieldRow('Gambling ', stats.gambleWins, stats.gambleLosses),
-                    ...this.getWinLossRatioFieldRow('Rulett ', stats.roulettWins, stats.rouletteLosses),
-                    ...this.getWinLossRatioFieldRow('Roll ', stats.slotWins, stats.slotLosses),
-                    ...this.getWinLossRatioFieldRow('Krig ', stats.krigWins, stats.krigLosses)])
+        return EmbedUtils.createSimpleEmbed(
+            `**:moneybag: Gambling :moneybag:**`,
+            `Statistikk for ${UserUtils.findUserById(user.id, this.client).username}`
+        ).addFields([
+            ...this.getWinLossRatioFieldRow('Gambling ', stats.gambleWins, stats.gambleLosses),
+            ...this.getWinLossRatioFieldRow('Rulett ', stats.roulettWins, stats.rouletteLosses),
+            ...this.getWinLossRatioFieldRow('Roll ', stats.slotWins, stats.slotLosses),
+            ...this.getWinLossRatioFieldRow('Krig ', stats.krigWins, stats.krigLosses),
+            ...this.getWinLossRatioFieldRow('Blackjack ', stats.blackjackWins, stats.blackjackLosses),
+        ])
     }
 
     private getRouletteEmbed(stats: RulettStats, user: MazariniUser) {
-        return EmbedUtils.createSimpleEmbed(`**:o: Rulett :o:**`, `Statistikk for ${UserUtils.findUserById(user.id, this.client).username}`)
-        .addFields([{ name: 'Svart', value: `${stats.black ?? 0}`, inline: true },
-                    { name: 'Rød', value: `${stats.red ?? 0}`, inline: true },
-                    { name: 'Grønn', value: `${stats.green ?? 0}`, inline: true },
-                    { name: 'Partall', value: `${stats.even ?? 0}`, inline: true },
-                    { name: 'Oddetall', value: `${stats.odd ?? 0}`, inline: true },
-                    { name: '\u200B', value: '\u200B', inline: true }])
+        return EmbedUtils.createSimpleEmbed(`**:o: Rulett :o:**`, `Statistikk for ${UserUtils.findUserById(user.id, this.client).username}`).addFields([
+            { name: 'Svart', value: `${stats.black ?? 0}`, inline: true },
+            { name: 'Rød', value: `${stats.red ?? 0}`, inline: true },
+            { name: 'Grønn', value: `${stats.green ?? 0}`, inline: true },
+            { name: 'Partall', value: `${stats.even ?? 0}`, inline: true },
+            { name: 'Oddetall', value: `${stats.odd ?? 0}`, inline: true },
+            { name: '\u200B', value: '\u200B', inline: true },
+        ])
     }
 
-    private getWinLossRatioFieldRow(stat: string, won: number, lost: number, focusOnLoss: boolean = false) {
-        won = won ?? 0, lost = lost ?? 0
-        return [{ name: `${stat}`, value: `${((won ?? 0)+(lost ?? 0))}`, inline: true },
-                { name: `${focusOnLoss ? 'Tapt' : 'Vunnet'}`, value: `${focusOnLoss ? lost ?? 0 : won ?? 0}`, inline: true },
-                { name: `${focusOnLoss ? 'Loss' : 'Win'}%`, value: `${(((focusOnLoss ? lost : won)/((won+lost) > 0 ? (won+lost) : 1))*100).toFixed(1)}`, inline: true }]
+    private getWinLossRatioFieldRow(stat: string, won = 0, lost = 0, focusOnLoss: boolean = false) {
+        return [
+            { name: `${stat}`, value: `${(won ?? 0) + (lost ?? 0)}`, inline: true },
+            { name: `${focusOnLoss ? 'Tapt' : 'Vunnet'}`, value: `${focusOnLoss ? lost ?? 0 : won ?? 0}`, inline: true },
+            {
+                name: `${focusOnLoss ? 'Loss' : 'Win'}%`,
+                value: `${(((focusOnLoss ? lost : won) / (won + lost > 0 ? won + lost : 1)) * 100).toFixed(1)}`,
+                inline: true,
+            },
+        ]
     }
 
     private async getEmojiStats(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -212,7 +238,7 @@ export class StatsCommands extends AbstractCommands {
 
     getAllInteractions(): IInteractionElement {
         return {
-            commands: { 
+            commands: {
                 interactionCommands: [
                     {
                         commandName: 'stats',
@@ -254,17 +280,17 @@ const sortEmojiStats: (a: EmojiStats, b: EmojiStats, sorting: string) => number 
 
 const filterOnNotAnimated: (x: EmojiStats) => boolean = (x) => !x.animated
 const filterOnAnimated: (x: EmojiStats) => boolean = (x) => x.animated
-const filterEmojiStats: (x: EmojiStats, filter: string, top: boolean) => boolean = (x, filter, top) => {    
+const filterEmojiStats: (x: EmojiStats, filter: string, top: boolean) => boolean = (x, filter, top) => {
     switch (filter) {
         case 'standard':
-            return filterOnNotAnimated(x) && (top || !isRemoved(x)) 
+            return filterOnNotAnimated(x) && (top || !isRemoved(x))
         case 'animert':
-            return filterOnAnimated(x) && (top || !isRemoved(x)) 
+            return filterOnAnimated(x) && (top || !isRemoved(x))
         case 'alle':
-            return true && (top || !isRemoved(x)) 
+            return true && (top || !isRemoved(x))
         default:
-            return true && (top || !isRemoved(x)) 
+            return true && (top || !isRemoved(x))
     }
 }
 
-const isRemoved: (x: EmojiStats) => boolean = (x) => x.removed && new Date(x.removed[x.removed.length-1]) > new Date(x.added[x.added.length-1])
+const isRemoved: (x: EmojiStats) => boolean = (x) => x.removed && new Date(x.removed[x.removed.length - 1]) > new Date(x.added[x.added.length - 1])

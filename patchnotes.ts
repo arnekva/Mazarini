@@ -8,8 +8,10 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '18.6.0'
-    public static readonly currentPatchNotes = `* Du kan nå sette grense for automatisk kalkulering av gambleinnsats ved å bruke /brukerinstillinger, slik at du ikke med en feil gambler for mye. Den er av som default, og du kan nullstille den ved å skrive 0`
+    public static readonly currentVersion = '18.7.0'
+    public static readonly currentPatchNotes =
+        `* Blackjack stats blir nå tracket for '/stats bruker' kommandoen. ` +
+        `* Per nå vises bare wins og losses, men flere stats trackes og vil vises etter hvert`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

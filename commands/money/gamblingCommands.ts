@@ -39,9 +39,11 @@ export class GamblingCommands extends AbstractCommands {
                 if (roll >= 50) {
                     newMoneyValue = calculatedValue.newMoneyValue
                     DatabaseHelper.incrementChipsStats(user, 'gambleWins')
+                    DatabaseHelper.incrementMoneyStats(user, chipsToGamble * multiplier, 'won')
                 } else {
                     newMoneyValue = Number(userMoney) - chipsToGamble
                     DatabaseHelper.incrementChipsStats(user, 'gambleLosses')
+                    DatabaseHelper.incrementMoneyStats(user, chipsToGamble, 'lost')
                 }
                 user.chips = newMoneyValue
                 this.client.database.updateUser(user)
@@ -256,6 +258,8 @@ export class GamblingCommands extends AbstractCommands {
             }
             const currentMoney = user.chips
             const newMoney = Number(currentMoney) + winnings
+            if (hasSequence) DatabaseHelper.incrementMoneyStats(user, winnings, 'won')
+            else DatabaseHelper.incrementMoneyStats(user, cost, 'lost')
             user.chips = newMoney
             this.client.database.updateUser(user)
 

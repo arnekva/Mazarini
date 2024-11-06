@@ -211,6 +211,11 @@ export type UserStats = {
     chipsStats?: ChipsStats
     rulettStats?: RulettStats
     deathrollStats?: DeathrollStats
+    moneyStats?: MoneyStats
+}
+interface MoneyStats {
+    totalLost: number
+    totalWon: number
 }
 export interface DeathrollStats {
     totalGames: number
@@ -287,6 +292,10 @@ export interface ChipsStats {
     slotLosses?: number
     roulettWins?: number
     rouletteLosses?: number
+    blackjackLosses?: number
+    blackjackWins?: number
+    blackjackDraws?: number
+    blackjackLossDealer21?: number
 }
 export interface RulettStats {
     red?: number

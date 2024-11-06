@@ -87,7 +87,6 @@ export const statsCommand: ISlashCommandItem = {
                                 { name: 'total', value: 'total' },
                             ],
                         },
-                        
                     ],
                 },
             ],

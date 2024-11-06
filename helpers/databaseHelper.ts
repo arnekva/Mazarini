@@ -1,6 +1,15 @@
 import moment from 'moment'
 import { DRGame } from '../commands/games/deathroll'
-import { botDataPrefix, ChipsStats, ICollectableSeries, ILootbox, MazariniStorage, MazariniUser, Meme, RulettStats } from '../interfaces/database/databaseInterface'
+import {
+    botDataPrefix,
+    ChipsStats,
+    ICollectableSeries,
+    ILootbox,
+    MazariniStorage,
+    MazariniUser,
+    Meme,
+    RulettStats,
+} from '../interfaces/database/databaseInterface'
 import { FirebaseHelper } from './firebaseHelper'
 
 export interface DeathRollStats {
@@ -84,6 +93,17 @@ export class DatabaseHelper {
                 }
             }
         }
+    }
+
+    static incrementMoneyStats(user: MazariniUser, val: number, status: 'won' | 'lost') {
+        if (!user.userStats) user.userStats = { moneyStats: { totalLost: 0, totalWon: 0 } }
+        if (!user.userStats.moneyStats) user.userStats.moneyStats = { totalLost: 0, totalWon: 0 }
+        if (status === 'won') {
+            user.userStats.moneyStats.totalWon += val
+        } else {
+            user.userStats.moneyStats.totalLost += val
+        }
+        return user
     }
     /** Update the rulett stats property of a user stat object. Will set value of property to 1 if not created yet.
      *  Remember that you will still need to call DatabaseHelper.updateUser() to save the information */
@@ -215,12 +235,12 @@ export class DatabaseHelper {
     }
 
     public async registerDeathrollStats(game: DRGame): Promise<DeathRollStats> {
-        let loserStats: DeathRollStats = {didGetNewBiggestLoss: 0, isOnATHLossStreak: 0, userId: ''}
+        let loserStats: DeathRollStats = { didGetNewBiggestLoss: 0, isOnATHLossStreak: 0, userId: '' }
         for (let i = 0; i < game.players.length; i++) {
             const player = game.players[i]
 
             const user = await this.getUser(player.userID)
-            
+
             if (user) {
                 const defaultStats = {
                     //avoid null-references
@@ -343,7 +363,7 @@ export class DatabaseHelper {
 
     public async addLootboxSeries(series: ICollectableSeries) {
         const updates = {}
-        const currentSeries = await this.getLootboxSeries() ?? []
+        const currentSeries = (await this.getLootboxSeries()) ?? []
         updates[`/other/loot/series`] = [...currentSeries, series]
         this.db.updateData(updates)
     }

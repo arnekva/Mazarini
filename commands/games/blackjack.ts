@@ -13,6 +13,7 @@ import {
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GamePlayer, GameStateHandler } from '../../handlers/gameStateHandler'
+import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { EmojiHelper, emojiReturnType } from '../../helpers/emojiHelper'
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
@@ -251,7 +252,7 @@ export class Blackjack extends AbstractCommands {
         const busted = handValue > 21
         const drawCapped = this.drawIsCapped(player.hands[player.currentHandIndex])
         if (busted || drawCapped) {
-            if (busted && player.hands.length === 1) this.busted(game, player)
+            if (busted && player.hands.length === 1) await this.busted(game, player)
             else if (player.currentHandIndex < player.hands.length - 1) {
                 player.currentHandIndex++
                 this.updateEmbed(game, player)
@@ -343,16 +344,18 @@ export class Blackjack extends AbstractCommands {
         await game.messages.embed.edit({ embeds: [game.messages.embedContent] })
     }
 
-    private resolveGame(game: BlackjackGame, naturalBlackJack: boolean) {
+    private async resolveGame(game: BlackjackGame, naturalBlackJack: boolean) {
         const mb = ':moneybag:'
         const player = game.players[0]
         const dealer = game.dealer
         const dealerHand = this.calculateHandValue(dealer.hand)
+        const user = await this.client.database.getUser(player.id)
         let description = ''
         let reward = 0
         if (naturalBlackJack) {
             description = `${mb} Du fikk en naturlig blackjack og vinner ${Math.floor(player.stake * 2.5)} chips! ${mb}`
             reward = Math.floor(player.stake * 2.5)
+            DatabaseHelper.incrementMoneyStats(user, reward, 'won')
         } else {
             description = `Dealer fikk **${dealerHand}**\n\n`
             for (let i = 0; i < player.hands.length; i++) {
@@ -362,15 +365,26 @@ export class Blackjack extends AbstractCommands {
                 const stake = player.stake * (hand.doubleDown ? 2 : 1)
                 if (playerHand > 21) {
                     description += `${gameNr}Du fikk ${playerHand} og taper ${stake} chips! :money_with_wings:\n`
+                    DatabaseHelper.incrementChipsStats(user, 'blackjackLosses')
+                    DatabaseHelper.incrementMoneyStats(user, stake, 'lost')
                 } else if (dealerHand < playerHand || dealerHand > 21) {
                     description += `${gameNr}Du fikk ${playerHand} og vinner ${stake * 2} chips! ${mb}\n`
                     reward += stake * 2
+                    DatabaseHelper.incrementChipsStats(user, 'blackjackWins')
+                    DatabaseHelper.incrementMoneyStats(user, stake, 'won')
                 } else if (dealerHand == playerHand) {
                     description += `${gameNr}Du fikk ${playerHand} - samme som dealer, og får tilbake innsatsen på ${stake} chips :recycle:\n`
+                    DatabaseHelper.incrementChipsStats(user, 'blackjackDraws')
                     reward += stake
                 } else if (dealerHand > playerHand) {
                     description += `${gameNr}Du fikk ${playerHand} og taper ${stake} chips :money_with_wings:\n`
+                    DatabaseHelper.incrementChipsStats(user, 'blackjackLosses')
+                    DatabaseHelper.incrementMoneyStats(user, stake, 'lost')
+                    console.log(stake)
+
+                    if (dealerHand == 21) DatabaseHelper.incrementChipsStats(user, 'blackjackLossDealer21')
                 }
+                this.database.updateUser(user)
             }
         }
         const insuranceClaim = this.checkInsurance(game, player)
@@ -391,7 +405,7 @@ export class Blackjack extends AbstractCommands {
         this.client.bank.giveUnrestrictedMoney(user, amount)
     }
 
-    private busted(game: BlackjackGame, player: BlackjackPlayer) {
+    private async busted(game: BlackjackGame, player: BlackjackPlayer) {
         game.messages.buttonRow = gameFinishedRow(game.id)
         game.messages.buttons.edit({ components: [game.messages.buttonRow] })
         game.messages.embedContent = game.messages.embedContent
@@ -399,6 +413,9 @@ export class Blackjack extends AbstractCommands {
             .setDescription(`Du trakk over 21\n\n:money_with_wings: Du tapte ${player.stake} chips :money_with_wings:`)
         game.messages.embed.edit({ embeds: [game.messages.embedContent] })
         game.resolved = true
+        const user = await this.client.database.getUser(player.id)
+        DatabaseHelper.incrementMoneyStats(user, player.stake, 'lost')
+        this.database.updateUser(user)
     }
 
     private async deleteGame(game: BlackjackGame) {
