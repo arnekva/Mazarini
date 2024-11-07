@@ -415,6 +415,7 @@ export class Blackjack extends AbstractCommands {
         game.resolved = true
         const user = await this.client.database.getUser(player.id)
         DatabaseHelper.incrementMoneyStats(user, player.stake, 'lost')
+        DatabaseHelper.incrementChipsStats(user, 'blackjackLosses')
         this.database.updateUser(user)
     }
 
