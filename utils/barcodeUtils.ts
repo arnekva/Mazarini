@@ -13,7 +13,7 @@ export namespace BarcodeUtils {
                 Accept: 'application/json',
                 Authorization: `Bearer ${token}`,
             },
-        })        
+        })
         if (!response.ok) {
             msg.edit('Fant ikke strekkode med EAN13, prøver på nytt med UPCA')
             response = await fetch('https://api.aspose.cloud/v3.0/barcode/recognize?Type=UPCA&Timeout=60000&url=' + encodeURIComponent(input), {
@@ -26,7 +26,7 @@ export namespace BarcodeUtils {
         }
         const res = await response.json()
         if (!res.barcodes) return undefined
-        return res.barcodes?.map(bc => bc.barcodeValue) ?? undefined
+        return res.barcodes?.map((bc) => bc.barcodeValue) ?? undefined
     }
 
     export async function getToken() {

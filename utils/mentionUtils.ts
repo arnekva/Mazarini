@@ -1,4 +1,4 @@
-const {userMention, memberNicknameMention, channelMention, roleMention} = require('@discordjs/builders')
+const { userMention, memberNicknameMention, channelMention, roleMention } = require('@discordjs/builders')
 
 export enum ChannelIds {
     LAS_VEGAS = '808992127249678386',
@@ -19,7 +19,7 @@ export enum ChannelIds {
 
 export enum ThreadIds {
     GENERAL_TERNING = '1231880250569261106',
-    LOCALHOST_TEST = '1251646425461297332'
+    LOCALHOST_TEST = '1251646425461297332',
 }
 
 export enum ServerIds {
@@ -59,6 +59,6 @@ export class MentionUtils {
         CLYDE: '1081004946872352958',
         MAGGI: '221739293889003520',
         GEGGI: '293489109048229888',
-        THOMAS: '397429060898390016'
+        THOMAS: '397429060898390016',
     }
 }

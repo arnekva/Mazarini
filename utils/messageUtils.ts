@@ -70,7 +70,10 @@ export namespace MessageUtils {
                     channelId === ChannelIds.STATS_SPAM ||
                     channelId === ChannelIds.GODMODE ||
                     channelId === ChannelIds.LOKAL_BOT_SECRET)) ||
-            (environment === 'prod' && channelId !== ChannelIds.LOKAL_BOT_SPAM && channelId !== ChannelIds.LOKAL_BOT_SPAM_DEV && channelId !== ChannelIds.LOKAL_BOT_SECRET)
+            (environment === 'prod' &&
+                channelId !== ChannelIds.LOKAL_BOT_SPAM &&
+                channelId !== ChannelIds.LOKAL_BOT_SPAM_DEV &&
+                channelId !== ChannelIds.LOKAL_BOT_SECRET)
         )
     }
 }
