@@ -22,6 +22,7 @@ import {
     MazariniUser
 } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { TextUtils } from '../../utils/textUtils'
@@ -36,6 +37,7 @@ interface IPendingTrade {
 export class LootboxCommands extends AbstractCommands {
     private imageGenerator: ImageGenerationHelper
     private lootboxes: ILootbox[]
+    private lootboxesRefreshed: Date
     private series: ICollectableSeries[]
     private pendingTrades: Map<string, IPendingTrade>
 
@@ -92,9 +94,10 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private async getLootboxes(): Promise<ILootbox[]> {
-        if (this.lootboxes) return this.lootboxes
+        if (this.lootboxes && DateUtils.dateIsWithinLastHour(this.lootboxesRefreshed)) return this.lootboxes
         const lootboxes = await this.client.database.getLootboxes()
         this.lootboxes = lootboxes.filter(box => LootboxCommands.lootboxIsValid(box))
+        this.lootboxesRefreshed = new Date()
         return this.lootboxes
     }
 
