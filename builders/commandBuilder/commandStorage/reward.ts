@@ -45,11 +45,7 @@ export const rewardCommand: ISlashCommandItem = {
                     description: 'hvilken lootbox skal brukeren få?',
                     type: ApplicationCommandOptionType.String,
                     required: true,
-                    choices: [
-                        { name: 'Basic 5K', value: 'basic' },
-                        { name: 'Premium 20K', value: 'premium' },
-                        { name: 'Elite 50K', value: 'elite' },
-                    ],
+                    autocomplete: true
                 },
                 {
                     name: 'reason',

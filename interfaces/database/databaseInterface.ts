@@ -152,12 +152,15 @@ export enum LootboxQuality {
     Basic = 'basic',
     Premium = 'premium',
     Elite = 'elite',
+    Limited = 'limited'
 }
 
 export interface ILootbox {
-    quality: LootboxQuality
+    name: string
     price: number
     probabilities: ILootboxDistribution
+    validFrom?: Date
+    validTo?: Date
 }
 
 export interface ILootboxDistribution {

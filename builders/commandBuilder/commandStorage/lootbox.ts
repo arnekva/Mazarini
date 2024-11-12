@@ -13,14 +13,10 @@ export const lootboxCommand: ISlashCommandItem = {
             options: [
                 {
                     name: 'quality',
-                    description: 'hvilken kategori av statistikk vil du se - default alle',
+                    description: 'hvilken lootbox ønsker du å kjøpe?',
                     type: ApplicationCommandOptionType.String,
                     required: true,
-                    choices: [
-                        { name: 'Basic 5K', value: 'basic' },
-                        { name: 'Premium 10K', value: 'premium' },
-                        { name: 'Elite 25K', value: 'elite' },
-                    ],
+                    autocomplete: true
                 },
                 {
                     name: 'series',

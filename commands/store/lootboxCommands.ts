@@ -24,6 +24,7 @@ import {
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { RandomUtils } from '../../utils/randomUtils'
+import { TextUtils } from '../../utils/textUtils'
 
 interface IPendingTrade {
     userId: string
@@ -77,6 +78,8 @@ export class LootboxCommands extends AbstractCommands {
             quality = interaction.customId.split(';')[2]
         }
         const box = await this.resolveLootbox(quality)
+        console.log(box)
+        
         if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction)) return
         const rewardedItem = await this.calculateRewardItem(box, series)
         this.registerItemOnUser(user, rewardedItem)
@@ -84,8 +87,22 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private async resolveLootbox(quality: string): Promise<ILootbox> {
-        if (!this.lootboxes) this.lootboxes = await this.client.database.getLootboxes()
-        return this.lootboxes.find((box) => box.quality === quality)
+        const boxes = await this.getLootboxes()
+        return boxes.find((box) => box.name === quality)
+    }
+
+    private async getLootboxes(): Promise<ILootbox[]> {
+        if (this.lootboxes) return this.lootboxes
+        const lootboxes = await this.client.database.getLootboxes()
+        this.lootboxes = lootboxes.filter(box => LootboxCommands.lootboxIsValid(box))
+        return this.lootboxes
+    }
+
+    static lootboxIsValid(box: ILootbox): boolean {
+        const from = box.validFrom ? new Date(box.validFrom) : new Date()
+        const to = box.validTo ? new Date(box.validTo) : new Date()
+        const now = new Date()        
+        return now >= from && now <= to 
     }
 
     private checkBalanceAndTakeMoney(user: MazariniUser, box: ILootbox, interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
@@ -139,7 +156,7 @@ export class LootboxCommands extends AbstractCommands {
         const roll = Math.random()
         if (!colored) return ItemColor.None
         else if (roll < 1 / 6) return ItemColor.Diamond // 1/6 chance for diamond
-        else if (roll < 1 / 3) return ItemColor.Gold // 2/6 chance for gold
+        else if (roll < 1 / 2) return ItemColor.Gold // 2/6 chance for gold
         else return ItemColor.Silver // 3/6 chance for silver
     }
 
@@ -199,6 +216,14 @@ export class LootboxCommands extends AbstractCommands {
 
     private getGifPath(item: IUserCollectable): string {
         return `loot/${item.series}/${item.name}_${item.color}.gif`
+    }
+
+    private async qualityAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
+        const boxes = await this.getLootboxes()
+		interaction.respond(
+			boxes
+            .map(box => ({ name: `${TextUtils.capitalizeFirstLetter(box.name)} ${(box.price/1000)}K`, value: box.name })) 
+		)
     }
 
     private async seriesAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
@@ -409,12 +434,23 @@ export class LootboxCommands extends AbstractCommands {
         const collectableNames = this.getCollectableNamesPrintString(pendingTrade.tradingIn)
         const embed = EmbedUtils.createSimpleEmbed('Trade', `Bytter inn: \n${collectableNames}\nfor en ${pendingTrade.receiving} gjenstand`)
         interaction.message.edit({ embeds: [embed], components: [] })
-        const colored = Math.random() < (1/5) // Color chance for trades is set here!
+        const colorChance = this.getTradeColorChance(pendingTrade.tradingIn)
+        console.log('color chance: ', colorChance)
+        
+        const colored = Math.random() < colorChance 
         const rewardedItem = await this.getRandomItemForRarity(pendingTrade.receiving, pendingTrade.series, colored) 
         const tradedItemsRemoved = this.removeItemsFromUser(pendingTrade.tradingIn, user)
         this.registerTradeOnUser(tradedItemsRemoved, rewardedItem, user)
         this.revealCollectable(interaction, rewardedItem)
         this.deletePendingTrade(interaction)
+    }
+
+    private getTradeColorChance(items: IUserCollectable[]) {
+        const initalChance = items.length > 3 ? 1/5 : 1/4 // 20% for trade up, 25% for trade in
+        const silvers = items.filter(item => item.color === ItemColor.Silver).length
+        const golds = items.filter(item => item.color === ItemColor.Gold).length
+        const diamonds = items.filter(item => item.color === ItemColor.Diamond).length
+        return initalChance + (silvers * 1/20) + (golds * 1/10) + (diamonds * 1/5)
     }
 
     private cancelTrade(interaction: ButtonInteraction<CacheType>) {
@@ -448,6 +484,7 @@ export class LootboxCommands extends AbstractCommands {
         const optionList: any = interaction.options
         const focused = optionList._hoistedOptions.find(option => option.focused)
         if (focused.name === 'series') this.seriesAutocomplete(interaction)
+        else if (focused.name.includes('quality')) this.qualityAutocomplete(interaction)
         else if (focused.name.includes('item')) this.itemAutocomplete(interaction)
     }
 

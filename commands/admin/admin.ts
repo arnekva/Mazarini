@@ -1,5 +1,5 @@
 import { exec } from 'child_process'
-import { ActivityType, APIInteractionGuildMember, CacheType, ChatInputCommandInteraction, GuildMember, ModalSubmitInteraction, TextChannel } from 'discord.js'
+import { ActivityType, APIInteractionGuildMember, AutocompleteInteraction, CacheType, ChatInputCommandInteraction, GuildMember, ModalSubmitInteraction, TextChannel } from 'discord.js'
 import moment from 'moment'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { environment } from '../../client-env'
@@ -12,6 +12,7 @@ import { WeeklyJobs } from '../../Jobs/weeklyJobs'
 import { MazariniBot } from '../../main'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { ChannelIds, MentionUtils } from '../../utils/mentionUtils'
+import { TextUtils } from '../../utils/textUtils'
 import { UserUtils } from '../../utils/userUtils'
 import { LootboxCommands } from '../store/lootboxCommands'
 
@@ -252,7 +253,7 @@ export class Admin extends AbstractCommands {
 
     private async rewardUserWithLootbox(interaction: ChatInputCommandInteraction<CacheType>) {
         const reason = interaction.options.get('reason')?.value as string
-        let quality = interaction.options.get('quality')?.value as string
+        const quality = interaction.options.get('quality')?.value as string
         const user = interaction.options.get('user')?.user
         const lootButton = LootboxCommands.getDailyLootboxRewardButton(user.id, quality)
         const text = `${MentionUtils.mentionUser(user.id)} har mottatt en reward på en ${quality} lootbox på grunn av *${reason}*`
@@ -263,6 +264,14 @@ export class Admin extends AbstractCommands {
                 interaction.channelId
             )}. `
         )
+    }
+
+    private async lootboxAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
+        const lootboxes = await this.client.database.getLootboxes()
+		interaction.respond(
+			lootboxes.filter(box => LootboxCommands.lootboxIsValid(box))
+            .map(box => ({ name: `${TextUtils.capitalizeFirstLetter(box.name)} ${(box.price/1000)}K`, value: box.name })) 
+		)
     }
 
     private async restartBot(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -366,6 +375,9 @@ export class Admin extends AbstractCommands {
                             const subCommand = rawInteraction.options.getSubcommand()
                             if (subCommand === 'chips') this.rewardUserWithChips(rawInteraction)
                             else if (subCommand === 'lootbox') this.rewardUserWithLootbox(rawInteraction)
+                        },
+                        autoCompleteCallback: (interaction: AutocompleteInteraction<CacheType>) => {
+                            this.lootboxAutocomplete(interaction)
                         },
                     },
                     {
