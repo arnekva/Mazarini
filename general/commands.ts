@@ -27,14 +27,16 @@ import { Music } from '../commands/sound/musicCommands'
 import { SoundCommands } from '../commands/sound/soundCommands'
 import { SpotifyCommands } from '../commands/sound/spotifyCommands'
 // import { TestCommands } from '../commands/test/testCommands'
+import { ButtonInteraction, CacheType, ChatInputCommandInteraction, ModalSubmitInteraction, StringSelectMenuInteraction } from 'discord.js'
+import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { LootboxCommands } from '../commands/store/lootboxCommands'
+import { TestCommands } from '../commands/test/testCommands'
 import { TextCommands } from '../commands/textCommands'
 import { LinkCommands } from '../commands/user/linkCommands'
 import { UserCommands } from '../commands/user/userCommands'
 import { Weather } from '../commands/weatherCommands'
-import { IInteractionElement } from '../interfaces/interactionInterface'
+import { IInteractionCommand, IInteractionElement } from '../interfaces/interactionInterface'
 import { PatchNotes } from '../patchnotes'
-import { TestCommands } from '../commands/test/testCommands'
 
 export class Commands {
     private client: MazariniClient
@@ -73,6 +75,11 @@ export class Commands {
     private lootboxCommands: LootboxCommands
     private dailyClaimCommands: DailyClaimCommands
 
+    allTextCommands: IInteractionCommand<ChatInputCommandInteraction<CacheType>>[]
+    allModalCommands: IInteractionCommand<ModalSubmitInteraction<CacheType>>[]
+    allButtonCommands: IInteractionCommand<ButtonInteraction<CacheType>>[]
+    allSelectMenuCommands: IInteractionCommand<StringSelectMenuInteraction<CacheType>>[]
+
     constructor(client: MazariniClient) {
         this.client = client
         this.spinner = new Spinner(this.client)
@@ -109,101 +116,60 @@ export class Commands {
         this.blackjack = new Blackjack(this.client)
         this.lootboxCommands = new LootboxCommands(this.client)
         this.dailyClaimCommands = new DailyClaimCommands(this.client)
+
+        this.allTextCommands = this.getAllTextCommands()
+        this.allModalCommands = this.getAllModalCommands()
+        this.allButtonCommands = this.getAllButtonCommands()
+        this.allSelectMenuCommands = this.getAllSelectMenuCommands()
+    }
+
+    getAll(): AbstractCommands[] {
+        const allClasses = []
+        for (const i in this) {
+            if (this[i] instanceof AbstractCommands) {
+                allClasses.push(this[i])
+            }
+        }
+        return allClasses
     }
 
     getAllInteractionCommands(): IInteractionElement[] {
-        return [
-            this.spinner.getAllInteractions(),
-            this.jokeCommands.getAllInteractions(),
-            this.adminCommands.getAllInteractions(),
-            this.gamblingCommands.getAllInteractions(),
-            this.crimeCommands.getAllInteractions(),
-            this.moneyCommands.getAllInteractions(),
-            this.dateCommands.getAllInteractions(),
-            this.callOfDutyCommands.getAllInteractions(),
-            this.patchNotes.getAllInteractions(),
-            this.spotifyCommands.getAllInteractions(),
-            this.testCommands.getAllInteractions(),
-            this.musicCommands.getAllInteractions(),
-            this.memeCommands.getAllInteractions(),
-            this.userCommands.getAllInteractions(),
-            this.pollCommands.getAllInteractions(),
-            this.weatherCommands.getAllInteractions(),
-            this.soundCommands.getAllInteractions(),
-            this.cardCommands.getAllInteractions(),
-            this.drinksCommands.getAllInteractions(),
-            this.nameCommands.getAllInteractions(),
-            this.poletCommands.getAllInteractions(),
-            this.linkCommands.getAllInteractions(),
-            this.textCommands.getAllInteractions(),
-            this.redBlackCommands.getAllInteractions(),
-            this.trelloCommands.getAllInteractions(),
-            this.ludo.getAllInteractions(),
-            this.rocketLeagueCommands.getAllInteractions(),
-            this.vivinoCommands.getAllInteractions(),
-            this.statsCommands.getAllInteractions(),
-            this.deathroll.getAllInteractions(),
-            this.blackjack.getAllInteractions(),
-            this.lootboxCommands.getAllInteractions(),
-            this.dailyClaimCommands.getAllInteractions(),
-        ]
+        const allClasses = this.getAll()
+        return allClasses.flatMap((c) => c.getAllInteractions())
     }
 
     async doSaveAllCommands() {
-        this.spinner.onSave()
-        this.jokeCommands.onSave()
-        this.adminCommands.onSave()
-        this.gamblingCommands.onSave()
-        this.crimeCommands.onSave()
-        this.moneyCommands.onSave()
-        this.dateCommands.onSave()
-        this.callOfDutyCommands.onSave()
-        this.patchNotes.onSave()
-        this.spotifyCommands.onSave()
-        this.testCommands.onSave()
-        this.musicCommands.onSave()
-        this.memeCommands.onSave()
-        this.userCommands.onSave()
-        this.pollCommands.onSave()
-        this.weatherCommands.onSave()
-        this.soundCommands.onSave()
-        this.cardCommands.onSave()
-        this.drinksCommands.onSave()
-        this.nameCommands.onSave()
-        this.poletCommands.onSave()
-        this.linkCommands.onSave()
-        this.textCommands.onSave()
-        this.redBlackCommands.onSave()
-        this.trelloCommands.onSave()
-        this.ludo.onSave()
-        this.rocketLeagueCommands.onSave()
-        this.vivinoCommands.onSave()
-        this.statsCommands.onSave()
-        await this.deathroll.onSave()
-        this.blackjack.onSave()
-        this.lootboxCommands.onSave()
-        this.dailyClaimCommands.onSave()
+        const allClasses = this.getAll()
+        for (const c of allClasses) {
+            await c.onSave()
+        }
+    }
+    async doRefreshAllCommands() {
+        const allClasses = this.getAll()
+        for (const c of allClasses) {
+            await c.refresh()
+        }
     }
 
-    getAllTextCommands() {
+    private getAllTextCommands() {
         return this.getAllInteractionCommands()
             .flatMap((c) => c.commands.interactionCommands)
             .filter((c) => !!c)
     }
 
-    getAllModalCommands() {
+    private getAllModalCommands() {
         return this.getAllInteractionCommands()
             .flatMap((c) => c.commands.modalInteractionCommands)
             .filter((c) => !!c)
     }
 
-    getAllButtonCommands() {
+    private getAllButtonCommands() {
         return this.getAllInteractionCommands()
             .flatMap((c) => c.commands.buttonInteractionComands)
             .filter((c) => !!c)
     }
 
-    getAllSelectMenuCommands() {
+    private getAllSelectMenuCommands() {
         return this.getAllInteractionCommands()
             .flatMap((c) => c.commands.selectMenuInteractionCommands)
             .filter((c) => !!c)

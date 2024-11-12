@@ -1,5 +1,14 @@
 import { exec } from 'child_process'
-import { ActivityType, APIInteractionGuildMember, AutocompleteInteraction, CacheType, ChatInputCommandInteraction, GuildMember, ModalSubmitInteraction, TextChannel } from 'discord.js'
+import {
+    ActivityType,
+    APIInteractionGuildMember,
+    AutocompleteInteraction,
+    CacheType,
+    ChatInputCommandInteraction,
+    GuildMember,
+    ModalSubmitInteraction,
+    TextChannel,
+} from 'discord.js'
 import moment from 'moment'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { environment } from '../../client-env'
@@ -268,10 +277,11 @@ export class Admin extends AbstractCommands {
 
     private async lootboxAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
         const lootboxes = await this.client.database.getLootboxes()
-		interaction.respond(
-			lootboxes.filter(box => LootboxCommands.lootboxIsValid(box))
-            .map(box => ({ name: `${TextUtils.capitalizeFirstLetter(box.name)} ${(box.price/1000)}K`, value: box.name })) 
-		)
+        interaction.respond(
+            lootboxes
+                .filter((box) => LootboxCommands.lootboxIsValid(box))
+                .map((box) => ({ name: `${TextUtils.capitalizeFirstLetter(box.name)} ${box.price / 1000}K`, value: box.name }))
+        )
     }
 
     private async restartBot(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -292,6 +302,10 @@ export class Admin extends AbstractCommands {
                 await msg.edit(restartMsg)
             }
         })
+    }
+    //TODO: Make a command that triggers this
+    private async refreshBot() {
+        await this.client.onRefresh()
     }
 
     private async stopBot(interaction: ChatInputCommandInteraction<CacheType>) {

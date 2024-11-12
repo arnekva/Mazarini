@@ -91,6 +91,12 @@ export class MazariniClient extends Client {
         return true
     }
 
+    async onRefresh(): Promise<boolean> {
+        this.messageHelper.sendLogMessage('Running Refresh for all command classes')
+        await this.clientListener.commandRunner.runRefresh()
+        return true
+    }
+
     get messageHelper() {
         return this.msgHelper
     }

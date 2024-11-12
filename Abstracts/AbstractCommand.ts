@@ -16,6 +16,10 @@ export abstract class AbstractCommands {
     async onSave(): Promise<boolean> {
         return true
     }
+    // eslint-disable-next-line require-await
+    async refresh(): Promise<boolean> {
+        return true
+    }
 
     /** gets messageHelper from client */
     get messageHelper() {

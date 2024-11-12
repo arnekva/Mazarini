@@ -75,7 +75,7 @@ export class CommandRunner {
             //TODO: This might have to be refactored, but ContextMenuCommands are for now treated as regular ChatInputCommands, as they only have a commandName
             //Autocomplete Interactions are also handled by this block, since they are triggered by ChatInputs.
             if (interaction.isChatInputCommand() || interaction.isContextMenuCommand() || interaction.isAutocomplete()) {
-                this.commands.getAllTextCommands().forEach((cmd) => {
+                this.commands.allTextCommands.forEach((cmd) => {
                     if (cmd.commandName === interaction.commandName) {
                         if (interaction.isAutocomplete()) {
                             //Need to also check if autoCompleteCallback is present, since AutoComplete can trigger on normal input fields.
@@ -87,14 +87,14 @@ export class CommandRunner {
                     }
                 })
             } else if (interaction.type === InteractionType.ModalSubmit) {
-                this.commands.getAllModalCommands().forEach((cmd) => {
+                this.commands.allModalCommands.forEach((cmd) => {
                     if (cmd.commandName === interaction.customId.split(';')[0]) {
                         this.runInteractionElement<ModalSubmitInteraction<CacheType>>(cmd, interaction)
                         hasAcknowledged = true
                     }
                 })
             } else if (interaction.isStringSelectMenu()) {
-                this.commands.getAllSelectMenuCommands().forEach((cmd) => {
+                this.commands.allSelectMenuCommands.forEach((cmd) => {
                     if (cmd.commandName === interaction.customId.split(';')[0]) {
                         this.runInteractionElement<StringSelectMenuInteraction<CacheType>>(cmd, interaction)
                         // this.runSelectMenuInteractionElement(cmd, interaction)
@@ -102,7 +102,7 @@ export class CommandRunner {
                     }
                 })
             } else if (interaction.isButton()) {
-                this.commands.getAllButtonCommands().forEach((cmd) => {
+                this.commands.allButtonCommands.forEach((cmd) => {
                     if (cmd.commandName === interaction.customId.split(';')[0]) {
                         this.runInteractionElement<ButtonInteraction<CacheType>>(cmd, interaction)
                         // this.runButtonInteractionElement(cmd, interaction)
@@ -134,6 +134,10 @@ export class CommandRunner {
 
     async runSave() {
         return await this.commands.doSaveAllCommands()
+    }
+
+    async runRefresh() {
+        return await this.commands.doRefreshAllCommands()
     }
 
     async checkIfBlockedByJail(interaction: Interaction<CacheType>) {
