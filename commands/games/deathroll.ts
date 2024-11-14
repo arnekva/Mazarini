@@ -132,9 +132,6 @@ export class Deathroll extends AbstractCommands {
                     else if (stat.currentLossStreak > 4) additionalMessage += `\n*(${username} er på en ${stat.currentLossStreak} loss streak)*`
                 }
             }
-            console.log(
-                `\nAktivitetspoeng: ${this.activity.users.map((u) => `${UserUtils.findUserById(u.userId, interaction)?.username}: ${u.points}`).join(', ')}`
-            )
 
             const bold = (game?.players?.length ?? 0) == 1 ? '**' : ''
             const waitTme = Math.random() < 0.001 || (roll == 1 && Math.random() < diceTarget / 1000) ? 5000 : 0 // Økende sannsynlighet for å bli tomasa jo større tapet er | generelt 0.1% sannsynlig å bli tomasa
@@ -205,7 +202,7 @@ export class Deathroll extends AbstractCommands {
                         'har bedre pølser enn Narvesen',
                         'hæ?',
                         '',
-                        '',
+                        'haha, pølsehumor',
                         '',
                         '',
                         '',
@@ -225,7 +222,7 @@ export class Deathroll extends AbstractCommands {
                     '<:pointerbrothers1:1177653110852825158>',
                     '',
                     '',
-                    '',
+                    'haha thomas suge på å trilta 11',
                     '',
                     '',
                 ])
@@ -288,7 +285,7 @@ export class Deathroll extends AbstractCommands {
         if (this.rewardPot < this.potPayout) {
             this.rewardPot += 2000
             this.saveRewardPot()
-            return `Nice, du traff tallet - siden potten e på under ${this.potPayout} så får du ingenting nå, men den øke med 2000 (${this.rewardPot})`
+            return `Nice!\n(pott + 2000 + ${addToPot} = ${this.rewardPot} chips)`
         } else {
             //Pot has been won
             const mainWinnerAmount = Math.round(this.rewardPot * 0.6)
