@@ -26,13 +26,26 @@ export interface DRGame {
     loserID?: string
 }
 
+interface IUserActivity {
+    userId: string
+    points: number
+}
+interface IActivity {
+    users: IUserActivity[]
+}
+
 export class Deathroll extends AbstractCommands {
     private drGames: DRGame[]
     private rewardPot: number
+    private activity: IActivity
+    private potPayout = 8334
 
     constructor(client: MazariniClient) {
         super(client)
 
+        this.activity = {
+            users: [],
+        }
         this.setGamesFromDB()
         this.retrieveDeathrollPot()
         this.reRollWinningNumbers()
@@ -119,6 +132,10 @@ export class Deathroll extends AbstractCommands {
                     else if (stat.currentLossStreak > 4) additionalMessage += `\n*(${username} er på en ${stat.currentLossStreak} loss streak)*`
                 }
             }
+            console.log(
+                `\nAktivitetspoeng: ${this.activity.users.map((u) => `${UserUtils.findUserById(u.userId, interaction)?.username}: ${u.points}`).join(', ')}`
+            )
+
             const bold = (game?.players?.length ?? 0) == 1 ? '**' : ''
             const waitTme = Math.random() < 0.001 || (roll == 1 && Math.random() < diceTarget / 1000) ? 5000 : 0 // Økende sannsynlighet for å bli tomasa jo større tapet er | generelt 0.1% sannsynlig å bli tomasa
             setTimeout(() => {
@@ -265,15 +282,39 @@ export class Deathroll extends AbstractCommands {
 
     private async rewardPotToUser(userId: string, addToPot: number) {
         const dbUser = await this.client.database.getUser(userId)
-        const initalPot = this.rewardPot
-        const rewarded = this.client.bank.giveMoney(dbUser, this.rewardPot + addToPot)
-        this.rewardPot = this.rewardPot + addToPot - rewarded
-        if (rewarded > 0) this.saveRewardPot()
-        this.sendNoThanksButton(userId, rewarded)
-        const jailed = this.rewardPot > 0
-        return `Nice\nDu vinner potten på ${initalPot} ${addToPot > 0 ? '(+' + addToPot + ') ' : ''}chips! ${
-            jailed ? `(men du får bare ${rewarded} siden du er i fengsel)\nPotten er fortsatt på ${this.rewardPot} chips` : ''
-        }`
+
+        this.rewardPot = this.rewardPot + addToPot
+        //Cannot win pot when it's less than this
+        if (this.rewardPot < this.potPayout) {
+            this.rewardPot += 2000
+            this.saveRewardPot()
+            return `Nice, du traff tallet - siden potten e på under ${this.potPayout} så får du ingenting nå, men den øke med 2000 (${this.rewardPot})`
+        } else {
+            //Pot has been won
+            const mainWinnerAmount = Math.round(this.rewardPot * 0.6)
+            this.rewardPot -= mainWinnerAmount
+            const rewarded = this.client.bank.giveMoney(dbUser, mainWinnerAmount)
+            const activity = this.activity
+            const restOfUsers = activity.users.filter((u) => u.userId !== userId).sort((a, b) => b.points - a.points)
+            const totalPoints = restOfUsers.reduce((acc, user) => acc + user.points, 0)
+            const rewardTexts: string[] = []
+            rewardTexts.push(`Du vinner hovedpotten på ${rewarded} chips!`)
+            for (const user of restOfUsers) {
+                const dbUser = await this.client.database.getUser(userId)
+
+                const userShare = Math.round((user.points / totalPoints) * this.rewardPot)
+
+                rewardTexts.push(`${UserUtils.findUserById(user.userId, this.client)?.username} får ${userShare} chips (${user.points}  / ${totalPoints})`)
+                this.client.bank.giveMoney(dbUser, userShare)
+            }
+            this.rewardPot = 0
+            this.saveRewardPot()
+            this.activity.users = []
+            // this.sendNoThanksButton(userId, rewarded)
+
+            // const jailed = this.rewardPot > 0
+            return rewardTexts.join('\n')
+        }
     }
 
     private saveRewardPot() {
@@ -366,6 +407,16 @@ export class Deathroll extends AbstractCommands {
 
     private endGame(finishedGame: DRGame) {
         this.drGames = this.drGames.filter((game) => game.id != finishedGame.id)
+
+        finishedGame.players.forEach((player) => {
+            const userActivity = this.activity.users.find((u) => u.userId === player.userID)
+            if (userActivity) {
+                userActivity.points += 1
+            } else {
+                this.activity.users.push({ userId: player.userID, points: 1 })
+            }
+        })
+
         return this.client.database.registerDeathrollStats(finishedGame)
     }
 
