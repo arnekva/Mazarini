@@ -297,10 +297,8 @@ export class Deathroll extends AbstractCommands {
             const rewardTexts: string[] = []
             rewardTexts.push(`Du vinner hovedpotten på ${rewarded} chips!`)
             for (const user of restOfUsers) {
-                const dbUser = await this.client.database.getUser(userId)
-
+                const dbUser = await this.client.database.getUser(user.userId)
                 const userShare = Math.round((user.points / totalPoints) * this.rewardPot)
-
                 rewardTexts.push(`${UserUtils.findUserById(user.userId, this.client)?.username} får ${userShare} chips (${user.points}  / ${totalPoints})`)
                 this.client.bank.giveMoney(dbUser, userShare)
             }
