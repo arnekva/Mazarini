@@ -85,8 +85,8 @@ export class Deathroll extends AbstractCommands {
 
     private async rollDice(interaction: ChatInputCommandInteraction<CacheType>) {
         const diceTarget = interaction.options.get('sider')?.value as number
-        if (diceTarget > 9999999999) {
-            this.messageHelper.replyToInteraction(interaction, `Du kan ikke trille en terning med mer enn 10 sifre`, { ephemeral: true })
+        if (diceTarget > 999999999) {
+            this.messageHelper.replyToInteraction(interaction, `Du kan ikke trille en terning med mer enn 9 sifre`, { ephemeral: true })
         } else if (diceTarget <= 0)
             this.messageHelper.replyToInteraction(interaction, `Du kan ikke trille en terning med mindre enn 1 side`, { ephemeral: true })
         else {
@@ -230,10 +230,10 @@ export class Deathroll extends AbstractCommands {
 
         //Checks if all digits are the same (e.g. 111, 2222, 5555)
         const sameDigits = new RegExp(/^([0-9])\1*$/gi).test(roll.toString())
-        if (sameDigits && roll > 10) addToPot(roll, 1)
+        if (sameDigits && roll > 10) addToPot(roll, 2)
         //Check if ONLY the first digits is a non-zero (e.g. 40, 500, 6000, 20000)
         const allDigitsExceptFirstAreZero = new RegExp(/^[1-9]0+$/gi).test(roll.toString())
-        if (allDigitsExceptFirstAreZero) addToPot(roll, 1)
+        if (allDigitsExceptFirstAreZero) addToPot(roll, 3)
 
         multipliers.forEach((m) => {
             totalAdded *= m
@@ -245,8 +245,8 @@ export class Deathroll extends AbstractCommands {
     }
 
     private getRollReward(r: number) {
-        if ([1996, 1997, 1881, 1337].includes(r)) return r
-        else if ([6969, 420, 123, 1234, 12345].includes(r)) return r * 10
+        if ([1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 1492].includes(r)) return r
+        else if ([6969, 420, 123, 1234, 12345, 690].includes(r)) return r * 10
         else if (r === 8008) return 80085
         else return 0
     }
