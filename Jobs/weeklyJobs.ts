@@ -60,17 +60,18 @@ export class WeeklyJobs {
 
             data.openingHours.exceptionHours.forEach((h, index) => {
                 const dateName = moment(h?.date).format('dddd')
-
-                let message = ''
-                if (h.openingTime && h.closingTime) {
-                    message = `Det er forkortet åpningstid. Det er åpent mellom ${h.openingTime} - ${h.closingTime}`
-                } else {
-                    message = h?.message ? h.message : 'Ingen forklaring'
+                if (h.openingTime !== '10:00' || h.closingTime !== '18:00') {
+                    let message = ''
+                    if (h.openingTime && h.closingTime) {
+                        message = `Det er forkortet åpningstid. Det er åpent mellom ${h.openingTime} - ${h.closingTime}`
+                    } else {
+                        message = h?.message ? h.message : 'Ingen forklaring'
+                    }
+                    fmMessage.addFields({
+                        name: dateName ? `${dateName} (${h?.date})` : 'Ukjent dag',
+                        value: `${message}`,
+                    })
                 }
-                fmMessage.addFields({
-                    name: dateName ? `${dateName} (${h?.date})` : 'Ukjent dag',
-                    value: `${message}`,
-                })
             })
 
             this.messageHelper.sendMessage(ChannelIds.VINMONOPOLET, { embed: fmMessage })

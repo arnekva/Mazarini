@@ -187,7 +187,7 @@ export class PoletCommands extends AbstractCommands {
         const fmMessage = new EmbedBuilder().setTitle(`${poletData.storeName} (${poletData.address.postalCode}, ${poletData.address.city}) `)
 
         if (poletData.openingHours.exceptionHours.length) {
-            fmMessage.addFields({ name: 'Endre åpningstider', value: 'Det er endrede åpningstider denne måneden' })
+            fmMessage.addFields({ name: 'Endrede åpningstider', value: 'Det er endrede åpningstider denne måneden' })
 
             poletData.openingHours.exceptionHours.forEach((h, index) => {
                 const dateName = moment(h?.date).format('dddd')
