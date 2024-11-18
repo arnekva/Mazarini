@@ -200,6 +200,10 @@ export class DateUtils {
         return moment().month() === 11
     }
 
+    static isNovember() {
+        return moment().month() === 10
+    }
+
     static dateIsWithinLastHour(d: Date) {
         return moment(d).isBetween(moment().subtract(1, 'hours'), moment())
     }

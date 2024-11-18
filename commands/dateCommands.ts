@@ -3,10 +3,10 @@ import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
 import { HelgHelper } from '../helpers/helgHelper'
-import { ICountdownItem, ferieItem } from '../interfaces/database/databaseInterface'
+import { ferieItem, ICountdownItem } from '../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../interfaces/interactionInterface'
 import { ArrayUtils } from '../utils/arrayUtils'
-import { DateUtils, dateRegex, timeRegex } from '../utils/dateUtils'
+import { dateRegex, DateUtils, timeRegex } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
@@ -148,13 +148,13 @@ export class DateCommands extends AbstractCommands {
             }
             let vacayNow = ''
             let vacayLater = ''
-            let vacayNowSorted = new Map([...vacayNowMap].sort((d1, d2) => d1[0].getTime() - d2[0].getTime()))
+            const vacayNowSorted = new Map([...vacayNowMap].sort((d1, d2) => d1[0].getTime() - d2[0].getTime()))
             vacayNowSorted.forEach((vacayString, key) => (vacayNow += vacayString))
-            let vacayLaterSorted = new Map([...vacayLaterMap].sort((d1, d2) => d1[0].getTime() - d2[0].getTime()))
+            const vacayLaterSorted = new Map([...vacayLaterMap].sort((d1, d2) => d1[0].getTime() - d2[0].getTime()))
             vacayLaterSorted.forEach((vacayString, key) => (vacayLater += vacayString))
-
-            const vacay = new EmbedBuilder().setTitle(`Ferie 🏝️`)
-            if (vacayNowMap.size > 0) vacay.addFields({ name: 'Er på ferie 😎', value: `${vacayNow}`, inline: false })
+            const isChristmasVacation = DateUtils.isDecember() || DateUtils.isNovember()
+            const vacay = new EmbedBuilder().setTitle(`Ferie  ${isChristmasVacation ? '⛄🎄' : '🏝️'}`)
+            if (vacayNowMap.size > 0) vacay.addFields({ name: `Er på ferie ${isChristmasVacation ? '🎅🏻' : '😎'}`, value: `${vacayNow}`, inline: false })
             if (vacayLaterMap.size > 0) vacay.addFields({ name: 'Skal på ferie 🙏', value: `${vacayLater}`, inline: false })
             this.messageHelper.replyToInteraction(interaction, vacay)
         }

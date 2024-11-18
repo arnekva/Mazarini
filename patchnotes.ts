@@ -9,8 +9,7 @@ import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
     public static readonly currentVersion = '18.9.1'
-    public static readonly currentPatchNotes =
-        `* Hele potten i Deathroll går nå til vinneren igjen` + `\n * Liten rollback på 18.9.0, da det viste seg å være en for kjedelig endring`
+    public static readonly currentPatchNotes = `* /ferie har nå mer passende emojier for juleferie`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
