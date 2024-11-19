@@ -8,8 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '18.9.2'
-    public static readonly currentPatchNotes = `* Nerfet hvor mye chips som legges til i potten i deathroll av diverse grunner`
+    public static readonly currentVersion = '18.9.3'
+    public static readonly currentPatchNotes = `* Liten buff til deathroll rewards`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

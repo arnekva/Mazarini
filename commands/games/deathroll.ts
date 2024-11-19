@@ -231,10 +231,10 @@ export class Deathroll extends AbstractCommands {
         if (roll === 2) addToPot(10, 1)
         //Checks if all digits are the same (e.g. 111, 2222, 5555)
         const sameDigits = new RegExp(/^([0-9])\1*$/gi).test(roll.toString())
-        if (sameDigits) addToPot(roll, 1)
+        if (sameDigits) addToPot(roll, 3)
         //Check if ONLY the first digits is a non-zero (e.g. 40, 500, 6000, 20000)
         const allDigitsExceptFirstAreZero = new RegExp(/^[1-9]0+$/gi).test(roll.toString())
-        if (allDigitsExceptFirstAreZero) addToPot(roll, 1)
+        if (allDigitsExceptFirstAreZero) addToPot(roll, 3)
 
         multipliers.forEach((m) => {
             totalAdded *= m
@@ -247,7 +247,7 @@ export class Deathroll extends AbstractCommands {
     }
 
     private getRollReward(r: number) {
-        if ([1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 690, 8008, 6969, 420, 123, 1234, 12345].includes(r)) return r
+        if ([1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 690, 8008, 6969, 420, 123, 1234, 12345].includes(r)) return r * 3
         else return 0
     }
 
