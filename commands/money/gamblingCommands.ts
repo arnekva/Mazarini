@@ -201,7 +201,7 @@ export class GamblingCommands extends AbstractCommands {
             this.client.database.updateUser(user)
             const randArray = []
             for (let i = 0; i < 6; i++) {
-                randArray.push(RandomUtils.getRandomInteger(0, 9))
+                randArray.push(RandomUtils.getRandomInteger(1, 9))
             }
             randArray.forEach((num) => {
                 emojiString += MiscUtils.findLetterEmoji(num.toString())
@@ -272,19 +272,19 @@ export class GamblingCommands extends AbstractCommands {
     private findSequenceWinningAmount(s: string) {
         switch (s) {
             case '123':
-                return 500
+                return 1000
             case '1234':
                 return 5000
             case '12345':
                 return 50000
             case '123456':
-                return 500000
+                return 25000
             case '1337':
                 return 5000
             case '8008':
                 return 5000
             case '80085':
-                return 50000
+                return 25000
             default:
                 return 500
         }
@@ -293,15 +293,15 @@ export class GamblingCommands extends AbstractCommands {
     private findSlotMachineWinningAmount(numCorrect: number) {
         switch (numCorrect) {
             case 2:
-                return 100
+                return 150
             case 3:
-                return 500
+                return 900
             case 4:
                 return 5000
             case 5:
-                return 50000
+                return 25000
             case 6:
-                return 500000
+                return 50000
             default:
                 return 100
         }
