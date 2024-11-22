@@ -273,20 +273,17 @@ export class GamblingCommands extends AbstractCommands {
         switch (s) {
             case '123':
                 return 1250
-            case '1234':
-                return 5000
-            case '12345':
-                return 25000
-            case '123456':
-                return 50000
             case '1337':
             case '1996':
             case '1997':
-                return 5000
             case '8008':
+            case '1234':
                 return 5000
+            case '12345':
             case '80085':
                 return 25000
+            case '123456':
+                return 50000
             default:
                 return 500
         }
