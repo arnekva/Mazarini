@@ -8,8 +8,12 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '18.9.5'
-    public static readonly currentPatchNotes = `* /roll koster nå 500 (opp fra 100), men gir også tilsvarende mer reward`
+    public static readonly currentVersion = '18.10.0'
+    public static readonly currentPatchNotes =
+        `* Du har nå en 5% sjanse til å få en lootbox i stedet for å legge til chips i potten på Deathroll.` +
+        `   * Lootbox rarity er basert på hvor mye chips du eventuelt hadde lagt til` +
+        `   * Dette gjelder bare i tilfeller hvor 100 eller mer blir lagt til` +
+        `* /roll koster nå 500 (opp fra 100), men gir også tilsvarende mer reward`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

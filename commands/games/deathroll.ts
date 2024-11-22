@@ -4,6 +4,7 @@ import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 import { DeathRollStats } from '../../helpers/databaseHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
+import { LootboxQuality } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { ArrayUtils } from '../../utils/arrayUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
@@ -97,7 +98,8 @@ export class Deathroll extends AbstractCommands {
             let additionalMessage = ''
             if (game) {
                 this.updateGame(game, user.id, roll)
-                additionalMessage += this.checkForReward(roll, diceTarget)
+                const rewards = this.checkForReward(roll, diceTarget, interaction)
+                additionalMessage += rewards.text
                 additionalMessage += this.checkForJokes(roll, diceTarget, game.nextToRoll)
                 additionalMessage += await this.checkIfPotWon(game, roll, diceTarget, user.id)
 
@@ -217,7 +219,7 @@ export class Deathroll extends AbstractCommands {
         return ''
     }
 
-    private checkForReward(roll: number, diceTarget: number) {
+    private checkForReward(roll: number, diceTarget: number, int: ChatInputCommandInteraction<CacheType>): { val: number; text: string } {
         let totalAdded = this.getRollReward(roll)
         const multipliers: number[] = [1]
         const lowRoll = roll < 100
@@ -240,10 +242,23 @@ export class Deathroll extends AbstractCommands {
             totalAdded *= m
         })
         const finalAmount = totalAdded
-        this.rewardPot += finalAmount
+        if (finalAmount >= 100 && RandomUtils.getRandomPercentage(5)) {
+            let quality = LootboxQuality.Basic
+            if (finalAmount >= 25000) quality = LootboxQuality.Elite
+            else if (finalAmount >= 10000) quality = LootboxQuality.Premium
+            this.client.bank.rewardLootbox(
+                int.channelId,
+                int.user.id,
+                quality,
+                `${MentionUtils.mentionUser(int.user.id)} du får ein lootbox for ${roll}. Gz! `,
+                `Potten er fortsatt ${this.rewardPot}`
+            )
+        } else {
+            this.rewardPot += finalAmount
+        }
         if (totalAdded > 0) this.saveRewardPot()
 
-        return totalAdded >= 100 ? `(pott + ${finalAmount} = ${this.rewardPot} chips)` : ''
+        return { val: totalAdded, text: totalAdded >= 100 ? `(pott + ${finalAmount} = ${this.rewardPot} chips)` : '' }
     }
 
     private getRollReward(r: number) {

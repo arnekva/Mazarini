@@ -1,24 +1,25 @@
-import { MazariniClient } from "../client/MazariniClient"
-import { MazariniUser } from "../interfaces/database/databaseInterface"
+import { MazariniClient } from '../client/MazariniClient'
+import { LootboxCommands } from '../commands/store/lootboxCommands'
+import { LootboxQuality, MazariniUser } from '../interfaces/database/databaseInterface'
+import { EmbedUtils } from '../utils/embedUtils'
 
 export class MoneyHelper {
-
     private client: MazariniClient
     private jail_multiplier: number = 0.25
 
     constructor(client: MazariniClient) {
         this.client = client
     }
-    
+
     giveMoney(user: MazariniUser, amount: number) {
         const amountGiven = this.applyRestrictions(user, amount)
-        user.chips = user.chips ? (user.chips + amountGiven) : amountGiven
+        user.chips = user.chips ? user.chips + amountGiven : amountGiven
         this.client.database.updateUser(user)
         return amountGiven
     }
 
     giveUnrestrictedMoney(user: MazariniUser, amount: number) {
-        user.chips = user.chips ? (user.chips + amount) : amount
+        user.chips = user.chips ? user.chips + amount : amount
         this.client.database.updateUser(user)
     }
 
@@ -44,4 +45,11 @@ export class MoneyHelper {
         return money
     }
 
+    rewardLootbox(channelId: string, userID: string, quality = LootboxQuality.Basic, reason: string, footerText?: string) {
+        const lootButton = LootboxCommands.getDailyLootboxRewardButton(userID, quality)
+        const text = `${reason}`
+        const embed = EmbedUtils.createSimpleEmbed('Reward', text)
+        if (footerText) embed.setFooter({ text: footerText })
+        this.client.messageHelper.sendMessage(channelId, { embed, components: [lootButton] })
+    }
 }
