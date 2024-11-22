@@ -253,6 +253,7 @@ export class Deathroll extends AbstractCommands {
                 `${MentionUtils.mentionUser(int.user.id)} du får ein lootbox for ${roll}. Gz! `,
                 `Potten er fortsatt ${this.rewardPot}`
             )
+            return { val: 0, text: 'Lootbox reward!' }
         } else {
             this.rewardPot += finalAmount
         }
