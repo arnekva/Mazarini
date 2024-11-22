@@ -190,7 +190,7 @@ export class GamblingCommands extends AbstractCommands {
     private async rollSlotMachine(interaction: ChatInputCommandInteraction<CacheType>) {
         const user = await this.client.database.getUser(interaction.user.id)
         const userMoney = user.chips
-        const cost = 100
+        const cost = 500
         if (Number(userMoney) < cost) {
             this.messageHelper.replyToInteraction(interaction, `Det koste ${cost} chips for å bruga maskinen, og du har kje råd bro`)
         } else {
@@ -213,7 +213,7 @@ export class GamblingCommands extends AbstractCommands {
                 .setFields()
 
             const amountOfCorrectNums: { val: number; num: number }[] = []
-            const sequenceWins = ['123', '1234', '12345', '123456', '1337', '80085']
+            const sequenceWins = ['123', '1234', '12345', '123456', '1337', '80085', '1996', '1997']
             let currentNum = randArray[0]
             let numOfOccurence = 0
             //Gå gjennom array
@@ -272,14 +272,16 @@ export class GamblingCommands extends AbstractCommands {
     private findSequenceWinningAmount(s: string) {
         switch (s) {
             case '123':
-                return 1000
+                return 1250
             case '1234':
                 return 5000
             case '12345':
-                return 50000
-            case '123456':
                 return 25000
+            case '123456':
+                return 50000
             case '1337':
+            case '1996':
+            case '1997':
                 return 5000
             case '8008':
                 return 5000
@@ -293,17 +295,17 @@ export class GamblingCommands extends AbstractCommands {
     private findSlotMachineWinningAmount(numCorrect: number) {
         switch (numCorrect) {
             case 2:
-                return 150
+                return 1000
             case 3:
-                return 900
+                return 1750
             case 4:
-                return 5000
+                return 7500
             case 5:
                 return 25000
             case 6:
                 return 50000
             default:
-                return 100
+                return 500
         }
     }
 

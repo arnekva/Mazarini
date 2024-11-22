@@ -8,11 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '18.9.4'
-    public static readonly currentPatchNotes =
-        `* /roll er buffet litt for å bli mer attraktivt å spille` +
-        `* Utbetalinger er buffet litt, og den kan nå bare rulle tall fra 1-9 (fra 0-9)` +
-        `* /roll er buffet litt for å bli mer attraktivt å spille`
+    public static readonly currentVersion = '18.9.5'
+    public static readonly currentPatchNotes = `* /roll koster nå 500 (opp fra 100), men gir også tilsvarende mer reward`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
