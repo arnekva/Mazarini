@@ -292,15 +292,15 @@ export class GamblingCommands extends AbstractCommands {
     private findSlotMachineWinningAmount(numCorrect: number) {
         switch (numCorrect) {
             case 2:
-                return 1000
+                return 600
             case 3:
-                return 1750
+                return 1200
             case 4:
-                return 7500
+                return 4000
             case 5:
-                return 25000
+                return 15000
             case 6:
-                return 50000
+                return 25000
             default:
                 return 500
         }
