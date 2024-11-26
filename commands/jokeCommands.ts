@@ -109,13 +109,10 @@ export class JokeCommands extends AbstractCommands {
                             if (react) message.react(react)
                         })
                     })
-                    .catch((error: any) => {})
+                    .catch(() => {})
             }
         } catch (error) {
             this.messageHelper.sendLogMessage(`Noe gikk galt i reactToManyMessages`)
-        }
-        if (interaction.guild) {
-            const react = interaction.guild.emojis.cache.find((emoji) => emoji.name == 'eivindpride')
         }
     }
 
@@ -124,9 +121,9 @@ export class JokeCommands extends AbstractCommands {
         const text = interaction.options.get('melding')?.value as string
         const msgId = interaction.options.get('melding-id')?.value as string
 
-        let letterTab: string[] = text.split('')
+        const letterTab: string[] = text.split('')
 
-        let messageToReactTo = await MessageUtils.findMessageById(msgId, this.client)
+        const messageToReactTo = await MessageUtils.findMessageById(msgId, this.client)
         if (!messageToReactTo) this.messageHelper.replyToInteraction(interaction, `Fant kje meldingen bro`, { ephemeral: true, hasBeenDefered: true })
 
         let usedLetter = ''
@@ -138,7 +135,7 @@ export class JokeCommands extends AbstractCommands {
             const emoji = usedLetter.includes(letter) ? MiscUtils.findLetterEmoji(letter, true, spaceCounter) : MiscUtils.findLetterEmoji(letter)
             usedLetter += letter
             try {
-                messageToReactTo.react(emoji).catch((error) => this.messageHelper.sendLogMessage(`Fant ikke emoji for bokstaven '${letter}'.`))
+                messageToReactTo.react(emoji).catch(() => this.messageHelper.sendLogMessage(`Fant ikke emoji for bokstaven '${letter}'.`))
             } catch (error) {
                 this.messageHelper.sendLogMessage(`Fant ikke emoji for bokstaven '${letter}'.`)
             }
@@ -302,8 +299,8 @@ export class JokeCommands extends AbstractCommands {
         }
     }
 
-    private async sendPointerBrothers(interaction: ChatInputCommandInteraction<CacheType>) {
-        let index = RandomUtils.getRandomIntegerExcludingNumber(textArrays.pointerBrothersUrls.length, this.prevGifIndex)
+    private sendPointerBrothers(interaction: ChatInputCommandInteraction<CacheType>) {
+        const index = RandomUtils.getRandomIntegerExcludingNumber(textArrays.pointerBrothersUrls.length, this.prevGifIndex)
         this.prevGifIndex = index
         const randomGif = textArrays.pointerBrothersUrls[index]
         this.messageHelper.replyToInteraction(interaction, randomGif)
@@ -316,7 +313,7 @@ export class JokeCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'whamageddon',
-                        command: async (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                             this.whamageddon(rawInteraction)
                         },
                     },
