@@ -213,7 +213,7 @@ export class GamblingCommands extends AbstractCommands {
                 .setFields()
 
             const amountOfCorrectNums: { val: number; num: number }[] = []
-            const sequenceWins = ['123', '1234', '12345', '123456', '1337', '80085', '1996', '1997']
+            const sequenceWins = ['123', '1234', '12345', '123456', '1337', '8008', '80085', '1996', '1997']
             let currentNum = randArray[0]
             let numOfOccurence = 0
             //Gå gjennom array
@@ -292,9 +292,9 @@ export class GamblingCommands extends AbstractCommands {
     private findSlotMachineWinningAmount(numCorrect: number) {
         switch (numCorrect) {
             case 2:
-                return 600
+                return 750
             case 3:
-                return 1200
+                return 1000
             case 4:
                 return 4000
             case 5:

@@ -242,7 +242,7 @@ export class Deathroll extends AbstractCommands {
             totalAdded *= m
         })
         const finalAmount = totalAdded
-        if (finalAmount >= 100 && RandomUtils.getRandomPercentage(5)) {
+        if (finalAmount >= 100 && RandomUtils.getRandomPercentage(7.5)) {
             let quality = LootboxQuality.Basic
             if (finalAmount >= 25000) quality = LootboxQuality.Elite
             else if (finalAmount >= 10000) quality = LootboxQuality.Premium
