@@ -217,7 +217,8 @@ export namespace HelgHelper {
     ]
 
     export const checkMessageForHolidays = (msg: string) => {
-        const holiday: IHolidayCheck = holidayChecks.find((holiday) => holiday.keywords.some((keyword) => msg.toLowerCase().includes(keyword.toLowerCase())))
+        let holiday: IHolidayCheck = holidayChecks.find((holiday) => holiday.keywords.some((keyword) => msg.toLowerCase() === keyword.toLowerCase()))
+        if (!holiday && Math.random() < 1/4) holiday = holidayChecks.find((holiday) => holiday.keywords.some((keyword) => msg.toLowerCase().includes(keyword.toLowerCase())))
         if (holiday) {
             moment.locale('en')
             const year = new Date().getFullYear()
