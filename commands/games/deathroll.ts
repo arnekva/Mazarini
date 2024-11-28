@@ -281,13 +281,13 @@ export class Deathroll extends AbstractCommands {
 
     private async rewardPotToUser(userId: string, addToPot: number) {
         const dbUser = await this.client.database.getUser(userId)
-        const initalPot = this.rewardPot
+        const initialPot = this.rewardPot
         const rewarded = this.client.bank.giveMoney(dbUser, this.rewardPot + addToPot)
         this.rewardPot = this.rewardPot + addToPot - rewarded
         if (rewarded > 0) this.saveRewardPot()
         this.sendNoThanksButton(userId, rewarded)
         const jailed = this.rewardPot > 0
-        return `Nice\nDu vinner potten på ${initalPot} ${addToPot > 0 ? '(+' + addToPot + ') ' : ''}chips! ${
+        return `Nice\nDu vinner potten på ${initialPot+addToPot} ${addToPot > 0 ? `(${initialPot} + ${addToPot}) ` : ''}chips! ${
             jailed ? `(men du får bare ${rewarded} siden du er i fengsel)\nPotten er fortsatt på ${this.rewardPot} chips` : ''
         }`
     }
