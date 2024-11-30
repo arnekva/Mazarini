@@ -162,6 +162,7 @@ export class ClientListener {
                 target?.id === message?.author?.id &&
                 message.channelId !== ChannelIds.ACTION_LOG &&
                 message.channelId !== ChannelIds.LOKAL_BOT_SPAM_DEV &&
+                message.channelId !== ChannelIds.LOKAL_BOT_SECRET &&
                 !message?.content?.includes('Laster data') &&
                 !message?.content?.includes('Henter data') &&
                 environment === 'prod' &&
