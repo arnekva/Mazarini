@@ -98,7 +98,7 @@ export class Deathroll extends AbstractCommands {
             let additionalMessage = ''
             if (game) {
                 this.updateGame(game, user.id, roll)
-                const rewards = this.checkForReward(roll, diceTarget, interaction)
+                const rewards = await this.checkForReward(roll, diceTarget, interaction)
                 additionalMessage += rewards.text
                 additionalMessage += this.checkForJokes(roll, diceTarget, game.nextToRoll)
                 additionalMessage += await this.checkIfPotWon(game, roll, diceTarget, user.id)
@@ -219,7 +219,7 @@ export class Deathroll extends AbstractCommands {
         return ''
     }
 
-    private checkForReward(roll: number, diceTarget: number, int: ChatInputCommandInteraction<CacheType>): { val: number; text: string } {
+    private async checkForReward(roll: number, diceTarget: number, int: ChatInputCommandInteraction<CacheType>): Promise<{ val: number; text: string }> {
         let totalAdded = this.getRollReward(roll)
         const multipliers: number[] = [1]
         const lowRoll = roll < 100
@@ -238,6 +238,15 @@ export class Deathroll extends AbstractCommands {
         const allDigitsExceptFirstAreZero = new RegExp(/^[1-9]0+$/gi).test(roll.toString())
         if (allDigitsExceptFirstAreZero) addToPot(roll, 3)
 
+        
+        if (totalAdded > 0 && roll > 100) {
+            const user = await this.client.database.getUser(int.user.id)
+            if ((user.effects?.positive?.doublePotDeposit ?? 0) > 0) {
+                multipliers.push(2)
+                user.effects.positive.doublePotDeposit--
+                this.client.database.updateUser(user)
+            }
+        }
         multipliers.forEach((m) => {
             totalAdded *= m
         })
@@ -259,7 +268,7 @@ export class Deathroll extends AbstractCommands {
         }
         if (totalAdded > 0) this.saveRewardPot()
 
-        return { val: totalAdded, text: totalAdded >= 100 ? `(pott + ${finalAmount} = ${this.rewardPot} chips)` : '' }
+        return { val: totalAdded, text: roll >= 100 && totalAdded > 100 ? `(pott + ${finalAmount} = ${this.rewardPot} chips)` : '' }
     }
 
     private getRollReward(r: number) {
@@ -282,14 +291,20 @@ export class Deathroll extends AbstractCommands {
     private async rewardPotToUser(userId: string, addToPot: number) {
         const dbUser = await this.client.database.getUser(userId)
         const initialPot = this.rewardPot
-        const rewarded = this.client.bank.giveMoney(dbUser, this.rewardPot + addToPot)
-        this.rewardPot = this.rewardPot + addToPot - rewarded
+        let potMultiplier = 1
+        if ((dbUser.effects?.positive?.doublePotWins ?? 0) > 0) {
+            potMultiplier = 2
+            dbUser.effects.positive.doublePotWins--
+        }
+        const potentialReward = (this.rewardPot + addToPot) * potMultiplier
+        const rewarded = this.client.bank.giveMoney(dbUser, potentialReward)
+        this.rewardPot = Math.max((this.rewardPot + addToPot - rewarded), 0) 
         if (rewarded > 0) this.saveRewardPot()
         this.sendNoThanksButton(userId, rewarded)
         const jailed = this.rewardPot > 0
-        return `Nice\nDu vinner potten på ${initialPot+addToPot} ${addToPot > 0 ? `(${initialPot} + ${addToPot}) ` : ''}chips! ${
-            jailed ? `(men du får bare ${rewarded} siden du er i fengsel)\nPotten er fortsatt på ${this.rewardPot} chips` : ''
-        }`
+        return ` Nice\nDu vinner potten på ${initialPot+addToPot} ${addToPot > 0 ? `(${initialPot} + ${addToPot}) ` : ''}chips!`
+             + `${ potMultiplier > 1 ? `\n(men du har jo en x${potMultiplier} multiplier, så da får du ${potentialReward} chips!)` : ''}`
+             + `${ jailed ? `\n(men du får bare ${rewarded} siden du er i fengsel)\nPotten er fortsatt på ${this.rewardPot} chips` : ''}`
     }
 
     private saveRewardPot() {

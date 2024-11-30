@@ -1,4 +1,5 @@
 import { blackjackCommand } from './commandStorage/blackjack'
+import { calendarCommand } from './commandStorage/calendar'
 import { countdownCommand } from './commandStorage/countdown'
 import { dailyCommand } from './commandStorage/daily'
 import { deathrollCommand } from './commandStorage/deathroll'
@@ -13,6 +14,7 @@ import { musicCommand } from './commandStorage/musikk'
 import { pickpocketCommand } from './commandStorage/pickpocket'
 import { pointerbrothersCommand } from './commandStorage/pointerbrothers'
 import { pollCommand } from './commandStorage/poll'
+import { refreshCommand } from './commandStorage/refresh'
 import { rewardCommand } from './commandStorage/reward'
 import { rocketCommand } from './commandStorage/rocket'
 import { sangCommand } from './commandStorage/sang'
@@ -58,4 +60,6 @@ export namespace CommandStorage {
     export const RewardCommand = rewardCommand
     export const DailyCommand = dailyCommand
     export const userSettings = userSettingsCommand
+    export const RefreshCommand = refreshCommand
+    export const CalendarCommand = calendarCommand
 }

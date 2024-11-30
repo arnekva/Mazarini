@@ -190,15 +190,18 @@ export class GamblingCommands extends AbstractCommands {
     private async rollSlotMachine(interaction: ChatInputCommandInteraction<CacheType>) {
         const user = await this.client.database.getUser(interaction.user.id)
         const userMoney = user.chips
-        const cost = 500
-        if (Number(userMoney) < cost) {
+        let cost = 500
+        if ((user.effects?.positive?.freeRolls ?? 0) > 0) {
+            cost = 0
+            user.effects.positive.freeRolls--
+        }
+        if ((Number(userMoney) < cost)) {
             this.messageHelper.replyToInteraction(interaction, `Det koste ${cost} chips for å bruga maskinen, og du har kje råd bro`)
         } else {
             //Remove 100 chips
             let emojiString = ''
             const newMoneyVal = Number(userMoney) - cost
             user.chips = newMoneyVal
-            this.client.database.updateUser(user)
             const randArray = []
             for (let i = 0; i < 6; i++) {
                 randArray.push(RandomUtils.getRandomInteger(1, 9))
@@ -263,7 +266,7 @@ export class GamblingCommands extends AbstractCommands {
             user.chips = newMoney
             this.client.database.updateUser(user)
 
-            if (!hasSequence && amountOfCorrectNums.length < 1) msg.addFields({ name: 'Du tapte', value: `-${cost} chips` })
+            if (!hasSequence && amountOfCorrectNums.length < 1) msg.addFields({ name: 'Du tapte', value: `${cost > 0 ? '-' : ''}${cost} chips` })
 
             this.messageHelper.replyToInteraction(interaction, msg)
         }

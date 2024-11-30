@@ -252,6 +252,11 @@ export class CrimeCommands extends AbstractCommands {
                 { ephemeral: true }
             )
         } else {
+            if ((engager.effects?.positive?.jailPass ?? 0) > 0) {
+                engager.effects.positive.jailPass--
+                this.client.database.updateUser(engager)
+                return this.messageHelper.replyToInteraction(interaction, 'Du unngikk nettopp fengsel pga ditt get out of jail free kort.', {ephemeral: true})
+            }
             const prevJailState = engager.jail?.jailState
             let nextJailState: JailState = 'standard'
             if (engager.jail?.timesJailedToday > 0) {

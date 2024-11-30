@@ -80,10 +80,9 @@ export class LootboxCommands extends AbstractCommands {
             quality = interaction.customId.split(';')[2]
         }
         const box = await this.resolveLootbox(quality)
-        console.log(box)
         
         if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction)) return
-        const rewardedItem = await this.calculateRewardItem(box, series)
+        const rewardedItem = await this.calculateRewardItem(box, series, user)
         this.registerItemOnUser(user, rewardedItem)
         this.revealCollectable(interaction, rewardedItem)
     }
@@ -114,25 +113,26 @@ export class LootboxCommands extends AbstractCommands {
         return moneyWasTaken
     }
 
-    private async calculateRewardItem(box: ILootbox, series: string) {
+    private async calculateRewardItem(box: ILootbox, series: string, user: MazariniUser) {
         const itemRoll = Math.random()
-        const colored = Math.random() < box.probabilities.color
+        const colorBuff = user.effects?.positive?.lootColorChanceMultiplier ?? 1
+        const colored = Math.random() < (box.probabilities.color * colorBuff)
         if (itemRoll < box.probabilities.legendary) {
-            return await this.getRandomItemForRarity(ItemRarity.Legendary, series, colored)
+            return await this.getRandomItemForRarity(ItemRarity.Legendary, series, colored, user)
         } else if (itemRoll < box.probabilities.epic) {
-            return await this.getRandomItemForRarity(ItemRarity.Epic, series, colored)
+            return await this.getRandomItemForRarity(ItemRarity.Epic, series, colored, user)
         } else if (itemRoll < box.probabilities.rare) {
-            return await this.getRandomItemForRarity(ItemRarity.Rare, series, colored)
+            return await this.getRandomItemForRarity(ItemRarity.Rare, series, colored, user)
         } else {
-            return await this.getRandomItemForRarity(ItemRarity.Common, series, colored)
+            return await this.getRandomItemForRarity(ItemRarity.Common, series, colored, user)
         }
     }
 
-    private async getRandomItemForRarity(rarity: ItemRarity, series: string, colored: boolean): Promise<IUserCollectable> {
+    private async getRandomItemForRarity(rarity: ItemRarity, series: string, colored: boolean, user: MazariniUser): Promise<IUserCollectable> {
         const seriesOrDefault = await this.getSeriesOrDefault(series)
         const rarityItems = this.getRarityItems(seriesOrDefault, rarity)
         const item = RandomUtils.getRandomItemFromList(rarityItems)
-        const color = this.getRandomColor(colored)
+        const color = this.getRandomColor(colored, user)        
         return { name: item, series: seriesOrDefault.name, rarity: rarity, color: color, amount: 1 }
     }
 
@@ -155,12 +155,13 @@ export class LootboxCommands extends AbstractCommands {
         else return undefined
     }
 
-    private getRandomColor(colored: boolean): ItemColor {
+    private getRandomColor(colored: boolean, user: MazariniUser): ItemColor {
+        const flipped = user.effects?.positive?.lootColorsFlipped
         const roll = Math.random()
         if (!colored) return ItemColor.None
-        else if (roll < 1 / 6) return ItemColor.Diamond // 1/6 chance for diamond
+        else if (roll < 1 / 6) return flipped ? ItemColor.Silver : ItemColor.Diamond // 1/6 chance for diamond
         else if (roll < 1 / 2) return ItemColor.Gold // 2/6 chance for gold
-        else return ItemColor.Silver // 3/6 chance for silver
+        else return flipped ? ItemColor.Diamond : ItemColor.Silver // 3/6 chance for silver
     }
 
     private registerItemOnUser(user: MazariniUser, item: IUserCollectable) {        
@@ -438,10 +439,10 @@ export class LootboxCommands extends AbstractCommands {
         const embed = EmbedUtils.createSimpleEmbed('Trade', `Bytter inn: \n${collectableNames}\nfor en ${pendingTrade.receiving} gjenstand`)
         interaction.message.edit({ embeds: [embed], components: [] })
         const colorChance = this.getTradeColorChance(pendingTrade.tradingIn)
-        console.log('color chance: ', colorChance)
-        
-        const colored = Math.random() < colorChance 
-        const rewardedItem = await this.getRandomItemForRarity(pendingTrade.receiving, pendingTrade.series, colored) 
+        const colorBuff = user.effects?.positive?.lootColorChanceMultiplier ?? 1
+
+        const colored = Math.random() < (colorChance * colorBuff)
+        const rewardedItem = await this.getRandomItemForRarity(pendingTrade.receiving, pendingTrade.series, colored, user) 
         const tradedItemsRemoved = this.removeItemsFromUser(pendingTrade.tradingIn, user)
         this.registerTradeOnUser(tradedItemsRemoved, rewardedItem, user)
         this.revealCollectable(interaction, rewardedItem)

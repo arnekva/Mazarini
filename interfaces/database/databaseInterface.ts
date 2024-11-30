@@ -103,6 +103,14 @@ export interface MazariniUser {
     userSettings?: {
         safeGambleValue?: number
     }
+    effects?: IUserEffects
+    christmasCalendar?: UserCalendarGift[]
+}
+
+export interface UserCalendarGift {
+    date: Date
+    calendarGiftId: number
+    opened: boolean
 }
 
 export interface DailyReward {
@@ -110,6 +118,24 @@ export interface DailyReward {
     claimedToday: boolean
     dailyFreezeCounter?: number
     prestige?: number
+}
+
+export interface IUserEffects {
+    positive?: IUserBuffs
+    negative?: IUserDebuffs 
+}
+
+export interface IUserBuffs {
+    jailPass?: number
+    doublePotWins?: number
+    freeRolls?: number
+    lootColorChanceMultiplier?: number
+    doublePotDeposit?: number
+    lootColorsFlipped?: boolean
+}
+
+export interface IUserDebuffs {
+
 }
 
 export interface ILootSystem {

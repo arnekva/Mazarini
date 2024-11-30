@@ -26,12 +26,14 @@ export class DailyJobs {
         } else {
             //TODO: This could be refactored
             const users = await this.client.database.getAllUsers()
-            const embed = EmbedUtils.createSimpleEmbed(`Daily Jobs`, `Kjører 5 jobber`)
+            const embed = EmbedUtils.createSimpleEmbed(`Daily Jobs`, `Kjører 7 jobber`)
 
             const claim = this.validateAndResetDailyClaims(users)
             embed.addFields({ name: 'Daily claim', value: EmojiHelper.getStatusEmoji(claim) })
             const dailySpin = this.resetDailySpinReward(users)
             embed.addFields({ name: 'Daily spin', value: EmojiHelper.getStatusEmoji(dailySpin) })
+            const userEffects = this.resetUserEffects(users)
+            embed.addFields({ name: 'User effects', value: EmojiHelper.getStatusEmoji(userEffects) })
             const jail = await this.updateJailAndJailbreakCounters(users)
             embed.addFields({ name: 'Jail status', value: EmojiHelper.getStatusEmoji(jail) })
             const bd = this.checkForUserBirthdays(users)
@@ -187,6 +189,20 @@ export class DailyJobs {
             user.dailySpinRewards = 0
             const updatePath = this.client.database.getUserPathToUpdate(user.id, 'dailySpinRewards')
             updates[updatePath] = user.dailySpinRewards
+        })
+        this.client.database.updateData(updates)
+        return 'success'
+    }
+
+    private resetUserEffects(users: MazariniUser[]): JobStatus {
+        const updates = this.client.database.getUpdatesObject<'effects'>()
+        users.forEach((user) => {
+            if (user.effects?.positive) {
+                user.effects.positive.lootColorChanceMultiplier = undefined
+                user.effects.positive.lootColorsFlipped = undefined
+                const updatePath = this.client.database.getUserPathToUpdate(user.id, 'effects')
+                updates[updatePath] = user.effects
+            }
         })
         this.client.database.updateData(updates)
         return 'success'

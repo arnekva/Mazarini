@@ -29,6 +29,7 @@ import { SpotifyCommands } from '../commands/sound/spotifyCommands'
 // import { TestCommands } from '../commands/test/testCommands'
 import { ButtonInteraction, CacheType, ChatInputCommandInteraction, ModalSubmitInteraction, StringSelectMenuInteraction } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { CalendarCommands } from '../commands/calendarCommands'
 import { LootboxCommands } from '../commands/store/lootboxCommands'
 import { TestCommands } from '../commands/test/testCommands'
 import { TextCommands } from '../commands/textCommands'
@@ -74,6 +75,7 @@ export class Commands {
     private blackjack: Blackjack
     private lootboxCommands: LootboxCommands
     private dailyClaimCommands: DailyClaimCommands
+    private calendarCommands: CalendarCommands
 
     allTextCommands: IInteractionCommand<ChatInputCommandInteraction<CacheType>>[]
     allModalCommands: IInteractionCommand<ModalSubmitInteraction<CacheType>>[]
@@ -116,6 +118,7 @@ export class Commands {
         this.blackjack = new Blackjack(this.client)
         this.lootboxCommands = new LootboxCommands(this.client)
         this.dailyClaimCommands = new DailyClaimCommands(this.client)
+        this.calendarCommands = new CalendarCommands(this.client)
 
         this.allTextCommands = this.getAllTextCommands()
         this.allModalCommands = this.getAllModalCommands()
