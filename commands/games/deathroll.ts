@@ -165,7 +165,7 @@ export class Deathroll extends AbstractCommands {
 
         let reward = playerHasATHStreak ? stat.currentLossStreak * 2000 : 0
         if (playerHasStreak && !playerHasATHStreak) reward += (stat.currentLossStreak - 4) * 1100
-        if (playerHasBiggestLoss) reward += Math.min(stat.didGetNewBiggestLoss * 50, 20000)
+        if (playerHasBiggestLoss) reward += Math.min(stat.didGetNewBiggestLoss * 50, 50000)
         else if (diceTarget >= 100) reward += diceTarget * 10
         this.rewardPot += reward
         if (reward > 0) this.saveRewardPot()
@@ -238,7 +238,6 @@ export class Deathroll extends AbstractCommands {
         const allDigitsExceptFirstAreZero = new RegExp(/^[1-9]0+$/gi).test(roll.toString())
         if (allDigitsExceptFirstAreZero) addToPot(roll, 3)
 
-        
         if (totalAdded > 0 && roll > 100) {
             const user = await this.client.database.getUser(int.user.id)
             if ((user.effects?.positive?.doublePotDeposit ?? 0) > 0) {
@@ -298,13 +297,15 @@ export class Deathroll extends AbstractCommands {
         }
         const potentialReward = (this.rewardPot + addToPot) * potMultiplier
         const rewarded = this.client.bank.giveMoney(dbUser, potentialReward)
-        this.rewardPot = Math.max((this.rewardPot + addToPot - rewarded), 0) 
+        this.rewardPot = Math.max(this.rewardPot + addToPot - rewarded, 0)
         if (rewarded > 0) this.saveRewardPot()
         this.sendNoThanksButton(userId, rewarded)
         const jailed = this.rewardPot > 0
-        return ` Nice\nDu vinner potten på ${initialPot+addToPot} ${addToPot > 0 ? `(${initialPot} + ${addToPot}) ` : ''}chips!`
-             + `${ potMultiplier > 1 ? `\n(men du har jo en x${potMultiplier} multiplier, så da får du ${potentialReward} chips!)` : ''}`
-             + `${ jailed ? `\n(men du får bare ${rewarded} siden du er i fengsel)\nPotten er fortsatt på ${this.rewardPot} chips` : ''}`
+        return (
+            ` Nice\nDu vinner potten på ${initialPot + addToPot} ${addToPot > 0 ? `(${initialPot} + ${addToPot}) ` : ''}chips!` +
+            `${potMultiplier > 1 ? `\n(men du har jo en x${potMultiplier} multiplier, så da får du ${potentialReward} chips!)` : ''}` +
+            `${jailed ? `\n(men du får bare ${rewarded} siden du er i fengsel)\nPotten er fortsatt på ${this.rewardPot} chips` : ''}`
+        )
     }
 
     private saveRewardPot() {
