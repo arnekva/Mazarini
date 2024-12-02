@@ -140,7 +140,7 @@ export class ClientListener {
         })
 
         this.client.on('messageDelete', async (message: Message<boolean> | PartialMessage) => {
-            if (!message.guild) return
+            if (!message.guild || message.guild.id !== ServerIds.MAZARINI) return
             const fetchedLogs = await message?.guild.fetchAuditLogs({
                 limit: 1,
                 type: 72, // AuditLogEvent.MessageDelete,

@@ -264,7 +264,12 @@ export class JokeCommands extends AbstractCommands {
                         ephemeral: true,
                     }
                 )
-                const emb = EmbedUtils.createSimpleEmbed(`#Whamageddon`, `${MentionUtils.mentionUser(interaction.user.id)} gjekk på ein saftige smell. `)
+                const emb = EmbedUtils.createSimpleEmbed(
+                    `#Whamageddon`,
+                    `${MentionUtils.mentionUser(interaction.user.id)} gjekk på ein saftige smell.  `
+                ).setFooter({
+                    text: `${drinkData.slurker} slurker og ${drinkData.shots} shots.`,
+                })
                 this.messageHelper.sendMessage(ChannelIds.GENERAL, { embed: emb })
             } else {
                 this.messageHelper.replyToInteraction(
