@@ -197,9 +197,10 @@ export class DailyJobs {
     private resetUserEffects(users: MazariniUser[]): JobStatus {
         const updates = this.client.database.getUpdatesObject<'effects'>()
         users.forEach((user) => {
-            if (user.effects?.positive) {
-                user.effects.positive.lootColorChanceMultiplier = undefined
-                user.effects.positive.lootColorsFlipped = undefined
+            const buffs = user.effects?.positive
+            if (buffs) {
+                if (buffs.lootColorChanceMultiplier) buffs.lootColorChanceMultiplier = undefined
+                if (buffs.lootColorsFlipped) buffs.lootColorsFlipped = undefined
                 const updatePath = this.client.database.getUserPathToUpdate(user.id, 'effects')
                 updates[updatePath] = user.effects
             }
