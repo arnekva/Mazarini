@@ -387,7 +387,6 @@ export class DatabaseHelper {
             bonkCounter: 0,
             chips: 5000,
             id: id,
-            spinCounter: 0,
             warningCounter: 0,
             activisionUserString: '',
             birthday: '',

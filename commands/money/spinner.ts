@@ -113,12 +113,6 @@ export class Spinner extends AbstractCommands {
         }
     }
 
-    private async incrementCounter(userID: string) {
-        const user = await this.client.database.getUser(userID)
-        user.spinCounter++
-        this.client.database.updateUser(user)
-    }
-
     getAllInteractions(): IInteractionElement {
         return {
             commands: {

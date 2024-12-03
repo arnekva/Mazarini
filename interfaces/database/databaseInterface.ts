@@ -56,23 +56,16 @@ export interface UserJail {
 export interface MazariniUser {
     /** User id */
     id: string
-
     /**  dd-mm-yyyy */
     birthday?: string
     /** Custom status */
     status?: string
-    /** Total spins */
-    spinCounter: number //TODO?
-
-    ATHspin?: string
     /** No.  chips */
     chips: number
-
     /** No. warnings */
     warningCounter: number
     /** No. bonks */
     bonkCounter: number
-
     lastFMUsername?: string
     dailySpinRewards?: number
     // shopItems?: any //TODO Cast this
@@ -89,8 +82,6 @@ export interface MazariniUser {
     /** Username for rocket league. username;platform */
     rocketLeagueUserString?: string
     vivinoId?: string
-    // inventory?: any[]
-    // debuff?: any
     daily?: DailyReward
     favoritePol?: FavoritePol
     userStats?: UserStats
@@ -122,7 +113,7 @@ export interface DailyReward {
 
 export interface IUserEffects {
     positive?: IUserBuffs
-    negative?: IUserDebuffs 
+    negative?: IUserDebuffs
 }
 
 export interface IUserBuffs {
@@ -134,9 +125,7 @@ export interface IUserBuffs {
     lootColorsFlipped?: boolean
 }
 
-export interface IUserDebuffs {
-
-}
+export interface IUserDebuffs {}
 
 export interface ILootSystem {
     boxes: ILootbox[]
@@ -178,7 +167,7 @@ export enum LootboxQuality {
     Basic = 'basic',
     Premium = 'premium',
     Elite = 'elite',
-    Limited = 'limited'
+    Limited = 'limited',
 }
 
 export interface ILootbox {
