@@ -8,21 +8,12 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '19.0.0'
+    public static readonly currentVersion = '19.0.1'
     public static readonly currentPatchNotes =
-        `## I år kan du bygge opp julestemningen med nyvinningen \`/julekalender\`! :santa:` +
-        `\n* Start dagen med en tilfeldig bonus som kan komme godt med utover dagen` +
-        `\n* Ikke stress om du går glipp av en gave en dag, akkurat som med en fysisk julekalender kan du alltids hente deg inn igjen!` +
-        `\n    * Du åpner uansett bare én gave om gangen, og Høie henter alltid frem den tidligste gaven du har tilgjengelig` +
-        `\n* Enkelte gaver er bonuser du beholder frem til du har brukt dem, mens andre varer bare frem til neste morgen` +
-        `\n    * Det er lurt å åpne gaven tidlig, slik at du får brukt de kortvarige bonusene` +
-        `\n  * Det står spesifisert i gaven om den bare gjelder ut dagen` +
-        `\n* Alle får en tilfeldig generert kalender, så du får ikke nødvendigvis spoilet gaven din dersom noen andre åpner sin før deg` +
-        `\n* Så gøy som det hadde vært med 24 helt unike gaver, så er ikke det det enkleste - så forvent en del dupliserte gaver` +
-        `\n\n**Annet misc**` +
-        `\n* Nå printes den faktiske hasjen du vinner, heller enn et mattestykke` +
-        `\n* Høie vil nå garantert svare med tid til høytid/fridag dersom man skriver det nøyaktige triggerordet (f.eks 'jul'), men vil bare ha en 10% sannynlighet for å svare med tid dersom det bare inneholder triggerordet (f.eks 'skjule')` +
-        `\n* Skjult utvikling er omsider faktisk skjult - og slettede meldinger herfra vil ikke logges`
+        `* Fikset en feil som ikke resatte kalendergaver som skal resettes` +
+        `\n* Man får ikke lenger tilbud om å takke nei til hasjen hvis den er over 10k` +
+        `\n* Økt maksimal grense for hasjinnskudd` 
+       
 
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
