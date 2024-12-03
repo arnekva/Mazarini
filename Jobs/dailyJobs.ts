@@ -129,7 +129,7 @@ export class DailyJobs {
     private validateAndResetDailyClaims(users: MazariniUser[]): JobStatus {
         const updates = this.client.database.getUpdatesObject<'daily'>()
         const status: JobStatus = 'success' //No good way to verify yet?
-        users.forEach((user, idx) => {
+        users.forEach((user) => {
             const daily = user?.daily
             if (!daily?.streak) return //Verify that the user as a streak/claim, otherwise skip
             if (!daily.claimedToday) daily.streak = 0 //If not claimed today, also reset the streak
@@ -201,6 +201,7 @@ export class DailyJobs {
             if (buffs) {
                 buffs.lootColorChanceMultiplier = 1
                 buffs.lootColorsFlipped = false
+                buffs.deahtrollLootboxChanceMultiplier = 1
                 const updatePath = this.client.database.getUserPathToUpdate(user.id, 'effects')
                 updates[updatePath] = user.effects
             }

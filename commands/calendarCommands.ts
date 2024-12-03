@@ -214,7 +214,7 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
     },
     { 
         id: 16,
-        message: 'loot-farge-sannsynlighetene snus på hodet! Du har nå større sannsynlighet for å få diamond enn silver ut dagen!', 
+        message: 'at loot-farge-sannsynlighetene snus på hodet! Du har nå større sannsynlighet for å få diamond enn silver ut dagen!', 
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
             user.effects.positive.lootColorsFlipped = true
@@ -223,7 +223,7 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
     },
     { 
         id: 17,
-        message: 'loot-farge-sannsynlighetene snus på hodet! Du har nå større sannsynlighet for å få diamond enn silver ut dagen!', 
+        message: 'at loot-farge-sannsynlighetene snus på hodet! Du har nå større sannsynlighet for å få diamond enn silver ut dagen!', 
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
             user.effects.positive.lootColorsFlipped = true
@@ -232,18 +232,20 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
     },
     { 
         id: 18,
-        message: '2500 chips!', 
+        message: 'at du har 2.5x større sannsynlighet for å heller få en lootbox som reward ved hasjinnskudd - ut dagen!', 
         effect: (user: MazariniUser) => {
-            user.chips += 2500
-            return undefined
+            user.effects = user.effects ?? defaultEffects
+            user.effects.positive.deahtrollLootboxChanceMultiplier = 2.5
+            return undefined        
         }
     },
     { 
         id: 19,
-        message: '3000 chips!', 
+        message: 'at du har 2.5x større sannsynlighet for å heller få en lootbox som reward ved hasjinnskudd - ut dagen!', 
         effect: (user: MazariniUser) => {
-            user.chips += 3000
-            return undefined
+            user.effects = user.effects ?? defaultEffects
+            user.effects.positive.deahtrollLootboxChanceMultiplier = 2.5
+            return undefined        
         }
     },
     { 

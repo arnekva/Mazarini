@@ -123,6 +123,7 @@ export interface IUserBuffs {
     lootColorChanceMultiplier?: number
     doublePotDeposit?: number
     lootColorsFlipped?: boolean
+    deahtrollLootboxChanceMultiplier?: number
 }
 
 export interface IUserDebuffs {}

@@ -4,7 +4,7 @@ import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 import { DeathRollStats } from '../../helpers/databaseHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
-import { LootboxQuality } from '../../interfaces/database/databaseInterface'
+import { LootboxQuality, MazariniUser } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { ArrayUtils } from '../../utils/arrayUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
@@ -237,9 +237,9 @@ export class Deathroll extends AbstractCommands {
         //Check if ONLY the first digits is a non-zero (e.g. 40, 500, 6000, 20000)
         const allDigitsExceptFirstAreZero = new RegExp(/^[1-9]0+$/gi).test(roll.toString())
         if (allDigitsExceptFirstAreZero) addToPot(roll, 3)
-
-        if (totalAdded > 0 && roll > 100) {
-            const user = await this.client.database.getUser(int.user.id)
+        let user: MazariniUser = undefined
+        if (totalAdded > 0 && roll >= 100) {
+            user = await this.client.database.getUser(int.user.id)
             if ((user.effects?.positive?.doublePotDeposit ?? 0) > 0) {
                 multipliers.push(2)
                 user.effects.positive.doublePotDeposit--
@@ -250,7 +250,8 @@ export class Deathroll extends AbstractCommands {
             totalAdded *= m
         })
         const finalAmount = totalAdded
-        if (finalAmount >= 100 && RandomUtils.getRandomPercentage(7.5)) {
+        const buff = user?.effects?.positive?.deahtrollLootboxChanceMultiplier ?? 1        
+        if (finalAmount >= 100 && roll >= 100 && RandomUtils.getRandomPercentage(7.5*buff)) {
             let quality = LootboxQuality.Basic
             if (finalAmount >= 25000) quality = LootboxQuality.Elite
             else if (finalAmount >= 10000) quality = LootboxQuality.Premium
