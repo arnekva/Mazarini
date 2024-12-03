@@ -10,6 +10,7 @@ import {
     Meme,
     RulettStats,
 } from '../interfaces/database/databaseInterface'
+import { ObjectUtils } from '../utils/objectUtils'
 import { FirebaseHelper } from './firebaseHelper'
 
 export interface DeathRollStats {
@@ -50,9 +51,18 @@ export class DatabaseHelper {
         }
     }
 
-    /** Update the user object in DB */
-    public updateUser(user: MazariniUser) {
-        this.db.updateUser(user)
+    /** Update the user object in DB
+     *  @param User - The user object to update
+     *  @param logDiff - Set to true to log the difference between updated and current user. Note that this can cause a delay when updating the user, as it first needs to await a fetch for current
+     */
+    public async updateUser(user: MazariniUser, logDiff?: boolean) {
+        const updatedUser = user
+        if (logDiff) {
+            const oldUser = await this.db.getUser(user.id)
+            const diff = ObjectUtils.getDiff<MazariniUser>(oldUser, updatedUser)
+            this.db.msgHelper.sendLogMessage(`User ${user.id} oppdater i Database, diff fra gammel bruker: ${JSON.stringify(diff)}`)
+        }
+        this.db.updateUser(updatedUser)
     }
 
     public updateData(updates: object) {

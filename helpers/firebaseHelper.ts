@@ -1,7 +1,7 @@
 import { FirebaseApp } from 'firebase/app'
 import { Database, child, get, getDatabase, increment, ref, remove, set, update } from 'firebase/database'
 import { Firestore, getFirestore } from 'firebase/firestore'
-import { FirebaseStorage, StorageReference, getBytes, getStorage, ref as storageRef, uploadBytes } from "firebase/storage"
+import { FirebaseStorage, StorageReference, getBytes, getStorage, ref as storageRef, uploadBytes } from 'firebase/storage'
 import { database } from '../client-env'
 import { BotData, DatabaseStructure, EmojiStats, MazariniStats, MazariniStorage, MazariniUser, Meme } from '../interfaces/database/databaseInterface'
 import { MessageHelper } from './messageHelper'
@@ -120,7 +120,7 @@ export class FirebaseHelper {
     public incrementData(paths: string[], negative?: boolean) {
         const updates = {}
         paths.forEach((path) => {
-            const num = paths.filter(x => x === path).length
+            const num = paths.filter((x) => x === path).length
             updates[path] = increment(negative ? -num : num)
         })
         this.updateData(updates)
@@ -128,6 +128,10 @@ export class FirebaseHelper {
 
     public async deleteData(path: string) {
         await remove(ref(this.db, `${database}/${path}`))
+    }
+
+    get msgHelper() {
+        return this.messageHelper
     }
 }
 
