@@ -300,7 +300,7 @@ export class Deathroll extends AbstractCommands {
         const rewarded = this.client.bank.giveMoney(dbUser, potentialReward)
         this.rewardPot = Math.max(this.rewardPot + addToPot - rewarded, 0)
         if (rewarded > 0) this.saveRewardPot()
-        this.sendNoThanksButton(userId, rewarded)
+        if (rewarded < 10000) this.sendNoThanksButton(userId, rewarded)
         const jailed = this.rewardPot > 0
         return (
             ` Nice\nDu vinner potten på ${initialPot + addToPot} ${addToPot > 0 ? `(${initialPot} + ${addToPot}) ` : ''}chips!` +
