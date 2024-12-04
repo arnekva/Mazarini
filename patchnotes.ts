@@ -8,11 +8,11 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '19.0.1'
+    public static readonly currentVersion = '19.0.2'
     public static readonly currentPatchNotes =
-        `* Fikset en feil som ikke resatte kalendergaver som skal resettes` +
-        `\n* Man får ikke lenger tilbud om å takke nei til hasjen hvis den er over 10k` +
-        `\n* Økt maksimal grense for hasjinnskudd` 
+        `* loot trade defaulter nå til å kun vise ufargede items og dups` +
+        `\n  * det kommer sikkert en brukerinnstilling ved en senere anledning dersom man ønsker å overstyre dette` +
+        `\n* Elite lootboxer har nå en 90% sannsynlighet for farge` 
        
 
 

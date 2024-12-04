@@ -91,11 +91,14 @@ export interface MazariniUser {
     whamageddonLoss?: string
     textCommandStrings?: string[]
     collectables?: IUserCollectable[]
-    userSettings?: {
-        safeGambleValue?: number
-    }
+    userSettings?: IUserSettings
     effects?: IUserEffects
     christmasCalendar?: UserCalendarGift[]
+}
+
+export interface IUserSettings {
+    safeGambleValue?: number
+    allowNonDupesInTrade?: boolean
 }
 
 export interface UserCalendarGift {
