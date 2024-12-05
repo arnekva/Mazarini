@@ -8,13 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '19.0.2'
-    public static readonly currentPatchNotes =
-        `* loot trade defaulter nå til å kun vise ufargede items og dups` +
-        `\n  * det kommer sikkert en brukerinnstilling ved en senere anledning dersom man ønsker å overstyre dette` +
-        `\n* Elite lootboxer har nå en 90% sannsynlighet for farge` 
-       
-
+    public static readonly currentVersion = '19.0.3'
+    public static readonly currentPatchNotes = `* '/brukerinfo' vil nå printe en stringifyet string i stedet for [object Object]'`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
