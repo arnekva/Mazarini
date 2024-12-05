@@ -176,7 +176,7 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
         message: 'at dine to neste hasjwins dobles!',
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
-            user.effects.positive.doublePotWins = 2
+            user.effects.positive.doublePotWins = (user.effects.positive.doublePotWins ?? 0) + 2
             return undefined
         },
     },
@@ -193,7 +193,7 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
         message: 'at dine to neste hasjwins dobles!',
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
-            user.effects.positive.doublePotWins = 2
+            user.effects.positive.doublePotWins = (user.effects.positive.doublePotWins ?? 0) + 2
             return undefined
         },
     },
