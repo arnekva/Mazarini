@@ -104,14 +104,14 @@ export class UserCommands extends AbstractCommands {
             const user = await this.client.database.getUser(selectMenu.user.id)
             let userData = user[value]
 
-            if (typeof userData === 'object') {
-                userData = Object.entries(userData).map((entry, val) => {
-                    return `\n${entry[0]} - ${entry[1]}`
-                })
-            }
+            // if (typeof userData === 'object') {
+            //     userData = Object.entries(userData).map((entry, val) => {
+            //         return `\n${entry[0]} - ${entry[1]}`
+            //     })
+            // }
 
             await selectMenu.update({
-                embeds: [EmbedUtils.createSimpleEmbed(`Se brukerinfo for ${selectMenu.user.username}`, `Verdien for ${value} er ${userData}`)],
+                embeds: [EmbedUtils.createSimpleEmbed(`Se brukerinfo for ${selectMenu.user.username}`, `Verdien for ${value} er ${JSON.stringify(userData)}`)],
             })
         } else {
             return !!this.messageHelper.replyToInteraction(selectMenu, `Du kan bare sjekka dine egne ting. Bruke '/brukerinfo' for å se dine egne verdier`, {
