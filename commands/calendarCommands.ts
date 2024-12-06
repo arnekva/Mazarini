@@ -112,7 +112,7 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
         message: 'et get out of jail free kort! Dette vil automatisk hindre deg fra å bli fengslet neste gang.',
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
-            user.effects.positive.jailPass = user.effects.positive.jailPass ? user.effects.positive.jailPass + 1 : 1
+            user.effects.positive.jailPass = (user.effects.positive.jailPass ?? 0) + 1
             return undefined
         },
     },
@@ -121,7 +121,7 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
         message: '5 gratis /roll!',
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
-            user.effects.positive.freeRolls = user.effects.positive.freeRolls ? user.effects.positive.freeRolls + 5 : 5
+            user.effects.positive.freeRolls = (user.effects.positive.freeRolls ?? 0) + 5
             return undefined
         },
     },
@@ -202,7 +202,7 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
         message: '5 gratis /roll!',
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
-            user.effects.positive.freeRolls = user.effects.positive.freeRolls ? user.effects.positive.freeRolls + 5 : 5
+            user.effects.positive.freeRolls = (user.effects.positive.freeRolls ?? 0) + 5
             return undefined
         },
     },
@@ -247,7 +247,7 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
         message: 'at dine neste 5 hasjinnskudd hvor du triller over 100 dobles!',
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
-            user.effects.positive.doublePotDeposit = 5
+            user.effects.positive.doublePotDeposit = (user.effects.positive.doublePotDeposit ?? 0) + 5
             return undefined
         },
     },
@@ -256,7 +256,7 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
         message: 'at dine neste 5 hasjinnskudd hvor du triller over 100 dobles!',
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
-            user.effects.positive.doublePotDeposit = 5
+            user.effects.positive.doublePotDeposit = (user.effects.positive.doublePotDeposit ?? 0) + 5
             return undefined
         },
     },
@@ -265,7 +265,7 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
         message: 'at dine neste 5 hasjinnskudd hvor du triller over 100 dobles!',
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
-            user.effects.positive.doublePotDeposit = 5
+            user.effects.positive.doublePotDeposit = (user.effects.positive.doublePotDeposit ?? 0) + 5
             return undefined
         },
     },
