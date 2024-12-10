@@ -59,7 +59,7 @@ export class DatabaseHelper {
         const updatedUser = user
         if (logDiff) {
             const oldUser = await this.db.getUser(user.id)
-            const diff = ObjectUtils.getDiff<MazariniUser>(oldUser, updatedUser)
+            const diff = ObjectUtils.getDiff<MazariniUser>(oldUser, updatedUser, ['christmasCalendar'])
             this.db.msgHelper.sendLogMessage(
                 `User ${user.id} oppdater i Database, diff fra gammel bruker. Oppdaterte keys: ${diff.keys}.\nTotal diff:\n ${diff.diff}`
             )
