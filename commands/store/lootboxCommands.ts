@@ -302,7 +302,7 @@ export class LootboxCommands extends AbstractCommands {
 			collectables
             .filter(item => this.collectableToString(item).includes(optionList.getFocused().toLowerCase()))
             .slice(0,25)
-            .map(item => ({ name: `${item.name} (${item.color})`, value: this.collectableToString(item) })) 
+            .map(item => ({ name: `${item.name} (${item.color}) x${item.amount}`, value: this.collectableToString(item) })) 
 		)
     }
 
@@ -316,15 +316,15 @@ export class LootboxCommands extends AbstractCommands {
 			filteredCollectables
             .filter(item => this.collectableToString(item).includes(optionList.getFocused().toLowerCase()))
             .slice(0,25)
-            .map(item => ({ name: `${item.name} (${item.color})`, value: this.collectableToString(item) })) 
+            .map(item => ({ name: `${item.name} (${item.color}) x${item.amount}`, value: this.collectableToString(item) })) 
 		)
     } 
 
     private getSortedCollectables(user: MazariniUser, filterOutLegendaries: boolean, filter?: { series: string, rarity: string }) {
-        const allowColoredNonDups = user.userSettings?.allowNonDupesInTrade ?? false        
+        // const allowColoredNonDups = user.userSettings?.allowNonDupesInTrade ?? false        
         const filtered = user.collectables
-                .map(item => (allowColoredNonDups || item.color === ItemColor.None) ? item : ({...item, amount: item.amount - 1}))
-                .filter(item => item.amount >= 1)
+                // .map(item => (allowColoredNonDups || item.color === ItemColor.None) ? item : ({...item, amount: item.amount - 1}))
+                // .filter(item => item.amount >= 1)
                 .filter(item => !filter || (filter.series === item.series && filter.rarity === item.rarity))
                 .sort((a,b) => this.collectableSortString(a).localeCompare(this.collectableSortString(b)))
         if (filterOutLegendaries) return filtered.filter(item => item.rarity !== ItemRarity.Legendary)
