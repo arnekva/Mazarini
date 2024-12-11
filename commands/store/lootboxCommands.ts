@@ -8,6 +8,8 @@ import {
     ButtonStyle,
     CacheType,
     ChatInputCommandInteraction,
+    InteractionResponse,
+    Message
 } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
@@ -215,7 +217,27 @@ export class LootboxCommands extends AbstractCommands {
         const path = this.getGifPath(item)
         const buffer = Buffer.from(await this.client.database.getFromStorage(path))
         const file = new AttachmentBuilder(buffer, {name: 'collectable.gif'})
-        this.messageHelper.replyToInteraction(interaction, '', {hasBeenDefered: true}, undefined, [file])
+        const reply = await this.messageHelper.replyToInteraction(interaction, '', {hasBeenDefered: true}, undefined, [file])
+        this.addReaction(reply, item)    
+    }
+
+    private async addReaction(reply: Message | InteractionResponse, item: IUserCollectable) {
+        const emoji = await this.getLootApplicationEmoji(item)
+        let msg = undefined
+        if (reply instanceof InteractionResponse) {
+            msg = await reply.fetch()
+        } else {
+            msg = reply
+        }
+        setTimeout(() => {
+            msg.react(emoji)
+        }, 30000)
+    }
+
+    private async getLootApplicationEmoji(item: IUserCollectable) {
+        const emojiName = `${item.series}_${item.name}_${item.color.charAt(0)}`.toLowerCase()
+        const emoji = await EmojiHelper.getApplicationEmoji(emojiName, this.client)
+        return emoji.emojiObject.identifier
     }
 
     private getGifPath(item: IUserCollectable): string {
