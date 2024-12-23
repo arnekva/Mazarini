@@ -26,7 +26,9 @@ export namespace ObjectUtils {
         const keyDifference = Object.fromEntries(Object.entries(newObject).filter(([k, v]) => JSON.stringify(oldObject[k]) !== JSON.stringify(v)))
         const keyDifferenceOld = Object.fromEntries(Object.entries(oldObject).filter(([k, v]) => JSON.stringify(newObject[k]) !== JSON.stringify(v)))
         const vals = Object.entries(keyDifference)
-            .map(([key, value]) => `\n**${key}:** ${JSON.stringify(value)} \nGammel verdi:\n ${JSON.stringify(keyDifferenceOld[key]).slice(0, 200)}`)
+            .map(
+                ([key, value]) => `\n**${key}:** ${JSON.stringify(value)} \nGammel verdi:\n ${JSON.stringify(keyDifferenceOld[key])?.slice(0, 200) ?? 'Ukjent'}`
+            )
             .join(' ')
         return {
             keys: Object.keys(keyDifference).join(', '),
