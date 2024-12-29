@@ -163,9 +163,9 @@ export class Deathroll extends AbstractCommands {
         const playerHasStreak = stat.currentLossStreak > 4
         const playerHasBiggestLoss = stat.didGetNewBiggestLoss && stat.didGetNewBiggestLoss > 0
 
-        let reward = playerHasATHStreak ? stat.currentLossStreak * 2000 : 0
+        let reward = playerHasATHStreak ? stat.currentLossStreak * 2500 : 0
         if (playerHasStreak && !playerHasATHStreak) reward += (stat.currentLossStreak - 4) * 1100
-        if (playerHasBiggestLoss) reward += Math.min(stat.didGetNewBiggestLoss * 50, 50000)
+        if (playerHasBiggestLoss) reward += stat.didGetNewBiggestLoss * 50
         else if (diceTarget >= 100) reward += diceTarget * 10
         this.rewardPot += reward
         if (reward > 0) this.saveRewardPot()
@@ -230,13 +230,13 @@ export class Deathroll extends AbstractCommands {
         }
         if (roll === diceTarget) addToPot(roll, 10)
 
-        if (roll === 2) addToPot(10, 1)
+        if (roll === 2) addToPot(20, 1)
         //Checks if all digits are the same (e.g. 111, 2222, 5555)
         const sameDigits = new RegExp(/^([0-9])\1*$/gi).test(roll.toString())
-        if (sameDigits) addToPot(roll, 3)
+        if (sameDigits) addToPot(roll, 4)
         //Check if ONLY the first digits is a non-zero (e.g. 40, 500, 6000, 20000)
         const allDigitsExceptFirstAreZero = new RegExp(/^[1-9]0+$/gi).test(roll.toString())
-        if (allDigitsExceptFirstAreZero) addToPot(roll, 3)
+        if (allDigitsExceptFirstAreZero) addToPot(roll, 4)
         let user: MazariniUser = undefined
         if (totalAdded > 0 && roll >= 100) {
             user = await this.client.database.getUser(int.user.id)
@@ -250,8 +250,8 @@ export class Deathroll extends AbstractCommands {
             totalAdded *= m
         })
         const finalAmount = totalAdded
-        const buff = user?.effects?.positive?.deahtrollLootboxChanceMultiplier ?? 1        
-        if (finalAmount >= 100 && roll >= 100 && RandomUtils.getRandomPercentage(7.5*buff)) {
+        const buff = user?.effects?.positive?.deahtrollLootboxChanceMultiplier ?? 1
+        if (finalAmount >= 100 && roll >= 100 && RandomUtils.getRandomPercentage(7.5 * buff)) {
             let quality = LootboxQuality.Basic
             if (finalAmount >= 25000) quality = LootboxQuality.Elite
             else if (finalAmount >= 10000) quality = LootboxQuality.Premium
@@ -272,7 +272,7 @@ export class Deathroll extends AbstractCommands {
     }
 
     private getRollReward(r: number) {
-        if ([1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 690, 8008, 6969, 420, 123, 1234, 12345].includes(r)) return r * 3
+        if ([1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 690, 8008, 6969, 420, 123, 1234, 12345, 1984, 2024, 2025].includes(r)) return r * 3
         else return 0
     }
 
