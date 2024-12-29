@@ -8,12 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '19.2.0'
-    public static readonly currentPatchNotes = `* '/loot trade' viser nå hvor mange du har av hvert item.`
-                                             + `\n  * Antallet er oppdatert ved hver autocomplete. Velger du et item du har x5 av ved første autocomplete, så vises den som x4 på neste.`
-                                             + `\n* Fordi man nå alltid kan se antallet av hvert item, går vi nå tilbake til å vise alle items selv hvis du bare har 1 av dem.`
-                                             + `\n* Dvs, tenk deg godt om før du trader vekk noe du har 1 av.`
-                                             + `\n  * Geggi er ikke ansvarlig ved tap av unik loot.`
+    public static readonly currentVersion = '19.2.1'
+    public static readonly currentPatchNotes = `* Duplikater av største tap i '/terning' vil ikke lenger trigge hvis det allerede er det laveste tallet i listen.`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

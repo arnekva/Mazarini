@@ -283,13 +283,19 @@ export class DatabaseHelper {
                     if (!user.userStats.deathrollStats.biggestLoss) {
                         user.userStats.deathrollStats.biggestLoss = [game.lastRoll]
                     } else {
-                        user.userStats.deathrollStats.biggestLoss.push(game.lastRoll)
-                        if (user.userStats.deathrollStats.biggestLoss.length > 10) {
+                        //Make sure array is sorted
+                        const largestLosses = user.userStats.deathrollStats.biggestLoss.sort((a, b) => a - b)
+                        //If the array is less than 10, or the last roll is larger than the smallest value in the array
+                        //We need the second check here, such that [10,7,6,5,2,2,2,2,2,2] will trigger true in the next check when we add a new 2.
+                        if (largestLosses.length < 10 || game.lastRoll > largestLosses[largestLosses.length - 1]) {
+                            user.userStats.deathrollStats.biggestLoss.push(game.lastRoll)
                             user.userStats.deathrollStats.biggestLoss.sort((a, b) => a - b)
-                            user.userStats.deathrollStats.biggestLoss.shift()
-                        }
-                        if (user.userStats.deathrollStats.biggestLoss.includes(game.lastRoll)) {
-                            currStat.didGetNewBiggestLoss = game.lastRoll
+                            if (user.userStats.deathrollStats.biggestLoss.length > 10) {
+                                user.userStats.deathrollStats.biggestLoss.shift()
+                            }
+                            if (user.userStats.deathrollStats.biggestLoss.includes(game.lastRoll)) {
+                                currStat.didGetNewBiggestLoss = game.lastRoll
+                            }
                         }
                     }
                     user.userStats.deathrollStats.totalLosses++
