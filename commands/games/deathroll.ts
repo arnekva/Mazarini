@@ -419,14 +419,27 @@ export class Deathroll extends AbstractCommands {
 
     private printCurrentState(interaction: ChatInputCommandInteraction<CacheType>) {
         const embed = EmbedUtils.createSimpleEmbed('Deathroll state', `${this.rewardPot} chips i potten`)
-        const fields = this.drGames?.map((game, i) => {
-            let stateString = game.players.reduce((acc, player) => (acc += `${UserUtils.findMemberByUserID(player.userID, interaction).user.username}, `), '')
-            stateString =
-                stateString.substring(0, stateString.length - 2) +
-                `\n:hourglass: **${UserUtils.findMemberByUserID(game.nextToRoll, interaction).user.username}** :hourglass: (${game.lastRoll}) `
-            const joinable = game.joinable ? ':unlock:' : ':lock:'
-            return { name: `Game ${i + 1} ${joinable}`, value: stateString }
+
+        const uniquePlayers: { [key: string]: { activeTurns: number; totalGames: number } } = {}
+
+        this.drGames.forEach((game) => {
+            game.players.forEach((player) => {
+                const playerName = UserUtils.findMemberByUserID(player.userID, interaction).user.username
+                if (!uniquePlayers[playerName]) {
+                    uniquePlayers[playerName] = { activeTurns: 0, totalGames: 0 }
+                }
+                uniquePlayers[playerName].totalGames++
+                if (game.nextToRoll === player.userID && game.players.length > 1) {
+                    uniquePlayers[playerName].activeTurns++
+                }
+            })
         })
+
+        const fields = Object.entries(uniquePlayers).map(([player, counts]) => ({
+            name: player,
+            value: `Kan trille ${counts.activeTurns} av ${counts.totalGames} spill`,
+        }))
+
         const shortenedFieldList = fields.slice(0, 25)
         embed.addFields(shortenedFieldList)
         if (fields.length > 25) embed.setFooter({ text: `+ ${fields.length - 25} games` })

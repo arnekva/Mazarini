@@ -8,10 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '19.2.1'
-    public static readonly currentPatchNotes =
-        `* Duplikater av største tap i '/terning' vil ikke lenger trigge hvis det allerede er det laveste tallet i listen.` +
-        `\n* Fjernet makstaket på 50.000 på største tap.`
+    public static readonly currentVersion = '19.3.0'
+    public static readonly currentPatchNotes = `* '/deathroll' viser nå kun hvor mange runder spillerene har, heller enn alle spillene`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
