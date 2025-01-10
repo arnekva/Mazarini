@@ -252,17 +252,26 @@ export class Deathroll extends AbstractCommands {
         const finalAmount = totalAdded
         const buff = user?.effects?.positive?.deahtrollLootboxChanceMultiplier ?? 1
         if (finalAmount >= 100 && roll >= 100 && RandomUtils.getRandomPercentage(7.5 * buff)) {
+            let remainingChips = 0
+            let cost = 0
             let quality = LootboxQuality.Basic
-            if (finalAmount >= 25000) quality = LootboxQuality.Elite
-            else if (finalAmount >= 10000) quality = LootboxQuality.Premium
-            this.client.bank.rewardLootbox(
-                int.channelId,
-                int.user.id,
-                quality,
-                `${MentionUtils.mentionUser(int.user.id)} du får ein lootbox for ${roll}. Gz! `,
-                `Potten er fortsatt ${this.rewardPot}`
-            )
-            return { val: 0, text: 'Lootbox reward!' }
+            if (finalAmount >= 25000) {
+                quality = LootboxQuality.Elite
+                cost = 25000
+                remainingChips = finalAmount - cost
+            } else if (finalAmount >= 10000) {
+                quality = LootboxQuality.Premium
+                cost = 10000
+                remainingChips = finalAmount - cost
+            } else {
+                cost = 5000
+                remainingChips = finalAmount - cost
+            }
+            const total = this.rewardPot + remainingChips
+            const totalText = `Lootbox reward! *(pott + (${this.rewardPot} - ${cost}) = ${total} chips)*`
+            this.rewardPot += remainingChips
+            this.client.bank.rewardLootbox(int.channelId, int.user.id, quality, `${MentionUtils.mentionUser(int.user.id)} du får ein lootbox for ${roll}. Gz! `)
+            return { val: Math.max(0, remainingChips), text: totalText }
         } else {
             this.rewardPot += finalAmount
         }
