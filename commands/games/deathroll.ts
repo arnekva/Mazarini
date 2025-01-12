@@ -262,7 +262,7 @@ export class Deathroll extends AbstractCommands {
                 quality = LootboxQuality.Premium
                 cost = 10000
             } else {
-                cost = 1000
+                cost = 5000
             }
             remainingChips = totalAdded - cost
             this.rewardPot += Math.max(remainingChips, 0)
