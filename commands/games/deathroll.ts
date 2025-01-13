@@ -245,13 +245,14 @@ export class Deathroll extends AbstractCommands {
                 user.effects.positive.doublePotDeposit--
                 this.client.database.updateUser(user)
             }
+            if (this.rewardPot < 1000) multipliers.push(2)
         }
         multipliers.forEach((m) => {
             totalAdded *= m
         })
         const finalAmount = totalAdded
         const buff = user?.effects?.positive?.deahtrollLootboxChanceMultiplier ?? 1
-        if (finalAmount >= 100 && roll >= 100 && RandomUtils.getRandomPercentage(7.5)) {
+        if (finalAmount >= 100 && roll >= 100 && RandomUtils.getRandomPercentage(7.5 * buff)) {
             let remainingChips = 0
             let cost = 0
             let quality = LootboxQuality.Basic
