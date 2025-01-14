@@ -267,7 +267,7 @@ export class Deathroll extends AbstractCommands {
             }
             remainingChips = totalAdded - cost
             this.rewardPot += Math.max(remainingChips, 0)
-            const totalText = `Lootbox reward! *(pott + (${totalAdded} - ${cost}) = ${this.rewardPot} chips)*`
+            const totalText = `Lootbox reward! *(pott + ${remainingChips} = ${this.rewardPot} chips)*`
             this.client.bank.rewardLootbox(int.channelId, int.user.id, quality, `${MentionUtils.mentionUser(int.user.id)} du får ein lootbox for ${roll}. Gz! `)
             return { val: Math.max(0, remainingChips), text: totalText }
         } else {
