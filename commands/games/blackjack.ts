@@ -16,6 +16,7 @@ import { GamePlayer, GameStateHandler } from '../../handlers/gameStateHandler'
 import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { EmojiHelper, emojiReturnType } from '../../helpers/emojiHelper'
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
+import { MazariniUser } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { MentionUtils } from '../../utils/mentionUtils'
 import { CardCommands, ICardObject } from './cardCommands'
@@ -198,7 +199,10 @@ export class Blackjack extends AbstractCommands {
                 buttonRow.addComponents(doubleDownBtn(game.id, this.client.bank.userCanAfford(user, player.stake)))
             if (this.canSplit(player.hands[player.currentHandIndex].cards))
                 buttonRow.addComponents(splitBtn(game.id, this.client.bank.userCanAfford(user, player.stake)))
-            if (this.canInsure(game, player)) buttonRow.addComponents(insuranceBtn(game.id, this.client.bank.userCanAfford(user, Math.ceil(player.stake / 2))))
+            if (this.canInsure(game, player)) 
+                buttonRow.addComponents(insuranceBtn(game.id, this.client.bank.userCanAfford(user, Math.ceil(player.stake / 2))))
+            if (this.canReDeal(player, user))
+                buttonRow.addComponents(reDealBtn(game.id, user.effects.positive.blackjackReDeals))
         }
         return buttonRow
     }
@@ -216,6 +220,10 @@ export class Blackjack extends AbstractCommands {
 
     private canInsure(game: BlackjackGame, player: BlackjackPlayer) {
         return !player.insurance && game.dealer.hand[0].rank === 'A'
+    }
+
+    private canReDeal(player: BlackjackPlayer, user: MazariniUser) {
+        return player.hands.length === 1 && player.hands[0].cards.length === 2 && (user.effects?.positive?.blackjackReDeals ?? 0) > 0
     }
 
     private async updateBoard(game: BlackjackGame, reveal: boolean) {
@@ -380,7 +388,6 @@ export class Blackjack extends AbstractCommands {
                     description += `${gameNr}Du fikk ${playerHand} og taper ${stake} chips :money_with_wings:\n`
                     DatabaseHelper.incrementChipsStats(user, 'blackjackLosses')
                     DatabaseHelper.incrementMoneyStats(user, stake, 'lost')
-                    console.log(stake)
 
                     if (dealerHand == 21) DatabaseHelper.incrementChipsStats(user, 'blackjackLossDealer21')
                 }
@@ -456,13 +463,29 @@ export class Blackjack extends AbstractCommands {
         }
     }
 
+    private async reDeal(game: BlackjackGame, player: BlackjackPlayer) {
+        const user = await this.client.database.getUser(player.id)
+        user.effects.positive.blackjackReDeals -= 1
+        this.database.updateUser(user)
+        game.dealer.hand = new Array<ICardObject>()
+        const hand: PlayerHand = { cards: new Array<ICardObject>(), stand: false, doubleDown: false }
+        player.hands = [hand]
+        player.currentHandIndex = 0
+        player.insurance = false
+        await this.dealCard(game, player.hands[player.currentHandIndex].cards)
+        await this.dealCard(game, player.hands[player.currentHandIndex].cards)
+        await this.dealCard(game, game.dealer.hand)
+        await this.dealCard(game, game.dealer.hand)
+        this.updateBoard(game, false)
+    }
+
     private getGame(interaction: ButtonInteraction<CacheType>) {
         const gameId = interaction.customId.split(';')[1]
         return this.games.find((game) => game.id == gameId)
     }
 
     private getPlayer(interaction: ButtonInteraction<CacheType>, game: BlackjackGame) {
-        return game.players.find((player) => player.id == interaction.user.id)
+        return game?.players?.find((player) => player.id == interaction.user.id)
     }
 
     private async dealCard(game: BlackjackGame, hand: ICardObject[]) {
@@ -593,6 +616,12 @@ export class Blackjack extends AbstractCommands {
                             this.verifyUserAndCallMethod(interaction, (game, player) => this.playAgain(interaction, game, player))
                         },
                     },
+                    {
+                        commandName: 'BLACKJACK_REDEAL',
+                        command: (interaction: ButtonInteraction<CacheType>) => {
+                            this.verifyUserAndCallMethod(interaction, (game, player) => this.reDeal(game, player))
+                        },
+                    },
                 ],
             },
         }
@@ -659,5 +688,14 @@ const insuranceBtn = (id: string, canAfford: boolean) =>
         style: ButtonStyle.Primary,
         label: `Insurance`,
         disabled: !canAfford,
+        type: 2,
+    })
+
+const reDealBtn = (id: string, reDealsAvailable: number) =>
+    new ButtonBuilder({
+        custom_id: `BLACKJACK_REDEAL;${id}`,
+        style: ButtonStyle.Primary,
+        label: `Deal på nytt (${reDealsAvailable})`,
+        disabled: false,
         type: 2,
     })

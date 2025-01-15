@@ -4,6 +4,7 @@ import { MazariniClient } from '../client/MazariniClient'
 import { PoletCommands } from '../commands/drinks/poletCommands'
 import { EmojiHelper, JobStatus } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
+import { IUserBuffs } from '../interfaces/database/databaseInterface'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { ChannelIds } from '../utils/mentionUtils'
@@ -17,7 +18,7 @@ export class WeeklyJobs {
         this.client = client
     }
     async runJobs() {
-        const embed = EmbedUtils.createSimpleEmbed(`Weekly Jobs`, `Kjører 5 jobber`)
+        const embed = EmbedUtils.createSimpleEmbed(`Weekly Jobs`, `Kjører 6 jobber`)
         const weeklyPayout = await this.awardWeeklyChips()
         embed.addFields({ name: 'NAV-Penger', value: EmojiHelper.getStatusEmoji(weeklyPayout) })
         const polet = await this.checkPoletHours()
@@ -28,6 +29,8 @@ export class WeeklyJobs {
         embed.addFields({ name: 'Countdown sletting', value: EmojiHelper.getStatusEmoji(deleteOldCountdowns) })
         const resetWeeklyDeathrollStats = await this.resetWeeklyDeathrollStats()
         embed.addFields({ name: 'Weekly deathroll reset', value: EmojiHelper.getStatusEmoji(resetWeeklyDeathrollStats) })
+        const weeklyEffects = await this.setWeeklyEffects()
+        embed.addFields({ name: 'Weekly user effects', value: EmojiHelper.getStatusEmoji(weeklyEffects) })
         const todaysTime = new Date().toLocaleTimeString()
         embed.setFooter({ text: todaysTime })
         this.messageHelper.sendMessage(ChannelIds.ACTION_LOG, { embed: embed })
@@ -106,6 +109,23 @@ export class WeeklyJobs {
         //     this.messageHelper.sendMessage(ThreadIds.GENERAL_TERNING, {embed: embed})
         // }
         await this.client.database.resetWeeklyDeathrollStats()
+        return 'success'
+    }
+
+    private async setWeeklyEffects(): Promise<JobStatus> {
+        const users = await this.client.database.getAllUsers()
+        const updates = this.client.database.getUpdatesObject<'effects'>()
+        users.forEach((user) => {
+            user.effects = user.effects ?? { positive: {} }
+            const buffs: IUserBuffs = user.effects?.positive ?? {}
+            if (buffs) {
+                buffs.blackjackReDeals = buffs.blackjackReDeals > 0 ? buffs.blackjackReDeals : 1
+                user.effects.positive = buffs
+                const updatePath = this.client.database.getUserPathToUpdate(user.id, 'effects')
+                updates[updatePath] = user.effects
+            }
+        })
+        this.client.database.updateData(updates)
         return 'success'
     }
 }

@@ -127,6 +127,7 @@ export interface IUserBuffs {
     doublePotDeposit?: number
     lootColorsFlipped?: boolean
     deahtrollLootboxChanceMultiplier?: number
+    blackjackReDeals?: number
 }
 
 export interface IUserDebuffs {}
