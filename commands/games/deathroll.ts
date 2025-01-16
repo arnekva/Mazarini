@@ -245,11 +245,11 @@ export class Deathroll extends AbstractCommands {
                 user.effects.positive.doublePotDeposit--
                 this.client.database.updateUser(user)
             }
-            if (this.rewardPot < 1000) multipliers.push(2)
         }
         multipliers.forEach((m) => {
             totalAdded *= m
         })
+        if (totalAdded > 0 && roll >= 100 && this.rewardPot < 1000 && totalAdded < 2500) totalAdded *= 2
         const finalAmount = totalAdded
         const buff = user?.effects?.positive?.deahtrollLootboxChanceMultiplier ?? 1
         if (finalAmount >= 100 && roll >= 100 && RandomUtils.getRandomPercentage(7.5 * buff)) {
@@ -267,7 +267,7 @@ export class Deathroll extends AbstractCommands {
             }
             remainingChips = totalAdded - cost
             this.rewardPot += Math.max(remainingChips, 0)
-            const totalText = `Lootbox reward! *(pott + (${totalAdded} - ${Math.max(0, cost)}) = ${this.rewardPot} chips)*`
+            const totalText = `Lootbox reward! *(pott + ${Math.max(0, remainingChips)} = ${this.rewardPot} chips)*`
             this.client.bank.rewardLootbox(int.channelId, int.user.id, quality, `${MentionUtils.mentionUser(int.user.id)} du får ein lootbox for ${roll}. Gz! `)
             return { val: Math.max(0, remainingChips), text: totalText }
         } else {
