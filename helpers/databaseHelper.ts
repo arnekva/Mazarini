@@ -264,6 +264,7 @@ export class DatabaseHelper {
                     currentLossStreak: user.userStats?.deathrollStats?.currentLossStreak ?? 0,
                     longestLossStreak: user.userStats?.deathrollStats?.longestLossStreak ?? 0,
                     biggestLoss: user.userStats?.deathrollStats?.biggestLoss ?? [],
+                    potSkips: user.userStats?.deathrollStats?.potSkips ?? 0,
                 }
                 if (!user.userStats)
                     user.userStats = {
@@ -315,6 +316,12 @@ export class DatabaseHelper {
             }
         }
         return loserStats
+    }
+
+    public incrementPotSkip(userId: string) {
+        const path = []
+        path.push(`users/${userId}/userStats/deathrollStats/potSkips`)
+        this.db.incrementData(path)
     }
 
     public async findAndRewardWeeklyDeathrollWinner() {

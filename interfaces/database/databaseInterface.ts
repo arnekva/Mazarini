@@ -249,6 +249,7 @@ export interface DeathrollStats {
     biggestLoss?: number[]
     currentLossStreak?: number
     longestLossStreak?: number
+    potSkips?: number
 }
 export type dbPrefix =
     | 'birthday'

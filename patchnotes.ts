@@ -8,9 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '19.4.0'
-    public static readonly currentPatchNotes = `* Du får nå 1 ukentlig "deal på nytt" mulighet i blackjack`
-                                             + `\n * Innskudd når pott er under 1000 chips vil nå kun ha en ekstra x2 dersom innskuddet er under 2500`
+    public static readonly currentVersion = '19.4.1'
+    public static readonly currentPatchNotes = `* Høie tracker nå hasj-skips`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

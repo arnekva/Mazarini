@@ -98,6 +98,7 @@ export class Deathroll extends AbstractCommands {
             let additionalMessage = ''
             if (game) {
                 this.updateGame(game, user.id, roll)
+                this.checkForPotSkip(roll, diceTarget, user.id)
                 const rewards = await this.checkForReward(roll, diceTarget, interaction)
                 additionalMessage += rewards.text
                 additionalMessage += this.checkForJokes(roll, diceTarget, game.nextToRoll)
@@ -129,6 +130,10 @@ export class Deathroll extends AbstractCommands {
                 })
             }, waitTme)
         }
+    }
+
+    private checkForPotSkip(roll: number, diceTarget: number, userId: string) {
+        if (diceTarget > 200 && roll < 69) this.database.incrementPotSkip(userId) 
     }
 
     private checkForShuffle(roll: number, target: number, additionalMessage: string): string {
