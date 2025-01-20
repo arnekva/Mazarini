@@ -264,7 +264,7 @@ export class Admin extends AbstractCommands {
         const reason = interaction.options.get('reason')?.value as string
         const quality = interaction.options.get('quality')?.value as string
         const user = interaction.options.get('user')?.user
-        const lootButton = LootboxCommands.getDailyLootboxRewardButton(user.id, quality)
+        const lootButton = LootboxCommands.getLootRewardButton(user.id, quality)
         const text = `${MentionUtils.mentionUser(user.id)} har mottatt en reward på en ${quality} lootbox på grunn av *${reason}*`
         const embed = EmbedUtils.createSimpleEmbed('Reward', text)
         this.messageHelper.replyToInteraction(interaction, embed, undefined, [lootButton])

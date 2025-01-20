@@ -49,14 +49,14 @@ export class DailyClaimCommands extends AbstractCommands {
     }
 
     private getLootboxReward(userId: string, daily: DailyReward): ActionRowBuilder<ButtonBuilder>[] {
-        if (daily.streak === 4) return [LootboxCommands.getDailyLootboxRewardButton(userId, LootboxQuality.Basic)]
-        else if (daily.streak === 7) return [LootboxCommands.getDailyLootboxRewardButton(userId, LootboxQuality.Premium)]
+        if (daily.streak === 4) return [LootboxCommands.getLootRewardButton(userId, LootboxQuality.Basic)]
+        else if (daily.streak === 7) return [LootboxCommands.getLootRewardButton(userId, LootboxQuality.Basic, true)]
         else return undefined
     }
 
     private getLootboxField(daily: DailyReward): APIEmbedField {
         if (daily.streak === 4) return { name: 'Lootbox', value: 'Dægårten! Du har henta daglige chips i 4 dager i strekk!\nDå får du en basic lootbox i tillegg!' }
-        else if (daily.streak === 7) return { name: 'Lootbox', value: 'Dægårten! Du har henta daglige chips i 7 dager i strekk!\nDå får du en premium lootbox i tillegg!' }
+        else if (daily.streak === 7) return { name: 'Lootbox', value: 'Dægårten! Du har henta daglige chips i 7 dager i strekk!\nDå får du en basic loot chest i tillegg!' }
         else return undefined
     }
 

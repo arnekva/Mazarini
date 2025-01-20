@@ -46,7 +46,7 @@ export class MoneyHelper {
     }
 
     rewardLootbox(channelId: string, userID: string, quality = LootboxQuality.Basic, reason: string, footerText?: string) {
-        const lootButton = LootboxCommands.getDailyLootboxRewardButton(userID, quality)
+        const lootButton = LootboxCommands.getLootRewardButton(userID, quality)
         const text = `${reason}`
         const embed = EmbedUtils.createSimpleEmbed('Reward', text)
         if (footerText) embed.setFooter({ text: footerText })

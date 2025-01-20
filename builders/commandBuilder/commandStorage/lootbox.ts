@@ -27,6 +27,25 @@ export const lootboxCommand: ISlashCommandItem = {
             ],
         },
         {
+            commandName: 'chest',
+            commandDescription: 'Kjøp en kiste med 3 loot items du kan velge mellom',
+            options: [
+                {
+                    name: 'quality',
+                    description: 'hvilken kiste ønsker du å kjøpe?',
+                    type: ApplicationCommandOptionType.String,
+                    required: true,
+                    autocomplete: true
+                },
+                {
+                    name: 'series',
+                    description: 'hvilken loot-serie ønsker du å kjøpe fra',
+                    type: ApplicationCommandOptionType.String,
+                    autocomplete: true
+                },
+            ],
+        },
+        {
             commandName: 'inventory',
             commandDescription: 'Se en oversikt over loot-en din',
             options: [

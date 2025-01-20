@@ -104,7 +104,7 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
         id: 3,
         message: 'en basic lootbox!',
         effect: (user: MazariniUser) => {
-            return [LootboxCommands.getDailyLootboxRewardButton(user.id, LootboxQuality.Basic)]
+            return [LootboxCommands.getLootRewardButton(user.id, LootboxQuality.Basic)]
         },
     },
     {
@@ -137,14 +137,14 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
         id: 7,
         message: 'en basic lootbox!',
         effect: (user: MazariniUser) => {
-            return [LootboxCommands.getDailyLootboxRewardButton(user.id, LootboxQuality.Basic)]
+            return [LootboxCommands.getLootRewardButton(user.id, LootboxQuality.Basic)]
         },
     },
     {
         id: 8,
         message: 'en premium lootbox!',
         effect: (user: MazariniUser) => {
-            return [LootboxCommands.getDailyLootboxRewardButton(user.id, LootboxQuality.Premium)]
+            return [LootboxCommands.getLootRewardButton(user.id, LootboxQuality.Premium)]
         },
     },
     {
@@ -282,7 +282,7 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
         id: 24,
         message: 'en elite lootbox! God jul :christmas_tree:',
         effect: (user: MazariniUser) => {
-            return [LootboxCommands.getDailyLootboxRewardButton(user.id, LootboxQuality.Elite)]
+            return [LootboxCommands.getLootRewardButton(user.id, LootboxQuality.Elite)]
         },
     },
 ]

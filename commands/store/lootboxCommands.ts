@@ -36,38 +36,48 @@ interface IPendingTrade {
     series: string
 }
 
+interface IPendingChest {
+    userId: string
+    items: Map<string, IUserCollectable>
+    message?: InteractionResponse<boolean> | Message<boolean>
+}
+
 export class LootboxCommands extends AbstractCommands {
     private imageGenerator: ImageGenerationHelper
     private lootboxes: ILootbox[]
     private lootboxesRefreshed: Date
     private series: ICollectableSeries[]
     private pendingTrades: Map<string, IPendingTrade>
+    private pendingChests: Map<string, IPendingChest>
 
     constructor(client: MazariniClient) {
         super(client)
         this.imageGenerator = new ImageGenerationHelper(client)
         this.pendingTrades = new Map<string, IPendingTrade>()
+        this.pendingChests = new Map<string, IPendingChest>()
     }
 
-    static getDailyLootboxRewardButton(userId: string, quality: string): ActionRowBuilder<ButtonBuilder> {
+    static getLootRewardButton(userId: string, quality: string, isChest: boolean = false): ActionRowBuilder<ButtonBuilder> {
         return new ActionRowBuilder<ButtonBuilder>().addComponents(
             new ButtonBuilder({
-                custom_id: `OPEN_LOOTBOX;${userId};${quality}`,
+                custom_id: `OPEN_LOOT;${userId};${quality};${isChest ? 'chest' : 'box'}`,
                 style: ButtonStyle.Primary,
-                label: `Open lootbox`,
+                label: `${isChest ? 'Open loot chest' : 'Open lootbox'}`,
                 disabled: false,
                 type: 2,
             })
         )
     }
 
-    private async openLootboxFromButton(interaction: ButtonInteraction<CacheType>) {
+    private async openLootFromButton(interaction: ButtonInteraction<CacheType>) {
         const deferred = await this.messageHelper.deferReply(interaction)
         if (!deferred) return this.messageHelper.sendMessage(interaction.channelId, {text: 'Noe gikk galt med interactionen. Prøv igjen.'})
         const lootboxOwnerId = interaction.customId.split(';')[1]
         if (interaction.user.id === lootboxOwnerId) {
             interaction.message.edit({ components: [] })
-            await this.openAndRegisterLootbox(interaction)
+            const type = interaction.customId.split(';')[3]
+            if (type === 'box') await this.openAndRegisterLootbox(interaction)
+            else if (type === 'chest') await this.openAndRegisterLootChest(interaction)
         } else this.messageHelper.replyToInteraction(interaction, 'Det er ikke din boks dessverre', { ephemeral: true, hasBeenDefered: true })
     }
 
@@ -87,6 +97,83 @@ export class LootboxCommands extends AbstractCommands {
         const rewardedItem = await this.calculateRewardItem(box, series, user)
         this.registerItemOnUser(user, rewardedItem)
         this.revealCollectable(interaction, rewardedItem)
+    }
+
+    private async openAndRegisterLootChest(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+        const user = await this.client.database.getUser(interaction.user.id)
+        let quality = ''
+        let series = ''
+        if (interaction.isChatInputCommand()) {
+            quality = interaction.options.get('quality')?.value as string
+            series = interaction.options.get('series')?.value as string
+        } else if (interaction.isButton()) {
+            quality = interaction.customId.split(';')[2]
+        }
+        const box = await this.resolveLootbox(quality)
+        
+        if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction, true)) return
+        const chestItems: IUserCollectable[] = new Array<IUserCollectable>()
+        chestItems.push(await this.calculateRewardItem(box, series, user))
+        chestItems.push(await this.calculateRewardItem(box, series, user))
+        chestItems.push(await this.calculateRewardItem(box, series, user))
+        this.revealLootChest(interaction, chestItems)
+    }
+
+    private async revealLootChest(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, items: IUserCollectable[]) {
+        const chestEmoji = await EmojiHelper.getEmoji('chest_closed', interaction)
+        const embed = EmbedUtils.createSimpleEmbed('Loot chest', `Hvilken lootbox vil du åpne og beholde?`).setThumbnail(`https://cdn.discordapp.com/emojis/${chestEmoji.urlId}.webp?size=96&quality=lossless`)
+        const chestId = randomUUID()
+        const chestItems: Map<string, IUserCollectable> = new Map<string, IUserCollectable>()
+        const buttons = new ActionRowBuilder<ButtonBuilder>()
+        for (const item of items) {
+            const itemId = randomUUID()
+            chestItems.set(itemId, item)
+            const btn = lootChestButton(chestId, itemId, TextUtils.capitalizeFirstLetter(item.rarity))
+            if (item.color !== ItemColor.None) {
+                const color = this.getItemColorBadge(item)
+                const badge = EmojiHelper.getGuildEmoji(color, interaction)                
+                btn.setEmoji({name: badge.name, id: badge.id})
+            }
+            buttons.addComponents(btn)
+        }
+        const msg = await this.messageHelper.replyToInteraction(interaction, embed, {hasBeenDefered: true}, [buttons])
+        const pendingChest: IPendingChest = {userId: interaction.user.id, items: chestItems, message: msg}
+        this.pendingChests.set(chestId, pendingChest)
+    }
+
+    private getItemColorBadge(item: IUserCollectable) {
+        let color = ''
+        if (item.color === ItemColor.Silver) color = 'silver_badge'
+        else if (item.color === ItemColor.Gold) color = 'gold_badge'
+        else if (item.color === ItemColor.Diamond) color = 'diamond_badge'
+        return color
+    }
+
+    private async selectChestItem(interaction: ButtonInteraction<CacheType>) {
+        const deferred = await this.messageHelper.deferReply(interaction)
+        if (!deferred) return this.messageHelper.sendMessage(interaction.channelId, {text: 'Noe gikk galt med interactionen. Prøv igjen.'})
+        const user = await this.client.database.getUser(interaction.user.id)
+        const pendingChest = this.getPendingChest(interaction)
+        if (!pendingChest) return this.messageHelper.replyToInteraction(interaction, 'Denne er dessverre ikke gyldig lenger', {hasBeenDefered: true})
+        if (!(pendingChest.userId === interaction.user.id)) {
+            return this.messageHelper.replyToInteraction(interaction, 'nei', {hasBeenDefered: true})
+        } 
+        const chestEmoji = await EmojiHelper.getEmoji('chest_open', interaction)
+        const embed = EmbedUtils.createSimpleEmbed('Loot chest', `Åpner lootboxen!`).setThumbnail(`https://cdn.discordapp.com/emojis/${chestEmoji.urlId}.webp?size=96&quality=lossless`)
+        interaction.message.edit({ embeds: [embed], components: [] })
+        const item = this.getChestItem(interaction, pendingChest)        
+        this.registerItemOnUser(user, item)
+        this.revealCollectable(interaction, item)
+    }
+
+    private getPendingChest(interaction: ButtonInteraction<CacheType>) {
+        const chestId = interaction.customId.split(';')[1]
+        return this.pendingChests.get(chestId)
+    }
+
+    private getChestItem(interaction: ButtonInteraction<CacheType>, chest: IPendingChest) {
+        const chestId = interaction.customId.split(';')[2]
+        return chest.items.get(chestId)
     }
 
     private async resolveLootbox(quality: string): Promise<ILootbox> {
@@ -109,8 +196,8 @@ export class LootboxCommands extends AbstractCommands {
         return now >= from && now <= to 
     }
 
-    private checkBalanceAndTakeMoney(user: MazariniUser, box: ILootbox, interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        const moneyWasTaken = this.client.bank.takeMoney(user, box.price)
+    private checkBalanceAndTakeMoney(user: MazariniUser, box: ILootbox, interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, isChest: boolean = false) {
+        const moneyWasTaken = this.client.bank.takeMoney(user, (isChest ? box.price*2 : box.price))
         if (!moneyWasTaken) this.messageHelper.replyToInteraction(interaction, 'Du har kje råd te den', { ephemeral: true, hasBeenDefered: true })
         return moneyWasTaken
     }
@@ -230,25 +317,24 @@ export class LootboxCommands extends AbstractCommands {
             msg = reply
         }
         setTimeout(() => {
-            msg.react(emoji)
+            msg.react(emoji.emojiObject.identifier)
         }, 30000)
     }
 
     private async getLootApplicationEmoji(item: IUserCollectable) {
         const emojiName = `${item.series}_${item.name}_${item.color.charAt(0)}`.toLowerCase()
-        const emoji = await EmojiHelper.getApplicationEmoji(emojiName, this.client)
-        return emoji.emojiObject.identifier
+        return await EmojiHelper.getApplicationEmoji(emojiName, this.client)
     }
 
     private getGifPath(item: IUserCollectable): string {
         return `loot/${item.series}/${item.name}_${item.color}.gif`
     }
 
-    private async qualityAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
+    private async qualityAutocomplete(interaction: AutocompleteInteraction<CacheType>, isChest: boolean = false) {
         const boxes = await this.getLootboxes()
 		interaction.respond(
 			boxes
-            .map(box => ({ name: `${TextUtils.capitalizeFirstLetter(box.name)} ${(box.price/1000)}K`, value: box.name })) 
+            .map(box => ({ name: `${TextUtils.capitalizeFirstLetter(box.name)} ${(isChest ? 2 : 1)*(box.price/1000)}K`, value: box.name })) 
 		)
     }
 
@@ -505,15 +591,17 @@ export class LootboxCommands extends AbstractCommands {
         const cmdGroup = interaction.options.getSubcommandGroup()
         const cmd = interaction.options.getSubcommand()
         if (!cmdGroup && cmd === 'box') this.openAndRegisterLootbox(interaction)
+        else if (!cmdGroup && cmd === 'chest') this.openAndRegisterLootChest(interaction)
         else if (!cmdGroup && cmd === 'inventory') this.printInventory(interaction)
         else if (cmdGroup && cmdGroup === 'trade') this.tradeItems(interaction)
     }
 
     private delegateAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
+        const cmd = interaction.options.getSubcommand()
         const optionList: any = interaction.options
         const focused = optionList._hoistedOptions.find(option => option.focused)
         if (focused.name === 'series') this.seriesAutocomplete(interaction)
-        else if (focused.name.includes('quality')) this.qualityAutocomplete(interaction)
+        else if (focused.name.includes('quality')) this.qualityAutocomplete(interaction, (cmd === 'chest'))
         else if (focused.name.includes('item')) this.itemAutocomplete(interaction)
     }
 
@@ -533,9 +621,9 @@ export class LootboxCommands extends AbstractCommands {
                 ],
                 buttonInteractionComands: [
                     {
-                        commandName: 'OPEN_LOOTBOX',
+                        commandName: 'OPEN_LOOT',
                         command: (rawInteraction: ButtonInteraction<CacheType>) => {
-                            this.openLootboxFromButton(rawInteraction)
+                            this.openLootFromButton(rawInteraction)
                         },
                     },
                     {
@@ -548,6 +636,12 @@ export class LootboxCommands extends AbstractCommands {
                         commandName: 'LOOT_TRADE_CANCEL',
                         command: (rawInteraction: ButtonInteraction<CacheType>) => {
                             this.cancelTrade(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'LOOT_CHEST_SELECT',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.selectChestItem(rawInteraction)
                         },
                     },
                 ],
@@ -573,4 +667,14 @@ const tradeButtons = (tradeID: string) => {
             type: 2,
         })
     )
+}
+
+const lootChestButton = (chestId: string, itemId: string, label: string) => {
+    return new ButtonBuilder({
+        custom_id: `LOOT_CHEST_SELECT;${chestId};${itemId}`,
+        style: ButtonStyle.Primary,
+        label: `${label}`,
+        disabled: false,
+        type: 2,
+    })
 }
