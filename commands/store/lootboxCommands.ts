@@ -38,8 +38,10 @@ interface IPendingTrade {
 
 interface IPendingChest {
     userId: string
+    quality: string
     items: Map<string, IUserCollectable>
     message?: InteractionResponse<boolean> | Message<boolean>
+    buttons?: ActionRowBuilder<ButtonBuilder>
 }
 
 export class LootboxCommands extends AbstractCommands {
@@ -116,12 +118,12 @@ export class LootboxCommands extends AbstractCommands {
         chestItems.push(await this.calculateRewardItem(box, series, user))
         chestItems.push(await this.calculateRewardItem(box, series, user))
         chestItems.push(await this.calculateRewardItem(box, series, user))
-        this.revealLootChest(interaction, chestItems)
+        this.revealLootChest(interaction, chestItems, quality)
     }
 
-    private async revealLootChest(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, items: IUserCollectable[]) {
+    private async revealLootChest(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, items: IUserCollectable[], quality: string) {
         const chestEmoji = await EmojiHelper.getEmoji('chest_closed', interaction)
-        const embed = EmbedUtils.createSimpleEmbed('Loot chest', `Hvilken lootbox vil du åpne og beholde?`).setThumbnail(`https://cdn.discordapp.com/emojis/${chestEmoji.urlId}.webp?size=96&quality=lossless`)
+        const embed = EmbedUtils.createSimpleEmbed(`${TextUtils.capitalizeFirstLetter(quality)} loot chest`, `Hvilken lootbox vil du åpne og beholde?`).setThumbnail(`https://cdn.discordapp.com/emojis/${chestEmoji.urlId}.webp?size=96&quality=lossless`)
         const chestId = randomUUID()
         const chestItems: Map<string, IUserCollectable> = new Map<string, IUserCollectable>()
         const buttons = new ActionRowBuilder<ButtonBuilder>()
@@ -137,7 +139,7 @@ export class LootboxCommands extends AbstractCommands {
             buttons.addComponents(btn)
         }
         const msg = await this.messageHelper.replyToInteraction(interaction, embed, {hasBeenDefered: true}, [buttons])
-        const pendingChest: IPendingChest = {userId: interaction.user.id, items: chestItems, message: msg}
+        const pendingChest: IPendingChest = {userId: interaction.user.id, quality: quality, items: chestItems, message: msg, buttons: buttons}
         this.pendingChests.set(chestId, pendingChest)
     }
 
@@ -159,8 +161,15 @@ export class LootboxCommands extends AbstractCommands {
             return this.messageHelper.replyToInteraction(interaction, 'nei', {hasBeenDefered: true})
         } 
         const chestEmoji = await EmojiHelper.getEmoji('chest_open', interaction)
-        const embed = EmbedUtils.createSimpleEmbed('Loot chest', `Åpner lootboxen!`).setThumbnail(`https://cdn.discordapp.com/emojis/${chestEmoji.urlId}.webp?size=96&quality=lossless`)
-        interaction.message.edit({ embeds: [embed], components: [] })
+        const embed = EmbedUtils.createSimpleEmbed(`${TextUtils.capitalizeFirstLetter(pendingChest.quality)} loot chest`, `Åpner lootboxen!`).setThumbnail(`https://cdn.discordapp.com/emojis/${chestEmoji.urlId}.webp?size=96&quality=lossless`)
+        const disabledBtns = pendingChest.buttons.components.map(btn => {
+            btn.setDisabled(true)
+            const btnProps: any = btn.toJSON()
+            if (btnProps.custom_id === interaction.customId) btn.setLabel('* ' + btnProps.label + ' *')
+            return btn
+        })
+        const btnRow = new ActionRowBuilder<ButtonBuilder>().addComponents(disabledBtns)
+        interaction.message.edit({ embeds: [embed], components: [btnRow] })
         const item = this.getChestItem(interaction, pendingChest)        
         this.registerItemOnUser(user, item)
         this.revealCollectable(interaction, item)
@@ -168,7 +177,9 @@ export class LootboxCommands extends AbstractCommands {
 
     private getPendingChest(interaction: ButtonInteraction<CacheType>) {
         const chestId = interaction.customId.split(';')[1]
-        return this.pendingChests.get(chestId)
+        const chest = this.pendingChests.get(chestId)
+        this.pendingChests.delete(chestId)
+        return chest
     }
 
     private getChestItem(interaction: ButtonInteraction<CacheType>, chest: IPendingChest) {
