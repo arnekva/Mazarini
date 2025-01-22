@@ -321,8 +321,8 @@ export class Deathroll extends AbstractCommands {
         )
     }
 
-    private saveRewardPot() {
-        this.client.database.saveDeathrollPot(this.rewardPot)
+    private saveRewardPot(saveToDb: boolean = false) {
+        if (saveToDb) this.client.database.saveDeathrollPot(this.rewardPot)
     }
 
     private sendNoThanksButton(userId: string, rewarded: number) {
@@ -460,6 +460,7 @@ export class Deathroll extends AbstractCommands {
 
     override async onSave() {
         this.printOldNumbers()
+        this.saveRewardPot(true)
         await this.saveActiveGamesToDatabase()
         return true
     }
