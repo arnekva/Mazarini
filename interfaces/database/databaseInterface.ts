@@ -94,6 +94,17 @@ export interface MazariniUser {
     userSettings?: IUserSettings
     effects?: IUserEffects
     christmasCalendar?: UserCalendarGift[]
+    dailyGameStats?: IDailyGameStats
+}
+
+export interface IDailyGameStats {
+    moreOrLess?: IMoreOrLessStats
+}
+
+export interface IMoreOrLessStats {
+    attempted?: boolean
+    firstAttempt?: number
+    bestAttempt?: number
 }
 
 export interface IUserSettings {
@@ -219,6 +230,24 @@ export interface MazariniStorage {
     savedMessages?: ISavedMessage[]
     deathrollPot?: number
     loot?: ILootSystem
+    moreOrLess?: IMoreOrLess
+}
+
+export interface IMoreOrLess {
+    title: string
+    description: string
+    tags?: string[]
+    seoTitle?: string
+    badge?: string
+    slug: string
+    image: string
+    strings?: {
+        verb: string
+        valueTitle: string
+        valueSuffix?: string
+        buttonMore?: string,
+        buttonLess?: string
+    }
 }
 
 export interface ICache {

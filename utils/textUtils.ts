@@ -41,6 +41,10 @@ export namespace TextUtils {
         })
     }
 
+    export function formatLargeNumber(n: number) {
+        return n.toLocaleString()
+    }
+
     export function formatAsCodeBlock(text: string) {
         return `\`\`\`${text}\`\`\``
     }

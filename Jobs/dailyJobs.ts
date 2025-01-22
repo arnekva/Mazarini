@@ -3,13 +3,15 @@ import fetch from 'node-fetch'
 import { rapidApiKey, rapidApiKey2 } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
 import { Deathroll } from '../commands/games/deathroll'
+import { MoreOrLess } from '../commands/games/moreOrLess'
 import { RocketLeagueCommands } from '../commands/gaming/rocketleagueCommands'
+import { LootboxCommands } from '../commands/store/lootboxCommands'
 import { EmojiHelper, JobStatus } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniUser, RocketLeagueTournament } from '../interfaces/database/databaseInterface'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
-import { ChannelIds } from '../utils/mentionUtils'
+import { ChannelIds, MentionUtils } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
 export class DailyJobs {
     private messageHelper: MessageHelper
@@ -26,7 +28,7 @@ export class DailyJobs {
         } else {
             //TODO: This could be refactored
             const users = await this.client.database.getAllUsers()
-            const embed = EmbedUtils.createSimpleEmbed(`Daily Jobs`, `Kjører 7 jobber`)
+            const embed = EmbedUtils.createSimpleEmbed(`Daily Jobs`, `Kjører 8 jobber`)
 
             const claim = this.validateAndResetDailyClaims(users)
             embed.addFields({ name: 'Daily claim', value: EmojiHelper.getStatusEmoji(claim) })
@@ -42,7 +44,8 @@ export class DailyJobs {
             embed.addFields({ name: 'Rocket League turnering', value: EmojiHelper.getStatusEmoji(rl) })
             const drWinNum = this.reRollWinningNumbers()
             embed.addFields({ name: 'Tilfeldige deathroll vinnertall', value: EmojiHelper.getStatusEmoji(drWinNum) })
-
+            const moreOrLess = await this.awardAndResetMoreOrLess(users)
+            embed.addFields({ name: 'More or less', value: EmojiHelper.getStatusEmoji(moreOrLess) })
             const todaysTime = new Date().toLocaleTimeString()
             embed.setFooter({ text: todaysTime })
             this.messageHelper.sendMessage(ChannelIds.ACTION_LOG, { embed: embed })
@@ -208,6 +211,57 @@ export class DailyJobs {
         })
         this.client.database.updateData(updates)
         return 'success'
+    }
+
+    private async awardAndResetMoreOrLess(users: MazariniUser[]): Promise<JobStatus> {
+        const usersWithStats = users.filter(user => user.dailyGameStats?.moreOrLess?.attempted)
+        const attempted = (usersWithStats?.length ?? 0) > 0
+        let dailyWinner = undefined
+        let tied = false
+        let tieBreak = false
+        if (attempted) {
+            const sortedUsers = usersWithStats?.sort((a,b) => b.dailyGameStats.moreOrLess.firstAttempt - a.dailyGameStats.moreOrLess.firstAttempt)
+            dailyWinner = sortedUsers[0]
+            const filteredUsers = sortedUsers.filter(user => user.dailyGameStats.moreOrLess.firstAttempt === sortedUsers[0].dailyGameStats.moreOrLess.firstAttempt)
+            if (filteredUsers.length > 1) {
+                const sortedWinners = filteredUsers.sort((a,b) => b.dailyGameStats.moreOrLess.bestAttempt - a.dailyGameStats.moreOrLess.bestAttempt)
+                if (sortedWinners[0].dailyGameStats.moreOrLess.bestAttempt === sortedWinners[1].dailyGameStats.moreOrLess.bestAttempt) {
+                    dailyWinner = undefined
+                    tied = true
+                } else {
+                    dailyWinner = sortedWinners[0]
+                    tieBreak = true
+                }
+            }
+            const updates = this.client.database.getUpdatesObject<'dailyGameStats'>()
+            usersWithStats.forEach((user) => {
+                user.dailyGameStats = {...user.dailyGameStats, moreOrLess: { attempted: false, firstAttempt: 0, bestAttempt: 0}}
+                const updatePath = this.client.database.getUserPathToUpdate(user.id, 'dailyGameStats')
+                updates[updatePath] = user.dailyGameStats
+            })
+            this.client.database.updateData(updates)
+        }
+        const storage = await this.client.database.getStorage()
+        const game = await MoreOrLess.getNewMoreOrLessGame()
+        const description = this.getMoreOrLessDesc(attempted, dailyWinner, tied, tieBreak, storage.moreOrLess.title)
+      
+        const embed = EmbedUtils.createSimpleEmbed('More or Less', description + `\n\nDagens tema er **${game.title}**`)
+        const lootBtn = dailyWinner ? LootboxCommands.getLootRewardButton(dailyWinner.id, 'basic', true) : undefined
+        this.messageHelper.sendMessage(ChannelIds.LAS_VEGAS, {embed: embed, components: dailyWinner ? [lootBtn] : []})
+        this.client.database.updateStorage({ moreOrLess: game })
+        return 'success' 
+    }
+
+    private getMoreOrLessDesc(attempted: boolean, winner: MazariniUser, tied: boolean, tiebreak: boolean, yesterdayTheme: string) {
+        if (!attempted) return `Ingen forsøk ble gjort på gårsdagens tema *${yesterdayTheme}*`
+        else if (tied) return `Det var ingen som klarte å være best i gårsdagens tema *${yesterdayTheme}*, så da blir det ingen ekstra premie`
+        else {
+            return `Gratulerer til gårsdagens vinner ${MentionUtils.mentionUser(winner.id)}`
+                 + (tiebreak 
+                 ? ` som vinner på tiebreak med beste totalforsøk på *${yesterdayTheme}*!`
+                 : ` som vinner på beste første forsøk på *${yesterdayTheme}*!`)
+                 + `\nDu får en basic loot chest!`
+        } 
     }
 
     private logEvent() {

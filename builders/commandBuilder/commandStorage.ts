@@ -10,6 +10,7 @@ import { lootboxCommand } from './commandStorage/lootbox'
 import { ludoCommand } from './commandStorage/ludo'
 import { lyricsCommand } from './commandStorage/lyrics'
 import { memeCommand } from './commandStorage/meme'
+import { moreorless } from './commandStorage/moreorless'
 import { musicCommand } from './commandStorage/musikk'
 import { pickpocketCommand } from './commandStorage/pickpocket'
 import { pointerbrothersCommand } from './commandStorage/pointerbrothers'
@@ -62,4 +63,5 @@ export namespace CommandStorage {
     export const userSettings = userSettingsCommand
     export const RefreshCommand = refreshCommand
     export const CalendarCommand = calendarCommand
+    export const MoreOrLess = moreorless
 }
