@@ -106,9 +106,16 @@ export class MoreOrLess extends AbstractCommands {
         const embed = EmbedUtils.createSimpleEmbed(this.game.title, this.game.description).setThumbnail(
             `https://api.moreorless.io/img/${this.game.image}_512.jpg`
         )
-        const msg = await this.messageHelper.replyToInteraction(interaction, embed, { ephemeral: true }, [startBtnRow])
-        const userGame: IMoreOrLessUserGame = { data: data, correctAnswers: 0, message: msg }
-        this.userGames.set(interaction.user.id, userGame)
+        if (interaction.isButton()) { //assumes origin is play again button
+            interaction.deferUpdate()
+            const previousGame = this.userGames.get(interaction.user.id)
+            previousGame.data = data
+            previousGame.message.edit({embeds: [embed], components: [startBtnRow]})
+        } else {
+            const msg = await this.messageHelper.replyToInteraction(interaction, embed, { ephemeral: true }, [startBtnRow])
+            const userGame: IMoreOrLessUserGame = { data: data, correctAnswers: 0, message: msg }
+            this.userGames.set(interaction.user.id, userGame)
+        }
     }
 
     private startGame(interaction: ButtonInteraction<CacheType>) {

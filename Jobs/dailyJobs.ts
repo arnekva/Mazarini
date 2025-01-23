@@ -11,7 +11,7 @@ import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniUser, RocketLeagueTournament } from '../interfaces/database/databaseInterface'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
-import { ChannelIds, MentionUtils } from '../utils/mentionUtils'
+import { ChannelIds, MentionUtils, ThreadIds } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
 export class DailyJobs {
     private messageHelper: MessageHelper
@@ -247,7 +247,7 @@ export class DailyJobs {
       
         const embed = EmbedUtils.createSimpleEmbed('More or Less', description + `\n\nDagens tema er **${game.title}**`)
         const lootBtn = dailyWinner ? LootboxCommands.getLootRewardButton(dailyWinner.id, 'basic', true) : undefined
-        this.messageHelper.sendMessage(ChannelIds.LAS_VEGAS, {embed: embed, components: dailyWinner ? [lootBtn] : []})
+        this.messageHelper.sendMessage(ThreadIds.MORE_OR_LESS, {embed: embed, components: dailyWinner ? [lootBtn] : []})
         this.client.database.updateStorage({ moreOrLess: game })
         return 'success' 
     }
