@@ -47,6 +47,21 @@ export class DateUtils {
         return rDate
     }
 
+    static isTimeOfDayAfter(hour: number, minute?: number) {
+        return moment().isAfter(
+            moment()
+                .hour(hour)
+                .minute(minute || 0)
+        )
+    }
+    static isTimeOfDayBefore(hour: number, minute?: number) {
+        return moment().isBefore(
+            moment()
+                .hour(hour)
+                .minute(minute || 0)
+        )
+    }
+
     static isValidDate(date: Date | number) {
         return date instanceof Date && !isNaN(Number(date))
     }
