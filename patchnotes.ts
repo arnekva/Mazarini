@@ -8,9 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '20.0.2'
-    public static readonly currentPatchNotes = `* Sender nå daglig vinner av more or less i egen thread`
-                                             + `\n* Play again (moreorless) oppdaterer nå samme embed, heller enn å sende en ny`
+    public static readonly currentVersion = '20.0.3'
+    public static readonly currentPatchNotes = `* Fikser en urgent bug hvor antall rette svar ikke ble nullsatt ved play again`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

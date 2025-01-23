@@ -110,6 +110,7 @@ export class MoreOrLess extends AbstractCommands {
             interaction.deferUpdate()
             const previousGame = this.userGames.get(interaction.user.id)
             previousGame.data = data
+            previousGame.correctAnswers = 0
             previousGame.message.edit({embeds: [embed], components: [startBtnRow]})
         } else {
             const msg = await this.messageHelper.replyToInteraction(interaction, embed, { ephemeral: true }, [startBtnRow])
