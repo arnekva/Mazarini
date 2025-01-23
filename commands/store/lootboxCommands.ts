@@ -173,13 +173,17 @@ export class LootboxCommands extends AbstractCommands {
         const item = this.getChestItem(interaction, pendingChest)        
         this.registerItemOnUser(user, item)
         this.revealCollectable(interaction, item)
+        this.deletePendingChest(interaction)
     }
 
     private getPendingChest(interaction: ButtonInteraction<CacheType>) {
         const chestId = interaction.customId.split(';')[1]
-        const chest = this.pendingChests.get(chestId)
+        return this.pendingChests.get(chestId)
+    }
+
+    private deletePendingChest(interaction: ButtonInteraction<CacheType>) {
+        const chestId = interaction.customId.split(';')[1]
         this.pendingChests.delete(chestId)
-        return chest
     }
 
     private getChestItem(interaction: ButtonInteraction<CacheType>, chest: IPendingChest) {
