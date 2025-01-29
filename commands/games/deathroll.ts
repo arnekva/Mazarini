@@ -123,17 +123,24 @@ export class Deathroll extends AbstractCommands {
                 }
             }
             const bold = (game?.players?.length ?? 0) == 1 ? '**' : ''
-            const waitTme = Math.random() < 0.001 || (roll == 1 && Math.random() < diceTarget / 1000) ? 5000 : 0 // Økende sannsynlighet for å bli tomasa jo større tapet er | generelt 0.1% sannsynlig å bli tomasa
-            setTimeout(() => {
+            // Økende sannsynlighet for å bli tomasa jo større tapet er | generelt 0.1% sannsynlig å bli tomasa
+            const shouldThrowTomas = Math.random() < 0.001 || (roll == 1 && Math.random() < diceTarget / 1000)
+            const sendRoll = () => {
                 this.messageHelper.replyToInteraction(interaction, `${bold}${roll} *(1 - ${diceTarget})*${bold}  ${additionalMessage}`, {
                     sendAsSilent: (game?.players?.length ?? 2) > 1,
                 })
-            }, waitTme)
+            }
+
+            if (shouldThrowTomas)
+                setTimeout(() => {
+                    sendRoll()
+                }, 5000)
+            else sendRoll()
         }
     }
 
     private checkForPotSkip(roll: number, diceTarget: number, userId: string) {
-        if (diceTarget > 200 && roll < 69) this.database.incrementPotSkip(userId) 
+        if (diceTarget > 200 && roll < 69) this.database.incrementPotSkip(userId)
     }
 
     private checkForShuffle(roll: number, target: number, additionalMessage: string): string {
