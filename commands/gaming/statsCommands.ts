@@ -60,7 +60,7 @@ export class StatsCommands extends AbstractCommands {
                 { name: '\u200B', value: '\u200B', inline: true },
                 { name: 'Streak | ATH', value: `${stats.currentLossStreak ?? 0} | ${stats.longestLossStreak ?? 0}`, inline: true },
             ])
-            .setFooter({ text: `Største tap:\n${stats.biggestLoss?.sort((a, b) => b - a).join(', ') ?? ''}` })
+            .setFooter({ text: `Største tap:\n${stats.biggestLoss?.sort((a, b) => b - a).join(', ') ?? ''}\nSkips: ${stats.potSkips ?? 0}` })
     }
 
     private getGamblingEmbed(stats: ChipsStats, user: MazariniUser) {
