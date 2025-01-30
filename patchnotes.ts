@@ -8,8 +8,9 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '20.0.4'
-    public static readonly currentPatchNotes = `* Fikser en bug hvor loot chest-en din blir slettet når andre prøver å åpne den <:hhhhheeehhhhhh:1255794610433953793>`
+    public static readonly currentVersion = '20.0.5'
+    public static readonly currentPatchNotes = `* Fikser en bug hvor du kunne få infinite score i more or less`
+                                             + `\n* deathroll stats viser nå antall hasjskips`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
