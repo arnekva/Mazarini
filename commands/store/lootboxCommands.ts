@@ -121,9 +121,14 @@ export class LootboxCommands extends AbstractCommands {
         this.revealLootChest(interaction, chestItems, quality)
     }
 
+    private isArneChest(items: IUserCollectable[]) {
+        return items.every(item => item.rarity === ItemRarity.Common && item.color === ItemColor.None)
+    }
+
     private async revealLootChest(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, items: IUserCollectable[], quality: string) {
         const chestEmoji = await EmojiHelper.getEmoji('chest_closed', interaction)
-        const embed = EmbedUtils.createSimpleEmbed(`${TextUtils.capitalizeFirstLetter(quality)} loot chest`, `Hvilken lootbox vil du åpne og beholde?`).setThumbnail(`https://cdn.discordapp.com/emojis/${chestEmoji.urlId}.webp?size=96&quality=lossless`)
+        const chestType = this.isArneChest(items) ? 'Arne' : (TextUtils.capitalizeFirstLetter(quality) + ' loot')
+        const embed = EmbedUtils.createSimpleEmbed(`${chestType} chest`, `Hvilken lootbox vil du åpne og beholde?`).setThumbnail(`https://cdn.discordapp.com/emojis/${chestEmoji.urlId}.webp?size=96&quality=lossless`)
         const chestId = randomUUID()
         const chestItems: Map<string, IUserCollectable> = new Map<string, IUserCollectable>()
         const buttons = new ActionRowBuilder<ButtonBuilder>()
@@ -161,7 +166,8 @@ export class LootboxCommands extends AbstractCommands {
             return this.messageHelper.replyToInteraction(interaction, 'nei', {hasBeenDefered: true})
         } 
         const chestEmoji = await EmojiHelper.getEmoji('chest_open', interaction)
-        const embed = EmbedUtils.createSimpleEmbed(`${TextUtils.capitalizeFirstLetter(pendingChest.quality)} loot chest`, `Åpner lootboxen!`).setThumbnail(`https://cdn.discordapp.com/emojis/${chestEmoji.urlId}.webp?size=96&quality=lossless`)
+        const chestType = this.isArneChest(Array.from(pendingChest.items.values())) ? 'Arne' : (TextUtils.capitalizeFirstLetter(pendingChest.quality) + ' loot')
+        const embed = EmbedUtils.createSimpleEmbed(`${chestType} chest`, `Åpner lootboxen!`).setThumbnail(`https://cdn.discordapp.com/emojis/${chestEmoji.urlId}.webp?size=96&quality=lossless`)
         const disabledBtns = pendingChest.buttons.components.map(btn => {
             btn.setDisabled(true)
             const btnProps: any = btn.toJSON()
