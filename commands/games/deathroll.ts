@@ -320,6 +320,7 @@ export class Deathroll extends AbstractCommands {
         this.rewardPot = Math.max(this.rewardPot + addToPot - rewarded, 0)
         if (rewarded > 0) this.saveRewardPot()
         if (rewarded < 10000) this.sendNoThanksButton(userId, rewarded)
+        else if (rewarded >= 10000) this.sendBlackjackButton(userId, rewarded)
         const jailed = this.rewardPot > 0
         return (
             ` Nice\nDu vinner potten på ${initialPot + addToPot} ${addToPot > 0 ? `(${initialPot} + ${addToPot}) ` : ''}chips!` +
@@ -334,6 +335,13 @@ export class Deathroll extends AbstractCommands {
 
     private sendNoThanksButton(userId: string, rewarded: number) {
         const button = noThanksButton(userId, rewarded)
+        setTimeout(() => {
+            this.messageHelper.sendMessage(ThreadIds.GENERAL_TERNING, { components: [button] })
+        }, 500)
+    }
+
+    private sendBlackjackButton(userId: string, rewarded: number) {
+        const button = blackjackButton(userId, rewarded)
         setTimeout(() => {
             this.messageHelper.sendMessage(ThreadIds.GENERAL_TERNING, { components: [button] })
         }, 500)
@@ -512,6 +520,18 @@ const noThanksButton = (userId: string, rewarded: number) => {
             style: ButtonStyle.Primary,
             label: `Nei takk (+2k chips)`,
             disabled: false,
+            type: 2,
+        })
+    )
+}
+
+const blackjackButton = (userId: string, rewarded: number) => {
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder({
+            custom_id: `BLACKJACK_DEATHROLL;${userId};${rewarded}`,
+            style: ButtonStyle.Success,
+            disabled: false,
+            emoji: { name: 'pointerbrothers1', id: '1177653110852825158' },
             type: 2,
         })
     )

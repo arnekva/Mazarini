@@ -93,6 +93,66 @@ export class Blackjack extends AbstractCommands {
         return this.arrowEmoji
     }
 
+    private async deathrollBlackjack(interaction: ButtonInteraction<CacheType>) {
+        const userId = interaction.customId.split(';')[1]
+        if (userId !== interaction.user.id) {
+            interaction.deferUpdate()
+        } else {
+            const stake = Number(interaction.customId.split(';')[2])
+            const user = await this.client.database.getUser(userId)
+            if (this.client.bank.takeMoney(user, stake)) {
+                await this.setupGame(interaction, user, stake, false)
+            } else {
+                const huh = await EmojiHelper.getEmoji('kekhuh', interaction)
+                this.messageHelper.replyToInteraction(interaction, 'Du kan ikke gamble chipsene hvis du allerede har mistet dem ' + huh.id)
+            }
+            interaction.message.delete()
+        }
+    }
+
+    private async setupGame(
+        interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>,
+        user: MazariniUser,
+        stake: number,
+        allIn: boolean
+    ) {
+        const playerPicture = await this.getProfilePicture(interaction)
+        const hand: PlayerHand = { cards: new Array<ICardObject>(), stand: false, doubleDown: false }
+        const player: BlackjackPlayer = {
+            id: user.id,
+            name: interaction.user.username,
+            hands: [hand],
+            currentHandIndex: 0,
+            stake: stake,
+            profilePicture: playerPicture,
+            allIn: allIn,
+        }
+
+        const dealerPicture = (await EmojiHelper.getEmoji('mazarinibot', this.client)).id
+        const dealer: BlackjackDealer = { id: 'dealer', name: 'Bot Høie', hand: new Array<ICardObject>(), profilePicture: dealerPicture }
+
+        const messages: BlackjackMessages = { embedContent: undefined, tableContent: undefined, buttonRow: undefined }
+        const game: BlackjackGame = {
+            id: randomUUID(),
+            players: [player],
+            dealer: dealer,
+            deck: new CardCommands(this.client, 6),
+            messages: messages,
+            resolved: false,
+        }
+        this.games.push(game)
+
+        await this.dealCard(game, player.hands[0].cards)
+        await this.dealCard(game, player.hands[0].cards)
+        await this.dealCard(game, dealer.hand)
+        await this.dealCard(game, dealer.hand)
+
+        this.faceCard = (await EmojiHelper.getEmoji('faceCard', this.client)).id
+
+        await this.generateSimpleTable(game)
+        await this.printGame(game, interaction)
+    }
+
     private async simpleGame(interaction: ChatInputCommandInteraction<CacheType>) {
         const user = await this.client.database.getUser(interaction.user.id)
         const amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('satsing')?.value)
@@ -109,49 +169,14 @@ export class Blackjack extends AbstractCommands {
             if (amount < 1) stake = 1
             if (userMoney && userMoney >= stake) {
                 this.client.bank.takeMoney(user, stake)
-
-                const playerPicture = await this.getProfilePicture(interaction)
-                const hand: PlayerHand = { cards: new Array<ICardObject>(), stand: false, doubleDown: false }
-                const player: BlackjackPlayer = {
-                    id: user.id,
-                    name: interaction.user.username,
-                    hands: [hand],
-                    currentHandIndex: 0,
-                    stake: stake,
-                    profilePicture: playerPicture,
-                    allIn: !amount,
-                }
-
-                const dealerPicture = (await EmojiHelper.getEmoji('mazarinibot', this.client)).id
-                const dealer: BlackjackDealer = { id: 'dealer', name: 'Bot Høie', hand: new Array<ICardObject>(), profilePicture: dealerPicture }
-
-                const messages: BlackjackMessages = { embedContent: undefined, tableContent: undefined, buttonRow: undefined }
-                const game: BlackjackGame = {
-                    id: randomUUID(),
-                    players: [player],
-                    dealer: dealer,
-                    deck: new CardCommands(this.client, 6),
-                    messages: messages,
-                    resolved: false,
-                }
-                this.games.push(game)
-
-                await this.dealCard(game, player.hands[0].cards)
-                await this.dealCard(game, player.hands[0].cards)
-                await this.dealCard(game, dealer.hand)
-                await this.dealCard(game, dealer.hand)
-
-                this.faceCard = (await EmojiHelper.getEmoji('faceCard', this.client)).id
-
-                await this.generateSimpleTable(game)
-                this.printGame(game, interaction)
+                this.setupGame(interaction, user, stake, !amount)
             } else {
                 this.messageHelper.replyToInteraction(interaction, `Du må ha minst 1 chip for å spille blackjack :'(`)
             }
         }
     }
 
-    private async getProfilePicture(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async getProfilePicture(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
         let emoji = await EmojiHelper.getEmoji(interaction.user.username, this.client)
         if (!(emoji.id === '<Fant ikke emojien>')) return emoji.id
         else {
@@ -199,10 +224,8 @@ export class Blackjack extends AbstractCommands {
                 buttonRow.addComponents(doubleDownBtn(game.id, this.client.bank.userCanAfford(user, player.stake)))
             if (this.canSplit(player.hands[player.currentHandIndex].cards))
                 buttonRow.addComponents(splitBtn(game.id, this.client.bank.userCanAfford(user, player.stake)))
-            if (this.canInsure(game, player)) 
-                buttonRow.addComponents(insuranceBtn(game.id, this.client.bank.userCanAfford(user, Math.ceil(player.stake / 2))))
-            if (this.canReDeal(player, user))
-                buttonRow.addComponents(reDealBtn(game.id, user.effects.positive.blackjackReDeals))
+            if (this.canInsure(game, player)) buttonRow.addComponents(insuranceBtn(game.id, this.client.bank.userCanAfford(user, Math.ceil(player.stake / 2))))
+            if (this.canReDeal(player, user)) buttonRow.addComponents(reDealBtn(game.id, user.effects.positive.blackjackReDeals))
         }
         return buttonRow
     }
@@ -620,6 +643,12 @@ export class Blackjack extends AbstractCommands {
                         commandName: 'BLACKJACK_REDEAL',
                         command: (interaction: ButtonInteraction<CacheType>) => {
                             this.verifyUserAndCallMethod(interaction, (game, player) => this.reDeal(game, player))
+                        },
+                    },
+                    {
+                        commandName: 'BLACKJACK_DEATHROLL',
+                        command: (interaction: ButtonInteraction<CacheType>) => {
+                            this.deathrollBlackjack(interaction)
                         },
                     },
                 ],

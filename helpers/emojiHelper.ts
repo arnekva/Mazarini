@@ -1,4 +1,4 @@
-import { ApplicationEmoji, CacheType, ChatInputCommandInteraction, Client, GuildEmoji, Interaction, Message } from 'discord.js'
+import { ApplicationEmoji, ButtonInteraction, CacheType, ChatInputCommandInteraction, Client, GuildEmoji, Interaction, Message } from 'discord.js'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { ServerIds } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
@@ -55,7 +55,7 @@ export class EmojiHelper {
         }
     }
 
-    static async createProfileEmoji(interaction: ChatInputCommandInteraction<CacheType>) {
+    static async createProfileEmoji(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
         const profilePic = UserUtils.findUserById(interaction.user.id, interaction).displayAvatarURL()
         await interaction.client.guilds.cache.get(ServerIds.MAZARINI_DEV_2).emojis.create({ attachment: profilePic, name: interaction.user.username })
     }
