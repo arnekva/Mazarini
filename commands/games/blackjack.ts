@@ -101,7 +101,7 @@ export class Blackjack extends AbstractCommands {
             const stake = Number(interaction.customId.split(';')[2])
             const user = await this.client.database.getUser(userId)
             if (this.client.bank.takeMoney(user, stake)) {
-                await this.setupGame(interaction, user, stake, false)
+                await this.setupGame(interaction, user, stake, false, true)
             } else {
                 const huh = await EmojiHelper.getEmoji('kekhuh', interaction)
                 this.messageHelper.replyToInteraction(interaction, 'Du kan ikke gamble chipsene hvis du allerede har mistet dem ' + huh.id)
@@ -114,7 +114,8 @@ export class Blackjack extends AbstractCommands {
         interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>,
         user: MazariniUser,
         stake: number,
-        allIn: boolean
+        allIn: boolean,
+        isDeathrollPot: boolean = false
     ) {
         const playerPicture = await this.getProfilePicture(interaction)
         const hand: PlayerHand = { cards: new Array<ICardObject>(), stand: false, doubleDown: false }
@@ -144,8 +145,14 @@ export class Blackjack extends AbstractCommands {
 
         await this.dealCard(game, player.hands[0].cards)
         await this.dealCard(game, player.hands[0].cards)
+
         await this.dealCard(game, dealer.hand)
         await this.dealCard(game, dealer.hand)
+        if (isDeathrollPot && dealer.hand.some((card) => card.rank === 'A')) {
+            dealer.hand = new Array<ICardObject>()
+            await this.dealCard(game, dealer.hand)
+            await this.dealCard(game, dealer.hand)
+        }
 
         this.faceCard = (await EmojiHelper.getEmoji('faceCard', this.client)).id
 
