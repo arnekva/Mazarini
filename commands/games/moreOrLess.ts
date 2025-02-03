@@ -115,7 +115,10 @@ export class MoreOrLess extends AbstractCommands {
             previousGame.message.edit({ embeds: [embed], components: [startBtnRow] })
         } else {
             const game = this.userGames.get(interaction.user.id)
-            if (game && (await game.message.fetch())) await game.message.delete()
+            if (game) {
+                const oldMsg = await game.message.fetch()
+                if (oldMsg && oldMsg.deletable) await oldMsg.delete()
+            }
             const msg = await this.messageHelper.replyToInteraction(interaction, embed, { ephemeral: true }, [startBtnRow])
             const userGame: IMoreOrLessUserGame = { data: data, correctAnswers: 0, message: msg }
             this.userGames.set(interaction.user.id, userGame)

@@ -8,10 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '20.1.0'
-    public static readonly currentPatchNotes =
-        `* Blackurujacku-win over 10k sender nå en fristende knapp.. Trykk på den da <:pointerbrothers1:1177653110852825158>` +
-        `\n* Fikser forhåpentligvis en bug som hindret deg i å starte et more or less game`
+    public static readonly currentVersion = '20.1.1'
+    public static readonly currentPatchNotes = `* Fikser forhåpentligvis en bug som hindret deg i å starte et more or less game <:kms:1275913334503247956>`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
