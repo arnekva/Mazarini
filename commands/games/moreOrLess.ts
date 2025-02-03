@@ -11,6 +11,7 @@ import {
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 
+import { randomUUID } from 'crypto'
 import { IMoreOrLess } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { DateUtils } from '../../utils/dateUtils'
@@ -26,6 +27,7 @@ export interface IMoreOrLessData {
 }
 
 interface IMoreOrLessUserGame {
+    id: string
     data: IMoreOrLessData[]
     current?: IMoreOrLessData
     next?: IMoreOrLessData
@@ -112,15 +114,11 @@ export class MoreOrLess extends AbstractCommands {
             const previousGame = this.userGames.get(interaction.user.id)
             previousGame.data = data
             previousGame.correctAnswers = 0
+            previousGame.id = randomUUID()
             previousGame.message.edit({ embeds: [embed], components: [startBtnRow] })
         } else {
-            const game = this.userGames.get(interaction.user.id)
-            if (game) {
-                const oldMsg = await game.message.fetch()
-                if (oldMsg && oldMsg.deletable) await oldMsg.delete()
-            }
             const msg = await this.messageHelper.replyToInteraction(interaction, embed, { ephemeral: true }, [startBtnRow])
-            const userGame: IMoreOrLessUserGame = { data: data, correctAnswers: 0, message: msg }
+            const userGame: IMoreOrLessUserGame = { id: randomUUID(), data: data, correctAnswers: 0, message: msg }
             this.userGames.set(interaction.user.id, userGame)
         }
     }
@@ -134,8 +132,15 @@ export class MoreOrLess extends AbstractCommands {
     }
 
     private guess(interaction: ButtonInteraction<CacheType>) {
-        interaction.deferUpdate()
         const game = this.userGames.get(interaction.user.id)
+        const gameId = interaction.customId.split(';')[2]
+        if (gameId !== game.id)
+            return this.messageHelper.replyToInteraction(
+                interaction,
+                'Du kan kun spille på det nyeste gamet ditt. Start et nytt game dersom du har fjernet dette.',
+                { ephemeral: true }
+            )
+        interaction.deferUpdate()
         const more = interaction.customId.split(';')[1] === 'more'
         let correct = false
         if ((more && game.next.answer >= game.current.answer) || (!more && game.next.answer <= game.current.answer)) {
@@ -159,7 +164,7 @@ export class MoreOrLess extends AbstractCommands {
             `\n\nVS\n\n` +
             `${game.next.subject}`
         const embed = EmbedUtils.createSimpleEmbed(this.game.title, description).setThumbnail(game.current.image)
-        game.message.edit({ embeds: [embed], components: [guessBtnRow(this.game.strings?.buttonMore, this.game.strings?.buttonLess)] })
+        game.message.edit({ embeds: [embed], components: [guessBtnRow(game.id, this.game.strings?.buttonMore, this.game.strings?.buttonLess)] })
     }
 
     private async endGame(game: IMoreOrLessUserGame, userId: string) {
@@ -249,10 +254,10 @@ const startBtnRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
     })
 )
 
-const guessBtnRow = (btnMore: string = 'More', btnLess: string = 'Less') =>
+const guessBtnRow = (gameId: string, btnMore: string = 'More', btnLess: string = 'Less') =>
     new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder({
-            custom_id: `MORE_OR_LESS_GUESS;less`,
+            custom_id: `MORE_OR_LESS_GUESS;less;${gameId}`,
             style: ButtonStyle.Primary,
             label: btnLess,
             disabled: false,
@@ -260,7 +265,7 @@ const guessBtnRow = (btnMore: string = 'More', btnLess: string = 'Less') =>
             type: 2,
         }),
         new ButtonBuilder({
-            custom_id: `MORE_OR_LESS_GUESS;more`,
+            custom_id: `MORE_OR_LESS_GUESS;more;${gameId}`,
             style: ButtonStyle.Danger,
             label: btnMore,
             disabled: false,
