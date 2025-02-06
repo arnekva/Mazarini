@@ -259,7 +259,7 @@ export class ImageGenerationHelper {
     private async getEmojiImageUrl(item: IUserCollectable): Promise<string> {
         const name = this.buildEmojiName(item)
         const emoji = await EmojiHelper.getApplicationEmoji(name, this.client)
-        return `https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?size=96&quality=lossless`
+        return `https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?size=96`
     }
 
     private buildEmojiName(item: IUserCollectable): string {
@@ -275,9 +275,8 @@ export class ImageGenerationHelper {
 
     private async getItemBackgroundImage(color: ItemColor, coord: IItemShadowCoordinates): Promise<IImage> {
         if (color === ItemColor.None) return undefined
-        const halo = fs.readFileSync(`graphics/halo/${color}.png`)
-        const resizedHalo = await this.resize(halo, false, 150)
-        const canvas = await getCanvasImage({ buffer: resizedHalo })
+        const halo = fs.readFileSync(`graphics/halo_small/${color}.png`)
+        const canvas = await getCanvasImage({ buffer: halo })
         return { ...this.getImageCoordinates(coord, canvas, 0), canvasImage: canvas }
     }
 
