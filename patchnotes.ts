@@ -8,7 +8,7 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '20.1.2'
+    public static readonly currentVersion = '20.1.3'
     public static readonly currentPatchNotes = `* Fikser definitivt en bug som hindret deg i å starte et more or less game <:arne_gun:1334441204045058048>`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
