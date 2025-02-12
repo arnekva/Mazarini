@@ -8,8 +8,14 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '20.1.3'
-    public static readonly currentPatchNotes = `* Fikser definitivt en bug som hindret deg i å starte et more or less game <:arne_gun:1334441204045058048>`
+    public static readonly currentVersion = '20.2.0'
+    public static readonly currentPatchNotes =
+        `* Justerer farge-sannsynlighet ved trade` +
+        `\n  * Trade in har nå en base-sannsynlighet på 1/3 - opp fra 1/4` +
+        `\n  * Følgende endringer gjelder for trade in og trade up:` +
+        `\n  * Sølv gir nå 10% boost for hvert item - opp fra 5%` +
+        `\n  * Gull gir nå 20% boost for hvert item - opp fra 10%` +
+        `\n  * Diamond gir nå 30% boost for hvert item - opp fra 20%`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
