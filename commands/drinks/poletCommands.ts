@@ -59,8 +59,9 @@ interface PoletData {
 export class PoletCommands extends AbstractCommands {
     static baseStoreDataURL = 'https://apis.vinmonopolet.no/stores/v0/details'
     static baseProductURL = 'https://apis.vinmonopolet.no/products/v0/details-normal'
-    static pressProductURL = 'https://www.vinmonopolet.no/vmpws/v2/vmp/products'
-    static barCodeURL = 'https://www.vinmonopolet.no/vmpws/v2/vmp/products/barCodeSearch'
+    static pressProductURL = 'https://www.vinmonopolet.no/vmpws/v3/vmp/products'
+    static stockURL = 'https://www.vinmonopolet.no/vmpws/v2/vmp/products'
+    static barCodeURL = 'https://www.vinmonopolet.no/vmpws/v3/vmp/products/barCodeSearch'
     static baseStoreID = '416'
 
     constructor(client: MazariniClient) {
@@ -109,6 +110,7 @@ export class PoletCommands extends AbstractCommands {
                 gzip: true,
             },
         })
+
         return await data.json()
     }
 
@@ -132,7 +134,7 @@ export class PoletCommands extends AbstractCommands {
 
     private async fetchProductStock(productId: string, latitude: string, longitude: string) {
         const data = await fetch(
-            `${PoletCommands.pressProductURL}/${productId}/stock?pageSize=10&currentPage=0&fields=BASIC&latitude=${latitude}&longitude=${longitude}`,
+            `${PoletCommands.stockURL}/${productId}/stock?pageSize=10&currentPage=0&fields=BASIC&latitude=${latitude}&longitude=${longitude}`,
             {
                 method: 'GET',
                 headers: {

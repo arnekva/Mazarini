@@ -44,7 +44,7 @@ export class CommandRunner {
 
             await this.client.tracker.trackEmojiStats(message)
 
-            if (message.channelId === ChannelIds.VINMONOPOLET)
+            if (message.channelId === ChannelIds.VINMONOPOLET || environment === 'dev')
                 // legg til  {|| environment === 'dev'} i if-en hvis bilder skal sjekkes i localhost
                 PoletCommands.checkForVinmonopolContent(message, this.client.messageHelper)
         } catch (error) {

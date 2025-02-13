@@ -13,6 +13,14 @@ export const vivinoCommand: ISlashCommandItem = {
             required: false,
             choices: [
                 {
+                    name: '2025',
+                    value: 2025,
+                },
+                {
+                    name: '2024',
+                    value: 2024,
+                },
+                {
                     name: '2024',
                     value: 2024,
                 },

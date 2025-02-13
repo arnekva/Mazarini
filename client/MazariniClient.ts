@@ -1,6 +1,5 @@
 import { Client } from 'discord.js'
 import { initializeApp } from 'firebase/app'
-import { CommandBuilder } from '../builders/commandBuilder/commandBuilder'
 import { environment, firebaseConfig } from '../client-env'
 import { JobScheduler } from '../Jobs/jobScheduler'
 
@@ -76,10 +75,10 @@ export class MazariniClient extends Client {
 
     /** Run this to create slash commands from CommandBuilder. Will only run in dev mode */
     createSlashCommands() {
-        if (environment === 'dev' || new Date() < new Date('2024-09-19')) {
+        if (environment === 'dev') {
             //hehe ty one time hack
             //Uncomment to run command creation
-            CommandBuilder.createCommands(this)
+            // CommandBuilder.createCommands(this)
         }
     }
 
