@@ -1,14 +1,12 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, EmbedBuilder, Interaction } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
-import { DailyReward } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
-import { ChannelIds, MentionUtils } from '../../utils/mentionUtils'
+import { MentionUtils } from '../../utils/mentionUtils'
 import { TextUtils } from '../../utils/textUtils'
-import { MessageHelper } from '../../helpers/messageHelper'
 
 export class MoneyCommands extends AbstractCommands {
     constructor(client: MazariniClient) {
@@ -23,7 +21,9 @@ export class MoneyCommands extends AbstractCommands {
         const targetUser = await this.client.database.getUser(target.id)
         const userBalance = user.chips
 
-        if (isNaN(amount) || amount < 0) {
+        if (interaction.user.id === target.id) {
+            this.messageHelper.replyToInteraction(interaction, `Du kan kje vippsa deg sjøl`, { ephemeral: true })
+        } else if (isNaN(amount) || amount < 0) {
             this.messageHelper.replyToInteraction(interaction, `Det e kje lov å vippsa någen et negativt beløp ;)`, { ephemeral: true })
         } else if (userBalance >= amount) {
             const oldChips = user.chips
@@ -88,6 +88,4 @@ export class MoneyCommands extends AbstractCommands {
             },
         }
     }
-    
 }
-

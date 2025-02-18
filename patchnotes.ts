@@ -5,13 +5,11 @@ import { MazariniClient } from './client/MazariniClient'
 import { DatabaseHelper } from './helpers/databaseHelper'
 import { MessageHelper } from './helpers/messageHelper'
 import { IInteractionElement } from './interfaces/interactionInterface'
-import { ChannelIds, MentionUtils } from './utils/mentionUtils'
+import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '20.2.1'
-    public static readonly currentPatchNotes = `* Fikset url for vinmonopolet's API - å linke en produktside i ${MentionUtils.mentionChannel(
-        ChannelIds.VINMONOPOLET
-    )} skal nå gi info og varelagerstaus igjen`
+    public static readonly currentVersion = '20.2.2'
+    public static readonly currentPatchNotes = `* Fikset en feil som gjorde at det å vippse seg selv doblet beløpet`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
