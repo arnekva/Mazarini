@@ -163,7 +163,9 @@ export class MoreOrLess extends AbstractCommands {
             }** ${this.game.strings?.valueTitle}` +
             `\n\nVS\n\n` +
             `${game.next.subject}`
-        const embed = EmbedUtils.createSimpleEmbed(this.game.title, description).setThumbnail(game.current.image)
+        const embed = EmbedUtils.createSimpleEmbed(this.game.title, description)
+            .setThumbnail(game.current.image)
+            .setFooter({ text: `${game.correctAnswers} riktige` }) //TODO: We might not want this, remove if needed
         game.message.edit({ embeds: [embed], components: [guessBtnRow(game.id, this.game.strings?.buttonMore, this.game.strings?.buttonLess)] })
     }
 
@@ -171,12 +173,24 @@ export class MoreOrLess extends AbstractCommands {
         const user = await this.database.getUser(userId)
         let rewardMsg = ''
         if (!user.dailyGameStats?.moreOrLess?.attempted) {
-            user.dailyGameStats = { ...user.dailyGameStats, moreOrLess: { attempted: true, firstAttempt: game.correctAnswers, bestAttempt: 0 } }
+            user.dailyGameStats = {
+                ...user.dailyGameStats,
+                moreOrLess: {
+                    attempted: true,
+                    firstAttempt: game.correctAnswers,
+                    bestAttempt: 0,
+                    numAttempts: 0,
+                },
+            }
             if (game.correctAnswers === 0) this.database.updateUser(user)
         }
         if (game.correctAnswers > user.dailyGameStats.moreOrLess.bestAttempt) {
             const reward = (game.correctAnswers - user.dailyGameStats.moreOrLess.bestAttempt) * 500
-            user.dailyGameStats = { ...user.dailyGameStats, moreOrLess: { ...user.dailyGameStats.moreOrLess, bestAttempt: game.correctAnswers } }
+            const numTries = user.dailyGameStats.moreOrLess.numAttempts + 1
+            user.dailyGameStats = {
+                ...user.dailyGameStats,
+                moreOrLess: { ...user.dailyGameStats.moreOrLess, bestAttempt: game.correctAnswers, numAttempts: numTries },
+            }
             const awarded = this.client.bank.giveMoney(user, reward)
             rewardMsg = ` og får ${awarded} chips`
         }
@@ -188,6 +202,7 @@ export class MoreOrLess extends AbstractCommands {
             `\n\n${msg}\n\n` +
             `Du fikk ${game.correctAnswers} riktige${rewardMsg}!`
         const embed = EmbedUtils.createSimpleEmbed(this.game.title, description).setThumbnail(game.next.image)
+
         game.message.edit({ embeds: [embed], components: [playAgainBtnRow] })
     }
 
@@ -199,8 +214,13 @@ export class MoreOrLess extends AbstractCommands {
         for (const user of users) {
             const name = UserUtils.findMemberByUserID(user.id, interaction).user.username
             const result =
-                `Første forsøk: ${DateUtils.isTimeOfDayAfter(18) ? user.dailyGameStats.moreOrLess.firstAttempt + ' riktige' : 'Skjult'} ` +
-                `\nBeste forsøk: ${user.dailyGameStats.moreOrLess.bestAttempt} riktige`
+                `Første forsøk: ${
+                    DateUtils.isTimeOfDayAfter(18) && user.dailyGameStats.moreOrLess.numAttempts > 1
+                        ? user.dailyGameStats.moreOrLess.firstAttempt + ' riktige'
+                        : 'Skjult'
+                } ` +
+                `\nBeste forsøk: ${user.dailyGameStats.moreOrLess.bestAttempt} riktige` +
+                `\nAntall forsøk: ${user.dailyGameStats.moreOrLess.numAttempts}`
             embed.addFields({ name: name, value: result })
         }
         this.messageHelper.replyToInteraction(interaction, embed)

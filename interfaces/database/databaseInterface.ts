@@ -105,6 +105,7 @@ export interface IMoreOrLessStats {
     attempted?: boolean
     firstAttempt?: number
     bestAttempt?: number
+    numAttempts?: number
 }
 
 export interface IUserSettings {
@@ -245,7 +246,7 @@ export interface IMoreOrLess {
         verb: string
         valueTitle: string
         valueSuffix?: string
-        buttonMore?: string,
+        buttonMore?: string
         buttonLess?: string
     }
 }

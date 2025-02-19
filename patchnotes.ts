@@ -8,8 +8,13 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '20.2.2'
-    public static readonly currentPatchNotes = `* Fikset en feil som gjorde at det å vippse seg selv doblet beløpet`
+    public static readonly currentVersion = '20.3.0'
+    public static readonly currentPatchNotes =
+        `* More or Less viser nå hvor mange rette du har underveis i spillet` +
+        `\n* More or Less vil nå vise totalt antall forsøk i resultater` +
+        `\n* More or Less vil nå holde både første og beste forsøk skjult hvis spilleren bare har gjettet én gang` +
+        `\n* Det sjekkes igjen etter 1337 i meldings-idene.` +
+        `\n* Raspberry Pi kjører nå Lite OS og oppgradert SD-kort. 1000% garantert forbedring i ytelse.`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

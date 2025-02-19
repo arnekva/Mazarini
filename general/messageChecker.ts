@@ -61,15 +61,15 @@ export class MessageChecker {
             if (message.author.id == '733320780707790898' && message.guild) {
                 this.applyJoiijJokes(message)
             }
-            // const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message)
-            // if (idJoke !== 'none' && !ignoreRewards) {
-            //     let reward = 1000
-            //     const user = await this.client.database.getUser(message.author.id)
-            //     reward = this.client.bank.giveMoney(user, reward)
-            //     this.client.messageHelper.replyToMessage(message, `nice, id-en te meldingen din inneholde ${idJoke}. Gz, du har vonne ${reward} chips`, {
-            //         sendAsSilent: true,
-            //     })
-            // }
+            const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message)
+            if (idJoke !== 'none' && !ignoreRewards) {
+                let reward = 1000
+                const user = await this.client.database.getUser(message.author.id)
+                reward = this.client.bank.giveMoney(user, reward)
+                this.client.messageHelper.replyToMessage(message, `nice, id-en te meldingen din inneholde ${idJoke}. Gz, du har vonne ${reward} chips`, {
+                    sendAsSilent: true,
+                })
+            }
         }
     }
 

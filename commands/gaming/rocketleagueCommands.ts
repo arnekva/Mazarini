@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, EmbedBuilder, TextChannel } from 'discord.js'
 
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
-import { environment, rapidApiKey } from '../../client-env'
+import { rapidApiKey } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { RocketLeagueTournament } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
@@ -42,7 +42,7 @@ const emptyStats: rocketLeagueDbData = {
 }
 
 const striptags = require('striptags')
-const puppeteer = require('puppeteer')
+// const puppeteer = require('puppeteer')
 export class RocketLeagueCommands extends AbstractCommands {
     constructor(client: MazariniClient) {
         super(client)
@@ -68,15 +68,15 @@ export class RocketLeagueCommands extends AbstractCommands {
 
         //Need to specify executable path on Raspberry Pi, as it for some reason doesn't like the Puppeteer-supplied chromium version. Should work on Windows/Mac.
         let browser
-        if (environment === 'prod')
-            browser = await puppeteer.launch({
-                headless: true,
-                executablePath: '/usr/bin/chromium',
-            })
-        else
-            browser = await puppeteer.launch({
-                headless: true,
-            })
+        // if (environment === 'prod')
+        //     browser = await puppeteer.launch({
+        //         headless: true,
+        //         executablePath: '/usr/bin/chromium',
+        //     })
+        // else
+        //     browser = await puppeteer.launch({
+        //         headless: true,
+        //     })
 
         const page = await browser.newPage()
         page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36')
