@@ -71,7 +71,7 @@ export class RocketLeagueCommands extends AbstractCommands {
         if (environment === 'prod')
             browser = await puppeteer.launch({
                 headless: true,
-                executablePath: '/usr/bin/chromium-browser',
+                executablePath: '/usr/bin/chromium',
             })
         else
             browser = await puppeteer.launch({
