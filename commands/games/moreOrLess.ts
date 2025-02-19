@@ -213,13 +213,10 @@ export class MoreOrLess extends AbstractCommands {
         const users = (await this.database.getAllUsers()).filter((user) => user.dailyGameStats?.moreOrLess?.attempted)
         for (const user of users) {
             const name = UserUtils.findMemberByUserID(user.id, interaction).user.username
+            const shouldShowBestResult = user.dailyGameStats.moreOrLess.numAttempts > 1 || DateUtils.isTimeOfDayAfter(18)
             const result =
-                `Første forsøk: ${
-                    DateUtils.isTimeOfDayAfter(18) && user.dailyGameStats.moreOrLess.numAttempts > 1
-                        ? user.dailyGameStats.moreOrLess.firstAttempt + ' riktige'
-                        : 'Skjult'
-                } ` +
-                `\nBeste forsøk: ${user.dailyGameStats.moreOrLess.bestAttempt} riktige` +
+                `Første forsøk: ${DateUtils.isTimeOfDayAfter(18) ? user.dailyGameStats.moreOrLess.firstAttempt + ' riktige' : 'Skjult'} ` +
+                `\nBeste forsøk: ${shouldShowBestResult ? user.dailyGameStats.moreOrLess.bestAttempt + ' riktige' : 'Skjult'}` +
                 `\nAntall forsøk: ${user.dailyGameStats.moreOrLess.numAttempts}`
             embed.addFields({ name: name, value: result })
         }
