@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, EmbedBuilder, TextChannel } from 'discord.js'
-import puppeteer from 'puppeteer-core'
+
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { environment, rapidApiKey } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
@@ -42,7 +42,7 @@ const emptyStats: rocketLeagueDbData = {
 }
 
 const striptags = require('striptags')
-
+const puppeteer = require('puppeteer')
 export class RocketLeagueCommands extends AbstractCommands {
     constructor(client: MazariniClient) {
         super(client)
@@ -72,14 +72,12 @@ export class RocketLeagueCommands extends AbstractCommands {
             browser = await puppeteer.launch({
                 headless: true,
                 executablePath: '/usr/bin/chromium-browser',
-                args: ['--no-sandbox'],
-                timeout: 50000,
             })
         else
             browser = await puppeteer.launch({
                 headless: true,
-                executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
             })
+
         const page = await browser.newPage()
         page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36')
         await page.goto(url)

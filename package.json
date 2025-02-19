@@ -33,7 +33,7 @@
         "nodemon": "^2.0.19",
         "npm": "latest",
         "pm2-axon": "^4.0.1",
-        "puppeteer-core": "^23.6.1",
+        "puppeteer": "^13.5.1",
         "request": "^2.88.2",
         "rimraf": "^3.0.2",
         "sharp": "^0.33.5",
