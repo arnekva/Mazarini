@@ -189,13 +189,11 @@ export class MoreOrLess extends AbstractCommands {
         if (game.correctAnswers > user.dailyGameStats.moreOrLess.bestAttempt) {
             const reward = (game.correctAnswers - user.dailyGameStats.moreOrLess.bestAttempt) * 500
 
-            user.dailyGameStats = {
-                ...user.dailyGameStats,
-                moreOrLess: { ...user.dailyGameStats.moreOrLess, bestAttempt: game.correctAnswers, numAttempts: numTries },
-            }
+            user.dailyGameStats.moreOrLess.bestAttempt = game.correctAnswers
             const awarded = this.client.bank.giveMoney(user, reward)
             rewardMsg = ` og får ${awarded} chips`
-        }
+        } else this.database.updateUser(user)
+
         const msg = game.data.length > 0 ? 'Du tok dessverre feil' : 'Du har fullført dagens more or less!'
         const description =
             `${game.next.subject} ${this.game.strings.verb} **${TextUtils.formatLargeNumber(game.next.answer)}${this.game.strings?.valueSuffix ?? ''}** ${
