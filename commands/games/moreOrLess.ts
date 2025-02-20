@@ -217,7 +217,7 @@ export class MoreOrLess extends AbstractCommands {
             const result =
                 `Første forsøk: ${DateUtils.isTimeOfDayAfter(18) ? user.dailyGameStats.moreOrLess.firstAttempt + ' riktige' : 'Skjult'} ` +
                 `\nBeste forsøk: ${shouldShowBestResult ? user.dailyGameStats.moreOrLess.bestAttempt + ' riktige' : 'Skjult'}` +
-                `\nAntall forsøk: ${user.dailyGameStats.moreOrLess.numAttempts}`
+                `\nAntall forsøk: ${DateUtils.isTimeOfDayAfter(18) ? user.dailyGameStats.moreOrLess.numAttempts : 'Skjult'}`
             embed.addFields({ name: name, value: result })
         }
         this.messageHelper.replyToInteraction(interaction, embed)
