@@ -184,9 +184,11 @@ export class MoreOrLess extends AbstractCommands {
             }
             if (game.correctAnswers === 0) this.database.updateUser(user)
         }
+        const numTries = user.dailyGameStats.moreOrLess.numAttempts + 1
+        user.dailyGameStats.moreOrLess.numAttempts = numTries
         if (game.correctAnswers > user.dailyGameStats.moreOrLess.bestAttempt) {
             const reward = (game.correctAnswers - user.dailyGameStats.moreOrLess.bestAttempt) * 500
-            const numTries = user.dailyGameStats.moreOrLess.numAttempts + 1
+
             user.dailyGameStats = {
                 ...user.dailyGameStats,
                 moreOrLess: { ...user.dailyGameStats.moreOrLess, bestAttempt: game.correctAnswers, numAttempts: numTries },
