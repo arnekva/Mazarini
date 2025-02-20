@@ -8,7 +8,7 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '20.3.0'
+    public static readonly currentVersion = '21.0.0'
     public static readonly currentPatchNotes =
         `* More or Less viser nå hvor mange rette du har underveis i spillet` +
         `\n* More or Less vil nå vise totalt antall forsøk i resultater` +
