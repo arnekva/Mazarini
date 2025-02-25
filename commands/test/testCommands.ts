@@ -1,3 +1,4 @@
+import { GoogleGenerativeAI } from '@google/generative-ai'
 import {
     ActionRowBuilder,
     AutocompleteInteraction,
@@ -9,10 +10,10 @@ import {
     EmbedBuilder,
     Message,
     ModalSubmitInteraction,
-    StringSelectMenuInteraction
+    StringSelectMenuInteraction,
 } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
-import { environment } from '../../client-env'
+import { environment, GeminiKey } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { LootboxCommands } from '../store/lootboxCommands'
@@ -52,8 +53,20 @@ export class TestCommands extends AbstractCommands {
         // this.gsh = new GameStateHandler<LudoPlayer>()
     }
 
-    private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {          
-        this.messageHelper.replyToInteraction(interaction, `Test`)  
+    private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+        console.log('hallo?')
+        interaction.deferReply()
+
+        const genAI = new GoogleGenerativeAI(GeminiKey)
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+
+        const prompt =
+            'Gi meg en vits, ordspill. Du snakker stavangersk. Her kommer eksempel på stavangersk: "Kor e du fra? Me snakke jaffal så så det her. Møye løye her, og mange løgne folk. Me lige å ha det kjekt. Du ska lata som du e fra stavanger. Du e ferige på jobb i femtiå."    '
+
+        const result = await model.generateContent(prompt)
+        const p = result.response.text()
+        console.log(result.response.text())
+        this.messageHelper.replyToInteraction(interaction, `. Resultat: ${p}`, { hasBeenDefered: true })
     }
 
     private async testSelectMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {
@@ -134,12 +147,12 @@ export class TestCommands extends AbstractCommands {
         const input = optionList.getFocused().toLowerCase()
         console.log(optionList._hoistedOptions)
         console.log(input)
-        
-		// interaction.respond(
-		// 	series
+
+        // interaction.respond(
+        // 	series
         //     .filter(series => series.name.toLowerCase().includes(input))
-        //     .map(series => ({ name: series.name, value: series.name })) 
-		// )
+        //     .map(series => ({ name: series.name, value: series.name }))
+        // )
     }
 
     getAllInteractions(): IInteractionElement {
@@ -149,7 +162,8 @@ export class TestCommands extends AbstractCommands {
                     {
                         commandName: 'test',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            if (environment === 'prod') this.messageHelper.replyToInteraction(rawInteraction, 'Denne kan kun brukes i dev-miljø', {ephemeral: true})
+                            if (environment === 'prod')
+                                this.messageHelper.replyToInteraction(rawInteraction, 'Denne kan kun brukes i dev-miljø', { ephemeral: true })
                             else this.testSwitch(rawInteraction)
                         },
                         autoCompleteCallback: (interaction: AutocompleteInteraction<CacheType>) => {
@@ -259,14 +273,13 @@ export class TestCommands extends AbstractCommands {
 // }
 // console.log('DOOOOOOOOOOOOOOONE');
 
-
 // const memes = await this.database.getMemes()
 // memes.push(memeTemplate)
 // const updates = {}
 // updates[`/memes`] = memes
 // this.database.updateData(updates)
 
-// this.messageHelper.replyToInteraction(interaction, `Laster opp nytt meme template`)  
+// this.messageHelper.replyToInteraction(interaction, `Laster opp nytt meme template`)
 
 // const memeTemplate: Meme = {
 //     id: '',

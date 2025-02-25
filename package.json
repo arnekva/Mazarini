@@ -18,6 +18,7 @@
     "author": "Arne Kvaleberg",
     "license": "ISC",
     "dependencies": {
+        "@google/generative-ai": "^0.22.0",
         "@types/node": "^15.6.2",
         "base-64": "^1.0.0",
         "canvas": "^2.11.2",
