@@ -130,7 +130,7 @@ export class ClientListener {
                     (message.mentions.users.find((u) => u.id === MentionUtils.User_IDs.BOT_HOIE) ||
                         message.content.includes(`<@!${MentionUtils.User_IDs.BOT_HOIE}>`)) &&
                     message.type !== 19 && // MessageType.Reply &&
-                    environment === 'dev'
+                    environment === 'prod'
                 ) {
                     const isQuestion = message.content.endsWith('?')
                     if (isQuestion) {
