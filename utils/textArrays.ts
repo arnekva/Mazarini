@@ -77,52 +77,6 @@ export namespace textArrays {
         'han investerte i Gamestop-aksjer og ble søkkrik.',
     ]
 
-    export const bentHoieLinesAnswers = [
-        'ja',
-        'nei',
-        'selvfølgelig',
-        'seff',
-        'kanskje ... kanskje ikke. ikkje.',
-        'jess',
-        'ehh, nei',
-        'stemme det',
-        'det e kje sånn det funke, så nei',
-        'haha, nei',
-        'haha, ja',
-        'haha, kanskje',
-        'njææææææ',
-        'tror kje det',
-        'tror det',
-        'eg e kje sikker på om eg kan svare på det spørsmålet',
-        'ingen kommentar',
-        'litt usikker faktisk',
-        'på ein måte ja',
-        'wtf, nei',
-        'wtf, ja',
-        'Rektigt',
-    ]
-    export const bentHoieLines = [
-        'hallais',
-        'javel?',
-        'serr?',
-        'fine kenneth',
-        'W',
-        'L',
-        'basert',
-        'ingen kommentar',
-        'henvise te advokaten min',
-        'får kje lov av mamma',
-        'haha, nei',
-        'ikkje nå',
-        'ja?',
-        'lamt',
-        'meget interessant',
-        'nei',
-        'ok',
-        'pass',
-        'E på date me mor te Eivind atm, kan kje svara',
-    ]
-
     export const emojiesList = [
         '🤬',
         '❤️‍🔥',
@@ -222,27 +176,22 @@ export namespace textArrays {
     ]
 
     export const gifLongWaitTexts = [
-        "Snart klar! Må bare få boksen te å åpna seg",
-        "Ventetid e bare en del av sjarmen, sant?",
-        "2 sek - någen ringte på",
-        "Ka e vel et par sekunder te?",
-        "Ta deg ein kaffi, så komme boksen snart!",
-        "Vent litt, eg må bare fikse håret først!",
-        "Me e snart i boks!",
-        "Tok lenger tid enn forventa dette her",
-        "Det e kje helt enkelt dette her - bare vent litt.", 
-        "Sko ønska eg og kunne samla på loot",
-        "Eg ane faktisk ikkje ka dette blir", 
-        "Denne blir bra - eg kjenne det på meg!", 
-        "Øyeblikk, snakke med mor te Eivind...",
+        'Snart klar! Må bare få boksen te å åpna seg',
+        'Ventetid e bare en del av sjarmen, sant?',
+        '2 sek - någen ringte på',
+        'Ka e vel et par sekunder te?',
+        'Ta deg ein kaffi, så komme boksen snart!',
+        'Vent litt, eg må bare fikse håret først!',
+        'Me e snart i boks!',
+        'Tok lenger tid enn forventa dette her',
+        'Det e kje helt enkelt dette her - bare vent litt.',
+        'Sko ønska eg og kunne samla på loot',
+        'Eg ane faktisk ikkje ka dette blir',
+        'Denne blir bra - eg kjenne det på meg!',
+        'Øyeblikk, snakke med mor te Eivind...',
     ]
 
-    export const gifWaitTexts = [
-        "Generere ett stykk standard rare",
-        "Ska se ka eg finner ",
-        "Gi meg någen sekunder...", 
-        "Loot skal du få... om litt", 
-    ]
+    export const gifWaitTexts = ['Generere ett stykk standard rare', 'Ska se ka eg finner ', 'Gi meg någen sekunder...', 'Loot skal du få... om litt']
 }
 
 export namespace globals {

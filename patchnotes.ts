@@ -8,13 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '21.0.0'
-    public static readonly currentPatchNotes =
-        `* More or Less viser nå hvor mange rette du har underveis i spillet` +
-        `\n* More or Less vil nå vise totalt antall forsøk i resultater` +
-        `\n* More or Less vil nå holde både første og beste forsøk skjult hvis spilleren bare har gjettet én gang` +
-        `\n* Det sjekkes igjen etter 1337 i meldings-idene.` +
-        `\n* Raspberry Pi kjører nå Lite OS og oppgradert SD-kort. 1000% garantert forbedring i ytelse.`
+    public static readonly currentVersion = '21.1.0'
+    public static readonly currentPatchNotes = `* Høie er blitt smartere og mer cringe når han svarer på spørsmål - "@Høie 'spørsmål'?"`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

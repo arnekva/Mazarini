@@ -1,4 +1,5 @@
 import { exec } from 'child_process'
+import console from 'console'
 import {
     CacheType,
     DMChannel,
@@ -21,13 +22,12 @@ import { environment } from '../client-env'
 import { CommandRunner } from '../general/commandRunner'
 import { ErrorHandler } from '../handlers/errorHandler'
 import { ClientHelper } from '../helpers/clientHelper'
+import { GeminiHelper } from '../helpers/geminiHelper'
 import { MazariniBot } from '../main'
 import { PatchNotes } from '../patchnotes'
-import { ArrayUtils } from '../utils/arrayUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { ChannelIds, MentionUtils, ServerIds } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
-import { textArrays } from '../utils/textArrays'
 import { UserUtils } from '../utils/userUtils'
 import { MazariniClient } from './MazariniClient'
 
@@ -130,11 +130,12 @@ export class ClientListener {
                     (message.mentions.users.find((u) => u.id === MentionUtils.User_IDs.BOT_HOIE) ||
                         message.content.includes(`<@!${MentionUtils.User_IDs.BOT_HOIE}>`)) &&
                     message.type !== 19 && // MessageType.Reply &&
-                    environment === 'prod'
+                    environment === 'dev'
                 ) {
                     const isQuestion = message.content.endsWith('?')
-
-                    message.reply(ArrayUtils.randomChoiceFromArray(isQuestion ? textArrays.bentHoieLinesAnswers : textArrays.bentHoieLines))
+                    if (isQuestion) {
+                        GeminiHelper.fetchAndSendMessage(message.content, this.client.messageHelper, message.channelId)
+                    }
                 }
             }
         })
