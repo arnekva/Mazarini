@@ -5,9 +5,9 @@ import { MessageHelper } from './messageHelper'
 export namespace GeminiHelper {
     export const generateAnswer = async (question: string) => {
         const genAI = new GoogleGenerativeAI(GeminiKey)
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
-        const prompt = `Ditt prompt er følgende: "${question}". Du skal svare kort og presist. `
+        const prompt = `Du skal svare kort, presis, og riktig på følgende spørsmål: "${question}". `
 
         const result = await model.generateContent(prompt)
         return result.response.text()
