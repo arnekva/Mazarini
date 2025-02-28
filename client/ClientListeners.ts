@@ -133,10 +133,7 @@ export class ClientListener {
                     // && // MessageType.Reply &&
                     // environment === 'dev'
                 ) {
-                    const isQuestion = message.content.endsWith('?')
-                    if (isQuestion) {
-                        GeminiHelper.fetchAndSendMessage(message.content, this.client.messageHelper, message.channelId)
-                    }
+                    GeminiHelper.fetchAndSendMessage(message.content, this.client.messageHelper, message.channelId)
                 }
             }
         })
