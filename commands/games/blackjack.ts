@@ -579,7 +579,13 @@ export class Blackjack extends AbstractCommands {
                     .setTitle('Stengt')
                     .setDescription(`Kasinoet ble dessverre uanmeldt stengt av en /restart. Du har fått tilbake dine ${refundedChips} chips`)
             }
-            await game.messages.embed.edit({ embeds: [game.messages.embedContent] })
+            try {
+                await game.messages.embed.edit({ embeds: [game.messages.embedContent] })
+            } catch (e: any) {
+                this.client.messageHelper.sendLogMessage(
+                    'Forsøkte å redigere en blackjackmelding, men klarte det ikke. Det må vel bety at den aldri eksisterte, sant?'
+                )
+            }
             await this.deleteGame(game)
         }
     }

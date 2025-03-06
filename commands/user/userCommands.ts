@@ -153,31 +153,47 @@ export class UserCommands extends AbstractCommands {
                 // Short means only a single line of text
                 .setStyle(TextInputStyle.Short)
 
+            const tradeDups = new TextInputBuilder()
+                .setCustomId('tradeDups')
+                // The label is the prompt the user sees for this input
+                .setLabel('Ønsker du å kun se duplikater når du trader?')
+                .setPlaceholder(`Ja/Nei`)
+                .setValue(`${user.userSettings?.onlyShowDupesOnTrade ? 'Ja' : 'Nei'}`)
+                .setRequired(false)
+                // Short means only a single line of text
+                .setStyle(TextInputStyle.Short)
+
             //FIXME: Typing doesn't work here for some reason
             const firstActionRow: any = new ActionRowBuilder().addComponents(safeGamble)
-
-            modal.addComponents(firstActionRow)
+            const secondActionRow = new ActionRowBuilder().addComponents(tradeDups)
+            modal.addComponents(firstActionRow, secondActionRow)
             await interaction.showModal(modal)
         }
     }
 
     private async handleAdminSendModalDialog(modalInteraction: ModalSubmitInteraction) {
         const safeGamble = modalInteraction.fields.getTextInputValue('safeGambleValue')
+        const tradeDups = modalInteraction.fields.getTextInputValue('tradeDups')
+        const user = await this.database.getUser(modalInteraction.user.id)
         if (safeGamble) {
             const num = Number(safeGamble)
             if (isNaN(num)) this.messageHelper.replyToInteraction(modalInteraction, 'Du må skrive et tall', { ephemeral: true })
             else {
-                const user = await this.database.getUser(modalInteraction.user.id)
                 if (user.userSettings) user.userSettings.safeGambleValue = num
                 else {
                     user.userSettings = { safeGambleValue: num }
                 }
-                this.database.updateUser(user)
-                this.messageHelper.replyToInteraction(modalInteraction, 'Dine innstillinger er nå oppdatert', { ephemeral: true })
             }
-        } else {
-            this.messageHelper.replyToInteraction(modalInteraction, 'Ingenting ble oppdatert', { ephemeral: true })
         }
+        if (tradeDups) {
+            const onlyShowDups = tradeDups.trim().toLowerCase() === 'ja'
+            if (user.userSettings) user.userSettings.onlyShowDupesOnTrade = onlyShowDups
+            else {
+                user.userSettings = { onlyShowDupesOnTrade: onlyShowDups }
+            }
+        }
+        this.database.updateUser(user)
+        this.messageHelper.replyToInteraction(modalInteraction, 'Dine innstillinger er nå oppdatert', { ephemeral: true })
     }
 
     static userSettingsId = 'userSettingsModal'

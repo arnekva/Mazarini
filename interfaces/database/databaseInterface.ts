@@ -110,7 +110,7 @@ export interface IMoreOrLessStats {
 
 export interface IUserSettings {
     safeGambleValue?: number
-    allowNonDupesInTrade?: boolean
+    onlyShowDupesOnTrade?: boolean
 }
 
 export interface UserCalendarGift {

@@ -1,4 +1,3 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import {
     ActionRowBuilder,
     AutocompleteInteraction,
@@ -13,8 +12,9 @@ import {
     StringSelectMenuInteraction,
 } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
-import { environment, GeminiKey } from '../../client-env'
+import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
+import { ICollectableSeries } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { LootboxCommands } from '../store/lootboxCommands'
 
@@ -54,19 +54,17 @@ export class TestCommands extends AbstractCommands {
     }
 
     private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        console.log('hallo?')
         interaction.deferReply()
-
-        const genAI = new GoogleGenerativeAI(GeminiKey)
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
-
-        const prompt =
-            'Gi meg en vits, ordspill. Du snakker stavangersk. Her kommer eksempel på stavangersk: "Kor e du fra? Me snakke jaffal så så det her. Møye løye her, og mange løgne folk. Me lige å ha det kjekt. Du ska lata som du e fra stavanger. Du e ferige på jobb i femtiå."    '
-
-        const result = await model.generateContent(prompt)
-        const p = result.response.text()
-        console.log(result.response.text())
-        this.messageHelper.replyToInteraction(interaction, `. Resultat: ${p}`, { hasBeenDefered: true })
+        const sw_series: ICollectableSeries = {
+            name: 'sw',
+            added: new Date(),
+            common: ['storm_trooper', 'rebel_soldier', 'battle_droid', 'jarjar', 'gonk_droid'],
+            rare: ['c3po', 'r2d2', 'boba_fett', 'chewbacca', 'princess_leia'],
+            epic: ['general_grevious', 'darth_maul', 'han_solo', 'luke_skywalker', 'padme_amidala'],
+            legendary: ['darth_vader', 'emperor_palpatine', 'yoda', 'space_jesus', 'qui_gon_jinn'],
+        }
+        // await this.database.addLootboxSeries(sw_series)
+        this.messageHelper.replyToInteraction(interaction, `check`, { hasBeenDefered: true })
     }
 
     private async testSelectMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {

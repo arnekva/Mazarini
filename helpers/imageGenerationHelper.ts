@@ -1,6 +1,6 @@
 import { Image } from 'canvas'
 import sharp from 'sharp'
-import { IImage, IOptions, IRepeat, UltimateTextToImage, getCanvasImage, registerFont } from 'ultimate-text-to-image'
+import { IFontWeight, IImage, IOptions, IRepeat, UltimateTextToImage, getCanvasImage, registerFont } from 'ultimate-text-to-image'
 import { MazariniClient } from '../client/MazariniClient'
 import { IUserCollectable, ItemColor, ItemRarity } from '../interfaces/database/databaseInterface'
 import { TextUtils } from '../utils/textUtils'
@@ -33,33 +33,106 @@ interface IItemShadowCoordinates {
     height: number
 }
 
-const revealWidth: number = 960
-const revealHeight: number = 720
-
-const ratios = {
-    halo: Math.floor(revealHeight * 0.85),
-    lightrayScaleWidth: Math.floor(revealWidth * 1.25),
-    lightrayScaleHeight: Math.floor(revealHeight * 0.8),
-    item: Math.floor(revealHeight * 0.5),
-    textHeight: Math.floor(revealHeight * 0.056),
-    itemCoords: async (item: Buffer) => {
-        const meta = await sharp(item).metadata()
-        const top = Math.floor(revealHeight / 2.5 - meta.height / 2)
-        const left = Math.floor(revealWidth / 2 - meta.width / 2)
-        return { top: top, left: left }
-    },
-    itemTop: async (item: Buffer) => {
-        const meta = await sharp(item).metadata()
-        return Math.floor(revealHeight / 2 - meta.height / 2)
-    },
-    itemLeft: async (item: Buffer) => {
-        const meta = await sharp(item).metadata()
-        return Math.floor(revealWidth / 2 - meta.width / 2)
-    },
-    itemTopWithHalo: Math.floor(revealHeight / 4 - (revealHeight * 0.35) / 2),
-    itemLeftWithHalo: Math.floor(revealWidth / 2 - (revealHeight / 4 - (revealHeight * 0.35) / 2)),
-    lightrayTop: Math.floor(revealHeight * 0.35),
+interface IRevealGifSetup {
+    revealWidth: number
+    revealHeight: number
+    background: string
+    gif: string
+    font: IFontSetup
+    ratios: IRatios
 }
+
+interface IFontSetup {
+    path: string
+    family: string
+    weight: IFontWeight
+    primaryColor: string
+    outlineColor: string
+}
+
+interface IRatios {
+    halo: number
+    rarityEffect: IRarityEffectRatios
+    item: IItemRatios
+    textHeight: number
+}
+
+interface IRarityEffectRatios {
+    scaleWidth: number
+    scaleHeight: number
+    top: number
+}
+
+interface IItemRatios {
+    size: number
+    coords: (item: Buffer) => Promise<{ top: number; left: number }>
+}
+
+const star_wars_setup: IRevealGifSetup = {
+    revealWidth: 960,
+    revealHeight: 720,
+    background: 'graphics/background/mos_eisley_bg.png',
+    gif: 'graphics/sw.gif',
+    font: {
+        path: 'graphics/fonts/SfDistantGalaxy-0l3d.ttf',
+        family: 'SF Distant Galaxy',
+        weight: 500,
+        primaryColor: '#000000',
+        outlineColor: '#FFE81F',
+    },
+    ratios: {
+        halo: Math.floor(720 * 0.85),
+        rarityEffect: {
+            scaleWidth: Math.floor(960 * 1.25),
+            scaleHeight: Math.floor(720 * 0.8),
+            top: Math.floor(720 * 0.35),
+        },
+        item: {
+            size: Math.floor(720 * 0.75),
+            coords: async (item: Buffer) => {
+                const meta = await sharp(item).metadata()
+                const top = 620 - meta.height
+                const left = Math.floor(960 / 2 - meta.width / 2)
+                return { top: top, left: left }
+            },
+        },
+        textHeight: Math.floor(720 * 0.056),
+    },
+}
+
+const mazarini_setup: IRevealGifSetup = {
+    revealWidth: 960,
+    revealHeight: 720,
+    background: 'graphics/background/background.png',
+    gif: 'graphics/sf_kino.gif',
+    font: {
+        path: 'graphics/fonts/WorkSans-Medium.ttf',
+        family: 'Work Sans',
+        weight: 500,
+        primaryColor: '#ffffff',
+        outlineColor: '#000000',
+    },
+    ratios: {
+        halo: Math.floor(720 * 0.85),
+        rarityEffect: {
+            scaleWidth: Math.floor(960 * 1.25),
+            scaleHeight: Math.floor(720 * 0.8),
+            top: Math.floor(720 * 0.35),
+        },
+        item: {
+            size: Math.floor(720 * 0.5),
+            coords: async (item: Buffer) => {
+                const meta = await sharp(item).metadata()
+                const top = Math.floor(720 / 2.5 - meta.height / 2)
+                const left = Math.floor(960 / 2 - meta.width / 2)
+                return { top: top, left: left }
+            },
+        },
+        textHeight: Math.floor(720 * 0.056),
+    },
+}
+
+const currentSetup: IRevealGifSetup = star_wars_setup
 
 const inventoryOptions: IImageCoordinates = {
     layer: -1,
@@ -85,70 +158,101 @@ export class ImageGenerationHelper {
 
     public async generateRevealGifForCollectable(collectable: IUserCollectable): Promise<Buffer> {
         const backgroundWithItem = await this.getBackgroundWithItem(collectable)
-        const lightrayAndText = await this.getLightrayAndText(collectable)
-        const revealBackground = await sharp(backgroundWithItem)
-            .composite([{ input: lightrayAndText, top: ratios.lightrayTop, left: 0 }])
-            .toBuffer()
-        const gifUrl = 'graphics/sf_kino.gif'
-        const gifBuffer = fs.readFileSync(gifUrl)
+        // const lightrayAndText = await this.getLightrayAndText(collectable)
+        // const revealBackground = await sharp(backgroundWithItem)
+        //     .composite([{ input: lightrayAndText, top: ratios.lightrayTop, left: 0 }])
+        //     .toBuffer()
+        const text = await this.getHeaderText(collectable)
+
+        const revealBackground = await sharp(backgroundWithItem).composite(text).toBuffer()
+        // return revealBackground
+        const gifBuffer = fs.readFileSync(currentSetup.gif)
 
         return await this.overlayGif(revealBackground, gifBuffer)
     }
 
     private async getBackgroundWithItem(collectable: IUserCollectable): Promise<Buffer> {
-        const background = fs.readFileSync('graphics/background.png')
-        const resizedBg = await sharp(background).resize({ fit: sharp.fit.cover, width: revealWidth, height: revealHeight }).toBuffer()
+        const background = fs.readFileSync(this.getBackgroundImgPath(collectable))
+        const resizedBg = await sharp(background)
+            .resize({ fit: sharp.fit.cover, width: currentSetup.revealWidth, height: currentSetup.revealHeight })
+            .toBuffer()
         const halo = await this.getHalo(collectable.color)
-        const item = await this.getItemBuffer(collectable)
+        const item = fs.readFileSync(`graphics/fixed/${collectable.color}/sw_${collectable.name}_${collectable.color.charAt(0)}.png`) //await this.getItemBuffer(collectable)
         let backgroundBuffer = resizedBg
         if (halo) {
-            const coords = await ratios.itemCoords(halo)
-            backgroundBuffer = await this.compositeBuffers(resizedBg, halo, coords.top, coords.left)
+            const coords = await currentSetup.ratios.item.coords(halo)
+            backgroundBuffer = await this.compositeBuffers(resizedBg, halo, 10 - 50 /*coords.top*/, coords.left)
         }
-        const coords = await ratios.itemCoords(item)
-        return await this.compositeBuffers(backgroundBuffer, item, coords.top, coords.left)
+        const namePlate = fs.readFileSync(`graphics/nameplate/${collectable.rarity}_${collectable.color}.png`)
+        const coords = await currentSetup.ratios.item.coords(item)
+        const img = await this.compositeBuffers(backgroundBuffer, item, coords.top - 50, coords.left)
+        return await this.compositeBuffers(img, namePlate, 570, 130)
+    }
+
+    private getBackgroundImgPath(collectable: IUserCollectable) {
+        if (['han_solo', 'chewbacca', 'boba_fett'].includes(collectable.name)) return 'graphics/background/mos_eisley_bg.png'
+        else if (['gonk_droid', 'storm_trooper'].includes(collectable.name)) return 'graphics/background/empire_bg.jpg'
+        else if (['r2d2', 'c3po'].includes(collectable.name)) return 'graphics/background/tatooine_bg.jpg'
+        else if (['rebel_soldier', 'padme_amidala', 'jarjar', 'battle_droid', 'princess_leia'].includes(collectable.name))
+            return 'graphics/background/naboo_bg.jpg'
+        else if (['general_grevious', 'emperor_palpatine', 'darth_vader', 'darth_maul'].includes(collectable.name)) return 'graphics/background/sith_bg.png'
+        else if (['luke_skywalker', 'mace_windu', 'qui_gon_jinn', 'space_jesus', 'yoda'].includes(collectable.name)) return 'graphics/background/jedi_bg.png'
     }
 
     private async getHalo(color: ItemColor): Promise<Buffer> {
-        if (color === ItemColor.None) return undefined
-        const halo = fs.readFileSync(`graphics/halo/${color}.png`)
-        return await this.resize(halo, false, ratios.halo)
+        // if (color === ItemColor.None) return undefined ${color}
+        const halo = fs.readFileSync(`graphics/halo/none.png`)
+        return await this.resize(halo, false, 720 /*ratios.halo*/)
     }
 
     private async getItemBuffer(collectable: IUserCollectable): Promise<Buffer> {
-        const itemUrl = await this.getEmojiImageUrl(collectable)
+        const itemUrl = await this.getEmojiImageUrl(collectable, true)
         const item = await fetch(itemUrl)
         const itemBuffer = Buffer.from(await item.arrayBuffer())
-        return await this.resize(itemBuffer, false, ratios.item)
+        return await this.resize(itemBuffer, false, currentSetup.ratios.item.size)
     }
 
     private async getLightrayAndText(collectable: IUserCollectable): Promise<Buffer> {
         const lightray = fs.readFileSync(`graphics/lightray/${collectable.rarity}.png`)
         const resizedLightray = sharp(lightray)
-            .resize({ fit: sharp.fit.cover, width: ratios.lightrayScaleWidth })
-            .resize({ fit: sharp.fit.cover, width: revealWidth, height: ratios.lightrayScaleHeight })
+            .resize({ fit: sharp.fit.cover, width: currentSetup.ratios.rarityEffect.scaleWidth })
+            .resize({ fit: sharp.fit.cover, width: currentSetup.revealWidth, height: currentSetup.ratios.rarityEffect.scaleHeight })
         const text = await this.getHeaderText(collectable)
+
         const lr = await resizedLightray.toBuffer()
         return sharp(lr).composite(text).toBuffer()
     }
 
     private async getHeaderText(collectable: IUserCollectable): Promise<sharp.OverlayOptions[]> {
-        registerFont('graphics/fonts/WorkSans-Medium.ttf', { family: 'Work Sans', weight: 500 })
+        registerFont(currentSetup.font.path, { family: currentSetup.font.family, weight: currentSetup.font.weight })
         const fontSize = 50
-        const header = `${TextUtils.capitalizeFirstLetter(collectable.name)}`
-        const itemHeader = new UltimateTextToImage(header, { fontFamily: 'Work Sans', fontColor: '#ffffff', fontSize: fontSize, fontWeight: 500, margin: 2 })
+        const header = `${TextUtils.formatRevealGifString(collectable.name)}`
+        const itemHeader = new UltimateTextToImage(header, {
+            fontFamily: currentSetup.font.family,
+            fontColor: currentSetup.font.primaryColor,
+            fontSize: fontSize,
+            fontWeight: currentSetup.font.weight,
+            margin: 2,
+        })
             .render()
             .toBuffer()
-        const resizedHeader = await sharp(itemHeader).resize({ fit: sharp.fit.inside, height: ratios.textHeight }).toBuffer()
-
-        const outline = new UltimateTextToImage(header, { fontFamily: 'Work Sans', fontColor: '#000000', fontSize: fontSize, fontWeight: 500, margin: 2 })
+        const resizedHeader = await sharp(itemHeader).resize({ fit: sharp.fit.inside, height: currentSetup.ratios.textHeight }).toBuffer()
+        // legendary: '#d1700f'
+        // epic: '#7223cc'
+        const outline = new UltimateTextToImage(header, {
+            fontFamily: currentSetup.font.family,
+            fontColor: '#f5e12f', // //currentSetup.font.outlineColor, //'#f55525', //
+            fontSize: fontSize,
+            fontWeight: currentSetup.font.weight,
+            margin: 2,
+        })
             .render()
             .toBuffer()
-        const resizedOutline = await sharp(outline).resize({ fit: sharp.fit.inside, height: ratios.textHeight }).toBuffer()
+        const resizedOutline = await sharp(outline).resize({ fit: sharp.fit.inside, height: currentSetup.ratios.textHeight }).toBuffer()
         const headerMeta = await sharp(resizedHeader).metadata()
-        const top = Math.floor(292 - headerMeta.height / 2)
+        const top = Math.floor(420 - headerMeta.height / 2)
         const left = Math.floor(474 - headerMeta.width / 2)
-        return this.getOutlineText(resizedHeader, resizedOutline, top, left, 2)
+        return this.getOutlineText(resizedHeader, resizedOutline, top - 40, left, 2)
     }
 
     private async resize(buffer: Buffer, isGif: boolean, size: number, padding: number = 0): Promise<Buffer> {
@@ -172,10 +276,10 @@ export class ImageGenerationHelper {
         const texts: sharp.OverlayOptions[] = new Array<sharp.OverlayOptions>()
         for (let x = -layers; x <= layers; x++) {
             for (let y = -layers; y <= layers; y++) {
-                texts.push({ input: outline, top: topOffset + x, left: leftOffset + y })
+                texts.push({ input: outline, top: topOffset + x + currentSetup.ratios.rarityEffect.top, left: leftOffset + y })
             }
         }
-        texts.push({ input: text, top: topOffset, left: leftOffset })
+        texts.push({ input: text, top: topOffset + currentSetup.ratios.rarityEffect.top, left: leftOffset })
         return texts
     }
 
@@ -187,7 +291,7 @@ export class ImageGenerationHelper {
         const imgRoll = backgroundImg.extend({ bottom: metadata.pageHeight * (metadata.pages - 1), extendWith: 'repeat' }) //Must extend to repeat how ever many pages (frames) are in the gif.
 
         const result = imgRoll.composite([{ input: await overlay.toBuffer(), gravity: 'north', animated: true }]).gif(
-            { progressive: metadata.isProgressive, delay: metadata.delay, loop: 1, effort: 1 }
+            { progressive: metadata.isProgressive, delay: new Array(metadata.delay.length).fill(50), loop: 1, effort: 1 }
             //Just copying the metadata from the gif to the output format (not sure this is necessary).
         )
 
@@ -196,13 +300,13 @@ export class ImageGenerationHelper {
     }
 
     public async generateImageForCollectables(collectables: IUserCollectable[]): Promise<Buffer> {
-        const background = fs.readFileSync(`graphics/inventory_bg.png`) 
+        const background = fs.readFileSync(`graphics/background/inventory_bg.png`)
         if (!collectables) return background
-        const canvas = await getCanvasImage({buffer: background}) 
+        const canvas = await getCanvasImage({ buffer: background })
         const imageTemplate: ICollectableImage = inventoryTemplate
         const images = await this.getImageSeriesForCollectables(collectables, imageTemplate)
-        images.push({...inventoryOptions, canvasImage: canvas})
-        const collection = new UltimateTextToImage("", {...imageTemplate.options, images: images}).render().toBuffer()
+        images.push({ ...inventoryOptions, canvasImage: canvas })
+        const collection = new UltimateTextToImage('', { ...imageTemplate.options, images: images }).render().toBuffer()
         return collection
     }
 
@@ -246,8 +350,8 @@ export class ImageGenerationHelper {
     private async getImagesForSingleCollectable(item: IUserCollectable, coord: IItemShadowCoordinates): Promise<IImage[]> {
         const url = await this.getEmojiImageUrl(item)
         const emojiImageBuffer = await this.getPngBufferForWebpUrl(url)
-        const resizedItem = await sharp(emojiImageBuffer).resize({ fit: sharp.fit.inside, width: 75 }).toBuffer()
-        const canvas = await getCanvasImage({ buffer: resizedItem })
+        // const resizedItem = await sharp(emojiImageBuffer).resize({ fit: sharp.fit.inside, width: 75 }).toBuffer()
+        const canvas = await getCanvasImage({ buffer: emojiImageBuffer })
         const emojiImageArray: IImage[] = [{ ...this.getImageCoordinates(coord, canvas, 1), canvasImage: canvas }] // Must have layer 1
         const collectableBackground = await this.getItemBackgroundImage(item.color, coord)
         if (collectableBackground) emojiImageArray.push(collectableBackground)
@@ -256,10 +360,11 @@ export class ImageGenerationHelper {
         return emojiImageArray
     }
 
-    private async getEmojiImageUrl(item: IUserCollectable): Promise<string> {
+    private async getEmojiImageUrl(item: IUserCollectable, large: boolean = false): Promise<string> {
         const name = this.buildEmojiName(item)
         const emoji = await EmojiHelper.getApplicationEmoji(name, this.client)
-        return `https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?size=96`
+        const params = large ? 'size=128&quality=lossless' : 'size=96'
+        return `https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?${params}`
     }
 
     private buildEmojiName(item: IUserCollectable): string {

@@ -15,7 +15,7 @@ import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
-import { ICollectableSeries, ILootbox, ItemColor, ItemRarity, IUserCollectable, MazariniUser } from '../../interfaces/database/databaseInterface'
+import { ICollectableSeries, ILootbox, ItemColor, ItemRarity, IUserCollectable, IUserEffects, MazariniUser } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
@@ -33,8 +33,15 @@ interface IPendingChest {
     userId: string
     quality: string
     items: Map<string, IUserCollectable>
+    effect?: IEffectItem
     message?: InteractionResponse<boolean> | Message<boolean>
     buttons?: ActionRowBuilder<ButtonBuilder>
+}
+
+interface IEffectItem {
+    label: string
+    message: string //følger formatet "Din kalendergave for {dato} er {message}"
+    effect(user: MazariniUser): undefined | ActionRowBuilder<ButtonBuilder>[]
 }
 
 export class LootboxCommands extends AbstractCommands {
@@ -42,6 +49,7 @@ export class LootboxCommands extends AbstractCommands {
     private lootboxes: ILootbox[]
     private lootboxesRefreshed: Date
     private series: ICollectableSeries[]
+    private newestSeries: ICollectableSeries
     private pendingTrades: Map<string, IPendingTrade>
     private pendingChests: Map<string, IPendingChest>
 
@@ -50,6 +58,15 @@ export class LootboxCommands extends AbstractCommands {
         this.imageGenerator = new ImageGenerationHelper(client)
         this.pendingTrades = new Map<string, IPendingTrade>()
         this.pendingChests = new Map<string, IPendingChest>()
+        this.setLootSeries()
+    }
+
+    private setLootSeries() {
+        setTimeout(async () => {
+            const series = await this.getSeries()
+            this.series = series
+            this.newestSeries = series.sort((a, b) => new Date(b.added).getTime() - new Date(a.added).getTime())[0]
+        }, 5000)
     }
 
     static getLootRewardButton(userId: string, quality: string, isChest: boolean = false): ActionRowBuilder<ButtonBuilder> {
@@ -142,8 +159,14 @@ export class LootboxCommands extends AbstractCommands {
             }
             buttons.addComponents(btn)
         }
+        let effect: IEffectItem = undefined
+        if (Math.random() < 0.1) {
+            effect = RandomUtils.getRandomItemFromList(effects)
+            const btn = lootChestButton(chestId, 'effect', effect.label)
+            buttons.addComponents(btn)
+        }
         const msg = await this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true }, [buttons])
-        const pendingChest: IPendingChest = { userId: interaction.user.id, quality: quality, items: chestItems, message: msg, buttons: buttons }
+        const pendingChest: IPendingChest = { userId: interaction.user.id, quality: quality, items: chestItems, effect: effect, message: msg, buttons: buttons }
         this.pendingChests.set(chestId, pendingChest)
     }
 
@@ -177,10 +200,17 @@ export class LootboxCommands extends AbstractCommands {
         })
         const btnRow = new ActionRowBuilder<ButtonBuilder>().addComponents(disabledBtns)
         interaction.message.edit({ embeds: [embed], components: [btnRow] })
-        const item = this.getChestItem(interaction, pendingChest)
-        this.registerItemOnUser(user, item)
-        this.revealCollectable(interaction, item)
-        this.deletePendingChest(interaction)
+        if (interaction.customId.split(';')[2] === 'effect') {
+            const effect = pendingChest.effect
+            effect.effect(user)
+            this.database.updateUser(user)
+            this.messageHelper.replyToInteraction(interaction, `Du valgte ${effect.message}`, { hasBeenDefered: true })
+        } else {
+            const item = this.getChestItem(interaction, pendingChest)
+            this.registerItemOnUser(user, item)
+            this.revealCollectable(interaction, item)
+            this.deletePendingChest(interaction)
+        }
     }
 
     private getPendingChest(interaction: ButtonInteraction<CacheType>) {
@@ -254,7 +284,7 @@ export class LootboxCommands extends AbstractCommands {
 
     private async getSeriesOrDefault(series: string): Promise<ICollectableSeries> {
         const lootboxSeries = await this.getSeries()
-        const seriesName = series && series !== '' ? series : lootboxSeries.sort((a, b) => b.added.getTime() - a.added.getTime())[0].name
+        const seriesName = series && series !== '' ? series : lootboxSeries.sort((a, b) => new Date(b.added).getTime() - new Date(a.added).getTime())[0].name
         return lootboxSeries.find((x) => x.name === seriesName) ?? lootboxSeries[0]
     }
 
@@ -427,10 +457,10 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private getSortedCollectables(user: MazariniUser, filterOutLegendaries: boolean, filter?: { series: string; rarity: string }) {
-        // const allowColoredNonDups = user.userSettings?.allowNonDupesInTrade ?? false
+        const onlyShowDups = user.userSettings?.onlyShowDupesOnTrade ?? false
         const filtered = user.collectables
-            // .map(item => (allowColoredNonDups || item.color === ItemColor.None) ? item : ({...item, amount: item.amount - 1}))
-            // .filter(item => item.amount >= 1)
+            .map((item) => (onlyShowDups ? { ...item, amount: item.amount - 1 } : item))
+            .filter((item) => item.amount >= 1)
             .filter((item) => !filter || (filter.series === item.series && filter.rarity === item.rarity))
             .sort((a, b) => this.collectableSortString(a).localeCompare(this.collectableSortString(b)))
         if (filterOutLegendaries) return filtered.filter((item) => item.rarity !== ItemRarity.Legendary)
@@ -438,7 +468,8 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private collectableSortString(item: IUserCollectable) {
-        return `${item.series}_${this.getRarityOrder(item.rarity)}_${item.name}_${this.getColorOrder(item.color)}`
+        const num = item.series === this.newestSeries.name ? 1 : 2
+        return `${num}_${item.series}_${this.getRarityOrder(item.rarity)}_${item.name}_${this.getColorOrder(item.color)}`
     }
 
     private getSortFilter(input: string): { series: string; rarity: string } {
@@ -702,4 +733,92 @@ const lootChestButton = (chestId: string, itemId: string, label: string) => {
         disabled: false,
         type: 2,
     })
+}
+
+const effects: Array<IEffectItem> = [
+    {
+        label: '1 free jailbreak',
+        message: 'et get out of jail free kort! Dette vil automatisk hindre deg fra å bli fengslet neste gang.',
+        effect: (user: MazariniUser) => {
+            user.effects = user.effects ?? defaultEffects
+            user.effects.positive.jailPass = (user.effects.positive.jailPass ?? 0) + 1
+            return undefined
+        },
+    },
+    {
+        label: '10 spins',
+        message: '10 ekstra /spin rewards!',
+        effect: (user: MazariniUser) => {
+            user.dailySpinRewards -= 10
+            return undefined
+        },
+    },
+    {
+        label: '2x doubled potwins',
+        message: 'at dine to neste hasjwins dobles!',
+        effect: (user: MazariniUser) => {
+            user.effects = user.effects ?? defaultEffects
+            user.effects.positive.doublePotWins = (user.effects.positive.doublePotWins ?? 0) + 2
+            return undefined
+        },
+    },
+    {
+        label: '5 free rolls',
+        message: '5 gratis /roll!',
+        effect: (user: MazariniUser) => {
+            user.effects = user.effects ?? defaultEffects
+            user.effects.positive.freeRolls = (user.effects.positive.freeRolls ?? 0) + 5
+            return undefined
+        },
+    },
+    {
+        label: 'Flipped color odds',
+        message: 'at loot-farge-sannsynlighetene snus på hodet! Du har nå større sannsynlighet for å få diamond enn silver ut dagen!',
+        effect: (user: MazariniUser) => {
+            user.effects = user.effects ?? defaultEffects
+            user.effects.positive.lootColorsFlipped = true
+            return undefined
+        },
+    },
+    {
+        label: '3x lootbox odds in deathroll',
+        message: 'at du har 3x større sannsynlighet for å heller få en lootbox som reward ved hasjinnskudd - ut dagen!',
+        effect: (user: MazariniUser) => {
+            user.effects = user.effects ?? defaultEffects
+            user.effects.positive.deahtrollLootboxChanceMultiplier = 3
+            return undefined
+        },
+    },
+    {
+        label: '5x doubled pot additions',
+        message: 'at dine neste 5 hasjinnskudd hvor du triller over 100 dobles!',
+        effect: (user: MazariniUser) => {
+            user.effects = user.effects ?? defaultEffects
+            user.effects.positive.doublePotDeposit = (user.effects.positive.doublePotDeposit ?? 0) + 5
+            return undefined
+        },
+    },
+    {
+        label: 'Double color odds',
+        message: 'dobbel sannsynlighet for farge på alle lootboxene dine ut dagen!',
+        effect: (user: MazariniUser) => {
+            user.effects = user.effects ?? defaultEffects
+            user.effects.positive.lootColorChanceMultiplier = 2
+            return undefined
+        },
+    },
+    {
+        label: '1 Blackjack re-deal',
+        message: 'en ekstra deal på nytt i blackjack!',
+        effect: (user: MazariniUser) => {
+            user.effects = user.effects ?? defaultEffects
+            user.effects.positive.blackjackReDeals = (user.effects.positive.blackjackReDeals ?? 0) + 1
+            return undefined
+        },
+    },
+]
+
+const defaultEffects: IUserEffects = {
+    positive: {},
+    negative: {},
 }
