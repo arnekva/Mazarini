@@ -1,5 +1,6 @@
 import {
     ActionRowBuilder,
+    APIEmbedField,
     ButtonBuilder,
     ButtonInteraction,
     ButtonStyle,
@@ -211,15 +212,21 @@ export class MoreOrLess extends AbstractCommands {
             `https://api.moreorless.io/img/${this.game.image}_512.jpg`
         )
         const users = (await this.database.getAllUsers()).filter((user) => user.dailyGameStats?.moreOrLess?.attempted)
-        for (const user of users) {
+        const sortedUsers = DateUtils.isTimeOfDayAfter(18)
+            ? users.sort((a, b) => b.dailyGameStats.moreOrLess.firstAttempt - a.dailyGameStats.moreOrLess.firstAttempt)
+            : users
+        const fields: APIEmbedField[] = []
+        for (const user of sortedUsers) {
             const name = UserUtils.findMemberByUserID(user.id, interaction).user.username
             const shouldShowBestResult = user.dailyGameStats.moreOrLess.numAttempts > 1 || DateUtils.isTimeOfDayAfter(18)
             const result =
                 `Første forsøk: ${DateUtils.isTimeOfDayAfter(18) ? user.dailyGameStats.moreOrLess.firstAttempt + ' riktige' : 'Skjult'} ` +
                 `\nBeste forsøk: ${shouldShowBestResult ? user.dailyGameStats.moreOrLess.bestAttempt + ' riktige' : 'Skjult'}` +
                 `\nAntall forsøk: ${DateUtils.isTimeOfDayAfter(18) ? user.dailyGameStats.moreOrLess.numAttempts : 'Skjult'}`
-            embed.addFields({ name: name, value: result })
+            fields.push({ name: name, value: result })
         }
+
+        embed.addFields(fields)
         this.messageHelper.replyToInteraction(interaction, embed)
     }
 
