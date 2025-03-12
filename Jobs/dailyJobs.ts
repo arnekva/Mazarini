@@ -279,11 +279,18 @@ export class DailyJobs {
 
         let description = `Ingen forsøk ble gjort på gårsdagens tema *${storage.moreOrLess.title}*`
         if (attempted) {
+            const sortedUsers = usersWithStats?.sort((a, b) => b.dailyGameStats.moreOrLess.firstAttempt - a.dailyGameStats.moreOrLess.firstAttempt)
+
+            const results = sortedUsers
+                .map((user) => `${UserUtils.findUserById(user.id, this.client)}: ${user.dailyGameStats.moreOrLess.firstAttempt}`)
+                .join('\n')
+
             const firstAttemptWinners = chestWinners.join(' og ')
             // const bestTotalWinners = boxWinners.join(' og ')
-            description = `Gratulerer til gårsdagens vinner${chestWinners.length > 1 ? 'e' : ''} for beste første forsøk på *${
-                storage.moreOrLess.title
-            }*, ${firstAttemptWinners}, som vinner en lootchest!`
+            description =
+                `Gratulerer til gårsdagens vinner${chestWinners.length > 1 ? 'e' : ''} for beste første forsøk på *${
+                    storage.moreOrLess.title
+                }*, ${firstAttemptWinners}, som vinner en lootchest!` + `\nResultater:\n${results}`
             // description += `\nGårsdagen vinner av beste forsøk er ${bestTotalWinners}, som vinner lootbox!`
         }
 
@@ -299,15 +306,15 @@ export class DailyJobs {
             this.messageHelper.sendMessage(threadId, { components: [r] })
         })
 
-        // if (attempted) {
-        //     const updates = this.client.database.getUpdatesObject<'dailyGameStats'>()
-        //     usersWithStats.forEach((user) => {
-        //         user.dailyGameStats = { ...user.dailyGameStats, moreOrLess: { attempted: false, firstAttempt: 0, bestAttempt: 0 } }
-        //         const updatePath = this.client.database.getUserPathToUpdate(user.id, 'dailyGameStats')
-        //         updates[updatePath] = user.dailyGameStats
-        //     })
-        //     this.client.database.updateData(updates)
-        // }
+        if (attempted) {
+            const updates = this.client.database.getUpdatesObject<'dailyGameStats'>()
+            usersWithStats.forEach((user) => {
+                user.dailyGameStats = { ...user.dailyGameStats, moreOrLess: { attempted: false, firstAttempt: 0, bestAttempt: 0 } }
+                const updatePath = this.client.database.getUserPathToUpdate(user.id, 'dailyGameStats')
+                updates[updatePath] = user.dailyGameStats
+            })
+            this.client.database.updateData(updates)
+        }
 
         return 'success'
     }
