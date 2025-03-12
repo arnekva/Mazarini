@@ -23,8 +23,8 @@ export class MoneyCommands extends AbstractCommands {
 
         if (interaction.user.id === target.id) {
             this.messageHelper.replyToInteraction(interaction, `Du kan kje vippsa deg sjøl`, { ephemeral: true })
-        } else if (isNaN(amount) || amount < 0) {
-            this.messageHelper.replyToInteraction(interaction, `Det e kje lov å vippsa någen et negativt beløp ;)`, { ephemeral: true })
+        } else if (isNaN(amount) || amount < 0 || amount === 0) {
+            this.messageHelper.replyToInteraction(interaction, `Du må vippsa minst 1 chip.`, { ephemeral: true })
         } else if (userBalance >= amount) {
             const oldChips = user.chips
             user.chips = oldChips - amount
