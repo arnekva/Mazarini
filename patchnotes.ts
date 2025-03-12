@@ -8,11 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '22.0.1'
-    public static readonly currentPatchNotes =
-        `* More or Less sjekker nå også antall forsøk i tiebreak` +
-        `* More or Less resultater er nå sortert etter beste forsøk` +
-        +`* More or Less viser nå plasseringene på meldingen som sendes om morgenen`
+    public static readonly currentVersion = '22.1.0'
+    public static readonly currentPatchNotes = `* More or Less ties gir nå chest til alle partene, heller enn ingen. Den sjekker ikke lenger antall forsøk.`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

@@ -69,12 +69,12 @@ export class LootboxCommands extends AbstractCommands {
         }, 5000)
     }
 
-    static getLootRewardButton(userId: string, quality: string, isChest: boolean = false): ActionRowBuilder<ButtonBuilder> {
+    static getLootRewardButton(userId: string, quality: string, isChest: boolean = false, customLabel?: string): ActionRowBuilder<ButtonBuilder> {
         return new ActionRowBuilder<ButtonBuilder>().addComponents(
             new ButtonBuilder({
                 custom_id: `OPEN_LOOT;${userId};${quality};${isChest ? 'chest' : 'box'}`,
                 style: ButtonStyle.Primary,
-                label: `${isChest ? 'Open loot chest' : 'Open lootbox'}`,
+                label: customLabel || `${isChest ? 'Open loot chest' : 'Open lootbox'}`,
                 disabled: false,
                 type: 2,
             })

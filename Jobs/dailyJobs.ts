@@ -1,3 +1,4 @@
+import { ActionRowBuilder, ButtonBuilder } from 'discord.js'
 import moment from 'moment'
 import fetch from 'node-fetch'
 import { rapidApiKey, rapidApiKey2 } from '../client-env'
@@ -11,7 +12,7 @@ import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniUser, RocketLeagueTournament } from '../interfaces/database/databaseInterface'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
-import { ChannelIds, MentionUtils, ThreadIds } from '../utils/mentionUtils'
+import { ChannelIds } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
 export class DailyJobs {
     private messageHelper: MessageHelper
@@ -214,68 +215,101 @@ export class DailyJobs {
     }
 
     private async awardAndResetMoreOrLess(users: MazariniUser[]): Promise<JobStatus> {
+        const threadId = '1106130420308922378' // ThreadIds.MORE_OR_LESS
         const usersWithStats = users.filter((user) => user.dailyGameStats?.moreOrLess?.attempted)
         const attempted = (usersWithStats?.length ?? 0) > 0
-        let dailyWinner = undefined
-        let tied = false
-        let tieBreak = false
-        let results = ''
-        if (attempted) {
-            const sortedUsers = usersWithStats?.sort((a, b) => b.dailyGameStats.moreOrLess.firstAttempt - a.dailyGameStats.moreOrLess.firstAttempt)
-            dailyWinner = sortedUsers[0]
 
-            results = sortedUsers.map((user) => `${UserUtils.findUserById(user.id, this.client)}: ${user.dailyGameStats.moreOrLess.firstAttempt}`).join('\n')
-            const filteredUsers = sortedUsers.filter(
-                (user) => user.dailyGameStats.moreOrLess.firstAttempt === sortedUsers[0].dailyGameStats.moreOrLess.firstAttempt
-            )
-            if (filteredUsers.length > 1) {
-                const sortedWinners = filteredUsers.sort((a, b) => b.dailyGameStats.moreOrLess.bestAttempt - a.dailyGameStats.moreOrLess.bestAttempt)
-                if (sortedWinners[0].dailyGameStats.moreOrLess.bestAttempt === sortedWinners[1].dailyGameStats.moreOrLess.bestAttempt) {
-                    if (sortedWinners[0].dailyGameStats.moreOrLess.numAttempts < sortedWinners[1].dailyGameStats.moreOrLess.numAttempts) {
-                        dailyWinner = sortedWinners[0]
-                        tieBreak = true
-                    } else if (sortedWinners[0].dailyGameStats.moreOrLess.numAttempts > sortedWinners[1].dailyGameStats.moreOrLess.numAttempts) {
-                        dailyWinner = sortedWinners[1]
-                        tieBreak = true
-                    } else {
-                        dailyWinner = undefined
-                        tied = true
-                    }
-                } else {
-                    dailyWinner = sortedWinners[0]
-                    tieBreak = true
-                }
-            }
-            const updates = this.client.database.getUpdatesObject<'dailyGameStats'>()
-            usersWithStats.forEach((user) => {
-                user.dailyGameStats = { ...user.dailyGameStats, moreOrLess: { attempted: false, firstAttempt: 0, bestAttempt: 0 } }
-                const updatePath = this.client.database.getUserPathToUpdate(user.id, 'dailyGameStats')
-                updates[updatePath] = user.dailyGameStats
-            })
-            this.client.database.updateData(updates)
+        const highestBestAttempt = Math.max(...usersWithStats.map((user) => user.dailyGameStats.moreOrLess.bestAttempt))
+        const topBestAttemptUsers = usersWithStats.filter((user) => user.dailyGameStats.moreOrLess.bestAttempt === highestBestAttempt)
+        //If we want to also sort by attempts, we can do that here. Uncomment these and switch to use topUsersWithLowestAttempts instead of topBestAttemptUsers
+        //in the forEach below
+
+        const boxWinners: string[] = []
+        const chestWinners: string[] = []
+        const lootboxes: {
+            boxes: ActionRowBuilder<ButtonBuilder>[]
+            chests: ActionRowBuilder<ButtonBuilder>[]
+        } = {
+            boxes: [],
+            chests: [],
         }
+        //Currently no rewards for best attempts, but the code is here:
+        // const topUserAttempts = Math.min(...topBestAttemptUsers.map((user) => user.dailyGameStats.moreOrLess.numAttempts))
+        // const topUsersWithLowestAttempts = topBestAttemptUsers.filter((user) => user.dailyGameStats.moreOrLess.numAttempts === topUserAttempts)
+        // if (topBestAttemptUsers) {
+        //     topBestAttemptUsers.forEach((user) => {
+        //         const lootBtn = LootboxCommands.getLootRewardButton(
+        //             user.id,
+        //             'basic',
+        //             false,
+        //             `${UserUtils.findUserById(user.id, this.client).username} - lootbox`
+        //         )
+        //         lootboxes.boxes.push(lootBtn)
+        //         boxWinners.push(UserUtils.findUserById(user.id, this.client).username)
+        //         // this.messageHelper.sendMessage(ThreadIds.MORE_OR_LESS, { components: [lootBtn] })
+        //     })
+        // }
+
+        //Find highest first attempt
+        const highestFirstAttempt = Math.max(...usersWithStats.map((user) => user.dailyGameStats.moreOrLess.firstAttempt))
+        //Find all users with highest first
+        const topFirstUsers = usersWithStats.filter((user) => user.dailyGameStats.moreOrLess.firstAttempt === highestFirstAttempt)
+
+        //Find the BEST attempt of the users with the highest first score
+        const bestAttemptInBestFirstUsers = Math.max(...topFirstUsers.map((user) => user.dailyGameStats.moreOrLess.bestAttempt))
+
+        //Find all users with the best attempt in the best first users
+        const topFirstUsersWithBestTotalAttempts = topFirstUsers.filter((user) => user.dailyGameStats.moreOrLess.bestAttempt === bestAttemptInBestFirstUsers)
+
+        if (topFirstUsersWithBestTotalAttempts) {
+            topFirstUsersWithBestTotalAttempts.forEach((user) => {
+                const lootBtn = LootboxCommands.getLootRewardButton(
+                    user.id,
+                    'basic',
+                    true,
+                    `${UserUtils.findUserById(user.id, this.client).username} - lootchest`
+                )
+                lootboxes.chests.push(lootBtn)
+                chestWinners.push(UserUtils.findUserById(user.id, this.client).username)
+            })
+        }
+
         const storage = await this.client.database.getStorage()
         const game = await MoreOrLess.getNewMoreOrLessGame()
-        const description = this.getMoreOrLessDesc(attempted, dailyWinner, tied, tieBreak, storage.moreOrLess.title, results)
+
+        let description = `Ingen forsøk ble gjort på gårsdagens tema *${storage.moreOrLess.title}*`
+        if (attempted) {
+            const firstAttemptWinners = chestWinners.join(' og ')
+            // const bestTotalWinners = boxWinners.join(' og ')
+            description = `Gratulerer til gårsdagens vinner${chestWinners.length > 1 ? 'e' : ''} for beste første forsøk på *${
+                storage.moreOrLess.title
+            }*, ${firstAttemptWinners}, som vinner en lootchest!`
+            // description += `\nGårsdagen vinner av beste forsøk er ${bestTotalWinners}, som vinner lootbox!`
+        }
+
+        // lootboxes.boxes.forEach((r) => {
+        //     this.messageHelper.sendMessage(threadId, { components: [r] })
+        // })
 
         const embed = EmbedUtils.createSimpleEmbed('More or Less', description + `\n\nDagens tema er **${game.title}**`)
-        const lootBtn = dailyWinner ? LootboxCommands.getLootRewardButton(dailyWinner.id, 'basic', true) : undefined
-        this.messageHelper.sendMessage(ThreadIds.MORE_OR_LESS, { embed: embed, components: dailyWinner ? [lootBtn] : [] })
+        this.messageHelper.sendMessage(threadId, { embed: embed })
         this.client.database.updateStorage({ moreOrLess: game })
-        return 'success'
-    }
 
-    private getMoreOrLessDesc(attempted: boolean, winner: MazariniUser, tied: boolean, tiebreak: boolean, yesterdayTheme: string, results: string) {
-        if (!attempted) return `Ingen forsøk ble gjort på gårsdagens tema *${yesterdayTheme}*`
-        else if (tied) return `Det var ingen som klarte å være best i gårsdagens tema *${yesterdayTheme}*, så da blir det ingen ekstra premie`
-        else {
-            return (
-                `Gratulerer til gårsdagens vinner ${MentionUtils.mentionUser(winner.id)}` +
-                (tiebreak ? ` som vinner på tiebreak med beste total på *${yesterdayTheme}*!` : ` som vinner på beste første forsøk på *${yesterdayTheme}*!`) +
-                `\nDu får en basic loot chest!` +
-                `\nResultater:\n${results}`
-            )
-        }
+        lootboxes.chests.forEach((r) => {
+            this.messageHelper.sendMessage(threadId, { components: [r] })
+        })
+
+        // if (attempted) {
+        //     const updates = this.client.database.getUpdatesObject<'dailyGameStats'>()
+        //     usersWithStats.forEach((user) => {
+        //         user.dailyGameStats = { ...user.dailyGameStats, moreOrLess: { attempted: false, firstAttempt: 0, bestAttempt: 0 } }
+        //         const updatePath = this.client.database.getUserPathToUpdate(user.id, 'dailyGameStats')
+        //         updates[updatePath] = user.dailyGameStats
+        //     })
+        //     this.client.database.updateData(updates)
+        // }
+
+        return 'success'
     }
 
     private logEvent() {

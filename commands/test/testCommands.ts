@@ -14,7 +14,6 @@ import {
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
-import { ICollectableSeries } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { LootboxCommands } from '../store/lootboxCommands'
 
@@ -55,16 +54,6 @@ export class TestCommands extends AbstractCommands {
 
     private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
         interaction.deferReply()
-        const sw_series: ICollectableSeries = {
-            name: 'sw',
-            added: new Date(),
-            common: ['storm_trooper', 'rebel_soldier', 'battle_droid', 'jarjar', 'gonk_droid'],
-            rare: ['c3po', 'r2d2', 'boba_fett', 'chewbacca', 'princess_leia'],
-            epic: ['general_grevious', 'darth_maul', 'han_solo', 'luke_skywalker', 'padme_amidala'],
-            legendary: ['darth_vader', 'emperor_palpatine', 'yoda', 'space_jesus', 'qui_gon_jinn'],
-        }
-        // await this.database.addLootboxSeries(sw_series)
-        this.messageHelper.replyToInteraction(interaction, `check`, { hasBeenDefered: true })
     }
 
     private async testSelectMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {
