@@ -12,7 +12,7 @@ import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniUser, RocketLeagueTournament } from '../interfaces/database/databaseInterface'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
-import { ChannelIds } from '../utils/mentionUtils'
+import { ChannelIds, ThreadIds } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
 export class DailyJobs {
     private messageHelper: MessageHelper
@@ -215,7 +215,7 @@ export class DailyJobs {
     }
 
     private async awardAndResetMoreOrLess(users: MazariniUser[]): Promise<JobStatus> {
-        const threadId = '1106130420308922378' // ThreadIds.MORE_OR_LESS
+        const threadId = ThreadIds.MORE_OR_LESS
         const usersWithStats = users.filter((user) => user.dailyGameStats?.moreOrLess?.attempted)
         const attempted = (usersWithStats?.length ?? 0) > 0
 
