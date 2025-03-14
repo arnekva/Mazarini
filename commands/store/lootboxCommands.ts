@@ -86,8 +86,8 @@ export class LootboxCommands extends AbstractCommands {
         if (!deferred) return this.messageHelper.sendMessage(interaction.channelId, { text: 'Noe gikk galt med interactionen. Prøv igjen.' })
         const lootboxOwnerId = interaction.customId.split(';')[1]
         if (interaction.user.id === lootboxOwnerId) {
-            interaction.message.edit({ components: [] })
             const type = interaction.customId.split(';')[3]
+            interaction.message.edit({ components: [], content: `${type} er åpnet.` })
             if (type === 'box') await this.openAndRegisterLootbox(interaction)
             else if (type === 'chest') await this.openAndRegisterLootChest(interaction)
         } else this.messageHelper.replyToInteraction(interaction, 'Det er ikke din boks dessverre', { ephemeral: true, hasBeenDefered: true })
