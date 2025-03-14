@@ -255,22 +255,28 @@ export class PoletCommands extends AbstractCommands {
     static async checkForVinmonopolContent(message: Message, messageHelper: MessageHelper) {
         const content = message.content
         const barCodeRegex = /\d{9,15}/gi
+        const productIdRegex = /(?<!.)\d{7,8}(?!.)/gi
         const hasUrl = content.includes('https://www.vinmonopolet.no/')
         let hasBarCode = barCodeRegex.test(content)
+        const hasProductId = productIdRegex.test(content)
         let barcodes: any = content
-        if (!hasUrl && !hasBarCode && message.attachments?.first()?.url) {
+        if (!hasUrl && !hasBarCode && !hasProductId && message.attachments?.first()?.url) {
             const msg = await messageHelper.sendLogMessage('Sjekker bilde for strekkode...')
             barcodes = await BarcodeUtils.decodeImage(message.attachments.first().url, msg)
             msg.edit(`Fant ${barcodes ? '' : 'ikke '}strekkode i bilde sendt i kanalen ${MentionUtils.mentionChannel(message.channelId)}`)
             hasBarCode = !!barcodes
         }
-        if (hasUrl || hasBarCode) {
-            const id = hasBarCode ? barcodes[0] : content.split('/p/')[1]
+        if (hasUrl || hasBarCode || hasProductId) {
+            const id = hasBarCode ? barcodes[0] : hasProductId ? content : content.split('/p/')[1]
             if (id && !isNaN(Number(id))) {
                 let data: any = undefined
                 let barcode: any = undefined
-                if (!hasBarCode) data = await PoletCommands.fetchProductDataFromId(content.split('/p/')[1], false)
+                console.log('1')
+
+                if (hasProductId) data = await PoletCommands.fetchProductDataFromId(content, false)
+                else if (hasUrl) data = await PoletCommands.fetchProductDataFromId(content.split('/p/')[1], false)
                 else {
+                    console.log('2')
                     let found = false
                     for (let i = 0; !found && i < barcodes?.length; i++) {
                         data = await PoletCommands.fetchProductDataFromId(barcodes[i], true)
