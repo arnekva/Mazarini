@@ -8,15 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '22.3.0'
-    public static readonly currentPatchNotes =
-        `* For å prøve å dempe loot-flasjonen, så vil More or Less gir nå mindre i reward jo høyere du går` +
-        `\n * 0-10 gir 500` +
-        `\n * 11-20 gir 400` +
-        `\n * 21-30 gir 300` +
-        `\n * 31-40 gir 200` +
-        `\n * 41-50 gir 100` +
-        `\n * Alt over 50 gir 50`
+    public static readonly currentVersion = '22.3.1'
+    public static readonly currentPatchNotes = `* Fikset en feil hvor meldinger med mer enn 5 knapper ikke ble sendt`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

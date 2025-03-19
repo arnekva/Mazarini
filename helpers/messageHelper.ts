@@ -1,4 +1,5 @@
 import {
+    ActionRowBuilder,
     ActionRowData,
     APIActionRowComponent,
     APIAttachment,
@@ -8,6 +9,7 @@ import {
     AttachmentPayload,
     BitFieldResolvable,
     BufferResolvable,
+    ButtonBuilder,
     ButtonInteraction,
     CacheType,
     ChatInputCommandInteraction,
@@ -149,8 +151,18 @@ export class MessageHelper {
         }
         if (!interaction.replied) {
             const payload: InteractionEditReplyOptions = {}
-
-            payload.components = components
+            if (components) {
+                const comp = components[0]
+                if (comp instanceof ActionRowBuilder && comp.components.length > 5) {
+                    const excess = comp.components.splice(5, comp.components.length - 5)
+                    const btnRow = new ActionRowBuilder<ButtonBuilder>().addComponents(excess)
+                    setTimeout(() => {
+                        this.sendMessage(interaction.channelId, { components: [btnRow] })
+                    }, 1000)
+                    this.sendLogMessage(`En melding med mer enn 5 knapper ble forsøkt sendt. Knappene ble sendt i flere meldinger`)
+                }
+                payload.components = components
+            }
             payload.files = files
             let reply: InteractionResponse<boolean> | Message<boolean> | undefined = undefined
             if (typeof messageContent === 'object') {
@@ -221,7 +233,18 @@ export class MessageHelper {
                 }
                 messageOptions.content = content.text
                 if (content.embed) messageOptions.embeds = [content.embed]
-                if (content.components) messageOptions.components = content.components
+                if (content.components) {
+                    const comp = content.components[0]
+                    if (comp instanceof ActionRowBuilder && comp.components.length > 5) {
+                        const excess = comp.components.splice(5, comp.components.length - 5)
+                        const btnRow = new ActionRowBuilder<ButtonBuilder>().addComponents(excess)
+                        setTimeout(() => {
+                            this.sendMessage(channelId, { components: [btnRow] }, options)
+                        }, 1000)
+                        this.sendLogMessage(`En melding med mer enn 5 knapper ble forsøkt sendt. Knappene ble sendt i flere meldinger`)
+                    }
+                    messageOptions.components = content.components
+                }
                 if (content.files) messageOptions.files = content.files
 
                 const flags = [] as BitFieldResolvable<

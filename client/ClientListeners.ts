@@ -129,7 +129,8 @@ export class ClientListener {
                 if (
                     (message.mentions.users.find((u) => u.id === MentionUtils.User_IDs.BOT_HOIE) ||
                         message.content.includes(`<@!${MentionUtils.User_IDs.BOT_HOIE}>`)) &&
-                    message.type !== 19
+                    message.type !== 19 &&
+                    (environment === 'prod' || (environment === 'dev' && message.channelId === ChannelIds.LOKAL_BOT_SPAM_DEV))
                     // && // MessageType.Reply &&
                     // environment === 'dev'
                 ) {
