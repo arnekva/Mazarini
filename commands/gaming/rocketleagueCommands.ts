@@ -8,7 +8,6 @@ import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { DailyJobs } from '../../Jobs/dailyJobs'
 import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
-import { MessageUtils } from '../../utils/messageUtils'
 
 interface rocketLeagueStats {
     modeName?: string
@@ -321,10 +320,6 @@ export class RocketLeagueCommands extends AbstractCommands {
                         tournaments: tournaments,
                     },
                 })
-                const mainMsg = await MessageUtils.findMessageById(storage.rocketLeagueTournaments.mainMessageId, this.client)
-                if (mainMsg) {
-                    mainMsg.edit({ components: [RocketLeagueCommands.getButtonRow(tournaments)] })
-                }
             }
         }
     }
