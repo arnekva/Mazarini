@@ -34,6 +34,7 @@ interface IMoreOrLessUserGame {
     next?: IMoreOrLessData
     correctAnswers: number
     message: Message | InteractionResponse
+    active: boolean
 }
 
 export class MoreOrLess extends AbstractCommands {
@@ -48,11 +49,11 @@ export class MoreOrLess extends AbstractCommands {
 
     private getGameFromStorage() {
         setTimeout(() => {
-            this.database.getStorage().then((storage) => (this.game = storage.moreOrLess))
+            this.database.getStorage().then((storage) => (this.game = storage.moreOrLess.current))
         }, 5000)
     }
 
-    public static async getNewMoreOrLessGame(): Promise<IMoreOrLess> {
+    public static async getNewMoreOrLessGame(previous: string[]): Promise<IMoreOrLess> {
         const url = 'https://api.moreorless.io/en/games.json'
         const games: IMoreOrLess[] = await (
             await fetch(url, {
@@ -62,7 +63,8 @@ export class MoreOrLess extends AbstractCommands {
                 },
             })
         ).json()
-        const game: IMoreOrLess = RandomUtils.getRandomItemFromList(games)
+        const unplayed = games.filter((game) => !previous.includes(game.slug))
+        const game: IMoreOrLess = unplayed && unplayed.length > 0 ? RandomUtils.getRandomItemFromList(unplayed) : RandomUtils.getRandomItemFromList(games)
         const dataUrl = `https://api.moreorless.io/en/games/${game.slug}.json`
         const check: any = (
             await (
@@ -75,7 +77,7 @@ export class MoreOrLess extends AbstractCommands {
             ).json()
         ).game
         if (check.data[0].length > 4) {
-            return MoreOrLess.getNewMoreOrLessGame()
+            return MoreOrLess.getNewMoreOrLessGame([...previous, game.slug])
         } else {
             return { ...game, strings: check.strings }
         }
@@ -83,7 +85,7 @@ export class MoreOrLess extends AbstractCommands {
 
     private async fetchGameData() {
         const storage = await this.client.database.getStorage()
-        this.game = storage.moreOrLess ?? (await MoreOrLess.getNewMoreOrLessGame())
+        this.game = storage.moreOrLess.current ?? (await MoreOrLess.getNewMoreOrLessGame(storage.moreOrLess.previous ?? []))
         const url = `https://api.moreorless.io/en/games/${this.game.slug}.json`
         const game: any = (
             await (
@@ -119,7 +121,7 @@ export class MoreOrLess extends AbstractCommands {
             previousGame.message.edit({ embeds: [embed], components: [startBtnRow] })
         } else {
             const msg = await this.messageHelper.replyToInteraction(interaction, embed, { ephemeral: true }, [startBtnRow])
-            const userGame: IMoreOrLessUserGame = { id: randomUUID(), data: data, correctAnswers: 0, message: msg }
+            const userGame: IMoreOrLessUserGame = { id: randomUUID(), data: data, correctAnswers: 0, message: msg, active: false }
             this.userGames.set(interaction.user.id, userGame)
         }
     }
@@ -127,6 +129,7 @@ export class MoreOrLess extends AbstractCommands {
     private startGame(interaction: ButtonInteraction<CacheType>) {
         interaction.deferUpdate()
         const game = this.userGames.get(interaction.user.id)
+        game.active = true
         game.current = game.data.pop()
         game.next = game.data.pop()
         this.updateGame(game)
@@ -171,6 +174,7 @@ export class MoreOrLess extends AbstractCommands {
     }
 
     private async endGame(game: IMoreOrLessUserGame, userId: string) {
+        game.active = false
         const user = await this.database.getUser(userId)
         let rewardMsg = ''
         if (!user.dailyGameStats?.moreOrLess?.attempted) {
@@ -239,6 +243,15 @@ export class MoreOrLess extends AbstractCommands {
 
         embed.addFields(fields)
         this.messageHelper.replyToInteraction(interaction, embed)
+    }
+
+    override async onSave() {
+        this.userGames.forEach((game, user) => {
+            if (game.active) {
+                this.client.cache.restartImpediments.push(`${UserUtils.findUserById(user, this.client).username} har et aktivt more or less game`)
+            }
+        })
+        return true
     }
 
     getAllInteractions(): IInteractionElement {

@@ -275,9 +275,11 @@ export class DailyJobs {
         }
 
         const storage = await this.client.database.getStorage()
-        const game = await MoreOrLess.getNewMoreOrLessGame()
+        const game = await MoreOrLess.getNewMoreOrLessGame(storage.moreOrLess.previous)
+        const previous = storage.moreOrLess.previous.includes(game.slug) ? [] : [...storage.moreOrLess.previous]
+        previous.push(game.slug)
 
-        let description = `Ingen forsøk ble gjort på gårsdagens tema *${storage.moreOrLess.title}*`
+        let description = `Ingen forsøk ble gjort på gårsdagens tema *${storage.moreOrLess.current.title}*`
         if (attempted) {
             const sortedUsers = usersWithStats?.sort((a, b) => b.dailyGameStats.moreOrLess.firstAttempt - a.dailyGameStats.moreOrLess.firstAttempt)
 
@@ -289,7 +291,7 @@ export class DailyJobs {
             // const bestTotalWinners = boxWinners.join(' og ')
             description =
                 `Gratulerer til gårsdagens vinner${chestWinners.length > 1 ? 'e' : ''} for beste første forsøk på *${
-                    storage.moreOrLess.title
+                    storage.moreOrLess.current.title
                 }*, ${firstAttemptWinners}, som vinner en lootchest!` + `\nResultater:\n${results}`
             // description += `\nGårsdagen vinner av beste forsøk er ${bestTotalWinners}, som vinner lootbox!`
         }
@@ -300,7 +302,12 @@ export class DailyJobs {
 
         const embed = EmbedUtils.createSimpleEmbed('More or Less', description + `\n\nDagens tema er **${game.title}**`)
         this.messageHelper.sendMessage(threadId, { embed: embed })
-        this.client.database.updateStorage({ moreOrLess: game })
+        this.client.database.updateStorage({
+            moreOrLess: {
+                current: game,
+                previous: previous,
+            },
+        })
 
         lootboxes.chests.forEach((r) => {
             this.messageHelper.sendMessage(threadId, { components: [r] })

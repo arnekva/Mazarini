@@ -219,6 +219,10 @@ export class DateUtils {
         return moment().month() === 10
     }
 
+    static dateIsWithinLastMinute(d: Date) {
+        return moment(d).isBetween(moment().subtract(1, 'minutes'), moment())
+    }
+
     static dateIsWithinLastHour(d: Date) {
         return moment(d).isBetween(moment().subtract(1, 'hours'), moment())
     }

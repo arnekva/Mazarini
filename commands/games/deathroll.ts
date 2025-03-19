@@ -7,6 +7,7 @@ import { EmojiHelper } from '../../helpers/emojiHelper'
 import { LootboxQuality, MazariniUser } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { ArrayUtils } from '../../utils/arrayUtils'
+import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { MentionUtils, ThreadIds } from '../../utils/mentionUtils'
 import { RandomUtils } from '../../utils/randomUtils'
@@ -30,6 +31,7 @@ export interface DRGame {
 export class Deathroll extends AbstractCommands {
     private drGames: DRGame[]
     private rewardPot: number
+    private latestRoll: Date
 
     constructor(client: MazariniClient) {
         super(client)
@@ -97,6 +99,7 @@ export class Deathroll extends AbstractCommands {
 
             let additionalMessage = ''
             if (game) {
+                this.latestRoll = new Date()
                 this.updateGame(game, user.id, roll)
                 this.checkForPotSkip(roll, diceTarget, user.id)
                 const rewards = await this.checkForReward(roll, diceTarget, interaction)
@@ -474,6 +477,9 @@ export class Deathroll extends AbstractCommands {
     }
 
     override async onSave() {
+        if (DateUtils.dateIsWithinLastMinute(this.latestRoll)) {
+            this.client.cache.restartImpediments.push('Noen har trilt terning innen det siste minuttet')
+        }
         this.printOldNumbers()
         this.saveRewardPot(true)
         await this.saveActiveGamesToDatabase()

@@ -58,7 +58,7 @@ export class MazariniClient extends Client {
         this.lockingHandler = new LockingHandler()
         this.mazariniTracker = new MazariniTracker(this)
         this.clientListener = new ClientListener(this)
-        this.clientCache = { deathrollWinningNumbers: [] }
+        this.clientCache = { deathrollWinningNumbers: [], restartImpediments: [] }
         this.moneyHelper = new MoneyHelper(this)
         this.setupDatabase(this.msgHelper)
 

@@ -1,8 +1,12 @@
 import { exec } from 'child_process'
 import {
+    ActionRowBuilder,
     ActivityType,
     APIInteractionGuildMember,
     AutocompleteInteraction,
+    ButtonBuilder,
+    ButtonInteraction,
+    ButtonStyle,
     CacheType,
     ChatInputCommandInteraction,
     GuildMember,
@@ -25,7 +29,7 @@ import { TextUtils } from '../../utils/textUtils'
 import { UserUtils } from '../../utils/userUtils'
 import { LootboxCommands } from '../store/lootboxCommands'
 
-const { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js')
+const { ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js')
 // const { exec } = require('child_process')
 // const { spawn } = require('node:child_process')
 const pm2 = require('pm2')
@@ -284,14 +288,25 @@ export class Admin extends AbstractCommands {
         )
     }
 
-    private async restartBot(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async attemptRestart(interaction: ChatInputCommandInteraction<CacheType>) {
+        this.client.cache.restartImpediments = []
+        await this.client.onRestart()
+        if (this.client.cache.restartImpediments) {
+            const msg = this.client.cache.restartImpediments.reduce((prev, item) => prev + item + '\n', '')
+            await this.messageHelper.replyToInteraction(interaction, msg, {}, [forceRestartBtn])
+        } else {
+            this.restartBot(interaction)
+        }
+    }
+
+    private async restartBot(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+        await this.client.onRestart()
         await this.messageHelper.replyToInteraction(interaction, `Forsøker å restarte botten`)
         let restartMsg = `Restart trigget av ${interaction.user.username} i kanalen ${MentionUtils.mentionChannel(
             interaction.channelId
         )}. Henter data fra Git og restarter botten ...`
         const msg = await this.messageHelper.sendLogMessage(restartMsg)
         const commitId = await this.client.database.getBotData('commit-id')
-        await this.client.onRestart()
         await exec(`git pull && pm2 restart mazarini -- --restartedForGit restartedForGit --${commitId}`, async (error, stdout, stderr) => {
             if (error) {
                 restartMsg += `\nKlarte ikke restarte: \n${error}`
@@ -410,13 +425,21 @@ export class Admin extends AbstractCommands {
                     {
                         commandName: 'restart',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            this.restartBot(rawInteraction)
+                            this.attemptRestart(rawInteraction)
                         },
                     },
                     {
                         commandName: 'stopp',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                             this.stopBot(rawInteraction)
+                        },
+                    },
+                ],
+                buttonInteractionComands: [
+                    {
+                        commandName: 'ADMIN_FORCE_RESTART',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.restartBot(rawInteraction)
                         },
                     },
                 ],
@@ -447,3 +470,13 @@ export class Admin extends AbstractCommands {
 
     static adminSendModalID = 'adminSendModal'
 }
+
+const forceRestartBtn = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder({
+        custom_id: `ADMIN_FORCE_RESTART`,
+        style: ButtonStyle.Primary,
+        label: `Restart likevel`,
+        disabled: false,
+        type: 2,
+    })
+)

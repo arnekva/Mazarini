@@ -231,7 +231,10 @@ export interface MazariniStorage {
     savedMessages?: ISavedMessage[]
     deathrollPot?: number
     loot?: ILootSystem
-    moreOrLess?: IMoreOrLess
+    moreOrLess?: {
+        current: IMoreOrLess
+        previous: string[] //list of slugs
+    }
 }
 
 export interface IMoreOrLess {
@@ -253,6 +256,7 @@ export interface IMoreOrLess {
 
 export interface ICache {
     deathrollWinningNumbers: number[]
+    restartImpediments?: string[]
 }
 
 export type FavoritePol = {
