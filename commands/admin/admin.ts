@@ -300,6 +300,9 @@ export class Admin extends AbstractCommands {
     }
 
     private async restartBot(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+        if (interaction instanceof ButtonInteraction) {
+            interaction.message.edit({ components: [] })
+        }
         await this.client.onRestart()
         ClientHelper.setDisplayNameMode(this.client, 'offline')
         await this.messageHelper.replyToInteraction(interaction, `Forsøker å restarte botten`)
