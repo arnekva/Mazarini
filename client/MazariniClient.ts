@@ -5,7 +5,6 @@ import { JobScheduler } from '../Jobs/jobScheduler'
 
 import { MazariniTracker } from '../general/mazariniTracker'
 import { LockingHandler } from '../handlers/lockingHandler'
-import { ClientHelper } from '../helpers/clientHelper'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { FirebaseHelper } from '../helpers/firebaseHelper'
 import { MessageHelper } from '../helpers/messageHelper'
@@ -85,7 +84,6 @@ export class MazariniClient extends Client {
     /** This will run before a restart happens */
     async onRestart(): Promise<boolean> {
         this.messageHelper.sendLogMessage('Running Save for all command classes')
-        ClientHelper.setDisplayNameMode(this, 'offline')
         await this.clientListener.commandRunner.runSave()
         return true
     }

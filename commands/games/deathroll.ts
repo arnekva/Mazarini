@@ -477,7 +477,7 @@ export class Deathroll extends AbstractCommands {
     }
 
     override async onSave() {
-        if (DateUtils.dateIsWithinLastMinute(this.latestRoll)) {
+        if (this.latestRoll && DateUtils.dateIsWithinLastMinute(this.latestRoll)) {
             this.client.cache.restartImpediments.push('Noen har trilt terning innen det siste minuttet')
         }
         this.printOldNumbers()
