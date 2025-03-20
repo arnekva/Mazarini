@@ -94,9 +94,9 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
     },
     {
         id: 2,
-        message: '10 ekstra /spin rewards!',
+        message: '1 ekstra /spin!',
         effect: (user: MazariniUser) => {
-            user.dailySpinRewards -= 10
+            user.dailySpins += 1
             return undefined
         },
     },
@@ -165,9 +165,9 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
     },
     {
         id: 11,
-        message: '10 ekstra /spin rewards!',
+        message: '1 ekstra /spin !',
         effect: (user: MazariniUser) => {
-            user.dailySpinRewards -= 10
+            user.dailySpins += 1
             return undefined
         },
     },
@@ -182,9 +182,9 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
     },
     {
         id: 13,
-        message: '10 ekstra /spin rewards!',
+        message: '1 ekstra /spin !',
         effect: (user: MazariniUser) => {
-            user.dailySpinRewards -= 10
+            user.dailySpins += 1
             return undefined
         },
     },

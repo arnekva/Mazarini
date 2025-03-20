@@ -68,6 +68,7 @@ export interface MazariniUser {
     bonkCounter: number
     lastFMUsername?: string
     dailySpinRewards?: number
+    dailySpins?: number
     // shopItems?: any //TODO Cast this
     /** Cod weekly stats */
     codStats?: CodStats | CodBRStatsType

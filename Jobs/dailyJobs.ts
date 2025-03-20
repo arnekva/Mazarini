@@ -33,7 +33,7 @@ export class DailyJobs {
 
             const claim = this.validateAndResetDailyClaims(users)
             embed.addFields({ name: 'Daily claim', value: EmojiHelper.getStatusEmoji(claim) })
-            const dailySpin = this.resetDailySpinReward(users)
+            const dailySpin = this.resetDailySpin(users)
             embed.addFields({ name: 'Daily spin', value: EmojiHelper.getStatusEmoji(dailySpin) })
             const userEffects = this.resetUserEffects(users)
             embed.addFields({ name: 'User effects', value: EmojiHelper.getStatusEmoji(userEffects) })
@@ -187,12 +187,12 @@ export class DailyJobs {
         return status
     }
 
-    private resetDailySpinReward(users: MazariniUser[]): JobStatus {
-        const updates = this.client.database.getUpdatesObject<'dailySpinRewards'>()
+    private resetDailySpin(users: MazariniUser[]): JobStatus {
+        const updates = this.client.database.getUpdatesObject<'dailySpins'>()
         users.forEach((user) => {
-            user.dailySpinRewards = 0
-            const updatePath = this.client.database.getUserPathToUpdate(user.id, 'dailySpinRewards')
-            updates[updatePath] = user.dailySpinRewards
+            user.dailySpins = 1
+            const updatePath = this.client.database.getUserPathToUpdate(user.id, 'dailySpins')
+            updates[updatePath] = user.dailySpins
         })
         this.client.database.updateData(updates)
         return 'success'

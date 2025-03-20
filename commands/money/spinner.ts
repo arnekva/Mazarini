@@ -58,31 +58,39 @@ export class Spinner extends AbstractCommands {
     }
 
     private async spinFromInteraction(interaction: ChatInputCommandInteraction<CacheType>) {
-        const min = RandomUtils.chooseWeightedItem(spinMinutes)
-        const sec = RandomUtils.getRandomInteger(0, 59)
+        const user = await this.client.database.getUser(interaction.user.id)
+        if (user.dailySpins === undefined) user.dailySpins = 1
+        // user.dailySpins = 1
+        const canWinMore = user.dailySpins && user.dailySpins > 0
 
-        let winnings = this.getSpinnerWinnings(Number(min), Number(sec))
-        let text = ``
-        if (winnings > 0) {
-            const user = await this.client.database.getUser(interaction.user.id)
-            const canWinMore = !user.dailySpinRewards || user.dailySpinRewards < 10
-            if (canWinMore) {
-                if (!user.dailySpinRewards) user.dailySpinRewards = 1
-                else {
-                    user.dailySpinRewards++ //This will be updated by giveMoney below
-                    if (user.dailySpinRewards === 10) text = `\nDu har nå brukt opp dagens spinn\n`
-                }
-                winnings = this.client.bank.giveMoney(user, winnings)
-                text += winnings > 0 && canWinMore ? `Du får ${winnings} chips.` : ''
+        if (!canWinMore) {
+            this.messageHelper.replyToInteraction(interaction, 'Du har allerede brukt opp dagens spinn.')
+        } else {
+            const tenRandomSpins: { min: number; sec: number }[] = []
+            for (let i = 0; i < 10; i++) {
+                //Can probably just remove 0 and 1 from table at some point
+                let num = RandomUtils.chooseWeightedItem(spinMinutes)
+                while (num < 2) num = RandomUtils.chooseWeightedItem(spinMinutes)
+                tenRandomSpins.push({
+                    min: num,
+                    sec: RandomUtils.getRandomInteger(4, 59),
+                })
             }
-        }
-        const secMsg = sec > 0 ? ' og ' + sec + ' sekund!' : '!'
-        this.messageHelper.replyToInteraction(interaction, interaction.user.username + ' spant fidget spinneren sin i ' + min + ' minutt' + secMsg + ` ${text}`)
 
-        if (min == 10 && sec == 59) {
-            this.messageHelper.sendMessage(interaction?.channelId, { text: 'gz med 10:59 bro' })
-        } else if (min == 10) {
-            this.messageHelper.sendMessage(interaction?.channelId, { text: 'gz med 10 min bro' })
+            let text = ``
+            let winnings = 0
+            tenRandomSpins.forEach((spin, index) => {
+                const currWinning = this.getSpinnerWinnings(spin.min, spin.sec)
+                winnings += currWinning
+                text += `*Spinn ${index + 1}*: ${spin.min} minutt og ${spin.sec} sekund - ${currWinning} chips.\n`
+            })
+            if (winnings > 0) {
+                user.dailySpins-- //This will be updated by giveMoney below
+                winnings = this.client.bank.giveMoney(user, winnings)
+                text += winnings > 0 && canWinMore ? `\nDu får ${winnings} chips.` : ''
+            }
+
+            this.messageHelper.replyToInteraction(interaction, interaction.user.username + '\n' + text)
         }
     }
 
