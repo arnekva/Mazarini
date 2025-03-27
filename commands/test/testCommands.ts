@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
     ActionRowBuilder,
     AutocompleteInteraction,
@@ -15,18 +16,19 @@ import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { dondGame, DonDQuality } from '../games/dealOrNoDeal'
 import { LootboxCommands } from '../store/lootboxCommands'
 
-const defaultButtonRow = new ActionRowBuilder<ButtonBuilder>()
-defaultButtonRow.addComponents(
-    new ButtonBuilder({
-        custom_id: `TEST_BUTTON_1`,
+const defaultBtn = (id: string) => {
+    return new ButtonBuilder({
+        custom_id: `TEST_BUTTON_${id}`,
         style: ButtonStyle.Primary,
-        label: `Test`,
+        label: `${id}`,
         disabled: false,
         type: 2,
     })
-)
+}
+const defaultButtonRow = new ActionRowBuilder<ButtonBuilder>()
 // const fetch = require('node-fetch')
 // var fs = require('fs')
 // NB: IKKE PUSH ENDRINGER I DENNE KLASSEN MED MINDRE DET ER GENERISKE HJELPEMETODER
@@ -53,7 +55,11 @@ export class TestCommands extends AbstractCommands {
     }
 
     private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        interaction.deferReply()
+        await interaction.deferReply()
+        const buttons = new ActionRowBuilder<ButtonBuilder>()
+        const dond = dondGame(interaction.user.id, DonDQuality.Elite)
+        buttons.addComponents(dond)
+        await this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, [buttons])
     }
 
     private async testSelectMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {

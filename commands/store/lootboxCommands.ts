@@ -21,6 +21,7 @@ import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { TextUtils } from '../../utils/textUtils'
+import { DealOrNoDeal } from '../games/dealOrNoDeal'
 
 interface IPendingTrade {
     userId: string
@@ -90,7 +91,7 @@ export class LootboxCommands extends AbstractCommands {
             interaction.message.edit({ components: [], content: `${type} er åpnet.` })
             if (type === 'box') await this.openAndRegisterLootbox(interaction)
             else if (type === 'chest') await this.openAndRegisterLootChest(interaction)
-        } else this.messageHelper.replyToInteraction(interaction, 'Det er ikke din boks dessverre', { ephemeral: true, hasBeenDefered: true })
+        } else this.messageHelper.replyToInteraction(interaction, 'Den er ikke din dessverre', { ephemeral: true, hasBeenDefered: true })
     }
 
     private async openAndRegisterLootbox(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
@@ -160,9 +161,12 @@ export class LootboxCommands extends AbstractCommands {
             buttons.addComponents(btn)
         }
         let effect: IEffectItem = undefined
-        if (Math.random() < 0.1) {
+        if (Math.random() < 0.2) {
             effect = RandomUtils.getRandomItemFromList(effects)
-            const btn = lootChestButton(chestId, 'effect', effect.label)
+            let btn: ButtonBuilder = undefined
+            if (effect.label === 'deal_or_no_deal') {
+                btn = DealOrNoDeal.getDealOrNoDealButton(interaction.user.id)
+            } else btn = lootChestButton(chestId, 'effect', effect.label)
             buttons.addComponents(btn)
         }
         const msg = await this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true }, [buttons])
@@ -815,6 +819,11 @@ const effects: Array<IEffectItem> = [
             user.effects.positive.blackjackReDeals = (user.effects.positive.blackjackReDeals ?? 0) + 1
             return undefined
         },
+    },
+    {
+        label: 'deal_or_no_deal',
+        message: '',
+        effect: () => {},
     },
 ]
 

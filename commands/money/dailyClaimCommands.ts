@@ -4,10 +4,10 @@ import { MazariniClient } from '../../client/MazariniClient'
 
 import { DailyReward, LootboxQuality } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { DealOrNoDeal, DonDQuality } from '../games/dealOrNoDeal'
 import { LootboxCommands } from '../store/lootboxCommands'
 
 export class DailyClaimCommands extends AbstractCommands {
-    
     constructor(client: MazariniClient) {
         super(client)
     }
@@ -21,7 +21,7 @@ export class DailyClaimCommands extends AbstractCommands {
         if (canClaim) {
             const updates = {}
             const oldData: DailyReward = user.daily || { claimedToday: false, streak: 0 }
-            const newData: DailyReward = { ...oldData, streak: oldData?.streak + 1 ?? 1, claimedToday: true}
+            const newData: DailyReward = { ...oldData, streak: oldData?.streak + 1 ?? 1, claimedToday: true }
 
             let reward = this.getDailyReward(newData)
             reward = this.client.bank.giveMoney(user, reward)
@@ -32,7 +32,7 @@ export class DailyClaimCommands extends AbstractCommands {
             if (lootboxField) embed.addFields([lootboxField])
             if (newData.streak === 7) {
                 newData.streak = 1
-                embed.setFooter({text: 'Streaken din resettes nå te 1'})
+                embed.setFooter({ text: 'Streaken din resettes nå te 1' })
             }
             updates[`/users/${user.id}/daily`] = newData
             this.client.database.updateData(updates)
@@ -45,18 +45,24 @@ export class DailyClaimCommands extends AbstractCommands {
 
     private getDailyReward(daily: DailyReward): number {
         const dailyPrice = 500
-        return Math.floor((dailyPrice + (dailyPrice * (daily.streak ?? 1))))
+        return Math.floor(dailyPrice + dailyPrice * (daily.streak ?? 1))
     }
 
     private getLootboxReward(userId: string, daily: DailyReward): ActionRowBuilder<ButtonBuilder>[] {
-        if (daily.streak === 4) return [LootboxCommands.getLootRewardButton(userId, LootboxQuality.Basic)]
-        else if (daily.streak === 7) return [LootboxCommands.getLootRewardButton(userId, LootboxQuality.Basic, true)]
+        if (daily.streak === 4) {
+            const buttons = new ActionRowBuilder<ButtonBuilder>()
+            const dond = DealOrNoDeal.getDealOrNoDealButton(userId, DonDQuality.Basic)
+            buttons.addComponents(dond)
+            return [buttons]
+        } else if (daily.streak === 7) return [LootboxCommands.getLootRewardButton(userId, LootboxQuality.Basic, true)]
         else return undefined
     }
 
     private getLootboxField(daily: DailyReward): APIEmbedField {
-        if (daily.streak === 4) return { name: 'Lootbox', value: 'Dægårten! Du har henta daglige chips i 4 dager i strekk!\nDå får du en basic lootbox i tillegg!' }
-        else if (daily.streak === 7) return { name: 'Lootbox', value: 'Dægårten! Du har henta daglige chips i 7 dager i strekk!\nDå får du en basic loot chest i tillegg!' }
+        if (daily.streak === 4)
+            return { name: 'Lootbox', value: 'Dægårten! Du har henta daglige chips i 4 dager i strekk!\nPå tide med en runde deal or no deal da kanskje?' }
+        else if (daily.streak === 7)
+            return { name: 'Lootbox', value: 'Dægårten! Du har henta daglige chips i 7 dager i strekk!\nDå får du en basic loot chest i tillegg!' }
         else return undefined
     }
 
@@ -74,6 +80,4 @@ export class DailyClaimCommands extends AbstractCommands {
             },
         }
     }
-    
 }
-

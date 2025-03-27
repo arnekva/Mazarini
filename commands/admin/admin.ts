@@ -27,6 +27,7 @@ import { EmbedUtils } from '../../utils/embedUtils'
 import { ChannelIds, MentionUtils } from '../../utils/mentionUtils'
 import { TextUtils } from '../../utils/textUtils'
 import { UserUtils } from '../../utils/userUtils'
+import { DealOrNoDeal, DonDQuality } from '../games/dealOrNoDeal'
 import { LootboxCommands } from '../store/lootboxCommands'
 
 const { ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js')
@@ -103,7 +104,7 @@ export class Admin extends AbstractCommands {
         }
     }
 
-    private async replyToMsgAsBot(interaction: ChatInputCommandInteraction<CacheType>) {
+    private replyToMsgAsBot(interaction: ChatInputCommandInteraction<CacheType>) {
         this.messageHelper.replyToInteraction(interaction, `Svarer på meldingen hvis jeg finner den`, { ephemeral: true })
 
         const allChannels = [...this.client.channels.cache.values()].filter((channel) => channel instanceof TextChannel) as TextChannel[]
@@ -118,7 +119,7 @@ export class Admin extends AbstractCommands {
             ) {
                 channel.messages
                     .fetch(id)
-                    .then(async (message) => {
+                    .then((message) => {
                         if (message && message.id == id) {
                             message.reply(replyString)
                             this.messageHelper.sendLogMessage(
@@ -226,7 +227,7 @@ export class Admin extends AbstractCommands {
             await interaction.showModal(modal)
         }
     }
-    private async handleLocking(interaction: ChatInputCommandInteraction<CacheType>) {
+    private handleLocking(interaction: ChatInputCommandInteraction<CacheType>) {
         const isBot = interaction.options.getSubcommand() === 'bot'
         const isUser = interaction.options.getSubcommand() === 'user'
         const isChannel = interaction.options.getSubcommand() === 'channel'
@@ -264,27 +265,53 @@ export class Admin extends AbstractCommands {
         )
     }
 
-    private async rewardUserWithLootbox(interaction: ChatInputCommandInteraction<CacheType>) {
+    private rewardUserWithLootbox(interaction: ChatInputCommandInteraction<CacheType>, isChest: boolean = false) {
         const reason = interaction.options.get('reason')?.value as string
         const quality = interaction.options.get('quality')?.value as string
         const user = interaction.options.get('user')?.user
-        const lootButton = LootboxCommands.getLootRewardButton(user.id, quality)
-        const text = `${MentionUtils.mentionUser(user.id)} har mottatt en reward på en ${quality} lootbox på grunn av *${reason}*`
+        const lootButton = LootboxCommands.getLootRewardButton(user.id, quality, isChest)
+        const text = `${MentionUtils.mentionUser(user.id)} har mottatt en reward på en ${quality} loot${isChest ? ' chest' : 'box'} på grunn av *${reason}*`
         const embed = EmbedUtils.createSimpleEmbed('Reward', text)
         this.messageHelper.replyToInteraction(interaction, embed, undefined, [lootButton])
         this.messageHelper.sendLogMessage(
-            `${user.username} har mottatt en reward på en ${quality} lootbox på grunn av *${reason}*. Kanal: ${MentionUtils.mentionChannel(
-                interaction.channelId
-            )}. `
+            `${user.username} har mottatt en reward på en ${quality} loot${
+                isChest ? ' chest' : 'box'
+            } på grunn av *${reason}*. Kanal: ${MentionUtils.mentionChannel(interaction.channelId)}. `
         )
     }
 
-    private async lootboxAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
-        const lootboxes = await this.client.database.getLootboxes()
+    private async lootAutocomplete(interaction: AutocompleteInteraction<CacheType>, isChest: boolean = false) {
+        const boxes = await this.client.database.getLootboxes()
         interaction.respond(
-            lootboxes
+            boxes
                 .filter((box) => LootboxCommands.lootboxIsValid(box))
-                .map((box) => ({ name: `${TextUtils.capitalizeFirstLetter(box.name)} ${box.price / 1000}K`, value: box.name }))
+                .map((box) => ({ name: `${TextUtils.capitalizeFirstLetter(box.name)} ${(isChest ? 2 : 1) * (box.price / 1000)}K`, value: box.name }))
+        )
+    }
+
+    private dondAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
+        interaction.respond([
+            { name: 'Basic 10K', value: '10' },
+            { name: 'Premium 20K', value: '20' },
+            { name: 'Elite 50K', value: '30' },
+        ])
+    }
+
+    private rewardUserWithDealOrNoDeal(interaction: ChatInputCommandInteraction<CacheType>) {
+        const reason = interaction.options.get('reason')?.value as string
+        const quality = interaction.options.get('quality')?.value as string
+        const user = interaction.options.get('user')?.user
+        const buttons = new ActionRowBuilder<ButtonBuilder>()
+        const dondQuality = Number(quality) as DonDQuality
+        const dond = DealOrNoDeal.getDealOrNoDealButton(user.id, dondQuality)
+        buttons.addComponents(dond)
+        const text = `${MentionUtils.mentionUser(user.id)} har mottatt en reward på en runde deal or no deal på grunn av *${reason}*`
+        const embed = EmbedUtils.createSimpleEmbed('Reward', text)
+        this.messageHelper.replyToInteraction(interaction, embed, undefined, [buttons])
+        this.messageHelper.sendLogMessage(
+            `${user.username} har mottatt en reward på en runde deal or no deal på grunn av *${reason}*. Kanal: ${MentionUtils.mentionChannel(
+                interaction.channelId
+            )}. `
         )
     }
 
@@ -311,7 +338,7 @@ export class Admin extends AbstractCommands {
         )}. Henter data fra Git og restarter botten ...`
         const msg = await this.messageHelper.sendLogMessage(restartMsg)
         const commitId = await this.client.database.getBotData('commit-id')
-        await exec(`git pull && pm2 restart mazarini -- --restartedForGit restartedForGit --${commitId}`, async (error, stdout, stderr) => {
+        await exec(`git pull && pm2 restart mazarini -- --restartedForGit restartedForGit --${commitId}`, async (error, stdout) => {
             if (error) {
                 restartMsg += `\nKlarte ikke restarte: \n${error}`
                 msg.edit(restartMsg)
@@ -370,6 +397,12 @@ export class Admin extends AbstractCommands {
         }
     }
 
+    private delegateAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
+        const cmd = interaction.options.getSubcommand()
+        if (['lootbox', 'chest'].includes(cmd)) this.lootAutocomplete(interaction, cmd === 'chest')
+        else if (cmd === 'dealornodeal') this.dondAutocomplete(interaction)
+    }
+
     getAllInteractions(): IInteractionElement {
         return {
             commands: {
@@ -407,10 +440,11 @@ export class Admin extends AbstractCommands {
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                             const subCommand = rawInteraction.options.getSubcommand()
                             if (subCommand === 'chips') this.rewardUserWithChips(rawInteraction)
-                            else if (subCommand === 'lootbox') this.rewardUserWithLootbox(rawInteraction)
+                            else if (subCommand === 'dealornodeal') this.rewardUserWithDealOrNoDeal(rawInteraction)
+                            else if (['lootbox', 'chest'].includes(subCommand)) this.rewardUserWithLootbox(rawInteraction, subCommand === 'chest')
                         },
                         autoCompleteCallback: (interaction: AutocompleteInteraction<CacheType>) => {
-                            this.lootboxAutocomplete(interaction)
+                            this.delegateAutocomplete(interaction)
                         },
                     },
                     {

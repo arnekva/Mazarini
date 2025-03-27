@@ -18,9 +18,7 @@ export class WeeklyJobs {
         this.client = client
     }
     async runJobs() {
-        const embed = EmbedUtils.createSimpleEmbed(`Weekly Jobs`, `Kjører 6 jobber`)
-        const weeklyPayout = await this.awardWeeklyChips()
-        embed.addFields({ name: 'NAV-Penger', value: EmojiHelper.getStatusEmoji(weeklyPayout) })
+        const embed = EmbedUtils.createSimpleEmbed(`Weekly Jobs`, `Kjører 5 jobber`)
         const polet = await this.checkPoletHours()
         embed.addFields({ name: 'Polet status', value: EmojiHelper.getStatusEmoji(polet) })
         const statusReset = await this.resetStatuses()
@@ -34,18 +32,6 @@ export class WeeklyJobs {
         const todaysTime = new Date().toLocaleTimeString()
         embed.setFooter({ text: todaysTime })
         this.messageHelper.sendMessage(ChannelIds.ACTION_LOG, { embed: embed })
-    }
-    private async awardWeeklyChips(): Promise<JobStatus> {
-        const brukere = await this.client.database.getAllUsers()
-        let status: JobStatus = 'not sendt'
-        if (!brukere) status = 'failed'
-        brukere.forEach((user) => {
-            if (user.chips !== undefined) {
-                this.client.bank.giveMoney(user, 2000)
-                status = 'success'
-            }
-        })
-        return status
     }
 
     private async checkPoletHours(): Promise<JobStatus> {
