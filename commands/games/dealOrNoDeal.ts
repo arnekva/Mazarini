@@ -350,11 +350,11 @@ export class DealOrNoDeal extends AbstractCommands {
         } else this.messageHelper.replyToInteraction(interaction, 'Dette spillet er ikke lenger aktivt', { ephemeral: true })
     }
 
-    override onSave(): Promise<boolean> {
+    override async onSave(): Promise<boolean> {
         this.games.forEach((game) => {
             this.client.cache.restartImpediments.push(`${UserUtils.findUserById(game.player.id, this.client).username} har et aktivt deal or no deal game`)
         })
-        return new Promise(() => true)
+        return true
     }
 
     getAllInteractions(): IInteractionElement {
