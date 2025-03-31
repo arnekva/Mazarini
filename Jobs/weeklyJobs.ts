@@ -47,21 +47,23 @@ export class WeeklyJobs {
                 .setTitle(`Det er endrede åpningstider på polet denne ${dates.length ? 'uken' : 'måneden'}`)
                 .setDescription(`Bruker ${data.storeName} (${data.address.postalCode}, ${data.address.city}) som utgangspunkt`)
 
-            data.openingHours.exceptionHours.forEach((h, index) => {
-                const dateName = moment(h?.date).format('dddd')
-                if (h.openingTime !== '10:00' || h.closingTime !== '18:00') {
-                    let message = ''
-                    if (h.openingTime && h.closingTime) {
-                        message = `Det er forkortet åpningstid. Det er åpent mellom ${h.openingTime} - ${h.closingTime}`
-                    } else {
-                        message = h?.message ? h.message : 'Ingen forklaring'
+            data.openingHours.exceptionHours
+                .filter((d) => DateUtils.dateIsInCurrentWeek(d.date))
+                .forEach((h, index) => {
+                    const dateName = moment(h?.date).format('dddd')
+                    if (h.openingTime !== '10:00' || h.closingTime !== '18:00') {
+                        let message = ''
+                        if (h.openingTime && h.closingTime) {
+                            message = `Det er forkortet åpningstid. Det er åpent mellom ${h.openingTime} - ${h.closingTime}`
+                        } else {
+                            message = h?.message ? h.message : 'Ingen forklaring'
+                        }
+                        fmMessage.addFields({
+                            name: dateName ? `${dateName} (${h?.date})` : 'Ukjent dag',
+                            value: `${message}`,
+                        })
                     }
-                    fmMessage.addFields({
-                        name: dateName ? `${dateName} (${h?.date})` : 'Ukjent dag',
-                        value: `${message}`,
-                    })
-                }
-            })
+                })
 
             this.messageHelper.sendMessage(ChannelIds.VINMONOPOLET, { embed: fmMessage })
             return 'success'
