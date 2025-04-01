@@ -1,3 +1,4 @@
+import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
@@ -508,63 +509,63 @@ export class CallOfDutyCommands extends AbstractCommands {
     //     return ` Weekly REBIRTH ONLY Stats for <${gamertag}>\nKills: ${numKills}\nDeaths: ${numDeaths}\nDamage Done: ${numDamage}\nDamage Taken: ${numDamageTaken}`
     // }
 
-    // private async findWeeklyPlaylist(interaction: ChatInputCommandInteraction<CacheType>) {
-    //     const currentPlaylistID = '63da947b0104866d9de5a3cc'
-    //     const pastPlaylistsID = '6570989fdbe452a2875fbc84'
-    //     let foundCurrent = false
-    //     let i = 0
-    //     const now = new Date()
-    //     await interaction.deferReply()
+    private async findWeeklyPlaylist(interaction: ChatInputCommandInteraction<CacheType>) {
+        const currentPlaylistID = '63da947b0104866d9de5a3cc'
+        const pastPlaylistsID = '6570989fdbe452a2875fbc84'
+        let foundCurrent = false
+        let i = 0
+        const now = new Date()
+        await interaction.deferReply()
 
-    //     let currentPlaylistCard = await this.fetchWeeklyTrelloCard(currentPlaylistID, false)
-    //     if (currentPlaylistCard) foundCurrent = true
-    //     if (!currentPlaylistCard) {
-    //         currentPlaylistCard = await this.fetchWeeklyTrelloCard(pastPlaylistsID, true)
-    //     }
-    //     if (!currentPlaylistCard) this.messageHelper.replyToInteraction(interaction, 'Fant ikke playlist', { hasBeenDefered: true })
-    //     else {
-    //         let cardId = currentPlaylistCard.id
-    //         let attachmentId = currentPlaylistCard.idAttachmentCover
-    //         const response = await fetch('https://api.trello.com/1/cards/' + cardId + '/attachments/' + attachmentId)
-    //         const data = await response.json()
-    //         if (foundCurrent) {
-    //             this.messageHelper.replyToInteraction(interaction, data.url, { hasBeenDefered: true })
-    //         } else {
-    //             this.messageHelper.replyToInteraction(
-    //                 interaction,
-    //                 'Fant ikke nåværende playlist. Sender forrige tilgjengelige da den trolig fortsatt er aktiv.',
-    //                 { hasBeenDefered: true }
-    //             )
-    //             this.messageHelper.sendMessage(interaction.channelId, { text: data.url })
-    //         }
-    //     }
-    // }
+        let currentPlaylistCard = await this.fetchWeeklyTrelloCard(currentPlaylistID, false)
+        if (currentPlaylistCard) foundCurrent = true
+        if (!currentPlaylistCard) {
+            currentPlaylistCard = await this.fetchWeeklyTrelloCard(pastPlaylistsID, true)
+        }
+        if (!currentPlaylistCard) this.messageHelper.replyToInteraction(interaction, 'Fant ikke playlist', { hasBeenDefered: true })
+        else {
+            let cardId = currentPlaylistCard.id
+            let attachmentId = currentPlaylistCard.idAttachmentCover
+            const response = await fetch('https://api.trello.com/1/cards/' + cardId + '/attachments/' + attachmentId)
+            const data = await response.json()
+            if (foundCurrent) {
+                this.messageHelper.replyToInteraction(interaction, data.url, { hasBeenDefered: true })
+            } else {
+                this.messageHelper.replyToInteraction(
+                    interaction,
+                    'Fant ikke nåværende playlist. Sender forrige tilgjengelige da den trolig fortsatt er aktiv.',
+                    { hasBeenDefered: true }
+                )
+                this.messageHelper.sendMessage(interaction.channelId, { text: data.url })
+            }
+        }
+    }
 
-    // private async fetchWeeklyTrelloCard(trelloList: string, getMostRecent: boolean): Promise<any> {
-    //     let found = false
-    //     let mostRecent = undefined
-    //     let i = 0
-    //     const now = new Date()
+    private async fetchWeeklyTrelloCard(trelloList: string, getMostRecent: boolean): Promise<any> {
+        let found = false
+        let mostRecent = undefined
+        let i = 0
+        const now = new Date()
 
-    //     const response = await fetch(`https://api.trello.com/1/lists/${trelloList}/cards`)
-    //     const data = await response.json()
-    //     if (!data) return null
-    //     while (!found && i < data.length) {
-    //         if (data[i].name.startsWith('Playlist |')) {
-    //             let start = new Date(data[i].start)
-    //             let end = new Date(data[i].due)
-    //             if (now > start && now < end) {
-    //                 return data[i]
-    //             } else if (getMostRecent) {
-    //                 if (!mostRecent) mostRecent = data[i]
-    //                 let currentEnd = new Date(mostRecent.due)
-    //                 mostRecent = end > currentEnd ? data[i] : mostRecent
-    //             }
-    //         }
-    //         i += 1
-    //     }
-    //     return mostRecent
-    // }
+        const response = await fetch(`https://api.trello.com/1/lists/${trelloList}/cards`)
+        const data = await response.json()
+        if (!data) return null
+        while (!found && i < data.length) {
+            if (data[i].name.toLowerCase().startsWith('weekly playlist')) {
+                let start = new Date(data[i].start)
+                let end = new Date(data[i].due)
+                if (now > start && (!data[i].due || now < end)) {
+                    return data[i]
+                } else if (getMostRecent) {
+                    if (!mostRecent) mostRecent = data[i]
+                    let currentEnd = new Date(mostRecent.due)
+                    mostRecent = end > currentEnd ? data[i] : mostRecent
+                }
+            }
+            i += 1
+        }
+        return mostRecent
+    }
 
     // private async handleWZInteraction(interaction: ChatInputCommandInteraction<CacheType>) {
     //     await interaction.deferReply()
@@ -663,9 +664,9 @@ export class CallOfDutyCommands extends AbstractCommands {
 
                     {
                         commandName: 'playlist',
-                        disabled: true,
-                        command: () => {
-                            // this.findWeeklyPlaylist(rawInteraction)
+                        // disabled: true,
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.findWeeklyPlaylist(rawInteraction)
                         },
                     },
                 ],

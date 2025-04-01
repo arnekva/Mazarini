@@ -107,6 +107,7 @@ export interface IMoreOrLessStats {
     firstAttempt?: number
     bestAttempt?: number
     numAttempts?: number
+    completed?: boolean
 }
 
 export interface IUserSettings {

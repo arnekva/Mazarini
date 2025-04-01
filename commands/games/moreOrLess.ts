@@ -188,10 +188,13 @@ export class MoreOrLess extends AbstractCommands {
                     firstAttempt: game.correctAnswers,
                     bestAttempt: 0,
                     numAttempts: 0,
+                    completed: false,
                 },
             }
             if (game.correctAnswers === 0) this.database.updateUser(user)
         }
+        const completedNow = game.data.length === 0
+        const completedPreviously = user.dailyGameStats.moreOrLess.completed
         const numTries = user.dailyGameStats.moreOrLess.numAttempts + 1
         user.dailyGameStats.moreOrLess.numAttempts = numTries
         if (game.correctAnswers > user.dailyGameStats.moreOrLess.bestAttempt) {
@@ -209,11 +212,11 @@ export class MoreOrLess extends AbstractCommands {
             }
 
             user.dailyGameStats.moreOrLess.bestAttempt = game.correctAnswers
+            if (game.data.length === 0) user.dailyGameStats.moreOrLess.completed = true
             const awarded = this.client.bank.giveMoney(user, reward)
             rewardMsg = ` og får ${awarded} chips`
         } else this.database.updateUser(user)
-        const completed = game.data.length === 0
-        const msg = completed ? 'Du har fullført dagens more or less!' : 'Du tok dessverre feil'
+        const msg = completedNow ? 'Du har fullført dagens more or less!' : 'Du tok dessverre feil'
         const description =
             `${game.next.subject} ${this.game.strings.verb} **${TextUtils.formatLargeNumber(game.next.answer)}${this.game.strings?.valueSuffix ?? ''}** ${
                 this.game.strings.valueTitle
@@ -222,7 +225,7 @@ export class MoreOrLess extends AbstractCommands {
             `Du fikk ${game.correctAnswers} riktige${rewardMsg}!`
         const embed = EmbedUtils.createSimpleEmbed(this.game.title, description).setThumbnail(game.next.image)
         game.message.edit({ embeds: [embed], components: [playAgainBtnRow] })
-        if (completed) {
+        if (completedNow && !completedPreviously) {
             const buttons = new ActionRowBuilder<ButtonBuilder>()
             const dondQuality = game.totalQuestions > 100 ? DonDQuality.Elite : game.totalQuestions > 50 ? DonDQuality.Premium : DonDQuality.Basic
             const dond = DealOrNoDeal.getDealOrNoDealButton(user.id, dondQuality)
