@@ -17,9 +17,11 @@ import { IMoreOrLess } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
+import { MentionUtils, ThreadIds } from '../../utils/mentionUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { TextUtils } from '../../utils/textUtils'
 import { UserUtils } from '../../utils/userUtils'
+import { DealOrNoDeal, DonDQuality } from './dealOrNoDeal'
 
 export interface IMoreOrLessData {
     subject: string
@@ -35,6 +37,7 @@ interface IMoreOrLessUserGame {
     correctAnswers: number
     message: Message | InteractionResponse
     active: boolean
+    totalQuestions: number
 }
 
 export class MoreOrLess extends AbstractCommands {
@@ -121,7 +124,7 @@ export class MoreOrLess extends AbstractCommands {
             previousGame.message.edit({ embeds: [embed], components: [startBtnRow] })
         } else {
             const msg = await this.messageHelper.replyToInteraction(interaction, embed, { ephemeral: true }, [startBtnRow])
-            const userGame: IMoreOrLessUserGame = { id: randomUUID(), data: data, correctAnswers: 0, message: msg, active: false }
+            const userGame: IMoreOrLessUserGame = { id: randomUUID(), data: data, correctAnswers: 0, message: msg, active: false, totalQuestions: data.length }
             this.userGames.set(interaction.user.id, userGame)
         }
     }
@@ -209,8 +212,8 @@ export class MoreOrLess extends AbstractCommands {
             const awarded = this.client.bank.giveMoney(user, reward)
             rewardMsg = ` og får ${awarded} chips`
         } else this.database.updateUser(user)
-
-        const msg = game.data.length > 0 ? 'Du tok dessverre feil' : 'Du har fullført dagens more or less!'
+        const completed = game.data.length === 0
+        const msg = completed ? 'Du har fullført dagens more or less!' : 'Du tok dessverre feil'
         const description =
             `${game.next.subject} ${this.game.strings.verb} **${TextUtils.formatLargeNumber(game.next.answer)}${this.game.strings?.valueSuffix ?? ''}** ${
                 this.game.strings.valueTitle
@@ -218,8 +221,17 @@ export class MoreOrLess extends AbstractCommands {
             `\n\n${msg}\n\n` +
             `Du fikk ${game.correctAnswers} riktige${rewardMsg}!`
         const embed = EmbedUtils.createSimpleEmbed(this.game.title, description).setThumbnail(game.next.image)
-
         game.message.edit({ embeds: [embed], components: [playAgainBtnRow] })
+        if (completed) {
+            const buttons = new ActionRowBuilder<ButtonBuilder>()
+            const dondQuality = game.totalQuestions > 100 ? DonDQuality.Elite : game.totalQuestions > 50 ? DonDQuality.Premium : DonDQuality.Basic
+            const dond = DealOrNoDeal.getDealOrNoDealButton(user.id, dondQuality)
+            buttons.addComponents(dond)
+            this.messageHelper.sendMessage(ThreadIds.MORE_OR_LESS, {
+                text: `Gz med fullført more or less ${MentionUtils.mentionUser(user.id)}`,
+                components: [buttons],
+            })
+        }
     }
 
     private async revealResults(interaction: ChatInputCommandInteraction<CacheType>) {

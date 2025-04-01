@@ -136,7 +136,7 @@ export interface IUserBuffs {
     jailPass?: number
     doublePotWins?: number
     freeRolls?: number
-    lootColorChanceMultiplier?: number
+    guaranteedLootColor?: number
     doublePotDeposit?: number
     lootColorsFlipped?: boolean
     deahtrollLootboxChanceMultiplier?: number

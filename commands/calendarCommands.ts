@@ -271,10 +271,10 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
     },
     {
         id: 23,
-        message: 'dobbel sannsynlighet for farge på alle lootboxene dine ut dagen!',
+        message: 'garantert farge på dine neste tre rewards!',
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
-            user.effects.positive.lootColorChanceMultiplier = 2
+            user.effects.positive.guaranteedLootColor = (user.effects.positive.guaranteedLootColor ?? 0) + 3
             return undefined
         },
     },

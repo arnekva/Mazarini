@@ -203,7 +203,6 @@ export class DailyJobs {
         users.forEach((user) => {
             const buffs = user.effects?.positive
             if (buffs) {
-                buffs.lootColorChanceMultiplier = 1
                 buffs.lootColorsFlipped = false
                 buffs.deahtrollLootboxChanceMultiplier = 1
                 const updatePath = this.client.database.getUserPathToUpdate(user.id, 'effects')
