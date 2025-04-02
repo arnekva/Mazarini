@@ -30,6 +30,7 @@ import { SpotifyCommands } from '../commands/sound/spotifyCommands'
 import { ButtonInteraction, CacheType, ChatInputCommandInteraction, ModalSubmitInteraction, StringSelectMenuInteraction } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { CalendarCommands } from '../commands/calendarCommands'
+import { DealOrNoDeal } from '../commands/games/dealOrNoDeal'
 import { MoreOrLess } from '../commands/games/moreOrLess'
 import { LootboxCommands } from '../commands/store/lootboxCommands'
 import { TestCommands } from '../commands/test/testCommands'
@@ -78,6 +79,7 @@ export class Commands {
     private dailyClaimCommands: DailyClaimCommands
     private calendarCommands: CalendarCommands
     private moreOrLess: MoreOrLess
+    private dealOrNoDeal: DealOrNoDeal
 
     allTextCommands: IInteractionCommand<ChatInputCommandInteraction<CacheType>>[]
     allModalCommands: IInteractionCommand<ModalSubmitInteraction<CacheType>>[]
@@ -122,6 +124,7 @@ export class Commands {
         this.dailyClaimCommands = new DailyClaimCommands(this.client)
         this.calendarCommands = new CalendarCommands(this.client)
         this.moreOrLess = new MoreOrLess(this.client)
+        this.dealOrNoDeal = new DealOrNoDeal(this.client)
 
         this.allTextCommands = this.getAllTextCommands()
         this.allModalCommands = this.getAllModalCommands()

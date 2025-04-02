@@ -68,6 +68,7 @@ export interface MazariniUser {
     bonkCounter: number
     lastFMUsername?: string
     dailySpinRewards?: number
+    dailySpins?: number
     // shopItems?: any //TODO Cast this
     /** Cod weekly stats */
     codStats?: CodStats | CodBRStatsType
@@ -106,6 +107,7 @@ export interface IMoreOrLessStats {
     firstAttempt?: number
     bestAttempt?: number
     numAttempts?: number
+    completed?: boolean
 }
 
 export interface IUserSettings {
@@ -135,7 +137,7 @@ export interface IUserBuffs {
     jailPass?: number
     doublePotWins?: number
     freeRolls?: number
-    lootColorChanceMultiplier?: number
+    guaranteedLootColor?: number
     doublePotDeposit?: number
     lootColorsFlipped?: boolean
     deahtrollLootboxChanceMultiplier?: number

@@ -21,6 +21,7 @@ import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { TextUtils } from '../../utils/textUtils'
+import { DealOrNoDeal } from '../games/dealOrNoDeal'
 
 interface IPendingTrade {
     userId: string
@@ -90,7 +91,7 @@ export class LootboxCommands extends AbstractCommands {
             interaction.message.edit({ components: [], content: `${type} er åpnet.` })
             if (type === 'box') await this.openAndRegisterLootbox(interaction)
             else if (type === 'chest') await this.openAndRegisterLootChest(interaction)
-        } else this.messageHelper.replyToInteraction(interaction, 'Det er ikke din boks dessverre', { ephemeral: true, hasBeenDefered: true })
+        } else this.messageHelper.replyToInteraction(interaction, 'Den er ikke din dessverre', { ephemeral: true, hasBeenDefered: true })
     }
 
     private async openAndRegisterLootbox(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
@@ -128,6 +129,7 @@ export class LootboxCommands extends AbstractCommands {
         chestItems.push(await this.calculateRewardItem(box, series, user))
         chestItems.push(await this.calculateRewardItem(box, series, user))
         chestItems.push(await this.calculateRewardItem(box, series, user))
+        this.database.updateUser(user) //update in case of effect change
         this.revealLootChest(interaction, chestItems, quality)
     }
 
@@ -160,14 +162,23 @@ export class LootboxCommands extends AbstractCommands {
             buttons.addComponents(btn)
         }
         let effect: IEffectItem = undefined
-        if (Math.random() < 0.1) {
+        if (Math.random() < this.getChestEffectOdds(quality)) {
             effect = RandomUtils.getRandomItemFromList(effects)
-            const btn = lootChestButton(chestId, 'effect', effect.label)
+            let btn: ButtonBuilder = undefined
+            if (effect.label === 'deal_or_no_deal') {
+                btn = DealOrNoDeal.getDealOrNoDealButton(interaction.user.id)
+            } else btn = lootChestButton(chestId, 'effect', effect.label)
             buttons.addComponents(btn)
         }
         const msg = await this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true }, [buttons])
         const pendingChest: IPendingChest = { userId: interaction.user.id, quality: quality, items: chestItems, effect: effect, message: msg, buttons: buttons }
         this.pendingChests.set(chestId, pendingChest)
+    }
+
+    private getChestEffectOdds(quality: string) {
+        if (quality.toLowerCase() === 'basic') return 0.2
+        else if (quality.toLowerCase() === 'premium') return 0.5
+        else if (quality.toLowerCase() === 'elite') return 1
     }
 
     private getItemColorBadge(item: IUserCollectable) {
@@ -261,8 +272,11 @@ export class LootboxCommands extends AbstractCommands {
 
     private async calculateRewardItem(box: ILootbox, series: string, user: MazariniUser) {
         const itemRoll = Math.random()
-        const colorBuff = user.effects?.positive?.lootColorChanceMultiplier ?? 1
-        const colored = Math.random() < box.probabilities.color * colorBuff
+        let colored = Math.random() < box.probabilities.color
+        if ((user.effects?.positive?.guaranteedLootColor ?? 0) > 0) {
+            colored = true
+            user.effects.positive.guaranteedLootColor -= 1
+        }
         if (itemRoll < box.probabilities.legendary) {
             return await this.getRandomItemForRarity(ItemRarity.Legendary, series, colored, user)
         } else if (itemRoll < box.probabilities.epic) {
@@ -606,9 +620,8 @@ export class LootboxCommands extends AbstractCommands {
         const embed = EmbedUtils.createSimpleEmbed('Trade', `Bytter inn: \n${collectableNames}\nfor en ${pendingTrade.receiving} gjenstand`)
         interaction.message.edit({ embeds: [embed], components: [] })
         const colorChance = this.getTradeColorChance(pendingTrade.tradingIn)
-        const colorBuff = user.effects?.positive?.lootColorChanceMultiplier ?? 1
 
-        const colored = Math.random() < colorChance * colorBuff
+        const colored = Math.random() < colorChance
         const rewardedItem = await this.getRandomItemForRarity(pendingTrade.receiving, pendingTrade.series, colored, user)
         const tradedItemsRemoved = this.removeItemsFromUser(pendingTrade.tradingIn, user)
         this.registerTradeOnUser(tradedItemsRemoved, rewardedItem, user)
@@ -754,20 +767,20 @@ const effects: Array<IEffectItem> = [
         },
     },
     {
-        label: '2x doubled potwins',
-        message: 'at dine to neste hasjwins dobles!',
+        label: '3x doubled potwins',
+        message: 'at dine tre neste hasjwins dobles!',
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
-            user.effects.positive.doublePotWins = (user.effects.positive.doublePotWins ?? 0) + 2
+            user.effects.positive.doublePotWins = (user.effects.positive.doublePotWins ?? 0) + 3
             return undefined
         },
     },
     {
-        label: '5 free rolls',
-        message: '5 gratis /roll!',
+        label: '10 free rolls',
+        message: '10 gratis /roll!',
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
-            user.effects.positive.freeRolls = (user.effects.positive.freeRolls ?? 0) + 5
+            user.effects.positive.freeRolls = (user.effects.positive.freeRolls ?? 0) + 10
             return undefined
         },
     },
@@ -781,8 +794,8 @@ const effects: Array<IEffectItem> = [
         },
     },
     {
-        label: '3x lootbox odds in deathroll',
-        message: 'at du har 3x større sannsynlighet for å heller få en lootbox som reward ved hasjinnskudd - ut dagen!',
+        label: '5x lootbox odds in deathroll',
+        message: 'at du har 5x større sannsynlighet for å heller få en lootbox som reward ved hasjinnskudd - ut dagen!',
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
             user.effects.positive.deahtrollLootboxChanceMultiplier = 3
@@ -790,31 +803,45 @@ const effects: Array<IEffectItem> = [
         },
     },
     {
-        label: '5x doubled pot additions',
-        message: 'at dine neste 5 hasjinnskudd hvor du triller over 100 dobles!',
+        label: '10x doubled pot additions',
+        message: 'at dine neste 10 hasjinnskudd hvor du triller over 100 dobles!',
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
-            user.effects.positive.doublePotDeposit = (user.effects.positive.doublePotDeposit ?? 0) + 5
+            user.effects.positive.doublePotDeposit = (user.effects.positive.doublePotDeposit ?? 0) + 10
             return undefined
         },
     },
     {
-        label: 'Double color odds',
-        message: 'dobbel sannsynlighet for farge på alle lootboxene dine ut dagen!',
+        label: '3x guaranteed colors',
+        message: 'at dine neste 3 loot-items har garantert farge (gjelder ikke trade)',
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
-            user.effects.positive.lootColorChanceMultiplier = 2
+            user.effects.positive.guaranteedLootColor = (user.effects.positive.guaranteedLootColor ?? 0) + 3
             return undefined
         },
     },
     {
-        label: '1 Blackjack re-deal',
-        message: 'en ekstra deal på nytt i blackjack!',
+        label: '5x guaranteed colors',
+        message: 'at dine neste 5 loot-items har garantert farge (gjelder ikke trade)',
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
-            user.effects.positive.blackjackReDeals = (user.effects.positive.blackjackReDeals ?? 0) + 1
+            user.effects.positive.guaranteedLootColor = (user.effects.positive.guaranteedLootColor ?? 0) + 5
             return undefined
         },
+    },
+    {
+        label: '2 Blackjack re-deal',
+        message: 'to ekstra deal på nytt i blackjack!',
+        effect: (user: MazariniUser) => {
+            user.effects = user.effects ?? defaultEffects
+            user.effects.positive.blackjackReDeals = (user.effects.positive.blackjackReDeals ?? 0) + 2
+            return undefined
+        },
+    },
+    {
+        label: 'deal_or_no_deal',
+        message: '',
+        effect: () => {},
     },
 ]
 

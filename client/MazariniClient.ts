@@ -12,8 +12,6 @@ import { MoneyHelper } from '../helpers/moneyHelper'
 import { ICache } from '../interfaces/database/databaseInterface'
 import { ClientListener } from './ClientListeners'
 
-const Discord = require('discord.js')
-
 /** Extension of Discord Client with extra properties like MessageHelper */
 export class MazariniClient extends Client {
     /** Helper for sending and dealing with messages */

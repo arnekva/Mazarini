@@ -20,11 +20,11 @@ export const rewardCommand: ISlashCommandItem = {
                     name: 'chips',
                     description: 'hvor mye chips skal brukeren få?',
                     type: ApplicationCommandOptionType.Integer,
-                    required: true
+                    required: true,
                 },
                 {
                     name: 'reason',
-                    description: 'begrunnelse', 
+                    description: 'begrunnelse',
                     type: ApplicationCommandOptionType.String,
                     required: true,
                 },
@@ -45,14 +45,64 @@ export const rewardCommand: ISlashCommandItem = {
                     description: 'hvilken lootbox skal brukeren få?',
                     type: ApplicationCommandOptionType.String,
                     required: true,
-                    autocomplete: true
+                    autocomplete: true,
                 },
                 {
                     name: 'reason',
                     description: 'begrunnelse',
                     type: ApplicationCommandOptionType.String,
                     required: true,
-                },                
+                },
+            ],
+        },
+        {
+            commandName: 'chest',
+            commandDescription: 'Gi en loot chest',
+            options: [
+                {
+                    name: 'user',
+                    description: 'hvem skal få rewarden?',
+                    type: ApplicationCommandOptionType.User,
+                    required: true,
+                },
+                {
+                    name: 'quality',
+                    description: 'hvilken loot chest skal brukeren få?',
+                    type: ApplicationCommandOptionType.String,
+                    required: true,
+                    autocomplete: true,
+                },
+                {
+                    name: 'reason',
+                    description: 'begrunnelse',
+                    type: ApplicationCommandOptionType.String,
+                    required: true,
+                },
+            ],
+        },
+        {
+            commandName: 'dealornodeal',
+            commandDescription: 'Gi en runde deal or no deal',
+            options: [
+                {
+                    name: 'user',
+                    description: 'hvem skal få rewarden?',
+                    type: ApplicationCommandOptionType.User,
+                    required: true,
+                },
+                {
+                    name: 'quality',
+                    description: 'hvilket nivå skal brukeren få?',
+                    type: ApplicationCommandOptionType.String,
+                    required: true,
+                    autocomplete: true,
+                },
+                {
+                    name: 'reason',
+                    description: 'begrunnelse',
+                    type: ApplicationCommandOptionType.String,
+                    required: true,
+                },
             ],
         },
     ],

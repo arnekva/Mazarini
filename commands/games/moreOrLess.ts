@@ -17,9 +17,11 @@ import { IMoreOrLess } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
+import { MentionUtils, ThreadIds } from '../../utils/mentionUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { TextUtils } from '../../utils/textUtils'
 import { UserUtils } from '../../utils/userUtils'
+import { DealOrNoDeal, DonDQuality } from './dealOrNoDeal'
 
 export interface IMoreOrLessData {
     subject: string
@@ -35,6 +37,7 @@ interface IMoreOrLessUserGame {
     correctAnswers: number
     message: Message | InteractionResponse
     active: boolean
+    totalQuestions: number
 }
 
 export class MoreOrLess extends AbstractCommands {
@@ -121,7 +124,7 @@ export class MoreOrLess extends AbstractCommands {
             previousGame.message.edit({ embeds: [embed], components: [startBtnRow] })
         } else {
             const msg = await this.messageHelper.replyToInteraction(interaction, embed, { ephemeral: true }, [startBtnRow])
-            const userGame: IMoreOrLessUserGame = { id: randomUUID(), data: data, correctAnswers: 0, message: msg, active: false }
+            const userGame: IMoreOrLessUserGame = { id: randomUUID(), data: data, correctAnswers: 0, message: msg, active: false, totalQuestions: data.length }
             this.userGames.set(interaction.user.id, userGame)
         }
     }
@@ -185,10 +188,13 @@ export class MoreOrLess extends AbstractCommands {
                     firstAttempt: game.correctAnswers,
                     bestAttempt: 0,
                     numAttempts: 0,
+                    completed: false,
                 },
             }
             if (game.correctAnswers === 0) this.database.updateUser(user)
         }
+        const completedNow = game.data.length === 0
+        const completedPreviously = user.dailyGameStats.moreOrLess.completed
         const numTries = user.dailyGameStats.moreOrLess.numAttempts + 1
         user.dailyGameStats.moreOrLess.numAttempts = numTries
         if (game.correctAnswers > user.dailyGameStats.moreOrLess.bestAttempt) {
@@ -206,11 +212,11 @@ export class MoreOrLess extends AbstractCommands {
             }
 
             user.dailyGameStats.moreOrLess.bestAttempt = game.correctAnswers
+            if (game.data.length === 0) user.dailyGameStats.moreOrLess.completed = true
             const awarded = this.client.bank.giveMoney(user, reward)
             rewardMsg = ` og får ${awarded} chips`
         } else this.database.updateUser(user)
-
-        const msg = game.data.length > 0 ? 'Du tok dessverre feil' : 'Du har fullført dagens more or less!'
+        const msg = completedNow ? 'Du har fullført dagens more or less!' : 'Du tok dessverre feil'
         const description =
             `${game.next.subject} ${this.game.strings.verb} **${TextUtils.formatLargeNumber(game.next.answer)}${this.game.strings?.valueSuffix ?? ''}** ${
                 this.game.strings.valueTitle
@@ -218,8 +224,17 @@ export class MoreOrLess extends AbstractCommands {
             `\n\n${msg}\n\n` +
             `Du fikk ${game.correctAnswers} riktige${rewardMsg}!`
         const embed = EmbedUtils.createSimpleEmbed(this.game.title, description).setThumbnail(game.next.image)
-
         game.message.edit({ embeds: [embed], components: [playAgainBtnRow] })
+        if (completedNow && !completedPreviously) {
+            const buttons = new ActionRowBuilder<ButtonBuilder>()
+            const dondQuality = game.totalQuestions > 100 ? DonDQuality.Elite : game.totalQuestions > 50 ? DonDQuality.Premium : DonDQuality.Basic
+            const dond = DealOrNoDeal.getDealOrNoDealButton(user.id, dondQuality)
+            buttons.addComponents(dond)
+            this.messageHelper.sendMessage(ThreadIds.MORE_OR_LESS, {
+                text: `Gz med fullført more or less ${MentionUtils.mentionUser(user.id)}`,
+                components: [buttons],
+            })
+        }
     }
 
     private async revealResults(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -245,7 +260,7 @@ export class MoreOrLess extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, embed)
     }
 
-    override async onSave() {
+    override async onSave(): Promise<boolean> {
         this.userGames.forEach((game, user) => {
             if (game.active) {
                 this.client.cache.restartImpediments.push(`${UserUtils.findUserById(user, this.client).username} har et aktivt more or less game`)

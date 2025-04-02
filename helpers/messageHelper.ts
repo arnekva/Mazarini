@@ -41,11 +41,6 @@ import { UserUtils } from '../utils/userUtils'
 export type typeOfError = 'unauthorized' | 'error' | 'warning'
 export type thumbsReact = 'up' | 'down'
 
-interface DMParams {
-    userID?: string
-    username?: string
-}
-
 interface IMessageOptions {
     /** Set this to true to be able to mention users without notifying them */
     noMentions?: boolean
@@ -217,7 +212,7 @@ export class MessageHelper {
             if (content.text && content.text.length >= 2000) {
                 this.sendLogMessage(`En melding med flere enn 2000 tegn ble forsøkt sendt. Meldingen blir splittet`)
                 const msgArr = content.text.match(/[\s\S]{1,1800}/g)
-                msgArr.forEach((msg, ind) => {
+                msgArr.forEach((msg) => {
                     if (!options?.dontIncrementMessageCounter) MazariniBot.numMessagesFromBot++
                     channel.send(msg)
                 })
@@ -361,5 +356,27 @@ export class MessageHelper {
             this.sendLogMessage('Klarte ikke å deferReply-e en interaction' + details)
             return false
         }
+    }
+
+    /**
+     * Send a message to the specified channel. Content can be of several types.
+     * @param interaction Interaction to defer
+     * @returns true if deferred succesfully, false if an error occured
+     */
+    async deferUpdate(interaction: ButtonInteraction<CacheType>) {
+        try {
+            await interaction.deferUpdate()
+            return true
+        } catch (error) {
+            const details = ' i kanalen ' + MentionUtils.mentionChannel(interaction.channelId)
+            this.sendLogMessage('Klarte ikke å deferUpdate-e en interaction' + details)
+            return false
+        }
+    }
+
+    async fetchMessage(channelId: string, messageId: string): Promise<Message<boolean>> {
+        const channel = await this.client.channels.fetch(channelId)
+        if (!channel.isTextBased()) return undefined
+        return await channel.messages.fetch(messageId)
     }
 }

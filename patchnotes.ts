@@ -8,14 +8,10 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '22.4.0'
+    public static readonly currentVersion = '23.1.1'
     public static readonly currentPatchNotes =
-        `* More or Less vil nå alltid hente en uspilt kategori (ikke tilbakevirkende effekt) frem til alle kategorier er spilt. Så resettes listen av spilte kategorier` +
-        `\n* Fikset en feil hvor meldinger med mer enn 5 knapper ikke ble sendt` +
-        `\n* Lagt til muligheten for å avbryte en /restart dersom en klasse setter en 'restartImpediment' (ny client cache prop)` +
-        `\n* Foreløpig varsles følgende ved forsøk på en /restart (kan overstyres)` +
-        `\n  * Dersom noen har et aktivt game med more or less` +
-        `\n  * Dersom noen har trilt terning innen det siste minuttet`
+        `* Fikset en bug hvor det ikke var en grense for hvor mange ganger man kunne få dond for fullført more or less` +
+        `\n* Re-aktiverer kommandoen /playlist`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

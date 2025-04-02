@@ -18,9 +18,7 @@ export class WeeklyJobs {
         this.client = client
     }
     async runJobs() {
-        const embed = EmbedUtils.createSimpleEmbed(`Weekly Jobs`, `Kjører 6 jobber`)
-        const weeklyPayout = await this.awardWeeklyChips()
-        embed.addFields({ name: 'NAV-Penger', value: EmojiHelper.getStatusEmoji(weeklyPayout) })
+        const embed = EmbedUtils.createSimpleEmbed(`Weekly Jobs`, `Kjører 5 jobber`)
         const polet = await this.checkPoletHours()
         embed.addFields({ name: 'Polet status', value: EmojiHelper.getStatusEmoji(polet) })
         const statusReset = await this.resetStatuses()
@@ -34,18 +32,6 @@ export class WeeklyJobs {
         const todaysTime = new Date().toLocaleTimeString()
         embed.setFooter({ text: todaysTime })
         this.messageHelper.sendMessage(ChannelIds.ACTION_LOG, { embed: embed })
-    }
-    private async awardWeeklyChips(): Promise<JobStatus> {
-        const brukere = await this.client.database.getAllUsers()
-        let status: JobStatus = 'not sendt'
-        if (!brukere) status = 'failed'
-        brukere.forEach((user) => {
-            if (user.chips !== undefined) {
-                this.client.bank.giveMoney(user, 2000)
-                status = 'success'
-            }
-        })
-        return status
     }
 
     private async checkPoletHours(): Promise<JobStatus> {
@@ -61,21 +47,23 @@ export class WeeklyJobs {
                 .setTitle(`Det er endrede åpningstider på polet denne ${dates.length ? 'uken' : 'måneden'}`)
                 .setDescription(`Bruker ${data.storeName} (${data.address.postalCode}, ${data.address.city}) som utgangspunkt`)
 
-            data.openingHours.exceptionHours.forEach((h, index) => {
-                const dateName = moment(h?.date).format('dddd')
-                if (h.openingTime !== '10:00' || h.closingTime !== '18:00') {
-                    let message = ''
-                    if (h.openingTime && h.closingTime) {
-                        message = `Det er forkortet åpningstid. Det er åpent mellom ${h.openingTime} - ${h.closingTime}`
-                    } else {
-                        message = h?.message ? h.message : 'Ingen forklaring'
+            data.openingHours.exceptionHours
+                .filter((d) => DateUtils.dateIsInCurrentWeek(d.date))
+                .forEach((h, index) => {
+                    const dateName = moment(h?.date).format('dddd')
+                    if (h.openingTime !== '10:00' || h.closingTime !== '18:00') {
+                        let message = ''
+                        if (h.openingTime && h.closingTime) {
+                            message = `Det er forkortet åpningstid. Det er åpent mellom ${h.openingTime} - ${h.closingTime}`
+                        } else {
+                            message = h?.message ? h.message : 'Ingen forklaring'
+                        }
+                        fmMessage.addFields({
+                            name: dateName ? `${dateName} (${h?.date})` : 'Ukjent dag',
+                            value: `${message}`,
+                        })
                     }
-                    fmMessage.addFields({
-                        name: dateName ? `${dateName} (${h?.date})` : 'Ukjent dag',
-                        value: `${message}`,
-                    })
-                }
-            })
+                })
 
             this.messageHelper.sendMessage(ChannelIds.VINMONOPOLET, { embed: fmMessage })
             return 'success'
