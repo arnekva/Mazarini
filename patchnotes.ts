@@ -8,10 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '23.1.1'
-    public static readonly currentPatchNotes =
-        `* Fikset en bug hvor det ikke var en grense for hvor mange ganger man kunne få dond for fullført more or less` +
-        `\n* Re-aktiverer kommandoen /playlist`
+    public static readonly currentVersion = '23.1.2'
+    public static readonly currentPatchNotes = `* Re-aktiverer kommandoen /drop`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

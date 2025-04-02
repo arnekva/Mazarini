@@ -76,6 +76,7 @@ export class MazariniClient extends Client {
             //hehe ty one time hack
             //Uncomment to run command creation
             // CommandBuilder.createCommands(this)
+            // CommandBuilder.deleteCommandByName('grid', this)
         }
     }
 

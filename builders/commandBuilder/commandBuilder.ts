@@ -9,7 +9,6 @@ import {
     SlashCommandSubcommandBuilder,
     SlashCommandSubcommandGroupBuilder,
 } from 'discord.js'
-import { CommandStorage } from './commandStorage'
 
 export interface ISlashCommandItem {
     /** Command name */
@@ -135,8 +134,8 @@ export namespace CommandBuilder {
 
     /** This command will automatically create all commands listed in it */
     export const createCommands = (client: Client) => {
-        // CommandBuilder.deleteCommand('1352650993153740992', client)
-        CommandBuilder.createSlashCommand(CommandStorage.RewardCommand, client)
+        // CommandBuilder.deleteCommand('1356989552941727935', client)
+        // CommandBuilder.createSlashCommand(CommandStorage.DropCommand, client)
         // CommandBuilder.deleteCommand('997144601146175631', client)
         // CommandBuilder.createContextMenuCommand({ commandName: 'helg' }, client)
     }
@@ -148,6 +147,16 @@ export namespace CommandBuilder {
     //     const data = new ContextMenuCommandBuilder().setName(params.commandName).setType(ApplicationCommandType.Message)
     //     client.application.commands.create(data)
     // }
+
+    export const deleteCommandByName = (cmdName: string, client: Client) => {
+        client.application.commands
+            .fetch()
+            .then((commands) => {
+                const cmd = commands.find((c) => c.name === cmdName)
+                if (cmd) deleteCommand(cmd.id, client)
+            })
+            .catch(console.error)
+    }
 
     /** Deletes a command with the given id
      * To find the ID, use the command in a channel an log the interaction.commandId

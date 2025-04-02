@@ -3,6 +3,7 @@ import { calendarCommand } from './commandStorage/calendar'
 import { countdownCommand } from './commandStorage/countdown'
 import { dailyCommand } from './commandStorage/daily'
 import { deathrollCommand } from './commandStorage/deathroll'
+import { dropCommand } from './commandStorage/drop'
 import { frameCommand } from './commandStorage/frame'
 import { jailCommand } from './commandStorage/jail'
 import { jailbreakCommand } from './commandStorage/jailbreak'
@@ -64,4 +65,5 @@ export namespace CommandStorage {
     export const RefreshCommand = refreshCommand
     export const CalendarCommand = calendarCommand
     export const MoreOrLess = moreorless
+    export const DropCommand = dropCommand
 }
