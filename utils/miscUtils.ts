@@ -176,7 +176,6 @@ export namespace MiscUtils {
             `${user1} feis på Thomas`,
             `${user1} dreid på seg`,
             `${user1}? Har du drede på deg? Lokte jaffal sånn`,
-            `${user2}? Har du drede på deg? Lokte jaffal sånn`,
             `${user1} e ein liden prompegutt ja`,
         ]
     }

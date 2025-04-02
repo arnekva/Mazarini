@@ -56,26 +56,6 @@ export namespace textArrays {
         'UwU',
         '*gwomps*',
     ]
-    export const eivindSpinner = [
-        'han knakk den i to.',
-        'han ødela den.',
-        'han ble frastjålet den.',
-        'han mistet den i et veddemål.',
-        'han fikk den konfiskert på Elton John konsert.',
-        'den ble konfiskert av dørvakten på vei inn på Hexagon.',
-        'han mistet den på dansegulvet',
-        'han fikk kjeft av Mamma.',
-        'den tok fyr og smeltet.',
-        'den spant for fort og havnet i middagstallerkenen på nabobordet.',
-        'Erna & Co. la all smitteskyld på fidget spinnere og den måtte kastes',
-        'han ble den kuleste i nabolaget.',
-        'pausen på 71 grader nord var over og han måtte følge med igjen.',
-        'han rage quittet.',
-        'han ble oppringt om å bli med i sesong 194 av 4 stjerners middag.',
-        'han startet re-watch av Hotell Cæsar for tredje gang.',
-        'han ga opp og tok en tidlig helg.',
-        'han investerte i Gamestop-aksjer og ble søkkrik.',
-    ]
 
     export const emojiesList = [
         '🤬',
@@ -123,38 +103,6 @@ export namespace textArrays {
         '🤟🏻',
         '🔐',
         '🤛🏻',
-    ]
-
-    export const kanIkkjeTekster = [
-        `kan ikkje, får kje lov av farsin :(`,
-        `kan ikkje, han skamtrunte på vei te buen`,
-        `kan ikkje, fekk husarrest for å leka me fyrstikker`,
-        `kan faktisk, han fekk lo... ånei kødda, mamma seie nei aligavel`,
-        `kan ikkje, han ska spisa pistasj :3`,
-        `kan seff, maen e alltid klar for smellen på quellen`,
-        `kan kje, mamma e så streng :(`,
-        `kan, men han e kje klar før jæskla seint på quellen`,
-        `får lov, men må ver hjemma før klokkå 9 hvis ikkje får han kje middag imårå`,
-    ]
-
-    export const feseTexts = [
-        'har fese',
-        'har skamfese',
-        'har phese',
-        'har drede',
-        'traff deg i fjese',
-        'har blitt fese på',
-        'brukte speil, så du traff deg sjøl i fjese der',
-        'traff Thomas i fleisen',
-        'nuka dassen',
-        'slapp ein silent but deadly ein',
-        'feis i 32.45 sekund. Helwerre',
-        'hadde kebab i går og sidde fortsatt på dassen',
-        'feis og brukte med ein feil både speil og skjold på seg sjøl',
-        'fise akkurat nå',
-        '🪞',
-        'trunte rett inn i fisen te Thomas',
-        'blei eid av et speil',
     ]
 
     export const pointerBrothersUrls = [
