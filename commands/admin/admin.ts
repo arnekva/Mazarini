@@ -329,8 +329,8 @@ export class Admin extends AbstractCommands {
     private async restartBot(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
         if (interaction instanceof ButtonInteraction) {
             interaction.message.edit({ components: [] })
+            await this.client.onRestart() //has just been run in attemptRestart() if interaction is ChatInputCommandInteraction
         }
-        await this.client.onRestart()
         ClientHelper.setDisplayNameMode(this.client, 'offline')
         await this.messageHelper.replyToInteraction(interaction, `Forsøker å restarte botten`)
         let restartMsg = `Restart trigget av ${interaction.user.username} i kanalen ${MentionUtils.mentionChannel(
