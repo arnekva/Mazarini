@@ -17,6 +17,7 @@ import { IMoreOrLess } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
+import { FetchUtils } from '../../utils/fetchUtils'
 import { MentionUtils, ThreadIds } from '../../utils/mentionUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { TextUtils } from '../../utils/textUtils'
@@ -69,6 +70,7 @@ export class MoreOrLess extends AbstractCommands {
         const unplayed = games.filter((game) => !previous.includes(game.slug))
         const game: IMoreOrLess = unplayed && unplayed.length > 0 ? RandomUtils.getRandomItemFromList(unplayed) : RandomUtils.getRandomItemFromList(games)
         const dataUrl = `https://api.moreorless.io/en/games/${game.slug}.json`
+        game.slug = 'lol-champion-win-rates'
         const check: any = (
             await (
                 await fetch(dataUrl, {
@@ -163,24 +165,21 @@ export class MoreOrLess extends AbstractCommands {
         }
     }
 
-    private updateGame(game: IMoreOrLessUserGame) {
+    private async updateGame(game: IMoreOrLessUserGame) {
         const description =
             `${game.current.subject} ${this.game.strings?.verb} **${TextUtils.formatLargeNumber(game.current.answer)}${
                 this.game.strings?.valueSuffix ?? ''
             }** ${this.game.strings?.valueTitle}` +
             `\n\nVS\n\n` +
             `${game.next.subject}`
-        const embed = EmbedUtils.createSimpleEmbed(this.game.title, description)
-            .setThumbnail(game.current.image)
-            .setFooter({ text: `${game.correctAnswers} riktige` }) //TODO: We might not want this, remove if needed
-        try {
-            game.message.edit({ embeds: [embed], components: [guessBtnRow(game.id, this.game.strings?.buttonMore, this.game.strings?.buttonLess)] })
-        } catch (e) {
-            if (e instanceof Error && e.message.includes('thumbnail.url')) {
-                embed.setThumbnail(null)
-                game.message.edit({ embeds: [embed], components: [guessBtnRow(game.id, this.game.strings?.buttonMore, this.game.strings?.buttonLess)] })
-            }
-        }
+        const embed = EmbedUtils.createSimpleEmbed(this.game.title, description).setFooter({ text: `${game.correctAnswers} riktige` }) //TODO: We might not want this, remove if needed
+
+        const isImageReal = await FetchUtils.checkImageUrl(game.current.image)
+        if (isImageReal) embed.setThumbnail(game.current.image)
+        game.message.edit({
+            embeds: [embed],
+            components: [guessBtnRow(game.id, this.game.strings?.buttonMore, this.game.strings?.buttonLess)],
+        })
     }
 
     private async endGame(game: IMoreOrLessUserGame, userId: string) {
