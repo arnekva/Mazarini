@@ -60,11 +60,17 @@ export class Deathroll extends AbstractCommands {
     //TODO: Should probably be refactored to somewhere else
     static getRollWinningNumbers() {
         const winningNumbers = new Array<number>()
-        winningNumbers.push(RandomUtils.getRandomInteger(75, 100))
+        winningNumbers.push(RandomUtils.getRandomInteger(76, 100))
         winningNumbers.push(RandomUtils.getRandomInteger(101, 125))
         winningNumbers.push(RandomUtils.getRandomInteger(126, 150))
-        winningNumbers.push(RandomUtils.getRandomInteger(151, 200))
-        winningNumbers.push(RandomUtils.getRandomInteger(201, 10000))
+        winningNumbers.push(RandomUtils.getRandomInteger(151, 175))
+        winningNumbers.push(RandomUtils.getRandomInteger(176, 200))
+        winningNumbers.push(RandomUtils.getRandomInteger(201, 1000))
+        winningNumbers.push(RandomUtils.getRandomInteger(1001, 2000))
+        winningNumbers.push(RandomUtils.getRandomInteger(2001, 3000))
+        winningNumbers.push(RandomUtils.getRandomInteger(3001, 4000))
+        winningNumbers.push(RandomUtils.getRandomInteger(4001, 5000))
+        winningNumbers.push(RandomUtils.getRandomInteger(5001, 10000))
         return winningNumbers
     }
 
@@ -248,10 +254,10 @@ export class Deathroll extends AbstractCommands {
         if (roll === 2) addToPot(20, 1)
         //Checks if all digits are the same (e.g. 111, 2222, 5555)
         const sameDigits = new RegExp(/^([0-9])\1*$/gi).test(roll.toString())
-        if (sameDigits) addToPot(roll, 4)
+        if (sameDigits) addToPot(roll, 5)
         //Check if ONLY the first digits is a non-zero (e.g. 40, 500, 6000, 20000)
         const allDigitsExceptFirstAreZero = new RegExp(/^[1-9]0+$/gi).test(roll.toString())
-        if (allDigitsExceptFirstAreZero) addToPot(roll, 4)
+        if (allDigitsExceptFirstAreZero) addToPot(roll, 5)
         let user: MazariniUser = undefined
         if (totalAdded > 0 && roll >= 100) {
             user = await this.client.database.getUser(int.user.id)
@@ -294,7 +300,7 @@ export class Deathroll extends AbstractCommands {
     }
 
     private getRollReward(r: number) {
-        if ([1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 690, 8008, 6969, 420, 123, 1234, 12345, 1984, 2024, 2025].includes(r)) return r * 3
+        if ([1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 690, 8008, 6969, 420, 123, 1234, 12345, 1984, 2024, 2025, 2012, 1945].includes(r)) return r * 3
         else return 0
     }
 
@@ -359,7 +365,7 @@ export class Deathroll extends AbstractCommands {
         const user = await this.client.database.getUser(userId)
         const hasTheMoney = this.client.bank.takeMoney(user, amount)
         if (hasTheMoney) {
-            this.rewardPot = this.rewardPot + amount + 2000
+            this.rewardPot = this.rewardPot + amount + 5000
             this.saveRewardPot()
             this.messageHelper.replyToInteraction(interaction, `Du ville ikke ha ${amount} chips altså? \nJaja, potten er på ${this.rewardPot} chips nå da`, {
                 hasBeenDefered: true,
@@ -444,7 +450,7 @@ export class Deathroll extends AbstractCommands {
             const diceTarget = Math.min(...game.players.map((p) => p.rolls).flat())
             return interaction.respond([{ name: `${diceTarget}`, value: diceTarget }])
         }
-        return interaction.respond([{ name: '10000', value: 10000 }])
+        return interaction.respond([{ name: '10001', value: 10001 }])
     }
 
     private printCurrentState(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -524,7 +530,7 @@ const noThanksButton = (userId: string, rewarded: number) => {
         new ButtonBuilder({
             custom_id: `DEATHROLL_NO_THANKS;${userId};${rewarded}`,
             style: ButtonStyle.Primary,
-            label: `Nei takk (+2k chips)`,
+            label: `Nei takk (+5k chips)`,
             disabled: false,
             type: 2,
         })

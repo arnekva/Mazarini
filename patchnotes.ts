@@ -8,8 +8,12 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '23.1.3'
-    public static readonly currentPatchNotes = `* Fikser en feil som gjorde at manglende bilde i More or Less ville fryse spillet`
+    public static readonly currentVersion = '23.1.4'
+    public static readonly currentPatchNotes =
+        `* Øker "Nei takk" innskuddet til 5k` +
+        `\n* Default start-terning er nå 10001` +
+        `\n* Lagt til flere potensielle deathroll-vinnertall` +
+        `\n* Øker multiplier for like-sifre og alle-unntatt-første-siffer-er-0 innskuddene fra 4 til 5`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
