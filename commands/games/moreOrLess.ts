@@ -173,7 +173,14 @@ export class MoreOrLess extends AbstractCommands {
         const embed = EmbedUtils.createSimpleEmbed(this.game.title, description)
             .setThumbnail(game.current.image)
             .setFooter({ text: `${game.correctAnswers} riktige` }) //TODO: We might not want this, remove if needed
-        game.message.edit({ embeds: [embed], components: [guessBtnRow(game.id, this.game.strings?.buttonMore, this.game.strings?.buttonLess)] })
+        try {
+            game.message.edit({ embeds: [embed], components: [guessBtnRow(game.id, this.game.strings?.buttonMore, this.game.strings?.buttonLess)] })
+        } catch (e) {
+            if (e instanceof Error && e.message.includes('thumbnail.url')) {
+                embed.setThumbnail(null)
+                game.message.edit({ embeds: [embed], components: [guessBtnRow(game.id, this.game.strings?.buttonMore, this.game.strings?.buttonLess)] })
+            }
+        }
     }
 
     private async endGame(game: IMoreOrLessUserGame, userId: string) {
