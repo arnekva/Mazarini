@@ -229,7 +229,9 @@ export class MoreOrLess extends AbstractCommands {
             }` +
             `\n\n${msg}\n\n` +
             `Du fikk ${game.correctAnswers} riktige${rewardMsg}!`
-        const embed = EmbedUtils.createSimpleEmbed(this.game.title, description).setThumbnail(game.next.image)
+        const embed = EmbedUtils.createSimpleEmbed(this.game.title, description)
+        if (await FetchUtils.checkImageUrl(game.next.image)) embed.setThumbnail(game.next.image)
+
         game.message.edit({ embeds: [embed], components: [playAgainBtnRow] })
         if (completedNow && !completedPreviously) {
             const buttons = new ActionRowBuilder<ButtonBuilder>()
