@@ -111,7 +111,7 @@ export class MoreOrLess extends AbstractCommands {
     }
 
     private async setupGame(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        const data = RandomUtils.shuffleList(await this.fetchGameData())
+        const data = await this.fetchGameData()
         const embed = EmbedUtils.createSimpleEmbed(this.game.title, this.game.description).setThumbnail(
             `https://api.moreorless.io/img/${this.game.image}_512.jpg`
         )
@@ -124,16 +124,33 @@ export class MoreOrLess extends AbstractCommands {
             previousGame.id = randomUUID()
             previousGame.message.edit({ embeds: [embed], components: [startBtnRow] })
         } else {
-            const msg = await this.messageHelper.replyToInteraction(interaction, embed, { ephemeral: true }, [startBtnRow])
-            const userGame: IMoreOrLessUserGame = { id: randomUUID(), data: data, correctAnswers: 0, message: msg, active: false, totalQuestions: data.length }
-            this.userGames.set(interaction.user.id, userGame)
+            const activeGame = this.userGames.get(interaction.user.id)
+            if (activeGame && activeGame.active) {
+                const msg = await this.messageHelper.replyToInteraction(interaction, embed, { ephemeral: true })
+                activeGame.message = msg
+                this.updateGame(activeGame)
+            } else {
+                const msg = await this.messageHelper.replyToInteraction(interaction, embed, { ephemeral: true }, [startBtnRow])
+                const userGame: IMoreOrLessUserGame = {
+                    id: randomUUID(),
+                    data: data,
+                    correctAnswers: 0,
+                    message: msg,
+                    active: false,
+                    totalQuestions: data.length,
+                }
+                this.userGames.set(interaction.user.id, userGame)
+            }
         }
     }
 
     private startGame(interaction: ButtonInteraction<CacheType>) {
         interaction.deferUpdate()
         const game = this.userGames.get(interaction.user.id)
+        const shuffledData = RandomUtils.shuffleList(game.data)
         game.active = true
+        game.data = shuffledData
+        game.correctAnswers = 0
         game.current = game.data.pop()
         game.next = game.data.pop()
         this.updateGame(game)
@@ -141,6 +158,7 @@ export class MoreOrLess extends AbstractCommands {
 
     private guess(interaction: ButtonInteraction<CacheType>) {
         const game = this.userGames.get(interaction.user.id)
+        if (!game.active) return interaction.deferUpdate()
         const gameId = interaction.customId.split(';')[2]
         if (gameId !== game.id)
             return this.messageHelper.replyToInteraction(
@@ -171,7 +189,9 @@ export class MoreOrLess extends AbstractCommands {
             }** ${this.game.strings?.valueTitle}` +
             `\n\nVS\n\n` +
             `${game.next.subject}`
-        const embed = EmbedUtils.createSimpleEmbed(this.game.title, description).setFooter({ text: `${game.correctAnswers} riktige` }) //TODO: We might not want this, remove if needed
+        const embed = EmbedUtils.createSimpleEmbed(this.game.title, description).setFooter({
+            text: `${game.correctAnswers} riktige`,
+        }) //TODO: We might not want this, remove if needed
 
         const isImageReal = await FetchUtils.checkImageUrl(game.current.image)
         if (isImageReal) embed.setThumbnail(game.current.image)
