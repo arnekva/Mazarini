@@ -70,7 +70,6 @@ export class MoreOrLess extends AbstractCommands {
         const unplayed = games.filter((game) => !previous.includes(game.slug))
         const game: IMoreOrLess = unplayed && unplayed.length > 0 ? RandomUtils.getRandomItemFromList(unplayed) : RandomUtils.getRandomItemFromList(games)
         const dataUrl = `https://api.moreorless.io/en/games/${game.slug}.json`
-        game.slug = 'lol-champion-win-rates'
         const check: any = (
             await (
                 await fetch(dataUrl, {
