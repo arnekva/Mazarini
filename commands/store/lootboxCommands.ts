@@ -762,7 +762,7 @@ const effects: Array<IEffectItem> = [
         label: '10 spins',
         message: '10 ekstra /spin rewards!',
         effect: (user: MazariniUser) => {
-            user.dailySpinRewards -= 10
+            user.dailySpins = 1
             return undefined
         },
     },

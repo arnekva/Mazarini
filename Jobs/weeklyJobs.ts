@@ -36,11 +36,7 @@ export class WeeklyJobs {
 
     private async checkPoletHours(): Promise<JobStatus> {
         const data = await PoletCommands.fetchPoletData('116')
-        const dates = data.openingHours.exceptionHours.filter((eh) => {
-            const now = moment()
-            const input = moment(eh.date)
-            return now.isoWeek() == input.isoWeek()
-        })
+        const dates = data.openingHours.exceptionHours
         if (!data) return 'failed'
         if (data && data?.openingHours?.exceptionHours?.length > 0) {
             const fmMessage = new EmbedBuilder()
@@ -48,8 +44,8 @@ export class WeeklyJobs {
                 .setDescription(`Bruker ${data.storeName} (${data.address.postalCode}, ${data.address.city}) som utgangspunkt`)
 
             data.openingHours.exceptionHours
-                .filter((d) => DateUtils.dateIsInCurrentWeek(d.date))
-                .forEach((h, index) => {
+                .filter((d) => DateUtils.dateIsInCurrentWeek(moment(d?.date).format('dddd')))
+                .forEach((h) => {
                     const dateName = moment(h?.date).format('dddd')
                     if (h.openingTime !== '10:00' || h.closingTime !== '18:00') {
                         let message = ''
