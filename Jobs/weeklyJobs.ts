@@ -36,30 +36,28 @@ export class WeeklyJobs {
 
     private async checkPoletHours(): Promise<JobStatus> {
         const data = await PoletCommands.fetchPoletData('116')
-        const dates = data.openingHours.exceptionHours
+        const dates = data.openingHours.exceptionHours.filter((d) => DateUtils.dateIsInCurrentWeek(moment(d?.date).format('dddd')))
         if (!data) return 'failed'
         if (data && data?.openingHours?.exceptionHours?.length > 0) {
             const fmMessage = new EmbedBuilder()
                 .setTitle(`Det er endrede åpningstider på polet denne ${dates.length ? 'uken' : 'måneden'}`)
                 .setDescription(`Bruker ${data.storeName} (${data.address.postalCode}, ${data.address.city}) som utgangspunkt`)
 
-            data.openingHours.exceptionHours
-                .filter((d) => DateUtils.dateIsInCurrentWeek(moment(d?.date).format('dddd')))
-                .forEach((h) => {
-                    const dateName = moment(h?.date).format('dddd')
-                    if (h.openingTime !== '10:00' || h.closingTime !== '18:00') {
-                        let message = ''
-                        if (h.openingTime && h.closingTime) {
-                            message = `Det er forkortet åpningstid. Det er åpent mellom ${h.openingTime} - ${h.closingTime}`
-                        } else {
-                            message = h?.message ? h.message : 'Ingen forklaring'
-                        }
-                        fmMessage.addFields({
-                            name: dateName ? `${dateName} (${h?.date})` : 'Ukjent dag',
-                            value: `${message}`,
-                        })
+            data.openingHours.exceptionHours.forEach((h) => {
+                const dateName = moment(h?.date).format('dddd')
+                if (h.openingTime !== '10:00' || h.closingTime !== '18:00') {
+                    let message = ''
+                    if (h.openingTime && h.closingTime) {
+                        message = `Det er forkortet åpningstid. Det er åpent mellom ${h.openingTime} - ${h.closingTime}`
+                    } else {
+                        message = h?.message ? h.message : 'Ingen forklaring'
                     }
-                })
+                    fmMessage.addFields({
+                        name: dateName ? `${dateName} (${h?.date})` : 'Ukjent dag',
+                        value: `${message}`,
+                    })
+                }
+            })
 
             this.messageHelper.sendMessage(ChannelIds.VINMONOPOLET, { embed: fmMessage })
             return 'success'
