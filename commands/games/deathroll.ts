@@ -63,12 +63,9 @@ export class Deathroll extends AbstractCommands {
         winningNumbers.push(RandomUtils.getRandomInteger(76, 100))
         winningNumbers.push(RandomUtils.getRandomInteger(101, 125))
         winningNumbers.push(RandomUtils.getRandomInteger(126, 150))
-        winningNumbers.push(RandomUtils.getRandomInteger(151, 200))
-        winningNumbers.push(RandomUtils.getRandomInteger(1000, 2000))
-        winningNumbers.push(RandomUtils.getRandomInteger(2001, 3000))
-        winningNumbers.push(RandomUtils.getRandomInteger(3001, 4000))
-        winningNumbers.push(RandomUtils.getRandomInteger(4001, 5000))
-        winningNumbers.push(RandomUtils.getRandomInteger(5001, 10000))
+        winningNumbers.push(RandomUtils.getRandomInteger(151, 175))
+        winningNumbers.push(RandomUtils.getRandomInteger(176, 200))
+        winningNumbers.push(RandomUtils.getRandomInteger(201, 10001))
         return winningNumbers
     }
 
@@ -363,7 +360,7 @@ export class Deathroll extends AbstractCommands {
         const user = await this.client.database.getUser(userId)
         const hasTheMoney = this.client.bank.takeMoney(user, amount)
         if (hasTheMoney) {
-            this.rewardPot = this.rewardPot + amount + 4000
+            this.rewardPot = this.rewardPot + amount + 5000
             this.saveRewardPot()
             this.messageHelper.replyToInteraction(interaction, `Du ville ikke ha ${amount} chips altså? \nJaja, potten er på ${this.rewardPot} chips nå da`, {
                 hasBeenDefered: true,
@@ -528,14 +525,14 @@ const noThanksButton = (userId: string, rewarded: number) => {
         new ButtonBuilder({
             custom_id: `DEATHROLL_NO_THANKS;${userId};${rewarded}`,
             style: ButtonStyle.Primary,
-            label: `Nei takk (+4k chips)`,
+            label: `Nei takk (+5k chips)`,
             disabled: false,
             type: 2,
         })
     )
 }
 
-const blackjackButton = (userId: string, rewarded: number) => {
+export const blackjackButton = (userId: string, rewarded: number) => {
     return new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder({
             custom_id: `BLACKJACK_DEATHROLL;${userId};${rewarded}`,

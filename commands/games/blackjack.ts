@@ -29,6 +29,7 @@ interface BlackjackPlayer extends GamePlayer {
     profilePicture: string
     allIn: boolean
     insurance?: boolean
+    gameWinnings?: number
 }
 
 interface PlayerHand {
@@ -53,6 +54,8 @@ interface BlackjackGame {
     gameStateHandler?: GameStateHandler<BlackjackPlayer>
     messages: BlackjackMessages
     resolved: boolean
+    fromDeathroll?: boolean
+    hasRedealt?: boolean
 }
 
 interface BlackjackMessages {
@@ -140,6 +143,8 @@ export class Blackjack extends AbstractCommands {
             deck: new CardCommands(this.client, 6),
             messages: messages,
             resolved: false,
+            fromDeathroll: isDeathrollPot,
+            hasRedealt: false,
         }
         this.games.push(game)
 
@@ -225,6 +230,7 @@ export class Blackjack extends AbstractCommands {
 
     private async getButtonRow(game: BlackjackGame, player: BlackjackPlayer) {
         const buttonRow = hitStandButtonRow(game.id)
+        const hasDeathrollRedeal = game.fromDeathroll && !game.hasRedealt && game.players[0].stake > 25000
         if (player.hands[player.currentHandIndex].cards.length === 2) {
             const user = await this.client.database.getUser(player.id)
             if (this.canDoubleDown(player.hands[player.currentHandIndex]))
@@ -232,7 +238,10 @@ export class Blackjack extends AbstractCommands {
             if (this.canSplit(player.hands[player.currentHandIndex].cards))
                 buttonRow.addComponents(splitBtn(game.id, this.client.bank.userCanAfford(user, player.stake)))
             if (this.canInsure(game, player)) buttonRow.addComponents(insuranceBtn(game.id, this.client.bank.userCanAfford(user, Math.ceil(player.stake / 2))))
-            if (this.canReDeal(player, user)) buttonRow.addComponents(reDealBtn(game.id, user.effects.positive.blackjackReDeals))
+            if (this.canReDeal(player, user) || hasDeathrollRedeal) {
+                const reDeals = (user.effects?.positive?.blackjackReDeals ?? 0) + (hasDeathrollRedeal ? 1 : 0)
+                buttonRow.addComponents(reDealBtn(game.id, reDeals))
+            }
         }
         return buttonRow
     }
@@ -429,6 +438,7 @@ export class Blackjack extends AbstractCommands {
             description += `Du var klok som kjøpte insurance og får tilbake ${insuranceClaim} chips på den ${mb}`
             reward += insuranceClaim
         }
+        player.gameWinnings = reward
         this.rewardPlayer(player, Math.floor(reward))
         game.messages.embedContent = game.messages.embedContent.setDescription(description)
         game.messages.buttonRow = gameFinishedRow(game.id)
@@ -443,6 +453,7 @@ export class Blackjack extends AbstractCommands {
     }
 
     private async busted(game: BlackjackGame, player: BlackjackPlayer) {
+        player.gameWinnings = 0
         game.messages.buttonRow = gameFinishedRow(game.id)
         game.messages.buttons.edit({ components: [game.messages.buttonRow] })
         game.messages.embedContent = game.messages.embedContent
@@ -466,12 +477,17 @@ export class Blackjack extends AbstractCommands {
 
     private async playAgain(interaction: ButtonInteraction<CacheType>, game: BlackjackGame, player: BlackjackPlayer) {
         const user = await this.client.database.getUser(player.id)
-        player.stake = player.allIn ? user.chips : player.stake
+        player.stake = player.allIn ? user.chips : game.fromDeathroll ? player.gameWinnings : player.stake
         if (!this.client.bank.userCanAfford(user, player.stake)) {
             const emoji = await EmojiHelper.getApplicationEmoji('arneouf', this.client)
             game.messages.embedContent = game.messages.embedContent
                 .setThumbnail(`https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?size=96&quality=lossless`)
                 .setDescription(`Du har ikke råd til en ny`)
+            await game.messages.embed.edit({ embeds: [game.messages.embedContent] })
+        } else if (player.stake === 0) {
+            game.messages.embedContent = game.messages.embedContent
+                .setThumbnail(`https://cdn.discordapp.com/emojis/1255794610433953793.webp?size=96&quality=lossless`)
+                .setDescription(`Hasjen er tapt.`)
             await game.messages.embed.edit({ embeds: [game.messages.embedContent] })
         } else {
             game.resolved = false
@@ -488,15 +504,26 @@ export class Blackjack extends AbstractCommands {
             await this.dealCard(game, game.dealer.hand)
             await this.dealCard(game, game.dealer.hand)
 
+            if (game.fromDeathroll && game.dealer.hand.some((card) => card.rank === 'A')) {
+                game.dealer.hand = new Array<ICardObject>()
+                await this.dealCard(game, game.dealer.hand)
+                await this.dealCard(game, game.dealer.hand)
+            }
+
             await this.generateSimpleTable(game)
             this.printGame(game, interaction)
         }
     }
 
     private async reDeal(game: BlackjackGame, player: BlackjackPlayer) {
-        const user = await this.client.database.getUser(player.id)
-        user.effects.positive.blackjackReDeals -= 1
-        this.database.updateUser(user)
+        const hasDeathrollRedeal = game.fromDeathroll && !game.hasRedealt && game.players[0].stake > 25000
+        if (hasDeathrollRedeal) {
+            game.hasRedealt = true
+        } else {
+            const user = await this.client.database.getUser(player.id)
+            user.effects.positive.blackjackReDeals -= 1
+            this.database.updateUser(user)
+        }
         game.dealer.hand = new Array<ICardObject>()
         const hand: PlayerHand = { cards: new Array<ICardObject>(), stand: false, doubleDown: false }
         player.hands = [hand]
