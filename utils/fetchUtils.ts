@@ -16,8 +16,14 @@ export class FetchUtils {
     }
 
     static async checkImageUrl(url: string): Promise<boolean> {
+        try{
+            
         const res = await fetch(url, { method: 'HEAD' })
         const buff = await res.blob()
         return res.status === 200 || buff.type.startsWith('image/')
+        } catch(error){
+            return false
+        }
+        return false
     }
 }
