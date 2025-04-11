@@ -230,7 +230,7 @@ export class Blackjack extends AbstractCommands {
 
     private async getButtonRow(game: BlackjackGame, player: BlackjackPlayer) {
         const buttonRow = hitStandButtonRow(game.id)
-        const hasDeathrollRedeal = game.fromDeathroll && !game.hasRedealt && game.players[0].stake > 25000
+        const hasDeathrollRedeal = game.fromDeathroll && !game.hasRedealt
         if (player.hands[player.currentHandIndex].cards.length === 2) {
             const user = await this.client.database.getUser(player.id)
             if (this.canDoubleDown(player.hands[player.currentHandIndex]))
@@ -491,6 +491,7 @@ export class Blackjack extends AbstractCommands {
             await game.messages.embed.edit({ embeds: [game.messages.embedContent] })
         } else {
             game.resolved = false
+            game.hasRedealt = false
             this.client.bank.takeMoney(user, player.stake)
 
             game.dealer.hand = new Array<ICardObject>()
@@ -516,7 +517,7 @@ export class Blackjack extends AbstractCommands {
     }
 
     private async reDeal(game: BlackjackGame, player: BlackjackPlayer) {
-        const hasDeathrollRedeal = game.fromDeathroll && !game.hasRedealt && game.players[0].stake > 25000
+        const hasDeathrollRedeal = game.fromDeathroll && !game.hasRedealt
         if (hasDeathrollRedeal) {
             game.hasRedealt = true
         } else {
