@@ -8,9 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '23.2.1'
-    public static readonly currentPatchNotes =
-        '* Fjerner >25k krav for gratis dpn på hasjwin-blackjack' + '\n  * Påfølgende play again får også én gratis dpn' + '\n### TLDR: se punkter over'
+    public static readonly currentVersion = '23.3.0'
+    public static readonly currentPatchNotes = '* `/trade in` har nå dup-beskyttelse mot itemsene du trader inn'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

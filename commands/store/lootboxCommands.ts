@@ -622,11 +622,18 @@ export class LootboxCommands extends AbstractCommands {
         const colorChance = this.getTradeColorChance(pendingTrade.tradingIn)
 
         const colored = Math.random() < colorChance
-        const rewardedItem = await this.getRandomItemForRarity(pendingTrade.receiving, pendingTrade.series, colored, user)
+        let rewardedItem = await this.getRandomItemForRarity(pendingTrade.receiving, pendingTrade.series, colored, user)
+        while (this.itemIsSameAsTradedIn(rewardedItem, pendingTrade.tradingIn)) {
+            rewardedItem = await this.getRandomItemForRarity(pendingTrade.receiving, pendingTrade.series, colored, user)
+        }
         const tradedItemsRemoved = this.removeItemsFromUser(pendingTrade.tradingIn, user)
         this.registerTradeOnUser(tradedItemsRemoved, rewardedItem, user)
         this.revealCollectable(interaction, rewardedItem)
         this.deletePendingTrade(interaction)
+    }
+
+    private itemIsSameAsTradedIn(newItem: IUserCollectable, tradingIn: IUserCollectable[]) {
+        return tradingIn.some((item) => item.name === newItem.name && item.color === newItem.color)
     }
 
     private getTradeColorChance(items: IUserCollectable[]) {
