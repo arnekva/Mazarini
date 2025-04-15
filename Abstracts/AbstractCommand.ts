@@ -1,5 +1,5 @@
 import { MazariniClient } from '../client/MazariniClient'
-import { IInteractionElement } from '../interfaces/interactionInterface'
+import { IInteractionElement, IOnTimedEvent } from '../interfaces/interactionInterface'
 
 export abstract class AbstractCommands {
     /** Client reference */
@@ -19,6 +19,10 @@ export abstract class AbstractCommands {
     // eslint-disable-next-line require-await
     async refresh(): Promise<boolean> {
         return true
+    }
+    // eslint-disable-next-line require-await
+    async onTimedEvent(): Promise<IOnTimedEvent> {
+        return { daily: [], weekly: [], hourly: [] }
     }
 
     /** gets messageHelper from client */

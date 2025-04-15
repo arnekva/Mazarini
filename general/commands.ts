@@ -41,6 +41,7 @@ import { Weather } from '../commands/weatherCommands'
 import { IInteractionCommand, IInteractionElement } from '../interfaces/interactionInterface'
 import { PatchNotes } from '../patchnotes'
 
+export type TimedEvent = 'weekly' | 'daily' | 'hourly'
 export class Commands {
     private client: MazariniClient
 
@@ -160,6 +161,17 @@ export class Commands {
         }
     }
 
+    //TODO: Needs to be tested
+    async doJobs(timing: TimedEvent) {
+        const allClasses = this.getAll()
+        for (const c of allClasses) {
+            const jobs = c.onTimedEvent()?.[timing] || []
+            for (const job of jobs) {
+                await job()
+            }
+        }
+    }
+
     private getAllTextCommands() {
         return this.getAllInteractionCommands()
             .flatMap((c) => c.commands.interactionCommands)
@@ -186,5 +198,10 @@ export class Commands {
 
     get dateFunc() {
         return this.dateCommands
+    }
+
+    /** @deprecated To be removed */
+    get moreOrLessCommands() {
+        return this.moreOrLess
     }
 }

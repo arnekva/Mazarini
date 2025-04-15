@@ -24,6 +24,9 @@ export class DailyJobs {
     }
 
     async runJobs(onlyRl?: boolean) {
+        //TODO: Refactor to actually run this
+        this.client.onTimedEvent('daily')
+
         if (onlyRl) {
             this.updateRLTournaments(rapidApiKey)
         } else {
@@ -311,6 +314,8 @@ export class DailyJobs {
         lootboxes.chests.forEach((r) => {
             this.messageHelper.sendMessage(threadId, { components: [r] })
         })
+
+        this.client.commandList.moreOrLessCommands.wipeGames()
 
         if (attempted) {
             const updates = this.client.database.getUpdatesObject<'dailyGameStats'>()

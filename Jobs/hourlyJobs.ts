@@ -13,6 +13,7 @@ export class HourJob {
         this.client = client
     }
     async runJobs() {
+        this.client.onTimedEvent('hourly')
         await this.checkForUpcomingRLTournaments()
         await this.sendScheduledMessage()
     }

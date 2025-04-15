@@ -93,6 +93,12 @@ export class MazariniClient extends Client {
         return true
     }
 
+    async onTimedEvent(timing: 'daily' | 'weekly' | 'hourly'): Promise<boolean> {
+        this.messageHelper.sendLogMessage(`Running ${timing} jobs for all command classes`)
+        await this.clientListener.commandRunner.runJobs(timing)
+        return true
+    }
+
     get messageHelper() {
         return this.msgHelper
     }
@@ -118,5 +124,11 @@ export class MazariniClient extends Client {
     }
     set cache(cache: Partial<ICache>) {
         this.clientCache = cache
+    }
+
+    /** @deprecated TO BE REMOVED */
+    get commandList() {
+        //This should be refactored into an onDaily
+        return this.clientListener.commandRunner.commandsList
     }
 }

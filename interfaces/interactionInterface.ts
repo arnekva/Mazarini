@@ -31,3 +31,17 @@ export interface IInteractionElement {
         modalInteractionCommands?: IInteractionCommand<ModalSubmitInteraction<CacheType>>[]
     }
 }
+
+/**
+ *  This interface is used to define the different timed events that can be run by the bot.
+ * It is used in the JobScheduler class to run the different events at the specified intervals.
+ * @interface IOnTimedEvent
+ * @property {(() => boolean)[]} [weekly] - An array of functions that will be run weekly - 05:00 on Mondays.
+ * @property {(() => boolean)[]} [daily] - An array of functions that will be run daily - 05:01 every day.
+ * @property {(() => boolean)[]} [hourly] - An array of functions that will be run hourly - xx:01 every hour.
+ */
+export interface IOnTimedEvent {
+    weekly?: (() => boolean)[]
+    daily?: (() => boolean)[]
+    hourly?: (() => boolean)[]
+}

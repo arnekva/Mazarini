@@ -296,6 +296,11 @@ export class MoreOrLess extends AbstractCommands {
         return true
     }
 
+    /** @deprecated TO BE REMOVED */
+    wipeGames() {
+        this.userGames.clear()
+    }
+
     getAllInteractions(): IInteractionElement {
         return {
             commands: {

@@ -18,6 +18,7 @@ export class WeeklyJobs {
         this.client = client
     }
     async runJobs() {
+        this.client.onTimedEvent('weekly')
         const embed = EmbedUtils.createSimpleEmbed(`Weekly Jobs`, `Kjører 5 jobber`)
         const polet = await this.checkPoletHours()
         embed.addFields({ name: 'Polet status', value: EmojiHelper.getStatusEmoji(polet) })

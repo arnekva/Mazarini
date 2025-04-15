@@ -17,7 +17,7 @@ import { IInteractionCommand } from '../interfaces/interactionInterface'
 import { ChannelIds, MentionUtils } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
 
-import { Commands } from './commands'
+import { Commands, TimedEvent } from './commands'
 import { MessageChecker } from './messageChecker'
 
 export class CommandRunner {
@@ -139,6 +139,9 @@ export class CommandRunner {
     async runRefresh() {
         return await this.commands.doRefreshAllCommands()
     }
+    async runJobs(timing: TimedEvent) {
+        return await this.commands.doJobs(timing)
+    }
 
     async checkIfBlockedByJail(interaction: Interaction<CacheType>) {
         const user = await this.client.database.getUser(interaction.user.id)
@@ -156,5 +159,10 @@ export class CommandRunner {
         if (runningInteraction.disabled)
             this.client.messageHelper.replyToInteraction(interaction as ChatInputCommandInteraction, `Denne kommandoen er ikke tilgjengelig`)
         else runningInteraction.command(interaction)
+    }
+
+    /** @deprecated To be removed */
+    get commandsList() {
+        return this.commands
     }
 }
