@@ -1,4 +1,5 @@
 import { MazariniClient } from '../client/MazariniClient'
+import { MazariniUser } from '../interfaces/database/databaseInterface'
 import { IInteractionElement, IOnTimedEvent } from '../interfaces/interactionInterface'
 
 export abstract class AbstractCommands {

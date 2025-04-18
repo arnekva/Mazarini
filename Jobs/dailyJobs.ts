@@ -315,8 +315,6 @@ export class DailyJobs {
             this.messageHelper.sendMessage(threadId, { components: [r] })
         })
 
-        this.client.commandList.moreOrLessCommands.wipeGames()
-
         if (attempted) {
             const updates = this.client.database.getUpdatesObject<'dailyGameStats'>()
             usersWithStats.forEach((user) => {

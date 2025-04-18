@@ -199,9 +199,4 @@ export class Commands {
     get dateFunc() {
         return this.dateCommands
     }
-
-    /** @deprecated To be removed */
-    get moreOrLessCommands() {
-        return this.moreOrLess
-    }
 }

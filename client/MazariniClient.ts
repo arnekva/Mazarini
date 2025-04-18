@@ -125,10 +125,4 @@ export class MazariniClient extends Client {
     set cache(cache: Partial<ICache>) {
         this.clientCache = cache
     }
-
-    /** @deprecated TO BE REMOVED */
-    get commandList() {
-        //This should be refactored into an onDaily
-        return this.clientListener.commandRunner.commandsList
-    }
 }

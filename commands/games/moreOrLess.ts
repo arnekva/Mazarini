@@ -14,7 +14,7 @@ import { MazariniClient } from '../../client/MazariniClient'
 
 import { randomUUID } from 'crypto'
 import { IMoreOrLess } from '../../interfaces/database/databaseInterface'
-import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { IInteractionElement, IOnTimedEvent } from '../../interfaces/interactionInterface'
 import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { FetchUtils } from '../../utils/fetchUtils'
@@ -39,6 +39,7 @@ interface IMoreOrLessUserGame {
     message: Message | InteractionResponse
     active: boolean
     totalQuestions: number
+    startTime?: Date
 }
 
 export class MoreOrLess extends AbstractCommands {
@@ -138,6 +139,7 @@ export class MoreOrLess extends AbstractCommands {
                     message: msg,
                     active: false,
                     totalQuestions: data.length,
+                    startTime: new Date(),
                 }
                 this.userGames.set(interaction.user.id, userGame)
             }
@@ -190,7 +192,11 @@ export class MoreOrLess extends AbstractCommands {
             `\n\nVS\n\n` +
             `${game.next.subject}`
         const embed = EmbedUtils.createSimpleEmbed(this.game.title, description).setFooter({
-            text: `${game.correctAnswers} riktige`,
+            text: `${game.correctAnswers} riktige ${
+                game.startTime && DateUtils.getTimeSince(game.startTime).minutes > 13
+                    ? '. Denne meldingen er nå eldre enn 13 minutter, og vil snart slutte å virke'
+                    : ''
+            }`,
         }) //TODO: We might not want this, remove if needed
 
         const isImageReal = await FetchUtils.checkImageUrl(game.current.image)
@@ -296,9 +302,14 @@ export class MoreOrLess extends AbstractCommands {
         return true
     }
 
-    /** @deprecated TO BE REMOVED */
-    wipeGames() {
+    private wipeGames() {
         this.userGames.clear()
+        return true
+    }
+
+    // eslint-disable-next-line require-await
+    async onTimedEvent(): Promise<IOnTimedEvent> {
+        return { daily: [() => this.wipeGames()], weekly: [], hourly: [] }
     }
 
     getAllInteractions(): IInteractionElement {
