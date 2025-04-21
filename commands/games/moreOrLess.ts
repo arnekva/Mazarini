@@ -192,12 +192,8 @@ export class MoreOrLess extends AbstractCommands {
             `\n\nVS\n\n` +
             `${game.next.subject}`
         const embed = EmbedUtils.createSimpleEmbed(this.game.title, description).setFooter({
-            text: `${game.correctAnswers} riktige ${
-                game.startTime && DateUtils.getTimeSince(game.startTime).minutes > 13
-                    ? '. Denne meldingen er nå eldre enn 13 minutter, og vil snart slutte å virke'
-                    : ''
-            }`,
-        }) //TODO: We might not want this, remove if needed
+            text: `${game.correctAnswers} riktige.`,
+        })
 
         const isImageReal = await FetchUtils.checkImageUrl(game.current.image)
         if (isImageReal) embed.setThumbnail(game.current.image)
