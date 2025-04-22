@@ -10,7 +10,6 @@ import {
     Interaction,
     Message,
     MessageReaction,
-    MessageType,
     NonThreadGuildBasedChannel,
     PartialGuildMember,
     PartialMessage,
@@ -126,14 +125,14 @@ export class ClientListener {
                 //Do not react
             } else {
                 this.commandRunner.runCommands(message)
-                const messageIncludesTag = message.content.includes(`<@!${MentionUtils.User_IDs.BOT_HOIE}>`)
+                const hoieTagged = message.content.includes(`<@${MentionUtils.User_IDs.BOT_HOIE}>`)
 
                 if (
-                    (message.mentions.users.find((u) => u.id === MentionUtils.User_IDs.BOT_HOIE) || messageIncludesTag) &&
-                    (environment === 'prod' || (environment === 'dev' && message.channelId === ChannelIds.LOKAL_BOT_SPAM_DEV)) &&
-                    (message.type !== MessageType.Reply || (message.type === MessageType.Reply && messageIncludesTag))
+                    hoieTagged &&
+                    ((environment === 'prod' && message.channelId !== ChannelIds.LOKAL_BOT_SPAM_DEV) ||
+                        (environment === 'dev' && message.channelId === ChannelIds.LOKAL_BOT_SPAM_DEV))
                 ) {
-                    GeminiHelper.fetchAndSendMessage(message.content, this.client.messageHelper, message.channelId)
+                    GeminiHelper.fetchAndSendMessage(message, this.client.messageHelper, message.channelId)
                 }
             }
         })
