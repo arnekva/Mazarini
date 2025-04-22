@@ -8,11 +8,9 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '24.0.2'
+    public static readonly currentVersion = '24.0.3'
     public static readonly currentPatchNotes =
-        '* Fikser at Høie ikke svarte på replies med tags' +
-        '\n* Høie får nå tekst-innholdet fra meldingen det evt svares på som kontekst til prompten sin' +
-        '\n  * Dette går kun ett nivå. Dersom meldingen det svares på, også var et svar på en annen melding, vil ikke tekst-innholdet til den andre meldingen komme med'
+        '* Du kan nå reply-e til Høie uten å tagge han' + '\n  * Han svarer ikke hvis det er en interaction response du reply-er til'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

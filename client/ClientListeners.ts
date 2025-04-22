@@ -113,7 +113,7 @@ export class ClientListener {
         })
 
         /** For all sent messages */
-        this.client.on('messageCreate', (message: Message) => {
+        this.client.on('messageCreate', async (message: Message) => {
             MazariniBot.numMessages++
             //Do not reply to own messages. Do not trigger on pinned messages
             if (
@@ -126,9 +126,14 @@ export class ClientListener {
             } else {
                 this.commandRunner.runCommands(message)
                 const hoieTagged = message.content.includes(`<@${MentionUtils.User_IDs.BOT_HOIE}>`)
-
+                let replyToHoie = false
+                if (message.mentions?.repliedUser?.id === MentionUtils.User_IDs.BOT_HOIE) {
+                    const msgId = message.reference.messageId
+                    const reference = await this.client.messageHelper.fetchMessage(message.channelId, msgId)
+                    replyToHoie = reference.interactionMetadata === null
+                }
                 if (
-                    hoieTagged &&
+                    (hoieTagged || replyToHoie) &&
                     ((environment === 'prod' && message.channelId !== ChannelIds.LOKAL_BOT_SPAM_DEV) ||
                         (environment === 'dev' && message.channelId === ChannelIds.LOKAL_BOT_SPAM_DEV))
                 ) {
