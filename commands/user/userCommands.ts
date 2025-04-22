@@ -87,11 +87,13 @@ export class UserCommands extends AbstractCommands {
     private async findUserInfo(interaction: ChatInputCommandInteraction<CacheType>) {
         const allUserTabs = await this.client.database.getUser(interaction.user.id)
 
-        const options: SelectMenuComponentOptionData[] = Object.keys(allUserTabs).map((key) => ({
-            label: key,
-            value: key,
-            description: `${typeof allUserTabs[key]}`,
-        }))
+        const options: SelectMenuComponentOptionData[] = Object.keys(allUserTabs)
+            .slice(0, 25)
+            .map((key) => ({
+                label: key,
+                value: key,
+                description: `${typeof allUserTabs[key]}`,
+            }))
 
         const menu = ActionMenuHelper.createSelectMenu(`USER_INFO_MENU;${interaction.user.id}`, 'Velg databaseinnlegg', options)
         const embed = EmbedUtils.createSimpleEmbed(`Se brukerinfo for ${interaction.user.username}`, 'Ingen data å vise')
@@ -111,7 +113,12 @@ export class UserCommands extends AbstractCommands {
             // }
 
             await selectMenu.update({
-                embeds: [EmbedUtils.createSimpleEmbed(`Se brukerinfo for ${selectMenu.user.username}`, `Verdien for ${value} er ${JSON.stringify(userData)}`)],
+                embeds: [
+                    EmbedUtils.createSimpleEmbed(
+                        `Se brukerinfo for ${selectMenu.user.username}`,
+                        `Verdien for ${value} er ${JSON.stringify(userData, null, 2)}`
+                    ),
+                ],
             })
         } else {
             return !!this.messageHelper.replyToInteraction(selectMenu, `Du kan bare sjekka dine egne ting. Bruke '/brukerinfo' for å se dine egne verdier`, {

@@ -8,9 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '24.0.3'
-    public static readonly currentPatchNotes =
-        '* Du kan nå reply-e til Høie uten å tagge han' + '\n  * Han svarer ikke hvis det er en interaction response du reply-er til'
+    public static readonly currentVersion = '24.0.4'
+    public static readonly currentPatchNotes = '* Brukerinfo er nå mulig å lese'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
