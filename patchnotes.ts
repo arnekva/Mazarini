@@ -8,8 +8,9 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '24.0.4'
-    public static readonly currentPatchNotes = '* Brukerinfo er nå mulig å lese'
+    public static readonly currentVersion = '24.1.0'
+    public static readonly currentPatchNotes =
+        '* Bruker nå Gemini Chat i stedet for enkele meldinger for Høie - dette betyr at han (forhåpentligvis) vil beholde kontekst mellom meldinger'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

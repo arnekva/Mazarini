@@ -7,6 +7,7 @@ import { MazariniTracker } from '../general/mazariniTracker'
 import { LockingHandler } from '../handlers/lockingHandler'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { FirebaseHelper } from '../helpers/firebaseHelper'
+import { GeminiHelper } from '../helpers/geminiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MoneyHelper } from '../helpers/moneyHelper'
 import { ICache } from '../interfaces/database/databaseInterface'
@@ -25,6 +26,7 @@ export class MazariniClient extends Client {
     private clientCache: Partial<ICache>
     private clientListener: ClientListener
     private moneyHelper: MoneyHelper
+    private geminiHelper: GeminiHelper
 
     constructor() {
         super({
@@ -58,7 +60,7 @@ export class MazariniClient extends Client {
         this.clientCache = { deathrollWinningNumbers: [], restartImpediments: [] }
         this.moneyHelper = new MoneyHelper(this)
         this.setupDatabase(this.msgHelper)
-
+        this.geminiHelper = new GeminiHelper()
         this.clientListener.setupListeners()
     }
 
@@ -117,6 +119,10 @@ export class MazariniClient extends Client {
 
     get tracker() {
         return this.mazariniTracker
+    }
+
+    get gemini() {
+        return this.geminiHelper
     }
 
     get cache() {

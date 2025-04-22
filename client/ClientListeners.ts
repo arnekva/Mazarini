@@ -22,7 +22,6 @@ import { environment } from '../client-env'
 import { CommandRunner } from '../general/commandRunner'
 import { ErrorHandler } from '../handlers/errorHandler'
 import { ClientHelper } from '../helpers/clientHelper'
-import { GeminiHelper } from '../helpers/geminiHelper'
 import { MazariniBot } from '../main'
 import { PatchNotes } from '../patchnotes'
 import { EmbedUtils } from '../utils/embedUtils'
@@ -137,7 +136,7 @@ export class ClientListener {
                     ((environment === 'prod' && message.channelId !== ChannelIds.LOKAL_BOT_SPAM_DEV) ||
                         (environment === 'dev' && message.channelId === ChannelIds.LOKAL_BOT_SPAM_DEV))
                 ) {
-                    GeminiHelper.fetchAndSendMessage(message, this.client.messageHelper, message.channelId)
+                    this.client.gemini.fetchAndSendMessage(message, this.client.messageHelper, message.channelId)
                 }
             }
         })
