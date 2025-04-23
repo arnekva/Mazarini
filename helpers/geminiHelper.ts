@@ -59,9 +59,9 @@ export class GeminiHelper {
         return result.response.text()
     }
 
-    async fetchAndSendMessage(message: Message, msgHelper: MessageHelper, channelId: string) {
+    async fetchAndSendMessage(message: Message, msgHelper: MessageHelper, channelId: string, username?: string) {
         const context = await this.getReplyingToContent(message, msgHelper, channelId)
-        const answer = await this.generateAnswer(message.content, context.author, context.content)
+        const answer = await this.generateAnswer(message.content, context.author, context.content, username)
         msgHelper.sendMessage(channelId, { text: answer })
     }
 
