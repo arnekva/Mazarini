@@ -60,7 +60,7 @@ export class MazariniClient extends Client {
         this.clientCache = { deathrollWinningNumbers: [], restartImpediments: [] }
         this.moneyHelper = new MoneyHelper(this)
         this.setupDatabase(this.msgHelper)
-        this.geminiHelper = new GeminiHelper()
+        this.geminiHelper = new GeminiHelper(this)
         this.clientListener.setupListeners()
     }
 
@@ -96,7 +96,6 @@ export class MazariniClient extends Client {
     }
 
     async onTimedEvent(timing: 'daily' | 'weekly' | 'hourly'): Promise<boolean> {
-        this.messageHelper.sendLogMessage(`Running ${timing} jobs for all command classes`)
         await this.clientListener.commandRunner.runJobs(timing)
         return true
     }

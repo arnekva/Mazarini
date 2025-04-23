@@ -70,6 +70,7 @@ export class MoreOrLess extends AbstractCommands {
         ).json()
         const unplayed = games.filter((game) => !previous.includes(game.slug))
         const game: IMoreOrLess = unplayed && unplayed.length > 0 ? RandomUtils.getRandomItemFromList(unplayed) : RandomUtils.getRandomItemFromList(games)
+
         const dataUrl = `https://api.moreorless.io/en/games/${game.slug}.json`
         const check: any = (
             await (
@@ -180,7 +181,7 @@ export class MoreOrLess extends AbstractCommands {
             game.next = game.data.pop()
             this.updateGame(game)
         } else {
-            this.endGame(game, interaction.user.id)
+            this.endGame(game, interaction.user.id, correct)
         }
     }
 
@@ -203,7 +204,7 @@ export class MoreOrLess extends AbstractCommands {
         })
     }
 
-    private async endGame(game: IMoreOrLessUserGame, userId: string) {
+    private async endGame(game: IMoreOrLessUserGame, userId: string, wasCorrent = true) {
         game.active = false
         const user = await this.database.getUser(userId)
         let rewardMsg = ''
@@ -220,7 +221,7 @@ export class MoreOrLess extends AbstractCommands {
             }
             if (game.correctAnswers === 0) this.database.updateUser(user)
         }
-        const completedNow = game.data.length === 0
+        const completedNow = game.data.length === 0 && wasCorrent
         const completedPreviously = user.dailyGameStats.moreOrLess.completed
         const numTries = user.dailyGameStats.moreOrLess.numAttempts + 1
         user.dailyGameStats.moreOrLess.numAttempts = numTries

@@ -20,7 +20,7 @@ export enum ChannelIds {
 export enum ThreadIds {
     GENERAL_TERNING = '1231880250569261106',
     LOCALHOST_TEST = '1251646425461297332',
-    MORE_OR_LESS = '1331898914571292683'
+    MORE_OR_LESS = '1331898914571292683',
 }
 
 export enum ServerIds {

@@ -136,7 +136,10 @@ export class ClientListener {
                     ((environment === 'prod' && message.channelId !== ChannelIds.LOKAL_BOT_SPAM_DEV) ||
                         (environment === 'dev' && message.channelId === ChannelIds.LOKAL_BOT_SPAM_DEV))
                 ) {
-                    this.client.gemini.fetchAndSendMessage(message, this.client.messageHelper, message.channelId, message?.author?.username)
+                    this.client.gemini.fetchAndSendMessage(message, this.client.messageHelper, message.channelId, {
+                        displayName: UserUtils.getPrettyName(message.member),
+                        username: message.author.username,
+                    })
                 }
             }
         })

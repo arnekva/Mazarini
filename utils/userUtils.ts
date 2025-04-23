@@ -9,6 +9,7 @@ import {
     PartialGuildMember,
     PartialUser,
     Role,
+    ThreadMember,
     User,
 } from 'discord.js'
 import { MazariniClient } from '../client/MazariniClient'
@@ -160,5 +161,11 @@ export namespace UserUtils {
                 newMember.user.username +
                 `. Følgende keys er oppdatert: ${Object.keys(keyDifference).join(', ')}. \nVerdier som er endret blir forsøkt sendt her: ${vals}`
         )
+    }
+
+    export const getPrettyName = (member: GuildMember | PartialGuildMember | ThreadMember) => {
+        if (member instanceof ThreadMember) {
+            return member.guildMember.nickname || member.guildMember.displayName || member.user.globalName || member.user.displayName || member.user.username
+        } else return member.user.globalName || member.user.displayName || member.user.username
     }
 }

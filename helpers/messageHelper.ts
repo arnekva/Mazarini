@@ -285,8 +285,14 @@ export class MessageHelper {
         }
     }
 
-    private findChannelById(id: string) {
+    findChannelById(id: string) {
         return this.client.channels.cache.find((c) => c.id === id)
+    }
+
+    async fetchAndFindChannelById(id: string) {
+        const channel = await this.client.channels.fetch(id)
+        if (channel) return channel
+        return undefined
     }
 
     /** Reply to a given message */
