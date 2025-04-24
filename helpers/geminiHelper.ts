@@ -42,10 +42,6 @@ export class GeminiHelper {
 
         //Make sure that the Bot has logged in before adding context
         this.chatStream = this.setupChat()
-        setTimeout(() => {
-            this.addContext()
-            console.log('Context has been added to Gemini')
-        }, 5000)
     }
     async generateAnswer(question: string, replyingTo: string, replyingToContent: string, user?: IKnownUser) {
         const context =
@@ -105,7 +101,7 @@ export class GeminiHelper {
     }
 
     /** Async operations */
-    private async addContext() {
+    async addContext() {
         const userContext = await this.getUserContext()
         const memberString = `Dette er medlemmene du kan forholde deg til til å begynne med for å gjøre det enklere. Alle disse kan delta i samtalen. Andre folk kan også bli med, da skal du huske dem også. Du får visningsnavnet først og brukernavnet i parantes. Du får vite brukernavn når de sender melding.
         Du skal alltid bruke visningsnavn når du referer til brukeren. Eksempel: "Visningsnavn: Jonas (brukernavn: BigG123)" - denne brukeren skal referes til som "Jonas", og du skal gjennkjenne at BigG123 også er Jonas. Når du svarer på noe trenger du ikke å si hvem du svarer med mindre du føler det er nødvendig. Listen er kommaseparert: ${userContext
@@ -125,7 +121,12 @@ export class GeminiHelper {
             {
                 text: `Du skal ikke skrive ditt eget navn på starten av samtalen, som om det er en skreven samtale. Eksempelvis skal det ikke stå "Bot Høie: dette er min melding" - det skal bare stå "dette er min melding" `,
             },
-            { text: `Du skal svare kort, presis, og riktig. Du er på en discordserver som heter "Mazarini" - dette trenger du ikke nevne. ` },
+            {
+                text: `Du skal svare kort, presis, og riktig. Men, hvis noen ber om et utfyllende svar så skal du gi svaret. Å liste opp f.eks "30 ting å gjøre i Oslo" er ikke for mye.`,
+            },
+            {
+                text: `Du er på en discordserver som heter "Mazarini" - dette trenger du ikke nevne. `,
+            },
             {
                 text: `Hvis noen spør om hva "du" mener, skal du svare på generell basis. Hvis vi spør "Hvem er norges mest kjente programleder", så leter vi ikke etter dine tanker som språk, men hva du tror - for eksempel et svar som "Mange mener Fredrik Skavlan er den mest kjente".`,
             },

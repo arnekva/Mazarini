@@ -109,6 +109,8 @@ export class ClientListener {
             PatchNotes.compareAndSendPatchNotes(this.client.messageHelper, this.client.database)
 
             this.errorHandler.launchBusListeners()
+
+            this.client.onBotReady()
         })
 
         /** For all sent messages */

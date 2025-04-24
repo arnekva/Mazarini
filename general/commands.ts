@@ -161,6 +161,13 @@ export class Commands {
         }
     }
 
+    doOnReadyAllCommands() {
+        const allClasses = this.getAll()
+        for (const c of allClasses) {
+            c.onReady()
+        }
+    }
+
     //TODO: Needs to be tested
     async doJobs(timing: TimedEvent) {
         const allClasses = this.getAll()

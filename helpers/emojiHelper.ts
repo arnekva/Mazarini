@@ -25,12 +25,12 @@ export class EmojiHelper {
     }
 
     static getGuildEmoji(emojiType: string, accessPoint: Message | Interaction<CacheType> | Client<boolean>): GuildEmoji {
-        const ap = accessPoint instanceof Client ? accessPoint : accessPoint.client        
+        const ap = accessPoint instanceof Client ? accessPoint : accessPoint.client
         return ap.emojis.cache.find((emoji) => emoji.name == emojiType)
     }
 
-    static async getApplicationEmoji(emojiType: string, client: Client<boolean>): Promise<emojiReturnType> {     
-        const appEmojis = await client.application.emojis.fetch()           
+    static async getApplicationEmoji(emojiType: string, client: Client<boolean>): Promise<emojiReturnType> {
+        const appEmojis = await client.application.emojis.fetch()
         const emojiObj = appEmojis.find((emoji) => emoji.name == emojiType)
         if (!emojiObj) return { id: '<Fant ikke emojien>' }
         return { id: `<${emojiObj.animated ? 'a' : ''}:${emojiObj.name}:${emojiObj?.id}>`, emojiObject: emojiObj, urlId: emojiObj?.id }

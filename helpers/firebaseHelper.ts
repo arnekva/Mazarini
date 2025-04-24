@@ -134,7 +134,3 @@ export class FirebaseHelper {
         return this.messageHelper
     }
 }
-
-function delay(time) {
-    return new Promise((resolve) => setTimeout(resolve, time))
-}

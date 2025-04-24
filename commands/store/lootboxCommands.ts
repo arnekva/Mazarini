@@ -16,7 +16,7 @@ import { MazariniClient } from '../../client/MazariniClient'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
 import { ICollectableSeries, ILootbox, ItemColor, ItemRarity, IUserCollectable, IUserEffects, MazariniUser } from '../../interfaces/database/databaseInterface'
-import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { IInteractionElement, IOnTimedEvent } from '../../interfaces/interactionInterface'
 import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { RandomUtils } from '../../utils/randomUtils'
@@ -679,6 +679,20 @@ export class LootboxCommands extends AbstractCommands {
         if (focused.name === 'series') this.seriesAutocomplete(interaction)
         else if (focused.name.includes('quality')) this.qualityAutocomplete(interaction, cmd === 'chest')
         else if (focused.name.includes('item')) this.itemAutocomplete(interaction)
+    }
+
+    // eslint-disable-next-line require-await
+    async onTimedEvent(): Promise<IOnTimedEvent> {
+        return { daily: [() => this.resetPendingChests()], weekly: [], hourly: [] }
+    }
+
+    private resetPendingChests() {
+        this.pendingChests.forEach((chest) => {
+            const msg = chest.message
+            if (msg) msg.delete()
+        })
+        this.pendingChests.clear()
+        return true
     }
 
     getAllInteractions(): IInteractionElement {

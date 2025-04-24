@@ -100,6 +100,17 @@ export class MazariniClient extends Client {
         return true
     }
 
+    onBotReady() {
+        this.clientListener.commandRunner.runOnReady()
+        this.messageHelper.sendLogMessage('Running onLogin for all command classes')
+
+        this.setupGeminiContext()
+    }
+
+    private setupGeminiContext() {
+        this.geminiHelper.addContext()
+    }
+
     get messageHelper() {
         return this.msgHelper
     }

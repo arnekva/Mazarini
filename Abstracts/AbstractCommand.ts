@@ -1,5 +1,4 @@
 import { MazariniClient } from '../client/MazariniClient'
-import { MazariniUser } from '../interfaces/database/databaseInterface'
 import { IInteractionElement, IOnTimedEvent } from '../interfaces/interactionInterface'
 
 export abstract class AbstractCommands {
@@ -25,6 +24,9 @@ export abstract class AbstractCommands {
     async onTimedEvent(): Promise<IOnTimedEvent> {
         return { daily: [], weekly: [], hourly: [] }
     }
+
+    /** Any functions that needs to run AFTER the Bot has logged in */
+    onReady(): void {}
 
     /** gets messageHelper from client */
     get messageHelper() {

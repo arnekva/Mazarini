@@ -8,13 +8,10 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '24.2.0'
+    public static readonly currentVersion = '24.3.0'
     public static readonly currentPatchNotes =
-        '* Gemini vil nå forsøke å huske hvem du er, og vil bruke det navnet i svarene sine.' +
-        '\n* Han vil også få kontekst når en melding sendes i form av hvem som sendte den.' +
-        '\n* Du kan ikke lenger vinne More or Less når du tar feil på siste spørsmål - det skal nå faktisk telle som et tap.' +
-        '\n* TimedEvents vil ikke lenger logge jobber' +
-        '\nUserUtils har nå en getPrettyName() som tar inn en Member som parameter og returnerer brukerens navn i rekkefølge server-nickname, global-nickname, display-name, username'
+        '* Du kan ikke lenger spare chests over natten. Alle uåpnede chests vil bli ugyldiggjort i daily jobs 05:00' +
+        '\n* Command-klasser kan nå ha en onReady-funksjon som vil kjøre etter at boten har logget inn. Login er siste steg i startup-prossenen, og clienten vil da ha klart alle dependencies (database o.l.).'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

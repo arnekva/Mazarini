@@ -143,6 +143,10 @@ export class CommandRunner {
         return await this.commands.doJobs(timing)
     }
 
+    runOnReady() {
+        return this.commands.doOnReadyAllCommands()
+    }
+
     async checkIfBlockedByJail(interaction: Interaction<CacheType>) {
         const user = await this.client.database.getUser(interaction.user.id)
         if (user.jail?.daysInJail && user.jail?.daysInJail > 0) {
