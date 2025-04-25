@@ -13,6 +13,7 @@ import {
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 import { EmojiHelper } from '../../helpers/emojiHelper'
+import { MazariniUser } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { RandomUtils } from '../../utils/randomUtils'
@@ -311,6 +312,7 @@ export class DealOrNoDeal extends AbstractCommands {
         } else {
             game.state = DonDState.Accepted
             const user = await this.database.getUser(interaction.user.id)
+            this.updateUserStats(user, game.latestOffer, game.cases.get(game.player.caseNr).value, true)
             this.client.bank.giveMoney(user, game.latestOffer)
             this.removeGame(game)
         }
@@ -319,8 +321,10 @@ export class DealOrNoDeal extends AbstractCommands {
 
     private async keepOrSwitch(interaction: ButtonInteraction<CacheType>, game: IDonDGame) {
         const answer = (interaction.customId.split(';')[2] as string).toLowerCase()
+        const remainingCase = Array.from(game.cases.entries()).filter((val) => !val[1].opened && val[0] != game.player.caseNr)
+        let oppositeCaseValue = remainingCase[0][1].value
         if (answer === 'bytt') {
-            const remainingCase = Array.from(game.cases.entries()).filter((val) => !val[1].opened && val[0] != game.player.caseNr)
+            oppositeCaseValue = game.cases.get(game.player.caseNr).value
             game.player.caseNr = remainingCase[0][0]
             game.state = DonDState.Switched
         } else {
@@ -328,10 +332,51 @@ export class DealOrNoDeal extends AbstractCommands {
         }
         const playerReward = game.cases.get(game.player.caseNr).value
         const user = await this.database.getUser(interaction.user.id)
+        this.updateUserStats(user, playerReward, game.cases.get(game.player.caseNr).value, undefined, oppositeCaseValue)
         this.client.bank.giveMoney(user, playerReward)
         this.removeGame(game)
         this.updateGame(game)
     }
+
+    /**
+     * 
+     * @param user 
+     * @param valueWon - The value the user won
+     * @param gameValue - The value of the highest case in the game
+     * @param fromDeal If the money was won from a deal, set this to true
+     */
+    private updateUserStats(user: MazariniUser, valueWon: number, gameValue: number, fromDeal?: boolean, remainingCaseValue?: number) {
+      if(! user.userStats?.dondStats) {
+        if(!user.userStats) user.userStats = {}
+        user.userStats.dondStats = {
+          totalGames: 0,
+          timesAcceptedDeal: 0,
+          totalMissedMoney: 0,
+          winningsFromKeepOrSwitch: 0,
+          timesWonLessThan1000: 0,
+          winningsFromAcceptDeal: 0,
+          winsOfOne: 0,
+          keepSwitchBalance: 0,
+        }
+      }
+      user.userStats.dondStats.totalGames++
+      user.userStats.dondStats.totalMissedMoney += gameValue - valueWon
+      if (valueWon < 1000) user.userStats.dondStats.timesWonLessThan1000++
+      if(valueWon === 1) user.userStats.dondStats.winsOfOne++
+      if(fromDeal) {
+        user.userStats.dondStats.timesAcceptedDeal++
+        user.userStats.dondStats.winningsFromAcceptDeal += valueWon
+      } else {
+        user.userStats.dondStats.winningsFromKeepOrSwitch += valueWon
+
+        if(remainingCaseValue){
+    
+            user.userStats.dondStats.keepSwitchBalance += valueWon - remainingCaseValue
+        }
+        
+      }
+    }
+
 
     private removeGame(deleteGame: IDonDGame) {
         for (const msg of deleteGame.buttonRows) {
