@@ -35,6 +35,7 @@ interface IDonDGame {
     latestOffer?: number
     embedMessage?: InteractionResponse<boolean> | Message<boolean>
     buttonRows?: Message<boolean>[]
+    quality?: DonDQuality
 }
 
 enum DonDState {
@@ -115,6 +116,7 @@ export class DealOrNoDeal extends AbstractCommands {
             round: 1,
             state: DonDState.Opening,
             buttonRows: new Array<Message>(),
+            quality: quality,
         }
         this.games.push(game)
         this.printGame(interaction, game)
@@ -312,7 +314,7 @@ export class DealOrNoDeal extends AbstractCommands {
         } else {
             game.state = DonDState.Accepted
             const user = await this.database.getUser(interaction.user.id)
-            this.updateUserStats(user, game.latestOffer, game.cases.get(game.player.caseNr).value, true)
+            this.updateUserStats(user, game.latestOffer, game.cases.get(game.player.caseNr).value, game.quality, true)
             this.client.bank.giveMoney(user, game.latestOffer)
             this.removeGame(game)
         }
@@ -332,51 +334,56 @@ export class DealOrNoDeal extends AbstractCommands {
         }
         const playerReward = game.cases.get(game.player.caseNr).value
         const user = await this.database.getUser(interaction.user.id)
-        this.updateUserStats(user, playerReward, game.cases.get(game.player.caseNr).value, undefined, oppositeCaseValue)
+
+        this.updateUserStats(user, playerReward, game.cases.get(game.player.caseNr).value, game.quality, undefined, oppositeCaseValue)
         this.client.bank.giveMoney(user, playerReward)
         this.removeGame(game)
         this.updateGame(game)
     }
 
     /**
-     * 
-     * @param user 
+     *
+     * @param user
      * @param valueWon - The value the user won
      * @param gameValue - The value of the highest case in the game
      * @param fromDeal If the money was won from a deal, set this to true
      */
-    private updateUserStats(user: MazariniUser, valueWon: number, gameValue: number, fromDeal?: boolean, remainingCaseValue?: number) {
-      if(! user.userStats?.dondStats) {
-        if(!user.userStats) user.userStats = {}
-        user.userStats.dondStats = {
-          totalGames: 0,
-          timesAcceptedDeal: 0,
-          totalMissedMoney: 0,
-          winningsFromKeepOrSwitch: 0,
-          timesWonLessThan1000: 0,
-          winningsFromAcceptDeal: 0,
-          winsOfOne: 0,
-          keepSwitchBalance: 0,
+    private updateUserStats(user: MazariniUser, valueWon: number, gameValue: number, quality: DonDQuality, fromDeal?: boolean, remainingCaseValue?: number) {
+        if (!user.userStats?.dondStats) {
+            if (!user.userStats) user.userStats = {}
+            const emptyStats = {
+                totalGames: 0,
+                timesAcceptedDeal: 0,
+                totalMissedMoney: 0,
+                winningsFromKeepOrSwitch: 0,
+                timesWonLessThan1000: 0,
+                winningsFromAcceptDeal: 0,
+                winsOfOne: 0,
+                keepSwitchBalance: 0,
+            }
+            user.userStats.dondStats.fiftyKStats = emptyStats
+            user.userStats.dondStats.twentyKStats = emptyStats
+            user.userStats.dondStats.tenKStats = emptyStats
         }
-      }
-      user.userStats.dondStats.totalGames++
-      user.userStats.dondStats.totalMissedMoney += gameValue - valueWon
-      if (valueWon < 1000) user.userStats.dondStats.timesWonLessThan1000++
-      if(valueWon === 1) user.userStats.dondStats.winsOfOne++
-      if(fromDeal) {
-        user.userStats.dondStats.timesAcceptedDeal++
-        user.userStats.dondStats.winningsFromAcceptDeal += valueWon
-      } else {
-        user.userStats.dondStats.winningsFromKeepOrSwitch += valueWon
+        let gameToTrack = user.userStats.dondStats.tenKStats
+        if (quality === DonDQuality.Premium) gameToTrack = user.userStats.dondStats.twentyKStats
+        else if (quality === DonDQuality.Elite) gameToTrack = user.userStats.dondStats.fiftyKStats
 
-        if(remainingCaseValue){
-    
-            user.userStats.dondStats.keepSwitchBalance += valueWon - remainingCaseValue
+        gameToTrack.totalGames++
+        gameToTrack.totalMissedMoney += gameValue - valueWon
+        if (valueWon < 1000) gameToTrack.timesWonLessThan1000++
+        if (valueWon === 1) gameToTrack.winsOfOne++
+        if (fromDeal) {
+            gameToTrack.timesAcceptedDeal++
+            gameToTrack.winningsFromAcceptDeal += valueWon
+        } else {
+            gameToTrack.winningsFromKeepOrSwitch += valueWon
+
+            if (remainingCaseValue) {
+                gameToTrack.keepSwitchBalance += valueWon - remainingCaseValue
+            }
         }
-        
-      }
     }
-
 
     private removeGame(deleteGame: IDonDGame) {
         for (const msg of deleteGame.buttonRows) {

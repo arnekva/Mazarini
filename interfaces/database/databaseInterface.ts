@@ -271,7 +271,11 @@ export type UserStats = {
     rulettStats?: RulettStats
     deathrollStats?: DeathrollStats
     moneyStats?: MoneyStats
-    dondStats?: DealOrNoDealStats
+    dondStats?: {
+        tenKStats?: DealOrNoDealStats
+        twentyKStats?: DealOrNoDealStats
+        fiftyKStats?: DealOrNoDealStats
+    }
 }
 interface MoneyStats {
     totalLost: number
@@ -289,7 +293,7 @@ interface DealOrNoDealStats {
     /** Number of times the user has won a game and earned less than 1000 chips (a win of 1000 is not counted) */
     timesWonLessThan1000: number
     /** Number of times the user has won only 1 chip */
-    winsOfOne:number
+    winsOfOne: number
     /** Number of times the user has accepted a deal. */
     timesAcceptedDeal: number
     /** A value showing how the user is performing when keeping or switching case. Note that this number can go negative if the player gets a lot of "wrong" choices. */
