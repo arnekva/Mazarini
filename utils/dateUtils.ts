@@ -75,6 +75,14 @@ export class DateUtils {
         return ret
     }
 
+    /**
+     * 
+     * @returns Todays date formatted as DD-MM-YYYY HH:mm
+     */
+    static getTodaysDateFormatted(){
+        return moment().format('DD-MM-YYYY HH:mm')
+    }
+
     static secondsToMinutes(t: number) {
         return Math.floor(t / 60)
     }

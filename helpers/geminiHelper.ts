@@ -2,6 +2,7 @@ import { ChatSession, GenerativeModel, GoogleGenerativeAI, HarmBlockThreshold, H
 import { Message, ThreadChannel } from 'discord.js'
 import { GeminiKey } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
+import { DateUtils } from '../utils/dateUtils'
 import { ThreadIds } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
 import { MessageHelper } from './messageHelper'
@@ -116,6 +117,7 @@ export class GeminiHelper {
     private getDefaultInstructions(): Part[] {
         return [
             { text: `Ditt kallenavn er "Bot Høie", men du svarer også til "Bent Høie". ` },
+            { text: `Dagens dato og tid per nå er ${DateUtils.getTodaysDateFormatted()}. Du må selv sørge for at tid og dato holdes oppdatert fra du har fått denne beskjeden` },
             { text: `Du er del av en samtale med mange deltakere. Du vil få oppgitt navnet til parten som snakker før hver prompt. ` },
 
             {
