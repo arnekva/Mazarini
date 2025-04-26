@@ -350,7 +350,10 @@ export class DealOrNoDeal extends AbstractCommands {
      */
     private updateUserStats(user: MazariniUser, valueWon: number, gameValue: number, quality: DonDQuality, fromDeal?: boolean, remainingCaseValue?: number) {
         if (!user.userStats?.dondStats) {
-            if (!user.userStats) user.userStats = {}
+            if (!user.userStats)
+                user.userStats = {
+                    dondStats: {},
+                }
             const emptyStats = {
                 totalGames: 0,
                 timesAcceptedDeal: 0,
@@ -361,9 +364,11 @@ export class DealOrNoDeal extends AbstractCommands {
                 winsOfOne: 0,
                 keepSwitchBalance: 0,
             }
-            user.userStats.dondStats.fiftyKStats = emptyStats
-            user.userStats.dondStats.twentyKStats = emptyStats
-            user.userStats.dondStats.tenKStats = emptyStats
+            user.userStats.dondStats = {
+                tenKStats: emptyStats,
+                twentyKStats: emptyStats,
+                fiftyKStats: emptyStats,
+            }
         }
         let gameToTrack = user.userStats.dondStats.tenKStats
         if (quality === DonDQuality.Premium) gameToTrack = user.userStats.dondStats.twentyKStats
