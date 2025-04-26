@@ -8,10 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '24.3.0'
-    public static readonly currentPatchNotes =
-        '* Du kan ikke lenger spare chests over natten. Alle uåpnede chests vil bli ugyldiggjort i daily jobs 05:00' +
-        '\n* Command-klasser kan nå ha en onReady-funksjon som vil kjøre etter at boten har logget inn. Login er siste steg i startup-prossenen, og clienten vil da ha klart alle dependencies (database o.l.).'
+    public static readonly currentVersion = '24.3.1'
+    public static readonly currentPatchNotes = '* Fikset en feil som gjorde at DonD kræsjet i slutten av spillet.'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
