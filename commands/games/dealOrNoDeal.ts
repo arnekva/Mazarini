@@ -354,20 +354,38 @@ export class DealOrNoDeal extends AbstractCommands {
                 user.userStats = {
                     dondStats: {},
                 }
-            const emptyStats = {
-                totalGames: 0,
-                timesAcceptedDeal: 0,
-                totalMissedMoney: 0,
-                winningsFromKeepOrSwitch: 0,
-                timesWonLessThan1000: 0,
-                winningsFromAcceptDeal: 0,
-                winsOfOne: 0,
-                keepSwitchBalance: 0,
-            }
+           
             user.userStats.dondStats = {
-                tenKStats: emptyStats,
-                twentyKStats: emptyStats,
-                fiftyKStats: emptyStats,
+                tenKStats: {
+                    totalGames: 0,
+                    timesAcceptedDeal: 0,
+                    totalMissedMoney: 0,
+                    winningsFromKeepOrSwitch: 0,
+                    timesWonLessThan1000: 0,
+                    winningsFromAcceptDeal: 0,
+                    winsOfOne: 0,
+                    keepSwitchBalance: 0,
+                },
+                twentyKStats: {
+                    totalGames: 0,
+                    timesAcceptedDeal: 0,
+                    totalMissedMoney: 0,
+                    winningsFromKeepOrSwitch: 0,
+                    timesWonLessThan1000: 0,
+                    winningsFromAcceptDeal: 0,
+                    winsOfOne: 0,
+                    keepSwitchBalance: 0,
+                },
+                fiftyKStats: {
+                    totalGames: 0,
+                    timesAcceptedDeal: 0,
+                    totalMissedMoney: 0,
+                    winningsFromKeepOrSwitch: 0,
+                    timesWonLessThan1000: 0,
+                    winningsFromAcceptDeal: 0,
+                    winsOfOne: 0,
+                    keepSwitchBalance: 0,
+                },
             }
         }
         let gameToTrack = user.userStats.dondStats.tenKStats
@@ -378,7 +396,7 @@ export class DealOrNoDeal extends AbstractCommands {
         gameToTrack.totalMissedMoney += gameValue - valueWon
         if (valueWon < 1000) gameToTrack.timesWonLessThan1000++
         if (valueWon === 1) gameToTrack.winsOfOne++
-        if (fromDeal) {
+        if (!!fromDeal) {
             gameToTrack.timesAcceptedDeal++
             gameToTrack.winningsFromAcceptDeal += valueWon
         } else {
