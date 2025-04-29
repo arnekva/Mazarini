@@ -3,7 +3,6 @@ import {
     ActionRowData,
     APIActionRowComponent,
     APIAttachment,
-    APIMessageActionRowComponent,
     Attachment,
     AttachmentBuilder,
     AttachmentPayload,
@@ -13,6 +12,7 @@ import {
     ButtonInteraction,
     CacheType,
     ChatInputCommandInteraction,
+    ContainerBuilder,
     EmbedBuilder,
     InteractionEditReplyOptions,
     InteractionReplyOptions,
@@ -23,7 +23,6 @@ import {
     MessageActionRowComponentData,
     MessageCreateOptions,
     MessageFlags,
-    MessageFlagsString,
     ModalSubmitInteraction,
     RepliableInteraction,
     SelectMenuInteraction,
@@ -52,6 +51,7 @@ interface IMessageOptions {
     dontIncrementMessageCounter?: boolean
     /** Set to true to make a message be sent as tts. Text will appear as normal, but text will be read loud by TTS.  */
     tts?: boolean
+    isComponentOnly?: boolean
 }
 interface IInteractionOptions {
     /** Make the reply only visible to the engager */
@@ -70,9 +70,10 @@ interface IMessageContent {
 }
 
 type MessageCompontent = (
-    | JSONEncodable<APIActionRowComponent<APIMessageActionRowComponent>>
+    | JSONEncodable<APIActionRowComponent<any>>
     | ActionRowData<MessageActionRowComponentData | MessageActionRowComponentBuilder>
-    | APIActionRowComponent<APIMessageActionRowComponent>
+    | APIActionRowComponent<any>
+    | ContainerBuilder
 )[]
 
 type MessageFiles = (BufferResolvable | Stream | JSONEncodable<APIAttachment> | Attachment | AttachmentBuilder | AttachmentPayload)[]
@@ -243,8 +244,8 @@ export class MessageHelper {
                 if (content.files) messageOptions.files = content.files
 
                 const flags = [] as BitFieldResolvable<
-                    Extract<MessageFlagsString, 'SuppressEmbeds' | 'SuppressNotifications'>,
-                    MessageFlags.SuppressEmbeds | MessageFlags.SuppressNotifications
+                    'SuppressEmbeds' | 'SuppressNotifications' | 'IsComponentsV2',
+                    MessageFlags.SuppressEmbeds | MessageFlags.SuppressNotifications | MessageFlags.IsComponentsV2
                 >[]
 
                 if (options?.sendAsSilent) {
@@ -256,6 +257,10 @@ export class MessageHelper {
                 if (options?.tts) {
                     messageOptions.tts = true
                 }
+                if (options.isComponentOnly) {
+                    flags.push('IsComponentsV2')
+                }
+
                 messageOptions.flags = flags
                 if (!options?.dontIncrementMessageCounter) MazariniBot.numMessagesFromBot++
                 return channel.send(messageOptions)
@@ -298,8 +303,8 @@ export class MessageHelper {
     /** Reply to a given message */
     replyToMessage(message: Message, content: string, options?: IMessageOptions) {
         const flags = [] as BitFieldResolvable<
-            Extract<MessageFlagsString, 'SuppressEmbeds' | 'SuppressNotifications'>,
-            MessageFlags.SuppressEmbeds | MessageFlags.SuppressNotifications
+            'SuppressEmbeds' | 'SuppressNotifications' | 'IsComponentsV2',
+            MessageFlags.SuppressEmbeds | MessageFlags.SuppressNotifications | MessageFlags.IsComponentsV2
         >[]
         const messageOptions = { content: content } as MessageCreateOptions
         if (options?.noMentions) {

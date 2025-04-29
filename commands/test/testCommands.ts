@@ -8,15 +8,18 @@ import {
     CacheType,
     ChatInputCommandInteraction,
     EmbedBuilder,
+    MediaGalleryBuilder,
+    MediaGalleryItemBuilder,
     Message,
     ModalSubmitInteraction,
     StringSelectMenuInteraction,
+    TextDisplayBuilder,
 } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
-import { dondGame, DonDQuality } from '../games/dealOrNoDeal'
+import { ComponentUtils } from '../../utils/ComponentUtils'
 import { LootboxCommands } from '../store/lootboxCommands'
 
 const defaultBtn = (id: string) => {
@@ -55,11 +58,29 @@ export class TestCommands extends AbstractCommands {
     }
 
     private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        await interaction.deferReply()
-        const buttons = new ActionRowBuilder<ButtonBuilder>()
-        const dond = dondGame(interaction.user.id, DonDQuality.Elite)
-        buttons.addComponents(dond)
-        await this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, [buttons])
+        const a = ComponentUtils.createContainerBuilder()
+        const text1 = new TextDisplayBuilder().setContent(['# Dette er en test', '-# liten tekst', '## Mindre headline'].join('\n'))
+        a.addTextDisplayComponents(text1)
+        const mg = new MediaGalleryBuilder()
+        for (let i = 0; i < 9; i++) {
+            const mgItemBuilder = new MediaGalleryItemBuilder()
+            mgItemBuilder.setURL('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbZDZ9PFJ26ymhBEy2eu-I_RwcSN6f59Wgbg&s')
+            mgItemBuilder.setSpoiler(i % 2 === 0)
+            mg.addItems(mgItemBuilder)
+        }
+        const mg2 = new MediaGalleryBuilder()
+        for (let i = 0; i < 9; i++) {
+            const mgItemBuilder = new MediaGalleryItemBuilder()
+            mgItemBuilder.setURL('https://www.daringgourmet.com/wp-content/uploads/2018/01/Breakfast-Sausages-5-square-lighter-2-500x500.jpg')
+            mg2.addItems(mgItemBuilder)
+        }
+
+        a.addMediaGalleryComponents(mg)
+        // a.addMediaGalleryComponents(mg2)
+        //Note that isComponentOnly MUST be sent when using this, as componentV2 flag must be set
+        // But that flag cannot always be set, as the server expects a message with components if set.
+        this.messageHelper.sendMessage(interaction.channelId, { components: [a] }, { isComponentOnly: true })
+        // await this.messageHelper.replyToInteraction(interaction, 'Test', {}, [a])
     }
 
     private async testSelectMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {

@@ -95,8 +95,9 @@ export class DealOrNoDeal extends AbstractCommands {
         const customId = interaction.customId.split(';')
         const btnMessageId = customId[3]
         const btnMessage = await this.messageHelper.fetchMessage(interaction.channelId, btnMessageId)
-        const row = interaction.message.components[0]
-        ;(row.components as any) = row.components.map((button) => ButtonBuilder.from(button as APIButtonComponent).setDisabled(true))
+        const row = interaction.message.components[0] as any
+        const anyRow = row.components as any
+        anyRow.components.map((button) => ButtonBuilder.from(button as APIButtonComponent).setDisabled(true))
         await btnMessage.edit({ components: [row] })
 
         if (this.games.some((game) => game.player.id === interaction.user.id)) {
@@ -282,7 +283,7 @@ export class DealOrNoDeal extends AbstractCommands {
         const openCase = game.cases.get(caseId)
         openCase.opened = true
         game.cases.set(caseId, openCase)
-        const row = interaction.message.components[0]
+        const row = interaction.message.components[0] as any
         ;(row.components as any) = row.components.map((button) =>
             button.customId === interaction.customId ? ButtonBuilder.from(button as APIButtonComponent).setDisabled(true) : button
         )
@@ -354,7 +355,7 @@ export class DealOrNoDeal extends AbstractCommands {
                 user.userStats = {
                     dondStats: {},
                 }
-           
+
             user.userStats.dondStats = {
                 tenKStats: {
                     totalGames: 0,
@@ -396,7 +397,7 @@ export class DealOrNoDeal extends AbstractCommands {
         gameToTrack.totalMissedMoney += gameValue - valueWon
         if (valueWon < 1000) gameToTrack.timesWonLessThan1000++
         if (valueWon === 1) gameToTrack.winsOfOne++
-        if (!!fromDeal) {
+        if (fromDeal) {
             gameToTrack.timesAcceptedDeal++
             gameToTrack.winningsFromAcceptDeal += valueWon
         } else {
