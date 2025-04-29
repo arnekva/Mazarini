@@ -1,7 +1,7 @@
 import { FirebaseApp } from 'firebase/app'
 import { Database, child, get, getDatabase, increment, ref, remove, set, update } from 'firebase/database'
 import { Firestore, getFirestore } from 'firebase/firestore'
-import { FirebaseStorage, StorageReference, getBytes, getStorage, ref as storageRef, uploadBytes } from 'firebase/storage'
+import { FirebaseStorage, StorageReference, getBytes, getDownloadURL, getStorage, ref as storageRef, uploadBytes } from 'firebase/storage'
 import { database } from '../client-env'
 import { BotData, DatabaseStructure, EmojiStats, MazariniStats, MazariniStorage, MazariniUser, Meme } from '../interfaces/database/databaseInterface'
 import { MessageHelper } from './messageHelper'
@@ -23,6 +23,10 @@ export class FirebaseHelper {
 
     public async getStorageData(ref: StorageReference): Promise<ArrayBuffer> {
         return await getBytes(ref)
+    }
+
+    public async getStorageLink(ref: StorageReference): Promise<string> {
+        return await getDownloadURL(ref)
     }
 
     public getStorageRef(path: string): StorageReference {

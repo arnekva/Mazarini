@@ -407,6 +407,11 @@ export class DatabaseHelper {
         this.db.uploadToStorage(ref, gif)
     }
 
+    public async getLootGifLink(path: string): Promise<string> {
+        const ref = this.db.getStorageRef(path)
+        return await this.db.getStorageLink(ref)
+    }
+
     static defaultUser(id: string): MazariniUser {
         return {
             bonkCounter: 0,
