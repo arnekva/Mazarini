@@ -216,16 +216,34 @@ export class Blackjack extends AbstractCommands {
         game.messages.buttonRow = await this.getButtonRow(game, player)
     }
 
-    private async printGame(game: BlackjackGame, interaction?: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        game.messages.embed = game.messages.embed
-            ? await game.messages.embed.edit({ embeds: [game.messages.embedContent] })
-            : await this.messageHelper.replyToInteraction(interaction, game.messages.embedContent)
+    private async printGame(
+        game: BlackjackGame,
+        interaction?: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>,
+        deferred: boolean = false
+    ) {
+        if (game.messages.embed) {
+            game.messages.embed = await game.messages.embed.edit({ embeds: [game.messages.embedContent] })
+        } else if (deferred) {
+            game.messages.embed = await this.messageHelper.sendMessage(interaction?.channelId, { embed: game.messages.embedContent })
+        } else {
+            game.messages.embed = await this.messageHelper.replyToInteraction(interaction, game.messages.embedContent, { hasBeenDefered: deferred })
+        }
         game.messages.table = game.messages.table
             ? await game.messages.table.edit({ content: game.messages.tableContent })
             : await this.messageHelper.sendMessage(interaction?.channelId, { text: game.messages.tableContent })
         game.messages.buttons = game.messages.buttons
             ? await game.messages.buttons.edit({ components: [game.messages.buttonRow] })
             : await this.messageHelper.sendMessage(interaction?.channelId, { components: [game.messages.buttonRow] })
+    }
+
+    private async moveGameDown(interaction: ButtonInteraction<CacheType>, game: BlackjackGame) {
+        await game.messages.embed.delete()
+        game.messages.embed = undefined
+        await game.messages.table.delete()
+        game.messages.table = undefined
+        await game.messages.buttons.delete()
+        game.messages.buttons = undefined
+        await this.printGame(game, interaction, true)
     }
 
     private async getButtonRow(game: BlackjackGame, player: BlackjackPlayer) {
@@ -243,6 +261,7 @@ export class Blackjack extends AbstractCommands {
                 buttonRow.addComponents(reDealBtn(game.id, reDeals))
             }
         }
+        buttonRow.addComponents(moveDownBtn(game.id))
         return buttonRow
     }
 
@@ -576,16 +595,6 @@ export class Blackjack extends AbstractCommands {
         return value
     }
 
-    // private checkIfPlayersTurn(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-    //     const player = this.gameStateHandler.getPlayer(interaction.user.id)
-    //     if (!player) this.messageHelper.replyToInteraction(interaction, 'Du er ikke med i dette spillet', {ephemeral: true})
-    //     else if (!this.gameStateHandler.isPlayersTurn(player)) this.messageHelper.replyToInteraction(interaction, 'Det er ikke din tur', {ephemeral: true})
-    //     else {
-    //         if (interaction.isButton()) interaction.deferUpdate()
-    //         return player
-    //     }
-    // }
-
     private verifyUserAndCallMethod(interaction: ButtonInteraction<CacheType>, callback: (game: BlackjackGame, player?: BlackjackPlayer) => void) {
         const game = this.getGame(interaction)
         const player = this.getPlayer(interaction, game)
@@ -692,6 +701,12 @@ export class Blackjack extends AbstractCommands {
                             this.deathrollBlackjack(interaction)
                         },
                     },
+                    {
+                        commandName: 'BLACKJACK_MOVE_DOWN',
+                        command: (interaction: ButtonInteraction<CacheType>) => {
+                            this.verifyUserAndCallMethod(interaction, (game) => this.moveGameDown(interaction, game))
+                        },
+                    },
                 ],
             },
         }
@@ -731,7 +746,8 @@ const gameFinishedRow = (id: string) =>
             label: `Ferdig`,
             disabled: false,
             type: 2,
-        })
+        }),
+        moveDownBtn(id)
     )
 
 const doubleDownBtn = (id: string, canAfford: boolean) =>
@@ -766,6 +782,15 @@ const reDealBtn = (id: string, reDealsAvailable: number) =>
         custom_id: `BLACKJACK_REDEAL;${id}`,
         style: ButtonStyle.Primary,
         label: `Deal på nytt (${reDealsAvailable})`,
+        disabled: false,
+        type: 2,
+    })
+
+const moveDownBtn = (id: string) =>
+    new ButtonBuilder({
+        custom_id: `BLACKJACK_MOVE_DOWN;${id}`,
+        style: ButtonStyle.Secondary,
+        label: `Flytt ned`,
         disabled: false,
         type: 2,
     })
