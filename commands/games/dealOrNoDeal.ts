@@ -96,8 +96,7 @@ export class DealOrNoDeal extends AbstractCommands {
         const btnMessageId = customId[3]
         const btnMessage = await this.messageHelper.fetchMessage(interaction.channelId, btnMessageId)
         const row = interaction.message.components[0] as any
-        const anyRow = row.components as any
-        anyRow.components.map((button) => ButtonBuilder.from(button as APIButtonComponent).setDisabled(true))
+        ;(row.components as any) = row.components.map((button) => ButtonBuilder.from(button as APIButtonComponent).setDisabled(true))
         await btnMessage.edit({ components: [row] })
 
         if (this.games.some((game) => game.player.id === interaction.user.id)) {

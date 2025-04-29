@@ -1,4 +1,4 @@
-import { APIComponentInContainer, ContainerBuilder, ContainerComponentBuilder } from 'discord.js'
+import { APIComponentInContainer, ContainerBuilder, ContainerComponentBuilder, RGBTuple } from 'discord.js'
 
 export interface ContainerComponent {
     name: string
@@ -34,6 +34,10 @@ export class SimpleContainer {
             this.customContainer.spliceComponents(index, 1, newComponent)
             this.components[index].component = newComponent
         }
+    }
+
+    public setColor(color: number | RGBTuple) {
+        this.customContainer.setAccentColor(color)
     }
 
     public getComponent(reference: string) {
