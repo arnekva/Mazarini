@@ -19,7 +19,7 @@ import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
-import { ComponentUtils } from '../../utils/ComponentUtils'
+import { ComponentUtils } from '../../utils/componentUtils'
 import { LootboxCommands } from '../store/lootboxCommands'
 
 const defaultBtn = (id: string) => {

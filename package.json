@@ -23,7 +23,7 @@
         "base-64": "^1.0.0",
         "canvas": "^2.11.2",
         "deckofcards": "^1.2.2",
-        "discord.js": "^14.16.2",
+        "discord.js": "^14.19.2",
         "firebase": "^10.6.0",
         "image-charts": "^6.1.19",
         "imgflip": "^3.0.0",
