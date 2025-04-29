@@ -496,7 +496,8 @@ export class Blackjack extends AbstractCommands {
 
     private async playAgain(interaction: ButtonInteraction<CacheType>, game: BlackjackGame, player: BlackjackPlayer) {
         const user = await this.client.database.getUser(player.id)
-        player.stake = player.allIn ? user.chips : game.fromDeathroll ? player.gameWinnings : player.stake
+        if (player.allIn) player.stake = user.chips
+        else if (game.fromDeathroll) player.stake = player.gameWinnings
         if (!this.client.bank.userCanAfford(user, player.stake)) {
             const emoji = await EmojiHelper.getApplicationEmoji('arneouf', this.client)
             game.messages.embedContent = game.messages.embedContent

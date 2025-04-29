@@ -399,7 +399,7 @@ export class DatabaseHelper {
 
     public async getFromStorage(path: string): Promise<ArrayBuffer> {
         const ref = this.db.getStorageRef(path)
-        return this.db.getStorageData(ref)
+        return await this.db.getStorageData(ref)
     }
 
     public uploadLootGif(path: string, gif: Buffer) {
