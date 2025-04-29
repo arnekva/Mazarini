@@ -175,14 +175,18 @@ export class MessageHelper {
                 const r = await interaction.editReply(payload).catch((e) => handleError(e))
                 if (r instanceof Message) reply = r
             } else {
+                const flags = [] as BitFieldResolvable<
+                    'SuppressEmbeds' | 'SuppressNotifications' | 'IsComponentsV2' | 'Ephemeral',
+                    MessageFlags.SuppressEmbeds | MessageFlags.SuppressNotifications | MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+                >[]
                 const payloadAsReply = payload as InteractionReplyOptions
-                payloadAsReply.ephemeral = !!options?.ephemeral
-
-                if (options?.sendAsSilent) {
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    //@ts-ignore
-                    payloadAsReply.flags = [4096]
+                if (options?.ephemeral) {
+                    flags.push('Ephemeral')
                 }
+                if (options?.sendAsSilent) {
+                    flags.push('SuppressNotifications')
+                }
+                payloadAsReply.flags = flags
                 const r = await interaction.reply(payloadAsReply).catch((e) => handleError(e))
                 if (r instanceof InteractionResponse) reply = r
             }
@@ -257,7 +261,7 @@ export class MessageHelper {
                 if (options?.tts) {
                     messageOptions.tts = true
                 }
-                if (options.isComponentOnly) {
+                if (options?.isComponentOnly) {
                     flags.push('IsComponentsV2')
                 }
 
