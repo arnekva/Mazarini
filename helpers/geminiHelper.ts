@@ -26,7 +26,7 @@ export class GeminiHelper {
         this.genAI = new GoogleGenerativeAI(GeminiKey)
 
         this.model = this.genAI.getGenerativeModel({
-            model: 'gemini-2.0-flash',
+            model: 'gemini-1.5-flash', // 'gemini-2.0-flash',
             systemInstruction: {
                 parts: this.getDefaultInstructions(),
                 role: '',
@@ -117,7 +117,9 @@ export class GeminiHelper {
     private getDefaultInstructions(): Part[] {
         return [
             { text: `Ditt kallenavn er "Bot Høie", men du svarer også til "Bent Høie". ` },
-            { text: `Dagens dato og tid per nå er ${DateUtils.getTodaysDateFormatted()}. Du må selv sørge for at tid og dato holdes oppdatert fra du har fått denne beskjeden` },
+            {
+                text: `Dagens dato og tid per nå er ${DateUtils.getTodaysDateFormatted()}. Du må selv sørge for at tid og dato holdes oppdatert fra du har fått denne beskjeden`,
+            },
             { text: `Du er del av en samtale med mange deltakere. Du vil få oppgitt navnet til parten som snakker før hver prompt. ` },
 
             {
