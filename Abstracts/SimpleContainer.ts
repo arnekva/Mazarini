@@ -36,13 +36,13 @@ export class SimpleContainer {
         }
     }
 
-    public addSeparator(spacing = SeparatorSpacingSize.Small, divider = true) {
+    public addSeparator(spacing = SeparatorSpacingSize.Small, divider = true, referance = 'separator') {
         this.addComponent(
             new SeparatorBuilder({
                 spacing,
                 divider,
             }),
-            'separator'
+            referance
         )
     }
 

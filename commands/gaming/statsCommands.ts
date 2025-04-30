@@ -39,7 +39,7 @@ export class StatsCommands extends AbstractCommands {
         }
         if (dondStats && category === 'dond') {
             const container = this.getDonDContainer(dondStats, user)
-            const reply = await this.messageHelper.replyToInteraction(interaction, '', {}, [container.container])
+            await this.messageHelper.replyToInteraction(interaction, '', {}, [container.container])
         } else {
             this.messageHelper.replyToInteraction(interaction, embed)
         }
@@ -66,7 +66,6 @@ export class StatsCommands extends AbstractCommands {
             const stats = dondStats[key as keyof DonDStats]
             if (stats.totalGames > 0) {
                 const userAverageWin = Math.round((stats.winningsFromAcceptDeal + stats.winningsFromKeepOrSwitch) / stats.totalGames)
-                const expectedReturn = this.getExpectedReturn(props.quality)
 
                 const text = new TextDisplayBuilder().setContent(
                     [
