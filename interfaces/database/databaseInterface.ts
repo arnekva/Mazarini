@@ -299,6 +299,9 @@ interface DealOrNoDealStats {
     timesAcceptedDeal: number
     /** A value showing how the user is performing when keeping or switching case. Note that this number can go negative if the player gets a lot of "wrong" choices. */
     keepSwitchBalance: number
+    keepWasCorrectChoice: number
+    switchWasCorrectChoice: number
+    userWasCorrect: number
 }
 export interface DeathrollStats {
     totalGames: number

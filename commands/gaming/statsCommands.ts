@@ -72,15 +72,10 @@ export class StatsCommands extends AbstractCommands {
                     [
                         `## ${header}`,
                         `* Antall spill: ${stats.totalGames}`,
-                        `* Antall 1ere: ${stats.winsOfOne}`,
-                        `* Akseptere deals: ${stats.timesAcceptedDeal}`,
-                        `* Gevinst fra deals: ${stats.winningsFromAcceptDeal}`,
-                        `* Antall ganger behold/byttet: ${stats.totalGames - stats.timesAcceptedDeal}`,
-                        `* Gevinst fra behold/bytt: ${stats.winningsFromKeepOrSwitch}`,
-                        `* Du har gått glipp av ${stats.totalMissedMoney > 0 ? stats.totalMissedMoney : 'ingen'} chips`,
-                        `* Gjennomsnittsgevinst er ${userAverageWin} (${expectedReturn} forventet)`,
-                        `* Antall gevinster på under 1000: ${stats.timesWonLessThan1000}`,
-                        `-# Balanse: ${stats.keepSwitchBalance}`,
+                        `* Total gevinst: ${stats.winningsFromAcceptDeal + stats.winningsFromKeepOrSwitch}`,
+                        `* Gjennomsnittsgevinst er ${userAverageWin}`,
+                        `* Balanse behold/bytt: ${stats.keepSwitchBalance}`,
+                        `-# Antall 1ere: ${stats.winsOfOne}`,
                     ].join('\n')
                 )
                 container.addSeparator()

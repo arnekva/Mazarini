@@ -363,37 +363,24 @@ export class DealOrNoDeal extends AbstractCommands {
                     dondStats: {},
                 }
 
+            const defaultStats = {
+                totalGames: 0,
+                timesAcceptedDeal: 0,
+                totalMissedMoney: 0,
+                winningsFromKeepOrSwitch: 0,
+                timesWonLessThan1000: 0,
+                winningsFromAcceptDeal: 0,
+                winsOfOne: 0,
+                keepSwitchBalance: 0,
+                keepWasCorrectChoice: 0,
+                switchWasCorrectChoice: 0,
+                userWasCorrect: 0,
+            }
+
             user.userStats.dondStats = {
-                tenKStats: {
-                    totalGames: 0,
-                    timesAcceptedDeal: 0,
-                    totalMissedMoney: 0,
-                    winningsFromKeepOrSwitch: 0,
-                    timesWonLessThan1000: 0,
-                    winningsFromAcceptDeal: 0,
-                    winsOfOne: 0,
-                    keepSwitchBalance: 0,
-                },
-                twentyKStats: {
-                    totalGames: 0,
-                    timesAcceptedDeal: 0,
-                    totalMissedMoney: 0,
-                    winningsFromKeepOrSwitch: 0,
-                    timesWonLessThan1000: 0,
-                    winningsFromAcceptDeal: 0,
-                    winsOfOne: 0,
-                    keepSwitchBalance: 0,
-                },
-                fiftyKStats: {
-                    totalGames: 0,
-                    timesAcceptedDeal: 0,
-                    totalMissedMoney: 0,
-                    winningsFromKeepOrSwitch: 0,
-                    timesWonLessThan1000: 0,
-                    winningsFromAcceptDeal: 0,
-                    winsOfOne: 0,
-                    keepSwitchBalance: 0,
-                },
+                tenKStats: { ...defaultStats },
+                twentyKStats: { ...defaultStats },
+                fiftyKStats: { ...defaultStats },
             }
         }
         let gameToTrack = user.userStats.dondStats.tenKStats
@@ -411,6 +398,13 @@ export class DealOrNoDeal extends AbstractCommands {
             gameToTrack.winningsFromKeepOrSwitch += valueWon
 
             if (remainingCaseValue) {
+                const wasWinningMove = valueWon > remainingCaseValue
+                if (wasWinningMove) {
+                    gameToTrack.userWasCorrect++
+                }
+                if (keptCase && valueWon > remainingCaseValue) gameToTrack.keepWasCorrectChoice++
+                else gameToTrack.switchWasCorrectChoice++
+
                 gameToTrack.keepSwitchBalance += valueWon - remainingCaseValue
             }
         }
