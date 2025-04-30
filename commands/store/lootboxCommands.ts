@@ -394,7 +394,7 @@ export class LootboxCommands extends AbstractCommands {
         }
         setTimeout(() => {
             msg.react(emoji.emojiObject.identifier)
-        }, 30000)
+        }, 12000)
     }
 
     private async getLootApplicationEmoji(item: IUserCollectable) {
