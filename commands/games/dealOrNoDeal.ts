@@ -348,7 +348,15 @@ export class DealOrNoDeal extends AbstractCommands {
      * @param gameValue - The value of the highest case in the game
      * @param fromDeal If the money was won from a deal, set this to true
      */
-    private updateUserStats(user: MazariniUser, valueWon: number, gameValue: number, quality: DonDQuality, fromDeal?: boolean, remainingCaseValue?: number) {
+    private updateUserStats(
+        user: MazariniUser,
+        valueWon: number,
+        gameValue: number,
+        quality: DonDQuality,
+        fromDeal?: boolean,
+        remainingCaseValue?: number,
+        keptCase?: boolean
+    ) {
         if (!user.userStats?.dondStats) {
             if (!user.userStats)
                 user.userStats = {

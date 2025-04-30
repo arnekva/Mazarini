@@ -266,16 +266,17 @@ export type FavoritePol = {
     longitude?: string
     latitude?: string
 }
+export interface DonDStats {
+    tenKStats?: DealOrNoDealStats
+    twentyKStats?: DealOrNoDealStats
+    fiftyKStats?: DealOrNoDealStats
+}
 export type UserStats = {
     chipsStats?: ChipsStats
     rulettStats?: RulettStats
     deathrollStats?: DeathrollStats
     moneyStats?: MoneyStats
-    dondStats?: {
-        tenKStats?: DealOrNoDealStats
-        twentyKStats?: DealOrNoDealStats
-        fiftyKStats?: DealOrNoDealStats
-    }
+    dondStats?: DonDStats
 }
 interface MoneyStats {
     totalLost: number

@@ -19,6 +19,7 @@ export const statsCommand: ISlashCommandItem = {
                         { name: 'deathroll', value: 'deathroll' },
                         { name: 'gambling', value: 'gambling' },
                         { name: 'rulett', value: 'rulett' },
+                        { name: 'deal or no deal', value: 'dond' },
                     ],
                 },
                 {

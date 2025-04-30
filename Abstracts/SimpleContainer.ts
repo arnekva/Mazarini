@@ -1,4 +1,4 @@
-import { APIComponentInContainer, ContainerBuilder, ContainerComponentBuilder, RGBTuple } from 'discord.js'
+import { APIComponentInContainer, ContainerBuilder, ContainerComponentBuilder, RGBTuple, SeparatorBuilder, SeparatorSpacingSize } from 'discord.js'
 
 export interface ContainerComponent {
     name: string
@@ -34,6 +34,16 @@ export class SimpleContainer {
             this.customContainer.spliceComponents(index, 1, newComponent)
             this.components[index].component = newComponent
         }
+    }
+
+    public addSeparator(spacing = SeparatorSpacingSize.Small, divider = true) {
+        this.addComponent(
+            new SeparatorBuilder({
+                spacing,
+                divider,
+            }),
+            'separator'
+        )
     }
 
     public setColor(color: number | RGBTuple) {

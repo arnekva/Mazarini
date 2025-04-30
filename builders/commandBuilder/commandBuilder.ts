@@ -135,7 +135,7 @@ export namespace CommandBuilder {
     /** This command will automatically create all commands listed in it */
     export const createCommands = (client: Client) => {
         // CommandBuilder.deleteCommand('1356989552941727935', client)
-        // CommandBuilder.createSlashCommand(CommandStorage.DropCommand, client)
+        // CommandBuilder.createSlashCommand(CommandStorage.StatsCommand, client)
         // CommandBuilder.deleteCommand('997144601146175631', client)
         // CommandBuilder.createContextMenuCommand({ commandName: 'helg' }, client)
     }
