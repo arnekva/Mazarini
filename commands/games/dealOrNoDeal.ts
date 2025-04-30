@@ -96,8 +96,7 @@ export class DealOrNoDeal extends AbstractCommands {
         const btnMessageId = customId[3]
         const btnMessage = await this.messageHelper.fetchMessage(interaction.channelId, btnMessageId)
         const row = interaction.message.components[0] as any
-        const anyRow = row.components as any
-        anyRow.components.map((button) => ButtonBuilder.from(button as APIButtonComponent).setDisabled(true))
+        ;(row.components as any) = row.components.map((button) => ButtonBuilder.from(button as APIButtonComponent).setDisabled(true))
         await btnMessage.edit({ components: [row] })
 
         if (this.games.some((game) => game.player.id === interaction.user.id)) {
@@ -349,44 +348,39 @@ export class DealOrNoDeal extends AbstractCommands {
      * @param gameValue - The value of the highest case in the game
      * @param fromDeal If the money was won from a deal, set this to true
      */
-    private updateUserStats(user: MazariniUser, valueWon: number, gameValue: number, quality: DonDQuality, fromDeal?: boolean, remainingCaseValue?: number) {
+    private updateUserStats(
+        user: MazariniUser,
+        valueWon: number,
+        gameValue: number,
+        quality: DonDQuality,
+        fromDeal?: boolean,
+        remainingCaseValue?: number,
+        keptCase?: boolean
+    ) {
         if (!user.userStats?.dondStats) {
             if (!user.userStats)
                 user.userStats = {
                     dondStats: {},
                 }
 
+            const defaultStats = {
+                totalGames: 0,
+                timesAcceptedDeal: 0,
+                totalMissedMoney: 0,
+                winningsFromKeepOrSwitch: 0,
+                timesWonLessThan1000: 0,
+                winningsFromAcceptDeal: 0,
+                winsOfOne: 0,
+                keepSwitchBalance: 0,
+                keepWasCorrectChoice: 0,
+                switchWasCorrectChoice: 0,
+                userWasCorrect: 0,
+            }
+
             user.userStats.dondStats = {
-                tenKStats: {
-                    totalGames: 0,
-                    timesAcceptedDeal: 0,
-                    totalMissedMoney: 0,
-                    winningsFromKeepOrSwitch: 0,
-                    timesWonLessThan1000: 0,
-                    winningsFromAcceptDeal: 0,
-                    winsOfOne: 0,
-                    keepSwitchBalance: 0,
-                },
-                twentyKStats: {
-                    totalGames: 0,
-                    timesAcceptedDeal: 0,
-                    totalMissedMoney: 0,
-                    winningsFromKeepOrSwitch: 0,
-                    timesWonLessThan1000: 0,
-                    winningsFromAcceptDeal: 0,
-                    winsOfOne: 0,
-                    keepSwitchBalance: 0,
-                },
-                fiftyKStats: {
-                    totalGames: 0,
-                    timesAcceptedDeal: 0,
-                    totalMissedMoney: 0,
-                    winningsFromKeepOrSwitch: 0,
-                    timesWonLessThan1000: 0,
-                    winningsFromAcceptDeal: 0,
-                    winsOfOne: 0,
-                    keepSwitchBalance: 0,
-                },
+                tenKStats: { ...defaultStats },
+                twentyKStats: { ...defaultStats },
+                fiftyKStats: { ...defaultStats },
             }
         }
         let gameToTrack = user.userStats.dondStats.tenKStats
@@ -404,6 +398,13 @@ export class DealOrNoDeal extends AbstractCommands {
             gameToTrack.winningsFromKeepOrSwitch += valueWon
 
             if (remainingCaseValue) {
+                const wasWinningMove = valueWon > remainingCaseValue
+                if (wasWinningMove) {
+                    gameToTrack.userWasCorrect++
+                }
+                if (keptCase && valueWon > remainingCaseValue) gameToTrack.keepWasCorrectChoice++
+                else gameToTrack.switchWasCorrectChoice++
+
                 gameToTrack.keepSwitchBalance += valueWon - remainingCaseValue
             }
         }

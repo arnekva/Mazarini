@@ -1,12 +1,14 @@
-import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, User } from 'discord.js'
+import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, TextDisplayBuilder, User } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { MazariniClient } from '../../client/MazariniClient'
 
 import { EmojiHelper } from '../../helpers/emojiHelper'
-import { ChipsStats, DeathrollStats, EmojiStats, MazariniUser, RulettStats } from '../../interfaces/database/databaseInterface'
+import { ChipsStats, DeathrollStats, DonDStats, EmojiStats, MazariniUser, RulettStats } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { UserUtils } from '../../utils/userUtils'
+import { DonDQuality } from '../games/dealOrNoDeal'
 
 export class StatsCommands extends AbstractCommands {
     private emojiStats: EmojiStats[]
@@ -23,6 +25,7 @@ export class StatsCommands extends AbstractCommands {
         const userStats = user.userStats?.chipsStats
         const rulettStats = user.userStats?.rulettStats
         const deathrollStats = user.userStats?.deathrollStats
+        const dondStats = user.userStats?.dondStats
         let embed = EmbedUtils.createSimpleEmbed(`Du har ingen statistikk`, ` `)
 
         if (deathrollStats && category === 'deathroll') {
@@ -34,7 +37,64 @@ export class StatsCommands extends AbstractCommands {
         if (rulettStats && category === 'rulett') {
             embed = this.getRouletteEmbed(rulettStats, user)
         }
-        this.messageHelper.replyToInteraction(interaction, embed)
+        if (dondStats && category === 'dond') {
+            const container = this.getDonDContainer(dondStats, user)
+            await this.messageHelper.replyToInteraction(interaction, '', {}, [container.container])
+        } else {
+            this.messageHelper.replyToInteraction(interaction, embed)
+        }
+    }
+
+    private getDonDContainer(dondStats: DonDStats, user: MazariniUser, interaction?: ChatInputCommandInteraction<CacheType>) {
+        const container = new SimpleContainer()
+
+        const transformToDondProps = (n: keyof DonDStats) => {
+            if (n === 'tenKStats') return { label: '10K stats', quality: DonDQuality.Basic }
+            if (n === 'twentyKStats') return { label: '20K stats', quality: DonDQuality.Premium }
+            if (n === 'fiftyKStats') return { label: '50K stats', quality: DonDQuality.Elite }
+        }
+        const text1 = new TextDisplayBuilder().setContent('# Deal or no Deal')
+        const sortedStats: DonDStats = {
+            tenKStats: dondStats.tenKStats,
+            twentyKStats: dondStats.twentyKStats,
+            fiftyKStats: dondStats.fiftyKStats,
+        }
+        container.addComponent(text1, 'header')
+        Object.entries(sortedStats).forEach(([key, value]) => {
+            const props = transformToDondProps(key as keyof DonDStats)
+            const header = props.label
+            const stats = dondStats[key as keyof DonDStats]
+            if (stats.totalGames > 0) {
+                const userAverageWin = Math.round((stats.winningsFromAcceptDeal + stats.winningsFromKeepOrSwitch) / stats.totalGames)
+
+                const text = new TextDisplayBuilder().setContent(
+                    [
+                        `## ${header}`,
+                        `* Antall spill: ${stats.totalGames}`,
+                        `* Total gevinst: ${stats.winningsFromAcceptDeal + stats.winningsFromKeepOrSwitch}`,
+                        `* Gjennomsnittsgevinst er ${userAverageWin}`,
+                        `* Balanse behold/bytt: ${stats.keepSwitchBalance}`,
+                        `-# Antall 1ere: ${stats.winsOfOne}`,
+                    ].join('\n')
+                )
+                container.addSeparator()
+                container.addComponent(text, key)
+            }
+        })
+
+        return container
+    }
+
+    private getExpectedReturn(q: DonDQuality) {
+        switch (q) {
+            case DonDQuality.Premium:
+                return 5757
+            case DonDQuality.Elite:
+                return 13087
+            case DonDQuality.Basic:
+            default:
+                return 2760
+        }
     }
 
     private getDeathrollEmbed(stats: DeathrollStats, user: MazariniUser) {

@@ -172,6 +172,11 @@ export class MessageHelper {
                 payload.content = messageContent
             }
             if (options?.hasBeenDefered) {
+                const flags = [] as BitFieldResolvable<'SuppressEmbeds' | 'IsComponentsV2', MessageFlags.SuppressEmbeds | MessageFlags.IsComponentsV2>[]
+                if (components && components[0] instanceof ContainerBuilder) {
+                    flags.push('IsComponentsV2')
+                }
+                payload.flags = flags
                 const r = await interaction.editReply(payload).catch((e) => handleError(e))
                 if (r instanceof Message) reply = r
             } else {
@@ -185,6 +190,9 @@ export class MessageHelper {
                 }
                 if (options?.sendAsSilent) {
                     flags.push('SuppressNotifications')
+                }
+                if (components && components[0] instanceof ContainerBuilder) {
+                    flags.push('IsComponentsV2')
                 }
                 payloadAsReply.flags = flags
                 const r = await interaction.reply(payloadAsReply).catch((e) => handleError(e))

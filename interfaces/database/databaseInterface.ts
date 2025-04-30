@@ -266,16 +266,17 @@ export type FavoritePol = {
     longitude?: string
     latitude?: string
 }
+export interface DonDStats {
+    tenKStats?: DealOrNoDealStats
+    twentyKStats?: DealOrNoDealStats
+    fiftyKStats?: DealOrNoDealStats
+}
 export type UserStats = {
     chipsStats?: ChipsStats
     rulettStats?: RulettStats
     deathrollStats?: DeathrollStats
     moneyStats?: MoneyStats
-    dondStats?: {
-        tenKStats?: DealOrNoDealStats
-        twentyKStats?: DealOrNoDealStats
-        fiftyKStats?: DealOrNoDealStats
-    }
+    dondStats?: DonDStats
 }
 interface MoneyStats {
     totalLost: number
@@ -298,6 +299,9 @@ interface DealOrNoDealStats {
     timesAcceptedDeal: number
     /** A value showing how the user is performing when keeping or switching case. Note that this number can go negative if the player gets a lot of "wrong" choices. */
     keepSwitchBalance: number
+    keepWasCorrectChoice: number
+    switchWasCorrectChoice: number
+    userWasCorrect: number
 }
 export interface DeathrollStats {
     totalGames: number

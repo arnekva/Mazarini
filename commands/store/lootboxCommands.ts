@@ -8,10 +8,14 @@ import {
     ButtonStyle,
     CacheType,
     ChatInputCommandInteraction,
+    GuildMember,
     InteractionResponse,
+    MediaGalleryBuilder,
+    MediaGalleryItemBuilder,
     Message,
 } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { MazariniClient } from '../../client/MazariniClient'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
@@ -367,9 +371,16 @@ export class LootboxCommands extends AbstractCommands {
 
     private async revealCollectable(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, item: IUserCollectable) {
         const path = this.getGifPath(item)
-        const buffer = Buffer.from(await this.client.database.getFromStorage(path))
-        const file = new AttachmentBuilder(buffer, { name: 'collectable.gif' })
-        const reply = await this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, undefined, [file])
+        const url = await this.client.database.getLootGifLink(path)
+        const container = new SimpleContainer()
+        const mg = new MediaGalleryBuilder()
+        const mgItemBuilder = new MediaGalleryItemBuilder()
+        mgItemBuilder.setURL(url)
+        mg.addItems(mgItemBuilder)
+        container.addComponent(mg, 'loot-gif')
+        const color = (interaction.member as GuildMember).displayColor
+        container.setColor(color)
+        const reply = await this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, [container.container])
         this.addReaction(reply, item)
     }
 
