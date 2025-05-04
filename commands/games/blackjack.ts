@@ -487,9 +487,18 @@ export class Blackjack extends AbstractCommands {
     }
 
     private async deleteGame(game: BlackjackGame) {
-        await game.messages.buttons.delete()
-        // await game.messages.embed.delete()
-        await game.messages.table.delete()
+        try {
+            await game.messages.buttons.delete()
+        } catch (e: any) {
+            this.client.messageHelper.sendLogMessage(
+                'Forsøkte å slette noen blackjack-knapper, men klarte det ikke. Det må vel bety at de aldri eksisterte, sant?'
+            )
+        }
+        try {
+            await game.messages.table.delete()
+        } catch (e: any) {
+            this.client.messageHelper.sendLogMessage('Forsøkte å slette et blackjack-bord, men klarte det ikke. Det må vel bety at det aldri ble dealet, sant?')
+        }
         const index = this.games.findIndex((elem) => elem.id == game.id)
         this.games.splice(index, 1)
     }
