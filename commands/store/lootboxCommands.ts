@@ -251,7 +251,7 @@ export class LootboxCommands extends AbstractCommands {
     private async getLootboxes(): Promise<ILootbox[]> {
         if (this.lootboxes && DateUtils.dateIsWithinLastHour(this.lootboxesRefreshed)) return this.lootboxes
         const lootboxes = await this.client.database.getLootboxes()
-        this.lootboxes = lootboxes.filter((box) => LootboxCommands.lootboxIsValid(box))
+        this.lootboxes = lootboxes.filter((box) => LootboxCommands.lootboxIsValid(box) && !box.rewardOnly)
         this.lootboxesRefreshed = new Date()
         return this.lootboxes
     }

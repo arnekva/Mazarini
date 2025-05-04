@@ -8,8 +8,14 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '25.1.0'
-    public static readonly currentPatchNotes = '* Du kan nå sjekke Deal or no Deal stats med "/stats bruker"' + '\n  * Du vil kun se stats f.o.m 29.04'
+    public static readonly currentVersion = '25.2.0'
+    public static readonly currentPatchNotes =
+        '* Det er nå mulig å gi felles reward til alle samtidig' +
+        '\n  * Hvis du utelater å velge en spesifikk bruker, vil den være felles for alle' +
+        '\n  * Ved felles reward vil "reason" være hele sub-headeren som dukker opp, så her kan du skrive mer utfyllende' +
+        '\n  * Ved bruker-spesifkk reward fungerer "reason" som tidligere' +
+        '\n* Har lagt til muligheten for reward-ekslusive lootboxer som ikke dukker opp som kjøpbare' +
+        '\n* Har laget en ComponentsHelper som gjør det lettere å huske hvilke components en Container kan ha'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

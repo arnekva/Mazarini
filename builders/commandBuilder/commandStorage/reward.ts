@@ -11,12 +11,6 @@ export const rewardCommand: ISlashCommandItem = {
             commandDescription: 'Gi en chips-reward',
             options: [
                 {
-                    name: 'user',
-                    description: 'hvem skal få rewarden?',
-                    type: ApplicationCommandOptionType.User,
-                    required: true,
-                },
-                {
                     name: 'chips',
                     description: 'hvor mye chips skal brukeren få?',
                     type: ApplicationCommandOptionType.Integer,
@@ -28,18 +22,17 @@ export const rewardCommand: ISlashCommandItem = {
                     type: ApplicationCommandOptionType.String,
                     required: true,
                 },
+                {
+                    name: 'user',
+                    description: 'hvem skal få rewarden?',
+                    type: ApplicationCommandOptionType.User,
+                },
             ],
         },
         {
             commandName: 'lootbox',
             commandDescription: 'Gi en lootbox-reward',
             options: [
-                {
-                    name: 'user',
-                    description: 'hvem skal få rewarden?',
-                    type: ApplicationCommandOptionType.User,
-                    required: true,
-                },
                 {
                     name: 'quality',
                     description: 'hvilken lootbox skal brukeren få?',
@@ -53,18 +46,17 @@ export const rewardCommand: ISlashCommandItem = {
                     type: ApplicationCommandOptionType.String,
                     required: true,
                 },
+                {
+                    name: 'user',
+                    description: 'hvem skal få rewarden?',
+                    type: ApplicationCommandOptionType.User,
+                },
             ],
         },
         {
             commandName: 'chest',
             commandDescription: 'Gi en loot chest',
             options: [
-                {
-                    name: 'user',
-                    description: 'hvem skal få rewarden?',
-                    type: ApplicationCommandOptionType.User,
-                    required: true,
-                },
                 {
                     name: 'quality',
                     description: 'hvilken loot chest skal brukeren få?',
@@ -78,18 +70,17 @@ export const rewardCommand: ISlashCommandItem = {
                     type: ApplicationCommandOptionType.String,
                     required: true,
                 },
+                {
+                    name: 'user',
+                    description: 'hvem skal få rewarden?',
+                    type: ApplicationCommandOptionType.User,
+                },
             ],
         },
         {
             commandName: 'dealornodeal',
             commandDescription: 'Gi en runde deal or no deal',
             options: [
-                {
-                    name: 'user',
-                    description: 'hvem skal få rewarden?',
-                    type: ApplicationCommandOptionType.User,
-                    required: true,
-                },
                 {
                     name: 'quality',
                     description: 'hvilket nivå skal brukeren få?',
@@ -102,6 +93,11 @@ export const rewardCommand: ISlashCommandItem = {
                     description: 'begrunnelse',
                     type: ApplicationCommandOptionType.String,
                     required: true,
+                },
+                {
+                    name: 'user',
+                    description: 'hvem skal få rewarden?',
+                    type: ApplicationCommandOptionType.User,
                 },
             ],
         },

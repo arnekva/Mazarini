@@ -9,22 +9,17 @@ import {
     ChatInputCommandInteraction,
     EmbedBuilder,
     GuildMember,
-    MediaGalleryBuilder,
-    MediaGalleryItemBuilder,
     Message,
     ModalSubmitInteraction,
-    SectionBuilder,
-    SeparatorBuilder,
-    SeparatorSpacingSize,
     StringSelectMenuInteraction,
     TextDisplayBuilder,
-    ThumbnailBuilder,
 } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { MentionUtils } from '../../utils/mentionUtils'
 import { LootboxCommands } from '../store/lootboxCommands'
 
 const defaultBtn = (id: string) => {
@@ -76,55 +71,14 @@ export class TestCommands extends AbstractCommands {
 
     private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
         const a = new SimpleContainer()
-        const text1 = new TextDisplayBuilder().setContent(['# Dette er en test', '-# liten tekst', '## Mindre headline'].join('\n'))
-        // a.addTextDisplayComponents(text1)
-        const mg = new MediaGalleryBuilder()
-        for (let i = 0; i < 9; i++) {
-            const mgItemBuilder = new MediaGalleryItemBuilder()
-            mgItemBuilder.setURL('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbZDZ9PFJ26ymhBEy2eu-I_RwcSN6f59Wgbg&s')
-            mgItemBuilder.setSpoiler(i % 2 === 0)
-            mg.addItems(mgItemBuilder)
-        }
-        const mg2 = new MediaGalleryBuilder()
-        for (let i = 0; i < 9; i++) {
-            const mgItemBuilder = new MediaGalleryItemBuilder()
-            mgItemBuilder.setURL('https://www.daringgourmet.com/wp-content/uploads/2018/01/Breakfast-Sausages-5-square-lighter-2-500x500.jpg')
-            mg2.addItems(mgItemBuilder)
-        }
-        const thumbnaik = new ThumbnailBuilder({
-            description: 'some text',
-            media: {
-                url: 'https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMnZnYTltbW5nYm12dTViZmhlYnZqYTVnbDVxbGlseTR5Y2E5Ymt6ZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/N3W7S8DdgCM879Q7Hb/giphy.gif',
-            },
-        })
-        const mg3 = new MediaGalleryBuilder()
-        const mgItemBuilder = new MediaGalleryItemBuilder()
-        mgItemBuilder.setURL(
-            'https://firebasestorage.googleapis.com/v0/b/mazarini-384411.appspot.com/o/loot%2Fsw%2Fbattle_droid_silver.gif?alt=media&token=05aa5f73-115d-4180-9ad5-0b3f363e53e3'
-        )
-        mg3.addItems(mgItemBuilder)
-
-        const section2 = new SectionBuilder().addTextDisplayComponents(text1).setThumbnailAccessory(thumbnaik) //.setButtonAccessory(defaultBtn('test'))
-        const separator = new SeparatorBuilder({
-            spacing: SeparatorSpacingSize.Small,
-            divider: true,
-        })
+        const text1 = new TextDisplayBuilder().setContent(['# Tag', MentionUtils.mentionUser(interaction.user.id)].join('\n'))
 
         const color = (interaction.member as GuildMember).displayColor
         a.addComponent(text1, 'header')
-        a.addComponent(separator, 'separator1')
-        a.addComponent(text1, 'sub-text')
-        a.addComponent(defaultButtonRow.addComponents(defaultBtn('replace')), 'buttons')
-        // a.spliceComponents(0, 0, text1)
-        // // a.addMediaGalleryComponents(mg)
-        // a.addTextDisplayComponents(text1)
-        // a.addSeparatorComponents(separator)
-        // a.addTextDisplayComponents(text1)
-        // // a.addSectionComponents(section2)
-        // a.addActionRowComponents(defaultButtonRow.addComponents(defaultBtn('1'), defaultBtn('2')))
-        // // a.addMediaGalleryComponents(mg3)
-        // a.setAccentColor(color)
-        // console.log(a.components)
+        a.addSeparator()
+        // a.addComponent(text1, 'sub-text')
+        // a.addComponent(defaultButtonRow.addComponents(defaultBtn('replace')), 'buttons')
+
         this.container = a
 
         // a.addMediaGalleryComponents(mg2)

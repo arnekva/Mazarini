@@ -1,4 +1,5 @@
 import { exec } from 'child_process'
+import { randomUUID } from 'crypto'
 import {
     ActionRowBuilder,
     ActivityType,
@@ -12,12 +13,15 @@ import {
     GuildMember,
     ModalSubmitInteraction,
     TextChannel,
+    User,
 } from 'discord.js'
 import moment from 'moment'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { ClientHelper } from '../../helpers/clientHelper'
+import { ComponentsHelper } from '../../helpers/componentsHelper'
 import { dbPrefix, prefixList } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { DailyJobs } from '../../Jobs/dailyJobs'
@@ -35,9 +39,22 @@ const { ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js')
 // const { spawn } = require('node:child_process')
 const pm2 = require('pm2')
 
+interface IReward {
+    type: RewardType
+    chipsAmount?: number
+    quality?: string
+    reason: string
+    hasClaimed: string[]
+}
+
+type RewardType = 'chest' | 'chips' | 'lootbox' | 'dealornodeal'
+
 export class Admin extends AbstractCommands {
+    private pendingRewards: Map<string, IReward>
+
     constructor(client: MazariniClient) {
         super(client)
+        this.pendingRewards = new Map<string, IReward>()
     }
 
     private async setSpecificValue(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
@@ -250,33 +267,76 @@ export class Admin extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, `${locked ? 'Låst' : 'Åpnet'}`)
     }
 
-    private async rewardUserWithChips(interaction: ChatInputCommandInteraction<CacheType>) {
+    private reward(interaction: ChatInputCommandInteraction<CacheType>) {
+        const rewardType = interaction.options.getSubcommand() as RewardType
+        const rewardId = randomUUID()
         const reason = interaction.options.get('reason')?.value as string
-        let chips = interaction.options.get('chips')?.value as number
+        const chips = interaction.options.get('chips')?.value as number
+        const quality = interaction.options.get('quality')?.value as string
+        const pendingReward: IReward = { type: rewardType, reason: reason, chipsAmount: chips, quality: quality, hasClaimed: new Array<string>() }
         const user = interaction.options.get('user')?.user
+        if (user) return this.rewardUser(interaction, pendingReward, user)
+        this.pendingRewards.set(rewardId, pendingReward)
+        const reward = claimRewardBtn(rewardId, rewardType)
+        const container = new SimpleContainer()
+        const text = ComponentsHelper.createTextComponent()
+        text.setContent('# Felles reward' + `\n### ${reason}`)
+        container.addComponent(text, 'text')
+        container.addComponent(reward, 'btn')
+        this.messageHelper.replyToInteraction(interaction, '', undefined, [container.container])
+    }
+
+    private claimReward(interaction: ButtonInteraction<CacheType>) {
+        const customId = interaction.customId.split(';')
+        const userId = interaction.user.id
+        if (!this.pendingRewards.has(customId[1])) {
+            return this.messageHelper.replyToInteraction(interaction, 'Denne premien er ikke lenger gyldig.')
+        }
+        const pendingReward = this.pendingRewards.get(customId[1])
+        if (pendingReward.hasClaimed?.includes(userId)) {
+            return this.messageHelper.replyToInteraction(interaction, 'Du har allerede claimet denne premien', { ephemeral: true })
+        }
+        pendingReward.hasClaimed.push(userId)
+        this.pendingRewards.set(customId[1], pendingReward)
+        this.rewardUser(interaction, pendingReward, interaction.user)
+    }
+
+    private rewardUser(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, reward: IReward, user: User) {
+        if (reward.type === 'chips') {
+            this.rewardUserWithChips(interaction, reward, user)
+        } else if (reward.type === 'dealornodeal') {
+            this.rewardUserWithDealOrNoDeal(interaction, reward, user)
+        } else if (['lootbox', 'chest'].includes(reward.type)) {
+            this.rewardUserWithLootbox(interaction, reward, user)
+        }
+    }
+
+    private async rewardUserWithChips(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, pendingReward: IReward, user: User) {
         const dbUser = await this.client.database.getUser(user.id)
-        chips = this.client.bank.giveMoney(dbUser, chips)
+        const awarded = this.client.bank.giveMoney(dbUser, pendingReward.chipsAmount)
         this.client.database.updateUser(dbUser)
-        const text = `${MentionUtils.mentionUser(user.id)} har mottatt en reward på ${chips} chips på grunn av *${reason}*`
+        const text = `${MentionUtils.mentionUser(user.id)} har mottatt en reward på ${awarded} chips på grunn av *${pendingReward.reason}*`
         const embed = EmbedUtils.createSimpleEmbed('Reward', text)
         this.messageHelper.replyToInteraction(interaction, embed)
         this.messageHelper.sendLogMessage(
-            `${user.username} har mottatt en reward på ${chips} chips på grunn av *${reason}*. Kanal: ${MentionUtils.mentionChannel(interaction.channelId)}. `
+            `${user.username} har mottatt en reward på ${awarded} chips på grunn av *${pendingReward.reason}*. Kanal: ${MentionUtils.mentionChannel(
+                interaction.channelId
+            )}. `
         )
     }
 
-    private rewardUserWithLootbox(interaction: ChatInputCommandInteraction<CacheType>, isChest: boolean = false) {
-        const reason = interaction.options.get('reason')?.value as string
-        const quality = interaction.options.get('quality')?.value as string
-        const user = interaction.options.get('user')?.user
-        const lootButton = LootboxCommands.getLootRewardButton(user.id, quality, isChest)
-        const text = `${MentionUtils.mentionUser(user.id)} har mottatt en reward på en ${quality} loot${isChest ? ' chest' : 'box'} på grunn av *${reason}*`
+    private rewardUserWithLootbox(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, pendingReward: IReward, user: User) {
+        const isChest = pendingReward.type === 'chest'
+        const lootButton = LootboxCommands.getLootRewardButton(user.id, pendingReward.quality, isChest)
+        const text = `${MentionUtils.mentionUser(user.id)} har mottatt en reward på en ${pendingReward.quality} loot${
+            isChest ? ' chest' : 'box'
+        } på grunn av *${pendingReward.reason}*`
         const embed = EmbedUtils.createSimpleEmbed('Reward', text)
         this.messageHelper.replyToInteraction(interaction, embed, undefined, [lootButton])
         this.messageHelper.sendLogMessage(
-            `${user.username} har mottatt en reward på en ${quality} loot${
-                isChest ? ' chest' : 'box'
-            } på grunn av *${reason}*. Kanal: ${MentionUtils.mentionChannel(interaction.channelId)}. `
+            `${user.username} har mottatt en reward på en ${pendingReward.quality} loot${isChest ? ' chest' : 'box'} på grunn av *${
+                pendingReward.reason
+            }*. Kanal: ${MentionUtils.mentionChannel(interaction.channelId)}. `
         )
     }
 
@@ -297,19 +357,16 @@ export class Admin extends AbstractCommands {
         ])
     }
 
-    private rewardUserWithDealOrNoDeal(interaction: ChatInputCommandInteraction<CacheType>) {
-        const reason = interaction.options.get('reason')?.value as string
-        const quality = interaction.options.get('quality')?.value as string
-        const user = interaction.options.get('user')?.user
+    private rewardUserWithDealOrNoDeal(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, pendingReward: IReward, user: User) {
         const buttons = new ActionRowBuilder<ButtonBuilder>()
-        const dondQuality = Number(quality) as DonDQuality
+        const dondQuality = Number(pendingReward.quality) as DonDQuality
         const dond = DealOrNoDeal.getDealOrNoDealButton(user.id, dondQuality)
         buttons.addComponents(dond)
-        const text = `${MentionUtils.mentionUser(user.id)} har mottatt en reward på en runde deal or no deal på grunn av *${reason}*`
+        const text = `${MentionUtils.mentionUser(user.id)} har mottatt en reward på en runde deal or no deal på grunn av *${pendingReward.reason}*`
         const embed = EmbedUtils.createSimpleEmbed('Reward', text)
         this.messageHelper.replyToInteraction(interaction, embed, undefined, [buttons])
         this.messageHelper.sendLogMessage(
-            `${user.username} har mottatt en reward på en runde deal or no deal på grunn av *${reason}*. Kanal: ${MentionUtils.mentionChannel(
+            `${user.username} har mottatt en reward på en runde deal or no deal på grunn av *${pendingReward.reason}*. Kanal: ${MentionUtils.mentionChannel(
                 interaction.channelId
             )}. `
         )
@@ -438,10 +495,7 @@ export class Admin extends AbstractCommands {
                     {
                         commandName: 'reward',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            const subCommand = rawInteraction.options.getSubcommand()
-                            if (subCommand === 'chips') this.rewardUserWithChips(rawInteraction)
-                            else if (subCommand === 'dealornodeal') this.rewardUserWithDealOrNoDeal(rawInteraction)
-                            else if (['lootbox', 'chest'].includes(subCommand)) this.rewardUserWithLootbox(rawInteraction, subCommand === 'chest')
+                            this.reward(rawInteraction)
                         },
                         autoCompleteCallback: (interaction: AutocompleteInteraction<CacheType>) => {
                             this.delegateAutocomplete(interaction)
@@ -478,6 +532,12 @@ export class Admin extends AbstractCommands {
                         commandName: 'ADMIN_FORCE_RESTART',
                         command: (rawInteraction: ButtonInteraction<CacheType>) => {
                             this.restartBot(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'ADMIN_CLAIM_REWARD',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.claimReward(rawInteraction)
                         },
                     },
                 ],
@@ -518,3 +578,14 @@ const forceRestartBtn = new ActionRowBuilder<ButtonBuilder>().addComponents(
         type: 2,
     })
 )
+
+const claimRewardBtn = (rewardId: string, type: string) =>
+    new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder({
+            custom_id: `ADMIN_CLAIM_REWARD;${rewardId};${type}`,
+            style: ButtonStyle.Success,
+            label: `Claim reward`,
+            disabled: false,
+            type: 2,
+        })
+    )

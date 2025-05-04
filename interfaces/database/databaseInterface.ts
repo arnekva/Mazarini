@@ -195,6 +195,7 @@ export interface ILootbox {
     probabilities: ILootboxDistribution
     validFrom?: Date
     validTo?: Date
+    rewardOnly?: boolean
 }
 
 export interface ILootboxDistribution {
