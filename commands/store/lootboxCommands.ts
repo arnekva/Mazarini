@@ -183,6 +183,7 @@ export class LootboxCommands extends AbstractCommands {
         if (quality.toLowerCase() === 'basic') return 0.2
         else if (quality.toLowerCase() === 'premium') return 0.5
         else if (quality.toLowerCase() === 'elite') return 1
+        else return 0
     }
 
     private getItemColorBadge(item: IUserCollectable) {
