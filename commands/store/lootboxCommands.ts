@@ -252,7 +252,7 @@ export class LootboxCommands extends AbstractCommands {
     private async getLootboxes(): Promise<ILootbox[]> {
         if (this.lootboxes && DateUtils.dateIsWithinLastHour(this.lootboxesRefreshed)) return this.lootboxes
         const lootboxes = await this.client.database.getLootboxes()
-        this.lootboxes = lootboxes.filter((box) => LootboxCommands.lootboxIsValid(box) && !box.rewardOnly)
+        this.lootboxes = lootboxes.filter((box) => LootboxCommands.lootboxIsValid(box))
         this.lootboxesRefreshed = new Date()
         return this.lootboxes
     }
@@ -410,7 +410,9 @@ export class LootboxCommands extends AbstractCommands {
     private async qualityAutocomplete(interaction: AutocompleteInteraction<CacheType>, isChest: boolean = false) {
         const boxes = await this.getLootboxes()
         interaction.respond(
-            boxes.map((box) => ({ name: `${TextUtils.capitalizeFirstLetter(box.name)} ${(isChest ? 2 : 1) * (box.price / 1000)}K`, value: box.name }))
+            boxes
+                .filter((box) => !box.rewardOnly)
+                .map((box) => ({ name: `${TextUtils.capitalizeFirstLetter(box.name)} ${(isChest ? 2 : 1) * (box.price / 1000)}K`, value: box.name }))
         )
     }
 
