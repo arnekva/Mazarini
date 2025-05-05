@@ -32,10 +32,11 @@ export class Deathroll extends AbstractCommands {
     private drGames: DRGame[]
     private rewardPot: number
     private latestRoll: Date
+    private previousSuggestions: Map<string, number>
 
     constructor(client: MazariniClient) {
         super(client)
-
+        this.previousSuggestions = new Map<string, number>()
         this.setGamesFromDB()
         this.retrieveDeathrollPot()
         this.reRollWinningNumbers()
@@ -435,7 +436,9 @@ export class Deathroll extends AbstractCommands {
     }
 
     private getActiveGameForUser(userID: string) {
-        return this.drGames?.find((game) => game.nextToRoll === userID && game.players.length > 1)
+        const previousRoll = this.previousSuggestions.get(userID)
+        const game = this.drGames?.find((game) => game.nextToRoll === userID && game.players.length > 1 && game.lastRoll !== previousRoll)
+        return game ?? this.drGames?.find((game) => game.nextToRoll === userID && game.players.length > 1)
     }
 
     private autoCompleteDice(interaction: AutocompleteInteraction<CacheType>) {
@@ -444,6 +447,7 @@ export class Deathroll extends AbstractCommands {
 
         if (game) {
             const diceTarget = Math.min(...game.players.map((p) => p.rolls).flat())
+            this.previousSuggestions.set(interaction.user.id, diceTarget)
             return interaction.respond([{ name: `${diceTarget}`, value: diceTarget }])
         }
         return interaction.respond([{ name: '10001', value: 10001 }])
