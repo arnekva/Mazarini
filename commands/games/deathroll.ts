@@ -379,7 +379,7 @@ export class Deathroll extends AbstractCommands {
     private getGame(userID: string, diceTarget: number) {
         let game = this.findActiveGame(userID, diceTarget)
         if (!game) game = this.joinGame(this.checkForAvailableGame(userID, diceTarget), userID)
-        return game ?? (diceTarget > 100 ? this.registerNewGame(userID, diceTarget) : undefined)
+        return game ?? (diceTarget >= 10000 ? this.registerNewGame(userID, diceTarget) : undefined)
     }
 
     private findActiveGame(userID: string, diceTarget: number) {

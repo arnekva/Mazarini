@@ -8,8 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '25.2.1'
-    public static readonly currentPatchNotes = '* Byttet tilbake til Gemini 2.0 Flash' + '\n  * Høie vil nå svare at han er opptatt hvis serveren er opptatt'
+    public static readonly currentVersion = '25.2.2'
+    public static readonly currentPatchNotes = '* Høie vil nå ignorere nye games som ikke starter på 10k+'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
