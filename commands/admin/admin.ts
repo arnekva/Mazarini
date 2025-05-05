@@ -353,7 +353,7 @@ export class Admin extends AbstractCommands {
         interaction.respond([
             { name: 'Basic 10K', value: '10' },
             { name: 'Premium 20K', value: '20' },
-            { name: 'Elite 50K', value: '30' },
+            { name: 'Elite 50K', value: '50' },
         ])
     }
 
