@@ -235,7 +235,7 @@ export class MoreOrLess extends AbstractCommands {
                     else if (i <= 30) reward += 300
                     else if (i <= 40) reward += 200
                     else if (i <= 50) reward += 100
-                    else reward += 50
+                    else reward += 75
                 }
             }
 
