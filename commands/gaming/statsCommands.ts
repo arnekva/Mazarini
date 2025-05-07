@@ -133,6 +133,11 @@ export class StatsCommands extends AbstractCommands {
             ...this.getWinLossRatioFieldRow('Roll ', stats.slotWins, stats.slotLosses),
             ...this.getWinLossRatioFieldRow('Krig ', stats.krigWins, stats.krigLosses),
             ...this.getWinLossRatioFieldRow('Blackjack ', stats.blackjackWins, stats.blackjackLosses),
+            ...[
+                { name: 'Chips vunnet', value: `${user.userStats.moneyStats.totalWon}`, inline: true },
+                { name: 'Tapt', value: `${user.userStats.moneyStats.totalLost}`, inline: true },
+                { name: 'Balanse', value: `${user.userStats.moneyStats.totalWon - user.userStats.moneyStats.totalLost}`, inline: true },
+            ],
         ])
     }
 

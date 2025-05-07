@@ -8,8 +8,9 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '25.2.2'
-    public static readonly currentPatchNotes = '* Høie vil nå ignorere nye games som ikke starter på 10k+'
+    public static readonly currentVersion = '25.2.3'
+    public static readonly currentPatchNotes =
+        '* Du kan nå se chips vunnet/tapt i "/stats bruker gambling". Denne staten gjelder for penger tapt og vunnet i blackjack, gamble og roll'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
