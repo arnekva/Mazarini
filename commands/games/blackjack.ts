@@ -189,7 +189,7 @@ export class Blackjack extends AbstractCommands {
     }
 
     private async getProfilePicture(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        let emoji = await EmojiHelper.getEmoji(interaction.user.username, this.client)
+        let emoji = await EmojiHelper.getEmoji(interaction.user.username.replace('.', ''), this.client)
         if (!(emoji.id === '<Fant ikke emojien>')) return emoji.id
         else {
             await EmojiHelper.createProfileEmoji(interaction)

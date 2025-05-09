@@ -108,7 +108,7 @@ export class DealOrNoDeal extends AbstractCommands {
 
     private async setupGame(interaction: ModalSubmitInteraction<CacheType>, playerCase: number, quality: DonDQuality) {
         const cases = this.getRandomizedCases(quality)
-        const emoji = await EmojiHelper.getGuildEmoji(interaction.user.username, this.client)
+        const emoji = await EmojiHelper.getGuildEmoji(interaction.user.username.replace('.', ''), this.client)
         const game: IDonDGame = {
             player: { id: interaction.user.id, emoji: emoji, caseNr: playerCase },
             cases: cases,
