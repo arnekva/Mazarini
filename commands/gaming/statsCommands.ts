@@ -54,7 +54,7 @@ export class StatsCommands extends AbstractCommands {
             if (n === 'twentyKStats') return { label: '20K stats', quality: DonDQuality.Premium }
             if (n === 'fiftyKStats') return { label: '50K stats', quality: DonDQuality.Elite }
         }
-        const text1 = new TextDisplayBuilder().setContent('# Deal or no Deal')
+        const text1 = new TextDisplayBuilder().setContent(['# Deal or no Deal', `## ${username}`].join('\n'))
         const sortedStats: DonDStats = {
             tenKStats: dondStats.tenKStats,
             twentyKStats: dondStats.twentyKStats,
@@ -71,7 +71,7 @@ export class StatsCommands extends AbstractCommands {
                 const text = new TextDisplayBuilder().setContent(
                     [
                         `## ${header}`,
-                        `### ${username}`,
+
                         `* Antall spill: ${stats.totalGames}`,
                         `* Total gevinst: ${stats.winningsFromAcceptDeal + stats.winningsFromKeepOrSwitch}`,
                         `* Gjennomsnittsgevinst er ${userAverageWin}`,
