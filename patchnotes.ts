@@ -8,7 +8,7 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '25.4.0'
+    public static readonly currentVersion = '25.3.0'
     public static readonly currentPatchNotes =
         '* Forsøk over 50 i MoL gir nå 75 chips i stedet for 50' +
         '\n* Du kan nå eksludere deg selv fra kampen om chest i MoL i brukerinstillinger' +
