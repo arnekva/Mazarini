@@ -12,7 +12,8 @@ export class PatchNotes extends AbstractCommands {
     public static readonly currentPatchNotes =
         '* Forsøk over 50 i MoL gir nå 75 chips i stedet for 50' +
         '\n* Du kan nå eksludere deg selv fra kampen om chest i MoL i brukerinstillinger' +
-        '\n* Dond-stats vil nå vise brukernavnet slik at man enkelt kan se hvem sine stats det er'
+        '\n* Dond-stats vil nå vise brukernavnet slik at man enkelt kan se hvem sine stats det er' +
+        '\n* Høie vil ikke lenger sende deg DM når MoL ikke klarer starte. '
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

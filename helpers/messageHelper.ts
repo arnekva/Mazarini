@@ -60,6 +60,8 @@ interface IInteractionOptions {
     hasBeenDefered?: boolean
     /** Settings this to true will send the message without users getting a sound notification. A new message icon (circle) will still appear */
     sendAsSilent?: boolean
+    /** Skip sending a DM if the interaction fails. All ephemeral messages will by default send DM - this flag will disable that */
+    dontSendDMOnError?: boolean
 }
 
 interface IMessageContent {
@@ -117,7 +119,7 @@ export class MessageHelper {
                 this.sendLogMessage(`handleError: En feilmelding har oppstått under svar på en interaksjon. Feilmelding:\n${e}`)
             }
             let msg: Message<boolean> | undefined
-            if (options?.ephemeral) {
+            if (options?.ephemeral && !options?.dontSendDMOnError) {
                 this.sendDM(interaction.user, messageContent)
             } else {
                 if (typeof messageContent === 'object') msg = await this.sendMessage(interaction?.channelId, { embed: messageContent })

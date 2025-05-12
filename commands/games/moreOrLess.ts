@@ -128,11 +128,11 @@ export class MoreOrLess extends AbstractCommands {
         } else {
             const activeGame = this.userGames.get(interaction.user.id)
             if (activeGame && activeGame.active) {
-                const msg = await this.messageHelper.replyToInteraction(interaction, embed, { ephemeral: true })
+                const msg = await this.messageHelper.replyToInteraction(interaction, embed, { ephemeral: true, dontSendDMOnError: true })
                 activeGame.message = msg
                 this.updateGame(activeGame)
             } else {
-                const msg = await this.messageHelper.replyToInteraction(interaction, embed, { ephemeral: true }, [startBtnRow])
+                const msg = await this.messageHelper.replyToInteraction(interaction, embed, { ephemeral: true, dontSendDMOnError: true }, [startBtnRow])
                 const userGame: IMoreOrLessUserGame = {
                     id: randomUUID(),
                     data: data,
