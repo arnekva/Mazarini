@@ -3,7 +3,6 @@ import { AbstractCommands } from './Abstracts/AbstractCommand'
 import { environment } from './client-env'
 import { MazariniClient } from './client/MazariniClient'
 import { DatabaseHelper } from './helpers/databaseHelper'
-import { EmojiHelper } from './helpers/emojiHelper'
 import { MessageHelper } from './helpers/messageHelper'
 import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
@@ -26,17 +25,16 @@ export class PatchNotes extends AbstractCommands {
         return 'Backlog:\n' + PatchNotes.trelloBoardUrl
     }
 
-    private async compareAndSendPatchNotes(msgHelper: MessageHelper, dbHelper: DatabaseHelper) {
+    static async compareAndSendPatchNotes(msgHelper: MessageHelper, dbHelper: DatabaseHelper) {
         const prev = await dbHelper.getBotData('version')
         if (prev && prev != PatchNotes.currentVersion && environment === 'prod') {
-            const extraString = await EmojiHelper.getEmoji('hhhhheeehhhhhh', this.client)
-            PatchNotes.publishPatchNotes(msgHelper, extraString.id)
+            PatchNotes.publishPatchNotes(msgHelper)
         }
         dbHelper.setBotData('version', PatchNotes.currentVersion)
     }
 
-    static publishPatchNotes(msgHelper: MessageHelper, extra?: string) {
-        const patchNotes = PatchNotes.getCurrentPatchNotes().concat(extra)
+    static publishPatchNotes(msgHelper: MessageHelper) {
+        const patchNotes = PatchNotes.getCurrentPatchNotes()
         msgHelper.sendMessage(ChannelIds.BOT_UTVIKLING, { text: patchNotes })
         msgHelper.sendMessage(ChannelIds.PATCH_NOTES, { text: patchNotes })
     }
