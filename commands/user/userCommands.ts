@@ -169,11 +169,21 @@ export class UserCommands extends AbstractCommands {
                 .setRequired(false)
                 // Short means only a single line of text
                 .setStyle(TextInputStyle.Short)
+            const molChest = new TextInputBuilder()
+                .setCustomId('molChest')
+                // The label is the prompt the user sees for this input
+                .setLabel('Ønsker du å kun å eksluderes fra å få chest fra MoL?')
+                .setPlaceholder(`Ja/Nei`)
+                .setValue(`${user.userSettings?.excludeFromMoL ? 'Ja' : 'Nei'}`)
+                .setRequired(false)
+                // Short means only a single line of text
+                .setStyle(TextInputStyle.Short)
 
             //FIXME: Typing doesn't work here for some reason
             const firstActionRow: any = new ActionRowBuilder().addComponents(safeGamble)
             const secondActionRow = new ActionRowBuilder().addComponents(tradeDups)
-            modal.addComponents(firstActionRow, secondActionRow)
+            const thirdActionRow = new ActionRowBuilder().addComponents(molChest)
+            modal.addComponents(firstActionRow, secondActionRow, thirdActionRow)
             await interaction.showModal(modal)
         }
     }
@@ -181,6 +191,7 @@ export class UserCommands extends AbstractCommands {
     private async handleAdminSendModalDialog(modalInteraction: ModalSubmitInteraction) {
         const safeGamble = modalInteraction.fields.getTextInputValue('safeGambleValue')
         const tradeDups = modalInteraction.fields.getTextInputValue('tradeDups')
+        const molChest = modalInteraction.fields.getTextInputValue('molChest')
         const user = await this.database.getUser(modalInteraction.user.id)
         if (safeGamble) {
             const num = Number(safeGamble)
@@ -199,6 +210,14 @@ export class UserCommands extends AbstractCommands {
                 user.userSettings = { onlyShowDupesOnTrade: onlyShowDups }
             }
         }
+        if (molChest) {
+            const excludeFromMoL = molChest.trim().toLowerCase() === 'ja'
+            if (user.userSettings) user.userSettings.excludeFromMoL = excludeFromMoL
+            else {
+                user.userSettings = { excludeFromMoL: excludeFromMoL }
+            }
+        }
+
         this.database.updateUser(user)
         this.messageHelper.replyToInteraction(modalInteraction, 'Dine innstillinger er nå oppdatert', { ephemeral: true })
     }

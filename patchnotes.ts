@@ -8,8 +8,11 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '25.2.3'
-    public static readonly currentPatchNotes = '* Beste forsøk vil ikke lenger være skjult i MoL'
+    public static readonly currentVersion = '25.4.0'
+    public static readonly currentPatchNotes =
+        '* Forsøk over 50 i MoL gir nå 75 chips i stedet for 50' +
+        '\n* Du kan nå eksludere deg selv fra kampen om chest i MoL i brukerinstillinger' +
+        '\n* Dond-stats vil nå vise brukernavnet slik at man enkelt kan se hvem sine stats det er'
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

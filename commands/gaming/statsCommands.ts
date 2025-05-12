@@ -22,6 +22,7 @@ export class StatsCommands extends AbstractCommands {
         const userParam = interaction.options.get('bruker')?.user
         const category = interaction.options.get('kategori')?.value as string
         const user = await this.client.database.getUser(userParam && userParam instanceof User ? userParam.id : interaction.user.id)
+        const username = userParam && userParam instanceof User ? userParam.username : interaction.user.username
         const userStats = user.userStats?.chipsStats
         const rulettStats = user.userStats?.rulettStats
         const deathrollStats = user.userStats?.deathrollStats
@@ -38,14 +39,14 @@ export class StatsCommands extends AbstractCommands {
             embed = this.getRouletteEmbed(rulettStats, user)
         }
         if (dondStats && category === 'dond') {
-            const container = this.getDonDContainer(dondStats, user)
+            const container = this.getDonDContainer(dondStats, user, username)
             await this.messageHelper.replyToInteraction(interaction, '', {}, [container.container])
         } else {
             this.messageHelper.replyToInteraction(interaction, embed)
         }
     }
 
-    private getDonDContainer(dondStats: DonDStats, user: MazariniUser, interaction?: ChatInputCommandInteraction<CacheType>) {
+    private getDonDContainer(dondStats: DonDStats, user: MazariniUser, username: string) {
         const container = new SimpleContainer()
 
         const transformToDondProps = (n: keyof DonDStats) => {
@@ -70,6 +71,7 @@ export class StatsCommands extends AbstractCommands {
                 const text = new TextDisplayBuilder().setContent(
                     [
                         `## ${header}`,
+                        `### ${username}`,
                         `* Antall spill: ${stats.totalGames}`,
                         `* Total gevinst: ${stats.winningsFromAcceptDeal + stats.winningsFromKeepOrSwitch}`,
                         `* Gjennomsnittsgevinst er ${userAverageWin}`,

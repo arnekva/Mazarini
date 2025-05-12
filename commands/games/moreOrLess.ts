@@ -282,10 +282,13 @@ export class MoreOrLess extends AbstractCommands {
         const fields: APIEmbedField[] = []
         for (const user of sortedUsers) {
             const name = UserUtils.findMemberByUserID(user.id, interaction).user.username
+            const shouldShowBestResult = user.dailyGameStats.moreOrLess.numAttempts > 1 || DateUtils.isTimeOfDayAfter(18)
 
             const result =
-                `Første forsøk: ${DateUtils.isTimeOfDayAfter(18) ? user.dailyGameStats.moreOrLess.firstAttempt + ' riktige' : 'Skjult'} ` +
-                `\nBeste forsøk: ${user.dailyGameStats.moreOrLess.bestAttempt}` +
+                `${user.userSettings.excludeFromMoL ? '*' : ''}Første forsøk: ${
+                    DateUtils.isTimeOfDayAfter(18) ? user.dailyGameStats.moreOrLess.firstAttempt + ' riktige' : 'Skjult'
+                } ${user.userSettings.excludeFromMoL ? '*' : ''}` +
+                `\nBeste forsøk: ${shouldShowBestResult ? user.dailyGameStats.moreOrLess.bestAttempt + ' riktige' : 'Skjult'}` +
                 `\nAntall forsøk: ${DateUtils.isTimeOfDayAfter(18) ? user.dailyGameStats.moreOrLess.numAttempts : 'Skjult'}`
             fields.push({ name: name, value: result })
         }
