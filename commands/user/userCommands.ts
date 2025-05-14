@@ -172,7 +172,7 @@ export class UserCommands extends AbstractCommands {
             const molChest = new TextInputBuilder()
                 .setCustomId('molChest')
                 // The label is the prompt the user sees for this input
-                .setLabel('Ønsker du å kun å eksluderes fra å få chest fra MoL?')
+                .setLabel('Ønsker du å eksluderes fra MoL chest?')
                 .setPlaceholder(`Ja/Nei`)
                 .setValue(`${user.userSettings?.excludeFromMoL ? 'Ja' : 'Nei'}`)
                 .setRequired(false)
