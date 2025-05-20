@@ -282,7 +282,7 @@ export class MoreOrLess extends AbstractCommands {
         const fields: APIEmbedField[] = []
         for (const user of sortedUsers) {
             const name = UserUtils.findMemberByUserID(user.id, interaction).user.username
-            const shouldShowBestResult = user.dailyGameStats.moreOrLess.numAttempts > 1 || DateUtils.isTimeOfDayAfter(18)
+            const shouldShowBestResult = true // user.dailyGameStats.moreOrLess.numAttempts > 1 || DateUtils.isTimeOfDayAfter(18)
 
             const result =
                 `${user.userSettings.excludeFromMoL ? '*' : ''}Første forsøk: ${
