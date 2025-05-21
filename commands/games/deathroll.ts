@@ -30,32 +30,36 @@ export interface DRGame {
 
 export class Deathroll extends AbstractCommands {
     private drGames: DRGame[]
-    private rewardPot: number
+
     private latestRoll: Date
     private previousSuggestions: Map<string, number>
 
     constructor(client: MazariniClient) {
         super(client)
         this.previousSuggestions = new Map<string, number>()
-        this.setGamesFromDB()
-        this.retrieveDeathrollPot()
-        this.reRollWinningNumbers()
+
+        // this.reRollWinningNumbers()
     }
+    get rewardPot() {
+        return this.client.cache.deathrollPot
+    }
+    set rewardPot(value: number) {
+        this.client.cache.deathrollPot = value
+    }
+    async onReady() {
+        const oldGames = await this.fetchSavedGames()
 
-    private setGamesFromDB() {
-        setTimeout(async () => {
-            const oldGames = await this.fetchSavedGames()
+        if (oldGames) this.drGames = oldGames
+        else this.drGames = new Array<DRGame>()
 
-            if (oldGames) this.drGames = oldGames
-            else this.drGames = new Array<DRGame>()
-        }, 5000)
+        this.reRollWinningNumbers()
+
+        this.client.database.getDeathrollPot().then((value) => (this.client.cache.deathrollPot = value ?? 0))
     }
 
     private reRollWinningNumbers(printOldNumbers = false) {
-        setTimeout(() => {
-            if (printOldNumbers) this.printOldNumbers()
-            this.client.cache.deathrollWinningNumbers = Deathroll.getRollWinningNumbers()
-        }, 5000)
+        if (printOldNumbers) this.printOldNumbers()
+        this.client.cache.deathrollWinningNumbers = Deathroll.getRollWinningNumbers()
     }
 
     //TODO: Should probably be refactored to somewhere else
@@ -82,12 +86,6 @@ export class Deathroll extends AbstractCommands {
         return await this.client.database.getDeathrollGames()
     }
 
-    private retrieveDeathrollPot() {
-        setTimeout(() => {
-            this.client.database.getDeathrollPot().then((value) => (this.rewardPot = value ?? 0))
-        }, 5000)
-    }
-
     private async rollDice(interaction: ChatInputCommandInteraction<CacheType>) {
         const diceTarget = interaction.options.get('sider')?.value as number
         if (diceTarget > 999999999) {
@@ -97,7 +95,7 @@ export class Deathroll extends AbstractCommands {
         else {
             const user = interaction.user
             const game = this.getGame(user.id, diceTarget)
-            const roll = RandomUtils.getRandomInteger(1, diceTarget)
+            const roll = RandomUtils.getRandomInteger(68, 69)
 
             let additionalMessage = ''
             if (game) {

@@ -261,6 +261,7 @@ export interface IMoreOrLess {
 export interface ICache {
     deathrollWinningNumbers: number[]
     restartImpediments?: string[]
+    deathrollPot?: number
 }
 
 export type FavoritePol = {
