@@ -429,7 +429,9 @@ export class Blackjack extends AbstractCommands {
                 const hand = player.hands[i]
                 const playerHand = this.calculateHandValue(hand.cards)
                 const stake = player.stake * (hand.doubleDown ? 2 : 1)
-                const lostAddedBack = game.fromDeathroll ? ` Siden du prøvde å gamble ein deathroll pot e halvparten lagt tebage igjen` : ''
+                const lostAddedBack = game.fromDeathroll
+                    ? ` Siden du prøvde å gamble ein deathroll pot e halvparten (${Math.floor(game.fromDeathroll * 0.5)}) lagt tebage igjen`
+                    : ''
                 if (playerHand > 21) {
                     description += `${gameNr}Du fikk ${playerHand} og taper ${stake} chips! :money_with_wings:\n${lostAddedBack}\n`
                     DatabaseHelper.incrementChipsStats(user, 'blackjackLosses')
@@ -486,7 +488,9 @@ export class Blackjack extends AbstractCommands {
         if (game.fromDeathroll) {
             this.client.cache.deathrollPot += Math.floor(game.fromDeathroll * 0.5)
         }
-        const refundText = game.fromDeathroll ? `\nSiden du prøvde å gamble ein deathroll pot e halvparten lagt tebage igjen` : ''
+        const refundText = game.fromDeathroll
+            ? `\nSiden du prøvde å gamble ein deathroll pot e halvparten (${Math.floor(game.fromDeathroll * 0.5)}) lagt tebage igjen`
+            : ''
         game.messages.embedContent = game.messages.embedContent
             .setTitle('Busted')
             .setDescription(`Du trakk over 21\n\n:money_with_wings: Du tapte ${player.stake} chips :money_with_wings: ${refundText}`)

@@ -8,10 +8,9 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '25.4.0'
+    public static readonly currentVersion = '25.4.1'
     public static readonly currentPatchNotes =
-        `* Adminer kan nå bruke /botinnstillinger for å endre ting relatert til bot. Kommandoer som /botstatus blir fjernet. ` +
-        `* Hvis du taper Deathroll-potten i blackjack, så vil halvparten nå settes tilbake til potten. `
+        `* Viser hvor mye av potten som blir lagt tilbake ved blackjack tap ` + `* Viser nå hvilken type lootbox du får i deathroll `
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
