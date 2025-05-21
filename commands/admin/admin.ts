@@ -156,28 +156,21 @@ export class Admin extends AbstractCommands {
         })
     }
 
-    private setBotStatus(interaction: ChatInputCommandInteraction<CacheType>) {
-        const activity = this.translateActivityType(interaction.options.get('aktivitet')?.value as string)
-        const status = interaction.options.get('statustekst')?.value as string
-        const hasUrl = status.includes('www.')
-        const activityName = ActivityType[activity]
-        this.client.database.setBotData('status', status)
-        this.client.database.setBotData('statusType', activity)
-        this.messageHelper.sendLogMessage(`Bottens aktivitet er satt til '${activityName}' med teksten '${status}' av ${interaction.user.username}. `)
-        this.messageHelper.replyToInteraction(interaction, `Bottens aktivitet er satt til '${activityName}' med teksten '${status}'`)
-        ClientHelper.updatePresence(this.client, activity, status, hasUrl ? status : undefined)
-    }
-
     private translateActivityType(type: string): Exclude<ActivityType, ActivityType.Custom> {
         switch (type.toUpperCase()) {
             case 'COMPETING':
+            case 'COM':
                 return ActivityType.Competing
+            case 'LIS':
             case 'LISTENING':
                 return ActivityType.Listening
+            case 'PLA':
             case 'PLAYING':
                 return ActivityType.Playing
+            case 'STR':
             case 'STREAMING':
                 return ActivityType.Streaming
+            case 'WAT':
             case 'WATCHING':
                 return ActivityType.Watching
             default:
@@ -460,6 +453,91 @@ export class Admin extends AbstractCommands {
         else if (cmd === 'dealornodeal') this.dondAutocomplete(interaction)
     }
 
+    private updateBotSettings(interaction: ChatInputCommandInteraction<CacheType>) {
+        this.buildSettingsModal(interaction)
+
+        // this.messageHelper.replyToInteraction(interaction, embed)
+    }
+    static botSettingsId = 'botSettingsModal'
+    private async buildSettingsModal(interaction: ChatInputCommandInteraction<CacheType>) {
+        if (interaction) {
+            const modal = new ModalBuilder().setCustomId(Admin.botSettingsId).setTitle('Bot Innstillinger')
+
+            const potValue = new TextInputBuilder()
+                .setCustomId('potValue')
+                // The label is the prompt the user sees for this input
+                .setLabel('Deathroll Pot')
+                .setPlaceholder(`Ja/Nei`)
+                .setValue(`${this.client.cache.deathrollPot ?? 0}`)
+                .setRequired(false)
+                // Short means only a single line of text
+                .setStyle(TextInputStyle.Short)
+            const firstActionRow = new ActionRowBuilder().addComponents(potValue)
+
+            const oldStatus = await this.client.database.getBotData('status')
+            const oldStatusType = await this.client.database.getBotData('statusType')
+
+            const status = new TextInputBuilder()
+                .setCustomId('status')
+                // The label is the prompt the user sees for this input
+                .setLabel('Status')
+                .setPlaceholder(`statustekst`)
+                .setValue(`${oldStatus}`)
+                .setRequired(false)
+                // Short means only a single line of text
+                .setStyle(TextInputStyle.Short)
+            const secondActionRow = new ActionRowBuilder().addComponents(status)
+            const statusType = new TextInputBuilder()
+                .setCustomId('statusType')
+                // The label is the prompt the user sees for this input
+                .setLabel('WAT,LIS,PLA,STR,COM')
+                .setPlaceholder(`WATCHING`)
+                .setValue(`${oldStatusType}`)
+                .setRequired(false)
+                // Short means only a single line of text
+                .setStyle(TextInputStyle.Short)
+
+            const thirdActionRow = new ActionRowBuilder().addComponents(statusType)
+            modal.addComponents(firstActionRow, secondActionRow, thirdActionRow)
+            await interaction.showModal(modal)
+        }
+    }
+
+    private async handleBotSettingsModalDialog(modalInteraction: ModalSubmitInteraction) {
+        const potValue = modalInteraction.fields.getTextInputValue('potValue')
+        const status = modalInteraction.fields.getTextInputValue('status')
+        const statusType = modalInteraction.fields.getTextInputValue('statusType')
+        const actualStatusType: Exclude<ActivityType, ActivityType.Custom> = this.translateActivityType(statusType)
+        if (potValue) {
+            const potNum = Number(potValue)
+            if (potNum && !isNaN(potNum)) {
+                this.client.database.saveDeathrollPot(potNum)
+                this.client.cache.deathrollPot = potNum
+            }
+            this.messageHelper.sendLogMessage(`Pot ble oppdatert av ${modalInteraction.user.username} til '${potNum}'`)
+        }
+        if (status) {
+            this.client.database.setBotData('status', status)
+        }
+
+        if (statusType) {
+            const actualStatusType = this.translateActivityType(statusType)
+            this.client.database.setBotData('statusType', actualStatusType)
+        }
+        const statusToUse = status || ((await this.client.database.getBotData('status')) as string)
+        const statusTypeToUse = statusType
+            ? actualStatusType
+            : ((await this.client.database.getBotData('statusType')) as Exclude<ActivityType, ActivityType.Custom>)
+        if (status || statusType) {
+            ClientHelper.updatePresence(this.client, statusTypeToUse, statusToUse)
+            this.messageHelper.sendLogMessage(
+                `Bot status ble oppdatert av ${modalInteraction.user.username} til '${statusTypeToUse}' med teksten '${statusToUse}'`
+            )
+        }
+
+        this.messageHelper.replyToInteraction(modalInteraction, 'Dine innstillinger er nå oppdatert', { ephemeral: true })
+    }
+
     getAllInteractions(): IInteractionElement {
         return {
             commands: {
@@ -475,17 +553,18 @@ export class Admin extends AbstractCommands {
                         },
                     },
                     {
+                        commandName: 'botinnstillinger',
+                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                            this.updateBotSettings(interaction)
+                        },
+                    },
+                    {
                         commandName: 'lock',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                             this.handleLocking(rawInteraction)
                         },
                     },
-                    {
-                        commandName: 'botstatus',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            this.setBotStatus(rawInteraction)
-                        },
-                    },
+
                     {
                         commandName: 'set',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
@@ -546,6 +625,12 @@ export class Admin extends AbstractCommands {
                         commandName: Admin.adminSendModalID,
                         command: (rawInteraction: ModalSubmitInteraction<CacheType>) => {
                             this.handleAdminSendModalDialog(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: Admin.botSettingsId,
+                        command: (rawInteraction: ModalSubmitInteraction<CacheType>) => {
+                            this.handleBotSettingsModalDialog(rawInteraction)
                         },
                     },
                 ],

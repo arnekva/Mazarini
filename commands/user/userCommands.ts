@@ -188,7 +188,7 @@ export class UserCommands extends AbstractCommands {
         }
     }
 
-    private async handleAdminSendModalDialog(modalInteraction: ModalSubmitInteraction) {
+    private async handleUserSettingsModalDialog(modalInteraction: ModalSubmitInteraction) {
         const safeGamble = modalInteraction.fields.getTextInputValue('safeGambleValue')
         const tradeDups = modalInteraction.fields.getTextInputValue('tradeDups')
         const molChest = modalInteraction.fields.getTextInputValue('molChest')
@@ -273,7 +273,7 @@ export class UserCommands extends AbstractCommands {
                     {
                         commandName: UserCommands.userSettingsId,
                         command: (rawInteraction: ModalSubmitInteraction<CacheType>) => {
-                            this.handleAdminSendModalDialog(rawInteraction)
+                            this.handleUserSettingsModalDialog(rawInteraction)
                         },
                     },
                 ],

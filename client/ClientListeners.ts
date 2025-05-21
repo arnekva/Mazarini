@@ -196,6 +196,8 @@ export class ClientListener {
 
         /** For interactions (slash-commands and user-commands) */
         this.client.on('interactionCreate', (interaction: Interaction<CacheType>) => {
+            // console.log(interaction.toJSON())
+
             MazariniBot.numCommands++
             this.commandRunner.checkForCommandInInteraction(interaction)
         })

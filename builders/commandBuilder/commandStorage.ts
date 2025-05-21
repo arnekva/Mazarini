@@ -1,4 +1,5 @@
 import { blackjackCommand } from './commandStorage/blackjack'
+import { botSettingsCommand } from './commandStorage/botsettings'
 import { calendarCommand } from './commandStorage/calendar'
 import { countdownCommand } from './commandStorage/countdown'
 import { dailyCommand } from './commandStorage/daily'
@@ -62,6 +63,7 @@ export namespace CommandStorage {
     export const RewardCommand = rewardCommand
     export const DailyCommand = dailyCommand
     export const userSettings = userSettingsCommand
+    export const botSettings = botSettingsCommand
     export const RefreshCommand = refreshCommand
     export const CalendarCommand = calendarCommand
     export const MoreOrLess = moreorless
