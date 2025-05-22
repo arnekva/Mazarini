@@ -510,11 +510,11 @@ export class Admin extends AbstractCommands {
         const actualStatusType: Exclude<ActivityType, ActivityType.Custom> = this.translateActivityType(statusType)
         if (potValue) {
             const potNum = Number(potValue)
-            if (potNum && !isNaN(potNum)) {
+            if (potNum && !isNaN(potNum) && potNum !== this.client.cache.deathrollPot) {
                 this.client.database.saveDeathrollPot(potNum)
                 this.client.cache.deathrollPot = potNum
+                this.messageHelper.sendLogMessage(`Pot ble oppdatert av ${modalInteraction.user.username} til '${potNum}'`)
             }
-            this.messageHelper.sendLogMessage(`Pot ble oppdatert av ${modalInteraction.user.username} til '${potNum}'`)
         }
         if (status) {
             this.client.database.setBotData('status', status)
