@@ -255,7 +255,7 @@ export class CrimeCommands extends AbstractCommands {
             if ((engager.effects?.positive?.jailPass ?? 0) > 0) {
                 engager.effects.positive.jailPass--
                 this.client.database.updateUser(engager)
-                return this.messageHelper.replyToInteraction(interaction, 'Du unngikk nettopp fengsel pga ditt get out of jail free kort.', {ephemeral: true})
+                return this.messageHelper.replyToInteraction(interaction, 'Du unngikk nettopp fengsel pga ditt get out of jail free kort.', { ephemeral: true })
             }
             const prevJailState = engager.jail?.jailState
             let nextJailState: JailState = 'standard'
@@ -301,19 +301,32 @@ export class CrimeCommands extends AbstractCommands {
         const amountOrBalance = Math.abs(amount) > engager.chips ? engager.chips : Math.abs(amount)
 
         if (victimIsBotHoie) {
-            victim.chips += engager.chips
-            engager.chips = 0
-            if (!engager.jail) engager.jail = {}
-            engager.jail.daysInJail = 1
-            engager.jail.timesJailedToday = ++engager.jail.timesJailedToday
-            this.client.database.updateUser(victim)
-            this.client.database.updateUser(engager)
-            this.messageHelper.replyToInteraction(interaction, `Du prøve å stjela fra meg?? Du mysta nettopp alle chipså dine for det`)
-            delay(5000).then(() =>
-                this.messageHelper.sendMessage(interaction.channelId, {
-                    text: `:lock: Vet du.. det er faktisk ikke nok straff. Du får en dag i fengsel óg :lock:`,
-                })
-            )
+            //Stakkar Thomas
+            if (engager.effects?.positive?.jailExcemption) {
+                engager.chips += 14400
+                engager.effects.positive.jailExcemption = false
+                this.client.database.updateUser(engager)
+                this.messageHelper.replyToInteraction(interaction, `Serr .. prøvde du igjen?`)
+                delay(2500).then(() =>
+                    this.messageHelper.sendMessage(interaction.channelId, {
+                        text: `Åkei då ... her, ta pengene dine tebage. Men ikkje tro dette skjer igjen!`,
+                    })
+                )
+            } else {
+                victim.chips += engager.chips
+                engager.chips = 0
+                if (!engager.jail) engager.jail = {}
+                engager.jail.daysInJail = 1
+                engager.jail.timesJailedToday = ++engager.jail.timesJailedToday
+                this.client.database.updateUser(victim)
+                this.client.database.updateUser(engager)
+                this.messageHelper.replyToInteraction(interaction, `Du prøve å stjela fra meg?? Du mysta nettopp alle chipså dine for det`)
+                delay(5000).then(() =>
+                    this.messageHelper.sendMessage(interaction.channelId, {
+                        text: `:lock: Vet du.. det er faktisk ikke nok straff. Du får en dag i fengsel óg :lock:`,
+                    })
+                )
+            }
             return true
         } else if (victimIsEngager) {
             engager.chips -= amountOrBalance
@@ -340,7 +353,7 @@ export class CrimeCommands extends AbstractCommands {
     // based on fixed probability curve
     private theftAttemptIsSuccessful(amount: number): { success: boolean; chance: number; roll: number } {
         // a suiteable 1/x function where the probability of success rapidly approaches a limit of 0
-        const chanceOfSuccess = (1 / ((amount / 500) + 2.5)) * 250
+        const chanceOfSuccess = (1 / (amount / 500 + 2.5)) * 250
         // need a roll with 3 decimals for proper accuracy given a high amount
         const roll = RandomUtils.getRandomInteger(0, 100000) / 1000
         return {
@@ -352,7 +365,7 @@ export class CrimeCommands extends AbstractCommands {
 
     // based on victim wallet
     private theftAttemptIsSuccessful2(amount: number, victimBalance: number): { success: boolean; chance: number; roll: number } {
-        const chanceOfSuccess = 1.0001 - (amount / victimBalance)
+        const chanceOfSuccess = 1.0001 - amount / victimBalance
         const roll = Math.random()
         return {
             success: roll < chanceOfSuccess,
@@ -445,7 +458,7 @@ export class CrimeCommands extends AbstractCommands {
 
     private async frameSomeone(interaction: ChatInputCommandInteraction<CacheType>) {
         const user = await this.client.database.getUser(interaction.user.id)
-        const targetUser = interaction.options.get('bruker')?.user        
+        const targetUser = interaction.options.get('bruker')?.user
         const target = await this.client.database.getUser(targetUser.id)
         const userDaysLeftInJail = user?.jail?.daysInJail
         const targetDaysLeftInJail = target?.jail?.daysInJail
@@ -486,18 +499,19 @@ export class CrimeCommands extends AbstractCommands {
             const embed = EmbedUtils.createSimpleEmbed(
                 `${siren.id} Nye bevis ${siren.id}`,
                 `${MentionUtils.mentionUser(user.id)} løslates med umiddelbar virkning da nye bevis har kommet frem! ` +
-                    `\n:lock: ${MentionUtils.mentionUser(target.id)} var den faktiske skyldige og dømmes dermed te ${target.jail.daysInJail} dager i fengsel :lock:`
-                    + jailTypeString
+                    `\n:lock: ${MentionUtils.mentionUser(target.id)} var den faktiske skyldige og dømmes dermed te ${
+                        target.jail.daysInJail
+                    } dager i fengsel :lock:` +
+                    jailTypeString
             )
-            this.messageHelper.replyToInteraction(interaction, 'Beklager så mye for misforståelsen', {ephemeral: true})
-            this.messageHelper.sendMessage(interaction.channelId, {embed: embed})          
+            this.messageHelper.replyToInteraction(interaction, 'Beklager så mye for misforståelsen', { ephemeral: true })
+            this.messageHelper.sendMessage(interaction.channelId, { embed: embed })
         } else {
             const prevAttempts = user.jail.attemptedFrameJobs
             user.jail.attemptedFrameJobs = prevAttempts && !isNaN(prevAttempts) ? prevAttempts + 1 : 1
             this.client.database.updateUser(user)
             return this.messageHelper.replyToInteraction(interaction, 'Ingen tror på deg.', { ephemeral: true })
         }
-        
     }
 
     getAllInteractions(): IInteractionElement {

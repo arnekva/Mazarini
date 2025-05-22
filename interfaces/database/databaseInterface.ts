@@ -143,6 +143,7 @@ export interface IUserBuffs {
     lootColorsFlipped?: boolean
     deahtrollLootboxChanceMultiplier?: number
     blackjackReDeals?: number
+    jailExcemption?: boolean
 }
 
 export interface IUserDebuffs {}
