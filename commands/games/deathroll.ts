@@ -117,7 +117,7 @@ export class Deathroll extends AbstractCommands {
                     additionalMessage += this.addToPotOnGameEnd(stat, diceTarget)
                     const kek = (await EmojiHelper.getEmoji('kekw', interaction)).id
                     const username = UserUtils.findUserById(stat.userId, interaction)?.username ?? 'Ukjent'
-                    if (diceTarget > 30 && RandomUtils.getRndBetween0and100() > 40) {
+                    if (diceTarget > 120 || (diceTarget > 30 && RandomUtils.getRndBetween0and100() > 40)) {
                         additionalMessage += ` ${kek}`
                     }
                     if (stat.didGetNewBiggestLoss) additionalMessage += `\n*(${username} fikk et nytt tall inn på topplisten av største tap)*`
@@ -189,7 +189,7 @@ export class Deathroll extends AbstractCommands {
 
     private checkForJokes(roll: number, diceTarget: number, nextToRoll: string) {
         if (diceTarget == 11) {
-            if (roll == 9 && Math.random() < 0.25) {
+            if (roll == 9 && Math.random() < 0.33) {
                 const removed = this.rewardPot >= 2977 ? 2977 : this.rewardPot
                 this.rewardPot -= removed
                 if (removed > 0) this.saveRewardPot()
@@ -269,7 +269,7 @@ export class Deathroll extends AbstractCommands {
         const buff = user?.effects?.positive?.deahtrollLootboxChanceMultiplier ?? 1
         if (finalAmount >= 100 && roll >= 100 && RandomUtils.getRandomPercentage(7.5 * buff)) {
             let remainingChips = 0
-            let cost = 0
+            let cost = 5000
             let quality = LootboxQuality.Basic
             if (finalAmount >= 25000) {
                 quality = LootboxQuality.Elite
@@ -277,8 +277,6 @@ export class Deathroll extends AbstractCommands {
             } else if (finalAmount >= 10000) {
                 quality = LootboxQuality.Premium
                 cost = 10000
-            } else {
-                cost = 5000
             }
             remainingChips = totalAdded - cost
             this.rewardPot += Math.max(remainingChips, 0)
@@ -299,7 +297,7 @@ export class Deathroll extends AbstractCommands {
     }
 
     private getRollReward(r: number) {
-        if ([1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 690, 8008, 6969, 420, 123, 1234, 2469, 12345, 1984, 2024, 2025, 2012, 1945].includes(r))
+        if ([1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 669, 690, 8008, 6969, 420, 123, 1234, 2469, 12345, 1984, 2024, 2025, 2012, 1945].includes(r))
             return r * 3
         else return 0
     }
