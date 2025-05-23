@@ -8,9 +8,11 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '25.4.1'
+    public static readonly currentVersion = '25.4.2'
     public static readonly currentPatchNotes =
-        `* Viser hvor mye av potten som blir lagt tilbake ved blackjack tap ` + `* Viser nå hvilken type lootbox du får i deathroll `
+        `* Fikset en bug som ga 3x multiplier på lootbox odds, heller enn 5x ` +
+        `\n* Buffer re-deal effect fra chest` +
+        `\n* Erstattet free jailbreak effekt med en "Re-roll items" effekt`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

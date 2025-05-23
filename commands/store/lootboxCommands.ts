@@ -116,7 +116,7 @@ export class LootboxCommands extends AbstractCommands {
         this.revealCollectable(interaction, rewardedItem)
     }
 
-    private async openAndRegisterLootChest(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+    private async openAndRegisterLootChest(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, pendingChest?: IPendingChest) {
         const user = await this.client.database.getUser(interaction.user.id)
         let quality = ''
         let series = ''
@@ -124,7 +124,7 @@ export class LootboxCommands extends AbstractCommands {
             quality = interaction.options.get('quality')?.value as string
             series = interaction.options.get('series')?.value as string
         } else if (interaction.isButton()) {
-            quality = interaction.customId.split(';')[2]
+            quality = pendingChest?.quality ?? interaction.customId.split(';')[2]
         }
         const box = await this.resolveLootbox(quality)
 
@@ -134,7 +134,8 @@ export class LootboxCommands extends AbstractCommands {
         chestItems.push(await this.calculateRewardItem(box, series, user))
         chestItems.push(await this.calculateRewardItem(box, series, user))
         this.database.updateUser(user) //update in case of effect change
-        this.revealLootChest(interaction, chestItems, quality)
+        const existingChestId = pendingChest && interaction.isButton() ? interaction.customId.split(';')[1] : undefined
+        this.revealLootChest(interaction, chestItems, quality, existingChestId)
     }
 
     private isArneChest(items: IUserCollectable[]) {
@@ -144,14 +145,15 @@ export class LootboxCommands extends AbstractCommands {
     private async revealLootChest(
         interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>,
         items: IUserCollectable[],
-        quality: string
+        quality: string,
+        existingChestId?: string
     ) {
         const chestEmoji = await EmojiHelper.getEmoji('chest_closed', interaction)
         const chestType = this.isArneChest(items) ? 'Arne' : TextUtils.capitalizeFirstLetter(quality) + ' loot'
         const embed = EmbedUtils.createSimpleEmbed(`${chestType} chest`, `Hvilken lootbox vil du åpne og beholde?`).setThumbnail(
             `https://cdn.discordapp.com/emojis/${chestEmoji.urlId}.webp?size=96&quality=lossless`
         )
-        const chestId = randomUUID()
+        const chestId = existingChestId ?? randomUUID()
         const chestItems: Map<string, IUserCollectable> = new Map<string, IUserCollectable>()
         const buttons = new ActionRowBuilder<ButtonBuilder>()
         for (const item of items) {
@@ -171,11 +173,22 @@ export class LootboxCommands extends AbstractCommands {
             let btn: ButtonBuilder = undefined
             if (effect.label === 'deal_or_no_deal') {
                 btn = DealOrNoDeal.getDealOrNoDealButton(interaction.user.id)
+            } else if (effect.label === 'redeal_chest') {
+                btn = reDealChestButton(chestId)
             } else btn = lootChestButton(chestId, 'effect', effect.label)
             buttons.addComponents(btn)
         }
-        const msg = await this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true }, [buttons])
-        const pendingChest: IPendingChest = { userId: interaction.user.id, quality: quality, items: chestItems, effect: effect, message: msg, buttons: buttons }
+        let pendingChest: IPendingChest = undefined
+        if (existingChestId) {
+            pendingChest = this.pendingChests.get(existingChestId)
+            pendingChest.buttons = buttons
+            pendingChest.items = chestItems
+            pendingChest.effect = effect
+            await pendingChest.message.edit({ embeds: [embed], components: [buttons] })
+        } else {
+            const msg = await this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true }, [buttons])
+            pendingChest = { userId: interaction.user.id, quality: quality, items: chestItems, effect: effect, message: msg, buttons: buttons }
+        }
         this.pendingChests.set(chestId, pendingChest)
     }
 
@@ -675,6 +688,15 @@ export class LootboxCommands extends AbstractCommands {
         return this.pendingTrades.delete(tradeID)
     }
 
+    private async handleChestReDeal(interaction: ButtonInteraction<CacheType>) {
+        const deferred = await this.messageHelper.deferUpdate(interaction)
+        if (!deferred) return this.messageHelper.sendMessage(interaction.channelId, { text: 'Noe gikk galt med interactionen. Prøv igjen.' })
+        const pendingChest = this.getPendingChest(interaction)
+        if (pendingChest.userId === interaction.user.id) {
+            this.openAndRegisterLootChest(interaction, pendingChest)
+        }
+    }
+
     private async executeLootSubCommand(interaction: ChatInputCommandInteraction<CacheType>) {
         const deferred = await this.messageHelper.deferReply(interaction)
         if (!deferred) return this.messageHelper.sendMessage(interaction.channelId, { text: 'Noe gikk galt med interactionen. Prøv igjen.' })
@@ -748,6 +770,12 @@ export class LootboxCommands extends AbstractCommands {
                             this.selectChestItem(rawInteraction)
                         },
                     },
+                    {
+                        commandName: 'LOOT_CHEST_REDEAL',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.handleChestReDeal(rawInteraction)
+                        },
+                    },
                 ],
             },
         }
@@ -783,16 +811,17 @@ const lootChestButton = (chestId: string, itemId: string, label: string) => {
     })
 }
 
+const reDealChestButton = (chestId: string) => {
+    return new ButtonBuilder({
+        custom_id: `LOOT_CHEST_REDEAL;${chestId}`,
+        style: ButtonStyle.Primary,
+        label: `Re-roll items`,
+        disabled: false,
+        type: 2,
+    })
+}
+
 const effects: Array<IEffectItem> = [
-    {
-        label: '1 free jailbreak',
-        message: 'et get out of jail free kort! Dette vil automatisk hindre deg fra å bli fengslet neste gang.',
-        effect: (user: MazariniUser) => {
-            user.effects = user.effects ?? defaultEffects
-            user.effects.positive.jailPass = (user.effects.positive.jailPass ?? 0) + 1
-            return undefined
-        },
-    },
     {
         label: '10 spins',
         message: '10 ekstra /spin rewards!',
@@ -833,7 +862,7 @@ const effects: Array<IEffectItem> = [
         message: 'at du har 5x større sannsynlighet for å heller få en lootbox som reward ved hasjinnskudd - ut dagen!',
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
-            user.effects.positive.deahtrollLootboxChanceMultiplier = 3
+            user.effects.positive.deahtrollLootboxChanceMultiplier = 5
             return undefined
         },
     },
@@ -865,16 +894,21 @@ const effects: Array<IEffectItem> = [
         },
     },
     {
-        label: '2 Blackjack re-deal',
-        message: 'to ekstra deal på nytt i blackjack!',
+        label: '5 Blackjack re-deal',
+        message: 'fem ekstra deal på nytt i blackjack!',
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
-            user.effects.positive.blackjackReDeals = (user.effects.positive.blackjackReDeals ?? 0) + 2
+            user.effects.positive.blackjackReDeals = (user.effects.positive.blackjackReDeals ?? 0) + 5
             return undefined
         },
     },
     {
         label: 'deal_or_no_deal',
+        message: '',
+        effect: () => {},
+    },
+    {
+        label: 'redeal_chest',
         message: '',
         effect: () => {},
     },
