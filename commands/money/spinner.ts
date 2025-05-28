@@ -123,21 +123,21 @@ export class Spinner extends AbstractCommands {
     private getSpinnerWinningsBuffed(min: number, seconds: number) {
         switch (min) {
             case 2:
-                return 150
-            case 3:
                 return 250
-            case 4:
+            case 3:
                 return 450
+            case 4:
+                return 650
             case 5:
-                return 750
+                return 1150
             case 6:
-                return 1000
+                return 1750
             case 7:
-                return 1600
+                return 3600
             case 8:
-                return 3000
-            case 9:
                 return 6000
+            case 9:
+                return 8000
             case 10:
                 if (seconds === 59) return 30000
                 return 12000
