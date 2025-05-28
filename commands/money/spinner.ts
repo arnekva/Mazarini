@@ -80,7 +80,7 @@ export class Spinner extends AbstractCommands {
             let text = ``
             let winnings = 0
             tenRandomSpins.forEach((spin, index) => {
-                const currWinning = this.getSpinnerWinnings(spin.min, spin.sec)
+                const currWinning = this.getSpinnerWinningsBuffed(spin.min, spin.sec) + spin.sec
                 winnings += currWinning
                 text += `*Spinn ${index + 1}*: ${spin.min} minutt og ${spin.sec} sekund - ${currWinning} chips.\n`
             })
@@ -94,10 +94,11 @@ export class Spinner extends AbstractCommands {
         }
     }
 
+    //TODO: Revert back to this with new loot series
     private getSpinnerWinnings(min: number, seconds: number) {
         switch (min) {
             case 2:
-                return 75
+                return 50
             case 3:
                 return 125
             case 4:
@@ -106,6 +107,31 @@ export class Spinner extends AbstractCommands {
                 return 500
             case 6:
                 return 800
+            case 7:
+                return 1600
+            case 8:
+                return 3000
+            case 9:
+                return 6000
+            case 10:
+                if (seconds === 59) return 30000
+                return 12000
+            default:
+                return 0
+        }
+    }
+    private getSpinnerWinningsBuffed(min: number, seconds: number) {
+        switch (min) {
+            case 2:
+                return 150
+            case 3:
+                return 250
+            case 4:
+                return 450
+            case 5:
+                return 750
+            case 6:
+                return 1000
             case 7:
                 return 1600
             case 8:

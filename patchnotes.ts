@@ -8,11 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '25.4.2'
-    public static readonly currentPatchNotes =
-        `* Fikset en bug som ga 3x multiplier på lootbox odds, heller enn 5x ` +
-        `\n* Buffer re-deal effect fra chest` +
-        `\n* Erstattet free jailbreak effekt med en "Re-roll items" effekt`
+    public static readonly currentVersion = '25.4.3'
+    public static readonly currentPatchNotes = `* /spin har fått seg en ny buff. Lykke til!`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
