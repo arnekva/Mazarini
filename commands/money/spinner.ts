@@ -80,7 +80,7 @@ export class Spinner extends AbstractCommands {
             let text = ``
             let winnings = 0
             tenRandomSpins.forEach((spin, index) => {
-                const currWinning = this.getSpinnerWinningsBuffed(spin.min, spin.sec) + spin.sec
+                const currWinning = this.getSpinnerWinnings(spin.min, spin.sec) + spin.sec
                 winnings += currWinning
                 text += `*Spinn ${index + 1}*: ${spin.min} minutt og ${spin.sec} sekund - ${currWinning} chips.\n`
             })
