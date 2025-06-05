@@ -243,12 +243,13 @@ export class Blackjack extends AbstractCommands {
         game.messages.table = undefined
         await game.messages.buttons.delete()
         game.messages.buttons = undefined
+        game.messages.buttonRow = await this.getButtonRow(game, game.players[0])
         await this.printGame(game, interaction, true)
     }
 
     private async getButtonRow(game: BlackjackGame, player: BlackjackPlayer) {
         const buttonRow = hitStandButtonRow(game.id)
-        const hasDeathrollRedeal = !!game.fromDeathroll && !game.hasRedealt
+        const hasDeathrollRedeal = false //!!game.fromDeathroll && !game.hasRedealt
         if (player.hands[player.currentHandIndex].cards.length === 2) {
             const user = await this.client.database.getUser(player.id)
             if (this.canDoubleDown(player.hands[player.currentHandIndex]))
@@ -257,7 +258,7 @@ export class Blackjack extends AbstractCommands {
                 buttonRow.addComponents(splitBtn(game.id, this.client.bank.userCanAfford(user, player.stake)))
             if (this.canInsure(game, player)) buttonRow.addComponents(insuranceBtn(game.id, this.client.bank.userCanAfford(user, Math.ceil(player.stake / 2))))
             if (this.canReDeal(player, user) || hasDeathrollRedeal) {
-                const reDeals = (user.effects?.positive?.blackjackReDeals ?? 0) + (hasDeathrollRedeal ? 1 : 0)
+                const reDeals = user.effects?.positive?.blackjackReDeals ?? 0 //+ (hasDeathrollRedeal ? 1 : 0)
                 buttonRow.addComponents(reDealBtn(game.id, reDeals))
             }
         }
@@ -429,14 +430,14 @@ export class Blackjack extends AbstractCommands {
                 const hand = player.hands[i]
                 const playerHand = this.calculateHandValue(hand.cards)
                 const stake = player.stake * (hand.doubleDown ? 2 : 1)
-                const lostAddedBack = game.fromDeathroll
+                const lostAddedBack = '' /*game.fromDeathroll
                     ? ` Siden du prøvde å gamble ein deathroll pot e halvparten (${Math.floor(game.fromDeathroll * 0.5)}) lagt tebage igjen`
-                    : ''
+                    : ''*/
                 if (playerHand > 21) {
                     description += `${gameNr}Du fikk ${playerHand} og taper ${stake} chips! :money_with_wings:\n${lostAddedBack}\n`
                     DatabaseHelper.incrementChipsStats(user, 'blackjackLosses')
                     DatabaseHelper.incrementMoneyStats(user, stake, 'lost')
-                    this.updatePot(game)
+                    // this.updatePot(game)
                 } else if (dealerHand < playerHand || dealerHand > 21) {
                     description += `${gameNr}Du fikk ${playerHand} og vinner ${stake * 2} chips! ${mb}\n`
                     reward += stake * 2
@@ -450,7 +451,7 @@ export class Blackjack extends AbstractCommands {
                     description += `${gameNr}Du fikk ${playerHand} og taper ${stake} chips :money_with_wings:\n${lostAddedBack}\n`
                     DatabaseHelper.incrementChipsStats(user, 'blackjackLosses')
                     DatabaseHelper.incrementMoneyStats(user, stake, 'lost')
-                    this.updatePot(game)
+                    // this.updatePot(game)
                     if (dealerHand == 21) DatabaseHelper.incrementChipsStats(user, 'blackjackLossDealer21')
                 }
                 this.database.updateUser(user)
@@ -562,14 +563,14 @@ export class Blackjack extends AbstractCommands {
     }
 
     private async reDeal(game: BlackjackGame, player: BlackjackPlayer) {
-        const hasDeathrollRedeal = game.fromDeathroll && !game.hasRedealt
-        if (hasDeathrollRedeal) {
-            game.hasRedealt = true
-        } else {
-            const user = await this.client.database.getUser(player.id)
-            user.effects.positive.blackjackReDeals -= 1
-            this.database.updateUser(user)
-        }
+        // const hasDeathrollRedeal = game.fromDeathroll && !game.hasRedealt
+        // if (hasDeathrollRedeal) {
+        //     game.hasRedealt = true
+        // } else {
+        const user = await this.client.database.getUser(player.id)
+        user.effects.positive.blackjackReDeals -= 1
+        this.database.updateUser(user)
+        // }
         game.dealer.hand = new Array<ICardObject>()
         const hand: PlayerHand = { cards: new Array<ICardObject>(), stand: false, doubleDown: false }
         player.hands = [hand]
