@@ -23,9 +23,13 @@ export class PatchNotes extends AbstractCommands {
         `\n  * Dersom hasjen tapes, er den vekke. Halvparten av tapet vil ikke lenger tilbakeføres` +
         `\n* Spin får seg en liten nerf` +
         `\n* Enkelte effects får seg en liten nerf` +
+        `\n* Chips resettes til 0` +
+        `\n* Daily resettes til "not claimed today" og alle starter med en streak på 6` +
+        `\n* Effects resettes til default verdier` +
         `\n* OBS: Hvis du ikke får spilt av nye reveal gifs på tlf må du nok oppdatere discord-appen` +
         `\n###TLDR` +
         `\n* Ny loot series - yay!` +
+        `\n* Mange av tingene dine resettes` +
         `\n* Oppdater discord kanskje`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
