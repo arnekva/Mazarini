@@ -100,6 +100,38 @@ const star_wars_setup: IRevealGifSetup = {
     },
 }
 
+const harry_potter_setup: IRevealGifSetup = {
+    revealWidth: 960,
+    revealHeight: 720,
+    background: 'graphics/background/hp/',
+    gif: 'graphics/hp_reveal_gif.webp',
+    font: {
+        path: 'graphics/fonts/SfDistantGalaxy-0l3d.ttf',
+        family: 'SF Distant Galaxy',
+        weight: 500,
+        primaryColor: '#000000',
+        outlineColor: '#FFE81F',
+    },
+    ratios: {
+        halo: Math.floor(720 * 0.85),
+        rarityEffect: {
+            scaleWidth: Math.floor(960 * 1.25),
+            scaleHeight: Math.floor(720 * 0.8),
+            top: Math.floor(720 * 0.35),
+        },
+        item: {
+            size: Math.floor(720 * 0.75),
+            coords: async (item: Buffer) => {
+                const meta = await sharp(item).metadata()
+                const top = 620 - meta.height
+                const left = Math.floor(960 / 2 - meta.width / 2)
+                return { top: top, left: left }
+            },
+        },
+        textHeight: Math.floor(720 * 0.056),
+    },
+}
+
 const mazarini_setup: IRevealGifSetup = {
     revealWidth: 960,
     revealHeight: 720,
@@ -132,7 +164,7 @@ const mazarini_setup: IRevealGifSetup = {
     },
 }
 
-const currentSetup: IRevealGifSetup = star_wars_setup
+const currentSetup: IRevealGifSetup = harry_potter_setup
 
 const inventoryOptions: IImageCoordinates = {
     layer: -1,
@@ -148,61 +180,58 @@ export class ImageGenerationHelper {
 
     constructor(client: MazariniClient) {
         this.client = client
-
-        this.addFonts()
-    }
-
-    private addFonts() {
-        registerFont('graphics/fonts/WorkSans-Medium.ttf', { family: 'Work Sans', weight: 500 })
     }
 
     public async generateRevealGifForCollectable(collectable: IUserCollectable): Promise<Buffer> {
         const backgroundWithItem = await this.getBackgroundWithItem(collectable)
+        // return backgroundWithItem
         // const lightrayAndText = await this.getLightrayAndText(collectable)
         // const revealBackground = await sharp(backgroundWithItem)
         //     .composite([{ input: lightrayAndText, top: ratios.lightrayTop, left: 0 }])
         //     .toBuffer()
-        const text = await this.getHeaderText(collectable)
+        // const text = await this.getHeaderText(collectable)
 
-        const revealBackground = await sharp(backgroundWithItem).composite(text).toBuffer()
+        // const revealBackground = await sharp(backgroundWithItem).composite(text).toBuffer()
         // return revealBackground
         const gifBuffer = fs.readFileSync(currentSetup.gif)
 
-        return await this.overlayGif(revealBackground, gifBuffer)
+        return await this.overlayGif(backgroundWithItem, gifBuffer)
     }
 
     private async getBackgroundWithItem(collectable: IUserCollectable): Promise<Buffer> {
-        const background = fs.readFileSync(this.getBackgroundImgPath(collectable))
+        const background = fs.readFileSync(`${currentSetup.background}${collectable.name}.png`)
         const resizedBg = await sharp(background)
             .resize({ fit: sharp.fit.cover, width: currentSetup.revealWidth, height: currentSetup.revealHeight })
             .toBuffer()
         const halo = await this.getHalo(collectable.color)
-        const item = fs.readFileSync(`graphics/fixed/${collectable.color}/sw_${collectable.name}_${collectable.color.charAt(0)}.png`) //await this.getItemBuffer(collectable)
+        const item = fs.readFileSync(`graphics/fixed/${collectable.color}/hp_${collectable.name}_${collectable.color.charAt(0)}.png`) //await this.getItemBuffer(collectable)
+        const resizedItem = await sharp(item).resize({ fit: sharp.fit.cover, width: 700, height: 700 }).toBuffer()
         let backgroundBuffer = resizedBg
         if (halo) {
             const coords = await currentSetup.ratios.item.coords(halo)
             backgroundBuffer = await this.compositeBuffers(resizedBg, halo, 10 - 50 /*coords.top*/, coords.left)
         }
-        const namePlate = fs.readFileSync(`graphics/nameplate/${collectable.rarity}_${collectable.color}.png`)
-        const coords = await currentSetup.ratios.item.coords(item)
-        const img = await this.compositeBuffers(backgroundBuffer, item, coords.top - 50, coords.left)
-        return await this.compositeBuffers(img, namePlate, 570, 130)
-    }
-
-    private getBackgroundImgPath(collectable: IUserCollectable) {
-        if (['han_solo', 'chewbacca', 'boba_fett'].includes(collectable.name)) return 'graphics/background/mos_eisley_bg.png'
-        else if (['gonk_droid', 'storm_trooper'].includes(collectable.name)) return 'graphics/background/empire_bg.jpg'
-        else if (['r2d2', 'c3po'].includes(collectable.name)) return 'graphics/background/tatooine_bg.jpg'
-        else if (['rebel_soldier', 'padme_amidala', 'jarjar', 'battle_droid', 'princess_leia'].includes(collectable.name))
-            return 'graphics/background/naboo_bg.jpg'
-        else if (['general_grevious', 'emperor_palpatine', 'darth_vader', 'darth_maul'].includes(collectable.name)) return 'graphics/background/sith_bg.png'
-        else if (['luke_skywalker', 'mace_windu', 'qui_gon_jinn', 'space_jesus', 'yoda'].includes(collectable.name)) return 'graphics/background/jedi_bg.png'
+        const badge = fs.readFileSync(`graphics/badge/badge.png`)
+        const resizedBadge = await sharp(badge).resize({ fit: sharp.fit.cover, width: 160 }).toBuffer()
+        const badgeHalo = this.getRarityHalo(collectable.rarity)
+        const badgeWithHalo = await this.compositeBuffers(badgeHalo, resizedBadge, 100, 120)
+        const coords = await currentSetup.ratios.item.coords(resizedItem)
+        const img = await this.compositeBuffers(backgroundBuffer, resizedItem, coords.top + (collectable.name === 'madeye' ? 150 : 120), coords.left)
+        return await this.compositeBuffers(img, badgeWithHalo, 400, 660)
     }
 
     private async getHalo(color: ItemColor): Promise<Buffer> {
-        // if (color === ItemColor.None) return undefined ${color}
-        const halo = fs.readFileSync(`graphics/halo/none.png`)
-        return await this.resize(halo, false, 720 /*ratios.halo*/)
+        const halo = fs.readFileSync(`graphics/halo/${color}.png`)
+        return await this.resize(halo, false, 720)
+    }
+
+    private getRarityHalo(rarity: ItemRarity): Buffer {
+        let color = ''
+        if (rarity === ItemRarity.Common) color = 'yellow'
+        else if (rarity === ItemRarity.Rare) color = 'blue'
+        else if (rarity === ItemRarity.Epic) color = 'green'
+        else color = 'red'
+        return fs.readFileSync(`graphics/halo/${color}.png`)
     }
 
     private async getItemBuffer(collectable: IUserCollectable): Promise<Buffer> {
@@ -290,8 +319,8 @@ export class ImageGenerationHelper {
         const backgroundImg = sharp(background).resize(metadata.width, metadata.pageHeight) //We are resizing here to normalize background with gif.
         const imgRoll = backgroundImg.extend({ bottom: metadata.pageHeight * (metadata.pages - 1), extendWith: 'repeat' }) //Must extend to repeat how ever many pages (frames) are in the gif.
 
-        const result = imgRoll.composite([{ input: await overlay.toBuffer(), gravity: 'north', animated: true }]).gif(
-            { progressive: metadata.isProgressive, delay: new Array(metadata.delay.length).fill(50), loop: 1, effort: 1 }
+        const result = imgRoll.composite([{ input: await overlay.toBuffer(), gravity: 'north', animated: true }]).webp(
+            { delay: new Array(metadata.delay.length).fill(50), loop: 1, effort: 0 }
             //Just copying the metadata from the gif to the output format (not sure this is necessary).
         )
 
@@ -300,7 +329,8 @@ export class ImageGenerationHelper {
     }
 
     public async generateImageForCollectables(collectables: IUserCollectable[]): Promise<Buffer> {
-        const background = fs.readFileSync(`graphics/background/inventory_bg.png`)
+        const appendSeries = collectables[0].series === 'hp' ? '_hp' : ''
+        const background = fs.readFileSync(`graphics/background/inventory_bg${appendSeries}.png`)
         if (!collectables) return background
         const canvas = await getCanvasImage({ buffer: background })
         const imageTemplate: ICollectableImage = inventoryTemplate

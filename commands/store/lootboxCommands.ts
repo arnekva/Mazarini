@@ -417,7 +417,9 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private getGifPath(item: IUserCollectable): string {
-        return `loot/${item.series}/${item.name}_${item.color}.gif`
+        let fileFormat = '.webp'
+        if (item.series in ['mazarini', 'sw']) fileFormat = '.gif'
+        return `loot/${item.series}/${item.name}_${item.color}${fileFormat}`
     }
 
     private async qualityAutocomplete(interaction: AutocompleteInteraction<CacheType>, isChest: boolean = false) {
@@ -867,11 +869,11 @@ const effects: Array<IEffectItem> = [
         },
     },
     {
-        label: '10x doubled pot additions',
-        message: 'at dine neste 10 hasjinnskudd hvor du triller over 100 dobles!',
+        label: '5x doubled pot additions',
+        message: 'at dine neste 5 hasjinnskudd hvor du triller over 100 dobles!',
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
-            user.effects.positive.doublePotDeposit = (user.effects.positive.doublePotDeposit ?? 0) + 10
+            user.effects.positive.doublePotDeposit = (user.effects.positive.doublePotDeposit ?? 0) + 5
             return undefined
         },
     },
@@ -884,21 +886,21 @@ const effects: Array<IEffectItem> = [
             return undefined
         },
     },
+    // {
+    //     label: '5x guaranteed colors',
+    //     message: 'at dine neste 5 loot-items har garantert farge (gjelder ikke trade)',
+    //     effect: (user: MazariniUser) => {
+    //         user.effects = user.effects ?? defaultEffects
+    //         user.effects.positive.guaranteedLootColor = (user.effects.positive.guaranteedLootColor ?? 0) + 5
+    //         return undefined
+    //     },
+    // },
     {
-        label: '5x guaranteed colors',
-        message: 'at dine neste 5 loot-items har garantert farge (gjelder ikke trade)',
+        label: '3 Blackjack re-deal',
+        message: 'tre ekstra deal på nytt i blackjack!',
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
-            user.effects.positive.guaranteedLootColor = (user.effects.positive.guaranteedLootColor ?? 0) + 5
-            return undefined
-        },
-    },
-    {
-        label: '5 Blackjack re-deal',
-        message: 'fem ekstra deal på nytt i blackjack!',
-        effect: (user: MazariniUser) => {
-            user.effects = user.effects ?? defaultEffects
-            user.effects.positive.blackjackReDeals = (user.effects.positive.blackjackReDeals ?? 0) + 5
+            user.effects.positive.blackjackReDeals = (user.effects.positive.blackjackReDeals ?? 0) + 3
             return undefined
         },
     },

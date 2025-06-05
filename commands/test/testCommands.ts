@@ -8,7 +8,6 @@ import {
     CacheType,
     ChatInputCommandInteraction,
     EmbedBuilder,
-    GuildMember,
     Message,
     ModalSubmitInteraction,
     StringSelectMenuInteraction,
@@ -19,7 +18,6 @@ import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
-import { MentionUtils } from '../../utils/mentionUtils'
 import { LootboxCommands } from '../store/lootboxCommands'
 
 const defaultBtn = (id: string) => {
@@ -70,23 +68,9 @@ export class TestCommands extends AbstractCommands {
     }
 
     private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        const a = new SimpleContainer()
-        const text1 = new TextDisplayBuilder().setContent(['# Tag', MentionUtils.mentionUser(interaction.user.id)].join('\n'))
-
-        const color = (interaction.member as GuildMember).displayColor
-        a.addComponent(text1, 'header')
-        a.addSeparator()
-        // a.addComponent(text1, 'sub-text')
-        // a.addComponent(defaultButtonRow.addComponents(defaultBtn('replace')), 'buttons')
-
-        this.container = a
-
-        // a.addMediaGalleryComponents(mg2)
-        //Note that isComponentOnly MUST be sent when using this, as componentV2 flag must be set
-        // But that flag cannot always be set, as the server expects a message with components if set.
-        const msg = await this.messageHelper.sendMessage(interaction.channelId, { components: [this.container.container] }, { isComponentOnly: true })
-        this.msg = msg
-        // await this.messageHelper.replyToInteraction(interaction, 'Test', {}, [a])
+        this.messageHelper.replyToInteraction(interaction, 'test?')
+        // const reply = await this.messageHelper.replyToInteraction(interaction, '', undefined, undefined, [file])
+        // const reply = await this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, undefined, [file])
     }
 
     private async testSelectMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {
@@ -226,75 +210,184 @@ export class TestCommands extends AbstractCommands {
 // LA STÅ
 // GENERATE GIFs FOR LOOT SERIES: (copy to test() and run)
 
+// const hp_series: ICollectableSeries = {
+//     name: 'hp',
+//     added: new Date(),
+//     common: ['myrtle', 'rita_skeeter', 'umbridge', 'filch', 'lockhart'],
+//     rare: ['ron', 'madeye', 'draco', 'neville', 'slughorn'],
+//     epic: ['bellatrix', 'hermione', 'mcgonagall', 'dobby', 'hagrid'],
+//     legendary: ['harry_potter', 'dumbledore', 'snape', 'voldemort', 'sirius'],
+// }
+
+// this.database.addLootboxSeries(hp_series)
+
+// const channelId = interaction.channelId
 // const igh = new ImageGenerationHelper(this.client)
-// this.messageHelper.replyToInteraction(interaction, 'Snakkes om 30min når alle gifene er lastet opp')
-// const series = (await this.client.database.getLootboxSeries())[0] // CHANGE THIS FOR DIFFERENT SERIES
+// this.messageHelper.replyToInteraction(interaction, 'Snakkes om 30min når alle webp-ene er lastet opp')
+// const series = (await this.client.database.getLootboxSeries())[2] // CHANGE THIS FOR DIFFERENT SERIES
 
 // console.log('Common items')
-// for (let item of series.common) {
-//     console.log(`Generating gifs for ${item}`);
-//     const none = await igh.generateRevealGifForCollectable({ name: item, series: 'mazarini', rarity: ItemRarity.Common, inventory: {none: 1, silver: 0, gold: 0, diamond: 0} })
-//     console.log(`Uploading ${item}_none`);
-//     this.client.database.uploadLootGif(`loot/mazarini/${item}_none.gif`, none)
-//     const silver = await igh.generateRevealGifForCollectable({ name: item, series: 'mazarini', rarity: ItemRarity.Common, inventory: {none: 0, silver: 1, gold: 0, diamond: 0} })
-//     console.log(`Uploading ${item}_silver`);
-//     this.client.database.uploadLootGif(`loot/mazarini/${item}_silver.gif`, silver)
-//     const gold = await igh.generateRevealGifForCollectable({ name: item, series: 'mazarini', rarity: ItemRarity.Common, inventory: {none: 0, silver: 0, gold: 1, diamond: 0} })
-//     console.log(`Uploading ${item}_gold`);
-//     this.client.database.uploadLootGif(`loot/mazarini/${item}_gold.gif`, gold)
-//     const diamond = await igh.generateRevealGifForCollectable({ name: item, series: 'mazarini', rarity: ItemRarity.Common, inventory: {none: 0, silver: 0, gold: 0, diamond: 1} })
-//     console.log(`Uploading ${item}_diamond`);
-//     this.client.database.uploadLootGif(`loot/mazarini/${item}_diamond.gif`, diamond)
+// for (const item of series.common) {
+//     console.log(`Generating gifs for ${item}`)
+//     const none = await igh.generateRevealGifForCollectable({
+//         name: item,
+//         series: 'hp',
+//         rarity: ItemRarity.Common,
+//         color: ItemColor.None,
+//         amount: 1,
+//     })
+//     console.log(`Uploading ${item}_none`)
+//     this.client.database.uploadLootGif(`loot/hp/${item}_none.webp`, none)
+//     const silver = await igh.generateRevealGifForCollectable({
+//         name: item,
+//         series: 'hp',
+//         rarity: ItemRarity.Common,
+//         color: ItemColor.Silver,
+//         amount: 1,
+//     })
+//     console.log(`Uploading ${item}_silver`)
+//     this.client.database.uploadLootGif(`loot/hp/${item}_silver.webp`, silver)
+//     const gold = await igh.generateRevealGifForCollectable({
+//         name: item,
+//         series: 'hp',
+//         rarity: ItemRarity.Common,
+//         color: ItemColor.Gold,
+//         amount: 1,
+//     })
+//     console.log(`Uploading ${item}_gold`)
+//     this.client.database.uploadLootGif(`loot/hp/${item}_gold.webp`, gold)
+//     const diamond = await igh.generateRevealGifForCollectable({
+//         name: item,
+//         series: 'hp',
+//         rarity: ItemRarity.Common,
+//         color: ItemColor.Diamond,
+//         amount: 1,
+//     })
+//     console.log(`Uploading ${item}_diamond`)
+//     this.client.database.uploadLootGif(`loot/hp/${item}_diamond.webp`, diamond)
 // }
 // console.log('Rare items')
-// for (let item of series.rare) {
-//     console.log(`Generating gifs for ${item}`);
-//     const none = await igh.generateRevealGifForCollectable({ name: item, series: 'mazarini', rarity: ItemRarity.Rare, inventory: {none: 1, silver: 0, gold: 0, diamond: 0} })
-//     console.log(`Uploading ${item}_none`);
-//     this.client.database.uploadLootGif(`loot/mazarini/${item}_none.gif`, none)
-//     const silver = await igh.generateRevealGifForCollectable({ name: item, series: 'mazarini', rarity: ItemRarity.Rare, inventory: {none: 0, silver: 1, gold: 0, diamond: 0} })
-//     console.log(`Uploading ${item}_silver`);
-//     this.client.database.uploadLootGif(`loot/mazarini/${item}_silver.gif`, silver)
-//     const gold = await igh.generateRevealGifForCollectable({ name: item, series: 'mazarini', rarity: ItemRarity.Rare, inventory: {none: 0, silver: 0, gold: 1, diamond: 0} })
-//     console.log(`Uploading ${item}_gold`);
-//     this.client.database.uploadLootGif(`loot/mazarini/${item}_gold.gif`, gold)
-//     const diamond = await igh.generateRevealGifForCollectable({ name: item, series: 'mazarini', rarity: ItemRarity.Rare, inventory: {none: 0, silver: 0, gold: 0, diamond: 1} })
-//     console.log(`Uploading ${item}_diamond`);
-//     this.client.database.uploadLootGif(`loot/mazarini/${item}_diamond.gif`, diamond)
+
+// for (const item of series.rare) {
+//     console.log(`Generating gifs for ${item}`)
+//     const none = await igh.generateRevealGifForCollectable({
+//         name: item,
+//         series: 'hp',
+//         rarity: ItemRarity.Rare,
+//         color: ItemColor.None,
+//         amount: 1,
+//     })
+//     console.log(`Uploading ${item}_none`)
+//     this.client.database.uploadLootGif(`loot/hp/${item}_none.webp`, none)
+//     const silver = await igh.generateRevealGifForCollectable({
+//         name: item,
+//         series: 'hp',
+//         rarity: ItemRarity.Rare,
+//         color: ItemColor.Silver,
+//         amount: 1,
+//     })
+//     console.log(`Uploading ${item}_silver`)
+//     this.client.database.uploadLootGif(`loot/hp/${item}_silver.webp`, silver)
+//     const gold = await igh.generateRevealGifForCollectable({
+//         name: item,
+//         series: 'hp',
+//         rarity: ItemRarity.Rare,
+//         color: ItemColor.Gold,
+//         amount: 1,
+//     })
+//     console.log(`Uploading ${item}_gold`)
+//     this.client.database.uploadLootGif(`loot/hp/${item}_gold.webp`, gold)
+//     const diamond = await igh.generateRevealGifForCollectable({
+//         name: item,
+//         series: 'hp',
+//         rarity: ItemRarity.Rare,
+//         color: ItemColor.Diamond,
+//         amount: 1,
+//     })
+//     console.log(`Uploading ${item}_diamond`)
+//     this.client.database.uploadLootGif(`loot/hp/${item}_diamond.webp`, diamond)
 // }
 // console.log('Epic items')
-// for (let item of series.epic) {
-//     console.log(`Generating gifs for ${item}`);
-//     const none = await igh.generateRevealGifForCollectable({ name: item, series: 'mazarini', rarity: ItemRarity.Epic, inventory: {none: 1, silver: 0, gold: 0, diamond: 0} })
-//     console.log(`Uploading ${item}_none`);
-//     this.client.database.uploadLootGif(`loot/mazarini/${item}_none.gif`, none)
-//     const silver = await igh.generateRevealGifForCollectable({ name: item, series: 'mazarini', rarity: ItemRarity.Epic, inventory: {none: 0, silver: 1, gold: 0, diamond: 0} })
-//     console.log(`Uploading ${item}_silver`);
-//     this.client.database.uploadLootGif(`loot/mazarini/${item}_silver.gif`, silver)
-//     const gold = await igh.generateRevealGifForCollectable({ name: item, series: 'mazarini', rarity: ItemRarity.Epic, inventory: {none: 0, silver: 0, gold: 1, diamond: 0} })
-//     console.log(`Uploading ${item}_gold`);
-//     this.client.database.uploadLootGif(`loot/mazarini/${item}_gold.gif`, gold)
-//     const diamond = await igh.generateRevealGifForCollectable({ name: item, series: 'mazarini', rarity: ItemRarity.Epic, inventory: {none: 0, silver: 0, gold: 0, diamond: 1} })
-//     console.log(`Uploading ${item}_diamond`);
-//     this.client.database.uploadLootGif(`loot/mazarini/${item}_diamond.gif`, diamond)
+// for (const item of series.epic) {
+//     console.log(`Generating gifs for ${item}`)
+//     const none = await igh.generateRevealGifForCollectable({
+//         name: item,
+//         series: 'hp',
+//         rarity: ItemRarity.Epic,
+//         color: ItemColor.None,
+//         amount: 1,
+//     })
+//     console.log(`Uploading ${item}_none`)
+//     this.client.database.uploadLootGif(`loot/hp/${item}_none.webp`, none)
+//     const silver = await igh.generateRevealGifForCollectable({
+//         name: item,
+//         series: 'hp',
+//         rarity: ItemRarity.Epic,
+//         color: ItemColor.Silver,
+//         amount: 1,
+//     })
+//     console.log(`Uploading ${item}_silver`)
+//     this.client.database.uploadLootGif(`loot/hp/${item}_silver.webp`, silver)
+//     const gold = await igh.generateRevealGifForCollectable({
+//         name: item,
+//         series: 'hp',
+//         rarity: ItemRarity.Epic,
+//         color: ItemColor.Gold,
+//         amount: 1,
+//     })
+//     console.log(`Uploading ${item}_gold`)
+//     this.client.database.uploadLootGif(`loot/hp/${item}_gold.webp`, gold)
+//     const diamond = await igh.generateRevealGifForCollectable({
+//         name: item,
+//         series: 'hp',
+//         rarity: ItemRarity.Epic,
+//         color: ItemColor.Diamond,
+//         amount: 1,
+//     })
+//     console.log(`Uploading ${item}_diamond`)
+//     this.client.database.uploadLootGif(`loot/hp/${item}_diamond.webp`, diamond)
 // }
-// console.log('Legendary items')
-// for (let item of series.legendary) {
-//     console.log(`Generating gifs for ${item}`);
-//     const none = await igh.generateRevealGifForCollectable({ name: item, series: 'mazarini', rarity: ItemRarity.Legendary, inventory: {none: 1, silver: 0, gold: 0, diamond: 0} })
-//     console.log(`Uploading ${item}_none`);
-//     this.client.database.uploadLootGif(`loot/mazarini/${item}_none.gif`, none)
-//     const silver = await igh.generateRevealGifForCollectable({ name: item, series: 'mazarini', rarity: ItemRarity.Legendary, inventory: {none: 0, silver: 1, gold: 0, diamond: 0} })
-//     console.log(`Uploading ${item}_silver`);
-//     this.client.database.uploadLootGif(`loot/mazarini/${item}_silver.gif`, silver)
-//     const gold = await igh.generateRevealGifForCollectable({ name: item, series: 'mazarini', rarity: ItemRarity.Legendary, inventory: {none: 0, silver: 0, gold: 1, diamond: 0} })
-//     console.log(`Uploading ${item}_gold`);
-//     this.client.database.uploadLootGif(`loot/mazarini/${item}_gold.gif`, gold)
-//     const diamond = await igh.generateRevealGifForCollectable({ name: item, series: 'mazarini', rarity: ItemRarity.Legendary, inventory: {none: 0, silver: 0, gold: 0, diamond: 1} })
-//     console.log(`Uploading ${item}_diamond`);
-//     this.client.database.uploadLootGif(`loot/mazarini/${item}_diamond.gif`, diamond)
+// console.log('Legedary items')
+// for (const item of series.legendary) {
+//     console.log(`Generating gifs for ${item}`)
+//     const none = await igh.generateRevealGifForCollectable({
+//         name: item,
+//         series: 'hp',
+//         rarity: ItemRarity.Legendary,
+//         color: ItemColor.None,
+//         amount: 1,
+//     })
+//     console.log(`Uploading ${item}_none`)
+//     this.client.database.uploadLootGif(`loot/hp/${item}_none.webp`, none)
+//     const silver = await igh.generateRevealGifForCollectable({
+//         name: item,
+//         series: 'hp',
+//         rarity: ItemRarity.Legendary,
+//         color: ItemColor.Silver,
+//         amount: 1,
+//     })
+//     console.log(`Uploading ${item}_silver`)
+//     this.client.database.uploadLootGif(`loot/hp/${item}_silver.webp`, silver)
+//     const gold = await igh.generateRevealGifForCollectable({
+//         name: item,
+//         series: 'hp',
+//         rarity: ItemRarity.Legendary,
+//         color: ItemColor.Gold,
+//         amount: 1,
+//     })
+//     console.log(`Uploading ${item}_gold`)
+//     this.client.database.uploadLootGif(`loot/hp/${item}_gold.webp`, gold)
+//     const diamond = await igh.generateRevealGifForCollectable({
+//         name: item,
+//         series: 'hp',
+//         rarity: ItemRarity.Legendary,
+//         color: ItemColor.Diamond,
+//         amount: 1,
+//     })
+//     console.log(`Uploading ${item}_diamond`)
+//     this.client.database.uploadLootGif(`loot/hp/${item}_diamond.webp`, diamond)
 // }
-// console.log('DOOOOOOOOOOOOOOONE');
+// this.messageHelper.sendMessage(channelId, { text: '<:pointerbrothers1:1177653110852825158>' })
 
 // const memes = await this.database.getMemes()
 // memes.push(memeTemplate)
