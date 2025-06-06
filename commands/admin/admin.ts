@@ -43,6 +43,7 @@ interface IReward {
     type: RewardType
     chipsAmount?: number
     quality?: string
+    series?: string
     reason: string
     hasClaimed: string[]
 }
@@ -266,7 +267,15 @@ export class Admin extends AbstractCommands {
         const reason = interaction.options.get('reason')?.value as string
         const chips = interaction.options.get('chips')?.value as number
         const quality = interaction.options.get('quality')?.value as string
-        const pendingReward: IReward = { type: rewardType, reason: reason, chipsAmount: chips, quality: quality, hasClaimed: new Array<string>() }
+        const series = interaction.options.get('series')?.value as string
+        const pendingReward: IReward = {
+            type: rewardType,
+            reason: reason,
+            chipsAmount: chips,
+            quality: quality,
+            series: series,
+            hasClaimed: new Array<string>(),
+        }
         const user = interaction.options.get('user')?.user
         if (user) return this.rewardUser(interaction, pendingReward, user)
         this.pendingRewards.set(rewardId, pendingReward)
@@ -320,7 +329,7 @@ export class Admin extends AbstractCommands {
 
     private rewardUserWithLootbox(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, pendingReward: IReward, user: User) {
         const isChest = pendingReward.type === 'chest'
-        const lootButton = LootboxCommands.getLootRewardButton(user.id, pendingReward.quality, isChest)
+        const lootButton = LootboxCommands.getLootRewardButton(user.id, pendingReward.quality, isChest, undefined, pendingReward.series)
         const text = `${MentionUtils.mentionUser(user.id)} har mottatt en reward på en ${pendingReward.quality} loot${
             isChest ? ' chest' : 'box'
         } på grunn av *${pendingReward.reason}*`
@@ -340,6 +349,13 @@ export class Admin extends AbstractCommands {
                 .filter((box) => LootboxCommands.lootboxIsValid(box))
                 .map((box) => ({ name: `${TextUtils.capitalizeFirstLetter(box.name)} ${(isChest ? 2 : 1) * (box.price / 1000)}K`, value: box.name }))
         )
+    }
+
+    private async lootSeriesAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
+        const series = await this.database.getLootboxSeries()
+        const optionList: any = interaction.options
+        const input = optionList.getFocused().toLowerCase()
+        interaction.respond(series.filter((series) => series.name.toLowerCase().includes(input)).map((series) => ({ name: series.name, value: series.name })))
     }
 
     private dondAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
@@ -449,8 +465,12 @@ export class Admin extends AbstractCommands {
 
     private delegateAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
         const cmd = interaction.options.getSubcommand()
-        if (['lootbox', 'chest'].includes(cmd)) this.lootAutocomplete(interaction, cmd === 'chest')
-        else if (cmd === 'dealornodeal') this.dondAutocomplete(interaction)
+        const optionList: any = interaction.options
+        const focused = optionList._hoistedOptions.find((option) => option.focused)
+        if (['lootbox', 'chest'].includes(cmd)) {
+            if (focused.name === 'series') this.lootSeriesAutocomplete(interaction)
+            else this.lootAutocomplete(interaction, cmd === 'chest')
+        } else if (cmd === 'dealornodeal') this.dondAutocomplete(interaction)
     }
 
     private updateBotSettings(interaction: ChatInputCommandInteraction<CacheType>) {

@@ -51,6 +51,12 @@ export const rewardCommand: ISlashCommandItem = {
                     description: 'hvem skal få rewarden?',
                     type: ApplicationCommandOptionType.User,
                 },
+                {
+                    name: 'series',
+                    description: 'hvilken serie skal brukeren få lootbox fra?',
+                    type: ApplicationCommandOptionType.String,
+                    autocomplete: true,
+                },
             ],
         },
         {
@@ -74,6 +80,12 @@ export const rewardCommand: ISlashCommandItem = {
                     name: 'user',
                     description: 'hvem skal få rewarden?',
                     type: ApplicationCommandOptionType.User,
+                },
+                {
+                    name: 'series',
+                    description: 'hvilken serie skal brukeren få lootbox fra?',
+                    type: ApplicationCommandOptionType.String,
+                    autocomplete: true,
                 },
             ],
         },

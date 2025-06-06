@@ -37,6 +37,7 @@ interface IPendingTrade {
 interface IPendingChest {
     userId: string
     quality: string
+    series: string
     items: Map<string, IUserCollectable>
     effect?: IEffectItem
     message?: InteractionResponse<boolean> | Message<boolean>
@@ -74,10 +75,16 @@ export class LootboxCommands extends AbstractCommands {
         }, 5000)
     }
 
-    static getLootRewardButton(userId: string, quality: string, isChest: boolean = false, customLabel?: string): ActionRowBuilder<ButtonBuilder> {
+    static getLootRewardButton(
+        userId: string,
+        quality: string,
+        isChest: boolean = false,
+        customLabel?: string,
+        series: string = 'hp'
+    ): ActionRowBuilder<ButtonBuilder> {
         return new ActionRowBuilder<ButtonBuilder>().addComponents(
             new ButtonBuilder({
-                custom_id: `OPEN_LOOT;${userId};${quality};${isChest ? 'chest' : 'box'}`,
+                custom_id: `OPEN_LOOT;${userId};${quality};${isChest ? 'chest' : 'box'};${series}`,
                 style: ButtonStyle.Primary,
                 label: customLabel || `${isChest ? 'Open loot chest' : 'Open lootbox'}`,
                 disabled: false,
@@ -107,6 +114,7 @@ export class LootboxCommands extends AbstractCommands {
             series = interaction.options.get('series')?.value as string
         } else if (interaction.isButton()) {
             quality = interaction.customId.split(';')[2]
+            series = interaction.customId.split(';')[4]
         }
         const box = await this.resolveLootbox(quality)
 
@@ -125,6 +133,7 @@ export class LootboxCommands extends AbstractCommands {
             series = interaction.options.get('series')?.value as string
         } else if (interaction.isButton()) {
             quality = pendingChest?.quality ?? interaction.customId.split(';')[2]
+            series = pendingChest?.series ?? interaction.customId.split(';')[4]
         }
         const box = await this.resolveLootbox(quality)
 
@@ -135,7 +144,7 @@ export class LootboxCommands extends AbstractCommands {
         chestItems.push(await this.calculateRewardItem(box, series, user))
         this.database.updateUser(user) //update in case of effect change
         const existingChestId = pendingChest && interaction.isButton() ? interaction.customId.split(';')[1] : undefined
-        this.revealLootChest(interaction, chestItems, quality, existingChestId)
+        this.revealLootChest(interaction, chestItems, quality, series, existingChestId)
     }
 
     private isArneChest(items: IUserCollectable[]) {
@@ -146,6 +155,7 @@ export class LootboxCommands extends AbstractCommands {
         interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>,
         items: IUserCollectable[],
         quality: string,
+        series: string,
         existingChestId?: string
     ) {
         const chestEmoji = await EmojiHelper.getEmoji('chest_closed', interaction)
@@ -187,7 +197,7 @@ export class LootboxCommands extends AbstractCommands {
             await pendingChest.message.edit({ embeds: [embed], components: [buttons] })
         } else {
             const msg = await this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true }, [buttons])
-            pendingChest = { userId: interaction.user.id, quality: quality, items: chestItems, effect: effect, message: msg, buttons: buttons }
+            pendingChest = { userId: interaction.user.id, quality: quality, series: series, items: chestItems, effect: effect, message: msg, buttons: buttons }
         }
         this.pendingChests.set(chestId, pendingChest)
     }
@@ -417,8 +427,10 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private getGifPath(item: IUserCollectable): string {
+        console.log(item)
+
         let fileFormat = '.webp'
-        if (item.series in ['mazarini', 'sw']) fileFormat = '.gif'
+        if (['mazarini', 'sw'].includes(item.series)) fileFormat = '.gif'
         return `loot/${item.series}/${item.name}_${item.color}${fileFormat}`
     }
 
