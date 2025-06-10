@@ -23,7 +23,8 @@
         "noImplicitAny": false,
     },
     "ts-node": {
-        "esm": true
+        "esm": true,
+        "experimentalSpecifierResolution": "node",
     },
     "formatterOptions": {
         "baseIndentSize": 0,
