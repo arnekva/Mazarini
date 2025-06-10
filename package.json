@@ -22,7 +22,7 @@
         "@google/generative-ai": "^0.22.0",
         "@types/node": "^15.6.2",
         "base-64": "^1.0.0",
-        "canvas": "^2.0.0",
+        "canvas": "^3.0.0",
         "deckofcards": "^1.2.2",
         "discord.js": "^14.19.0",
         "firebase": "^10.6.0",
