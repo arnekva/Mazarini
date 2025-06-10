@@ -22,6 +22,9 @@
         "strictNullChecks": false,
         "noImplicitAny": false,
     },
+    "ts-node": {
+        "esm": true
+    },
     "formatterOptions": {
         "baseIndentSize": 0,
         "indentSize": 2,
