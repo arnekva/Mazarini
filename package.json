@@ -17,7 +17,6 @@
     "keywords": [],
     "author": "Arne Kvaleberg",
     "license": "ISC",
-    "type": "commonjs",
     "dependencies": {
         "@google/generative-ai": "^0.22.0",
         "@types/node": "^15.6.2",
@@ -56,6 +55,7 @@
         "pm2": "5.3.0",
         "prettier": "^2.3.0",
         "prettier-plugin-organize-imports": "^2.0.0",
-        "ts-node": "^10.7.0"
+        "ts-node": "^10.7.0",
+        "@tsconfig/node-lts": "latest"
     }
 }

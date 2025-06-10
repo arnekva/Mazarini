@@ -1,14 +1,12 @@
 {
     "compilerOptions": {
         "target": "es6",
-     
         "lib": [
             "es2020",
-            "dom"
+            "dom",
         ],
         "outDir": "bin",
         "removeComments": true,
-        "moduleResolution": "node",
         "typeRoots": [
             "node_modules/@types/"
         ],
