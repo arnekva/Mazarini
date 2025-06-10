@@ -17,6 +17,7 @@
     "keywords": [],
     "author": "Arne Kvaleberg",
     "license": "ISC",
+    "type": "commonjs",
     "dependencies": {
         "@google/generative-ai": "^0.22.0",
         "@types/node": "^15.6.2",
