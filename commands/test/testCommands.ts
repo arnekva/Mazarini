@@ -69,6 +69,7 @@ export class TestCommands extends AbstractCommands {
 
     private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
         this.messageHelper.replyToInteraction(interaction, 'test?')
+        this.database.createBackup()
         // const reply = await this.messageHelper.replyToInteraction(interaction, '', undefined, undefined, [file])
         // const reply = await this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, undefined, [file])
     }

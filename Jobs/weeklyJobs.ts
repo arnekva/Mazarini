@@ -30,6 +30,8 @@ export class WeeklyJobs {
         embed.addFields({ name: 'Weekly deathroll reset', value: EmojiHelper.getStatusEmoji(resetWeeklyDeathrollStats) })
         const weeklyEffects = await this.setWeeklyEffects()
         embed.addFields({ name: 'Weekly user effects', value: EmojiHelper.getStatusEmoji(weeklyEffects) })
+        const createBackUp = await this.createBackup()
+        embed.addFields({ name: 'Backup', value: EmojiHelper.getStatusEmoji(createBackUp) })
         const todaysTime = new Date().toLocaleTimeString()
         embed.setFooter({ text: todaysTime })
         this.messageHelper.sendMessage(ChannelIds.ACTION_LOG, { embed: embed })
@@ -109,6 +111,11 @@ export class WeeklyJobs {
             }
         })
         this.client.database.updateData(updates)
+        return 'success'
+    }
+
+    private async createBackup(): Promise<JobStatus> {
+        const db = await this.client.database.createBackup()
         return 'success'
     }
 }

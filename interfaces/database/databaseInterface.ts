@@ -86,6 +86,7 @@ export interface MazariniUser {
     daily?: DailyReward
     favoritePol?: FavoritePol
     userStats?: UserStats
+    userStatsTotalAllTime?: UserStats
     hasBeenRobbed?: boolean
     jail?: UserJail
     /** Saved as date string */

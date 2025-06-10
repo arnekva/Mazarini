@@ -407,6 +407,10 @@ export class DatabaseHelper {
         this.db.uploadToStorage(ref, gif)
     }
 
+    public async createBackup() {
+        return await this.db.createBackup()
+    }
+
     public async getLootGifLink(path: string): Promise<string> {
         const ref = this.db.getStorageRef(path)
         return await this.db.getStorageLink(ref)

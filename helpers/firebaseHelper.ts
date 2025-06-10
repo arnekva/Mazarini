@@ -2,6 +2,7 @@ import { FirebaseApp } from 'firebase/app'
 import { Database, child, get, getDatabase, increment, ref, remove, set, update } from 'firebase/database'
 import { Firestore, getFirestore } from 'firebase/firestore'
 import { FirebaseStorage, StorageReference, getBytes, getDownloadURL, getStorage, ref as storageRef, uploadBytes } from 'firebase/storage'
+import moment from 'moment'
 import { database } from '../client-env'
 import { BotData, DatabaseStructure, EmojiStats, MazariniStats, MazariniStorage, MazariniUser, Meme } from '../interfaces/database/databaseInterface'
 import { MessageHelper } from './messageHelper'
@@ -132,6 +133,19 @@ export class FirebaseHelper {
 
     public async deleteData(path: string) {
         await remove(ref(this.db, `${database}/${path}`))
+    }
+
+    public async createBackup() {
+        const BACKUP_KEY = 'backup'
+        const allCurrentData = (await get(child(ref(this.db), `${database}/`))).val()
+        const allBackups = await (await get(child(ref(this.db), `${BACKUP_KEY}/`))).val()
+        const backupLength = Object.keys(allBackups || {}).length
+        const oldestKey = Object.keys(allBackups || {}).sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0]
+        if (oldestKey && backupLength >= 5) {
+            await this.deleteData(`${BACKUP_KEY}/${oldestKey}`)
+        }
+        const dateAsDDMMYYYY = moment().format('DD-MM-YYYY')
+        await set(ref(this.db, `${BACKUP_KEY}/${dateAsDDMMYYYY}`), allCurrentData)
     }
 
     get msgHelper() {

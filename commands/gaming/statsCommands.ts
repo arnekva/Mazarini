@@ -26,11 +26,15 @@ export class StatsCommands extends AbstractCommands {
         const userStats = user.userStats?.chipsStats
         const rulettStats = user.userStats?.rulettStats
         const deathrollStats = user.userStats?.deathrollStats
+        const deathrollAllTimeStats = user.userStatsTotalAllTime.deathrollStats
         const dondStats = user.userStats?.dondStats
         let embed = EmbedUtils.createSimpleEmbed(`Du har ingen statistikk`, ` `)
 
         if (deathrollStats && category === 'deathroll') {
             embed = this.getDeathrollEmbed(deathrollStats, user)
+        }
+        if (deathrollStats && category === 'deathroll alltime') {
+            embed = this.getDeathrollEmbed(deathrollAllTimeStats, user, true)
         }
         if (userStats && category === 'gambling') {
             embed = this.getGamblingEmbed(userStats, user)
@@ -99,19 +103,28 @@ export class StatsCommands extends AbstractCommands {
         }
     }
 
-    private getDeathrollEmbed(stats: DeathrollStats, user: MazariniUser) {
-        return EmbedUtils.createSimpleEmbed(`**:game_die: Deathroll :game_die:**`, `Statistikk for ${UserUtils.findUserById(user.id, this.client).username}`)
+    private getDeathrollEmbed(stats: DeathrollStats, user: MazariniUser, alltime: boolean = false) {
+        return EmbedUtils.createSimpleEmbed(
+            `**:game_die: Deathroll ${alltime ? 'All-time' : 'Sesong 2'} :game_die:**`,
+            `Statistikk for ${UserUtils.findUserById(user.id, this.client).username}`
+        )
             .addFields([
                 {
                     name: 'Weekly',
-                    value: `${stats.weeklyGames} / ${stats.weeklyLosses} | **${(
-                        (stats.weeklyLosses / (stats.weeklyGames ? stats.weeklyGames : 1)) *
-                        100
-                    ).toFixed(1)}%**`,
+                    value: alltime
+                        ? 'N/A'
+                        : `${stats.weeklyGames} / ${stats.weeklyLosses} | **${(
+                              (stats.weeklyLosses / (stats.weeklyGames ? stats.weeklyGames : 1)) *
+                              100
+                          ).toFixed(1)}%**`,
                     inline: true,
                 },
                 { name: '\u200B', value: '\u200B', inline: true },
-                { name: 'Avg loss', value: `${((stats.weeklyLossSum ?? 0) / (stats.weeklyLosses ? stats.weeklyLosses : 1)).toFixed(1)}`, inline: true },
+                {
+                    name: 'Avg loss',
+                    value: alltime ? 'N/A' : `${((stats.weeklyLossSum ?? 0) / (stats.weeklyLosses ? stats.weeklyLosses : 1)).toFixed(1)}`,
+                    inline: true,
+                },
                 {
                     name: 'All-time',
                     value: `${stats.totalGames} / ${stats.totalLosses} | **${((stats.totalLosses / (stats.totalGames ? stats.totalGames : 1)) * 100).toFixed(

@@ -3,7 +3,6 @@ import { initializeApp } from 'firebase/app'
 import { environment, firebaseConfig } from '../client-env'
 import { JobScheduler } from '../Jobs/jobScheduler'
 
-import { CommandBuilder } from '../builders/commandBuilder/commandBuilder'
 import { MazariniTracker } from '../general/mazariniTracker'
 import { LockingHandler } from '../handlers/lockingHandler'
 import { DatabaseHelper } from '../helpers/databaseHelper'
@@ -78,7 +77,7 @@ export class MazariniClient extends Client {
         if (environment === 'dev') {
             //hehe ty one time hack
             //Uncomment to run command creation
-            CommandBuilder.createCommands(this)
+            // CommandBuilder.createCommands(this)
             // CommandBuilder.deleteCommandByName('grid', this)
         }
     }

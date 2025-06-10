@@ -8,29 +8,11 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '26.0.0'
+    public static readonly currentVersion = '26.1.0'
     public static readonly currentPatchNotes =
-        `## Da var vi kommet til D-Day sitt 81-års jubileum, og finnes det en bedre måte å markere det på enn en ny loot serie? <:geggiexcited:1009385627604754452>` +
-        `\n### Og hvilket tema er vel da mer passende enn Harry Potter?? <:geggiexcited:1009385627604754452><:geggiexcited:1009385627604754452>` +
-        `\n* Denne serien kommer med et par visuelle endringer fra tidligere serier` +
-        `\n  * Ny serie betyr ny tematisk intro` +
-        `\n  * Nameplates er vekke - nå er det kun karakterene selv som indikerer farge` +
-        `\n  * Et emblem nede til høyre viser hvilken rarity karakteren er` +
-        `\n  * Hvis du tar en kikk på /inventory vil du se at seriens rarity-farger har fått seg en tematisk oppdatering` +
-        `\n### Annet nytt` +
-        `\n* Blackjack får seg en nerf` +
-        `\n  * Du får ikke lengre noen gratis dpn fra deathroll` +
-        `\n  * Dersom hasjen tapes, er den vekke. Halvparten av tapet vil ikke lenger tilbakeføres` +
-        `\n* Spin får seg en liten nerf` +
-        `\n* Enkelte effects får seg en liten nerf` +
-        `\n* Chips resettes til 0` +
-        `\n* Daily resettes til "not claimed today" og alle starter med en streak på 6` +
-        `\n* Effects resettes til default verdier` +
-        `\n* OBS: Hvis du ikke får spilt av nye reveal gifs på tlf må du nok oppdatere discord-appen` +
-        `\n###TLDR` +
-        `\n* Ny loot series - yay!` +
-        `\n* Mange av tingene dine resettes` +
-        `\n* Oppdater discord kanskje`
+        `* Terning stats er nå nullstilt for sesong 2. Dette burde gjøre terning gøy igjen!\n` +
+        `   * Den gamle statistikken er bevart, men ikke tilgjengelig for øyeblikket\n` +
+        `* Det tas nå backup av databasen hver uke. Hver backup er tilgjengelig i fem uker. `
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
