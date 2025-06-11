@@ -22,7 +22,6 @@ import { MentionUtils, ThreadIds } from '../../utils/mentionUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { TextUtils } from '../../utils/textUtils'
 import { UserUtils } from '../../utils/userUtils'
-import { DealOrNoDeal, DonDQuality } from './dealOrNoDeal'
 
 export interface IMoreOrLessData {
     subject: string
@@ -230,12 +229,12 @@ export class MoreOrLess extends AbstractCommands {
             let reward = 0
             if (correctAnswers > 0) {
                 for (let i = user.dailyGameStats.moreOrLess.bestAttempt + 1; i <= game.correctAnswers; i++) {
-                    if (i <= 10) reward += 500
-                    else if (i <= 20) reward += 400
-                    else if (i <= 30) reward += 300
-                    else if (i <= 40) reward += 200
-                    else if (i <= 50) reward += 100
-                    else reward += 75
+                    if (i <= 10) reward += 400
+                    else if (i <= 20) reward += 300
+                    else if (i <= 30) reward += 200
+                    else if (i <= 40) reward += 100
+                    else if (i <= 50) reward += 75
+                    else reward += 50
                 }
             }
 
@@ -256,17 +255,17 @@ export class MoreOrLess extends AbstractCommands {
 
         game.message.edit({ embeds: [embed], components: [playAgainBtnRow] })
         if (completedNow && !completedPreviously) {
-            const buttons = new ActionRowBuilder<ButtonBuilder>()
+            // const buttons = new ActionRowBuilder<ButtonBuilder>()
 
-            let dondQuality = DonDQuality.Basic
-            if (game.totalQuestions > 100) dondQuality = DonDQuality.Elite
-            else if (game.totalQuestions > 50) dondQuality = DonDQuality.Premium
+            // let dondQuality = DonDQuality.Basic
+            // if (game.totalQuestions > 100) dondQuality = DonDQuality.Elite
+            // else if (game.totalQuestions > 50) dondQuality = DonDQuality.Premium
 
-            const dond = DealOrNoDeal.getDealOrNoDealButton(user.id, dondQuality)
-            buttons.addComponents(dond)
+            // const dond = DealOrNoDeal.getDealOrNoDealButton(user.id, dondQuality)
+            // buttons.addComponents(dond)
             this.messageHelper.sendMessage(ThreadIds.MORE_OR_LESS, {
                 text: `Gz med fullført more or less ${MentionUtils.mentionUser(user.id)}`,
-                components: [buttons],
+                // components: [buttons],
             })
         }
     }

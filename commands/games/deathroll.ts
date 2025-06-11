@@ -178,9 +178,9 @@ export class Deathroll extends AbstractCommands {
         const playerHasStreak = stat.currentLossStreak > 4
         const playerHasBiggestLoss = stat.didGetNewBiggestLoss && stat.didGetNewBiggestLoss > 0
 
-        let reward = playerHasATHStreak ? stat.currentLossStreak * 2500 : 0
-        if (playerHasStreak && !playerHasATHStreak) reward += (stat.currentLossStreak - 4) * 1100
-        if (playerHasBiggestLoss) reward += stat.didGetNewBiggestLoss * 50
+        let reward = playerHasATHStreak ? stat.currentLossStreak * 1500 : 0
+        if (playerHasStreak && !playerHasATHStreak) reward += (stat.currentLossStreak - 4) * 1000
+        if (playerHasBiggestLoss) reward += stat.didGetNewBiggestLoss * 35
         else if (diceTarget >= 100) reward += diceTarget * 10
         this.rewardPot += reward
         if (reward > 0) this.saveRewardPot()
