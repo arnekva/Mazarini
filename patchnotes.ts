@@ -8,16 +8,9 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '26.2.2'
+    public static readonly currentVersion = '26.2.3'
     public static readonly currentPatchNotes =
-        `* More or Less:` +
-        `\n  * Hvert nivå gir nå 100 mindre chips (eks vil 1-10 nå gi 400 heller enn 500)` +
-        `\n* Små multiplier nerfs til terning:` +
-        `\n  * Streak er nå x1000 i stedet for x1100 (eks. streak på 5 er nå 1000 i stedet for 1100)` +
-        `\n  * ATH Streak er nå x1500 i stedet for x2500` +
-        `\n  * ATH smell på tall er nå x35 i stedet for x50` +
-        `\n* Fikset formattering på patch notes` +
-        `\n* Fikset formattering på patch notes igjen`
+        `* Høie venter nå 30 sek før han reagerer med emoji på loot reavelen din` + `\n  * I '/brukerinnstillinger' kan du sette din egen timer mellom 1-40 sek`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`

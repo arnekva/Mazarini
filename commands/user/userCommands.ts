@@ -240,6 +240,7 @@ export class UserCommands extends AbstractCommands {
                 else {
                     user.userSettings = { lootReactionTimer: num }
                 }
+                if (num === 0) infoString += 'Reaction Timer: Du har satt timeren din til 0 - dette vil gi default verdi. Laveste tid er 1 sek.\n'
             }
         }
 
