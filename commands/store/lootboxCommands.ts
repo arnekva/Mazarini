@@ -64,15 +64,12 @@ export class LootboxCommands extends AbstractCommands {
         this.imageGenerator = new ImageGenerationHelper(client)
         this.pendingTrades = new Map<string, IPendingTrade>()
         this.pendingChests = new Map<string, IPendingChest>()
-        this.setLootSeries()
     }
 
-    private setLootSeries() {
-        setTimeout(async () => {
-            const series = await this.getSeries()
-            this.series = series
-            this.newestSeries = series.sort((a, b) => new Date(b.added).getTime() - new Date(a.added).getTime())[0]
-        }, 5000)
+    async onReady(): Promise<void> {
+        const series = await this.getSeries()
+        this.series = series
+        this.newestSeries = series.sort((a, b) => new Date(b.added).getTime() - new Date(a.added).getTime())[0]
     }
 
     static getLootRewardButton(
@@ -121,7 +118,7 @@ export class LootboxCommands extends AbstractCommands {
         if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction)) return
         const rewardedItem = await this.calculateRewardItem(box, series, user)
         this.registerItemOnUser(user, rewardedItem)
-        this.revealCollectable(interaction, rewardedItem)
+        this.revealCollectable(interaction, rewardedItem, user.userSettings.lootReactionTimer)
     }
 
     private async openAndRegisterLootChest(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, pendingChest?: IPendingChest) {
@@ -247,7 +244,7 @@ export class LootboxCommands extends AbstractCommands {
         } else {
             const item = this.getChestItem(interaction, pendingChest)
             this.registerItemOnUser(user, item)
-            this.revealCollectable(interaction, item)
+            this.revealCollectable(interaction, item, user.userSettings.lootReactionTimer)
             this.deletePendingChest(interaction)
         }
     }
@@ -393,7 +390,11 @@ export class LootboxCommands extends AbstractCommands {
         return `${item.series};${item.rarity};${item.name};${item.color}`
     }
 
-    private async revealCollectable(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, item: IUserCollectable) {
+    private async revealCollectable(
+        interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>,
+        item: IUserCollectable,
+        timer?: number
+    ) {
         const path = this.getGifPath(item)
         const url = await this.client.database.getLootGifLink(path)
         const container = new SimpleContainer()
@@ -405,10 +406,10 @@ export class LootboxCommands extends AbstractCommands {
         const color = (interaction.member as GuildMember).displayColor
         container.setColor(color)
         const reply = await this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, [container.container])
-        this.addReaction(reply, item)
+        this.addReaction(reply, item, timer)
     }
 
-    private async addReaction(reply: Message | InteractionResponse, item: IUserCollectable) {
+    private async addReaction(reply: Message | InteractionResponse, item: IUserCollectable, timer?: number) {
         const emoji = await this.getLootApplicationEmoji(item)
         let msg = undefined
         if (reply instanceof InteractionResponse) {
@@ -416,9 +417,12 @@ export class LootboxCommands extends AbstractCommands {
         } else {
             msg = reply
         }
-        setTimeout(() => {
-            msg.react(emoji.emojiObject.identifier)
-        }, 18000)
+        setTimeout(
+            () => {
+                msg.react(emoji.emojiObject.identifier)
+            },
+            timer ? timer * 1000 : 30000
+        )
     }
 
     private async getLootApplicationEmoji(item: IUserCollectable) {

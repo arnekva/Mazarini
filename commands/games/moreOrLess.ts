@@ -22,7 +22,7 @@ import { MentionUtils, ThreadIds } from '../../utils/mentionUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { TextUtils } from '../../utils/textUtils'
 import { UserUtils } from '../../utils/userUtils'
-import { DonDQuality, DealOrNoDeal } from './dealOrNoDeal'
+import { DealOrNoDeal, DonDQuality } from './dealOrNoDeal'
 
 export interface IMoreOrLessData {
     subject: string
@@ -49,13 +49,10 @@ export class MoreOrLess extends AbstractCommands {
     constructor(client: MazariniClient) {
         super(client)
         this.userGames = new Map<string, IMoreOrLessUserGame>()
-        this.getGameFromStorage()
     }
 
-    private getGameFromStorage() {
-        setTimeout(() => {
-            this.database.getStorage().then((storage) => (this.game = storage.moreOrLess.current))
-        }, 5000)
+    onReady(): void {
+        this.database.getStorage().then((storage) => (this.game = storage.moreOrLess.current))
     }
 
     public static async getNewMoreOrLessGame(previous: string[]): Promise<IMoreOrLess> {

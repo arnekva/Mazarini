@@ -178,12 +178,22 @@ export class UserCommands extends AbstractCommands {
                 .setRequired(false)
                 // Short means only a single line of text
                 .setStyle(TextInputStyle.Short)
+            const reactionTimer = new TextInputBuilder()
+                .setCustomId('reactionTimer')
+                // The label is the prompt the user sees for this input
+                .setLabel('Tid før reaction på loot (0 - 40 sek)')
+                .setPlaceholder(`Ja/Nei`)
+                .setValue(`${user.userSettings?.lootReactionTimer ?? 30}`)
+                .setRequired(false)
+                // Short means only a single line of text
+                .setStyle(TextInputStyle.Short)
 
             //FIXME: Typing doesn't work here for some reason
             const firstActionRow: any = new ActionRowBuilder().addComponents(safeGamble)
             const secondActionRow = new ActionRowBuilder().addComponents(tradeDups)
             const thirdActionRow = new ActionRowBuilder().addComponents(molChest)
-            modal.addComponents(firstActionRow, secondActionRow, thirdActionRow)
+            const fourthActionRow = new ActionRowBuilder().addComponents(reactionTimer)
+            modal.addComponents(firstActionRow, secondActionRow, thirdActionRow, fourthActionRow)
             await interaction.showModal(modal)
         }
     }
@@ -192,11 +202,15 @@ export class UserCommands extends AbstractCommands {
         const safeGamble = modalInteraction.fields.getTextInputValue('safeGambleValue')
         const tradeDups = modalInteraction.fields.getTextInputValue('tradeDups')
         const molChest = modalInteraction.fields.getTextInputValue('molChest')
+        const reactionTimer = modalInteraction.fields.getTextInputValue('reactionTimer')
         const user = await this.database.getUser(modalInteraction.user.id)
+        let infoString = '\n'
         if (safeGamble) {
             const num = Number(safeGamble)
-            if (isNaN(num)) this.messageHelper.replyToInteraction(modalInteraction, 'Du må skrive et tall', { ephemeral: true })
-            else {
+            if (isNaN(num) || num < 0) {
+                infoString += 'Safe Gamble: Du må skrive et tall større enn eller lik 0\n'
+                return
+            } else {
                 if (user.userSettings) user.userSettings.safeGambleValue = num
                 else {
                     user.userSettings = { safeGambleValue: num }
@@ -217,9 +231,20 @@ export class UserCommands extends AbstractCommands {
                 user.userSettings = { excludeFromMoL: excludeFromMoL }
             }
         }
+        if (reactionTimer) {
+            const num = Number(reactionTimer)
+            if (isNaN(num) || num < 0 || num > 40) {
+                infoString += 'Reaction Timer: Du må skrive et tall mellom 0 og 40\n'
+            } else {
+                if (user.userSettings) user.userSettings.lootReactionTimer = num
+                else {
+                    user.userSettings = { lootReactionTimer: num }
+                }
+            }
+        }
 
         this.database.updateUser(user)
-        this.messageHelper.replyToInteraction(modalInteraction, 'Dine innstillinger er nå oppdatert', { ephemeral: true })
+        this.messageHelper.replyToInteraction(modalInteraction, 'Dine innstillinger er nå oppdatert' + infoString, { ephemeral: true })
     }
 
     static userSettingsId = 'userSettingsModal'

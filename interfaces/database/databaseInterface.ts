@@ -115,6 +115,7 @@ export interface IUserSettings {
     safeGambleValue?: number
     onlyShowDupesOnTrade?: boolean
     excludeFromMoL?: boolean
+    lootReactionTimer?: number
 }
 
 export interface UserCalendarGift {
