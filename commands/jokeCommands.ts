@@ -24,7 +24,7 @@ export class JokeCommands extends AbstractCommands {
 
     private async mordi(interaction: ChatInputCommandInteraction<CacheType>) {
         const emoji = await EmojiHelper.getEmoji('eyebrows', interaction)
-        this.messageHelper.replyToInteraction(interaction, Math.random() > 0.05 ? `E nais ${emoji.id}` : `E skamnais :eyebrows: ${emoji.id}`)
+        this.messageHelper.replyToInteraction(interaction, Math.random() > 0.3 ? `E nais ${emoji.id}` : `E skamnais ${emoji.id}`)
     }
 
     private async findUserActivity(interaction: ChatInputCommandInteraction<CacheType>) {
