@@ -8,9 +8,8 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '26.2.3'
-    public static readonly currentPatchNotes =
-        `* Høie venter nå 30 sek før han reagerer med emoji på loot reavelen din` + `\n  * I '/brukerinnstillinger' kan du sette din egen timer mellom 1-40 sek`
+    public static readonly currentVersion = '26.2.4'
+    public static readonly currentPatchNotes = `* Fikset en feil som gjorde at potten ikke ble nullstilt når spilleren busted i blackjack på Deathroll`
 
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
