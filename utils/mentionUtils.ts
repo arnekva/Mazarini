@@ -61,5 +61,6 @@ export class MentionUtils {
         MAGGI: '221739293889003520',
         GEGGI: '293489109048229888',
         THOMAS: '397429060898390016',
+        WORDLE_BOT: '1211781489931452447',
     }
 }

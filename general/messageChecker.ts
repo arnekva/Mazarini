@@ -6,6 +6,7 @@ import { DateUtils } from '../utils/dateUtils'
 import { MentionUtils } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
+import { UserUtils } from '../utils/userUtils'
 
 export class MessageChecker {
     private client: MazariniClient
@@ -112,6 +113,92 @@ export class MessageChecker {
         const holidayString = HelgHelper.checkMessageForHolidays(message.content)
         if (holidayString) {
             this.client.messageHelper.sendMessage(message.channelId, { text: holidayString }, { sendAsSilent: true })
+        }
+    }
+
+    async checkWordleResults(message: Message) {
+        const lowestScoringUsers = await this.getLowestScoringUserIds(message)
+
+        if (lowestScoringUsers) {
+            const { score, userIds } = lowestScoringUsers
+            const userMentions = userIds.map((user) => MentionUtils.mentionUser(user.replace(/<@|>/g, ''))).join(' ')
+            const response = `Det er ${userIds.length} bruker${userIds.length > 1 ? 'e' : ''} som har fått laveste poengsum (${score}/6): ${userMentions}. ${
+                userMentions.length > 1 ? 'De' : 'Han'
+            } får 1000 chips!`
+            this.client.messageHelper.sendLogMessage('Sjekker Wordle resultater: ' + userMentions + ' er markert som vinnere')
+            userIds.forEach((userId) => {
+                this.client.database.getUser(userId).then((user) => {
+                    if (user) {
+                        this.client.bank.giveMoney(user, 1000)
+                    } else {
+                        this.client.messageHelper.sendLogMessage(`User with ID ${userId} not found in database.`)
+                    }
+                })
+            })
+            this.client.messageHelper.sendMessage(message.channelId, { text: response }, { sendAsSilent: true })
+        }
+    }
+
+    async getLowestScoringUserIds(message: Message): Promise<{ score: number; userIds: string[] } | null> {
+        const scoreUserRegex = /(?:👑\s*)?(\d)\/6:\s*((?:<@[\d]+>|@\w+)(?:\s+(?:<@[\d]+>|@\w+))*)/g
+
+        let match: RegExpExecArray | null
+        let lowestScore = 7
+        const scoreMap: Record<number, string[]> = {}
+
+        while ((match = scoreUserRegex.exec(message.content)) !== null) {
+            const score = parseInt(match[1])
+            const userSegment = match[2]
+
+            const users = userSegment.match(/<@(\d+)>|@(\w+)/g) || []
+
+            if (!scoreMap[score]) {
+                scoreMap[score] = []
+            }
+
+            scoreMap[score].push(...users)
+
+            if (score < lowestScore) {
+                lowestScore = score
+            }
+        }
+
+        if (lowestScore === 7) return null
+
+        const rawUsers = scoreMap[lowestScore]
+
+        // Clean and resolve user IDs
+        const userIds: string[] = []
+        // Separate discord IDs and display names
+        const discordIds: string[] = []
+        const displayNames: string[] = []
+
+        for (const user of rawUsers) {
+            const discordMatch = user.match(/^<@(\d+)>$/)
+            const nameMatch = user.match(/^@(\w+)$/)
+
+            if (discordMatch) {
+                discordIds.push(discordMatch[1]) // ID from <@1234>
+            } else if (nameMatch) {
+                displayNames.push(nameMatch[1])
+            }
+        }
+
+        userIds.push(...discordIds)
+
+        if (displayNames.length > 0) {
+            const userObjs = await UserUtils.findMembersByDisplayNames(displayNames, message)
+            // userObjs can be array of nulls or undefineds if not found
+            for (const userObj of userObjs) {
+                if (userObj?.id) {
+                    userIds.push(userObj.id)
+                }
+            }
+        }
+
+        return {
+            score: lowestScore,
+            userIds,
         }
     }
 }

@@ -18,6 +18,7 @@ import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { ChannelIds } from '../../utils/mentionUtils'
 import { LootboxCommands } from '../store/lootboxCommands'
 
 const defaultBtn = (id: string) => {
@@ -69,7 +70,10 @@ export class TestCommands extends AbstractCommands {
 
     private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
         this.messageHelper.replyToInteraction(interaction, 'test?')
-        this.database.createBackup()
+        const msg = await this.messageHelper.fetchMessage(ChannelIds.LAS_VEGAS, '1384429950492213308')
+        if (msg) {
+            console.log(msg.content)
+        }
         // const reply = await this.messageHelper.replyToInteraction(interaction, '', undefined, undefined, [file])
         // const reply = await this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, undefined, [file])
     }

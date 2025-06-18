@@ -63,6 +63,26 @@ export namespace UserUtils {
         return undefined
     }
 
+    export const findMembersByDisplayNames = (displayNames: string[], rawMessage: Message | ChatInputCommandInteraction) => {
+        const allIds = rawMessage.client.users.cache.map((u) => u.id)
+        const matches: GuildMember[] = []
+
+        allIds.forEach((id) => {
+            const member = UserUtils.findMemberByUserID(id, rawMessage)
+            if (!member) return
+            if (
+                displayNames.includes(member.nickname ?? '') ||
+                displayNames.includes(member.displayName ?? '') ||
+                displayNames.includes(member.user.globalName ?? '') ||
+                displayNames.includes(member.user.username ?? '')
+            ) {
+                matches.push(member)
+            }
+        })
+
+        return matches
+    }
+
     export const compareMember = async (oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) => {
         if (newMember.id === '802945796457758760') return '' //Ikke gjør noe når bot oppdateres
         if (oldMember.id === '802945796457758760') return ''
