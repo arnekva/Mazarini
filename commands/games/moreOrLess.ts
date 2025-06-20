@@ -286,7 +286,11 @@ export class MoreOrLess extends AbstractCommands {
         )
         const users = (await this.database.getAllUsers()).filter((user) => user.dailyGameStats?.moreOrLess?.attempted)
         const sortedUsers = DateUtils.isTimeOfDayAfter(18)
-            ? users.sort((a, b) => b.dailyGameStats.moreOrLess.firstAttempt - a.dailyGameStats.moreOrLess.firstAttempt)
+            ? users.sort((a, b) => {
+                  const aBest = Math.max(a.dailyGameStats.moreOrLess.firstAttempt ?? 0, a.dailyGameStats.moreOrLess.secondAttempt ?? 0)
+                  const bBest = Math.max(b.dailyGameStats.moreOrLess.firstAttempt ?? 0, b.dailyGameStats.moreOrLess.secondAttempt ?? 0)
+                  return bBest - aBest
+              })
             : users
         const fields: APIEmbedField[] = []
         for (const user of sortedUsers) {
