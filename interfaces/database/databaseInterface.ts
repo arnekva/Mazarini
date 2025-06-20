@@ -106,6 +106,7 @@ export interface IDailyGameStats {
 export interface IMoreOrLessStats {
     attempted?: boolean
     firstAttempt?: number
+    secondAttempt?: number
     bestAttempt?: number
     numAttempts?: number
     completed?: boolean

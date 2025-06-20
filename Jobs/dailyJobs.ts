@@ -253,11 +253,13 @@ export class DailyJobs {
         // }
 
         //Find highest first attempt
-        const highestFirstAttempt = Math.max(...usersWithStats.map((user) => user.dailyGameStats.moreOrLess.firstAttempt))
+        const highestFirstOrSecondAttempt = Math.max(
+            ...usersWithStats.map((user) => Math.max(user.dailyGameStats.moreOrLess.firstAttempt ?? 0, user.dailyGameStats.moreOrLess.secondAttempt ?? 0))
+        )
         //Find all users with highest first
         const topFirstUsers = usersWithStats
             .filter((user) => !user.userSettings.excludeFromMoL)
-            .filter((user) => user.dailyGameStats.moreOrLess.firstAttempt === highestFirstAttempt)
+            .filter((user) => user.dailyGameStats.moreOrLess.firstAttempt === highestFirstOrSecondAttempt)
 
         //Find the BEST attempt of the users with the highest first score
         const bestAttemptInBestFirstUsers = Math.max(...topFirstUsers.map((user) => user.dailyGameStats.moreOrLess.bestAttempt))
@@ -320,7 +322,7 @@ export class DailyJobs {
         if (attempted) {
             const updates = this.client.database.getUpdatesObject<'dailyGameStats'>()
             usersWithStats.forEach((user) => {
-                user.dailyGameStats = { ...user.dailyGameStats, moreOrLess: { attempted: false, firstAttempt: 0, bestAttempt: 0 } }
+                user.dailyGameStats = { ...user.dailyGameStats, moreOrLess: { attempted: false, firstAttempt: 0, bestAttempt: 0, secondAttempt: 0 } }
                 const updatePath = this.client.database.getUserPathToUpdate(user.id, 'dailyGameStats')
                 updates[updatePath] = user.dailyGameStats
             })

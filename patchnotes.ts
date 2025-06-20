@@ -8,9 +8,11 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '26.3.0'
-    public static readonly currentPatchNotes = `* Personen(e) med beste score i Wordle vil nå få en premie`
-
+    public static readonly currentVersion = '26.4.0'
+    public static readonly currentPatchNotes =
+        `* Vi prøver en liten twist i More or Less` +
+        `\n * Du får nå to forsøk på å vinne chest - det beste av første og andre forsøk teller.` +
+        `\n* Tagger ikke lenger wordle-vinnere i loggen`
     private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 

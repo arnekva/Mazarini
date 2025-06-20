@@ -125,7 +125,7 @@ export class MessageChecker {
             const response = `Det er ${userIds.length} bruker${userIds.length > 1 ? 'e' : ''} som har fått laveste poengsum (${score}/6): ${userMentions}. ${
                 userMentions.length > 1 ? 'De' : 'Han'
             } får 1000 chips!`
-            this.client.messageHelper.sendLogMessage('Sjekker Wordle resultater: ' + userMentions + ' er markert som vinnere')
+            this.client.messageHelper.sendLogMessage('Sjekker Wordle resultater: ' + userIds.length + ' personer er markert som vinnere')
             userIds.forEach((userId) => {
                 this.client.database.getUser(userId).then((user) => {
                     if (user) {
