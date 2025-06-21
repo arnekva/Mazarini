@@ -259,7 +259,11 @@ export class DailyJobs {
         //Find all users with highest first
         const topFirstUsers = usersWithStats
             .filter((user) => !user.userSettings.excludeFromMoL)
-            .filter((user) => user.dailyGameStats.moreOrLess.firstAttempt === highestFirstOrSecondAttempt)
+            .filter(
+                (user) =>
+                    user.dailyGameStats.moreOrLess.firstAttempt === highestFirstOrSecondAttempt ||
+                    user.dailyGameStats.moreOrLess.secondAttempt === highestFirstOrSecondAttempt
+            )
 
         //Find the BEST attempt of the users with the highest first score
         const bestAttemptInBestFirstUsers = Math.max(...topFirstUsers.map((user) => user.dailyGameStats.moreOrLess.bestAttempt))
