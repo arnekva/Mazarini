@@ -201,7 +201,7 @@ export class MoreOrLess extends AbstractCommands {
         })
     }
 
-    private async endGame(game: IMoreOrLessUserGame, userId: string, wasCorrent = true) {
+    private async endGame(game: IMoreOrLessUserGame, userId: string, wasCorrect = true) {
         game.active = false
         const user = await this.database.getUser(userId)
         let rewardMsg = ''
@@ -225,9 +225,9 @@ export class MoreOrLess extends AbstractCommands {
                 secondAttempt: 0,
             }
         }
-        const completedNow = game.data.length === 0 && wasCorrent
+        const completedNow = game.data.length === 0 && wasCorrect
         const completedPreviously = user.dailyGameStats.moreOrLess.completed
-        const numTries = user.dailyGameStats.moreOrLess.numAttempts + 1
+        const numTries = (user.dailyGameStats.moreOrLess.numAttempts ?? 0) + 1
         user.dailyGameStats.moreOrLess.numAttempts = numTries
         if (user.dailyGameStats.moreOrLess.firstAttempt !== undefined && user.dailyGameStats.moreOrLess.secondAttempt === 0 && numTries === 2) {
             user.dailyGameStats.moreOrLess.secondAttempt = game.correctAnswers
