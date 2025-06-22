@@ -291,10 +291,20 @@ export class DailyJobs {
 
         let description = `Ingen forsøk ble gjort på gårsdagens tema *${storage.moreOrLess.current.title}*`
         if (attempted) {
-            const sortedUsers = usersWithStats?.sort((a, b) => b.dailyGameStats.moreOrLess.firstAttempt - a.dailyGameStats.moreOrLess.firstAttempt)
+            const sortedUsers = usersWithStats.sort((a, b) => {
+                const aBest = Math.max(a.dailyGameStats.moreOrLess.firstAttempt ?? 0, a.dailyGameStats.moreOrLess.secondAttempt ?? 0)
+                const bBest = Math.max(b.dailyGameStats.moreOrLess.firstAttempt ?? 0, b.dailyGameStats.moreOrLess.secondAttempt ?? 0)
+                return bBest - aBest
+            })
 
             const results = sortedUsers
-                .map((user) => `${UserUtils.findUserById(user.id, this.client)}: ${user.dailyGameStats.moreOrLess.firstAttempt}`)
+                .map(
+                    (user) =>
+                        `${UserUtils.findUserById(user.id, this.client)}: ${Math.max(
+                            user.dailyGameStats.moreOrLess.firstAttempt,
+                            user.dailyGameStats.moreOrLess.secondAttempt
+                        )}`
+                )
                 .join('\n')
 
             const firstAttemptWinners = chestWinners.join(' og ')
