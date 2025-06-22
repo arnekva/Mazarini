@@ -214,7 +214,7 @@ export class MoreOrLess extends AbstractCommands {
                     bestAttempt: 0,
                     numAttempts: 0,
                     completed: false,
-                    secondAttempt: 0,
+                    secondAttempt: null,
                 },
             }
             if (game.correctAnswers === 0) this.database.updateUser(user)
@@ -222,17 +222,16 @@ export class MoreOrLess extends AbstractCommands {
         if (!user.dailyGameStats.moreOrLess.secondAttempt) {
             user.dailyGameStats.moreOrLess = {
                 ...user.dailyGameStats.moreOrLess,
-                secondAttempt: 0,
+                secondAttempt: null,
             }
         }
         const completedNow = game.data.length === 0 && wasCorrect
         const completedPreviously = user.dailyGameStats.moreOrLess.completed
         const numTries = (user.dailyGameStats.moreOrLess.numAttempts ?? 0) + 1
         user.dailyGameStats.moreOrLess.numAttempts = numTries
-        if (user.dailyGameStats.moreOrLess.firstAttempt !== undefined && user.dailyGameStats.moreOrLess.secondAttempt === 0 && numTries === 2) {
+        if (user.dailyGameStats.moreOrLess.firstAttempt !== undefined && user.dailyGameStats.moreOrLess.secondAttempt == null) {
             user.dailyGameStats.moreOrLess.secondAttempt = game.correctAnswers
         }
-        console.log(user.dailyGameStats.moreOrLess)
 
         if (game.correctAnswers > user.dailyGameStats.moreOrLess.bestAttempt) {
             const correctAnswers = game.correctAnswers - user.dailyGameStats.moreOrLess.bestAttempt

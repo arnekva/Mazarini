@@ -338,7 +338,7 @@ export class DailyJobs {
             usersWithStats.forEach((user) => {
                 user.dailyGameStats = {
                     ...user.dailyGameStats,
-                    moreOrLess: { attempted: false, firstAttempt: 0, bestAttempt: 0, secondAttempt: 0, numAttempts: 0 },
+                    moreOrLess: { attempted: false, firstAttempt: 0, bestAttempt: 0, secondAttempt: null, numAttempts: 0 },
                 }
                 const updatePath = this.client.database.getUserPathToUpdate(user.id, 'dailyGameStats')
                 updates[updatePath] = user.dailyGameStats
