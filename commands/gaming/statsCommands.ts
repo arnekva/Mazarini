@@ -75,11 +75,12 @@ export class StatsCommands extends AbstractCommands {
                 const text = new TextDisplayBuilder().setContent(
                     [
                         `## ${header}`,
-
                         `* Antall spill: ${stats.totalGames}`,
                         `* Total gevinst: ${stats.winningsFromAcceptDeal + stats.winningsFromKeepOrSwitch}`,
                         `* Gjennomsnittsgevinst er ${userAverageWin}`,
                         `* Balanse behold/bytt: ${stats.keepSwitchBalance}`,
+                        `* Du har vunnet mindre enn 1000 chips i ${((stats.timesWonLessThan1000 / stats.totalGames) * 100).toFixed(0)}% av spillene`,
+                        `* Du har gjort riktig valg i slutten  ${stats.userWasCorrect} ganger. `,
                         `-# Antall 1ere: ${stats.winsOfOne}`,
                     ].join('\n')
                 )

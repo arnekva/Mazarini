@@ -335,7 +335,7 @@ export class DealOrNoDeal extends AbstractCommands {
         const playerReward = game.cases.get(game.player.caseNr).value
         const user = await this.database.getUser(interaction.user.id)
 
-        this.updateUserStats(user, playerReward, game.cases.get(game.player.caseNr).value, game.quality, undefined, oppositeCaseValue)
+        this.updateUserStats(user, playerReward, game.cases.get(game.player.caseNr).value, game.quality, undefined, oppositeCaseValue, answer === 'behold')
         this.client.bank.giveMoney(user, playerReward)
         this.removeGame(game)
         this.updateGame(game)

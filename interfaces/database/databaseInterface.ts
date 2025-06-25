@@ -60,7 +60,7 @@ export interface MazariniUser {
     birthday?: string
     /** Custom status */
     status?: string
-    /** No.  chips */
+    /** Number of chips */
     chips: number
     /** No. warnings */
     warningCounter: number
