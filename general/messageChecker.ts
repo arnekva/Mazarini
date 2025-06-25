@@ -139,12 +139,10 @@ export class MessageChecker {
                         }
                         if (!user.userStats.wordleStats) user.userStats.wordleStats = { wins: 0, gamesPlayed: 0 }
                         user.userStats.wordleStats.gamesPlayed += 1
-                        console.log('user attempts', user.userStats.wordleStats.gamesPlayed)
 
                         if (winnerSet.has(userId)) {
                             user.userStats.wordleStats.wins += 1
                             this.client.bank.giveMoney(user, 1000)
-                            console.log('user was winner', user.lastFMUsername)
                         } else {
                             this.client.database.updateUser(user)
                         }
