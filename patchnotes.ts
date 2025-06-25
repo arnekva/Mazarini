@@ -54,8 +54,8 @@ export class PatchNotes extends AbstractCommands {
 
     static publishPatchNotes(msgHelper: MessageHelper) {
         const patchNotes = PatchNotes.getCurrentPatchNotes()
-        msgHelper.sendMessage(ChannelIds.BOT_UTVIKLING, { components: [patchNotes.container] })
-        msgHelper.sendMessage(ChannelIds.PATCH_NOTES, { components: [patchNotes.container] })
+        msgHelper.sendMessage(ChannelIds.BOT_UTVIKLING, { components: [patchNotes.container] }, { isComponentOnly: true })
+        msgHelper.sendMessage(ChannelIds.PATCH_NOTES, { components: [patchNotes.container] }, { isComponentOnly: true })
     }
 
     getAllInteractions(): IInteractionElement {
