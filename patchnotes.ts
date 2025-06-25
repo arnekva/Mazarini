@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '26.5.2'
+    public static readonly currentVersion = '26.5.3'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,7 +27,8 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             //
             [
-                `* Wordle stats blir nå tracket (wins og antall spill)`,
+                `* Fikser at MoL resultater ble vist etter klokken 8 i stedet for klokken 18`,
+                `* Fikser at MoL forsøk ikke viste hvis personen fikk 0 riktige`,
                 //
             ].join('\n')
         )

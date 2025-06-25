@@ -284,7 +284,9 @@ export class MoreOrLess extends AbstractCommands {
             `https://api.moreorless.io/img/${this.game.image}_512.jpg`
         )
         const users = (await this.database.getAllUsers()).filter((user) => user.dailyGameStats?.moreOrLess?.attempted)
-        const shouldReveal = DateUtils.isTimeOfDayAfter(8)
+
+        const shouldReveal = DateUtils.isTimeOfDayAfter(18)
+
         const sortedUsers = shouldReveal
             ? users.sort((a, b) => {
                   const aBest = Math.max(a.dailyGameStats.moreOrLess.firstAttempt ?? 0, a.dailyGameStats.moreOrLess.secondAttempt ?? 0)
@@ -301,10 +303,10 @@ export class MoreOrLess extends AbstractCommands {
                 user.dailyGameStats.moreOrLess.firstAttempt >= 0
             const shouldBoldSecond = !shouldBoldFirst && user.dailyGameStats.moreOrLess.secondAttempt && user.dailyGameStats.moreOrLess.secondAttempt >= 0
             const firstAttempt = `${shouldBoldFirst ? '**' : ''}${
-                user.dailyGameStats.moreOrLess.firstAttempt ? user.dailyGameStats.moreOrLess.firstAttempt + ' riktige' : 'Ikke spilt'
+                user.dailyGameStats.moreOrLess.firstAttempt !== undefined ? user.dailyGameStats.moreOrLess.firstAttempt + ' riktige' : 'Ikke spilt'
             }${shouldBoldFirst ? '**' : ''}`
             const secondAttempt = `${shouldBoldSecond ? '**' : ''}${
-                user.dailyGameStats.moreOrLess.secondAttempt ? user.dailyGameStats.moreOrLess.secondAttempt + ' riktige' : 'Ikke spilt'
+                user.dailyGameStats.moreOrLess.secondAttempt !== undefined ? user.dailyGameStats.moreOrLess.secondAttempt + ' riktige' : 'Ikke spilt'
             }${shouldBoldSecond ? '**' : ''}`
             const result =
                 `Første forsøk: ${shouldReveal ? firstAttempt : 'Skjult'} ` +
