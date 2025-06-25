@@ -284,7 +284,8 @@ export class MoreOrLess extends AbstractCommands {
             `https://api.moreorless.io/img/${this.game.image}_512.jpg`
         )
         const users = (await this.database.getAllUsers()).filter((user) => user.dailyGameStats?.moreOrLess?.attempted)
-        const sortedUsers = DateUtils.isTimeOfDayAfter(18)
+        const shouldReveal = DateUtils.isTimeOfDayAfter(8)
+        const sortedUsers = shouldReveal
             ? users.sort((a, b) => {
                   const aBest = Math.max(a.dailyGameStats.moreOrLess.firstAttempt ?? 0, a.dailyGameStats.moreOrLess.secondAttempt ?? 0)
                   const bBest = Math.max(b.dailyGameStats.moreOrLess.firstAttempt ?? 0, b.dailyGameStats.moreOrLess.secondAttempt ?? 0)
@@ -295,14 +296,21 @@ export class MoreOrLess extends AbstractCommands {
         for (const user of sortedUsers) {
             const name = UserUtils.findMemberByUserID(user.id, interaction).user.username
             const shouldShowBestResult = true // user.dailyGameStats.moreOrLess.numAttempts > 1 || DateUtils.isTimeOfDayAfter(18)
-            const secondAttempt = user.dailyGameStats.moreOrLess.secondAttempt ? user.dailyGameStats.moreOrLess.secondAttempt + ' riktige' : 'Ikke spilt'
+            const shouldBoldFirst =
+                (user.dailyGameStats.moreOrLess.firstAttempt ?? 0 > user.dailyGameStats.moreOrLess.secondAttempt ?? 0) &&
+                user.dailyGameStats.moreOrLess.firstAttempt >= 0
+            const shouldBoldSecond = !shouldBoldFirst && user.dailyGameStats.moreOrLess.secondAttempt && user.dailyGameStats.moreOrLess.secondAttempt >= 0
+            const firstAttempt = `${shouldBoldFirst ? '**' : ''}${
+                user.dailyGameStats.moreOrLess.firstAttempt ? user.dailyGameStats.moreOrLess.firstAttempt + ' riktige' : 'Ikke spilt'
+            }${shouldBoldFirst ? '**' : ''}`
+            const secondAttempt = `${shouldBoldSecond ? '**' : ''}${
+                user.dailyGameStats.moreOrLess.secondAttempt ? user.dailyGameStats.moreOrLess.secondAttempt + ' riktige' : 'Ikke spilt'
+            }${shouldBoldSecond ? '**' : ''}`
             const result =
-                `${user.userSettings.excludeFromMoL ? '*' : ''}Første forsøk: ${
-                    DateUtils.isTimeOfDayAfter(18) ? user.dailyGameStats.moreOrLess.firstAttempt + ' riktige' : 'Skjult'
-                } ${user.userSettings.excludeFromMoL ? '*' : ''}` +
-                `\nAndre forsøk: ${DateUtils.isTimeOfDayAfter(18) ? secondAttempt : 'Skjult'}` +
+                `Første forsøk: ${shouldReveal ? firstAttempt : 'Skjult'} ` +
+                `\nAndre forsøk: ${shouldReveal ? secondAttempt : 'Skjult'}` +
                 `\nBeste forsøk: ${shouldShowBestResult ? user.dailyGameStats.moreOrLess.bestAttempt + ' riktige' : 'Skjult'}` +
-                `\nAntall forsøk: ${DateUtils.isTimeOfDayAfter(18) ? user.dailyGameStats.moreOrLess.numAttempts : 'Skjult'}`
+                `\nAntall forsøk: ${shouldReveal ? user.dailyGameStats.moreOrLess.numAttempts : 'Skjult'}`
             fields.push({ name: name, value: result })
         }
 

@@ -1,5 +1,6 @@
-import { CacheType, ChatInputCommandInteraction } from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, TextDisplayBuilder } from 'discord.js'
 import { AbstractCommands } from './Abstracts/AbstractCommand'
+import { SimpleContainer } from './Abstracts/SimpleContainer'
 import { environment } from './client-env'
 import { MazariniClient } from './client/MazariniClient'
 import { DatabaseHelper } from './helpers/databaseHelper'
@@ -8,17 +9,36 @@ import { IInteractionElement } from './interfaces/interactionInterface'
 import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
-    public static readonly currentVersion = '26.4.1'
-    public static readonly currentPatchNotes = `* Garantert fikset feilen hvor ingen får daglig chest fra MoL`
-    private static readonly header = 'Patch notes for versjon ' + PatchNotes.currentVersion
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
 
     constructor(client: MazariniClient) {
         super(client)
     }
 
+    public static readonly currentVersion = '26.5.0'
+
     static getCurrentPatchNotes() {
-        return PatchNotes.header + '\n' + PatchNotes.currentPatchNotes
+        const container = new SimpleContainer()
+
+        const text1 = new TextDisplayBuilder().setContent([`# Patch notes for versjon ${this.currentVersion}`].join('\n'))
+
+        container.addComponent(text1, 'header')
+
+        const text = new TextDisplayBuilder().setContent(
+            //
+            [
+                `* More or Less: Uthever nå i bold forsøket som telles mot chest i resultatene`,
+                `* Deal or No Deal: Prøver å rette en feil som kunne gjøre at det så ut som det var flere kofferter igjen enn det faktisk var`,
+                `   * Spillet vil ikke la deg åpne en ny koffert før forrige er ferdig åpnet, så du kan oppleve at en koffert ikke åpner seg hvis du spammer for raskt`,
+                `* Viser litt mer stats i DonD stats`,
+                `* Patch notes er nå en container, så det ser kanskje litt finere ut`,
+                //
+            ].join('\n')
+        )
+        container.addSeparator()
+        container.addComponent(text, 'currentPatchNotes')
+
+        return container
     }
     static getNextReleasePatchNotes() {
         return 'Backlog:\n' + PatchNotes.trelloBoardUrl
@@ -34,8 +54,8 @@ export class PatchNotes extends AbstractCommands {
 
     static publishPatchNotes(msgHelper: MessageHelper) {
         const patchNotes = PatchNotes.getCurrentPatchNotes()
-        msgHelper.sendMessage(ChannelIds.BOT_UTVIKLING, { text: patchNotes })
-        msgHelper.sendMessage(ChannelIds.PATCH_NOTES, { text: patchNotes })
+        msgHelper.sendMessage(ChannelIds.BOT_UTVIKLING, { components: [patchNotes.container] })
+        msgHelper.sendMessage(ChannelIds.PATCH_NOTES, { components: [patchNotes.container] })
     }
 
     getAllInteractions(): IInteractionElement {
@@ -45,7 +65,7 @@ export class PatchNotes extends AbstractCommands {
                     {
                         commandName: 'patchnotes',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
-                            this.messageHelper.replyToInteraction(rawInteraction, PatchNotes.getCurrentPatchNotes())
+                            this.messageHelper.replyToInteraction(rawInteraction, '', {}, [PatchNotes.getCurrentPatchNotes().container])
                         },
                     },
                     {

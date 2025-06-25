@@ -40,6 +40,7 @@ interface IDonDGame {
 
 enum DonDState {
     Opening = 'opening',
+    Awaiting = 'awaiting',
     BankOffer = 'bankOffer',
     KeepOrSwitch = 'keepOrSwitch',
     Accepted = 'accepted',
@@ -278,6 +279,7 @@ export class DealOrNoDeal extends AbstractCommands {
 
     private async openCase(interaction: ButtonInteraction<CacheType>, game: IDonDGame) {
         game.casesOpened++
+        game.state = DonDState.Awaiting
         const caseId = Number(interaction.customId.split(';')[2])
         const openCase = game.cases.get(caseId)
         openCase.opened = true
@@ -287,6 +289,7 @@ export class DealOrNoDeal extends AbstractCommands {
             button.customId === interaction.customId ? ButtonBuilder.from(button as APIButtonComponent).setDisabled(true) : button
         )
         await interaction.message.edit({ components: [row] })
+        game.state = DonDState.Opening
         if (this.roundOpeningIsFinished(game)) {
             game.state = DonDState.BankOffer
         }
@@ -400,6 +403,7 @@ export class DealOrNoDeal extends AbstractCommands {
             if (remainingCaseValue) {
                 const wasWinningMove = valueWon > remainingCaseValue
                 if (wasWinningMove) {
+                    if (isNaN(gameToTrack.userWasCorrect)) gameToTrack.userWasCorrect = 0
                     gameToTrack.userWasCorrect++
                 }
                 if (keptCase && valueWon > remainingCaseValue) gameToTrack.keepWasCorrectChoice++
