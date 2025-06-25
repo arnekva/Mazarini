@@ -284,6 +284,12 @@ export type UserStats = {
     deathrollStats?: DeathrollStats
     moneyStats?: MoneyStats
     dondStats?: DonDStats
+    wordleStats?: WordleStats
+}
+
+interface WordleStats {
+    wins: number
+    gamesPlayed: number
 }
 interface MoneyStats {
     totalLost: number

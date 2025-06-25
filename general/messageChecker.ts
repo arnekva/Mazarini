@@ -120,31 +120,51 @@ export class MessageChecker {
         const lowestScoringUsers = await this.getLowestScoringUserIds(message)
 
         if (lowestScoringUsers) {
-            const { score, userIds } = lowestScoringUsers
+            const { score, userIds, allUserIds } = lowestScoringUsers
             const userMentions = userIds.map((user) => MentionUtils.mentionUser(user.replace(/<@|>/g, ''))).join(' ')
             const response = `Det er ${userIds.length} bruker${userIds.length > 1 ? 'e' : ''} som har fått laveste poengsum (${score}/6): ${userMentions}. ${
                 userMentions.length > 1 ? 'De' : 'Han'
             } får 1000 chips!`
             this.client.messageHelper.sendLogMessage('Sjekker Wordle resultater: ' + userIds.length + ' personer er markert som vinnere')
-            userIds.forEach((userId) => {
+
+            // Use a Set to avoid duplicate updates if a user is both in allUserIds and userIds
+            const winnerSet = new Set(userIds)
+            const uniqueUserIds = Array.from(new Set(allUserIds))
+
+            uniqueUserIds.forEach((userId) => {
                 this.client.database.getUser(userId).then((user) => {
                     if (user) {
-                        this.client.bank.giveMoney(user, 1000)
+                        if (!user.userStats) {
+                            user.userStats = { wordleStats: { wins: 0, gamesPlayed: 0 } }
+                        }
+                        if (!user.userStats.wordleStats) user.userStats.wordleStats = { wins: 0, gamesPlayed: 0 }
+                        user.userStats.wordleStats.gamesPlayed += 1
+                        console.log('user attempts', user.userStats.wordleStats.gamesPlayed)
+
+                        if (winnerSet.has(userId)) {
+                            user.userStats.wordleStats.wins += 1
+                            this.client.bank.giveMoney(user, 1000)
+                            console.log('user was winner', user.lastFMUsername)
+                        } else {
+                            this.client.database.updateUser(user)
+                        }
                     } else {
                         this.client.messageHelper.sendLogMessage(`User with ID ${userId} not found in database.`)
                     }
                 })
             })
+
             this.client.messageHelper.sendMessage(message.channelId, { text: response }, { sendAsSilent: true })
         }
     }
 
-    async getLowestScoringUserIds(message: Message): Promise<{ score: number; userIds: string[] } | null> {
+    async getLowestScoringUserIds(message: Message): Promise<{ score: number; userIds: string[]; allUserIds: string[] } | null> {
         const scoreUserRegex = /(?:👑\s*)?(\d)\/6:\s*((?:<@[\d]+>|@\w+)(?:\s+(?:<@[\d]+>|@\w+))*)/g
 
         let match: RegExpExecArray | null
         let lowestScore = 7
         const scoreMap: Record<number, string[]> = {}
+        const allRawUsers: string[] = []
 
         while ((match = scoreUserRegex.exec(message.content)) !== null) {
             const score = parseInt(match[1])
@@ -157,6 +177,7 @@ export class MessageChecker {
             }
 
             scoreMap[score].push(...users)
+            allRawUsers.push(...users)
 
             if (score < lowestScore) {
                 lowestScore = score
@@ -165,40 +186,44 @@ export class MessageChecker {
 
         if (lowestScore === 7) return null
 
-        const rawUsers = scoreMap[lowestScore]
+        // Helper to resolve user IDs from raw user mentions
+        async function resolveUserIds(rawUsers: string[], message: Message): Promise<string[]> {
+            const userIds: string[] = []
+            const discordIds: string[] = []
+            const displayNames: string[] = []
 
-        // Clean and resolve user IDs
-        const userIds: string[] = []
-        // Separate discord IDs and display names
-        const discordIds: string[] = []
-        const displayNames: string[] = []
+            for (const user of rawUsers) {
+                const discordMatch = user.match(/^<@(\d+)>$/)
+                const nameMatch = user.match(/^@(\w+)$/)
 
-        for (const user of rawUsers) {
-            const discordMatch = user.match(/^<@(\d+)>$/)
-            const nameMatch = user.match(/^@(\w+)$/)
-
-            if (discordMatch) {
-                discordIds.push(discordMatch[1]) // ID from <@1234>
-            } else if (nameMatch) {
-                displayNames.push(nameMatch[1])
-            }
-        }
-
-        userIds.push(...discordIds)
-
-        if (displayNames.length > 0) {
-            const userObjs = await UserUtils.findMembersByDisplayNames(displayNames, message)
-            // userObjs can be array of nulls or undefineds if not found
-            for (const userObj of userObjs) {
-                if (userObj?.id) {
-                    userIds.push(userObj.id)
+                if (discordMatch) {
+                    discordIds.push(discordMatch[1])
+                } else if (nameMatch) {
+                    displayNames.push(nameMatch[1])
                 }
             }
+
+            userIds.push(...discordIds)
+
+            if (displayNames.length > 0) {
+                const userObjs = await UserUtils.findMembersByDisplayNames(displayNames, message)
+                for (const userObj of userObjs) {
+                    if (userObj?.id) {
+                        userIds.push(userObj.id)
+                    }
+                }
+            }
+
+            return userIds
         }
+
+        const userIds = await resolveUserIds(scoreMap[lowestScore], message)
+        const allUserIds = await resolveUserIds(allRawUsers, message)
 
         return {
             score: lowestScore,
             userIds,
+            allUserIds,
         }
     }
 }

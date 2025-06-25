@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '26.5.1'
+    public static readonly currentVersion = '26.5.2'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,11 +27,7 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             //
             [
-                `* More or Less: Uthever nå i bold forsøket som telles mot chest i resultatene`,
-                `* Deal or No Deal: Prøver å rette en feil som kunne gjøre at det så ut som det var flere kofferter igjen enn det faktisk var`,
-                `   * Spillet vil ikke la deg åpne en ny koffert før forrige er ferdig åpnet, så du kan oppleve at en koffert ikke åpner seg hvis du spammer for raskt`,
-                `* Viser litt mer stats i DonD stats`,
-                `* Patch notes er nå en container, så det ser kanskje litt finere ut`,
+                `* Wordle stats blir nå tracket (wins og antall spill)`,
                 //
             ].join('\n')
         )
