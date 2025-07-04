@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '26.5.3'
+    public static readonly currentVersion = '26.5.4'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,7 +27,7 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             //
             [
-                `* Fikser at MoL resultater ble vist etter klokken 8 i stedet for klokken 18`,
+                `*Deathroll pot vil nå lagres en gang i timen`,
                 `* Fikser at MoL forsøk ikke viste hvis personen fikk 0 riktige`,
                 //
             ].join('\n')

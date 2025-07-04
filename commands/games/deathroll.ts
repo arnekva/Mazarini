@@ -127,7 +127,7 @@ export class Deathroll extends AbstractCommands {
             }
             const bold = (game?.players?.length ?? 0) == 1 ? '**' : ''
             // Økende sannsynlighet for å bli tomasa jo større tapet er | generelt 0.1% sannsynlig å bli tomasa
-            const shouldThrowTomas = Math.random() < 0.001 || (roll == 1 && Math.random() < diceTarget / 1000)
+            const shouldThrowTomas = false // Math.random() < 0.001 || (roll == 1 && Math.random() < diceTarget / 1000)
             const sendRoll = () => {
                 this.messageHelper.replyToInteraction(interaction, `${bold}${roll} *(1 - ${diceTarget})*${bold}  ${additionalMessage}`, {
                     sendAsSilent: (game?.players?.length ?? 2) > 1,

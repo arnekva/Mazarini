@@ -229,7 +229,7 @@ export class MoreOrLess extends AbstractCommands {
         const completedPreviously = user.dailyGameStats.moreOrLess.completed
         const numTries = (user.dailyGameStats.moreOrLess.numAttempts ?? 0) + 1
         user.dailyGameStats.moreOrLess.numAttempts = numTries
-        if (user.dailyGameStats.moreOrLess.firstAttempt !== undefined && user.dailyGameStats.moreOrLess.secondAttempt == null) {
+        if (user.dailyGameStats.moreOrLess.firstAttempt !== undefined && user.dailyGameStats.moreOrLess.secondAttempt == null && numTries > 1) {
             user.dailyGameStats.moreOrLess.secondAttempt = game.correctAnswers
         }
 
