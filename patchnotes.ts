@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '26.5.4'
+    public static readonly currentVersion = '26.5.7'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,8 +27,8 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             //
             [
-                `*Deathroll pot vil nå lagres en gang i timen`,
-                `* Fikser at MoL forsøk ikke viste hvis personen fikk 0 riktige`,
+                `* Høie lagrer nå også deathroll games hver time i stedet for kun potten. <:am_i:1294302141791473844> `,
+
                 //
             ].join('\n')
         )

@@ -624,10 +624,13 @@ export class Blackjack extends AbstractCommands {
 
     private verifyUserAndCallMethod(interaction: ButtonInteraction<CacheType>, callback: (game: BlackjackGame, player?: BlackjackPlayer) => void) {
         const game = this.getGame(interaction)
+
         const player = this.getPlayer(interaction, game)
-        if (player) {
+        if (player && !game.resolved) {
             interaction.deferUpdate()
             callback(game, player)
+        } else if (game.resolved) {
+            this.messageHelper.replyToInteraction(interaction, 'Du kan ikke flytte et fullført spill', { ephemeral: true })
         } else this.messageHelper.replyToInteraction(interaction, 'du er ikke med i dette spillet', { ephemeral: true })
     }
 

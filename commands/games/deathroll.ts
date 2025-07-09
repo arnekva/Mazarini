@@ -5,7 +5,7 @@ import { MazariniClient } from '../../client/MazariniClient'
 import { DeathRollStats } from '../../helpers/databaseHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { LootboxQuality, MazariniUser } from '../../interfaces/database/databaseInterface'
-import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { IInteractionElement, IOnTimedEvent } from '../../interfaces/interactionInterface'
 import { ArrayUtils } from '../../utils/arrayUtils'
 import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
@@ -127,7 +127,7 @@ export class Deathroll extends AbstractCommands {
             }
             const bold = (game?.players?.length ?? 0) == 1 ? '**' : ''
             // Økende sannsynlighet for å bli tomasa jo større tapet er | generelt 0.1% sannsynlig å bli tomasa
-            const shouldThrowTomas = false // Math.random() < 0.001 || (roll == 1 && Math.random() < diceTarget / 1000)
+            const shouldThrowTomas = Math.random() < 0.001 || (roll == 1 && Math.random() < diceTarget / 1000)
             const sendRoll = () => {
                 this.messageHelper.replyToInteraction(interaction, `${bold}${roll} *(1 - ${diceTarget})*${bold}  ${additionalMessage}`, {
                     sendAsSilent: (game?.players?.length ?? 2) > 1,
@@ -491,6 +491,21 @@ export class Deathroll extends AbstractCommands {
         this.saveRewardPot(true)
         await this.saveActiveGamesToDatabase()
         return true
+    }
+
+    // eslint-disable-next-line require-await
+    async onTimedEvent(): Promise<IOnTimedEvent> {
+        return {
+            daily: [],
+            weekly: [],
+            hourly: [
+                () => {
+                    this.saveActiveGamesToDatabase()
+                    this.saveRewardPot()
+                    return true
+                },
+            ],
+        }
     }
 
     getAllInteractions(): IInteractionElement {

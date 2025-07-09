@@ -16,8 +16,6 @@ export class HourJob {
         this.client.onTimedEvent('hourly')
         await this.checkForUpcomingRLTournaments()
         await this.sendScheduledMessage()
-
-        await this.client.database.saveDeathrollPot(this.client.cache.deathrollPot)
     }
 
     private async checkForUpcomingRLTournaments() {
