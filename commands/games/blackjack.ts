@@ -622,11 +622,15 @@ export class Blackjack extends AbstractCommands {
         return value
     }
 
-    private verifyUserAndCallMethod(interaction: ButtonInteraction<CacheType>, callback: (game: BlackjackGame, player?: BlackjackPlayer) => void) {
+    private verifyUserAndCallMethod(
+        interaction: ButtonInteraction<CacheType>,
+        callback: (game: BlackjackGame, player?: BlackjackPlayer) => void,
+        cannotBeDoneAfterCompleted: boolean = false
+    ) {
         const game = this.getGame(interaction)
 
         const player = this.getPlayer(interaction, game)
-        if (player && !game.resolved) {
+        if (player && !cannotBeDoneAfterCompleted) {
             interaction.deferUpdate()
             callback(game, player)
         } else if (game.resolved) {
@@ -734,7 +738,7 @@ export class Blackjack extends AbstractCommands {
                     {
                         commandName: 'BLACKJACK_MOVE_DOWN',
                         command: (interaction: ButtonInteraction<CacheType>) => {
-                            this.verifyUserAndCallMethod(interaction, (game) => this.moveGameDown(interaction, game))
+                            this.verifyUserAndCallMethod(interaction, (game) => this.moveGameDown(interaction, game), true)
                         },
                     },
                 ],

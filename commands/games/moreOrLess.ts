@@ -298,10 +298,11 @@ export class MoreOrLess extends AbstractCommands {
         for (const user of sortedUsers) {
             const name = UserUtils.findMemberByUserID(user.id, interaction).user.username
             const shouldShowBestResult = true // user.dailyGameStats.moreOrLess.numAttempts > 1 || DateUtils.isTimeOfDayAfter(18)
+            const firstAttemptValue = user.dailyGameStats.moreOrLess.firstAttempt ?? 0
+            const secondAttemptValue = user.dailyGameStats.moreOrLess.secondAttempt ?? 0
             const shouldBoldFirst =
-                (user.dailyGameStats.moreOrLess.firstAttempt ?? 0 > user.dailyGameStats.moreOrLess.secondAttempt ?? 0) &&
-                user.dailyGameStats.moreOrLess.firstAttempt >= 0
-            const shouldBoldSecond = !shouldBoldFirst && user.dailyGameStats.moreOrLess.secondAttempt && user.dailyGameStats.moreOrLess.secondAttempt >= 0
+                firstAttemptValue > secondAttemptValue && firstAttemptValue >= 0
+            const shouldBoldSecond = !shouldBoldFirst && secondAttemptValue >= 0
             const firstAttempt = `${shouldBoldFirst ? '**' : ''}${
                 user.dailyGameStats.moreOrLess.firstAttempt !== undefined ? user.dailyGameStats.moreOrLess.firstAttempt + ' riktige' : 'Ikke spilt'
             }${shouldBoldFirst ? '**' : ''}`
