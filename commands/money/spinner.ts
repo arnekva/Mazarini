@@ -67,20 +67,21 @@ export class Spinner extends AbstractCommands {
             this.messageHelper.replyToInteraction(interaction, 'Du har allerede brukt opp dagens spinn.')
         } else {
             const tenRandomSpins: { min: number; sec: number }[] = []
-            for (let i = 0; i < 10; i++) {
+            const amountOfSpins = 10
+            for (let i = 0; i < amountOfSpins; i++) {
                 //Can probably just remove 0 and 1 from table at some point
                 let num = RandomUtils.chooseWeightedItem(spinMinutes)
                 while (num < 2) num = RandomUtils.chooseWeightedItem(spinMinutes)
                 tenRandomSpins.push({
                     min: num,
-                    sec: RandomUtils.getRandomInteger(4, 59),
+                    sec: RandomUtils.getRandomInteger(0, 59),
                 })
             }
 
             let text = ``
             let winnings = 0
             tenRandomSpins.forEach((spin, index) => {
-                const currWinning = this.getSpinnerWinnings(spin.min, spin.sec) + spin.sec
+                const currWinning = this.getSpinnerWinnings(spin.min, spin.sec) + spin.sec * 2
                 winnings += currWinning
                 text += `*Spinn ${index + 1}*: ${spin.min} minutt og ${spin.sec} sekund - ${currWinning} chips.\n`
             })

@@ -238,11 +238,11 @@ export class MoreOrLess extends AbstractCommands {
             let reward = 0
             if (correctAnswers > 0) {
                 for (let i = user.dailyGameStats.moreOrLess.bestAttempt + 1; i <= game.correctAnswers; i++) {
-                    if (i <= 10) reward += 400
-                    else if (i <= 20) reward += 300
-                    else if (i <= 30) reward += 200
-                    else if (i <= 40) reward += 100
-                    else if (i <= 50) reward += 75
+                    if (i <= 10) reward += 500
+                    else if (i <= 20) reward += 400
+                    else if (i <= 30) reward += 300
+                    else if (i <= 40) reward += 200
+                    else if (i <= 50) reward += 100
                     else reward += 50
                 }
             }
@@ -300,8 +300,7 @@ export class MoreOrLess extends AbstractCommands {
             const shouldShowBestResult = true // user.dailyGameStats.moreOrLess.numAttempts > 1 || DateUtils.isTimeOfDayAfter(18)
             const firstAttemptValue = user.dailyGameStats.moreOrLess.firstAttempt ?? 0
             const secondAttemptValue = user.dailyGameStats.moreOrLess.secondAttempt ?? 0
-            const shouldBoldFirst =
-                firstAttemptValue > secondAttemptValue && firstAttemptValue >= 0
+            const shouldBoldFirst = firstAttemptValue > secondAttemptValue && firstAttemptValue >= 0
             const shouldBoldSecond = !shouldBoldFirst && secondAttemptValue >= 0
             const firstAttempt = `${shouldBoldFirst ? '**' : ''}${
                 user.dailyGameStats.moreOrLess.firstAttempt !== undefined ? user.dailyGameStats.moreOrLess.firstAttempt + ' riktige' : 'Ikke spilt'

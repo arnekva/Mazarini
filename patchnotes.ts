@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '26.5.8'
+    public static readonly currentVersion = '26.6.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,8 +27,9 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             //
             [
-                `* Du kan igjen trykke på knappene etter blackjack er ferdig `,
-                `* Fikset at feil tall i MoL resultater ble gjort bold`,
+                `* Halvparten av tapt pot fra en blackjack etter deathroll win blir nå lagt tilbake igjen`,
+                `* More or Less gir nå igjen 500, 400, 300, 200, 100 eller 50 chips.`,
+                `* Spin vil nå gi 2*sekund i tillegg til minutt gevinst. (Opp fra 1*sekund)`,
 
                 //
             ].join('\n')
