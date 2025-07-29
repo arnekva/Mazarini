@@ -62,5 +62,6 @@ export class MentionUtils {
         GEGGI: '293489109048229888',
         THOMAS: '397429060898390016',
         WORDLE_BOT: '1211781489931452447',
+        HENRIK: '715963046861865091',
     }
 }

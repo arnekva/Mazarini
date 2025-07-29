@@ -117,7 +117,8 @@ export class Deathroll extends AbstractCommands {
                     additionalMessage += this.addToPotOnGameEnd(stat, diceTarget)
                     const kek = (await EmojiHelper.getEmoji('kekw', interaction)).id
                     const username = UserUtils.findUserById(stat.userId, interaction)?.username ?? 'Ukjent'
-                    if (diceTarget > 120 || (diceTarget > 30 && RandomUtils.getRndBetween0and100() > 40)) {
+
+                    if (diceTarget > 80 || (diceTarget > 30 && RandomUtils.getRndBetween0and100() > 60)) {
                         additionalMessage += ` ${kek}`
                     }
                     if (stat.didGetNewBiggestLoss) additionalMessage += `\n*(${username} fikk et nytt tall inn på topplisten av største tap)*`
@@ -189,7 +190,7 @@ export class Deathroll extends AbstractCommands {
 
     private checkForJokes(roll: number, diceTarget: number, nextToRoll: string) {
         if (diceTarget == 11) {
-            if (roll == 9 && Math.random() < 0.33) {
+            if (roll == 9 && Math.random() < 0.4) {
                 const removed = this.rewardPot >= 2977 ? 2977 : this.rewardPot
                 this.rewardPot -= removed
                 if (removed > 0) this.saveRewardPot()

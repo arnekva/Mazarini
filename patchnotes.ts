@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '26.6.0'
+    public static readonly currentVersion = '26.6.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,11 +27,9 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             //
             [
-                `* Halvparten av tapt pot fra en blackjack etter deathroll win blir nå lagt tilbake igjen`,
-                `* More or Less gir nå igjen 500, 400, 300, 200, 100 eller 50 chips.`,
-                `* Spin vil nå gi 2*sekund i tillegg til minutt gevinst. (Opp fra 1*sekund)`,
-
-                //
+                `* Vinneren(e) i Wordle får nå 2000 chips (opp fra 1000)`,
+                `* Siden folk gjør så få forsøk i More or Less så er det nå økte til 600, 500, 400, 300, 200 og 100 chips for henholdsvis 1-10, 11-20, 21-30, 31-40, 41-50 og over 50 riktige svar.`,
+                `* Liten økning på sannsynligheten for 9/11 i Deathroll`,
             ].join('\n')
         )
         container.addSeparator()
