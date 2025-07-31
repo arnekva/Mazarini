@@ -249,7 +249,7 @@ export class Blackjack extends AbstractCommands {
 
     private async getButtonRow(game: BlackjackGame, player: BlackjackPlayer) {
         const buttonRow = hitStandButtonRow(game.id)
-        const hasDeathrollRedeal = false //!!game.fromDeathroll && !game.hasRedealt
+        const hasDeathrollRedeal = !!game.fromDeathroll && !game.hasRedealt
         if (player.hands[player.currentHandIndex].cards.length === 2) {
             const user = await this.client.database.getUser(player.id)
             if (this.canDoubleDown(player.hands[player.currentHandIndex]))
@@ -258,7 +258,7 @@ export class Blackjack extends AbstractCommands {
                 buttonRow.addComponents(splitBtn(game.id, this.client.bank.userCanAfford(user, player.stake)))
             if (this.canInsure(game, player)) buttonRow.addComponents(insuranceBtn(game.id, this.client.bank.userCanAfford(user, Math.ceil(player.stake / 2))))
             if (this.canReDeal(player, user) || hasDeathrollRedeal) {
-                const reDeals = user.effects?.positive?.blackjackReDeals ?? 0 //+ (hasDeathrollRedeal ? 1 : 0)
+                const reDeals = (user.effects?.positive?.blackjackReDeals ?? 0)+ (hasDeathrollRedeal ? 1 : 0)
                 buttonRow.addComponents(reDealBtn(game.id, reDeals))
             }
         }
@@ -563,14 +563,14 @@ export class Blackjack extends AbstractCommands {
     }
 
     private async reDeal(game: BlackjackGame, player: BlackjackPlayer) {
-        // const hasDeathrollRedeal = game.fromDeathroll && !game.hasRedealt
-        // if (hasDeathrollRedeal) {
-        //     game.hasRedealt = true
-        // } else {
-        const user = await this.client.database.getUser(player.id)
-        user.effects.positive.blackjackReDeals -= 1
-        this.database.updateUser(user)
-        // }
+        const hasDeathrollRedeal = game.fromDeathroll && !game.hasRedealt
+        if (hasDeathrollRedeal) {
+            game.hasRedealt = true
+        } else {
+            const user = await this.client.database.getUser(player.id)
+            user.effects.positive.blackjackReDeals -= 1
+            this.database.updateUser(user)
+        }
         game.dealer.hand = new Array<ICardObject>()
         const hand: PlayerHand = { cards: new Array<ICardObject>(), stand: false, doubleDown: false }
         player.hands = [hand]

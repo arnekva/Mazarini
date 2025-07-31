@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '26.6.1'
+    public static readonly currentVersion = '26.6.2'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,9 +27,10 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             //
             [
-                `* Vinneren(e) i Wordle får nå 2000 chips (opp fra 1000)`,
-                `* Siden folk gjør så få forsøk i More or Less så er det nå økte til 600, 500, 400, 300, 200 og 100 chips for henholdsvis 1-10, 11-20, 21-30, 31-40, 41-50 og over 50 riktige svar.`,
-                `* Liten økning på sannsynligheten for 9/11 i Deathroll`,
+                `* Du får nå x1 DPN når du vinner potten i deathroll`,
+                `\n* De 10 første forsøkene i MoL gir nå 700 chips (opp fra 600), mens 11-20 gir 300 (ned fra 400) (også 200, 100, 50)`,
+
+               
             ].join('\n')
         )
         container.addSeparator()

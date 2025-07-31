@@ -238,11 +238,11 @@ export class MoreOrLess extends AbstractCommands {
             let reward = 0
             if (correctAnswers > 0) {
                 for (let i = user.dailyGameStats.moreOrLess.bestAttempt + 1; i <= game.correctAnswers; i++) {
-                    if (i <= 10) reward += 600
+                    if (i <= 10) reward += 700
                     else if (i <= 20) reward += 500
-                    else if (i <= 30) reward += 400
-                    else if (i <= 40) reward += 300
-                    else if (i <= 50) reward += 200
+                    else if (i <= 30) reward += 300
+                    else if (i <= 40) reward += 200
+                    else if (i <= 50) reward += 100
                     else reward += 50
                 }
             }
