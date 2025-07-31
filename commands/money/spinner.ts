@@ -99,7 +99,7 @@ export class Spinner extends AbstractCommands {
     private getSpinnerWinnings(min: number, seconds: number) {
         switch (min) {
             case 2:
-                return 50
+                return 60
             case 3:
                 return 125
             case 4:

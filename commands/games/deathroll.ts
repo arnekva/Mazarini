@@ -65,7 +65,7 @@ export class Deathroll extends AbstractCommands {
     //TODO: Should probably be refactored to somewhere else
     static getRollWinningNumbers() {
         const winningNumbers = new Array<number>()
-        winningNumbers.push(RandomUtils.getRandomInteger(76, 100))
+        winningNumbers.push(RandomUtils.getRandomInteger(75, 100))
         winningNumbers.push(RandomUtils.getRandomInteger(101, 125))
         winningNumbers.push(RandomUtils.getRandomInteger(126, 150))
         winningNumbers.push(RandomUtils.getRandomInteger(151, 175))
@@ -190,7 +190,7 @@ export class Deathroll extends AbstractCommands {
 
     private checkForJokes(roll: number, diceTarget: number, nextToRoll: string) {
         if (diceTarget == 11) {
-            if (roll == 9 && Math.random() < 0.4) {
+            if (roll == 9 && Math.random() < 0.65) {
                 const removed = this.rewardPot >= 2977 ? 2977 : this.rewardPot
                 this.rewardPot -= removed
                 if (removed > 0) this.saveRewardPot()
@@ -298,8 +298,13 @@ export class Deathroll extends AbstractCommands {
     }
 
     private getRollReward(r: number) {
-        if ([1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 669, 690, 8008, 6969, 420, 123, 1234, 2469, 12345, 1984, 2024, 2025, 2012, 1945].includes(r))
-            return r * 3
+        if (
+            [
+                1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 669, 690, 8008, 6969, 420, 123, 1234, 12345, 2469, 12345, 1984, 2024, 2025, 2012, 1945, 2468,
+                1359,
+            ].includes(r)
+        )
+            return r * 4
         else return 0
     }
 

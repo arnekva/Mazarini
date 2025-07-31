@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '26.6.2'
+    public static readonly currentVersion = '26.6.3'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,10 +27,10 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             //
             [
-                `* Du får nå x1 DPN når du vinner potten i deathroll`,
-                `\n* De 10 første forsøkene i MoL gir nå 700 chips (opp fra 600), mens 11-20 gir 300 (ned fra 400) (også 200, 100, 50)`,
-
-               
+                `* 2 minutter spin gir nå 60 chips (opp fra 50)`,
+                `* Økt sannsynlighet for 9/11`,
+                `* Tilfeldig deathroll vinnertall kan nå også være 75 (minste var før 76)`,
+                `* Spesialtall har økt multiplikator til 4x (opp fra 3x)`,
             ].join('\n')
         )
         container.addSeparator()
