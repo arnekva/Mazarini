@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '26.6.3'
+    public static readonly currentVersion = '26.6.4'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,12 +26,7 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             //
-            [
-                `* 2 minutter spin gir nå 60 chips (opp fra 50)`,
-                `* Økt sannsynlighet for 9/11`,
-                `* Tilfeldig deathroll vinnertall kan nå også være 75 (minste var før 76)`,
-                `* Spesialtall har økt multiplikator til 4x (opp fra 3x)`,
-            ].join('\n')
+            [`* MoL: Fikset en feil hvor forsøk nummer tre kunne overkjøre forsøk nummer to, hvis scoren på forsøk nummer to var 0. Oops.`].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

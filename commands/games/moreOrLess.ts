@@ -219,12 +219,7 @@ export class MoreOrLess extends AbstractCommands {
             }
             if (game.correctAnswers === 0) this.database.updateUser(user)
         }
-        if (!user.dailyGameStats.moreOrLess.secondAttempt) {
-            user.dailyGameStats.moreOrLess = {
-                ...user.dailyGameStats.moreOrLess,
-                secondAttempt: null,
-            }
-        }
+
         const completedNow = game.data.length === 0 && wasCorrect
         const completedPreviously = user.dailyGameStats.moreOrLess.completed
         const numTries = (user.dailyGameStats.moreOrLess.numAttempts ?? 0) + 1
