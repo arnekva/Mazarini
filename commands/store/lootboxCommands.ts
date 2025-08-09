@@ -44,7 +44,7 @@ interface IPendingChest {
     buttons?: ActionRowBuilder<ButtonBuilder>
 }
 
-interface IEffectItem {
+export interface IEffectItem {
     label: string
     message: string //følger formatet "Din kalendergave for {dato} er {message}"
     effect(user: MazariniUser): undefined | ActionRowBuilder<ButtonBuilder>[]

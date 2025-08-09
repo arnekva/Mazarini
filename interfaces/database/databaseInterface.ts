@@ -315,6 +315,7 @@ interface DealOrNoDealStats {
     keepWasCorrectChoice: number
     switchWasCorrectChoice: number
     userWasCorrect: number
+    acceptedEffect?: number
 }
 export interface DeathrollStats {
     totalGames: number

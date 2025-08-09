@@ -268,7 +268,7 @@ export class Deathroll extends AbstractCommands {
         if (totalAdded > 0 && roll >= 100 && this.rewardPot < 1000 && totalAdded < 2500) totalAdded *= 2
         const finalAmount = totalAdded
         const buff = user?.effects?.positive?.deahtrollLootboxChanceMultiplier ?? 1
-        if (finalAmount >= 100 && roll >= 100 && RandomUtils.getRandomPercentage(7.5 * buff)) {
+        if (finalAmount >= 100 && roll >= 100 && RandomUtils.getRandomPercentage(8 * buff)) {
             let remainingChips = 0
             let cost = 5000
             let quality = LootboxQuality.Basic
@@ -304,7 +304,7 @@ export class Deathroll extends AbstractCommands {
                 1359,
             ].includes(r)
         )
-            return r * 4
+            return r * 5
         else return 0
     }
 

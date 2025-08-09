@@ -34,16 +34,6 @@ export namespace RandomUtils {
         return list[Math.floor(Math.random() * list.length)]
     }
 
-    export function getRandomItemFromListWithExclusions(list: any[], exclusions: any[]) {
-        const newList = list.filter((item) => !exclusions.includes(item))
-        return newList[Math.floor(Math.random() * newList.length)]
-    }
-
-    export function getRandomObjectFromListWithExclusions(list: any[], exclusions: any[], equals: (a: any, b:any) => boolean) {
-        const newList = list.filter((item) => !exclusions.some(excluded => equals(item, excluded)))
-        return newList[Math.floor(Math.random() * newList.length)]
-    }
-
     export type WeightedItem = { value: number; weight: number }
     export function chooseWeightedItem(items: WeightedItem[]): number {
         // Calculate the total weight sum
@@ -65,8 +55,9 @@ export namespace RandomUtils {
     }
 
     export function shuffleList(list: any[]) {
-        return list.map(item => ({item, sort: Math.random()}))
-                   .sort((a,b) => a.sort - b.sort)
-                   .map(({item}) => item)
+        return list
+            .map((item) => ({ item, sort: Math.random() }))
+            .sort((a, b) => a.sort - b.sort)
+            .map(({ item }) => item)
     }
 }

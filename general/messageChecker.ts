@@ -124,7 +124,7 @@ export class MessageChecker {
             const userMentions = userIds.map((user) => MentionUtils.mentionUser(user.replace(/<@|>/g, ''))).join(' ')
             const response = `Det er ${userIds.length} bruker${userIds.length > 1 ? 'e' : ''} som har fått laveste poengsum (${score}/6): ${userMentions}. ${
                 userMentions.length > 1 ? 'De' : 'Han'
-            } får 2000 chips!`
+            } får 5000 chips!`
             this.client.messageHelper.sendLogMessage('Sjekker Wordle resultater: ' + userIds.length + ' personer er markert som vinnere')
 
             // Use a Set to avoid duplicate updates if a user is both in allUserIds and userIds
@@ -142,7 +142,7 @@ export class MessageChecker {
 
                         if (winnerSet.has(userId)) {
                             user.userStats.wordleStats.wins += 1
-                            this.client.bank.giveMoney(user, 2000)
+                            this.client.bank.giveMoney(user, 5000)
                         } else {
                             this.client.database.updateUser(user)
                         }

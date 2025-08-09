@@ -18,6 +18,8 @@ import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { UserUtils } from '../../utils/userUtils'
+import { IEffectItem } from '../store/lootboxCommands'
+import { DondItems } from './content/dondItems'
 
 const { ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js')
 
@@ -32,7 +34,7 @@ interface IDonDGame {
     player: IDonDPlayer
     round: number
     state: DonDState
-    latestOffer?: number
+    latestOffer?: number | IEffectItem
     embedMessage?: InteractionResponse<boolean> | Message<boolean>
     buttonRows?: Message<boolean>[]
     quality?: DonDQuality
@@ -132,6 +134,17 @@ export class DealOrNoDeal extends AbstractCommands {
         return caseMap
     }
 
+    private getLatestOfferLabel(offer: number | IEffectItem, isAccepted?: boolean, actualValue?: number): string {
+        if (typeof offer === 'number') {
+            if (isAccepted) return `Du har akseptert bankens tilbud på ${offer} chips! \n\nKofferten du startet med hadde en verdi på ${actualValue} chips.`
+            return `Bank Høie tilbyr deg ${offer} chips for kofferten din`
+        } else {
+            if (isAccepted)
+                return `Du har akseptert bankens tilbud om en effekt: ${offer.label}. \n\nKofferten du startet med hadde en verdi på ${actualValue} chips.`
+            return `Bank Høie tilbyr deg en effekt for kofferten din: ${offer.label}`
+        }
+    }
+
     private getGameMessage(game: IDonDGame) {
         if (game.state === DonDState.Opening) {
             const casesToOpen = this.getCasesOpenedThisRound(game)
@@ -139,10 +152,10 @@ export class DealOrNoDeal extends AbstractCommands {
         } else if (game.state === DonDState.BankOffer) {
             const offer = this.getBankOffer(game)
             game.latestOffer = offer
-            return `Bank Høie tilbyr deg ${offer} chips for kofferten din!\nGodtar du bankens tilbud?`
+            return `${this.getLatestOfferLabel(offer)}!\nGodtar du bankens tilbud?`
         } else if (game.state === DonDState.Accepted) {
             const playerCaseValue = game.cases.get(game.player.caseNr).value
-            return `Du har akseptert Bank Høies tilbud på ${game.latestOffer} chips!\n\nHadde du stått løpet ut, hadde du fått ${playerCaseValue} chips!`
+            return `${this.getLatestOfferLabel(game.latestOffer, true, playerCaseValue)}`
         } else if (game.state === DonDState.KeepOrSwitch) {
             const remainingCase = Array.from(game.cases.entries()).filter((val) => !val[1].opened && val[0] != game.player.caseNr)
             return (
@@ -167,11 +180,10 @@ export class DealOrNoDeal extends AbstractCommands {
         return casesToBeOpened - game.casesOpened
     }
 
-    private getBankOffer(game: IDonDGame) {
+    private getBankOffer(game: IDonDGame): number | IEffectItem {
         const unOpenedCases = Array.from(game.cases.values()).filter((val) => !val.opened)
         if (unOpenedCases.length === 0) return 0
 
-        // Calculate expected value (EV)
         const totalSum = unOpenedCases.reduce((sum, value) => sum + value.value, 0)
         const expectedValue = totalSum / unOpenedCases.length
 
@@ -179,8 +191,24 @@ export class DealOrNoDeal extends AbstractCommands {
         const percentage = 0.5 + game.round * 0.05
         // Calculate the final offer
         const offer = expectedValue * percentage
+
+        const finalChipsOffer = Math.round(offer)
         // Round to nearest whole number for realism
-        return Math.round(offer)
+        const isEffectItem = RandomUtils.getRandomPercentage(40) // 40% chance to get an effect item
+
+        if (isEffectItem) {
+            const effectItem = RandomUtils.getRandomItemFromList(this.findEffectsList(finalChipsOffer))
+            return effectItem
+        }
+
+        return finalChipsOffer
+    }
+
+    private findEffectsList(originalOffer: number) {
+        if (originalOffer > 7000) return DondItems.highQualityEffects
+        if (originalOffer > 3500) return DondItems.mediumQualityEffects
+        if (originalOffer < 500) return DondItems.veryLowQualityEffects
+        return DondItems.lowQualityEffects
     }
 
     private getCaseValueFields(game: IDonDGame, openedCaseValue?: number) {
@@ -317,8 +345,23 @@ export class DealOrNoDeal extends AbstractCommands {
         } else {
             game.state = DonDState.Accepted
             const user = await this.database.getUser(interaction.user.id)
-            this.updateUserStats(user, game.latestOffer, game.cases.get(game.player.caseNr).value, game.quality, true)
-            this.client.bank.giveMoney(user, game.latestOffer)
+            const wasCashOffer = typeof game.latestOffer === 'number'
+            if (wasCashOffer) {
+                const offerValue = game.latestOffer
+                if (typeof offerValue === 'number') {
+                    this.updateUserStats(user, offerValue, game.cases.get(game.player.caseNr).value, game.quality, true)
+                    this.client.bank.giveMoney(user, offerValue)
+                }
+            } else {
+                const effectItem = game.latestOffer as IEffectItem
+                const effect = effectItem.effect(user)
+                this.updateUserStats(user, 0, game.cases.get(game.player.caseNr).value, game.quality, undefined, undefined, undefined, true)
+                this.database.updateUser(user)
+                this.messageHelper.sendMessage(interaction.channelId, {
+                    text: `Du har fått en effekt: ${effectItem.label}`,
+                })
+                this.messageHelper.sendLogMessage(`Bruker ${interaction.user.username} har fått effekten: ${effectItem.label}`)
+            }
             this.removeGame(game)
         }
         this.updateGame(game)
@@ -358,7 +401,8 @@ export class DealOrNoDeal extends AbstractCommands {
         quality: DonDQuality,
         fromDeal?: boolean,
         remainingCaseValue?: number,
-        keptCase?: boolean
+        keptCase?: boolean,
+        acceptedEffect?: boolean // <-- new parameter
     ) {
         if (!user.userStats?.dondStats) {
             if (!user.userStats)
@@ -378,6 +422,7 @@ export class DealOrNoDeal extends AbstractCommands {
                 keepWasCorrectChoice: 0,
                 switchWasCorrectChoice: 0,
                 userWasCorrect: 0,
+                acceptedEffect: 0, // <-- new stat
             }
 
             user.userStats.dondStats = {
@@ -411,6 +456,10 @@ export class DealOrNoDeal extends AbstractCommands {
 
                 gameToTrack.keepSwitchBalance += valueWon - remainingCaseValue
             }
+        }
+        if (acceptedEffect) {
+            if (isNaN(gameToTrack.acceptedEffect)) gameToTrack.acceptedEffect = 0
+            gameToTrack.acceptedEffect++
         }
     }
 
