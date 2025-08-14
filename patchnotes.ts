@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '27.0.0'
+    public static readonly currentVersion = '27.1.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,21 +27,13 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             //
             [
-                `## DonD`,
-                `* Du kan nå få effekter som tilbud fra banken!`,
-                ` * Hvert tilbud fra banken har en 40% sjanse for å være en effekt i stedet for chips`,
-                ` * Hvis banken ville tilbud >7000 chips, vil effekten være en av de høyere kvalitetene`,
-                ` * Hvis banken ville tilbud >3500 chips, vil effekten være en av de middels kvalitetene`,
-                ` * Hvis tilbudet er lavere enn 500 chips, vil effekten være en av de aller laveste kvalitetene`,
-                ` * Ellers vil effekten være av de lavere kvalitetene`,
-                `## Wordle`,
-                `* Vinnere får nå 5000 chips i stedet for 2000`,
-                `## Spin`,
-                `* 2 minutter gir nå 75 chips i stedet for 60`,
-                `* 3 minutter gir nå 110 chips i stedet for 125`,
-                `## Deathroll`,
-                `* Du har nå 8% sjanse for å få en lootbox (opp fra 7.5%)`,
-                `* Spesialtall har nå 5x multiplikator (opp fra 4x)`,
+                `## Pantelotteriet`,
+                `* Du har nå en ny plass å gjøre av "restechipsene" dine!`,
+                `* Hvis du har under 1000 chips i lommeboken kan du sette de på /pantelotteriet`,
+                `* Hver chip er et lodd som kan gi utbetaling`,
+                `* Alle smågevinster (< 1000) reinvesteres automatisk i lotteriet`,
+                `* Straks du evt vinner > 1000 vil dette utbetales`,
+                `* Dersom du ikke vinner, går all innsatsen (inkludert automatisk reinvesterte gevinster) inn i hasjen`,
             ].join('\n')
         )
         container.addSeparator()

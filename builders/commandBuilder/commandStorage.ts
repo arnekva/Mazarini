@@ -14,6 +14,7 @@ import { lyricsCommand } from './commandStorage/lyrics'
 import { memeCommand } from './commandStorage/meme'
 import { moreorless } from './commandStorage/moreorless'
 import { musicCommand } from './commandStorage/musikk'
+import { pantelotterietCommand } from './commandStorage/pantelotteriet'
 import { pickpocketCommand } from './commandStorage/pickpocket'
 import { pointerbrothersCommand } from './commandStorage/pointerbrothers'
 import { pollCommand } from './commandStorage/poll'
@@ -68,4 +69,5 @@ export namespace CommandStorage {
     export const CalendarCommand = calendarCommand
     export const MoreOrLess = moreorless
     export const DropCommand = dropCommand
+    export const Pantelotteriet = pantelotterietCommand
 }

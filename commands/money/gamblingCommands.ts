@@ -195,7 +195,7 @@ export class GamblingCommands extends AbstractCommands {
             cost = 0
             user.effects.positive.freeRolls--
         }
-        if ((Number(userMoney) < cost)) {
+        if (Number(userMoney) < cost) {
             this.messageHelper.replyToInteraction(interaction, `Det koste ${cost} chips for å bruga maskinen, og du har kje råd bro`)
         } else {
             //Remove 100 chips
@@ -309,6 +309,42 @@ export class GamblingCommands extends AbstractCommands {
         }
     }
 
+    public async pantelotteriet(interaction: ChatInputCommandInteraction<CacheType>) {
+        const user = await this.database.getUser(interaction.user.id)
+        if (user.chips <= 0 || user.chips >= 1000)
+            return this.messageHelper.replyToInteraction(interaction, 'Pantelotteriet er bare tilgjengelig når du har mellom 0 og 1000 chips.')
+        let tickets = user.chips
+        let reward = 0
+        for (let i = 0; i < tickets; i++) {
+            const draw = this.ticketDraw()
+            // only a 1000+ reward triggers payout - small wins are "re-invested" in the lottery as tickets while payout is not triggered
+            if (draw && reward === 0 && draw < 1000) tickets += draw
+            // once payout is triggered, any subsequent small win is added to payout as well
+            else reward += draw
+        }
+        user.chips = 0 + reward
+        this.database.updateUser(user)
+        if (reward === 0) {
+            // If no payout - add total ticket count to deathroll pot
+            const deathrollPot = this.client.cache.deathrollPot ?? 0
+            const newDeathrollPot = deathrollPot + tickets
+            this.client.database.saveDeathrollPot(newDeathrollPot)
+            this.client.cache.deathrollPot = newDeathrollPot
+            return this.messageHelper.replyToInteraction(interaction, 'Beklager! Det ble ingen gevinst denne gang.')
+        }
+        return this.messageHelper.replyToInteraction(interaction, `Gratulerer! Du vant ${reward}`)
+    }
+
+    private ticketDraw() {
+        const ticket = Math.random()
+        if (ticket < 1 / 100000) return 50000
+        if (ticket < 1 / 10000) return 5000
+        if (ticket < 1 / 2500) return 1000
+        if (ticket < 1 / 250) return 100
+        if (ticket < 1 / 100) return 50
+        return 0
+    }
+
     getAllInteractions(): IInteractionElement {
         return {
             commands: {
@@ -329,6 +365,12 @@ export class GamblingCommands extends AbstractCommands {
                         commandName: 'rulett',
                         command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
                             this.roulette(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'pantelotteriet',
+                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                            this.pantelotteriet(rawInteraction)
                         },
                     },
                 ],

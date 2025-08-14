@@ -188,4 +188,8 @@ export namespace UserUtils {
             return member.guildMember.nickname || member.guildMember.displayName || member.user.globalName || member.user.displayName || member.user.username
         } else return member.user.globalName || member.user.displayName || member.user.username
     }
+
+    export const getUserFromInteraction = async (interaction: Interaction, client: MazariniClient) => {
+        return await client.database.getUser(interaction.user.id)
+    }
 }
