@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '27.2.0'
+    public static readonly currentVersion = '27.2.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,11 +26,7 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             //
-            [
-                `## Wordle`,
-                `* Det trackes nå stats for hvor mange gjett du vinner på`,
-                `* Potten splittes nå på alle vinnere - dvs. hvis to spillere vinner får de 2500 hver.`,
-            ].join('\n')
+            [`* 'reply' skal nå funke i Threads`].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
