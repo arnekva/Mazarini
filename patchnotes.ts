@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '27.1.0'
+    public static readonly currentVersion = '27.2.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,13 +27,9 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             //
             [
-                `## Pantelotteriet`,
-                `* Du har nå en ny plass å gjøre av "restechipsene" dine!`,
-                `* Hvis du har under 1000 chips i lommeboken kan du sette de på /pantelotteriet`,
-                `* Hver chip er et lodd som kan gi utbetaling`,
-                `* Alle smågevinster (< 1000) reinvesteres automatisk i lotteriet`,
-                `* Straks du evt vinner > 1000 vil dette utbetales`,
-                `* Dersom du ikke vinner, går all innsatsen (inkludert automatisk reinvesterte gevinster) inn i hasjen`,
+                `## Wordle`,
+                `* Det trackes nå stats for hvor mange gjett du vinner på`,
+                `* Potten splittes nå på alle vinnere - dvs. hvis to spillere vinner får de 2500 hver.`,
             ].join('\n')
         )
         container.addSeparator()

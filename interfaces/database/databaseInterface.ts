@@ -289,6 +289,14 @@ export type UserStats = {
 
 interface WordleStats {
     wins: number
+    winsOnGuessNumber?: {
+        one: number
+        two: number
+        three: number
+        four: number
+        five: number
+        six: number
+    }
     gamesPlayed: number
 }
 interface MoneyStats {

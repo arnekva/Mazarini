@@ -121,11 +121,14 @@ export class MessageChecker {
 
         if (lowestScoringUsers) {
             const { score, userIds, allUserIds } = lowestScoringUsers
+            const chipsPerWinner = Math.floor(5000 / userIds.length)
             const userMentions = userIds.map((user) => MentionUtils.mentionUser(user.replace(/<@|>/g, ''))).join(' ')
             const response = `Det er ${userIds.length} bruker${userIds.length > 1 ? 'e' : ''} som har fått laveste poengsum (${score}/6): ${userMentions}. ${
                 userMentions.length > 1 ? 'De' : 'Han'
-            } får 5000 chips!`
-            this.client.messageHelper.sendLogMessage('Sjekker Wordle resultater: ' + userIds.length + ' personer er markert som vinnere')
+            } får ${chipsPerWinner} chips hver!`
+            this.client.messageHelper.sendLogMessage(
+                'Sjekker Wordle resultater: ' + userIds.length + ' personer er markert som vinnere. De får ' + chipsPerWinner + ' chips hver.'
+            )
 
             // Use a Set to avoid duplicate updates if a user is both in allUserIds and userIds
             const winnerSet = new Set(userIds)
@@ -142,7 +145,16 @@ export class MessageChecker {
 
                         if (winnerSet.has(userId)) {
                             user.userStats.wordleStats.wins += 1
-                            this.client.bank.giveMoney(user, 5000)
+                            if (!user.userStats.wordleStats.winsOnGuessNumber)
+                                user.userStats.wordleStats.winsOnGuessNumber = { one: 0, two: 0, three: 0, four: 0, five: 0, six: 0 }
+                            //Copilot might have cooked?
+                            const guessKey = ['one', 'two', 'three', 'four', 'five', 'six'][
+                                score - 1
+                            ] as keyof typeof user.userStats.wordleStats.winsOnGuessNumber
+
+                            user.userStats.wordleStats.winsOnGuessNumber[guessKey] += 1
+
+                            this.client.bank.giveMoney(user, chipsPerWinner)
                         } else {
                             this.client.database.updateUser(user)
                         }
