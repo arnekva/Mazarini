@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '27.2.1'
+    public static readonly currentVersion = '27.3.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,7 +26,7 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             //
-            [`* 'reply' skal nå funke i Threads`].join('\n')
+            [`* Refaktorert verdier ut i Values.ts for å forenklere balanseringer.`].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

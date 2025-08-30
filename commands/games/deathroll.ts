@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto'
 import { ActionRowBuilder, AutocompleteInteraction, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
+import { GameValues } from '../../general/Values'
 import { DeathRollStats } from '../../helpers/databaseHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { LootboxQuality, MazariniUser } from '../../interfaces/database/databaseInterface'
@@ -65,12 +66,9 @@ export class Deathroll extends AbstractCommands {
     //TODO: Should probably be refactored to somewhere else
     static getRollWinningNumbers() {
         const winningNumbers = new Array<number>()
-        winningNumbers.push(RandomUtils.getRandomInteger(75, 100))
-        winningNumbers.push(RandomUtils.getRandomInteger(101, 125))
-        winningNumbers.push(RandomUtils.getRandomInteger(126, 150))
-        winningNumbers.push(RandomUtils.getRandomInteger(151, 175))
-        winningNumbers.push(RandomUtils.getRandomInteger(176, 200))
-        winningNumbers.push(RandomUtils.getRandomInteger(201, 10001))
+        GameValues.deathroll.winningNumberRanges.forEach(([min, max]) => {
+            winningNumbers.push(RandomUtils.getRandomInteger(min, max === 100000 ? GameValues.deathroll.maxPot : max))
+        })
         return winningNumbers
     }
 
@@ -144,7 +142,7 @@ export class Deathroll extends AbstractCommands {
     }
 
     private checkForPotSkip(roll: number, diceTarget: number, userId: string) {
-        if (diceTarget > 200 && roll < 69) this.database.incrementPotSkip(userId)
+        if (diceTarget > GameValues.deathroll.potSkip.diceTarget && roll < GameValues.deathroll.potSkip.roll) this.database.incrementPotSkip(userId)
     }
 
     private checkForShuffle(roll: number, target: number, additionalMessage: string): string {
@@ -179,19 +177,19 @@ export class Deathroll extends AbstractCommands {
         const playerHasStreak = stat.currentLossStreak > 4
         const playerHasBiggestLoss = stat.didGetNewBiggestLoss && stat.didGetNewBiggestLoss > 0
 
-        let reward = playerHasATHStreak ? stat.currentLossStreak * 1500 : 0
-        if (playerHasStreak && !playerHasATHStreak) reward += (stat.currentLossStreak - 4) * 1000
-        if (playerHasBiggestLoss) reward += stat.didGetNewBiggestLoss * 35
-        else if (diceTarget >= 100) reward += diceTarget * 10
+        let reward = playerHasATHStreak ? stat.currentLossStreak * GameValues.deathroll.addToPot.athStreakMultiplier : 0
+        if (playerHasStreak && !playerHasATHStreak) reward += (stat.currentLossStreak - 4) * GameValues.deathroll.addToPot.streakMultiplier
+        if (playerHasBiggestLoss) reward += stat.didGetNewBiggestLoss * GameValues.deathroll.addToPot.biggestLossMultiplier
+        else if (diceTarget >= 100) reward += diceTarget * GameValues.deathroll.addToPot.diceTargetMultiplier
         this.rewardPot += reward
         if (reward > 0) this.saveRewardPot()
-        return reward >= 100 ? `(pott + ${reward} = ${this.rewardPot} chips)` : ''
+        return reward >= GameValues.deathroll.addToPot.minReward ? `(pott + ${reward} = ${this.rewardPot} chips)` : ''
     }
 
     private checkForJokes(roll: number, diceTarget: number, nextToRoll: string) {
         if (diceTarget == 11) {
-            if (roll == 9 && Math.random() < 0.65) {
-                const removed = this.rewardPot >= 2977 ? 2977 : this.rewardPot
+            if (roll == 9 && Math.random() < GameValues.deathroll.jokes.nineElevenChance) {
+                const removed = this.rewardPot >= GameValues.deathroll.jokes.nineElevenRemove ? GameValues.deathroll.jokes.nineElevenRemove : this.rewardPot
                 this.rewardPot -= removed
                 if (removed > 0) this.saveRewardPot()
                 return removed > 0 ? `(pott - ${removed} = ${this.rewardPot} chips)\nNever forget :coffin:` : ''
@@ -238,26 +236,26 @@ export class Deathroll extends AbstractCommands {
     private async checkForReward(roll: number, diceTarget: number, int: ChatInputCommandInteraction<CacheType>): Promise<{ val: number; text: string }> {
         let totalAdded = this.getRollReward(roll)
         const multipliers: number[] = [1]
-        const lowRoll = roll < 100
+        const lowRoll = roll < GameValues.deathroll.checkForReward.minRollForDouble
 
         const addToPot = (amount: number, multiplierIncrease: number) => {
             totalAdded += amount
             if (!lowRoll) multipliers.push(multiplierIncrease)
         }
-        if (roll === diceTarget) addToPot(roll, 10)
+        if (roll === diceTarget) addToPot(roll, GameValues.deathroll.checkForReward.diceTargetMultiplier)
 
-        if (roll === 2) addToPot(20, 1)
+        if (roll === 2) addToPot(GameValues.deathroll.checkForReward.roll2Reward, 1)
         //Checks if all digits are the same (e.g. 111, 2222, 5555)
         const sameDigits = new RegExp(/^([0-9])\1*$/gi).test(roll.toString())
-        if (sameDigits) addToPot(roll, 5)
+        if (sameDigits) addToPot(roll, GameValues.deathroll.checkForReward.sameDigitsMultiplier)
         //Check if ONLY the first digits is a non-zero (e.g. 40, 500, 6000, 20000)
         const allDigitsExceptFirstAreZero = new RegExp(/^[1-9]0+$/gi).test(roll.toString())
-        if (allDigitsExceptFirstAreZero) addToPot(roll, 5)
+        if (allDigitsExceptFirstAreZero) addToPot(roll, GameValues.deathroll.checkForReward.allDigitsExceptFirstAreZeroMultiplier)
         let user: MazariniUser = undefined
-        if (totalAdded > 0 && roll >= 100) {
+        if (totalAdded > 0 && roll >= GameValues.deathroll.checkForReward.minRollForDouble) {
             user = await this.client.database.getUser(int.user.id)
             if ((user.effects?.positive?.doublePotDeposit ?? 0) > 0) {
-                multipliers.push(2)
+                multipliers.push(GameValues.deathroll.checkForReward.doublePotDepositMultiplier)
                 user.effects.positive.doublePotDeposit--
                 this.client.database.updateUser(user)
             }
@@ -265,19 +263,29 @@ export class Deathroll extends AbstractCommands {
         multipliers.forEach((m) => {
             totalAdded *= m
         })
-        if (totalAdded > 0 && roll >= 100 && this.rewardPot < 1000 && totalAdded < 2500) totalAdded *= 2
+        if (
+            totalAdded > 0 &&
+            roll >= GameValues.deathroll.checkForReward.minRollForDouble &&
+            this.rewardPot < GameValues.deathroll.checkForReward.minPotForDouble &&
+            totalAdded < GameValues.deathroll.checkForReward.maxDoubleReward
+        )
+            totalAdded *= 2
         const finalAmount = totalAdded
         const buff = user?.effects?.positive?.deahtrollLootboxChanceMultiplier ?? 1
-        if (finalAmount >= 100 && roll >= 100 && RandomUtils.getRandomPercentage(8 * buff)) {
+        if (
+            finalAmount >= GameValues.deathroll.addToPot.minReward &&
+            roll >= GameValues.deathroll.checkForReward.minRollForDouble &&
+            RandomUtils.getRandomPercentage(GameValues.deathroll.checkForReward.lootboxChance * buff)
+        ) {
             let remainingChips = 0
-            let cost = 5000
+            let cost = GameValues.deathroll.checkForReward.lootbox.basic.cost
             let quality = LootboxQuality.Basic
-            if (finalAmount >= 25000) {
+            if (finalAmount >= GameValues.deathroll.checkForReward.lootbox.elite.min) {
                 quality = LootboxQuality.Elite
-                cost = 25000
-            } else if (finalAmount >= 10000) {
+                cost = GameValues.deathroll.checkForReward.lootbox.elite.cost
+            } else if (finalAmount >= GameValues.deathroll.checkForReward.lootbox.premium.min) {
                 quality = LootboxQuality.Premium
-                cost = 10000
+                cost = GameValues.deathroll.checkForReward.lootbox.premium.cost
             }
             remainingChips = totalAdded - cost
             this.rewardPot += Math.max(remainingChips, 0)
@@ -294,25 +302,25 @@ export class Deathroll extends AbstractCommands {
         }
         if (totalAdded > 0) this.saveRewardPot()
 
-        return { val: totalAdded, text: roll >= 100 && totalAdded > 100 ? `(pott + ${finalAmount} = ${this.rewardPot} chips)` : '' }
+        return {
+            val: totalAdded,
+            text:
+                roll >= GameValues.deathroll.checkForReward.minRollForDouble && totalAdded > GameValues.deathroll.addToPot.minReward
+                    ? `(pott + ${finalAmount} = ${this.rewardPot} chips)`
+                    : '',
+        }
     }
 
     private getRollReward(r: number) {
-        if (
-            [
-                1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 669, 690, 8008, 6969, 420, 123, 1234, 12345, 2469, 12345, 1984, 2024, 2025, 2012, 1945, 2468,
-                1359,
-            ].includes(r)
-        )
-            return r * 5
+        if (GameValues.deathroll.getRollReward.specialNumbers.includes(r)) return r * GameValues.deathroll.getRollReward.multiplier
         else return 0
     }
 
     private async checkIfPotWon(game: DRGame, roll: number, diceTarget: number, userid: string) {
         const wonOnRandomNumber = this.client.cache.deathrollWinningNumbers.includes(roll)
-        const wonOnStandard = roll === 69
+        const wonOnStandard = roll === GameValues.deathroll.potWin.winOn
         const hasWon = wonOnRandomNumber || wonOnStandard
-        if (hasWon && game.initialTarget >= 10000) {
+        if (hasWon && game.initialTarget >= GameValues.deathroll.potWin.minTarget) {
             if (wonOnRandomNumber) this.reRollWinningNumbers(true)
             const addToPot = this.rewardPot > 0 ? diceTarget - roll : 0
             return await this.rewardPotToUser(userid, addToPot)
@@ -332,8 +340,8 @@ export class Deathroll extends AbstractCommands {
         const rewarded = this.client.bank.giveMoney(dbUser, potentialReward)
         this.rewardPot = Math.max(this.rewardPot + addToPot - rewarded, 0)
         if (rewarded > 0) this.saveRewardPot()
-        if (rewarded < 10000) this.sendNoThanksButton(userId, rewarded)
-        else if (rewarded >= 10000) this.sendBlackjackButton(userId, rewarded)
+        if (rewarded < GameValues.deathroll.potWin.noThanksThreshold) this.sendNoThanksButton(userId, rewarded)
+        else if (rewarded >= GameValues.deathroll.potWin.noThanksThreshold) this.sendBlackjackButton(userId, rewarded)
         const jailed = this.rewardPot > 0
         return (
             ` Nice\nDu vinner potten på ${initialPot + addToPot} ${addToPot > 0 ? `(${initialPot} + ${addToPot}) ` : ''}chips!` +
@@ -369,7 +377,7 @@ export class Deathroll extends AbstractCommands {
         const user = await this.client.database.getUser(userId)
         const hasTheMoney = this.client.bank.takeMoney(user, amount)
         if (hasTheMoney) {
-            this.rewardPot = this.rewardPot + amount + 5000
+            this.rewardPot = this.rewardPot + amount + GameValues.deathroll.potWin.noThanksBonus
             this.saveRewardPot()
             this.messageHelper.replyToInteraction(interaction, `Du ville ikke ha ${amount} chips altså? \nJaja, potten er på ${this.rewardPot} chips nå da`, {
                 hasBeenDefered: true,
@@ -457,7 +465,7 @@ export class Deathroll extends AbstractCommands {
             this.previousSuggestions.set(interaction.user.id, diceTarget)
             return interaction.respond([{ name: `${diceTarget}`, value: diceTarget }])
         }
-        return interaction.respond([{ name: '10001', value: 10001 }])
+        return interaction.respond([{ name: GameValues.deathroll.autoCompleteDiceDefault.toString(), value: GameValues.deathroll.autoCompleteDiceDefault }])
     }
 
     private printCurrentState(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -483,9 +491,10 @@ export class Deathroll extends AbstractCommands {
             value: `Kan trille ${counts.activeTurns} av ${counts.totalGames} spill`,
         }))
 
-        const shortenedFieldList = fields.slice(0, 25)
+        const shortenedFieldList = fields.slice(0, GameValues.deathroll.printCurrentStateMaxFields)
         embed.addFields(shortenedFieldList)
-        if (fields.length > 25) embed.setFooter({ text: `+ ${fields.length - 25} games` })
+        if (fields.length > GameValues.deathroll.printCurrentStateMaxFields)
+            embed.setFooter({ text: `+ ${fields.length - GameValues.deathroll.printCurrentStateMaxFields} games` })
         this.messageHelper.replyToInteraction(interaction, embed)
     }
 
@@ -552,7 +561,7 @@ const noThanksButton = (userId: string, rewarded: number) => {
         new ButtonBuilder({
             custom_id: `DEATHROLL_NO_THANKS;${userId};${rewarded}`,
             style: ButtonStyle.Primary,
-            label: `Nei takk (+5k chips)`,
+            label: `Nei takk (+${GameValues.deathroll.potWin.noThanksBonus} chips)`,
             disabled: false,
             type: 2,
         })

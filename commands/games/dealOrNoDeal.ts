@@ -12,6 +12,7 @@ import {
 } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
+import { GameValues } from '../../general/Values'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { MazariniUser } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
@@ -187,14 +188,13 @@ export class DealOrNoDeal extends AbstractCommands {
         const totalSum = unOpenedCases.reduce((sum, value) => sum + value.value, 0)
         const expectedValue = totalSum / unOpenedCases.length
 
-        // Define percentage factor (p) based on game round
-        const percentage = 0.5 + game.round * 0.05
-        // Calculate the final offer
+        // Use values from GameValues for offer percentage and effect item chance
+        const percentage = GameValues.dealOrNoDeal.offerBase + game.round * GameValues.dealOrNoDeal.offerPerRound
         const offer = expectedValue * percentage
 
         const finalChipsOffer = Math.round(offer)
-        // Round to nearest whole number for realism
-        const isEffectItem = RandomUtils.getRandomPercentage(40) // 40% chance to get an effect item
+        // 40% chance to get an effect item (from GameValues)
+        const isEffectItem = RandomUtils.getRandomPercentage(GameValues.dealOrNoDeal.effectItemChance)
 
         if (isEffectItem) {
             const effectItem = RandomUtils.getRandomItemFromList(this.findEffectsList(finalChipsOffer))

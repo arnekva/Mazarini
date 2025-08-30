@@ -1,6 +1,7 @@
 import { CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
+import { GameValues } from '../../general/Values'
 
 import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
@@ -190,7 +191,7 @@ export class GamblingCommands extends AbstractCommands {
     private async rollSlotMachine(interaction: ChatInputCommandInteraction<CacheType>) {
         const user = await this.client.database.getUser(interaction.user.id)
         const userMoney = user.chips
-        let cost = 500
+        let cost = GameValues.slotMachine.cost
         if ((user.effects?.positive?.freeRolls ?? 0) > 0) {
             cost = 0
             user.effects.positive.freeRolls--
@@ -273,46 +274,20 @@ export class GamblingCommands extends AbstractCommands {
     }
 
     private findSequenceWinningAmount(s: string) {
-        switch (s) {
-            case '123':
-                return 1250
-            case '1337':
-            case '1996':
-            case '1997':
-            case '8008':
-            case '1234':
-                return 5000
-            case '12345':
-            case '80085':
-                return 25000
-            case '123456':
-                return 50000
-            default:
-                return 500
-        }
+        return GameValues.slotMachine.sequenceWins[s] ?? GameValues.slotMachine.sequenceWins['default']
     }
 
     private findSlotMachineWinningAmount(numCorrect: number) {
-        switch (numCorrect) {
-            case 2:
-                return 750
-            case 3:
-                return 1000
-            case 4:
-                return 4000
-            case 5:
-                return 15000
-            case 6:
-                return 25000
-            default:
-                return 500
-        }
+        return GameValues.slotMachine.streakWins[numCorrect] ?? GameValues.slotMachine.streakWins['default']
     }
 
     public async pantelotteriet(interaction: ChatInputCommandInteraction<CacheType>) {
         const user = await this.database.getUser(interaction.user.id)
-        if (user.chips <= 0 || user.chips >= 1000)
-            return this.messageHelper.replyToInteraction(interaction, 'Pantelotteriet er bare tilgjengelig når du har mellom 0 og 1000 chips.')
+        if (user.chips < GameValues.pantelotteriet.minChips || user.chips >= GameValues.pantelotteriet.maxChips)
+            return this.messageHelper.replyToInteraction(
+                interaction,
+                `Pantelotteriet er bare tilgjengelig når du har mellom ${GameValues.pantelotteriet.minChips} og ${GameValues.pantelotteriet.maxChips} chips.`
+            )
         let tickets = user.chips
         let reward = 0
         for (let i = 0; i < tickets; i++) {
@@ -337,12 +312,10 @@ export class GamblingCommands extends AbstractCommands {
 
     private ticketDraw() {
         const ticket = Math.random()
-        if (ticket < 1 / 100000) return 50000
-        if (ticket < 1 / 10000) return 5000
-        if (ticket < 1 / 2500) return 1000
-        if (ticket < 1 / 250) return 100
-        if (ticket < 1 / 100) return 50
-        return 0
+        for (const reward of GameValues.pantelotteriet.rewards) {
+            if (ticket < reward.chance) return reward.amount
+        }
+        return GameValues.pantelotteriet.default
     }
 
     getAllInteractions(): IInteractionElement {

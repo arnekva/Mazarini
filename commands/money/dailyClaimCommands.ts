@@ -1,6 +1,7 @@
 import { ActionRowBuilder, APIEmbedField, ButtonBuilder, ButtonInteraction, CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
+import { GameValues } from '../../general/Values'
 
 import { DailyReward, LootboxQuality } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
@@ -44,25 +45,29 @@ export class DailyClaimCommands extends AbstractCommands {
     }
 
     private getDailyReward(daily: DailyReward): number {
-        const dailyPrice = 500
-        return Math.floor(dailyPrice + dailyPrice * (daily.streak ?? 1))
+        const dailyPrice = GameValues.daily.baseReward
+        return Math.floor(dailyPrice + dailyPrice * (daily.streak ?? 1) * (GameValues.daily.streakMultiplier ?? 1))
     }
 
     private getLootboxReward(userId: string, daily: DailyReward): ActionRowBuilder<ButtonBuilder>[] {
-        if (daily.streak === 4) {
+        if (daily.streak === 4 || daily.streak === 7) {
             const buttons = new ActionRowBuilder<ButtonBuilder>()
-            const dond = DealOrNoDeal.getDealOrNoDealButton(userId, DonDQuality.Basic)
-            buttons.addComponents(dond)
-            return [buttons]
-        } else if (daily.streak === 7) return [LootboxCommands.getLootRewardButton(userId, LootboxQuality.Basic, true)]
-        else return undefined
+            const reward = daily.streak === 7 ? GameValues.daily.streak7Reward : GameValues.daily.streak4Reward
+            if (reward === 'chest') return [LootboxCommands.getLootRewardButton(userId, LootboxQuality.Basic, true)]
+            else if (reward === 'box') return [LootboxCommands.getLootRewardButton(userId, LootboxQuality.Basic)]
+            else if (reward === 'dond') {
+                const dond = DealOrNoDeal.getDealOrNoDealButton(userId, DonDQuality.Basic)
+                buttons.addComponents(dond)
+                return [buttons]
+            }
+        }
+        return undefined
     }
 
     private getLootboxField(daily: DailyReward): APIEmbedField {
-        if (daily.streak === 4)
-            return { name: 'Lootbox', value: 'Dægårten! Du har henta daglige chips i 4 dager i strekk!\nPå tide med en runde deal or no deal da kanskje?' }
+        if (daily.streak === 4) return { name: 'Lootbox', value: 'Dægårten! Du har henta daglige chips i 4 dager i strekk!\nNå ska du få ein liten godbit' }
         else if (daily.streak === 7)
-            return { name: 'Lootbox', value: 'Dægårten! Du har henta daglige chips i 7 dager i strekk!\nDå får du en basic loot chest i tillegg!' }
+            return { name: 'Lootbox', value: 'Dægårten! Du har henta daglige chips i 7 dager i strekk!\nDå ska du jammen meg få någe ekstra!' }
         else return undefined
     }
 

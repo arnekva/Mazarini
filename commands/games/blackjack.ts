@@ -12,6 +12,7 @@ import {
 } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
+import { GameValues } from '../../general/Values'
 import { GamePlayer, GameStateHandler } from '../../handlers/gameStateHandler'
 import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { EmojiHelper, emojiReturnType } from '../../helpers/emojiHelper'
@@ -258,7 +259,7 @@ export class Blackjack extends AbstractCommands {
                 buttonRow.addComponents(splitBtn(game.id, this.client.bank.userCanAfford(user, player.stake)))
             if (this.canInsure(game, player)) buttonRow.addComponents(insuranceBtn(game.id, this.client.bank.userCanAfford(user, Math.ceil(player.stake / 2))))
             if (this.canReDeal(player, user) || hasDeathrollRedeal) {
-                const reDeals = (user.effects?.positive?.blackjackReDeals ?? 0)+ (hasDeathrollRedeal ? 1 : 0)
+                const reDeals = (user.effects?.positive?.blackjackReDeals ?? 0) + (hasDeathrollRedeal ? 1 : 0)
                 buttonRow.addComponents(reDealBtn(game.id, reDeals))
             }
         }
@@ -430,9 +431,10 @@ export class Blackjack extends AbstractCommands {
                 const hand = player.hands[i]
                 const playerHand = this.calculateHandValue(hand.cards)
                 const stake = player.stake * (hand.doubleDown ? 2 : 1)
-                const lostAddedBack = game.fromDeathroll
-                    ? ` Siden du prøvde å gamble ein deathroll pot e halvparten (${Math.floor(game.fromDeathroll * 0.5)}) lagt tebage igjen`
-                    : ''
+                const lostAddedBack =
+                    game.fromDeathroll && GameValues.blackjack.deathrollRefundEnabled
+                        ? ` Siden du prøvde å gamble ein deathroll pot e halvparten (${Math.floor(game.fromDeathroll * 0.5)}) lagt tebage igjen`
+                        : ''
                 if (playerHand > 21) {
                     description += `${gameNr}Du fikk ${playerHand} og taper ${stake} chips! :money_with_wings:\n${lostAddedBack}\n`
                     DatabaseHelper.incrementChipsStats(user, 'blackjackLosses')
@@ -472,7 +474,7 @@ export class Blackjack extends AbstractCommands {
     }
 
     private updatePot(game: BlackjackGame) {
-        if (game.fromDeathroll) {
+        if (game.fromDeathroll && GameValues.blackjack.deathrollRefundEnabled) {
             this.client.cache.deathrollPot += Math.floor(game.fromDeathroll * 0.5)
         }
     }
