@@ -11,7 +11,7 @@ import {
 } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
-import { GameValues } from '../../general/Values'
+import { GameValues } from '../../general/values'
 
 import { randomUUID } from 'crypto'
 import { IMoreOrLess } from '../../interfaces/database/databaseInterface'
@@ -281,7 +281,7 @@ export class MoreOrLess extends AbstractCommands {
         )
         const users = (await this.database.getAllUsers()).filter((user) => user.dailyGameStats?.moreOrLess?.attempted)
 
-        const shouldReveal = DateUtils.isTimeOfDayAfter(18)
+        const shouldReveal = DateUtils.isTimeOfDayAfter(18) || DateUtils.isTimeOfDayBefore(5)
 
         const sortedUsers = shouldReveal
             ? users.sort((a, b) => {

@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto'
 import { ActionRowBuilder, AutocompleteInteraction, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
-import { GameValues } from '../../general/Values'
+import { GameValues } from '../../general/values'
 import { DeathRollStats } from '../../helpers/databaseHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { LootboxQuality, MazariniUser } from '../../interfaces/database/databaseInterface'
@@ -67,7 +67,7 @@ export class Deathroll extends AbstractCommands {
     static getRollWinningNumbers() {
         const winningNumbers = new Array<number>()
         GameValues.deathroll.winningNumberRanges.forEach(([min, max]) => {
-            winningNumbers.push(RandomUtils.getRandomInteger(min, max === 100000 ? GameValues.deathroll.maxPot : max))
+            winningNumbers.push(RandomUtils.getRandomInteger(min, max))
         })
         return winningNumbers
     }
@@ -180,7 +180,7 @@ export class Deathroll extends AbstractCommands {
         let reward = playerHasATHStreak ? stat.currentLossStreak * GameValues.deathroll.addToPot.athStreakMultiplier : 0
         if (playerHasStreak && !playerHasATHStreak) reward += (stat.currentLossStreak - 4) * GameValues.deathroll.addToPot.streakMultiplier
         if (playerHasBiggestLoss) reward += stat.didGetNewBiggestLoss * GameValues.deathroll.addToPot.biggestLossMultiplier
-        else if (diceTarget >= 100) reward += diceTarget * GameValues.deathroll.addToPot.diceTargetMultiplier
+        else if (diceTarget >= 100) reward += diceTarget * GameValues.deathroll.addToPot.largeNumberLossMultiplier
         this.rewardPot += reward
         if (reward > 0) this.saveRewardPot()
         return reward >= GameValues.deathroll.addToPot.minReward ? `(pott + ${reward} = ${this.rewardPot} chips)` : ''
@@ -236,7 +236,7 @@ export class Deathroll extends AbstractCommands {
     private async checkForReward(roll: number, diceTarget: number, int: ChatInputCommandInteraction<CacheType>): Promise<{ val: number; text: string }> {
         let totalAdded = this.getRollReward(roll)
         const multipliers: number[] = [1]
-        const lowRoll = roll < GameValues.deathroll.checkForReward.minRollForDouble
+        const lowRoll = roll < GameValues.deathroll.checkForReward.minRollForMultiplier
 
         const addToPot = (amount: number, multiplierIncrease: number) => {
             totalAdded += amount
@@ -252,7 +252,7 @@ export class Deathroll extends AbstractCommands {
         const allDigitsExceptFirstAreZero = new RegExp(/^[1-9]0+$/gi).test(roll.toString())
         if (allDigitsExceptFirstAreZero) addToPot(roll, GameValues.deathroll.checkForReward.allDigitsExceptFirstAreZeroMultiplier)
         let user: MazariniUser = undefined
-        if (totalAdded > 0 && roll >= GameValues.deathroll.checkForReward.minRollForDouble) {
+        if (totalAdded > 0 && roll >= GameValues.deathroll.checkForReward.minRollForMultiplier) {
             user = await this.client.database.getUser(int.user.id)
             if ((user.effects?.positive?.doublePotDeposit ?? 0) > 0) {
                 multipliers.push(GameValues.deathroll.checkForReward.doublePotDepositMultiplier)
@@ -265,7 +265,7 @@ export class Deathroll extends AbstractCommands {
         })
         if (
             totalAdded > 0 &&
-            roll >= GameValues.deathroll.checkForReward.minRollForDouble &&
+            roll >= GameValues.deathroll.checkForReward.minRollForMultiplier &&
             this.rewardPot < GameValues.deathroll.checkForReward.minPotForDouble &&
             totalAdded < GameValues.deathroll.checkForReward.maxDoubleReward
         )
@@ -274,7 +274,7 @@ export class Deathroll extends AbstractCommands {
         const buff = user?.effects?.positive?.deahtrollLootboxChanceMultiplier ?? 1
         if (
             finalAmount >= GameValues.deathroll.addToPot.minReward &&
-            roll >= GameValues.deathroll.checkForReward.minRollForDouble &&
+            roll >= GameValues.deathroll.checkForReward.minRollForMultiplier &&
             RandomUtils.getRandomPercentage(GameValues.deathroll.checkForReward.lootboxChance * buff)
         ) {
             let remainingChips = 0
@@ -305,7 +305,7 @@ export class Deathroll extends AbstractCommands {
         return {
             val: totalAdded,
             text:
-                roll >= GameValues.deathroll.checkForReward.minRollForDouble && totalAdded > GameValues.deathroll.addToPot.minReward
+                roll >= GameValues.deathroll.checkForReward.minRollForMultiplier && totalAdded > GameValues.deathroll.addToPot.minReward
                     ? `(pott + ${finalAmount} = ${this.rewardPot} chips)`
                     : '',
         }

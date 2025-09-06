@@ -4,34 +4,45 @@
 type dailyReward = number | 'dond' | 'box' | 'chest'
 export type GameValuesType = {
     deathroll: {
-        basePot: number
-        potMultiplier: number
-        rewardChips: number
-        lossPenalty: number
-        maxPot: number
         winningNumberRanges: [number, number][]
+        /** Defines what counts as a pot-skip (for tracking stats only) */
         potSkip: { diceTarget: number; roll: number }
         addToPot: {
+            /** When on new ATH streak, this multiplier will be applied to streak */
             athStreakMultiplier: number
+            /** Default streak multiplier (i.e. if this is 1000, a streak of 5 will be 5*1000 = 5000) */
             streakMultiplier: number
+            /** when new biggest loss (top 10) is recorded, multiply with this value */
             biggestLossMultiplier: number
-            diceTargetMultiplier: number
+            /** When player loses on a >100 dice, buts its NOT an ATH, multiply by this number instead */
+            largeNumberLossMultiplier: number
+            /** A reward has to exceed this number to trigger a text entry in the response message */
             minReward: number
         }
         jokes: {
+            /** Amount to remove if rolled 9 on target 11 */
             nineElevenRemove: number
+            /** Chance of occuring */
             nineElevenChance: number
-            thomasChance: number
         }
         checkForReward: {
+            /** Multiplier when all digits are the same */
             sameDigitsMultiplier: number
+            /** Multiplier when all digits are 0 except first (e.g. 100, 2000, 30000 etc) */
             allDigitsExceptFirstAreZeroMultiplier: number
+            /** When roll == target (i.e. rolls 131 on a 1 - 131) */
             diceTargetMultiplier: number
+            /** Rolling a 2 will result in this number being added to the pot */
             roll2Reward: number
+            /** The effect multiplier users can get from rewards. */
             doublePotDepositMultiplier: number
-            minRollForDouble: number
+            /** Multipliers will not be taken into effect if roll is below this */
+            minRollForMultiplier: number
+            /** FIXME: Might not be needed? */
             minPotForDouble: number
+            /** FIXME: Might not be needed? */
             maxDoubleReward: number
+            /** Chance of getting a lootbox instead of pot addition when rolling a special number */
             lootboxChance: number
             lootbox: {
                 basic: { min: number; max: number; cost: number }
@@ -40,7 +51,9 @@ export type GameValuesType = {
             }
         }
         getRollReward: {
+            /** All special numbers that will trigger a reward  */
             specialNumbers: number[]
+            /** Multiplier for special numbers */
             multiplier: number
         }
         tomasa: {
@@ -48,18 +61,21 @@ export type GameValuesType = {
             roll1ChanceDivisor: number
         }
         potWin: {
+            /** Main win number */
             winOn: number
+            /** Minimum game start number to be eligeble for pot win */
             minTarget: number
+            /** "Nei takk" button is only displayed when won value is below this */
             noThanksThreshold: number
+            /** Value added to pot when player presses "Nei takk" button */
             noThanksBonus: number
         }
+        /** Default suggestion when starting new deathroll game */
         autoCompleteDiceDefault: number
+        /** Maximum amount of games printed in deathroll list */
         printCurrentStateMaxFields: number
     }
     moreOrLess: {
-        baseReward: number
-        streakBonus: number
-        maxQuestions: number
         tier1Reward: number
         tier2Reward: number
         tier3Reward: number
@@ -68,8 +84,6 @@ export type GameValuesType = {
         tier6Reward: number
     }
     spinner: {
-        minReward: number
-        maxReward: number
         spinWeights: Array<{ value: number; weight: number }>
         rewards: { [key: number]: number }
     }
@@ -103,11 +117,6 @@ export type GameValuesType = {
 export const GameValues: GameValuesType = {
     // Deathroll
     deathroll: {
-        basePot: 5000,
-        potMultiplier: 1.5,
-        rewardChips: 1000,
-        lossPenalty: 500,
-        maxPot: 100000,
         winningNumberRanges: [
             [75, 100],
             [101, 125],
@@ -121,13 +130,12 @@ export const GameValues: GameValuesType = {
             athStreakMultiplier: 1500,
             streakMultiplier: 1000,
             biggestLossMultiplier: 35,
-            diceTargetMultiplier: 10,
+            largeNumberLossMultiplier: 3,
             minReward: 100,
         },
         jokes: {
             nineElevenRemove: 2977,
             nineElevenChance: 0.65,
-            thomasChance: 0.1,
         },
         checkForReward: {
             sameDigitsMultiplier: 5,
@@ -135,7 +143,7 @@ export const GameValues: GameValuesType = {
             diceTargetMultiplier: 10,
             roll2Reward: 20,
             doublePotDepositMultiplier: 2,
-            minRollForDouble: 100,
+            minRollForMultiplier: 100,
             minPotForDouble: 1000,
             maxDoubleReward: 2500,
             lootboxChance: 8,
@@ -167,9 +175,6 @@ export const GameValues: GameValuesType = {
 
     // More or Less
     moreOrLess: {
-        baseReward: 500, // Chips per correct answer
-        streakBonus: 100, // Bonus per streak
-        maxQuestions: 10, // Max questions per game
         tier1Reward: 700, // 1-10
         tier2Reward: 500, // 11-20
         tier3Reward: 300, // 21-30
@@ -180,8 +185,6 @@ export const GameValues: GameValuesType = {
 
     // Spinner
     spinner: {
-        minReward: 100,
-        maxReward: 5000,
         spinWeights: [
             { value: 0, weight: 38.39 },
             { value: 1, weight: 23.73 },

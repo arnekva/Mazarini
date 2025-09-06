@@ -26,7 +26,11 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             //
-            [`* Refaktorert verdier ut i Values.ts for å forenklere balanseringer.`].join('\n')
+            [
+                `* Du kan nå se More or Less scoreboard mellom 00:00 og 05:00.`,
+                `* Du skal nå kunne bruke "Flytt Ned" knappen i blackjack igjen`,
+                `* Refaktorert de fleste verdier ut i Values.ts for å forenklere fremtidige balanseringer. 👀`,
+            ].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

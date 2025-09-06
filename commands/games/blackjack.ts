@@ -12,7 +12,7 @@ import {
 } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
-import { GameValues } from '../../general/Values'
+import { GameValues } from '../../general/values'
 import { GamePlayer, GameStateHandler } from '../../handlers/gameStateHandler'
 import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { EmojiHelper, emojiReturnType } from '../../helpers/emojiHelper'
@@ -632,7 +632,7 @@ export class Blackjack extends AbstractCommands {
         const game = this.getGame(interaction)
 
         const player = this.getPlayer(interaction, game)
-        if (player && !cannotBeDoneAfterCompleted) {
+        if (player && !(cannotBeDoneAfterCompleted && game.resolved)) {
             interaction.deferUpdate()
             callback(game, player)
         } else if (game.resolved) {
