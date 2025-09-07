@@ -5,7 +5,7 @@ import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { RandomUtils } from '../../utils/randomUtils'
 
-import { GameValues } from '../../general/Values'
+import { GameValues } from '../../general/values'
 const spinMinutes: RandomUtils.WeightedItem[] = GameValues.spinner.spinWeights
 
 export class Spinner extends AbstractCommands {
