@@ -123,7 +123,7 @@ export const GameValues: GameValuesType = {
             [126, 150],
             [151, 175],
             [176, 200],
-            [201, 10001],
+            [201, 10002],
         ],
         potSkip: { diceTarget: 200, roll: 69 },
         addToPot: {
@@ -216,7 +216,7 @@ export const GameValues: GameValuesType = {
     daily: {
         baseReward: 500,
         streakMultiplier: 1.0, // Multiplies with streak
-        streak4Reward: 4000,
+        streak4Reward: 'dond',
         streak7Reward: 'box',
         // Add more as needed
     },

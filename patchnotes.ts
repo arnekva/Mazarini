@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '27.3.1'
+    public static readonly currentVersion = '27.3.2'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,9 +26,7 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             //
-            [
-                `* Økt default startverdi i Terning til 10002`
-            ].join('\n')
+            [`* Økt default startverdi i Terning til 10002`].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

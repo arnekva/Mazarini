@@ -1,7 +1,7 @@
 import { ActionRowBuilder, APIEmbedField, ButtonBuilder, ButtonInteraction, CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
-import { GameValues } from '../../general/values'
+import { GameValues } from '../../graphics/values'
 
 import { DailyReward, LootboxQuality } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
