@@ -26,7 +26,7 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             //
-            [`* Økt default startverdi i Terning til 10002`].join('\n')
+            [`* Faktisk lkt default startverdi i Terning til 10002`, `* Fikset feil som gjorde at DonD ikke ble delt ut på 4 i daily streak`].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

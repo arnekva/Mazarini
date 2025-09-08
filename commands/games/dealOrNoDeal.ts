@@ -12,7 +12,7 @@ import {
 } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
-import { GameValues } from '../../graphics/values'
+import { GameValues } from '../../general/values'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { MazariniUser } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'

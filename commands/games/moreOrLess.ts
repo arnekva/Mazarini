@@ -11,7 +11,7 @@ import {
 } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
-import { GameValues } from '../../graphics/values'
+import { GameValues } from '../../general/values'
 
 import { randomUUID } from 'crypto'
 import { IMoreOrLess } from '../../interfaces/database/databaseInterface'
