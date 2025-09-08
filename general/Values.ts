@@ -169,7 +169,7 @@ export const GameValues: GameValuesType = {
             noThanksThreshold: 10000,
             noThanksBonus: 5000,
         },
-        autoCompleteDiceDefault: 10001,
+        autoCompleteDiceDefault: 10002,
         printCurrentStateMaxFields: 25,
     },
 
