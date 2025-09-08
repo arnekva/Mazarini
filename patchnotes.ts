@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '27.3.0'
+    public static readonly currentVersion = '27.3.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,9 +27,7 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             //
             [
-                `* Du kan nå se More or Less scoreboard mellom 00:00 og 05:00.`,
-                `* Du skal nå kunne bruke "Flytt Ned" knappen i blackjack igjen`,
-                `* Refaktorert de fleste verdier ut i Values.ts for å forenklere fremtidige balanseringer. 👀`,
+                `* Økt default startverdi i Terning til 10002`
             ].join('\n')
         )
         container.addSeparator()
