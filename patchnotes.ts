@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '27.3.2'
+    public static readonly currentVersion = '27.3.3'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,7 +26,7 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             //
-            [`* Faktisk lkt default startverdi i Terning til 10002`, `* Fikset feil som gjorde at DonD ikke ble delt ut på 4 i daily streak`].join('\n')
+            [`* Du kan nå sette din egen default loot series i /brukerinnstillinger`].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

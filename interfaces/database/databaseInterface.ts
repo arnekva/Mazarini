@@ -117,6 +117,7 @@ export interface IUserSettings {
     onlyShowDupesOnTrade?: boolean
     excludeFromMoL?: boolean
     lootReactionTimer?: number
+    activeLootSeries?: string
 }
 
 export interface UserCalendarGift {

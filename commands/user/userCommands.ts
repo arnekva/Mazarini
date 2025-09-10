@@ -187,13 +187,22 @@ export class UserCommands extends AbstractCommands {
                 .setRequired(false)
                 // Short means only a single line of text
                 .setStyle(TextInputStyle.Short)
-
+            const activeLootSeries = new TextInputBuilder()
+                .setCustomId('activeLootSeries')
+                // The label is the prompt the user sees for this input
+                .setLabel('Sett din default loot series')
+                .setPlaceholder(`mazarini|sw|hp`)
+                .setValue(`${user.userSettings?.activeLootSeries ?? ''}`)
+                .setRequired(false)
+                // Short means only a single line of text
+                .setStyle(TextInputStyle.Short)
             //FIXME: Typing doesn't work here for some reason
             const firstActionRow: any = new ActionRowBuilder().addComponents(safeGamble)
             const secondActionRow = new ActionRowBuilder().addComponents(tradeDups)
             const thirdActionRow = new ActionRowBuilder().addComponents(molChest)
             const fourthActionRow = new ActionRowBuilder().addComponents(reactionTimer)
-            modal.addComponents(firstActionRow, secondActionRow, thirdActionRow, fourthActionRow)
+            const fifthActionRow = new ActionRowBuilder().addComponents(activeLootSeries)
+            modal.addComponents(firstActionRow, secondActionRow, thirdActionRow, fourthActionRow, fifthActionRow)
             await interaction.showModal(modal)
         }
     }
@@ -203,6 +212,7 @@ export class UserCommands extends AbstractCommands {
         const tradeDups = modalInteraction.fields.getTextInputValue('tradeDups')
         const molChest = modalInteraction.fields.getTextInputValue('molChest')
         const reactionTimer = modalInteraction.fields.getTextInputValue('reactionTimer')
+        const activeLootSeries = modalInteraction.fields.getTextInputValue('activeLootSeries')
         const user = await this.database.getUser(modalInteraction.user.id)
         let infoString = '\n'
         if (safeGamble) {
@@ -242,6 +252,15 @@ export class UserCommands extends AbstractCommands {
                 }
                 if (num === 0) infoString += 'Reaction Timer: Du har satt timeren din til 0 - dette vil gi default verdi. Laveste tid er 1 sek.\n'
             }
+        }
+        if (activeLootSeries) {
+            const validSeries = ['mazarini', 'sw', 'hp'].includes(activeLootSeries.trim().toLowerCase())
+            if (validSeries) {
+                user.userSettings.activeLootSeries = activeLootSeries.trim().toLowerCase()
+            }
+        }
+        if (!activeLootSeries) {
+            user.userSettings.activeLootSeries = ''
         }
 
         this.database.updateUser(user)

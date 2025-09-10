@@ -77,7 +77,7 @@ export class LootboxCommands extends AbstractCommands {
         quality: string,
         isChest: boolean = false,
         customLabel?: string,
-        series: string = 'hp'
+        series: string = ''
     ): ActionRowBuilder<ButtonBuilder> {
         return new ActionRowBuilder<ButtonBuilder>().addComponents(
             new ButtonBuilder({
@@ -104,15 +104,10 @@ export class LootboxCommands extends AbstractCommands {
 
     private async openAndRegisterLootbox(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
         const user = await this.client.database.getUser(interaction.user.id)
-        let quality = ''
-        let series = ''
-        if (interaction.isChatInputCommand()) {
-            quality = interaction.options.get('quality')?.value as string
-            series = interaction.options.get('series')?.value as string
-        } else if (interaction.isButton()) {
-            quality = interaction.customId.split(';')[2]
-            series = interaction.customId.split(';')[4]
-        }
+        const quality = this.resolveLootQuality(interaction)
+        const series = this.resolveLootSeries(user, interaction)
+        console.log(series)
+
         const box = await this.resolveLootbox(quality)
 
         if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction)) return
@@ -123,15 +118,8 @@ export class LootboxCommands extends AbstractCommands {
 
     private async openAndRegisterLootChest(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, pendingChest?: IPendingChest) {
         const user = await this.client.database.getUser(interaction.user.id)
-        let quality = ''
-        let series = ''
-        if (interaction.isChatInputCommand()) {
-            quality = interaction.options.get('quality')?.value as string
-            series = interaction.options.get('series')?.value as string
-        } else if (interaction.isButton()) {
-            quality = pendingChest?.quality ?? interaction.customId.split(';')[2]
-            series = pendingChest?.series ?? interaction.customId.split(';')[4]
-        }
+        const quality = this.resolveLootQuality(interaction)
+        const series = this.resolveLootSeries(user, interaction)
         const box = await this.resolveLootbox(quality)
 
         if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction, true)) return
@@ -142,6 +130,16 @@ export class LootboxCommands extends AbstractCommands {
         this.database.updateUser(user) //update in case of effect change
         const existingChestId = pendingChest && interaction.isButton() ? interaction.customId.split(';')[1] : undefined
         this.revealLootChest(interaction, chestItems, quality, series, existingChestId)
+    }
+
+    private resolveLootSeries(user: MazariniUser, interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+        if (interaction.isChatInputCommand()) return (interaction.options.get('series')?.value as string) ?? user.userSettings.activeLootSeries
+        else if (interaction.isButton()) return interaction.customId.split(';')[4] ? interaction.customId.split(';')[4] : user.userSettings.activeLootSeries
+    }
+
+    private resolveLootQuality(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+        if (interaction.isChatInputCommand()) return interaction.options.get('quality')?.value as string
+        else if (interaction.isButton()) return interaction.customId.split(';')[2]
     }
 
     private isArneChest(items: IUserCollectable[]) {
