@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '27.3.3'
+    public static readonly currentVersion = '27.3.4'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,7 +26,7 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             //
-            [`* Du kan nå sette din egen default loot series i /brukerinnstillinger`].join('\n')
+            [`* Active series prioriteres også nå ved inventory og trade`, '* Fikset Arne daily chest reward code'].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

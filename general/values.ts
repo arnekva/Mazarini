@@ -217,7 +217,7 @@ export const GameValues: GameValuesType = {
         baseReward: 500,
         streakMultiplier: 1.0, // Multiplies with streak
         streak4Reward: 'dond',
-        streak7Reward: 'box',
+        streak7Reward: 'chest',
         // Add more as needed
     },
 

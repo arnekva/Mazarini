@@ -454,7 +454,7 @@ export class LootboxCommands extends AbstractCommands {
 
     private async printInventory(interaction: ChatInputCommandInteraction<CacheType>) {
         const user = await this.client.database.getUser(interaction.user.id)
-        const seriesParam = interaction.options.get('series')?.value as string
+        const seriesParam = this.resolveLootSeries(user, interaction)
         const series = await this.getSeriesOrDefault(seriesParam)
         const img = await this.imageGenerator.generateImageForCollectables(
             user.collectables
@@ -515,17 +515,19 @@ export class LootboxCommands extends AbstractCommands {
 
     private getSortedCollectables(user: MazariniUser, filterOutLegendaries: boolean, filter?: { series: string; rarity: string }) {
         const onlyShowDups = user.userSettings?.onlyShowDupesOnTrade ?? false
+        const activeSeries = user.userSettings?.activeLootSeries ?? ''
         const filtered = user.collectables
             .map((item) => (onlyShowDups ? { ...item, amount: item.amount - 1 } : item))
             .filter((item) => item.amount >= 1)
             .filter((item) => !filter || (filter.series === item.series && filter.rarity === item.rarity))
-            .sort((a, b) => this.collectableSortString(a).localeCompare(this.collectableSortString(b)))
+            .sort((a, b) => this.collectableSortString(a, activeSeries).localeCompare(this.collectableSortString(b, activeSeries)))
         if (filterOutLegendaries) return filtered.filter((item) => item.rarity !== ItemRarity.Legendary)
         else return filtered
     }
 
-    private collectableSortString(item: IUserCollectable) {
-        const num = item.series === this.newestSeries.name ? 1 : 2
+    private collectableSortString(item: IUserCollectable, activeSeries?: string) {
+        let num = item.series === this.newestSeries.name ? 1 : 2
+        if (activeSeries && activeSeries === item.series) num = 0
         return `${num}_${item.series}_${this.getRarityOrder(item.rarity)}_${item.name}_${this.getColorOrder(item.color)}`
     }
 
