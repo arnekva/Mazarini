@@ -1,3 +1,4 @@
+import console from 'console'
 import { randomUUID } from 'crypto'
 import {
     ActionRowBuilder,
@@ -17,19 +18,32 @@ import {
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { MazariniClient } from '../../client/MazariniClient'
+import { ComponentsHelper } from '../../helpers/componentsHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
-import { ICollectableSeries, ILootbox, ItemColor, ItemRarity, IUserCollectable, IUserEffects, MazariniUser } from '../../interfaces/database/databaseInterface'
+import {
+    ILootbox,
+    ILootSeries,
+    ItemColor,
+    ItemRarity,
+    IUserEffects,
+    IUserLootItem,
+    IUserLootSeriesInventory,
+    MazariniUser,
+} from '../../interfaces/database/databaseInterface'
 import { IInteractionElement, IOnTimedEvent } from '../../interfaces/interactionInterface'
+import { inventoryContainer } from '../../templates/containerTemplates'
 import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { TextUtils } from '../../utils/textUtils'
 import { DealOrNoDeal } from '../games/dealOrNoDeal'
 
+const { request } = require('undici')
+
 interface IPendingTrade {
     userId: string
-    tradingIn: IUserCollectable[]
+    tradingIn: IUserLootItem[]
     receiving: ItemRarity
     series: string
 }
@@ -38,7 +52,7 @@ interface IPendingChest {
     userId: string
     quality: string
     series: string
-    items: Map<string, IUserCollectable>
+    items: Map<string, IUserLootItem>
     effect?: IEffectItem
     message?: InteractionResponse<boolean> | Message<boolean>
     buttons?: ActionRowBuilder<ButtonBuilder>
@@ -54,8 +68,8 @@ export class LootboxCommands extends AbstractCommands {
     private imageGenerator: ImageGenerationHelper
     private lootboxes: ILootbox[]
     private lootboxesRefreshed: Date
-    private series: ICollectableSeries[]
-    private newestSeries: ICollectableSeries
+    private series: ILootSeries[]
+    private newestSeries: ILootSeries
     private pendingTrades: Map<string, IPendingTrade>
     private pendingChests: Map<string, IPendingChest>
 
@@ -112,7 +126,8 @@ export class LootboxCommands extends AbstractCommands {
 
         if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction)) return
         const rewardedItem = await this.calculateRewardItem(box, series, user)
-        this.registerItemOnUser(user, rewardedItem)
+        this.registerItemOnUserV2(user, rewardedItem)
+        this.generateInventoryParts(user, rewardedItem.series, [rewardedItem.rarity])
         this.revealCollectable(interaction, rewardedItem, user.userSettings.lootReactionTimer)
     }
 
@@ -123,7 +138,7 @@ export class LootboxCommands extends AbstractCommands {
         const box = await this.resolveLootbox(quality)
 
         if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction, true)) return
-        const chestItems: IUserCollectable[] = new Array<IUserCollectable>()
+        const chestItems: IUserLootItem[] = new Array<IUserLootItem>()
         chestItems.push(await this.calculateRewardItem(box, series, user))
         chestItems.push(await this.calculateRewardItem(box, series, user))
         chestItems.push(await this.calculateRewardItem(box, series, user))
@@ -142,13 +157,13 @@ export class LootboxCommands extends AbstractCommands {
         else if (interaction.isButton()) return interaction.customId.split(';')[2]
     }
 
-    private isArneChest(items: IUserCollectable[]) {
+    private isArneChest(items: IUserLootItem[]) {
         return items.every((item) => item.rarity === ItemRarity.Common && item.color === ItemColor.None)
     }
 
     private async revealLootChest(
         interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>,
-        items: IUserCollectable[],
+        items: IUserLootItem[],
         quality: string,
         series: string,
         existingChestId?: string
@@ -159,7 +174,7 @@ export class LootboxCommands extends AbstractCommands {
             `https://cdn.discordapp.com/emojis/${chestEmoji.urlId}.webp?size=96&quality=lossless`
         )
         const chestId = existingChestId ?? randomUUID()
-        const chestItems: Map<string, IUserCollectable> = new Map<string, IUserCollectable>()
+        const chestItems: Map<string, IUserLootItem> = new Map<string, IUserLootItem>()
         const buttons = new ActionRowBuilder<ButtonBuilder>()
         for (const item of items) {
             const itemId = randomUUID()
@@ -204,7 +219,7 @@ export class LootboxCommands extends AbstractCommands {
         else return 0
     }
 
-    private getItemColorBadge(item: IUserCollectable) {
+    private getItemColorBadge(item: IUserLootItem) {
         let color = ''
         if (item.color === ItemColor.Silver) color = 'silver_badge'
         else if (item.color === ItemColor.Gold) color = 'gold_badge'
@@ -241,7 +256,8 @@ export class LootboxCommands extends AbstractCommands {
             this.messageHelper.replyToInteraction(interaction, `Du valgte ${effect.message}`, { hasBeenDefered: true })
         } else {
             const item = this.getChestItem(interaction, pendingChest)
-            this.registerItemOnUser(user, item)
+            this.registerItemOnUserV2(user, item)
+            this.generateInventoryParts(user, item.series, [item.rarity])
             this.revealCollectable(interaction, item, user.userSettings.lootReactionTimer)
             this.deletePendingChest(interaction)
         }
@@ -311,26 +327,26 @@ export class LootboxCommands extends AbstractCommands {
         }
     }
 
-    private async getRandomItemForRarity(rarity: ItemRarity, series: string, colored: boolean, user: MazariniUser): Promise<IUserCollectable> {
+    private async getRandomItemForRarity(rarity: ItemRarity, series: string, colored: boolean, user: MazariniUser): Promise<IUserLootItem> {
         const seriesOrDefault = await this.getSeriesOrDefault(series)
         const rarityItems = this.getRarityItems(seriesOrDefault, rarity)
         const item = RandomUtils.getRandomItemFromList(rarityItems)
-        const color = this.getRandomColor(colored, user)
+        const color = this.getRandomColor(colored && seriesOrDefault.hasColor, user)
         return { name: item, series: seriesOrDefault.name, rarity: rarity, color: color, amount: 1 }
     }
 
-    private async getSeriesOrDefault(series: string): Promise<ICollectableSeries> {
+    private async getSeriesOrDefault(series: string): Promise<ILootSeries> {
         const lootboxSeries = await this.getSeries()
         const seriesName = series && series !== '' ? series : lootboxSeries.sort((a, b) => new Date(b.added).getTime() - new Date(a.added).getTime())[0].name
         return lootboxSeries.find((x) => x.name === seriesName) ?? lootboxSeries[0]
     }
 
-    private async getSeries(): Promise<ICollectableSeries[]> {
+    private async getSeries(): Promise<ILootSeries[]> {
         if (!this.series) this.series = await this.client.database.getLootboxSeries()
         return this.series
     }
 
-    private getRarityItems(series: ICollectableSeries, rarity: ItemRarity): string[] {
+    private getRarityItems(series: ILootSeries, rarity: ItemRarity): string[] {
         if (rarity === ItemRarity.Common) return series.common
         else if (rarity === ItemRarity.Rare) return series.rare
         else if (rarity === ItemRarity.Epic) return series.epic
@@ -347,20 +363,39 @@ export class LootboxCommands extends AbstractCommands {
         else return flipped ? ItemColor.Diamond : ItemColor.Silver // 3/6 chance for silver
     }
 
-    private registerItemOnUser(user: MazariniUser, item: IUserCollectable) {
+    private registerItemOnUser(user: MazariniUser, item: IUserLootItem) {
         const itemAlreadyCollected = user.collectables?.some((collectible) => collectible.name === item.name && collectible.color === item.color)
         if (itemAlreadyCollected) {
             user.collectables = user.collectables.map((el) =>
                 this.collectableToString(el) === this.collectableToString(item) ? { ...el, amount: el.amount + item.amount } : el
             )
         } else {
-            user.collectables = user.collectables ?? new Array<IUserCollectable>()
+            user.collectables = user.collectables ?? new Array<IUserLootItem>()
             user.collectables.push(item)
         }
         this.client.database.updateUser(user)
     }
 
-    private removeItemsFromUser(items: IUserCollectable[], user: MazariniUser): IUserCollectable[] {
+    private registerItemOnUserV2(user: MazariniUser, newItem: IUserLootItem) {
+        let items = user.loot[newItem.series][`inventory`][newItem.rarity]['items'] as IUserLootItem[]
+        const itemAlreadyCollected = items.some((item) => this.equalItems(item, newItem))
+        if (itemAlreadyCollected) {
+            items = this.incrementItemCount(items, newItem)
+        } else {
+            items.push(newItem)
+        }
+        user.loot[newItem.series][`inventory`][newItem.rarity]['img'] = ''
+        user.loot[newItem.series][`inventory`][newItem.rarity]['items'] = items
+        this.client.database.updateUser(user)
+    }
+
+    equalItems = (item1: IUserLootItem, item2: IUserLootItem) => item1.name === item2.name && item1.color === item2.color
+
+    private incrementItemCount(items: IUserLootItem[], newItem: IUserLootItem) {
+        return items.map((item) => (this.equalItems(item, newItem) ? { ...item, amount: item.amount + newItem.amount } : item))
+    }
+
+    private removeItemsFromUser(items: IUserLootItem[], user: MazariniUser): IUserLootItem[] {
         let filtered = user.collectables
         items.forEach((item) => {
             filtered = filtered.map((el) => (this.collectableToString(el) === this.collectableToString(item) ? { ...el, amount: el.amount - item.amount } : el))
@@ -368,7 +403,17 @@ export class LootboxCommands extends AbstractCommands {
         return filtered.filter((item) => item.amount > 0)
     }
 
-    private registerTradeOnUser(itemsWithTradedRemoved: IUserCollectable[], rewardedItem: IUserCollectable, user: MazariniUser) {
+    private removeItemsFromUserV2(itemsToRemove: IUserLootItem[], user: MazariniUser) {
+        let items = user.loot[itemsToRemove[0].series][`inventory`][itemsToRemove[0].rarity]['items'] as IUserLootItem[]
+        itemsToRemove.forEach((item) => {
+            items = items.map((el) => (this.equalItems(el, item) ? { ...el, amount: el.amount - item.amount } : el))
+        })
+        user.loot[itemsToRemove[0].series][`inventory`][itemsToRemove[0].rarity]['img'] = ''
+        items.filter((item) => item.amount > 0)
+        user.loot[itemsToRemove[0].series][`inventory`][itemsToRemove[0].rarity]['items'] = items
+    }
+
+    private registerTradeOnUser(itemsWithTradedRemoved: IUserLootItem[], rewardedItem: IUserLootItem, user: MazariniUser) {
         const itemAlreadyCollected = itemsWithTradedRemoved.some(
             (collectible) => this.collectableToString(collectible) === this.collectableToString(rewardedItem)
         )
@@ -377,22 +422,18 @@ export class LootboxCommands extends AbstractCommands {
                 this.collectableToString(el) === this.collectableToString(rewardedItem) ? { ...el, amount: el.amount + rewardedItem.amount } : el
             )
         } else {
-            itemsWithTradedRemoved = itemsWithTradedRemoved ?? new Array<IUserCollectable>()
+            itemsWithTradedRemoved = itemsWithTradedRemoved ?? new Array<IUserLootItem>()
             itemsWithTradedRemoved.push(rewardedItem)
         }
         user.collectables = itemsWithTradedRemoved
         this.client.database.updateUser(user)
     }
 
-    private collectableToString(item: IUserCollectable) {
+    private collectableToString(item: IUserLootItem) {
         return `${item.series};${item.rarity};${item.name};${item.color}`
     }
 
-    private async revealCollectable(
-        interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>,
-        item: IUserCollectable,
-        timer?: number
-    ) {
+    private async revealCollectable(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, item: IUserLootItem, timer?: number) {
         const path = this.getGifPath(item)
         const url = await this.client.database.getLootGifLink(path)
         const container = new SimpleContainer()
@@ -407,7 +448,7 @@ export class LootboxCommands extends AbstractCommands {
         this.addReaction(reply, item, timer)
     }
 
-    private async addReaction(reply: Message | InteractionResponse, item: IUserCollectable, timer?: number) {
+    private async addReaction(reply: Message | InteractionResponse, item: IUserLootItem, timer?: number) {
         const emoji = await this.getLootApplicationEmoji(item)
         let msg = undefined
         if (reply instanceof InteractionResponse) {
@@ -423,12 +464,12 @@ export class LootboxCommands extends AbstractCommands {
         )
     }
 
-    private async getLootApplicationEmoji(item: IUserCollectable) {
+    private async getLootApplicationEmoji(item: IUserLootItem) {
         const emojiName = `${item.series}_${item.name}_${item.color.charAt(0)}`.toLowerCase()
         return await EmojiHelper.getApplicationEmoji(emojiName, this.client)
     }
 
-    private getGifPath(item: IUserCollectable): string {
+    private getGifPath(item: IUserLootItem): string {
         console.log(item)
 
         let fileFormat = '.webp'
@@ -463,6 +504,97 @@ export class LootboxCommands extends AbstractCommands {
         )
         const file = new AttachmentBuilder(img, { name: 'inventory.png' })
         this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, undefined, [file])
+    }
+
+    private async printInventoryV2(interaction: ChatInputCommandInteraction<CacheType>) {
+        const user = await this.client.database.getUser(interaction.user.id)
+        const seriesParam = this.resolveLootSeries(user, interaction)
+        const series = await this.getSeriesOrDefault(seriesParam)
+        const inventory = user.loot[series.name]['inventory']
+        const container = inventoryContainer()
+        const notUpdated = this.updateInventoryContainer(container, ['common', 'rare', 'epic', 'legendary'], inventory)
+
+        // MediaGallery approach
+        const msg = await this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, [container.container])
+
+        // File approach
+        // const attachments = await this.getInventoryAttachements(['common', 'rare', 'epic', 'legendary'], inventory)
+        // const msg = await this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, [container.container], attachments)
+
+        if (notUpdated && notUpdated.length > 0) this.updateInventoryAfterSent(container, series.name, notUpdated, msg, user.id)
+    }
+
+    // Needed for file approach
+    private async getInventoryAttachements(rarities: string[], inventory: IUserLootSeriesInventory): Promise<AttachmentBuilder[]> {
+        const attachments = new Array<AttachmentBuilder>()
+        for (const rarity of rarities) {
+            const { body } = await request(inventory[rarity]['img'])
+            const buffer = Buffer.from(await body.arrayBuffer())
+
+            // wrap in attachment
+            const attachment = new AttachmentBuilder(buffer, { name: `${rarity}.png` })
+            attachments.push(attachment)
+        }
+        return attachments
+    }
+
+    private updateInventoryContainer(container: SimpleContainer, rarities: string[], inventory: IUserLootSeriesInventory): string[] {
+        const notUpdated = []
+        for (const rarity of rarities) {
+            if (inventory[rarity]['img']) {
+                // MediaGallery approach
+                const inventoryPart = ComponentsHelper.createMediaGalleryComponent().addItems([
+                    ComponentsHelper.createMediaItemComponent().setURL(inventory[rarity]['img']),
+                ])
+
+                // File approach
+                // const inventoryPart = new FileBuilder({
+                //     file: { url: `attachment://${rarity}.png` },
+                // })
+
+                container.replaceComponent(rarity, inventoryPart)
+            } else {
+                notUpdated.push(rarity)
+            }
+        }
+        return notUpdated
+    }
+
+    private updateInventoryAfterSent(container: SimpleContainer, series: string, rarities: string[], msg: Message | InteractionResponse, userId: string) {
+        let toUpdate = rarities
+        let attempts = 0
+        const intervalId = setInterval(async () => {
+            attempts++
+            const user = await this.client.database.getUser(userId)
+            const inventory = user.loot[series]['inventory']
+            toUpdate = this.updateInventoryContainer(container, toUpdate, inventory)
+            if (!toUpdate || toUpdate.length === 0) {
+                msg.edit({ components: [container.container] })
+                clearInterval(intervalId)
+            }
+            if (attempts > 5) clearInterval(intervalId)
+        }, 5000)
+    }
+
+    private async generateInventoryParts(user: MazariniUser, series: string, rarities: Array<ItemRarity>) {
+        console.log(rarities)
+
+        for (const rarity of rarities) {
+            const items = user.loot[series]['inventory'][rarity]['items'] as IUserLootItem[]
+            items.sort((a, b) => `${a.name}_${this.getColorOrder(a.color)}`.localeCompare(`${b.name}_${this.getColorOrder(b.color)}`))
+            const img = await this.imageGenerator.generateImageForCollectablesRarity(items, series, rarity)
+            this.database.uploadUserInventory(user, `test/inventory/${series}/${rarity}.png`, img) //TODO: REMOVE "test/"
+        }
+        this.updateUserInventoryLinks(user.id, series, rarities)
+    }
+
+    private async updateUserInventoryLinks(userId: string, series: string, rarities: Array<ItemRarity>) {
+        const user = await this.client.database.getUser(userId)
+        for (const rarity of rarities) {
+            const imgUrl = await this.database.getUserInventory(user, series, rarity)
+            user.loot[series]['inventory'][rarity]['img'] = imgUrl
+        }
+        this.database.updateUser(user)
     }
 
     private getColorOrder(color: ItemColor) {
@@ -525,7 +657,7 @@ export class LootboxCommands extends AbstractCommands {
         else return filtered
     }
 
-    private collectableSortString(item: IUserCollectable, activeSeries?: string) {
+    private collectableSortString(item: IUserLootItem, activeSeries?: string) {
         let num = item.series === this.newestSeries.name ? 1 : 2
         if (activeSeries && activeSeries === item.series) num = 0
         return `${num}_${item.series}_${this.getRarityOrder(item.rarity)}_${item.name}_${this.getColorOrder(item.color)}`
@@ -538,7 +670,7 @@ export class LootboxCommands extends AbstractCommands {
         else return undefined
     }
 
-    private removeSelectedItems(collectables: IUserCollectable[], inputs: any[]) {
+    private removeSelectedItems(collectables: IUserLootItem[], inputs: any[]) {
         let filtered = collectables.slice()
         inputs
             .filter((input) => !input.focused)
@@ -552,7 +684,7 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private verifyInputIsValid(inputs: any[], user: MazariniUser) {
-        return this.formatIsCorrect(inputs) && this.isSameSeriesAndRarity(inputs) && this.allItemsAreOwned(this.inputsToIUserCollectables(inputs), user)
+        return this.formatIsCorrect(inputs) && this.isSameSeriesAndRarity(inputs) && this.allItemsAreOwned(this.inputsToIUserLootItems(inputs), user)
     }
 
     private formatIsCorrect(inputs: any[]) {
@@ -568,8 +700,8 @@ export class LootboxCommands extends AbstractCommands {
         })
     }
 
-    private inputsToIUserCollectables(inputs: any[]): IUserCollectable[] {
-        const collectables: IUserCollectable[] = new Array<IUserCollectable>()
+    private inputsToIUserLootItems(inputs: any[]): IUserLootItem[] {
+        const collectables: IUserLootItem[] = new Array<IUserLootItem>()
         inputs.forEach((input) => {
             const split = input.value.split(';')
             collectables.push({
@@ -583,7 +715,7 @@ export class LootboxCommands extends AbstractCommands {
         return collectables
     }
 
-    private allItemsAreOwned(inputs: IUserCollectable[], user: MazariniUser) {
+    private allItemsAreOwned(inputs: IUserLootItem[], user: MazariniUser) {
         let collectables = user.collectables.slice()
         let foundAll = true
         inputs.forEach((input) => {
@@ -613,7 +745,7 @@ export class LootboxCommands extends AbstractCommands {
                 { hasBeenDefered: true }
             )
         }
-        const inputAsCollectables = this.inputsToIUserCollectables(allItems)
+        const inputAsCollectables = this.inputsToIUserLootItems(allItems)
         const tradingToRarity = this.getResultingTradeRarity(inputAsCollectables[0].rarity, allItems.length)
         const pendingTrade: IPendingTrade = {
             userId: interaction.user.id,
@@ -629,13 +761,13 @@ export class LootboxCommands extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true }, [buttons])
     }
 
-    private getCollectableNamesPrintString(collectables: IUserCollectable[]): string {
+    private getCollectableNamesPrintString(collectables: IUserLootItem[]): string {
         const mergedCollectables = collectables.reduce((acc, current) => {
             const existing = acc.find((item) => this.collectableToString(item) === this.collectableToString(current))
             if (existing) existing.amount += current.amount
             else acc.push({ ...current })
             return acc
-        }, new Array<IUserCollectable>())
+        }, new Array<IUserLootItem>())
         return mergedCollectables.reduce((acc, current) => {
             return acc + `${current.amount}x ${current.name} (${current.color})\n`
         }, '\n')
@@ -671,17 +803,18 @@ export class LootboxCommands extends AbstractCommands {
         while (this.itemIsSameAsTradedIn(rewardedItem, pendingTrade.tradingIn)) {
             rewardedItem = await this.getRandomItemForRarity(pendingTrade.receiving, pendingTrade.series, colored, user)
         }
-        const tradedItemsRemoved = this.removeItemsFromUser(pendingTrade.tradingIn, user)
-        this.registerTradeOnUser(tradedItemsRemoved, rewardedItem, user)
+        this.removeItemsFromUserV2(pendingTrade.tradingIn, user)
+        this.registerItemOnUserV2(user, rewardedItem)
+        this.generateInventoryParts(user, pendingTrade.series, [...new Set([pendingTrade.receiving, pendingTrade.tradingIn[0].rarity])])
         this.revealCollectable(interaction, rewardedItem)
         this.deletePendingTrade(interaction)
     }
 
-    private itemIsSameAsTradedIn(newItem: IUserCollectable, tradingIn: IUserCollectable[]) {
+    private itemIsSameAsTradedIn(newItem: IUserLootItem, tradingIn: IUserLootItem[]) {
         return tradingIn.some((item) => item.name === newItem.name && item.color === newItem.color)
     }
 
-    private getTradeColorChance(items: IUserCollectable[]) {
+    private getTradeColorChance(items: IUserLootItem[]) {
         const initalChance = items.length > 3 ? 1 / 5 : 1 / 3 // 20% for trade up, 25% for trade in
         const silvers = items.filter((item) => item.color === ItemColor.Silver).length
         const golds = items.filter((item) => item.color === ItemColor.Gold).length
@@ -722,7 +855,7 @@ export class LootboxCommands extends AbstractCommands {
         const cmd = interaction.options.getSubcommand()
         if (!cmdGroup && cmd === 'box') this.openAndRegisterLootbox(interaction)
         else if (!cmdGroup && cmd === 'chest') this.openAndRegisterLootChest(interaction)
-        else if (!cmdGroup && cmd === 'inventory') this.printInventory(interaction)
+        else if (!cmdGroup && cmd === 'inventory') this.printInventoryV2(interaction)
         else if (cmdGroup && cmdGroup === 'trade') this.tradeItems(interaction)
     }
 

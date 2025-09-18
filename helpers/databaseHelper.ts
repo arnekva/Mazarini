@@ -1,10 +1,12 @@
+import { UploadMetadata } from 'firebase/storage'
 import moment from 'moment'
 import { DRGame } from '../commands/games/deathroll'
 import {
     botDataPrefix,
     ChipsStats,
-    ICollectableSeries,
     ILootbox,
+    ILootSeries,
+    ItemRarity,
     MazariniStorage,
     MazariniUser,
     Meme,
@@ -386,7 +388,7 @@ export class DatabaseHelper {
         return (await this.db.getData('/other/loot/boxes')) as ILootbox[]
     }
 
-    public async addLootboxSeries(series: ICollectableSeries) {
+    public async addLootboxSeries(series: ILootSeries) {
         const updates = {}
         const currentSeries = (await this.getLootboxSeries()) ?? []
         updates[`/other/loot/series`] = [...currentSeries, series]
@@ -394,7 +396,7 @@ export class DatabaseHelper {
     }
 
     public async getLootboxSeries() {
-        return (await this.db.getData('/other/loot/series')) as ICollectableSeries[]
+        return (await this.db.getData('/other/loot/series')) as ILootSeries[]
     }
 
     public async getFromStorage(path: string): Promise<ArrayBuffer> {
@@ -405,6 +407,17 @@ export class DatabaseHelper {
     public uploadLootGif(path: string, gif: Buffer) {
         const ref = this.db.getStorageRef(path)
         this.db.uploadToStorage(ref, gif)
+    }
+
+    public uploadUserInventory(user: MazariniUser, path: string, img: Buffer) {
+        const ref = this.db.getStorageRef(`${user.id}/${path}`)
+        const metadata: UploadMetadata = { contentType: 'image/png' }
+        this.db.uploadToStorage(ref, img, metadata)
+    }
+
+    public async getUserInventory(user: MazariniUser, series: string, rarity: ItemRarity): Promise<string> {
+        //TODO: Fjern "test/"
+        return await this.db.getStorageLink(this.db.getStorageRef(`${user.id}/test/inventory/${series}/${rarity}.png`))
     }
 
     public async createBackup() {

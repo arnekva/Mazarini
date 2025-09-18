@@ -1,7 +1,7 @@
 import { FirebaseApp } from 'firebase/app'
 import { Database, child, get, getDatabase, increment, ref, remove, set, update } from 'firebase/database'
 import { Firestore, getFirestore } from 'firebase/firestore'
-import { FirebaseStorage, StorageReference, getBytes, getDownloadURL, getStorage, ref as storageRef, uploadBytes } from 'firebase/storage'
+import { FirebaseStorage, StorageReference, UploadMetadata, getBytes, getDownloadURL, getStorage, ref as storageRef, uploadBytes } from 'firebase/storage'
 import moment from 'moment'
 import { database } from '../client-env'
 import { BotData, DatabaseStructure, EmojiStats, MazariniStats, MazariniStorage, MazariniUser, Meme } from '../interfaces/database/databaseInterface'
@@ -34,8 +34,8 @@ export class FirebaseHelper {
         return storageRef(this.storage, path)
     }
 
-    public uploadToStorage(ref: StorageReference, data: Buffer) {
-        uploadBytes(ref, data)
+    public uploadToStorage(ref: StorageReference, data: Buffer, meta?: UploadMetadata) {
+        uploadBytes(ref, data, meta)
     }
 
     public async saveData(data: DatabaseStructure) {
