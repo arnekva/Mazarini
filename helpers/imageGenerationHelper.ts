@@ -175,6 +175,15 @@ const inventoryOptions: IImageCoordinates = {
     height: 1968,
 }
 
+const splitInventoryOptions: IImageCoordinates = {
+    layer: -1,
+    repeat: 'fit',
+    x: 0,
+    y: 0,
+    width: 1147,
+    height: 1968 / 4,
+}
+
 export class ImageGenerationHelper {
     private client: MazariniClient
 
@@ -340,6 +349,24 @@ export class ImageGenerationHelper {
         return collection
     }
 
+    public async generateImageForCollectablesRarity(collectables: IUserCollectable[], series: string, rarity: ItemRarity): Promise<Buffer> {
+        const background = this.getInventoryBackground(series, rarity)
+        if (!collectables) return background
+        const canvas = await getCanvasImage({ buffer: background })
+        const imageTemplate: ICollectableImage = splitInventoryTemplate
+        const images = await this.getImagesForRarity(collectables, imageTemplate[rarity])
+        images.push({ ...splitInventoryOptions, canvasImage: canvas })
+        const collection = new UltimateTextToImage('', { ...imageTemplate.options, images: images }).render().toBuffer()
+        return collection
+        const resized = await sharp(collection).resize({ fit: sharp.fit.inside, height: 150 }).toBuffer()
+        return resized
+    }
+
+    public getInventoryBackground(series: string, rarity: ItemRarity) {
+        series === 'hp' ? '_hp' : ''
+        return fs.readFileSync(`graphics/background/inventory_parts/${rarity}${series === 'hp' ? '_hp' : ''}.png`)
+    }
+
     private async getImageSeriesForCollectables(collectables: IUserCollectable[], imageTemplate: ICollectableImage): Promise<IImage[]> {
         const images: IImage[] = new Array<IImage>()
         // Sort items into rarities and assign a specific coordinate to each
@@ -471,8 +498,9 @@ export class ImageGenerationHelper {
 }
 
 export const inventoryTemplate = generateTemplateForSize(1147, 1968, 10, '')
+export const splitInventoryTemplate = generateTemplateForSize(1147, 1968, 10, '', true)
 
-function generateTemplateForSize(imageWidth: number, imageHeight: number, horizontalItems: number, backgroundUrl: string) {
+function generateTemplateForSize(imageWidth: number, imageHeight: number, horizontalItems: number, backgroundUrl: string, splitInventory = false) {
     const initalX = 63
     const initialY = 194
     const widthToNext = 1019 / 9
@@ -484,11 +512,11 @@ function generateTemplateForSize(imageWidth: number, imageHeight: number, horizo
     const legendarySection = generateCoordinates(initalX, initialY + 3 * heightToNextColor, widthToNext, heightToNextRow)
     const template: ICollectableImage = {
         backgroundUrl: backgroundUrl,
-        options: { width: imageWidth, height: imageHeight },
+        options: { width: imageWidth, height: imageHeight / (splitInventory ? 4 : 1) },
         common: commonSection,
-        rare: rareSection,
-        epic: epicSection,
-        legendary: legendarySection,
+        rare: splitInventory ? commonSection : rareSection,
+        epic: splitInventory ? commonSection : epicSection,
+        legendary: splitInventory ? commonSection : legendarySection,
     }
     return template
 }
