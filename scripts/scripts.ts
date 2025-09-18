@@ -1,6 +1,15 @@
 import { MazariniClient } from '../client/MazariniClient'
 import { ImageGenerationHelper } from '../helpers/imageGenerationHelper'
-import { ILootStats, IPityTracker, ItemRarity, IUserLoot, IUserLootItem, IUserLootSeries, MazariniUser } from '../interfaces/database/databaseInterface'
+import {
+    ILootStats,
+    ILootStatsColorCounter,
+    IPityTracker,
+    ItemRarity,
+    IUserLoot,
+    IUserLootItem,
+    IUserLootSeries,
+    MazariniUser,
+} from '../interfaces/database/databaseInterface'
 
 export class Scripts {
     private client: MazariniClient
@@ -98,6 +107,13 @@ const defaultPityLevel: IPityTracker = {
     chipsSinceNonDuplicate: 0,
 }
 
+const lootColorStats: ILootStatsColorCounter = {
+    none: 0,
+    silver: 0,
+    gold: 0,
+    diamond: 0,
+}
+
 const defaultLootStats: ILootStats = {
     chipsSpent: 0,
     chestsOpened: {
@@ -113,10 +129,10 @@ const defaultLootStats: ILootStats = {
         special: 0,
     },
     rarities: {
-        common: 0,
-        rare: 0,
-        epic: 0,
-        legendary: 0,
+        common: structuredClone(lootColorStats),
+        rare: structuredClone(lootColorStats),
+        epic: structuredClone(lootColorStats),
+        legendary: structuredClone(lootColorStats),
     },
     trades: {
         in: 0,

@@ -73,8 +73,9 @@ export class TestCommands extends AbstractCommands {
         const user = await this.database.getUser(interaction.user.id)
         const scripts = new Scripts(this.client)
         this.messageHelper.replyToInteraction(interaction, 'test', { hasBeenDefered: true })
-        await scripts.generateNewLootInventory(user)
-        await scripts.setInventoryUrls(user)
+        scripts.refactorUserLoot(user)
+        // await scripts.generateNewLootInventory(user)
+        // await scripts.setInventoryUrls(user)
         // console.log(user.loot['mazarini']['inventory']['common']['items'])
     }
 

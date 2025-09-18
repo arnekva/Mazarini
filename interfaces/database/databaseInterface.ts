@@ -219,10 +219,17 @@ export interface ILootStatsQualityCounter {
 }
 
 export interface ILootStatsRarityCounter {
-    common: number
-    rare: number
-    epic: number
-    legendary: number
+    common: ILootStatsColorCounter
+    rare: ILootStatsColorCounter
+    epic: ILootStatsColorCounter
+    legendary: ILootStatsColorCounter
+}
+
+export interface ILootStatsColorCounter {
+    none: number
+    silver: number
+    gold: number
+    diamond: number
 }
 
 export interface IUserCollectable {
