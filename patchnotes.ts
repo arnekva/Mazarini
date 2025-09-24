@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '27.3.4'
+    public static readonly currentVersion = '27.4.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,8 +25,39 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            //
-            [`* Active series prioriteres også nå ved inventory og trade`, '* Fikset Arne daily chest reward code'].join('\n')
+            [
+                '# End of Season',
+                'I stedet for å /rewarde masse ting kommer nå en masse store buffer til diverse spill. Håper det ikke blir alt for broken',
+                '* Re-deal av chest skal nå fungere som forventet',
+                '\n',
+                '# Terning',
+                'Streak multiplier 1000 -> 3000',
+                'ATH streak multiplier 1500 -> 3000',
+                'Biggest loss multiplier 35 -> 70',
+                'Same digit multiplier 5 -> 10',
+                'all digits 0 except first 5 -> 10',
+                'dicetarget hit 10 -> 20',
+                'Roll 2 reward 20 -> 100',
+                'Double Pot Reward Multiplier 2 -> 3',
+                'Loot Box chance 8 -> 20',
+                'Special roll reward 5 -> 10',
+                'No Thanks 5000 -> 8000',
+                'Special numbers: Lagt til 2026',
+                '9/11 remove 2977 -> 30.000',
+                '9/11 chance 65% -> 80%',
+                '\n',
+                '# More or Less',
+                '1-10: 700 -> 2000',
+                '11-20: 500 -> 1250',
+                '21-30: 100 -> 600',
+                '\n',
+                '# Spin',
+                '2: 75 -> 200',
+                '3: 110 -> 300',
+                '4: 250 -> 500',
+                '5: 500 -> 650',
+                '6: 800 -> 1000',
+            ].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

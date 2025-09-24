@@ -127,26 +127,26 @@ export const GameValues: GameValuesType = {
         ],
         potSkip: { diceTarget: 200, roll: 69 },
         addToPot: {
-            athStreakMultiplier: 1500,
-            streakMultiplier: 1000,
-            biggestLossMultiplier: 35,
+            athStreakMultiplier: 3500,
+            streakMultiplier: 3000,
+            biggestLossMultiplier: 70,
             largeNumberLossMultiplier: 3,
             minReward: 100,
         },
         jokes: {
-            nineElevenRemove: 2977,
-            nineElevenChance: 0.65,
+            nineElevenRemove: 30000,
+            nineElevenChance: 0.8,
         },
         checkForReward: {
-            sameDigitsMultiplier: 5,
-            allDigitsExceptFirstAreZeroMultiplier: 5,
-            diceTargetMultiplier: 10,
-            roll2Reward: 20,
-            doublePotDepositMultiplier: 2,
+            sameDigitsMultiplier: 10,
+            allDigitsExceptFirstAreZeroMultiplier: 10,
+            diceTargetMultiplier: 20,
+            roll2Reward: 100,
+            doublePotDepositMultiplier: 3,
             minRollForMultiplier: 100,
             minPotForDouble: 1000,
             maxDoubleReward: 2500,
-            lootboxChance: 8,
+            lootboxChance: 20,
             lootbox: {
                 basic: { min: 0, max: 9999, cost: 5000 },
                 premium: { min: 10000, max: 24999, cost: 10000 },
@@ -156,8 +156,9 @@ export const GameValues: GameValuesType = {
         getRollReward: {
             specialNumbers: [
                 1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 669, 690, 8008, 6969, 420, 123, 1234, 12345, 2469, 1984, 2024, 2025, 2012, 1945, 2468, 1359,
+                6900, 2026,
             ],
-            multiplier: 5,
+            multiplier: 10,
         },
         tomasa: {
             baseChance: 0.001,
@@ -167,7 +168,7 @@ export const GameValues: GameValuesType = {
             winOn: 69,
             minTarget: 10000,
             noThanksThreshold: 10000,
-            noThanksBonus: 5000,
+            noThanksBonus: 8000,
         },
         autoCompleteDiceDefault: 10002,
         printCurrentStateMaxFields: 25,
@@ -175,9 +176,9 @@ export const GameValues: GameValuesType = {
 
     // More or Less
     moreOrLess: {
-        tier1Reward: 700, // 1-10
-        tier2Reward: 500, // 11-20
-        tier3Reward: 300, // 21-30
+        tier1Reward: 2000, // 1-10
+        tier2Reward: 1250, // 11-20
+        tier3Reward: 600, // 21-30
         tier4Reward: 200, // 31-40
         tier5Reward: 100, // 41-50
         tier6Reward: 50, // 51+
@@ -199,11 +200,11 @@ export const GameValues: GameValuesType = {
             { value: 10, weight: 0.31 },
         ],
         rewards: {
-            2: 75,
-            3: 110,
-            4: 250,
-            5: 500,
-            6: 800,
+            2: 200,
+            3: 300,
+            4: 500,
+            5: 650,
+            6: 1000,
             7: 1600,
             8: 3000,
             9: 6000,

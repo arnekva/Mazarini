@@ -118,7 +118,7 @@ export class LootboxCommands extends AbstractCommands {
 
     private async openAndRegisterLootChest(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, pendingChest?: IPendingChest) {
         const user = await this.client.database.getUser(interaction.user.id)
-        const quality = this.resolveLootQuality(interaction)
+        const quality = this.resolveLootQuality(interaction) ?? pendingChest.quality ?? 'basic'
         const series = this.resolveLootSeries(user, interaction)
         const box = await this.resolveLootbox(quality)
 
@@ -841,6 +841,11 @@ const reDealChestButton = (chestId: string) => {
 
 const effects: Array<IEffectItem> = [
     {
+        label: 'redeal_chest',
+        message: '',
+        effect: () => {},
+    },
+    {
         label: '10 spins',
         message: '10 ekstra /spin rewards!',
         effect: (user: MazariniUser) => {
@@ -922,11 +927,6 @@ const effects: Array<IEffectItem> = [
     },
     {
         label: 'deal_or_no_deal',
-        message: '',
-        effect: () => {},
-    },
-    {
-        label: 'redeal_chest',
         message: '',
         effect: () => {},
     },
