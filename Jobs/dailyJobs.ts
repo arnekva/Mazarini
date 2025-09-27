@@ -218,7 +218,7 @@ export class DailyJobs {
 
     private async awardAndResetMoreOrLess(users: MazariniUser[]): Promise<JobStatus> {
         const threadId = ThreadIds.MORE_OR_LESS
-        const usersWithStats = users.filter((user) => user.dailyGameStats?.moreOrLess?.attempted)
+        const usersWithStats = users.filter((user) => !user.userSettings.excludeFromMoL).filter((user) => user.dailyGameStats?.moreOrLess?.attempted)
         const attempted = (usersWithStats?.length ?? 0) > 0
 
         const highestBestAttempt = Math.max(...usersWithStats.map((user) => user.dailyGameStats.moreOrLess.bestAttempt))
