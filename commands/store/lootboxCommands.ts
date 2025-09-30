@@ -21,6 +21,7 @@ import { MazariniClient } from '../../client/MazariniClient'
 import { ComponentsHelper } from '../../helpers/componentsHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
+import { LootStatsHelper } from '../../helpers/statsHelper'
 import {
     ILootbox,
     ILootSeries,
@@ -120,9 +121,9 @@ export class LootboxCommands extends AbstractCommands {
         const user = await this.client.database.getUser(interaction.user.id)
         const quality = this.resolveLootQuality(interaction)
         const series = this.resolveLootSeries(user, interaction)
-        console.log(series)
-
         const box = await this.resolveLootbox(quality)
+        const sh = new LootStatsHelper(user.loot[series].stats)
+        sh.registerPurchase(box, false, interaction.isChatInputCommand())
 
         if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction)) return
         const rewardedItem = await this.calculateRewardItem(box, series, user)
@@ -136,6 +137,8 @@ export class LootboxCommands extends AbstractCommands {
         const quality = this.resolveLootQuality(interaction)
         const series = this.resolveLootSeries(user, interaction)
         const box = await this.resolveLootbox(quality)
+        const sh = new LootStatsHelper(user.loot[series].stats)
+        sh.registerPurchase(box, true, interaction.isChatInputCommand())
 
         if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction, true)) return
         const chestItems: IUserLootItem[] = new Array<IUserLootItem>()
@@ -386,6 +389,8 @@ export class LootboxCommands extends AbstractCommands {
         }
         user.loot[newItem.series][`inventory`][newItem.rarity]['img'] = ''
         user.loot[newItem.series][`inventory`][newItem.rarity]['items'] = items
+        const sh = new LootStatsHelper(user.loot[newItem.series].stats)
+        sh.registerItem(newItem)
         this.client.database.updateUser(user)
     }
 
@@ -803,6 +808,8 @@ export class LootboxCommands extends AbstractCommands {
         while (this.itemIsSameAsTradedIn(rewardedItem, pendingTrade.tradingIn)) {
             rewardedItem = await this.getRandomItemForRarity(pendingTrade.receiving, pendingTrade.series, colored, user)
         }
+        const sh = new LootStatsHelper(user.loot[rewardedItem.series].stats)
+        sh.registerTrade(pendingTrade.tradingIn.length === 5)
         this.removeItemsFromUserV2(pendingTrade.tradingIn, user)
         this.registerItemOnUserV2(user, rewardedItem)
         this.generateInventoryParts(user, pendingTrade.series, [...new Set([pendingTrade.receiving, pendingTrade.tradingIn[0].rarity])])
