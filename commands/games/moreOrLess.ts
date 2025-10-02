@@ -14,7 +14,7 @@ import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
 
 import { randomUUID } from 'crypto'
-import { IMoreOrLess } from '../../interfaces/database/databaseInterface'
+import { IMoreOrLess, LootboxQuality } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement, IOnTimedEvent } from '../../interfaces/interactionInterface'
 import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
@@ -23,7 +23,7 @@ import { MentionUtils, ThreadIds } from '../../utils/mentionUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { TextUtils } from '../../utils/textUtils'
 import { UserUtils } from '../../utils/userUtils'
-import { DealOrNoDeal, DonDQuality } from './dealOrNoDeal'
+import { LootboxCommands } from '../store/lootboxCommands'
 
 export interface IMoreOrLessData {
     subject: string
@@ -262,12 +262,12 @@ export class MoreOrLess extends AbstractCommands {
         if (completedNow && !completedPreviously) {
             const buttons = new ActionRowBuilder<ButtonBuilder>()
 
-            let dondQuality = DonDQuality.Basic
-            if (game.totalQuestions > 100) dondQuality = DonDQuality.Elite
-            else if (game.totalQuestions > 50) dondQuality = DonDQuality.Premium
+            let boxQuality = LootboxQuality.Basic
+            if (game.totalQuestions > 100) boxQuality = LootboxQuality.Elite
+            else if (game.totalQuestions > 50) boxQuality = LootboxQuality.Premium
 
-            const dond = DealOrNoDeal.getDealOrNoDealButton(user.id, dondQuality)
-            buttons.addComponents(dond)
+            const boxButton = LootboxCommands.getLootRewardButton(user.id, boxQuality).components
+            buttons.addComponents(boxButton)
             this.messageHelper.sendMessage(ThreadIds.MORE_OR_LESS, {
                 text: `Gz med fullført more or less ${MentionUtils.mentionUser(user.id)}`,
                 components: [buttons],

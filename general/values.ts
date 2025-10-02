@@ -127,26 +127,26 @@ export const GameValues: GameValuesType = {
         ],
         potSkip: { diceTarget: 200, roll: 69 },
         addToPot: {
-            athStreakMultiplier: 3500,
-            streakMultiplier: 3000,
-            biggestLossMultiplier: 70,
+            athStreakMultiplier: 500,
+            streakMultiplier: 1000,
+            biggestLossMultiplier: 20,
             largeNumberLossMultiplier: 3,
             minReward: 100,
         },
         jokes: {
             nineElevenRemove: 30000,
-            nineElevenChance: 0.8,
+            nineElevenChance: 0.99,
         },
         checkForReward: {
-            sameDigitsMultiplier: 10,
-            allDigitsExceptFirstAreZeroMultiplier: 10,
-            diceTargetMultiplier: 20,
-            roll2Reward: 100,
-            doublePotDepositMultiplier: 3,
+            sameDigitsMultiplier: 2.5,
+            allDigitsExceptFirstAreZeroMultiplier: 2.5,
+            diceTargetMultiplier: 5,
+            roll2Reward: 5,
+            doublePotDepositMultiplier: 2,
             minRollForMultiplier: 100,
             minPotForDouble: 1000,
             maxDoubleReward: 2500,
-            lootboxChance: 20,
+            lootboxChance: 8,
             lootbox: {
                 basic: { min: 0, max: 9999, cost: 5000 },
                 premium: { min: 10000, max: 24999, cost: 10000 },
@@ -158,7 +158,7 @@ export const GameValues: GameValuesType = {
                 1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 669, 690, 8008, 6969, 420, 123, 1234, 12345, 2469, 1984, 2024, 2025, 2012, 1945, 2468, 1359,
                 6900, 2026,
             ],
-            multiplier: 10,
+            multiplier: 2.5,
         },
         tomasa: {
             baseChance: 0.001,
@@ -168,7 +168,7 @@ export const GameValues: GameValuesType = {
             winOn: 69,
             minTarget: 10000,
             noThanksThreshold: 10000,
-            noThanksBonus: 8000,
+            noThanksBonus: 2500,
         },
         autoCompleteDiceDefault: 10002,
         printCurrentStateMaxFields: 25,
@@ -176,12 +176,12 @@ export const GameValues: GameValuesType = {
 
     // More or Less
     moreOrLess: {
-        tier1Reward: 2000, // 1-10
-        tier2Reward: 1250, // 11-20
-        tier3Reward: 600, // 21-30
-        tier4Reward: 200, // 31-40
-        tier5Reward: 100, // 41-50
-        tier6Reward: 50, // 51+
+        tier1Reward: 200, // 1-10
+        tier2Reward: 150, // 11-20
+        tier3Reward: 100, // 21-30
+        tier4Reward: 75, // 31-40
+        tier5Reward: 50, // 41-50
+        tier6Reward: 25, // 51+
     },
 
     // Spinner
@@ -200,16 +200,16 @@ export const GameValues: GameValuesType = {
             { value: 10, weight: 0.31 },
         ],
         rewards: {
-            2: 200,
-            3: 300,
-            4: 500,
-            5: 650,
-            6: 1000,
-            7: 1600,
-            8: 3000,
-            9: 6000,
-            10: 12000,
-            10.59: 30000, // Special case for 10 min, 59 sec
+            2: 50,
+            3: 75,
+            4: 100,
+            5: 125,
+            6: 300,
+            7: 500,
+            8: 800,
+            9: 1250,
+            10: 5000,
+            10.59: 20000, // Special case for 10 min, 59 sec
         },
     },
 
@@ -217,8 +217,8 @@ export const GameValues: GameValuesType = {
     daily: {
         baseReward: 500,
         streakMultiplier: 1.0, // Multiplies with streak
-        streak4Reward: 'dond',
-        streak7Reward: 'chest',
+        streak4Reward: 500,
+        streak7Reward: 'box',
         // Add more as needed
     },
 
@@ -263,7 +263,7 @@ export const GameValues: GameValuesType = {
 
     // Deal Or No Deal
     dealOrNoDeal: {
-        effectItemChance: 40, // percent chance to get an effect item
+        effectItemChance: 20, // percent chance to get an effect item
         offerBase: 0.5, // base offer percentage
         offerPerRound: 0.05, // offer percentage increase per round
     },
