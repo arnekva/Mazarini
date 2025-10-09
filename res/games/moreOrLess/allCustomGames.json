@@ -1,0 +1,11 @@
+[
+    {
+        "title": "Norske byer",
+        "description": "Gjett antall innbyggere i norske byer.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "N/A",
+        "badge": "Custom",
+        "slug": "norwegianCities",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/b/bc/No-map.png"
+    }
+]

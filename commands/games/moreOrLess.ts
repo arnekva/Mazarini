@@ -16,6 +16,7 @@ import { GameValues } from '../../general/values'
 import { randomUUID } from 'crypto'
 import { IMoreOrLess, LootboxQuality } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement, IOnTimedEvent } from '../../interfaces/interactionInterface'
+import { CustomMOLHandler } from '../../res/games/moreOrLess/CustomMOLHandler'
 import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { FetchUtils } from '../../utils/fetchUtils'
@@ -66,9 +67,11 @@ export class MoreOrLess extends AbstractCommands {
                 },
             })
         ).json()
+        games.push(...CustomMOLHandler.getAllCustomGames())
         const unplayed = games.filter((game) => !previous.includes(game.slug))
-        const game: IMoreOrLess = unplayed && unplayed.length > 0 ? RandomUtils.getRandomItemFromList(unplayed) : RandomUtils.getRandomItemFromList(games)
 
+        const game: IMoreOrLess = unplayed && unplayed.length > 0 ? RandomUtils.getRandomItemFromList(unplayed) : RandomUtils.getRandomItemFromList(games)
+        if (game.tags?.includes(CustomMOLHandler.customGameTag)) return game
         const dataUrl = `https://api.moreorless.io/en/games/${game.slug}.json`
         const check: any = (
             await (
@@ -80,6 +83,7 @@ export class MoreOrLess extends AbstractCommands {
                 })
             ).json()
         ).game
+
         if (check.data[0].length > 4) {
             return MoreOrLess.getNewMoreOrLessGame([...previous, game.slug])
         } else {
@@ -90,17 +94,22 @@ export class MoreOrLess extends AbstractCommands {
     private async fetchGameData() {
         const storage = await this.client.database.getStorage()
         this.game = storage.moreOrLess.current ?? (await MoreOrLess.getNewMoreOrLessGame(storage.moreOrLess.previous ?? []))
-        const url = `https://api.moreorless.io/en/games/${this.game.slug}.json`
-        const game: any = (
-            await (
-                await fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        Accept: 'application/json',
-                    },
-                })
-            ).json()
-        ).game
+        let game: any = {}
+        if (this.game.tags?.includes(CustomMOLHandler.customGameTag)) {
+            game = CustomMOLHandler.getJSONByName(this.game.slug as any).game
+        } else {
+            const url = `https://api.moreorless.io/en/games/${this.game.slug}.json`
+            game = (
+                await (
+                    await fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            Accept: 'application/json',
+                        },
+                    })
+                ).json()
+            ).game
+        }
         const data: IMoreOrLessData[] = game.data
             .filter((item) => item.length <= 4)
             .map((item) => {
