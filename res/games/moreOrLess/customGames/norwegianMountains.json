@@ -1,0 +1,43 @@
+{
+    "slug": "norwegianMountains",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/b/bc/No-map.png",
+    "title": "Høyeste norske fjell",
+    "seoTitle": "N/A",
+    "description": "Gjett hvilke norske fjell som er høyest.",
+    "tags": ["CUSTOM_MAZARINI_GAME"],
+    "game": {
+        "strings": {
+            "verb": "er",
+            "valueTitle": "høyest",
+            "buttonMore": "Høyere",
+            "buttonLess": "Lavere"
+        },
+        "data": [
+            ["Galdhøpiggen", 2469, ""],
+            ["Glittertinden", 2452, ""],
+            ["Store Skagastølstind", 2405, ""],
+            ["Store Styggedalstind", 2387, ""],
+            ["Skardstinden", 2374, ""],
+            ["Vesle Galdhøpiggen (Veslpiggen)", 2368, ""],
+            ["Surtningssue", 2368, ""],
+            ["Store Memurutinden", 2366, ""],
+            ["Gjertvasstind", 2351, ""],
+            ["Sentraltind", 2348, ""],
+            ["Store Hellstugutinden", 2347, ""],
+            ["Storjuvtinden", 2345, ""],
+            ["Store Knutsholstinden", 2342, ""],
+            ["Vetle Skagastølstinden", 2340, ""],
+            ["Midtre Hellstugutinden", 2339, ""],
+            ["Tjønnholstinden", 2331, ""],
+            ["Leirhøe", 2330, ""],
+            ["Bukkehøe", 2314, ""],
+            ["Store Tverråtinden", 2308, ""],
+            ["Midtre Tverråtinden", 2302, ""],
+            ["Austre Memurutinden", 2299, ""],
+            ["Trollsteineggje", 2296, ""],
+            ["Austre Leirungstinden", 2288, ""],
+            ["Snøhetta, Stortoppen", 2286, ""],
+            ["Galdhøe", 2283, ""]
+        ]
+    }
+}

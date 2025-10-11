@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 
-export type customGameNames = 'norwegianCities'
+export type customGameNames = 'norwegianCities' | 'norwegianMountains' | 'celebAge' | 'kommuneInnbygger' | 'kommuneSize' | 'mostKnownNorwegian'
 /* 
     Steps for adding a custom game:
     1. Add a new json file in res/games/moreOrLess, following the norwegianCities.json format (its extremely important to have the "CUSTOM_MAZARINI_GAME" tag in the tags array)
@@ -14,7 +14,7 @@ export type customGameNames = 'norwegianCities'
 export class CustomMOLHandler {
     public static readonly customGameTag = 'CUSTOM_MAZARINI_GAME'
     static getAllNames() {
-        return ['norwegianCities'] as customGameNames[]
+        return ['norwegianCities', 'celebAge', 'norwegianMountains', 'kommuneInnbygger'] as customGameNames[]
     }
     static getJSONByName(name: customGameNames) {
         if (name === 'norwegianCities') {
@@ -22,7 +22,31 @@ export class CustomMOLHandler {
             const data = fs.readFileSync(filePath, 'utf-8')
             return JSON.parse(data)
         }
-        return null
+        if (name === 'norwegianMountains') {
+            const filePath = path.resolve(__dirname, 'customGames', 'norwegianMountains.json')
+            const data = fs.readFileSync(filePath, 'utf-8')
+            return JSON.parse(data)
+        }
+        if (name === 'celebAge') {
+            const filePath = path.resolve(__dirname, 'customGames', 'celebAge.json')
+            const data = fs.readFileSync(filePath, 'utf-8')
+            return JSON.parse(data)
+        }
+        if (name === 'kommuneInnbygger') {
+            const filePath = path.resolve(__dirname, 'customGames', 'kommuneInnbygger.json')
+            const data = fs.readFileSync(filePath, 'utf-8')
+            return JSON.parse(data)
+        }
+        if (name === 'kommuneSize') {
+            const filePath = path.resolve(__dirname, 'customGames', 'largestKommune.json')
+            const data = fs.readFileSync(filePath, 'utf-8')
+            return JSON.parse(data)
+        }
+        if (name === 'mostKnownNorwegian') {
+            const filePath = path.resolve(__dirname, 'customGames', 'mostKnownNorwegian.json')
+            const data = fs.readFileSync(filePath, 'utf-8')
+            return JSON.parse(data)
+        }
     }
 
     static getAllCustomGames() {

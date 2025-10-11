@@ -7,5 +7,50 @@
         "badge": "Custom",
         "slug": "norwegianCities",
         "image": "https://upload.wikimedia.org/wikipedia/commons/b/bc/No-map.png"
+    },
+    {
+        "title": "Høyeste norske fjell",
+        "description": "Gjett hvilke norske fjell som er høyest.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "N/A",
+        "badge": "Custom",
+        "slug": "norwegianMountains",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/b/bc/No-map.png"
+    },
+    {
+        "title": "Kjente nordmenn",
+        "description": "Gjett hvem av disse kjente nordmennene som har flest følgere på Instagram.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "N/A",
+        "badge": "Custom",
+        "slug": "mostKnownNorwegian",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/b/bc/No-map.png"
+    },
+    {
+        "title": "Kjendiser og alder",
+        "description": "Gjett alderen til kjente personer.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "N/A",
+        "badge": "Custom",
+        "slug": "celebAge",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/b/bc/No-map.png"
+    },
+    {
+        "title": "Norske kommuner i størrelse",
+        "description": "Gjett størstelsen på norske kommuner",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "N/A",
+        "badge": "Custom",
+        "slug": "kommuneSize",
+        "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQBF3NLg9oKaZHtp18zKU08xZ6LyDDR3_0fzQ&s"
+    },
+    {
+        "title": "Norske kommuner",
+        "description": "Gjett antall innbyggere i norske kommuner",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "N/A",
+        "badge": "Custom",
+        "slug": "kommuneInnbygger",
+        "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQBF3NLg9oKaZHtp18zKU08xZ6LyDDR3_0fzQ&s"
     }
 ]
