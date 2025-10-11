@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '27.4.3'
+    public static readonly currentVersion = '27.5.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,7 +25,19 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            ['* Wordle pott 5000 -> 3000', '   * Maks gevinst per person er 1000 chips, uansett antall vinnere'].join('\n')
+            [
+                '# Daily',
+                '   * Når du når 7 i streak vil streaken din nå nullstilles, heller enn å settes til 1. Påfølgende dag vil da faktisk bli 1 i streak, heller enn 2.',
+                '# Spin',
+                '   * /spin er ikke lenger ephemeral. Alle vil kunne se resultatet av spinnet ditt (sorry Geggi).',
+                '# Deal or no Deal',
+                '   * Sjansen for å få effect er nå satt til 0%.',
+                '# Deathroll',
+                '   * Du får ikke lenger gratis redeal i blackjack dersom du kommer fra deathroll.',
+                '# Wordle',
+                '   * Pot er satt ned fra 3000 til 2500.',
+                '   * Maks chips per vinner er satt ned fra 1000 til 900.',
+            ].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

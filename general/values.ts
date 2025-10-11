@@ -74,6 +74,7 @@ export type GameValuesType = {
         autoCompleteDiceDefault: number
         /** Maximum amount of games printed in deathroll list */
         printCurrentStateMaxFields: number
+        canGetFreeBlackackRedeal: boolean
     }
     moreOrLess: {
         tier1Reward: number
@@ -137,8 +138,8 @@ export const GameValues: GameValuesType = {
             minReward: 100,
         },
         jokes: {
-            nineElevenRemove: 30000,
-            nineElevenChance: 0.99,
+            nineElevenRemove: 2977,
+            nineElevenChance: 0.5,
         },
         checkForReward: {
             sameDigitsMultiplier: 2.5,
@@ -175,6 +176,7 @@ export const GameValues: GameValuesType = {
         },
         autoCompleteDiceDefault: 10002,
         printCurrentStateMaxFields: 25,
+        canGetFreeBlackackRedeal: false,
     },
 
     // More or Less
@@ -266,7 +268,7 @@ export const GameValues: GameValuesType = {
 
     // Deal Or No Deal
     dealOrNoDeal: {
-        effectItemChance: 20, // percent chance to get an effect item
+        effectItemChance: 0, // percent chance to get an effect item
         offerBase: 0.5, // base offer percentage
         offerPerRound: 0.05, // offer percentage increase per round
     },
@@ -276,6 +278,6 @@ export const GameValues: GameValuesType = {
         deathrollRefundEnabled: true, // If true, lostAddedBack is shown and refund is applied
     },
     wordle: {
-        reward: 3000,
+        reward: 2000,
     },
 }

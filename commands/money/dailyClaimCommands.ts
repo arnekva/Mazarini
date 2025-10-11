@@ -32,8 +32,8 @@ export class DailyClaimCommands extends AbstractCommands {
             const lootboxField = this.getLootboxField(newData)
             if (lootboxField) embed.addFields([lootboxField])
             if (newData.streak === 7) {
-                newData.streak = 1
-                embed.setFooter({ text: 'Streaken din resettes nå te 1' })
+                newData.streak = 0
+                embed.setFooter({ text: 'Streaken din resettes nå te 0' })
             }
             updates[`/users/${user.id}/daily`] = newData
             this.client.database.updateData(updates)
@@ -65,9 +65,8 @@ export class DailyClaimCommands extends AbstractCommands {
     }
 
     private getLootboxField(daily: DailyReward): APIEmbedField {
-        if (daily.streak === 4) return { name: 'Lootbox', value: 'Dægårten! Du har henta daglige chips i 4 dager i strekk!\nNå ska du få ein liten godbit' }
-        else if (daily.streak === 7)
-            return { name: 'Lootbox', value: 'Dægårten! Du har henta daglige chips i 7 dager i strekk!\nDå ska du jammen meg få någe ekstra!' }
+        if (daily.streak === 4) return { name: 'Lootbox', value: '4? Keep up the good work' }
+        else if (daily.streak === 7) return { name: 'Lootbox', value: 'Sakko! 7 dager i strekk!?\nSe her, ta deg ein boks!' }
         else return undefined
     }
 

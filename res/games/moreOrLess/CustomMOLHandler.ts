@@ -7,6 +7,7 @@ export type customGameNames = 'norwegianCities'
     1. Add a new json file in res/games/moreOrLess, following the norwegianCities.json format (its extremely important to have the "CUSTOM_MAZARINI_GAME" tag in the tags array)
     2. Add the name of the file (without .json) to the customGameNames type above. (the slug)
     3. Add the name to the getAllNames() function below
+    4. Make sure to point getJSONByName to the correct file
 
     getAllNames() will run during daily job and concat custom games with normal games from API.
 */

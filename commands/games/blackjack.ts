@@ -250,7 +250,7 @@ export class Blackjack extends AbstractCommands {
 
     private async getButtonRow(game: BlackjackGame, player: BlackjackPlayer) {
         const buttonRow = hitStandButtonRow(game.id)
-        const hasDeathrollRedeal = !!game.fromDeathroll && !game.hasRedealt
+        const hasDeathrollRedeal = !!game.fromDeathroll && !game.hasRedealt && GameValues.deathroll.canGetFreeBlackackRedeal
         if (player.hands[player.currentHandIndex].cards.length === 2) {
             const user = await this.client.database.getUser(player.id)
             if (this.canDoubleDown(player.hands[player.currentHandIndex]))
