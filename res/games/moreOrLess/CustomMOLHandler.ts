@@ -18,7 +18,7 @@ export class CustomMOLHandler {
     }
     static getJSONByName(name: customGameNames) {
         if (name === 'norwegianCities') {
-            const filePath = path.resolve(__dirname, 'norwegianCities.json')
+            const filePath = path.resolve(__dirname, 'customGames', 'norwegianCities.json')
             const data = fs.readFileSync(filePath, 'utf-8')
             return JSON.parse(data)
         }

@@ -68,6 +68,7 @@ export class MoreOrLess extends AbstractCommands {
             })
         ).json()
         games.push(...CustomMOLHandler.getAllCustomGames())
+
         const unplayed = games.filter((game) => !previous.includes(game.slug))
 
         const game: IMoreOrLess = unplayed && unplayed.length > 0 ? RandomUtils.getRandomItemFromList(unplayed) : RandomUtils.getRandomItemFromList(games)
