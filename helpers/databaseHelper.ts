@@ -1,5 +1,6 @@
-import { UploadMetadata } from 'firebase/storage'
+import { UploadMetadata, UploadResult } from 'firebase/storage'
 import moment from 'moment'
+import { environment } from '../client-env'
 import { DRGame } from '../commands/games/deathroll'
 import {
     botDataPrefix,
@@ -395,6 +396,20 @@ export class DatabaseHelper {
         this.db.updateData(updates)
     }
 
+    public setLootSeries(series: ILootSeries[]) {
+        const updates = {}
+        updates[`/other/loot/series`] = series
+        this.db.updateData(updates)
+    }
+
+    public async updateLootboxSeries(series: ILootSeries) {
+        const updates = {}
+        const allSeries = (await this.getLootboxSeries()) ?? []
+        const updatedSeries = allSeries.map((s) => (s.name === series.name ? series : s))
+        updates[`/other/loot/series`] = updatedSeries
+        this.db.updateData(updates)
+    }
+
     public async getLootboxSeries() {
         return (await this.db.getData('/other/loot/series')) as ILootSeries[]
     }
@@ -409,15 +424,14 @@ export class DatabaseHelper {
         this.db.uploadToStorage(ref, gif)
     }
 
-    public uploadUserInventory(user: MazariniUser, path: string, img: Buffer) {
-        const ref = this.db.getStorageRef(`${user.id}/${path}`)
+    public async uploadUserInventory(user: MazariniUser, path: string, img: Buffer): Promise<UploadResult> {
+        const ref = this.db.getStorageRef(`loot_inventory/${user.id}/${environment}/${path}`)
         const metadata: UploadMetadata = { contentType: 'image/png' }
-        this.db.uploadToStorage(ref, img, metadata)
+        return await this.db.uploadToStorage(ref, img, metadata)
     }
 
     public async getUserInventory(user: MazariniUser, series: string, rarity: ItemRarity): Promise<string> {
-        //TODO: Fjern "test/"
-        return await this.db.getStorageLink(this.db.getStorageRef(`${user.id}/test/inventory/${series}/${rarity}.png`))
+        return await this.db.getStorageLink(this.db.getStorageRef(`loot_inventory/${user.id}/${environment}/${series}/${rarity}.png`))
     }
 
     public async createBackup() {

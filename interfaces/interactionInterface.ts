@@ -42,6 +42,6 @@ export interface IInteractionElement {
  */
 export interface IOnTimedEvent {
     weekly?: (() => boolean)[]
-    daily?: (() => boolean)[]
+    daily?: (() => boolean | Promise<boolean>)[]
     hourly?: (() => boolean)[]
 }

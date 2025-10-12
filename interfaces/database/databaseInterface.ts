@@ -166,6 +166,8 @@ export interface ILootSeries {
     rare: string[]
     epic: string[]
     legendary: string[]
+    hasUnobtainable: boolean
+    unobtainableHolder?: string //userID of current holder
 }
 
 export interface IUserLoot {
@@ -179,6 +181,7 @@ export interface IUserLootSeries {
     name: string
     pityLevel?: IPityTracker
     inventory: IUserLootSeriesInventory
+    inventoryArt?: string
     stats?: ILootStats
 }
 
@@ -209,6 +212,7 @@ export interface ILootStats {
         in: number
         up: number
     }
+    achievements: ILootStatsAchievements
 }
 
 export interface ILootStatsQualityCounter {
@@ -232,6 +236,10 @@ export interface ILootStatsColorCounter {
     diamond: number
 }
 
+export interface ILootStatsAchievements {
+    daysWithUnobtainable: number
+}
+
 export interface IUserCollectable {
     name: string
     series: string
@@ -253,6 +261,7 @@ export enum ItemRarity {
     Rare = 'rare',
     Epic = 'epic',
     Legendary = 'legendary',
+    Unobtainable = 'unobtainable',
 }
 
 export enum ItemColor {
@@ -283,6 +292,7 @@ export interface ILootboxDistribution {
     rare: number
     epic: number
     legendary: number
+    unobtainable?: number
     color: number
 }
 

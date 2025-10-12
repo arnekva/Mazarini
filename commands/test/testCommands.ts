@@ -72,11 +72,8 @@ export class TestCommands extends AbstractCommands {
         await interaction.deferReply()
         const user = await this.database.getUser(interaction.user.id)
         const scripts = new Scripts(this.client)
-        this.messageHelper.replyToInteraction(interaction, 'test', { hasBeenDefered: true })
-        scripts.refactorUserLoot(user)
-        // await scripts.generateNewLootInventory(user)
-        // await scripts.setInventoryUrls(user)
-        // console.log(user.loot['mazarini']['inventory']['common']['items'])
+        await scripts.prepareNewSeries()
+        this.messageHelper.replyToInteraction(interaction, 'Ny serie er klar', { hasBeenDefered: true })
     }
 
     private async testSelectMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {

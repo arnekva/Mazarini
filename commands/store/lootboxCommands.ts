@@ -1,4 +1,3 @@
-import console from 'console'
 import { randomUUID } from 'crypto'
 import {
     ActionRowBuilder,
@@ -18,22 +17,11 @@ import {
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { MazariniClient } from '../../client/MazariniClient'
-import { ComponentsHelper } from '../../helpers/componentsHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
 import { LootStatsHelper } from '../../helpers/statsHelper'
-import {
-    ILootbox,
-    ILootSeries,
-    ItemColor,
-    ItemRarity,
-    IUserEffects,
-    IUserLootItem,
-    IUserLootSeriesInventory,
-    MazariniUser,
-} from '../../interfaces/database/databaseInterface'
+import { ILootbox, ILootSeries, ItemColor, ItemRarity, IUserEffects, IUserLootItem, MazariniUser } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement, IOnTimedEvent } from '../../interfaces/interactionInterface'
-import { inventoryContainer } from '../../templates/containerTemplates'
 import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { RandomUtils } from '../../utils/randomUtils'
@@ -65,6 +53,12 @@ export interface IEffectItem {
     effect(user: MazariniUser): undefined | ActionRowBuilder<ButtonBuilder>[]
 }
 
+interface InventoryUpdate {
+    userId: string
+    series: string
+    rarity: ItemRarity
+}
+
 export class LootboxCommands extends AbstractCommands {
     private imageGenerator: ImageGenerationHelper
     private lootboxes: ILootbox[]
@@ -73,12 +67,14 @@ export class LootboxCommands extends AbstractCommands {
     private newestSeries: ILootSeries
     private pendingTrades: Map<string, IPendingTrade>
     private pendingChests: Map<string, IPendingChest>
+    private inventoryUpdateQueue: Array<InventoryUpdate>
 
     constructor(client: MazariniClient) {
         super(client)
         this.imageGenerator = new ImageGenerationHelper(client)
         this.pendingTrades = new Map<string, IPendingTrade>()
         this.pendingChests = new Map<string, IPendingChest>()
+        this.inventoryUpdateQueue = new Array<InventoryUpdate>()
     }
 
     async onReady(): Promise<void> {
@@ -121,42 +117,51 @@ export class LootboxCommands extends AbstractCommands {
         const user = await this.client.database.getUser(interaction.user.id)
         const quality = this.resolveLootQuality(interaction)
         const series = this.resolveLootSeries(user, interaction)
+        const seriesObj = await this.getSeriesOrDefault(series)
         const box = await this.resolveLootbox(quality)
-        const sh = new LootStatsHelper(user.loot[series].stats)
+        const sh = new LootStatsHelper(user.loot[seriesObj.name].stats)
         sh.registerPurchase(box, false, interaction.isChatInputCommand())
 
         if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction)) return
-        const rewardedItem = await this.calculateRewardItem(box, series, user)
-        this.registerItemOnUserV2(user, rewardedItem)
+        const rewardedItem = await this.calculateRewardItem(box, seriesObj, user)
+        this.registerItemOnUser(user, rewardedItem)
         this.generateInventoryParts(user, rewardedItem.series, [rewardedItem.rarity])
         this.revealCollectable(interaction, rewardedItem, user.userSettings.lootReactionTimer)
     }
 
     private async openAndRegisterLootChest(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, pendingChest?: IPendingChest) {
         const user = await this.client.database.getUser(interaction.user.id)
-        const quality = this.resolveLootQuality(interaction)
-        const series = this.resolveLootSeries(user, interaction)
+        const quality = this.resolveLootQuality(interaction, pendingChest)
+        const series = this.resolveLootSeries(user, interaction, pendingChest)
+        const seriesObj = await this.getSeriesOrDefault(series)
+
         const box = await this.resolveLootbox(quality)
-        const sh = new LootStatsHelper(user.loot[series].stats)
+        const sh = new LootStatsHelper(user.loot[seriesObj.name].stats)
         sh.registerPurchase(box, true, interaction.isChatInputCommand())
 
         if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction, true)) return
         const chestItems: IUserLootItem[] = new Array<IUserLootItem>()
-        chestItems.push(await this.calculateRewardItem(box, series, user))
-        chestItems.push(await this.calculateRewardItem(box, series, user))
-        chestItems.push(await this.calculateRewardItem(box, series, user))
+        chestItems.push(await this.calculateRewardItem(box, seriesObj, user))
+        chestItems.push(await this.calculateRewardItem(box, seriesObj, user))
+        chestItems.push(await this.calculateRewardItem(box, seriesObj, user))
         this.database.updateUser(user) //update in case of effect change
         const existingChestId = pendingChest && interaction.isButton() ? interaction.customId.split(';')[1] : undefined
-        this.revealLootChest(interaction, chestItems, quality, series, existingChestId)
+        this.revealLootChest(interaction, chestItems, quality, seriesObj.name, existingChestId)
     }
 
-    private resolveLootSeries(user: MazariniUser, interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        if (interaction.isChatInputCommand()) return (interaction.options.get('series')?.value as string) ?? user.userSettings.activeLootSeries
+    private resolveLootSeries(
+        user: MazariniUser,
+        interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>,
+        pendingChest?: IPendingChest
+    ) {
+        if (pendingChest) return pendingChest.series
+        else if (interaction.isChatInputCommand()) return (interaction.options.get('series')?.value as string) ?? user.userSettings.activeLootSeries
         else if (interaction.isButton()) return interaction.customId.split(';')[4] ? interaction.customId.split(';')[4] : user.userSettings.activeLootSeries
     }
 
-    private resolveLootQuality(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        if (interaction.isChatInputCommand()) return interaction.options.get('quality')?.value as string
+    private resolveLootQuality(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, pendingChest?: IPendingChest) {
+        if (pendingChest) return pendingChest.quality
+        else if (interaction.isChatInputCommand()) return interaction.options.get('quality')?.value as string
         else if (interaction.isButton()) return interaction.customId.split(';')[2]
     }
 
@@ -259,7 +264,7 @@ export class LootboxCommands extends AbstractCommands {
             this.messageHelper.replyToInteraction(interaction, `Du valgte ${effect.message}`, { hasBeenDefered: true })
         } else {
             const item = this.getChestItem(interaction, pendingChest)
-            this.registerItemOnUserV2(user, item)
+            this.registerItemOnUser(user, item)
             this.generateInventoryParts(user, item.series, [item.rarity])
             this.revealCollectable(interaction, item, user.userSettings.lootReactionTimer)
             this.deletePendingChest(interaction)
@@ -312,21 +317,23 @@ export class LootboxCommands extends AbstractCommands {
         return moneyWasTaken
     }
 
-    private async calculateRewardItem(box: ILootbox, series: string, user: MazariniUser) {
+    private async calculateRewardItem(box: ILootbox, series: ILootSeries, user: MazariniUser) {
         const itemRoll = Math.random()
         let colored = Math.random() < box.probabilities.color
         if ((user.effects?.positive?.guaranteedLootColor ?? 0) > 0) {
             colored = true
             user.effects.positive.guaranteedLootColor -= 1
         }
-        if (itemRoll < box.probabilities.legendary) {
-            return await this.getRandomItemForRarity(ItemRarity.Legendary, series, colored, user)
+        if (series.hasUnobtainable && itemRoll < (box.probabilities.unobtainable ?? 0)) {
+            return await this.getRandomItemForRarity(ItemRarity.Legendary, series.name, colored, user)
+        } else if (itemRoll < box.probabilities.legendary) {
+            return await this.getRandomItemForRarity(ItemRarity.Legendary, series.name, colored, user)
         } else if (itemRoll < box.probabilities.epic) {
-            return await this.getRandomItemForRarity(ItemRarity.Epic, series, colored, user)
+            return await this.getRandomItemForRarity(ItemRarity.Epic, series.name, colored, user)
         } else if (itemRoll < box.probabilities.rare) {
-            return await this.getRandomItemForRarity(ItemRarity.Rare, series, colored, user)
+            return await this.getRandomItemForRarity(ItemRarity.Rare, series.name, colored, user)
         } else {
-            return await this.getRandomItemForRarity(ItemRarity.Common, series, colored, user)
+            return await this.getRandomItemForRarity(ItemRarity.Common, series.name, colored, user)
         }
     }
 
@@ -366,21 +373,9 @@ export class LootboxCommands extends AbstractCommands {
         else return flipped ? ItemColor.Diamond : ItemColor.Silver // 3/6 chance for silver
     }
 
-    private registerItemOnUser(user: MazariniUser, item: IUserLootItem) {
-        const itemAlreadyCollected = user.collectables?.some((collectible) => collectible.name === item.name && collectible.color === item.color)
-        if (itemAlreadyCollected) {
-            user.collectables = user.collectables.map((el) =>
-                this.collectableToString(el) === this.collectableToString(item) ? { ...el, amount: el.amount + item.amount } : el
-            )
-        } else {
-            user.collectables = user.collectables ?? new Array<IUserLootItem>()
-            user.collectables.push(item)
-        }
-        this.client.database.updateUser(user)
-    }
-
-    private registerItemOnUserV2(user: MazariniUser, newItem: IUserLootItem) {
-        let items = user.loot[newItem.series][`inventory`][newItem.rarity]['items'] as IUserLootItem[]
+    private registerItemOnUser(user: MazariniUser, newItem: IUserLootItem) {
+        if (newItem.rarity === ItemRarity.Unobtainable) return this.updateUnobtainableHolder(newItem.series, user)
+        let items = (user.loot[newItem.series][`inventory`][newItem.rarity]['items'] as IUserLootItem[]) ?? new Array<IUserLootItem>()
         const itemAlreadyCollected = items.some((item) => this.equalItems(item, newItem))
         if (itemAlreadyCollected) {
             items = this.incrementItemCount(items, newItem)
@@ -394,21 +389,21 @@ export class LootboxCommands extends AbstractCommands {
         this.client.database.updateUser(user)
     }
 
+    private async updateUnobtainableHolder(seriesName: string, user: MazariniUser) {
+        const allSeries = await this.getSeries()
+        const updateSeries = allSeries.find((x) => x.name === seriesName)
+        updateSeries.unobtainableHolder = user.id
+        this.series = allSeries.map((s) => (s.name === seriesName ? updateSeries : s))
+        this.database.updateLootboxSeries(updateSeries)
+    }
+
     equalItems = (item1: IUserLootItem, item2: IUserLootItem) => item1.name === item2.name && item1.color === item2.color
 
     private incrementItemCount(items: IUserLootItem[], newItem: IUserLootItem) {
         return items.map((item) => (this.equalItems(item, newItem) ? { ...item, amount: item.amount + newItem.amount } : item))
     }
 
-    private removeItemsFromUser(items: IUserLootItem[], user: MazariniUser): IUserLootItem[] {
-        let filtered = user.collectables
-        items.forEach((item) => {
-            filtered = filtered.map((el) => (this.collectableToString(el) === this.collectableToString(item) ? { ...el, amount: el.amount - item.amount } : el))
-        })
-        return filtered.filter((item) => item.amount > 0)
-    }
-
-    private removeItemsFromUserV2(itemsToRemove: IUserLootItem[], user: MazariniUser) {
+    private removeItemsFromUser(itemsToRemove: IUserLootItem[], user: MazariniUser) {
         let items = user.loot[itemsToRemove[0].series][`inventory`][itemsToRemove[0].rarity]['items'] as IUserLootItem[]
         itemsToRemove.forEach((item) => {
             items = items.map((el) => (this.equalItems(el, item) ? { ...el, amount: el.amount - item.amount } : el))
@@ -416,22 +411,6 @@ export class LootboxCommands extends AbstractCommands {
         user.loot[itemsToRemove[0].series][`inventory`][itemsToRemove[0].rarity]['img'] = ''
         items.filter((item) => item.amount > 0)
         user.loot[itemsToRemove[0].series][`inventory`][itemsToRemove[0].rarity]['items'] = items
-    }
-
-    private registerTradeOnUser(itemsWithTradedRemoved: IUserLootItem[], rewardedItem: IUserLootItem, user: MazariniUser) {
-        const itemAlreadyCollected = itemsWithTradedRemoved.some(
-            (collectible) => this.collectableToString(collectible) === this.collectableToString(rewardedItem)
-        )
-        if (itemAlreadyCollected) {
-            itemsWithTradedRemoved = itemsWithTradedRemoved.map((el) =>
-                this.collectableToString(el) === this.collectableToString(rewardedItem) ? { ...el, amount: el.amount + rewardedItem.amount } : el
-            )
-        } else {
-            itemsWithTradedRemoved = itemsWithTradedRemoved ?? new Array<IUserLootItem>()
-            itemsWithTradedRemoved.push(rewardedItem)
-        }
-        user.collectables = itemsWithTradedRemoved
-        this.client.database.updateUser(user)
     }
 
     private collectableToString(item: IUserLootItem) {
@@ -470,13 +449,13 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private async getLootApplicationEmoji(item: IUserLootItem) {
-        const emojiName = `${item.series}_${item.name}_${item.color.charAt(0)}`.toLowerCase()
+        let emojiName = `${item.series}_${item.name}_${item.color.charAt(0)}`.toLowerCase()
+        if (item.rarity === ItemRarity.Unobtainable) emojiName = `${item.series}_unobtainable`
         return await EmojiHelper.getApplicationEmoji(emojiName, this.client)
     }
 
     private getGifPath(item: IUserLootItem): string {
-        console.log(item)
-
+        if (item.rarity === ItemRarity.Unobtainable) return `loot/${item.series}/unobtainable.webp`
         let fileFormat = '.webp'
         if (['mazarini', 'sw'].includes(item.series)) fileFormat = '.gif'
         return `loot/${item.series}/${item.name}_${item.color}${fileFormat}`
@@ -498,19 +477,55 @@ export class LootboxCommands extends AbstractCommands {
         interaction.respond(series.filter((series) => series.name.toLowerCase().includes(input)).map((series) => ({ name: series.name, value: series.name })))
     }
 
-    private async printInventory(interaction: ChatInputCommandInteraction<CacheType>) {
-        const user = await this.client.database.getUser(interaction.user.id)
+    private async printInventory(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+        if (interaction.isButton()) interaction.deferUpdate()
+        let user = await this.client.database.getUser(interaction.user.id)
         const seriesParam = this.resolveLootSeries(user, interaction)
         const series = await this.getSeriesOrDefault(seriesParam)
-        const img = await this.imageGenerator.generateImageForCollectables(
-            user.collectables
-                ?.filter((item) => item.series === series.name)
-                .sort((a, b) => `${a.name}_${this.getColorOrder(a.color)}`.localeCompare(`${b.name}_${this.getColorOrder(b.color)}`))
-        )
-        const file = new AttachmentBuilder(img, { name: 'inventory.png' })
-        this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, undefined, [file])
+        let attempts = 0
+        const intervalId = setInterval(async () => {
+            attempts++
+            if (attempts > 20) {
+                this.messageHelper.replyToInteraction(interaction, 'Klarte ikke å hente inventory', { hasBeenDefered: true })
+                clearInterval(intervalId)
+            }
+            if (!this.userHasInventoryInQueue(user.id, seriesParam)) {
+                clearInterval(intervalId)
+                user = await this.client.database.getUser(interaction.user.id)
+                if (!(await this.verifyUserHasInventoryImages(user, series.name))) {
+                    return this.printInventory(interaction)
+                }
+                const unobtainableSeries = (series.unobtainableHolder ?? '') === user.id ? series.name : ''
+                const img = await this.imageGenerator.stitchInventory(user.loot[series.name].inventory, unobtainableSeries)
+                const file = new AttachmentBuilder(img, { name: 'inventory.png' })
+                const refreshBtn = refreshInventoryBtn(user.id, series.name)
+                if (interaction.isButton()) {
+                    interaction.message.edit({ files: [file], components: [refreshBtn] })
+                }
+                this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, [refreshBtn], [file])
+            }
+        }, 1500)
     }
 
+    private userHasInventoryInQueue(userid: string, series: string) {
+        return this.inventoryUpdateQueue.some((update) => update.userId === userid && update.series === series)
+    }
+
+    private async verifyUserHasInventoryImages(user: MazariniUser, series: string) {
+        let inventoryComplete = true
+        const rarities = [ItemRarity.Common, ItemRarity.Rare, ItemRarity.Epic, ItemRarity.Legendary]
+        for (const rarity of rarities) {
+            const url = user.loot[series].inventory[rarity].img
+            if (!url || url.length === 0) {
+                inventoryComplete = false
+                await this.generateInventoryParts(user, series, [rarity])
+            }
+        }
+        return inventoryComplete
+    }
+
+    /* LEAVE THIS FOR NOW - can revisit if containers can set image size
+    
     private async printInventoryV2(interaction: ChatInputCommandInteraction<CacheType>) {
         const user = await this.client.database.getUser(interaction.user.id)
         const seriesParam = this.resolveLootSeries(user, interaction)
@@ -529,7 +544,7 @@ export class LootboxCommands extends AbstractCommands {
         if (notUpdated && notUpdated.length > 0) this.updateInventoryAfterSent(container, series.name, notUpdated, msg, user.id)
     }
 
-    // Needed for file approach
+    Needed for file approach
     private async getInventoryAttachements(rarities: string[], inventory: IUserLootSeriesInventory): Promise<AttachmentBuilder[]> {
         const attachments = new Array<AttachmentBuilder>()
         for (const rarity of rarities) {
@@ -580,17 +595,16 @@ export class LootboxCommands extends AbstractCommands {
             if (attempts > 5) clearInterval(intervalId)
         }, 5000)
     }
+    */
 
     private async generateInventoryParts(user: MazariniUser, series: string, rarities: Array<ItemRarity>) {
-        console.log(rarities)
-
+        const updates: InventoryUpdate[] = rarities.map((rarity) => ({ userId: user.id, series: series, rarity: rarity }))
+        this.inventoryUpdateQueue.push(...updates)
         for (const rarity of rarities) {
-            const items = user.loot[series]['inventory'][rarity]['items'] as IUserLootItem[]
-            items.sort((a, b) => `${a.name}_${this.getColorOrder(a.color)}`.localeCompare(`${b.name}_${this.getColorOrder(b.color)}`))
-            const img = await this.imageGenerator.generateImageForCollectablesRarity(items, series, rarity)
-            this.database.uploadUserInventory(user, `test/inventory/${series}/${rarity}.png`, img) //TODO: REMOVE "test/"
+            const img = await this.imageGenerator.generateImageForCollectablesRarity(user, series, rarity)
+            await this.database.uploadUserInventory(user, `${series}/${rarity}.png`, img)
         }
-        this.updateUserInventoryLinks(user.id, series, rarities)
+        await this.updateUserInventoryLinks(user.id, series, rarities)
     }
 
     private async updateUserInventoryLinks(userId: string, series: string, rarities: Array<ItemRarity>) {
@@ -599,7 +613,16 @@ export class LootboxCommands extends AbstractCommands {
             const imgUrl = await this.database.getUserInventory(user, series, rarity)
             user.loot[series]['inventory'][rarity]['img'] = imgUrl
         }
-        this.database.updateUser(user)
+        await this.database.updateUser(user)
+        const updates: InventoryUpdate[] = rarities.map((rarity) => ({ userId: user.id, series: series, rarity: rarity }))
+        this.removeInventoryUpdatesFromQueue(updates)
+    }
+
+    private removeInventoryUpdatesFromQueue(updates: InventoryUpdate[]) {
+        for (const update of updates) {
+            const index = this.inventoryUpdateQueue.findIndex((obj) => Object.entries(update).every(([key, value]) => (obj as any)[key] === value))
+            if (index !== -1) this.inventoryUpdateQueue.splice(index, 1)
+        }
     }
 
     private getColorOrder(color: ItemColor) {
@@ -810,8 +833,8 @@ export class LootboxCommands extends AbstractCommands {
         }
         const sh = new LootStatsHelper(user.loot[rewardedItem.series].stats)
         sh.registerTrade(pendingTrade.tradingIn.length === 5)
-        this.removeItemsFromUserV2(pendingTrade.tradingIn, user)
-        this.registerItemOnUserV2(user, rewardedItem)
+        this.removeItemsFromUser(pendingTrade.tradingIn, user)
+        this.registerItemOnUser(user, rewardedItem)
         this.generateInventoryParts(user, pendingTrade.series, [...new Set([pendingTrade.receiving, pendingTrade.tradingIn[0].rarity])])
         this.revealCollectable(interaction, rewardedItem)
         this.deletePendingTrade(interaction)
@@ -862,7 +885,7 @@ export class LootboxCommands extends AbstractCommands {
         const cmd = interaction.options.getSubcommand()
         if (!cmdGroup && cmd === 'box') this.openAndRegisterLootbox(interaction)
         else if (!cmdGroup && cmd === 'chest') this.openAndRegisterLootChest(interaction)
-        else if (!cmdGroup && cmd === 'inventory') this.printInventoryV2(interaction)
+        else if (!cmdGroup && cmd === 'inventory') this.printInventory(interaction)
         else if (cmdGroup && cmdGroup === 'trade') this.tradeItems(interaction)
     }
 
@@ -877,7 +900,7 @@ export class LootboxCommands extends AbstractCommands {
 
     // eslint-disable-next-line require-await
     async onTimedEvent(): Promise<IOnTimedEvent> {
-        return { daily: [() => this.resetPendingChests()], weekly: [], hourly: [] }
+        return { daily: [() => this.resetPendingChests(), () => this.incrementUnobtainable()], weekly: [], hourly: [] }
     }
 
     private resetPendingChests() {
@@ -886,6 +909,21 @@ export class LootboxCommands extends AbstractCommands {
             if (msg) msg.delete()
         })
         this.pendingChests.clear()
+        return true
+    }
+
+    private async incrementUnobtainable() {
+        const allSeries = (await this.getSeries()).filter((series) => series.hasUnobtainable)
+        for (const series of allSeries) {
+            const holder = series.unobtainableHolder
+            if (holder && holder.length > 0) {
+                const user = await this.database.getUser(holder)
+                if (user) {
+                    user.loot[series.name].stats.achievements.daysWithUnobtainable++
+                    this.database.updateUser(user)
+                }
+            }
+        }
         return true
     }
 
@@ -934,6 +972,12 @@ export class LootboxCommands extends AbstractCommands {
                             this.handleChestReDeal(rawInteraction)
                         },
                     },
+                    {
+                        commandName: 'REFRESH_INVENTORY',
+                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                            this.printInventory(rawInteraction)
+                        },
+                    },
                 ],
             },
         }
@@ -977,6 +1021,18 @@ const reDealChestButton = (chestId: string) => {
         disabled: false,
         type: 2,
     })
+}
+
+const refreshInventoryBtn = (userId: string, series: string) => {
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder({
+            custom_id: `REFRESH_INVENTORY;${userId};;;${series}`,
+            style: ButtonStyle.Secondary,
+            label: `Refresh`,
+            disabled: false,
+            type: 2,
+        })
+    )
 }
 
 const effects: Array<IEffectItem> = [
