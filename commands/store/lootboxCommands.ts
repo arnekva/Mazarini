@@ -161,8 +161,8 @@ export class LootboxCommands extends AbstractCommands {
 
     private resolveLootQuality(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, pendingChest?: IPendingChest) {
         if (pendingChest) return pendingChest.quality
-        else if (interaction.isChatInputCommand()) return interaction.options.get('quality')?.value as string
-        else if (interaction.isButton()) return interaction.customId.split(';')[2]
+        else if (interaction.isChatInputCommand()) return (interaction.options.get('quality')?.value as string) ?? 'basic'
+        else if (interaction.isButton()) return interaction.customId.split(';')[2] ?? 'basic'
     }
 
     private isArneChest(items: IUserLootItem[]) {
