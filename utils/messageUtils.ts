@@ -11,7 +11,7 @@ export namespace MessageUtils {
         const msgId = message.id
         leetReg.lastIndex = 0
         eightReg.lastIndex = 0
-        if (leetReg.test(msgId)) return '1337'
+        if (leetReg.test(msgId.substring(6))) return '1337'
         return 'none'
     }
 
