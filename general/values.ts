@@ -74,6 +74,7 @@ export type GameValuesType = {
         autoCompleteDiceDefault: number
         /** Maximum amount of games printed in deathroll list */
         printCurrentStateMaxFields: number
+        canGetFreeBlackackRedeal: boolean
     }
     moreOrLess: {
         tier1Reward: number
@@ -112,6 +113,9 @@ export type GameValuesType = {
     blackjack: {
         deathrollRefundEnabled: boolean
     }
+    wordle: {
+        reward: number
+    }
 }
 
 export const GameValues: GameValuesType = {
@@ -127,21 +131,21 @@ export const GameValues: GameValuesType = {
         ],
         potSkip: { diceTarget: 200, roll: 69 },
         addToPot: {
-            athStreakMultiplier: 1500,
+            athStreakMultiplier: 500,
             streakMultiplier: 1000,
-            biggestLossMultiplier: 35,
+            biggestLossMultiplier: 20,
             largeNumberLossMultiplier: 3,
             minReward: 100,
         },
         jokes: {
             nineElevenRemove: 2977,
-            nineElevenChance: 0.65,
+            nineElevenChance: 0.5,
         },
         checkForReward: {
-            sameDigitsMultiplier: 5,
-            allDigitsExceptFirstAreZeroMultiplier: 5,
-            diceTargetMultiplier: 10,
-            roll2Reward: 20,
+            sameDigitsMultiplier: 2.5,
+            allDigitsExceptFirstAreZeroMultiplier: 2.5,
+            diceTargetMultiplier: 5,
+            roll2Reward: 5,
             doublePotDepositMultiplier: 2,
             minRollForMultiplier: 100,
             minPotForDouble: 1000,
@@ -156,8 +160,9 @@ export const GameValues: GameValuesType = {
         getRollReward: {
             specialNumbers: [
                 1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 669, 690, 8008, 6969, 420, 123, 1234, 12345, 2469, 1984, 2024, 2025, 2012, 1945, 2468, 1359,
+                6900, 2026,
             ],
-            multiplier: 5,
+            multiplier: 2.5,
         },
         tomasa: {
             baseChance: 0.001,
@@ -167,20 +172,21 @@ export const GameValues: GameValuesType = {
             winOn: 69,
             minTarget: 10000,
             noThanksThreshold: 10000,
-            noThanksBonus: 5000,
+            noThanksBonus: 2500,
         },
         autoCompleteDiceDefault: 10002,
         printCurrentStateMaxFields: 25,
+        canGetFreeBlackackRedeal: false,
     },
 
     // More or Less
     moreOrLess: {
-        tier1Reward: 700, // 1-10
-        tier2Reward: 500, // 11-20
-        tier3Reward: 300, // 21-30
-        tier4Reward: 200, // 31-40
-        tier5Reward: 100, // 41-50
-        tier6Reward: 50, // 51+
+        tier1Reward: 200, // 1-10
+        tier2Reward: 150, // 11-20
+        tier3Reward: 100, // 21-30
+        tier4Reward: 75, // 31-40
+        tier5Reward: 50, // 41-50
+        tier6Reward: 25, // 51+
     },
 
     // Spinner
@@ -199,16 +205,16 @@ export const GameValues: GameValuesType = {
             { value: 10, weight: 0.31 },
         ],
         rewards: {
-            2: 75,
-            3: 110,
-            4: 250,
-            5: 500,
-            6: 800,
-            7: 1600,
-            8: 3000,
-            9: 6000,
-            10: 12000,
-            10.59: 30000, // Special case for 10 min, 59 sec
+            2: 50,
+            3: 75,
+            4: 100,
+            5: 125,
+            6: 300,
+            7: 500,
+            8: 800,
+            9: 1250,
+            10: 5000,
+            10.59: 20000, // Special case for 10 min, 59 sec
         },
     },
 
@@ -216,8 +222,8 @@ export const GameValues: GameValuesType = {
     daily: {
         baseReward: 500,
         streakMultiplier: 1.0, // Multiplies with streak
-        streak4Reward: 'dond',
-        streak7Reward: 'chest',
+        streak4Reward: 500,
+        streak7Reward: 'box',
         // Add more as needed
     },
 
@@ -262,7 +268,7 @@ export const GameValues: GameValuesType = {
 
     // Deal Or No Deal
     dealOrNoDeal: {
-        effectItemChance: 40, // percent chance to get an effect item
+        effectItemChance: 0, // percent chance to get an effect item
         offerBase: 0.5, // base offer percentage
         offerPerRound: 0.05, // offer percentage increase per round
     },
@@ -270,5 +276,8 @@ export const GameValues: GameValuesType = {
     // Blackjack
     blackjack: {
         deathrollRefundEnabled: true, // If true, lostAddedBack is shown and refund is applied
+    },
+    wordle: {
+        reward: 2000,
     },
 }

@@ -1,0 +1,95 @@
+{
+    "slug": "norwegianCities",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/b/bc/No-map.png",
+    "title": "Største norske byer",
+    "seoTitle": "N/A",
+    "description": "Gjett hvilke norske byer som er størst basert på innbyggertall.",
+    "tags": ["CUSTOM_MAZARINI_GAME"],
+    "game": {
+        "strings": {
+            "verb": "har",
+            "valueTitle": "innbyggere",
+            "buttonMore": "Flere",
+            "buttonLess": "Færre"
+        },
+        "data": [
+            ["Oslo", 1082575, "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Oslo_view_from_Ekeberg.jpg/250px-Oslo_view_from_Ekeberg.jpg"],
+            ["Bergen", 267117, "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Fl%C3%B8yen_view_Bergen.jpg/250px-Fl%C3%B8yen_view_Bergen.jpg"],
+            [
+                "Stavanger/Sandnes",
+                229911,
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Stavanger_harbour_panorama.jpg/250px-Stavanger_harbour_panorama.jpg"
+            ],
+            ["Trondheim", 194860, "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Trondheim_panorama.jpg/250px-Trondheim_panorama.jpg"],
+            [
+                "Fredrikstad/Sarpsborg",
+                118952,
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Fredrikstad_from_air.jpg/250px-Fredrikstad_from_air.jpg"
+            ],
+            ["Drammen", 110503, "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Drammen_river.jpg/250px-Drammen_river.jpg"],
+            ["Porsgrunn/Skien", 93941, "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Skien_center.jpg/250px-Skien_center.jpg"],
+            ["Kristiansand", 64057, "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Kristiansand_harbour.jpg/250px-Kristiansand_harbour.jpg"],
+            ["Ålesund", 55386, "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/%C3%85lesund-28082018-8.jpg/250px-%C3%85lesund-28082018-8.jpg"],
+            [
+                "Tønsberg",
+                52944,
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/T%C3%B8nsberg_T%C3%B8nsberg_T%C3%B8n.jpg/250px-T%C3%B8nsberg_T%C3%B8nsberg_T%C3%B8n.jpg"
+            ],
+            ["Moss", 49428, "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Moss%2C_Norway.jpg/250px-Moss%2C_Norway.jpg"],
+            ["Sandefjord", 46453, "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Bytunet2.JPG/250px-Bytunet2.JPG"],
+            ["Haugesund", 46359, "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Haugesund.jpg/250px-Haugesund.jpg"],
+            ["Arendal", 44856, "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Arendal_Utsikt_02.JPG/250px-Arendal_Utsikt_02.JPG"],
+            ["Bodø", 42831, "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Bod%C3%B8_2006.jpg/250px-Bod%C3%B8_2006.jpg"],
+            ["Tromsø", 41915, "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Fjellheisen_Aussicht_Stadt.jpg/250px-Fjellheisen_Aussicht_Stadt.jpg"],
+            ["Hamar", 29605, "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Hamar_from_air.jpg/250px-Hamar_from_air.jpg"],
+            [
+                "Gjøvik",
+                28494,
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Gj%C3%B8vik_sett_fra_Nordlia.jpg/250px-Gj%C3%B8vik_sett_fra_Nordlia.jpg"
+            ],
+            ["Larvik", 27136, "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Larvik_%2814387497427%29.jpg/250px-Larvik_%2814387497427%29.jpg"],
+            ["Halden", 26126, "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Halden_Fra_Festningen.jpg/250px-Halden_Fra_Festningen.jpg"],
+
+            ["Askøy", 24280, "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Kleppest%C3%B8.jpg/250px-Kleppest%C3%B8.jpg"],
+            ["Jessheim", 23918, "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Jessheim_IMG_5926.JPG/250px-Jessheim_IMG_5926.JPG"],
+            ["Kongsberg", 23529, "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Kongsberg_Vestsida.jpg/250px-Kongsberg_Vestsida.jpg"],
+            ["Molde", 21854, "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Molde_seilet_cruise.JPG/250px-Molde_seilet_cruise.JPG"],
+            ["Ski", 21434, null],
+            ["Harstad", 21289, "https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Harstad2.jpg/250px-Harstad2.jpg"],
+            ["Lillehammer", 21263, "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/LillehammerDSC01504.JPG/250px-LillehammerDSC01504.JPG"],
+            [
+                "Horten",
+                20859,
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Horten_station_and_downtown_1964-09-30.tif/lossy-page1-130px-Horten_station_and_downtown_1964-09-30.tif.jpg"
+            ],
+            ["Korsvik", 19405, "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/S%C3%B8m%2C_Kristiansand.jpg/250px-S%C3%B8m%2C_Kristiansand.jpg"],
+            ["Mo i Rana", 18755, "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Mo_i_Rana.jpg/250px-Mo_i_Rana.jpg"],
+            [
+                "Tromsdalen",
+                18202,
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Tromso_northern_centre_tromsdalen.jpg/250px-Tromso_northern_centre_tromsdalen.jpg"
+            ],
+            ["Kristiansund", 18103, "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Rapp-P7130121.JPG/250px-Rapp-P7130121.JPG"],
+            ["Hønefoss", 16844, "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Honefoss_flyfoto3.jpg/250px-Honefoss_flyfoto3.jpg"],
+            ["Alta", 15931, ""],
+            [
+                "Elverum",
+                15632,
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Elverum_%28%C2%ABLeiret%C2%BB%29_mai_2022.jpg/250px-Elverum_%28%C2%ABLeiret%C2%BB%29_mai_2022.jpg"
+            ],
+            [
+                "Råholt",
+                15319,
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Eidsvoll_IMG_6244_R%C3%A5holt_E6.JPG/250px-Eidsvoll_IMG_6244_R%C3%A5holt_E6.JPG"
+            ],
+            ["Askim", 15089, ""],
+            ["Osøyro", 14621, "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/TettstedetBergen.jpg/250px-TettstedetBergen.jpg"],
+            ["Leirvik", 14507, "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Leirvik_Sentrum.jpg/250px-Leirvik_Sentrum.jpg"],
+            ["Grimstad", 14390, "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/FV420_Grimstad.jpg/250px-FV420_Grimstad.jpg"],
+            ["Narvik", 14051, "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Narvik_from_above.JPG/250px-Narvik_from_above.JPG"],
+            ["Vennesla", 13803, "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Vennesla.jpg/250px-Vennesla.jpg"],
+            ["Drøbak", 13628, "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Dr%C3%B8bak_2014_1.JPG/250px-Dr%C3%B8bak_2014_1.JPG"],
+            ["Stjørdalshalsen", 13596, "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Stjoerdal_crop.jpg/250px-Stjoerdal_crop.jpg"]
+        ]
+    }
+}

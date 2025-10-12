@@ -512,7 +512,13 @@ export class Deathroll extends AbstractCommands {
     async onTimedEvent(): Promise<IOnTimedEvent> {
         return {
             daily: [],
-            weekly: [],
+            weekly: [
+                () => {
+                    this.drGames = []
+                    this.saveActiveGamesToDatabase()
+                    return true
+                },
+            ],
             hourly: [
                 () => {
                     this.saveActiveGamesToDatabase()

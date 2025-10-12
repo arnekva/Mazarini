@@ -7,6 +7,7 @@ import { MentionUtils } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { UserUtils } from '../utils/userUtils'
+import { GameValues } from './values'
 
 export class MessageChecker {
     private client: MazariniClient
@@ -121,7 +122,7 @@ export class MessageChecker {
 
         if (lowestScoringUsers) {
             const { score, userIds, allUserIds } = lowestScoringUsers
-            const chipsPerWinner = Math.floor(5000 / userIds.length)
+            const chipsPerWinner = Math.min(Math.floor(GameValues.wordle.reward / userIds.length), 900)
             const userMentions = userIds.map((user) => MentionUtils.mentionUser(user.replace(/<@|>/g, ''))).join(' ')
             const response = `Det er ${userIds.length} bruker${userIds.length > 1 ? 'e' : ''} som har fått laveste poengsum (${score}/6): ${userMentions}. ${
                 userMentions.length > 1 ? 'De' : 'Han'

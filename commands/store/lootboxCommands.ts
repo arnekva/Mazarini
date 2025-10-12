@@ -1037,6 +1037,11 @@ const refreshInventoryBtn = (userId: string, series: string) => {
 
 const effects: Array<IEffectItem> = [
     {
+        label: 'redeal_chest',
+        message: '',
+        effect: () => {},
+    },
+    {
         label: '10 spins',
         message: '10 ekstra /spin rewards!',
         effect: (user: MazariniUser) => {
@@ -1118,11 +1123,6 @@ const effects: Array<IEffectItem> = [
     },
     {
         label: 'deal_or_no_deal',
-        message: '',
-        effect: () => {},
-    },
-    {
-        label: 'redeal_chest',
         message: '',
         effect: () => {},
     },

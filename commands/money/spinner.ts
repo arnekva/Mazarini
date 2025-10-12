@@ -47,7 +47,7 @@ export class Spinner extends AbstractCommands {
                 text += winnings > 0 && canWinMore ? `\nDu får ${winnings} chips.` : ''
             }
 
-            this.messageHelper.replyToInteraction(interaction, text, { ephemeral: true })
+            this.messageHelper.replyToInteraction(interaction, text)
         }
     }
 

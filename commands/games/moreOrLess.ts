@@ -14,8 +14,9 @@ import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
 
 import { randomUUID } from 'crypto'
-import { IMoreOrLess } from '../../interfaces/database/databaseInterface'
+import { IMoreOrLess, LootboxQuality } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement, IOnTimedEvent } from '../../interfaces/interactionInterface'
+import { CustomMOLHandler } from '../../res/games/moreOrLess/CustomMOLHandler'
 import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { FetchUtils } from '../../utils/fetchUtils'
@@ -23,7 +24,7 @@ import { MentionUtils, ThreadIds } from '../../utils/mentionUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { TextUtils } from '../../utils/textUtils'
 import { UserUtils } from '../../utils/userUtils'
-import { DealOrNoDeal, DonDQuality } from './dealOrNoDeal'
+import { LootboxCommands } from '../store/lootboxCommands'
 
 export interface IMoreOrLessData {
     subject: string
@@ -66,9 +67,12 @@ export class MoreOrLess extends AbstractCommands {
                 },
             })
         ).json()
-        const unplayed = games.filter((game) => !previous.includes(game.slug))
-        const game: IMoreOrLess = unplayed && unplayed.length > 0 ? RandomUtils.getRandomItemFromList(unplayed) : RandomUtils.getRandomItemFromList(games)
+        games.push(...CustomMOLHandler.getAllCustomGames())
 
+        const unplayed = games.filter((game) => !previous.includes(game.slug))
+
+        const game: IMoreOrLess = unplayed && unplayed.length > 0 ? RandomUtils.getRandomItemFromList(unplayed) : RandomUtils.getRandomItemFromList(games)
+        if (game.tags?.includes(CustomMOLHandler.customGameTag)) return game
         const dataUrl = `https://api.moreorless.io/en/games/${game.slug}.json`
         const check: any = (
             await (
@@ -80,6 +84,7 @@ export class MoreOrLess extends AbstractCommands {
                 })
             ).json()
         ).game
+
         if (check.data[0].length > 4) {
             return MoreOrLess.getNewMoreOrLessGame([...previous, game.slug])
         } else {
@@ -90,17 +95,22 @@ export class MoreOrLess extends AbstractCommands {
     private async fetchGameData() {
         const storage = await this.client.database.getStorage()
         this.game = storage.moreOrLess.current ?? (await MoreOrLess.getNewMoreOrLessGame(storage.moreOrLess.previous ?? []))
-        const url = `https://api.moreorless.io/en/games/${this.game.slug}.json`
-        const game: any = (
-            await (
-                await fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        Accept: 'application/json',
-                    },
-                })
-            ).json()
-        ).game
+        let game: any = {}
+        if (this.game.tags?.includes(CustomMOLHandler.customGameTag)) {
+            game = CustomMOLHandler.getJSONByName(this.game.slug as any).game
+        } else {
+            const url = `https://api.moreorless.io/en/games/${this.game.slug}.json`
+            game = (
+                await (
+                    await fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            Accept: 'application/json',
+                        },
+                    })
+                ).json()
+            ).game
+        }
         const data: IMoreOrLessData[] = game.data
             .filter((item) => item.length <= 4)
             .map((item) => {
@@ -262,12 +272,12 @@ export class MoreOrLess extends AbstractCommands {
         if (completedNow && !completedPreviously) {
             const buttons = new ActionRowBuilder<ButtonBuilder>()
 
-            let dondQuality = DonDQuality.Basic
-            if (game.totalQuestions > 100) dondQuality = DonDQuality.Elite
-            else if (game.totalQuestions > 50) dondQuality = DonDQuality.Premium
+            let boxQuality = LootboxQuality.Basic
+            if (game.totalQuestions > 100) boxQuality = LootboxQuality.Elite
+            else if (game.totalQuestions > 50) boxQuality = LootboxQuality.Premium
 
-            const dond = DealOrNoDeal.getDealOrNoDealButton(user.id, dondQuality)
-            buttons.addComponents(dond)
+            const boxButton = LootboxCommands.getLootRewardButton(user.id, boxQuality).components
+            buttons.addComponents(boxButton)
             this.messageHelper.sendMessage(ThreadIds.MORE_OR_LESS, {
                 text: `Gz med fullført more or less ${MentionUtils.mentionUser(user.id)}`,
                 components: [buttons],

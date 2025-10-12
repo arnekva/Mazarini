@@ -114,6 +114,11 @@ export class WeeklyJobs {
         return 'success'
     }
 
+    private async deleteTerningGames(){
+        await this.client.database.saveDeathrollGames([])
+     
+    }
+
     private async createBackup(): Promise<JobStatus> {
         const db = await this.client.database.createBackup()
         return 'success'
