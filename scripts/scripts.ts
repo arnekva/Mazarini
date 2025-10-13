@@ -1,4 +1,4 @@
-import { ApplicationEmojiManager, AttachmentBuilder } from 'discord.js'
+import { ApplicationEmojiManager } from 'discord.js'
 import { MazariniClient } from '../client/MazariniClient'
 import { ImageGenerationHelper } from '../helpers/imageGenerationHelper'
 import {
@@ -53,14 +53,13 @@ export class Scripts {
 
     public async makeRevealGif() {
         const igh = new ImageGenerationHelper(this.client)
-        // const allItems: gifTemplate[] = [...common, ...rare, ...epic, ...legendary]
-        const allItems = [legendary[18]]
+        const allItems: gifTemplate[] = [...common, ...rare, ...epic, ...legendary]
         for (const item of allItems) {
             console.log(item.rarity, ' - ', item.name)
             const lootItem = { name: item.name, series: 'lotr', rarity: item.rarity, color: ItemColor.None, amount: 1 }
             const reveal = await igh.generateRevealGifForCollectable(lootItem, item.background)
-            return new AttachmentBuilder(reveal, { name: 'reveal.webp' })
-            // this.client.database.uploadLootGif(`loot/lotr/${item.name}_none.webp`, reveal)
+            this.client.database.uploadLootGif(`loot/lotr/${item.name}_none.webp`, reveal)
+            // return new AttachmentBuilder(reveal, { name: 'reveal.webp' })
             // this.client.database.uploadLootGif(`loot/lotr/unobtainable.webp`, reveal)
         }
     }
@@ -69,8 +68,7 @@ export class Scripts {
         const appEmoji: ApplicationEmojiManager = this.client.application.emojis
         const appEmojis = await appEmoji.fetch()
         const igh = new ImageGenerationHelper(this.client)
-        // const allItems: gifTemplate[] = [...common, ...rare, ...epic, ...legendary]
-        const allItems = [legendary[18]]
+        const allItems: gifTemplate[] = [...common, ...rare, ...epic, ...legendary]
         for (const item of allItems) {
             console.log(item.rarity, ' - ', item.name)
             const name = `lotr_${item.name}_n`
@@ -321,7 +319,7 @@ export interface gifTemplate {
 }
 
 const common: gifTemplate[] = [
-    // { name: 'barlinman_butterbur', background: 'bree', rarity: ItemRarity.Common },
+    { name: 'barlinman_butterbur', background: 'bree', rarity: ItemRarity.Common },
     { name: 'pj_cameo', background: 'bree', rarity: ItemRarity.Common },
     { name: 'grima_wormtongue', background: 'isengard', rarity: ItemRarity.Common },
     { name: 'sharku', background: 'isengard', rarity: ItemRarity.Common },

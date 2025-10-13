@@ -278,6 +278,6 @@ export const GameValues: GameValuesType = {
         deathrollRefundEnabled: false, // If true, lostAddedBack is shown and refund is applied
     },
     wordle: {
-        reward: 2000,
+        reward: 2500,
     },
 }
