@@ -26,8 +26,8 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '## <:chest_open:1330856644430790709> Ny Loot serie - The Lord of the Loot <:chest_open:1330856644430790709>',
-                '   * Ventetiden er over - LOTL har kommet og fører med seg en rekke større endringer.',
+                '## <:chest_open:1330856644430790709> The Lord of the Loot <:chest_open:1330856644430790709>',
+                '   * Ventetiden er over - en ny loot serie har kommet og fører med seg en rekke større endringer.',
                 '   * Denne serien består utelukkende av unik loot - her er det ingen farge-varianter.',
                 '   * Det lagres omfattende statistikk slik at man ved slutten av en serie nå kan se hva som krevdes for å fullføre den.',
                 '### :scroll: Inventory',
