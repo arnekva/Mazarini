@@ -17,6 +17,7 @@ import {
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { MazariniClient } from '../../client/MazariniClient'
+import { GameValues } from '../../general/values'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
 import { LootStatsHelper } from '../../helpers/statsHelper'
@@ -125,7 +126,7 @@ export class LootboxCommands extends AbstractCommands {
         if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction)) return
         const rewardedItem = await this.calculateRewardItem(box, seriesObj, user)
         this.registerItemOnUser(user, rewardedItem)
-        this.generateInventoryParts(user, rewardedItem.series, [rewardedItem.rarity])
+        if (!(rewardedItem.rarity === ItemRarity.Unobtainable)) this.generateInventoryParts(user, rewardedItem.series, [rewardedItem.rarity])
         this.revealCollectable(interaction, rewardedItem, user.userSettings.lootReactionTimer)
     }
 
@@ -146,7 +147,7 @@ export class LootboxCommands extends AbstractCommands {
         chestItems.push(await this.calculateRewardItem(box, seriesObj, user))
         this.database.updateUser(user) //update in case of effect change
         const existingChestId = pendingChest && interaction.isButton() ? interaction.customId.split(';')[1] : undefined
-        this.revealLootChest(interaction, chestItems, quality, seriesObj.name, existingChestId)
+        this.revealLootChest(interaction, chestItems, quality, seriesObj, existingChestId)
     }
 
     private resolveLootSeries(
@@ -173,7 +174,7 @@ export class LootboxCommands extends AbstractCommands {
         interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>,
         items: IUserLootItem[],
         quality: string,
-        series: string,
+        series: ILootSeries,
         existingChestId?: string
     ) {
         const chestEmoji = await EmojiHelper.getEmoji('chest_closed', interaction)
@@ -187,23 +188,28 @@ export class LootboxCommands extends AbstractCommands {
         for (const item of items) {
             const itemId = randomUUID()
             chestItems.set(itemId, item)
-            const btn = lootChestButton(chestId, itemId, TextUtils.capitalizeFirstLetter(item.rarity))
-            if (item.color !== ItemColor.None) {
+            const btn = lootChestButton(chestId, itemId)
+            if (!series.hasColor) {
+                const emoji = (await EmojiHelper.getApplicationEmoji(`${item.rarity}_button`, this.client)).emojiObject
+                btn.setEmoji({ name: emoji.name, id: emoji.id })
+                btn.setStyle(ButtonStyle.Secondary)
+            } else if (item.color !== ItemColor.None) {
                 const color = this.getItemColorBadge(item)
                 const badge = EmojiHelper.getGuildEmoji(color, interaction)
                 btn.setEmoji({ name: badge.name, id: badge.id })
             }
+            if (series.hasColor) btn.setLabel(TextUtils.capitalizeFirstLetter(item.rarity))
             buttons.addComponents(btn)
         }
         let effect: IEffectItem = undefined
         if (Math.random() < this.getChestEffectOdds(quality)) {
-            effect = RandomUtils.getRandomItemFromList(effects)
+            effect = RandomUtils.getRandomItemFromList(effects.filter((effect) => series.hasColor || !effect.label.includes('color')))
             let btn: ButtonBuilder = undefined
             if (effect.label === 'deal_or_no_deal') {
                 btn = DealOrNoDeal.getDealOrNoDealButton(interaction.user.id)
             } else if (effect.label === 'redeal_chest') {
                 btn = reDealChestButton(chestId)
-            } else btn = lootChestButton(chestId, 'effect', effect.label)
+            } else btn = lootChestButton(chestId, 'effect').setLabel(effect.label)
             buttons.addComponents(btn)
         }
         let pendingChest: IPendingChest = undefined
@@ -215,15 +221,21 @@ export class LootboxCommands extends AbstractCommands {
             await pendingChest.message.edit({ embeds: [embed], components: [buttons] })
         } else {
             const msg = await this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true }, [buttons])
-            pendingChest = { userId: interaction.user.id, quality: quality, series: series, items: chestItems, effect: effect, message: msg, buttons: buttons }
+            pendingChest = {
+                userId: interaction.user.id,
+                quality: quality,
+                series: series.name,
+                items: chestItems,
+                effect: effect,
+                message: msg,
+                buttons: buttons,
+            }
         }
         this.pendingChests.set(chestId, pendingChest)
     }
 
     private getChestEffectOdds(quality: string) {
-        if (quality.toLowerCase() === 'basic') return 0.2
-        else if (quality.toLowerCase() === 'premium') return 0.5
-        else if (quality.toLowerCase() === 'elite') return 1
+        if (['basic', 'premium', 'elite'].includes(quality.toLowerCase())) return GameValues.loot.chestEffectOdds[quality.toLowerCase()]
         else return 0
     }
 
@@ -252,7 +264,7 @@ export class LootboxCommands extends AbstractCommands {
         const disabledBtns = pendingChest.buttons.components.map((btn) => {
             btn.setDisabled(true)
             const btnProps: any = btn.toJSON()
-            if (btnProps.custom_id === interaction.customId) btn.setLabel('* ' + btnProps.label + ' *')
+            if (btnProps.custom_id === interaction.customId) btn.setLabel((btnProps.label ?? '') + ' *')
             return btn
         })
         const btnRow = new ActionRowBuilder<ButtonBuilder>().addComponents(disabledBtns)
@@ -265,7 +277,7 @@ export class LootboxCommands extends AbstractCommands {
         } else {
             const item = this.getChestItem(interaction, pendingChest)
             this.registerItemOnUser(user, item)
-            this.generateInventoryParts(user, item.series, [item.rarity])
+            if (!(item.rarity === ItemRarity.Unobtainable)) this.generateInventoryParts(user, item.series, [item.rarity])
             this.revealCollectable(interaction, item, user.userSettings.lootReactionTimer)
             this.deletePendingChest(interaction)
         }
@@ -320,12 +332,12 @@ export class LootboxCommands extends AbstractCommands {
     private async calculateRewardItem(box: ILootbox, series: ILootSeries, user: MazariniUser) {
         const itemRoll = Math.random()
         let colored = Math.random() < box.probabilities.color
-        if ((user.effects?.positive?.guaranteedLootColor ?? 0) > 0) {
+        if (series.hasColor && (user.effects?.positive?.guaranteedLootColor ?? 0) > 0) {
             colored = true
             user.effects.positive.guaranteedLootColor -= 1
         }
         if (series.hasUnobtainable && itemRoll < (box.probabilities.unobtainable ?? 0)) {
-            return await this.getRandomItemForRarity(ItemRarity.Legendary, series.name, colored, user)
+            return await this.getRandomItemForRarity(ItemRarity.Unobtainable, series.name, colored, user)
         } else if (itemRoll < box.probabilities.legendary) {
             return await this.getRandomItemForRarity(ItemRarity.Legendary, series.name, colored, user)
         } else if (itemRoll < box.probabilities.epic) {
@@ -361,6 +373,7 @@ export class LootboxCommands extends AbstractCommands {
         else if (rarity === ItemRarity.Rare) return series.rare
         else if (rarity === ItemRarity.Epic) return series.epic
         else if (rarity === ItemRarity.Legendary) return series.legendary
+        else if (rarity === ItemRarity.Unobtainable) return ['unobtainable']
         else return undefined
     }
 
@@ -478,7 +491,10 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private async printInventory(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        if (interaction.isButton()) interaction.deferUpdate()
+        if (interaction.isButton()) {
+            interaction.deferUpdate()
+            if (interaction.customId.split(';')[1] !== interaction.user.id) return
+        }
         let user = await this.client.database.getUser(interaction.user.id)
         const seriesParam = this.resolveLootSeries(user, interaction)
         const series = await this.getSeriesOrDefault(seriesParam)
@@ -1003,11 +1019,10 @@ const tradeButtons = (tradeID: string) => {
     )
 }
 
-const lootChestButton = (chestId: string, itemId: string, label: string) => {
+const lootChestButton = (chestId: string, itemId: string) => {
     return new ButtonBuilder({
         custom_id: `LOOT_CHEST_SELECT;${chestId};${itemId}`,
         style: ButtonStyle.Primary,
-        label: `${label}`,
         disabled: false,
         type: 2,
     })

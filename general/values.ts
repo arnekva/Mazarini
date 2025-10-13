@@ -116,6 +116,13 @@ export type GameValuesType = {
     wordle: {
         reward: number
     }
+    loot: {
+        chestEffectOdds: {
+            basic: number
+            premium: number
+            elite: number
+        }
+    }
 }
 
 export const GameValues: GameValuesType = {
@@ -279,5 +286,12 @@ export const GameValues: GameValuesType = {
     },
     wordle: {
         reward: 2500,
+    },
+    loot: {
+        chestEffectOdds: {
+            basic: 0.1,
+            premium: 0.2,
+            elite: 0.5,
+        },
     },
 }
