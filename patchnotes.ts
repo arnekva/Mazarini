@@ -51,6 +51,7 @@ export class PatchNotes extends AbstractCommands {
                 '   * /spin er ikke lenger ephemeral. Alle vil kunne se resultatet av spinnet ditt (sorry Geggi).',
                 '   * Fjerner 1337 spam ved å ikke sjekke på de tidligste sifrene i melding-ID.',
                 '   * Database backuper som er eldre enn 4 uker vil nå slettes automatisk.',
+                '   * Fikset at ukentlige jobber kjører som de skal.',
                 '   * Fikset logging av flere funksjoner',
                 '## TLDR :fast_forward:',
                 '   * Ny Loot serie! (uten farger)',

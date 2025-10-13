@@ -29,8 +29,6 @@ import { RandomUtils } from '../../utils/randomUtils'
 import { TextUtils } from '../../utils/textUtils'
 import { DealOrNoDeal } from '../games/dealOrNoDeal'
 
-const { request } = require('undici')
-
 interface IPendingTrade {
     userId: string
     tradingIn: IUserLootItem[]
