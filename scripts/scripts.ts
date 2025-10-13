@@ -27,10 +27,27 @@ export class Scripts {
             await this.refactorUserLoot(user)
         }
         this.updateLootSeriesAndBoxes()
-        const usersWithLoot = users.filter((user) => user.collectables.length > 0)
+        const usersWithLoot = users.filter((user) => (user.collectables?.length ?? 0) > 0)
         for (const user of usersWithLoot) {
             await this.generateNewLootInventory(user)
             await this.setInventoryUrls(user)
+        }
+        await this.resetChipsAndPerks()
+        this.client.database.saveDeathrollPot(0)
+        this.client.cache.deathrollPot = 0
+    }
+
+    public async resetChipsAndPerks() {
+        const users = await this.client.database.getAllUsers()
+        for (const user of users) {
+            user.effects = {
+                positive: {},
+                negative: {},
+            }
+            user.chips = 0
+            user.daily = { ...user.daily, streak: 0, claimedToday: false }
+            user.jail = { ...user.jail, daysInJail: 0, jailState: 'none' }
+            await this.client.database.updateUser(user)
         }
     }
 
@@ -106,8 +123,10 @@ export class Scripts {
             stats: structuredClone(defaultLootStats),
         }
         const loot: IUserLoot = { mazarini: mazarini, sw: sw, hp: hp, lotr: lotr }
-        for (const item of user.collectables) {
-            loot[item.series]['inventory'][item.rarity]['items'].push(item)
+        if (user.collectables) {
+            for (const item of user.collectables) {
+                loot[item.series]['inventory'][item.rarity]['items'].push(item)
+            }
         }
         user.loot = loot
         await this.client.database.updateUser(user)

@@ -71,9 +71,10 @@ export class TestCommands extends AbstractCommands {
     private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
         await interaction.deferReply()
         const user = await this.database.getUser(interaction.user.id)
+        this.messageHelper.replyToInteraction(interaction, 'Tester siste del av ny series release script', { hasBeenDefered: true })
         const scripts = new Scripts(this.client)
-        await scripts.prepareNewSeries()
-        this.messageHelper.replyToInteraction(interaction, 'Ny serie er klar', { hasBeenDefered: true })
+        // await scripts.prepareNewSeries()
+        this.messageHelper.sendMessage(interaction.channelId, { text: 'all good' })
     }
 
     private async testSelectMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {
