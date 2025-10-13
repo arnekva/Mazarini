@@ -83,7 +83,7 @@ export class Scripts {
 
     public async updateLootSeriesAndBoxes() {
         const boxes = await this.client.database.getLootboxes()
-        const updatedBoxes = boxes.map((box) => ({ ...box, probabilities: { ...box.probabilities, unobtainable: 0.005 } }))
+        const updatedBoxes = boxes.map((box) => ({ ...box, probabilities: { ...box.probabilities, unobtainable: 0.002 } }))
         this.client.database.setLootboxes(updatedBoxes)
         const allSeries = await this.client.database.getLootboxSeries()
         const updatedSeries = allSeries.map((series) => ({ ...series, hasColor: true, hasUnobtainable: false }))
