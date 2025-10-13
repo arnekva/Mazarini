@@ -48,15 +48,15 @@ export namespace MessageUtils {
                 channel &&
                 channel.permissionsFor(UserUtils.findMemberByUserID(MentionUtils.User_IDs.BOT_HOIE, channel.guild)).toArray().includes('SendMessages')
             ) {
-                await channel.messages
-                    .fetch(id)
-                    .then(async (message) => {
+                try {
+                    const message = await channel.messages.fetch(id)
+                    if (message) {
                         messageToReturn = message
-                    })
-                    .catch(() => {
-                        //error
-                        if (onErr) onErr()
-                    })
+                        return messageToReturn
+                    }
+                } catch {
+                    if (onErr) onErr()
+                }
             }
         }
         return messageToReturn
