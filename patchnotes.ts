@@ -53,6 +53,7 @@ export class PatchNotes extends AbstractCommands {
                 '   * Database backuper som er eldre enn 4 uker vil nå slettes automatisk.',
                 '   * Fikset at ukentlige jobber kjører som de skal.',
                 '   * Fikset logging av flere funksjoner',
+                '   * Deaktivert RL tournament remindere',
                 '## TLDR :fast_forward:',
                 '   * Ny Loot serie! (uten farger)',
                 '   * Inventory er rask nå!',
