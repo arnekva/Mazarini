@@ -32,7 +32,7 @@ export class DailyJobs {
         } else {
             //TODO: This could be refactored
             const users = await this.client.database.getAllUsers()
-            const embed = EmbedUtils.createSimpleEmbed(`Daily Jobs`, `Kjører 8 jobber`)
+            const embed = EmbedUtils.createSimpleEmbed(`Daily Jobs`, `Kjører 7 jobber`)
 
             const claim = this.validateAndResetDailyClaims(users)
             embed.addFields({ name: 'Daily claim', value: EmojiHelper.getStatusEmoji(claim) })
@@ -44,8 +44,8 @@ export class DailyJobs {
             embed.addFields({ name: 'Jail status', value: EmojiHelper.getStatusEmoji(jail) })
             const bd = this.checkForUserBirthdays(users)
             embed.addFields({ name: 'Bursdager', value: EmojiHelper.getStatusEmoji(bd) })
-            const rl = await this.updateRLTournaments(rapidApiKey)
-            embed.addFields({ name: 'Rocket League turnering', value: EmojiHelper.getStatusEmoji(rl) })
+            // const rl = await this.updateRLTournaments(rapidApiKey)
+            // embed.addFields({ name: 'Rocket League turnering', value: EmojiHelper.getStatusEmoji(rl) })
             const drWinNum = this.reRollWinningNumbers()
             embed.addFields({ name: 'Tilfeldige deathroll vinnertall', value: EmojiHelper.getStatusEmoji(drWinNum) })
             const moreOrLess = await this.awardAndResetMoreOrLess(users)
