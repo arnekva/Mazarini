@@ -1,7 +1,17 @@
 import { FirebaseApp } from 'firebase/app'
-import { Database, child, get, getDatabase, increment, ref, remove, set, update } from 'firebase/database'
+import { child, Database, get, getDatabase, increment, ref, remove, set, update } from 'firebase/database'
 import { Firestore, getFirestore } from 'firebase/firestore'
-import { FirebaseStorage, StorageReference, getBytes, getDownloadURL, getStorage, ref as storageRef, uploadBytes } from 'firebase/storage'
+import {
+    FirebaseStorage,
+    getBytes,
+    getDownloadURL,
+    getStorage,
+    ref as storageRef,
+    StorageReference,
+    uploadBytes,
+    UploadMetadata,
+    UploadResult,
+} from 'firebase/storage'
 import moment from 'moment'
 import { database } from '../client-env'
 import { BotData, DatabaseStructure, EmojiStats, MazariniStats, MazariniStorage, MazariniUser, Meme } from '../interfaces/database/databaseInterface'
@@ -34,8 +44,8 @@ export class FirebaseHelper {
         return storageRef(this.storage, path)
     }
 
-    public uploadToStorage(ref: StorageReference, data: Buffer) {
-        uploadBytes(ref, data)
+    public async uploadToStorage(ref: StorageReference, data: Buffer, meta?: UploadMetadata): Promise<UploadResult> {
+        return await uploadBytes(ref, data, meta)
     }
 
     public async saveData(data: DatabaseStructure) {
@@ -131,18 +141,18 @@ export class FirebaseHelper {
         this.updateData(updates)
     }
 
-    public async deleteData(path: string) {
-        await remove(ref(this.db, `${database}/${path}`))
+    public async deleteData(path: string, customOrigin?: string) {
+        await remove(ref(this.db, `${customOrigin ?? database}/${path}`))
     }
 
     public async createBackup() {
         const BACKUP_KEY = 'backup'
         const allCurrentData = (await get(child(ref(this.db), `${database}/`))).val()
-        const allBackups = await (await get(child(ref(this.db), `${BACKUP_KEY}/`))).val()
+        const allBackups = (await get(child(ref(this.db), `${BACKUP_KEY}/`))).val()
         const backupLength = Object.keys(allBackups || {}).length
         const oldestKey = Object.keys(allBackups || {}).sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0]
-        if (oldestKey && backupLength >= 5) {
-            await this.deleteData(`${BACKUP_KEY}/${oldestKey}`)
+        if (oldestKey && backupLength >= 4) {
+            await this.deleteData(`${oldestKey}`, BACKUP_KEY)
         }
         const dateAsDDMMYYYY = moment().format('DD-MM-YYYY')
         await set(ref(this.db, `${BACKUP_KEY}/${dateAsDDMMYYYY}`), allCurrentData)

@@ -18,6 +18,7 @@ import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { Scripts } from '../../scripts/scripts'
 import { LootboxCommands } from '../store/lootboxCommands'
 
 const defaultBtn = (id: string) => {
@@ -68,35 +69,12 @@ export class TestCommands extends AbstractCommands {
     }
 
     private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        const users = await this.database.getAllUsers()
-        let rString = ''
-        users.forEach((user) => {
-            const userStats = user.userStats?.dondStats
-            if (userStats && user.lastFMUsername) {
-                if (userStats?.tenKStats) {
-                    rString += `\n**${user.lastFMUsername}** `
-                    const winRateTenK = userStats.tenKStats.timesWonLessThan1000 / userStats.tenKStats.totalGames
-                    rString += `\n**10K** **${userStats.tenKStats.totalGames}** spill og vunnet mindre enn 1000 chips **${
-                        userStats.tenKStats.timesWonLessThan1000
-                    }** ganger. Rate: **${(winRateTenK * 100).toFixed(0)}%**`
-                }
-                if (userStats.twentyKStats) {
-                    const winRateTwentyK = userStats.twentyKStats.timesWonLessThan1000 / userStats.twentyKStats.totalGames
-                    rString += `\n**20K** **${userStats.twentyKStats.totalGames}** spill og vunnet mindre enn 1000 chips **${
-                        userStats.twentyKStats.timesWonLessThan1000
-                    }** ganger. Rate: **${(winRateTwentyK * 100).toFixed(0)}%**`
-                }
-                if (userStats.fiftyKStats) {
-                    const winRateFiftyK = userStats.fiftyKStats.timesWonLessThan1000 / userStats.fiftyKStats.totalGames
-                    rString += `\n**50K** **${userStats.fiftyKStats.totalGames}** spill og vunnet mindre enn 1000 chips **${
-                        userStats.fiftyKStats.timesWonLessThan1000
-                    }** ganger. Rate: **${(winRateFiftyK * 100).toFixed(0)}%**\n`
-                }
-            }
-        })
-        this.messageHelper.replyToInteraction(interaction, rString, { ephemeral: false })
-        // const reply = await this.messageHelper.replyToInteraction(interaction, '', undefined, undefined, [file])
-        // const reply = await this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, undefined, [file])
+        await interaction.deferReply()
+        const user = await this.database.getUser(interaction.user.id)
+        this.messageHelper.replyToInteraction(interaction, 'Tester siste del av ny series release script', { hasBeenDefered: true })
+        const scripts = new Scripts(this.client)
+        // await scripts.prepareNewSeries()
+        this.messageHelper.sendMessage(interaction.channelId, { text: 'all good' })
     }
 
     private async testSelectMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {
@@ -236,7 +214,7 @@ export class TestCommands extends AbstractCommands {
 // LA STÅ
 // GENERATE GIFs FOR LOOT SERIES: (copy to test() and run)
 
-// const hp_series: ICollectableSeries = {
+// const hp_series: ILootSeries = {
 //     name: 'hp',
 //     added: new Date(),
 //     common: ['myrtle', 'rita_skeeter', 'umbridge', 'filch', 'lockhart'],

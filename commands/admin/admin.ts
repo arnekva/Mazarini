@@ -27,7 +27,7 @@ import { DailyJobs } from '../../Jobs/dailyJobs'
 import { WeeklyJobs } from '../../Jobs/weeklyJobs'
 import { MazariniBot } from '../../main'
 import { EmbedUtils } from '../../utils/embedUtils'
-import { ChannelIds, MentionUtils } from '../../utils/mentionUtils'
+import { MentionUtils } from '../../utils/mentionUtils'
 import { MessageUtils } from '../../utils/messageUtils'
 import { TextUtils } from '../../utils/textUtils'
 import { DealOrNoDeal, DonDQuality } from '../games/dealOrNoDeal'
@@ -126,16 +126,16 @@ export class Admin extends AbstractCommands {
 
         const id = interaction.options.get('melding-id')?.value as string
         const replyString = interaction.options.get('tekst')?.value as string
-
+        let searchCounter = 0
         const message = await MessageUtils.findMessageById(id, this.client, () => {
-            this.messageHelper.sendLogMessage(`${interaction.user.username} brukte */reply, men meldingen ble ikke funnet`)
+            searchCounter++
         })
         if (message) {
             message.reply(replyString)
             this.messageHelper.sendLogMessage(
                 `${interaction.user.username} brukte */reply*, på en melding fra ${message.author.username} i kanalen ${MentionUtils.mentionChannel(
                     message.channelId
-                )}`
+                )}. Søkte gjennom ${searchCounter} kanaler for å finne den.`
             )
         }
     }
@@ -411,8 +411,7 @@ export class Admin extends AbstractCommands {
             pm2?.disconnect()
         } else {
             await this.messageHelper.replyToInteraction(interaction, `Stopper lokale bot-er`)
-            if (interaction.channelId == ChannelIds.LOKAL_BOT_SPAM_DEV) process.exit()
-            else await this.messageHelper.replyToInteraction(interaction, `Denne kommandoen kan ikke brukes her`, { ephemeral: true })
+            process.exit()
         }
     }
 

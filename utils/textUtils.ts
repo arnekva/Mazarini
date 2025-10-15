@@ -54,6 +54,6 @@ export namespace TextUtils {
     }
 
     export function formatRevealGifString(string: string): string {
-        return (string.charAt(0).toUpperCase() + string.slice(1)).replace('_', ' ').replace('_', ' ')
+        return (string.charAt(0).toUpperCase() + string.slice(1)).replace('_', ' ').replace('_', ' ').replace('_', ' ')
     }
 }

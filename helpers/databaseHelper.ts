@@ -1,10 +1,13 @@
+import { UploadMetadata, UploadResult } from 'firebase/storage'
 import moment from 'moment'
+import { environment } from '../client-env'
 import { DRGame } from '../commands/games/deathroll'
 import {
     botDataPrefix,
     ChipsStats,
-    ICollectableSeries,
     ILootbox,
+    ILootSeries,
+    ItemRarity,
     MazariniStorage,
     MazariniUser,
     Meme,
@@ -386,15 +389,29 @@ export class DatabaseHelper {
         return (await this.db.getData('/other/loot/boxes')) as ILootbox[]
     }
 
-    public async addLootboxSeries(series: ICollectableSeries) {
+    public async addLootboxSeries(series: ILootSeries) {
         const updates = {}
         const currentSeries = (await this.getLootboxSeries()) ?? []
         updates[`/other/loot/series`] = [...currentSeries, series]
         this.db.updateData(updates)
     }
 
+    public setLootSeries(series: ILootSeries[]) {
+        const updates = {}
+        updates[`/other/loot/series`] = series
+        this.db.updateData(updates)
+    }
+
+    public async updateLootboxSeries(series: ILootSeries) {
+        const updates = {}
+        const allSeries = (await this.getLootboxSeries()) ?? []
+        const updatedSeries = allSeries.map((s) => (s.name === series.name ? series : s))
+        updates[`/other/loot/series`] = updatedSeries
+        this.db.updateData(updates)
+    }
+
     public async getLootboxSeries() {
-        return (await this.db.getData('/other/loot/series')) as ICollectableSeries[]
+        return (await this.db.getData('/other/loot/series')) as ILootSeries[]
     }
 
     public async getFromStorage(path: string): Promise<ArrayBuffer> {
@@ -405,6 +422,16 @@ export class DatabaseHelper {
     public uploadLootGif(path: string, gif: Buffer) {
         const ref = this.db.getStorageRef(path)
         this.db.uploadToStorage(ref, gif)
+    }
+
+    public async uploadUserInventory(user: MazariniUser, path: string, img: Buffer): Promise<UploadResult> {
+        const ref = this.db.getStorageRef(`loot_inventory/${user.id}/${environment}/${path}`)
+        const metadata: UploadMetadata = { contentType: 'image/png' }
+        return await this.db.uploadToStorage(ref, img, metadata)
+    }
+
+    public async getUserInventory(user: MazariniUser, series: string, rarity: ItemRarity): Promise<string> {
+        return await this.db.getStorageLink(this.db.getStorageRef(`loot_inventory/${user.id}/${environment}/${series}/${rarity}.png`))
     }
 
     public async createBackup() {

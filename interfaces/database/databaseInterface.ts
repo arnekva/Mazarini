@@ -93,6 +93,7 @@ export interface MazariniUser {
     whamageddonLoss?: string
     textCommandStrings?: string[]
     collectables?: IUserCollectable[]
+    loot?: IUserLoot
     userSettings?: IUserSettings
     effects?: IUserEffects
     christmasCalendar?: UserCalendarGift[]
@@ -154,19 +155,100 @@ export interface IUserDebuffs {}
 
 export interface ILootSystem {
     boxes: ILootbox[]
-    series: ICollectableSeries[]
+    series: ILootSeries[]
 }
 
-export interface ICollectableSeries {
+export interface ILootSeries {
     name: string
     added: Date
+    hasColor: boolean
     common: string[]
     rare: string[]
     epic: string[]
     legendary: string[]
+    hasUnobtainable: boolean
+    unobtainableHolder?: string //userID of current holder
+}
+
+export interface IUserLoot {
+    mazarini?: IUserLootSeries
+    sw?: IUserLootSeries
+    hp?: IUserLootSeries
+    lotr?: IUserLootSeries
+}
+
+export interface IUserLootSeries {
+    name: string
+    pityLevel?: IPityTracker
+    inventory: IUserLootSeriesInventory
+    inventoryArt?: string
+    stats?: ILootStats
+}
+
+export interface IPityTracker {
+    level: number
+    consequtiveDuplicates: number
+    chipsSinceNonDuplicate: number
+}
+
+export interface IUserLootSeriesInventory {
+    common: IUserLootSeriesRarity
+    rare: IUserLootSeriesRarity
+    epic: IUserLootSeriesRarity
+    legendary: IUserLootSeriesRarity
+}
+
+export interface IUserLootSeriesRarity {
+    img?: string
+    items: IUserLootItem[]
+}
+
+export interface ILootStats {
+    chipsSpent: number
+    chestsOpened: ILootStatsQualityCounter
+    boxesOpened: ILootStatsQualityCounter
+    rarities: ILootStatsRarityCounter
+    trades: {
+        in: number
+        up: number
+    }
+    achievements: ILootStatsAchievements
+}
+
+export interface ILootStatsQualityCounter {
+    basic: number
+    premium: number
+    elite: number
+    special: number
+}
+
+export interface ILootStatsRarityCounter {
+    common: ILootStatsColorCounter
+    rare: ILootStatsColorCounter
+    epic: ILootStatsColorCounter
+    legendary: ILootStatsColorCounter
+}
+
+export interface ILootStatsColorCounter {
+    none: number
+    silver: number
+    gold: number
+    diamond: number
+}
+
+export interface ILootStatsAchievements {
+    daysWithUnobtainable: number
 }
 
 export interface IUserCollectable {
+    name: string
+    series: string
+    rarity: ItemRarity
+    color: ItemColor
+    amount: number
+}
+
+export interface IUserLootItem {
     name: string
     series: string
     rarity: ItemRarity
@@ -179,6 +261,7 @@ export enum ItemRarity {
     Rare = 'rare',
     Epic = 'epic',
     Legendary = 'legendary',
+    Unobtainable = 'unobtainable',
 }
 
 export enum ItemColor {
@@ -209,6 +292,7 @@ export interface ILootboxDistribution {
     rare: number
     epic: number
     legendary: number
+    unobtainable?: number
     color: number
 }
 

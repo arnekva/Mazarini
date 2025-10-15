@@ -288,21 +288,18 @@ export class GamblingCommands extends AbstractCommands {
                 interaction,
                 `Pantelotteriet er bare tilgjengelig når du har mellom ${GameValues.pantelotteriet.minChips} og ${GameValues.pantelotteriet.maxChips} chips.`
             )
-        let tickets = user.chips
+        const tickets = user.chips
         let reward = 0
         for (let i = 0; i < tickets; i++) {
-            const draw = this.ticketDraw()
-            // only a 1000+ reward triggers payout - small wins are "re-invested" in the lottery as tickets while payout is not triggered
-            if (draw && reward === 0 && draw < 1000) tickets += draw
-            // once payout is triggered, any subsequent small win is added to payout as well
-            else reward += draw
+            reward += this.ticketDraw()
         }
-        user.chips = 0 + reward
-        this.database.updateUser(user)
-        if (reward === 0) {
-            // If no payout - add total ticket count to deathroll pot
+        if (reward >= 1000) {
+            user.chips = 0 + reward
+            this.database.updateUser(user)
+        } else {
+            // If no payout - add reward to deathroll pot
             const deathrollPot = this.client.cache.deathrollPot ?? 0
-            const newDeathrollPot = deathrollPot + tickets
+            const newDeathrollPot = deathrollPot + reward
             this.client.database.saveDeathrollPot(newDeathrollPot)
             this.client.cache.deathrollPot = newDeathrollPot
             return this.messageHelper.replyToInteraction(interaction, 'Beklager! Det ble ingen gevinst denne gang.')

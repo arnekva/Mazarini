@@ -11,7 +11,7 @@ export namespace MessageUtils {
         const msgId = message.id
         leetReg.lastIndex = 0
         eightReg.lastIndex = 0
-        if (leetReg.test(msgId)) return '1337'
+        if (leetReg.test(msgId.substring(6))) return '1337'
         return 'none'
     }
 
@@ -48,15 +48,15 @@ export namespace MessageUtils {
                 channel &&
                 channel.permissionsFor(UserUtils.findMemberByUserID(MentionUtils.User_IDs.BOT_HOIE, channel.guild)).toArray().includes('SendMessages')
             ) {
-                await channel.messages
-                    .fetch(id)
-                    .then(async (message) => {
+                try {
+                    const message = await channel.messages.fetch(id)
+                    if (message) {
                         messageToReturn = message
-                    })
-                    .catch(() => {
-                        //error
-                        if (onErr) onErr()
-                    })
+                        return messageToReturn
+                    }
+                } catch {
+                    if (onErr) onErr()
+                }
             }
         }
         return messageToReturn

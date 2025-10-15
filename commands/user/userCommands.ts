@@ -191,7 +191,7 @@ export class UserCommands extends AbstractCommands {
                 .setCustomId('activeLootSeries')
                 // The label is the prompt the user sees for this input
                 .setLabel('Sett din default loot series')
-                .setPlaceholder(`mazarini|sw|hp`)
+                .setPlaceholder(`mazarini|sw|hp|lotr`)
                 .setValue(`${user.userSettings?.activeLootSeries ?? ''}`)
                 .setRequired(false)
                 // Short means only a single line of text
@@ -254,7 +254,7 @@ export class UserCommands extends AbstractCommands {
             }
         }
         if (activeLootSeries) {
-            const validSeries = ['mazarini', 'sw', 'hp'].includes(activeLootSeries.trim().toLowerCase())
+            const validSeries = ['mazarini', 'sw', 'hp', 'lotr'].includes(activeLootSeries.trim().toLowerCase())
             if (validSeries) {
                 user.userSettings.activeLootSeries = activeLootSeries.trim().toLowerCase()
             }

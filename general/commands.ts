@@ -172,7 +172,7 @@ export class Commands {
     async doJobs(timing: TimedEvent) {
         const allClasses = this.getAll()
         for (const c of allClasses) {
-            const jobs = c.onTimedEvent()?.[timing] || []
+            const jobs = (await c.onTimedEvent())[timing] || []
             for (const job of jobs) {
                 await job()
             }

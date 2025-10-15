@@ -2,7 +2,7 @@ import { Image } from 'canvas'
 import sharp from 'sharp'
 import { IFontWeight, IImage, IOptions, IRepeat, UltimateTextToImage, getCanvasImage, registerFont } from 'ultimate-text-to-image'
 import { MazariniClient } from '../client/MazariniClient'
-import { IUserCollectable, ItemColor, ItemRarity } from '../interfaces/database/databaseInterface'
+import { IUserLootItem, IUserLootSeriesInventory, ItemColor, ItemRarity, MazariniUser } from '../interfaces/database/databaseInterface'
 import { TextUtils } from '../utils/textUtils'
 import { EmojiHelper } from './emojiHelper'
 
@@ -164,7 +164,39 @@ const mazarini_setup: IRevealGifSetup = {
     },
 }
 
-const currentSetup: IRevealGifSetup = harry_potter_setup
+const lotr_setup: IRevealGifSetup = {
+    revealWidth: 800,
+    revealHeight: 600,
+    background: '',
+    gif: 'temp/lotr_cut.webp',
+    font: {
+        path: 'temp/font/Aniron.ttf',
+        family: 'Aniron',
+        weight: 500,
+        primaryColor: '#efebdd',
+        outlineColor: '#FFE81F',
+    },
+    ratios: {
+        halo: Math.floor(600 * 0.85),
+        rarityEffect: {
+            scaleWidth: Math.floor(800 * 1.25),
+            scaleHeight: Math.floor(600 * 0.8),
+            top: Math.floor(600 * 0.35),
+        },
+        item: {
+            size: Math.floor(600 * 0.75),
+            coords: async (item: Buffer) => {
+                const meta = await sharp(item).metadata()
+                const top = 500 - meta.height
+                const left = Math.floor(800 / 2 - meta.width / 2)
+                return { top: top, left: left }
+            },
+        },
+        textHeight: Math.floor(600 * 0.056),
+    },
+}
+
+const currentSetup: IRevealGifSetup = lotr_setup
 
 const inventoryOptions: IImageCoordinates = {
     layer: -1,
@@ -175,6 +207,15 @@ const inventoryOptions: IImageCoordinates = {
     height: 1968,
 }
 
+const splitInventoryOptions: IImageCoordinates = {
+    layer: -1,
+    repeat: 'fit',
+    x: 0,
+    y: 0,
+    width: 1147,
+    height: 1968 / 4,
+}
+
 export class ImageGenerationHelper {
     private client: MazariniClient
 
@@ -182,47 +223,70 @@ export class ImageGenerationHelper {
         this.client = client
     }
 
-    public async generateRevealGifForCollectable(collectable: IUserCollectable): Promise<Buffer> {
-        const backgroundWithItem = await this.getBackgroundWithItem(collectable)
+    public async makeApplicationEmoji(collectable: IUserLootItem): Promise<Buffer> {
+        const item = fs.readFileSync(`temp/${collectable.rarity}/${collectable.name}.png`)
+        const resizedItem = await sharp(item).resize({ fit: sharp.fit.cover, width: 128, height: 128 }).toBuffer()
+        return resizedItem
+    }
+
+    public async generateRevealGifForCollectable(collectable: IUserLootItem, bg: string): Promise<Buffer> {
+        const backgroundWithItem = await this.getBackgroundWithItem(collectable, bg)
         // return backgroundWithItem
         // const lightrayAndText = await this.getLightrayAndText(collectable)
         // const revealBackground = await sharp(backgroundWithItem)
         //     .composite([{ input: lightrayAndText, top: ratios.lightrayTop, left: 0 }])
         //     .toBuffer()
-        // const text = await this.getHeaderText(collectable)
+        const text = await this.getHeaderText(collectable)
 
-        // const revealBackground = await sharp(backgroundWithItem).composite(text).toBuffer()
+        const revealBackground = await sharp(backgroundWithItem).composite(text).toBuffer()
         // return revealBackground
         const gifBuffer = fs.readFileSync(currentSetup.gif)
 
-        return await this.overlayGif(backgroundWithItem, gifBuffer)
+        return await this.overlayGif(revealBackground, gifBuffer)
     }
 
-    private async getBackgroundWithItem(collectable: IUserCollectable): Promise<Buffer> {
-        const background = fs.readFileSync(`${currentSetup.background}${collectable.name}.png`)
+    private async getBackgroundWithItem(collectable: IUserLootItem, bg: string): Promise<Buffer> {
+        const background = fs.readFileSync(`temp/background/${bg}.png`)
         const resizedBg = await sharp(background)
             .resize({ fit: sharp.fit.cover, width: currentSetup.revealWidth, height: currentSetup.revealHeight })
             .toBuffer()
-        const halo = await this.getHalo(collectable.color)
-        const item = fs.readFileSync(`graphics/fixed/${collectable.color}/hp_${collectable.name}_${collectable.color.charAt(0)}.png`) //await this.getItemBuffer(collectable)
-        const resizedItem = await sharp(item).resize({ fit: sharp.fit.cover, width: 700, height: 700 }).toBuffer()
+        const halo = await this.getHalo(collectable.rarity)
+        const item = fs.readFileSync(`temp/${collectable.rarity}/${collectable.name}.png`) //await this.getItemBuffer(collectable)
+        const isUnobtainable = collectable.rarity === ItemRarity.Unobtainable
+        const size = isUnobtainable ? 120 : 400
+        const resizedItem = await sharp(item).resize({ fit: sharp.fit.cover, width: size, height: size }).toBuffer()
         let backgroundBuffer = resizedBg
+        if (isUnobtainable) {
+            const hand = fs.readFileSync(`temp/halo/hand.png`)
+            backgroundBuffer = await this.compositeBuffers(resizedBg, hand, 0, 0)
+            const shadow = fs.readFileSync(`temp/halo/shadow3.png`)
+            const resizedShadow = await sharp(shadow).resize({ fit: sharp.fit.cover, width: 250, height: 250 }).toBuffer()
+            backgroundBuffer = await this.compositeBuffers(backgroundBuffer, resizedShadow, 135, 275)
+        }
         if (halo) {
             const coords = await currentSetup.ratios.item.coords(halo)
-            backgroundBuffer = await this.compositeBuffers(resizedBg, halo, 10 - 50 /*coords.top*/, coords.left)
+            backgroundBuffer = await this.compositeBuffers(backgroundBuffer, halo, isUnobtainable ? 0 : 10 - 50 /*coords.top*/, coords.left)
         }
-        const badge = fs.readFileSync(`graphics/badge/badge.png`)
-        const resizedBadge = await sharp(badge).resize({ fit: sharp.fit.cover, width: 160 }).toBuffer()
-        const badgeHalo = this.getRarityHalo(collectable.rarity)
-        const badgeWithHalo = await this.compositeBuffers(badgeHalo, resizedBadge, 100, 120)
+        // return backgroundBuffer
+        const nameplate = fs.readFileSync(`temp/nameplate/${collectable.rarity}_w.png`)
+        // const resizedNameplate = await sharp(nameplate).resize({ fit: sharp.fit.inside, width: 500, height: 200 }).toBuffer()
+
+        // const badgeHalo = this.getRarityHalo(collectable.rarity)
+        // const badgeWithHalo = await this.compositeBuffers(badgeHalo, resizedBadge, 100, 120)
         const coords = await currentSetup.ratios.item.coords(resizedItem)
-        const img = await this.compositeBuffers(backgroundBuffer, resizedItem, coords.top + (collectable.name === 'madeye' ? 150 : 120), coords.left)
-        return await this.compositeBuffers(img, badgeWithHalo, 400, 660)
+        const top = isUnobtainable ? 200 : coords.top - 50
+        const img = await this.compositeBuffers(backgroundBuffer, resizedItem, top, coords.left)
+        if (isUnobtainable) return img
+        return await this.compositeBuffers(img, nameplate, 400, 150)
+        return img
+        // return await this.compositeBuffers(img, badgeWithHalo, 400, 660)
     }
 
-    private async getHalo(color: ItemColor): Promise<Buffer> {
-        const halo = fs.readFileSync(`graphics/halo/${color}.png`)
-        return await this.resize(halo, false, 720)
+    private async getHalo(rarity: ItemRarity): Promise<Buffer> {
+        const isUnobtainable = rarity === ItemRarity.Unobtainable
+        // if (rarity === ItemRarity.Unobtainable) return undefined
+        const halo = fs.readFileSync(`temp/halo/${rarity}.png`)
+        return await this.resize(halo, false, isUnobtainable ? 800 : 600)
     }
 
     private getRarityHalo(rarity: ItemRarity): Buffer {
@@ -234,14 +298,14 @@ export class ImageGenerationHelper {
         return fs.readFileSync(`graphics/halo/${color}.png`)
     }
 
-    private async getItemBuffer(collectable: IUserCollectable): Promise<Buffer> {
+    private async getItemBuffer(collectable: IUserLootItem): Promise<Buffer> {
         const itemUrl = await this.getEmojiImageUrl(collectable, true)
         const item = await fetch(itemUrl)
         const itemBuffer = Buffer.from(await item.arrayBuffer())
         return await this.resize(itemBuffer, false, currentSetup.ratios.item.size)
     }
 
-    private async getLightrayAndText(collectable: IUserCollectable): Promise<Buffer> {
+    private async getLightrayAndText(collectable: IUserLootItem): Promise<Buffer> {
         const lightray = fs.readFileSync(`graphics/lightray/${collectable.rarity}.png`)
         const resizedLightray = sharp(lightray)
             .resize({ fit: sharp.fit.cover, width: currentSetup.ratios.rarityEffect.scaleWidth })
@@ -252,10 +316,12 @@ export class ImageGenerationHelper {
         return sharp(lr).composite(text).toBuffer()
     }
 
-    private async getHeaderText(collectable: IUserCollectable): Promise<sharp.OverlayOptions[]> {
+    private async getHeaderText(collectable: IUserLootItem): Promise<sharp.OverlayOptions[]> {
         registerFont(currentSetup.font.path, { family: currentSetup.font.family, weight: currentSetup.font.weight })
         const fontSize = 50
-        const header = `${TextUtils.formatRevealGifString(collectable.name)}`
+        let header = `${TextUtils.formatRevealGifString(collectable.name)}`
+        const isUnobtainable = collectable.rarity === ItemRarity.Unobtainable
+        if (isUnobtainable) header = 'You are now the ring bearer'
         const itemHeader = new UltimateTextToImage(header, {
             fontFamily: currentSetup.font.family,
             fontColor: currentSetup.font.primaryColor,
@@ -265,23 +331,28 @@ export class ImageGenerationHelper {
         })
             .render()
             .toBuffer()
-        const resizedHeader = await sharp(itemHeader).resize({ fit: sharp.fit.inside, height: currentSetup.ratios.textHeight }).toBuffer()
+        const resizedHeader = await sharp(itemHeader)
+            .resize({ fit: sharp.fit.inside, height: currentSetup.ratios.textHeight, width: isUnobtainable ? 700 : 360 })
+            .toBuffer()
         // legendary: '#d1700f'
         // epic: '#7223cc'
-        const outline = new UltimateTextToImage(header, {
-            fontFamily: currentSetup.font.family,
-            fontColor: '#f5e12f', // //currentSetup.font.outlineColor, //'#f55525', //
-            fontSize: fontSize,
-            fontWeight: currentSetup.font.weight,
-            margin: 2,
-        })
-            .render()
-            .toBuffer()
-        const resizedOutline = await sharp(outline).resize({ fit: sharp.fit.inside, height: currentSetup.ratios.textHeight }).toBuffer()
+        // const outline = new UltimateTextToImage(header, {
+        //     fontFamily: currentSetup.font.family,
+        //     fontColor: '#f5e12f', // //currentSetup.font.outlineColor, //'#f55525', //
+        //     fontSize: fontSize,
+        //     fontWeight: currentSetup.font.weight,
+        //     margin: 2,
+        // })
+        //     .render()
+        //     .toBuffer()
+        // const resizedOutline = await sharp(outline).resize({ fit: sharp.fit.inside, height: currentSetup.ratios.textHeight }).toBuffer()
         const headerMeta = await sharp(resizedHeader).metadata()
-        const top = Math.floor(420 - headerMeta.height / 2)
-        const left = Math.floor(474 - headerMeta.width / 2)
-        return this.getOutlineText(resizedHeader, resizedOutline, top - 40, left, 2)
+        const top = Math.floor(330 - headerMeta.height / 2)
+        const left = Math.floor(400 - headerMeta.width / 2)
+        const texts: sharp.OverlayOptions[] = new Array<sharp.OverlayOptions>()
+        texts.push({ input: resizedHeader, top: top - 48 + currentSetup.ratios.rarityEffect.top, left: left })
+        return texts
+        // return this.getOutlineText(resizedHeader, resizedOutline, top - 40, left, 2)
     }
 
     private async resize(buffer: Buffer, isGif: boolean, size: number, padding: number = 0): Promise<Buffer> {
@@ -320,7 +391,8 @@ export class ImageGenerationHelper {
         const imgRoll = backgroundImg.extend({ bottom: metadata.pageHeight * (metadata.pages - 1), extendWith: 'repeat' }) //Must extend to repeat how ever many pages (frames) are in the gif.
 
         const result = imgRoll.composite([{ input: await overlay.toBuffer(), gravity: 'north', animated: true }]).webp(
-            { delay: new Array(metadata.delay.length).fill(50), loop: 1, effort: 0 }
+            { delay: metadata.delay, loop: 1, effort: 0 }
+            // new Array(metadata.delay.length).fill(50)
             //Just copying the metadata from the gif to the output format (not sure this is necessary).
         )
 
@@ -328,7 +400,7 @@ export class ImageGenerationHelper {
         return resInfo
     }
 
-    public async generateImageForCollectables(collectables: IUserCollectable[]): Promise<Buffer> {
+    public async generateImageForCollectables(collectables: IUserLootItem[]): Promise<Buffer> {
         const appendSeries = collectables[0].series === 'hp' ? '_hp' : ''
         const background = fs.readFileSync(`graphics/background/inventory_bg${appendSeries}.png`)
         if (!collectables) return background
@@ -340,7 +412,119 @@ export class ImageGenerationHelper {
         return collection
     }
 
-    private async getImageSeriesForCollectables(collectables: IUserCollectable[], imageTemplate: ICollectableImage): Promise<IImage[]> {
+    public async generateImageForCollectablesRarity(user: MazariniUser, series: string, rarity: ItemRarity): Promise<Buffer> {
+        let collectables = user.loot[series]['inventory'][rarity]['items'] as IUserLootItem[]
+        const background = await this.getInventoryBackground(user, series, rarity)
+        if (!collectables) return background
+        collectables = collectables.sort((a, b) => `${a.name}_${this.getColorOrder(a.color)}`.localeCompare(`${b.name}_${this.getColorOrder(b.color)}`))
+        const canvas = await getCanvasImage({ buffer: background })
+        const imageTemplate: ICollectableImage = splitInventoryTemplate
+        const images = await this.getImagesForRarity(collectables, imageTemplate[rarity])
+        images.push({ ...splitInventoryOptions, canvasImage: canvas })
+        const collection = new UltimateTextToImage('', { ...imageTemplate.options, images: images }).render().toBuffer()
+        return collection
+    }
+
+    private getColorOrder(color: ItemColor) {
+        if (color === ItemColor.None) return 1
+        else if (color === ItemColor.Silver) return 2
+        else if (color === ItemColor.Gold) return 3
+        else if (color === ItemColor.Diamond) return 4
+    }
+
+    public async stitchInventory(inventory: IUserLootSeriesInventory, unobtainableSeries?: string) {
+        const urls = ['common', 'rare', 'epic', 'legendary']
+            .map((rarity) => {
+                return inventory[rarity].img as string
+            })
+            .filter((url) => url && url.length > 0)
+        const buffers = await Promise.all(
+            urls.map(async (url) => {
+                const res = await fetch(url)
+                if (!res.ok) throw new Error(`Failed to fetch ${url}`)
+                return Buffer.from(await res.arrayBuffer())
+            })
+        )
+        // Get metadata for the first image (all are the same size)
+        const { width, height } = await sharp(buffers[0]).metadata()
+
+        // Total canvas height = number of sections × height
+        let totalHeight = height * buffers.length
+        if (unobtainableSeries && unobtainableSeries.length > 0) {
+            const unobtainable = fs.readFileSync(`graphics/background/inventory_parts/unobtainable_${unobtainableSeries}.png`)
+            const extra = await sharp(unobtainable).metadata()
+            totalHeight += extra.height
+            buffers.push(unobtainable)
+        }
+
+        // Create a blank canvas
+        const base = sharp({
+            create: {
+                width,
+                height: totalHeight,
+                channels: 4,
+                background: { r: 255, g: 255, b: 255, alpha: 1 }, // white background
+            },
+        }).png()
+
+        // Prepare composite operations
+        const composites = buffers.map((img, i) => ({
+            input: img,
+            top: i * height,
+            left: 0,
+        }))
+
+        // Stitch together
+        return await base.composite(composites).toBuffer()
+    }
+
+    public async extractArtSection(art: string, rarity: ItemRarity): Promise<Buffer> {
+        // Get original dimensions
+        const image = fs.readFileSync(`graphics/background/inventory_art/${art}.png`)
+        const metadata = await sharp(image).metadata()
+        const { width, height } = metadata
+        const section = this.resolveRaritySection(rarity)
+
+        // Define the region: top-left corner (0,0), full width, quarter height
+        const region = {
+            left: 0,
+            top: Math.floor((height / 4) * section),
+            width: width,
+            height: Math.floor(height / 4),
+        }
+
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${Math.floor(height / 4)}">
+    <rect width="100%" height="100%" fill="white" fill-opacity="${0.25}" />
+  </svg>`
+        return await sharp(image)
+            .ensureAlpha()
+            .extract(region)
+            .composite([{ input: Buffer.from(svg), blend: 'dest-in' }])
+            .toBuffer()
+    }
+
+    private resolveRaritySection(rarity: ItemRarity) {
+        if (rarity === ItemRarity.Common) return 0
+        else if (rarity === ItemRarity.Rare) return 1
+        else if (rarity === ItemRarity.Epic) return 2
+        else if (rarity === ItemRarity.Legendary) return 3
+        return 0
+    }
+
+    public async getInventoryBackground(user: MazariniUser, series: string, rarity: ItemRarity) {
+        const isHP = series === 'hp'
+        let bg = fs.readFileSync(`graphics/background/inventory_parts/${rarity}${isHP ? '_hp' : ''}.png`)
+        if (isHP) return bg
+        const artName = user.loot[series].inventoryArt
+        if (artName) {
+            const art = await this.extractArtSection(artName, rarity)
+            bg = await this.compositeBuffers(bg, art, 0, 0)
+        }
+        const slots = fs.readFileSync(`graphics/background/inventory_parts/slots.png`)
+        return await this.compositeBuffers(bg, slots, 0, 0)
+    }
+
+    private async getImageSeriesForCollectables(collectables: IUserLootItem[], imageTemplate: ICollectableImage): Promise<IImage[]> {
         const images: IImage[] = new Array<IImage>()
         // Sort items into rarities and assign a specific coordinate to each
         const commonImages = await this.getImagesForRarity(
@@ -366,7 +550,7 @@ export class ImageGenerationHelper {
         return images
     }
 
-    private async getImagesForRarity(collectables: IUserCollectable[], coords: IItemShadowCoordinates[]): Promise<IImage[]> {
+    private async getImagesForRarity(collectables: IUserLootItem[], coords: IItemShadowCoordinates[]): Promise<IImage[]> {
         const images: IImage[] = new Array<IImage>()
         let i = 0
         for (const item of collectables) {
@@ -377,7 +561,7 @@ export class ImageGenerationHelper {
         return images
     }
 
-    private async getImagesForSingleCollectable(item: IUserCollectable, coord: IItemShadowCoordinates): Promise<IImage[]> {
+    private async getImagesForSingleCollectable(item: IUserLootItem, coord: IItemShadowCoordinates): Promise<IImage[]> {
         const url = await this.getEmojiImageUrl(item)
         const emojiImageBuffer = await this.getPngBufferForWebpUrl(url)
         // const resizedItem = await sharp(emojiImageBuffer).resize({ fit: sharp.fit.inside, width: 75 }).toBuffer()
@@ -390,14 +574,14 @@ export class ImageGenerationHelper {
         return emojiImageArray
     }
 
-    private async getEmojiImageUrl(item: IUserCollectable, large: boolean = false): Promise<string> {
+    private async getEmojiImageUrl(item: IUserLootItem, large: boolean = false): Promise<string> {
         const name = this.buildEmojiName(item)
         const emoji = await EmojiHelper.getApplicationEmoji(name, this.client)
         const params = large ? 'size=128&quality=lossless' : 'size=96'
         return `https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?${params}`
     }
 
-    private buildEmojiName(item: IUserCollectable): string {
+    private buildEmojiName(item: IUserLootItem): string {
         return `${item.series}_${item.name}_${item.color.charAt(0)}`.toLowerCase()
     }
 
@@ -426,7 +610,7 @@ export class ImageGenerationHelper {
         }
     }
 
-    private async getItemInventoryImage(item: IUserCollectable, coord: IItemShadowCoordinates): Promise<IImage> {
+    private async getItemInventoryImage(item: IUserLootItem, coord: IItemShadowCoordinates): Promise<IImage> {
         if (item.amount <= 1) return undefined
         const bg = fs.readFileSync(`graphics/number_bg.png`)
         const resizedBg = await sharp(bg).resize({ fit: sharp.fit.inside, height: 50 }).toBuffer()
@@ -471,8 +655,9 @@ export class ImageGenerationHelper {
 }
 
 export const inventoryTemplate = generateTemplateForSize(1147, 1968, 10, '')
+export const splitInventoryTemplate = generateTemplateForSize(1147, 1968, 10, '', true)
 
-function generateTemplateForSize(imageWidth: number, imageHeight: number, horizontalItems: number, backgroundUrl: string) {
+function generateTemplateForSize(imageWidth: number, imageHeight: number, horizontalItems: number, backgroundUrl: string, splitInventory = false) {
     const initalX = 63
     const initialY = 194
     const widthToNext = 1019 / 9
@@ -484,11 +669,11 @@ function generateTemplateForSize(imageWidth: number, imageHeight: number, horizo
     const legendarySection = generateCoordinates(initalX, initialY + 3 * heightToNextColor, widthToNext, heightToNextRow)
     const template: ICollectableImage = {
         backgroundUrl: backgroundUrl,
-        options: { width: imageWidth, height: imageHeight },
+        options: { width: imageWidth, height: imageHeight / (splitInventory ? 4 : 1) },
         common: commonSection,
-        rare: rareSection,
-        epic: epicSection,
-        legendary: legendarySection,
+        rare: splitInventory ? commonSection : rareSection,
+        epic: splitInventory ? commonSection : epicSection,
+        legendary: splitInventory ? commonSection : legendarySection,
     }
     return template
 }
