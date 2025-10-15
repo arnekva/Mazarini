@@ -12,7 +12,7 @@ export class MoneyHelper {
     }
 
     giveMoney(user: MazariniUser, amount: number) {
-        const amountGiven = this.applyRestrictions(user, amount)
+        const amountGiven = Math.floor(this.applyRestrictions(user, amount))
         user.chips = user.chips ? user.chips + amountGiven : amountGiven
         this.client.database.updateUser(user)
         return amountGiven

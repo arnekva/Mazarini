@@ -149,8 +149,8 @@ export const GameValues: GameValuesType = {
             nineElevenChance: 0.5,
         },
         checkForReward: {
-            sameDigitsMultiplier: 2.5,
-            allDigitsExceptFirstAreZeroMultiplier: 2.5,
+            sameDigitsMultiplier: 3,
+            allDigitsExceptFirstAreZeroMultiplier: 3,
             diceTargetMultiplier: 5,
             roll2Reward: 5,
             doublePotDepositMultiplier: 2,

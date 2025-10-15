@@ -181,7 +181,7 @@ export class Deathroll extends AbstractCommands {
         if (playerHasStreak && !playerHasATHStreak) reward += (stat.currentLossStreak - 4) * GameValues.deathroll.addToPot.streakMultiplier
         if (playerHasBiggestLoss) reward += stat.didGetNewBiggestLoss * GameValues.deathroll.addToPot.biggestLossMultiplier
         else if (diceTarget >= 100) reward += diceTarget * GameValues.deathroll.addToPot.largeNumberLossMultiplier
-        this.rewardPot += reward
+        this.rewardPot += Math.ceil(reward)
         if (reward > 0) this.saveRewardPot()
         return reward >= GameValues.deathroll.addToPot.minReward ? `(pott + ${reward} = ${this.rewardPot} chips)` : ''
     }
@@ -287,7 +287,7 @@ export class Deathroll extends AbstractCommands {
                 quality = LootboxQuality.Premium
                 cost = GameValues.deathroll.checkForReward.lootbox.premium.cost
             }
-            remainingChips = totalAdded - cost
+            remainingChips = Math.ceil(totalAdded - cost)
             this.rewardPot += Math.max(remainingChips, 0)
             const totalText = `Lootbox reward! *(pott + ${Math.max(0, remainingChips)} = ${this.rewardPot} chips)*`
             this.client.bank.rewardLootbox(
@@ -298,7 +298,7 @@ export class Deathroll extends AbstractCommands {
             )
             return { val: Math.max(0, remainingChips), text: totalText }
         } else {
-            this.rewardPot += finalAmount
+            this.rewardPot += Math.ceil(finalAmount)
         }
         if (totalAdded > 0) this.saveRewardPot()
 
