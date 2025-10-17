@@ -289,15 +289,17 @@ export class GamblingCommands extends AbstractCommands {
                 `Pantelotteriet er bare tilgjengelig når du har mellom ${GameValues.pantelotteriet.minChips} og ${GameValues.pantelotteriet.maxChips} chips.`
             )
         const tickets = user.chips
+        user.chips = 0
         let reward = 0
         for (let i = 0; i < tickets; i++) {
             reward += this.ticketDraw()
         }
         if (reward >= 1000) {
-            user.chips = 0 + reward
+            user.chips = reward
             this.database.updateUser(user)
         } else {
             // If no payout - add reward to deathroll pot
+            this.database.updateUser(user)
             const deathrollPot = this.client.cache.deathrollPot ?? 0
             const newDeathrollPot = deathrollPot + reward
             this.client.database.saveDeathrollPot(newDeathrollPot)
