@@ -47,6 +47,16 @@ export class CustomMOLHandler {
             const data = fs.readFileSync(filePath, 'utf-8')
             return JSON.parse(data)
         }
+        if (name === 'tvSeriesEpisodeCount') {
+            const filePath = path.resolve(__dirname, 'customGames', 'tvSeriesEpisodeCount.json')
+            const data = fs.readFileSync(filePath, 'utf-8')
+            return JSON.parse(data)
+        }
+        if (name === 'medalsByCountry') {
+            const filePath = path.resolve(__dirname, 'customGames', 'medalsByCountry.json')
+            const data = fs.readFileSync(filePath, 'utf-8')
+            return JSON.parse(data)
+        }
     }
 
     static getAllCustomGames() {

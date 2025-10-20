@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '28.0.2'
+    public static readonly currentVersion = '28.0.3'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,7 +25,11 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            ['* Nå funker trade for nyeste series', '* Fikset en feil som gjorde at du aldri tapte chips i pantelotteriet.'].join('\n')
+            [
+                '* Legger til to nye custom MoL spill',
+                '* Fikset tekst i noen MoL.',
+                '* Fikset en bug som gjorde at tapt pot ble lagt tilbake hvis du bustet i blackjack etter en deathroll.',
+            ].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

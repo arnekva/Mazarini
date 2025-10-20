@@ -488,12 +488,13 @@ export class Blackjack extends AbstractCommands {
         player.gameWinnings = 0
         game.messages.buttonRow = gameFinishedRow(game.id)
         game.messages.buttons.edit({ components: [game.messages.buttonRow] })
-        if (game.fromDeathroll) {
+        if (game.fromDeathroll && GameValues.blackjack.deathrollRefundEnabled) {
             this.client.cache.deathrollPot += Math.floor(game.fromDeathroll * 0.5)
         }
-        const refundText = game.fromDeathroll
-            ? `\nSiden du prøvde å gamble ein deathroll pot e halvparten (${Math.floor(game.fromDeathroll * 0.5)}) lagt tebage igjen`
-            : ''
+        const refundText =
+            game.fromDeathroll && GameValues.blackjack.deathrollRefundEnabled
+                ? `\nSiden du prøvde å gamble ein deathroll pot e halvparten (${Math.floor(game.fromDeathroll * 0.5)}) lagt tebage igjen`
+                : ''
         game.messages.embedContent = game.messages.embedContent
             .setTitle('Busted')
             .setDescription(`Du trakk over 21\n\n:money_with_wings: Du tapte ${player.stake} chips :money_with_wings: ${refundText} `) //

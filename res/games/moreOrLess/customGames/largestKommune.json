@@ -8,7 +8,7 @@
     "game": {
         "strings": {
             "verb": "er",
-            "valueTitle": "størst",
+            "valueTitle": "km2",
             "buttonMore": "Større",
             "buttonLess": "Mindre"
         },

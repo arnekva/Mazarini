@@ -52,5 +52,23 @@
         "badge": "Custom",
         "slug": "kommuneInnbygger",
         "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQBF3NLg9oKaZHtp18zKU08xZ6LyDDR3_0fzQ&s"
+    },
+    {
+        "title": "TV Serier",
+        "description": "Gjett antall episoder i populære TV-serier",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "N/A",
+        "badge": "Custom",
+        "slug": "tvSeriesEpisodeCount",
+        "image": "https://www.imdb.com/title/tt2283115/mediaviewer/rm1329497089/?ref_=tt_ov_i"
+    },
+    {
+        "title": "OL-medaljer etter land",
+        "description": "Gjett landene med flest OL-medaljer gjennom tidene",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "N/A",
+        "badge": "Custom",
+        "slug": "medalsByCountry",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Summer_Olympic_Games_Medal_Nations1.svg/960px-Summer_Olympic_Games_Medal_Nations1.svg.png"
     }
 ]
