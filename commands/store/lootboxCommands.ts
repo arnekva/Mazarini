@@ -690,13 +690,26 @@ export class LootboxCommands extends AbstractCommands {
     private getSortedCollectables(user: MazariniUser, filterOutLegendaries: boolean, filter?: { series: string; rarity: string }) {
         const onlyShowDups = user.userSettings?.onlyShowDupesOnTrade ?? false
         const activeSeries = user.userSettings?.activeLootSeries ?? ''
-        const filtered = user.collectables
+        const allItems = this.getUserLoot(user, filter)
+        const filtered = allItems
             .map((item) => (onlyShowDups ? { ...item, amount: item.amount - 1 } : item))
             .filter((item) => item.amount >= 1)
-            .filter((item) => !filter || (filter.series === item.series && filter.rarity === item.rarity))
             .sort((a, b) => this.collectableSortString(a, activeSeries).localeCompare(this.collectableSortString(b, activeSeries)))
         if (filterOutLegendaries) return filtered.filter((item) => item.rarity !== ItemRarity.Legendary)
         else return filtered
+    }
+
+    private getUserLoot(user: MazariniUser, filter?: { series: string; rarity: string }) {
+        const loot = new Array<IUserLootItem>()
+        const series = filter ? [filter.series] : ['mazarini', 'sw', 'hp', 'lotr']
+        const rarities = filter ? [filter.rarity] : ['common', 'rare', 'epic', 'legendary']
+        for (const serie of series) {
+            for (const rarity of rarities) {
+                const items = user.loot[serie].inventory[rarity].items
+                if (items) loot.push(...items)
+            }
+        }
+        return loot
     }
 
     private collectableSortString(item: IUserLootItem, activeSeries?: string) {
@@ -758,7 +771,7 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private allItemsAreOwned(inputs: IUserLootItem[], user: MazariniUser) {
-        let collectables = user.collectables.slice()
+        let collectables = user.loot[inputs[0].series].inventory[inputs[0].rarity].items
         let foundAll = true
         inputs.forEach((input) => {
             let found = false
