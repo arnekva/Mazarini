@@ -138,7 +138,7 @@ export class DailyJobs {
         const status: JobStatus = 'success' //No good way to verify yet?
         users.forEach((user) => {
             const daily = user?.daily
-            if (!daily?.streak) return //Verify that the user as a streak/claim, otherwise skip
+            if (!daily?.streak && !daily.claimedToday) return //Verify that the user as a streak/claim, otherwise skip
             if (!daily.claimedToday) daily.streak = 0 //If not claimed today, also reset the streak
             daily.claimedToday = false //Reset check for daily claim
             const updatePath = this.client.database.getUserPathToUpdate(user.id, 'daily')
@@ -334,14 +334,10 @@ export class DailyJobs {
         })
 
         if (attempted) {
-            const updates = this.client.database.getUpdatesObject<'dailyGameStats'>()
+            const updates = {}
             usersWithStats.forEach((user) => {
-                user.dailyGameStats = {
-                    ...user.dailyGameStats,
-                    moreOrLess: { attempted: false, firstAttempt: 0, bestAttempt: 0, secondAttempt: null, numAttempts: 0 },
-                }
                 const updatePath = this.client.database.getUserPathToUpdate(user.id, 'dailyGameStats')
-                updates[updatePath] = user.dailyGameStats
+                updates[`${updatePath}/moreOrLess`] = { attempted: false, firstAttempt: 0, bestAttempt: 0, secondAttempt: null, numAttempts: 0 }
             })
             this.client.database.updateData(updates)
         }
