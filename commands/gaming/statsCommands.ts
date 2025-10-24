@@ -1,12 +1,13 @@
-import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, TextDisplayBuilder, User } from 'discord.js'
+import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, EmbedBuilder, TextDisplayBuilder, User } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { MazariniClient } from '../../client/MazariniClient'
 
 import { EmojiHelper } from '../../helpers/emojiHelper'
-import { ChipsStats, DeathrollStats, DonDStats, EmojiStats, MazariniUser, RulettStats } from '../../interfaces/database/databaseInterface'
+import { ChipsStats, DeathrollStats, DonDStats, EmojiStats, ILootStats, MazariniUser, RulettStats } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
+import { TextUtils } from '../../utils/textUtils'
 import { UserUtils } from '../../utils/userUtils'
 import { DonDQuality } from '../games/dealOrNoDeal'
 
@@ -22,35 +23,91 @@ export class StatsCommands extends AbstractCommands {
         const userParam = interaction.options.get('bruker')?.user
         const category = interaction.options.get('kategori')?.value as string
         const user = await this.client.database.getUser(userParam && userParam instanceof User ? userParam.id : interaction.user.id)
-        const username = userParam && userParam instanceof User ? userParam.username : interaction.user.username
-        const userStats = user.userStats?.chipsStats
-        const rulettStats = user.userStats?.rulettStats
-        const deathrollStats = user.userStats?.deathrollStats
-        const deathrollAllTimeStats = user.userStatsTotalAllTime.deathrollStats
         const dondStats = user.userStats?.dondStats
-        let embed = EmbedUtils.createSimpleEmbed(`Du har ingen statistikk`, ` `)
-
-        if (deathrollStats && category === 'deathroll') {
-            embed = this.getDeathrollEmbed(deathrollStats, user)
+        let embed: EmbedBuilder = undefined
+        if (category === 'deathroll') {
+            embed = this.getDeathrollEmbed(user)
+        } else if (category === 'deathroll alltime') {
+            embed = this.getDeathrollEmbed(user, true)
+        } else if (category === 'gambling') {
+            embed = this.getGamblingEmbed(user)
+        } else if (category === 'rulett') {
+            embed = this.getRouletteEmbed(user)
+        } else if (dondStats && category === 'dond') {
+            const username = userParam && userParam instanceof User ? userParam.username : interaction.user.username
+            const container = this.getDonDContainer(user, username)
+            return this.messageHelper.replyToInteraction(interaction, '', {}, [container.container])
+        } else if (category === 'loot') {
+            const username = userParam && userParam instanceof User ? userParam.username : interaction.user.username
+            const container = this.getLootStatsContainer(user, username)
+            return this.messageHelper.replyToInteraction(interaction, '', {}, [container.container])
         }
-        if (deathrollStats && category === 'deathroll alltime') {
-            embed = this.getDeathrollEmbed(deathrollAllTimeStats, user, true)
-        }
-        if (userStats && category === 'gambling') {
-            embed = this.getGamblingEmbed(userStats, user)
-        }
-        if (rulettStats && category === 'rulett') {
-            embed = this.getRouletteEmbed(rulettStats, user)
-        }
-        if (dondStats && category === 'dond') {
-            const container = this.getDonDContainer(dondStats, user, username)
-            await this.messageHelper.replyToInteraction(interaction, '', {}, [container.container])
-        } else {
-            this.messageHelper.replyToInteraction(interaction, embed)
-        }
+        if (!embed) embed = EmbedUtils.createSimpleEmbed(`Du har ingen statistikk`, ` `)
+        this.messageHelper.replyToInteraction(interaction, embed)
     }
 
-    private getDonDContainer(dondStats: DonDStats, user: MazariniUser, username: string) {
+    private getLootStatsContainer(user: MazariniUser, username: string) {
+        const lootStats = ['lotr'].map((series) => ({ series: series, stats: user.loot[series].stats as ILootStats }))
+        const container = new SimpleContainer()
+        const text1 = new TextDisplayBuilder().setContent(['# Loot stats', `## ${username}`].join('\n'))
+        container.addComponent(text1, 'header')
+
+        lootStats.forEach(({ series, stats }) => {
+            if (stats) {
+                const qualities = ['basic', 'premium', 'elite', 'special']
+                const rarities = ['common', 'rare', 'epic', 'legendary']
+                const colors = ['none', 'silver', 'gold', 'diamond']
+                let boxesSplit = ''
+                const boxesTotal = qualities.reduce((acc, quality) => {
+                    const amount = stats.boxesOpened[quality]
+                    boxesSplit += `${quality}: ${amount}, `
+                    return acc + amount
+                }, 0)
+                let chestsSplit = ''
+                const chestsTotal = qualities.reduce((acc, quality) => {
+                    const amount = stats.chestsOpened[quality]
+                    chestsSplit += `${quality}: ${amount}, `
+                    return acc + amount
+                }, 0)
+                let achievements = ''
+                for (const key in stats.achievements) {
+                    achievements += `\n* ${lootAchievementTexts.get(key) ?? key}: ${stats.achievements[key]}`
+                }
+                let itemsSplit = ''
+                const itemsTotal = rarities.reduce((acc, rarity) => {
+                    const amount = colors.reduce((acc, color) => {
+                        const amount = stats.rarities[rarity][color]
+                        return acc + amount
+                    }, 0)
+                    itemsSplit += `${rarity}: ${amount}, `
+                    return acc + amount
+                }, 0)
+                const uniqueItems = rarities.reduce((acc, rarity) => {
+                    const amount = user.loot[series].inventory[rarity].items?.length ?? 0
+                    return acc + amount
+                }, 0)
+                const text = new TextDisplayBuilder().setContent(
+                    [
+                        `## ${series.toUpperCase()}`,
+                        `* Unike items atm: **${uniqueItems}**`,
+                        `* Chips brukt: **${TextUtils.formatLargeNumber(stats.chipsSpent)}**`,
+                        `* Bokser åpnet: **${boxesTotal}** \n  * -# _(${boxesSplit.substring(0, boxesSplit.length - 2)})_`,
+                        `* Chests åpnet: **${chestsTotal}** \n  * -# _(${chestsSplit.substring(0, chestsSplit.length - 2)})_`,
+                        `* Trades: **${stats.trades.in + stats.trades.up}** \n  * -# _(in: ${stats.trades.in}, up: ${stats.trades.up})_`,
+                        `* Totalt antall items i serien: **${itemsTotal}** \n  * -# _(${itemsSplit.substring(0, itemsSplit.length - 2)})_`,
+                        `### Achievements ${achievements}`,
+                    ].join('\n')
+                )
+                container.addSeparator()
+                container.addComponent(text, series)
+            }
+        })
+
+        return container
+    }
+
+    private getDonDContainer(user: MazariniUser, username: string) {
+        const dondStats: DonDStats = user.userStats?.dondStats
         const container = new SimpleContainer()
 
         const transformToDondProps = (n: keyof DonDStats) => {
@@ -103,7 +160,9 @@ export class StatsCommands extends AbstractCommands {
         }
     }
 
-    private getDeathrollEmbed(stats: DeathrollStats, user: MazariniUser, alltime: boolean = false) {
+    private getDeathrollEmbed(user: MazariniUser, alltime: boolean = false) {
+        const stats: DeathrollStats = alltime ? user.userStatsTotalAllTime?.deathrollStats : user.userStats?.deathrollStats
+        if (!stats) return undefined
         return EmbedUtils.createSimpleEmbed(
             `**:game_die: Deathroll ${alltime ? 'All-time' : 'Sesong 2'} :game_die:**`,
             `Statistikk for ${UserUtils.findUserById(user.id, this.client).username}`
@@ -138,7 +197,9 @@ export class StatsCommands extends AbstractCommands {
             .setFooter({ text: `Største tap:\n${stats.biggestLoss?.sort((a, b) => b - a).join(', ') ?? ''}\nSkips: ${stats.potSkips ?? 0}` })
     }
 
-    private getGamblingEmbed(stats: ChipsStats, user: MazariniUser) {
+    private getGamblingEmbed(user: MazariniUser) {
+        const stats: ChipsStats = user.userStats?.chipsStats
+        if (!stats) return undefined
         return EmbedUtils.createSimpleEmbed(
             `**:moneybag: Gambling :moneybag:**`,
             `Statistikk for ${UserUtils.findUserById(user.id, this.client).username}`
@@ -156,7 +217,9 @@ export class StatsCommands extends AbstractCommands {
         ])
     }
 
-    private getRouletteEmbed(stats: RulettStats, user: MazariniUser) {
+    private getRouletteEmbed(user: MazariniUser) {
+        const stats: RulettStats = user.userStats?.rulettStats
+        if (!stats) return undefined
         return EmbedUtils.createSimpleEmbed(`**:o: Rulett :o:**`, `Statistikk for ${UserUtils.findUserById(user.id, this.client).username}`).addFields([
             { name: 'Svart', value: `${stats.black ?? 0}`, inline: true },
             { name: 'Rød', value: `${stats.red ?? 0}`, inline: true },
@@ -374,3 +437,5 @@ const filterEmojiStats: (x: EmojiStats, filter: string, top: boolean) => boolean
 }
 
 const isRemoved: (x: EmojiStats) => boolean = (x) => x.removed && new Date(x.removed[x.removed.length - 1]) > new Date(x.added[x.added.length - 1])
+
+const lootAchievementTexts = new Map([['daysWithUnobtainable', 'Dager med Unobtainable']])

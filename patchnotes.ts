@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '28.0.4'
+    public static readonly currentVersion = '28.1.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -24,7 +24,14 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(['* Fikset <:arnenymous:1341764302046232617> kode'].join('\n'))
+        const text = new TextDisplayBuilder().setContent(
+            [
+                '### LOTR series introduserer et helt nytt loot konsept \n:trophy: **Unobtainable vandretrofé** :trophy:',
+                '* Dette er én unik loot som er ekstra vanskelig å få tak i. Det finnes kun ett eksemplar av den, så dersom noen andre får tak i den når du har den, så tar de den fra deg.',
+                '### Annet',
+                '* Legger til loot stats i /stats bruker',
+            ].join('\n')
+        )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 
