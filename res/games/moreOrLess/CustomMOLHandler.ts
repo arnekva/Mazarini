@@ -42,7 +42,7 @@ export class CustomMOLHandler {
             const data = fs.readFileSync(filePath, 'utf-8')
             return JSON.parse(data)
         }
-        if (name === 'mostKnownNorwegian') {
+        if (name === 'mostKnownNorwegians') {
             const filePath = path.resolve(__dirname, 'customGames', 'mostKnownNorwegian.json')
             const data = fs.readFileSync(filePath, 'utf-8')
             return JSON.parse(data)
