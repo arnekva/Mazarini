@@ -443,6 +443,16 @@ export class DatabaseHelper {
         return await this.db.getStorageLink(ref)
     }
 
+    public async getMastermindSolution(): Promise<string[]> {
+        return (await this.db.getData('/other/mastermind')) as string[]
+    }
+
+    public setMastermindSolution(solution: string[]) {
+        const updates = {}
+        updates[`/other/mastermind`] = solution
+        this.db.updateData(updates)
+    }
+
     static defaultUser(id: string): MazariniUser {
         return {
             bonkCounter: 0,

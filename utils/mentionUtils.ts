@@ -1,7 +1,7 @@
 const { userMention, memberNicknameMention, channelMention, roleMention } = require('@discordjs/builders')
 
 export enum ChannelIds {
-    LAS_VEGAS = '808992127249678386',
+    VLADIVOSTOK = '808992127249678386',
     BOT_UTVIKLING = '802716150484041751',
     GENERAL = '340626855990132747',
     ACTION_LOG = '1107958956573347910',

@@ -11,6 +11,7 @@ import { jailbreakCommand } from './commandStorage/jailbreak'
 import { lootboxCommand } from './commandStorage/lootbox'
 import { ludoCommand } from './commandStorage/ludo'
 import { lyricsCommand } from './commandStorage/lyrics'
+import { mastermind } from './commandStorage/mastermind'
 import { memeCommand } from './commandStorage/meme'
 import { moreorless } from './commandStorage/moreorless'
 import { musicCommand } from './commandStorage/musikk'
@@ -70,4 +71,5 @@ export namespace CommandStorage {
     export const MoreOrLess = moreorless
     export const DropCommand = dropCommand
     export const Pantelotteriet = pantelotterietCommand
+    export const Mastermind = mastermind
 }

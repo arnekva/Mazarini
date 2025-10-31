@@ -18,7 +18,7 @@ import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
-import { Scripts } from '../../scripts/scripts'
+import { mastermindContainer } from '../../templates/containerTemplates'
 import { LootboxCommands } from '../store/lootboxCommands'
 
 const defaultBtn = (id: string) => {
@@ -69,12 +69,11 @@ export class TestCommands extends AbstractCommands {
     }
 
     private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
-        await interaction.deferReply()
+        // await interaction.deferReply({ ephemeral: true })
         const user = await this.database.getUser(interaction.user.id)
-        this.messageHelper.replyToInteraction(interaction, 'Tester siste del av ny series release script', { hasBeenDefered: true })
-        const scripts = new Scripts(this.client)
-        // await scripts.prepareNewSeries()
-        this.messageHelper.sendMessage(interaction.channelId, { text: 'all good' })
+        const container = mastermindContainer()
+        // this.messageHelper.sendMessage(interaction.channelId, { components: [container.container] })
+        this.messageHelper.replyToInteraction(interaction, '', { ephemeral: true }, [container.container])
     }
 
     private async testSelectMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {
