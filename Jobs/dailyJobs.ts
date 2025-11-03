@@ -25,7 +25,7 @@ export class DailyJobs {
 
     async runJobs(onlyRl?: boolean) {
         //TODO: Refactor to actually run this
-        this.client.onTimedEvent('daily')
+        await this.client.onTimedEvent('daily')
 
         if (onlyRl) {
             this.updateRLTournaments(rapidApiKey)

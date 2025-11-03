@@ -21,7 +21,16 @@ import { GameValues } from '../../general/values'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
 import { LootStatsHelper } from '../../helpers/statsHelper'
-import { ILootbox, ILootSeries, ItemColor, ItemRarity, IUserEffects, IUserLootItem, MazariniUser } from '../../interfaces/database/databaseInterface'
+import {
+    ILootbox,
+    ILootSeries,
+    ILootSeriesInventoryArt,
+    ItemColor,
+    ItemRarity,
+    IUserEffects,
+    IUserLootItem,
+    MazariniUser,
+} from '../../interfaces/database/databaseInterface'
 import { IInteractionElement, IOnTimedEvent } from '../../interfaces/interactionInterface'
 import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
@@ -112,16 +121,37 @@ export class LootboxCommands extends AbstractCommands {
         } else this.messageHelper.replyToInteraction(interaction, 'Den er ikke din dessverre', { ephemeral: true, hasBeenDefered: true })
     }
 
+    private async purchaseLootArt(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+        const user = await this.client.database.getUser(interaction.user.id)
+        const series = this.resolveLootSeries(user, interaction)
+        const seriesObj = await this.getSeriesOrDefault(series)
+        if (interaction.isChatInputCommand()) {
+            const moneyWasTaken = this.client.bank.takeMoney(user, GameValues.loot.artPrice)
+            if (!moneyWasTaken) return this.messageHelper.replyToInteraction(interaction, 'Du har kje råd te den', { hasBeenDefered: true })
+        }
+        const sh = new LootStatsHelper(user.loot[seriesObj.name].stats)
+        sh.registerArt()
+
+        const art = await this.getRandomInventoryArt(user, seriesObj)
+        user.loot[seriesObj.name].inventoryArt = art
+        await this.database.updateUser(user)
+        this.generateInventoryParts(user, series, [ItemRarity.Common, ItemRarity.Rare, ItemRarity.Epic, ItemRarity.Legendary])
+        const fs = require('fs')
+        const image = fs.readFileSync(`graphics/background/inventory_art/${art.name}.png`)
+        const file = new AttachmentBuilder(image, { name: 'background.png' })
+        this.messageHelper.replyToInteraction(interaction, 'Gratulerer med ny inventory-bakgrunn!', { hasBeenDefered: true }, undefined, [file])
+    }
+
     private async openAndRegisterLootbox(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
         const user = await this.client.database.getUser(interaction.user.id)
         const quality = this.resolveLootQuality(interaction)
         const series = this.resolveLootSeries(user, interaction)
         const seriesObj = await this.getSeriesOrDefault(series)
         const box = await this.resolveLootbox(quality)
+        if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction)) return
         const sh = new LootStatsHelper(user.loot[seriesObj.name].stats)
         sh.registerPurchase(box, false, interaction.isChatInputCommand())
 
-        if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction)) return
         const rewardedItem = await this.calculateRewardItem(box, seriesObj, user)
         this.registerItemOnUser(user, rewardedItem)
         if (!(rewardedItem.rarity === ItemRarity.Unobtainable)) this.generateInventoryParts(user, rewardedItem.series, [rewardedItem.rarity])
@@ -135,10 +165,10 @@ export class LootboxCommands extends AbstractCommands {
         const seriesObj = await this.getSeriesOrDefault(series)
 
         const box = await this.resolveLootbox(quality)
+        if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction, true)) return
         const sh = new LootStatsHelper(user.loot[seriesObj.name].stats)
         sh.registerPurchase(box, true, interaction.isChatInputCommand())
 
-        if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction, true)) return
         const chestItems: IUserLootItem[] = new Array<IUserLootItem>()
         chestItems.push(await this.calculateRewardItem(box, seriesObj, user))
         chestItems.push(await this.calculateRewardItem(box, seriesObj, user))
@@ -334,7 +364,7 @@ export class LootboxCommands extends AbstractCommands {
             colored = true
             user.effects.positive.guaranteedLootColor -= 1
         }
-        if (series.hasUnobtainable && itemRoll < (box.probabilities.unobtainable ?? 0)) {
+        if (series.hasUnobtainable && itemRoll < (box.probabilities.unobtainable ?? 0) && (series.unobtainableHolder ?? '') !== user.id) {
             return await this.getRandomItemForRarity(ItemRarity.Unobtainable, series.name, colored, user)
         } else if (itemRoll < box.probabilities.legendary) {
             return await this.getRandomItemForRarity(ItemRarity.Legendary, series.name, colored, user)
@@ -353,6 +383,14 @@ export class LootboxCommands extends AbstractCommands {
         const item = RandomUtils.getRandomItemFromList(rarityItems)
         const color = this.getRandomColor(colored && seriesOrDefault.hasColor, user)
         return { name: item, series: seriesOrDefault.name, rarity: rarity, color: color, amount: 1 }
+    }
+
+    private getRandomInventoryArt(user: MazariniUser, series: ILootSeries) {
+        let art: ILootSeriesInventoryArt = RandomUtils.getRandomItemFromList(series.inventoryArts)
+        while (art.name === user.loot[series.name].inventoryArt.name) {
+            art = RandomUtils.getRandomItemFromList(series.inventoryArts)
+        }
+        return art
     }
 
     private async getSeriesOrDefault(series: string): Promise<ILootSeries> {
@@ -481,11 +519,14 @@ export class LootboxCommands extends AbstractCommands {
         )
     }
 
-    private async seriesAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
+    private async seriesAutocomplete(interaction: AutocompleteInteraction<CacheType>, isArt: boolean = false) {
         const series = await this.getSeries()
+        const filteredSeries = isArt ? series.filter((serie) => serie.inventoryArts && serie.inventoryArts.length > 0) : series
         const optionList: any = interaction.options
         const input = optionList.getFocused().toLowerCase()
-        interaction.respond(series.filter((series) => series.name.toLowerCase().includes(input)).map((series) => ({ name: series.name, value: series.name })))
+        interaction.respond(
+            filteredSeries.filter((series) => series.name.toLowerCase().includes(input)).map((series) => ({ name: series.name, value: series.name }))
+        )
     }
 
     private async printInventory(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
@@ -503,7 +544,7 @@ export class LootboxCommands extends AbstractCommands {
                 this.messageHelper.replyToInteraction(interaction, 'Klarte ikke å hente inventory', { hasBeenDefered: true })
                 clearInterval(intervalId)
             }
-            if (!this.userHasInventoryInQueue(user.id, seriesParam)) {
+            if (!this.userHasInventoryInQueue(user.id, series.name)) {
                 clearInterval(intervalId)
                 user = await this.client.database.getUser(interaction.user.id)
                 if (!(await this.verifyUserHasInventoryImages(user, series.name))) {
@@ -614,8 +655,9 @@ export class LootboxCommands extends AbstractCommands {
     private async generateInventoryParts(user: MazariniUser, series: string, rarities: Array<ItemRarity>) {
         const updates: InventoryUpdate[] = rarities.map((rarity) => ({ userId: user.id, series: series, rarity: rarity }))
         this.inventoryUpdateQueue.push(...updates)
+        const seriesObj = await this.getSeriesOrDefault(series)
         for (const rarity of rarities) {
-            const img = await this.imageGenerator.generateImageForCollectablesRarity(user, series, rarity)
+            const img = await this.imageGenerator.generateImageForCollectablesRarity(user, seriesObj, rarity)
             await this.database.uploadUserInventory(user, `${series}/${rarity}.png`, img)
         }
         await this.updateUserInventoryLinks(user.id, series, rarities)
@@ -913,6 +955,7 @@ export class LootboxCommands extends AbstractCommands {
         if (!cmdGroup && cmd === 'box') this.openAndRegisterLootbox(interaction)
         else if (!cmdGroup && cmd === 'chest') this.openAndRegisterLootChest(interaction)
         else if (!cmdGroup && cmd === 'inventory') this.printInventory(interaction)
+        else if (!cmdGroup && cmd === 'art') this.purchaseLootArt(interaction)
         else if (cmdGroup && cmdGroup === 'trade') this.tradeItems(interaction)
     }
 
@@ -920,7 +963,7 @@ export class LootboxCommands extends AbstractCommands {
         const cmd = interaction.options.getSubcommand()
         const optionList: any = interaction.options
         const focused = optionList._hoistedOptions.find((option) => option.focused)
-        if (focused.name === 'series') this.seriesAutocomplete(interaction)
+        if (focused.name === 'series') this.seriesAutocomplete(interaction, cmd === 'art')
         else if (focused.name.includes('quality')) this.qualityAutocomplete(interaction, cmd === 'chest')
         else if (focused.name.includes('item')) this.itemAutocomplete(interaction)
     }

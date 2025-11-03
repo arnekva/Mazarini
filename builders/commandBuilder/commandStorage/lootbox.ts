@@ -16,13 +16,13 @@ export const lootboxCommand: ISlashCommandItem = {
                     description: 'hvilken lootbox ønsker du å kjøpe?',
                     type: ApplicationCommandOptionType.String,
                     required: true,
-                    autocomplete: true
+                    autocomplete: true,
                 },
                 {
                     name: 'series',
                     description: 'hvilken loot-serie ønsker du å kjøpe fra',
                     type: ApplicationCommandOptionType.String,
-                    autocomplete: true
+                    autocomplete: true,
                 },
             ],
         },
@@ -35,13 +35,13 @@ export const lootboxCommand: ISlashCommandItem = {
                     description: 'hvilken kiste ønsker du å kjøpe?',
                     type: ApplicationCommandOptionType.String,
                     required: true,
-                    autocomplete: true
+                    autocomplete: true,
                 },
                 {
                     name: 'series',
                     description: 'hvilken loot-serie ønsker du å kjøpe fra',
                     type: ApplicationCommandOptionType.String,
-                    autocomplete: true
+                    autocomplete: true,
                 },
             ],
         },
@@ -53,7 +53,20 @@ export const lootboxCommand: ISlashCommandItem = {
                     name: 'series',
                     description: 'hvilken loot-serie ønsker du å se oversikten til?',
                     type: ApplicationCommandOptionType.String,
-                    autocomplete: true
+                    autocomplete: true,
+                },
+            ],
+        },
+        {
+            commandName: 'art',
+            commandDescription: 'Kjøp en ny tilfeldig bakgrunn til inventoryen din',
+            options: [
+                {
+                    name: 'series',
+                    description: 'hvilken loot-serie ønsker du å kjøpe bakgrunn til?',
+                    type: ApplicationCommandOptionType.String,
+                    autocomplete: true,
+                    required: true,
                 },
             ],
         },

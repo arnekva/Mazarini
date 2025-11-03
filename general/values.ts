@@ -122,6 +122,7 @@ export type GameValuesType = {
             premium: number
             elite: number
         }
+        artPrice: number
     }
 }
 
@@ -293,5 +294,6 @@ export const GameValues: GameValuesType = {
             premium: 0.2,
             elite: 0.5,
         },
+        artPrice: 20000,
     },
 }

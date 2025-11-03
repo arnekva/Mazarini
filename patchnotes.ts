@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '28.1.0'
+    public static readonly currentVersion = '28.2.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,10 +26,10 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '### LOTR series introduserer et helt nytt loot konsept \n:trophy: **Unobtainable vandretrofé** :trophy:',
-                '* Dette er én unik loot som er ekstra vanskelig å få tak i. Det finnes kun ett eksemplar av den, så dersom noen andre får tak i den når du har den, så tar de den fra deg.',
+                '### LOTR series introduserer nok et nytt konsept: \n:frame_photo: **Unobtainable vandretrofé** :frame_photo:',
+                '* Du kan nå customize inventoryen din ved å kjøpe en tilfeldig inventory bakgrunn til 20k chips!',
                 '### Annet',
-                '* Legger til loot stats i /stats bruker',
+                '* Fikser en bug som gjorde at unobtainable holder ikke fikk resatt dailyen sin',
             ].join('\n')
         )
         container.addSeparator()

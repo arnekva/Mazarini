@@ -24,4 +24,8 @@ export class LootStatsHelper {
         const type = isTradeUp ? 'up' : 'in'
         this.lootStats.trades[type] = (this.lootStats.trades[type] ?? 0) + 1
     }
+
+    registerArt() {
+        this.lootStats.achievements.artsPurchased = (this.lootStats?.achievements?.artsPurchased ?? 0) + 1
+    }
 }

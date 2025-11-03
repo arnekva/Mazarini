@@ -2,7 +2,15 @@ import { Image } from 'canvas'
 import sharp from 'sharp'
 import { IFontWeight, IImage, IOptions, IRepeat, UltimateTextToImage, getCanvasImage, registerFont } from 'ultimate-text-to-image'
 import { MazariniClient } from '../client/MazariniClient'
-import { IUserLootItem, IUserLootSeriesInventory, ItemColor, ItemRarity, MazariniUser } from '../interfaces/database/databaseInterface'
+import {
+    ILootSeries,
+    ILootSeriesInventoryArt,
+    IUserLootItem,
+    IUserLootSeriesInventory,
+    ItemColor,
+    ItemRarity,
+    MazariniUser,
+} from '../interfaces/database/databaseInterface'
 import { TextUtils } from '../utils/textUtils'
 import { EmojiHelper } from './emojiHelper'
 
@@ -412,8 +420,8 @@ export class ImageGenerationHelper {
         return collection
     }
 
-    public async generateImageForCollectablesRarity(user: MazariniUser, series: string, rarity: ItemRarity): Promise<Buffer> {
-        let collectables = user.loot[series]['inventory'][rarity]['items'] as IUserLootItem[]
+    public async generateImageForCollectablesRarity(user: MazariniUser, series: ILootSeries, rarity: ItemRarity): Promise<Buffer> {
+        let collectables = user.loot[series.name]['inventory'][rarity]['items'] as IUserLootItem[]
         const background = await this.getInventoryBackground(user, series, rarity)
         if (!collectables) return background
         collectables = collectables.sort((a, b) => `${a.name}_${this.getColorOrder(a.color)}`.localeCompare(`${b.name}_${this.getColorOrder(b.color)}`))
@@ -478,9 +486,9 @@ export class ImageGenerationHelper {
         return await base.composite(composites).toBuffer()
     }
 
-    public async extractArtSection(art: string, rarity: ItemRarity): Promise<Buffer> {
+    public async extractArtSection(art: ILootSeriesInventoryArt, rarity: ItemRarity): Promise<Buffer> {
         // Get original dimensions
-        const image = fs.readFileSync(`graphics/background/inventory_art/${art}.png`)
+        const image = fs.readFileSync(`graphics/background/inventory_art/${art.name}.png`)
         const metadata = await sharp(image).metadata()
         const { width, height } = metadata
         const section = this.resolveRaritySection(rarity)
@@ -494,7 +502,7 @@ export class ImageGenerationHelper {
         }
 
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${Math.floor(height / 4)}">
-    <rect width="100%" height="100%" fill="white" fill-opacity="${0.25}" />
+    <rect width="100%" height="100%" fill="white" fill-opacity="${art.opacity}" />
   </svg>`
         return await sharp(image)
             .ensureAlpha()
@@ -511,13 +519,13 @@ export class ImageGenerationHelper {
         return 0
     }
 
-    public async getInventoryBackground(user: MazariniUser, series: string, rarity: ItemRarity) {
-        const isHP = series === 'hp'
+    public async getInventoryBackground(user: MazariniUser, series: ILootSeries, rarity: ItemRarity) {
+        const isHP = series.name === 'hp'
         let bg = fs.readFileSync(`graphics/background/inventory_parts/${rarity}${isHP ? '_hp' : ''}.png`)
         if (isHP) return bg
-        const artName = user.loot[series].inventoryArt
-        if (artName) {
-            const art = await this.extractArtSection(artName, rarity)
+        const artObj: ILootSeriesInventoryArt = user.loot[series.name].inventoryArt
+        if (artObj) {
+            const art = await this.extractArtSection(artObj, rarity)
             bg = await this.compositeBuffers(bg, art, 0, 0)
         }
         const slots = fs.readFileSync(`graphics/background/inventory_parts/slots.png`)

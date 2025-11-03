@@ -3,6 +3,7 @@ import { MazariniClient } from '../client/MazariniClient'
 import { ImageGenerationHelper } from '../helpers/imageGenerationHelper'
 import {
     ILootSeries,
+    ILootSeriesInventoryArt,
     ILootStats,
     ILootStatsColorCounter,
     IPityTracker,
@@ -94,28 +95,28 @@ export class Scripts {
     public async refactorUserLoot(user: MazariniUser) {
         const mazarini: IUserLootSeries = {
             name: 'mazarini',
-            inventoryArt: '',
+            inventoryArt: undefined,
             pityLevel: structuredClone(defaultPityLevel),
             inventory: structuredClone(defaultInventory),
             stats: structuredClone(defaultLootStats),
         }
         const sw: IUserLootSeries = {
             name: 'sw',
-            inventoryArt: '',
+            inventoryArt: undefined,
             pityLevel: structuredClone(defaultPityLevel),
             inventory: structuredClone(defaultInventory),
             stats: structuredClone(defaultLootStats),
         }
         const hp: IUserLootSeries = {
             name: 'hp',
-            inventoryArt: '',
+            inventoryArt: undefined,
             pityLevel: structuredClone(defaultPityLevel),
             inventory: structuredClone(defaultInventory),
             stats: structuredClone(defaultLootStats),
         }
         const lotr: IUserLootSeries = {
             name: 'lotr',
-            inventoryArt: '',
+            inventoryArt: undefined,
             pityLevel: structuredClone(defaultPityLevel),
             inventory: structuredClone(defaultInventory),
             stats: structuredClone(defaultLootStats),
@@ -130,22 +131,45 @@ export class Scripts {
         await this.client.database.updateUser(user)
     }
 
-    public async generateNewLootInventory(user: MazariniUser) {
-        const imgGen = new ImageGenerationHelper(this.client)
-        for (const series of ['mazarini', 'sw', 'hp', 'lotr']) {
-            console.log(user.id, '-', series)
-            const common = await imgGen.generateImageForCollectablesRarity(user, series, ItemRarity.Common)
-            this.client.database.uploadUserInventory(user, `${series}/common.png`, common)
-
-            const rare = await imgGen.generateImageForCollectablesRarity(user, series, ItemRarity.Rare)
-            this.client.database.uploadUserInventory(user, `${series}/rare.png`, rare)
-
-            const epic = await imgGen.generateImageForCollectablesRarity(user, series, ItemRarity.Epic)
-            this.client.database.uploadUserInventory(user, `${series}/epic.png`, epic)
-
-            const legendary = await imgGen.generateImageForCollectablesRarity(user, series, ItemRarity.Legendary)
-            this.client.database.uploadUserInventory(user, `${series}/legendary.png`, legendary)
+    public async refactorUserLootArt() {
+        const users = await this.client.database.getAllUsers()
+        for (const user of users) {
+            const lotr: IUserLootSeries = {
+                name: 'lotr',
+                inventoryArt: undefined,
+                pityLevel: user.loot.lotr.pityLevel ?? structuredClone(defaultPityLevel),
+                inventory: user.loot.lotr.inventory ?? structuredClone(defaultInventory),
+                stats: user.loot.lotr.stats ?? structuredClone(defaultLootStats),
+            }
+            user.loot.lotr = lotr
+            await this.client.database.updateUser(user)
         }
+    }
+
+    public async generateNewLootInventory(user: MazariniUser) {
+        const seriess = await this.client.database.getLootboxSeries()
+        const imgGen = new ImageGenerationHelper(this.client)
+        for (const series of seriess) {
+            if (series.name === 'lotr') {
+                const common = await imgGen.generateImageForCollectablesRarity(user, series, ItemRarity.Common)
+                this.client.database.uploadUserInventory(user, `${series.name}/common.png`, common)
+
+                const rare = await imgGen.generateImageForCollectablesRarity(user, series, ItemRarity.Rare)
+                this.client.database.uploadUserInventory(user, `${series.name}/rare.png`, rare)
+
+                const epic = await imgGen.generateImageForCollectablesRarity(user, series, ItemRarity.Epic)
+                this.client.database.uploadUserInventory(user, `${series.name}/epic.png`, epic)
+
+                const legendary = await imgGen.generateImageForCollectablesRarity(user, series, ItemRarity.Legendary)
+                this.client.database.uploadUserInventory(user, `${series.name}/legendary.png`, legendary)
+            }
+        }
+    }
+
+    public async uploadInventoryArts() {
+        const series = (await this.client.database.getLootboxSeries()).find((serie) => serie.name === 'lotr')
+        series.inventoryArts = lotrInventoryArts
+        this.client.database.updateLootboxSeries(series)
     }
 
     public async setInventoryUrls(user: MazariniUser) {
@@ -411,3 +435,18 @@ const legendary: gifTemplate[] = [
 ]
 
 const unobtainable: gifTemplate = { name: 'the_one_ring', background: 'black_texture', rarity: ItemRarity.Unobtainable }
+
+const lotrInventoryArts: ILootSeriesInventoryArt[] = [
+    { name: 'Argonath', opacity: 0.5 },
+    { name: 'Black_Gate', opacity: 0.5 },
+    { name: 'Gandalf_vs_Balrog', opacity: 0.5 },
+    { name: 'Helms_Deep', opacity: 0.5 },
+    { name: 'Minas_Tirith', opacity: 0.5 },
+    { name: 'Mount_Doom', opacity: 0.5 },
+    { name: 'Nazgul', opacity: 0.5 },
+    { name: 'Sauron', opacity: 0.5 },
+    { name: 'Shire_dark', opacity: 0.5 },
+    { name: 'Shire_light', opacity: 0.5 },
+    { name: 'Two_Towers', opacity: 0.5 },
+    { name: 'Witch_King', opacity: 0.5 },
+]

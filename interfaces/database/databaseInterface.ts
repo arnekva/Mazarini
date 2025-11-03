@@ -168,6 +168,12 @@ export interface ILootSeries {
     legendary: string[]
     hasUnobtainable: boolean
     unobtainableHolder?: string //userID of current holder
+    inventoryArts?: ILootSeriesInventoryArt[]
+}
+
+export interface ILootSeriesInventoryArt {
+    name: string
+    opacity: number
 }
 
 export interface IUserLoot {
@@ -181,7 +187,7 @@ export interface IUserLootSeries {
     name: string
     pityLevel?: IPityTracker
     inventory: IUserLootSeriesInventory
-    inventoryArt?: string
+    inventoryArt?: ILootSeriesInventoryArt
     stats?: ILootStats
 }
 
@@ -237,7 +243,8 @@ export interface ILootStatsColorCounter {
 }
 
 export interface ILootStatsAchievements {
-    daysWithUnobtainable: number
+    daysWithUnobtainable?: number
+    artsPurchased?: number
 }
 
 export interface IUserCollectable {
