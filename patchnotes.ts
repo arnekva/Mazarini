@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '28.2.0'
+    public static readonly currentVersion = '28.3.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,10 +26,16 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '### LOTR series introduserer nok et nytt konsept: \n:frame_photo: **Unobtainable vandretrofé** :frame_photo:',
-                '* Du kan nå customize inventoryen din ved å kjøpe en tilfeldig inventory bakgrunn til 20k chips!',
-                '### Annet',
-                '* Fikser en bug som gjorde at unobtainable holder ikke fikk resatt dailyen sin',
+                '### :brain: Mastermind :brain:',
+                '* Nå som knapper funker igjen, er tiden moden for et nytt spill! :video_game:',
+                '* Konkurrer mot hverandre om å løse den daglige koden på færrest mulig forsøk',
+                '  * Vinneren(e) får seg en liten premie påfølgende morgen :moneybag:',
+                '* Spillet følger standard-reglene til Mastermind, men dersom du ikke husker hvordan det funker, får du en oppsummering her:',
+                '  * Koden er 4 farger lang, kan ha samme farge flere ganger, og genereres tilfeldig av Høie hver morgen',
+                '  * Du har ett forsøk med 10 gjett på deg hver dag',
+                '  * Når du gjetter får du info om hva som evt var riktig',
+                '      * :white_small_square: En farge er riktig, men på feil plass',
+                '    * :black_small_square: En farge er riktig og på rett plass',
             ].join('\n')
         )
         container.addSeparator()

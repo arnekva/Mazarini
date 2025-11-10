@@ -102,6 +102,7 @@ export interface MazariniUser {
 
 export interface IDailyGameStats {
     moreOrLess?: IMoreOrLessStats
+    mastermind?: IMastermindStats
 }
 
 export interface IMoreOrLessStats {
@@ -111,6 +112,12 @@ export interface IMoreOrLessStats {
     bestAttempt?: number
     numAttempts?: number
     completed?: boolean
+}
+
+export interface IMastermindStats {
+    attempted?: boolean
+    completed?: boolean
+    numAttempts?: number
 }
 
 export interface IUserSettings {
@@ -335,6 +342,7 @@ export interface MazariniStorage {
         current: IMoreOrLess
         previous: string[] //list of slugs
     }
+    mastermind?: string[]
 }
 
 export interface IMoreOrLess {

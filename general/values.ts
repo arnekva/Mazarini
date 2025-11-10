@@ -124,6 +124,11 @@ export type GameValuesType = {
         }
         artPrice: number
     }
+    mastermind: {
+        totalAttempts: number
+        codeLength: number
+        winnerReward: number
+    }
 }
 
 export const GameValues: GameValuesType = {
@@ -295,5 +300,10 @@ export const GameValues: GameValuesType = {
             elite: 0.5,
         },
         artPrice: 20000,
+    },
+    mastermind: {
+        totalAttempts: 10,
+        codeLength: 4,
+        winnerReward: 5000,
     },
 }

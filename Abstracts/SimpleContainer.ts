@@ -36,6 +36,10 @@ export class SimpleContainer {
         }
     }
 
+    public getComponentIndex(reference: string) {
+        return this.components.findIndex((comp) => comp.name === reference)
+    }
+
     public addSeparator(
         p = {
             spacing: SeparatorSpacingSize.Small,
