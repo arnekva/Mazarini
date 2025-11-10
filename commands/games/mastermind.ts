@@ -40,6 +40,7 @@ export class Mastermind extends AbstractCommands {
 
     async onReady(): Promise<void> {
         this.solution = await this.database.getMastermindSolution()
+        if (!this.solution || this.solution.length === 0) this.setNewSolution()
     }
 
     private async setupMastermind(interaction: ChatInputCommandInteraction<CacheType>) {
