@@ -243,6 +243,15 @@ export class Mastermind extends AbstractCommands {
         this.database.setMastermindSolution(newSolution)
     }
 
+    override onSave(): Promise<boolean> {
+        this.userGames.forEach((game, user) => {
+            if (!game.completed && !game.guessLimitReached) {
+                this.client.cache.restartImpediments.push(`${UserUtils.findUserById(user, this.client).username} har et aktivt mastermind game`)
+            }
+        })
+        return Promise.resolve(true)
+    }
+
     // eslint-disable-next-line require-await
     async onTimedEvent(): Promise<IOnTimedEvent> {
         return { daily: [() => this.wipeGames(), () => this.revealWinner()], weekly: [], hourly: [] }
