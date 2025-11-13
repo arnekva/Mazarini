@@ -117,11 +117,16 @@ export class Mastermind extends AbstractCommands {
     private addNewRow(game: MMGame) {
         let content = ''
         if (game.completed) content = 'Gratulerer! Du har fullført dagens mastermind!'
-        else if (game.guessLimitReached) content = 'Beklager! Du er tom for forsøk i dag'
+        else if (game.guessLimitReached) content = 'Beklager! Du er tom for forsøk i dag. \nRiktig løsning var:'
         else content = ':arrow_left:'
         const nextRow = ComponentsHelper.createTextComponent().setContent(content)
         const previousRowIndex = game.container.getComponentIndex(`guess${game.previousGuesses?.length}`)
         game.container.addComponent(nextRow, `guess${game.previousGuesses?.length + 1}`, previousRowIndex + 1)
+        if (game.guessLimitReached && !game.completed) {
+            const solution = this.solution.map((color) => this.getColorEmoji(color)).join(' ')
+            const finalRow = ComponentsHelper.createTextComponent().setContent(solution)
+            game.container.addComponent(finalRow, `guess${game.previousGuesses?.length + 1}`, previousRowIndex + 2)
+        }
     }
 
     private async updateUserStats(game: MMGame) {

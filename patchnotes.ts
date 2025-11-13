@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '28.3.0'
+    public static readonly currentVersion = '28.3.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -24,20 +24,7 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(
-            [
-                '### :brain: Mastermind :brain:',
-                '* Nå som knapper funker igjen, er tiden moden for et nytt spill! :video_game:',
-                '* Konkurrer mot hverandre om å løse den daglige koden på færrest mulig forsøk',
-                '  * Vinneren(e) får seg en liten premie påfølgende morgen :moneybag:',
-                '* Spillet følger standard-reglene til Mastermind, men dersom du ikke husker hvordan det funker, får du en oppsummering her:',
-                '  * Koden er 4 farger lang, kan ha samme farge flere ganger, og genereres tilfeldig av Høie hver morgen',
-                '  * Du har ett forsøk med 10 gjett på deg hver dag',
-                '  * Når du gjetter får du info om hva som evt var riktig',
-                '      * :white_small_square: En farge er riktig, men på feil plass',
-                '    * :black_small_square: En farge er riktig og på rett plass',
-            ].join('\n')
-        )
+        const text = new TextDisplayBuilder().setContent(['* Mastermind viser nå fasiten sammen med "du klarte det ikke" teksten'].join('\n'))
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 
