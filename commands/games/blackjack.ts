@@ -566,7 +566,7 @@ export class Blackjack extends AbstractCommands {
     }
 
     private async reDeal(game: BlackjackGame, player: BlackjackPlayer) {
-        const hasDeathrollRedeal = game.fromDeathroll && !game.hasRedealt
+        const hasDeathrollRedeal = game.fromDeathroll && !game.hasRedealt && GameValues.deathroll.canGetFreeBlackackRedeal
         if (hasDeathrollRedeal) {
             game.hasRedealt = true
         } else {

@@ -152,7 +152,7 @@ export const GameValues: GameValuesType = {
         },
         jokes: {
             nineElevenRemove: 2977,
-            nineElevenChance: 0.5,
+            nineElevenChance: 0.75,
         },
         checkForReward: {
             sameDigitsMultiplier: 3,
@@ -173,9 +173,9 @@ export const GameValues: GameValuesType = {
         getRollReward: {
             specialNumbers: [
                 1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 669, 690, 8008, 6969, 420, 123, 1234, 12345, 2469, 1984, 2024, 2025, 2012, 1945, 2468, 1359,
-                6900, 2026,
+                6900, 2026, 4060, 1989,
             ],
-            multiplier: 2.5,
+            multiplier: 3,
         },
         tomasa: {
             baseChance: 0.001,
@@ -189,17 +189,17 @@ export const GameValues: GameValuesType = {
         },
         autoCompleteDiceDefault: 10002,
         printCurrentStateMaxFields: 25,
-        canGetFreeBlackackRedeal: false,
+        canGetFreeBlackackRedeal: true,
     },
 
     // More or Less
     moreOrLess: {
-        tier1Reward: 200, // 1-10
-        tier2Reward: 150, // 11-20
-        tier3Reward: 100, // 21-30
-        tier4Reward: 75, // 31-40
-        tier5Reward: 50, // 41-50
-        tier6Reward: 25, // 51+
+        tier1Reward: 400, // 1-10
+        tier2Reward: 300, // 11-20
+        tier3Reward: 200, // 21-30
+        tier4Reward: 150, // 31-40
+        tier5Reward: 100, // 41-50
+        tier6Reward: 50, // 51+
     },
 
     // Spinner
@@ -236,7 +236,7 @@ export const GameValues: GameValuesType = {
         baseReward: 500,
         streakMultiplier: 1.0, // Multiplies with streak
         streak4Reward: 500,
-        streak7Reward: 'box',
+        streak7Reward: 'chest',
         // Add more as needed
     },
 
@@ -281,17 +281,17 @@ export const GameValues: GameValuesType = {
 
     // Deal Or No Deal
     dealOrNoDeal: {
-        effectItemChance: 0, // percent chance to get an effect item
+        effectItemChance: 10, // percent chance to get an effect item
         offerBase: 0.5, // base offer percentage
         offerPerRound: 0.05, // offer percentage increase per round
     },
 
     // Blackjack
     blackjack: {
-        deathrollRefundEnabled: false, // If true, lostAddedBack is shown and refund is applied
+        deathrollRefundEnabled: true, // If true, lostAddedBack is shown and refund is applied
     },
     wordle: {
-        reward: 2500,
+        reward: 5000,
     },
     loot: {
         chestEffectOdds: {
@@ -299,7 +299,7 @@ export const GameValues: GameValuesType = {
             premium: 0.2,
             elite: 0.5,
         },
-        artPrice: 20000,
+        artPrice: 10000,
     },
     mastermind: {
         totalAttempts: 10,

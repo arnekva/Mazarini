@@ -187,49 +187,34 @@ export class Deathroll extends AbstractCommands {
     }
 
     private checkForJokes(roll: number, diceTarget: number, nextToRoll: string) {
-        if (diceTarget == 11) {
-            if (roll == 9 && Math.random() < GameValues.deathroll.jokes.nineElevenChance) {
+        if (diceTarget == 11 || roll == 911) {
+            if ((roll == 9 || roll == 911) && Math.random() < GameValues.deathroll.jokes.nineElevenChance) {
                 const removed = this.rewardPot >= GameValues.deathroll.jokes.nineElevenRemove ? GameValues.deathroll.jokes.nineElevenRemove : this.rewardPot
                 this.rewardPot -= removed
                 if (removed > 0) this.saveRewardPot()
                 return removed > 0 ? `(pott - ${removed} = ${this.rewardPot} chips)\nNever forget :coffin:` : ''
             } else if (roll == 7) {
-                return (
-                    '\n' +
-                    RandomUtils.getRandomItemFromList([
-                        'hæ, pølse?',
-                        'alle pølser kr 29 (unntatt baconpølse)',
-                        'alle pølser kr 29',
-                        'hadde tilbud på pølser forrige uke',
-                        'har bedre pølser enn Narvesen',
-                        'hæ?',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                    ])
-                )
+                return '\n' + RandomUtils.getRandomItemFromList(['hæ, pølse?', ''])
             }
-        } else if (roll == 11 && nextToRoll === MentionUtils.User_IDs.THOMAS) {
-            const mas2 = MentionUtils.mentionUser(nextToRoll)
-            return (
-                '\n' +
-                RandomUtils.getRandomItemFromList([
-                    `denne er garantert safe ${mas2}`,
-                    `${mas2} sykt nice at terning er rig-proof, eller ka? <:pointerbrothers2:1215405291382767706>`,
-                    `${mas2} nå som eg har begynt å påpeke an er an ikke så farlig vel?`,
-                    `rart hvordan ingen andre har problemer med denne`,
-                    '<:pointerbrothers1:1177653110852825158>',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                ])
-            )
         }
+        // else if (roll == 11 && nextToRoll === MentionUtils.User_IDs.THOMAS) {
+        //     const mas2 = MentionUtils.mentionUser(nextToRoll)
+        //     return (
+        //         '\n' +
+        //         RandomUtils.getRandomItemFromList([
+        //             `denne er garantert safe ${mas2}`,
+        //             `${mas2} sykt nice at terning er rig-proof, eller ka? <:pointerbrothers2:1215405291382767706>`,
+        //             `${mas2} nå som eg har begynt å påpeke an er an ikke så farlig vel?`,
+        //             `rart hvordan ingen andre har problemer med denne`,
+        //             '<:pointerbrothers1:1177653110852825158>',
+        //             '',
+        //             '',
+        //             '',
+        //             '',
+        //             '',
+        //         ])
+        //     )
+        // }
         return ''
     }
 
