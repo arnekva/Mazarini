@@ -9,6 +9,7 @@ import { frameCommand } from './commandStorage/frame'
 import { jailCommand } from './commandStorage/jail'
 import { jailbreakCommand } from './commandStorage/jailbreak'
 import { lootboxCommand } from './commandStorage/lootbox'
+import { luckyWheelCommand } from './commandStorage/luckywheel'
 import { ludoCommand } from './commandStorage/ludo'
 import { lyricsCommand } from './commandStorage/lyrics'
 import { mastermind } from './commandStorage/mastermind'
@@ -72,4 +73,5 @@ export namespace CommandStorage {
     export const DropCommand = dropCommand
     export const Pantelotteriet = pantelotterietCommand
     export const Mastermind = mastermind
+    export const LuckyWheel = luckyWheelCommand
 }

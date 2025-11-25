@@ -6,12 +6,15 @@ import {
     ILootSeriesInventoryArt,
     ILootStats,
     ILootStatsColorCounter,
+    ILuckyWheelReward,
     IPityTracker,
     ItemColor,
     ItemRarity,
     IUserLoot,
     IUserLootItem,
     IUserLootSeries,
+    LootboxQuality,
+    LuckyWheelRewardType,
     MazariniUser,
 } from '../interfaces/database/databaseInterface'
 
@@ -20,6 +23,10 @@ export class Scripts {
 
     constructor(client: MazariniClient) {
         this.client = client
+    }
+
+    public setLuckyWheelRewards() {
+        this.client.database.updateStorage({ luckyWheel: luckyWheelRewards })
     }
 
     public async prepareNewSeries() {
@@ -449,4 +456,106 @@ const lotrInventoryArts: ILootSeriesInventoryArt[] = [
     { name: 'Shire_light', opacity: 0.5 },
     { name: 'Two_Towers', opacity: 0.5 },
     { name: 'Witch_King', opacity: 0.5 },
+]
+
+const luckyWheelRewards: ILuckyWheelReward[] = [
+    { name: '10K Dond', type: LuckyWheelRewardType.dond, amount: 10, weight: 3 },
+    { name: '20K Dond', type: LuckyWheelRewardType.dond, amount: 20, weight: 2 },
+    { name: '50K Dond', type: LuckyWheelRewardType.dond, amount: 50, weight: 1 },
+    {
+        name: 'Basic Chest',
+        type: LuckyWheelRewardType.chest,
+        quality: LootboxQuality.Basic,
+        weight: 3,
+    },
+    {
+        name: 'Premium Chest',
+        type: LuckyWheelRewardType.chest,
+        quality: LootboxQuality.Premium,
+        weight: 2,
+    },
+    {
+        name: 'Elite Chest',
+        type: LuckyWheelRewardType.chest,
+        quality: LootboxQuality.Elite,
+        weight: 1,
+    },
+    {
+        name: 'Basic Lootbox',
+        type: LuckyWheelRewardType.box,
+        quality: LootboxQuality.Basic,
+        weight: 3,
+    },
+    {
+        name: 'Premium Lootbox',
+        type: LuckyWheelRewardType.box,
+        quality: LootboxQuality.Premium,
+        weight: 2,
+    },
+    {
+        name: 'Elite Lootbox',
+        type: LuckyWheelRewardType.box,
+        quality: LootboxQuality.Elite,
+        weight: 1,
+    },
+    {
+        name: '500 chips',
+        type: LuckyWheelRewardType.chips,
+        amount: 500,
+        weight: 3,
+    },
+    {
+        name: '1000 chips',
+        type: LuckyWheelRewardType.chips,
+        amount: 1000,
+        weight: 3,
+    },
+    {
+        name: '1500 chips',
+        type: LuckyWheelRewardType.chips,
+        amount: 1500,
+        weight: 3,
+    },
+    {
+        name: '2000 chips',
+        type: LuckyWheelRewardType.chips,
+        amount: 2000,
+        weight: 3,
+    },
+    {
+        name: '2500 chips',
+        type: LuckyWheelRewardType.chips,
+        amount: 2500,
+        weight: 3,
+    },
+    {
+        name: '3000 chips',
+        type: LuckyWheelRewardType.chips,
+        amount: 3000,
+        weight: 3,
+    },
+    {
+        name: '3500 chips',
+        type: LuckyWheelRewardType.chips,
+        amount: 3500,
+        weight: 3,
+    },
+    {
+        name: '4000 chips',
+        type: LuckyWheelRewardType.chips,
+        amount: 4000,
+        weight: 3,
+    },
+    {
+        name: '4500 chips',
+        type: LuckyWheelRewardType.chips,
+        amount: 4500,
+        weight: 3,
+    },
+    {
+        name: '5000 chips',
+        type: LuckyWheelRewardType.chips,
+        amount: 5000,
+        weight: 3,
+    },
 ]

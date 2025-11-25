@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '28.3.2'
+    public static readonly currentVersion = '29.0.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,29 +26,12 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '### Buffs!',
-                '* Deathroll',
-                '  * Legger til 1989 og 4060 til special numbers',
-                '  * Special numbers multiplier økes fra 2.5 til 3',
-                '  * Gratis redeal ved hasjwin-blackjack er aktivert igjen',
-                '  * Halv tapt hasj returneres igjen',
-                '* More or less',
-                '  * 1 - 10: 200 => 400',
-                '  * 11 - 20: 150 => 300',
-                '  * 21 - 30: 100 => 200',
-                '  * 31 - 40: 75 => 150',
-                '  * 41 - 50: 50 => 100',
-                '  * 51+: 25 => 50',
-                '* Daily',
-                '  * 7-streak: box => chest',
-                '* Deal or no deal',
-                '  * Effect-offer-odds: 0% => 10%',
-                '* Wordle',
-                '  * Total reward: 2000 => 5000',
-                '  * Maks reward per bruker: 1000 => 2500',
-                '### Annet',
-                '* Loot inventory art pris: 20.000 => 10.000',
-                '* 911 lagt til i "9 (1 - 11)" sjekk og sannsynlighet økt: 50% => 75%',
+                '# Hent Bøie!',
+                '### Nå har vi jaggu meg fått oss enda en bot..',
+                '* Hent Bøie gir oss ganske frie tøyler til å utvikle det vi vil, uten å være begrenset av discord sine UI-komponenter',
+                '* Vi starter med intet mindre enn en oppgradering av /spin - et faktisk lykkehjul!',
+                '  * Dette er en aktivitet, så du launcher den fra aktivitets-menyen, ikke ved hjelp av en slash command',
+                '  * Lykke til!',
             ].join('\n')
         )
         container.addSeparator()

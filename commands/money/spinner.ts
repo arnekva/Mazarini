@@ -66,7 +66,8 @@ export class Spinner extends AbstractCommands {
                     {
                         commandName: 'spin',
                         command: (interaction: ChatInputCommandInteraction<CacheType>) => {
-                            this.spinFromInteraction(interaction)
+                            return this.messageHelper.replyToInteraction(interaction, 'Åpne lykkehjulet heller du')
+                            // this.spinFromInteraction(interaction)
                         },
                     },
                 ],

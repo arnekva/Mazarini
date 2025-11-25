@@ -31,6 +31,7 @@ import { ButtonInteraction, CacheType, ChatInputCommandInteraction, ModalSubmitI
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { CalendarCommands } from '../commands/calendarCommands'
 import { DealOrNoDeal } from '../commands/games/dealOrNoDeal'
+import { LuckyWheel } from '../commands/games/luckywheel'
 import { Mastermind } from '../commands/games/mastermind'
 import { MoreOrLess } from '../commands/games/moreOrLess'
 import { LootboxCommands } from '../commands/store/lootboxCommands'
@@ -83,6 +84,7 @@ export class Commands {
     private moreOrLess: MoreOrLess
     private dealOrNoDeal: DealOrNoDeal
     private mastemind: Mastermind
+    private luckywheel: LuckyWheel
 
     allTextCommands: IInteractionCommand<ChatInputCommandInteraction<CacheType>>[]
     allModalCommands: IInteractionCommand<ModalSubmitInteraction<CacheType>>[]
@@ -129,6 +131,7 @@ export class Commands {
         this.moreOrLess = new MoreOrLess(this.client)
         this.dealOrNoDeal = new DealOrNoDeal(this.client)
         this.mastemind = new Mastermind(this.client)
+        this.luckywheel = new LuckyWheel(this.client)
 
         this.allTextCommands = this.getAllTextCommands()
         this.allModalCommands = this.getAllModalCommands()
