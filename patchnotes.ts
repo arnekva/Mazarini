@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '29.0.0'
+    public static readonly currentVersion = '29.0.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,12 +26,8 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '# Hent Bøie!',
+                '* #vinmonopolet - det vil kun bli sendt melling dersom det er endrede åpningstider i inneværende uke',
                 '### Nå har vi jaggu meg fått oss enda en bot..',
-                '* Hent Bøie gir oss ganske frie tøyler til å utvikle det vi vil, uten å være begrenset av discord sine UI-komponenter',
-                '* Vi starter med intet mindre enn en oppgradering av /spin - et faktisk lykkehjul!',
-                '  * Dette er en aktivitet, så du launcher den fra aktivitets-menyen, ikke ved hjelp av en slash command',
-                '  * Lykke til!',
             ].join('\n')
         )
         container.addSeparator()

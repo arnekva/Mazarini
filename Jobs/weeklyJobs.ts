@@ -41,6 +41,7 @@ export class WeeklyJobs {
         const data = await PoletCommands.fetchPoletData('116')
         const dates = data.openingHours.exceptionHours.filter((d) => DateUtils.dateIsInCurrentWeek(moment(d?.date).format('dddd')))
         if (!data) return 'failed'
+        if (!dates.length) return 'not sendt'
         if (data && data?.openingHours?.exceptionHours?.length > 0) {
             const fmMessage = new EmbedBuilder()
                 .setTitle(`Det er endrede åpningstider på polet denne ${dates.length ? 'uken' : 'måneden'}`)
@@ -48,7 +49,7 @@ export class WeeklyJobs {
 
             data.openingHours.exceptionHours.forEach((h) => {
                 const dateName = moment(h?.date).format('dddd')
-                if (h.openingTime !== '10:00' || h.closingTime !== '18:00') {
+                if ((h.openingTime !== '10:00' || h.closingTime !== '18:00') && DateUtils.dateIsInCurrentWeek(moment(h.date).format('dddd'))) {
                     let message = ''
                     if (h.openingTime && h.closingTime) {
                         message = `Det er forkortet åpningstid. Det er åpent mellom ${h.openingTime} - ${h.closingTime}`
@@ -61,7 +62,7 @@ export class WeeklyJobs {
                     })
                 }
             })
-
+            if (fmMessage.data.fields?.length === 0) return 'not sendt'
             this.messageHelper.sendMessage(ChannelIds.VINMONOPOLET, { embed: fmMessage })
             return 'success'
         }
@@ -114,9 +115,8 @@ export class WeeklyJobs {
         return 'success'
     }
 
-    private async deleteTerningGames(){
+    private async deleteTerningGames() {
         await this.client.database.saveDeathrollGames([])
-     
     }
 
     private async createBackup(): Promise<JobStatus> {
