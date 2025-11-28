@@ -144,7 +144,7 @@ export const GameValues: GameValuesType = {
         ],
         potSkip: { diceTarget: 200, roll: 69 },
         addToPot: {
-            athStreakMultiplier: 500,
+            athStreakMultiplier: 2000,
             streakMultiplier: 1000,
             biggestLossMultiplier: 20,
             largeNumberLossMultiplier: 3,

@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '29.0.1'
+    public static readonly currentVersion = '29.0.2'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -24,12 +24,7 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(
-            [
-                '* #vinmonopolet - det vil kun bli sendt melling dersom det er endrede åpningstider i inneværende uke',
-                '### Nå har vi jaggu meg fått oss enda en bot..',
-            ].join('\n')
-        )
+        const text = new TextDisplayBuilder().setContent(['* ATH-streak multiplier: 500 => 2000'].join('\n'))
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 
