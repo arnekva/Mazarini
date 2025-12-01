@@ -232,9 +232,9 @@ export class JokeCommands extends AbstractCommands {
 
     private async whamageddon(interaction: ChatInputCommandInteraction<CacheType>) {
         const isRegisterLoss = interaction.options.getSubcommand() === 'tapt'
-        const endDate = `${new Date().getFullYear()}-12-24 16:00`
+        const endDate = `${new Date().getFullYear()}-12-25 00:01`
         const isValidTimeFrame = DateUtils.currentDateIsBetween(
-            moment(`01-12-${new Date().getFullYear()} 16:00`, 'DD-MM-YYYY HH:mm'),
+            moment(`30-11-${new Date().getFullYear()} 23:59`, 'DD-MM-YYYY HH:mm'),
             moment(endDate, 'DD-MM-YYYY HH:mm')
         )
 
