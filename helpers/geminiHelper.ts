@@ -26,7 +26,7 @@ export class GeminiHelper {
         this.genAI = new GoogleGenerativeAI(GeminiKey)
 
         this.model = this.genAI.getGenerativeModel({
-            model: 'gemini-2.0-flash', // 'gemini-2.0-flash',
+            model: 'gemini-2.5-flash', // 'gemini-2.0-flash', //'gemini-2.5-pro'
             systemInstruction: {
                 parts: this.getDefaultInstructions(),
                 role: '',
@@ -58,7 +58,7 @@ export class GeminiHelper {
             const res = await this.chatStream.sendMessage(prompt, {})
             result = res.response.text()
         } catch (error) {
-            result = `Eg e litt opptatt nå.`
+            result = `Eg e litt opptatt nå.` + error
         }
 
         return result

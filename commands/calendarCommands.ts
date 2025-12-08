@@ -2,8 +2,8 @@ import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, CacheType, ChatInpu
 import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { MazariniClient } from '../client/MazariniClient'
-import { IUserEffects, LootboxQuality, MazariniUser, UserCalendarGift } from '../interfaces/database/databaseInterface'
-import { IInteractionElement } from '../interfaces/interactionInterface'
+import { IUserEffects, LootboxQuality, MazariniStorage, MazariniUser, UserCalendarGift } from '../interfaces/database/databaseInterface'
+import { IInteractionElement, IOnTimedEvent } from '../interfaces/interactionInterface'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { DateUtils } from '../utils/dateUtils'
 import { LootboxCommands } from './store/lootboxCommands'
@@ -55,10 +55,22 @@ export class CalendarCommands extends AbstractCommands {
         calendar.push(christmasCalendarGifts[23])
         const userCalendar: Array<UserCalendarGift> = calendar.map((gift, index) => {
             const date = new Date(`${new Date().getFullYear()}-12-${DateUtils.addZero(index + 1)}T05:00:00`)
+
             return { date: date, calendarGiftId: gift.id, opened: false }
         })
         user.christmasCalendar = userCalendar
         this.client.database.updateUser(user)
+    }
+
+    private resetShuffleEffect() {
+        // Reset shuffleIgnoresDigits for global storage if present
+        this.client.database.getStorage?.().then((storage) => {
+            if (storage?.effects?.positive?.shuffleIgnoresDigits) {
+                storage.effects.positive.shuffleIgnoresDigits = false
+                this.client.database.updateStorage?.(storage)
+            }
+        })
+        return true
     }
 
     getAllInteractions(): IInteractionElement {
@@ -75,12 +87,23 @@ export class CalendarCommands extends AbstractCommands {
             },
         }
     }
+    async onTimedEvent(): Promise<IOnTimedEvent> {
+        return {
+            daily: [() => this.resetShuffleEffect()],
+            weekly: [
+                () => {
+                    return true
+                },
+            ],
+            hourly: [],
+        }
+    }
 }
 
 export interface ICalendarGift {
     id: number
     message: string //følger formatet "Din kalendergave for {dato} er {message}"
-    effect(user: MazariniUser): undefined | ActionRowBuilder<ButtonBuilder>[]
+    effect(user: MazariniUser, storage?: MazariniStorage): undefined | ActionRowBuilder<ButtonBuilder>[]
 }
 
 const christmasCalendarGifts: Array<ICalendarGift> = [
@@ -89,6 +112,7 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
         message: '2500 chips!',
         effect: (user: MazariniUser) => {
             user.chips += 2500
+
             return undefined
         },
     },
@@ -102,9 +126,9 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
     },
     {
         id: 3,
-        message: 'en basic lootbox!',
+        message: 'en basic lootchest!',
         effect: (user: MazariniUser) => {
-            return [LootboxCommands.getLootRewardButton(user.id, LootboxQuality.Basic)]
+            return [LootboxCommands.getLootRewardButton(user.id, LootboxQuality.Basic, true)]
         },
     },
     {
@@ -135,16 +159,16 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
     },
     {
         id: 7,
-        message: 'en basic lootbox!',
+        message: 'en basic lootchest!',
         effect: (user: MazariniUser) => {
-            return [LootboxCommands.getLootRewardButton(user.id, LootboxQuality.Basic)]
+            return [LootboxCommands.getLootRewardButton(user.id, LootboxQuality.Basic, true)]
         },
     },
     {
         id: 8,
-        message: 'en premium lootbox!',
+        message: 'en premium lootchest!',
         effect: (user: MazariniUser) => {
-            return [LootboxCommands.getLootRewardButton(user.id, LootboxQuality.Premium)]
+            return [LootboxCommands.getLootRewardButton(user.id, LootboxQuality.Premium, true)]
         },
     },
     {
@@ -173,10 +197,10 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
     },
     {
         id: 12,
-        message: 'at dine to neste hasjwins dobles!',
+        message: 'at dine tre neste hasjwins dobles!',
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
-            user.effects.positive.doublePotWins = (user.effects.positive.doublePotWins ?? 0) + 2
+            user.effects.positive.doublePotWins = (user.effects.positive.doublePotWins ?? 0) + 3
             return undefined
         },
     },
@@ -208,37 +232,63 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
     },
     {
         id: 16,
-        message: 'at loot-farge-sannsynlighetene snus på hodet! Du har nå større sannsynlighet for å få diamond enn silver ut dagen!',
+        message: '6 gratis /roll!',
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
-            user.effects.positive.lootColorsFlipped = true
+            user.effects.positive.freeRolls = (user.effects.positive.freeRolls ?? 0) + 6
             return undefined
         },
     },
+    // {
+    //     id: 16,
+    //     message: 'at loot-farge-sannsynlighetene snus på hodet! Du har nå større sannsynlighet for å få diamond enn silver ut dagen!',
+    //     effect: (user: MazariniUser) => {
+    //         user.effects = user.effects ?? defaultEffects
+    //         user.effects.positive.lootColorsFlipped = true
+    //         return undefined
+    //     },
+    // },
+    // {
+    //     id: 17,
+    //     message: 'at loot-farge-sannsynlighetene snus på hodet! Du har nå større sannsynlighet for å få diamond enn silver ut dagen!',
+    //     effect: (user: MazariniUser) => {
+    //         user.effects = user.effects ?? defaultEffects
+    //         user.effects.positive.lootColorsFlipped = true
+    //         return undefined
+    //     },
+    // },
     {
         id: 17,
-        message: 'at loot-farge-sannsynlighetene snus på hodet! Du har nå større sannsynlighet for å få diamond enn silver ut dagen!',
+        message: 'at du har 5x større sannsynlighet for å heller få en lootbox som reward ved hasjinnskudd - ut dagen!',
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
-            user.effects.positive.lootColorsFlipped = true
+            user.effects.positive.deahtrollLootboxChanceMultiplier = 5
             return undefined
         },
     },
     {
         id: 18,
-        message: 'at du har 2.5x større sannsynlighet for å heller få en lootbox som reward ved hasjinnskudd - ut dagen!',
-        effect: (user: MazariniUser) => {
-            user.effects = user.effects ?? defaultEffects
-            user.effects.positive.deahtrollLootboxChanceMultiplier = 2.5
+        message: 'shuffle er ikke lenger siffer-begrenset for alle ut dagen!',
+        effect: (user: MazariniUser, storage) => {
+            if (storage) {
+                if (!storage.effects) storage.effects = { positive: {} }
+                if (!storage.effects.positive) storage.effects.positive = {}
+                storage.effects.positive.shuffleIgnoresDigits = true
+            }
+
             return undefined
         },
     },
     {
         id: 19,
-        message: 'at du har 2.5x større sannsynlighet for å heller få en lootbox som reward ved hasjinnskudd - ut dagen!',
-        effect: (user: MazariniUser) => {
-            user.effects = user.effects ?? defaultEffects
-            user.effects.positive.deahtrollLootboxChanceMultiplier = 2.5
+        message: 'shuffle er ikke lenger siffer-begrenset for alle ut dagen!',
+        effect: (user: MazariniUser, storage) => {
+            if (storage) {
+                if (!storage.effects) storage.effects = { positive: {} }
+                if (!storage.effects.positive) storage.effects.positive = {}
+                storage.effects.positive.shuffleIgnoresDigits = true
+            }
+
             return undefined
         },
     },
@@ -271,18 +321,27 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
     },
     {
         id: 23,
-        message: 'garantert farge på dine neste tre rewards!',
+        message: 'at dine neste 5 hasjinnskudd hvor du triller over 100 dobles!',
         effect: (user: MazariniUser) => {
             user.effects = user.effects ?? defaultEffects
-            user.effects.positive.guaranteedLootColor = (user.effects.positive.guaranteedLootColor ?? 0) + 3
+            user.effects.positive.doublePotDeposit = (user.effects.positive.doublePotDeposit ?? 0) + 5
             return undefined
         },
     },
+    // {
+    //     id: 23,
+    //     message: 'garantert farge på dine neste tre rewards!',
+    //     effect: (user: MazariniUser) => {
+    //         user.effects = user.effects ?? defaultEffects
+    //         user.effects.positive.guaranteedLootColor = (user.effects.positive.guaranteedLootColor ?? 0) + 3
+    //         return undefined
+    //     },
+    // },
     {
         id: 24,
-        message: 'en elite lootbox! God jul :christmas_tree:',
+        message: 'en elite chest! God jul :christmas_tree:',
         effect: (user: MazariniUser) => {
-            return [LootboxCommands.getLootRewardButton(user.id, LootboxQuality.Elite)]
+            return [LootboxCommands.getLootRewardButton(user.id, LootboxQuality.Elite, true)]
         },
     },
 ]

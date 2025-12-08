@@ -344,6 +344,11 @@ export interface MazariniStorage {
     }
     mastermind?: string[]
     luckyWheel?: ILuckyWheelReward[]
+    effects?: {
+        positive?: {
+            shuffleIgnoresDigits?: boolean
+        }
+    }
 }
 
 export interface ILuckyWheelReward {

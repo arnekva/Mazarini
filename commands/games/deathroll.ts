@@ -93,7 +93,7 @@ export class Deathroll extends AbstractCommands {
         else {
             const user = interaction.user
             const game = this.getGame(user.id, diceTarget)
-            const roll = RandomUtils.getRandomInteger(1, diceTarget)
+            const roll = RandomUtils.getRandomInteger(1, diceTarget, true)
 
             let additionalMessage = ''
             if (game) {
@@ -107,7 +107,7 @@ export class Deathroll extends AbstractCommands {
 
                 if (roll >= 100 && roll !== diceTarget) {
                     //Check if roll is a shuffled variant of the target number
-                    additionalMessage = this.checkForShuffle(roll, diceTarget, additionalMessage)
+                    additionalMessage = await this.checkForShuffle(roll, diceTarget, additionalMessage)
                 }
                 if (roll == 1) {
                     this.checkForLossOnFirstRoll(game, diceTarget)
@@ -145,7 +145,7 @@ export class Deathroll extends AbstractCommands {
         if (diceTarget > GameValues.deathroll.potSkip.diceTarget && roll < GameValues.deathroll.potSkip.roll) this.database.incrementPotSkip(userId)
     }
 
-    private checkForShuffle(roll: number, target: number, additionalMessage: string): string {
+    private async checkForShuffle(roll: number, target: number, additionalMessage: string): Promise<string> {
         let msg = additionalMessage
         const rollAsString: string = roll.toString()
         const targetAsString = target.toString()
@@ -153,8 +153,10 @@ export class Deathroll extends AbstractCommands {
         if (shuffled) {
             //Shuffle the reward pot digits into a new number in random order
             const potArray = this.rewardPot.toString()
+            const storage = await this.database.getStorage()
+            const shuffleIgnoresDigitLength = !!storage?.effects?.positive?.shuffleIgnoresDigits
             const dontShuffle = potArray.substring(0, potArray.length - targetAsString.length)
-            const shuffle = potArray.substring(dontShuffle.length, potArray.length)
+            const shuffle = potArray.substring(shuffleIgnoresDigitLength ? 0 : dontShuffle.length, potArray.length)
 
             let shuffledPot = shuffle
 
@@ -167,7 +169,9 @@ export class Deathroll extends AbstractCommands {
 
             const oldPot = this.rewardPot
             this.rewardPot = parseInt(dontShuffle + shuffledPot)
-            msg += `${additionalMessage.length > 0 ? '\nShuffle! ' : 'Shuffle!\n'}Potten ble shufflet fra ${oldPot} til ${this.rewardPot} chips!`
+            msg += `${additionalMessage.length > 0 ? '\nShuffle! ' : 'Shuffle!\n'}Potten ble shufflet fra ${oldPot} til ${this.rewardPot} chips! ${
+                shuffleIgnoresDigitLength ? '*(full shuffle!)*' : ''
+            }`
         }
         return msg
     }
