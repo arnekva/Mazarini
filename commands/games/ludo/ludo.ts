@@ -1,5 +1,6 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, Message } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, Message } from 'discord.js'
 import { AbstractCommands } from '../../../Abstracts/AbstractCommand'
+import { BtnInteraction } from '../../../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../../../client/MazariniClient'
 import { GameStateHandler } from '../../../handlers/gameStateHandler'
 import { IInteractionElement } from '../../../interfaces/interactionInterface'
@@ -88,7 +89,7 @@ export class Ludo extends AbstractCommands {
     //Add a '/ludo settings' subcommand
     //  - That can reset the board message (i.e. wipe cached messages and re-send state)
     //  - That can set who's turn it is
-    //  - 
+    //  -
 
     joinGame(interaction: ButtonInteraction) {
         const pIndex = this.gameStateHandler.allPlayers.length
@@ -196,7 +197,7 @@ export class Ludo extends AbstractCommands {
     }
 
     /** Moves the piece (by index supplied by the button command). Handles moving out, checking goal state, looping board and moving into goal path */
-    private movePiece(interaction: ButtonInteraction<CacheType>, idx: number) {
+    private movePiece(interaction: BtnInteraction, idx: number) {
         const player = this.gameStateHandler.getCurrentPlayer()
         const piece = player.pieces[idx - 1]
         if (interaction.user.id !== player.id) {
@@ -233,7 +234,7 @@ export class Ludo extends AbstractCommands {
         }
     }
 
-    private goToNextTurn(interaction: ButtonInteraction<CacheType>) {
+    private goToNextTurn(interaction: BtnInteraction) {
         this.gameStateHandler.getCurrentPlayer().diceroll = undefined
         this.gameStateHandler.nextPlayer()
         this.setCurrentPlayersDiceRollAmount()
@@ -281,7 +282,7 @@ export class Ludo extends AbstractCommands {
         return false
     }
 
-    private rollDice(interaction: ButtonInteraction<CacheType>) {
+    private rollDice(interaction: BtnInteraction) {
         const player = this.gameStateHandler.getCurrentPlayer()
         if (player.remainingRolls > 0) {
             const diceRoll = RandomUtils.getRandomInteger(1, 6)
@@ -411,43 +412,43 @@ export class Ludo extends AbstractCommands {
                 buttonInteractionComands: [
                     {
                         commandName: 'LUDO_START',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.startGame(rawInteraction)
                         },
                     },
                     {
                         commandName: 'LUDO_JOIN',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.joinGame(rawInteraction)
                         },
                     },
                     {
                         commandName: 'LUDO_BTN_MOVE_1',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.movePiece(rawInteraction, 1)
                         },
                     },
                     {
                         commandName: 'LUDO_BTN_MOVE_2',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.movePiece(rawInteraction, 2)
                         },
                     },
                     {
                         commandName: 'LUDO_BTN_MOVE_3',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.movePiece(rawInteraction, 3)
                         },
                     },
                     {
                         commandName: 'LUDO_BTN_MOVE_4',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.movePiece(rawInteraction, 4)
                         },
                     },
                     {
                         commandName: 'LUDO_BTN_ROLL',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.rollDice(rawInteraction)
                         },
                     },

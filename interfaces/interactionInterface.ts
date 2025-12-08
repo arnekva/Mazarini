@@ -1,11 +1,5 @@
-import {
-    AutocompleteInteraction,
-    ButtonInteraction,
-    CacheType,
-    ChatInputCommandInteraction,
-    ModalSubmitInteraction,
-    StringSelectMenuInteraction,
-} from 'discord.js'
+import { AutocompleteInteraction } from 'discord.js'
+import { BtnInteraction, ChatInteraction, ModalInteraction, SelectStringInteraction } from '../Abstracts/MazariniInteraction'
 
 export interface IInteractionCommand<T> {
     /** Name of command */
@@ -22,13 +16,13 @@ export interface IInteractionElement {
     /** Holds the list over all available commands */
     commands: {
         /** All interactions triggered by a chat input, i.e. slash commands */
-        interactionCommands?: IInteractionCommand<ChatInputCommandInteraction<CacheType>>[]
+        interactionCommands?: IInteractionCommand<ChatInteraction>[]
         /** All interactions triggered by a button press */
-        buttonInteractionComands?: IInteractionCommand<ButtonInteraction<CacheType>>[]
+        buttonInteractionComands?: IInteractionCommand<BtnInteraction>[]
         /** All interactions triggered by a select menu (dropdown) */
-        selectMenuInteractionCommands?: IInteractionCommand<StringSelectMenuInteraction<CacheType>>[]
+        selectMenuInteractionCommands?: IInteractionCommand<SelectStringInteraction>[]
         /** ALl interactions triggered by a modal dialog */
-        modalInteractionCommands?: IInteractionCommand<ModalSubmitInteraction<CacheType>>[]
+        modalInteractionCommands?: IInteractionCommand<ModalInteraction>[]
     }
 }
 

@@ -2,12 +2,8 @@ import { randomUUID } from 'crypto'
 import {
     ActionRowBuilder,
     AttachmentBuilder,
-    AutocompleteInteraction,
     ButtonBuilder,
-    ButtonInteraction,
     ButtonStyle,
-    CacheType,
-    ChatInputCommandInteraction,
     GuildMember,
     InteractionResponse,
     MediaGalleryBuilder,
@@ -15,6 +11,7 @@ import {
     Message,
 } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { BtnInteraction, ChatInteraction, ATCInteraction } from '../../Abstracts/MazariniInteraction'
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
@@ -109,7 +106,7 @@ export class LootboxCommands extends AbstractCommands {
         )
     }
 
-    private async openLootFromButton(interaction: ButtonInteraction<CacheType>) {
+    private async openLootFromButton(interaction: BtnInteraction) {
         const deferred = await this.messageHelper.deferReply(interaction)
         if (!deferred) return this.messageHelper.sendMessage(interaction.channelId, { text: 'Noe gikk galt med interactionen. Prøv igjen.' })
         const lootboxOwnerId = interaction.customId.split(';')[1]
@@ -121,7 +118,7 @@ export class LootboxCommands extends AbstractCommands {
         } else this.messageHelper.replyToInteraction(interaction, 'Den er ikke din dessverre', { ephemeral: true, hasBeenDefered: true })
     }
 
-    private async purchaseLootArt(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+    private async purchaseLootArt(interaction: ChatInteraction | BtnInteraction) {
         const user = await this.client.database.getUser(interaction.user.id)
         const series = this.resolveLootSeries(user, interaction)
         const seriesObj = await this.getSeriesOrDefault(series)
@@ -142,7 +139,7 @@ export class LootboxCommands extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, 'Gratulerer med ny inventory-bakgrunn!', { hasBeenDefered: true }, undefined, [file])
     }
 
-    private async openAndRegisterLootbox(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+    private async openAndRegisterLootbox(interaction: ChatInteraction | BtnInteraction) {
         const user = await this.client.database.getUser(interaction.user.id)
         const quality = this.resolveLootQuality(interaction)
         const series = this.resolveLootSeries(user, interaction)
@@ -158,7 +155,7 @@ export class LootboxCommands extends AbstractCommands {
         this.revealCollectable(interaction, rewardedItem, user.userSettings.lootReactionTimer)
     }
 
-    private async openAndRegisterLootChest(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, pendingChest?: IPendingChest) {
+    private async openAndRegisterLootChest(interaction: ChatInteraction | BtnInteraction, pendingChest?: IPendingChest) {
         const user = await this.client.database.getUser(interaction.user.id)
         const quality = this.resolveLootQuality(interaction, pendingChest)
         const series = this.resolveLootSeries(user, interaction, pendingChest)
@@ -178,17 +175,13 @@ export class LootboxCommands extends AbstractCommands {
         this.revealLootChest(interaction, chestItems, quality, seriesObj, existingChestId)
     }
 
-    private resolveLootSeries(
-        user: MazariniUser,
-        interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>,
-        pendingChest?: IPendingChest
-    ) {
+    private resolveLootSeries(user: MazariniUser, interaction: ChatInteraction | BtnInteraction, pendingChest?: IPendingChest) {
         if (pendingChest) return pendingChest.series
         else if (interaction.isChatInputCommand()) return (interaction.options.get('series')?.value as string) ?? user.userSettings.activeLootSeries
         else if (interaction.isButton()) return interaction.customId.split(';')[4] ? interaction.customId.split(';')[4] : user.userSettings.activeLootSeries
     }
 
-    private resolveLootQuality(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, pendingChest?: IPendingChest) {
+    private resolveLootQuality(interaction: ChatInteraction | BtnInteraction, pendingChest?: IPendingChest) {
         if (pendingChest) return pendingChest.quality
         else if (interaction.isChatInputCommand()) return (interaction.options.get('quality')?.value as string) ?? 'basic'
         else if (interaction.isButton()) return interaction.customId.split(';')[2] ?? 'basic'
@@ -199,7 +192,7 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private async revealLootChest(
-        interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>,
+        interaction: ChatInteraction | BtnInteraction,
         items: IUserLootItem[],
         quality: string,
         series: ILootSeries,
@@ -275,7 +268,7 @@ export class LootboxCommands extends AbstractCommands {
         return color
     }
 
-    private async selectChestItem(interaction: ButtonInteraction<CacheType>) {
+    private async selectChestItem(interaction: BtnInteraction) {
         const deferred = await this.messageHelper.deferReply(interaction)
         if (!deferred) return this.messageHelper.sendMessage(interaction.channelId, { text: 'Noe gikk galt med interactionen. Prøv igjen.' })
         const user = await this.client.database.getUser(interaction.user.id)
@@ -311,17 +304,17 @@ export class LootboxCommands extends AbstractCommands {
         }
     }
 
-    private getPendingChest(interaction: ButtonInteraction<CacheType>) {
+    private getPendingChest(interaction: BtnInteraction) {
         const chestId = interaction.customId.split(';')[1]
         return this.pendingChests.get(chestId)
     }
 
-    private deletePendingChest(interaction: ButtonInteraction<CacheType>) {
+    private deletePendingChest(interaction: BtnInteraction) {
         const chestId = interaction.customId.split(';')[1]
         this.pendingChests.delete(chestId)
     }
 
-    private getChestItem(interaction: ButtonInteraction<CacheType>, chest: IPendingChest) {
+    private getChestItem(interaction: BtnInteraction, chest: IPendingChest) {
         const chestId = interaction.customId.split(';')[2]
         return chest.items.get(chestId)
     }
@@ -346,12 +339,7 @@ export class LootboxCommands extends AbstractCommands {
         return now >= from && now <= to
     }
 
-    private checkBalanceAndTakeMoney(
-        user: MazariniUser,
-        box: ILootbox,
-        interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>,
-        isChest: boolean = false
-    ) {
+    private checkBalanceAndTakeMoney(user: MazariniUser, box: ILootbox, interaction: ChatInteraction | BtnInteraction, isChest: boolean = false) {
         const moneyWasTaken = this.client.bank.takeMoney(user, isChest ? box.price * 2 : box.price)
         if (!moneyWasTaken) this.messageHelper.replyToInteraction(interaction, 'Du har kje råd te den', { ephemeral: true, hasBeenDefered: true })
         return moneyWasTaken
@@ -466,7 +454,7 @@ export class LootboxCommands extends AbstractCommands {
         return `${item.series};${item.rarity};${item.name};${item.color}`
     }
 
-    private async revealCollectable(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, item: IUserLootItem, timer?: number) {
+    private async revealCollectable(interaction: ChatInteraction | BtnInteraction, item: IUserLootItem, timer?: number) {
         const path = this.getGifPath(item)
         const url = await this.client.database.getLootGifLink(path)
         const container = new SimpleContainer()
@@ -510,7 +498,7 @@ export class LootboxCommands extends AbstractCommands {
         return `loot/${item.series}/${item.name}_${item.color}${fileFormat}`
     }
 
-    private async qualityAutocomplete(interaction: AutocompleteInteraction<CacheType>, isChest: boolean = false) {
+    private async qualityAutocomplete(interaction: ATCInteraction, isChest: boolean = false) {
         const boxes = await this.getLootboxes()
         interaction.respond(
             boxes
@@ -519,7 +507,7 @@ export class LootboxCommands extends AbstractCommands {
         )
     }
 
-    private async seriesAutocomplete(interaction: AutocompleteInteraction<CacheType>, isArt: boolean = false) {
+    private async seriesAutocomplete(interaction: ATCInteraction, isArt: boolean = false) {
         const series = await this.getSeries()
         const filteredSeries = isArt ? series.filter((serie) => serie.inventoryArts && serie.inventoryArts.length > 0) : series
         const optionList: any = interaction.options
@@ -529,7 +517,7 @@ export class LootboxCommands extends AbstractCommands {
         )
     }
 
-    private async printInventory(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+    private async printInventory(interaction: ChatInteraction | BtnInteraction) {
         if (interaction.isButton()) {
             interaction.deferUpdate()
             if (interaction.customId.split(';')[1] !== interaction.user.id) return
@@ -581,7 +569,7 @@ export class LootboxCommands extends AbstractCommands {
 
     /* LEAVE THIS FOR NOW - can revisit if containers can set image size
     
-    private async printInventoryV2(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async printInventoryV2(interaction: ChatInteraction) {
         const user = await this.client.database.getUser(interaction.user.id)
         const seriesParam = this.resolveLootSeries(user, interaction)
         const series = await this.getSeriesOrDefault(seriesParam)
@@ -695,7 +683,7 @@ export class LootboxCommands extends AbstractCommands {
         else if (rarity === ItemRarity.Legendary) return 4
     }
 
-    private async itemAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
+    private async itemAutocomplete(interaction: ATCInteraction) {
         const user = await this.client.database.getUser(interaction.user.id)
         const optionList: any = interaction.options
         const focused = optionList._hoistedOptions.find((option) => option.focused)
@@ -704,7 +692,7 @@ export class LootboxCommands extends AbstractCommands {
         else this.secondaryItemsAutocomplete(interaction, user, isTradeUp)
     }
 
-    private firstItemAutocomplete(interaction: AutocompleteInteraction<CacheType>, user: MazariniUser, filterOutLegendaries: boolean) {
+    private firstItemAutocomplete(interaction: ATCInteraction, user: MazariniUser, filterOutLegendaries: boolean) {
         const optionList: any = interaction.options
         const collectables = this.getSortedCollectables(user, filterOutLegendaries)
         interaction.respond(
@@ -715,7 +703,7 @@ export class LootboxCommands extends AbstractCommands {
         )
     }
 
-    private secondaryItemsAutocomplete(interaction: AutocompleteInteraction<CacheType>, user: MazariniUser, filterOutLegendaries: boolean) {
+    private secondaryItemsAutocomplete(interaction: ATCInteraction, user: MazariniUser, filterOutLegendaries: boolean) {
         const optionList: any = interaction.options
         const allItems = optionList._hoistedOptions
         const filter = this.getSortFilter(allItems.find((item) => item.name === 'item1')?.value)
@@ -831,7 +819,7 @@ export class LootboxCommands extends AbstractCommands {
         return foundAll
     }
 
-    private async tradeItems(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async tradeItems(interaction: ChatInteraction) {
         const user = await this.client.database.getUser(interaction.user.id)
         const optionList: any = interaction.options
         const allItems = optionList._hoistedOptions
@@ -877,7 +865,7 @@ export class LootboxCommands extends AbstractCommands {
         else if (rarity === ItemRarity.Epic) return ItemRarity.Legendary
     }
 
-    private async confirmTrade(interaction: ButtonInteraction<CacheType>) {
+    private async confirmTrade(interaction: BtnInteraction) {
         const deferred = await this.messageHelper.deferReply(interaction)
         if (!deferred) return this.messageHelper.sendMessage(interaction.channelId, { text: 'Noe gikk galt med interactionen. Prøv igjen.' })
         const user = await this.client.database.getUser(interaction.user.id)
@@ -921,24 +909,24 @@ export class LootboxCommands extends AbstractCommands {
         return initalChance + (silvers * 1) / 10 + (golds * 1) / 5 + (diamonds * 1) / 3.33
     }
 
-    private cancelTrade(interaction: ButtonInteraction<CacheType>) {
+    private cancelTrade(interaction: BtnInteraction) {
         const pendingTrade = this.getPendingTrade(interaction)
         if (!(pendingTrade.userId === interaction.user.id)) return interaction.deferUpdate()
         interaction.message.delete()
         this.deletePendingTrade(interaction)
     }
 
-    private getPendingTrade(interaction: ButtonInteraction<CacheType>) {
+    private getPendingTrade(interaction: BtnInteraction) {
         const tradeID = interaction.customId.split(';')[1]
         return this.pendingTrades.get(tradeID)
     }
 
-    private deletePendingTrade(interaction: ButtonInteraction<CacheType>) {
+    private deletePendingTrade(interaction: BtnInteraction) {
         const tradeID = interaction.customId.split(';')[1]
         return this.pendingTrades.delete(tradeID)
     }
 
-    private async handleChestReDeal(interaction: ButtonInteraction<CacheType>) {
+    private async handleChestReDeal(interaction: BtnInteraction) {
         const deferred = await this.messageHelper.deferUpdate(interaction)
         if (!deferred) return this.messageHelper.sendMessage(interaction.channelId, { text: 'Noe gikk galt med interactionen. Prøv igjen.' })
         const pendingChest = this.getPendingChest(interaction)
@@ -947,7 +935,7 @@ export class LootboxCommands extends AbstractCommands {
         }
     }
 
-    private async executeLootSubCommand(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async executeLootSubCommand(interaction: ChatInteraction) {
         const deferred = await this.messageHelper.deferReply(interaction)
         if (!deferred) return this.messageHelper.sendMessage(interaction.channelId, { text: 'Noe gikk galt med interactionen. Prøv igjen.' })
         const cmdGroup = interaction.options.getSubcommandGroup()
@@ -959,7 +947,7 @@ export class LootboxCommands extends AbstractCommands {
         else if (cmdGroup && cmdGroup === 'trade') this.tradeItems(interaction)
     }
 
-    private delegateAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
+    private delegateAutocomplete(interaction: ATCInteraction) {
         const cmd = interaction.options.getSubcommand()
         const optionList: any = interaction.options
         const focused = optionList._hoistedOptions.find((option) => option.focused)
@@ -1003,10 +991,10 @@ export class LootboxCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'loot',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.executeLootSubCommand(rawInteraction)
                         },
-                        autoCompleteCallback: (interaction: AutocompleteInteraction<CacheType>) => {
+                        autoCompleteCallback: (interaction: ATCInteraction) => {
                             this.delegateAutocomplete(interaction)
                         },
                     },
@@ -1014,37 +1002,37 @@ export class LootboxCommands extends AbstractCommands {
                 buttonInteractionComands: [
                     {
                         commandName: 'OPEN_LOOT',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.openLootFromButton(rawInteraction)
                         },
                     },
                     {
                         commandName: 'LOOT_TRADE_CONFIRM',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.confirmTrade(rawInteraction)
                         },
                     },
                     {
                         commandName: 'LOOT_TRADE_CANCEL',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.cancelTrade(rawInteraction)
                         },
                     },
                     {
                         commandName: 'LOOT_CHEST_SELECT',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.selectChestItem(rawInteraction)
                         },
                     },
                     {
                         commandName: 'LOOT_CHEST_REDEAL',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.handleChestReDeal(rawInteraction)
                         },
                     },
                     {
                         commandName: 'REFRESH_INVENTORY',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.printInventory(rawInteraction)
                         },
                     },

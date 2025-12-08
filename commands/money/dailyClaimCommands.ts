@@ -1,5 +1,6 @@
-import { ActionRowBuilder, APIEmbedField, ButtonBuilder, ButtonInteraction, CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js'
+import { ActionRowBuilder, APIEmbedField, ButtonBuilder, EmbedBuilder } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { ChatInteraction, BtnInteraction } from '../../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
 
@@ -13,7 +14,7 @@ export class DailyClaimCommands extends AbstractCommands {
         super(client)
     }
 
-    private async claimDailyReward(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+    private async claimDailyReward(interaction: ChatInteraction | BtnInteraction) {
         const embed = new EmbedBuilder()
         embed.setTitle(`📅  Daily  🗓️`)
 
@@ -76,7 +77,7 @@ export class DailyClaimCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'daily',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.claimDailyReward(rawInteraction)
                         },
                     },

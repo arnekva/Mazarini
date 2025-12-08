@@ -1,16 +1,6 @@
-import {
-    ActionRowBuilder,
-    APIButtonComponent,
-    ButtonBuilder,
-    ButtonInteraction,
-    ButtonStyle,
-    CacheType,
-    GuildEmoji,
-    InteractionResponse,
-    Message,
-    ModalSubmitInteraction,
-} from 'discord.js'
+import { ActionRowBuilder, APIButtonComponent, ButtonBuilder, ButtonStyle, GuildEmoji, InteractionResponse, Message, ModalSubmitInteraction } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { BtnInteraction, ModalInteraction } from '../../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
 import { EmojiHelper } from '../../helpers/emojiHelper'
@@ -71,7 +61,7 @@ export class DealOrNoDeal extends AbstractCommands {
         this.games = new Array<IDonDGame>()
     }
 
-    private async sendModal(interaction: ButtonInteraction<CacheType>) {
+    private async sendModal(interaction: BtnInteraction) {
         const btnCustomId = interaction.customId.split(';')
         if (!(interaction.user.id === btnCustomId[1])) {
             return interaction.deferUpdate()
@@ -110,7 +100,7 @@ export class DealOrNoDeal extends AbstractCommands {
         this.setupGame(interaction, playerCase, quality)
     }
 
-    private async setupGame(interaction: ModalSubmitInteraction<CacheType>, playerCase: number, quality: DonDQuality) {
+    private async setupGame(interaction: ModalInteraction, playerCase: number, quality: DonDQuality) {
         const cases = this.getRandomizedCases(quality)
         const emoji = await EmojiHelper.getGuildEmoji(interaction.user.username.replace('.', ''), this.client)
         const game: IDonDGame = {
@@ -250,7 +240,7 @@ export class DealOrNoDeal extends AbstractCommands {
         return btnRows
     }
 
-    public async printGame(interaction: ModalSubmitInteraction<CacheType>, game: IDonDGame) {
+    public async printGame(interaction: ModalInteraction, game: IDonDGame) {
         const embed = EmbedUtils.createSimpleEmbed('Deal Or No Deal', this.getGameMessage(game))
             .addFields(this.getCaseValueFields(game))
             .setThumbnail(
@@ -301,11 +291,11 @@ export class DealOrNoDeal extends AbstractCommands {
         return buttons
     }
 
-    private gameController(interaction: ButtonInteraction<CacheType>, game: IDonDGame) {
+    private gameController(interaction: BtnInteraction, game: IDonDGame) {
         if (game.state === DonDState.Opening && !this.roundOpeningIsFinished(game)) return this.openCase(interaction, game)
     }
 
-    private async openCase(interaction: ButtonInteraction<CacheType>, game: IDonDGame) {
+    private async openCase(interaction: BtnInteraction, game: IDonDGame) {
         game.casesOpened++
         game.state = DonDState.Awaiting
         const caseId = Number(interaction.customId.split(';')[2])
@@ -336,7 +326,7 @@ export class DealOrNoDeal extends AbstractCommands {
         )
     }
 
-    private async answerBankOffer(interaction: ButtonInteraction<CacheType>, game: IDonDGame) {
+    private async answerBankOffer(interaction: BtnInteraction, game: IDonDGame) {
         const answer = (interaction.customId.split(';')[2] as string).toLowerCase()
         if (answer === 'nei') {
             game.round++
@@ -367,7 +357,7 @@ export class DealOrNoDeal extends AbstractCommands {
         this.updateGame(game)
     }
 
-    private async keepOrSwitch(interaction: ButtonInteraction<CacheType>, game: IDonDGame) {
+    private async keepOrSwitch(interaction: BtnInteraction, game: IDonDGame) {
         const answer = (interaction.customId.split(';')[2] as string).toLowerCase()
         const remainingCase = Array.from(game.cases.entries()).filter((val) => !val[1].opened && val[0] != game.player.caseNr)
         let oppositeCaseValue = remainingCase[0][1].value
@@ -471,7 +461,7 @@ export class DealOrNoDeal extends AbstractCommands {
         this.games.splice(index, 1)
     }
 
-    private async verifyUserAndCallMethod(interaction: ButtonInteraction<CacheType>, callback: (game: IDonDGame) => void) {
+    private async verifyUserAndCallMethod(interaction: BtnInteraction, callback: (game: IDonDGame) => void) {
         if (!(interaction.user.id === interaction.customId.split(';')[1]))
             return this.messageHelper.replyToInteraction(interaction, 'Dette er ikke ditt spill', { ephemeral: true })
         const game = this.games.find((game) => game.player.id == interaction.user.id)
@@ -493,25 +483,25 @@ export class DealOrNoDeal extends AbstractCommands {
                 buttonInteractionComands: [
                     {
                         commandName: 'DEAL_OR_NO_DEAL_GAME',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.sendModal(rawInteraction)
                         },
                     },
                     {
                         commandName: 'DEAL_OR_NO_DEAL_CASE',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.verifyUserAndCallMethod(rawInteraction, (game) => this.gameController(rawInteraction, game))
                         },
                     },
                     {
                         commandName: 'DEAL_OR_NO_DEAL_OFFER',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.verifyUserAndCallMethod(rawInteraction, (game) => this.answerBankOffer(rawInteraction, game))
                         },
                     },
                     {
                         commandName: 'DEAL_OR_NO_DEAL_SWITCH',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.verifyUserAndCallMethod(rawInteraction, (game) => this.keepOrSwitch(rawInteraction, game))
                         },
                     },
@@ -519,7 +509,7 @@ export class DealOrNoDeal extends AbstractCommands {
                 modalInteractionCommands: [
                     {
                         commandName: 'DEAL_OR_NO_DEAL_MODAL',
-                        command: (rawInteraction: ModalSubmitInteraction<CacheType>) => {
+                        command: (rawInteraction: ModalInteraction) => {
                             this.handleDondModal(rawInteraction)
                         },
                     },

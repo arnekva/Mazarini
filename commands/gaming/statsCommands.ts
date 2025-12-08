@@ -1,5 +1,6 @@
-import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, EmbedBuilder, TextDisplayBuilder, User } from 'discord.js'
+import { EmbedBuilder, TextDisplayBuilder, User } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { ChatInteraction, ATCInteraction } from '../../Abstracts/MazariniInteraction'
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { MazariniClient } from '../../client/MazariniClient'
 
@@ -19,7 +20,7 @@ export class StatsCommands extends AbstractCommands {
         super(client)
     }
 
-    private async findUserStats(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async findUserStats(interaction: ChatInteraction) {
         const userParam = interaction.options.get('bruker')?.user
         const category = interaction.options.get('kategori')?.value as string
         const user = await this.client.database.getUser(userParam && userParam instanceof User ? userParam.id : interaction.user.id)
@@ -242,7 +243,7 @@ export class StatsCommands extends AbstractCommands {
         ]
     }
 
-    private async getEmojiStats(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async getEmojiStats(interaction: ChatInteraction) {
         await interaction.deferReply()
         const cmd = interaction.options.getSubcommand()
         if (cmd === 'søk') this.findSingleEmojiStats(interaction)
@@ -251,7 +252,7 @@ export class StatsCommands extends AbstractCommands {
         }
     }
 
-    private async findSingleEmojiStats(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async findSingleEmojiStats(interaction: ChatInteraction) {
         const input = interaction.options.get('emojinavn')?.value as string
         this.getEmojiAverages()
         const emojiStat = this.emojiStats.find((emoji) => emoji.name === input)
@@ -274,7 +275,7 @@ export class StatsCommands extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true })
     }
 
-    private async getTopEmojiStats(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async getTopEmojiStats(interaction: ChatInteraction) {
         await this.fetchEmojiStats()
         this.getEmojiAverages()
         const data = interaction.options.get('data')?.value as string
@@ -297,7 +298,7 @@ export class StatsCommands extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true })
     }
 
-    private async getFields(stats: EmojiStats[], sorting: string, interaction: ChatInputCommandInteraction<CacheType>) {
+    private async getFields(stats: EmojiStats[], sorting: string, interaction: ChatInteraction) {
         const fields = stats.map(async (stat, i) => {
             const emoji = await EmojiHelper.getEmoji(stat.name, interaction)
             const emojiName = emoji.id === '<Fant ikke emojien>' ? stat.name : emoji.id
@@ -319,14 +320,14 @@ export class StatsCommands extends AbstractCommands {
         return stat === sorting || (stat === 'total' && sorting == undefined) ? '**' : ''
     }
 
-    private executeStatsSubCommand(interaction: ChatInputCommandInteraction<CacheType>) {
+    private executeStatsSubCommand(interaction: ChatInteraction) {
         const cmdGroup = interaction.options.getSubcommandGroup()
         const cmd = interaction.options.getSubcommand()
         if (cmdGroup && cmdGroup === 'emoji') this.getEmojiStats(interaction)
         else if (!cmdGroup && cmd === 'bruker') this.findUserStats(interaction)
     }
 
-    private async filterEmojis(interaction: AutocompleteInteraction<CacheType>) {
+    private async filterEmojis(interaction: ATCInteraction) {
         await this.fetchEmojiStats()
         const optionList: any = interaction.options
         const input = optionList.getFocused().toLowerCase()
@@ -385,10 +386,10 @@ export class StatsCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'stats',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.executeStatsSubCommand(rawInteraction)
                         },
-                        autoCompleteCallback: (rawInteraction: AutocompleteInteraction<CacheType>) => {
+                        autoCompleteCallback: (rawInteraction: ATCInteraction) => {
                             this.filterEmojis(rawInteraction)
                         },
                     },

@@ -1,15 +1,11 @@
 import {
     ActionRowBuilder,
     ButtonBuilder,
-    ButtonInteraction,
     ButtonStyle,
-    CacheType,
-    ChatInputCommandInteraction,
     EmbedBuilder,
     ModalBuilder,
     ModalSubmitInteraction,
     SelectMenuComponentOptionData,
-    StringSelectMenuInteraction,
     TextInputBuilder,
     TextInputStyle,
 } from 'discord.js'
@@ -20,6 +16,7 @@ import { ActionMenuHelper } from '../../helpers/actionMenuHelper'
 import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
 
+import { BtnInteraction, ChatInteraction, ModalInteraction, SelectStringInteraction } from '../../Abstracts/MazariniInteraction'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { UserUtils } from '../../utils/userUtils'
 
@@ -28,7 +25,7 @@ export class UserCommands extends AbstractCommands {
         super(client)
     }
 
-    private async roleAssignment(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async roleAssignment(interaction: ChatInteraction) {
         const roles = [
             { name: 'Battlefield', id: '886600170328952882', emoji: '🖐️' },
             { name: 'Warzone', id: '735253573025267883', emoji: '🙌' },
@@ -53,7 +50,7 @@ export class UserCommands extends AbstractCommands {
         await this.messageHelper.sendMessage(interaction?.channelId, { components: [row] })
     }
 
-    private async setStatus(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async setStatus(interaction: ChatInteraction) {
         const isVis = interaction.options.getSubcommand() === 'vis'
         const isSet = interaction.options.getSubcommand() === 'sett'
         if (isSet) {
@@ -84,7 +81,7 @@ export class UserCommands extends AbstractCommands {
         }
     }
 
-    private async findUserInfo(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async findUserInfo(interaction: ChatInteraction) {
         const allUserTabs = await this.client.database.getUser(interaction.user.id)
 
         const options: SelectMenuComponentOptionData[] = Object.keys(allUserTabs)
@@ -100,7 +97,7 @@ export class UserCommands extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, embed, undefined, [menu])
     }
 
-    private async handleUserInfoViewingMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {
+    private async handleUserInfoViewingMenu(selectMenu: SelectStringInteraction) {
         if (selectMenu.customId.split(';')[1] === selectMenu.user.id) {
             const value = selectMenu.values[0]
             const user = await this.client.database.getUser(selectMenu.user.id)
@@ -127,7 +124,7 @@ export class UserCommands extends AbstractCommands {
         }
     }
 
-    private handleAssignmentOfRoles(interaction: ButtonInteraction<CacheType>) {
+    private handleAssignmentOfRoles(interaction: BtnInteraction) {
         const roleId = interaction.customId.split(';')[1]
         const role = interaction.guild?.roles?.cache.find((r) => r.id === roleId)
 
@@ -140,13 +137,13 @@ export class UserCommands extends AbstractCommands {
         }
     }
 
-    private updateUserSettings(interaction: ChatInputCommandInteraction<CacheType>) {
+    private updateUserSettings(interaction: ChatInteraction) {
         this.buildSettingsModal(interaction)
 
         // this.messageHelper.replyToInteraction(interaction, embed)
     }
 
-    private async buildSettingsModal(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async buildSettingsModal(interaction: ChatInteraction) {
         if (interaction) {
             const modal = new ModalBuilder().setCustomId(UserCommands.userSettingsId).setTitle('Dine Innstillinger')
             const user = await this.database.getUser(interaction.user.id)
@@ -275,25 +272,25 @@ export class UserCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'brukerinnstillinger',
-                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (interaction: ChatInteraction) => {
                             this.updateUserSettings(interaction)
                         },
                     },
                     {
                         commandName: 'status',
-                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (interaction: ChatInteraction) => {
                             this.setStatus(interaction)
                         },
                     },
                     {
                         commandName: 'brukerinfo',
-                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (interaction: ChatInteraction) => {
                             this.findUserInfo(interaction)
                         },
                     },
                     {
                         commandName: 'role',
-                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (interaction: ChatInteraction) => {
                             this.roleAssignment(interaction)
                         },
                     },
@@ -301,7 +298,7 @@ export class UserCommands extends AbstractCommands {
                 buttonInteractionComands: [
                     {
                         commandName: 'USER_ROLE',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.handleAssignmentOfRoles(rawInteraction)
                         },
                     },
@@ -309,7 +306,7 @@ export class UserCommands extends AbstractCommands {
                 selectMenuInteractionCommands: [
                     {
                         commandName: 'USER_INFO_MENU',
-                        command: (rawInteraction: StringSelectMenuInteraction<CacheType>) => {
+                        command: (rawInteraction: SelectStringInteraction) => {
                             this.handleUserInfoViewingMenu(rawInteraction)
                         },
                     },
@@ -317,7 +314,7 @@ export class UserCommands extends AbstractCommands {
                 modalInteractionCommands: [
                     {
                         commandName: UserCommands.userSettingsId,
-                        command: (rawInteraction: ModalSubmitInteraction<CacheType>) => {
+                        command: (rawInteraction: ModalInteraction) => {
                             this.handleUserSettingsModalDialog(rawInteraction)
                         },
                     },

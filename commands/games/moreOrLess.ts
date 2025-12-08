@@ -1,19 +1,10 @@
-import {
-    ActionRowBuilder,
-    APIEmbedField,
-    ButtonBuilder,
-    ButtonInteraction,
-    ButtonStyle,
-    CacheType,
-    ChatInputCommandInteraction,
-    InteractionResponse,
-    Message,
-} from 'discord.js'
+import { ActionRowBuilder, APIEmbedField, ButtonBuilder, ButtonStyle, InteractionResponse, Message } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
 
 import { randomUUID } from 'crypto'
+import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { IMoreOrLess, LootboxQuality } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement, IOnTimedEvent } from '../../interfaces/interactionInterface'
 import { CustomMOLHandler } from '../../res/games/moreOrLess/CustomMOLHandler'
@@ -120,7 +111,7 @@ export class MoreOrLess extends AbstractCommands {
         return data
     }
 
-    private async setupGame(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+    private async setupGame(interaction: ChatInteraction | BtnInteraction) {
         const data = await this.fetchGameData()
         const embed = EmbedUtils.createSimpleEmbed(this.game.title, this.game.description).setThumbnail(
             `https://api.moreorless.io/img/${this.game.image}_512.jpg`
@@ -155,7 +146,7 @@ export class MoreOrLess extends AbstractCommands {
         }
     }
 
-    private startGame(interaction: ButtonInteraction<CacheType>) {
+    private startGame(interaction: BtnInteraction) {
         interaction.deferUpdate()
         const game = this.userGames.get(interaction.user.id)
         const shuffledData = RandomUtils.shuffleList(game.data)
@@ -167,7 +158,7 @@ export class MoreOrLess extends AbstractCommands {
         this.updateGame(game)
     }
 
-    private guess(interaction: ButtonInteraction<CacheType>) {
+    private guess(interaction: BtnInteraction) {
         const game = this.userGames.get(interaction.user.id)
         if (!game.active) return interaction.deferUpdate()
         const gameId = interaction.customId.split(';')[2]
@@ -285,7 +276,7 @@ export class MoreOrLess extends AbstractCommands {
         }
     }
 
-    private async revealResults(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async revealResults(interaction: ChatInteraction) {
         const embed = EmbedUtils.createSimpleEmbed('Dagens more or less resultater', this.game.title).setThumbnail(
             `https://api.moreorless.io/img/${this.game.image}_512.jpg`
         )
@@ -351,7 +342,7 @@ export class MoreOrLess extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'moreorless',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             const cmd = rawInteraction.options.getSubcommand()
                             if (cmd === 'spill') this.setupGame(rawInteraction)
                             else if (cmd === 'resultater') this.revealResults(rawInteraction)
@@ -361,19 +352,19 @@ export class MoreOrLess extends AbstractCommands {
                 buttonInteractionComands: [
                     {
                         commandName: 'MORE_OR_LESS_START',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.startGame(rawInteraction)
                         },
                     },
                     {
                         commandName: 'MORE_OR_LESS_GUESS',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.guess(rawInteraction)
                         },
                     },
                     {
                         commandName: 'MORE_OR_LESS_TRY_AGAIN',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.setupGame(rawInteraction)
                         },
                     },

@@ -1,5 +1,5 @@
-import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { ChatInteraction } from '../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../client/MazariniClient'
 
 import { SlashCommandHelper } from '../helpers/slashCommandHelper'
@@ -12,7 +12,7 @@ export class NameCommands extends AbstractCommands {
         super(client)
     }
 
-    private async handleNameCommands(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async handleNameCommands(interaction: ChatInteraction) {
         const textToAdd = interaction.options.get('tekst')?.value as string
         const userTextIsAddedTo = interaction.options.get('bruker')?.value as string
         const textToDelete = SlashCommandHelper.getCleanNumberValue(interaction.options.get('indeks')?.value)
@@ -89,7 +89,7 @@ export class NameCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'navn',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.handleNameCommands(rawInteraction)
                         },
                     },

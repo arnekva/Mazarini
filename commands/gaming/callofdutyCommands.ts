@@ -1,5 +1,6 @@
-import { CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js'
+import { EmbedBuilder } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { ArrayUtils } from '../../utils/arrayUtils'
@@ -131,7 +132,7 @@ export class CallOfDutyCommands extends AbstractCommands {
         super(client)
     }
 
-    private async findDropLocation(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async findDropLocation(interaction: ChatInteraction) {
         let mapArray: string[] = []
         let mapName = ''
         await interaction.deferReply()
@@ -149,7 +150,7 @@ export class CallOfDutyCommands extends AbstractCommands {
         await this.messageHelper.replyToInteraction(interaction, emb, { hasBeenDefered: true })
     }
 
-    private dropGrid(interaction: ChatInputCommandInteraction<CacheType>) {
+    private dropGrid(interaction: ChatInteraction) {
         const gridLetter = 'ABCDEFGHIJ'
         const validNumbers = '2345678'
         const illegalCenterCoordinates = ['A0', 'J0']
@@ -186,7 +187,7 @@ export class CallOfDutyCommands extends AbstractCommands {
         }
     }
 
-    private async findWeeklyPlaylist(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async findWeeklyPlaylist(interaction: ChatInteraction) {
         const currentPlaylistID = '63da947b0104866d9de5a3cc'
         const pastPlaylistsID = '6570989fdbe452a2875fbc84'
         let foundCurrent = false
@@ -251,7 +252,7 @@ export class CallOfDutyCommands extends AbstractCommands {
                     {
                         commandName: 'drop',
                         // disabled: true,
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             const cmd = rawInteraction.options.getSubcommand()
                             if (cmd === 'poi') this.findDropLocation(rawInteraction)
                             else if (cmd === 'grid') this.dropGrid(rawInteraction)
@@ -260,7 +261,7 @@ export class CallOfDutyCommands extends AbstractCommands {
                     {
                         commandName: 'playlist',
                         // disabled: true,
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.findWeeklyPlaylist(rawInteraction)
                         },
                     },

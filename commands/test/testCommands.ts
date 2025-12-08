@@ -1,19 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import {
-    ActionRowBuilder,
-    AutocompleteInteraction,
-    ButtonBuilder,
-    ButtonInteraction,
-    ButtonStyle,
-    CacheType,
-    ChatInputCommandInteraction,
-    EmbedBuilder,
-    Message,
-    ModalSubmitInteraction,
-    StringSelectMenuInteraction,
-    TextDisplayBuilder,
-} from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Message, TextDisplayBuilder } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { ATCInteraction, BtnInteraction, ChatInteraction, ModalInteraction, SelectStringInteraction } from '../../Abstracts/MazariniInteraction'
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
@@ -59,7 +47,7 @@ export class TestCommands extends AbstractCommands {
         // this.gsh = new GameStateHandler<LudoPlayer>()
     }
 
-    private async testing(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+    private async testing(interaction: ChatInteraction | BtnInteraction) {
         const user = await this.database.getUser(interaction.user.id)
         const item = user.collectables[10]
         const link = await this.database.getLootGifLink(`loot/${item.series}/${item.name}_${item.color}.gif`)
@@ -67,22 +55,25 @@ export class TestCommands extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, link)
     }
 
-    private async test(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+    private async test(interaction: ChatInteraction | BtnInteraction) {
         // await interaction.deferReply({ ephemeral: true })
-        interaction.launchActivity()
+        
+        interaction.reply(interaction.user.mention + ' det funke!')
+
+        // interaction.launchActivity()
         // const user = await this.database.getUser(interaction.user.id)
         // const container = mastermindContainer()
         // // this.messageHelper.sendMessage(interaction.channelId, { components: [container.container] })
         // this.messageHelper.replyToInteraction(interaction, '', { ephemeral: true }, [container.container])
     }
 
-    private async testSelectMenu(selectMenu: StringSelectMenuInteraction<CacheType>) {
+    private async testSelectMenu(selectMenu: SelectStringInteraction) {
         // const value = selectMenu.values[0]
         // Kode
         await selectMenu.deferUpdate()
     }
 
-    private async testButton(interaction: ButtonInteraction<CacheType>) {
+    private async testButton(interaction: BtnInteraction) {
         // Kodedsddsad
         await interaction.deferUpdate()
         const text2 = new TextDisplayBuilder().setContent(['# Dette er en ny test', '-# mindre tekst', '## Enda mindre headline'].join('\n'))
@@ -90,14 +81,14 @@ export class TestCommands extends AbstractCommands {
         this.msg.edit({ components: [this.container.container] })
     }
 
-    private async testModalSubmit(interaction: ModalSubmitInteraction<CacheType>) {
+    private async testModalSubmit(interaction: ModalInteraction) {
         // const value = interaction.fields.getTextInputValue('someCustomFieldId')
         // Kode
         await interaction.deferUpdate()
     }
 
     //Redigerer eksisterende embed hvis det er en knapp interaction, sender ny embed hvis ikke
-    private async replyToInteraction(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+    private async replyToInteraction(interaction: ChatInteraction | BtnInteraction) {
         if (interaction.isButton()) {
             this.embedMessage.edit({ embeds: [this.embed] })
             interaction.deferUpdate()
@@ -109,7 +100,7 @@ export class TestCommands extends AbstractCommands {
     }
 
     //Flytt embed ned til bunnen
-    private async resendMessages(interaction: ButtonInteraction<CacheType>) {
+    private async resendMessages(interaction: BtnInteraction) {
         this.deleteMessages()
         this.embedMessage = await this.messageHelper.sendMessage(interaction?.channelId, { embed: this.embed })
         this.buttonsMessage = await this.messageHelper.sendMessage(interaction?.channelId, { components: [this.currentButtons] })
@@ -123,8 +114,9 @@ export class TestCommands extends AbstractCommands {
         this.buttonsMessage = undefined
     }
 
-    private testSwitch(interaction: ChatInputCommandInteraction<CacheType>) {
+    private testSwitch(interaction: ChatInteraction) {
         const action = interaction.options.getSubcommand()
+        interaction.user
         if (action) {
             switch (action.toLowerCase()) {
                 case '-1-': {
@@ -152,7 +144,7 @@ export class TestCommands extends AbstractCommands {
         }
     }
 
-    private itemAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
+    private itemAutocomplete(interaction: ATCInteraction) {
         const optionList: any = interaction.options
         const input = optionList.getFocused().toLowerCase()
         console.log(optionList._hoistedOptions)
@@ -171,12 +163,12 @@ export class TestCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'test',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             if (environment === 'prod')
                                 this.messageHelper.replyToInteraction(rawInteraction, 'Denne kan kun brukes i dev-miljø', { ephemeral: true })
                             else this.testSwitch(rawInteraction)
                         },
-                        autoCompleteCallback: (interaction: AutocompleteInteraction<CacheType>) => {
+                        autoCompleteCallback: (interaction: ATCInteraction) => {
                             this.itemAutocomplete(interaction)
                         },
                     },
@@ -184,7 +176,7 @@ export class TestCommands extends AbstractCommands {
                 buttonInteractionComands: [
                     {
                         commandName: 'TEST_BUTTON',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.testButton(rawInteraction)
                         },
                     },
@@ -192,7 +184,7 @@ export class TestCommands extends AbstractCommands {
                 modalInteractionCommands: [
                     {
                         commandName: 'TEST_MODAL_1',
-                        command: (rawInteraction: ModalSubmitInteraction<CacheType>) => {
+                        command: (rawInteraction: ModalInteraction) => {
                             this.testModalSubmit(rawInteraction)
                         },
                     },
@@ -200,7 +192,7 @@ export class TestCommands extends AbstractCommands {
                 selectMenuInteractionCommands: [
                     {
                         commandName: 'TEST_SELECT_MENU_1',
-                        command: (rawInteraction: StringSelectMenuInteraction<CacheType>) => {
+                        command: (rawInteraction: SelectStringInteraction) => {
                             this.testSelectMenu(rawInteraction)
                         },
                     },

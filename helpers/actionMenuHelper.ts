@@ -1,5 +1,12 @@
 import { SelectMenuOptionBuilder as BuildersSelectMenuOption } from '@discordjs/builders'
-import { ActionRowBuilder, APISelectMenuOption, RestOrArray, SelectMenuComponentOptionData, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } from 'discord.js'
+import {
+    ActionRowBuilder,
+    APISelectMenuOption,
+    RestOrArray,
+    SelectMenuComponentOptionData,
+    StringSelectMenuBuilder,
+    StringSelectMenuOptionBuilder,
+} from 'discord.js'
 
 export class ActionMenuHelper {
     static createSelectMenu(

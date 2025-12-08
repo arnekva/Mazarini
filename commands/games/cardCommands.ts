@@ -1,5 +1,5 @@
-import { ButtonInteraction, CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../../client/MazariniClient'
 
 import { EmojiHelper } from '../../helpers/emojiHelper'
@@ -115,11 +115,11 @@ export class CardCommands extends AbstractCommands {
 
     public async drawCard(): Promise<ICardObject> {
         const deck = RandomUtils.getRandomInteger(1, this.deck.length)
-        const card = this.deck[deck-1].draw() 
+        const card = this.deck[deck - 1].draw()
 
         if (card === undefined) {
             if (this.deck.length > 1) {
-                this.deck.splice(deck-1, 1)
+                this.deck.splice(deck - 1, 1)
                 return await this.drawCard()
             } else {
                 return undefined
@@ -137,7 +137,7 @@ export class CardCommands extends AbstractCommands {
     }
 
     public shuffleDeck() {
-        this.deck.forEach(deck => deck.shuffle())
+        this.deck.forEach((deck) => deck.shuffle())
         return 'Kortstokken er stokket'
     }
 
@@ -148,7 +148,7 @@ export class CardCommands extends AbstractCommands {
 
     public getRemainingCards() {
         let totalCards = 0
-        this.deck.forEach(deck => {
+        this.deck.forEach((deck) => {
             let cards = deck.toString()
             const regex = new RegExp('C|D|S|H')
             if (regex.test(cards)) {
@@ -159,7 +159,7 @@ export class CardCommands extends AbstractCommands {
         return totalCards
     }
 
-    private async cardSwitch(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async cardSwitch(interaction: ChatInteraction) {
         const isTrekk = interaction.options.getSubcommand() === 'trekk'
         const isReset = interaction.options.getSubcommand() === 'resett'
         const isShufle = interaction.options.getSubcommand() === 'stokk'
@@ -213,7 +213,7 @@ export class CardCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'kort',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.cardSwitch(rawInteraction)
                         },
                     },

@@ -1,7 +1,6 @@
-import { Interaction, CacheType, Message } from 'discord.js'
+import { BaseInteraction, Message } from 'discord.js'
 import { Admin } from '../commands/admin/admin'
 import { UserUtils } from '../utils/userUtils'
-import { MazariniClient } from '../client/MazariniClient'
 
 export class LockingHandler {
     private botLocked: boolean = false
@@ -41,7 +40,7 @@ export class LockingHandler {
         return this.lockedThread
     }
 
-    checkIfLockedPath(interaction: Interaction<CacheType> | Message) {
+    checkIfLockedPath(interaction: BaseInteraction | Message) {
         let uId = '0'
         let channelId = '0'
         if (interaction instanceof Message) {

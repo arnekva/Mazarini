@@ -1,16 +1,7 @@
 import { randomUUID } from 'crypto'
-import {
-    ActionRowBuilder,
-    ButtonBuilder,
-    ButtonInteraction,
-    ButtonStyle,
-    CacheType,
-    ChatInputCommandInteraction,
-    EmbedBuilder,
-    InteractionResponse,
-    Message,
-} from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, InteractionResponse, Message } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
 import { GamePlayer, GameStateHandler } from '../../handlers/gameStateHandler'
@@ -78,7 +69,7 @@ export class Blackjack extends AbstractCommands {
         this.games = new Array<BlackjackGame>()
     }
 
-    // private async buyIn(interaction: ChatInputCommandInteraction<CacheType>) {
+    // private async buyIn(interaction: ChatInteraction) {
     //     const user = await this.client.database.getUser(interaction.user.id)
     //     let userMoney = user.chips
     //     const stake = SlashCommandHelper.getCleanNumberValue(interaction.options.get('satsing')?.value)
@@ -97,7 +88,7 @@ export class Blackjack extends AbstractCommands {
         return this.arrowEmoji
     }
 
-    private async deathrollBlackjack(interaction: ButtonInteraction<CacheType>) {
+    private async deathrollBlackjack(interaction: BtnInteraction) {
         const userId = interaction.customId.split(';')[1]
         if (userId !== interaction.user.id) {
             interaction.deferUpdate()
@@ -114,13 +105,7 @@ export class Blackjack extends AbstractCommands {
         }
     }
 
-    private async setupGame(
-        interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>,
-        user: MazariniUser,
-        stake: number,
-        allIn: boolean,
-        isDeathrollPot: number = 0
-    ) {
+    private async setupGame(interaction: ChatInteraction | BtnInteraction, user: MazariniUser, stake: number, allIn: boolean, isDeathrollPot: number = 0) {
         const playerPicture = await this.getProfilePicture(interaction)
         const hand: PlayerHand = { cards: new Array<ICardObject>(), stand: false, doubleDown: false }
         const player: BlackjackPlayer = {
@@ -166,7 +151,7 @@ export class Blackjack extends AbstractCommands {
         await this.printGame(game, interaction)
     }
 
-    private async simpleGame(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async simpleGame(interaction: ChatInteraction) {
         const user = await this.client.database.getUser(interaction.user.id)
         const amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('satsing')?.value)
         const userMoney = user.chips
@@ -189,7 +174,7 @@ export class Blackjack extends AbstractCommands {
         }
     }
 
-    private async getProfilePicture(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+    private async getProfilePicture(interaction: ChatInteraction | BtnInteraction) {
         let emoji = await EmojiHelper.getEmoji(interaction.user.username.replace('.', ''), this.client)
         if (!(emoji.id === '<Fant ikke emojien>')) return emoji.id
         else {
@@ -217,11 +202,7 @@ export class Blackjack extends AbstractCommands {
         game.messages.buttonRow = await this.getButtonRow(game, player)
     }
 
-    private async printGame(
-        game: BlackjackGame,
-        interaction?: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>,
-        deferred: boolean = false
-    ) {
+    private async printGame(game: BlackjackGame, interaction?: ChatInteraction | BtnInteraction, deferred: boolean = false) {
         if (game.messages.embed) {
             game.messages.embed = await game.messages.embed.edit({ embeds: [game.messages.embedContent] })
         } else if (deferred) {
@@ -237,7 +218,7 @@ export class Blackjack extends AbstractCommands {
             : await this.messageHelper.sendMessage(interaction?.channelId, { components: [game.messages.buttonRow] })
     }
 
-    private async moveGameDown(interaction: ButtonInteraction<CacheType>, game: BlackjackGame) {
+    private async moveGameDown(interaction: BtnInteraction, game: BlackjackGame) {
         await game.messages.embed.delete()
         game.messages.embed = undefined
         await game.messages.table.delete()
@@ -366,7 +347,7 @@ export class Blackjack extends AbstractCommands {
         return player.insurance && dealerBlackjack ? Math.floor(player.stake * 1.5) : 0
     }
 
-    private async split(interaction: ButtonInteraction<CacheType>, game: BlackjackGame, player: BlackjackPlayer) {
+    private async split(interaction: BtnInteraction, game: BlackjackGame, player: BlackjackPlayer) {
         const user = await this.client.database.getUser(player.id)
         if (!this.client.bank.takeMoney(user, player.stake))
             return this.messageHelper.sendMessage(interaction.channelId, { text: `Du har ikke råd til en split, ${MentionUtils.mentionUser(user.id)}` })
@@ -379,7 +360,7 @@ export class Blackjack extends AbstractCommands {
         this.updateBoard(game, false)
     }
 
-    private async doubleDown(interaction: ButtonInteraction<CacheType>, game: BlackjackGame, player: BlackjackPlayer) {
+    private async doubleDown(interaction: BtnInteraction, game: BlackjackGame, player: BlackjackPlayer) {
         const user = await this.client.database.getUser(player.id)
         if (!this.client.bank.takeMoney(user, player.stake))
             return this.messageHelper.sendMessage(interaction.channelId, { text: `Du har ikke råd til å double down, ${MentionUtils.mentionUser(user.id)}` })
@@ -388,7 +369,7 @@ export class Blackjack extends AbstractCommands {
         this.updateButtons(game, player)
     }
 
-    private async insurance(interaction: ButtonInteraction<CacheType>, game: BlackjackGame, player: BlackjackPlayer) {
+    private async insurance(interaction: BtnInteraction, game: BlackjackGame, player: BlackjackPlayer) {
         const user = await this.client.database.getUser(player.id)
         if (!this.client.bank.takeMoney(user, Math.ceil(player.stake / 2)))
             return this.messageHelper.sendMessage(interaction.channelId, { text: `Du har ikke råd til insurance, ${MentionUtils.mentionUser(user.id)}` })
@@ -523,7 +504,7 @@ export class Blackjack extends AbstractCommands {
         this.games.splice(index, 1)
     }
 
-    private async playAgain(interaction: ButtonInteraction<CacheType>, game: BlackjackGame, player: BlackjackPlayer) {
+    private async playAgain(interaction: BtnInteraction, game: BlackjackGame, player: BlackjackPlayer) {
         const user = await this.client.database.getUser(player.id)
         if (player.allIn) player.stake = user.chips
         else if (game.fromDeathroll) player.stake = player.gameWinnings
@@ -586,12 +567,12 @@ export class Blackjack extends AbstractCommands {
         this.updateBoard(game, false)
     }
 
-    private getGame(interaction: ButtonInteraction<CacheType>) {
+    private getGame(interaction: BtnInteraction) {
         const gameId = interaction.customId.split(';')[1]
         return this.games.find((game) => game.id == gameId)
     }
 
-    private getPlayer(interaction: ButtonInteraction<CacheType>, game: BlackjackGame) {
+    private getPlayer(interaction: BtnInteraction, game: BlackjackGame) {
         return game?.players?.find((player) => player.id == interaction.user.id)
     }
 
@@ -626,7 +607,7 @@ export class Blackjack extends AbstractCommands {
     }
 
     private verifyUserAndCallMethod(
-        interaction: ButtonInteraction<CacheType>,
+        interaction: BtnInteraction,
         callback: (game: BlackjackGame, player?: BlackjackPlayer) => void,
         cannotBeDoneAfterCompleted: boolean = false
     ) {
@@ -675,7 +656,7 @@ export class Blackjack extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'blackjack',
-                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (interaction: ChatInteraction) => {
                             const subCommand = interaction.options.getSubcommand()
                             if (subCommand.toLowerCase() === 'solo') this.simpleGame(interaction)
                             else if (subCommand.toLowerCase() === 'vanlig')
@@ -686,61 +667,61 @@ export class Blackjack extends AbstractCommands {
                 buttonInteractionComands: [
                     {
                         commandName: 'BLACKJACK_HIT',
-                        command: (interaction: ButtonInteraction<CacheType>) => {
+                        command: (interaction: BtnInteraction) => {
                             this.verifyUserAndCallMethod(interaction, (game, player) => this.hit(game, player))
                         },
                     },
                     {
                         commandName: 'BLACKJACK_STAND',
-                        command: (interaction: ButtonInteraction<CacheType>) => {
+                        command: (interaction: BtnInteraction) => {
                             this.verifyUserAndCallMethod(interaction, (game, player) => this.stand(game, player))
                         },
                     },
                     {
                         commandName: 'BLACKJACK_SPLIT',
-                        command: (interaction: ButtonInteraction<CacheType>) => {
+                        command: (interaction: BtnInteraction) => {
                             this.verifyUserAndCallMethod(interaction, (game, player) => this.split(interaction, game, player))
                         },
                     },
                     {
                         commandName: 'BLACKJACK_DOUBLE_DOWN',
-                        command: (interaction: ButtonInteraction<CacheType>) => {
+                        command: (interaction: BtnInteraction) => {
                             this.verifyUserAndCallMethod(interaction, (game, player) => this.doubleDown(interaction, game, player))
                         },
                     },
                     {
                         commandName: 'BLACKJACK_INSURANCE',
-                        command: (interaction: ButtonInteraction<CacheType>) => {
+                        command: (interaction: BtnInteraction) => {
                             this.verifyUserAndCallMethod(interaction, (game, player) => this.insurance(interaction, game, player))
                         },
                     },
                     {
                         commandName: 'BLACKJACK_REMOVE',
-                        command: (interaction: ButtonInteraction<CacheType>) => {
+                        command: (interaction: BtnInteraction) => {
                             this.verifyUserAndCallMethod(interaction, (game) => this.deleteGame(game))
                         },
                     },
                     {
                         commandName: 'BLACKJACK_PLAY_AGAIN',
-                        command: (interaction: ButtonInteraction<CacheType>) => {
+                        command: (interaction: BtnInteraction) => {
                             this.verifyUserAndCallMethod(interaction, (game, player) => this.playAgain(interaction, game, player))
                         },
                     },
                     {
                         commandName: 'BLACKJACK_REDEAL',
-                        command: (interaction: ButtonInteraction<CacheType>) => {
+                        command: (interaction: BtnInteraction) => {
                             this.verifyUserAndCallMethod(interaction, (game, player) => this.reDeal(game, player))
                         },
                     },
                     {
                         commandName: 'BLACKJACK_DEATHROLL',
-                        command: (interaction: ButtonInteraction<CacheType>) => {
+                        command: (interaction: BtnInteraction) => {
                             this.deathrollBlackjack(interaction)
                         },
                     },
                     {
                         commandName: 'BLACKJACK_MOVE_DOWN',
-                        command: (interaction: ButtonInteraction<CacheType>) => {
+                        command: (interaction: BtnInteraction) => {
                             this.verifyUserAndCallMethod(interaction, (game) => this.moveGameDown(interaction, game), true)
                         },
                     },

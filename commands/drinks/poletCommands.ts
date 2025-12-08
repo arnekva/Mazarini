@@ -1,16 +1,7 @@
-import {
-    ActionRowBuilder,
-    ButtonBuilder,
-    ButtonInteraction,
-    ButtonStyle,
-    CacheType,
-    ChatInputCommandInteraction,
-    EmbedBuilder,
-    Interaction,
-    Message,
-} from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Message } from 'discord.js'
 import moment from 'moment'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { vinBearer, vinKey, vinmonopoletKey, vinUserAgent } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 
@@ -68,7 +59,7 @@ export class PoletCommands extends AbstractCommands {
         super(client)
     }
 
-    static async fetchPoletData(storeId: string, rawInteraction?: Interaction<CacheType>) {
+    static async fetchPoletData(storeId: string) {
         let id = PoletCommands.baseStoreID
         if (storeId) id = storeId
 
@@ -158,7 +149,7 @@ export class PoletCommands extends AbstractCommands {
         return await data.json()
     }
 
-    public async getProductStockForUser(interaction: ButtonInteraction<CacheType>) {
+    public async getProductStockForUser(interaction: BtnInteraction) {
         const params = interaction.customId.split(';')
         const productId = params[1]
         const user = await this.client.database.getUser(interaction.user.id)
@@ -181,17 +172,17 @@ export class PoletCommands extends AbstractCommands {
         }
     }
 
-    private async getOpeningHours(rawInteraction: ChatInputCommandInteraction<CacheType>, storeId?: string) {
+    private async getOpeningHours(rawInteraction: ChatInteraction, storeId?: string) {
         await rawInteraction.deferReply()
         const user = await this.client.database.getUser(rawInteraction.user.id)
-        const poletData = await PoletCommands.fetchPoletData(storeId ?? user.favoritePol.id, rawInteraction)
+        const poletData = await PoletCommands.fetchPoletData(storeId ?? user.favoritePol.id)
 
         const fmMessage = new EmbedBuilder().setTitle(`${poletData.storeName} (${poletData.address.postalCode}, ${poletData.address.city}) `)
 
         if (poletData.openingHours.exceptionHours.length) {
             fmMessage.addFields({ name: 'Endrede åpningstider', value: 'Det er endrede åpningstider denne måneden' })
 
-            poletData.openingHours.exceptionHours.forEach((h, index) => {
+            poletData.openingHours.exceptionHours.forEach((h) => {
                 const dateName = moment(h?.date).format('dddd')
                 if (h.openingTime !== '10:00' || h.closingTime !== '18:00') {
                     let message = ''
@@ -210,7 +201,7 @@ export class PoletCommands extends AbstractCommands {
         } else {
             fmMessage.addFields({ name: 'Åpningstider', value: `Polet holder åpent som normalt denne uken` })
         }
-        let todayClosing: string = ''
+
         if (poletData.openingHours.regularHours) {
             poletData.openingHours.regularHours.forEach((rh) => {
                 const day = Languages.weekdayTranslate(rh.dayOfTheWeek)
@@ -231,14 +222,13 @@ export class PoletCommands extends AbstractCommands {
                 if (isToday) fmMessage.setDescription(`${timeToCloseText}`)
                 const dayHeader = `${day} ${isToday ? ` (i dag)` : ''}`
                 fmMessage.addFields({ name: dayHeader, value: rh.closed ? 'Stengt' : `${rh.openingTime} - ${rh.closingTime}` })
-                if (isToday) todayClosing = rh.closingTime
             })
         }
         // fmMessage.setDescription(`${this.isStoreOpen(todayClosing)}`)
         this.messageHelper.replyToInteraction(rawInteraction, fmMessage, { hasBeenDefered: true })
     }
 
-    private async handleVinmonopoletCommand(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async handleVinmonopoletCommand(interaction: ChatInteraction) {
         await this.getOpeningHours(interaction)
     }
 
@@ -371,7 +361,7 @@ export class PoletCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'vinmonopolet',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.handleVinmonopoletCommand(rawInteraction)
                         },
                     },
@@ -379,7 +369,7 @@ export class PoletCommands extends AbstractCommands {
                 buttonInteractionComands: [
                     {
                         commandName: 'POLET_STOCK',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.getProductStockForUser(rawInteraction)
                         },
                     },

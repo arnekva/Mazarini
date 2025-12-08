@@ -1,6 +1,7 @@
-import { CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js'
+import { EmbedBuilder } from 'discord.js'
 import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { ChatInteraction } from '../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../client/MazariniClient'
 import { HelgHelper } from '../helpers/helgHelper'
 import { ferieItem, ICountdownItem } from '../interfaces/database/databaseInterface'
@@ -20,7 +21,7 @@ export class DateCommands extends AbstractCommands {
     constructor(client: MazariniClient) {
         super(client)
     }
-    private setReminder(interaction: ChatInputCommandInteraction<CacheType>) {
+    private setReminder(interaction: ChatInteraction) {
         const timeArray = (interaction.options.get('tid')?.value as string).split(':')
         const event = interaction.options.get('tekst')?.value as string
 
@@ -48,9 +49,9 @@ export class DateCommands extends AbstractCommands {
     }
 
     //TODO: Fix this one
-    private async registerFerie(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async registerFerie(interaction: ChatInteraction) {
         const isSet = interaction.options.getSubcommand() === 'sett'
-        const isVis = interaction.options.getSubcommand() === 'vis'
+
         const fromDate = interaction.options.get('fra-dato')?.value as string
         const toDate = interaction.options.get('til-dato')?.value as string
         const fromHours = interaction.options.get('fra-klokkeslett')?.value as string
@@ -96,7 +97,7 @@ export class DateCommands extends AbstractCommands {
             }
             const maxNumDays = 250
             if (DateUtils.isDateBefore(date1, date2) && DateUtils.dateIsMaxXDaysInFuture(date2, maxNumDays)) {
-                let hasFerie = ferier.find((f) => f.id === interaction.user.id)
+                const hasFerie = ferier.find((f) => f.id === interaction.user.id)
                 if (hasFerie) hasFerie.value = feireObj
                 else
                     ferier.push({
@@ -149,9 +150,9 @@ export class DateCommands extends AbstractCommands {
             let vacayNow = ''
             let vacayLater = ''
             const vacayNowSorted = new Map([...vacayNowMap].sort((d1, d2) => d1[0].getTime() - d2[0].getTime()))
-            vacayNowSorted.forEach((vacayString, key) => (vacayNow += vacayString))
+            vacayNowSorted.forEach((vacayString) => (vacayNow += vacayString))
             const vacayLaterSorted = new Map([...vacayLaterMap].sort((d1, d2) => d1[0].getTime() - d2[0].getTime()))
-            vacayLaterSorted.forEach((vacayString, key) => (vacayLater += vacayString))
+            vacayLaterSorted.forEach((vacayString) => (vacayLater += vacayString))
             const isChristmasVacation = DateUtils.isDecember() || DateUtils.isNovember()
             const vacay = new EmbedBuilder().setTitle(`Ferie  ${isChristmasVacation ? '⛄🎄' : '🏝️'}`)
             if (vacayNowMap.size > 0) vacay.addFields({ name: `Er på ferie ${isChristmasVacation ? '🎅🏻' : '😎'}`, value: `${vacayNow}`, inline: false })
@@ -159,7 +160,7 @@ export class DateCommands extends AbstractCommands {
             this.messageHelper.replyToInteraction(interaction, vacay)
         }
     }
-    private async countdownToDate(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async countdownToDate(interaction: ChatInteraction) {
         const isNewCountdown = interaction.options.getSubcommand() === 'sett'
         const isPrinting = interaction.options.getSubcommand() === 'vis'
 
@@ -245,7 +246,7 @@ export class DateCommands extends AbstractCommands {
         }
     }
 
-    private checkForHelg(interaction: ChatInputCommandInteraction<CacheType>) {
+    private checkForHelg(interaction: ChatInteraction) {
         HelgHelper.checkForHelg(interaction, this.client)
     }
 
@@ -256,7 +257,7 @@ export class DateCommands extends AbstractCommands {
         return cds.allCountdowns.filter((c) => c.ownerId === userId).length >= 3
     }
 
-    private async addUserBirthday(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async addUserBirthday(interaction: ChatInteraction) {
         const user = await this.client.database.getUser(interaction.user.id)
         const birthDayFromArg = interaction.options.get('dato')?.value as string
         const birthday = user.birthday
@@ -307,31 +308,31 @@ export class DateCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'helg',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.checkForHelg(rawInteraction)
                         },
                     },
                     {
                         commandName: 'ferie',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.registerFerie(rawInteraction)
                         },
                     },
                     {
                         commandName: 'reminder',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.setReminder(rawInteraction)
                         },
                     },
                     {
                         commandName: 'bursdag',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.addUserBirthday(rawInteraction)
                         },
                     },
                     {
                         commandName: 'countdown',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.countdownToDate(rawInteraction)
                         },
                     },

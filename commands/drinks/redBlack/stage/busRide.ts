@@ -1,8 +1,9 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, CacheType, EmbedBuilder, Message } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, EmbedBuilder, Message } from 'discord.js'
+import { BtnInteraction } from '../../../../Abstracts/MazariniInteraction'
 import { EmojiHelper } from '../../../../helpers/emojiHelper'
 import { MessageHelper } from '../../../../helpers/messageHelper'
 import { CardCommands } from '../../../games/cardCommands'
-import { TryAgainBtn, canadianBusrideButtonRow } from '../redBlackButtonRows'
+import { canadianBusrideButtonRow, TryAgainBtn } from '../redBlackButtonRows'
 import { IBusRideCard, IUserObject } from '../redBlackInterfaces'
 
 export class BusRide {
@@ -32,20 +33,20 @@ export class BusRide {
         this.totalSips = 0
     }
 
-    public async setupCanadianBusride(interaction: ButtonInteraction<CacheType>) {
+    public async setupCanadianBusride(interaction: BtnInteraction) {
         this.cardsOnTable = new Array<IBusRideCard>()
         const startCard = { card: await this.drawCard(), revealed: true }
         this.cardsOnTable[0] = startCard
-        await this.setNewCards(6, interaction)
+        await this.setNewCards(6)
         this.embed = new EmbedBuilder().setTitle('Busstur').setDescription(`Kos deg på tur, ${this.loser.name}!`)
         this.embedMessage.edit({ embeds: [this.embed], components: [] })
         this.printCanadianBusrideTable(interaction)
     }
 
-    private async printCanadianBusrideTable(interaction: ButtonInteraction<CacheType>, correct: boolean = true) {
+    private async printCanadianBusrideTable(interaction: BtnInteraction, correct: boolean = true) {
         let cardsString = ''
         const faceCard = (await EmojiHelper.getEmoji('faceCard', interaction)).id
-        for (var i = 0; i < 7; i++) {
+        for (let i = 0; i < 7; i++) {
             cardsString += this.cardsOnTable[i].revealed ? `${this.cardsOnTable[i].card.emoji} ` : `${faceCard} `
         }
         this.tableString = cardsString
@@ -53,7 +54,7 @@ export class BusRide {
         this.tableMessage.edit({ content: this.tableString, components: [this.currentButtons] })
     }
 
-    private async updateBusrideMessage(interaction: ButtonInteraction<CacheType>, correct: boolean) {
+    private updateBusrideMessage(interaction: BtnInteraction, correct: boolean) {
         const guess = this.guessTranslations.get(interaction.customId.split(';')[1])
         let text = ''
         if (!correct) {
@@ -70,9 +71,9 @@ export class BusRide {
         this.embedMessage.edit({ embeds: [this.embed] })
     }
 
-    private async setNewCards(i: number, interaction: ButtonInteraction<CacheType>) {
-        for (var y = 1; y <= i; y++) {
-            let card = { card: await this.drawCard(), revealed: false }
+    private async setNewCards(i: number) {
+        for (let y = 1; y <= i; y++) {
+            const card = { card: await this.drawCard(), revealed: false }
             this.cardsOnTable[y] = card
         }
     }
@@ -85,7 +86,7 @@ export class BusRide {
         return await this.deck.drawCard()
     }
 
-    public async guessCanadian(interaction: ButtonInteraction<CacheType>) {
+    public async guessCanadian(interaction: BtnInteraction) {
         if (!this.verifyUsersTurn(interaction.user.username)) {
             return this.messageHelper.replyToInteraction(interaction, 'Nå er det heldigvis ikke du som tar bussturen', { hasBeenDefered: true })
         }
@@ -115,8 +116,8 @@ export class BusRide {
         return username === this.loser.name
     }
 
-    public async resetCanadian(interaction: ButtonInteraction<CacheType>) {
-        await this.setNewCards(this.nextCardId, interaction)
+    public async resetCanadian(interaction: BtnInteraction) {
+        await this.setNewCards(this.nextCardId)
         this.nextCardId = 1
         this.embed.setDescription(this.tryAgainInsults[Math.floor(Math.random() * 5)])
         this.embedMessage.edit({ embeds: [this.embed] })
@@ -124,7 +125,7 @@ export class BusRide {
         interaction.deferUpdate()
     }
 
-    public async resendMessages(interaction: ButtonInteraction<CacheType>) {
+    public async resendMessages(interaction: BtnInteraction) {
         this.deleteMessages()
         this.embedMessage = await this.messageHelper.sendMessage(interaction?.channelId, { embed: this.embed })
         this.tableMessage = await this.messageHelper.sendMessage(interaction.channelId, { text: this.tableString, components: [this.currentButtons] })

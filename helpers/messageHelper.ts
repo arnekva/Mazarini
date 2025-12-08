@@ -9,9 +9,7 @@ import {
     BitFieldResolvable,
     BufferResolvable,
     ButtonBuilder,
-    ButtonInteraction,
     CacheType,
-    ChatInputCommandInteraction,
     ContainerBuilder,
     EmbedBuilder,
     InteractionEditReplyOptions,
@@ -23,14 +21,13 @@ import {
     MessageActionRowComponentData,
     MessageCreateOptions,
     MessageFlags,
-    ModalSubmitInteraction,
     RepliableInteraction,
-    SelectMenuInteraction,
     TextChannel,
     User,
 } from 'discord.js'
 import { Moment } from 'moment'
 import { Stream } from 'stream'
+import { BtnInteraction, ChatInteraction, MenuSelectInteraction, ModalInteraction } from '../Abstracts/MazariniInteraction'
 import { environment, secretDevelopment } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
 import { MazariniBot } from '../main'
@@ -103,12 +100,7 @@ export class MessageHelper {
      * @returns True if the message was sent succesfully, false if an error occured.
      */
     async replyToInteraction(
-        interaction:
-            | ChatInputCommandInteraction<CacheType>
-            | ModalSubmitInteraction<CacheType>
-            | SelectMenuInteraction<CacheType>
-            | ButtonInteraction<CacheType>
-            | RepliableInteraction<CacheType>,
+        interaction: ChatInteraction | ModalInteraction | MenuSelectInteraction | BtnInteraction | RepliableInteraction<CacheType>,
         messageContent: string | EmbedBuilder,
         options?: IInteractionOptions,
         components?: MessageCompontent,
@@ -364,14 +356,7 @@ export class MessageHelper {
      * @param interaction Interaction to defer
      * @returns true if deferred succesfully, false if an error occured
      */
-    async deferReply(
-        interaction:
-            | ChatInputCommandInteraction<CacheType>
-            | ModalSubmitInteraction<CacheType>
-            | SelectMenuInteraction<CacheType>
-            | ButtonInteraction<CacheType>
-            | RepliableInteraction<CacheType>
-    ) {
+    async deferReply(interaction: ChatInteraction | ModalInteraction | MenuSelectInteraction | BtnInteraction | RepliableInteraction<CacheType>) {
         try {
             await interaction.deferReply()
             return true
@@ -388,7 +373,7 @@ export class MessageHelper {
      * @param interaction Interaction to defer
      * @returns true if deferred succesfully, false if an error occured
      */
-    async deferUpdate(interaction: ButtonInteraction<CacheType>) {
+    async deferUpdate(interaction: BtnInteraction) {
         try {
             await interaction.deferUpdate()
             return true

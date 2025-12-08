@@ -1,4 +1,3 @@
-import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 
@@ -6,6 +5,7 @@ import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { RandomUtils } from '../../utils/randomUtils'
 
 import { GameValues } from '../../general/values'
+import { ChatInteraction } from '../../Abstracts/MazariniInteraction'
 const spinMinutes: RandomUtils.WeightedItem[] = GameValues.spinner.spinWeights
 
 export class Spinner extends AbstractCommands {
@@ -13,7 +13,7 @@ export class Spinner extends AbstractCommands {
         super(client)
     }
 
-    private async spinFromInteraction(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async spinFromInteraction(interaction: ChatInteraction) {
         const user = await this.client.database.getUser(interaction.user.id)
         if (user.dailySpins === undefined) user.dailySpins = 1
         // user.dailySpins = 1
@@ -65,7 +65,7 @@ export class Spinner extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'spin',
-                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (interaction: ChatInteraction) => {
                             return this.messageHelper.replyToInteraction(interaction, 'Åpne lykkehjulet heller du')
                             // this.spinFromInteraction(interaction)
                         },

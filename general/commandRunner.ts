@@ -1,14 +1,5 @@
-import {
-    ButtonInteraction,
-    CacheType,
-    ChatInputCommandInteraction,
-    ContextMenuCommandInteraction,
-    Interaction,
-    InteractionType,
-    Message,
-    ModalSubmitInteraction,
-    StringSelectMenuInteraction,
-} from 'discord.js'
+import { CacheType, ChatInputCommandInteraction, ContextMenuCommandInteraction, Interaction, InteractionType, Message } from 'discord.js'
+import { BaseInteraction, BtnInteraction, ChatInteraction, ModalInteraction, SelectStringInteraction } from '../Abstracts/MazariniInteraction'
 import { environment } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
 import { PoletCommands } from '../commands/drinks/poletCommands'
@@ -83,7 +74,7 @@ export class CommandRunner {
                             //Need to also check if autoCompleteCallback is present, since AutoComplete can trigger on normal input fields.
                             if (cmd.autoCompleteCallback) cmd.autoCompleteCallback(interaction)
                         } else {
-                            this.runInteractionElement<ChatInputCommandInteraction<CacheType> | ContextMenuCommandInteraction<CacheType>>(cmd, interaction)
+                            this.runInteractionElement<ChatInteraction | ContextMenuCommandInteraction<CacheType>>(cmd, interaction)
                         }
                         hasAcknowledged = true
                     }
@@ -91,14 +82,14 @@ export class CommandRunner {
             } else if (interaction.type === InteractionType.ModalSubmit) {
                 this.commands.allModalCommands.forEach((cmd) => {
                     if (cmd.commandName === interaction.customId.split(';')[0]) {
-                        this.runInteractionElement<ModalSubmitInteraction<CacheType>>(cmd, interaction)
+                        this.runInteractionElement<ModalInteraction>(cmd, interaction)
                         hasAcknowledged = true
                     }
                 })
             } else if (interaction.isStringSelectMenu()) {
                 this.commands.allSelectMenuCommands.forEach((cmd) => {
                     if (cmd.commandName === interaction.customId.split(';')[0]) {
-                        this.runInteractionElement<StringSelectMenuInteraction<CacheType>>(cmd, interaction)
+                        this.runInteractionElement<SelectStringInteraction>(cmd, interaction)
                         // this.runSelectMenuInteractionElement(cmd, interaction)
                         hasAcknowledged = true
                     }
@@ -106,7 +97,7 @@ export class CommandRunner {
             } else if (interaction.isButton()) {
                 this.commands.allButtonCommands.forEach((cmd) => {
                     if (cmd.commandName === interaction.customId.split(';')[0]) {
-                        this.runInteractionElement<ButtonInteraction<CacheType>>(cmd, interaction)
+                        this.runInteractionElement<BtnInteraction>(cmd, interaction)
                         // this.runButtonInteractionElement(cmd, interaction)
                         hasAcknowledged = true
                     }
@@ -149,7 +140,7 @@ export class CommandRunner {
         return this.commands.doOnReadyAllCommands()
     }
 
-    async checkIfBlockedByJail(interaction: Interaction<CacheType>) {
+    async checkIfBlockedByJail(interaction: BaseInteraction) {
         const user = await this.client.database.getUser(interaction.user.id)
         if (user.jail?.daysInJail && user.jail?.daysInJail > 0) {
             if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {

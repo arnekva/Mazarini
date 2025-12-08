@@ -1,4 +1,5 @@
-import { ApplicationEmoji, ButtonInteraction, CacheType, ChatInputCommandInteraction, Client, GuildEmoji, Interaction, Message } from 'discord.js'
+import { ApplicationEmoji, BaseInteraction, Client, GuildEmoji, Message } from 'discord.js'
+import { BtnInteraction, ChatInteraction } from '../Abstracts/MazariniInteraction'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { ServerIds } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
@@ -17,14 +18,14 @@ type emojiObject = {
 export type JobStatus = 'success' | 'failed' | 'not sendt'
 export class EmojiHelper {
     //FIXME: No reason for this to be async?
-    static async getEmoji(emojiType: string, accessPoint: Message | Interaction<CacheType> | Client<boolean>): Promise<emojiReturnType> {
+    static async getEmoji(emojiType: string, accessPoint: Message | BaseInteraction | Client<boolean>): Promise<emojiReturnType> {
         const ap = accessPoint instanceof Client ? accessPoint : accessPoint.client
         const emojiObj = ap.emojis.cache.find((emoji) => emoji.name == emojiType)
         if (!emojiObj) return { id: '<Fant ikke emojien>' }
         return { id: `<${emojiObj.animated ? 'a' : ''}:${emojiObj.name}:${emojiObj?.id}>`, emojiObject: emojiObj, urlId: emojiObj?.id }
     }
 
-    static getGuildEmoji(emojiType: string, accessPoint: Message | Interaction<CacheType> | Client<boolean>): GuildEmoji {
+    static getGuildEmoji(emojiType: string, accessPoint: Message | BaseInteraction | Client<boolean>): GuildEmoji {
         const ap = accessPoint instanceof Client ? accessPoint : accessPoint.client
         return ap.emojis.cache.find((emoji) => emoji.name == emojiType)
     }
@@ -36,7 +37,7 @@ export class EmojiHelper {
         return { id: `<${emojiObj.animated ? 'a' : ''}:${emojiObj.name}:${emojiObj?.id}>`, emojiObject: emojiObj, urlId: emojiObj?.id }
     }
 
-    static getHelgEmoji(accessPoint: Message | Interaction<CacheType> | Client<boolean>, isGeggi?: boolean) {
+    static getHelgEmoji(accessPoint: Message | BaseInteraction | Client<boolean>, isGeggi?: boolean) {
         const ap = accessPoint instanceof Client ? accessPoint : accessPoint.client
         const emojis = Array.from(ap.emojis.cache.filter((emoji) => emoji.name.includes(isGeggi ? 'geggiexcited' : 'catmygling')))
         const emoji = emojis.length === 1 ? emojis[0] : ArrayUtils.randomChoiceFromArray(emojis)
@@ -55,7 +56,7 @@ export class EmojiHelper {
         }
     }
 
-    static async createProfileEmoji(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+    static async createProfileEmoji(interaction: ChatInteraction | BtnInteraction) {
         const profilePic = UserUtils.findUserById(interaction.user.id, interaction).displayAvatarURL()
         await interaction.client.guilds.cache.get(ServerIds.MAZARINI_DEV_2).emojis.create({ attachment: profilePic, name: interaction.user.username })
     }

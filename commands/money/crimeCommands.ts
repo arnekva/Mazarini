@@ -1,5 +1,6 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, EmbedBuilder, User } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, User } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { ChatInteraction, BtnInteraction } from '../../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../../client/MazariniClient'
 
 import { DatabaseHelper } from '../../helpers/databaseHelper'
@@ -40,7 +41,7 @@ export class CrimeCommands extends AbstractCommands {
         }
     }
 
-    private async krig(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, target: User, amount: number) {
+    private async krig(interaction: ChatInteraction | BtnInteraction, target: User, amount: number) {
         await interaction.deferReply({ ephemeral: true })
         const userWallets = await this.getUserWallets(interaction.user.id, target.id)
         const hasAmount = !!amount
@@ -76,7 +77,7 @@ export class CrimeCommands extends AbstractCommands {
         }
     }
 
-    private async handleKrig(interaction: ButtonInteraction<CacheType>) {
+    private async handleKrig(interaction: BtnInteraction) {
         const ids = interaction.customId.split(';')
         const engagerId = ids[2]
         const eligibleTargetId = ids[1]
@@ -196,7 +197,7 @@ export class CrimeCommands extends AbstractCommands {
         }
     }
 
-    private async handleRematch(interaction: ButtonInteraction<CacheType>) {
+    private async handleRematch(interaction: BtnInteraction) {
         const params = interaction.customId.split(';')
         const oldEngager = params[1]
         const oldTarget = params[2]
@@ -226,7 +227,7 @@ export class CrimeCommands extends AbstractCommands {
         }
     }
 
-    private async pickpocket(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async pickpocket(interaction: ChatInteraction) {
         const target = interaction.options.get('bruker')?.user
         const amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('chips')?.value)
         const amountAsNum = Number(amount)
@@ -292,7 +293,7 @@ export class CrimeCommands extends AbstractCommands {
     }
 
     //returns a bool indicating if the interaction has been handled or not
-    private async handleTheftEdgeCases(interaction: ChatInputCommandInteraction<CacheType>, engager: MazariniUser, victim: MazariniUser, amount: number) {
+    private async handleTheftEdgeCases(interaction: ChatInteraction, engager: MazariniUser, victim: MazariniUser, amount: number) {
         const victimIsEngager = engager.id === victim.id
         const isNegativeAmount = amount < 0
         const victimHasAmount = victim.chips >= amount
@@ -374,7 +375,7 @@ export class CrimeCommands extends AbstractCommands {
         }
     }
 
-    private async jailbreak(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async jailbreak(interaction: ChatInteraction) {
         const prisoner = await this.client.database.getUser(interaction.user.id)
         const daysLeftInJail = prisoner?.jail?.daysInJail
         const isBribe = interaction.options.get('bribe')?.value as boolean
@@ -435,7 +436,7 @@ export class CrimeCommands extends AbstractCommands {
         }
     }
 
-    private async printPrisoners(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async printPrisoners(interaction: ChatInteraction) {
         const formattedMsg = new EmbedBuilder().setTitle(':lock: Fengsel :lock:')
         const users = await this.client.database.getAllUsers()
         let someoneInJail = false
@@ -456,7 +457,7 @@ export class CrimeCommands extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, someoneInJail ? formattedMsg : 'Det er ingen i fengsel atm')
     }
 
-    private async frameSomeone(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async frameSomeone(interaction: ChatInteraction) {
         const user = await this.client.database.getUser(interaction.user.id)
         const targetUser = interaction.options.get('bruker')?.user
         const target = await this.client.database.getUser(targetUser.id)
@@ -520,7 +521,7 @@ export class CrimeCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'krig',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             const target = rawInteraction.options.get('bruker')?.user
                             const amount = SlashCommandHelper.getCleanNumberValue(rawInteraction.options.get('chips')?.value)
 
@@ -529,25 +530,25 @@ export class CrimeCommands extends AbstractCommands {
                     },
                     {
                         commandName: 'pickpocket',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.pickpocket(rawInteraction)
                         },
                     },
                     {
                         commandName: 'jailbreak',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.jailbreak(rawInteraction)
                         },
                     },
                     {
                         commandName: 'jail',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.printPrisoners(rawInteraction)
                         },
                     },
                     {
                         commandName: 'frame',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.frameSomeone(rawInteraction)
                         },
                     },
@@ -555,13 +556,13 @@ export class CrimeCommands extends AbstractCommands {
                 buttonInteractionComands: [
                     {
                         commandName: 'KRIG',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.handleKrig(rawInteraction)
                         },
                     },
                     {
                         commandName: 'KRIG_REMATCH',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.handleRematch(rawInteraction)
                         },
                     },

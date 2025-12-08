@@ -1,5 +1,6 @@
-import { ActionRowBuilder, AutocompleteInteraction, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { ChatInteraction, BtnInteraction, ATCInteraction } from '../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../client/MazariniClient'
 
 import { IInteractionElement } from '../interfaces/interactionInterface'
@@ -29,7 +30,7 @@ export class PollCommands extends AbstractCommands {
 
     private currentPolls: IPoll[] = []
 
-    private async createPoll(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async createPoll(interaction: ChatInteraction) {
         const currPollId = interaction.id
         const isCreate = interaction.options.getSubcommand() === 'lag'
         if (isCreate) {
@@ -94,7 +95,7 @@ export class PollCommands extends AbstractCommands {
         return polls
     }
 
-    private async showPoll(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async showPoll(interaction: ChatInteraction) {
         const id = interaction.options.get('pollnavn')?.value as string
         const polls = await this.pollsFromStorage()
         const poll = polls.find((p) => p.id === id)
@@ -119,7 +120,7 @@ export class PollCommands extends AbstractCommands {
         }
     }
 
-    private async updatePoll(interaction: ButtonInteraction<CacheType>) {
+    private async updatePoll(interaction: BtnInteraction) {
         const ids = interaction.customId.split(';')
         const votesFor = Number(ids[1])
         const pollId = ids[2]
@@ -210,7 +211,7 @@ export class PollCommands extends AbstractCommands {
         return embed
     }
 
-    private async filterPolls(interaction: AutocompleteInteraction<CacheType>) {
+    private async filterPolls(interaction: ATCInteraction) {
         const optionList: any = interaction.options
         const input = optionList.getFocused().toLowerCase()
         const pollsFromStorage = await this.pollsFromStorage()
@@ -224,10 +225,10 @@ export class PollCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'poll',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.createPoll(rawInteraction)
                         },
-                        autoCompleteCallback: (rawInteraction: AutocompleteInteraction<CacheType>) => {
+                        autoCompleteCallback: (rawInteraction: ATCInteraction) => {
                             this.filterPolls(rawInteraction)
                         },
                     },
@@ -235,7 +236,7 @@ export class PollCommands extends AbstractCommands {
                 buttonInteractionComands: [
                     {
                         commandName: 'POLL_VOTE',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.updatePoll(rawInteraction)
                         },
                     },

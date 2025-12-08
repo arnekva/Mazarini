@@ -1,6 +1,8 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js'
+/* eslint-disable require-await */
+import { ActionRowBuilder, ButtonBuilder, EmbedBuilder } from 'discord.js'
 import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { BtnInteraction, ChatInteraction } from '../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../client/MazariniClient'
 import { IUserEffects, LootboxQuality, MazariniStorage, MazariniUser, UserCalendarGift } from '../interfaces/database/databaseInterface'
 import { IInteractionElement, IOnTimedEvent } from '../interfaces/interactionInterface'
@@ -13,7 +15,7 @@ export class CalendarCommands extends AbstractCommands {
         super(client)
     }
 
-    private async claimCalendarGift(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+    private async claimCalendarGift(interaction: ChatInteraction | BtnInteraction) {
         const isValidTimeFrame = DateUtils.currentDateIsBetween(
             moment(`01-12-${new Date().getFullYear()} 05:00`, 'DD-MM-YYYY HH:mm'),
             moment(`31-12-${new Date().getFullYear()} 23:59`, 'DD-MM-YYYY HH:mm')
@@ -79,7 +81,7 @@ export class CalendarCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'julekalender',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.claimCalendarGift(rawInteraction)
                         },
                     },

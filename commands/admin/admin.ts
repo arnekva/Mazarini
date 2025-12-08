@@ -4,18 +4,16 @@ import {
     ActionRowBuilder,
     ActivityType,
     APIInteractionGuildMember,
-    AutocompleteInteraction,
     ButtonBuilder,
     ButtonInteraction,
     ButtonStyle,
-    CacheType,
-    ChatInputCommandInteraction,
     GuildMember,
     ModalSubmitInteraction,
     User,
 } from 'discord.js'
 import moment from 'moment'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { ATCInteraction, BtnInteraction, ChatInteraction, ModalInteraction } from '../../Abstracts/MazariniInteraction'
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
@@ -57,7 +55,7 @@ export class Admin extends AbstractCommands {
         this.pendingRewards = new Map<string, IReward>()
     }
 
-    private async setSpecificValue(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
+    private async setSpecificValue(interaction: ChatInteraction): Promise<void> {
         const user = interaction.options.get('bruker')?.user
         const property = interaction.options.get('property')?.value as string | number
         const value = interaction.options.get('verdi')?.value
@@ -121,7 +119,7 @@ export class Admin extends AbstractCommands {
         }
     }
 
-    private async replyToMsgAsBot(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async replyToMsgAsBot(interaction: ChatInteraction) {
         this.messageHelper.replyToInteraction(interaction, `Svarer på meldingen hvis jeg finner den`, { ephemeral: true })
 
         const id = interaction.options.get('melding-id')?.value as string
@@ -162,7 +160,7 @@ export class Admin extends AbstractCommands {
         }
     }
 
-    private async getBotStatistics(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async getBotStatistics(interaction: ChatInteraction) {
         await interaction.deferReply()
         const start = MazariniBot.startTime
         const numMessages = MazariniBot.numMessages
@@ -187,7 +185,7 @@ export class Admin extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, statsReply, { hasBeenDefered: true })
     }
 
-    private async buildSendModal(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async buildSendModal(interaction: ChatInteraction) {
         if (interaction) {
             const modal = new ModalBuilder().setCustomId(Admin.adminSendModalID).setTitle('Send melding som Høie')
             const today = new Date()
@@ -221,7 +219,7 @@ export class Admin extends AbstractCommands {
             await interaction.showModal(modal)
         }
     }
-    private handleLocking(interaction: ChatInputCommandInteraction<CacheType>) {
+    private handleLocking(interaction: ChatInteraction) {
         const isBot = interaction.options.getSubcommand() === 'bot'
         const isUser = interaction.options.getSubcommand() === 'user'
         const isChannel = interaction.options.getSubcommand() === 'channel'
@@ -244,7 +242,7 @@ export class Admin extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, `${locked ? 'Låst' : 'Åpnet'}`)
     }
 
-    private reward(interaction: ChatInputCommandInteraction<CacheType>) {
+    private reward(interaction: ChatInteraction) {
         const rewardType = interaction.options.getSubcommand() as RewardType
         const rewardId = randomUUID()
         const reason = interaction.options.get('reason')?.value as string
@@ -271,7 +269,7 @@ export class Admin extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, '', undefined, [container.container])
     }
 
-    private claimReward(interaction: ButtonInteraction<CacheType>) {
+    private claimReward(interaction: BtnInteraction) {
         const customId = interaction.customId.split(';')
         const userId = interaction.user.id
         if (!this.pendingRewards.has(customId[1])) {
@@ -286,7 +284,7 @@ export class Admin extends AbstractCommands {
         this.rewardUser(interaction, pendingReward, interaction.user)
     }
 
-    private rewardUser(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, reward: IReward, user: User) {
+    private rewardUser(interaction: ChatInteraction | BtnInteraction, reward: IReward, user: User) {
         if (reward.type === 'chips') {
             this.rewardUserWithChips(interaction, reward, user)
         } else if (reward.type === 'dealornodeal') {
@@ -296,7 +294,7 @@ export class Admin extends AbstractCommands {
         }
     }
 
-    private async rewardUserWithChips(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, pendingReward: IReward, user: User) {
+    private async rewardUserWithChips(interaction: ChatInteraction | BtnInteraction, pendingReward: IReward, user: User) {
         const dbUser = await this.client.database.getUser(user.id)
         const awarded = this.client.bank.giveMoney(dbUser, pendingReward.chipsAmount)
         this.client.database.updateUser(dbUser)
@@ -310,7 +308,7 @@ export class Admin extends AbstractCommands {
         )
     }
 
-    private rewardUserWithLootbox(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, pendingReward: IReward, user: User) {
+    private rewardUserWithLootbox(interaction: ChatInteraction | BtnInteraction, pendingReward: IReward, user: User) {
         const isChest = pendingReward.type === 'chest'
         const lootButton = LootboxCommands.getLootRewardButton(user.id, pendingReward.quality, isChest, undefined, pendingReward.series)
         const text = `${MentionUtils.mentionUser(user.id)} har mottatt en reward på en ${pendingReward.quality} loot${
@@ -325,7 +323,7 @@ export class Admin extends AbstractCommands {
         )
     }
 
-    private async lootAutocomplete(interaction: AutocompleteInteraction<CacheType>, isChest: boolean = false) {
+    private async lootAutocomplete(interaction: ATCInteraction, isChest: boolean = false) {
         const boxes = await this.client.database.getLootboxes()
         interaction.respond(
             boxes
@@ -334,14 +332,14 @@ export class Admin extends AbstractCommands {
         )
     }
 
-    private async lootSeriesAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
+    private async lootSeriesAutocomplete(interaction: ATCInteraction) {
         const series = await this.database.getLootboxSeries()
         const optionList: any = interaction.options
         const input = optionList.getFocused().toLowerCase()
         interaction.respond(series.filter((series) => series.name.toLowerCase().includes(input)).map((series) => ({ name: series.name, value: series.name })))
     }
 
-    private dondAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
+    private dondAutocomplete(interaction: ATCInteraction) {
         interaction.respond([
             { name: 'Basic 10K', value: '10' },
             { name: 'Premium 20K', value: '20' },
@@ -349,7 +347,7 @@ export class Admin extends AbstractCommands {
         ])
     }
 
-    private rewardUserWithDealOrNoDeal(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, pendingReward: IReward, user: User) {
+    private rewardUserWithDealOrNoDeal(interaction: ChatInteraction | BtnInteraction, pendingReward: IReward, user: User) {
         const buttons = new ActionRowBuilder<ButtonBuilder>()
         const dondQuality = Number(pendingReward.quality) as DonDQuality
         const dond = DealOrNoDeal.getDealOrNoDealButton(user.id, dondQuality)
@@ -364,7 +362,7 @@ export class Admin extends AbstractCommands {
         )
     }
 
-    private async attemptRestart(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async attemptRestart(interaction: ChatInteraction) {
         this.client.cache.restartImpediments = []
         await this.client.onRestart()
         if ((this.client.cache.restartImpediments?.length ?? 0) > 0) {
@@ -375,7 +373,7 @@ export class Admin extends AbstractCommands {
         }
     }
 
-    private async restartBot(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+    private async restartBot(interaction: ChatInteraction | BtnInteraction) {
         if (interaction instanceof ButtonInteraction) {
             interaction.message.edit({ components: [] })
             await this.client.onRestart() //has just been run in attemptRestart() if interaction is ChatInputCommandInteraction
@@ -403,7 +401,7 @@ export class Admin extends AbstractCommands {
         await this.client.onRefresh()
     }
 
-    private async stopBot(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async stopBot(interaction: ChatInteraction) {
         const text = interaction.options.get('env')?.value as string
         if (text === 'prod') {
             await this.messageHelper.sendLogMessage('Stanser bot i prod')
@@ -445,7 +443,7 @@ export class Admin extends AbstractCommands {
         }
     }
 
-    private delegateAutocomplete(interaction: AutocompleteInteraction<CacheType>) {
+    private delegateAutocomplete(interaction: ATCInteraction) {
         const cmd = interaction.options.getSubcommand()
         const optionList: any = interaction.options
         const focused = optionList._hoistedOptions.find((option) => option.focused)
@@ -455,13 +453,13 @@ export class Admin extends AbstractCommands {
         } else if (cmd === 'dealornodeal') this.dondAutocomplete(interaction)
     }
 
-    private updateBotSettings(interaction: ChatInputCommandInteraction<CacheType>) {
+    private updateBotSettings(interaction: ChatInteraction) {
         this.buildSettingsModal(interaction)
 
         // this.messageHelper.replyToInteraction(interaction, embed)
     }
     static botSettingsId = 'botSettingsModal'
-    private async buildSettingsModal(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async buildSettingsModal(interaction: ChatInteraction) {
         if (interaction) {
             const modal = new ModalBuilder().setCustomId(Admin.botSettingsId).setTitle('Bot Innstillinger')
 
@@ -546,7 +544,7 @@ export class Admin extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'send',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.buildSendModal(rawInteraction)
 
                             this.messageHelper.sendLogMessage(
@@ -556,54 +554,54 @@ export class Admin extends AbstractCommands {
                     },
                     {
                         commandName: 'botinnstillinger',
-                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (interaction: ChatInteraction) => {
                             this.updateBotSettings(interaction)
                         },
                     },
                     {
                         commandName: 'lock',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.handleLocking(rawInteraction)
                         },
                     },
 
                     {
                         commandName: 'set',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.setSpecificValue(rawInteraction)
                         },
                     },
                     {
                         commandName: 'reward',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.reward(rawInteraction)
                         },
-                        autoCompleteCallback: (interaction: AutocompleteInteraction<CacheType>) => {
+                        autoCompleteCallback: (interaction: ATCInteraction) => {
                             this.delegateAutocomplete(interaction)
                         },
                     },
                     {
                         commandName: 'botstats',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.getBotStatistics(rawInteraction)
                         },
                     },
                     {
                         commandName: 'reply',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.replyToMsgAsBot(rawInteraction)
                         },
                     },
 
                     {
                         commandName: 'restart',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.attemptRestart(rawInteraction)
                         },
                     },
                     {
                         commandName: 'stopp',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.stopBot(rawInteraction)
                         },
                     },
@@ -611,13 +609,13 @@ export class Admin extends AbstractCommands {
                 buttonInteractionComands: [
                     {
                         commandName: 'ADMIN_FORCE_RESTART',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.restartBot(rawInteraction)
                         },
                     },
                     {
                         commandName: 'ADMIN_CLAIM_REWARD',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.claimReward(rawInteraction)
                         },
                     },
@@ -625,13 +623,13 @@ export class Admin extends AbstractCommands {
                 modalInteractionCommands: [
                     {
                         commandName: Admin.adminSendModalID,
-                        command: (rawInteraction: ModalSubmitInteraction<CacheType>) => {
+                        command: (rawInteraction: ModalInteraction) => {
                             this.handleAdminSendModalDialog(rawInteraction)
                         },
                     },
                     {
                         commandName: Admin.botSettingsId,
-                        command: (rawInteraction: ModalSubmitInteraction<CacheType>) => {
+                        command: (rawInteraction: ModalInteraction) => {
                             this.handleBotSettingsModalDialog(rawInteraction)
                         },
                     },

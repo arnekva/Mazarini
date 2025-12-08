@@ -1,16 +1,16 @@
-import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 
 import { discordSecret } from '../../client-env'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { ChatInteraction } from '../../Abstracts/MazariniInteraction'
 
 export class LuckyWheel extends AbstractCommands {
     constructor(client: MazariniClient) {
         super(client)
     }
 
-    private async launchActivity(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async launchActivity(interaction: ChatInteraction) {
         const invite = await fetch(`https://discord.com/api/v10/channels/${interaction.channelId}/invites`, {
             method: 'POST',
             headers: {
@@ -34,7 +34,7 @@ export class LuckyWheel extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'luckywheel',
-                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (interaction: ChatInteraction) => {
                             this.launchActivity(interaction)
                         },
                     },

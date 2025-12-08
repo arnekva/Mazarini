@@ -1,5 +1,5 @@
-import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../../client/MazariniClient'
 
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
@@ -13,7 +13,7 @@ export class MoneyCommands extends AbstractCommands {
         super(client)
     }
 
-    private async vippsChips(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async vippsChips(interaction: ChatInteraction) {
         const target = interaction.options.get('bruker')?.user
         const amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('chips')?.value)
 
@@ -45,7 +45,7 @@ export class MoneyCommands extends AbstractCommands {
         }
     }
 
-    private async openWallet(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async openWallet(interaction: ChatInteraction) {
         const target = interaction.options.get('bruker')?.user
 
         let id = interaction.user.id
@@ -74,13 +74,13 @@ export class MoneyCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'vipps',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.vippsChips(rawInteraction)
                         },
                     },
                     {
                         commandName: 'wallet',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.openWallet(rawInteraction)
                         },
                     },

@@ -1,5 +1,6 @@
-import { CacheType, ChatInputCommandInteraction, Interaction, User } from 'discord.js'
+import { User } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { BaseInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { lfKey, musixMatchKey } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 
@@ -205,7 +206,7 @@ export class Music extends AbstractCommands {
         else if (p === '12month') return 'Siste 12 måneder'
     }
 
-    private async handleMusicInteractions(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async handleMusicInteractions(interaction: ChatInteraction) {
         if (interaction) {
             const isShow = interaction.options.getSubcommand() === 'vis'
             if (isShow) {
@@ -262,7 +263,7 @@ export class Music extends AbstractCommands {
         }
     }
 
-    private async searchLibrary(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async searchLibrary(interaction: ChatInteraction) {
         /** Get the URL with the specified URL param
          */
         const user = await this.client.database.getUser(interaction.user.id)
@@ -348,7 +349,7 @@ export class Music extends AbstractCommands {
         }
     }
 
-    async findCommandForInteraction(interaction: Interaction<CacheType>, options: string, user?: User, period?: string): Promise<IMusicData[] | string> {
+    async findCommandForInteraction(interaction: BaseInteraction, options: string, user?: User, period?: string): Promise<IMusicData[] | string> {
         const fmUser = await this.client.database.getUser(user ? user?.id : interaction.user.id)
         if (fmUser.lastFMUsername) {
             const data: fetchData = {
@@ -385,7 +386,7 @@ export class Music extends AbstractCommands {
         } else return `Brukeren ${user?.username} har ikke knyttet til et Last.fm-brukernavn`
     }
 
-    private async findLyrics(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async findLyrics(interaction: ChatInteraction) {
         await interaction.deferReply()
         const artist = interaction.options.get('artist')?.value as string
         const track = interaction.options.get('sang')?.value as string
@@ -423,13 +424,13 @@ export class Music extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'musikkbibliotek',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.handleMusicInteractions(rawInteraction)
                         },
                     },
                     {
                         commandName: 'lyrics',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.findLyrics(rawInteraction)
                         },
                     },

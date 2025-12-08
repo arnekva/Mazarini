@@ -1,5 +1,6 @@
-import { CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js'
+import { EmbedBuilder } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { ChatInteraction } from '../Abstracts/MazariniInteraction'
 import { openCageAPIKey, openWeatherAPIKey } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
 
@@ -66,7 +67,7 @@ export class Weather extends AbstractCommands {
         return string
     }
 
-    private async getWeatherForGivenCity(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async getWeatherForGivenCity(interaction: ChatInteraction) {
         await interaction.deferReply()
         const city = interaction.options.get('stedsnavn')?.value as string
         if (!city) return this.messageHelper.replyToInteraction(interaction, `Ugyldig input "${city}"`, { hasBeenDefered: true })
@@ -163,7 +164,7 @@ export class Weather extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'weather',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.getWeatherForGivenCity(rawInteraction)
                         },
                     },

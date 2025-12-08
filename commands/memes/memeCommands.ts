@@ -1,6 +1,7 @@
-import { ActionRowBuilder, AutocompleteInteraction, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js'
 import { URLSearchParams } from 'url'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { BtnInteraction, ChatInteraction, ATCInteraction } from '../../Abstracts/MazariniInteraction'
 import { imgflip } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 
@@ -22,7 +23,7 @@ export class MemeCommands extends AbstractCommands {
     }
     private readonly baseURL = 'https://api.imgflip.com/caption_image'
 
-    private sendToAll(interaction: ButtonInteraction<CacheType>) {
+    private sendToAll(interaction: BtnInteraction) {
         const img = interaction.customId.split(';')[1]
         this.messageHelper.sendMessage(interaction.channelId, { text: img })
         fetch(`https://discord.com/api/webhooks/${MentionUtils.User_IDs.BOT_HOIE}/${interaction.token}/messages/@original`, {
@@ -31,7 +32,7 @@ export class MemeCommands extends AbstractCommands {
         interaction.deferUpdate()
     }
 
-    private getMeme(interaction: ChatInputCommandInteraction<CacheType>) {
+    private getMeme(interaction: ChatInteraction) {
         const memeId = interaction.options.get('meme')?.value as string
         if (memeId == '000') {
             return this.messageHelper.replyToInteraction(interaction, 'https://i.imgur.com/ka7SslJ.jpg')
@@ -48,7 +49,7 @@ export class MemeCommands extends AbstractCommands {
         }
     }
 
-    private async captionMeme(meme: Meme, interaction: ChatInputCommandInteraction<CacheType>) {
+    private async captionMeme(meme: Meme, interaction: ChatInteraction) {
         const preview = interaction.options.get('preview')?.value as boolean
         await interaction.deferReply({ ephemeral: preview })
 
@@ -60,9 +61,9 @@ export class MemeCommands extends AbstractCommands {
             text1: 'toget',
             max_font_size: '25',
         })
-        
+
         params = this.getBoxes(meme, params, interaction)
-        
+
         fetch(this.baseURL, {
             method: 'POST',
             headers: {
@@ -86,7 +87,6 @@ export class MemeCommands extends AbstractCommands {
                                 hasBeenDefered: true,
                             })
                             this.messageHelper.sendLogMessage('Klarte ikke å generere meme\n', el)
-                            
                         }
                     })
                     .catch((error: any) => {
@@ -106,25 +106,25 @@ export class MemeCommands extends AbstractCommands {
             })
     }
 
-    private getBoxes(meme: Meme, params: URLSearchParams, interaction: ChatInputCommandInteraction<CacheType>) {
+    private getBoxes(meme: Meme, params: URLSearchParams, interaction: ChatInteraction) {
         for (let i = 0; i < meme.box_count; i++) {
-            const text = interaction.options.get(`tekst-${i+1}`)?.value as string
+            const text = interaction.options.get(`tekst-${i + 1}`)?.value as string
             params.append(`boxes[${i}][text]`, text ?? ' ')
-            
+
             const box: MemeBox = (meme.boxes?.length ?? 0) > i ? meme.boxes[i] : undefined
             if (box) {
                 if (box.x) params.append(`boxes[${i}][x]`, `${box.x}`)
                 if (box.y) params.append(`boxes[${i}][y]`, `${box.y}`)
-                if (box.width) params.append(`boxes[${i}][width]`, `${box.width}`) 
+                if (box.width) params.append(`boxes[${i}][width]`, `${box.width}`)
                 if (box.height) params.append(`boxes[${i}][height]`, `${box.height}`)
-                if (box.color) params.append(`boxes[${i}][color]`, `${box.color}` )
+                if (box.color) params.append(`boxes[${i}][color]`, `${box.color}`)
                 if (box.outline_color) params.append(`boxes[${i}][outline_color]`, `${box.outline_color}`)
             }
         }
         return params
     }
 
-    private async filterMemes(interaction: AutocompleteInteraction<CacheType>) {
+    private async filterMemes(interaction: ATCInteraction) {
         if (!this.memes) await this.retrieveMemes()
         const optionList: any = interaction.options
         const input = optionList.getFocused().toLowerCase()
@@ -141,10 +141,10 @@ export class MemeCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'meme',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.getMeme(rawInteraction)
                         },
-                        autoCompleteCallback: (rawInteraction: AutocompleteInteraction<CacheType>) => {
+                        autoCompleteCallback: (rawInteraction: ATCInteraction) => {
                             this.filterMemes(rawInteraction)
                         },
                     },
@@ -152,7 +152,7 @@ export class MemeCommands extends AbstractCommands {
                 buttonInteractionComands: [
                     {
                         commandName: 'SEND_MEME',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.sendToAll(rawInteraction)
                         },
                     },

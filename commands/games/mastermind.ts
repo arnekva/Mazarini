@@ -1,5 +1,6 @@
-import { ButtonInteraction, CacheType, ChatInputCommandInteraction, InteractionResponse, Message } from 'discord.js'
+import { InteractionResponse, Message } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { ChatInteraction, BtnInteraction } from '../../Abstracts/MazariniInteraction'
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
@@ -43,7 +44,7 @@ export class Mastermind extends AbstractCommands {
         if (!this.solution || this.solution.length === 0) this.setNewSolution()
     }
 
-    private async setupMastermind(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async setupMastermind(interaction: ChatInteraction) {
         const user = await this.database.getUser(interaction.user.id)
         let game: MMGame = this.userGames.get(interaction.user.id)
         if ((!game || game.guessLimitReached) && user.dailyGameStats?.mastermind?.attempted)
@@ -63,7 +64,7 @@ export class Mastermind extends AbstractCommands {
         if (!this.userGames.has(interaction.user.id)) this.userGames.set(interaction.user.id, game)
     }
 
-    private addColor(interaction: ButtonInteraction<CacheType>) {
+    private addColor(interaction: BtnInteraction) {
         interaction.deferUpdate()
         const game = this.userGames.get(interaction.user.id)
         if (game.currentGuess && game.currentGuess.length === GameValues.mastermind.codeLength) return
@@ -72,7 +73,7 @@ export class Mastermind extends AbstractCommands {
         this.updateGameMessage(interaction)
     }
 
-    private resetColors(interaction: ButtonInteraction<CacheType>) {
+    private resetColors(interaction: BtnInteraction) {
         interaction.deferUpdate()
         const game = this.userGames.get(interaction.user.id)
         if (!game.currentGuess || game.currentGuess.length === 0) return
@@ -80,7 +81,7 @@ export class Mastermind extends AbstractCommands {
         this.updateGameMessage(interaction)
     }
 
-    private updateGameMessage(interaction: ButtonInteraction<CacheType>) {
+    private updateGameMessage(interaction: BtnInteraction) {
         const game = this.userGames.get(interaction.user.id)
         const currentRowString = game.currentGuess.map((color) => this.getColorEmoji(color)).join(' ')
         const currentRow = ComponentsHelper.createTextComponent().setContent(currentRowString + ' :arrow_left:')
@@ -88,7 +89,7 @@ export class Mastermind extends AbstractCommands {
         game.message.edit({ components: [game.container.container] })
     }
 
-    private async submitGuess(interaction: ButtonInteraction<CacheType>) {
+    private async submitGuess(interaction: BtnInteraction) {
         // Verify 4 colors
         interaction.deferUpdate()
         const game = this.userGames.get(interaction.user.id)
@@ -268,7 +269,7 @@ export class Mastermind extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'mastermind',
-                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (interaction: ChatInteraction) => {
                             const cmd = interaction.options.getSubcommand()
                             if (cmd === 'spill') this.setupMastermind(interaction)
                         },
@@ -277,19 +278,19 @@ export class Mastermind extends AbstractCommands {
                 buttonInteractionComands: [
                     {
                         commandName: 'MASTERMIND_COLOR',
-                        command: (interaction: ButtonInteraction<CacheType>) => {
+                        command: (interaction: BtnInteraction) => {
                             this.addColor(interaction)
                         },
                     },
                     {
                         commandName: 'MASTERMIND_RESET',
-                        command: (interaction: ButtonInteraction<CacheType>) => {
+                        command: (interaction: BtnInteraction) => {
                             this.resetColors(interaction)
                         },
                     },
                     {
                         commandName: 'MASTERMIND_SUBMIT',
-                        command: (interaction: ButtonInteraction<CacheType>) => {
+                        command: (interaction: BtnInteraction) => {
                             this.submitGuess(interaction)
                         },
                     },

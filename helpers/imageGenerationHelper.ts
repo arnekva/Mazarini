@@ -1,14 +1,14 @@
 import { Image } from 'canvas'
 import sharp from 'sharp'
-import { IFontWeight, IImage, IOptions, IRepeat, UltimateTextToImage, getCanvasImage, registerFont } from 'ultimate-text-to-image'
+import { getCanvasImage, IFontWeight, IImage, IOptions, IRepeat, registerFont, UltimateTextToImage } from 'ultimate-text-to-image'
 import { MazariniClient } from '../client/MazariniClient'
 import {
     ILootSeries,
     ILootSeriesInventoryArt,
-    IUserLootItem,
-    IUserLootSeriesInventory,
     ItemColor,
     ItemRarity,
+    IUserLootItem,
+    IUserLootSeriesInventory,
     MazariniUser,
 } from '../interfaces/database/databaseInterface'
 import { TextUtils } from '../utils/textUtils'

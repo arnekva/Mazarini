@@ -1,6 +1,6 @@
-import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import moment from 'moment'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
@@ -92,7 +92,7 @@ export class VivinoCommands extends AbstractCommands {
         super(client)
     }
 
-    private async createYearInReview(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async createYearInReview(interaction: ChatInteraction) {
         interaction.deferReply()
         const user = await this.client.database.getUser(interaction.user.id)
         if (user.vivinoId) {
@@ -250,7 +250,7 @@ export class VivinoCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'vivino',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.createYearInReview(rawInteraction)
                         },
                     },

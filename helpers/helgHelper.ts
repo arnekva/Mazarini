@@ -1,5 +1,5 @@
-import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import moment from 'moment'
+import { ChatInteraction } from '../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../client/MazariniClient'
 import { Holidays } from '../general/misc/holidays'
 import { countdownTime, DateUtils } from '../utils/dateUtils'
@@ -137,7 +137,7 @@ export namespace HelgHelper {
         return Math.max(Math.min(percentage, 100), 0)
     }
 
-    export const checkForHelg = async (interaction?: ChatInputCommandInteraction<CacheType>, client?: MazariniClient) => {
+    export const checkForHelg = async (interaction?: ChatInteraction, client?: MazariniClient) => {
         const helgeFolelse = HelgHelper.findHelgeFolelse()
         const val = `${await HelgHelper.getTimeUntilHelgString(client)}`
         if (interaction && client) client.messageHelper.replyToInteraction(interaction, val + ` (${helgeFolelse}% helgefølelse)`)
@@ -218,7 +218,8 @@ export namespace HelgHelper {
 
     export const checkMessageForHolidays = (msg: string) => {
         let holiday: IHolidayCheck = holidayChecks.find((holiday) => holiday.keywords.some((keyword) => msg.toLowerCase() === keyword.toLowerCase()))
-        if (!holiday && Math.random() < 1/10) holiday = holidayChecks.find((holiday) => holiday.keywords.some((keyword) => msg.toLowerCase().includes(keyword.toLowerCase())))
+        if (!holiday && Math.random() < 1 / 10)
+            holiday = holidayChecks.find((holiday) => holiday.keywords.some((keyword) => msg.toLowerCase().includes(keyword.toLowerCase())))
         if (holiday) {
             moment.locale('en')
             const year = new Date().getFullYear()

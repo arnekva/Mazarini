@@ -1,20 +1,16 @@
 import {
     ActionRowBuilder,
     ButtonBuilder,
-    ButtonInteraction,
     ButtonStyle,
-    CacheType,
-    ChatInputCommandInteraction,
     Message,
     ModalBuilder,
-    ModalSubmitInteraction,
     StringSelectMenuBuilder,
-    StringSelectMenuInteraction,
     StringSelectMenuOptionBuilder,
     TextInputBuilder,
     TextInputStyle,
 } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { BtnInteraction, ChatInteraction, ModalInteraction, SelectStringInteraction } from '../../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../../client/MazariniClient'
 import { ActionMenuHelper } from '../../helpers/actionMenuHelper'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
@@ -57,7 +53,7 @@ export class TrelloCommands extends AbstractCommands {
         this.cards = await TrelloAPI.retrieveTrelloCards(this.currentListId)
     }
 
-    private async getListsDropdown(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+    private async getListsDropdown(interaction: ChatInteraction | BtnInteraction) {
         const options: StringSelectMenuOptionBuilder[] = new Array<StringSelectMenuOptionBuilder>()
         Array.from(this.lists.values())
             .slice(0, 24)
@@ -72,7 +68,7 @@ export class TrelloCommands extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, embed, { ephemeral: false, hasBeenDefered: false }, [this.listMenu])
     }
 
-    private async getCardsDropdown(interaction: StringSelectMenuInteraction<CacheType> | ButtonInteraction<CacheType>) {
+    private async getCardsDropdown(interaction: SelectStringInteraction | BtnInteraction) {
         const options: StringSelectMenuOptionBuilder[] = new Array<StringSelectMenuOptionBuilder>()
         Array.from(this.cards.values())
             .slice(0, 24)
@@ -106,7 +102,7 @@ export class TrelloCommands extends AbstractCommands {
         }
     }
 
-    private async handleListSelected(selectMenu: StringSelectMenuInteraction<CacheType>) {
+    private async handleListSelected(selectMenu: SelectStringInteraction) {
         this.currentCard = undefined
         this.currentListId = selectMenu.values[0]
         const list = this.lists.get(this.currentListId)
@@ -120,7 +116,7 @@ export class TrelloCommands extends AbstractCommands {
         })
     }
 
-    private async showCardInfo(selectMenu: StringSelectMenuInteraction<CacheType>) {
+    private async showCardInfo(selectMenu: SelectStringInteraction) {
         const value = selectMenu.values[0]
         const trelloCard = this.cards.get(value)
         const name = trelloCard.name.length > 50 ? trelloCard.name.substring(0, 47) + '...' : trelloCard.name
@@ -133,7 +129,7 @@ export class TrelloCommands extends AbstractCommands {
         })
     }
 
-    private async createModal(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>, newCard: boolean) {
+    private async createModal(interaction: ChatInteraction | BtnInteraction, newCard: boolean) {
         const customId = newCard ? 'TrelloModalNew' : 'TrelloModalEdit;' + this.currentCard.id
         const modal = new ModalBuilder().setCustomId(customId).setTitle('TrelloCards')
 
@@ -178,7 +174,7 @@ export class TrelloCommands extends AbstractCommands {
         await interaction.showModal(modal)
     }
 
-    private async moveCard(interaction: ButtonInteraction<CacheType>) {
+    private async moveCard(interaction: BtnInteraction) {
         const options: StringSelectMenuOptionBuilder[] = new Array<StringSelectMenuOptionBuilder>()
         Array.from(this.lists.values())
             .slice(0, 24)
@@ -192,7 +188,7 @@ export class TrelloCommands extends AbstractCommands {
         this.moveCardMessage = await this.messageHelper.sendMessage(interaction.channelId, { embed: embed, components: [this.moveMenu, cancelMoveBtnRow] })
     }
 
-    private async handleMoveListSelected(selectMenu: StringSelectMenuInteraction<CacheType>) {
+    private async handleMoveListSelected(selectMenu: SelectStringInteraction) {
         const cardToMoveId = selectMenu.customId.replace('TrelloMoveMenu;', '')
         const cardToMove = this.cards.get(cardToMoveId)
         const value = selectMenu.values[0]
@@ -205,7 +201,7 @@ export class TrelloCommands extends AbstractCommands {
         })
     }
 
-    private async updateCardsInDropdown(interaction: ButtonInteraction<CacheType>, first: boolean) {
+    private async updateCardsInDropdown(interaction: BtnInteraction, first: boolean) {
         const firstIndex = first ? 0 : this.cards.size - 25
         const lastIndex = first ? 24 : this.cards.size
         const options: StringSelectMenuOptionBuilder[] = new Array<StringSelectMenuOptionBuilder>()
@@ -230,7 +226,7 @@ export class TrelloCommands extends AbstractCommands {
         interaction.deferUpdate()
     }
 
-    private async handleMoveTrelloCard(interaction: ButtonInteraction<CacheType>) {
+    private async handleMoveTrelloCard(interaction: BtnInteraction) {
         const ids = interaction.customId.split(';')
         const cardId = ids[1]
         const listId = ids[2]
@@ -241,7 +237,7 @@ export class TrelloCommands extends AbstractCommands {
         interaction.deferUpdate()
     }
 
-    private async deleteCard(interaction: ButtonInteraction<CacheType>) {
+    private async deleteCard(interaction: BtnInteraction) {
         const customId = 'TrelloModalDelete;' + this.currentCard.id
         const modal = new ModalBuilder().setCustomId(customId).setTitle('Er du sikker?')
 
@@ -256,7 +252,7 @@ export class TrelloCommands extends AbstractCommands {
         await interaction.showModal(modal)
     }
 
-    private async handleDeleteCard(interaction: ModalSubmitInteraction<CacheType>) {
+    private async handleDeleteCard(interaction: ModalInteraction) {
         const cardId = interaction.customId.split(';')[1]
         await TrelloAPI.deleteCard(cardId)
         let embed = EmbedUtils.createSimpleEmbed(`Se informasjon om trello-kort`, 'Ingen kort valgt')
@@ -267,7 +263,7 @@ export class TrelloCommands extends AbstractCommands {
         interaction.deferUpdate()
     }
 
-    private async handleNewTrelloCard(interaction: ModalSubmitInteraction<CacheType>) {
+    private async handleNewTrelloCard(interaction: ModalInteraction) {
         const title = interaction.fields.getTextInputValue('trelloCardTitle')
         const desc = interaction.fields.getTextInputValue('trelloCardDescription')
         const labels = interaction.fields.getTextInputValue('trelloCardLabels')
@@ -286,7 +282,7 @@ export class TrelloCommands extends AbstractCommands {
         interaction.deferUpdate()
     }
 
-    private async handleTrelloEdits(interaction: ModalSubmitInteraction<CacheType>) {
+    private async handleTrelloEdits(interaction: ModalInteraction) {
         const title = interaction.fields.getTextInputValue('trelloCardTitle')
         const desc = interaction.fields.getTextInputValue('trelloCardDescription')
         const labels = interaction.fields.getTextInputValue('trelloCardLabels')
@@ -320,7 +316,7 @@ export class TrelloCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'trello',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             if (rawInteraction.options.getSubcommand() === 'new') this.createModal(rawInteraction, true)
                             else if (rawInteraction.options.getSubcommand() === 'list') this.getListsDropdown(rawInteraction)
                         },
@@ -329,25 +325,25 @@ export class TrelloCommands extends AbstractCommands {
                 buttonInteractionComands: [
                     {
                         commandName: 'TRELLO_EDIT',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.createModal(rawInteraction, false)
                         },
                     },
                     {
                         commandName: 'TRELLO_MOVE',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.moveCard(rawInteraction)
                         },
                     },
                     {
                         commandName: 'TRELLO_DELETE',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.deleteCard(rawInteraction)
                         },
                     },
                     {
                         commandName: 'TRELLO_REFRESH',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.fetchTrelloCards().then(() => {
                                 this.getCardsDropdown(rawInteraction).then(() => {
                                     rawInteraction.deferUpdate()
@@ -357,26 +353,26 @@ export class TrelloCommands extends AbstractCommands {
                     },
                     {
                         commandName: 'TRELLO_MOVE_CONFIRM',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.handleMoveTrelloCard(rawInteraction)
                         },
                     },
                     {
                         commandName: 'TRELLO_MOVE_CANCEL',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.moveCardMessage.delete()
                             rawInteraction.deferUpdate()
                         },
                     },
                     {
                         commandName: 'TRELLO_FIRST_CARDS',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.updateCardsInDropdown(rawInteraction, true)
                         },
                     },
                     {
                         commandName: 'TRELLO_LAST_CARDS',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.updateCardsInDropdown(rawInteraction, false)
                         },
                     },
@@ -384,19 +380,19 @@ export class TrelloCommands extends AbstractCommands {
                 modalInteractionCommands: [
                     {
                         commandName: 'TrelloModalEdit',
-                        command: (rawInteraction: ModalSubmitInteraction<CacheType>) => {
+                        command: (rawInteraction: ModalInteraction) => {
                             this.handleTrelloEdits(rawInteraction)
                         },
                     },
                     {
                         commandName: 'TrelloModalNew',
-                        command: (rawInteraction: ModalSubmitInteraction<CacheType>) => {
+                        command: (rawInteraction: ModalInteraction) => {
                             this.handleNewTrelloCard(rawInteraction)
                         },
                     },
                     {
                         commandName: 'TrelloModalDelete',
-                        command: (rawInteraction: ModalSubmitInteraction<CacheType>) => {
+                        command: (rawInteraction: ModalInteraction) => {
                             this.handleDeleteCard(rawInteraction)
                         },
                     },
@@ -404,19 +400,19 @@ export class TrelloCommands extends AbstractCommands {
                 selectMenuInteractionCommands: [
                     {
                         commandName: 'TrelloLists',
-                        command: (rawInteraction: StringSelectMenuInteraction<CacheType>) => {
+                        command: (rawInteraction: SelectStringInteraction) => {
                             this.handleListSelected(rawInteraction)
                         },
                     },
                     {
                         commandName: 'TrelloMenu',
-                        command: (rawInteraction: StringSelectMenuInteraction<CacheType>) => {
+                        command: (rawInteraction: SelectStringInteraction) => {
                             this.showCardInfo(rawInteraction)
                         },
                     },
                     {
                         commandName: 'TrelloMoveMenu',
-                        command: (rawInteraction: StringSelectMenuInteraction<CacheType>) => {
+                        command: (rawInteraction: SelectStringInteraction) => {
                             this.handleMoveListSelected(rawInteraction)
                         },
                     },

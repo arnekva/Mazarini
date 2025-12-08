@@ -1,5 +1,6 @@
-import { CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js'
+import { EmbedBuilder } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
 
@@ -15,7 +16,7 @@ export class GamblingCommands extends AbstractCommands {
         super(client)
     }
 
-    private async diceGamble(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async diceGamble(interaction: ChatInteraction) {
         const user = await this.client.database.getUser(interaction.user.id)
         const amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('chips')?.value)
         const userMoney = user.chips
@@ -66,7 +67,7 @@ export class GamblingCommands extends AbstractCommands {
         }
     }
 
-    private async roulette(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async roulette(interaction: ChatInteraction) {
         const user = await this.client.database.getUser(interaction.user.id)
         const userMoney = user.chips
         const isForNumber = interaction.options.getSubcommand() === 'tall'
@@ -188,7 +189,7 @@ export class GamblingCommands extends AbstractCommands {
         return { newMoneyValue: newMoneyValue, interestAmount: interest, rate: rate }
     }
 
-    private async rollSlotMachine(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async rollSlotMachine(interaction: ChatInteraction) {
         const user = await this.client.database.getUser(interaction.user.id)
         const userMoney = user.chips
         let cost = GameValues.slotMachine.cost
@@ -281,7 +282,7 @@ export class GamblingCommands extends AbstractCommands {
         return GameValues.slotMachine.streakWins[numCorrect] ?? GameValues.slotMachine.streakWins['default']
     }
 
-    public async pantelotteriet(interaction: ChatInputCommandInteraction<CacheType>) {
+    public async pantelotteriet(interaction: ChatInteraction) {
         const user = await this.database.getUser(interaction.user.id)
         if (user.chips < GameValues.pantelotteriet.minChips || user.chips >= GameValues.pantelotteriet.maxChips)
             return this.messageHelper.replyToInteraction(
@@ -323,25 +324,25 @@ export class GamblingCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'gamble',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.diceGamble(rawInteraction)
                         },
                     },
                     {
                         commandName: 'roll',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.rollSlotMachine(rawInteraction)
                         },
                     },
                     {
                         commandName: 'rulett',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.roulette(rawInteraction)
                         },
                     },
                     {
                         commandName: 'pantelotteriet',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.pantelotteriet(rawInteraction)
                         },
                     },

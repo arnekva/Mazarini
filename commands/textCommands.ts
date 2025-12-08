@@ -1,6 +1,6 @@
-import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import wiki from 'wikijs'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { ChatInteraction } from '../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../client/MazariniClient'
 
 import { IInteractionElement } from '../interfaces/interactionInterface'
@@ -11,7 +11,7 @@ export class TextCommands extends AbstractCommands {
         super(client)
     }
 
-    private async searchWiki(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async searchWiki(interaction: ChatInteraction) {
         await interaction.deferReply()
         const search = interaction.options.get('search')?.value as string
         const locale = interaction.options.get('locale')?.value as string
@@ -56,7 +56,7 @@ export class TextCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'wiki',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.searchWiki(rawInteraction)
                         },
                     },

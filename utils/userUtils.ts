@@ -1,6 +1,6 @@
 import {
     AuditLogEvent,
-    CacheType,
+    BaseInteraction,
     ChatInputCommandInteraction,
     Guild,
     GuildMember,
@@ -23,7 +23,7 @@ export namespace UserUtils {
      * @param searchable needed to find the guild
      * @returns Member Object (undefined if none)
      */
-    export const findMemberByUserID = (userId: string, searchable: Message | Interaction<CacheType> | Guild) => {
+    export const findMemberByUserID = (userId: string, searchable: Message | BaseInteraction | Guild) => {
         return searchable instanceof Guild
             ? searchable?.members?.cache.find((m) => m.id === userId)
             : searchable.guild?.members?.cache.find((m) => m.id === userId)
@@ -45,7 +45,7 @@ export namespace UserUtils {
      * @param rawMessage needed to find the guild
      * @returns User object or undefined
      */
-    export const findUserById = (id: string, searchable: Message | Interaction<CacheType> | MazariniClient) => {
+    export const findUserById = (id: string, searchable: Message | BaseInteraction | MazariniClient) => {
         return searchable instanceof MazariniClient
             ? searchable.users?.cache.find((m) => m.id === id)
             : searchable.guild?.client?.users?.cache.find((m) => m.id === id)

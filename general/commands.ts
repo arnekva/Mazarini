@@ -27,8 +27,8 @@ import { Music } from '../commands/sound/musicCommands'
 import { SoundCommands } from '../commands/sound/soundCommands'
 import { SpotifyCommands } from '../commands/sound/spotifyCommands'
 // import { TestCommands } from '../commands/test/testCommands'
-import { ButtonInteraction, CacheType, ChatInputCommandInteraction, ModalSubmitInteraction, StringSelectMenuInteraction } from 'discord.js'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { BtnInteraction, ChatInteraction, ModalInteraction, SelectStringInteraction } from '../Abstracts/MazariniInteraction'
 import { CalendarCommands } from '../commands/calendarCommands'
 import { DealOrNoDeal } from '../commands/games/dealOrNoDeal'
 import { LuckyWheel } from '../commands/games/luckywheel'
@@ -86,10 +86,10 @@ export class Commands {
     private mastemind: Mastermind
     private luckywheel: LuckyWheel
 
-    allTextCommands: IInteractionCommand<ChatInputCommandInteraction<CacheType>>[]
-    allModalCommands: IInteractionCommand<ModalSubmitInteraction<CacheType>>[]
-    allButtonCommands: IInteractionCommand<ButtonInteraction<CacheType>>[]
-    allSelectMenuCommands: IInteractionCommand<StringSelectMenuInteraction<CacheType>>[]
+    allTextCommands: IInteractionCommand<ChatInteraction>[]
+    allModalCommands: IInteractionCommand<ModalInteraction>[]
+    allButtonCommands: IInteractionCommand<BtnInteraction>[]
+    allSelectMenuCommands: IInteractionCommand<SelectStringInteraction>[]
 
     constructor(client: MazariniClient) {
         this.client = client

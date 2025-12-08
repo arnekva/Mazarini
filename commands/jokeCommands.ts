@@ -1,6 +1,7 @@
-import { APIEmbedField, CacheType, ChatInputCommandInteraction, TextChannel, User } from 'discord.js'
+import { APIEmbedField, TextChannel, User } from 'discord.js'
 import moment, { Moment } from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
+import { ChatInteraction } from '../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../client/MazariniClient'
 
 import { EmojiHelper } from '../helpers/emojiHelper'
@@ -22,12 +23,12 @@ export class JokeCommands extends AbstractCommands {
         super(client)
     }
 
-    private async mordi(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async mordi(interaction: ChatInteraction) {
         const emoji = await EmojiHelper.getEmoji('eyebrows', interaction)
         this.messageHelper.replyToInteraction(interaction, Math.random() > 0.3 ? `E nais ${emoji.id}` : `E skamnais ${emoji.id}`)
     }
 
-    private async findUserActivity(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async findUserActivity(interaction: ChatInteraction) {
         await interaction.deferReply()
         const paramUser = interaction.options.get('bruker')?.user
 
@@ -95,7 +96,7 @@ export class JokeCommands extends AbstractCommands {
         }
     }
 
-    private reactToManyMessages(interaction: ChatInputCommandInteraction<CacheType>, emojiName: string) {
+    private reactToManyMessages(interaction: ChatInteraction, emojiName: string) {
         this.messageHelper.replyToInteraction(interaction, 'Eivindprider sendt', { ephemeral: true })
         try {
             const channel = interaction?.channel as TextChannel
@@ -116,7 +117,7 @@ export class JokeCommands extends AbstractCommands {
         }
     }
 
-    private async reactWithLetters(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async reactWithLetters(interaction: ChatInteraction) {
         await interaction.deferReply({ ephemeral: true })
         const text = interaction.options.get('melding')?.value as string
         const msgId = interaction.options.get('melding-id')?.value as string
@@ -143,7 +144,7 @@ export class JokeCommands extends AbstractCommands {
         interaction.editReply(':white_check_mark:')
     }
 
-    private async uWuIfyer(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async uWuIfyer(interaction: ChatInteraction) {
         const id = interaction.options.get('melding-id')?.value as string
         this.messageHelper.replyToInteraction(interaction, 'Prøver å uwu-ifye meldingen hvis jeg finner den', { ephemeral: true })
         if (id && !isNaN(Number(id))) {
@@ -155,7 +156,7 @@ export class JokeCommands extends AbstractCommands {
         }
     }
 
-    private async harFese(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async harFese(interaction: ChatInteraction) {
         const channel = interaction?.channel as TextChannel
         const role = this.getRoleBasedOnChannel(interaction?.channelId)
 
@@ -188,7 +189,7 @@ export class JokeCommands extends AbstractCommands {
         }
     }
 
-    private async sendBonk(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async sendBonk(interaction: ChatInteraction) {
         const img = ArrayUtils.randomChoiceFromArray(textArrays.bonkMemeUrls)
         const user = interaction.options.get('bruker')?.user
 
@@ -230,7 +231,7 @@ export class JokeCommands extends AbstractCommands {
         )
     }
 
-    private async whamageddon(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async whamageddon(interaction: ChatInteraction) {
         const isRegisterLoss = interaction.options.getSubcommand() === 'tapt'
         const endDate = `${new Date().getFullYear()}-12-25 00:01`
         const isValidTimeFrame = DateUtils.currentDateIsBetween(
@@ -304,7 +305,7 @@ export class JokeCommands extends AbstractCommands {
         }
     }
 
-    private sendPointerBrothers(interaction: ChatInputCommandInteraction<CacheType>) {
+    private sendPointerBrothers(interaction: ChatInteraction) {
         const index = RandomUtils.getRandomIntegerExcludingNumber(textArrays.pointerBrothersUrls.length, this.prevGifIndex)
         this.prevGifIndex = index
         const randomGif = textArrays.pointerBrothersUrls[index]
@@ -318,25 +319,25 @@ export class JokeCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'whamageddon',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.whamageddon(rawInteraction)
                         },
                     },
                     {
                         commandName: 'mordi',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.mordi(rawInteraction)
                         },
                     },
                     {
                         commandName: 'spell',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.reactWithLetters(rawInteraction)
                         },
                     },
                     {
                         commandName: 'pullrequest',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             const user = rawInteraction.options.get('bruker').user
                             this.messageHelper.replyToInteraction(
                                 rawInteraction,
@@ -346,37 +347,37 @@ export class JokeCommands extends AbstractCommands {
                     },
                     {
                         commandName: 'fese',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.harFese(rawInteraction)
                         },
                     },
                     {
                         commandName: 'uwu',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.uWuIfyer(rawInteraction)
                         },
                     },
                     {
                         commandName: 'aktivitet',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.findUserActivity(rawInteraction)
                         },
                     },
                     {
                         commandName: 'eivindpride',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.reactToManyMessages(rawInteraction, DateUtils.isDecember() ? 'eivindclausepride' : 'eivindpride')
                         },
                     },
                     {
                         commandName: 'bonk',
-                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (interaction: ChatInteraction) => {
                             this.sendBonk(interaction)
                         },
                     },
                     {
                         commandName: 'pointerbrothers',
-                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (interaction: ChatInteraction) => {
                             this.sendPointerBrothers(interaction)
                         },
                     },

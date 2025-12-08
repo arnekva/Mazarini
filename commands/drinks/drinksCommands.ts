@@ -1,10 +1,10 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction, EmbedBuilder, Message } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Message } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../../client/MazariniClient'
 
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { ArrayUtils } from '../../utils/arrayUtils'
-import { MentionUtils } from '../../utils/mentionUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { CardCommands, ICardObject } from '../games/cardCommands'
 
@@ -209,9 +209,9 @@ export class DrinksCommands extends AbstractCommands {
         return cardObject
     }
 
-    public async drawCard(interaction: ButtonInteraction<CacheType>) {
+    public async drawCard(interaction: BtnInteraction) {
         if (this.playerList.find((player) => player.name == interaction.user.username)) {
-            const card: ICardObject = await this.deck.drawCard()            
+            const card: ICardObject = await this.deck.drawCard()
             if (card == undefined) {
                 this.messageHelper.replyToInteraction(interaction, 'Kortstokken er tom. Bruk knappen under dersom dere vil fortsette.')
                 this.messageHelper.sendMessage(interaction?.channelId, { components: [resetDeckButtonRow] })
@@ -237,7 +237,7 @@ export class DrinksCommands extends AbstractCommands {
         }
         const sips = infinite && this.shouldChugOnLoop ? '♾' : mustDrink.length
         this.playerList.forEach((player) => {
-            let playerName = player.id == (currentPlayer?.id + 1)%this.playerList.length ? `🫵 ${player.name}` : player.name
+            let playerName = player.id == (currentPlayer?.id + 1) % this.playerList.length ? `🫵 ${player.name}` : player.name
             playerName += mustDrink.length > 1 && mustDrink.includes(player) ? ' 🍷x' + sips : ''
             formattedMsg.addFields({
                 name: playerName,
@@ -257,7 +257,7 @@ export class DrinksCommands extends AbstractCommands {
         return true
     }
 
-    private async replyToInteraction(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+    private async replyToInteraction(interaction: ChatInteraction | BtnInteraction) {
         if (interaction.isButton()) {
             this.embedMessage.edit({ embeds: [this.embed] })
             interaction.deferUpdate()
@@ -268,7 +268,7 @@ export class DrinksCommands extends AbstractCommands {
         }
     }
 
-    public setupElectricity(interaction: ChatInputCommandInteraction<CacheType>) {
+    public setupElectricity(interaction: ChatInteraction) {
         if (this.activeGame || this.initiated) {
             this.messageHelper.replyToInteraction(interaction, 'Du kan bare ha ett aktivt spill om gangen. For å avslutte spillet, bruk "/electricity stopp"')
         } else {
@@ -279,7 +279,7 @@ export class DrinksCommands extends AbstractCommands {
         }
     }
 
-    public joinElectricity(interaction: ButtonInteraction<CacheType>) {
+    public joinElectricity(interaction: BtnInteraction) {
         const newUser = interaction.user
         if (!this.playerList.find((player) => player.name == newUser.username)) {
             const userCard: ICardObject = { number: 0, suit: '', emoji: '', image: '' }
@@ -293,7 +293,7 @@ export class DrinksCommands extends AbstractCommands {
         }
     }
 
-    public startElectricity(interaction: ButtonInteraction<CacheType>) {
+    public startElectricity(interaction: BtnInteraction) {
         if (this.playerList.length < 1) {
             this.messageHelper.replyToInteraction(interaction, 'Det trengs minst 1 deltaker for å starte spillet (men det er litt trist å spille dette alene).')
         } else {
@@ -317,7 +317,7 @@ export class DrinksCommands extends AbstractCommands {
         this.embed = formattedMsg
     }
 
-    public async resendMessages(interaction: ButtonInteraction<CacheType>) {
+    public async resendMessages(interaction: BtnInteraction) {
         this.deleteMessages()
         this.embedMessage = await this.messageHelper.sendMessage(interaction?.channelId, { embed: this.embed })
         this.buttonsMessage = await this.messageHelper.sendMessage(interaction?.channelId, { components: [this.currentButtons] })
@@ -330,12 +330,12 @@ export class DrinksCommands extends AbstractCommands {
         this.buttonsMessage = undefined
     }
 
-    public resetDeck(interaction: ButtonInteraction<CacheType>) {
+    public resetDeck(interaction: BtnInteraction) {
         const msg = this.deck.resetDeck()
         this.messageHelper.replyToInteraction(interaction, msg)
     }
 
-    private stopElectricity(interaction: ChatInputCommandInteraction<CacheType>) {
+    private stopElectricity(interaction: ChatInteraction) {
         this.playerList = new Array<IUserObject>()
         this.deck.resetDeck()
         this.id = 0
@@ -344,7 +344,7 @@ export class DrinksCommands extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, 'Spillet er stoppet og kortstokken nullstilt')
     }
 
-    private elSwitch(interaction: ChatInputCommandInteraction<CacheType>) {
+    private elSwitch(interaction: ChatInteraction) {
         const action = interaction.options.getSubcommand()
         if (action) {
             switch (action.toLowerCase()) {
@@ -374,7 +374,7 @@ export class DrinksCommands extends AbstractCommands {
         }
     }
 
-    private setElectricityOptions(interaction: ChatInputCommandInteraction<CacheType>): string {
+    private setElectricityOptions(interaction: ChatInteraction): string {
         const mate = interaction.options.get('mate')?.user
         const chugOnLoop = interaction.options.get('chug-on-loop')?.value as boolean | undefined
         const addPlayer = interaction.options.get('add')?.user
@@ -417,7 +417,7 @@ export class DrinksCommands extends AbstractCommands {
         return reply
     }
 
-    private drinkBitch(interaction: ChatInputCommandInteraction<CacheType>) {
+    private drinkBitch(interaction: ChatInteraction) {
         let antallSlurks = interaction.options.get('antall')?.value as number
         if (!antallSlurks) {
             if (RandomUtils.getRndBetween0and100() === 69) {
@@ -449,13 +449,13 @@ export class DrinksCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'drikk',
-                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (interaction: ChatInteraction) => {
                             this.drinkBitch(interaction)
                         },
                     },
                     {
                         commandName: 'electricity',
-                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (interaction: ChatInteraction) => {
                             this.elSwitch(interaction)
                         },
                     },
@@ -463,31 +463,31 @@ export class DrinksCommands extends AbstractCommands {
                 buttonInteractionComands: [
                     {
                         commandName: 'EL_DRAW',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.drawCard(rawInteraction)
                         },
                     },
                     {
                         commandName: 'EL_MOVE',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.resendMessages(rawInteraction)
                         },
                     },
                     {
                         commandName: 'EL_JOIN',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.joinElectricity(rawInteraction)
                         },
                     },
                     {
                         commandName: 'EL_START',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.startElectricity(rawInteraction)
                         },
                     },
                     {
                         commandName: 'EL_RESET',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.resetDeck(rawInteraction)
                         },
                     },

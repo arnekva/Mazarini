@@ -1,17 +1,9 @@
-import {
-    ActionRowBuilder,
-    APIEmbedField,
-    ButtonBuilder,
-    ButtonInteraction,
-    ButtonStyle,
-    CacheType,
-    ChatInputCommandInteraction,
-    EmbedBuilder,
-    Message,
-} from 'discord.js'
+import { ActionRowBuilder, APIEmbedField, ButtonBuilder, ButtonInteraction, ButtonStyle, EmbedBuilder, Message } from 'discord.js'
 import { AbstractCommands } from '../../../Abstracts/AbstractCommand'
+import { BtnInteraction, ChatInteraction } from '../../../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../../../client/MazariniClient'
 import { IInteractionElement } from '../../../interfaces/interactionInterface'
+import { MentionUtils } from '../../../utils/mentionUtils'
 import { CardCommands, ICardObject } from '../../games/cardCommands'
 import {
     gtButtonRow,
@@ -29,7 +21,6 @@ import { GameStage, IBusRide, IGameRules, IGiveTakeCard, IUserObject, RedBlackRo
 import { BusRide } from './stage/busRide'
 import { GiveTake } from './stage/giveTake'
 import { RedBlack } from './stage/redBlack'
-import { MentionUtils } from '../../../utils/mentionUtils'
 
 const defaultRules: IGameRules = {
     gtLevelSips: [2, 4, 6, 8, Number.POSITIVE_INFINITY],
@@ -124,7 +115,7 @@ export class RedBlackCommands extends AbstractCommands {
     }
 
     // Kalles når man trykker på "neste fase" knappen
-    public async phaseController(interaction: ButtonInteraction<CacheType>) {
+    public async phaseController(interaction: BtnInteraction) {
         if (this.stage === GameStage.RedBlack) {
             this.stage = GameStage.GiveTake
             this.giveTake = new GiveTake(this.deck, this.rules)
@@ -143,7 +134,7 @@ export class RedBlackCommands extends AbstractCommands {
 
     //Må ha en egen metode for å holde oversikt over hvem sin tur det er og hvor langt man har kommet i runden. Egen for hver av delene til spillet?
 
-    public async guess(interaction: ButtonInteraction<CacheType>) {
+    public async guess(interaction: BtnInteraction) {
         if (!this.verifyUsersTurn(interaction.user.username)) {
             return this.messageHelper.replyToInteraction(interaction, 'Det er ikke din tur', { ephemeral: true })
         }
@@ -169,7 +160,7 @@ export class RedBlackCommands extends AbstractCommands {
         interaction.deferUpdate()
     }
 
-    public async nextGtCard(interaction: ButtonInteraction<CacheType>) {
+    public async nextGtCard(interaction: BtnInteraction) {
         this.putDownCardsThisRound = new Array<string>()
         this.currentGtCard = this.giveTake.revealNextGTCard(interaction)
         if (this.currentGtCard.sips === Number.POSITIVE_INFINITY) this.currentButtons = revealLoserBtn
@@ -190,7 +181,7 @@ export class RedBlackCommands extends AbstractCommands {
         interaction.deferUpdate()
     }
 
-    public async placeGtCard(interaction: ButtonInteraction<CacheType>) {
+    public async placeGtCard(interaction: BtnInteraction) {
         const user = this.getUserObject(interaction.user.username)
         const index = user.cards.findIndex((card) => this.cardIsValid(card))
         if (index < 0) {
@@ -201,14 +192,14 @@ export class RedBlackCommands extends AbstractCommands {
         interaction.deferUpdate()
     }
 
-    public async sendUserCards(interaction: ButtonInteraction<CacheType>) {
+    public async sendUserCards(interaction: BtnInteraction) {
         const user = this.getUserObject(interaction.user.username)
         let cardsString = this.getCardsOnHandForUser(user)
         if (!cardsString.trim()) cardsString = 'Du har ingen kort på hånd'
         return await this.messageHelper.replyToInteraction(interaction, cardsString, { ephemeral: true })
     }
 
-    public revealLoser(interaction: ButtonInteraction<CacheType>) {
+    public revealLoser(interaction: BtnInteraction) {
         this.gtTableMessage.edit({ content: '** **', components: [] })
         const losers: Array<IUserObject> = this.calculateLoser()
         this.embed.setTitle('Taperen er...').setThumbnail(undefined)
@@ -238,7 +229,7 @@ export class RedBlackCommands extends AbstractCommands {
         interaction.deferUpdate()
     }
 
-    public async showGiveTakeSummary(interaction: ButtonInteraction<CacheType>, loser: IUserObject = undefined) {
+    public async showGiveTakeSummary(interaction: BtnInteraction, loser: IUserObject = undefined) {
         if (!loser) {
             const id = Number(interaction.customId.split(';')[1])
             loser = await this.getUserObjectById(id)
@@ -283,7 +274,7 @@ export class RedBlackCommands extends AbstractCommands {
         else return new Array<IUserObject>(loser)
     }
 
-    public async setupBusride(interaction: ButtonInteraction<CacheType>) {
+    public async setupBusride(interaction: BtnInteraction) {
         const newDeck = new CardCommands(this.client)
         const id = Number(interaction.customId.split(';')[1])
         const loser = await this.getUserObjectById(id)
@@ -291,15 +282,15 @@ export class RedBlackCommands extends AbstractCommands {
         this.busride.setupCanadianBusride(interaction)
     }
 
-    public busrideGuess(interaction: ButtonInteraction<CacheType>) {
+    public busrideGuess(interaction: BtnInteraction) {
         this.busride.guessCanadian(interaction)
     }
 
-    public busrideReset(interaction: ButtonInteraction<CacheType>) {
+    public busrideReset(interaction: BtnInteraction) {
         this.busride.resetCanadian(interaction)
     }
 
-    public moveBus(interaction: ButtonInteraction<CacheType>) {
+    public moveBus(interaction: BtnInteraction) {
         this.busride.resendMessages(interaction)
     }
 
@@ -315,19 +306,19 @@ export class RedBlackCommands extends AbstractCommands {
         let combinedString = ''
         if (card) {
             this.putDownCardsThisRound.push(
-                `${username} la ned ${this.deck.getTranslation(card.suit)} ${card.number != 10 ? CardCommands.numberToString(card.number) : 10} ${this.deck.getTranslation(card.suit)}`
+                `${username} la ned ${this.deck.getTranslation(card.suit)} ${
+                    card.number != 10 ? CardCommands.numberToString(card.number) : 10
+                } ${this.deck.getTranslation(card.suit)}`
             )
         }
         this.putDownCardsThisRound.forEach((card) => {
             combinedString += `${card} \n`
         })
 
-        const formattedMsg = new EmbedBuilder()
-            .setTitle('Gi eller Ta')
+        const formattedMsg = new EmbedBuilder().setTitle('Gi eller Ta')
 
         if (this.currentGtCard) {
-            formattedMsg.setThumbnail(this.currentGtCard.card.image)
-                        .setDescription(`${this.generateGiveTakeCardString()}:` + `\n\n${combinedString}`)
+            formattedMsg.setThumbnail(this.currentGtCard.card.image).setDescription(`${this.generateGiveTakeCardString()}:` + `\n\n${combinedString}`)
         } else {
             formattedMsg.setDescription(`Start runden ved å trykke på 'Snu første' når dere er klar 🍷`)
         }
@@ -344,15 +335,16 @@ export class RedBlackCommands extends AbstractCommands {
         }`
     }
 
-    private async updateRedBlackGameMessage(drawnCard: ICardObject, interaction: ButtonInteraction<CacheType>, correct: boolean) {
+    private async updateRedBlackGameMessage(drawnCard: ICardObject, interaction: BtnInteraction, correct: boolean) {
         let roundName = RedBlack.getPrettyRoundName(this.rbRound)
         const formattedMsg = new EmbedBuilder().setTitle(`${roundName}: ${this.rbSips} slurk${this.rbSips > 1 ? 'er' : ''}`)
         if (drawnCard) {
             formattedMsg
                 .setThumbnail(drawnCard.image)
                 .setDescription(
-                    `**${interaction.user.username}** gjettet: ${RedBlack.getTranslatedGuessValue(interaction.customId.split(';')[2])} og fikk kortet til høyre` +
-                        `\n\n**🍷 ${correct ? 'Gi' : 'Drikk'} ${this.rbSips} slurk${this.rbSips > 1 ? 'er' : ''} 🍷**\n\n\n`
+                    `**${interaction.user.username}** gjettet: ${RedBlack.getTranslatedGuessValue(
+                        interaction.customId.split(';')[2]
+                    )} og fikk kortet til høyre` + `\n\n**🍷 ${correct ? 'Gi' : 'Drikk'} ${this.rbSips} slurk${this.rbSips > 1 ? 'er' : ''} 🍷**\n\n\n`
                 )
             if (this.isEndOfRound()) {
                 this.handleRoundChange()
@@ -371,7 +363,7 @@ export class RedBlackCommands extends AbstractCommands {
             fields.push({
                 name: `Neste:`,
                 value: `${userMention}\n${this.currentPlayer.cards.length >= 1 ? '\n(se kort på hånd under knappene)' : ' '}`,
-                inline: false
+                inline: false,
             })
             formattedMsg.addFields(...fields)
             if (this.currentPlayer.cards.length >= 1) {
@@ -420,7 +412,7 @@ export class RedBlackCommands extends AbstractCommands {
         return this.playerList[index]
     }
 
-    private async updateEmbedMessage(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+    private async updateEmbedMessage(interaction: ChatInteraction | BtnInteraction) {
         if (interaction.isButton()) {
             this.embedMessage.edit({ embeds: [this.embed], components: [this.currentButtons] })
             interaction.deferUpdate()
@@ -430,7 +422,7 @@ export class RedBlackCommands extends AbstractCommands {
         }
     }
 
-    public async setupRedBlack(interaction: ChatInputCommandInteraction<CacheType> | ButtonInteraction<CacheType>) {
+    public async setupRedBlack(interaction: ChatInteraction | BtnInteraction) {
         if (this.activeGame || this.initiated) {
             this.messageHelper.replyToInteraction(interaction, 'Du kan bare ha ett aktivt spill om gangen. For å avslutte spillet, bruk "/redblack stopp"')
         } else {
@@ -443,7 +435,7 @@ export class RedBlackCommands extends AbstractCommands {
         }
     }
 
-    public joinGame(interaction: ButtonInteraction<CacheType>) {
+    public joinGame(interaction: BtnInteraction) {
         const newUser = interaction.user
         if (!this.playerList.find((player) => player.name == newUser.username)) {
             const user: IUserObject = { name: newUser.username, id: this.id, cards: new Array<ICardObject>() }
@@ -456,7 +448,7 @@ export class RedBlackCommands extends AbstractCommands {
         }
     }
 
-    public startGame(interaction: ButtonInteraction<CacheType>) {
+    public startGame(interaction: BtnInteraction) {
         if (this.playerList.length < 1) {
             this.messageHelper.replyToInteraction(interaction, 'Det trengs minst 1 deltaker for å starte spillet (men det er litt trist å spille dette alene).')
         } else {
@@ -481,7 +473,7 @@ export class RedBlackCommands extends AbstractCommands {
         this.embed = formattedMsg
     }
 
-    public async resendMessages(interaction: ButtonInteraction<CacheType>) {
+    public async resendMessages(interaction: BtnInteraction) {
         this.deleteMessages()
         if (this.stage === GameStage.RedBlack) {
             this.embedMessage = await this.messageHelper.sendMessage(interaction?.channelId, { embed: this.embed, components: [this.currentButtons] })
@@ -514,12 +506,12 @@ export class RedBlackCommands extends AbstractCommands {
         }
     }
 
-    public resetDeck(interaction: ButtonInteraction<CacheType>) {
+    public resetDeck(interaction: BtnInteraction) {
         const msg = this.deck.resetDeck()
         this.messageHelper.replyToInteraction(interaction, msg)
     }
 
-    private stopRedBlack(interaction: ChatInputCommandInteraction<CacheType>) {
+    private stopRedBlack(interaction: ChatInteraction) {
         this.initGame()
         this.messageHelper.replyToInteraction(interaction, 'Spillet er stoppet og kortstokken nullstilt')
     }
@@ -528,7 +520,7 @@ export class RedBlackCommands extends AbstractCommands {
         return this.playerList.some((user) => user.name == username)
     }
 
-    private rbSwitch(interaction: ChatInputCommandInteraction<CacheType>) {
+    private rbSwitch(interaction: ChatInteraction) {
         const action = interaction.options.getSubcommand()
         if (action) {
             switch (action.toLowerCase()) {
@@ -558,7 +550,7 @@ export class RedBlackCommands extends AbstractCommands {
         }
     }
 
-    // private setRedBlackOptions(interaction: ChatInputCommandInteraction<CacheType>): string {
+    // private setRedBlackOptions(interaction: ChatInteraction): string {
     //     //TODO: implementer
     //     const mate = interaction.options.get('mate')?.user
     //     const chugOnLoop = interaction.options.get('chug-on-loop')?.value as boolean | undefined
@@ -579,7 +571,7 @@ export class RedBlackCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'redblack',
-                        command: (interaction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (interaction: ChatInteraction) => {
                             this.rbSwitch(interaction)
                         },
                     },
@@ -593,80 +585,80 @@ export class RedBlackCommands extends AbstractCommands {
                     },
                     {
                         commandName: 'RB_MOVE_BUS',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.moveBus(rawInteraction)
                         },
                     },
                     {
                         commandName: 'RB_JOIN',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.joinGame(rawInteraction)
                         },
                     },
                     {
                         commandName: 'RB_START',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.startGame(rawInteraction)
                         },
                     },
                     {
                         commandName: 'RB_GUESS',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.guess(rawInteraction)
                         },
                     },
                     {
                         commandName: 'RB_PLACE',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.placeGtCard(rawInteraction)
                         },
                     },
                     {
                         commandName: 'RB_NEXT_CARD',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             if (rawInteraction.user.id === '221739293889003520') rawInteraction.deferUpdate()
                             else this.nextGtCard(rawInteraction)
                         },
                     },
                     {
                         commandName: 'RB_MY_CARDS',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.sendUserCards(rawInteraction)
                         },
                     },
                     {
                         commandName: 'RB_NEXT_PHASE',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.phaseController(rawInteraction)
                         },
                     },
                     {
                         commandName: 'RB_BUS_CAN',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.busrideGuess(rawInteraction)
                         },
                     },
                     {
                         commandName: 'RB_REVEAL',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.revealLoser(rawInteraction)
                         },
                     },
                     {
                         commandName: 'RB_TRY_AGAIN',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.busrideReset(rawInteraction)
                         },
                     },
                     {
                         commandName: 'RB_TIE_BREAK',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.showGiveTakeSummary(rawInteraction)
                         },
                     },
                     {
                         commandName: 'RB_START_BUS',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.setupBusride(rawInteraction)
                         },
                     },

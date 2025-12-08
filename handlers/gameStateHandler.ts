@@ -38,11 +38,11 @@ export class GameStateHandler<Player extends GamePlayer> {
     }
 
     public hasPlayerJoined(id: string) {
-        return this.players.some(player => player.id === id)
+        return this.players.some((player) => player.id === id)
     }
 
     public getPlayer(id: string) {
-        return this.players.find(player => player.id === id)
+        return this.players.find((player) => player.id === id)
     }
 
     get allPlayers() {

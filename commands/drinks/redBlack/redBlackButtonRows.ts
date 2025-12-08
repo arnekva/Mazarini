@@ -1,8 +1,4 @@
-import {
-    ActionRowBuilder,
-    ButtonBuilder,
-    ButtonStyle
-} from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js'
 
 const HEARTS = '1107629203156910102'
 const SPADES = '1107629201428852746'
@@ -115,28 +111,28 @@ export const suitButtonRow = new ActionRowBuilder<ButtonBuilder>().addComponents
     new ButtonBuilder({
         custom_id: `RB_GUESS;SUIT;H`,
         style: ButtonStyle.Success,
-        emoji: {id: HEARTS},
+        emoji: { id: HEARTS },
         disabled: false,
         type: 2,
     }),
     new ButtonBuilder({
         custom_id: `RB_GUESS;SUIT;D`,
         style: ButtonStyle.Success,
-        emoji: {id: DIAMONDS},
+        emoji: { id: DIAMONDS },
         disabled: false,
         type: 2,
     }),
     new ButtonBuilder({
         custom_id: `RB_GUESS;SUIT;S`,
         style: ButtonStyle.Success,
-        emoji: {id: SPADES},
+        emoji: { id: SPADES },
         disabled: false,
         type: 2,
     }),
     new ButtonBuilder({
         custom_id: `RB_GUESS;SUIT;C`,
         style: ButtonStyle.Success,
-        emoji: {id: CLUBS},
+        emoji: { id: CLUBS },
         disabled: false,
         type: 2,
     }),
@@ -178,7 +174,6 @@ export const gtStartButtonRow = new ActionRowBuilder<ButtonBuilder>().addCompone
     }),
     moveBtn
 )
-
 
 export const nextPhaseBtn = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder({

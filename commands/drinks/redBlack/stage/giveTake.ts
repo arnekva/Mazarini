@@ -1,4 +1,4 @@
-import { ButtonInteraction, CacheType } from 'discord.js'
+import { BtnInteraction } from '../../../../Abstracts/MazariniInteraction'
 import { EmojiHelper } from '../../../../helpers/emojiHelper'
 import { RandomUtils } from '../../../../utils/randomUtils'
 import { CardCommands } from '../../../games/cardCommands'
@@ -20,7 +20,7 @@ export class GiveTake {
         this.gtNextCardId = 0
     }
 
-    public async generateGiveTakeTable(interaction: ButtonInteraction<CacheType>) {
+    public async generateGiveTakeTable(interaction: BtnInteraction) {
         const levels = this.rules.gtLevelSips.length
         //If Ace has not been drawn before round 3, the value is randomly set now
         if (!RedBlackCommands.aceValue) {
@@ -28,8 +28,8 @@ export class GiveTake {
         }
 
         let key = 0
-        for (var i = 1; i < levels; i++) {
-            for (var y = 1; y <= 3; y++) {
+        for (let i = 1; i < levels; i++) {
+            for (let y = 1; y <= 3; y++) {
                 this.gtTable.set(key++, {
                     card: await this.drawCard(),
                     give: y == 1 || y == 3,
@@ -50,7 +50,7 @@ export class GiveTake {
         return await this.deck.drawCard()
     }
 
-    public async printGiveTakeTable(interaction: ButtonInteraction<CacheType>) {
+    public async printGiveTakeTable(interaction: BtnInteraction) {
         let tableString = ''
         const levels = this.rules.gtLevelSips.length
         let iterateId = this.gtTable.size - 1
@@ -59,7 +59,7 @@ export class GiveTake {
         const faceCard = (await EmojiHelper.getEmoji('faceCard', interaction)).id
         tableString += `${emptyCard} ${chugCard.revealed ? chugCard.card.emoji : faceCard}`
 
-        for (var i = levels - 1; i > 0; i--) {
+        for (let i = levels - 1; i > 0; i--) {
             tableString += '\n\n'
             const gtCard = this.gtTable.get(iterateId--)
             const tCard = this.gtTable.get(iterateId--)
@@ -72,7 +72,7 @@ export class GiveTake {
         return tableString
     }
 
-    public revealNextGTCard(interaction: ButtonInteraction<CacheType>) {
+    public revealNextGTCard(interaction: BtnInteraction) {
         this.currentGtCard = this.gtTable.get(this.gtNextCardId++)
         this.currentGtCard.revealed = true
         return this.currentGtCard

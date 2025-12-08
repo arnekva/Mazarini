@@ -1,7 +1,8 @@
-import { CacheType, ChatInputCommandInteraction, EmbedBuilder, Interaction, Message, User } from 'discord.js'
+import { EmbedBuilder, Message, User } from 'discord.js'
 import { Headers } from 'node-fetch'
 import { URLSearchParams } from 'url'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { BaseInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { spotifyClientID, spotifyClientSecret } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 
@@ -88,7 +89,7 @@ export class SpotifyCommands extends AbstractCommands {
         return await spotifyApi.searchTracks(searchString)
     }
 
-    private async printSongFromSpotify(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async printSongFromSpotify(interaction: ChatInteraction) {
         await interaction.deferReply()
         const searchStringTrack = interaction.options.get('sang')?.value as string
         const searchStringArtist = interaction.options.get('artist')?.value as string
@@ -120,12 +121,7 @@ export class SpotifyCommands extends AbstractCommands {
         }
     }
 
-    private async currentPlayingFromDiscord(
-        interaction: Interaction<CacheType>,
-        mode?: string,
-        user?: User,
-        includeLyrics?: boolean
-    ): Promise<string | EmbedBuilder> {
+    private async currentPlayingFromDiscord(interaction: BaseInteraction, mode?: string, user?: User, includeLyrics?: boolean): Promise<string | EmbedBuilder> {
         const _music = new Music(this.client)
 
         const isAllActive = mode === 'active'
@@ -242,7 +238,7 @@ export class SpotifyCommands extends AbstractCommands {
         return `${user ? user : 'Du'} hører ikke på Spotify nå, og har heller ikke koblet til Last.fm`
     }
 
-    private async handleSpotifyInteractions(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async handleSpotifyInteractions(interaction: ChatInteraction) {
         if (interaction) {
             await interaction.deferReply() //Må defere reply siden botter har maks 3 sekund å svare på en interaction
             const mode = interaction.options.get('mode')?.value as string
@@ -259,13 +255,13 @@ export class SpotifyCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'spotify',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.handleSpotifyInteractions(rawInteraction)
                         },
                     },
                     {
                         commandName: 'sang',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.printSongFromSpotify(rawInteraction)
                         },
                     },

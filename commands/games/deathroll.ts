@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto'
-import { ActionRowBuilder, AutocompleteInteraction, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, ChatInputCommandInteraction } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { ATCInteraction, BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
 import { DeathRollStats } from '../../helpers/databaseHelper'
@@ -84,7 +85,7 @@ export class Deathroll extends AbstractCommands {
         return await this.client.database.getDeathrollGames()
     }
 
-    private async rollDice(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async rollDice(interaction: ChatInteraction) {
         const diceTarget = interaction.options.get('sider')?.value as number
         if (diceTarget > 999999999) {
             this.messageHelper.replyToInteraction(interaction, `Du kan ikke trille en terning med mer enn 9 sifre`, { ephemeral: true })
@@ -222,7 +223,7 @@ export class Deathroll extends AbstractCommands {
         return ''
     }
 
-    private async checkForReward(roll: number, diceTarget: number, int: ChatInputCommandInteraction<CacheType>): Promise<{ val: number; text: string }> {
+    private async checkForReward(roll: number, diceTarget: number, int: ChatInteraction): Promise<{ val: number; text: string }> {
         let totalAdded = this.getRollReward(roll)
         const multipliers: number[] = [1]
         const lowRoll = roll < GameValues.deathroll.checkForReward.minRollForMultiplier
@@ -357,7 +358,7 @@ export class Deathroll extends AbstractCommands {
         }, 500)
     }
 
-    private async handleNoThanks(interaction: ButtonInteraction<CacheType>) {
+    private async handleNoThanks(interaction: BtnInteraction) {
         const params = interaction.customId.split(';')
         const userId = params[1]
         if (interaction.user.id !== userId) return interaction.deferUpdate()
@@ -445,7 +446,7 @@ export class Deathroll extends AbstractCommands {
         return game ?? this.drGames?.find((game) => game.nextToRoll === userID && game.players.length > 1)
     }
 
-    private autoCompleteDice(interaction: AutocompleteInteraction<CacheType>) {
+    private autoCompleteDice(interaction: ATCInteraction) {
         let game = this.getActiveGameForUser(interaction.user.id)
         if (!game) game = this.checkForAvailableGame(interaction.user.id)
 
@@ -457,7 +458,7 @@ export class Deathroll extends AbstractCommands {
         return interaction.respond([{ name: GameValues.deathroll.autoCompleteDiceDefault.toString(), value: GameValues.deathroll.autoCompleteDiceDefault }])
     }
 
-    private printCurrentState(interaction: ChatInputCommandInteraction<CacheType>) {
+    private printCurrentState(interaction: ChatInteraction) {
         const embed = EmbedUtils.createSimpleEmbed('Deathroll state', `${this.rewardPot} chips i potten`)
 
         const uniquePlayers: { [key: string]: { activeTurns: number; totalGames: number } } = {}
@@ -524,16 +525,16 @@ export class Deathroll extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'terning',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.rollDice(rawInteraction)
                         },
-                        autoCompleteCallback: (rawInteraction: AutocompleteInteraction<CacheType>) => {
+                        autoCompleteCallback: (rawInteraction: ATCInteraction) => {
                             this.autoCompleteDice(rawInteraction)
                         },
                     },
                     {
                         commandName: 'deathroll',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.printCurrentState(rawInteraction)
                         },
                     },
@@ -541,7 +542,7 @@ export class Deathroll extends AbstractCommands {
                 buttonInteractionComands: [
                     {
                         commandName: 'DEATHROLL_NO_THANKS',
-                        command: (rawInteraction: ButtonInteraction<CacheType>) => {
+                        command: (rawInteraction: BtnInteraction) => {
                             this.handleNoThanks(rawInteraction)
                         },
                     },

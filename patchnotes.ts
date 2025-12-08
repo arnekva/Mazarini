@@ -1,5 +1,6 @@
-import { CacheType, ChatInputCommandInteraction, TextDisplayBuilder } from 'discord.js'
+import { TextDisplayBuilder } from 'discord.js'
 import { AbstractCommands } from './Abstracts/AbstractCommand'
+import { ChatInteraction } from './Abstracts/MazariniInteraction'
 import { SimpleContainer } from './Abstracts/SimpleContainer'
 import { database, environment } from './client-env'
 import { MazariniClient } from './client/MazariniClient'
@@ -15,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '29.1.2'
+    public static readonly currentVersion = '29.2.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -24,7 +25,7 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(['* Reverserer til Gemini 2.0 Flash'].join('\n'))
+        const text = new TextDisplayBuilder().setContent(['* Reverserer til Gemini 2.0 Flash', '* Større endringer "under panseret"'].join('\n'))
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 
@@ -56,13 +57,13 @@ export class PatchNotes extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'patchnotes',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.messageHelper.replyToInteraction(rawInteraction, '', {}, [PatchNotes.getCurrentPatchNotes().container])
                         },
                     },
                     {
                         commandName: 'backlog',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.messageHelper.replyToInteraction(rawInteraction, PatchNotes.getNextReleasePatchNotes())
                         },
                     },

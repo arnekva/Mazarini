@@ -1,5 +1,5 @@
-import { CacheType, ChatInputCommandInteraction, Interaction } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
+import { BaseInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../../client/MazariniClient'
 
 import { IInteractionElement } from '../../interfaces/interactionInterface'
@@ -10,7 +10,7 @@ export class LinkCommands extends AbstractCommands {
         super(client)
     }
 
-    private async handleLinking(interaction: ChatInputCommandInteraction<CacheType>) {
+    private async handleLinking(interaction: ChatInteraction) {
         await interaction.deferReply()
 
         const isWZ = interaction.options.getSubcommand() === 'warzone'
@@ -52,7 +52,7 @@ export class LinkCommands extends AbstractCommands {
         else this.messageHelper.replyToInteraction(interaction, 'Klarte ikke hente brukernavn eller plattform', { hasBeenDefered: true })
     }
 
-    private async linkWZName(rawInteraction: ChatInputCommandInteraction<CacheType>, platform?: string, username?: string): Promise<boolean> {
+    private async linkWZName(rawInteraction: ChatInteraction, platform?: string, username?: string): Promise<boolean> {
         if (!platform || !username) return false
         const user = await this.client.database.getUser(rawInteraction.user.id)
         user.activisionUserString = `${platform};${username}`
@@ -60,7 +60,7 @@ export class LinkCommands extends AbstractCommands {
         return true
     }
 
-    private async linkRocketName(rawInteraction: ChatInputCommandInteraction<CacheType>, platform?: string, username?: string): Promise<boolean> {
+    private async linkRocketName(rawInteraction: ChatInteraction, platform?: string, username?: string): Promise<boolean> {
         if (!platform || !username) return false
         const user = await this.client.database.getUser(rawInteraction.user.id)
         user.rocketLeagueUserString = `${platform};${username}`
@@ -68,14 +68,14 @@ export class LinkCommands extends AbstractCommands {
         return true
     }
 
-    private async linkLastFMName(rawInteraction: Interaction<CacheType>, username?: string): Promise<boolean> {
+    private async linkLastFMName(rawInteraction: BaseInteraction, username?: string): Promise<boolean> {
         if (!username) return false
         const user = await this.client.database.getUser(rawInteraction.user.id)
         user.lastFMUsername = username
         this.client.database.updateUser(user)
         return true
     }
-    private async linkVivinoId(rawInteraction: Interaction<CacheType>, username?: string): Promise<boolean> {
+    private async linkVivinoId(rawInteraction: BaseInteraction, username?: string): Promise<boolean> {
         if (!username) return false
         const user = await this.client.database.getUser(rawInteraction.user.id)
         user.vivinoId = username
@@ -112,7 +112,7 @@ export class LinkCommands extends AbstractCommands {
                 interactionCommands: [
                     {
                         commandName: 'link',
-                        command: (rawInteraction: ChatInputCommandInteraction<CacheType>) => {
+                        command: (rawInteraction: ChatInteraction) => {
                             this.handleLinking(rawInteraction)
                         },
                     },

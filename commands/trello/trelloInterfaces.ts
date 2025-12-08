@@ -2,64 +2,58 @@ export interface ITrelloCard {
     id: string
     address: string
     badges: {
-      attachmentsByType: {
-        trello: {
-          board: number
-          card: number
+        attachmentsByType: {
+            trello: {
+                board: number
+                card: number
+            }
         }
-      }
-      location: boolean
-      votes: number
-      viewingMemberVoted: boolean
-      subscribed: boolean
-      fogbugz: string
-      checkItems: number
-      checkItemsChecked: number
-      comments: number
-      attachments: number
-      description: boolean
-      due: string
-      start: string
-      dueComplete: boolean
+        location: boolean
+        votes: number
+        viewingMemberVoted: boolean
+        subscribed: boolean
+        fogbugz: string
+        checkItems: number
+        checkItemsChecked: number
+        comments: number
+        attachments: number
+        description: boolean
+        due: string
+        start: string
+        dueComplete: boolean
     }
-    checkItemStates: [
-      string
-    ]
+    checkItemStates: [string]
     closed: boolean
     coordinates: string
     creationMethod: string
     dateLastActivity: Date
     desc: string
     descData: {
-      emoji: {}
+        emoji: any
     }
     due: string
     dueReminder: string
     email: string
     idBoard: string
     idChecklists: [
-      {
-        id: string
-      }
+        {
+            id: string
+        }
     ]
     idLabels: string[]
     idList: string
-    idMembers: [
-        string
-    ]
-    idMembersVoted: [
-        string
-    ]
+    idMembers: [string]
+    idMembersVoted: [string]
     idShort: number
     labels: ITrelloLabel[]
     limits: {
-      attachments: {
-        perBoard: {
-          status: string
-          disableAt: number
-          warnAt: number
+        attachments: {
+            perBoard: {
+                status: string
+                disableAt: number
+                warnAt: number
+            }
         }
-      }
     }
     locationName: string
     manualCoverAttachment: boolean
@@ -70,29 +64,29 @@ export interface ITrelloCard {
     subscribed: boolean
     url: string
     cover: {
-      color: string
-      idUploadedBackground: boolean
-      size: string
-      brightness: string
-      isTemplate: boolean
+        color: string
+        idUploadedBackground: boolean
+        size: string
+        brightness: string
+        isTemplate: boolean
     }
-  }
+}
 
-  export interface ITrelloLabel {
+export interface ITrelloLabel {
     id: string
     idBoard: string
     name: string
     color: string
     uses?: number
-  }
+}
 
-  export interface INewTrelloCard {
+export interface INewTrelloCard {
     name: string
     desc: string
     idLabels: string[]
-  }
+}
 
-  export interface ITrelloList {
+export interface ITrelloList {
     id: string
     name: string
     closed: boolean
@@ -101,8 +95,8 @@ export interface ITrelloCard {
     idBoard: string
     subscribed: boolean
     limits: {
-      attachments: {
-        perBoard: {}
-      }
+        attachments: {
+            perBoard: any
+        }
     }
-  }
+}

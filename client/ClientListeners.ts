@@ -1,13 +1,10 @@
 import { exec } from 'child_process'
 import console from 'console'
 import {
-    CacheType,
     DMChannel,
-    Guild,
     GuildBan,
     GuildEmoji,
     GuildMember,
-    Interaction,
     Message,
     MessageReaction,
     NonThreadGuildBasedChannel,
@@ -17,6 +14,7 @@ import {
     Role,
     User,
 } from 'discord.js'
+import { BaseInteraction } from '../Abstracts/MazariniInteraction'
 import { environment } from '../client-env'
 
 import { CommandRunner } from '../general/commandRunner'
@@ -45,7 +43,7 @@ export class ClientListener {
     }
 
     setupListeners() {
-        this.client.on('ready', async () => {
+        this.client.on('clientReady', async () => {
             console.log(
                 `Setup ready, bot is running as ${this.client.user?.tag} at ${new Date().toLocaleDateString('nb', {
                     weekday: 'long',
@@ -54,7 +52,7 @@ export class ClientListener {
                     day: 'numeric',
                 })} ${new Date().toLocaleTimeString('nb')} !`
             )
-            let msg = 'Boten er nå live i production mode. '
+            const msg = 'Boten er nå live i production mode. '
 
             //TODO: Work out this stuff
 
@@ -195,9 +193,9 @@ export class ClientListener {
         })
 
         /** For interactions (slash-commands and user-commands) */
-        this.client.on('interactionCreate', (interaction: Interaction<CacheType>) => {
+        this.client.on('interactionCreate', (interaction: BaseInteraction) => {
             // console.log(interaction.toJSON())
-
+            
             MazariniBot.numCommands++
             this.commandRunner.checkForCommandInInteraction(interaction)
         })
@@ -236,11 +234,11 @@ export class ClientListener {
             this.client.messageHelper.sendMessage(id, { text: `${ban.user.username} ble bannet pga ${ban?.reason}` })
         })
 
-        this.client.on('guildCreate', (guild: Guild) => {
+        this.client.on('guildCreate', () => {
             this.client.messageHelper.sendLogMessage('Ukjent: on guildCreate. Wat dis do?')
         })
 
-        this.client.on('guildMemberAdd', async (member: GuildMember) => {
+        this.client.on('guildMemberAdd', (member: GuildMember) => {
             UserUtils.onAddedMember(member, this.client.messageHelper, this.client.database)
         })
 
@@ -265,13 +263,13 @@ export class ClientListener {
             this.messageHelper.sendLogMessage('En rolle er slettet: ' + role.name)
         })
 
-        this.client.on('messageReactionAdd', (messageReaction: MessageReaction, user: User) => {
+        this.client.on('messageReactionAdd', (messageReaction: MessageReaction) => {
             if (messageReaction.emoji instanceof GuildEmoji && messageReaction.emoji.guild.id == ServerIds.MAZARINI) {
                 this.client.database.updateEmojiReactionCounter(messageReaction.emoji.name)
             }
         })
 
-        this.client.on('messageReactionRemove', (messageReaction: MessageReaction, user: User) => {
+        this.client.on('messageReactionRemove', (messageReaction: MessageReaction) => {
             if (messageReaction.emoji instanceof GuildEmoji && messageReaction.emoji.guild.id == ServerIds.MAZARINI) {
                 this.client.database.updateEmojiReactionCounter(messageReaction.emoji.name, true)
             }
