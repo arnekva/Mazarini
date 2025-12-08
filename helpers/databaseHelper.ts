@@ -353,15 +353,19 @@ export class DatabaseHelper {
     }
 
     public saveDeathrollPot(amount: number) {
-        if (isNaN(amount)) amount = 0
+        if (isNaN(amount)) {
+            amount = 0
+        }
         const updates = {}
         updates[`/other/deathrollPot`] = amount
         this.db.updateData(updates)
     }
     public saveDeathrollGames(games: DRGame[]) {
-        const updates = {}
-        updates[`/other/deathrollGames`] = games
-        this.db.updateData(updates)
+        if (games) {
+            const updates = {}
+            updates[`/other/deathrollGames`] = games
+            this.db.updateData(updates)
+        }
     }
 
     public async getDeathrollGames() {
