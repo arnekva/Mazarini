@@ -158,10 +158,9 @@ export class Commands {
     async doSaveAllCommands() {
         const allClasses = this.getAll()
         for (const c of allClasses) {
-            console.log('Trying:', c.onSave)
-
+           
             await c.onSave()
-            console.log('success')
+           
         }
     }
     async doRefreshAllCommands() {
