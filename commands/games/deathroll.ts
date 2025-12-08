@@ -53,6 +53,7 @@ export class Deathroll extends AbstractCommands {
 
         if (oldGames) this.drGames = oldGames
         else this.drGames = new Array<DRGame>()
+        console.log('onReady for games: ', oldGames)
 
         this.reRollWinningNumbers()
 

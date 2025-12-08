@@ -368,7 +368,7 @@ export class Admin extends AbstractCommands {
         await this.client.onRestart()
         if ((this.client.cache.restartImpediments?.length ?? 0) > 0) {
             const msg = this.client.cache.restartImpediments.reduce((prev, item) => prev + item + '\n', '')
-            await this.messageHelper.replyToInteraction(interaction, msg, {}, [forceRestartBtn])
+            await this.messageHelper.replyToInteraction(interaction, msg, { hasBeenDefered: true }, [forceRestartBtn])
         } else {
             this.restartBot(interaction)
         }
