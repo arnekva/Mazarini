@@ -42,6 +42,7 @@ import { UserCommands } from '../commands/user/userCommands'
 import { Weather } from '../commands/weatherCommands'
 import { IInteractionCommand, IInteractionElement } from '../interfaces/interactionInterface'
 import { PatchNotes } from '../patchnotes'
+import console from 'console'
 
 export type TimedEvent = 'weekly' | 'daily' | 'hourly'
 export class Commands {
@@ -157,7 +158,10 @@ export class Commands {
     async doSaveAllCommands() {
         const allClasses = this.getAll()
         for (const c of allClasses) {
+            console.log('Trying:', c.onSave)
+
             await c.onSave()
+            console.log('success')
         }
     }
     async doRefreshAllCommands() {
