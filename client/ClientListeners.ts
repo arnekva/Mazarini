@@ -43,7 +43,7 @@ export class ClientListener {
     }
 
     setupListeners() {
-        this.client.on('clientReady', async () => {
+        this.client.on('ready', async () => {
             console.log(
                 `Setup ready, bot is running as ${this.client.user?.tag} at ${new Date().toLocaleDateString('nb', {
                     weekday: 'long',
@@ -195,7 +195,7 @@ export class ClientListener {
         /** For interactions (slash-commands and user-commands) */
         this.client.on('interactionCreate', (interaction: BaseInteraction) => {
             // console.log(interaction.toJSON())
-            
+
             MazariniBot.numCommands++
             this.commandRunner.checkForCommandInInteraction(interaction)
         })
