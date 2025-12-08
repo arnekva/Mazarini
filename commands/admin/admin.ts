@@ -364,11 +364,13 @@ export class Admin extends AbstractCommands {
 
     private async attemptRestart(interaction: ChatInteraction) {
         this.client.cache.restartImpediments = []
+        interaction.deferReply()
         await this.client.onRestart()
         if ((this.client.cache.restartImpediments?.length ?? 0) > 0) {
             const msg = this.client.cache.restartImpediments.reduce((prev, item) => prev + item + '\n', '')
             await this.messageHelper.replyToInteraction(interaction, msg, {}, [forceRestartBtn])
         } else {
+            this.messageHelper.replyToInteraction(interaction, `Botten restarter nå...`, { hasBeenDefered: true })
             this.restartBot(interaction)
         }
     }
