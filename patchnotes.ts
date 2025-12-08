@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '29.2.1'
+    public static readonly currentVersion = '29.2.2'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
