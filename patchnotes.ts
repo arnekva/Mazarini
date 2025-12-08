@@ -15,7 +15,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '29.0.2'
+    public static readonly currentVersion = '29.1.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -24,7 +24,15 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(['* ATH-streak multiplier: 500 => 2000'].join('\n'))
+        const text = new TextDisplayBuilder().setContent(
+            [
+                '## Julekalender',
+                '* Julekalenderen er tilbake',
+                '* Effekter relatert til garanterte farger har blitt byttet ut med nye effekter',
+                '## AI forbedringer',
+                '* Høie bruker nå Gemini 2.5 Flash, opp fra 2.0 flash. Nå er han like dum men med høyere versjonsnummer',
+            ].join('\n')
+        )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 
