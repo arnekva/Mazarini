@@ -341,7 +341,7 @@ export class Deathroll extends AbstractCommands {
     }
 
     private saveRewardPot(saveToDb: boolean = false) {
-        if (saveToDb) this.client.database.saveDeathrollPot(this.rewardPot)
+        if (saveToDb && !isNaN(this.rewardPot)) this.client.database.saveDeathrollPot(this.rewardPot)
     }
 
     private sendNoThanksButton(userId: string, rewarded: number) {
@@ -512,7 +512,7 @@ export class Deathroll extends AbstractCommands {
             hourly: [
                 () => {
                     this.saveActiveGamesToDatabase()
-                    this.saveRewardPot()
+                    this.saveRewardPot(true)
                     return true
                 },
             ],

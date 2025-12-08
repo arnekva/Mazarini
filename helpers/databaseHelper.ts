@@ -353,6 +353,7 @@ export class DatabaseHelper {
     }
 
     public saveDeathrollPot(amount: number) {
+        if (isNaN(amount)) amount = 0
         const updates = {}
         updates[`/other/deathrollPot`] = amount
         this.db.updateData(updates)
