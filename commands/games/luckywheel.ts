@@ -1,9 +1,9 @@
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 
+import { ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { discordSecret } from '../../client-env'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
-import { ChatInteraction } from '../../Abstracts/MazariniInteraction'
 
 export class LuckyWheel extends AbstractCommands {
     constructor(client: MazariniClient) {

@@ -60,6 +60,7 @@ export class GeminiHelper {
         } catch (error) {
             result = `Eg e litt opptatt nå.`
             this.client.messageHelper.sendLogMessage(`Gemini Error:\n${error}`)
+            console.log(error)
         }
 
         return result
