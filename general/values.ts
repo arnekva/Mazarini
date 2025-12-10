@@ -281,7 +281,7 @@ export const GameValues: GameValuesType = {
 
     // Deal Or No Deal
     dealOrNoDeal: {
-        effectItemChance: 10, // percent chance to get an effect item
+        effectItemChance: 20, // percent chance to get an effect item
         offerBase: 0.5, // base offer percentage
         offerPerRound: 0.05, // offer percentage increase per round
     },
@@ -295,9 +295,9 @@ export const GameValues: GameValuesType = {
     },
     loot: {
         chestEffectOdds: {
-            basic: 0.1,
-            premium: 0.2,
-            elite: 0.5,
+            basic: 0.2,
+            premium: 0.4,
+            elite: 1,
         },
         artPrice: 10000,
     },

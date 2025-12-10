@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '29.2.2'
+    public static readonly currentVersion = '29.2.3'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,7 +25,7 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(['* Reverserer til Gemini 2.0 Flash', '* Større endringer "under panseret"'].join('\n'))
+        const text = new TextDisplayBuilder().setContent(['* Øker sannsynligheten for effect i dond og chest'].join('\n'))
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 
