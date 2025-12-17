@@ -9,6 +9,7 @@ import { IInteractionElement, IOnTimedEvent } from '../interfaces/interactionInt
 import { ArrayUtils } from '../utils/arrayUtils'
 import { DateUtils } from '../utils/dateUtils'
 import { LootboxCommands } from './store/lootboxCommands'
+import { DatabaseHelper } from '../helpers/databaseHelper'
 
 export class CalendarCommands extends AbstractCommands {
     constructor(client: MazariniClient) {
@@ -37,7 +38,7 @@ export class CalendarCommands extends AbstractCommands {
             embed.setDescription(`Din kalendergave for ${DateUtils.formatDate(new Date(gift.date))} er ${calendarGift.message}`)
             embed.setThumbnail('https://freepngimg.com/thumb/gift/8-2-gift-png-image.png')
             this.client.database.updateUser(user, true)
-            this.messageHelper.replyToInteraction(interaction, embed, undefined, button)
+            if (Array.isArray(button)) this.messageHelper.replyToInteraction(interaction, embed, undefined, button)
         } else {
             embed.setDescription('Du har allerede åpnet dagens kalendergave. Vent te imårå klokkå 05:00')
             this.messageHelper.replyToInteraction(interaction, embed)
@@ -105,7 +106,17 @@ export class CalendarCommands extends AbstractCommands {
 export interface ICalendarGift {
     id: number
     message: string //følger formatet "Din kalendergave for {dato} er {message}"
-    effect(user: MazariniUser, storage?: MazariniStorage): undefined | ActionRowBuilder<ButtonBuilder>[]
+    effect(user: MazariniUser, db?: DatabaseHelper): undefined | ActionRowBuilder<ButtonBuilder>[] | 'client'
+}
+
+const shuffleIgnoresDigitsEffect = async (db: DatabaseHelper) => {
+    const storage = await db.getStorage()
+    if (storage) {
+        if (!storage.effects) storage.effects = { positive: {} }
+        if (!storage.effects.positive) storage.effects.positive = {}
+        storage.effects.positive.shuffleIgnoresDigits = true
+    }
+    db.updateStorage(storage)
 }
 
 const christmasCalendarGifts: Array<ICalendarGift> = [
@@ -271,26 +282,16 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
     {
         id: 18,
         message: 'shuffle er ikke lenger siffer-begrenset for alle ut dagen!',
-        effect: (user: MazariniUser, storage) => {
-            if (storage) {
-                if (!storage.effects) storage.effects = { positive: {} }
-                if (!storage.effects.positive) storage.effects.positive = {}
-                storage.effects.positive.shuffleIgnoresDigits = true
-            }
-
+        effect: (user: MazariniUser, db: DatabaseHelper) => {
+            shuffleIgnoresDigitsEffect(db)
             return undefined
         },
     },
     {
         id: 19,
         message: 'shuffle er ikke lenger siffer-begrenset for alle ut dagen!',
-        effect: (user: MazariniUser, storage) => {
-            if (storage) {
-                if (!storage.effects) storage.effects = { positive: {} }
-                if (!storage.effects.positive) storage.effects.positive = {}
-                storage.effects.positive.shuffleIgnoresDigits = true
-            }
-
+        effect: (user: MazariniUser, db: DatabaseHelper) => {
+            shuffleIgnoresDigitsEffect(db)
             return undefined
         },
     },
