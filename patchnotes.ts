@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '29.2.4'
+    public static readonly currentVersion = '29.2.5'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,9 +25,7 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(
-            ['* 100% fiksa ein feil som gjorde at shuffle faktisk ikkje ignorerte antall digits <:pointerbrothers1:1177653110852825158>'].join('\n')
-        )
+        const text = new TextDisplayBuilder().setContent(['* Fikset en feil som gjorde at /restart sendte feilmelding <:kms:1275913334503247956>'].join('\n'))
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 
