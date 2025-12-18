@@ -156,7 +156,7 @@ export class Deathroll extends AbstractCommands {
             const potArray = this.rewardPot.toString()
             const storage = await this.database.getStorage()
             const shuffleIgnoresDigitLength = !!storage?.effects?.positive?.shuffleIgnoresDigits
-            const dontShuffle = potArray.substring(0, potArray.length - targetAsString.length)
+            const dontShuffle = shuffleIgnoresDigitLength ? '' : potArray.substring(0, potArray.length - targetAsString.length)
             const shuffle = potArray.substring(shuffleIgnoresDigitLength ? 0 : dontShuffle.length, potArray.length)
 
             let shuffledPot = shuffle
