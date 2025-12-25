@@ -7,7 +7,7 @@
     "tags": ["CUSTOM_MAZARINI_GAME"],
     "game": {
         "strings": {
-            "verb": "er",
+            "verb": "ble",
             "valueTitle": "år",
             "buttonMore": "Eldre",
             "buttonLess": "Yngre"
