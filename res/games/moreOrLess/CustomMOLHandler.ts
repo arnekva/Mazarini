@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 
-export type customGameNames = 'norwegianCities' | 'norwegianMountains' | 'celebAge' | 'kommuneInnbygger' | 'kommuneSize' | 'mostKnownNorwegians'
+export type customGameNames = 'norwegianCities' | 'norwegianMountains' | 'celebAge' | 'kommuneInnbygger' | 'kommuneSize' | 'mostKnownNorwegian'
 /* 
     Steps for adding a custom game:
     1. Add a new json file in res/games/moreOrLess, following the norwegianCities.json format (its extremely important to have the "CUSTOM_MAZARINI_GAME" tag in the tags array)
@@ -42,8 +42,8 @@ export class CustomMOLHandler {
             const data = fs.readFileSync(filePath, 'utf-8')
             return JSON.parse(data)
         }
-        if (name === 'mostKnownNorwegians') {
-            const filePath = path.resolve(__dirname, 'customGames', 'mostKnownNorwegians.json')
+        if (name === 'mostKnownNorwegian') {
+            const filePath = path.resolve(__dirname, 'customGames', 'mostKnownNorwegian.json')
             const data = fs.readFileSync(filePath, 'utf-8')
             return JSON.parse(data)
         }
