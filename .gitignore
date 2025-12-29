@@ -3,7 +3,6 @@ client-env.ts
 package-lock.json
 .VSCodeCounter/
 yarn.lock
-./.DS_Store
 .DS_Store
 ./myDataBase.json
 myDataBase.json
