@@ -1,0 +1,48 @@
+{
+    "slug": "animalsTopSpeedTop30",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/6/6e/Cheetah_running.jpg",
+    "title": "Verdens raskeste dyr",
+    "seoTitle": "Verdens raskeste dyr",
+    "description": "Gjett hvilke dyr som er raskest",
+    "tags": ["CUSTOM_MAZARINI_GAME"],
+    "game": {
+        "strings": {
+            "verb": "kan løpe/fly",
+            "valueTitle": "km/t",
+            "buttonMore": "Raskere",
+            "buttonLess": "Saktere"
+        },
+        "data": [
+            ["Vandrefalk", 389, ""],
+            ["Kongeørn (dykk)", 320, ""],
+            ["Gepard", 120, ""],
+            ["Svart seilfisk", 110, ""],
+            ["Pronghorn-antilope", 98, ""],
+            ["Springbok", 88, ""],
+            ["Løve", 80, ""],
+            ["Struts", 70, ""],
+            ["Gaffelantilop", 98, ""],
+            ["Gråhodealbatross", 127, ""],
+            ["Spisshaleseiler", 170, ""],
+            ["Hare", 72, ""],
+            ["Greyhound-hund", 72, ""],
+            ["Hest (galopp)", 88, ""],
+            ["Makohai", 74, ""],
+            ["Tunfisk", 75, ""],
+            ["Jackrabbit", 65, ""],
+            ["Zebra", 65, ""],
+            ["Kenguru", 71, ""],
+            ["Ulvefisk", 56, ""],
+            ["Elg", 56, ""],
+            ["Rein", 80, ""],
+            ["Huskat", 48, ""],
+            ["Esel", 50, ""],
+            ["Flodhest", 48, ""],
+            ["Grizzlybjørn", 56, ""],
+            ["Elefant", 40, ""],
+            ["Menneske (sprint)", 45, ""],
+            ["Kamel", 65, ""],
+            ["Krokodille", 35, ""]
+        ]
+    }
+}

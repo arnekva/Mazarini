@@ -1,0 +1,48 @@
+{
+    "slug": "moviesByRuntime",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/6/6a/Film_Reel_Icon.svg",
+    "title": "Filmer – spilletid",
+    "seoTitle": "Filmer etter runtime",
+    "description": "Gjett hvilke filmer som har lengre spilletid",
+    "tags": ["CUSTOM_MAZARINI_GAME"],
+    "game": {
+        "strings": {
+            "verb": "varer",
+            "valueTitle": "minutter",
+            "buttonMore": "Lengre",
+            "buttonLess": "Kortere"
+        },
+        "data": [
+            ["Avengers: Endgame", 181, ""],
+            ["The Lord of the Rings: The Return of the King", 201, ""],
+            ["Titanic", 195, ""],
+            ["The Irishman", 209, ""],
+            ["Ben-Hur (1959)", 212, ""],
+            ["Gone with the Wind", 238, ""],
+            ["Once Upon a Time in America", 229, ""],
+            ["Lawrence of Arabia", 216, ""],
+            ["The Godfather Part II", 202, ""],
+            ["The Ten Commandments (1956)", 220, ""],
+            ["Interstellar", 169, ""],
+            ["The Dark Knight Rises", 165, ""],
+            ["Inception", 148, ""],
+            ["Jurassic Park", 127, ""],
+            ["Star Wars: A New Hope", 121, ""],
+            ["The Matrix", 136, ""],
+            ["Schindler’s List", 195, ""],
+            ["Avatar", 162, ""],
+            ["The Lion King (1994)", 88, ""],
+            ["Forrest Gump", 142, ""],
+            ["Gladiator", 155, ""],
+            ["Pulp Fiction", 154, ""],
+            ["Fight Club", 139, ""],
+            ["Back to the Future", 116, ""],
+            ["The Shawshank Redemption", 142, ""],
+            ["Titanic (3D re-release not separate)", 195, ""],
+            ["Mad Max: Fury Road", 120, ""],
+            ["The Social Network", 120, ""],
+            ["Black Panther: Wakanda Forever", 161, ""],
+            ["Top Gun: Maverick", 130, ""]
+        ]
+    }
+}

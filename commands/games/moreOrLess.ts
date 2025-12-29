@@ -38,6 +38,20 @@ interface IMoreOrLessUserGame {
 export class MoreOrLess extends AbstractCommands {
     private game: IMoreOrLess
     private userGames: Map<string, IMoreOrLessUserGame>
+    static blacklist: string[] = [
+        'lol-champion-win-rates',
+        'lol-champion-prices',
+        'fortnite-youtubers',
+        'league-of-legends-youtubers',
+        'german-league-of-legends-youtubers',
+        'lol-champion-skins',
+        'german-youtubers',
+        'league-of-legends-youtubers',
+        'population-by-country',
+        'mrbeast-youtube-video-views',
+        'carryminati-youtube-video-views',
+        'stoke-twins-youtube-video-views',
+    ]
 
     constructor(client: MazariniClient) {
         super(client)
@@ -58,11 +72,14 @@ export class MoreOrLess extends AbstractCommands {
                 },
             })
         ).json()
-        games.push(...CustomMOLHandler.getAllCustomGames())
+        games.push(...CustomMOLHandler.collectAllJSONsFromFolder())
 
-        const unplayed = games.filter((game) => !previous.includes(game.slug))
+        // Filter out blacklisted slugs
+        const filteredGames = games.filter((game) => !this.blacklist.includes(game.slug))
+        const unplayed = filteredGames.filter((game) => !previous.includes(game.slug))
 
-        const game: IMoreOrLess = unplayed && unplayed.length > 0 ? RandomUtils.getRandomItemFromList(unplayed) : RandomUtils.getRandomItemFromList(games)
+        const game: IMoreOrLess =
+            unplayed && unplayed.length > 0 ? RandomUtils.getRandomItemFromList(unplayed) : RandomUtils.getRandomItemFromList(filteredGames)
         if (game.tags?.includes(CustomMOLHandler.customGameTag)) return game
         const dataUrl = `https://api.moreorless.io/en/games/${game.slug}.json`
         const check: any = (

@@ -1,7 +1,16 @@
 const fs = require('fs')
 const path = require('path')
 
-export type customGameNames = 'norwegianCities' | 'norwegianMountains' | 'celebAge' | 'kommuneInnbygger' | 'kommuneSize' | 'mostKnownNorwegian'
+export type customGameNames =
+    | 'norwegianCities'
+    | 'norwegianMountains'
+    | 'celebAge'
+    | 'kommuneInnbygger'
+    | 'kommuneSize'
+    | 'mostKnownNorwegian'
+    | 'tvSeriesEpisodeCount'
+    | 'medalsByCountry'
+
 /* 
     Steps for adding a custom game:
     1. Add a new json file in res/games/moreOrLess, following the norwegianCities.json format (its extremely important to have the "CUSTOM_MAZARINI_GAME" tag in the tags array)
@@ -13,55 +22,52 @@ export type customGameNames = 'norwegianCities' | 'norwegianMountains' | 'celebA
 */
 export class CustomMOLHandler {
     public static readonly customGameTag = 'CUSTOM_MAZARINI_GAME'
-    static getAllNames() {
-        return ['norwegianCities', 'celebAge', 'norwegianMountains', 'kommuneInnbygger'] as customGameNames[]
-    }
-    static getJSONByName(name: customGameNames) {
-        if (name === 'norwegianCities') {
-            const filePath = path.resolve(__dirname, 'customGames', 'norwegianCities.json')
-            const data = fs.readFileSync(filePath, 'utf-8')
-            return JSON.parse(data)
-        }
-        if (name === 'norwegianMountains') {
-            const filePath = path.resolve(__dirname, 'customGames', 'norwegianMountains.json')
-            const data = fs.readFileSync(filePath, 'utf-8')
-            return JSON.parse(data)
-        }
-        if (name === 'celebAge') {
-            const filePath = path.resolve(__dirname, 'customGames', 'celebAge.json')
-            const data = fs.readFileSync(filePath, 'utf-8')
-            return JSON.parse(data)
-        }
-        if (name === 'kommuneInnbygger') {
-            const filePath = path.resolve(__dirname, 'customGames', 'kommuneInnbygger.json')
-            const data = fs.readFileSync(filePath, 'utf-8')
-            return JSON.parse(data)
-        }
-        if (name === 'kommuneSize') {
-            const filePath = path.resolve(__dirname, 'customGames', 'largestKommune.json')
-            const data = fs.readFileSync(filePath, 'utf-8')
-            return JSON.parse(data)
-        }
-        if (name === 'mostKnownNorwegian') {
-            const filePath = path.resolve(__dirname, 'customGames', 'mostKnownNorwegian.json')
-            const data = fs.readFileSync(filePath, 'utf-8')
-            return JSON.parse(data)
-        }
-        if (name === 'tvSeriesEpisodeCount') {
-            const filePath = path.resolve(__dirname, 'customGames', 'tvSeriesEpisodeCount.json')
-            const data = fs.readFileSync(filePath, 'utf-8')
-            return JSON.parse(data)
-        }
-        if (name === 'medalsByCountry') {
-            const filePath = path.resolve(__dirname, 'customGames', 'medalsByCountry.json')
-            const data = fs.readFileSync(filePath, 'utf-8')
-            return JSON.parse(data)
-        }
-    }
 
-    static getAllCustomGames() {
-        const filePath = path.resolve(__dirname, 'allCustomGames.json')
+    static getJSONByName(name: string) {
+        const fileMap: { [key: string]: string } = {
+            norwegianCities: 'norwegianCities.json',
+            norwegianMountains: 'norwegianMountains.json',
+            celebAge: 'celebAge.json',
+            kommuneInnbygger: 'kommuneInnbygger.json',
+            kommuneSize: 'largestKommune.json',
+            tvSeriesEpisodeCount: 'tvSeriesEpisodeCount.json',
+            medalsByCountry: 'medalsByCountry.json',
+            footballAllTimeGoalsTop25: 'footballers-by-goals.json',
+            worldPopulationTop40: 'countries-by-population.json',
+            elementsAtomicNumber: 'atom-number.json',
+            languagesBySpeakersTop50: 'language-by-speakers.json',
+            animalsTopSpeedTop30: 'animals-by-topspeed.json',
+            companiesFoundedYear: 'companies-by-founding-year.json',
+            norwegianTvSeriesPremiere: 'norwegian-TV-by-launch.json',
+            mostVisitedTouristAttractions: 'tourist-destionations-by-visitors.json',
+            moviesByRuntime: 'movies-by-runtime.json',
+            tvSeriesBySeasons: 'tv-series-by-seasons.json',
+        }
+
+        const fileName = fileMap[name]
+        if (!fileName) {
+            throw new Error(`Game JSON for name "${name}" not found.`)
+        }
+
+        const filePath = path.resolve(__dirname, 'customGames', fileName)
         const data = fs.readFileSync(filePath, 'utf-8')
         return JSON.parse(data)
+    }
+
+    static collectAllJSONsFromFolder() {
+        const folderPath = path.resolve(__dirname, 'customGames')
+        const files = fs.readdirSync(folderPath)
+        const jsonFiles = files.filter((file) => file.endsWith('.json'))
+
+        const games = jsonFiles.map((file) => {
+            const filePath = path.join(folderPath, file)
+            const data = fs.readFileSync(filePath, 'utf-8')
+            return {
+                name: path.basename(file, '.json'),
+                content: JSON.parse(data),
+            }
+        })
+
+        return games
     }
 }

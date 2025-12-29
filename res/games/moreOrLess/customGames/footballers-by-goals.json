@@ -1,0 +1,43 @@
+{
+    "slug": "footballAllTimeGoalsTop25",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/0/09/Football_Pitch_Vector.svg",
+    "title": "Topp 25 fotballspillere – karrieremål",
+    "seoTitle": "Fotballspillere flest mål gjennom tidene",
+    "description": "Gjett hvilke spillere som har scoret flest mål gjennom karrieren (offisielle kamper) (RSSSF)",
+    "tags": ["CUSTOM_MAZARINI_GAME"],
+    "game": {
+        "strings": {
+            "verb": "har",
+            "valueTitle": "mål",
+            "buttonMore": "Flere",
+            "buttonLess": "Færre"
+        },
+        "data": [
+            ["Erwin Helmchen", 989, ""],
+            ["Cristiano Ronaldo", 956, ""],
+            ["Josef Bican", 950, ""],
+            ["Ronnie Rooke", 934, ""],
+            ["Lionel Messi", 901, ""],
+            ["Jimmy Jones", 840, ""],
+            ["Ferenc Puskás", 802, ""],
+            ["Ferenc Deák", 795, ""],
+            ["Abe Lenstra", 790, ""],
+            ["Romário", 785, ""],
+            ["Pelé", 778, ""],
+            ["Tommy Lawton", 749, ""],
+            ["Gerd Müller", 735, ""],
+            ["Robert Lewandowski", 729, ""],
+            ["Sammy Hughes", 722, ""],
+            ["Joe Bambrick", 690, ""],
+            ["Ernst Wilimowski", 683, ""],
+            ["Luis Suárez", 600, ""],
+            ["Eusébio", 578, ""],
+            ["Imre Schlosser", 553, ""],
+            ["Fernando Peyroteo", 553, ""],
+            ["Uwe Seeler", 552, ""],
+            ["Jimmy McGrory", 550, ""],
+            ["Alfredo Di Stéfano", 537, ""],
+            ["Zico", 501, ""]
+        ]
+    }
+}
