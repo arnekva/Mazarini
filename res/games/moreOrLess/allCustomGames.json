@@ -1,0 +1,164 @@
+[
+    {
+        "title": "Norske byer",
+        "description": "Gjett antall innbyggere i norske byer.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "N/A",
+        "badge": "Custom",
+        "slug": "norwegianCities",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/b/bc/No-map.png"
+    },
+    {
+        "title": "Norske fjell",
+        "description": "Gjett hvilke norske fjell som er høyest.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "N/A",
+        "badge": "Custom",
+        "slug": "norwegianMountains",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/b/bc/No-map.png"
+    },
+    {
+        "title": "Kjendiser og alder",
+        "description": "Gjett alderen til kjente personer.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "N/A",
+        "badge": "Custom",
+        "slug": "celebAge",
+        "image": "https://encrypted-tbn2.gstatic.com/licensed-image?q=tbn:ANd9GcQEyW6L6oDtitrPqWIaJqMKzo6MUk6jt5A1_6iMjM7UdotMGCdY714GYeMOmuJc34_MBhaaX702IpHtyoY"
+    },
+    {
+        "title": "Kommuner og innbyggere",
+        "description": "Gjett antall innbyggere i norske kommuner.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "N/A",
+        "badge": "Custom",
+        "slug": "kommuneInnbygger",
+        "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQBF3NLg9oKaZHtp18zKU08xZ6LyDDR3_0fzQ&s"
+    },
+    {
+        "title": "Kommuner og størrelse",
+        "description": "Gjett størrelsen på norske kommuner.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "N/A",
+        "badge": "Custom",
+        "slug": "kommuneSize",
+        "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQBF3NLg9oKaZHtp18zKU08xZ6LyDDR3_0fzQ&s"
+    },
+    {
+        "title": "TV Serier",
+        "description": "Gjett antall episoder i populære TV-serier.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "N/A",
+        "badge": "Custom",
+        "slug": "tvSeriesEpisodeCount",
+        "image": ""
+    },
+    {
+        "title": "TV-serier etter sesonger",
+        "description": "Gjett hvilke TV-serier som har flest sesonger.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "TV serier etter sesonger",
+        "badge": "Custom",
+        "slug": "tvSeriesBySeasons",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/0/0b/TV_Icon.svg"
+    },
+    {
+        "title": "Medaljer per land",
+        "description": "Gjett antall medaljer vunnet av ulike land.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "N/A",
+        "badge": "Custom",
+        "slug": "medalsByCountry",
+        "image": ""
+    },
+    {
+        "title": "Verdens raskeste dyr",
+        "description": "Gjett hvilke dyr som er raskest.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "Verdens raskeste dyr",
+        "badge": "Custom",
+        "slug": "animalsTopSpeedTop30",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/6/6e/Cheetah_running.jpg"
+    },
+    {
+        "title": "Elementenes atomnummer",
+        "description": "Gjett atomnummeret til ulike grunnstoffer.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "Grunnstoffer atomnummer",
+        "badge": "Custom",
+        "slug": "elementsAtomicNumber",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/0/0a/Periodic_table_large.svg"
+    },
+    {
+        "title": "Språk etter antall talere",
+        "description": "Gjett hvilke språk som har flest talere.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "N/A",
+        "badge": "Custom",
+        "slug": "languagesBySpeakersTop50",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/8/8c/World_language_map.png"
+    },
+    {
+        "title": "Filmer etter spilletid",
+        "description": "Gjett hvilke filmer som er lengst.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "N/A",
+        "badge": "Custom",
+        "slug": "moviesByRuntime",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/4/4f/Film_reel.jpg"
+    },
+    {
+        "title": "Norske TV-serier etter premiereår",
+        "description": "Gjett premiereåret til norske TV-serier.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "N/A",
+        "badge": "Custom",
+        "slug": "norwegianTvSeriesPremiere",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/5/5e/TV_icon.png"
+    },
+    {
+        "title": "Turistattraksjoner etter besøkstall",
+        "description": "Gjett hvilke turistattraksjoner i verden som har flest besøkende per år.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "Verdens mest besøkte turistattraksjoner",
+        "badge": "Custom",
+        "slug": "mostVisitedTouristAttractions",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/6/68/Tourist_Attraction_Map_Pins.svg"
+    },
+    {
+        "title": "Verdens språk etter antall talere",
+        "description": "Gjett hvilke språk som snakkes av flest mennesker.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "Verdens språk flest talere",
+        "badge": "Custom",
+        "slug": "languagesBySpeakersTop50",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/2/2c/World_language_map.svg"
+    },
+    {
+        "title": "Topp fotballspillere – karrieremål",
+        "description": "Gjett hvilke spillere som har scoret flest mål gjennom karrieren (offisielle kamper) (RSSSF).",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "Fotballspillere flest mål gjennom tidene",
+        "badge": "Custom",
+        "slug": "footballAllTimeGoalsTop25",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/0/09/Football_Pitch_Vector.svg"
+    },
+    {
+        "title": "Verdens land i folketall",
+        "description": "Gjett hvilke land som har flest innbyggere.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "Verdens land i folketall",
+        "badge": "Custom",
+        "slug": "worldPopulationTop40",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg"
+    },
+    {
+        "title": "Selskaper – år grunnlagt",
+        "description": "Gjett hvilket selskap som ble grunnlagt først.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "Selskaper år grunnlagt",
+        "badge": "Custom",
+        "slug": "companiesFoundedYear",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/5/5f/Office_building_icon.svg"
+    }
+]

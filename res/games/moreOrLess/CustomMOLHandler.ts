@@ -54,6 +54,11 @@ export class CustomMOLHandler {
         return JSON.parse(data)
     }
 
+    static getAllCustomGames() {
+        const filePath = path.resolve(__dirname, 'allCustomGames.json')
+        const data = fs.readFileSync(filePath, 'utf-8')
+        return JSON.parse(data)
+    }
     static collectAllJSONsFromFolder() {
         const folderPath = path.resolve(__dirname, 'customGames')
         const files = fs.readdirSync(folderPath)

@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '29.3.0'
+    public static readonly currentVersion = '29.3.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,32 +26,7 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            [
-                '# MoL',
-                '* Sletter kategorien "mest kjente avdøde nordmenn"',
-                '## Legger til: ',
-                '   * Land etter innbyggertall (oppdatert versjon med 2025 tall)',
-                '   * Fotballspillere etter antall mål',
-                '   * Toppfart på dyr',
-                '   * Atomnummere',
-                '   * Oppstartsdatoer for kjente selskap',
-                '   * Norske TV-serier etter premieredato',
-                '   * Verdensspråk etter antall talere',
-                '   * Turistmål etter antall besøkende',
-                '   * Filmer etter lengde',
-                '   * TV serier etter antall sesonger',
-                '## Filtrerer nå bort følgende kategorier:',
-                '   * LoL Champion Prices',
-                '   * LoL Champion Win Rates',
-                '   * LoL Champion Skins',
-                '   * Fortnite YouTubers',
-                '   * League of Legends YouTubers',
-                '   * German League of Legends YouTubers (rip free Dond)',
-                '   * German YouTubers',
-                '   * MrBeast Video Views',
-                '   * CarryMinati YouTube Video Views',
-                '   * Stoke Twins YouTube Video Views',
-            ].join('\n')
+            ['# MoL', '* Fikset en feil som gjorde at nye kategorier ikke ble lest inn riktig i noen tilfeller'].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

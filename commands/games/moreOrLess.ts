@@ -72,7 +72,7 @@ export class MoreOrLess extends AbstractCommands {
                 },
             })
         ).json()
-        games.push(...CustomMOLHandler.collectAllJSONsFromFolder())
+        games.push(...CustomMOLHandler.getAllCustomGames())
 
         // Filter out blacklisted slugs
         const filteredGames = games.filter((game) => !this.blacklist.includes(game.slug))
