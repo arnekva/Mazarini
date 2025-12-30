@@ -1,5 +1,5 @@
 import { Message, TextChannel } from 'discord.js'
-import { environment } from '../client-env'
+import { environment, secretDevelopment } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
 import { ChannelIds, MentionUtils } from './mentionUtils'
 import { UserUtils } from './userUtils'
@@ -64,16 +64,12 @@ export namespace MessageUtils {
 
     export const isLegalChannel = (channelId: string) => {
         return (
-            (environment === 'dev' &&
-                (channelId === ChannelIds.LOKAL_BOT_SPAM ||
-                    channelId === ChannelIds.LOKAL_BOT_SPAM_DEV ||
-                    channelId === ChannelIds.STATS_SPAM ||
-                    channelId === ChannelIds.GODMODE ||
-                    channelId === ChannelIds.LOKAL_BOT_SECRET)) ||
+            (environment === 'dev' && channelId === ChannelIds.LOCALHOST && !secretDevelopment) ||
+            (channelId === ChannelIds.SECRET_LOCALHOST && secretDevelopment) ||
             (environment === 'prod' &&
                 channelId !== ChannelIds.LOKAL_BOT_SPAM &&
-                channelId !== ChannelIds.LOKAL_BOT_SPAM_DEV &&
-                channelId !== ChannelIds.LOKAL_BOT_SECRET)
+                channelId !== ChannelIds.LOCALHOST &&
+                channelId !== ChannelIds.SECRET_LOCALHOST)
         )
     }
 }

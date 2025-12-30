@@ -133,8 +133,8 @@ export class ClientListener {
                 }
                 if (
                     (hoieTagged || replyToHoie) &&
-                    ((environment === 'prod' && message.channelId !== ChannelIds.LOKAL_BOT_SPAM_DEV) ||
-                        (environment === 'dev' && message.channelId === ChannelIds.LOKAL_BOT_SPAM_DEV))
+                    ((environment === 'prod' && message.channelId !== ChannelIds.LOCALHOST) ||
+                        (environment === 'dev' && message.channelId === ChannelIds.LOCALHOST))
                 ) {
                     this.client.gemini.fetchAndSendMessage(message, this.client.messageHelper, message.channelId, {
                         displayName: UserUtils.getPrettyName(message.member),
@@ -166,8 +166,8 @@ export class ClientListener {
             if (
                 target?.id === message?.author?.id &&
                 message.channelId !== ChannelIds.ACTION_LOG &&
-                message.channelId !== ChannelIds.LOKAL_BOT_SPAM_DEV &&
-                message.channelId !== ChannelIds.LOKAL_BOT_SECRET &&
+                message.channelId !== ChannelIds.LOCALHOST &&
+                message.channelId !== ChannelIds.SECRET_LOCALHOST &&
                 !message?.content?.includes('Laster data') &&
                 !message?.content?.includes('Henter data') &&
                 environment === 'prod' &&
