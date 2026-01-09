@@ -6,6 +6,8 @@ import { DateUtils } from '../utils/dateUtils'
 import { ThreadIds } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
 import { MessageHelper } from './messageHelper'
+import { textArrays } from '../utils/textArrays'
+import { ArrayUtils } from '../utils/arrayUtils'
 
 interface IKnownUser {
     displayName: string
@@ -58,7 +60,10 @@ export class GeminiHelper {
             const res = await this.chatStream.sendMessage(prompt, {})
             result = res.response.text()
         } catch (error) {
-            result = `Eg e litt opptatt nå.`
+            const isQuestion = question.endsWith('?')
+
+            result = ArrayUtils.randomChoiceFromArray(isQuestion ? textArrays.bentHoieLinesAnswers : textArrays.bentHoieLines)
+
             this.client.messageHelper.sendLogMessage(`Gemini Error:\n${error}`)
             console.log(error)
         }

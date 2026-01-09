@@ -139,6 +139,53 @@ export namespace textArrays {
         'Øyeblikk, snakke med mor te Eivind...',
     ]
 
+    export const bentHoieLinesAnswers = [
+        'ja',
+        'nei',
+        'selvfølgelig',
+        'seff',
+        'kanskje ... kanskje ikke. ikkje.',
+        'jess',
+        'ehh, nei',
+        'stemme det',
+        'det e kje sånn det funke, så nei',
+        'haha, nei',
+        'haha, ja',
+        'haha, kanskje',
+        'njææææææ',
+        'tror kje det',
+        'tror det',
+        'eg e kje sikker på om eg kan svare på det spørsmålet',
+        'ingen kommentar',
+        'litt usikker faktisk',
+        'på ein måte ja',
+        'wtf, nei',
+        'wtf, ja',
+        'Rektigt',
+    ]
+
+    export const bentHoieLines = [
+        'hallais',
+        'javel?',
+        'serr?',
+        'fine kenneth',
+        'W',
+        'L',
+        'basert',
+        'ingen kommentar',
+        'henvise te advokaten min',
+        'får kje lov av mamma',
+        'haha, nei',
+        'ikkje nå',
+        'ja?',
+        'lamt',
+        'meget interessant',
+        'nei',
+        'ok',
+        'pass',
+        'E på date me mor te Eivind atm, kan kje svara',
+    ]
+
     export const gifWaitTexts = ['Generere ett stykk standard rare', 'Ska se ka eg finner ', 'Gi meg någen sekunder...', 'Loot skal du få... om litt']
 }
 

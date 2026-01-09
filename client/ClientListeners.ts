@@ -27,6 +27,9 @@ import { ChannelIds, MentionUtils, ServerIds } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { UserUtils } from '../utils/userUtils'
 import { MazariniClient } from './MazariniClient'
+import { ArrayUtils } from '../utils/arrayUtils'
+import { TextUtils } from '../utils/textUtils'
+import { textArrays } from '../utils/textArrays'
 
 /** NOT IN USE
  *  Testing sub-properties and functions

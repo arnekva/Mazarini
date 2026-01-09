@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '29.3.1'
+    public static readonly currentVersion = '29.3.2'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,7 +26,10 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            ['# MoL', '* Fikset en feil som gjorde at nye kategorier ikke ble lest inn riktig i noen tilfeller'].join('\n')
+            [
+                '* Høie blir nå Magic 8-ball igjen hvis han ikke får generert svar. ',
+                '   * Ender teksten med spørsmålstegn får du ja/nei-aktige svar (de gamle tekstene er hentet tilbake fra kirkegården)',
+            ].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
