@@ -37,7 +37,7 @@ export class CustomMOLHandler {
             elementsAtomicNumber: 'atom-number.json',
             languagesBySpeakersTop50: 'language-by-speakers.json',
             animalsTopSpeedTop30: 'animal-by-topspeed.json',
-            companiesFoundedYear: 'companies-by-founding-year.json',
+            companiesFoundedYear: 'companies-by-founding-date.json',
             norwegianTvSeriesPremiere: 'norwegian-TV-by-launch.json',
             mostVisitedTouristAttractions: 'tourist-destionations-by-visitors.json',
             moviesByRuntime: 'movies-by-runtime.json',
