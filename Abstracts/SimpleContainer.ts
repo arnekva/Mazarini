@@ -1,4 +1,5 @@
 import { APIComponentInContainer, ContainerBuilder, ContainerComponentBuilder, RGBTuple, SeparatorBuilder, SeparatorSpacingSize } from 'discord.js'
+import { ComponentsHelper } from '../helpers/componentsHelper'
 
 export interface ContainerComponent {
     name: string
@@ -20,9 +21,15 @@ export class SimpleContainer {
         this.components.splice(insert, 0, { name: reference, component: component })
     }
 
+    public addComponentAfterReference(reference: string, component: APIComponentInContainer | ContainerComponentBuilder, afterRef: string) {
+        const insert = this.getComponentIndex(afterRef) + 1 ?? this.customContainer.components?.length ?? 0
+        this.customContainer.spliceComponents(insert, 0, component)
+        this.components.splice(insert, 0, { name: reference, component: component })
+    }
+
     public removeComponent(reference: string) {
         const index = this.components.findIndex((comp) => comp.name === reference)
-        if (index) {
+        if (index >= 0) {
             this.customContainer.spliceComponents(index, 1)
             this.components.splice(index, 1)
         }
@@ -30,7 +37,16 @@ export class SimpleContainer {
 
     public replaceComponent(reference: string, newComponent: APIComponentInContainer | ContainerComponentBuilder) {
         const index = this.components.findIndex((comp) => comp.name === reference)
-        if (index) {
+        if (index >= 0) {
+            this.customContainer.spliceComponents(index, 1, newComponent)
+            this.components[index].component = newComponent
+        }
+    }
+
+    public updateTextComponent(reference: string, newText: string) {
+        const index = this.components.findIndex((comp) => comp.name === reference)
+        if (index >= 0) {
+            const newComponent = ComponentsHelper.createTextComponent().setContent(newText)
             this.customContainer.spliceComponents(index, 1, newComponent)
             this.components[index].component = newComponent
         }

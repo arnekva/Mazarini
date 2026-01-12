@@ -1,3 +1,4 @@
+import { CCGCard } from '../../commands/ccg/ccgInterface'
 import { CodBRStatsType, CodStats } from '../../commands/gaming/callofdutyCommands'
 import { rocketLeagueDbData } from '../../commands/gaming/rocketleagueCommands'
 import { IPoll } from '../../commands/pollcommands'
@@ -98,8 +99,15 @@ export interface MazariniUser {
     effects?: IUserEffects
     christmasCalendar?: UserCalendarGift[]
     dailyGameStats?: IDailyGameStats
+    decks?: ICCGDeck[]
 }
 
+export interface ICCGDeck {
+    name: string
+    cards: { id: string; series: string; amount: number; rarity: ItemRarity }[]
+    valid: boolean
+    active: boolean
+}
 export interface IDailyGameStats {
     moreOrLess?: IMoreOrLessStats
     mastermind?: IMastermindStats
@@ -174,6 +182,7 @@ export interface ILootSeries {
     epic: string[]
     legendary: string[]
     hasUnobtainable: boolean
+    isCCG?: boolean
     unobtainableHolder?: string //userID of current holder
     inventoryArts?: ILootSeriesInventoryArt[]
 }
@@ -188,6 +197,7 @@ export interface IUserLoot {
     sw?: IUserLootSeries
     hp?: IUserLootSeries
     lotr?: IUserLootSeries
+    mazariniCCG?: IUserLootSeries
 }
 
 export interface IUserLootSeries {
@@ -268,6 +278,7 @@ export interface IUserLootItem {
     rarity: ItemRarity
     color: ItemColor
     amount: number
+    isCCG?: boolean
 }
 
 export enum ItemRarity {
@@ -349,6 +360,11 @@ export interface MazariniStorage {
             shuffleIgnoresDigits?: boolean
         }
     }
+    ccg?: ICCGSystem
+}
+
+export interface ICCGSystem {
+    mazariniCCG: CCGCard[]
 }
 
 export interface ILuckyWheelReward {
@@ -412,6 +428,14 @@ export type UserStats = {
     moneyStats?: MoneyStats
     dondStats?: DonDStats
     wordleStats?: WordleStats
+    ccgStats?: CCGStats
+}
+
+export interface CCGStats {
+    gamesPlayed: number
+    wins: number
+    cardsPlayed: number
+    //TODO
 }
 
 interface WordleStats {

@@ -486,6 +486,42 @@ export class ImageGenerationHelper {
         return await base.composite(composites).toBuffer()
     }
 
+    public async stitchImages(images: Buffer[], orientation: 'vertical' | 'horizontal') {
+        let totalWidth = 0
+        let totalHeight = 0
+        const composites: sharp.OverlayOptions[] = new Array<sharp.OverlayOptions>()
+        let currentTop = 0
+        let currentLeft = 0
+
+        for (let i = 0; i < images.length; i++) {
+            const { width, height } = await sharp(images[i]).metadata()
+            const composite = { input: images[i], top: currentTop, left: currentLeft }
+            if (orientation === 'horizontal') {
+                totalWidth += width
+                totalHeight = height > totalHeight ? height : totalHeight
+                currentLeft += width
+            } else if (orientation === 'vertical') {
+                totalHeight += height
+                totalWidth = width > totalWidth ? width : totalWidth
+                currentTop += height
+            }
+            composites.push(composite)
+        }
+
+        // Create a blank canvas
+        const base = sharp({
+            create: {
+                width: totalWidth,
+                height: totalHeight,
+                channels: 4,
+                background: { r: 0, g: 0, b: 0, alpha: 0 }, // transparent background
+            },
+        }).png()
+
+        // Stitch together
+        return await base.composite(composites).toBuffer()
+    }
+
     public async extractArtSection(art: ILootSeriesInventoryArt, rarity: ItemRarity): Promise<Buffer> {
         // Get original dimensions
         const image = fs.readFileSync(`graphics/background/inventory_art/${art.name}.png`)
@@ -590,6 +626,7 @@ export class ImageGenerationHelper {
     }
 
     private buildEmojiName(item: IUserLootItem): string {
+        if (item.isCCG) return item.name
         return `${item.series}_${item.name}_${item.color.charAt(0)}`.toLowerCase()
     }
 

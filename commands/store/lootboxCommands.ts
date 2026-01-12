@@ -11,10 +11,11 @@ import {
     Message,
 } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
-import { BtnInteraction, ChatInteraction, ATCInteraction } from '../../Abstracts/MazariniInteraction'
+import { ATCInteraction, BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
+import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
 import { LootStatsHelper } from '../../helpers/statsHelper'
@@ -33,8 +34,9 @@ import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { TextUtils } from '../../utils/textUtils'
+import { CCGCard } from '../ccg/ccgInterface'
+import { mockHand } from '../ccg/mockCards'
 import { DealOrNoDeal } from '../games/dealOrNoDeal'
-import { DatabaseHelper } from '../../helpers/databaseHelper'
 
 interface IPendingTrade {
     userId: string
@@ -64,6 +66,10 @@ interface InventoryUpdate {
     series: string
     rarity: ItemRarity
 }
+
+//TODO
+const ccgBack =
+    'https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/fed3bb24-454f-4bdf-a721-6aa8f23e7cef/d9gnihf-ec16caeb-ec9c-4870-9480-57c7711d844f.png?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiIvZi9mZWQzYmIyNC00NTRmLTRiZGYtYTcyMS02YWE4ZjIzZTdjZWYvZDlnbmloZi1lYzE2Y2FlYi1lYzljLTQ4NzAtOTQ4MC01N2M3NzExZDg0NGYucG5nIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.I2prcITP_1w7rBQicZPc24PYcBaj3IZzXbCiCNOB4rE'
 
 export class LootboxCommands extends AbstractCommands {
     private imageGenerator: ImageGenerationHelper
@@ -150,7 +156,7 @@ export class LootboxCommands extends AbstractCommands {
         const sh = new LootStatsHelper(user.loot[seriesObj.name].stats)
         sh.registerPurchase(box, false, interaction.isChatInputCommand())
 
-        const rewardedItem = await this.calculateRewardItem(box, seriesObj, user)
+        const rewardedItem = this.calculateRewardItem(box, seriesObj, user)
         this.registerItemOnUser(user, rewardedItem)
         if (!(rewardedItem.rarity === ItemRarity.Unobtainable)) this.generateInventoryParts(user, rewardedItem.series, [rewardedItem.rarity])
         this.revealCollectable(interaction, rewardedItem, user.userSettings.lootReactionTimer)
@@ -168,12 +174,13 @@ export class LootboxCommands extends AbstractCommands {
         sh.registerPurchase(box, true, interaction.isChatInputCommand())
 
         const chestItems: IUserLootItem[] = new Array<IUserLootItem>()
-        chestItems.push(await this.calculateRewardItem(box, seriesObj, user))
-        chestItems.push(await this.calculateRewardItem(box, seriesObj, user))
-        chestItems.push(await this.calculateRewardItem(box, seriesObj, user))
+        chestItems.push(this.calculateRewardItem(box, seriesObj, user))
+        chestItems.push(this.calculateRewardItem(box, seriesObj, user))
+        chestItems.push(this.calculateRewardItem(box, seriesObj, user))
         this.database.updateUser(user) //update in case of effect change
         const existingChestId = pendingChest && interaction.isButton() ? interaction.customId.split(';')[1] : undefined
-        this.revealLootChest(interaction, chestItems, quality, seriesObj, existingChestId)
+        if (seriesObj.isCCG) this.revealCCGChest(interaction, chestItems, quality, seriesObj, existingChestId)
+        else this.revealLootChest(interaction, chestItems, quality, seriesObj, existingChestId)
     }
 
     private resolveLootSeries(user: MazariniUser, interaction: ChatInteraction | BtnInteraction, pendingChest?: IPendingChest) {
@@ -254,6 +261,79 @@ export class LootboxCommands extends AbstractCommands {
             }
         }
         this.pendingChests.set(chestId, pendingChest)
+    }
+
+    private async revealCCGChest(
+        interaction: ChatInteraction | BtnInteraction,
+        items: IUserLootItem[],
+        quality: string,
+        series: ILootSeries,
+        existingChestId?: string
+    ) {
+        const embed = EmbedUtils.createSimpleEmbed('CCG card pack', ' ').setImage(ccgBack)
+        const color = (interaction.member as GuildMember).displayColor
+        embed.setColor(color)
+        const chestId = existingChestId ?? randomUUID()
+        const chestItems: Map<string, IUserLootItem> = new Map<string, IUserLootItem>()
+        const cards = await this.getFullCards(items)
+        const buttons = new ActionRowBuilder<ButtonBuilder>()
+        for (const item of items) {
+            const itemId = randomUUID()
+            chestItems.set(itemId, item)
+            const btn = lootChestButton(chestId, itemId)
+            btn.setLabel(cards.find((card) => card.id === item.name).name)
+            buttons.addComponents(btn)
+        }
+        buttons.components[2].setLabel('?')
+        let pendingChest: IPendingChest = undefined
+        if (existingChestId) {
+            pendingChest = this.pendingChests.get(existingChestId)
+            pendingChest.buttons = buttons
+            pendingChest.items = chestItems
+            await pendingChest.message.edit({ embeds: [embed] })
+        } else {
+            const msg = await this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true })
+            pendingChest = {
+                userId: interaction.user.id,
+                quality: quality,
+                series: series.name,
+                items: chestItems,
+                message: msg,
+                buttons: buttons,
+            }
+        }
+        this.pendingChests.set(chestId, pendingChest)
+        setTimeout(async () => {
+            const cardImage = await this.getCCGCardImage(cards)
+            const attachment = new AttachmentBuilder(cardImage, { name: 'cards.png' })
+            const embed = EmbedUtils.createSimpleEmbed('CCG card pack', ' ').setImage('attachment://cards.png')
+            embed.setColor(color)
+            pendingChest.message.edit({ embeds: [embed], components: [pendingChest.buttons], files: [attachment] })
+        }, 3000)
+    }
+
+    private async getCCGCardImage(cards: CCGCard[]) {
+        cards[2].imageUrl = ccgBack
+        const buffers = await Promise.all(
+            cards.map(async (card) => {
+                const res = await fetch(card.imageUrl)
+                if (!res.ok) throw new Error(`Failed to fetch ${card.id}`)
+                return Buffer.from(await res.arrayBuffer())
+            })
+        )
+        return await this.imageGenerator.stitchImages(buffers, 'horizontal')
+    }
+
+    private async getFullCards(items: IUserLootItem[]) {
+        // return mockCards //TOREMOVE
+        const cards = mockHand //(await this.database.getStorage()).ccg
+        const userCards = new Array<CCGCard>()
+        for (const item of items) {
+            // const series = cards[item.series] as CCGCard[]
+            // userCards.push(series.find((card) => card.id === item.name))
+            userCards.push(cards.find((card) => card.id === item.name))
+        }
+        return userCards
     }
 
     private getChestEffectOdds(quality: string) {
@@ -347,7 +427,7 @@ export class LootboxCommands extends AbstractCommands {
         return moneyWasTaken
     }
 
-    private async calculateRewardItem(box: ILootbox, series: ILootSeries, user: MazariniUser) {
+    private calculateRewardItem(box: ILootbox, series: ILootSeries, user: MazariniUser) {
         const itemRoll = Math.random()
         let colored = Math.random() < box.probabilities.color
         if (series.hasColor && (user.effects?.positive?.guaranteedLootColor ?? 0) > 0) {
@@ -355,24 +435,23 @@ export class LootboxCommands extends AbstractCommands {
             user.effects.positive.guaranteedLootColor -= 1
         }
         if (series.hasUnobtainable && itemRoll < (box.probabilities.unobtainable ?? 0) && (series.unobtainableHolder ?? '') !== user.id) {
-            return await this.getRandomItemForRarity(ItemRarity.Unobtainable, series.name, colored, user)
+            return this.getRandomItemForRarity(ItemRarity.Unobtainable, series, colored, user)
         } else if (itemRoll < box.probabilities.legendary) {
-            return await this.getRandomItemForRarity(ItemRarity.Legendary, series.name, colored, user)
+            return this.getRandomItemForRarity(ItemRarity.Legendary, series, colored, user)
         } else if (itemRoll < box.probabilities.epic) {
-            return await this.getRandomItemForRarity(ItemRarity.Epic, series.name, colored, user)
+            return this.getRandomItemForRarity(ItemRarity.Epic, series, colored, user)
         } else if (itemRoll < box.probabilities.rare) {
-            return await this.getRandomItemForRarity(ItemRarity.Rare, series.name, colored, user)
+            return this.getRandomItemForRarity(ItemRarity.Rare, series, colored, user)
         } else {
-            return await this.getRandomItemForRarity(ItemRarity.Common, series.name, colored, user)
+            return this.getRandomItemForRarity(ItemRarity.Common, series, colored, user)
         }
     }
 
-    private async getRandomItemForRarity(rarity: ItemRarity, series: string, colored: boolean, user: MazariniUser): Promise<IUserLootItem> {
-        const seriesOrDefault = await this.getSeriesOrDefault(series)
-        const rarityItems = this.getRarityItems(seriesOrDefault, rarity)
+    private getRandomItemForRarity(rarity: ItemRarity, series: ILootSeries, colored: boolean, user: MazariniUser): IUserLootItem {
+        const rarityItems = this.getRarityItems(series, rarity)
         const item = RandomUtils.getRandomItemFromList(rarityItems)
-        const color = this.getRandomColor(colored && seriesOrDefault.hasColor, user)
-        return { name: item, series: seriesOrDefault.name, rarity: rarity, color: color, amount: 1 }
+        const color = this.getRandomColor(colored && series.hasColor, user)
+        return { name: item, series: series.name, rarity: rarity, color: color, amount: 1 }
     }
 
     private getRandomInventoryArt(user: MazariniUser, series: ILootSeries) {
@@ -457,6 +536,7 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private async revealCollectable(interaction: ChatInteraction | BtnInteraction, item: IUserLootItem, timer?: number) {
+        if (item.isCCG) return this.revealCCGLoot(interaction, item)
         const path = this.getGifPath(item)
         const url = await this.client.database.getLootGifLink(path)
         const container = new SimpleContainer()
@@ -469,6 +549,10 @@ export class LootboxCommands extends AbstractCommands {
         container.setColor(color)
         const reply = await this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, [container.container])
         this.addReaction(reply, item, timer)
+    }
+
+    private async revealCCGLoot(interaction: ChatInteraction | BtnInteraction, item: IUserLootItem) {
+        //TODO
     }
 
     private async addReaction(reply: Message | InteractionResponse, item: IUserLootItem, timer?: number) {
@@ -510,7 +594,7 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private async seriesAutocomplete(interaction: ATCInteraction, isArt: boolean = false) {
-        const series = await this.getSeries()
+        const series = (await this.getSeries()).filter((series) => !series.isCCG || GameValues.ccg.isLootable)
         const filteredSeries = isArt ? series.filter((serie) => serie.inventoryArts && serie.inventoryArts.length > 0) : series
         const optionList: any = interaction.options
         const input = optionList.getFocused().toLowerCase()
@@ -733,7 +817,7 @@ export class LootboxCommands extends AbstractCommands {
 
     private getUserLoot(user: MazariniUser, filter?: { series: string; rarity: string }) {
         const loot = new Array<IUserLootItem>()
-        const series = filter ? [filter.series] : ['mazarini', 'sw', 'hp', 'lotr']
+        const series = filter ? [filter.series] : ['mazarini', 'sw', 'hp', 'lotr'] // Don't add CCG series here
         const rarities = filter ? [filter.rarity] : ['common', 'rare', 'epic', 'legendary']
         for (const serie of series) {
             for (const rarity of rarities) {
@@ -886,9 +970,10 @@ export class LootboxCommands extends AbstractCommands {
         const colorChance = this.getTradeColorChance(pendingTrade.tradingIn)
 
         const colored = Math.random() < colorChance
-        let rewardedItem = await this.getRandomItemForRarity(pendingTrade.receiving, pendingTrade.series, colored, user)
+        const seriesObj = await this.getSeriesOrDefault(pendingTrade.series)
+        let rewardedItem = this.getRandomItemForRarity(pendingTrade.receiving, seriesObj, colored, user)
         while (this.itemIsSameAsTradedIn(rewardedItem, pendingTrade.tradingIn)) {
-            rewardedItem = await this.getRandomItemForRarity(pendingTrade.receiving, pendingTrade.series, colored, user)
+            rewardedItem = this.getRandomItemForRarity(pendingTrade.receiving, seriesObj, colored, user)
         }
         const sh = new LootStatsHelper(user.loot[rewardedItem.series].stats)
         sh.registerTrade(pendingTrade.tradingIn.length === 5)
@@ -944,6 +1029,7 @@ export class LootboxCommands extends AbstractCommands {
         const cmd = interaction.options.getSubcommand()
         if (!cmdGroup && cmd === 'box') this.openAndRegisterLootbox(interaction)
         else if (!cmdGroup && cmd === 'chest') this.openAndRegisterLootChest(interaction)
+        else if (!cmdGroup && cmd === 'pack') this.openAndRegisterLootChest(interaction)
         else if (!cmdGroup && cmd === 'inventory') this.printInventory(interaction)
         else if (!cmdGroup && cmd === 'art') this.purchaseLootArt(interaction)
         else if (cmdGroup && cmdGroup === 'trade') this.tradeItems(interaction)

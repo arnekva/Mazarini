@@ -1,6 +1,8 @@
 // Centralized values for game balancing across Deathroll, More or Less, Spinner, Daily, etc.
 // Edit these values to balance rewards, multipliers, streaks, etc. for all games.
 
+import { ICCGDeck, ItemRarity } from '../interfaces/database/databaseInterface'
+
 type dailyReward = number | 'dond' | 'box' | 'chest'
 export type GameValuesType = {
     deathroll: {
@@ -128,6 +130,36 @@ export type GameValuesType = {
         totalAttempts: number
         codeLength: number
         winnerReward: number
+    }
+    ccg: {
+        gameSettings: {
+            defaultHandSize: number
+            maxHandSize: number
+            startingHP: number
+            energyRecoveryPerRound: number
+            openHands: boolean
+            fatigueDamage: number
+            startingEnergy: number
+            maxCardsPlayed: number
+        }
+        deck: {
+            size: number
+            hiddenEditor: boolean
+            cardsPerPage: number
+            rarityCaps: {
+                rare: number
+                epic: number
+                legendary: number
+            }
+        }
+        isLootable: boolean
+        activeCCGseries: string[]
+        defaultDeck: ICCGDeck
+        botDeck: {
+            easy: ICCGDeck
+            medium: ICCGDeck
+            hard: ICCGDeck
+        }
     }
 }
 
@@ -305,5 +337,71 @@ export const GameValues: GameValuesType = {
         totalAttempts: 10,
         codeLength: 4,
         winnerReward: 5000,
+    },
+    ccg: {
+        gameSettings: {
+            defaultHandSize: 4,
+            maxHandSize: 5,
+            startingHP: 10,
+            energyRecoveryPerRound: 2,
+            startingEnergy: 3,
+            openHands: false,
+            fatigueDamage: 0,
+            maxCardsPlayed: 2,
+        },
+        deck: {
+            size: 12,
+            hiddenEditor: false,
+            cardsPerPage: 4,
+            rarityCaps: {
+                rare: 5,
+                epic: 1,
+                legendary: 1,
+            },
+        },
+        isLootable: true,
+        activeCCGseries: ['mazariniCCG'],
+        defaultDeck: {
+            name: 'default',
+            active: true,
+            valid: true,
+            cards: [
+                { id: '', series: '', amount: 4, rarity: ItemRarity.Common }, //TODO set default cards
+                { id: '', series: '', amount: 4, rarity: ItemRarity.Common },
+                { id: '', series: '', amount: 4, rarity: ItemRarity.Common },
+            ],
+        },
+        botDeck: {
+            easy: {
+                name: 'easy',
+                active: true,
+                valid: true,
+                cards: [
+                    { id: '', series: '', amount: 4, rarity: ItemRarity.Common }, //TODO set easy cards
+                    { id: '', series: '', amount: 4, rarity: ItemRarity.Common },
+                    { id: '', series: '', amount: 4, rarity: ItemRarity.Common },
+                ],
+            },
+            medium: {
+                name: 'medium',
+                active: true,
+                valid: true,
+                cards: [
+                    { id: '', series: '', amount: 4, rarity: ItemRarity.Common }, //TODO set default cards
+                    { id: '', series: '', amount: 4, rarity: ItemRarity.Common },
+                    { id: '', series: '', amount: 4, rarity: ItemRarity.Common },
+                ],
+            },
+            hard: {
+                name: 'hard',
+                active: true,
+                valid: true,
+                cards: [
+                    { id: '', series: '', amount: 4, rarity: ItemRarity.Common }, //TODO set default cards
+                    { id: '', series: '', amount: 4, rarity: ItemRarity.Common },
+                    { id: '', series: '', amount: 4, rarity: ItemRarity.Common },
+                ],
+            },
+        },
     },
 }

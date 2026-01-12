@@ -79,7 +79,7 @@ export class Scripts {
         const allItems: gifTemplate[] = [...common, ...rare, ...epic, ...legendary]
         for (const item of allItems) {
             console.log(item.rarity, ' - ', item.name)
-            const name = `lotr_${item.name}_n`
+            const name = `lotr_${item.name}_n` // Change for CCG
             const emojiObj = appEmojis.find((emoji) => emoji.name == name)
             if (!emojiObj) {
                 const lootItem = { name: item.name, series: 'lotr', rarity: item.rarity, color: ItemColor.None, amount: 1 }
@@ -90,13 +90,13 @@ export class Scripts {
     }
 
     public async updateLootSeriesAndBoxes() {
-        const boxes = await this.client.database.getLootboxes()
-        const updatedBoxes = boxes.map((box) => ({ ...box, probabilities: { ...box.probabilities, unobtainable: 0.002 } }))
-        this.client.database.setLootboxes(updatedBoxes)
+        // const boxes = await this.client.database.getLootboxes()
+        // const updatedBoxes = boxes.map((box) => ({ ...box, probabilities: { ...box.probabilities, unobtainable: 0.002 } }))
+        // this.client.database.setLootboxes(updatedBoxes)
         const allSeries = await this.client.database.getLootboxSeries()
-        const updatedSeries = allSeries.map((series) => ({ ...series, hasColor: true, hasUnobtainable: false }))
-        if (!updatedSeries.some((series) => series.name === lotr_series.name)) updatedSeries.push(lotr_series)
-        this.client.database.setLootSeries(updatedSeries)
+        // const updatedSeries = allSeries.map((series) => ({ ...series, hasColor: true, hasUnobtainable: false }))
+        if (!allSeries.some((series) => series.name === ccg_mock_series.name)) allSeries.push(ccg_mock_series)
+        this.client.database.setLootSeries(allSeries)
     }
 
     public async refactorUserLoot(user: MazariniUser) {
@@ -139,16 +139,15 @@ export class Scripts {
     }
 
     public async refactorUserLootArt() {
-        const users = await this.client.database.getAllUsers()
+        const users = (await this.client.database.getAllUsers()).filter((user) => (user.collectables?.length ?? 0) > 0)
         for (const user of users) {
-            const lotr: IUserLootSeries = {
-                name: 'lotr',
-                inventoryArt: undefined,
-                pityLevel: user.loot.lotr.pityLevel ?? structuredClone(defaultPityLevel),
-                inventory: user.loot.lotr.inventory ?? structuredClone(defaultInventory),
-                stats: user.loot.lotr.stats ?? structuredClone(defaultLootStats),
+            const mazariniCCG: IUserLootSeries = {
+                name: 'mazariniCCG',
+                pityLevel: user.loot.mazariniCCG?.pityLevel ?? structuredClone(defaultPityLevel),
+                inventory: user.loot.mazariniCCG?.inventory ?? structuredClone(defaultInventory),
+                stats: user.loot.mazariniCCG?.stats ?? structuredClone(defaultLootStats),
             }
-            user.loot.lotr = lotr
+            user.loot.mazariniCCG = mazariniCCG
             await this.client.database.updateUser(user)
         }
     }
@@ -245,6 +244,18 @@ const defaultLootStats: ILootStats = {
     achievements: {
         daysWithUnobtainable: 0,
     },
+}
+
+const ccg_mock_series: ILootSeries = {
+    name: 'mazariniCCG',
+    added: new Date(),
+    common: ['queenD-1', 'kingH-1', 'sevenC-1'],
+    rare: ['queenD-2', 'kingH-2', 'sevenC-2'],
+    epic: ['queenD-3', 'kingH-3', 'sevenC-3'],
+    legendary: ['queenD-4', 'kingH-4', 'sevenC-4'],
+    hasColor: false,
+    hasUnobtainable: false,
+    isCCG: true,
 }
 
 const lotr_series: ILootSeries = {

@@ -16,6 +16,7 @@ import { MentionUtils } from '../utils/mentionUtils'
 declare module 'discord.js' {
     interface ChatInputCommandInteraction {
         userPrettyPrint(): string
+        getParam<T>(name: string): T
         readonly authorName: string
     }
     interface User {
@@ -25,12 +26,16 @@ declare module 'discord.js' {
     interface ButtonInteraction {
         userPrettyPrint(): string
         /** Get the name of the user (member display name > user display name > global name > username) */
-        readonly properName: string
+        readonly authorName: string
     }
 }
 
 ChatInputCommandInteraction.prototype.userPrettyPrint = function () {
     return `not implemented yet`
+}
+
+ChatInputCommandInteraction.prototype.getParam = function <T>(name: string) {
+    return `not implemented yet` as T
 }
 
 Object.defineProperty(ChatInputCommandInteraction.prototype, 'authorName', {
@@ -43,6 +48,18 @@ Object.defineProperty(ChatInputCommandInteraction.prototype, 'authorName', {
     enumerable: false,
     configurable: true,
 })
+
+Object.defineProperty(ButtonInteraction.prototype, 'authorName', {
+    get: function () {
+        const u = this.user as User
+        const m = this.member as GuildMember
+
+        return m?.nickname || u.displayName || u.globalName || u.username
+    },
+    enumerable: false,
+    configurable: true,
+})
+
 Object.defineProperty(User.prototype, 'mention', {
     get: function () {
         return `${MentionUtils.mentionUser(this.id)}`
