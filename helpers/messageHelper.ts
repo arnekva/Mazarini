@@ -212,7 +212,7 @@ export class MessageHelper {
             return undefined
         }
 
-        if (environment === 'dev') channelId = secretDevelopment ? ChannelIds.LOKAL_BOT_SECRET : ChannelIds.LOKAL_BOT_SPAM_DEV // Global overwrite to avoid sending dev-environment messages to main server
+        if (environment === 'dev') channelId = secretDevelopment ? ChannelIds.SECRET_LOCALHOST : ChannelIds.LOCALHOST // Global overwrite to avoid sending dev-environment messages to main server
 
         const channel = this.findChannelById(channelId) as TextChannel
         if (channel && channel.permissionsFor(UserUtils.findMemberByUserID(MentionUtils.User_IDs.BOT_HOIE, channel.guild)).toArray().includes('SendMessages')) {

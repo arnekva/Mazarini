@@ -300,9 +300,9 @@ export const GameValues: GameValuesType = {
     },
     loot: {
         chestEffectOdds: {
-            basic: 0.1,
-            premium: 0.2,
-            elite: 0.5,
+            basic: 0.2,
+            premium: 0.4,
+            elite: 1,
         },
         artPrice: 1000,
     },

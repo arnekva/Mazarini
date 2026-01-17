@@ -1,0 +1,43 @@
+{
+    "slug": "norwegianTvSeriesPremiere",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/1/1d/NRK_logo.svg",
+    "title": "Norske TV-serier – premieredato",
+    "seoTitle": "Norske TV-serier premiereår",
+    "description": "Gjett hvilket år disse norske TV-seriene hadde premiere",
+    "tags": ["CUSTOM_MAZARINI_GAME"],
+    "game": {
+        "strings": {
+            "verb": "hadde premiere",
+            "valueTitle": "år",
+            "buttonMore": "Senere",
+            "buttonLess": "Tidligere"
+        },
+        "data": [
+            ["Jul i Skomakergata", 1979, ""],
+            ["Sesam Stasjon", 1991, ""],
+            ["Heia Norge", 1988, ""],
+            ["Gutta på tur", 1995, ""],
+            ["God kveld Norge", 1997, ""],
+            ["Hotel Cæsar", 1998, ""],
+            ["Nytt på nytt", 1999, ""],
+            ["Robinsonekspedisjonen", 1999, ""],
+            ["Farmen", 2001, ""],
+            ["Halvseint", 2007, ""],
+            ["Hellfjord", 2012, ""],
+            ["Hjernevask", 2010, ""],
+            ["Skam", 2015, ""],
+            ["Lilyhammer", 2012, ""],
+            ["Mammon", 2014, ""],
+            ["Okkupert", 2015, ""],
+            ["Nobel", 2016, ""],
+            ["Peking Express", 2007, ""],
+            ["Undercover Boss Norge", 2011, ""],
+            ["Idol", 2003, ""],
+            ["Heia Tufte!", 2005, ""],
+            ["I kveld med YLVIS", 2011, ""],
+            ["Jul i Tøyengata", 2006, ""],
+            ["Dokument 2", 1992, ""],
+            ["Hjernevask", 2010, ""]
+        ]
+    }
+}

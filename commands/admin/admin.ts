@@ -364,7 +364,7 @@ export class Admin extends AbstractCommands {
 
     private async attemptRestart(interaction: ChatInteraction) {
         this.client.cache.restartImpediments = []
-        interaction.deferReply()
+        await interaction.deferReply()
         await this.client.onRestart()
         if ((this.client.cache.restartImpediments?.length ?? 0) > 0) {
             const msg = this.client.cache.restartImpediments.reduce((prev, item) => prev + item + '\n', '')

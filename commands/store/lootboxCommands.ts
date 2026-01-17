@@ -34,6 +34,7 @@ import { EmbedUtils } from '../../utils/embedUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { TextUtils } from '../../utils/textUtils'
 import { DealOrNoDeal } from '../games/dealOrNoDeal'
+import { DatabaseHelper } from '../../helpers/databaseHelper'
 
 interface IPendingTrade {
     userId: string
@@ -55,7 +56,7 @@ interface IPendingChest {
 export interface IEffectItem {
     label: string
     message: string //følger formatet "Din kalendergave for {dato} er {message}"
-    effect(user: MazariniUser): undefined | ActionRowBuilder<ButtonBuilder>[]
+    effect(user: MazariniUser, db?: DatabaseHelper): undefined | ActionRowBuilder<ButtonBuilder>[] | 'client-update'
 }
 
 interface InventoryUpdate {
@@ -292,7 +293,8 @@ export class LootboxCommands extends AbstractCommands {
         interaction.message.edit({ embeds: [embed], components: [btnRow] })
         if (interaction.customId.split(';')[2] === 'effect') {
             const effect = pendingChest.effect
-            effect.effect(user)
+            const completedEffect = effect.effect(user, this.database)
+
             this.database.updateUser(user)
             this.messageHelper.replyToInteraction(interaction, `Du valgte ${effect.message}`, { hasBeenDefered: true })
         } else {

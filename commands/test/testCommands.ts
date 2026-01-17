@@ -57,7 +57,13 @@ export class TestCommands extends AbstractCommands {
 
     private async test(interaction: ChatInteraction | BtnInteraction) {
         // await interaction.deferReply({ ephemeral: true })
-        
+        const a = await this.database.getStorage()
+        a.effects = {
+            positive: {
+                shuffleIgnoresDigits: true,
+            },
+        }
+        this.database.updateStorage(a)
         interaction.reply(interaction.user.mention + ' det funke!')
 
         // interaction.launchActivity()
