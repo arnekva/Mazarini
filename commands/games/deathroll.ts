@@ -145,7 +145,7 @@ export class Deathroll extends AbstractCommands {
     private checkForPotSkip(roll: number, diceTarget: number, userId: string) {
         if (diceTarget > GameValues.deathroll.potSkip.diceTarget && roll < GameValues.deathroll.potSkip.roll) {
             this.database.incrementPotSkip(userId)
-            this.rewardPot += GameValues.deathroll.potSkip.potPenalty
+            this.rewardPot = Math.max(0, this.rewardPot + GameValues.deathroll.potSkip.potPenalty)
             this.saveRewardPot()
         }
     }
