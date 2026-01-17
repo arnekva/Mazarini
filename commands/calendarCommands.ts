@@ -68,7 +68,7 @@ export class CalendarCommands extends AbstractCommands {
         // Reset shuffleIgnoresDigits for global storage if present
         this.client.database.getStorage?.().then((storage) => {
             if (storage?.effects?.positive?.shuffleIgnoresDigits) {
-                storage.effects.positive.shuffleIgnoresDigits = false
+                storage.effects.positive.shuffleIgnoresDigits = true
                 this.client.database.updateStorage?.(storage)
             }
         })

@@ -6,7 +6,7 @@ export type GameValuesType = {
     deathroll: {
         winningNumberRanges: [number, number][]
         /** Defines what counts as a pot-skip (for tracking stats only) */
-        potSkip: { diceTarget: number; roll: number }
+        potSkip: { diceTarget: number; roll: number; potPenalty: number }
         addToPot: {
             /** When on new ATH streak, this multiplier will be applied to streak */
             athStreakMultiplier: number
@@ -53,8 +53,11 @@ export type GameValuesType = {
         getRollReward: {
             /** All special numbers that will trigger a reward  */
             specialNumbers: number[]
+            unSpecialNumbers: number[]
             /** Multiplier for special numbers */
             multiplier: number
+            /** Penalty applied when hitting an unspecial number (negative value) */
+            unSpecialNumberPenalty: number
         }
         tomasa: {
             baseChance: number
@@ -142,7 +145,7 @@ export const GameValues: GameValuesType = {
             [176, 200],
             [201, 10002],
         ],
-        potSkip: { diceTarget: 200, roll: 69 },
+        potSkip: { diceTarget: 200, roll: 69, potPenalty: -1250 },
         addToPot: {
             athStreakMultiplier: 2000,
             streakMultiplier: 1000,
@@ -152,7 +155,7 @@ export const GameValues: GameValuesType = {
         },
         jokes: {
             nineElevenRemove: 2977,
-            nineElevenChance: 0.75,
+            nineElevenChance: 0.99,
         },
         checkForReward: {
             sameDigitsMultiplier: 3,
@@ -172,10 +175,12 @@ export const GameValues: GameValuesType = {
         },
         getRollReward: {
             specialNumbers: [
-                1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 669, 690, 8008, 6969, 420, 123, 1234, 12345, 2469, 1984, 2024, 2025, 2012, 1945, 2468, 1359,
-                6900, 2026, 4060, 1989,
+                1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 669, 690, 8008, 6969, 420, 123, 1234, 12345, 2469, 1984, 2026, 2012, 1945, 2468, 1359, 6900,
+                2026, 4060, 1989,
             ],
+            unSpecialNumbers: [2024, 2025, 2027, 68, 70],
             multiplier: 3,
+            unSpecialNumberPenalty: -9,
         },
         tomasa: {
             baseChance: 0.001,
@@ -194,11 +199,11 @@ export const GameValues: GameValuesType = {
 
     // More or Less
     moreOrLess: {
-        tier1Reward: 400, // 1-10
-        tier2Reward: 300, // 11-20
-        tier3Reward: 200, // 21-30
-        tier4Reward: 150, // 31-40
-        tier5Reward: 100, // 41-50
+        tier1Reward: 500, // 1-10
+        tier2Reward: 400, // 11-20
+        tier3Reward: 300, // 21-30
+        tier4Reward: 250, // 31-40
+        tier5Reward: 150, // 41-50
         tier6Reward: 50, // 51+
     },
 
@@ -233,9 +238,9 @@ export const GameValues: GameValuesType = {
 
     // Daily Claim
     daily: {
-        baseReward: 500,
-        streakMultiplier: 1.0, // Multiplies with streak
-        streak4Reward: 500,
+        baseReward: 1000,
+        streakMultiplier: 2.0, // Multiplies with streak
+        streak4Reward: 1000,
         streak7Reward: 'chest',
         // Add more as needed
     },
@@ -281,7 +286,7 @@ export const GameValues: GameValuesType = {
 
     // Deal Or No Deal
     dealOrNoDeal: {
-        effectItemChance: 10, // percent chance to get an effect item
+        effectItemChance: 40, // percent chance to get an effect item
         offerBase: 0.5, // base offer percentage
         offerPerRound: 0.05, // offer percentage increase per round
     },
@@ -291,7 +296,7 @@ export const GameValues: GameValuesType = {
         deathrollRefundEnabled: true, // If true, lostAddedBack is shown and refund is applied
     },
     wordle: {
-        reward: 5000,
+        reward: 25000,
     },
     loot: {
         chestEffectOdds: {
@@ -299,11 +304,11 @@ export const GameValues: GameValuesType = {
             premium: 0.2,
             elite: 0.5,
         },
-        artPrice: 10000,
+        artPrice: 1000,
     },
     mastermind: {
         totalAttempts: 10,
         codeLength: 4,
-        winnerReward: 5000,
+        winnerReward: 10000,
     },
 }

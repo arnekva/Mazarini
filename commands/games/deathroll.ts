@@ -143,7 +143,11 @@ export class Deathroll extends AbstractCommands {
     }
 
     private checkForPotSkip(roll: number, diceTarget: number, userId: string) {
-        if (diceTarget > GameValues.deathroll.potSkip.diceTarget && roll < GameValues.deathroll.potSkip.roll) this.database.incrementPotSkip(userId)
+        if (diceTarget > GameValues.deathroll.potSkip.diceTarget && roll < GameValues.deathroll.potSkip.roll) {
+            this.database.incrementPotSkip(userId)
+            this.rewardPot += GameValues.deathroll.potSkip.potPenalty
+            this.saveRewardPot()
+        }
     }
 
     private async checkForShuffle(roll: number, target: number, additionalMessage: string): Promise<string> {
@@ -224,6 +228,17 @@ export class Deathroll extends AbstractCommands {
     }
 
     private async checkForReward(roll: number, diceTarget: number, int: ChatInteraction): Promise<{ val: number; text: string }> {
+        // Check if unspecial number was rolled - subtract from pot directly
+        if (GameValues.deathroll.getRollReward.unSpecialNumbers.includes(roll)) {
+            const penalty = roll * GameValues.deathroll.getRollReward.unSpecialNumberPenalty
+            this.rewardPot = Math.max(0, this.rewardPot + penalty)
+            this.saveRewardPot()
+            return {
+                val: penalty,
+                text: `(pott ${penalty} = ${this.rewardPot} chips)`,
+            }
+        }
+
         let totalAdded = this.getRollReward(roll)
         const multipliers: number[] = [1]
         const lowRoll = roll < GameValues.deathroll.checkForReward.minRollForMultiplier
@@ -303,6 +318,7 @@ export class Deathroll extends AbstractCommands {
 
     private getRollReward(r: number) {
         if (GameValues.deathroll.getRollReward.specialNumbers.includes(r)) return r * GameValues.deathroll.getRollReward.multiplier
+        else if (GameValues.deathroll.getRollReward.unSpecialNumbers.includes(r)) return r * GameValues.deathroll.getRollReward.unSpecialNumberPenalty
         else return 0
     }
 
