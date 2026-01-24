@@ -118,6 +118,7 @@ export type GameValuesType = {
     }
     wordle: {
         reward: number
+        wordleCapPerPerson: number
     }
     loot: {
         chestEffectOdds: {
@@ -296,7 +297,8 @@ export const GameValues: GameValuesType = {
         deathrollRefundEnabled: true, // If true, lostAddedBack is shown and refund is applied
     },
     wordle: {
-        reward: 25000,
+        reward: 5000,
+        wordleCapPerPerson: 2500,
     },
     loot: {
         chestEffectOdds: {
