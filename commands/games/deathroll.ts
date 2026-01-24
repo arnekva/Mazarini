@@ -100,7 +100,7 @@ export class Deathroll extends AbstractCommands {
             if (game) {
                 this.latestRoll = new Date()
                 this.updateGame(game, user.id, roll)
-                this.checkForPotSkip(roll, diceTarget, user.id)
+                additionalMessage += this.checkForPotSkip(roll, diceTarget, user.id)
                 const rewards = await this.checkForReward(roll, diceTarget, interaction)
                 additionalMessage += rewards.text
                 additionalMessage += this.checkForJokes(roll, diceTarget, game.nextToRoll)
@@ -142,12 +142,15 @@ export class Deathroll extends AbstractCommands {
         }
     }
 
-    private checkForPotSkip(roll: number, diceTarget: number, userId: string) {
+    private checkForPotSkip(roll: number, diceTarget: number, userId: string): string {
         if (diceTarget > GameValues.deathroll.potSkip.diceTarget && roll < GameValues.deathroll.potSkip.roll) {
             this.database.incrementPotSkip(userId)
+            const penalty = Math.abs(GameValues.deathroll.potSkip.potPenalty)
             this.rewardPot = Math.max(0, this.rewardPot + GameValues.deathroll.potSkip.potPenalty)
             this.saveRewardPot()
+            return `(pot skip - ${penalty} = ${this.rewardPot} chips) `
         }
+        return ''
     }
 
     private async checkForShuffle(roll: number, target: number, additionalMessage: string): Promise<string> {

@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '29.4.0'
+    public static readonly currentVersion = '29.4.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,24 +26,7 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            [
-                '* Full shuffle er skrudd på frem til neste serie.',
-                '## Buffs',
-                '* Daily rewards er nå baseline 1000 chips (opp fra 500 chips)',
-                '* Daily streak multiplier er nå 2.0 (opp fra 1.0)',
-                '* Daily streak 4 reward er nå 1000 chips (opp fra 500 chips)',
-                '* Deal or No Deal effect item chance er nå 40% (opp fra 10%)',
-                '* Wordle reward er nå 25000 chips (opp fra 5000 chips)',
-                '* Loot chest art price er nå 1000 chips (ned fra 10000 chips)',
-                '* Mastermind winner reward er nå 10000 chips (opp fra 5000 chips)',
-                '* More or Less tier rewards er økt på tvers av alle nivåer',
-                '* 1337 i meldings-id gir nå 10000 chips (opp fra 1000 chips), yolo',
-                '## Nerfs',
-                '* Pot skips gir nå -1250 chips til potten',
-                '* 9/11 joke chance er nå 0.99% (opp fra 0.75%)',
-                '* Vi har visst "unspecial numbers" i deathroll nå. Disse trekker fra potten istedenfor å legge til.',
-                '* Unspecial numbers er nå 2024, 2025, 2027, 68 og 70',
-            ].join('\n')
+            ['* Potskips vil nå gi melding om tapte sjops', '* Wordle er nå capped på 25k på enkeltpersoner'].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
