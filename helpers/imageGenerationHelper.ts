@@ -607,6 +607,8 @@ export class ImageGenerationHelper {
 
     private async getImagesForSingleCollectable(item: IUserLootItem, coord: IItemShadowCoordinates): Promise<IImage[]> {
         const url = await this.getEmojiImageUrl(item)
+        console.log(item)
+
         const emojiImageBuffer = await this.getPngBufferForWebpUrl(url)
         // const resizedItem = await sharp(emojiImageBuffer).resize({ fit: sharp.fit.inside, width: 75 }).toBuffer()
         const canvas = await getCanvasImage({ buffer: emojiImageBuffer })
@@ -626,7 +628,7 @@ export class ImageGenerationHelper {
     }
 
     private buildEmojiName(item: IUserLootItem): string {
-        if (item.isCCG) return item.name
+        if (item.isCCG) return `${item.series}_${item.name}`
         return `${item.series}_${item.name}_${item.color.charAt(0)}`.toLowerCase()
     }
 

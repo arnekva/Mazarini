@@ -1,4 +1,4 @@
-import { UploadMetadata, UploadResult } from 'firebase/storage'
+import { PutObjectCommandOutput } from '@aws-sdk/client-s3'
 import moment from 'moment'
 import { environment } from '../client-env'
 import { DRGame } from '../commands/games/deathroll'
@@ -14,6 +14,7 @@ import {
     RulettStats,
 } from '../interfaces/database/databaseInterface'
 import { ObjectUtils } from '../utils/objectUtils'
+import { CloudflareHelper } from './cloudflareHelper'
 import { FirebaseHelper } from './firebaseHelper'
 
 export interface DeathRollStats {
@@ -24,9 +25,11 @@ export interface DeathRollStats {
 }
 export class DatabaseHelper {
     private db: FirebaseHelper
+    private storage: CloudflareHelper
 
-    constructor(firebaseHelper: FirebaseHelper) {
+    constructor(firebaseHelper: FirebaseHelper, cloudflareHelper: CloudflareHelper) {
         this.db = firebaseHelper
+        this.storage = cloudflareHelper
     }
 
     /**
@@ -390,8 +393,18 @@ export class DatabaseHelper {
         this.db.updateData(updates)
     }
 
+    public setLootpacks(boxes: ILootbox[]) {
+        const updates = {}
+        updates[`/other/loot/packs`] = boxes
+        this.db.updateData(updates)
+    }
+
     public async getLootboxes() {
         return (await this.db.getData('/other/loot/boxes')) as ILootbox[]
+    }
+
+    public async getLootpacks() {
+        return (await this.db.getData('/other/loot/packs')) as ILootbox[]
     }
 
     public async addLootboxSeries(series: ILootSeries) {
@@ -420,23 +433,20 @@ export class DatabaseHelper {
     }
 
     public async getFromStorage(path: string): Promise<ArrayBuffer> {
-        const ref = this.db.getStorageRef(path)
-        return await this.db.getStorageData(ref)
+        return await this.storage.getStorageData(path)
     }
 
     public uploadLootGif(path: string, gif: Buffer) {
-        const ref = this.db.getStorageRef(path)
-        this.db.uploadToStorage(ref, gif)
+        this.storage.uploadToStorage(path, gif, 'application/octet-stream')
     }
 
-    public async uploadUserInventory(user: MazariniUser, path: string, img: Buffer): Promise<UploadResult> {
-        const ref = this.db.getStorageRef(`loot_inventory/${user.id}/${environment}/${path}`)
-        const metadata: UploadMetadata = { contentType: 'image/png' }
-        return await this.db.uploadToStorage(ref, img, metadata)
+    public async uploadUserInventory(user: MazariniUser, path: string, img: Buffer): Promise<PutObjectCommandOutput> {
+        const key = `loot_inventory/${user.id}/${environment}/${path}`
+        return await this.storage.uploadToStorage(key, img)
     }
 
     public async getUserInventory(user: MazariniUser, series: string, rarity: ItemRarity): Promise<string> {
-        return await this.db.getStorageLink(this.db.getStorageRef(`loot_inventory/${user.id}/${environment}/${series}/${rarity}.png`))
+        return await this.storage.getStorageLink(`loot_inventory/${user.id}/${environment}/${series}/${rarity}.png`)
     }
 
     public async createBackup() {
@@ -444,8 +454,7 @@ export class DatabaseHelper {
     }
 
     public async getLootGifLink(path: string): Promise<string> {
-        const ref = this.db.getStorageRef(path)
-        return await this.db.getStorageLink(ref)
+        return await this.storage.getStorageLink(path)
     }
 
     public async getMastermindSolution(): Promise<string[]> {

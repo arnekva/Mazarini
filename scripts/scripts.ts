@@ -1,7 +1,10 @@
 import { ApplicationEmojiManager } from 'discord.js'
 import { MazariniClient } from '../client/MazariniClient'
+import { CCGCard, CCGCardType } from '../commands/ccg/ccgInterface'
 import { ImageGenerationHelper } from '../helpers/imageGenerationHelper'
 import {
+    ICCGDeck,
+    ILootbox,
     ILootSeries,
     ILootSeriesInventoryArt,
     ILootStats,
@@ -34,7 +37,7 @@ export class Scripts {
         for (const user of users) {
             await this.refactorUserLoot(user)
         }
-        this.updateLootSeriesAndBoxes()
+        // this.updateLootSeriesAndBoxes()
         const usersWithLoot = users.filter((user) => (user.collectables?.length ?? 0) > 0)
         for (const user of usersWithLoot) {
             await this.generateNewLootInventory(user)
@@ -89,14 +92,21 @@ export class Scripts {
         }
     }
 
-    public async updateLootSeriesAndBoxes() {
-        // const boxes = await this.client.database.getLootboxes()
-        // const updatedBoxes = boxes.map((box) => ({ ...box, probabilities: { ...box.probabilities, unobtainable: 0.002 } }))
-        // this.client.database.setLootboxes(updatedBoxes)
+    public async updateLootSeriesAndPacks() {
+        const packs = (await this.client.database.getLootpacks()) ?? new Array<ILootbox>()
+        if (!packs.some((pack) => pack.name === basicLootPack.name)) packs.push(basicLootPack)
+        this.client.database.setLootpacks(packs)
         const allSeries = await this.client.database.getLootboxSeries()
-        // const updatedSeries = allSeries.map((series) => ({ ...series, hasColor: true, hasUnobtainable: false }))
-        if (!allSeries.some((series) => series.name === ccg_mock_series.name)) allSeries.push(ccg_mock_series)
+        if (!allSeries.some((series) => series.name === mazariniCCG_series.name)) allSeries.push(mazariniCCG_series)
         this.client.database.setLootSeries(allSeries)
+    }
+
+    public addCCGCards() {
+        this.client.database.updateStorage({
+            ccg: {
+                mazariniCCG: mazariniCCG,
+            },
+        })
     }
 
     public async refactorUserLoot(user: MazariniUser) {
@@ -138,7 +148,7 @@ export class Scripts {
         await this.client.database.updateUser(user)
     }
 
-    public async refactorUserLootArt() {
+    public async initializeNewInventories() {
         const users = (await this.client.database.getAllUsers()).filter((user) => (user.collectables?.length ?? 0) > 0)
         for (const user of users) {
             const mazariniCCG: IUserLootSeries = {
@@ -147,7 +157,10 @@ export class Scripts {
                 inventory: user.loot.mazariniCCG?.inventory ?? structuredClone(defaultInventory),
                 stats: user.loot.mazariniCCG?.stats ?? structuredClone(defaultLootStats),
             }
+            mazariniCCG.inventory.common.items = startingInventory
+            // user.loot = {...user.loot, mazariniCCG: mazariniCCG}
             user.loot.mazariniCCG = mazariniCCG
+            user.ccg = { ...user.ccg, decks: [startingDeck] }
             await this.client.database.updateUser(user)
         }
     }
@@ -246,13 +259,13 @@ const defaultLootStats: ILootStats = {
     },
 }
 
-const ccg_mock_series: ILootSeries = {
+const mazariniCCG_series: ILootSeries = {
     name: 'mazariniCCG',
     added: new Date(),
-    common: ['queenD-1', 'kingH-1', 'sevenC-1'],
-    rare: ['queenD-2', 'kingH-2', 'sevenC-2'],
-    epic: ['queenD-3', 'kingH-3', 'sevenC-3'],
-    legendary: ['queenD-4', 'kingH-4', 'sevenC-4'],
+    common: ['shrekStare', 'geggiexcited', 'arne', 'arne_caveman'],
+    rare: ['the_chokester', 'maggiscared', 'sniff', 'are_you', 'kms2', 'yarrne', 'geggi_kill', 'choke_shield', 'turtle'],
+    epic: ['pointerbrothers1', 'same', 'KEKW_gun', 'kms_gun', 'arnenymous', 'polse'],
+    legendary: ['kys', 'hoie'],
     hasColor: false,
     hasUnobtainable: false,
     isCCG: true,
@@ -570,3 +583,432 @@ const luckyWheelRewards: ILuckyWheelReward[] = [
         weight: 3,
     },
 ]
+
+export const mazariniCCG: CCGCard[] = [
+    {
+        id: 'shrekStare',
+        name: 'Shrek Stare',
+        series: 'mazariniCCG',
+        type: CCGCardType.Effect,
+        effects: [
+            {
+                type: 'GAIN_ENERGY',
+                target: 'SELF',
+                value: 2,
+            },
+        ],
+        cost: 0,
+        speed: 16,
+        rarity: ItemRarity.Common,
+        accuracy: 99,
+    },
+    {
+        id: 'geggiexcited',
+        name: 'Geggi Excited',
+        series: 'mazariniCCG',
+        type: CCGCardType.Heal,
+        effects: [
+            {
+                type: 'HEAL',
+                target: 'SELF',
+                value: 2,
+            },
+        ],
+        cost: 1,
+        speed: 60,
+        rarity: ItemRarity.Common,
+        accuracy: 99,
+    },
+    {
+        id: 'arne',
+        name: 'Arne',
+        series: 'mazariniCCG',
+        type: CCGCardType.Attack,
+        effects: [
+            {
+                type: 'DAMAGE',
+                target: 'OPPONENT',
+                value: 3,
+            },
+            {
+                type: 'DAMAGE',
+                target: 'SELF',
+                value: 1,
+            },
+        ],
+        cost: 1,
+        speed: 40,
+        rarity: ItemRarity.Common,
+        accuracy: 80,
+    },
+    {
+        id: 'arne_caveman',
+        name: 'Arne Caveman',
+        series: 'mazariniCCG',
+        type: CCGCardType.Attack,
+        effects: [
+            {
+                type: 'DAMAGE',
+                target: 'OPPONENT',
+                value: 2,
+            },
+        ],
+        cost: 1,
+        speed: 39,
+        rarity: ItemRarity.Common,
+        accuracy: 90,
+    },
+    {
+        id: 'pointerbrothers1',
+        name: 'PointerBrother 1',
+        series: 'mazariniCCG',
+        type: CCGCardType.Effect,
+        effects: [
+            {
+                type: 'GAIN_ENERGY',
+                target: 'SELF',
+                value: 1,
+                turns: 10,
+            },
+        ],
+        cost: 3,
+        speed: 5,
+        rarity: ItemRarity.Epic,
+        accuracy: 90,
+    },
+    {
+        id: 'same',
+        name: 'Same',
+        series: 'mazariniCCG',
+        type: CCGCardType.Effect,
+        effects: [],
+        cost: 2,
+        speed: 1,
+        rarity: ItemRarity.Epic,
+        accuracy: 90,
+    },
+    {
+        id: 'KEKW_gun',
+        name: 'KEKW Gun',
+        series: 'mazariniCCG',
+        type: CCGCardType.Shield,
+        effects: [
+            {
+                type: 'REFLECT',
+                target: 'SELF',
+                turns: 1,
+            },
+        ],
+        cost: 3,
+        speed: 100,
+        rarity: ItemRarity.Epic,
+        accuracy: 100,
+    },
+    {
+        id: 'kms_gun',
+        name: 'Kms Gun',
+        series: 'mazariniCCG',
+        type: CCGCardType.Attack,
+        effects: [
+            {
+                type: 'DAMAGE',
+                target: 'OPPONENT',
+                value: 5,
+            },
+        ],
+        cost: 3,
+        speed: 45,
+        rarity: ItemRarity.Epic,
+        accuracy: 90,
+    },
+    {
+        id: 'arnenymous',
+        name: 'Arnenymous',
+        series: 'mazariniCCG',
+        type: CCGCardType.Effect,
+        effects: [
+            {
+                type: 'REDUCE_COST',
+                target: 'SELF',
+                value: 1,
+            },
+        ],
+        cost: 4,
+        speed: 6,
+        rarity: ItemRarity.Epic,
+        accuracy: 95,
+    },
+    {
+        id: 'polse',
+        name: 'Pølse',
+        series: 'mazariniCCG',
+        type: CCGCardType.Heal,
+        effects: [
+            {
+                type: 'REMOVE_STATUS',
+                target: 'SELF',
+            },
+        ],
+        cost: 3,
+        speed: 7,
+        rarity: ItemRarity.Epic,
+        accuracy: 90,
+    },
+    {
+        id: 'kys',
+        name: 'Kys',
+        series: 'mazariniCCG',
+        type: CCGCardType.Attack,
+        effects: [
+            {
+                type: 'DAMAGE',
+                target: 'OPPONENT',
+                value: 6,
+            },
+        ],
+        cost: 3,
+        speed: 49,
+        rarity: ItemRarity.Legendary,
+        accuracy: 95,
+    },
+    {
+        id: 'hoie',
+        name: 'Høie',
+        series: 'mazariniCCG',
+        type: CCGCardType.Heal,
+        effects: [
+            {
+                type: 'HEAL',
+                target: 'SELF',
+                value: 6,
+            },
+            {
+                type: 'REMOVE_STATUS',
+                target: 'SELF',
+            },
+        ],
+        cost: 3,
+        speed: 65,
+        rarity: ItemRarity.Legendary,
+        accuracy: 90,
+    },
+    {
+        id: 'the_chokester',
+        name: 'The Chokester',
+        series: 'mazariniCCG',
+        type: CCGCardType.Effect,
+        effects: [
+            {
+                type: 'CHOKESTER',
+                target: 'OPPONENT',
+                turns: 3,
+            },
+        ],
+        cost: 2,
+        speed: 8,
+        rarity: ItemRarity.Rare,
+        accuracy: 80,
+    },
+    {
+        id: 'maggiscared',
+        name: 'Maggi Scared',
+        series: 'mazariniCCG',
+        type: CCGCardType.Attack,
+        effects: [
+            {
+                type: 'DAMAGE',
+                target: 'OPPONENT',
+                value: 3,
+            },
+            {
+                type: 'DAMAGE',
+                target: 'SELF',
+                value: 3,
+                accuracy: 25,
+            },
+        ],
+        cost: 1,
+        speed: 47,
+        rarity: ItemRarity.Rare,
+        accuracy: 100,
+    },
+    {
+        id: 'sniff',
+        name: 'Sniff',
+        series: 'mazariniCCG',
+        type: CCGCardType.Effect,
+        effects: [
+            {
+                type: 'VIEW_HAND',
+                target: 'SELF',
+            },
+        ],
+        cost: 1,
+        speed: 3,
+        rarity: ItemRarity.Rare,
+        accuracy: 100,
+    },
+    {
+        id: 'are_you',
+        name: 'Are You',
+        series: 'mazariniCCG',
+        type: CCGCardType.Effect,
+        effects: [
+            {
+                type: 'RETARDED',
+                target: 'OPPONENT',
+                turns: 3,
+            },
+        ],
+        cost: 2,
+        speed: 9,
+        rarity: ItemRarity.Rare,
+        accuracy: 80,
+    },
+    {
+        id: 'kms2',
+        name: 'Kms 2',
+        series: 'mazariniCCG',
+        type: CCGCardType.Effect,
+        effects: [
+            {
+                type: 'DAMAGE',
+                target: 'SELF',
+                value: 1,
+            },
+            {
+                type: 'GAIN_ENERGY',
+                target: 'SELF',
+                value: 3,
+            },
+        ],
+        cost: 0,
+        speed: 10,
+        rarity: ItemRarity.Rare,
+        accuracy: 95,
+    },
+    {
+        id: 'yarrne',
+        name: 'Yarrne',
+        series: 'mazariniCCG',
+        type: CCGCardType.Effect,
+        effects: [
+            {
+                type: 'STEAL_CARD',
+                target: 'OPPONENT',
+            },
+        ],
+        cost: 2,
+        speed: 19,
+        rarity: ItemRarity.Rare,
+        accuracy: 75,
+    },
+    {
+        id: 'geggi_kill',
+        name: 'Geggi Kill',
+        series: 'mazariniCCG',
+        type: CCGCardType.Attack,
+        effects: [
+            {
+                type: 'DAMAGE',
+                target: 'OPPONENT',
+                value: 2,
+            },
+            {
+                type: 'BLEED',
+                target: 'OPPONENT',
+                value: 1,
+                turns: 2,
+            },
+        ],
+        cost: 2,
+        speed: 42,
+        rarity: ItemRarity.Rare,
+        accuracy: 90,
+    },
+    {
+        id: 'choke_shield',
+        name: 'Choke Shield',
+        series: 'mazariniCCG',
+        type: CCGCardType.Effect,
+        effects: [
+            {
+                type: 'CHOKE_SHIELD',
+                target: 'SELF',
+            },
+        ],
+        cost: 2,
+        speed: 11,
+        rarity: ItemRarity.Rare,
+        accuracy: 100,
+    },
+    {
+        id: 'turtle',
+        name: 'Turtle',
+        series: 'mazariniCCG',
+        type: CCGCardType.Effect,
+        effects: [
+            {
+                type: 'SLOW',
+                target: 'OPPONENT',
+                turns: 4,
+            },
+        ],
+        cost: 2,
+        speed: 4,
+        rarity: ItemRarity.Rare,
+        accuracy: 80,
+    },
+]
+
+const basicLootPack: ILootbox = {
+    name: 'basic',
+    price: 50,
+    probabilities: {
+        common: 1,
+        rare: 0.86,
+        epic: 0.11,
+        legendary: 0.01,
+        color: 0,
+    },
+    isCCG: true,
+    rewardOnly: false,
+}
+
+const startingInventory: IUserLootItem[] = [
+    { name: 'arne', color: ItemColor.None, rarity: ItemRarity.Common, series: 'mazariniCCG', amount: 5, isCCG: true },
+    { name: 'arne_caveman', color: ItemColor.None, rarity: ItemRarity.Common, series: 'mazariniCCG', amount: 5, isCCG: true },
+    { name: 'geggiexcited', color: ItemColor.None, rarity: ItemRarity.Common, series: 'mazariniCCG', amount: 2, isCCG: true },
+]
+
+const startingDeck: ICCGDeck = {
+    name: 'default',
+    active: true,
+    valid: true,
+    cards: [
+        { id: 'arne', series: 'mazariniCCG', amount: 5, rarity: ItemRarity.Common },
+        { id: 'arne_caveman', series: 'mazariniCCG', amount: 5, rarity: ItemRarity.Common },
+        { id: 'geggiexcited', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
+    ],
+}
+
+/* 
+TODO:
+Scripting
+- Add new loot packs
+- Add new loot series
+- Add ccg cards
+- Initialize new loot inventories
+- Give each player a starting inventory
+- Give each player a default deck
+- Update lootboxCommand to include /loot pack
+
+Tasks
+- Update /ccg help (check)
+- Add message to deck save (check)
+- Add send hand button in game embed (check)
+- Add entry fee to ccg play (check)
+- Add only shard reward on entry fee (check)
+- Add chips wager between players (check)
+- Add restart impediment if anyone is mid game (check)
+*/

@@ -142,6 +142,18 @@ export type GameValuesType = {
             startingEnergy: number
             maxCardsPlayed: number
         }
+        rewards: {
+            entryFee: number
+            dailyBonus: number
+            weeklyLimit: number
+            win: number
+            loss: number
+            difficultyMultiplier: {
+                easy: number
+                medium: number
+                hard: number
+            }
+        }
         deck: {
             size: number
             hiddenEditor: boolean
@@ -151,10 +163,23 @@ export type GameValuesType = {
                 epic: number
                 legendary: number
             }
+            typeCaps: {
+                HEAL: number
+                REFLECT: number
+                SHIELD: number
+                CHOKESTER: number
+                RETARDED: number
+            }
+        }
+        status: {
+            slow_speedDivideBy: number
+            chokester_accuracy: number
+            bleed_damage: number
         }
         isLootable: boolean
         activeCCGseries: string[]
         defaultDeck: ICCGDeck
+        defaultCardback: string
         botDeck: {
             easy: ICCGDeck
             medium: ICCGDeck
@@ -342,44 +367,69 @@ export const GameValues: GameValuesType = {
         gameSettings: {
             defaultHandSize: 4,
             maxHandSize: 5,
-            startingHP: 10,
-            energyRecoveryPerRound: 2,
+            startingHP: 20,
+            energyRecoveryPerRound: 1,
             startingEnergy: 3,
             openHands: false,
             fatigueDamage: 0,
             maxCardsPlayed: 2,
+        },
+        rewards: {
+            entryFee: 10000,
+            dailyBonus: 10,
+            weeklyLimit: 100,
+            win: 10,
+            loss: 5,
+            difficultyMultiplier: {
+                easy: 1,
+                medium: 1.5,
+                hard: 2,
+            },
         },
         deck: {
             size: 12,
             hiddenEditor: false,
             cardsPerPage: 4,
             rarityCaps: {
-                rare: 5,
-                epic: 1,
+                rare: 8,
+                epic: 2,
                 legendary: 1,
             },
+            typeCaps: {
+                HEAL: 2,
+                REFLECT: 2,
+                SHIELD: 3,
+                RETARDED: 1,
+                CHOKESTER: 1,
+            },
         },
-        isLootable: true,
+        status: {
+            slow_speedDivideBy: 2,
+            chokester_accuracy: 50,
+            bleed_damage: 1,
+        },
+        isLootable: false,
         activeCCGseries: ['mazariniCCG'],
         defaultDeck: {
             name: 'default',
             active: true,
             valid: true,
             cards: [
-                { id: '', series: '', amount: 4, rarity: ItemRarity.Common }, //TODO set default cards
-                { id: '', series: '', amount: 4, rarity: ItemRarity.Common },
-                { id: '', series: '', amount: 4, rarity: ItemRarity.Common },
+                { id: 'arne', series: 'mazariniCCG', amount: 5, rarity: ItemRarity.Common },
+                { id: 'arne_caveman', series: 'mazariniCCG', amount: 5, rarity: ItemRarity.Common },
+                { id: 'geggiexcited', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
             ],
         },
+        defaultCardback: 'standard',
         botDeck: {
             easy: {
                 name: 'easy',
                 active: true,
                 valid: true,
                 cards: [
-                    { id: '', series: '', amount: 4, rarity: ItemRarity.Common }, //TODO set easy cards
-                    { id: '', series: '', amount: 4, rarity: ItemRarity.Common },
-                    { id: '', series: '', amount: 4, rarity: ItemRarity.Common },
+                    { id: 'arne', series: 'mazariniCCG', amount: 5, rarity: ItemRarity.Common },
+                    { id: 'arne_caveman', series: 'mazariniCCG', amount: 5, rarity: ItemRarity.Common },
+                    { id: 'geggiexcited', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
                 ],
             },
             medium: {
@@ -387,9 +437,15 @@ export const GameValues: GameValuesType = {
                 active: true,
                 valid: true,
                 cards: [
-                    { id: '', series: '', amount: 4, rarity: ItemRarity.Common }, //TODO set default cards
-                    { id: '', series: '', amount: 4, rarity: ItemRarity.Common },
-                    { id: '', series: '', amount: 4, rarity: ItemRarity.Common },
+                    { id: 'arne_caveman', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
+                    { id: 'shrekStare', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
+                    { id: 'geggiexcited', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Common },
+                    { id: 'pointerbrothers1', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
+                    { id: 'kms_gun', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
+                    { id: 'geggi_kill', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Rare },
+                    { id: 'the_chokester', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
+                    { id: 'are_you', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
+                    { id: 'maggiscared', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
                 ],
             },
             hard: {
@@ -397,9 +453,16 @@ export const GameValues: GameValuesType = {
                 active: true,
                 valid: true,
                 cards: [
-                    { id: '', series: '', amount: 4, rarity: ItemRarity.Common }, //TODO set default cards
-                    { id: '', series: '', amount: 4, rarity: ItemRarity.Common },
-                    { id: '', series: '', amount: 4, rarity: ItemRarity.Common },
+                    { id: 'shrekStare', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
+                    { id: 'pointerbrothers1', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
+                    { id: 'kms_gun', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
+                    { id: 'kys', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Legendary },
+                    { id: 'geggi_kill', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Rare },
+                    { id: 'choke_shield', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
+                    { id: 'the_chokester', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
+                    { id: 'hoie', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Legendary },
+                    { id: 'are_you', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
+                    { id: 'maggiscared', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
                 ],
             },
         },

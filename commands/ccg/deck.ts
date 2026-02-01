@@ -1,17 +1,16 @@
 import { randomUUID } from 'crypto'
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, GuildMember } from 'discord.js'
+import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, GuildMember } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { ATCInteraction, BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
 import { ComponentsHelper } from '../../helpers/componentsHelper'
-import { ICCGDeck, ItemRarity, IUserLootItem, MazariniUser } from '../../interfaces/database/databaseInterface'
+import { DeckEditorCard, ICCGDeck, ItemRarity, IUserLootItem, MazariniUser } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { CCGDeckEditor_Info } from '../../templates/containerTemplates'
 import { TextUtils } from '../../utils/textUtils'
-import { CCGCard, CCGCardType, CCGSeries, DeckEditor, UsageFilter } from './ccgInterface'
-import { mockHand } from './mockCards'
+import { CCGCard, CCGCardType, CCGEffectType, CCGSeries, DeckEditor, UsageFilter } from './ccgInterface'
 
 export class DeckCommands extends AbstractCommands {
     private editors: Map<string, DeckEditor>
@@ -24,14 +23,14 @@ export class DeckCommands extends AbstractCommands {
     public async setDeck(interaction: ChatInteraction) {
         const user = await this.database.getUser(interaction.user.id)
         const deckChoice = interaction.options.get('deck')?.value as string
-        const deck = user.decks?.find((deck) => deck.name === deckChoice)
+        const deck = user.ccg?.decks?.find((deck) => deck.name === deckChoice)
         if (!deck.valid)
             return this.messageHelper.replyToInteraction(
                 interaction,
                 `Deck **${deckChoice}** er ikke gyldig og må oppdateres før den kan settes som aktiv deck`,
                 { ephemeral: true }
             )
-        user.decks = user.decks?.map((deck) => (deck.name === deckChoice ? { ...deck, active: true } : { ...deck, active: false }))
+        user.ccg.decks = user.ccg?.decks?.map((deck) => (deck.name === deckChoice ? { ...deck, active: true } : { ...deck, active: false }))
         this.database.updateUser(user)
         this.messageHelper.replyToInteraction(interaction, `Aktiv deck oppdatert til **${deckChoice}**`, { ephemeral: true })
     }
@@ -39,7 +38,7 @@ export class DeckCommands extends AbstractCommands {
     private async newDeck(interaction: ChatInteraction) {
         const name = interaction.options.get('name')?.value as string
         const user = await this.database.getUser(interaction.user.id)
-        if (user.decks?.some((deck) => deck.name === name))
+        if (user.ccg?.decks?.some((deck) => deck.name === name))
             return this.messageHelper.replyToInteraction(interaction, `Du har allerede en deck med navnet ${name}`, { ephemeral: true })
         else this.newDeckEditor(interaction, name, user)
     }
@@ -55,7 +54,7 @@ export class DeckCommands extends AbstractCommands {
         if (!deferred) return this.messageHelper.sendMessage(interaction.channelId, { text: 'Noe gikk galt med interactionen. Prøv igjen.' })
         const editorId = randomUUID()
         const cards = await this.getUserCards(user)
-        const deck: ICCGDeck = user.decks?.find((deck) => deck.name === name) ?? {
+        const deck: ICCGDeck = user.ccg?.decks?.find((deck) => deck.name === name) ?? {
             name: name,
             cards: [],
             valid: false,
@@ -71,12 +70,15 @@ export class DeckCommands extends AbstractCommands {
             seriesFilters: [],
             userCards: structuredClone(cards),
             filteredCards: structuredClone(cards),
+            cardImages: new Map<string, Buffer>(),
             deck: deck,
+            saved: false,
             deckInfo: {
                 container: undefined,
                 message: undefined,
             },
             cardView: {
+                attachments: undefined,
                 container: undefined,
                 message: undefined,
             },
@@ -84,10 +86,14 @@ export class DeckCommands extends AbstractCommands {
         }
         const deckInfo = this.newDeckInfoContainer(editor)
         editor.deckInfo.container = deckInfo
-        const cardView = this.newCardViewContainer(editor, user)
+        const cardView = await this.newCardViewContainer(editor, user)
         editor.cardView.container = cardView
         const deckInfoMsg = await this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, [deckInfo.container])
-        const cardViewMsg = await this.messageHelper.sendMessage(interaction.channelId, { components: [cardView.container] }, { isComponentOnly: true })
+        const cardViewMsg = await this.messageHelper.sendMessage(
+            interaction.channelId,
+            { components: [cardView.container], files: editor.cardView.attachments },
+            { isComponentOnly: true }
+        )
         editor.deckInfo.message = deckInfoMsg
         editor.cardView.message = cardViewMsg
         this.editors.set(editorId, editor)
@@ -106,7 +112,8 @@ export class DeckCommands extends AbstractCommands {
         return deckInfo
     }
 
-    private newCardViewContainer(editor: DeckEditor, user: MazariniUser) {
+    private async newCardViewContainer(editor: DeckEditor, user: MazariniUser) {
+        editor.cardView.attachments = new Array<AttachmentBuilder>()
         const cardView = new SimpleContainer()
         const cardPerPage = GameValues.ccg.deck.cardsPerPage
         const totalCards = editor.filteredCards.length
@@ -116,7 +123,7 @@ export class DeckCommands extends AbstractCommands {
         )} (out of ${totalCards})`
         cardView.addComponent(ComponentsHelper.createTextComponent().setContent(cardFilterInfo), 'cardsInfo')
         const cards = editor.filteredCards.slice(editor.page * cardPerPage - cardPerPage, Math.min(editor.page * cardPerPage, editor.filteredCards.length))
-        for (const card of cards) this.addSingleCardView(editor, user, cardView, card)
+        for (const card of cards) await this.addSingleCardView(editor, user, cardView, card)
         if (totalCards > cardPerPage) {
             cardView.addComponent(pageButtons(editor), 'page_buttons')
         }
@@ -124,7 +131,10 @@ export class DeckCommands extends AbstractCommands {
         return cardView
     }
 
-    private addSingleCardView(editor: DeckEditor, user: MazariniUser, container: SimpleContainer, card: CCGCard) {
+    private async addSingleCardView(editor: DeckEditor, user: MazariniUser, container: SimpleContainer, card: CCGCard) {
+        const cardImage = await this.getCardImage(editor, card)
+        const attachment = new AttachmentBuilder(cardImage, { name: `${card.id}.png` })
+        editor.cardView.attachments.push(attachment)
         const available = this.getCardAmountAvailable(user, card)
         const inDeck = editor.deck.cards?.find((instance) => instance.id === card.id)?.amount ?? 0
         const cardInfo = `**${card.name}**\n${TextUtils.capitalizeFirstLetter(card.type)}\n${TextUtils.capitalizeFirstLetter(
@@ -133,21 +143,28 @@ export class DeckCommands extends AbstractCommands {
         container.addComponent(
             ComponentsHelper.createSectionComponent()
                 .addTextDisplayComponents(ComponentsHelper.createTextComponent().setContent(cardInfo))
-                .setThumbnailAccessory((thumbnail) => thumbnail.setURL(card.imageUrl)),
+                .setThumbnailAccessory((thumbnail) => thumbnail.setURL(`attachment://${card.id}.png`)),
             card.id
         )
         container.addComponent(ccgDeckCardAmount(editor.id, card.id, available, inDeck), `${card.id}_buttons`)
         container.addComponent(ComponentsHelper.createSeparatorComponent(), `${card.id}_separator`)
     }
 
-    private getCardAmountAvailable(user: MazariniUser, card: CCGCard) {
-        return 4 // TOREMOVE
+    private async getCardImage(editor: DeckEditor, card: CCGCard) {
+        if (!editor.cardImages.has(card.id)) {
+            const path = `loot/${card.series}/${card.id}_small.png`
+            const img = await this.database.getFromStorage(path)
+            editor.cardImages.set(card.id, Buffer.from(img))
+        }
+        return editor.cardImages.get(card.id)
+    }
+
+    private getCardAmountAvailable(user: MazariniUser, card: CCGCard | DeckEditorCard) {
         const inventory: IUserLootItem[] = user.loot[card.series].inventory[card.rarity].items
         return inventory.find((item) => item.name === card.id)?.amount ?? 0
     }
 
     private async getUserCards(user: MazariniUser) {
-        return mockHand // TOREMOVE
         const loot = new Array<IUserLootItem>()
         const rarities = ['common', 'rare', 'epic', 'legendary']
         for (const series of GameValues.ccg.activeCCGseries) {
@@ -213,27 +230,38 @@ export class DeckCommands extends AbstractCommands {
         )
     }
 
-    private updateCardAmount(interaction: BtnInteraction, editor: DeckEditor) {
+    private async updateCardAmount(interaction: BtnInteraction, editor: DeckEditor) {
         const cardId = interaction.customId.split(';')[2]
         const card = editor.filteredCards.find((card) => card.id === cardId)
         const changeValue = interaction.customId.split(';')[3] === 'more' ? 1 : -1
         const existingCard = editor.deck.cards.findIndex((card) => card.id === cardId)
         if (existingCard >= 0) editor.deck.cards[existingCard].amount = editor.deck.cards[existingCard].amount + changeValue
-        //editor.deck.cards = editor.deck.cards.map((card) => (card.id === cardId ? { ...card, amount: card.amount + changeValue } : card))
         else editor.deck.cards.push({ id: cardId, series: card.series, amount: 1, rarity: card.rarity })
         editor.deck.cards = editor.deck.cards.filter((card) => card.amount > 0)
-        this.validateDeck(editor)
+        editor.saved = false
+        await this.validateDeck(editor)
         this.updateDeckInfo(editor)
         this.updateCardView(editor, interaction.user.id)
     }
 
-    private validateDeck(editor: DeckEditor) {
+    private async validateDeck(editor: DeckEditor) {
         editor.deck.valid = true
         editor.validationErrors = new Array<string>()
         this.validateDeckSize(editor)
         this.validateRarityCaps(editor)
-        // this.validateUserHas
+        this.validateTypeCaps(editor)
+        const user = await this.database.getUser(editor.userId)
+        this.validateUserHasAllCards(editor, user)
         // this.validateMaxDupes?
+    }
+
+    private validateUserHasAllCards(editor: DeckEditor, user: MazariniUser) {
+        for (const card of editor.deck.cards) {
+            if (card.amount > this.getCardAmountAvailable(user, card)) {
+                editor.deck.valid = false
+                editor.validationErrors.push(`:warning: You have selected too many of card ${card.id}`)
+            }
+        }
     }
 
     private validateDeckSize(editor: DeckEditor) {
@@ -253,6 +281,24 @@ export class DeckCommands extends AbstractCommands {
         }
     }
 
+    private validateTypeCaps(editor: DeckEditor) {
+        const types: CCGEffectType[] = ['HEAL', 'REFLECT', 'SHIELD', 'CHOKESTER', 'RETARDED']
+        for (const type of types) {
+            const amount =
+                editor.deck.cards?.filter((card) => this.cardHasEffectOfType(editor, card, type)).reduce((sum, instance) => sum + instance.amount, 0) ?? 0
+            const limit = GameValues.ccg.deck.typeCaps[type]
+            if (amount > limit) {
+                editor.deck.valid = false
+                editor.validationErrors.push(`:warning: Max ${limit} card${limit > 1 ? 's' : ''} of ${type} type allowed`)
+            }
+        }
+    }
+
+    private cardHasEffectOfType(editor: DeckEditor, card: DeckEditorCard, type: CCGEffectType) {
+        const fullCard = editor.userCards.find((item) => item.id === card.id)
+        return fullCard.effects?.some((effect) => effect.type === type) ?? false
+    }
+
     private updateCardPage(interaction: BtnInteraction, editor: DeckEditor) {
         const pageChange = interaction.customId.split(';')[2] === 'next' ? 1 : -1
         const totalPages = Math.ceil(editor.filteredCards.length / GameValues.ccg.deck.cardsPerPage)
@@ -267,17 +313,17 @@ export class DeckCommands extends AbstractCommands {
 
     private async updateCardView(editor: DeckEditor, userId: string) {
         const user = await this.database.getUser(userId)
-        editor.cardView.container = this.newCardViewContainer(editor, user)
-        editor.cardView.message.edit({ components: [editor.cardView.container.container] })
+        editor.cardView.container = await this.newCardViewContainer(editor, user)
+        editor.cardView.message.edit({ components: [editor.cardView.container.container], files: editor.cardView.attachments })
     }
 
     private async renameDeck(interaction: ChatInteraction) {
         const deckChoice = interaction.options.get('deck')?.value as string
         const newDeckName = interaction.options.get('name')?.value as string
         const user = await this.database.getUser(interaction.user.id)
-        if (user.decks?.some((deck) => deck.name === newDeckName))
+        if (user.ccg?.decks?.some((deck) => deck.name === newDeckName))
             return this.messageHelper.replyToInteraction(interaction, `Du har allerede en deck med navnet ${newDeckName}`, { ephemeral: true })
-        user.decks = user.decks?.map((deck) => (deck.name === deckChoice ? { ...deck, name: newDeckName } : deck))
+        user.ccg.decks = user.ccg?.decks?.map((deck) => (deck.name === deckChoice ? { ...deck, name: newDeckName } : deck))
         this.database.updateUser(user)
         this.messageHelper.replyToInteraction(interaction, `Endret navn på deck **${deckChoice}**, til **${newDeckName}**`, { ephemeral: true })
     }
@@ -286,11 +332,12 @@ export class DeckCommands extends AbstractCommands {
         const deckChoice = interaction.options.get('deck')?.value as string
         const newDeckName = interaction.options.get('name')?.value as string
         const user = await this.database.getUser(interaction.user.id)
-        if (user.decks?.some((deck) => deck.name === newDeckName))
+        if (user.ccg?.decks?.some((deck) => deck.name === newDeckName))
             return this.messageHelper.replyToInteraction(interaction, `Du har allerede en deck med navnet ${newDeckName}`, { ephemeral: true })
-        const toCopy = user.decks?.find((deck) => deck.name === deckChoice)
+        const toCopy = user.ccg?.decks?.find((deck) => deck.name === deckChoice)
+        if (!toCopy) return this.messageHelper.replyToInteraction(interaction, `Du har ingen deck med navnet ${deckChoice}`, { ephemeral: true })
         const newDeck: ICCGDeck = { ...structuredClone(toCopy), name: newDeckName, active: false }
-        user.decks?.push(newDeck)
+        user.ccg.decks.push(newDeck)
         this.database.updateUser(user)
         this.messageHelper.replyToInteraction(interaction, `Laget kopi av deck **${deckChoice}** med nytt navn **${newDeckName}**`, { ephemeral: true })
     }
@@ -306,30 +353,33 @@ export class DeckCommands extends AbstractCommands {
         await interaction.message.delete()
         const user = await this.database.getUser(interaction.user.id)
         const deckToDelete = interaction.customId.split(';')[2]
-        user.decks = user.decks?.filter((deck) => deck.name !== deckToDelete)
+        user.ccg.decks = user.ccg?.decks?.filter((deck) => deck.name !== deckToDelete)
         this.database.updateUser(user)
         this.messageHelper.replyToInteraction(interaction, `**${deckToDelete}** er slettet`, { ephemeral: true })
     }
 
     private async saveDeck(interaction: BtnInteraction, editor: DeckEditor) {
         const user = await this.database.getUser(interaction.user.id)
-        if (user.decks?.some((deck) => deck.name === editor.deck.name)) {
-            user.decks = user.decks?.map((deck) => (deck.name === editor.deck.name ? editor.deck : deck))
+        if (user.ccg?.decks?.some((deck) => deck.name === editor.deck.name)) {
+            user.ccg.decks = user.ccg.decks.map((deck) => (deck.name === editor.deck.name ? editor.deck : deck))
         } else {
-            user.decks = user.decks ?? new Array<ICCGDeck>()
-            user.decks?.push(editor.deck)
+            user.ccg = { ...user.ccg, decks: user.ccg?.decks ?? new Array<ICCGDeck>() }
+            user.ccg.decks = user.ccg?.decks ?? new Array<ICCGDeck>()
+            user.ccg.decks.push(editor.deck)
         }
         this.database.updateUser(user)
+        editor.saved = true
+        this.updateDeckInfo(editor)
     }
 
-    private closeDeck(interaction: BtnInteraction, editor: DeckEditor) {
+    private closeDeck(editor: DeckEditor) {
         editor.deckInfo.message.delete()
         editor.cardView.message.delete()
     }
 
     private async autocompleteDeck(interaction: ATCInteraction) {
         const user = await this.database.getUser(interaction.user.id)
-        const response = user.decks?.map((deck) => ({ name: `${deck.name} ${deck.active ? '(aktiv)' : ''}`, value: deck.name }))
+        const response = user.ccg?.decks?.map((deck) => ({ name: `${deck.name} ${deck.active ? '(aktiv)' : ''}`, value: deck.name }))
         interaction.respond(response ?? [{ name: 'no decks found', value: 'NO_DECK_FOUND' }])
     }
 
@@ -396,7 +446,7 @@ export class DeckCommands extends AbstractCommands {
                     {
                         commandName: 'DECK_CLOSE',
                         command: (interaction: ButtonInteraction) => {
-                            this.verifyUserAndCallMethod(interaction, (editor) => this.closeDeck(interaction, editor))
+                            this.verifyUserAndCallMethod(interaction, (editor) => this.closeDeck(editor))
                         },
                     },
                     {
@@ -430,6 +480,7 @@ const typeFilters = (editor: DeckEditor) => {
     return new ActionRowBuilder<ButtonBuilder>().addComponents(
         filterButton(editor.id, CCGCardType.Attack, editor.typeFilters?.includes(CCGCardType.Attack)),
         filterButton(editor.id, CCGCardType.Shield, editor.typeFilters?.includes(CCGCardType.Shield)),
+        filterButton(editor.id, CCGCardType.Heal, editor.typeFilters?.includes(CCGCardType.Heal)),
         filterButton(editor.id, CCGCardType.Effect, editor.typeFilters?.includes(CCGCardType.Effect))
     )
 }

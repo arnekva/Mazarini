@@ -3,9 +3,11 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../../client/MazariniClient'
+import { ComponentsHelper } from '../../helpers/componentsHelper'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { CCG_Helper } from '../../templates/containerTemplates'
-import { CCGHelper, CCGHelperCategory } from './ccgInterface'
+import { CCGHelper, CCGHelperCategory, CCGHelperSubCategory } from './ccgInterface'
+import { HelperText } from './helpTexts'
 
 export class CCGHelp extends AbstractCommands {
     private helpers: Map<string, CCGHelper>
@@ -20,6 +22,7 @@ export class CCGHelp extends AbstractCommands {
         const helper: CCGHelper = {
             id: helperId,
             selectedCategory: undefined,
+            selectedSubCategory: undefined,
             info: {
                 container: undefined,
                 message: undefined,
@@ -34,33 +37,42 @@ export class CCGHelp extends AbstractCommands {
 
     private newInfoContainer(helper: CCGHelper) {
         const container = CCG_Helper()
-        container.replaceComponent('categories', categories(helper))
+        container.replaceComponent('categories', getCategories(helper))
         if (helper.selectedCategory) {
-            container.updateTextComponent('categoryInfo', this.getCategoryInfo(helper.selectedCategory))
+            container.updateTextComponent('categoryInfo', HelperText[helper.selectedCategory])
+            const subCategories = categoryMap.get(helper.selectedCategory)
+            if (subCategories && subCategories.length > 0) {
+                container.addComponentAfterReference('separator_before_sub', ComponentsHelper.createSeparatorComponent(), 'categoryInfo')
+                container.addComponentAfterReference('subCategories', getSubCategories(helper), 'separator_before_sub')
+                container.addComponentAfterReference('separator_after_sub', ComponentsHelper.createSeparatorComponent(), 'subCategories')
+            }
+        }
+        if (helper.selectedSubCategory) {
+            container.addComponentAfterReference(
+                'subCategoryInfo',
+                ComponentsHelper.createTextComponent().setContent(HelperText[helper.selectedSubCategory]),
+                'separator_after_sub'
+            )
         }
         return container
     }
 
-    private getCategoryInfo(category: CCGHelperCategory) {
-        switch (category) {
-            case CCGHelperCategory.Gameplay:
-                return gameplayHelp
-            case CCGHelperCategory.Cards:
-                return cardHelp
-            case CCGHelperCategory.Deck:
-                return deckHelp
-            case CCGHelperCategory.Rules:
-                return rulesHelp
-            default:
-                return ''
-        }
-    }
-
     public setCategory(interaction: BtnInteraction) {
-        interaction.deferUpdate()
         const customId = interaction.customId.split(';')
         const helper = this.helpers.get(customId[1])
+        if (!helper) return this.messageHelper.replyToInteraction(interaction, 'Denne er utdatert, åpne en ny hjelper med /ccg help', { ephemeral: true })
+        interaction.deferUpdate()
         helper.selectedCategory = customId[2] as CCGHelperCategory
+        helper.selectedSubCategory = undefined
+        this.updateHelper(helper)
+    }
+
+    public setSubCategory(interaction: BtnInteraction) {
+        const customId = interaction.customId.split(';')
+        const helper = this.helpers.get(customId[1])
+        if (!helper) return this.messageHelper.replyToInteraction(interaction, 'Denne er utdatert, åpne en ny hjelper med /ccg help', { ephemeral: true })
+        interaction.deferUpdate()
+        helper.selectedSubCategory = customId[2] as CCGHelperSubCategory
         this.updateHelper(helper)
     }
 
@@ -75,79 +87,60 @@ export class CCGHelp extends AbstractCommands {
     }
 }
 
-const categories = (helper: CCGHelper) => {
-    return new ActionRowBuilder<ButtonBuilder>().addComponents(
-        categoryButton(helper.id, CCGHelperCategory.Gameplay, helper.selectedCategory === CCGHelperCategory.Gameplay),
-        categoryButton(helper.id, CCGHelperCategory.Deck, helper.selectedCategory === CCGHelperCategory.Deck),
-        categoryButton(helper.id, CCGHelperCategory.Cards, helper.selectedCategory === CCGHelperCategory.Cards),
-        categoryButton(helper.id, CCGHelperCategory.Rules, helper.selectedCategory === CCGHelperCategory.Rules)
-    )
+const getCategories = (helper: CCGHelper) => {
+    const categories = Array.from(categoryMap.keys())
+    const components: Array<ButtonBuilder> = new Array<ButtonBuilder>()
+    for (const category of categories) {
+        components.push(categoryButton(helper.id, category, helper.selectedCategory === category))
+    }
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(components)
 }
+
+const getSubCategories = (helper: CCGHelper) => {
+    const subCategories = categoryMap.get(helper.selectedCategory)
+    const components: Array<ButtonBuilder> = new Array<ButtonBuilder>()
+    for (const subCategory of subCategories) {
+        components.push(subCategoryButton(helper.id, subCategory, helper.selectedSubCategory === subCategory))
+    }
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(components)
+}
+
+const categoryMap: Map<CCGHelperCategory, CCGHelperSubCategory[]> = new Map([
+    [
+        CCGHelperCategory.Gameplay,
+        [
+            CCGHelperSubCategory.Game_modes,
+            CCGHelperSubCategory.Rounds,
+            CCGHelperSubCategory.Card_resolution,
+            CCGHelperSubCategory.Statuses_and_effects,
+            CCGHelperSubCategory.Winning_and_losing,
+        ],
+    ],
+    [CCGHelperCategory.Cards, [CCGHelperSubCategory.Card_anatomy, CCGHelperSubCategory.Balancing]],
+    [CCGHelperCategory.Decks, [CCGHelperSubCategory.Deck_rules, CCGHelperSubCategory.Deck_builder, CCGHelperSubCategory.Commands]],
+    [
+        CCGHelperCategory.Progression,
+        [CCGHelperSubCategory.Card_acquisition, CCGHelperSubCategory.Rewards, CCGHelperSubCategory.Economy, CCGHelperSubCategory.Seasons],
+    ],
+    [CCGHelperCategory.Stats, [CCGHelperSubCategory.Player_stats]],
+])
 
 const categoryButton = (helperId: string, category: CCGHelperCategory, categoryIsActive = false) => {
     return new ButtonBuilder({
         custom_id: `CCG_HELPER;${helperId};${category}`,
         style: categoryIsActive ? ButtonStyle.Primary : ButtonStyle.Secondary,
         disabled: false,
-        label: category,
+        label: category.replace(/_/g, ' '),
         type: 2,
     })
 }
 
-const gameplayHelp = [
-    '## 🕹️ Gameplay',
-    '**CCG** is a **1v1 turn-based card game** played through Discord buttons.',
-    'Both players **secretly select cards** each round.',
-    'When both submit, all cards are **revealed and resolved automatically**.',
-    '',
-    '**Core rules:**',
-    '• Players start with **HP** and **Energy**',
-    '• **Energy** is spent to play cards',
-    '• Cards apply **damage, defense, or effects**',
-    '• Rounds repeat until one player reaches **0 HP**',
-    '',
-    '**The goal:** outplay your opponent and survive.',
-].join('\n')
-
-const cardHelp = [
-    '## 🃏 Cards',
-    'Cards are **emoji-themed actions** with unique effects.',
-    '',
-    '**Each card has:**',
-    '• **Energy cost**',
-    '• **Effect** (damage, defense, status, utility)',
-    '• **Rarity**',
-    '• **Resolution priority**',
-    '',
-    '**Cards can:**',
-    '• Deal or prevent damage',
-    '• Apply status effects',
-    '• Manipulate Energy or cards',
-    '• Counter or modify other cards',
-].join('\n')
-
-const deckHelp = [
-    '## 🧩 Decks',
-    'A deck defines how you play.',
-    '',
-    '**Deck rules:**',
-    '• Decks contain **12 cards**',
-    '• You can own **multiple decks**',
-    '• Only **one deck** can be active',
-    '• Decks are **locked once a game starts**',
-    '',
-    'Copy limits depend on **card rarity**.',
-    'Illegal decks cannot be activated.',
-].join('\n')
-
-const rulesHelp = [
-    '## 🖱️ UI & Rules',
-    'All actions are done using **Discord buttons**.',
-    '',
-    '**Important rules:**',
-    '• Hands are **private**',
-    '• Card selection is **simultaneous**',
-    '• Once submitted, choices are **locked**',
-    '• All effects resolve **automatically in order**',
-    '• Status effects tick at **round end**',
-].join('\n')
+const subCategoryButton = (helperId: string, subCategory: CCGHelperSubCategory, categoryIsActive = false) => {
+    return new ButtonBuilder({
+        custom_id: `CCG_HELPER_SUB;${helperId};${subCategory}`,
+        style: categoryIsActive ? ButtonStyle.Primary : ButtonStyle.Secondary,
+        disabled: false,
+        label: subCategory.replace(/_/g, ' '),
+        type: 2,
+    })
+}

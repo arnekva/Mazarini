@@ -1,4 +1,4 @@
-import { CCGCard } from '../../commands/ccg/ccgInterface'
+import { CCGCard, CCGPlayerStats } from '../../commands/ccg/ccgInterface'
 import { CodBRStatsType, CodStats } from '../../commands/gaming/callofdutyCommands'
 import { rocketLeagueDbData } from '../../commands/gaming/rocketleagueCommands'
 import { IPoll } from '../../commands/pollcommands'
@@ -99,14 +99,29 @@ export interface MazariniUser {
     effects?: IUserEffects
     christmasCalendar?: UserCalendarGift[]
     dailyGameStats?: IDailyGameStats
+    ccg?: ICCGUserData
+}
+
+export interface ICCGUserData {
     decks?: ICCGDeck[]
+    shards?: number
+    dailyShardBonusClaimed?: boolean
+    weeklyShardsEarned?: number
+    cardback?: string
 }
 
 export interface ICCGDeck {
     name: string
-    cards: { id: string; series: string; amount: number; rarity: ItemRarity }[]
+    cards: DeckEditorCard[]
     valid: boolean
     active: boolean
+}
+
+export interface DeckEditorCard {
+    id: string
+    series: string
+    amount: number
+    rarity: ItemRarity
 }
 export interface IDailyGameStats {
     moreOrLess?: IMoreOrLessStats
@@ -171,6 +186,7 @@ export interface IUserDebuffs {}
 export interface ILootSystem {
     boxes: ILootbox[]
     series: ILootSeries[]
+    packs: ILootbox[]
 }
 
 export interface ILootSeries {
@@ -307,6 +323,7 @@ export interface ILootbox {
     name: string
     price: number
     probabilities: ILootboxDistribution
+    isCCG?: boolean
     validFrom?: Date
     validTo?: Date
     rewardOnly?: boolean
@@ -428,14 +445,7 @@ export type UserStats = {
     moneyStats?: MoneyStats
     dondStats?: DonDStats
     wordleStats?: WordleStats
-    ccgStats?: CCGStats
-}
-
-export interface CCGStats {
-    gamesPlayed: number
-    wins: number
-    cardsPlayed: number
-    //TODO
+    ccgStats?: CCGPlayerStats[]
 }
 
 interface WordleStats {

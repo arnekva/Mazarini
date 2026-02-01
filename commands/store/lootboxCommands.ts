@@ -30,12 +30,10 @@ import {
     MazariniUser,
 } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement, IOnTimedEvent } from '../../interfaces/interactionInterface'
-import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { TextUtils } from '../../utils/textUtils'
 import { CCGCard } from '../ccg/ccgInterface'
-import { mockHand } from '../ccg/mockCards'
 import { DealOrNoDeal } from '../games/dealOrNoDeal'
 
 interface IPendingTrade {
@@ -50,6 +48,7 @@ interface IPendingChest {
     quality: string
     series: string
     items: Map<string, IUserLootItem>
+    isCCG: boolean
     effect?: IEffectItem
     message?: InteractionResponse<boolean> | Message<boolean>
     buttons?: ActionRowBuilder<ButtonBuilder>
@@ -73,8 +72,6 @@ const ccgBack =
 
 export class LootboxCommands extends AbstractCommands {
     private imageGenerator: ImageGenerationHelper
-    private lootboxes: ILootbox[]
-    private lootboxesRefreshed: Date
     private series: ILootSeries[]
     private newestSeries: ILootSeries
     private pendingTrades: Map<string, IPendingTrade>
@@ -163,24 +160,34 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private async openAndRegisterLootChest(interaction: ChatInteraction | BtnInteraction, pendingChest?: IPendingChest) {
+        const isPack = interaction.isChatInputCommand() && interaction.options.getSubcommand() === 'pack'
         const user = await this.client.database.getUser(interaction.user.id)
         const quality = this.resolveLootQuality(interaction, pendingChest)
         const series = this.resolveLootSeries(user, interaction, pendingChest)
-        const seriesObj = await this.getSeriesOrDefault(series)
+        const seriesObj = await this.getSeriesOrDefault(series, isPack)
 
-        const box = await this.resolveLootbox(quality)
+        const box = await this.resolveLootbox(quality, isPack)
         if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction, true)) return
         const sh = new LootStatsHelper(user.loot[seriesObj.name].stats)
         sh.registerPurchase(box, true, interaction.isChatInputCommand())
 
         const chestItems: IUserLootItem[] = new Array<IUserLootItem>()
-        chestItems.push(this.calculateRewardItem(box, seriesObj, user))
-        chestItems.push(this.calculateRewardItem(box, seriesObj, user))
-        chestItems.push(this.calculateRewardItem(box, seriesObj, user))
-        this.database.updateUser(user) //update in case of effect change
+        for (let i = 0; i < 3; i++) {
+            let item = this.calculateRewardItem(box, seriesObj, user)
+            while (isPack && this.itemIsDuplicate(item, chestItems)) {
+                item = this.calculateRewardItem(box, seriesObj, user)
+            }
+            chestItems.push(item)
+        }
+
+        if (seriesObj.hasColor) this.database.updateUser(user) //update in case of effect change
         const existingChestId = pendingChest && interaction.isButton() ? interaction.customId.split(';')[1] : undefined
-        if (seriesObj.isCCG) this.revealCCGChest(interaction, chestItems, quality, seriesObj, existingChestId)
+        if (seriesObj.isCCG) this.revealCCGChest(interaction, chestItems, quality, seriesObj, user, existingChestId)
         else this.revealLootChest(interaction, chestItems, quality, seriesObj, existingChestId)
+    }
+
+    private itemIsDuplicate(newItem: IUserLootItem, items: IUserLootItem[]) {
+        return items?.some((item) => item.name === newItem.name)
     }
 
     private resolveLootSeries(user: MazariniUser, interaction: ChatInteraction | BtnInteraction, pendingChest?: IPendingChest) {
@@ -255,6 +262,7 @@ export class LootboxCommands extends AbstractCommands {
                 quality: quality,
                 series: series.name,
                 items: chestItems,
+                isCCG: false,
                 effect: effect,
                 message: msg,
                 buttons: buttons,
@@ -268,9 +276,12 @@ export class LootboxCommands extends AbstractCommands {
         items: IUserLootItem[],
         quality: string,
         series: ILootSeries,
+        user: MazariniUser,
         existingChestId?: string
     ) {
-        const embed = EmbedUtils.createSimpleEmbed('CCG card pack', ' ').setImage(ccgBack)
+        const cardbacks = await this.getCardbackImage(user)
+        const attachment = new AttachmentBuilder(cardbacks, { name: 'cardbacks.png' })
+        const embed = EmbedUtils.createSimpleEmbed('CCG card pack', ' ').setImage('attachment://cardbacks.png')
         const color = (interaction.member as GuildMember).displayColor
         embed.setColor(color)
         const chestId = existingChestId ?? randomUUID()
@@ -281,10 +292,12 @@ export class LootboxCommands extends AbstractCommands {
             const itemId = randomUUID()
             chestItems.set(itemId, item)
             const btn = lootChestButton(chestId, itemId)
-            btn.setLabel(cards.find((card) => card.id === item.name).name)
+            const card = cards.find((card) => card.id === item.name)
+            const emoji = await EmojiHelper.getApplicationEmoji(`${card.series}_${card.id}`, this.client)
+            btn.setLabel(' ').setEmoji({ name: emoji.emojiObject.name, id: emoji.emojiObject.id })
             buttons.addComponents(btn)
         }
-        buttons.components[2].setLabel('?')
+        // buttons.components[2].setLabel('?')
         let pendingChest: IPendingChest = undefined
         if (existingChestId) {
             pendingChest = this.pendingChests.get(existingChestId)
@@ -292,19 +305,20 @@ export class LootboxCommands extends AbstractCommands {
             pendingChest.items = chestItems
             await pendingChest.message.edit({ embeds: [embed] })
         } else {
-            const msg = await this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true })
+            const msg = await this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true }, undefined, [attachment])
             pendingChest = {
                 userId: interaction.user.id,
                 quality: quality,
                 series: series.name,
                 items: chestItems,
+                isCCG: true,
                 message: msg,
                 buttons: buttons,
             }
         }
         this.pendingChests.set(chestId, pendingChest)
         setTimeout(async () => {
-            const cardImage = await this.getCCGCardImage(cards)
+            const cardImage = await this.getCCGChestImage(cards)
             const attachment = new AttachmentBuilder(cardImage, { name: 'cards.png' })
             const embed = EmbedUtils.createSimpleEmbed('CCG card pack', ' ').setImage('attachment://cards.png')
             embed.setColor(color)
@@ -312,26 +326,38 @@ export class LootboxCommands extends AbstractCommands {
         }, 3000)
     }
 
-    private async getCCGCardImage(cards: CCGCard[]) {
-        cards[2].imageUrl = ccgBack
+    private async getCCGChestImage(cards: CCGCard[]) {
         const buffers = await Promise.all(
             cards.map(async (card) => {
-                const res = await fetch(card.imageUrl)
-                if (!res.ok) throw new Error(`Failed to fetch ${card.id}`)
-                return Buffer.from(await res.arrayBuffer())
+                return Buffer.from(await this.getCCGCardImage(card))
             })
         )
         return await this.imageGenerator.stitchImages(buffers, 'horizontal')
     }
 
+    private async getCCGCardImage(card: CCGCard) {
+        const path = `loot/${card.series}/${card.id}_small.png`
+        return await this.database.getFromStorage(path)
+    }
+
+    private async getCardbackImage(user: MazariniUser) {
+        const cardback = Buffer.from(await this.getCCGCardback(user))
+        return await this.imageGenerator.stitchImages([cardback, cardback, cardback], 'horizontal')
+    }
+
+    private async getCCGCardback(user: MazariniUser) {
+        const cardback = user.ccg?.cardback ?? GameValues.ccg.defaultCardback
+        const path = `loot/cardbacks/${cardback}_small.png`
+        return await this.database.getFromStorage(path)
+    }
+
     private async getFullCards(items: IUserLootItem[]) {
-        // return mockCards //TOREMOVE
-        const cards = mockHand //(await this.database.getStorage()).ccg
+        const cards = (await this.database.getStorage()).ccg
         const userCards = new Array<CCGCard>()
         for (const item of items) {
-            // const series = cards[item.series] as CCGCard[]
-            // userCards.push(series.find((card) => card.id === item.name))
-            userCards.push(cards.find((card) => card.id === item.name))
+            const series = cards[item.series] as CCGCard[]
+            userCards.push(series.find((card) => card.id === item.name))
+            // userCards.push(cards.find((card) => card.id === item.name))
         }
         return userCards
     }
@@ -350,14 +376,15 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private async selectChestItem(interaction: BtnInteraction) {
+        const pendingChest = this.getPendingChest(interaction)
+        const user = await this.client.database.getUser(interaction.user.id)
+        if (!pendingChest) return this.messageHelper.replyToInteraction(interaction, 'Denne er dessverre ikke gyldig lenger')
+        if (!(pendingChest.userId === interaction.user.id)) {
+            return this.messageHelper.replyToInteraction(interaction, 'nei')
+        }
+        if (pendingChest.isCCG) return this.selectCCGChestItem(interaction, pendingChest, user)
         const deferred = await this.messageHelper.deferReply(interaction)
         if (!deferred) return this.messageHelper.sendMessage(interaction.channelId, { text: 'Noe gikk galt med interactionen. Prøv igjen.' })
-        const user = await this.client.database.getUser(interaction.user.id)
-        const pendingChest = this.getPendingChest(interaction)
-        if (!pendingChest) return this.messageHelper.replyToInteraction(interaction, 'Denne er dessverre ikke gyldig lenger', { hasBeenDefered: true })
-        if (!(pendingChest.userId === interaction.user.id)) {
-            return this.messageHelper.replyToInteraction(interaction, 'nei', { hasBeenDefered: true })
-        }
         const chestEmoji = await EmojiHelper.getEmoji('chest_open', interaction)
         const chestType = this.isArneChest(Array.from(pendingChest.items.values())) ? 'Arne' : TextUtils.capitalizeFirstLetter(pendingChest.quality) + ' loot'
         const embed = EmbedUtils.createSimpleEmbed(`${chestType} chest`, `Åpner lootboxen!`).setThumbnail(
@@ -386,6 +413,23 @@ export class LootboxCommands extends AbstractCommands {
         }
     }
 
+    private selectCCGChestItem(interaction: BtnInteraction, pendingChest: IPendingChest, user: MazariniUser) {
+        interaction.deferUpdate()
+        const item = this.getChestItem(interaction, pendingChest)
+        this.registerItemOnUser(user, item)
+        const disabledBtns = pendingChest.buttons.components.map((btn) => {
+            btn.setDisabled(true)
+            const btnProps: any = btn.toJSON()
+            if (btnProps.custom_id === interaction.customId) btn.setStyle(ButtonStyle.Success)
+            else btn.setStyle(ButtonStyle.Secondary)
+            return btn
+        })
+        const btnRow = new ActionRowBuilder<ButtonBuilder>().addComponents(disabledBtns)
+        interaction.message.edit({ components: [btnRow] })
+        if (!(item.rarity === ItemRarity.Unobtainable)) this.generateInventoryParts(user, item.series, [item.rarity], true)
+        this.deletePendingChest(interaction)
+    }
+
     private getPendingChest(interaction: BtnInteraction) {
         const chestId = interaction.customId.split(';')[1]
         return this.pendingChests.get(chestId)
@@ -401,28 +445,30 @@ export class LootboxCommands extends AbstractCommands {
         return chest.items.get(chestId)
     }
 
-    private async resolveLootbox(quality: string): Promise<ILootbox> {
-        const boxes = await this.getLootboxes()
+    private async resolveLootbox(quality: string, isPack: boolean = false): Promise<ILootbox> {
+        const boxes = isPack ? await this.getLootpacks() : await this.getLootboxes()
         return boxes.find((box) => box.name === quality)
     }
 
     private async getLootboxes(): Promise<ILootbox[]> {
-        if (this.lootboxes && DateUtils.dateIsWithinLastHour(this.lootboxesRefreshed)) return this.lootboxes
         const lootboxes = await this.client.database.getLootboxes()
-        this.lootboxes = lootboxes.filter((box) => LootboxCommands.lootboxIsValid(box))
-        this.lootboxesRefreshed = new Date()
-        return this.lootboxes
+        return lootboxes.filter((box) => LootboxCommands.lootboxIsValid(box))
+    }
+
+    private async getLootpacks(): Promise<ILootbox[]> {
+        const lootboxes = await this.client.database.getLootpacks()
+        return lootboxes.filter((box) => LootboxCommands.lootboxIsValid(box))
     }
 
     static lootboxIsValid(box: ILootbox): boolean {
         const from = box.validFrom ? new Date(box.validFrom) : new Date()
-        const to = box.validTo ? new Date(box.validTo) : new Date()
         const now = new Date()
+        const to = box.validTo ? new Date(box.validTo) : new Date()
         return now >= from && now <= to
     }
 
-    private checkBalanceAndTakeMoney(user: MazariniUser, box: ILootbox, interaction: ChatInteraction | BtnInteraction, isChest: boolean = false) {
-        const moneyWasTaken = this.client.bank.takeMoney(user, isChest ? box.price * 2 : box.price)
+    private checkBalanceAndTakeMoney(user: MazariniUser, box: ILootbox, interaction: ChatInteraction, isChest: boolean = false) {
+        const moneyWasTaken = box.isCCG ? this.client.bank.takeShards(user, box.price) : this.client.bank.takeMoney(user, isChest ? box.price * 2 : box.price)
         if (!moneyWasTaken) this.messageHelper.replyToInteraction(interaction, 'Du har kje råd te den', { ephemeral: true, hasBeenDefered: true })
         return moneyWasTaken
     }
@@ -451,7 +497,7 @@ export class LootboxCommands extends AbstractCommands {
         const rarityItems = this.getRarityItems(series, rarity)
         const item = RandomUtils.getRandomItemFromList(rarityItems)
         const color = this.getRandomColor(colored && series.hasColor, user)
-        return { name: item, series: series.name, rarity: rarity, color: color, amount: 1 }
+        return { name: item, series: series.name, rarity: rarity, color: color, amount: 1, isCCG: series.isCCG ?? false }
     }
 
     private getRandomInventoryArt(user: MazariniUser, series: ILootSeries) {
@@ -462,7 +508,13 @@ export class LootboxCommands extends AbstractCommands {
         return art
     }
 
-    private async getSeriesOrDefault(series: string): Promise<ILootSeries> {
+    private async getSeriesOrDefault(series: string, isPack: boolean = false): Promise<ILootSeries> {
+        const lootboxSeries = (await this.getSeries()).filter((serie) => (isPack && serie.isCCG) || (!isPack && (!serie.isCCG || GameValues.ccg.isLootable)))
+        const seriesName = series && series !== '' ? series : lootboxSeries.sort((a, b) => new Date(b.added).getTime() - new Date(a.added).getTime())[0].name
+        return lootboxSeries.find((x) => x.name === seriesName) ?? lootboxSeries[0]
+    }
+
+    private async getSeriesOrDefaultForInventory(series: string): Promise<ILootSeries> {
         const lootboxSeries = await this.getSeries()
         const seriesName = series && series !== '' ? series : lootboxSeries.sort((a, b) => new Date(b.added).getTime() - new Date(a.added).getTime())[0].name
         return lootboxSeries.find((x) => x.name === seriesName) ?? lootboxSeries[0]
@@ -584,18 +636,22 @@ export class LootboxCommands extends AbstractCommands {
         return `loot/${item.series}/${item.name}_${item.color}${fileFormat}`
     }
 
-    private async qualityAutocomplete(interaction: ATCInteraction, isChest: boolean = false) {
-        const boxes = await this.getLootboxes()
+    private async qualityAutocomplete(interaction: ATCInteraction) {
+        const cmd = interaction.options.getSubcommand()
+        const boxes = cmd === 'pack' ? await this.getLootpacks() : await this.getLootboxes()
+        const price = (box: ILootbox) => (cmd === 'pack' ? `${box.price} shards` : `${(cmd === 'chest' ? 2 : 1) * (box.price / 1000)}K`)
         interaction.respond(
-            boxes
-                .filter((box) => !box.rewardOnly)
-                .map((box) => ({ name: `${TextUtils.capitalizeFirstLetter(box.name)} ${(isChest ? 2 : 1) * (box.price / 1000)}K`, value: box.name }))
+            boxes.filter((box) => !box.rewardOnly).map((box) => ({ name: `${TextUtils.capitalizeFirstLetter(box.name)} ${price(box)}`, value: box.name }))
         )
     }
 
-    private async seriesAutocomplete(interaction: ATCInteraction, isArt: boolean = false) {
-        const series = (await this.getSeries()).filter((series) => !series.isCCG || GameValues.ccg.isLootable)
-        const filteredSeries = isArt ? series.filter((serie) => serie.inventoryArts && serie.inventoryArts.length > 0) : series
+    private async seriesAutocomplete(interaction: ATCInteraction) {
+        const cmd = interaction.options.getSubcommand()
+        const series = await this.getSeries()
+        let filteredSeries = series
+        if (cmd === 'art') filteredSeries = filteredSeries.filter((serie) => serie.inventoryArts && serie.inventoryArts.length > 0)
+        else if (cmd === 'pack') filteredSeries = filteredSeries.filter((serie) => serie.isCCG)
+        else filteredSeries = filteredSeries.filter((series) => !series.isCCG || GameValues.ccg.isLootable)
         const optionList: any = interaction.options
         const input = optionList.getFocused().toLowerCase()
         interaction.respond(
@@ -610,7 +666,7 @@ export class LootboxCommands extends AbstractCommands {
         }
         let user = await this.client.database.getUser(interaction.user.id)
         const seriesParam = this.resolveLootSeries(user, interaction)
-        const series = await this.getSeriesOrDefault(seriesParam)
+        const series = await this.getSeriesOrDefaultForInventory(seriesParam)
         let attempts = 0
         const intervalId = setInterval(async () => {
             attempts++
@@ -623,6 +679,9 @@ export class LootboxCommands extends AbstractCommands {
                 user = await this.client.database.getUser(interaction.user.id)
                 if (!(await this.verifyUserHasInventoryImages(user, series.name))) {
                     return this.printInventory(interaction)
+                }
+                if (!(await this.userHasValidInventoryLinks(user, series.name))) {
+                    user = await this.client.database.getUser(interaction.user.id)
                 }
                 const unobtainableSeries = (series.unobtainableHolder ?? '') === user.id ? series.name : ''
                 const img = await this.imageGenerator.stitchInventory(user.loot[series.name].inventory, unobtainableSeries)
@@ -651,6 +710,24 @@ export class LootboxCommands extends AbstractCommands {
             }
         }
         return inventoryComplete
+    }
+
+    private async userHasValidInventoryLinks(user: MazariniUser, series: string) {
+        let allLinksValid = true
+        const rarities = [ItemRarity.Common, ItemRarity.Rare, ItemRarity.Epic, ItemRarity.Legendary]
+        for (const rarity of rarities) {
+            const url = user.loot[series].inventory[rarity].img
+            let hasValidImage = true
+            const res = await fetch(url)
+            if (!res.ok) hasValidImage = false
+            if (!hasValidImage) {
+                allLinksValid = true
+                const imgUrl = await this.database.getUserInventory(user, series, rarity)
+                user.loot[series]['inventory'][rarity]['img'] = imgUrl
+            }
+        }
+        if (!allLinksValid) await this.database.updateUser(user)
+        return allLinksValid
     }
 
     /* LEAVE THIS FOR NOW - can revisit if containers can set image size
@@ -726,10 +803,10 @@ export class LootboxCommands extends AbstractCommands {
     }
     */
 
-    private async generateInventoryParts(user: MazariniUser, series: string, rarities: Array<ItemRarity>) {
+    private async generateInventoryParts(user: MazariniUser, series: string, rarities: Array<ItemRarity>, isCCG: boolean = false) {
         const updates: InventoryUpdate[] = rarities.map((rarity) => ({ userId: user.id, series: series, rarity: rarity }))
         this.inventoryUpdateQueue.push(...updates)
-        const seriesObj = await this.getSeriesOrDefault(series)
+        const seriesObj = await this.getSeriesOrDefault(series, isCCG)
         for (const rarity of rarities) {
             const img = await this.imageGenerator.generateImageForCollectablesRarity(user, seriesObj, rarity)
             await this.database.uploadUserInventory(user, `${series}/${rarity}.png`, img)
@@ -1036,11 +1113,10 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private delegateAutocomplete(interaction: ATCInteraction) {
-        const cmd = interaction.options.getSubcommand()
         const optionList: any = interaction.options
         const focused = optionList._hoistedOptions.find((option) => option.focused)
-        if (focused.name === 'series') this.seriesAutocomplete(interaction, cmd === 'art')
-        else if (focused.name.includes('quality')) this.qualityAutocomplete(interaction, cmd === 'chest')
+        if (focused.name === 'series') this.seriesAutocomplete(interaction)
+        else if (focused.name.includes('quality')) this.qualityAutocomplete(interaction)
         else if (focused.name.includes('item')) this.itemAutocomplete(interaction)
     }
 

@@ -1,11 +1,13 @@
 import { Client } from 'discord.js'
 import { initializeApp } from 'firebase/app'
-import { environment, firebaseConfig } from '../client-env'
+import { cloudflareConfig, environment, firebaseConfig } from '../client-env'
 import { JobScheduler } from '../Jobs/jobScheduler'
 
+import { S3Client } from '@aws-sdk/client-s3'
 import { CommandBuilder } from '../builders/commandBuilder/commandBuilder'
 import { MazariniTracker } from '../general/mazariniTracker'
 import { LockingHandler } from '../handlers/lockingHandler'
+import { CloudflareHelper } from '../helpers/cloudflareHelper'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { FirebaseHelper } from '../helpers/firebaseHelper'
 import { GeminiHelper } from '../helpers/geminiHelper'
@@ -70,7 +72,9 @@ export class MazariniClient extends Client {
     setupDatabase(msgHelper: MessageHelper) {
         const firebaseApp = initializeApp(firebaseConfig)
         const fbHelper = new FirebaseHelper(firebaseApp, msgHelper)
-        this.databaseHelper = new DatabaseHelper(fbHelper)
+        const s3Client = new S3Client(cloudflareConfig)
+        const cfHelper = new CloudflareHelper(s3Client, msgHelper)
+        this.databaseHelper = new DatabaseHelper(fbHelper, cfHelper)
     }
 
     /** Run this to create slash commands from CommandBuilder. Will only run in dev mode */
