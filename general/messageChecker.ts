@@ -65,7 +65,7 @@ export class MessageChecker {
             }
             const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message)
             if (idJoke !== 'none' && !ignoreRewards) {
-                let reward = 10000
+                let reward = GameValues.misc.idJokeReward
                 const user = await this.client.database.getUser(message.author.id)
                 reward = this.client.bank.giveMoney(user, reward)
                 this.client.messageHelper.replyToMessage(message, `nice, id-en te meldingen din inneholde ${idJoke}. Gz, du har vonne ${reward} chips`, {
@@ -122,7 +122,7 @@ export class MessageChecker {
 
         if (lowestScoringUsers) {
             const { score, userIds, allUserIds } = lowestScoringUsers
-            const chipsPerWinner = Math.min(Math.floor(GameValues.wordle.reward / userIds.length), 25000)
+            const chipsPerWinner = Math.min(Math.floor(GameValues.wordle.reward / userIds.length), GameValues.wordle.wordleCapPerPerson)
             const userMentions = userIds.map((user) => MentionUtils.mentionUser(user.replace(/<@|>/g, ''))).join(' ')
             const response = `Det er ${userIds.length} bruker${userIds.length > 1 ? 'e' : ''} som har fått laveste poengsum (${score}/6): ${userMentions}. ${
                 userMentions.length > 1 ? 'De' : 'Han'

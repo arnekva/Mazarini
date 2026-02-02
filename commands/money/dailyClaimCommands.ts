@@ -1,6 +1,6 @@
 import { ActionRowBuilder, APIEmbedField, ButtonBuilder, EmbedBuilder } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
-import { ChatInteraction, BtnInteraction } from '../../Abstracts/MazariniInteraction'
+import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
 
@@ -27,18 +27,18 @@ export class DailyClaimCommands extends AbstractCommands {
 
             let reward = this.getDailyReward(newData)
             reward = this.client.bank.giveMoney(user, reward)
-            const lootButton = this.getLootboxReward(user.id, newData)
+            // const lootButton = this.getLootboxReward(user.id, newData)
             embed.setDescription(`Du har henta dine daglige ${reward} chips`)
             embed.addFields([{ name: 'Streak', value: `${newData.streak ?? 1}` + ' dager', inline: true }])
-            const lootboxField = this.getLootboxField(newData)
-            if (lootboxField) embed.addFields([lootboxField])
+            // const lootboxField = this.getLootboxField(newData)
+            // if (lootboxField) embed.addFields([lootboxField])
             if (newData.streak === 7) {
                 newData.streak = 0
                 embed.setFooter({ text: 'Streaken din resettes nå te 0' })
             }
             updates[`/users/${user.id}/daily`] = newData
             this.client.database.updateData(updates)
-            this.messageHelper.replyToInteraction(interaction, embed, undefined, lootButton)
+            this.messageHelper.replyToInteraction(interaction, embed, undefined /*, lootButton*/)
         } else {
             embed.setDescription('Du har allerede henta daily i dag. Vent te imårå klokkå 05:00')
             this.messageHelper.replyToInteraction(interaction, embed)

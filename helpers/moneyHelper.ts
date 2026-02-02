@@ -38,6 +38,16 @@ export class MoneyHelper {
         return user.chips && user.chips >= amount
     }
 
+    takeShards(user: MazariniUser, amount: number): boolean {
+        const canAfford = user.ccg?.shards ?? 0 >= amount
+        if (canAfford) {
+            user.ccg.shards -= amount
+            this.client.database.updateUser(user)
+            return true
+        }
+        return false
+    }
+
     applyRestrictions(user: MazariniUser, money: number) {
         if ((user.jail?.daysInJail ?? 0) > 0) {
             return Math.floor(money * this.jail_multiplier)

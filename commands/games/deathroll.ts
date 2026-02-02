@@ -148,7 +148,7 @@ export class Deathroll extends AbstractCommands {
             const penalty = Math.abs(GameValues.deathroll.potSkip.potPenalty)
             this.rewardPot = Math.max(0, this.rewardPot + GameValues.deathroll.potSkip.potPenalty)
             this.saveRewardPot()
-            return `(pot skip - ${penalty} = ${this.rewardPot} chips) `
+            if (penalty) return `(pot skip - ${penalty} = ${this.rewardPot} chips) `
         }
         return ''
     }

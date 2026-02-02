@@ -30,6 +30,8 @@ import { SpotifyCommands } from '../commands/sound/spotifyCommands'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { BtnInteraction, ChatInteraction, ModalInteraction, SelectStringInteraction } from '../Abstracts/MazariniInteraction'
 import { CalendarCommands } from '../commands/calendarCommands'
+import { CCGCommands } from '../commands/ccg/ccgCommands'
+import { DeckCommands } from '../commands/ccg/deck'
 import { DealOrNoDeal } from '../commands/games/dealOrNoDeal'
 import { LuckyWheel } from '../commands/games/luckywheel'
 import { Mastermind } from '../commands/games/mastermind'
@@ -42,7 +44,6 @@ import { UserCommands } from '../commands/user/userCommands'
 import { Weather } from '../commands/weatherCommands'
 import { IInteractionCommand, IInteractionElement } from '../interfaces/interactionInterface'
 import { PatchNotes } from '../patchnotes'
-import console from 'console'
 
 export type TimedEvent = 'weekly' | 'daily' | 'hourly'
 export class Commands {
@@ -86,6 +87,8 @@ export class Commands {
     private dealOrNoDeal: DealOrNoDeal
     private mastemind: Mastermind
     private luckywheel: LuckyWheel
+    private ccgCommands: CCGCommands
+    private deckCommands: DeckCommands
 
     allTextCommands: IInteractionCommand<ChatInteraction>[]
     allModalCommands: IInteractionCommand<ModalInteraction>[]
@@ -133,6 +136,8 @@ export class Commands {
         this.dealOrNoDeal = new DealOrNoDeal(this.client)
         this.mastemind = new Mastermind(this.client)
         this.luckywheel = new LuckyWheel(this.client)
+        this.ccgCommands = new CCGCommands(this.client)
+        this.deckCommands = new DeckCommands(this.client)
 
         this.allTextCommands = this.getAllTextCommands()
         this.allModalCommands = this.getAllModalCommands()
@@ -158,9 +163,7 @@ export class Commands {
     async doSaveAllCommands() {
         const allClasses = this.getAll()
         for (const c of allClasses) {
-           
             await c.onSave()
-           
         }
     }
     async doRefreshAllCommands() {

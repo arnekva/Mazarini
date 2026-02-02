@@ -1,7 +1,10 @@
 import { ApplicationEmojiManager } from 'discord.js'
 import { MazariniClient } from '../client/MazariniClient'
+import { mazariniCCG } from '../commands/ccg/cards/mazariniCCG'
 import { ImageGenerationHelper } from '../helpers/imageGenerationHelper'
 import {
+    ICCGDeck,
+    ILootbox,
     ILootSeries,
     ILootSeriesInventoryArt,
     ILootStats,
@@ -34,7 +37,7 @@ export class Scripts {
         for (const user of users) {
             await this.refactorUserLoot(user)
         }
-        this.updateLootSeriesAndBoxes()
+        // this.updateLootSeriesAndBoxes()
         const usersWithLoot = users.filter((user) => (user.collectables?.length ?? 0) > 0)
         for (const user of usersWithLoot) {
             await this.generateNewLootInventory(user)
@@ -79,7 +82,7 @@ export class Scripts {
         const allItems: gifTemplate[] = [...common, ...rare, ...epic, ...legendary]
         for (const item of allItems) {
             console.log(item.rarity, ' - ', item.name)
-            const name = `lotr_${item.name}_n`
+            const name = `lotr_${item.name}_n` // Change for CCG
             const emojiObj = appEmojis.find((emoji) => emoji.name == name)
             if (!emojiObj) {
                 const lootItem = { name: item.name, series: 'lotr', rarity: item.rarity, color: ItemColor.None, amount: 1 }
@@ -89,14 +92,21 @@ export class Scripts {
         }
     }
 
-    public async updateLootSeriesAndBoxes() {
-        const boxes = await this.client.database.getLootboxes()
-        const updatedBoxes = boxes.map((box) => ({ ...box, probabilities: { ...box.probabilities, unobtainable: 0.002 } }))
-        this.client.database.setLootboxes(updatedBoxes)
+    public async updateLootSeriesAndPacks() {
+        const packs = (await this.client.database.getLootpacks()) ?? new Array<ILootbox>()
+        if (!packs.some((pack) => pack.name === basicLootPack.name)) packs.push(basicLootPack)
+        this.client.database.setLootpacks(packs)
         const allSeries = await this.client.database.getLootboxSeries()
-        const updatedSeries = allSeries.map((series) => ({ ...series, hasColor: true, hasUnobtainable: false }))
-        if (!updatedSeries.some((series) => series.name === lotr_series.name)) updatedSeries.push(lotr_series)
-        this.client.database.setLootSeries(updatedSeries)
+        if (!allSeries.some((series) => series.name === mazariniCCG_series.name)) allSeries.push(mazariniCCG_series)
+        this.client.database.setLootSeries(allSeries)
+    }
+
+    public addCCGCards() {
+        this.client.database.updateStorage({
+            ccg: {
+                mazariniCCG: mazariniCCG,
+            },
+        })
     }
 
     public async refactorUserLoot(user: MazariniUser) {
@@ -138,17 +148,19 @@ export class Scripts {
         await this.client.database.updateUser(user)
     }
 
-    public async refactorUserLootArt() {
-        const users = await this.client.database.getAllUsers()
+    public async initializeNewInventories() {
+        const users = (await this.client.database.getAllUsers()).filter((user) => (user.collectables?.length ?? 0) > 0)
         for (const user of users) {
-            const lotr: IUserLootSeries = {
-                name: 'lotr',
-                inventoryArt: undefined,
-                pityLevel: user.loot.lotr.pityLevel ?? structuredClone(defaultPityLevel),
-                inventory: user.loot.lotr.inventory ?? structuredClone(defaultInventory),
-                stats: user.loot.lotr.stats ?? structuredClone(defaultLootStats),
+            const mazariniCCG: IUserLootSeries = {
+                name: 'mazariniCCG',
+                pityLevel: user.loot.mazariniCCG?.pityLevel ?? structuredClone(defaultPityLevel),
+                inventory: user.loot.mazariniCCG?.inventory ?? structuredClone(defaultInventory),
+                stats: user.loot.mazariniCCG?.stats ?? structuredClone(defaultLootStats),
             }
-            user.loot.lotr = lotr
+            mazariniCCG.inventory.common.items = startingInventory
+            // user.loot = {...user.loot, mazariniCCG: mazariniCCG}
+            user.loot.mazariniCCG = mazariniCCG
+            user.ccg = { ...user.ccg, decks: [startingDeck] }
             await this.client.database.updateUser(user)
         }
     }
@@ -245,6 +257,18 @@ const defaultLootStats: ILootStats = {
     achievements: {
         daysWithUnobtainable: 0,
     },
+}
+
+const mazariniCCG_series: ILootSeries = {
+    name: 'mazariniCCG',
+    added: new Date(),
+    common: ['shrekStare', 'geggiexcited', 'arne', 'arne_caveman'],
+    rare: ['the_chokester', 'maggiscared', 'sniff', 'are_you', 'kms2', 'yarrne', 'geggi_kill', 'choke_shield', 'turtle'],
+    epic: ['pointerbrothers1', 'same', 'KEKW_gun', 'kms_gun', 'arnenymous', 'polse'],
+    legendary: ['kys', 'hoie'],
+    hasColor: false,
+    hasUnobtainable: false,
+    isCCG: true,
 }
 
 const lotr_series: ILootSeries = {
@@ -559,3 +583,34 @@ const luckyWheelRewards: ILuckyWheelReward[] = [
         weight: 3,
     },
 ]
+
+const basicLootPack: ILootbox = {
+    name: 'basic',
+    price: 50,
+    probabilities: {
+        common: 1,
+        rare: 0.86,
+        epic: 0.11,
+        legendary: 0.01,
+        color: 0,
+    },
+    isCCG: true,
+    rewardOnly: false,
+}
+
+const startingInventory: IUserLootItem[] = [
+    { name: 'arne', color: ItemColor.None, rarity: ItemRarity.Common, series: 'mazariniCCG', amount: 5, isCCG: true },
+    { name: 'arne_caveman', color: ItemColor.None, rarity: ItemRarity.Common, series: 'mazariniCCG', amount: 5, isCCG: true },
+    { name: 'geggiexcited', color: ItemColor.None, rarity: ItemRarity.Common, series: 'mazariniCCG', amount: 2, isCCG: true },
+]
+
+const startingDeck: ICCGDeck = {
+    name: 'default',
+    active: true,
+    valid: true,
+    cards: [
+        { id: 'arne', series: 'mazariniCCG', amount: 5, rarity: ItemRarity.Common },
+        { id: 'arne_caveman', series: 'mazariniCCG', amount: 5, rarity: ItemRarity.Common },
+        { id: 'geggiexcited', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
+    ],
+}

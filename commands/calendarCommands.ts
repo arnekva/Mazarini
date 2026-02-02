@@ -4,12 +4,13 @@ import moment from 'moment'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { BtnInteraction, ChatInteraction } from '../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../client/MazariniClient'
-import { IUserEffects, LootboxQuality, MazariniStorage, MazariniUser, UserCalendarGift } from '../interfaces/database/databaseInterface'
+import { GameValues } from '../general/values'
+import { DatabaseHelper } from '../helpers/databaseHelper'
+import { IUserEffects, LootboxQuality, MazariniUser, UserCalendarGift } from '../interfaces/database/databaseInterface'
 import { IInteractionElement, IOnTimedEvent } from '../interfaces/interactionInterface'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { DateUtils } from '../utils/dateUtils'
 import { LootboxCommands } from './store/lootboxCommands'
-import { DatabaseHelper } from '../helpers/databaseHelper'
 
 export class CalendarCommands extends AbstractCommands {
     constructor(client: MazariniClient) {
@@ -69,7 +70,7 @@ export class CalendarCommands extends AbstractCommands {
         // Reset shuffleIgnoresDigits for global storage if present
         this.client.database.getStorage?.().then((storage) => {
             if (storage?.effects?.positive?.shuffleIgnoresDigits) {
-                storage.effects.positive.shuffleIgnoresDigits = true
+                storage.effects.positive.shuffleIgnoresDigits = GameValues.deathroll.shuffleIgnoresDigitsDefault
                 this.client.database.updateStorage?.(storage)
             }
         })

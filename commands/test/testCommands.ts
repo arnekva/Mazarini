@@ -6,6 +6,7 @@ import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { Scripts } from '../../scripts/scripts'
 import { LootboxCommands } from '../store/lootboxCommands'
 
 const defaultBtn = (id: string) => {
@@ -56,21 +57,11 @@ export class TestCommands extends AbstractCommands {
     }
 
     private async test(interaction: ChatInteraction | BtnInteraction) {
-        // await interaction.deferReply({ ephemeral: true })
-        const a = await this.database.getStorage()
-        a.effects = {
-            positive: {
-                shuffleIgnoresDigits: true,
-            },
-        }
-        this.database.updateStorage(a)
-        interaction.reply(interaction.user.mention + ' det funke!')
-
-        // interaction.launchActivity()
-        // const user = await this.database.getUser(interaction.user.id)
-        // const container = mastermindContainer()
-        // // this.messageHelper.sendMessage(interaction.channelId, { components: [container.container] })
-        // this.messageHelper.replyToInteraction(interaction, '', { ephemeral: true }, [container.container])
+        const scripts = new Scripts(this.client)
+        // await scripts.updateLootSeriesAndPacks()
+        // scripts.addCCGCards()
+        // await scripts.initializeNewInventories()
+        this.messageHelper.replyToInteraction(interaction, 'lagt til ny loot inventory')
     }
 
     private async testSelectMenu(selectMenu: SelectStringInteraction) {

@@ -1,6 +1,5 @@
 import { FirebaseApp } from 'firebase/app'
 import { child, Database, get, getDatabase, increment, ref, remove, set, update } from 'firebase/database'
-import { Firestore, getFirestore } from 'firebase/firestore'
 import {
     FirebaseStorage,
     getBytes,
@@ -20,14 +19,12 @@ import { MessageHelper } from './messageHelper'
 export class FirebaseHelper {
     private firebaseApp: FirebaseApp
     private db: Database
-    private firestore: Firestore
     private messageHelper: MessageHelper
     private storage: FirebaseStorage
 
     constructor(firebaseApp: FirebaseApp, messageHelper: MessageHelper) {
         this.firebaseApp = firebaseApp
         this.db = getDatabase(firebaseApp)
-        this.firestore = getFirestore(firebaseApp)
         this.messageHelper = messageHelper
         this.storage = getStorage(firebaseApp)
     }

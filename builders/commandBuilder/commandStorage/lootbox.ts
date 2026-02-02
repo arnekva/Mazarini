@@ -46,6 +46,25 @@ export const lootboxCommand: ISlashCommandItem = {
             ],
         },
         {
+            commandName: 'pack',
+            commandDescription: 'Kjøp en pakke med 3 kort du kan velge mellom',
+            options: [
+                {
+                    name: 'quality',
+                    description: 'hvilken pakke ønsker du å kjøpe?',
+                    type: ApplicationCommandOptionType.String,
+                    required: true,
+                    autocomplete: true,
+                },
+                {
+                    name: 'series',
+                    description: 'hvilken ccg-serie ønsker du å kjøpe fra',
+                    type: ApplicationCommandOptionType.String,
+                    autocomplete: true,
+                },
+            ],
+        },
+        {
             commandName: 'inventory',
             commandDescription: 'Se en oversikt over loot-en din',
             options: [

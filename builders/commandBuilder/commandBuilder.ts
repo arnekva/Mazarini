@@ -9,7 +9,6 @@ import {
     SlashCommandSubcommandBuilder,
     SlashCommandSubcommandGroupBuilder,
 } from 'discord.js'
-import { CommandStorage } from './commandStorage'
 
 export interface ISlashCommandItem {
     /** Command name */
@@ -136,7 +135,8 @@ export namespace CommandBuilder {
     /** This command will automatically create all commands listed in it */
     export const createCommands = (client: Client) => {
         // CommandBuilder.deleteCommand('1356989552941727935', client)
-        CommandBuilder.createSlashCommand(CommandStorage.LuckyWheel, client)
+        // CommandBuilder.createSlashCommand(CommandStorage.LootboxCommand, client)
+        // CommandBuilder.createSlashCommand(CommandStorage.CCG, client)
         // CommandBuilder.deleteCommand('1025783112648642701', client)
         // CommandBuilder.createContextMenuCommand({ commandName: 'helg' }, client)
     }

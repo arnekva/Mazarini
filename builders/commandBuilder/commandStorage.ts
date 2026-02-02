@@ -1,9 +1,11 @@
 import { blackjackCommand } from './commandStorage/blackjack'
 import { botSettingsCommand } from './commandStorage/botsettings'
 import { calendarCommand } from './commandStorage/calendar'
+import { ccgCommand } from './commandStorage/ccg'
 import { countdownCommand } from './commandStorage/countdown'
 import { dailyCommand } from './commandStorage/daily'
 import { deathrollCommand } from './commandStorage/deathroll'
+import { deckCommand } from './commandStorage/deck'
 import { dropCommand } from './commandStorage/drop'
 import { frameCommand } from './commandStorage/frame'
 import { jailCommand } from './commandStorage/jail'
@@ -20,6 +22,7 @@ import { pantelotterietCommand } from './commandStorage/pantelotteriet'
 import { pickpocketCommand } from './commandStorage/pickpocket'
 import { pointerbrothersCommand } from './commandStorage/pointerbrothers'
 import { pollCommand } from './commandStorage/poll'
+import { redactedCommand } from './commandStorage/redacted'
 import { refreshCommand } from './commandStorage/refresh'
 import { rewardCommand } from './commandStorage/reward'
 import { rocketCommand } from './commandStorage/rocket'
@@ -74,4 +77,7 @@ export namespace CommandStorage {
     export const Pantelotteriet = pantelotterietCommand
     export const Mastermind = mastermind
     export const LuckyWheel = luckyWheelCommand
+    export const Redacted = redactedCommand
+    export const CCG = ccgCommand
+    export const Deck = deckCommand
 }

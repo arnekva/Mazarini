@@ -56,7 +56,8 @@ export class MoneyCommands extends AbstractCommands {
         }
         const user = await this.client.database.getUser(id)
         const chips = user.chips
-        let embed = EmbedUtils.createSimpleEmbed(`💳 Lommeboken til ${name} 🏧`, `${chips} chips`)
+        const shards = user.ccg?.shards ?? 0
+        let embed = EmbedUtils.createSimpleEmbed(`💳 Lommeboken til ${name} 🏧`, `${chips} chips\n${shards} shards`)
         if (!target && user.hasBeenRobbed) {
             embed = EmbedUtils.createSimpleEmbed(
                 `💳 Lommeboken til ${name} 🏧`,

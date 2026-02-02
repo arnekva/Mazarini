@@ -25,7 +25,22 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(['* Wordle er nå capped på 2.5k på enkeltpersoner'].join('\n'))
+        const text = new TextDisplayBuilder().setContent(
+            [
+                'Ååååååkei det er på tide med noe nytt..',
+                '',
+                'Etter du har fullført en lootseries har du kanskje sittet igjen med en tom følelse og spurt deg selv:',
+                '"hva nå?"',
+                '',
+                'Hva om du kunne ta det et steg videre, og faktisk brukt looten til noe :thinking:',
+                '',
+                '',
+                'Introducing...',
+                '## Mazarini CCG! ',
+                '',
+                'Les mer på `/ccg help`',
+            ].join('\n')
+        )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 
