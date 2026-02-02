@@ -203,7 +203,7 @@ export const GameValues: GameValuesType = {
             [176, 200],
             [201, 10002],
         ],
-        potSkip: { diceTarget: 200, roll: 69, potPenalty: -1250 },
+        potSkip: { diceTarget: 200, roll: 69, potPenalty: 0 },
         addToPot: {
             athStreakMultiplier: 2000,
             streakMultiplier: 1000,
@@ -213,18 +213,18 @@ export const GameValues: GameValuesType = {
         },
         jokes: {
             nineElevenRemove: 2977,
-            nineElevenChance: 0.99,
+            nineElevenChance: 0.25,
         },
         checkForReward: {
             sameDigitsMultiplier: 3,
             allDigitsExceptFirstAreZeroMultiplier: 3,
-            diceTargetMultiplier: 5,
+            diceTargetMultiplier: 3,
             roll2Reward: 5,
             doublePotDepositMultiplier: 2,
             minRollForMultiplier: 100,
             minPotForDouble: 1000,
             maxDoubleReward: 2500,
-            lootboxChance: 8,
+            lootboxChance: 0,
             lootbox: {
                 basic: { min: 0, max: 9999, cost: 5000 },
                 premium: { min: 10000, max: 24999, cost: 10000 },
@@ -236,9 +236,9 @@ export const GameValues: GameValuesType = {
                 1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 669, 690, 8008, 6969, 420, 123, 1234, 12345, 2469, 1984, 2026, 2012, 1945, 2468, 1359, 6900,
                 2026, 4060, 1989,
             ],
-            unSpecialNumbers: [2024, 2025, 2027, 68, 70],
-            multiplier: 3,
-            unSpecialNumberPenalty: -9,
+            unSpecialNumbers: [2025, 2027, 68, 70],
+            multiplier: 1,
+            unSpecialNumberPenalty: -1,
         },
         tomasa: {
             baseChance: 0.001,
@@ -257,11 +257,11 @@ export const GameValues: GameValuesType = {
 
     // More or Less
     moreOrLess: {
-        tier1Reward: 500, // 1-10
-        tier2Reward: 400, // 11-20
-        tier3Reward: 300, // 21-30
-        tier4Reward: 250, // 31-40
-        tier5Reward: 150, // 41-50
+        tier1Reward: 200, // 1-10
+        tier2Reward: 200, // 11-20
+        tier3Reward: 200, // 21-30
+        tier4Reward: 200, // 31-40
+        tier5Reward: 200, // 41-50
         tier6Reward: 50, // 51+
     },
 
@@ -297,7 +297,7 @@ export const GameValues: GameValuesType = {
     // Daily Claim
     daily: {
         baseReward: 1000,
-        streakMultiplier: 2.0, // Multiplies with streak
+        streakMultiplier: 1.0, // Multiplies with streak
         streak4Reward: 1000,
         streak7Reward: 'chest',
         // Add more as needed
@@ -344,17 +344,17 @@ export const GameValues: GameValuesType = {
 
     // Deal Or No Deal
     dealOrNoDeal: {
-        effectItemChance: 40, // percent chance to get an effect item
+        effectItemChance: 10, // percent chance to get an effect item
         offerBase: 0.5, // base offer percentage
         offerPerRound: 0.05, // offer percentage increase per round
     },
 
     // Blackjack
     blackjack: {
-        deathrollRefundEnabled: true, // If true, lostAddedBack is shown and refund is applied
+        deathrollRefundEnabled: false, // If true, lostAddedBack is shown and refund is applied
     },
     wordle: {
-        reward: 5000,
+        reward: 10000,
         wordleCapPerPerson: 2500,
     },
     loot: {
@@ -363,12 +363,12 @@ export const GameValues: GameValuesType = {
             premium: 0.4,
             elite: 1,
         },
-        artPrice: 1000,
+        artPrice: 10000,
     },
     mastermind: {
         totalAttempts: 10,
         codeLength: 4,
-        winnerReward: 10000,
+        winnerReward: 2500,
     },
     ccg: {
         gameSettings: {
