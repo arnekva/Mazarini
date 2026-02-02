@@ -133,6 +133,7 @@ export interface CCGPlayer {
     opponentId: string
     stunned: boolean
     stats: CCGPlayerStats
+    cardbackEmoji: string
 }
 
 export interface CCGCard {

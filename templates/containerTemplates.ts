@@ -65,7 +65,7 @@ export const CCGDeckEditor_Info = (editor: DeckEditor) => {
     container.addComponent(buttons1, 'save_button')
     if (editor.saved) container.addComponent(ComponentsHelper.createTextComponent().setContent(`Saved :white_check_mark:`), 'saved')
     container.addComponent(ComponentsHelper.createSeparatorComponent(), 'separator1')
-    container.addComponent(ComponentsHelper.createTextComponent().setContent(`### ${editor.deck.name}`), 'deckName')
+    container.addComponent(ComponentsHelper.createTextComponent().setContent(`### ${editor.deck.name} ${editor.deck.active ? '(aktiv)' : ''}`), 'deckName')
     const numberOfCards = Array.from(editor.deck.cards ?? []).reduce((sum, instance) => sum + instance.amount, 0)
     container.addComponent(ComponentsHelper.createTextComponent().setContent(`${numberOfCards} / ${GameValues.ccg.deck.size} cards`), 'deckInfo')
     if (editor.validationErrors?.length ?? 0 > 0) {

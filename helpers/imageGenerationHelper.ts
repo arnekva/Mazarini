@@ -607,8 +607,6 @@ export class ImageGenerationHelper {
 
     private async getImagesForSingleCollectable(item: IUserLootItem, coord: IItemShadowCoordinates): Promise<IImage[]> {
         const url = await this.getEmojiImageUrl(item)
-        console.log(item)
-
         const emojiImageBuffer = await this.getPngBufferForWebpUrl(url)
         // const resizedItem = await sharp(emojiImageBuffer).resize({ fit: sharp.fit.inside, width: 75 }).toBuffer()
         const canvas = await getCanvasImage({ buffer: emojiImageBuffer })

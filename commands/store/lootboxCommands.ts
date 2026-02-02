@@ -66,10 +66,6 @@ interface InventoryUpdate {
     rarity: ItemRarity
 }
 
-//TODO
-const ccgBack =
-    'https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/fed3bb24-454f-4bdf-a721-6aa8f23e7cef/d9gnihf-ec16caeb-ec9c-4870-9480-57c7711d844f.png?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiIvZi9mZWQzYmIyNC00NTRmLTRiZGYtYTcyMS02YWE4ZjIzZTdjZWYvZDlnbmloZi1lYzE2Y2FlYi1lYzljLTQ4NzAtOTQ4MC01N2M3NzExZDg0NGYucG5nIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.I2prcITP_1w7rBQicZPc24PYcBaj3IZzXbCiCNOB4rE'
-
 export class LootboxCommands extends AbstractCommands {
     private imageGenerator: ImageGenerationHelper
     private series: ILootSeries[]
@@ -317,21 +313,35 @@ export class LootboxCommands extends AbstractCommands {
             }
         }
         this.pendingChests.set(chestId, pendingChest)
-        setTimeout(async () => {
-            const cardImage = await this.getCCGChestImage(cards)
+        this.ccgGradualReveal(user, pendingChest, cards, color)
+    }
+
+    private async ccgGradualReveal(user: MazariniUser, pendingChest: IPendingChest, cards: CCGCard[], color: number) {
+        for (let i = 0; i < cards.length; i++) {
+            await this.delay(1500)
+            const cardImage = await this.getCCGChestImage(user, cards.slice(0, i + 1), 2 - i)
             const attachment = new AttachmentBuilder(cardImage, { name: 'cards.png' })
             const embed = EmbedUtils.createSimpleEmbed('CCG card pack', ' ').setImage('attachment://cards.png')
             embed.setColor(color)
-            pendingChest.message.edit({ embeds: [embed], components: [pendingChest.buttons], files: [attachment] })
-        }, 3000)
+            if (i < cards.length - 1) pendingChest.message.edit({ embeds: [embed], files: [attachment] })
+            else pendingChest.message.edit({ embeds: [embed], components: [pendingChest.buttons], files: [attachment] })
+        }
     }
 
-    private async getCCGChestImage(cards: CCGCard[]) {
+    private delay(ms: number): Promise<void> {
+        return new Promise((resolve) => setTimeout(resolve, ms))
+    }
+
+    private async getCCGChestImage(user: MazariniUser, cards: CCGCard[], numCardbacks: number) {
         const buffers = await Promise.all(
             cards.map(async (card) => {
                 return Buffer.from(await this.getCCGCardImage(card))
             })
         )
+        if (numCardbacks > 0) {
+            const cardback = Buffer.from(await this.getCCGCardback(user))
+            for (let i = 0; i < numCardbacks; i++) buffers.push(cardback)
+        }
         return await this.imageGenerator.stitchImages(buffers, 'horizontal')
     }
 

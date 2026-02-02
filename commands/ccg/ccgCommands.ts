@@ -78,6 +78,7 @@ export class CCGCommands extends AbstractCommands {
 
     private async getPlayerHandImage(player: CCGPlayer, includeAll = false) {
         const cards = player.hand.filter((card) => includeAll || !player.submitted || !card.selected)
+        if (!cards || cards.length === 0) return undefined
         const buffers = await Promise.all(
             cards.map(async (card) => {
                 return Buffer.from(await this.getCardImage(card))
@@ -102,7 +103,7 @@ export class CCGCommands extends AbstractCommands {
         )
     }
 
-    private async submitCards(interaction: BtnInteraction, game: CCGGame, player: CCGPlayer) {
+    private submitCards(interaction: BtnInteraction, game: CCGGame, player: CCGPlayer) {
         const submitted = player.hand.filter((card) => card.selected)
         if (submitted.length > game.state.settings.maxCardsPlayed) {
             return this.messageHelper.replyToInteraction(interaction, `Du kan ikke spille mer enn ${game.state.settings.maxCardsPlayed} kort om gangen`, {
@@ -119,6 +120,17 @@ export class CCGCommands extends AbstractCommands {
         player.submitted = true
         this.registerCardsPlayed(player, submitted)
         this.addEffectsToStack(game, player)
+        this.handlePlayerSubmit(game, player)
+    }
+
+    private discardCards(interaction: BtnInteraction, game: CCGGame, player: CCGPlayer) {
+        interaction.deferUpdate()
+        player.hand = player.hand.filter((card) => !card.selected)
+        player.submitted = true
+        this.handlePlayerSubmit(game, player)
+    }
+
+    private async handlePlayerSubmit(game: CCGGame, player: CCGPlayer) {
         await this.updatePlayerHand(game, player)
         if (game.player1.submitted && game.player2.submitted) {
             if (game.vsBot) {
@@ -172,6 +184,7 @@ export class CCGCommands extends AbstractCommands {
 
     private startNextRound(interaction: BtnInteraction, game: CCGGame) {
         interaction.deferUpdate()
+        if (game.state.phase === 'PLAY') return
         game.state.phase = 'PLAY'
         game.state.turn = game.state.turn + 1
         game.container.removeComponent('effect-summary')
@@ -251,23 +264,28 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private postEffectSummary(game: CCGGame) {
-        const summary = game.state.log
+        let summary = game.state.log
             .filter((entry) => entry.turn === game.state.turn)
             .map((entry) => {
                 return entry.message
             })
             .join('\n\n')
+        if (!summary || summary.length === 0) summary = ' '
         if (game.container.getComponentIndex('effect-summary') >= 0) {
             game.container.updateTextComponent('effect-summary', summary)
         } else {
-            game.container.addComponentAfterReference('effect-summary', ComponentsHelper.createTextComponent().setContent(summary), 'separator2')
+            game.container.addComponentAfterReference('effect-summary', ComponentsHelper.createTextComponent().setContent(summary ?? ' '), 'separator2')
             game.container.addComponentAfterReference('separator3', ComponentsHelper.createSeparatorComponent(), 'effect-summary')
         }
         this.updateGameMessage(game)
     }
 
-    private playerHasStatus(game: CCGGame, player: CCGPlayer, status: CCGEffectType) {
+    private playerHasCondition(game: CCGGame, player: CCGPlayer, status: CCGEffectType) {
         return game.state.statusConditions.some((effect) => effect.ownerId === player.id && effect.type === status)
+    }
+
+    private playerHasStatus(game: CCGGame, player: CCGPlayer, status: CCGEffectType) {
+        return game.state.statusEffects.some((effect) => effect.ownerId === player.id && effect.type === status)
     }
 
     private addEffectsToStack(game: CCGGame, player: CCGPlayer) {
@@ -334,28 +352,33 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private getTarget(game: CCGGame, player: CCGPlayer, effect: CCGCardEffect) {
-        if (this.playerHasStatus(game, player, 'RETARDED')) return RandomUtils.getRandomItemFromList([player.id, player.opponentId])
+        if (this.playerHasCondition(game, player, 'RETARDED')) return RandomUtils.getRandomItemFromList([player.id, player.opponentId])
         else return effect.target === 'OPPONENT' ? player.opponentId : player.id
     }
 
     private isCardSuccessful(game: CCGGame, player: CCGPlayer, card: CCGCard) {
-        const isChokester = this.playerHasStatus(game, player, 'CHOKESTER')
+        const isChokester = this.playerHasCondition(game, player, 'CHOKESTER')
         const hasChokeShield = this.playerHasStatus(game, player, 'CHOKE_SHIELD')
         let accuracy = isChokester ? 50 : card.accuracy
+        console.log(accuracy, hasChokeShield)
+
         accuracy += hasChokeShield ? 20 : 0
+        console.log(accuracy)
         return Math.random() <= accuracy / 100
     }
 
     private getSpeed(game: CCGGame, player: CCGPlayer, card: CCGCard) {
-        const isSlow = this.playerHasStatus(game, player, 'SLOW')
+        const isSlow = this.playerHasCondition(game, player, 'SLOW')
         const speedDivisor = isSlow ? GameValues.ccg.status.slow_speedDivideBy : 1
         return Math.floor(card.speed / speedDivisor) + Math.random()
     }
 
     private async updatePlayerHand(game: CCGGame, player: CCGPlayer) {
+        const embed = EmbedUtils.createSimpleEmbed(' ', ' ')
         const handImage = await this.getPlayerHandImage(player)
+        if (!handImage) return player.handMessage.edit({ content: '', embeds: [embed.setTitle('Waiting for cards...')], components: [], files: [] })
+        embed.setImage('attachment://hand.png')
         const attachment = new AttachmentBuilder(handImage, { name: 'hand.png' })
-        const embed = EmbedUtils.createSimpleEmbed(' ', ' ').setImage('attachment://hand.png')
         const buttons = this.getPlayerHandButtons(game, player)
         player.handMessage.edit({ content: '', embeds: [embed], components: [buttons], files: [attachment] })
     }
@@ -456,7 +479,7 @@ export class CCGCommands extends AbstractCommands {
 
     private getPlayerStateString(game: CCGGame, player: CCGPlayer) {
         const statusString = this.getPlayerStatusesString(game, player)
-        return `### ${player.name}\n:heart: ${player.hp}    :zap: ${player.energy}` + statusString
+        return `### ${player.name}\n:heart: ${player.hp}    :zap: ${player.energy}    ${player.cardbackEmoji} ${player.deck.length}` + statusString
     }
 
     private getPlayerStatusesString(game: CCGGame, player: CCGPlayer) {
@@ -514,6 +537,7 @@ export class CCGCommands extends AbstractCommands {
             opponentId: playerId,
             stunned: false,
             stats: this.freshCCGStats(),
+            cardbackEmoji: await this.getCardbackEmoji(),
         }
     }
 
@@ -531,7 +555,8 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private async newPlayer(interaction: ChatInteraction | BtnInteraction, vsBot = false): Promise<CCGPlayer> {
-        const cards = await this.getPlayerCards(interaction.user.id)
+        const user = await this.database.getUser(interaction.user.id)
+        const cards = await this.getPlayerCards(user)
         return {
             id: interaction.user.id,
             name: interaction.authorName,
@@ -545,7 +570,14 @@ export class CCGCommands extends AbstractCommands {
             opponentId: vsBot ? MentionUtils.User_IDs.BOT_HOIE : undefined,
             stunned: false,
             stats: this.freshCCGStats(),
+            cardbackEmoji: await this.getCardbackEmoji(user),
         }
+    }
+
+    private async getCardbackEmoji(user?: MazariniUser) {
+        const cardback = user?.ccg?.cardback ?? GameValues.ccg.defaultCardback
+        const emoji = await EmojiHelper.getApplicationEmoji(`cardback_${cardback}`, this.client)
+        return emoji.id
     }
 
     private freshCCGStats() {
@@ -563,8 +595,7 @@ export class CCGCommands extends AbstractCommands {
         }
     }
 
-    private async getPlayerCards(userId: string): Promise<CCGCard[]> {
-        const user = await this.database.getUser(userId)
+    private async getPlayerCards(user: MazariniUser): Promise<CCGCard[]> {
         const deck = user.ccg?.decks?.find((deck) => deck.active && deck.valid) ?? GameValues.ccg.defaultDeck
         return await this.getFullCards(deck)
     }
@@ -625,7 +656,7 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private updateGameMessage(game: CCGGame) {
-        game.message.edit({ components: [game.container.container] })
+        if (game.message) game.message.edit({ components: [game.container.container] })
     }
 
     private delay(ms: number): Promise<void> {
@@ -731,6 +762,12 @@ export class CCGCommands extends AbstractCommands {
                         },
                     },
                     {
+                        commandName: 'CCG_DISCARD',
+                        command: (interaction: ButtonInteraction) => {
+                            this.verifyUserAndCallMethod(interaction, (game, player) => this.discardCards(interaction, game, player))
+                        },
+                    },
+                    {
                         commandName: 'CCG_CONTINUE',
                         command: (interaction: ButtonInteraction) => {
                             this.verifyUserAndCallMethod(interaction, (game) => this.startNextRound(interaction, game))
@@ -802,7 +839,14 @@ const readyBtn = (gameId: string, disabled = false) => {
             custom_id: `CCG_READY;${gameId}`,
             style: ButtonStyle.Success,
             disabled: disabled,
-            label: 'Play selected cards',
+            label: 'Play',
+            type: 2,
+        }),
+        new ButtonBuilder({
+            custom_id: `CCG_DISCARD;${gameId}`,
+            style: ButtonStyle.Secondary,
+            disabled: disabled,
+            label: 'Discard',
             type: 2,
         })
     )

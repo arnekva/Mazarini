@@ -1,7 +1,6 @@
 import { GameValues } from '../../general/values'
 import { CCGEffect, CCGGame, CCGPlayer, CCGStatusEffectType, StatusEffect } from './ccgInterface'
 
-const statusesWithEmoji: CCGStatusEffectType[] = ['CHOKESTER', 'RETARDED', 'SLOW']
 export class CardActionResolver {
     constructor() {}
 
@@ -162,7 +161,7 @@ export class CardActionResolver {
             type,
             value: effect.value,
             remainingTurns: effect.turns ?? 100,
-            emoji: statusesWithEmoji.includes(type) ? effect.emoji : undefined,
+            // emoji: statusesWithEmoji.includes(type) ? effect.emoji : undefined,
         })
     }
 
@@ -175,7 +174,7 @@ export class CardActionResolver {
             type,
             value: effect.value,
             remainingTurns: effect.turns ?? 100,
-            emoji: statusesWithEmoji.includes(type) ? effect.emoji : undefined,
+            emoji: effect.emoji,
         })
     }
 

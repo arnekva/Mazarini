@@ -59,8 +59,8 @@ export class TestCommands extends AbstractCommands {
     private async test(interaction: ChatInteraction | BtnInteraction) {
         const scripts = new Scripts(this.client)
         await scripts.updateLootSeriesAndPacks()
-        // scripts.addCCGCards()
-        // await scripts.initializeNewInventories()
+        scripts.addCCGCards()
+        await scripts.initializeNewInventories()
         this.messageHelper.replyToInteraction(interaction, 'lagt til ny loot inventory')
     }
 

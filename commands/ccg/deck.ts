@@ -30,9 +30,20 @@ export class DeckCommands extends AbstractCommands {
                 `Deck **${deckChoice}** er ikke gyldig og må oppdateres før den kan settes som aktiv deck`,
                 { ephemeral: true }
             )
+        this.setActiveDeck(user, deckChoice)
+        this.messageHelper.replyToInteraction(interaction, `Aktiv deck oppdatert til **${deckChoice}**`, { ephemeral: true })
+    }
+
+    private setActiveDeck(user: MazariniUser, deckChoice: string) {
         user.ccg.decks = user.ccg?.decks?.map((deck) => (deck.name === deckChoice ? { ...deck, active: true } : { ...deck, active: false }))
         this.database.updateUser(user)
-        this.messageHelper.replyToInteraction(interaction, `Aktiv deck oppdatert til **${deckChoice}**`, { ephemeral: true })
+    }
+
+    private async activateCurrentDeck(interaction: BtnInteraction, editor: DeckEditor) {
+        const user = await this.database.getUser(interaction.user.id)
+        editor.deck.active = true
+        this.setActiveDeck(user, editor.deck.name)
+        this.updateDeckInfo(editor)
     }
 
     private async newDeck(interaction: ChatInteraction) {
@@ -101,7 +112,7 @@ export class DeckCommands extends AbstractCommands {
 
     private newDeckInfoContainer(editor: DeckEditor) {
         const deckInfo = CCGDeckEditor_Info(editor)
-        deckInfo.replaceComponent('save_button', saveAndCloseButtons(editor.id))
+        deckInfo.replaceComponent('save_button', saveAndCloseButtons(editor.id, editor.deck.valid && !editor.deck.active && editor.saved))
         deckInfo.replaceComponent('typeFilters', typeFilters(editor))
         deckInfo.replaceComponent('rarityFilters', rarityFilters(editor))
         deckInfo.replaceComponent('usageFilters', usageFilters(editor))
@@ -302,8 +313,14 @@ export class DeckCommands extends AbstractCommands {
     private updateCardPage(interaction: BtnInteraction, editor: DeckEditor) {
         const pageChange = interaction.customId.split(';')[2] === 'next' ? 1 : -1
         const totalPages = Math.ceil(editor.filteredCards.length / GameValues.ccg.deck.cardsPerPage)
-        editor.page = ((editor.page + pageChange - 1) % totalPages) + 1
+        console.log(editor.page, pageChange, totalPages)
+        editor.page = this.mod(editor.page + pageChange - 1, totalPages) + 1
+        console.log(editor.page)
         this.updateCardView(editor, interaction.user.id)
+    }
+
+    private mod(n: number, m: number): number {
+        return ((n % m) + m) % m
     }
 
     private updateDeckInfo(editor: DeckEditor) {
@@ -450,6 +467,12 @@ export class DeckCommands extends AbstractCommands {
                         },
                     },
                     {
+                        commandName: 'DECK_ACTIVATE',
+                        command: (interaction: ButtonInteraction) => {
+                            this.verifyUserAndCallMethod(interaction, (editor) => this.activateCurrentDeck(interaction, editor))
+                        },
+                    },
+                    {
                         commandName: 'DECK_DELETE',
                         command: (interaction: ButtonInteraction) => {
                             this.confirmDeleteDeck(interaction)
@@ -504,7 +527,7 @@ const filterButton = (editorId: string, filter: CCGCardType | ItemRarity | Usage
     })
 }
 
-const saveAndCloseButtons = (editorId: string) => {
+const saveAndCloseButtons = (editorId: string, canSetActive: boolean) => {
     return new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder({
             custom_id: `DECK_SAVE;${editorId}`,
@@ -518,6 +541,13 @@ const saveAndCloseButtons = (editorId: string) => {
             style: ButtonStyle.Danger,
             disabled: false,
             label: 'Close',
+            type: 2,
+        }),
+        new ButtonBuilder({
+            custom_id: `DECK_ACTIVATE;${editorId}`,
+            style: ButtonStyle.Primary,
+            disabled: !canSetActive,
+            label: 'Set as active deck',
             type: 2,
         })
     )

@@ -177,6 +177,8 @@ export type GameValuesType = {
                 SHIELD: number
                 CHOKESTER: number
                 RETARDED: number
+                STEAL_CARD: number
+                REDUCE_COST: number
             }
         }
         status: {
@@ -416,6 +418,8 @@ export const GameValues: GameValuesType = {
                 SHIELD: 3,
                 RETARDED: 1,
                 CHOKESTER: 1,
+                STEAL_CARD: 1,
+                REDUCE_COST: 1,
             },
         },
         status: {
