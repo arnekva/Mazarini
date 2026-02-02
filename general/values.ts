@@ -80,6 +80,7 @@ export type GameValuesType = {
         /** Maximum amount of games printed in deathroll list */
         printCurrentStateMaxFields: number
         canGetFreeBlackackRedeal: boolean
+        shuffleIgnoresDigitsDefault: boolean
     }
     moreOrLess: {
         tier1Reward: number
@@ -134,6 +135,9 @@ export type GameValuesType = {
         totalAttempts: number
         codeLength: number
         winnerReward: number
+    }
+    misc: {
+        idJokeReward: number
     }
     ccg: {
         gameSettings: {
@@ -252,7 +256,8 @@ export const GameValues: GameValuesType = {
         },
         autoCompleteDiceDefault: 10002,
         printCurrentStateMaxFields: 25,
-        canGetFreeBlackackRedeal: true,
+        canGetFreeBlackackRedeal: false,
+        shuffleIgnoresDigitsDefault: false,
     },
 
     // More or Less
@@ -369,6 +374,9 @@ export const GameValues: GameValuesType = {
         totalAttempts: 10,
         codeLength: 4,
         winnerReward: 2500,
+    },
+    misc: {
+        idJokeReward: 1000,
     },
     ccg: {
         gameSettings: {

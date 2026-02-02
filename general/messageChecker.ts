@@ -65,7 +65,7 @@ export class MessageChecker {
             }
             const idJoke = MessageUtils.doesMessageIdHaveCoolNumber(message)
             if (idJoke !== 'none' && !ignoreRewards) {
-                let reward = 10000
+                let reward = GameValues.misc.idJokeReward
                 const user = await this.client.database.getUser(message.author.id)
                 reward = this.client.bank.giveMoney(user, reward)
                 this.client.messageHelper.replyToMessage(message, `nice, id-en te meldingen din inneholde ${idJoke}. Gz, du har vonne ${reward} chips`, {
