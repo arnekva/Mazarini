@@ -190,11 +190,17 @@ export class CCGCommands extends AbstractCommands {
         game.container.removeComponent('effect-summary')
         game.container.removeComponent('separator3')
         game.container.updateTextComponent('game-text', `Choose up to 2 cards\n${game.vsBot ? '' : 'Players submitted: ( 0 / 2 )'}`)
-        game.container.replaceComponent('main-button', readyBtn(game.id))
+        game.container.replaceComponent('main-button', readyBtn(game.id, !game.vsBot))
         this.preparePlayerForNewRound(game, game.player1)
         this.preparePlayerForNewRound(game, game.player2, game.vsBot)
         this.updatePlayerStates(game)
         this.updateGameMessage(game)
+        if (!game.vsBot) {
+            setTimeout(() => {
+                game.container.replaceComponent('main-button', readyBtn(game.id))
+                this.updateGameMessage(game)
+            }, 3000)
+        }
     }
 
     private preparePlayerForNewRound(game: CCGGame, player: CCGPlayer, isBot = false) {
@@ -360,10 +366,7 @@ export class CCGCommands extends AbstractCommands {
         const isChokester = this.playerHasCondition(game, player, 'CHOKESTER')
         const hasChokeShield = this.playerHasStatus(game, player, 'CHOKE_SHIELD')
         let accuracy = isChokester ? 50 : card.accuracy
-        console.log(accuracy, hasChokeShield)
-
         accuracy += hasChokeShield ? 20 : 0
-        console.log(accuracy)
         return Math.random() <= accuracy / 100
     }
 

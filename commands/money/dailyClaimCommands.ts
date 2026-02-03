@@ -47,15 +47,15 @@ export class DailyClaimCommands extends AbstractCommands {
 
     private getDailyReward(daily: DailyReward): number {
         const dailyPrice = GameValues.daily.baseReward
-        return Math.floor(dailyPrice + dailyPrice * (daily.streak ?? 1) * (GameValues.daily.streakMultiplier ?? 1))
+        return Math.floor((dailyPrice + dailyPrice * ((daily.streak ?? 1) - 1)) * (GameValues.daily.streakMultiplier ?? 1))
     }
 
     private getLootboxReward(userId: string, daily: DailyReward): ActionRowBuilder<ButtonBuilder>[] {
         if (daily.streak === 4 || daily.streak === 7) {
             const buttons = new ActionRowBuilder<ButtonBuilder>()
             const reward = daily.streak === 7 ? GameValues.daily.streak7Reward : GameValues.daily.streak4Reward
-            if (reward === 'chest') return [LootboxCommands.getLootRewardButton(userId, LootboxQuality.Basic, true)]
-            else if (reward === 'box') return [LootboxCommands.getLootRewardButton(userId, LootboxQuality.Basic)]
+            if (reward === 'chest') return [LootboxCommands.getLootRewardButton(userId, LootboxQuality.Basic, 'chest')]
+            else if (reward === 'box') return [LootboxCommands.getLootRewardButton(userId, LootboxQuality.Basic, 'box')]
             else if (reward === 'dond') {
                 const dond = DealOrNoDeal.getDealOrNoDealButton(userId, DonDQuality.Basic)
                 buttons.addComponents(dond)

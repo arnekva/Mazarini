@@ -5,7 +5,7 @@ import { GameValues } from '../../general/values'
 
 import { randomUUID } from 'crypto'
 import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
-import { IMoreOrLess, LootboxQuality } from '../../interfaces/database/databaseInterface'
+import { IMoreOrLess } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement, IOnTimedEvent } from '../../interfaces/interactionInterface'
 import { CustomMOLHandler } from '../../res/games/moreOrLess/CustomMOLHandler'
 import { DateUtils } from '../../utils/dateUtils'
@@ -15,7 +15,6 @@ import { MentionUtils, ThreadIds } from '../../utils/mentionUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { TextUtils } from '../../utils/textUtils'
 import { UserUtils } from '../../utils/userUtils'
-import { LootboxCommands } from '../store/lootboxCommands'
 
 export interface IMoreOrLessData {
     subject: string
@@ -252,15 +251,15 @@ export class MoreOrLess extends AbstractCommands {
             let reward = 0
             if (correctAnswers > 0) {
                 for (let i = user.dailyGameStats.moreOrLess.bestAttempt + 1; i <= game.correctAnswers; i++) {
-                    if (i <= 10) reward += GameValues.moreOrLess.tier1Reward
-                    else if (i <= 20) reward += GameValues.moreOrLess.tier2Reward
-                    else if (i <= 30) reward += GameValues.moreOrLess.tier3Reward
-                    else if (i <= 40) reward += GameValues.moreOrLess.tier4Reward
-                    else if (i <= 50) reward += GameValues.moreOrLess.tier5Reward
-                    else reward += GameValues.moreOrLess.tier6Reward
+                    if (i <= 10) reward += GameValues.moreOrLess.rewards.tier1
+                    else if (i <= 20) reward += GameValues.moreOrLess.rewards.tier2
+                    else if (i <= 30) reward += GameValues.moreOrLess.rewards.tier3
+                    else if (i <= 40) reward += GameValues.moreOrLess.rewards.tier4
+                    else if (i <= 50) reward += GameValues.moreOrLess.rewards.tier5
+                    else reward += GameValues.moreOrLess.rewards.tier6
                 }
             }
-
+            if (completedNow && !completedPreviously) reward += GameValues.moreOrLess.rewards.completed
             user.dailyGameStats.moreOrLess.bestAttempt = game.correctAnswers
             if (game.data.length === 0) user.dailyGameStats.moreOrLess.completed = true
             const awarded = this.client.bank.giveMoney(user, reward)
@@ -278,17 +277,17 @@ export class MoreOrLess extends AbstractCommands {
 
         game.message.edit({ embeds: [embed], components: [playAgainBtnRow] })
         if (completedNow && !completedPreviously) {
-            const buttons = new ActionRowBuilder<ButtonBuilder>()
+            // const buttons = new ActionRowBuilder<ButtonBuilder>()
 
-            let boxQuality = LootboxQuality.Basic
-            if (game.totalQuestions > 100) boxQuality = LootboxQuality.Elite
-            else if (game.totalQuestions > 50) boxQuality = LootboxQuality.Premium
+            // let boxQuality = LootboxQuality.Basic
+            // if (game.totalQuestions > 100) boxQuality = LootboxQuality.Elite
+            // else if (game.totalQuestions > 50) boxQuality = LootboxQuality.Premium
 
-            const boxButton = LootboxCommands.getLootRewardButton(user.id, boxQuality).components
-            buttons.addComponents(boxButton)
+            // const boxButton = LootboxCommands.getLootRewardButton(user.id, boxQuality).components
+            // buttons.addComponents(boxButton)
             this.messageHelper.sendMessage(ThreadIds.MORE_OR_LESS, {
-                text: `Gz med fullført more or less ${MentionUtils.mentionUser(user.id)}`,
-                components: [buttons],
+                text: `Gz med fullført more or less, ${MentionUtils.mentionUser(user.id)}!`,
+                // components: [buttons],
             })
         }
     }

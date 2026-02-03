@@ -6,7 +6,7 @@ import { MazariniClient } from '../client/MazariniClient'
 import { Deathroll } from '../commands/games/deathroll'
 import { MoreOrLess } from '../commands/games/moreOrLess'
 import { RocketLeagueCommands } from '../commands/gaming/rocketleagueCommands'
-import { LootboxCommands } from '../commands/store/lootboxCommands'
+import { GameValues } from '../general/values'
 import { EmojiHelper, JobStatus } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MazariniUser, RocketLeagueTournament } from '../interfaces/database/databaseInterface'
@@ -273,14 +273,15 @@ export class DailyJobs {
 
         if (topFirstUsersWithBestTotalAttempts) {
             topFirstUsersWithBestTotalAttempts.forEach((user) => {
-                const lootBtn = LootboxCommands.getLootRewardButton(
-                    user.id,
-                    'basic',
-                    true,
-                    `${UserUtils.findUserById(user.id, this.client).username} - lootchest`
-                )
-                lootboxes.chests.push(lootBtn)
-                chestWinners.push(UserUtils.findUserById(user.id, this.client).username)
+                this.client.bank.giveMoney(user, GameValues.moreOrLess.rewards.bestAttempt)
+                // const lootBtn = LootboxCommands.getLootRewardButton(
+                //     user.id,
+                //     'basic',
+                //     true,
+                //     `${UserUtils.findUserById(user.id, this.client).username} - lootchest`
+                // )
+                // lootboxes.chests.push(lootBtn)
+                // chestWinners.push(UserUtils.findUserById(user.id, this.client).username)
             })
         }
 
@@ -312,7 +313,7 @@ export class DailyJobs {
             description =
                 `Gratulerer til gårsdagens vinner${chestWinners.length > 1 ? 'e' : ''} for beste første forsøk på *${
                     storage.moreOrLess.current.title
-                }*, ${firstAttemptWinners}, som vinner en lootchest!` + `\nResultater:\n${results}`
+                }*, ${firstAttemptWinners}, som vinner ${GameValues.moreOrLess.rewards.bestAttempt} chips!` + `\nResultater:\n${results}`
             // description += `\nGårsdagen vinner av beste forsøk er ${bestTotalWinners}, som vinner lootbox!`
         }
 

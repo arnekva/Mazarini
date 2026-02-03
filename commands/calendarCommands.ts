@@ -142,7 +142,7 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
         id: 3,
         message: 'en basic lootchest!',
         effect: (user: MazariniUser) => {
-            return [LootboxCommands.getLootRewardButton(user.id, LootboxQuality.Basic, true)]
+            return [LootboxCommands.getLootRewardButton(user.id, LootboxQuality.Basic, 'chest')]
         },
     },
     {
@@ -175,14 +175,14 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
         id: 7,
         message: 'en basic lootchest!',
         effect: (user: MazariniUser) => {
-            return [LootboxCommands.getLootRewardButton(user.id, LootboxQuality.Basic, true)]
+            return [LootboxCommands.getLootRewardButton(user.id, LootboxQuality.Basic, 'chest')]
         },
     },
     {
         id: 8,
         message: 'en premium lootchest!',
         effect: (user: MazariniUser) => {
-            return [LootboxCommands.getLootRewardButton(user.id, LootboxQuality.Premium, true)]
+            return [LootboxCommands.getLootRewardButton(user.id, LootboxQuality.Premium, 'chest')]
         },
     },
     {
@@ -345,7 +345,7 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
         id: 24,
         message: 'en elite chest! God jul :christmas_tree:',
         effect: (user: MazariniUser) => {
-            return [LootboxCommands.getLootRewardButton(user.id, LootboxQuality.Elite, true)]
+            return [LootboxCommands.getLootRewardButton(user.id, LootboxQuality.Elite, 'chest')]
         },
     },
 ]

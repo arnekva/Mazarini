@@ -66,6 +66,8 @@ interface InventoryUpdate {
     rarity: ItemRarity
 }
 
+export type LootType = 'box' | 'chest' | 'pack'
+
 export class LootboxCommands extends AbstractCommands {
     private imageGenerator: ImageGenerationHelper
     private series: ILootSeries[]
@@ -88,18 +90,12 @@ export class LootboxCommands extends AbstractCommands {
         this.newestSeries = series.sort((a, b) => new Date(b.added).getTime() - new Date(a.added).getTime())[0]
     }
 
-    static getLootRewardButton(
-        userId: string,
-        quality: string,
-        isChest: boolean = false,
-        customLabel?: string,
-        series: string = ''
-    ): ActionRowBuilder<ButtonBuilder> {
+    static getLootRewardButton(userId: string, quality: string, type: LootType, customLabel?: string, series: string = ''): ActionRowBuilder<ButtonBuilder> {
         return new ActionRowBuilder<ButtonBuilder>().addComponents(
             new ButtonBuilder({
-                custom_id: `OPEN_LOOT;${userId};${quality};${isChest ? 'chest' : 'box'};${series}`,
+                custom_id: `OPEN_LOOT;${userId};${quality};${type};${series}`,
                 style: ButtonStyle.Primary,
-                label: customLabel || `${isChest ? 'Open loot chest' : 'Open lootbox'}`,
+                label: customLabel || `Open loot ${type}`,
                 disabled: false,
                 type: 2,
             })
@@ -115,6 +111,7 @@ export class LootboxCommands extends AbstractCommands {
             interaction.message.edit({ components: [], content: `${type} er åpnet.` })
             if (type === 'box') await this.openAndRegisterLootbox(interaction)
             else if (type === 'chest') await this.openAndRegisterLootChest(interaction)
+            else if (type === 'pack') await this.openAndRegisterLootPack(interaction)
         } else this.messageHelper.replyToInteraction(interaction, 'Den er ikke din dessverre', { ephemeral: true, hasBeenDefered: true })
     }
 
@@ -156,13 +153,33 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private async openAndRegisterLootChest(interaction: ChatInteraction | BtnInteraction, pendingChest?: IPendingChest) {
-        const isPack = interaction.isChatInputCommand() && interaction.options.getSubcommand() === 'pack'
         const user = await this.client.database.getUser(interaction.user.id)
         const quality = this.resolveLootQuality(interaction, pendingChest)
         const series = this.resolveLootSeries(user, interaction, pendingChest)
-        const seriesObj = await this.getSeriesOrDefault(series, isPack)
+        const seriesObj = await this.getSeriesOrDefault(series)
 
-        const box = await this.resolveLootbox(quality, isPack)
+        const box = await this.resolveLootbox(quality)
+        if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction, true)) return
+        const sh = new LootStatsHelper(user.loot[seriesObj.name].stats)
+        sh.registerPurchase(box, true, interaction.isChatInputCommand())
+
+        const chestItems: IUserLootItem[] = new Array<IUserLootItem>()
+        chestItems.push(this.calculateRewardItem(box, seriesObj, user))
+        chestItems.push(this.calculateRewardItem(box, seriesObj, user))
+        chestItems.push(this.calculateRewardItem(box, seriesObj, user))
+
+        if (seriesObj.hasColor) this.database.updateUser(user) //update in case of effect change
+        const existingChestId = pendingChest && interaction.isButton() ? interaction.customId.split(';')[1] : undefined
+        this.revealLootChest(interaction, chestItems, quality, seriesObj, existingChestId)
+    }
+
+    private async openAndRegisterLootPack(interaction: ChatInteraction | BtnInteraction) {
+        const user = await this.client.database.getUser(interaction.user.id)
+        const quality = this.resolveLootQuality(interaction)
+        const series = this.resolveLootSeries(user, interaction)
+        const seriesObj = await this.getSeriesOrDefault(series, true)
+
+        const box = await this.resolveLootbox(quality, true)
         if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction, true)) return
         const sh = new LootStatsHelper(user.loot[seriesObj.name].stats)
         sh.registerPurchase(box, true, interaction.isChatInputCommand())
@@ -170,16 +187,13 @@ export class LootboxCommands extends AbstractCommands {
         const chestItems: IUserLootItem[] = new Array<IUserLootItem>()
         for (let i = 0; i < 3; i++) {
             let item = this.calculateRewardItem(box, seriesObj, user)
-            while (isPack && this.itemIsDuplicate(item, chestItems)) {
+            while (this.itemIsDuplicate(item, chestItems)) {
                 item = this.calculateRewardItem(box, seriesObj, user)
             }
             chestItems.push(item)
         }
 
-        if (seriesObj.hasColor) this.database.updateUser(user) //update in case of effect change
-        const existingChestId = pendingChest && interaction.isButton() ? interaction.customId.split(';')[1] : undefined
-        if (seriesObj.isCCG) this.revealCCGChest(interaction, chestItems, quality, seriesObj, user, existingChestId)
-        else this.revealLootChest(interaction, chestItems, quality, seriesObj, existingChestId)
+        this.revealCCGChest(interaction, chestItems, quality, seriesObj, user)
     }
 
     private itemIsDuplicate(newItem: IUserLootItem, items: IUserLootItem[]) {
@@ -272,15 +286,14 @@ export class LootboxCommands extends AbstractCommands {
         items: IUserLootItem[],
         quality: string,
         series: ILootSeries,
-        user: MazariniUser,
-        existingChestId?: string
+        user: MazariniUser
     ) {
         const cardbacks = await this.getCardbackImage(user)
         const attachment = new AttachmentBuilder(cardbacks, { name: 'cardbacks.png' })
         const embed = EmbedUtils.createSimpleEmbed('CCG card pack', ' ').setImage('attachment://cardbacks.png')
         const color = (interaction.member as GuildMember).displayColor
         embed.setColor(color)
-        const chestId = existingChestId ?? randomUUID()
+        const chestId = randomUUID()
         const chestItems: Map<string, IUserLootItem> = new Map<string, IUserLootItem>()
         const cards = await this.getFullCards(items)
         const buttons = new ActionRowBuilder<ButtonBuilder>()
@@ -293,25 +306,18 @@ export class LootboxCommands extends AbstractCommands {
             btn.setLabel(' ').setEmoji({ name: emoji.emojiObject.name, id: emoji.emojiObject.id })
             buttons.addComponents(btn)
         }
-        // buttons.components[2].setLabel('?')
-        let pendingChest: IPendingChest = undefined
-        if (existingChestId) {
-            pendingChest = this.pendingChests.get(existingChestId)
-            pendingChest.buttons = buttons
-            pendingChest.items = chestItems
-            await pendingChest.message.edit({ embeds: [embed] })
-        } else {
-            const msg = await this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true }, undefined, [attachment])
-            pendingChest = {
-                userId: interaction.user.id,
-                quality: quality,
-                series: series.name,
-                items: chestItems,
-                isCCG: true,
-                message: msg,
-                buttons: buttons,
-            }
+
+        const msg = await this.messageHelper.replyToInteraction(interaction, embed, { hasBeenDefered: true }, undefined, [attachment])
+        const pendingChest: IPendingChest = {
+            userId: interaction.user.id,
+            quality: quality,
+            series: series.name,
+            items: chestItems,
+            isCCG: true,
+            message: msg,
+            buttons: buttons,
         }
+
         this.pendingChests.set(chestId, pendingChest)
         this.ccgGradualReveal(user, pendingChest, cards, color)
     }
@@ -1116,7 +1122,7 @@ export class LootboxCommands extends AbstractCommands {
         const cmd = interaction.options.getSubcommand()
         if (!cmdGroup && cmd === 'box') this.openAndRegisterLootbox(interaction)
         else if (!cmdGroup && cmd === 'chest') this.openAndRegisterLootChest(interaction)
-        else if (!cmdGroup && cmd === 'pack') this.openAndRegisterLootChest(interaction)
+        else if (!cmdGroup && cmd === 'pack') this.openAndRegisterLootPack(interaction)
         else if (!cmdGroup && cmd === 'inventory') this.printInventory(interaction)
         else if (!cmdGroup && cmd === 'art') this.purchaseLootArt(interaction)
         else if (cmdGroup && cmdGroup === 'trade') this.tradeItems(interaction)

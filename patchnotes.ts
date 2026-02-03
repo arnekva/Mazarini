@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.0.0'
+    public static readonly currentVersion = '30.0.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,18 +27,38 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                'Ååååååkei det er på tide med noe nytt..',
+                '### CCG',
+                '* Lagt til muligheten for å reward-e loot packs',
+                '* Knappene for å spille/discarde kort er nå deaktivert i 3 sek for å unngå mis-click',
                 '',
-                'Etter du har fullført en lootseries har du kanskje sittet igjen med en tom følelse og spurt deg selv:',
-                '"hva nå?"',
-                '',
-                'Hva om du kunne ta det et steg videre, og faktisk brukt looten til noe :thinking:',
-                '',
-                '',
-                'Introducing...',
-                '## Mazarini CCG! ',
-                '',
-                'Les mer på `/ccg help`',
+                '### Nerfs introdusert i patch 30.0.0',
+                '* Ternong',
+                '  * Fjernet muligheten for å få lootbox i stedet for innskudd',
+                '  * Halve opprinnelige hasjen legges tilbake ved blackjacktap: deaktivert',
+                '  * Ingen gratis dpn',
+                '  * Unspecial numbers multiplier: -9 > -1',
+                '  * Fjerner 2024 fra unspecial numbers',
+                '  * Special numbers multiplier: 3 > 1',
+                '  * Dicetarget multiplier: 5 > 3',
+                '  * 9/11 sannsynlighet: 99% > 25%',
+                '  * Fjerner potskip penalty',
+                '* MoL',
+                '  * Rette svar 1-50: 200 chips',
+                '  * Rette svar 51+: 50 chips',
+                '  * Premie for fullført MoL: lootbox > 2500 chips',
+                '  * Premie for beste forsøk: chest > 2500 chips',
+                '* Daily',
+                '  * Alle dager gir nå 1000 * streak',
+                '  * Fjernet chest reward på dag 7',
+                '* Dond',
+                '  * Effect-odds sannsynlighet: 40% > 10%',
+                '* Wordle',
+                '  * Premiepott: 5000 > 10000',
+                '  * Maks per pers: 2500',
+                '* Mastermind',
+                '  * 10000 > 2500',
+                '* Misc',
+                '  * 1337 i mld-id: 10000 > 1000',
             ].join('\n')
         )
         container.addSeparator()

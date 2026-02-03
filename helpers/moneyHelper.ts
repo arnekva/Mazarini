@@ -1,5 +1,5 @@
 import { MazariniClient } from '../client/MazariniClient'
-import { LootboxCommands } from '../commands/store/lootboxCommands'
+import { LootboxCommands, LootType } from '../commands/store/lootboxCommands'
 import { LootboxQuality, MazariniUser } from '../interfaces/database/databaseInterface'
 import { EmbedUtils } from '../utils/embedUtils'
 
@@ -55,8 +55,8 @@ export class MoneyHelper {
         return money
     }
 
-    rewardLootbox(channelId: string, userID: string, quality = LootboxQuality.Basic, reason: string, footerText?: string) {
-        const lootButton = LootboxCommands.getLootRewardButton(userID, quality)
+    rewardLoot(channelId: string, userID: string, type: LootType, quality = LootboxQuality.Basic, reason: string, footerText?: string) {
+        const lootButton = LootboxCommands.getLootRewardButton(userID, quality, type)
         const text = `${reason}`
         const embed = EmbedUtils.createSimpleEmbed('Reward', text)
         if (footerText) embed.setFooter({ text: footerText })

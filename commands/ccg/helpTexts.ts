@@ -194,6 +194,7 @@ const rewards = [
     `    • Seier (easy): **${GameValues.ccg.rewards.win} shards**`,
     `    • Seier (medium): **${GameValues.ccg.rewards.win * GameValues.ccg.rewards.difficultyMultiplier.medium} shards**`,
     `    • Seier (hard): **${GameValues.ccg.rewards.win * GameValues.ccg.rewards.difficultyMultiplier.hard} shards**`,
+    `    • Dagens første game i reward mode gir også en bonus på: **${GameValues.ccg.rewards.dailyBonus} shards**`,
     '',
     'Seire mot høyere vanskelighetsgrader gir større belønninger, men øker risikoen for kun å få tapsbelønning.',
 ].join('\n')

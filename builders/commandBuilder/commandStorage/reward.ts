@@ -30,7 +30,7 @@ export const rewardCommand: ISlashCommandItem = {
             ],
         },
         {
-            commandName: 'lootbox',
+            commandName: 'box',
             commandDescription: 'Gi en lootbox-reward',
             options: [
                 {
@@ -84,6 +84,36 @@ export const rewardCommand: ISlashCommandItem = {
                 {
                     name: 'series',
                     description: 'hvilken serie skal brukeren få lootbox fra?',
+                    type: ApplicationCommandOptionType.String,
+                    autocomplete: true,
+                },
+            ],
+        },
+        {
+            commandName: 'pack',
+            commandDescription: 'Gi en loot pack',
+            options: [
+                {
+                    name: 'quality',
+                    description: 'hvilken loot pack skal brukeren få?',
+                    type: ApplicationCommandOptionType.String,
+                    required: true,
+                    autocomplete: true,
+                },
+                {
+                    name: 'reason',
+                    description: 'begrunnelse',
+                    type: ApplicationCommandOptionType.String,
+                    required: true,
+                },
+                {
+                    name: 'user',
+                    description: 'hvem skal få rewarden?',
+                    type: ApplicationCommandOptionType.User,
+                },
+                {
+                    name: 'series',
+                    description: 'hvilken serie skal brukeren få lootpack fra?',
                     type: ApplicationCommandOptionType.String,
                     autocomplete: true,
                 },

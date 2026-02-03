@@ -3,7 +3,7 @@
 
 import { ICCGDeck, ItemRarity } from '../interfaces/database/databaseInterface'
 
-type dailyReward = number | 'dond' | 'box' | 'chest'
+type rewardType = number | 'dond' | 'box' | 'chest' | 'pack'
 export type GameValuesType = {
     deathroll: {
         winningNumberRanges: [number, number][]
@@ -83,12 +83,16 @@ export type GameValuesType = {
         shuffleIgnoresDigitsDefault: boolean
     }
     moreOrLess: {
-        tier1Reward: number
-        tier2Reward: number
-        tier3Reward: number
-        tier4Reward: number
-        tier5Reward: number
-        tier6Reward: number
+        rewards: {
+            tier1: number
+            tier2: number
+            tier3: number
+            tier4: number
+            tier5: number
+            tier6: number
+            completed: number
+            bestAttempt: number
+        }
     }
     spinner: {
         spinWeights: Array<{ value: number; weight: number }>
@@ -97,8 +101,8 @@ export type GameValuesType = {
     daily: {
         baseReward: number
         streakMultiplier: number
-        streak4Reward: dailyReward
-        streak7Reward: dailyReward
+        streak4Reward: rewardType
+        streak7Reward: rewardType
     }
     slotMachine: {
         cost: number
@@ -264,12 +268,16 @@ export const GameValues: GameValuesType = {
 
     // More or Less
     moreOrLess: {
-        tier1Reward: 200, // 1-10
-        tier2Reward: 200, // 11-20
-        tier3Reward: 200, // 21-30
-        tier4Reward: 200, // 31-40
-        tier5Reward: 200, // 41-50
-        tier6Reward: 50, // 51+
+        rewards: {
+            tier1: 200, // 1-10
+            tier2: 200, // 11-20
+            tier3: 200, // 21-30
+            tier4: 200, // 31-40
+            tier5: 200, // 41-50
+            tier6: 50, // 51+
+            completed: 2500,
+            bestAttempt: 2500,
+        },
     },
 
     // Spinner

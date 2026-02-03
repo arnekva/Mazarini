@@ -19,7 +19,7 @@ import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { ClientHelper } from '../../helpers/clientHelper'
 import { ComponentsHelper } from '../../helpers/componentsHelper'
-import { dbPrefix, prefixList } from '../../interfaces/database/databaseInterface'
+import { dbPrefix, ILootbox, prefixList } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { DailyJobs } from '../../Jobs/dailyJobs'
 import { WeeklyJobs } from '../../Jobs/weeklyJobs'
@@ -29,7 +29,7 @@ import { MentionUtils } from '../../utils/mentionUtils'
 import { MessageUtils } from '../../utils/messageUtils'
 import { TextUtils } from '../../utils/textUtils'
 import { DealOrNoDeal, DonDQuality } from '../games/dealOrNoDeal'
-import { LootboxCommands } from '../store/lootboxCommands'
+import { LootboxCommands, LootType } from '../store/lootboxCommands'
 
 const { ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js')
 // const { exec } = require('child_process')
@@ -45,7 +45,7 @@ interface IReward {
     hasClaimed: string[]
 }
 
-type RewardType = 'chest' | 'chips' | 'lootbox' | 'dealornodeal'
+type RewardType = 'chest' | 'chips' | 'box' | 'dealornodeal' | 'pack'
 
 export class Admin extends AbstractCommands {
     private pendingRewards: Map<string, IReward>
@@ -289,8 +289,8 @@ export class Admin extends AbstractCommands {
             this.rewardUserWithChips(interaction, reward, user)
         } else if (reward.type === 'dealornodeal') {
             this.rewardUserWithDealOrNoDeal(interaction, reward, user)
-        } else if (['lootbox', 'chest'].includes(reward.type)) {
-            this.rewardUserWithLootbox(interaction, reward, user)
+        } else if (['box', 'chest', 'pack'].includes(reward.type)) {
+            this.rewardUserWithLoot(interaction, reward, user)
         }
     }
 
@@ -308,32 +308,33 @@ export class Admin extends AbstractCommands {
         )
     }
 
-    private rewardUserWithLootbox(interaction: ChatInteraction | BtnInteraction, pendingReward: IReward, user: User) {
-        const isChest = pendingReward.type === 'chest'
-        const lootButton = LootboxCommands.getLootRewardButton(user.id, pendingReward.quality, isChest, undefined, pendingReward.series)
-        const text = `${MentionUtils.mentionUser(user.id)} har mottatt en reward på en ${pendingReward.quality} loot${
-            isChest ? ' chest' : 'box'
-        } på grunn av *${pendingReward.reason}*`
+    private rewardUserWithLoot(interaction: ChatInteraction | BtnInteraction, pendingReward: IReward, user: User) {
+        const type = pendingReward.type as LootType
+        const lootButton = LootboxCommands.getLootRewardButton(user.id, pendingReward.quality, type, undefined, pendingReward.series)
+        const text = `${MentionUtils.mentionUser(user.id)} har mottatt en reward på en ${pendingReward.quality} loot ${type} på grunn av *${
+            pendingReward.reason
+        }*`
         const embed = EmbedUtils.createSimpleEmbed('Reward', text)
         this.messageHelper.replyToInteraction(interaction, embed, undefined, [lootButton])
         this.messageHelper.sendLogMessage(
-            `${user.username} har mottatt en reward på en ${pendingReward.quality} loot${isChest ? ' chest' : 'box'} på grunn av *${
+            `${user.username} har mottatt en reward på en ${pendingReward.quality} loot ${type} på grunn av *${
                 pendingReward.reason
             }*. Kanal: ${MentionUtils.mentionChannel(interaction.channelId)}. `
         )
     }
 
-    private async lootAutocomplete(interaction: ATCInteraction, isChest: boolean = false) {
-        const boxes = await this.client.database.getLootboxes()
+    private async lootQualityAutocomplete(interaction: ATCInteraction) {
+        const cmd = interaction.options.getSubcommand()
+        const boxes = cmd === 'pack' ? await this.client.database.getLootpacks() : await this.client.database.getLootboxes()
+        const price = (box: ILootbox) => (cmd === 'pack' ? `${box.price} shards` : `${(cmd === 'chest' ? 2 : 1) * (box.price / 1000)}K`)
         interaction.respond(
-            boxes
-                .filter((box) => LootboxCommands.lootboxIsValid(box))
-                .map((box) => ({ name: `${TextUtils.capitalizeFirstLetter(box.name)} ${(isChest ? 2 : 1) * (box.price / 1000)}K`, value: box.name }))
+            boxes.filter((box) => !box.rewardOnly).map((box) => ({ name: `${TextUtils.capitalizeFirstLetter(box.name)} ${price(box)}`, value: box.name }))
         )
     }
 
     private async lootSeriesAutocomplete(interaction: ATCInteraction) {
-        const series = await this.database.getLootboxSeries()
+        const cmd = interaction.options.getSubcommand()
+        const series = (await this.database.getLootboxSeries()).filter((series) => (series.isCCG && cmd === 'pack') || (!series.isCCG && cmd !== 'pack'))
         const optionList: any = interaction.options
         const input = optionList.getFocused().toLowerCase()
         interaction.respond(series.filter((series) => series.name.toLowerCase().includes(input)).map((series) => ({ name: series.name, value: series.name })))
@@ -448,9 +449,9 @@ export class Admin extends AbstractCommands {
         const cmd = interaction.options.getSubcommand()
         const optionList: any = interaction.options
         const focused = optionList._hoistedOptions.find((option) => option.focused)
-        if (['lootbox', 'chest'].includes(cmd)) {
+        if (['box', 'chest', 'pack'].includes(cmd)) {
             if (focused.name === 'series') this.lootSeriesAutocomplete(interaction)
-            else this.lootAutocomplete(interaction, cmd === 'chest')
+            else this.lootQualityAutocomplete(interaction)
         } else if (cmd === 'dealornodeal') this.dondAutocomplete(interaction)
     }
 
