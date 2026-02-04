@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.0.1'
+    public static readonly currentVersion = '30.0.2'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,37 +28,11 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '### CCG',
-                '* Lagt til muligheten for å reward-e loot packs',
-                '* Knappene for å spille/discarde kort er nå deaktivert i 3 sek for å unngå mis-click',
-                '',
-                '### Nerfs introdusert i patch 30.0.0',
-                '* Ternong',
-                '  * Fjernet muligheten for å få lootbox i stedet for innskudd',
-                '  * Halve opprinnelige hasjen legges tilbake ved blackjacktap: deaktivert',
-                '  * Ingen gratis dpn',
-                '  * Unspecial numbers multiplier: -9 > -1',
-                '  * Fjerner 2024 fra unspecial numbers',
-                '  * Special numbers multiplier: 3 > 1',
-                '  * Dicetarget multiplier: 5 > 3',
-                '  * 9/11 sannsynlighet: 99% > 25%',
-                '  * Fjerner potskip penalty',
-                '* MoL',
-                '  * Rette svar 1-50: 200 chips',
-                '  * Rette svar 51+: 50 chips',
-                '  * Premie for fullført MoL: lootbox > 2500 chips',
-                '  * Premie for beste forsøk: chest > 2500 chips',
-                '* Daily',
-                '  * Alle dager gir nå 1000 * streak',
-                '  * Fjernet chest reward på dag 7',
-                '* Dond',
-                '  * Effect-odds sannsynlighet: 40% > 10%',
-                '* Wordle',
-                '  * Premiepott: 5000 > 10000',
-                '  * Maks per pers: 2500',
-                '* Mastermind',
-                '  * 10000 > 2500',
-                '* Misc',
-                '  * 1337 i mld-id: 10000 > 1000',
+                '* Lagt til en knapp for å kunne bla gjennom game-loggen etter at et spill er fullført',
+                '  * Ferdig spill slettes fra cache hver morgen. Da kan man ikke lenger bla i game-loggen',
+                '* Lagt til en cancel knapp på PvP games som refunder innsatsen',
+                '* Fikset en feil hvor et game kunne krasje dersom ingen kort ble spilt',
+                '* Fikset en feil som gjorde at Høie kunne velge å heale ved full HP',
             ].join('\n')
         )
         container.addSeparator()

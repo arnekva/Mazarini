@@ -313,9 +313,7 @@ export class DeckCommands extends AbstractCommands {
     private updateCardPage(interaction: BtnInteraction, editor: DeckEditor) {
         const pageChange = interaction.customId.split(';')[2] === 'next' ? 1 : -1
         const totalPages = Math.ceil(editor.filteredCards.length / GameValues.ccg.deck.cardsPerPage)
-        console.log(editor.page, pageChange, totalPages)
         editor.page = this.mod(editor.page + pageChange - 1, totalPages) + 1
-        console.log(editor.page)
         this.updateCardView(editor, interaction.user.id)
     }
 

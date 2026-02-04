@@ -214,21 +214,26 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private async endGame(game: CCGGame) {
+        game.state.phase = 'FINISHED'
         await this.delay(3000)
         await this.progressHandler.registerStats(game)
         game.container = await this.progressHandler.getMatchSummary(game)
+        game.container.addComponent(ComponentsHelper.createSeparatorComponent(), 'summary_btn_separator')
+        game.container.addComponent(summaryBtn(game.id, game.summary.visible), 'summary_btn')
         this.updateGameMessage(game)
-        this.deleteGame(game)
-    }
-
-    private async deleteGame(game: CCGGame) {
-        await this.delay(3000)
-        this.games.delete(game.id)
     }
 
     private async resolveEffects(game: CCGGame) {
         this.resolver.sortStack(game)
+        let effectSummaryPosted = false
+        if (game.state.stack.length === 0) {
+            game.state.log.push({
+                turn: game.state.turn,
+                message: '*No cards played this round*',
+            })
+        }
         while (game.state.stack.length > 0) {
+            effectSummaryPosted = true
             const effect = game.state.stack.shift()
             await this.resolver.resolveSingleEffect(game, effect)
             this.checkForWinner(game)
@@ -237,12 +242,14 @@ export class CCGCommands extends AbstractCommands {
             if (game.state.winnerId) return
         }
         for (const status of [...game.state.statusEffects, ...game.state.statusConditions]) {
+            effectSummaryPosted = true
             await this.resolver.tickStatusEffects(game, status)
             this.checkForWinner(game)
             this.updatePlayerStates(game)
             this.postEffectSummary(game)
             if (game.state.winnerId) return
         }
+        if (!effectSummaryPosted) this.postEffectSummary(game)
     }
 
     private checkForWinner(game: CCGGame) {
@@ -270,13 +277,14 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private postEffectSummary(game: CCGGame) {
-        let summary = game.state.log
+        const summary = game.state.log
             .filter((entry) => entry.turn === game.state.turn)
             .map((entry) => {
                 return entry.message
             })
             .join('\n\n')
-        if (!summary || summary.length === 0) summary = ' '
+
+        if (!summary || summary.length === 0) return
         if (game.container.getComponentIndex('effect-summary') >= 0) {
             game.container.updateTextComponent('effect-summary', summary)
         } else {
@@ -358,7 +366,8 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private getTarget(game: CCGGame, player: CCGPlayer, effect: CCGCardEffect) {
-        if (this.playerHasCondition(game, player, 'RETARDED')) return RandomUtils.getRandomItemFromList([player.id, player.opponentId])
+        const isRetarded = this.playerHasCondition(game, player, 'RETARDED')
+        if (isRetarded) return RandomUtils.getRandomItemFromList([player.id, player.opponentId])
         else return effect.target === 'OPPONENT' ? player.opponentId : player.id
     }
 
@@ -416,6 +425,14 @@ export class CCGCommands extends AbstractCommands {
             game.container.replaceComponent('main-button', readyUpBtn(game.id))
             this.updateGameMessage(game)
         }
+    }
+
+    private async cancelGame(interaction: BtnInteraction, game: CCGGame) {
+        await game.message.delete()
+        const wager = game.wager
+        this.games.delete(game.id)
+        const user = await this.database.getUser(interaction.user.id)
+        if (wager && wager > 0) this.client.bank.giveUnrestrictedMoney(user, wager)
     }
 
     private userCanJoin(game: CCGGame, user: MazariniUser) {
@@ -506,6 +523,7 @@ export class CCGCommands extends AbstractCommands {
             container: CCGContainer(gameId, interaction.authorName, vsBot),
             state: this.getInitialGameState(),
             vsBot: vsBot,
+            summary: { visible: false, round: 1 },
             botDifficulty: difficulty ?? null,
             mode: mode,
             wager: Math.max(wager ?? 0, 0),
@@ -689,6 +707,49 @@ export class CCGCommands extends AbstractCommands {
         }
     }
 
+    private toggleSummary(interaction: BtnInteraction) {
+        const game = this.getGame(interaction)
+        if (!game) return this.messageHelper.replyToInteraction(interaction, 'Dette gamet er for gammelt')
+        interaction.deferUpdate()
+        game.summary.visible = !game.summary.visible
+        game.container.replaceComponent('summary_btn', summaryBtn(game.id, game.summary.visible))
+        if (game.summary.visible) {
+            const summary = this.getSummary(game)
+            game.container.addComponent(ComponentsHelper.createSeparatorComponent(), 'summary_separator')
+            game.container.addComponent(summaryPageBtn(game.id), 'summary_page_btn')
+            game.container.addComponent(ComponentsHelper.createTextComponent().setContent(summary), 'summary_text')
+        } else {
+            game.container.removeComponent('summary_separator')
+            game.container.removeComponent('summary_page_btn')
+            game.container.removeComponent('summary_text')
+        }
+        this.updateGameMessage(game)
+    }
+
+    private changeSummaryRound(interaction: BtnInteraction) {
+        const game = this.getGame(interaction)
+        if (!game) return this.messageHelper.replyToInteraction(interaction, 'Dette gamet er for gammelt')
+        interaction.deferUpdate()
+        const pageChange = interaction.customId.split(';')[2] === 'next' ? 1 : -1
+        game.summary.round = this.mod(game.summary.round + pageChange - 1, game.state.turn) + 1
+        game.container.updateTextComponent('summary_text', this.getSummary(game))
+        this.updateGameMessage(game)
+    }
+
+    private mod(n: number, m: number): number {
+        return ((n % m) + m) % m
+    }
+
+    private getSummary(game: CCGGame) {
+        const summary = game.state.log
+            .filter((entry) => entry.turn === game.summary.round)
+            .map((entry) => {
+                return entry.message
+            })
+            .join('\n\n')
+        return `Round ${game.summary.round} of ${game.state.turn}\n\n${summary}`
+    }
+
     private async resendMessages(interaction: BtnInteraction, game: CCGGame) {
         if (game.state.locked) return this.messageHelper.replyToInteraction(interaction, 'Vent til runden er ferdig')
         await interaction.deferUpdate()
@@ -716,6 +777,12 @@ export class CCGCommands extends AbstractCommands {
         return true
     }
 
+    private deleteFinishedGames() {
+        const finishedGames = Array.from(this.games.values()).filter((game) => game.state.phase === 'FINISHED')
+        for (const game of finishedGames) this.games.delete(game.id)
+        return true
+    }
+
     override onSave(): Promise<boolean> {
         for (const game of this.games.values()) {
             this.client.cache.restartImpediments.push(`${game.player1.name} har et aktivt CCG game mot ${game.player2.name}`)
@@ -725,7 +792,7 @@ export class CCGCommands extends AbstractCommands {
 
     // eslint-disable-next-line require-await
     async onTimedEvent(): Promise<IOnTimedEvent> {
-        return { daily: [() => this.resetRewards(false)], weekly: [() => this.resetRewards(true)], hourly: [] }
+        return { daily: [() => this.resetRewards(false), () => this.deleteFinishedGames()], weekly: [() => this.resetRewards(true)], hourly: [] }
     }
 
     getAllInteractions(): IInteractionElement {
@@ -744,6 +811,12 @@ export class CCGCommands extends AbstractCommands {
                         commandName: 'CCG_JOIN',
                         command: (interaction: ButtonInteraction) => {
                             this.joinGame(interaction)
+                        },
+                    },
+                    {
+                        commandName: 'CCG_CANCEL',
+                        command: (interaction: ButtonInteraction) => {
+                            this.verifyUserAndCallMethod(interaction, (game) => this.cancelGame(interaction, game))
                         },
                     },
                     {
@@ -806,6 +879,18 @@ export class CCGCommands extends AbstractCommands {
                             this.verifyUserAndCallMethod(interaction, (game, player) => this.sendPlayerHand(interaction, game, player))
                         },
                     },
+                    {
+                        commandName: 'CCG_SUMMARY',
+                        command: (interaction: ButtonInteraction) => {
+                            this.toggleSummary(interaction)
+                        },
+                    },
+                    {
+                        commandName: 'CCG_SUMMARY_PAGE',
+                        command: (interaction: ButtonInteraction) => {
+                            this.changeSummaryRound(interaction)
+                        },
+                    },
                 ],
             },
         }
@@ -819,6 +904,13 @@ const joinButton = (gameId: string) => {
             style: ButtonStyle.Primary,
             disabled: false,
             label: 'Join',
+            type: 2,
+        }),
+        new ButtonBuilder({
+            custom_id: `CCG_CANCEL;${gameId}`,
+            style: ButtonStyle.Secondary,
+            disabled: false,
+            label: 'Cancel',
             type: 2,
         })
     )
@@ -911,4 +1003,35 @@ const resendButtons = (gameId: string, includeHandBtn: boolean) => {
             })
         )
     return buttonRow
+}
+
+const summaryBtn = (gameId: string, visible: boolean) => {
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder({
+            custom_id: `CCG_SUMMARY;${gameId}`,
+            style: ButtonStyle.Secondary,
+            disabled: false,
+            label: visible ? 'Hide summary' : 'Get summary',
+            type: 2,
+        })
+    )
+}
+
+const summaryPageBtn = (gameId: string) => {
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder({
+            custom_id: `CCG_SUMMARY_PAGE;${gameId};previous`,
+            style: ButtonStyle.Secondary,
+            disabled: false,
+            label: 'Previous round',
+            type: 2,
+        }),
+        new ButtonBuilder({
+            custom_id: `CCG_SUMMARY_PAGE;${gameId};next`,
+            style: ButtonStyle.Secondary,
+            disabled: false,
+            label: 'Next round',
+            type: 2,
+        })
+    )
 }

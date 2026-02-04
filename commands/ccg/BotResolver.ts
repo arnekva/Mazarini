@@ -75,8 +75,10 @@ export class BotResolver {
     }
 
     private checkSurvival(game: CCGGame, playable: { card: CCGCard; score: number }[]) {
-        if (game.player2.hp <= RandomUtils.getRandomInteger(2, 5)) {
+        if (game.player2.hp <= RandomUtils.getRandomInteger(4, 8)) {
             this.buffCardsOfType(playable, 'HEAL', 5, 'SELF')
+        } else if (game.player2.hp >= GameValues.ccg.gameSettings.startingHP - 3) {
+            this.buffCardsOfType(playable, 'HEAL', -10, 'SELF')
         }
     }
 

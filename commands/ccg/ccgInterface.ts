@@ -10,6 +10,7 @@ export interface CCGGame {
     container: SimpleContainer
     state: CCGGameState
     vsBot: boolean
+    summary: CCGSummary
     botDifficulty?: Difficulty
     mode?: Mode
     wager?: number
@@ -236,4 +237,9 @@ export enum CCGHelperSubCategory {
     Economy = 'Økonomi',
     Seasons = 'Sesonger',
     Player_stats = 'Spillerstatistikk',
+}
+
+export interface CCGSummary {
+    visible: boolean
+    round: number
 }
