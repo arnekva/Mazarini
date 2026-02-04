@@ -85,7 +85,7 @@ export class BotResolver {
 
     private checkGainEnergy(game: CCGGame, playable: { card: CCGCard; score: number }[]) {
         if (this.shouldSaveEnergy(game, playable)) {
-            this.buffCardsOfType(playable, 'GAIN_ENERGY', 5, 'SELF')
+            this.buffCardsOfType(playable, 'GAIN_ENERGY', 50, 'SELF', true)
         }
     }
 
@@ -96,9 +96,15 @@ export class BotResolver {
         }
     }
 
-    private buffCardsOfType(playable: { card: CCGCard; score: number }[], type: CCGEffectType, buffAmount: number, target: CCGTarget) {
+    private buffCardsOfType(
+        playable: { card: CCGCard; score: number }[],
+        type: CCGEffectType,
+        buffAmount: number,
+        target: CCGTarget,
+        immediate: boolean = false
+    ) {
         for (const card of playable) {
-            if (card.card.effects.some((effect) => effect.type === type && effect.target === target)) {
+            if (card.card.effects.some((effect) => effect.type === type && effect.target === target && (!immediate || (effect.turns ?? 0) === 0))) {
                 card.score += buffAmount
             }
         }
