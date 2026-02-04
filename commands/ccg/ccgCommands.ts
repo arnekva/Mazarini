@@ -785,7 +785,7 @@ export class CCGCommands extends AbstractCommands {
 
     override onSave(): Promise<boolean> {
         for (const game of this.games.values()) {
-            this.client.cache.restartImpediments.push(`${game.player1.name} har et aktivt CCG game mot ${game.player2.name}`)
+            this.client.cache.restartImpediments.push(`${game.player1.name} har et aktivt CCG game mot ${game.player2?.name ?? '...'}`)
         }
         return Promise.resolve(true)
     }
