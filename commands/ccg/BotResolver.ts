@@ -14,6 +14,7 @@ export class BotResolver {
         this.sortPlayable(playable)
         this.checkRemoveStatus(game, playable)
         this.checkGainEnergy(game, playable)
+        this.sortPlayable(playable)
 
         if (this.shouldSaveEnergy(game, playable)) {
             bot.submitted = true

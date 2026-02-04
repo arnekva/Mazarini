@@ -371,17 +371,17 @@ export class Admin extends AbstractCommands {
             const msg = this.client.cache.restartImpediments.reduce((prev, item) => prev + item + '\n', '')
             await this.messageHelper.replyToInteraction(interaction, msg, { hasBeenDefered: true }, [forceRestartBtn])
         } else {
-            this.restartBot(interaction)
+            this.restartBot(interaction, true)
         }
     }
 
-    private async restartBot(interaction: ChatInteraction | BtnInteraction) {
+    private async restartBot(interaction: ChatInteraction | BtnInteraction, deferred: boolean = false) {
         if (interaction instanceof ButtonInteraction) {
             interaction.message.edit({ components: [] })
             await this.client.onRestart() //has just been run in attemptRestart() if interaction is ChatInputCommandInteraction
         }
         ClientHelper.setDisplayNameMode(this.client, 'offline')
-        await this.messageHelper.replyToInteraction(interaction, `Forsøker å restarte botten`, { hasBeenDefered: true })
+        await this.messageHelper.replyToInteraction(interaction, `Forsøker å restarte botten`, { hasBeenDefered: deferred })
         let restartMsg = `Restart trigget av ${interaction.user.username} i kanalen ${MentionUtils.mentionChannel(
             interaction.channelId
         )}. Henter data fra Git og restarter botten ...`
