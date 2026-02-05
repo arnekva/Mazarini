@@ -39,7 +39,7 @@ export class MoneyHelper {
     }
 
     takeShards(user: MazariniUser, amount: number): boolean {
-        const canAfford = user.ccg?.shards ?? 0 >= amount
+        const canAfford = user.ccg?.shards && user.ccg.shards >= amount
         if (canAfford) {
             user.ccg.shards -= amount
             this.client.database.updateUser(user)
