@@ -158,6 +158,8 @@ export type GameValuesType = {
             entryFee: number
             dailyBonus: number
             weeklyLimit: number
+            limitPenalty: number
+            bonusAfterLimit: boolean
             win: number
             loss: number
             difficultyMultiplier: {
@@ -403,6 +405,8 @@ export const GameValues: GameValuesType = {
             entryFee: 10000,
             dailyBonus: 10,
             weeklyLimit: 100,
+            limitPenalty: 5,
+            bonusAfterLimit: false,
             win: 10,
             loss: 5,
             difficultyMultiplier: {

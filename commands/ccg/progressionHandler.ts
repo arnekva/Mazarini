@@ -92,11 +92,11 @@ export class ProgressionHandler {
         const rewards = GameValues.ccg.rewards
         const user = await this.client.database.getUser(player.id)
         const limitReached = (user.ccg?.weeklyShardsEarned ?? 0) >= rewards.weeklyLimit
-        if (limitReached) return `${player.name} has reached their weekly shard-limit!\nDon't worry - you didn't lose any chips`
-        const dailyBonus = user.ccg?.dailyShardBonusClaimed ? 0 : rewards.dailyBonus
+        const dailyBonus = (!rewards.bonusAfterLimit && limitReached) || user.ccg?.dailyShardBonusClaimed ? 0 : rewards.dailyBonus
         const gameReward = playerWon ? rewards.win : rewards.loss
         const multiplier = game.vsBot && playerWon ? rewards.difficultyMultiplier[game.botDifficulty] : 1
-        const reward = Math.min(rewards.weeklyLimit - (user.ccg?.weeklyShardsEarned ?? 0), gameReward * multiplier + dailyBonus)
+        const penalty = limitReached ? rewards.limitPenalty : 0
+        const reward = gameReward * multiplier + dailyBonus - penalty
         user.ccg = {
             ...user.ccg,
             dailyShardBonusClaimed: true,

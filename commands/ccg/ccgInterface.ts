@@ -243,3 +243,16 @@ export interface CCGSummary {
     visible: boolean
     round: number
 }
+
+export interface CCGStats {
+    id: string
+    guildId: string
+    stats: Map<string, CCGPlayerStats[]>
+    stat1Id: string
+    stat2Id: string
+    difficulty?: Difficulty
+    info?: {
+        container?: SimpleContainer
+        message?: Message | InteractionResponse
+    }
+}

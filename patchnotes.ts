@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.0.2'
+    public static readonly currentVersion = '30.0.3'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,11 +28,14 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '### CCG',
-                '* Lagt til en knapp for å kunne bla gjennom game-loggen etter at et spill er fullført',
-                '  * Ferdig spill slettes fra cache hver morgen. Da kan man ikke lenger bla i game-loggen',
-                '* Lagt til en cancel knapp på PvP games som refunder innsatsen',
-                '* Fikset en feil hvor et game kunne krasje dersom ingen kort ble spilt',
-                '* Fikset en feil som gjorde at Høie kunne velge å heale ved full HP',
+                '* Lagt til visning av stats i `/ccg stats`',
+                '* Weekly cap funker ikke lenger som en hard cap :billed_cap:',
+                '  * Når man overstiger weekly cap vil man ikke lenger få daily bonus',
+                '  * Premien reduseres med 5 shards etter oversteget cap',
+                '      * Tap: 0 shards',
+                '    * Seier (lett): 5 shards',
+                '    * Seier (middels): 10 shards',
+                '    * Seier (vanskelig): 15 shards',
             ].join('\n')
         )
         container.addSeparator()

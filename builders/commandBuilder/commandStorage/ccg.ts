@@ -12,6 +12,10 @@ export const ccgCommand: ISlashCommandItem = {
             commandName: 'help',
             commandDescription: 'Les dokumentasjon om Mazarini CCG',
         },
+        {
+            commandName: 'stats',
+            commandDescription: 'Sjekk CCG stats',
+        },
     ],
     subCommandGroups: [
         {

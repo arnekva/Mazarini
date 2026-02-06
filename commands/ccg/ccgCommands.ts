@@ -32,6 +32,7 @@ import {
     Mode,
     StatusEffect,
 } from './ccgInterface'
+import { CCGStatView } from './ccgStats'
 import { ProgressionHandler } from './progressionHandler'
 
 export class CCGCommands extends AbstractCommands {
@@ -41,6 +42,7 @@ export class CCGCommands extends AbstractCommands {
     private igh: ImageGenerationHelper
     private progressHandler: ProgressionHandler
     private helper: CCGHelp
+    private statViewer: CCGStatView
 
     constructor(client: MazariniClient) {
         super(client)
@@ -50,6 +52,7 @@ export class CCGCommands extends AbstractCommands {
         this.resolver = new CardActionResolver()
         this.botResolver = new BotResolver()
         this.progressHandler = new ProgressionHandler(this.client)
+        this.statViewer = new CCGStatView(this.client)
     }
 
     private drawCards(game: CCGGame, player: CCGPlayer) {
@@ -693,12 +696,13 @@ export class CCGCommands extends AbstractCommands {
             if (!canAfford) return this.messageHelper.replyToInteraction(interaction, 'Du har ikke råd til dette')
             this.setupGame(interaction, vsBot)
         } else if (cmd === 'help') this.helper.newCCGHelper(interaction)
+        else if (cmd === 'stats') this.statViewer.newCCGStatView(interaction)
     }
 
     private async userCanAfford(interaction: ChatInteraction, vsBot: boolean) {
         const user = await this.database.getUser(interaction.user.id)
         if (vsBot) {
-            if ((user.ccg?.weeklyShardsEarned ?? 0) >= GameValues.ccg.rewards.weeklyLimit) return true
+            // if ((user.ccg?.weeklyShardsEarned ?? 0) >= GameValues.ccg.rewards.weeklyLimit) return true
             const mode = interaction.options.get('mode')?.value as string as Mode
             return mode === Mode.Practice || this.client.bank.takeMoney(user, GameValues.ccg.rewards.entryFee)
         } else {
@@ -891,6 +895,18 @@ export class CCGCommands extends AbstractCommands {
                         commandName: 'CCG_SUMMARY_PAGE',
                         command: (interaction: ButtonInteraction) => {
                             this.changeSummaryRound(interaction)
+                        },
+                    },
+                    {
+                        commandName: 'CCG_STATS',
+                        command: (interaction: ButtonInteraction) => {
+                            this.statViewer.setUser(interaction)
+                        },
+                    },
+                    {
+                        commandName: 'CCG_STATS_DIFFICULTY',
+                        command: (interaction: ButtonInteraction) => {
+                            this.statViewer.setDifficulty(interaction)
                         },
                     },
                 ],
