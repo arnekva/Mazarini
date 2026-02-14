@@ -10,6 +10,16 @@ export type customGameNames =
     | 'mostKnownNorwegian'
     | 'tvSeriesEpisodeCount'
     | 'medalsByCountry'
+    | 'top30TaylorSwiftSongs'
+    | 'top30NorwegianArtistsInternationally'
+    | 'mostKnownWineDistricts'
+    | 'countriesMostBillboard1Hits'
+    | 'legoSetsByPieces'
+    | 'cryptocurrenciesByWorth'
+    | 'citiesByAverageRent'
+    | 'countriesByPassportStrength'
+    | 'citiesByPollutionIndex'
+    | 'bordersByLength'
 
 /* 
     Steps for adding a custom game:
@@ -42,6 +52,16 @@ export class CustomMOLHandler {
             mostVisitedTouristAttractions: 'tourist-destionations-by-visitors.json',
             moviesByRuntime: 'movies-by-runtime.json',
             tvSeriesBySeasons: 'tv-series-by-seasons.json',
+            top30TaylorSwiftSongs: 'top30-taylor-swift-songs.json',
+            top30NorwegianArtistsInternationally: 'top30-norwegian-artists-internationally.json',
+            mostKnownWineDistricts: 'most-known-wine-districts.json',
+            countriesMostBillboard1Hits: 'countries-most-billboard-1-hits.json',
+            legoSetsByPieces: 'lego-sets-by-pieces.json',
+            cryptocurrenciesByWorth: 'cryptocurrencies-by-worth.json',
+            citiesByAverageRent: 'cities-by-average-rent.json',
+            countriesByPassportStrength: 'countries-by-passport-strength.json',
+            citiesByPollutionIndex: 'cities-by-pollution-index.json',
+            bordersByLength: 'borders-by-length.json',
         }
 
         const fileName = fileMap[name]

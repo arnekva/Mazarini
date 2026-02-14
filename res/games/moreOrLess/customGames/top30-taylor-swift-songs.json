@@ -1,0 +1,47 @@
+{
+    "slug": "taylorSwiftTopStreams",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/5/56/Taylor_Swift_Red_Carpet_2023.jpg",
+    "title": "30 mest strømmede Taylor Swift-låter",
+    "seoTitle": "N/A",
+    "description": "Gjett hvilke Taylor Swift-låter som har flest streams globalt.",
+    "tags": ["CUSTOM_MAZARINI_GAME"],
+    "game": {
+        "strings": {
+            "verb": "har",
+            "valueTitle": "streams",
+            "buttonMore": "Flere",
+            "buttonLess": "Færre"
+        },
+        "data": [
+            ["Cruel Summer", 3240000000, null],
+            ["Blank Space", 2340000000, null],
+            ["I Don’t Wanna Live Forever", 2070000000, null],
+            ["Lover", 1970000000, null],
+            ["Anti-Hero", 1970000000, null],
+            ["cardigan", 1900000000, null],
+            ["Shake It Off", 1810000000, null],
+            ["august", 1720000000, null],
+            ["Style", 1650000000, null],
+            ["Don’t Blame Me", 1550000000, null],
+            ["Look What You Made Me Do", 1410000000, null],
+            ["Delicate", 1290000000, null],
+            ["All Too Well (10 Minute Version)", 1160000000, null],
+            ["Wildest Dreams", 1150000000, null],
+            ["Love Story (Taylor’s Version)", 1140000000, null],
+            ["You Need to Calm Down", 1120000000, null],
+            ["Love Story", 1090000000, null],
+            ["I Knew You Were Trouble", 1080000000, null],
+            ["willow", 1060000000, null],
+            ["exile (feat. Bon Iver)", 1050000000, null],
+            ["You Belong with Me", 1050000000, null],
+            ["Karma", 997000000, null],
+            ["The Fate of Ophelia", 995000000, null],
+            ["Wildest Dreams (Taylor’s Version)", 995000000, null],
+            ["Bejeweled", 940000000, null],
+            ["Red", 910000000, null],
+            ["ME!", 890000000, null],
+            ["Back to December", 880000000, null],
+            ["Begin Again", 860000000, null]
+        ]
+    }
+}

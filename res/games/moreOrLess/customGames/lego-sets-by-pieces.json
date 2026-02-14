@@ -1,0 +1,38 @@
+{
+    "slug": "legoByPieceCount",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/3/34/LEGO_Iconic_Logo.png",
+    "title": "LEGO-sett etter bitetall",
+    "seoTitle": "N/A",
+    "description": "Gjett hvilke LEGO-sett som har flest brikker!",
+    "tags": ["CUSTOM_MAZARINI_GAME"],
+    "game": {
+        "strings": {
+            "verb": "har",
+            "valueTitle": "brikker",
+            "buttonMore": "Flere",
+            "buttonLess": "Færre"
+        },
+        "data": [
+            ["LEGO Art World Map", 11695, null],
+            ["LEGO Eiffel Tower", 10001, null],
+            ["LEGO Titanic", 9090, null],
+            ["LEGO Colosseum", 9036, null],
+            ["LEGO Death Star (UCS)", 9023, null],
+            ["UCS Millennium Falcon", 7541, null],
+            ["LEGO AT-AT", 6785, null],
+            ["Lord of the Rings: Rivendell", 6167, null],
+            ["Hogwarts Castle", 6020, null],
+            ["LEGO NINJAGO City Markets", 6163, null],
+            ["Taj Mahal", 5923, null],
+            ["LEGO Star Wars UCS Razor Crest", 6187, null],
+            ["LEGO Creator Expert Roller Coaster", 4020, null],
+            ["LEGO Art Mickey Mouse", 2658, null],
+            ["LEGO Bugatti Chiron (Technic)", 3599, null],
+            ["LEGO Batman Arkham Asylum", 3928, null],
+            ["LEGO Disney Castle", 4080, null],
+            ["LEGO Brick Bank", 2388, null],
+            ["LEGO Ghostbusters Firehouse", 4634, null],
+            ["LEGO Tower Bridge", 4287, null]
+        ]
+    }
+}

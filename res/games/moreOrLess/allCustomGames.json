@@ -160,5 +160,95 @@
         "badge": "Custom",
         "slug": "companiesFoundedYear",
         "image": "https://upload.wikimedia.org/wikipedia/commons/5/5f/Office_building_icon.svg"
+    },
+    {
+        "title": "Top 30 streamed Taylor Swift songs",
+        "description": "Guess the most streamed Taylor Swift songs.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "Taylor Swift most streamed songs",
+        "badge": "Custom",
+        "slug": "top30TaylorSwiftSongs",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/f/f2/Taylor_Swift_3_-_2019_by_Glenn_Francis_%28cropped%29.jpg"
+    },
+    {
+        "title": "Top 30 Norwegian artists internationally by sales number",
+        "description": "Guess the Norwegian artists with the highest international sales.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "Norwegian artists international sales",
+        "badge": "Custom",
+        "slug": "top30NorwegianArtistsInternationally",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/6/6b/A-ha_-_Rock_in_Rio_2015_%282%29.jpg"
+    },
+    {
+        "title": "Most Known Wine Districts",
+        "description": "Guess the world's most famous wine districts.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "Most known wine districts",
+        "badge": "Custom",
+        "slug": "mostKnownWineDistricts",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/2/2b/Vineyard_in_Burgundy.jpg"
+    },
+    {
+        "title": "Countries with Most #1 Billboard Hits",
+        "description": "Guess the countries with the most #1 Billboard Hot 100 hits.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "Countries with most #1 Billboard hits",
+        "badge": "Custom",
+        "slug": "countriesMostBillboard1Hits",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/2/2c/Billboard_logo.svg"
+    },
+    {
+        "title": "LEGO Sets by Pieces Count",
+        "description": "Guess the LEGO sets with the highest number of pieces.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "LEGO sets by pieces count",
+        "badge": "Custom",
+        "slug": "legoSetsByPieces",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/6/6c/LEGO_logo.svg"
+    },
+    {
+        "title": "Cryptocurrencies by Worth",
+        "description": "Guess the cryptocurrencies ranked by market value.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "Cryptocurrencies by worth",
+        "badge": "Custom",
+        "slug": "cryptocurrenciesByWorth",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/4/46/Bitcoin.svg"
+    },
+    {
+        "title": "Cities by Average Rent (NOK)",
+        "description": "Guess the cities ranked by average rent in NOK.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "Cities by average rent",
+        "badge": "Custom",
+        "slug": "citiesByAverageRent",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/7/7c/Apartment_icon.svg"
+    },
+    {
+        "title": "Countries by Passport Strength",
+        "description": "Guess the countries ranked by passport strength.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "Countries by passport strength",
+        "badge": "Custom",
+        "slug": "countriesByPassportStrength",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/2/2c/Passport_icon.svg"
+    },
+    {
+        "title": "Cities by Pollution Index",
+        "description": "Guess the cities ranked by pollution index.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "Cities by pollution index",
+        "badge": "Custom",
+        "slug": "citiesByPollutionIndex",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/3/3c/Pollution_icon.svg"
+    },
+    {
+        "title": "Borders by Length",
+        "description": "Guess the country borders ranked by length.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "Borders by length",
+        "badge": "Custom",
+        "slug": "bordersByLength",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/2/2c/Border_icon.svg"
     }
 ]

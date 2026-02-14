@@ -1,0 +1,38 @@
+{
+    "slug": "norwegianArtistsIntl",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/2/25/Norwegian_flag_pennant.svg",
+    "title": "20 norske artister kjent internasjonalt",
+    "seoTitle": "N/A",
+    "description": "Gjett hvilke norske artister som er mest kjent internasjonalt etter salg/streams.",
+    "tags": ["CUSTOM_MAZARINI_GAME"],
+    "game": {
+        "strings": {
+            "verb": "har",
+            "valueTitle": "internasjonal anerkjennelse",
+            "buttonMore": "Mer",
+            "buttonLess": "Mindre"
+        },
+        "data": [
+            ["A-ha", 55000000, null],
+            ["Alan Walker", 80000000000, null],
+            ["Kygo", 3000000000, null],
+            ["Aurora", 1000000, null],
+            ["Sissel Kyrkjebø", 1500000, null],
+            ["a1 (band)", 5000000, null],
+            ["Anita Hegerland", 30000000, null],
+            ["Silje Nergaard", 5000000, null],
+            ["Morten Harket (solo)", 2000000, null],
+            ["Lene Marlin", 4000000, null],
+            ["Röyksopp", 2500000, null],
+            ["Bjørn Eidsvåg", 3000000, null],
+            ["Dagny", 2000000, null],
+            ["Sigrid", 12000000, null],
+            ["Boy Pablo", 9000000, null],
+            ["Kakkmaddafakka", 1500000, null],
+            ["Madcon", 8000000, null],
+            ["Odd Nordstoga", 160000, null],
+            ["Hanne Krogh", 3000000, null],
+            ["Maria Mena", 6000000, null]
+        ]
+    }
+}

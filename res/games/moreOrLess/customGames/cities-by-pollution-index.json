@@ -1,0 +1,48 @@
+{
+    "slug": "citiesPollution",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/3/3c/Air_pollution_icon.svg",
+    "title": "Byer etter forurensningsnivå",
+    "seoTitle": "N/A",
+    "description": "Gjett hvilke byer som har høyest luftforurensning.",
+    "tags": ["CUSTOM_MAZARINI_GAME"],
+    "game": {
+        "strings": {
+            "verb": "har",
+            "valueTitle": "forurensningsindeks",
+            "buttonMore": "Høyere",
+            "buttonLess": "Lavere"
+        },
+        "data": [
+            ["Delhi", 92, null],
+            ["Lahore", 90, null],
+            ["Dhaka", 88, null],
+            ["Kabul", 86, null],
+            ["Ulaanbaatar", 84, null],
+            ["Beijing", 82, null],
+            ["Cairo", 80, null],
+            ["Mumbai", 78, null],
+            ["Jakarta", 76, null],
+            ["Karachi", 75, null],
+            ["Bangkok", 72, null],
+            ["Manila", 70, null],
+            ["Mexico City", 68, null],
+            ["Istanbul", 66, null],
+            ["Tehran", 65, null],
+            ["Los Angeles", 62, null],
+            ["Rome", 55, null],
+            ["Paris", 50, null],
+            ["London", 48, null],
+            ["Berlin", 45, null],
+            ["Madrid", 43, null],
+            ["Tokyo", 40, null],
+            ["Seoul", 38, null],
+            ["Toronto", 35, null],
+            ["Sydney", 30, null],
+            ["Oslo", 25, null],
+            ["Stockholm", 20, null],
+            ["Reykjavik", 15, null],
+            ["Wellington", 12, null],
+            ["Zurich", 10, null]
+        ]
+    }
+}

@@ -1,0 +1,33 @@
+{
+    "slug": "countriesMostBillboard1s",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/2/29/Billboard_logo.svg",
+    "title": "Land med flest #1 Billboard-hits",
+    "seoTitle": "N/A",
+    "description": "Gjett hvilke land artister kommer fra som har flest #1-hits på Billboard Hot 100 gjennom tidene.",
+    "tags": ["CUSTOM_MAZARINI_GAME"],
+    "game": {
+        "strings": {
+            "verb": "har",
+            "valueTitle": "#1-hits",
+            "buttonMore": "Flere",
+            "buttonLess": "Færre"
+        },
+        "data": [
+            ["USA", 1200, null],
+            ["Storbritannia", 210, null],
+            ["Canada", 65, null],
+            ["Australia", 42, null],
+            ["Jamaica", 31, null],
+            ["Barbados", 14, null],
+            ["Sverige", 11, null],
+            ["Tyskland", 8, null],
+            ["Irland", 7, null],
+            ["Frankrike", 5, null],
+            ["Spania", 4, null],
+            ["New Zealand", 4, null],
+            ["Colombia", 3, null],
+            ["Belgia", 3, null],
+            ["Østerrike", 2, null]
+        ]
+    }
+}

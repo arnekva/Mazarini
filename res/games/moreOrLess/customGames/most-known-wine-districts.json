@@ -1,0 +1,38 @@
+{
+    "slug": "topWineRegions",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Wine_glasses_with_red_wine.jpg/250px-Wine_glasses_with_red_wine.jpg",
+    "title": "20 kjente vinregioner i verden",
+    "seoTitle": "N/A",
+    "description": "Gjett hvilke vinregioner som er mest anerkjent basert på kvalitet og omdømme.",
+    "tags": ["CUSTOM_MAZARINI_GAME"],
+    "game": {
+        "strings": {
+            "verb": "har",
+            "valueTitle": "rating/omdømme score",
+            "buttonMore": "Høyere",
+            "buttonLess": "Lavere"
+        },
+        "data": [
+            ["Bordeaux (Frankrike)", 98, null],
+            ["Burgundy (Frankrike)", 97, null],
+            ["Champagne (Frankrike)", 96, null],
+            ["Tuscany (Italia)", 95, null],
+            ["Piedmont (Italia)", 94, null],
+            ["Rioja (Spania)", 93, null],
+            ["Napa Valley (USA)", 92, null],
+            ["Mendoza (Argentina)", 90, null],
+            ["Barossa Valley (Australia)", 89, null],
+            ["Marlborough (New Zealand)", 88, null],
+            ["Mosel (Tyskland)", 87, null],
+            ["Douro Valley (Portugal)", 86, null],
+            ["Willamette Valley (USA)", 85, null],
+            ["Provence (Frankrike)", 84, null],
+            ["Loire Valley (Frankrike)", 83, null],
+            ["Alsace (Frankrike)", 82, null],
+            ["Chianti (Italia)", 80, null],
+            ["Rhone Valley (Frankrike)", 79, null],
+            ["Priorat (Spania)", 78, null],
+            ["Hunter Valley (Australia)", 77, null]
+        ]
+    }
+}

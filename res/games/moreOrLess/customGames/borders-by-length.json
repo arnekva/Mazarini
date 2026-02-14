@@ -1,0 +1,48 @@
+{
+    "slug": "bordersByLength",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/0/08/World_map_icon.svg",
+    "title": "Verdens lengste landegrenser",
+    "seoTitle": "N/A",
+    "description": "Gjett hvilke landegrenser som er lengst i kilometer.",
+    "tags": ["CUSTOM_MAZARINI_GAME"],
+    "game": {
+        "strings": {
+            "verb": "er ca",
+            "valueTitle": "km lang",
+            "buttonMore": "Lengre",
+            "buttonLess": "Kortere"
+        },
+        "data": [
+            ["USA–Canada", 8893, null],
+            ["Kazakhstan–Russia", 7644, null],
+            ["Argentina–Chile", 6691, null],
+            ["China–Mongolia", 4630, null],
+            ["India–Bangladesh", 4096, null],
+            ["China–Russia", 4209, null],
+            ["Brazil–Bolivia", 3403, null],
+            ["USA–Mexico", 3145, null],
+            ["Iran–Iraq", 1599, null],
+            ["France–Spain", 623, null],
+            ["Germany–Poland", 467, null],
+            ["Norway–Sweden", 1630, null],
+            ["India–Pakistan", 3323, null],
+            ["China–India", 3440, null],
+            ["South Africa–Namibia", 967, null],
+            ["Peru–Brazil", 2995, null],
+            ["Turkey–Syria", 909, null],
+            ["Afghanistan–Pakistan", 2670, null],
+            ["Spain–Portugal", 1214, null],
+            ["Austria–Germany", 801, null],
+            ["Italy–Switzerland", 698, null],
+            ["Finland–Russia", 1340, null],
+            ["Poland–Ukraine", 535, null],
+            ["Thailand–Myanmar", 2416, null],
+            ["Vietnam–China", 1297, null],
+            ["Egypt–Sudan", 1276, null],
+            ["Kenya–Tanzania", 775, null],
+            ["Greece–Turkey", 192, null],
+            ["Ireland–UK", 499, null],
+            ["North Korea–China", 1352, null]
+        ]
+    }
+}

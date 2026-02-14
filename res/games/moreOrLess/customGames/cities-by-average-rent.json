@@ -1,0 +1,48 @@
+{
+    "slug": "citiesAverageRent",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/1/17/City_icon.svg",
+    "title": "Byer etter gjennomsnittlig leiepris",
+    "seoTitle": "N/A",
+    "description": "Gjett hvilke byer som har høyest gjennomsnittlig husleie (1-roms, sentrum).",
+    "tags": ["CUSTOM_MAZARINI_GAME"],
+    "game": {
+        "strings": {
+            "verb": "koster ca",
+            "valueTitle": "NOK per måned",
+            "buttonMore": "Mer",
+            "buttonLess": "Mindre"
+        },
+        "data": [
+            ["New York", 38000, null],
+            ["Hong Kong", 35000, null],
+            ["London", 32000, null],
+            ["Singapore", 31000, null],
+            ["Zurich", 30000, null],
+            ["San Francisco", 29500, null],
+            ["Tokyo", 24000, null],
+            ["Oslo", 23000, null],
+            ["Sydney", 22000, null],
+            ["Paris", 21000, null],
+            ["Copenhagen", 20000, null],
+            ["Amsterdam", 19500, null],
+            ["Berlin", 16000, null],
+            ["Barcelona", 15000, null],
+            ["Rome", 14500, null],
+            ["Vienna", 14000, null],
+            ["Madrid", 13500, null],
+            ["Dublin", 13000, null],
+            ["Toronto", 12500, null],
+            ["Vancouver", 12000, null],
+            ["Seoul", 11500, null],
+            ["Lisbon", 11000, null],
+            ["Prague", 10000, null],
+            ["Warsaw", 9000, null],
+            ["Budapest", 8500, null],
+            ["Athens", 8000, null],
+            ["Istanbul", 7000, null],
+            ["Bangkok", 6500, null],
+            ["Mexico City", 6000, null],
+            ["Cairo", 3500, null]
+        ]
+    }
+}

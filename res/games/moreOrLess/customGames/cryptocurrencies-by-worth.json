@@ -1,0 +1,38 @@
+{
+    "slug": "cryptoPriceJan2026",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/6/6f/Bitcoin.svg",
+    "title": "Topp kryptovalutaer etter pris per mynt (Jan 2026)",
+    "seoTitle": "N/A",
+    "description": "Gjett hvilke kryptovalutaer som har høyest pris per mynt i USD.",
+    "tags": ["CUSTOM_MAZARINI_GAME"],
+    "game": {
+        "strings": {
+            "verb": "koster",
+            "valueTitle": "USD per mynt",
+            "buttonMore": "Mer",
+            "buttonLess": "Mindre"
+        },
+        "data": [
+            ["Bitcoin (BTC)", 92000, null],
+            ["Ethereum (ETH)", 6900, null],
+            ["BNB", 780, null],
+            ["Monero (XMR)", 310, null],
+            ["Solana (SOL)", 240, null],
+            ["Litecoin (LTC)", 185, null],
+            ["Avalanche (AVAX)", 95, null],
+            ["Chainlink (LINK)", 42, null],
+            ["Cardano (ADA)", 1.35, null],
+            ["XRP", 1.12, null],
+            ["Dogecoin (DOGE)", 0.42, null],
+            ["TRON (TRX)", 0.21, null],
+            ["Stellar (XLM)", 0.18, null],
+            ["Hedera (HBAR)", 0.16, null],
+            ["Sui (SUI)", 2.1, null],
+            ["Shiba Inu (SHIB)", 0.000041, null],
+            ["Pepe (PEPE)", 0.000012, null],
+            ["Bonk (BONK)", 0.000004, null],
+            ["Floki (FLOKI)", 0.00019, null],
+            ["Tether (USDT)", 1.0, null]
+        ]
+    }
+}

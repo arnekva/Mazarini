@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.0.4'
+    public static readonly currentVersion = '30.0.5'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,7 +25,9 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(['### CCG', '* Start HP er nå 25 (opp fra 20)'].join('\n'))
+        const text = new TextDisplayBuilder().setContent(['### MOL', 
+            '* Legger til 10 nye custom kategorier'
+        ].join('\n'))
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 

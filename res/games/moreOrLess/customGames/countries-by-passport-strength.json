@@ -1,0 +1,48 @@
+{
+    "slug": "passportStrength",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/6/6b/Passport_icon.svg",
+    "title": "Land etter pass-styrke",
+    "seoTitle": "N/A",
+    "description": "Gjett hvilke land som har sterkest pass basert på visumfri tilgang.",
+    "tags": ["CUSTOM_MAZARINI_GAME"],
+    "game": {
+        "strings": {
+            "verb": "gir tilgang til",
+            "valueTitle": "land uten visum",
+            "buttonMore": "Flere",
+            "buttonLess": "Færre"
+        },
+        "data": [
+            ["Japan", 194, null],
+            ["Singapore", 193, null],
+            ["Germany", 192, null],
+            ["France", 192, null],
+            ["Italy", 191, null],
+            ["Spain", 191, null],
+            ["Norway", 190, null],
+            ["Sweden", 190, null],
+            ["Denmark", 189, null],
+            ["Netherlands", 189, null],
+            ["UK", 188, null],
+            ["Canada", 187, null],
+            ["USA", 186, null],
+            ["Australia", 185, null],
+            ["South Korea", 184, null],
+            ["New Zealand", 183, null],
+            ["Brazil", 170, null],
+            ["Argentina", 168, null],
+            ["Mexico", 160, null],
+            ["Chile", 159, null],
+            ["Turkey", 115, null],
+            ["Russia", 115, null],
+            ["China", 85, null],
+            ["India", 70, null],
+            ["Indonesia", 75, null],
+            ["South Africa", 105, null],
+            ["Thailand", 80, null],
+            ["Egypt", 55, null],
+            ["Nigeria", 45, null],
+            ["Afghanistan", 27, null]
+        ]
+    }
+}
