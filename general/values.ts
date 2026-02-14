@@ -394,7 +394,7 @@ export const GameValues: GameValuesType = {
         gameSettings: {
             defaultHandSize: 4,
             maxHandSize: 5,
-            startingHP: 20,
+            startingHP: 25,
             energyRecoveryPerRound: 1,
             startingEnergy: 3,
             openHands: false,

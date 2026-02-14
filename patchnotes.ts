@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.0.3'
+    public static readonly currentVersion = '30.0.4'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,19 +25,7 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(
-            [
-                '### CCG',
-                '* Lagt til visning av stats i `/ccg stats`',
-                '* Weekly cap funker ikke lenger som en hard cap :billed_cap:',
-                '  * Når man overstiger weekly cap vil man ikke lenger få daily bonus',
-                '  * Premien reduseres med 5 shards etter oversteget cap',
-                '      * Tap: 0 shards',
-                '    * Seier (lett): 5 shards',
-                '    * Seier (middels): 10 shards',
-                '    * Seier (vanskelig): 15 shards',
-            ].join('\n')
-        )
+        const text = new TextDisplayBuilder().setContent(['### CCG', '* Start HP er nå 25 (opp fra 20)'].join('\n'))
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 
