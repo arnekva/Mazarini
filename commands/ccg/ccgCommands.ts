@@ -375,6 +375,7 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private isCardSuccessful(game: CCGGame, player: CCGPlayer, card: CCGCard) {
+        if (card.cannotMiss) return true
         const isChokester = this.playerHasCondition(game, player, 'CHOKESTER')
         const hasChokeShield = this.playerHasStatus(game, player, 'CHOKE_SHIELD')
         let accuracy = isChokester ? 50 : card.accuracy

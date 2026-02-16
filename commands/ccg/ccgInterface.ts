@@ -147,6 +147,7 @@ export interface CCGCard {
     rarity: ItemRarity
     accuracy: number
     speed: number
+    cannotMiss?: boolean
     emoji?: string
     selected?: boolean
 }

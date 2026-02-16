@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.0.5'
+    public static readonly currentVersion = '30.1.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,9 +25,28 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(['### MOL', 
-            '* Legger til 10 nye custom kategorier'
-        ].join('\n'))
+        const text = new TextDisplayBuilder().setContent(
+            [
+                '## CCG',
+                '* Fikser en print bug ved retarded energy kort',
+                '* Fikser en print bug ved arnenymous turns',
+                '### Nerfs',
+                '* Pointerbrothers',
+                '  * Redusert antall turns fra 10 til **5**',
+                '* Are you',
+                '  * Økt cost fra 2 til **3**',
+                '### Buffs',
+                '* Pølse',
+                '  * Redusert cost fra 3 til 2',
+                '  * Lagt til effekt: Gain 3 energy',
+                '  * Kortet kan ikke bomme (påvirkes ikke av chokester)',
+                '* Choke shield',
+                '  * Kortet kan ikke bomme (påvirkes ikke av chokester)',
+                '## Lucky Wheel',
+                '* Fjerner lootboxes og loot chests',
+                '* Legger til en (usannsynlig) loot pack',
+            ].join('\n')
+        )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 

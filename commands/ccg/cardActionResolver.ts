@@ -36,10 +36,10 @@ export class CardActionResolver {
             case 'GAIN_ENERGY':
                 if (effect.turns) {
                     this.applyStatusEffect(game, effect, target, 'GAIN_ENERGY')
-                    this.log(game, `${effect.emoji}: ${source.name} gains **${effect.value} energy** extra for ${effect.turns} turns`)
+                    this.log(game, `${effect.emoji}: ${target.name} gains **${effect.value} energy** extra for ${effect.turns} turns`)
                 } else {
-                    source.energy = source.energy + (effect.value ?? 1)
-                    this.log(game, `${effect.emoji}: ${source.name} gains **${effect.value} energy**`)
+                    target.energy = target.energy + (effect.value ?? 1)
+                    this.log(game, `${effect.emoji}: ${target.name} gains **${effect.value} energy**`)
                 }
                 break
 
@@ -68,7 +68,7 @@ export class CardActionResolver {
                 this.log(
                     game,
                     `${effect.emoji}: ${target.name} **reduces the cost** of all their cards by **${effect.value}**  ${
-                        effect.turns ? `for ${effect.turns} turns` : ''
+                        effect.turns ? `for ${effect.turns - 1} turns` : ''
                     }`
                 )
                 break
