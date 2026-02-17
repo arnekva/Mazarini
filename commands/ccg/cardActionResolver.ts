@@ -1,4 +1,5 @@
 import { GameValues } from '../../general/values'
+import { RandomUtils } from '../../utils/randomUtils'
 import { CCGEffect, CCGGame, CCGPlayer, CCGStatusEffectType, StatusEffect } from './ccgInterface'
 
 export class CardActionResolver {
@@ -106,6 +107,24 @@ export class CardActionResolver {
                 this.applyStatusEffect(game, effect, target, 'CHOKE_SHIELD')
                 this.log(game, `${effect.emoji}: ${target.name} increases the accuracy of all their cards by 20%`)
                 break
+
+            case 'WAITING': {
+                const turns = RandomUtils.getRandomInteger(1, effect.turns)
+                effect.value = turns * 2
+                effect.turns = turns + 1
+                this.applyStatusCondition(game, effect, target, 'WAITING')
+                this.log(game, `${effect.emoji}: ${source.name} is waiting to attack ${target.name}`)
+                break
+            }
+            case 'MYGLING':
+                this.applyStatusEffect(game, effect, target, 'MYGLING')
+                this.log(game, `${effect.emoji}: ${target.name} is **mygling** for **${effect.turns} turns**`)
+                break
+
+            case 'EIVINDPRIDE':
+                this.applyStatusEffect(game, effect, target, 'EIVINDPRIDE')
+                this.log(game, `${effect.emoji}: Eivind might show up to attack ${target.name} in the next **${effect.turns} turns**`)
+                break
         }
     }
 
@@ -161,7 +180,8 @@ export class CardActionResolver {
             type,
             value: effect.value,
             remainingTurns: effect.turns ?? 100,
-            // emoji: statusesWithEmoji.includes(type) ? effect.emoji : undefined,
+            accuracy: effect.statusAccuracy ?? 100,
+            emoji: effect.emoji,
         })
     }
 
@@ -211,6 +231,27 @@ export class CardActionResolver {
         } else if (status.type === 'GAIN_ENERGY') {
             player.energy += status.value
             this.log(game, `${player.name} gains ${status.value} energy`)
+            await this.delay(3000)
+        } else if (status.type === 'MYGLING') {
+            const healed = Math.min(player.hp + status.value, GameValues.ccg.gameSettings.startingHP) - player.hp
+            player.hp += healed
+            this.log(game, `${status.emoji}: ${player.name} **heals ${healed}**`)
+            await this.delay(3000)
+        } else if (status.type === 'EIVINDPRIDE' && Math.random() < status.accuracy / 100) {
+            const source = this.getPlayer(game, status.sourcePlayerId)
+            const damage = Math.min(player.hp, status.value)
+            player.hp -= damage
+            source.stats.damageDealt += damage
+            player.stats.damageTaken += damage
+            this.log(game, `${status.emoji}: Eivind appears and attacks ${player.name} for ${damage} damage`)
+            await this.delay(3000)
+        } else if (status.type === 'WAITING' && status.remainingTurns === 1) {
+            const source = this.getPlayer(game, status.sourcePlayerId)
+            const damage = Math.min(player.hp, status.value)
+            player.hp -= damage
+            source.stats.damageDealt += damage
+            player.stats.damageTaken += damage
+            this.log(game, `${status.emoji}: ${player.name} takes ${damage} damage`)
             await this.delay(3000)
         }
 

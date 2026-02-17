@@ -87,7 +87,8 @@ const statuses_and_effects = [
     '• **Chokester** – Alle kortene dine har 50 % accuracy',
     '• **Slow** – Speed på alle kortene dine halveres',
     '• **Bleed** – Du tar bleed-skade mellom rundene',
-    '• **Retarded** – Målet for alle kort-effektene dine randomiseres',
+    '• **Retarded** – Target for alle kort-effektene dine randomiseres',
+    '• **Mygling** – Du healer på slutten av runden, men får ikke default energy-en mellom runder',
     '',
     'Status conditions kan fjernes av enkelte kort',
 ].join('\n')

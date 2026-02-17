@@ -210,7 +210,8 @@ export class CCGCommands extends AbstractCommands {
         player.usedCards.push(...player.hand.filter((card) => card.selected))
         player.hand = player.hand.filter((card) => !card.selected)
         player.submitted = false
-        player.energy += game.state.settings.energyRecoveryPerRound
+        const isMygling = this.playerHasStatus(game, player, 'MYGLING')
+        player.energy += isMygling ? 0 : game.state.settings.energyRecoveryPerRound
         this.drawCards(game, player)
         if (isBot) this.chooseBotCards(game)
         else this.updatePlayerHand(game, player)
@@ -328,6 +329,7 @@ export class CCGCommands extends AbstractCommands {
                             type: effect.type,
                             value: effect.value,
                             turns: effect.turns,
+                            statusAccuracy: effect.statusAccuracy ?? 100,
                         }
                     })
                 )
@@ -342,7 +344,7 @@ export class CCGCommands extends AbstractCommands {
                 const cardId = randomUUID().substring(0, 10)
                 const succesful = this.isCardSuccessful(game, player, card)
                 const opponent = this.getOpponent(game, player.id)
-                const opponentCards = opponent.hand.filter((card) => card.selected)?.sort((a, b) => b.cost - a.cost)
+                const opponentCards = opponent.hand.filter((card) => card.selected && card.id != 'same')?.sort((a, b) => b.cost - a.cost)
                 const cardCopied = opponentCards?.length ?? 0 > 0 ? opponentCards[0] : undefined
                 if (cardCopied) {
                     const speed = this.getSpeed(game, player, cardCopied)
@@ -507,11 +509,21 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private getPlayerStatusesString(game: CCGGame, player: CCGPlayer) {
-        const statuses = this.getConditionsForPlayer(game, player).filter((effect) => effect.emoji)
-        if (statuses?.length ?? 0 > 0) {
-            return `\n${statuses.map((effect) => effect.emoji).join('    ')}`
+        let statusString = '\n'
+        const conditions = this.getConditionsForPlayer(game, player).filter((effect) => effect.emoji)
+        const hasConditions = conditions?.length ?? 0 > 0
+        const statuses = this.getEffectsForPlayer(game, player).filter((effect) => effect.emoji)
+        const hasStatus = statuses?.length ?? 0 > 0
+        if (hasConditions) {
+            statusString += `${conditions.map((effect) => effect.emoji).join('  ')}`
         }
-        return ''
+        if (hasConditions && hasStatus) {
+            statusString = statusString + ' | '
+        }
+        if (hasStatus) {
+            statusString += `${statuses.map((effect) => effect.emoji).join('  ')}`
+        }
+        return statusString
     }
 
     private async setupGame(interaction: ChatInteraction, vsBot: boolean) {

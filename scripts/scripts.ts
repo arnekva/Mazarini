@@ -101,12 +101,17 @@ export class Scripts {
         this.client.database.setLootSeries(allSeries)
     }
 
-    public addCCGCards() {
+    public setCCGCards() {
         this.client.database.updateStorage({
             ccg: {
                 mazariniCCG: mazariniCCG,
             },
         })
+    }
+
+    public updateCCGSeries() {
+        this.setCCGCards()
+        this.client.database.updateLootboxSeries(mazariniCCG_series)
     }
 
     public async refactorUserLoot(user: MazariniUser) {
@@ -263,8 +268,8 @@ const mazariniCCG_series: ILootSeries = {
     name: 'mazariniCCG',
     added: new Date(),
     common: ['shrekStare', 'geggiexcited', 'arne', 'arne_caveman'],
-    rare: ['the_chokester', 'maggiscared', 'sniff', 'are_you', 'kms2', 'yarrne', 'geggi_kill', 'choke_shield', 'turtle'],
-    epic: ['pointerbrothers1', 'same', 'KEKW_gun', 'kms_gun', 'arnenymous', 'polse'],
+    rare: ['the_chokester', 'maggiscared', 'sniff', 'are_you', 'kms2', 'yarrne', 'geggi_kill', 'choke_shield', 'turtle', 'waiting', 'catmygling'],
+    epic: ['pointerbrothers1', 'same', 'KEKW_gun', 'kms_gun', 'arnenymous', 'polse', 'eivindpride'],
     legendary: ['kys', 'hoie'],
     hasColor: false,
     hasUnobtainable: false,

@@ -8,11 +8,12 @@ export class BotResolver {
     public chooseBotCards(game: CCGGame) {
         const bot = game.player2
         const playable = bot.hand.map((card) => ({ card: card, score: 1 }))
-
+        this.buffCardsOfType(playable, 'DAMAGE', 1, 'OPPONENT')
         this.checkLethal(game, playable)
         this.checkSurvival(game, playable)
-        this.sortPlayable(playable)
+        this.checkReflect(game, playable)
         this.checkRemoveStatus(game, playable)
+        this.sortPlayable(playable)
         this.checkGainEnergy(game, playable)
         this.sortPlayable(playable)
 
@@ -76,8 +77,10 @@ export class BotResolver {
     }
 
     private checkSurvival(game: CCGGame, playable: { card: CCGCard; score: number }[]) {
-        if (game.player2.hp <= RandomUtils.getRandomInteger(4, 8)) {
+        if (game.player2.hp <= RandomUtils.getRandomInteger(7, 12) && game.player2.hp > 5) {
             this.buffCardsOfType(playable, 'HEAL', 5, 'SELF')
+        } else if (game.player2.hp <= 5) {
+            this.buffCardsOfType(playable, 'HEAL', 8, 'SELF')
         } else if (game.player2.hp >= GameValues.ccg.gameSettings.startingHP - 3) {
             this.buffCardsOfType(playable, 'HEAL', -10, 'SELF')
         }
@@ -93,6 +96,12 @@ export class BotResolver {
         const hasStatusConditions = game.state.statusConditions.some((condition) => condition.ownerId === game.player2.id && condition.remainingTurns > 1)
         if (hasStatusConditions) {
             this.buffCardsOfType(playable, 'REMOVE_STATUS', 7, 'SELF')
+        }
+    }
+
+    private checkReflect(game: CCGGame, playable: { card: CCGCard; score: number }[]) {
+        if (game.player1.energy > 2) {
+            this.buffCardsOfType(playable, 'REFLECT', 5, 'SELF')
         }
     }
 

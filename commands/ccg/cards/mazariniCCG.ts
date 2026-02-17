@@ -391,4 +391,58 @@ export const mazariniCCG: CCGCard[] = [
         rarity: ItemRarity.Rare,
         accuracy: 80,
     },
+    {
+        id: 'waiting',
+        name: 'Waiting',
+        series: 'mazariniCCG',
+        type: CCGCardType.Effect,
+        effects: [
+            {
+                type: 'WAITING',
+                target: 'OPPONENT',
+                turns: 3, //max turns
+            },
+        ],
+        cost: 2,
+        speed: 44,
+        rarity: ItemRarity.Rare,
+        accuracy: 95,
+    },
+    {
+        id: 'catmygling',
+        name: 'Catmygling',
+        series: 'mazariniCCG',
+        type: CCGCardType.Effect,
+        effects: [
+            {
+                type: 'MYGLING',
+                target: 'SELF',
+                value: 2,
+                turns: 3,
+            },
+        ],
+        cost: 1,
+        speed: 63,
+        rarity: ItemRarity.Rare,
+        accuracy: 99,
+    },
+    {
+        id: 'eivindpride',
+        name: 'Eivindpride',
+        series: 'mazariniCCG',
+        type: CCGCardType.Effect,
+        effects: [
+            {
+                type: 'EIVINDPRIDE',
+                target: 'OPPONENT',
+                statusAccuracy: 10,
+                turns: 10,
+                value: 2,
+            },
+        ],
+        cost: 2,
+        speed: 41,
+        rarity: ItemRarity.Epic,
+        accuracy: 100,
+    },
 ]
