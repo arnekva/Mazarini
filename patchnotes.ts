@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.1.0'
+    public static readonly currentVersion = '30.2.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,23 +28,14 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '## CCG',
-                '* Fikser en print bug ved retarded energy kort',
-                '* Fikser en print bug ved arnenymous turns',
-                '### Nerfs',
-                '* Pointerbrothers',
-                '  * Redusert antall turns fra 10 til **5**',
-                '* Are you',
-                '  * Økt cost fra 2 til **3**',
-                '### Buffs',
-                '* Pølse',
-                '  * Redusert cost fra 3 til 2',
-                '  * Lagt til effekt: Gain 3 energy',
-                '  * Kortet kan ikke bomme (påvirkes ikke av chokester)',
-                '* Choke shield',
-                '  * Kortet kan ikke bomme (påvirkes ikke av chokester)',
-                '## Lucky Wheel',
-                '* Fjerner lootboxes og loot chests',
-                '* Legger til en (usannsynlig) loot pack',
+                '* Player state viser nå både conditions og effects',
+                '* Oppdatert Høie sitt hard deck',
+                '* Små justeringer på hvordan Høie velger kort',
+                '* Oppdatert rarity-caps i deck buildingen',
+                '### Lagt til 3 nye kort',
+                '* Eivindpride',
+                '* Catmygling',
+                '* Waiting',
             ].join('\n')
         )
         container.addSeparator()
