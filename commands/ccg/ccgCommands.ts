@@ -168,8 +168,9 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private async resolveRound(game: CCGGame) {
-        game.state.locked = true
+        if (game.state.phase === 'RESOLVE') return // prevent double resolve
         game.state.phase = 'RESOLVE'
+        game.state.locked = true
 
         this.checkForSpecialCards(game, game.player1)
         this.checkForSpecialCards(game, game.player2)
