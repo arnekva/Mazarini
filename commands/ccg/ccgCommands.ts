@@ -107,6 +107,10 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private submitCards(interaction: BtnInteraction, game: CCGGame, player: CCGPlayer) {
+        if (player.submitted)
+            return this.messageHelper.replyToInteraction(interaction, `Du har allerede spilt denne runden`, {
+                ephemeral: true,
+            })
         const submitted = player.hand.filter((card) => card.selected)
         if (submitted.length > game.state.settings.maxCardsPlayed) {
             return this.messageHelper.replyToInteraction(interaction, `Du kan ikke spille mer enn ${game.state.settings.maxCardsPlayed} kort om gangen`, {
@@ -127,6 +131,10 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private discardCards(interaction: BtnInteraction, game: CCGGame, player: CCGPlayer) {
+        if (player.submitted)
+            return this.messageHelper.replyToInteraction(interaction, `Du har allerede spilt denne runden`, {
+                ephemeral: true,
+            })
         interaction.deferUpdate()
         player.hand = player.hand.filter((card) => !card.selected)
         player.submitted = true

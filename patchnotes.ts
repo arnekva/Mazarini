@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.2.0'
+    public static readonly currentVersion = '30.2.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,14 +28,8 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '## CCG',
-                '* Player state viser nå både conditions og effects',
-                '* Oppdatert Høie sitt hard deck',
-                '* Små justeringer på hvordan Høie velger kort',
-                '* Oppdatert rarity-caps i deck buildingen',
-                '### Lagt til 3 nye kort',
-                '* Eivindpride',
-                '* Catmygling',
-                '* Waiting',
+                '* Fikset en bug som gjorde at man kunne spille kort uendelig mange ganger så lenge man hadde energi til det',
+                '* Fikset en bug som gjorde at kort og effekter kunne resolves dobbelt opp',
             ].join('\n')
         )
         container.addSeparator()
