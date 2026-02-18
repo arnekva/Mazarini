@@ -494,6 +494,7 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private startGame(game: CCGGame) {
+        if (game.state.phase === 'PLAY') return
         game.state.phase = 'PLAY'
         game.container.removeComponent('sub-header')
         game.container.removeComponent('wager')
