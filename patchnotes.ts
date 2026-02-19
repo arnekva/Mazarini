@@ -28,11 +28,16 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '## CCG',
+                '* Deck regel-endringer',
+                '  * Totalt antall kort: 12 -> **15**',
+                '  * Antall heal kort: 2 -> **3**',
+                '  * Rare kort: 12 -> **15**',
+                '  * Epic kort: 3 -> **4**',
+                '  * Legendary kort: 2 -> **1**',
+                '* Oppdatert alle deckene til Høie',
                 '* Validerer nå decket ditt når du prøver å starte/joine et game',
                 '  * Dette ble tidligere kun gjort ved deck building',
-                '* Viser nå hvilke spesifikke verdier en deck valideres mot i /ccg help > Decks > Deck regler',
-                '* Utført noen deck regel-endringer (se `/ccg help` for detaljer)',
-                '* Oppdatert alle deckene til Høie',
+                '* Viser nå hvilke spesifikke verdier et deck valideres mot i /ccg help > Decks > Deck regler',
             ].join('\n')
         )
         container.addSeparator()
