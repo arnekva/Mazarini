@@ -10,7 +10,8 @@ import { DeckEditorCard, ICCGDeck, ItemRarity, IUserLootItem, MazariniUser } fro
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { CCGDeckEditor_Info } from '../../templates/containerTemplates'
 import { TextUtils } from '../../utils/textUtils'
-import { CCGCard, CCGCardType, CCGEffectType, CCGSeries, DeckEditor, UsageFilter } from './ccgInterface'
+import { CCGCard, CCGCardType, CCGSeries, DeckEditor, UsageFilter } from './ccgInterface'
+import { CCGValidator } from './validator'
 
 export class DeckCommands extends AbstractCommands {
     private editors: Map<string, DeckEditor>
@@ -180,7 +181,7 @@ export class DeckCommands extends AbstractCommands {
         const rarities = ['common', 'rare', 'epic', 'legendary']
         for (const series of GameValues.ccg.activeCCGseries) {
             for (const rarity of rarities) {
-                const items = user.loot[series].inventory[rarity].items
+                const items = user.loot[series]?.inventory[rarity]?.items
                 if (items) loot.push(...items)
             }
         }
@@ -256,58 +257,10 @@ export class DeckCommands extends AbstractCommands {
     }
 
     private async validateDeck(editor: DeckEditor) {
+        const user = await this.database.getUser(editor.userId)
         editor.deck.valid = true
         editor.validationErrors = new Array<string>()
-        this.validateDeckSize(editor)
-        this.validateRarityCaps(editor)
-        this.validateTypeCaps(editor)
-        const user = await this.database.getUser(editor.userId)
-        this.validateUserHasAllCards(editor, user)
-        // this.validateMaxDupes?
-    }
-
-    private validateUserHasAllCards(editor: DeckEditor, user: MazariniUser) {
-        for (const card of editor.deck.cards) {
-            if (card.amount > this.getCardAmountAvailable(user, card)) {
-                editor.deck.valid = false
-                editor.validationErrors.push(`:warning: You have selected too many of card ${card.id}`)
-            }
-        }
-    }
-
-    private validateDeckSize(editor: DeckEditor) {
-        const numberOfCards = editor.deck.cards?.reduce((sum, instance) => sum + instance.amount, 0) ?? 0
-        if (numberOfCards != GameValues.ccg.deck.size) editor.deck.valid = false
-        if (numberOfCards > GameValues.ccg.deck.size) editor.validationErrors.push(':warning: Too many cards')
-    }
-
-    private validateRarityCaps(editor: DeckEditor) {
-        for (const rarity of [ItemRarity.Rare, ItemRarity.Epic, ItemRarity.Legendary]) {
-            const amount = editor.deck.cards?.filter((card) => card.rarity === rarity).reduce((sum, instance) => sum + instance.amount, 0) ?? 0
-            const limit = GameValues.ccg.deck.rarityCaps[rarity]
-            if (amount > limit) {
-                editor.deck.valid = false
-                editor.validationErrors.push(`:warning: Max ${limit} card${limit > 1 ? 's' : ''} of ${rarity} quality allowed`)
-            }
-        }
-    }
-
-    private validateTypeCaps(editor: DeckEditor) {
-        const types: CCGEffectType[] = ['HEAL', 'REFLECT', 'SHIELD', 'CHOKESTER', 'RETARDED']
-        for (const type of types) {
-            const amount =
-                editor.deck.cards?.filter((card) => this.cardHasEffectOfType(editor, card, type)).reduce((sum, instance) => sum + instance.amount, 0) ?? 0
-            const limit = GameValues.ccg.deck.typeCaps[type]
-            if (amount > limit) {
-                editor.deck.valid = false
-                editor.validationErrors.push(`:warning: Max ${limit} card${limit > 1 ? 's' : ''} of ${type} type allowed`)
-            }
-        }
-    }
-
-    private cardHasEffectOfType(editor: DeckEditor, card: DeckEditorCard, type: CCGEffectType) {
-        const fullCard = editor.userCards.find((item) => item.id === card.id)
-        return fullCard.effects?.some((effect) => effect.type === type) ?? false
+        await CCGValidator.validateDeck(this.client, user, editor.deck, editor.validationErrors)
     }
 
     private updateCardPage(interaction: BtnInteraction, editor: DeckEditor) {

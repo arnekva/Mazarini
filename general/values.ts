@@ -1,6 +1,7 @@
 // Centralized values for game balancing across Deathroll, More or Less, Spinner, Daily, etc.
 // Edit these values to balance rewards, multipliers, streaks, etc. for all games.
 
+import { CCGEffectType } from '../commands/ccg/ccgInterface'
 import { ICCGDeck, ItemRarity } from '../interfaces/database/databaseInterface'
 
 type rewardType = number | 'dond' | 'box' | 'chest' | 'pack'
@@ -186,6 +187,7 @@ export type GameValuesType = {
                 STEAL_CARD: number
                 REDUCE_COST: number
             }
+            validationTypes: CCGEffectType[]
         }
         status: {
             slow_speedDivideBy: number
@@ -416,23 +418,24 @@ export const GameValues: GameValuesType = {
             },
         },
         deck: {
-            size: 12,
+            size: 15,
             hiddenEditor: false,
             cardsPerPage: 4,
             rarityCaps: {
-                rare: 12,
-                epic: 3,
-                legendary: 2,
+                rare: 15,
+                epic: 4,
+                legendary: 1,
             },
             typeCaps: {
-                HEAL: 2,
-                REFLECT: 2,
+                HEAL: 3,
+                REFLECT: 1,
                 SHIELD: 3,
                 RETARDED: 1,
                 CHOKESTER: 1,
                 STEAL_CARD: 1,
                 REDUCE_COST: 1,
             },
+            validationTypes: ['HEAL', 'REFLECT', 'SHIELD', 'REDUCE_COST', 'RETARDED', 'CHOKESTER', 'STEAL_CARD'],
         },
         status: {
             slow_speedDivideBy: 2,
@@ -446,9 +449,10 @@ export const GameValues: GameValuesType = {
             active: true,
             valid: true,
             cards: [
-                { id: 'arne', series: 'mazariniCCG', amount: 5, rarity: ItemRarity.Common },
+                { id: 'arne', series: 'mazariniCCG', amount: 6, rarity: ItemRarity.Common },
                 { id: 'arne_caveman', series: 'mazariniCCG', amount: 5, rarity: ItemRarity.Common },
                 { id: 'geggiexcited', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
+                { id: 'shrekStare', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
             ],
         },
         defaultCardback: 'standard',
@@ -458,9 +462,10 @@ export const GameValues: GameValuesType = {
                 active: true,
                 valid: true,
                 cards: [
-                    { id: 'arne', series: 'mazariniCCG', amount: 5, rarity: ItemRarity.Common },
+                    { id: 'arne', series: 'mazariniCCG', amount: 6, rarity: ItemRarity.Common },
                     { id: 'arne_caveman', series: 'mazariniCCG', amount: 5, rarity: ItemRarity.Common },
                     { id: 'geggiexcited', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
+                    { id: 'shrekStare', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
                 ],
             },
             medium: {
@@ -470,13 +475,15 @@ export const GameValues: GameValuesType = {
                 cards: [
                     { id: 'arne_caveman', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
                     { id: 'shrekStare', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
-                    { id: 'geggiexcited', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Common },
+                    { id: 'geggiexcited', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
                     { id: 'pointerbrothers1', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
                     { id: 'kms_gun', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
                     { id: 'geggi_kill', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Rare },
                     { id: 'the_chokester', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
                     { id: 'are_you', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
                     { id: 'maggiscared', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
+                    { id: 'kms2', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
+                    { id: 'waiting', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
                 ],
             },
             hard: {
@@ -485,11 +492,13 @@ export const GameValues: GameValuesType = {
                 valid: true,
                 cards: [
                     { id: 'polse', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
+                    { id: 'same', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
+                    { id: 'eivindpride', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
                     { id: 'geggiexcited', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Common },
                     { id: 'kms_gun', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
                     { id: 'kys', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Legendary },
                     { id: 'geggi_kill', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Rare },
-                    { id: 'kms2', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Rare },
+                    { id: 'kms2', series: 'mazariniCCG', amount: 3, rarity: ItemRarity.Rare },
                     { id: 'KEKW_gun', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
                     { id: 'hoie', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Legendary },
                     { id: 'are_you', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },

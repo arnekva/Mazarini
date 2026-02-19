@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.2.1'
+    public static readonly currentVersion = '30.3.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,8 +28,11 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '## CCG',
-                '* Fikset en bug som gjorde at man kunne spille kort uendelig mange ganger så lenge man hadde energi til det',
-                '* Fikset en bug som gjorde at kort og effekter kunne resolves dobbelt opp',
+                '* Validerer nå decket ditt når du prøver å starte/joine et game',
+                '  * Dette ble tidligere kun gjort ved deck building',
+                '* Viser nå hvilke spesifikke verdier en deck valideres mot i /ccg help > Decks > Deck regler',
+                '* Utført noen deck regel-endringer (se `/ccg help` for detaljer)',
+                '* Oppdatert alle deckene til Høie',
             ].join('\n')
         )
         container.addSeparator()

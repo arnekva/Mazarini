@@ -143,7 +143,13 @@ export class Scripts {
             inventory: structuredClone(defaultInventory),
             stats: structuredClone(defaultLootStats),
         }
-        const loot: IUserLoot = { mazarini: mazarini, sw: sw, hp: hp, lotr: lotr }
+        const mazariniCCG: IUserLootSeries = {
+            name: 'mazariniCCG',
+            pityLevel: user.loot.mazariniCCG?.pityLevel ?? structuredClone(defaultPityLevel),
+            inventory: user.loot.mazariniCCG?.inventory ?? structuredClone(defaultInventory),
+            stats: user.loot.mazariniCCG?.stats ?? structuredClone(defaultLootStats),
+        }
+        const loot: IUserLoot = { mazarini: mazarini, sw: sw, hp: hp, lotr: lotr, mazariniCCG: mazariniCCG }
         if (user.collectables) {
             for (const item of user.collectables) {
                 loot[item.series]['inventory'][item.rarity]['items'].push(item)

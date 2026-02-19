@@ -1,4 +1,5 @@
 import { GameValues } from '../../general/values'
+import { TextUtils } from '../../utils/textUtils'
 
 const gameplay = [
     '## 🧩 Gameplay',
@@ -130,14 +131,29 @@ const balancing = [
     'Sterke effekter kommer ofte med lavere accuracy eller høyere kostnad.',
 ].join('\n')
 
+const cardTypeLimits = () => {
+    const cardTypeTexts = new Array<string>()
+    for (const type of GameValues.ccg.deck.validationTypes) {
+        cardTypeTexts.push(`  • *${TextUtils.capitalizeFirstLetter(type)}*: **${GameValues.ccg.deck.typeCaps[type]}** kort`)
+    }
+    return cardTypeTexts
+}
+
 const deck_rules = [
     '## 📦 Deck Regler',
     'Hver spiller kan bygge **egendefinerte decks**. Hvis du ikke har et aktivt deck, brukes et standard-deck.',
     '',
-    'Generelle regler:',
-    '• Decks har en fast størrelse',
-    '• Begrensninger på duplikater kan gjelde',
-    '• Kun eide kort kan brukes',
+    '### Følgende regler gjelder nå:',
+    `• Størrelse: **${GameValues.ccg.deck.size}** kort`,
+    '',
+    `• Rarity-limits`,
+    `  • *Common*: Ingen limit`,
+    `  • *Rare*: **${GameValues.ccg.deck.rarityCaps.rare}** kort`,
+    `  • *Epic*: **${GameValues.ccg.deck.rarityCaps.epic}** kort`,
+    `  • *Legendary*: **${GameValues.ccg.deck.rarityCaps.legendary}** kort`,
+    '',
+    `• Type-limits`,
+    ...cardTypeLimits(),
     '',
     'Ulovlige decks kan ikke brukes i spill.',
 ].join('\n')

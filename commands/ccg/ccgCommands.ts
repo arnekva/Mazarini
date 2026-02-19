@@ -34,6 +34,7 @@ import {
 } from './ccgInterface'
 import { CCGStatView } from './ccgStats'
 import { ProgressionHandler } from './progressionHandler'
+import { CCGValidator } from './validator'
 
 export class CCGCommands extends AbstractCommands {
     private games: Map<string, CCGGame>
@@ -429,6 +430,8 @@ export class CCGCommands extends AbstractCommands {
         const user = await this.database.getUser(interaction.user.id)
         const game = this.getGame(interaction)
         if (game && !game.player2 && game.player1.id !== interaction.user.id) {
+            const validDeck = await this.userHasValidDeck(interaction)
+            if (!validDeck) return this.handleUserHasInvalidDeck(interaction)
             if (!this.userCanJoin(game, user)) return this.messageHelper.replyToInteraction(interaction, 'Du har ikke råd til å være med på denne')
             interaction.deferUpdate()
             game.player2 = await this.newPlayer(interaction)
@@ -643,7 +646,7 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private async getPlayerCards(user: MazariniUser): Promise<CCGCard[]> {
-        const deck = user.ccg?.decks?.find((deck) => deck.active && deck.valid) ?? GameValues.ccg.defaultDeck
+        const deck = user.ccg?.decks?.find((deck) => deck.active) ?? GameValues.ccg.defaultDeck
         return await this.getFullCards(deck)
     }
 
@@ -663,6 +666,18 @@ export class CCGCommands extends AbstractCommands {
             for (let i = 0; i < item.amount; i++) userCards.push(structuredClone(fullCard))
         }
         return userCards
+    }
+
+    private async userHasValidDeck(interaction: ChatInteraction | BtnInteraction) {
+        const user = await this.database.getUser(interaction.user.id)
+        const deck = user.ccg?.decks?.find((deck) => deck.active) ?? GameValues.ccg.defaultDeck
+        deck.valid = true
+        await CCGValidator.validateDeck(this.client, user, deck, new Array<string>())
+        return deck.valid
+    }
+
+    private handleUserHasInvalidDeck(interaction: ChatInteraction | BtnInteraction) {
+        return this.messageHelper.replyToInteraction(interaction, 'Ditt aktive deck er ugyldig og må oppdateres før du kan spille.')
     }
 
     private getOpponent(game: CCGGame, playerId: string) {
@@ -715,6 +730,8 @@ export class CCGCommands extends AbstractCommands {
         const cmdGroup = interaction.options.getSubcommandGroup()
         if (cmdGroup && cmdGroup === 'play') {
             const vsBot = cmd === 'bot'
+            const validDeck = await this.userHasValidDeck(interaction)
+            if (!validDeck) return this.handleUserHasInvalidDeck(interaction)
             const canAfford = await this.userCanAfford(interaction, vsBot)
             if (!canAfford) return this.messageHelper.replyToInteraction(interaction, 'Du har ikke råd til dette')
             this.setupGame(interaction, vsBot)
