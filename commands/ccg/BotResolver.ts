@@ -73,7 +73,7 @@ export class BotResolver {
     }
 
     private getAttackEffect(card: CCGCard) {
-        return card.effects.find((effect) => effect.type === 'DAMAGE' && effect.target === 'OPPONENT')
+        return card.effects?.find((effect) => effect.type === 'DAMAGE' && effect.target === 'OPPONENT')
     }
 
     private checkSurvival(game: CCGGame, playable: { card: CCGCard; score: number }[]) {
@@ -113,7 +113,7 @@ export class BotResolver {
         immediate: boolean = false
     ) {
         for (const card of playable) {
-            if (card.card.effects.some((effect) => effect.type === type && effect.target === target && (!immediate || (effect.turns ?? 0) === 0))) {
+            if (card.card.effects?.some((effect) => effect.type === type && effect.target === target && (!immediate || (effect.turns ?? 0) === 0))) {
                 card.score += buffAmount
             }
         }
