@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.3.1'
+    public static readonly currentVersion = '30.3.2'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,7 +25,9 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(['## CCG', '* Fikser en bug som gjorde at games krasjet'].join('\n'))
+        const text = new TextDisplayBuilder().setContent(
+            ['## CCG', '* Discard er ikke lenger permanent <:retarded:1294302257340354632>', '* Små endringer til Høie decks'].join('\n')
+        )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 

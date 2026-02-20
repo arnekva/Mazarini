@@ -462,8 +462,9 @@ export const GameValues: GameValuesType = {
                 active: true,
                 valid: true,
                 cards: [
-                    { id: 'arne', series: 'mazariniCCG', amount: 6, rarity: ItemRarity.Common },
-                    { id: 'arne_caveman', series: 'mazariniCCG', amount: 5, rarity: ItemRarity.Common },
+                    { id: 'eivindpride', series: 'mazariniCCG', amount: 3, rarity: ItemRarity.Epic },
+                    { id: 'arne', series: 'mazariniCCG', amount: 4, rarity: ItemRarity.Common },
+                    { id: 'arne_caveman', series: 'mazariniCCG', amount: 4, rarity: ItemRarity.Common },
                     { id: 'geggiexcited', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
                     { id: 'shrekStare', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
                 ],
@@ -493,7 +494,6 @@ export const GameValues: GameValuesType = {
                 cards: [
                     { id: 'polse', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
                     { id: 'same', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
-                    { id: 'eivindpride', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
                     { id: 'geggiexcited', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Common },
                     { id: 'kms_gun', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
                     { id: 'kys', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Legendary },
@@ -502,7 +502,7 @@ export const GameValues: GameValuesType = {
                     { id: 'KEKW_gun', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
                     { id: 'hoie', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Legendary },
                     { id: 'are_you', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
-                    { id: 'maggiscared', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
+                    { id: 'maggiscared', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Rare },
                 ],
             },
         },

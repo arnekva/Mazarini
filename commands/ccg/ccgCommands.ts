@@ -137,6 +137,7 @@ export class CCGCommands extends AbstractCommands {
                 ephemeral: true,
             })
         interaction.deferUpdate()
+        player.usedCards.push(...player.hand.filter((card) => card.selected))
         player.hand = player.hand.filter((card) => !card.selected)
         player.submitted = true
         this.handlePlayerSubmit(game, player)
