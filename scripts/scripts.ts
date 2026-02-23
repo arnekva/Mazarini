@@ -101,6 +101,10 @@ export class Scripts {
         this.client.database.setLootSeries(allSeries)
     }
 
+    public setLootPacks() {
+        this.client.database.setLootpacks([basicLootPack, premiumLootPack])
+    }
+
     public setCCGCards() {
         this.client.database.updateStorage({
             ccg: {
@@ -573,6 +577,20 @@ const basicLootPack: ILootbox = {
         rare: 0.86,
         epic: 0.11,
         legendary: 0.01,
+        color: 0,
+    },
+    isCCG: true,
+    rewardOnly: false,
+}
+
+const premiumLootPack: ILootbox = {
+    name: 'premium',
+    price: 75,
+    probabilities: {
+        common: 1,
+        rare: 1,
+        epic: 0.22,
+        legendary: 0.02,
         color: 0,
     },
     isCCG: true,

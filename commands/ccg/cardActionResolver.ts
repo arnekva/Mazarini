@@ -110,7 +110,7 @@ export class CardActionResolver {
 
             case 'WAITING': {
                 const turns = RandomUtils.getRandomInteger(1, effect.turns)
-                effect.value = turns * 2
+                effect.value = turns * 3
                 effect.turns = turns + 1
                 this.applyStatusCondition(game, effect, target, 'WAITING')
                 this.log(game, `${effect.emoji}: ${source.name} is waiting to attack ${target.name}`)
@@ -194,6 +194,7 @@ export class CardActionResolver {
             type,
             value: effect.value,
             remainingTurns: effect.turns ?? 100,
+            accuracy: effect.statusAccuracy ?? 100,
             emoji: effect.emoji,
         })
     }

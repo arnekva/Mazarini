@@ -288,12 +288,13 @@ export const mazariniCCG: CCGCard[] = [
                 type: 'RETARDED',
                 target: 'OPPONENT',
                 turns: 3,
+                statusAccuracy: 33,
             },
         ],
         cost: 3,
         speed: 9,
         rarity: ItemRarity.Rare,
-        accuracy: 80,
+        accuracy: 90,
     },
     {
         id: 'kms2',
@@ -331,7 +332,7 @@ export const mazariniCCG: CCGCard[] = [
         cost: 2,
         speed: 19,
         rarity: ItemRarity.Rare,
-        accuracy: 75,
+        accuracy: 80,
     },
     {
         id: 'geggi_kill',
@@ -400,7 +401,7 @@ export const mazariniCCG: CCGCard[] = [
             {
                 type: 'WAITING',
                 target: 'OPPONENT',
-                turns: 3, //max turns
+                turns: 2, //max turns
             },
         ],
         cost: 2,
@@ -435,7 +436,7 @@ export const mazariniCCG: CCGCard[] = [
             {
                 type: 'EIVINDPRIDE',
                 target: 'OPPONENT',
-                statusAccuracy: 10,
+                statusAccuracy: 15,
                 turns: 10,
                 value: 2,
             },

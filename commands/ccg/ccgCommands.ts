@@ -317,6 +317,10 @@ export class CCGCommands extends AbstractCommands {
         return game.state.statusEffects.some((effect) => effect.ownerId === player.id && effect.type === status)
     }
 
+    private getPlayerCondition(game: CCGGame, player: CCGPlayer, status: CCGEffectType) {
+        return game.state.statusConditions.find((effect) => effect.ownerId === player.id && effect.type === status)
+    }
+
     private addEffectsToStack(game: CCGGame, player: CCGPlayer) {
         const submitted = player.hand.filter((card) => card.selected)
         for (const card of submitted) {
@@ -382,9 +386,14 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private getTarget(game: CCGGame, player: CCGPlayer, effect: CCGCardEffect) {
-        const isRetarded = this.playerHasCondition(game, player, 'RETARDED')
-        if (isRetarded) return RandomUtils.getRandomItemFromList([player.id, player.opponentId])
-        else return effect.target === 'OPPONENT' ? player.opponentId : player.id
+        const retarded = this.getPlayerCondition(game, player, 'RETARDED')
+        const roll = Math.random()
+        const flip = retarded && roll < retarded.accuracy / 100
+        if (flip) {
+            return effect.target === 'OPPONENT' ? player.id : player.opponentId
+        } else {
+            return effect.target === 'OPPONENT' ? player.opponentId : player.id
+        }
     }
 
     private isCardSuccessful(game: CCGGame, player: CCGPlayer, card: CCGCard) {
