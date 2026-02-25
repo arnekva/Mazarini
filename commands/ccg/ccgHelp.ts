@@ -116,7 +116,7 @@ const categoryMap: Map<CCGHelperCategory, CCGHelperSubCategory[]> = new Map([
             CCGHelperSubCategory.Winning_and_losing,
         ],
     ],
-    [CCGHelperCategory.Cards, [CCGHelperSubCategory.Card_anatomy, CCGHelperSubCategory.Balancing]],
+    [CCGHelperCategory.Cards, [CCGHelperSubCategory.Card_anatomy, CCGHelperSubCategory.Trading, CCGHelperSubCategory.Balancing]],
     [CCGHelperCategory.Decks, [CCGHelperSubCategory.Deck_rules, CCGHelperSubCategory.Deck_builder, CCGHelperSubCategory.Commands]],
     [
         CCGHelperCategory.Progression,

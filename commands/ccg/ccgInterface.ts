@@ -189,6 +189,7 @@ export interface DeckEditor {
     deck: ICCGDeck
     page: number
     saved: boolean
+    isTradeEditor: boolean
     validationErrors?: string[]
     deckInfo?: {
         container?: SimpleContainer
@@ -236,6 +237,7 @@ export enum CCGHelperSubCategory {
     Winning_and_losing = 'Vinne_og_tape',
     Card_anatomy = 'Kortstruktur',
     Balancing = 'Balansering',
+    Trading = 'Trading',
     Deck_rules = 'Deck_regler',
     Deck_builder = 'Deck_bygger',
     Commands = 'Kommandoer',

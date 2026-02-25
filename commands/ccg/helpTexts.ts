@@ -88,8 +88,9 @@ const statuses_and_effects = [
     '• **Chokester** – Alle kortene dine har 50 % accuracy',
     '• **Slow** – Speed på alle kortene dine halveres',
     '• **Bleed** – Du tar bleed-skade mellom rundene',
-    '• **Retarded** – Target for alle kort-effektene dine randomiseres',
+    '• **Retarded** – 33% sannsynlighet for at target på kort-effektene dine flippes',
     '• **Mygling** – Du healer på slutten av runden, men får ikke default energy-en mellom runder',
+    '• **Reflect** – Du reflecter all aktiv damage dealt',
     '',
     'Status conditions kan fjernes av enkelte kort',
 ].join('\n')
@@ -170,6 +171,17 @@ const deck_builder = [
     'Det aktive decket ditt låses når et spill starter.',
 ].join('\n')
 
+const card_trading = [
+    '## :recycle: Trade in',
+    'Du kan trade inn kort du ikke trenger/ønsker for å få litt ekstra shards.',
+    '',
+    'Du får følgende shard-verdi for de forskjellige kortene:',
+    `• Common: ${GameValues.ccg.trade.values.common}`,
+    `• Rare: ${GameValues.ccg.trade.values.rare}`,
+    `• Epic: ${GameValues.ccg.trade.values.epic}`,
+    `• Legendary: ${GameValues.ccg.trade.values.legendary}`,
+].join('\n')
+
 const commands = [
     '## ⌨️ Deck kommandoer',
     'Du har flere muligheter for å administrere deckene dine.',
@@ -181,6 +193,7 @@ const commands = [
     '• `/deck copy` – Lag en kopi av et eksisterende deck',
     '• `/deck set` – Velg hvilket deck som er aktivt',
     '• `/deck delete` – Slett et av deckene dine',
+    '• `/deck trade` – Trade in kort for shards',
 ].join('\n')
 
 const card_acquisition = [
@@ -272,6 +285,7 @@ export namespace HelperText {
     export const Vinne_og_tape = winning_and_losing
     export const Kortstruktur = card_anatomy
     export const Balansering = balancing
+    export const Trading = card_trading
     export const Deck_regler = deck_rules
     export const Deck_bygger = deck_builder
     export const Kommandoer = commands

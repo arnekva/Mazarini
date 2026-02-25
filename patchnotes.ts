@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.4.0'
+    public static readonly currentVersion = '30.5.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,26 +28,31 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '## CCG',
-                '* Ny Premium Pack',
-                '  * Koster 75 shards',
-                '  * Sannsynligheter (basic):',
-                '  * Common: 0 (14)',
-                '  * Rare: 78 (75)',
-                '  * Epic: 20 (10)',
-                '  * Legendary: 2 (1)',
+                '* Reduserer delay-en mellom game messages',
+                '  * Spilte kort: 3s -> 2.5s',
+                '  * Status-ticks: 3s -> 2s',
+                '* Fikser en bug hvor reflected damage kunne bli stoppet av en ny accuracy sjekk',
+                '* Høie vil ikke lenger spille heal kort når han har full HP',
+                '### Trade in',
+                '* Du kan nå trade in ccg kort! (`/deck trade`)',
+                '* Du mottar ikke nye kort direkte, men får shards som kan brukes til å skaffe nye kort',
+                '* Trade-verdier:',
+                '  * Common: 5',
+                '  * Rare: 10',
+                '  * Epic: 15',
+                '  * Legendary: 25',
+                '* Default-kortene du startet med kan ikke trades inn, men eventuelle ekstra av de samme kortene kan trades',
                 '### Buffs / Nerfs',
-                '* Are You',
-                '  * Accuracy: 80% -> 90%',
-                '  * Target-flip-proc: 50% -> 33%',
-                '* Yarrne',
-                '  * Accuracy: 75% -> 80%',
-                '  * Oppdatert kort-tekst for å tydeliggjøre at man stjeler et tilfeldig kort av motstanderens mest nylig spilte kort',
-                '* Waiting',
-                '  * Venter nå 1 til 2 turns (tidligere 1 til 3)',
-                '  * Gjør 3x damage (tidligere 2)',
-                '  * Gjør enten 3 damage etter 1 turn, eller 6 damage etter 2',
-                '* Eivindpride',
-                '  * Sannsynlighet for å dukke opp: 10% -> 15%',
+                '* Chokester',
+                '  * Cost: 2 -> 3',
+                '  * Mottatt mange klager her',
+                '* KEKW Gun',
+                '  * Cost: 3 -> 2',
+                '  * Oppdatert kort-tekst',
+                '  * Mottatt mange klager her',
+                '* Pointerbrother',
+                '  * Cost: 3 -> 1',
+                '  * Make <:pointerbrothers1:1177653110852825158> epic again',
             ].join('\n')
         )
         container.addSeparator()

@@ -95,5 +95,9 @@ export const deckCommand: ISlashCommandItem = {
                 },
             ],
         },
+        {
+            commandName: 'trade',
+            commandDescription: 'Velg kort du vil trade',
+        },
     ],
 }

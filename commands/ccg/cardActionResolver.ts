@@ -14,14 +14,14 @@ export class CardActionResolver {
         const target = this.getPlayer(game, effect.targetPlayerId)
         const opponent = this.getPlayer(game, source.opponentId)
         if (!effect.cardSuccessful) {
-            await this.delay(3000)
+            await this.delay(2500)
             game.state.stack = game.state.stack.filter((stackedEffect) => stackedEffect.cardId !== effect.cardId)
             return this.log(game, `${effect.emoji}: ${source.name}'s ${effect.sourceCardName} failed`)
         }
         if (Math.random() > effect.accuracy / 100) {
             return
         }
-        await this.delay(3000)
+        await this.delay(2500)
 
         switch (effect.type) {
             case 'DAMAGE':
@@ -55,8 +55,8 @@ export class CardActionResolver {
                 break
 
             case 'REFLECT':
-                this.applyStatusEffect(game, effect, target, 'REFLECT')
-                this.log(game, `${effect.emoji}: ${target.name} **reflects** all damage for the remainder of the round`)
+                this.applyStatusCondition(game, effect, target, 'REFLECT')
+                this.log(game, `${effect.emoji}: ${target.name} gains **reflect** for the remainder of the round`)
                 break
 
             case 'REMOVE_STATUS':
@@ -144,7 +144,7 @@ export class CardActionResolver {
                 sourcePlayerId: target.id,
                 targetPlayerId: target.opponentId,
                 speed: effect.speed,
-                accuracy: effect.accuracy,
+                accuracy: 100,
                 cardSuccessful: true,
                 value: damage,
                 reflected: true,
@@ -228,16 +228,16 @@ export class CardActionResolver {
             source.stats.damageDealt += status.value
             player.stats.damageTaken += status.value
             this.log(game, `${player.name} takes ${status.value} bleed damage`)
-            await this.delay(3000)
+            await this.delay(2000)
         } else if (status.type === 'GAIN_ENERGY') {
             player.energy += status.value
             this.log(game, `${player.name} gains ${status.value} energy`)
-            await this.delay(3000)
+            await this.delay(2000)
         } else if (status.type === 'MYGLING') {
             const healed = Math.min(player.hp + status.value, GameValues.ccg.gameSettings.startingHP) - player.hp
             player.hp += healed
             this.log(game, `${status.emoji}: ${player.name} **heals ${healed}**`)
-            await this.delay(3000)
+            await this.delay(2000)
         } else if (status.type === 'EIVINDPRIDE' && Math.random() < status.accuracy / 100) {
             const source = this.getPlayer(game, status.sourcePlayerId)
             const damage = Math.min(player.hp, status.value)
@@ -245,7 +245,7 @@ export class CardActionResolver {
             source.stats.damageDealt += damage
             player.stats.damageTaken += damage
             this.log(game, `${status.emoji}: Eivind appears and attacks ${player.name} for ${damage} damage`)
-            await this.delay(3000)
+            await this.delay(2000)
         } else if (status.type === 'WAITING' && status.remainingTurns === 1) {
             const source = this.getPlayer(game, status.sourcePlayerId)
             const damage = Math.min(player.hp, status.value)
@@ -253,7 +253,7 @@ export class CardActionResolver {
             source.stats.damageDealt += damage
             player.stats.damageTaken += damage
             this.log(game, `${status.emoji}: ${player.name} takes ${damage} damage`)
-            await this.delay(3000)
+            await this.delay(2000)
         }
 
         status.remainingTurns--

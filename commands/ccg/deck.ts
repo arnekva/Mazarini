@@ -8,7 +8,7 @@ import { GameValues } from '../../general/values'
 import { ComponentsHelper } from '../../helpers/componentsHelper'
 import { DeckEditorCard, ICCGDeck, ItemRarity, IUserLootItem, MazariniUser } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
-import { CCGDeckEditor_Info } from '../../templates/containerTemplates'
+import { CCGDeckEditor_Info, CCGDeckEditor_Trade } from '../../templates/containerTemplates'
 import { TextUtils } from '../../utils/textUtils'
 import { CCGCard, CCGCardType, CCGSeries, DeckEditor, UsageFilter } from './ccgInterface'
 import { CCGValidator } from './validator'
@@ -55,18 +55,24 @@ export class DeckCommands extends AbstractCommands {
         else this.newDeckEditor(interaction, name, user)
     }
 
+    private async tradeDeck(interaction: ChatInteraction) {
+        const user = await this.database.getUser(interaction.user.id)
+        this.newDeckEditor(interaction, 'trade', user, true)
+    }
+
     private async editDeck(interaction: ChatInteraction) {
         const name = interaction.options.get('deck')?.value as string
         const user = await this.database.getUser(interaction.user.id)
         this.newDeckEditor(interaction, name, user)
     }
 
-    public async newDeckEditor(interaction: ChatInteraction, name: string, user: MazariniUser) {
+    public async newDeckEditor(interaction: ChatInteraction, name: string, user: MazariniUser, isTrade = false) {
         const deferred = await this.messageHelper.deferReply(interaction)
         if (!deferred) return this.messageHelper.sendMessage(interaction.channelId, { text: 'Noe gikk galt med interactionen. Prøv igjen.' })
         const editorId = randomUUID()
-        const cards = await this.getUserCards(user)
-        const deck: ICCGDeck = user.ccg?.decks?.find((deck) => deck.name === name) ?? {
+        const cards = this.getUserCards(user, isTrade)
+        const fullCards = await this.getFullCards(cards)
+        const deck: ICCGDeck = user.ccg?.decks?.find((deck) => !isTrade && deck.name === name) ?? {
             name: name,
             cards: [],
             valid: false,
@@ -80,11 +86,12 @@ export class DeckCommands extends AbstractCommands {
             rarityFilters: [],
             usageFilters: [],
             seriesFilters: [],
-            userCards: structuredClone(cards),
-            filteredCards: structuredClone(cards),
+            userCards: structuredClone(fullCards),
+            filteredCards: structuredClone(fullCards),
             cardImages: new Map<string, Buffer>(),
             deck: deck,
             saved: false,
+            isTradeEditor: isTrade,
             deckInfo: {
                 container: undefined,
                 message: undefined,
@@ -96,6 +103,7 @@ export class DeckCommands extends AbstractCommands {
             },
             page: 1,
         }
+        await this.validateDeck(editor)
         const deckInfo = this.newDeckInfoContainer(editor)
         editor.deckInfo.container = deckInfo
         const cardView = await this.newCardViewContainer(editor, user)
@@ -112,16 +120,38 @@ export class DeckCommands extends AbstractCommands {
     }
 
     private newDeckInfoContainer(editor: DeckEditor) {
-        const deckInfo = CCGDeckEditor_Info(editor)
-        deckInfo.replaceComponent('save_button', saveAndCloseButtons(editor.id, editor.deck.valid && !editor.deck.active && editor.saved))
+        const deckInfo = editor.isTradeEditor ? CCGDeckEditor_Trade() : CCGDeckEditor_Info(editor)
+        const buttons = editor.isTradeEditor
+            ? tradeButtons(editor.id, (editor.deck?.cards?.length ?? 0) > 0)
+            : saveAndCloseButtons(editor.id, editor.deck.valid && !editor.deck.active && editor.saved)
+        deckInfo.replaceComponent('action_buttons', buttons)
+        const tradeValue = this.getTradeValue(editor)
+        if (tradeValue) {
+            deckInfo.updateTextComponent('deckInfo', editor.deck?.cards?.map((card) => `${card.amount}x ${card.id}`)?.join('\n'))
+            deckInfo.addComponentAfterReference(
+                'tradeValue',
+                ComponentsHelper.createTextComponent().setContent(`Total trade value: ${tradeValue} shards`),
+                'deckInfo'
+            )
+        }
         deckInfo.replaceComponent('typeFilters', typeFilters(editor))
         deckInfo.replaceComponent('rarityFilters', rarityFilters(editor))
-        deckInfo.replaceComponent('usageFilters', usageFilters(editor))
+        if (!editor.isTradeEditor) deckInfo.replaceComponent('usageFilters', usageFilters(editor))
         if (GameValues.ccg.activeCCGseries.length > 1) {
             deckInfo.replaceComponent('seriesFilters', seriesFilters(editor))
         }
         deckInfo.setColor(editor.userColor)
         return deckInfo
+    }
+
+    private getTradeValue(editor: DeckEditor) {
+        if (!editor.isTradeEditor || (editor.deck?.cards?.length ?? 0) === 0) return 0
+        const values = GameValues.ccg.trade.values
+        let total = 0
+        for (const card of editor.deck.cards) {
+            total += values[card.rarity] * card.amount
+        }
+        return total
     }
 
     private async newCardViewContainer(editor: DeckEditor, user: MazariniUser) {
@@ -149,9 +179,14 @@ export class DeckCommands extends AbstractCommands {
         editor.cardView.attachments.push(attachment)
         const available = this.getCardAmountAvailable(user, card)
         const inDeck = editor.deck.cards?.find((instance) => instance.id === card.id)?.amount ?? 0
-        const cardInfo = `**${card.name}**\n${TextUtils.capitalizeFirstLetter(card.type)}\n${TextUtils.capitalizeFirstLetter(
-            card.rarity
-        )}\n\nAvailable: ${available}\nIn deck: ${inDeck}`
+        let cardInfo = `**${card.name}**\n${TextUtils.capitalizeFirstLetter(card.type)}\n${TextUtils.capitalizeFirstLetter(card.rarity)}\n\n${
+            editor.isTradeEditor ? 'Tradeable:' : 'Available:'
+        } ${available}\n${editor.isTradeEditor ? 'Selected for trade:' : 'In deck:'} ${inDeck}`
+        if (editor.isTradeEditor) {
+            const activeDeck = user.ccg?.decks?.find((deck) => deck.active)
+            const cardsInActiveDeck = activeDeck.cards.find((instance) => instance.id === card.id)?.amount ?? 0
+            cardInfo += `\nIn active deck: ${cardsInActiveDeck}`
+        }
         container.addComponent(
             ComponentsHelper.createSectionComponent()
                 .addTextDisplayComponents(ComponentsHelper.createTextComponent().setContent(cardInfo))
@@ -176,7 +211,7 @@ export class DeckCommands extends AbstractCommands {
         return inventory.find((item) => item.name === card.id)?.amount ?? 0
     }
 
-    private async getUserCards(user: MazariniUser) {
+    private getUserCards(user: MazariniUser, isTrade: boolean) {
         const loot = new Array<IUserLootItem>()
         const rarities = ['common', 'rare', 'epic', 'legendary']
         for (const series of GameValues.ccg.activeCCGseries) {
@@ -185,7 +220,16 @@ export class DeckCommands extends AbstractCommands {
                 if (items) loot.push(...items)
             }
         }
-        return await this.getFullCards(loot)
+        return isTrade ? this.filterOutDefaultDeck(loot) : loot
+    }
+
+    private filterOutDefaultDeck(items: IUserLootItem[]) {
+        const defaultDeck = GameValues.ccg.defaultDeck.cards
+        const reducedItems: IUserLootItem[] = items?.map((item) => {
+            const defaultItem = defaultDeck.find((card) => card.id === item.name && card.series === item.series)
+            return { ...item, amount: item.amount - (defaultItem?.amount ?? 0) }
+        })
+        return reducedItems.filter((item) => item.amount > 0)
     }
 
     private async getFullCards(items: IUserLootItem[]) {
@@ -316,6 +360,57 @@ export class DeckCommands extends AbstractCommands {
         this.messageHelper.replyToInteraction(interaction, `Er du sikker på at du vil slette **${deckChoice}**?`, undefined, [deleteBtn])
     }
 
+    private tradeCards(editor: DeckEditor) {
+        editor.deckInfo.container.addComponentAfterReference('confirmTrade', confirmTradeButton(editor.id), 'action_buttons')
+        editor.deckInfo.message.edit({ components: [editor.deckInfo.container.container] })
+    }
+
+    private async confirmTradeCards(interaction: BtnInteraction, editor: DeckEditor) {
+        const user = await this.database.getUser(interaction.user.id)
+        const cards = this.getUserCards(user, true)
+        if (!this.userHasTradeCards(cards, editor.deck.cards)) {
+            editor.deckInfo.container.addComponentAfterReference(
+                'invalidTrade',
+                ComponentsHelper.createTextComponent().setContent(`Du eier ikke alle kortene du har valgt`),
+                'confirmTrade'
+            )
+            return editor.deckInfo.message.edit({ components: [editor.deckInfo.container.container] })
+        }
+        await this.executeTrade(user, editor)
+        const updatedCards = this.getUserCards(user, true)
+        const fullCards = await this.getFullCards(updatedCards)
+        editor.userCards = structuredClone(fullCards)
+        editor.filteredCards = structuredClone(fullCards)
+        editor.deck = {
+            name: 'Trade',
+            cards: [],
+            valid: false,
+            active: false,
+        }
+        this.filterCards(editor)
+        this.updateDeckInfo(editor)
+        this.updateCardView(editor, user.id)
+    }
+
+    private userHasTradeCards(userCards: IUserLootItem[], tradeCards: DeckEditorCard[]) {
+        for (const card of tradeCards) {
+            const checksOut = userCards.find((instance) => instance.name === card.id && instance.series === card.series && instance.amount >= card.amount)
+            if (!checksOut) return false
+        }
+        return true
+    }
+
+    private async executeTrade(user: MazariniUser, editor: DeckEditor) {
+        const tradeValue = this.getTradeValue(editor)
+        user.ccg = { ...user.ccg, shards: (user.ccg?.shards ?? 0) + tradeValue }
+        for (const card of editor.deck.cards) {
+            const inventory = user.loot[card.series][`inventory`][card.rarity]['items'] as IUserLootItem[]
+            const newInventory = inventory.map((item) => (item.name === card.id ? { ...item, amount: item.amount - card.amount } : item))
+            user.loot[card.series][`inventory`][card.rarity]['items'] = newInventory
+        }
+        await this.database.updateUser(user)
+    }
+
     private async confirmDeleteDeck(interaction: BtnInteraction) {
         if (interaction.user.id !== interaction.customId.split(';')[1]) return interaction.deferUpdate()
         await interaction.message.delete()
@@ -361,6 +456,7 @@ export class DeckCommands extends AbstractCommands {
         else if (cmd === 'copy') this.copyDeck(interaction)
         else if (cmd === 'rename') this.renameDeck(interaction)
         else if (cmd === 'delete') this.deleteDeck(interaction)
+        else if (cmd === 'trade') this.tradeDeck(interaction)
     }
 
     private verifyUserAndCallMethod(interaction: BtnInteraction, callback: (editor: DeckEditor) => void) {
@@ -427,6 +523,18 @@ export class DeckCommands extends AbstractCommands {
                         commandName: 'DECK_DELETE',
                         command: (interaction: ButtonInteraction) => {
                             this.confirmDeleteDeck(interaction)
+                        },
+                    },
+                    {
+                        commandName: 'DECK_TRADE',
+                        command: (interaction: ButtonInteraction) => {
+                            this.verifyUserAndCallMethod(interaction, (editor) => this.tradeCards(editor))
+                        },
+                    },
+                    {
+                        commandName: 'DECK_CONFIRM_TRADE',
+                        command: (interaction: ButtonInteraction) => {
+                            this.verifyUserAndCallMethod(interaction, (editor) => this.confirmTradeCards(interaction, editor))
                         },
                     },
                 ],
@@ -499,6 +607,37 @@ const saveAndCloseButtons = (editorId: string, canSetActive: boolean) => {
             style: ButtonStyle.Primary,
             disabled: !canSetActive,
             label: 'Set as active deck',
+            type: 2,
+        })
+    )
+}
+
+const tradeButtons = (editorId: string, hasCardsSelected: boolean) => {
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder({
+            custom_id: `DECK_TRADE;${editorId}`,
+            style: ButtonStyle.Success,
+            disabled: !hasCardsSelected,
+            label: 'Trade',
+            type: 2,
+        }),
+        new ButtonBuilder({
+            custom_id: `DECK_CLOSE;${editorId}`,
+            style: ButtonStyle.Danger,
+            disabled: false,
+            label: 'Close',
+            type: 2,
+        })
+    )
+}
+
+const confirmTradeButton = (editorId: string) => {
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder({
+            custom_id: `DECK_CONFIRM_TRADE;${editorId}`,
+            style: ButtonStyle.Danger,
+            disabled: false,
+            label: 'Confirm Trade',
             type: 2,
         })
     )

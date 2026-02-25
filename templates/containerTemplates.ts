@@ -62,7 +62,7 @@ export const CCGMatchSummary = (game: CCGGame) => {
 export const CCGDeckEditor_Info = (editor: DeckEditor) => {
     const container = new SimpleContainer()
     container.addComponent(ComponentsHelper.createTextComponent().setContent(`## Deck Editor`), 'header')
-    container.addComponent(buttons1, 'save_button')
+    container.addComponent(buttons1, 'action_buttons')
     if (editor.saved) container.addComponent(ComponentsHelper.createTextComponent().setContent(`Saved :white_check_mark:`), 'saved')
     container.addComponent(ComponentsHelper.createSeparatorComponent(), 'separator1')
     container.addComponent(ComponentsHelper.createTextComponent().setContent(`### ${editor.deck.name} ${editor.deck.active ? '(aktiv)' : ''}`), 'deckName')
@@ -80,9 +80,23 @@ export const CCGDeckEditor_Info = (editor: DeckEditor) => {
     if (GameValues.ccg.activeCCGseries.length > 1) {
         container.addComponent(buttons3, 'seriesFilters')
     }
-    // container.addComponent(ComponentsHelper.createSeparatorComponent(), 'separator3')
-    // container.addComponent(ComponentsHelper.createTextComponent().setContent(`### Sort by`), 'sorting_header')
-    // container.addComponent(buttons1, 'sorting')
+    return container
+}
+
+export const CCGDeckEditor_Trade = () => {
+    const container = new SimpleContainer()
+    container.addComponent(ComponentsHelper.createTextComponent().setContent(`## Trade Editor`), 'header')
+    container.addComponent(buttons1, 'action_buttons')
+    container.addComponent(ComponentsHelper.createSeparatorComponent(), 'separator1')
+    container.addComponent(ComponentsHelper.createTextComponent().setContent(`### Cards selected for trade`), 'infoHeader')
+    container.addComponent(ComponentsHelper.createTextComponent().setContent(`No cards selected`), 'deckInfo')
+    container.addComponent(ComponentsHelper.createSeparatorComponent(), 'separator2')
+    container.addComponent(ComponentsHelper.createTextComponent().setContent(`### Filters`), 'filter_header')
+    container.addComponent(buttons1, 'typeFilters')
+    container.addComponent(buttons2, 'rarityFilters')
+    if (GameValues.ccg.activeCCGseries.length > 1) {
+        container.addComponent(buttons3, 'seriesFilters')
+    }
     return container
 }
 

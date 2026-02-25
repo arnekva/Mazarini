@@ -26,9 +26,9 @@ export class BotResolver {
     private selectCards(game: CCGGame, bot: CCGPlayer, playable: { card: CCGCard; score: number }[]) {
         let energy = bot.energy
         let selected = 0
-        for (const { card } of playable) {
+        for (const { card, score } of playable) {
             const cost = this.getCardCost(game, card)
-            if (selected < GameValues.ccg.gameSettings.maxCardsPlayed && cost <= energy) {
+            if (selected < GameValues.ccg.gameSettings.maxCardsPlayed && cost <= energy && score > 0) {
                 selected += 1
                 card.selected = true
                 energy -= cost
@@ -89,6 +89,8 @@ export class BotResolver {
     private checkGainEnergy(game: CCGGame, playable: { card: CCGCard; score: number }[]) {
         if (this.shouldSaveEnergy(game, playable)) {
             this.buffCardsOfType(playable, 'GAIN_ENERGY', 50, 'SELF', true)
+        } else if (game.player2.energy < 4) {
+            this.buffCardsOfType(playable, 'GAIN_ENERGY', 5, 'SELF', true)
         }
     }
 

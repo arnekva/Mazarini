@@ -145,6 +145,14 @@ export type GameValuesType = {
         idJokeReward: number
     }
     ccg: {
+        trade: {
+            values: {
+                common: number
+                rare: number
+                epic: number
+                legendary: number
+            }
+        }
         gameSettings: {
             defaultHandSize: number
             maxHandSize: number
@@ -393,6 +401,14 @@ export const GameValues: GameValuesType = {
         idJokeReward: 1000,
     },
     ccg: {
+        trade: {
+            values: {
+                common: 5,
+                rare: 10,
+                epic: 15,
+                legendary: 25,
+            },
+        },
         gameSettings: {
             defaultHandSize: 4,
             maxHandSize: 5,
