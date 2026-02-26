@@ -110,7 +110,7 @@ export class BotResolver {
 
     private checkSteal(game: CCGGame, playable: { card: CCGCard; score: number }[]) {
         const lastCard = game.player1.usedCards[game.player1.usedCards.length - 1]
-        if (lastCard.id === 'kms2') {
+        if (lastCard && lastCard.id === 'kms2') {
             this.buffCardsOfType(playable, 'STEAL_CARD', 5, 'OPPONENT')
         }
     }
