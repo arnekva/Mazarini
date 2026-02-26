@@ -208,7 +208,7 @@ export class CardActionResolver {
     private stealCard(game: CCGGame, effect: CCGEffect, source: CCGPlayer, target: CCGPlayer) {
         const cardStolen = target.usedCards.pop()
         if (cardStolen) {
-            source.deck.push(cardStolen)
+            source.deck.push({ ...cardStolen, selected: false })
             this.log(game, `${effect.emoji}: ${source.name} **steals ${cardStolen.name}** from ${target.name}'s used cards, and adds it to their deck`)
         } else {
             this.log(game, `${effect.emoji}: ${source.name}'s ${effect.sourceCardName} failed`)
