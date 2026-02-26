@@ -207,9 +207,9 @@ export type GameValuesType = {
         defaultDeck: ICCGDeck
         defaultCardback: string
         botDeck: {
-            easy: ICCGDeck
-            medium: ICCGDeck
-            hard: ICCGDeck
+            easy: ICCGDeck[]
+            medium: ICCGDeck[]
+            hard: ICCGDeck[]
         }
     }
 }
@@ -473,54 +473,102 @@ export const GameValues: GameValuesType = {
         },
         defaultCardback: 'standard',
         botDeck: {
-            easy: {
-                name: 'easy',
-                active: true,
-                valid: true,
-                cards: [
-                    { id: 'eivindpride', series: 'mazariniCCG', amount: 3, rarity: ItemRarity.Epic },
-                    { id: 'arne', series: 'mazariniCCG', amount: 4, rarity: ItemRarity.Common },
-                    { id: 'arne_caveman', series: 'mazariniCCG', amount: 4, rarity: ItemRarity.Common },
-                    { id: 'geggiexcited', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
-                    { id: 'shrekStare', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
-                ],
-            },
-            medium: {
-                name: 'medium',
-                active: true,
-                valid: true,
-                cards: [
-                    { id: 'arne_caveman', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
-                    { id: 'shrekStare', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
-                    { id: 'geggiexcited', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
-                    { id: 'pointerbrothers1', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
-                    { id: 'kms_gun', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
-                    { id: 'geggi_kill', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Rare },
-                    { id: 'the_chokester', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
-                    { id: 'are_you', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
-                    { id: 'maggiscared', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
-                    { id: 'kms2', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
-                    { id: 'waiting', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
-                ],
-            },
-            hard: {
-                name: 'hard',
-                active: true,
-                valid: true,
-                cards: [
-                    { id: 'polse', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
-                    { id: 'same', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
-                    { id: 'geggiexcited', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Common },
-                    { id: 'kms_gun', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
-                    { id: 'kys', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Legendary },
-                    { id: 'geggi_kill', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Rare },
-                    { id: 'kms2', series: 'mazariniCCG', amount: 3, rarity: ItemRarity.Rare },
-                    { id: 'KEKW_gun', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
-                    { id: 'hoie', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Legendary },
-                    { id: 'are_you', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
-                    { id: 'maggiscared', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Rare },
-                ],
-            },
+            easy: [
+                {
+                    name: 'easy',
+                    active: true,
+                    valid: true,
+                    cards: [
+                        { id: 'eivindpride', series: 'mazariniCCG', amount: 3, rarity: ItemRarity.Epic },
+                        { id: 'arne', series: 'mazariniCCG', amount: 4, rarity: ItemRarity.Common },
+                        { id: 'arne_caveman', series: 'mazariniCCG', amount: 4, rarity: ItemRarity.Common },
+                        { id: 'geggiexcited', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
+                        { id: 'shrekStare', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
+                    ],
+                },
+                {
+                    name: 'easy',
+                    active: true,
+                    valid: true,
+                    cards: [
+                        { id: 'arne', series: 'mazariniCCG', amount: 5, rarity: ItemRarity.Common },
+                        { id: 'arne_caveman', series: 'mazariniCCG', amount: 5, rarity: ItemRarity.Common },
+                        { id: 'geggiexcited', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
+                        { id: 'shrekStare', series: 'mazariniCCG', amount: 3, rarity: ItemRarity.Common },
+                    ],
+                },
+            ],
+            medium: [
+                {
+                    name: 'medium',
+                    active: true,
+                    valid: true,
+                    cards: [
+                        { id: 'KEKW_gun', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
+                        { id: 'shrekStare', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Common },
+                        { id: 'geggiexcited', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
+                        { id: 'pointerbrothers1', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
+                        { id: 'kms_gun', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
+                        { id: 'geggi_kill', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Rare },
+                        { id: 'the_chokester', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
+                        { id: 'are_you', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
+                        { id: 'maggiscared', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Rare },
+                        { id: 'kms2', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Rare },
+                        { id: 'waiting', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
+                    ],
+                },
+                {
+                    name: 'medium',
+                    active: true,
+                    valid: true,
+                    cards: [
+                        { id: 'geggiexcited', series: 'mazariniCCG', amount: 3, rarity: ItemRarity.Common },
+                        { id: 'pointerbrothers1', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
+                        { id: 'kms_gun', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
+                        { id: 'geggi_kill', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Rare },
+                        { id: 'are_you', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
+                        { id: 'maggiscared', series: 'mazariniCCG', amount: 3, rarity: ItemRarity.Rare },
+                        { id: 'kms2', series: 'mazariniCCG', amount: 3, rarity: ItemRarity.Rare },
+                        { id: 'waiting', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
+                    ],
+                },
+            ],
+            hard: [
+                {
+                    name: 'hard',
+                    active: true,
+                    valid: true,
+                    cards: [
+                        { id: 'polse', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
+                        { id: 'yarrne', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
+                        { id: 'geggiexcited', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
+                        { id: 'kms_gun', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
+                        { id: 'kys', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Legendary },
+                        { id: 'geggi_kill', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Rare },
+                        { id: 'kms2', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Rare },
+                        { id: 'KEKW_gun', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
+                        { id: 'hoie', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Legendary },
+                        { id: 'are_you', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
+                        { id: 'maggiscared', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Rare },
+                    ],
+                },
+                {
+                    name: 'hard',
+                    active: true,
+                    valid: true,
+                    cards: [
+                        { id: 'polse', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
+                        { id: 'pointerbrothers1', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Epic },
+                        { id: 'geggiexcited', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
+                        { id: 'kms_gun', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Epic },
+                        { id: 'kys', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Legendary },
+                        { id: 'geggi_kill', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Rare },
+                        { id: 'kms2', series: 'mazariniCCG', amount: 3, rarity: ItemRarity.Rare },
+                        { id: 'hoie', series: 'mazariniCCG', amount: 1, rarity: ItemRarity.Legendary },
+                        { id: 'maggiscared', series: 'mazariniCCG', amount: 3, rarity: ItemRarity.Rare },
+                    ],
+                },
+            ],
         },
     },
 }

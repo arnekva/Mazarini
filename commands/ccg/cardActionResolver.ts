@@ -132,7 +132,7 @@ export class CardActionResolver {
         let damage = amount
 
         // Reflect damage
-        const reflect = this.getStatusEffect(game, target, 'REFLECT')
+        const reflect = this.getStatusCondition(game, target, 'REFLECT')
         if (reflect && damage > 0 && !(effect.reflected ?? false)) {
             // cannot reflect already reflected damage
             this.log(game, `${effect.emoji}: ${target.name} reflects ${damage} damage`)
@@ -268,6 +268,10 @@ export class CardActionResolver {
 
     private getStatusEffect(game: CCGGame, player: CCGPlayer, type: StatusEffect['type']) {
         return game.state.statusEffects.find((s) => s.ownerId === player.id && s.type === type)
+    }
+
+    private getStatusCondition(game: CCGGame, player: CCGPlayer, type: StatusEffect['type']) {
+        return game.state.statusConditions.find((s) => s.ownerId === player.id && s.type === type)
     }
 
     private removeStatus(game: CCGGame, status: StatusEffect) {

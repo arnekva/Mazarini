@@ -12,6 +12,7 @@ export class BotResolver {
         this.checkLethal(game, playable)
         this.checkSurvival(game, playable)
         this.checkReflect(game, playable)
+        this.checkSteal(game, playable)
         this.checkRemoveStatus(game, playable)
         this.sortPlayable(playable)
         this.checkGainEnergy(game, playable)
@@ -104,6 +105,13 @@ export class BotResolver {
     private checkReflect(game: CCGGame, playable: { card: CCGCard; score: number }[]) {
         if (game.player1.energy > 2) {
             this.buffCardsOfType(playable, 'REFLECT', 5, 'SELF')
+        }
+    }
+
+    private checkSteal(game: CCGGame, playable: { card: CCGCard; score: number }[]) {
+        const lastCard = game.player1.usedCards[game.player1.usedCards.length - 1]
+        if (lastCard.id === 'kms2') {
+            this.buffCardsOfType(playable, 'STEAL_CARD', 5, 'OPPONENT')
         }
     }
 

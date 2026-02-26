@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.5.0'
+    public static readonly currentVersion = '30.5.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,31 +28,8 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '## CCG',
-                '* Reduserer delay-en mellom game messages',
-                '  * Spilte kort: 3s -> 2.5s',
-                '  * Status-ticks: 3s -> 2s',
-                '* Fikser en bug hvor reflected damage kunne bli stoppet av en ny accuracy sjekk',
-                '* Høie vil ikke lenger spille heal kort når han har full HP',
-                '### Trade in',
-                '* Du kan nå trade in ccg kort! (`/deck trade`)',
-                '* Du mottar ikke nye kort direkte, men får shards som kan brukes til å skaffe nye kort',
-                '* Trade-verdier:',
-                '  * Common: 5',
-                '  * Rare: 10',
-                '  * Epic: 15',
-                '  * Legendary: 25',
-                '* Default-kortene du startet med kan ikke trades inn, men eventuelle ekstra av de samme kortene kan trades',
-                '### Buffs / Nerfs',
-                '* Chokester',
-                '  * Cost: 2 -> 3',
-                '  * Mottatt mange klager her',
-                '* KEKW Gun',
-                '  * Cost: 3 -> 2',
-                '  * Oppdatert kort-tekst',
-                '  * Mottatt mange klager her',
-                '* Pointerbrother',
-                '  * Cost: 3 -> 1',
-                '  * Make <:pointerbrothers1:1177653110852825158> epic again',
+                '* Fikser KEKW Gun <:retarded:1294302257340354632>',
+                '* Høie har nå 2 decks for hver difficulty slik at du ikke vet nøyaktig hva du møter',
             ].join('\n')
         )
         container.addSeparator()

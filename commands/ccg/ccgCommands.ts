@@ -661,7 +661,7 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private async getBotCards(difficulty: Difficulty): Promise<CCGCard[]> {
-        const deck = GameValues.ccg.botDeck[difficulty]
+        const deck = RandomUtils.getRandomItemFromList(GameValues.ccg.botDeck[difficulty])
         return await this.getFullCards(deck)
     }
 
