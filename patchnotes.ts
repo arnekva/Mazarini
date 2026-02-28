@@ -27,8 +27,7 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '* Mastermind sjekker nå faktisk om en spiller har fullført spillet før den rewarder chips ...',
-                '* Du må nå ha "#" et sted i meldingen for å (forsøke å) trigge gemini - ellers får du 8-ball Høie',
+                '* Du må nå ha "$" et sted i meldingen for å (forsøke å) trigge gemini - ellers får du 8-ball Høie',
             ].join('\n')
         )
         container.addSeparator()

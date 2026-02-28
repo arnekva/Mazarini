@@ -125,7 +125,7 @@ export class ClientListener {
             } else {
                 this.commandRunner.runCommands(message)
                 const hoieTagged = message.content.includes(`<@${MentionUtils.User_IDs.BOT_HOIE}>`)
-                const isAskingQuestion = message.content.includes('#')
+                const isAskingQuestion = message.content.includes('$')
                 let replyToHoie = false
                 if (message.mentions?.repliedUser?.id === MentionUtils.User_IDs.BOT_HOIE) {
                     const msgId = message.reference.messageId
@@ -134,6 +134,7 @@ export class ClientListener {
                 }
                 if (
                     (hoieTagged || replyToHoie) &&
+                    isAskingQuestion &&
                     ((environment === 'prod' && message.channelId !== ChannelIds.LOCALHOST) ||
                         (environment === 'dev' && message.channelId === ChannelIds.LOCALHOST))
                 ) {
