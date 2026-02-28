@@ -1,6 +1,6 @@
 import { InteractionResponse, Message } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
-import { ChatInteraction, BtnInteraction } from '../../Abstracts/MazariniInteraction'
+import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
@@ -185,11 +185,13 @@ export class Mastermind extends AbstractCommands {
         const attempted = (usersWithStats?.length ?? 0) > 0
         let description = `Ingen forsøk ble gjort på gårsdagens mastermind`
         if (attempted) {
-            const sortedUsers = usersWithStats.sort((a, b) => {
-                const aBest = a.dailyGameStats?.mastermind?.completed ? a.dailyGameStats?.mastermind?.numAttempts : GameValues.mastermind.totalAttempts + 1
-                const bBest = b.dailyGameStats?.mastermind?.completed ? b.dailyGameStats?.mastermind?.numAttempts : GameValues.mastermind.totalAttempts + 1
-                return aBest - bBest
-            })
+            const sortedUsers = usersWithStats
+                .filter((g) => !!g.dailyGameStats?.mastermind?.completed)
+                .sort((a, b) => {
+                    const aBest = a.dailyGameStats?.mastermind?.completed ? a.dailyGameStats?.mastermind?.numAttempts : GameValues.mastermind.totalAttempts + 1
+                    const bBest = b.dailyGameStats?.mastermind?.completed ? b.dailyGameStats?.mastermind?.numAttempts : GameValues.mastermind.totalAttempts + 1
+                    return aBest - bBest
+                })
 
             const bestScore = sortedUsers[0].dailyGameStats.mastermind.numAttempts
             const winners = sortedUsers[0].dailyGameStats.mastermind.completed

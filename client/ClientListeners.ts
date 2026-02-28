@@ -27,9 +27,6 @@ import { ChannelIds, MentionUtils, ServerIds } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { UserUtils } from '../utils/userUtils'
 import { MazariniClient } from './MazariniClient'
-import { ArrayUtils } from '../utils/arrayUtils'
-import { TextUtils } from '../utils/textUtils'
-import { textArrays } from '../utils/textArrays'
 
 /** NOT IN USE
  *  Testing sub-properties and functions
@@ -128,6 +125,7 @@ export class ClientListener {
             } else {
                 this.commandRunner.runCommands(message)
                 const hoieTagged = message.content.includes(`<@${MentionUtils.User_IDs.BOT_HOIE}>`)
+                const isAskingQuestion = message.content.includes('#')
                 let replyToHoie = false
                 if (message.mentions?.repliedUser?.id === MentionUtils.User_IDs.BOT_HOIE) {
                     const msgId = message.reference.messageId

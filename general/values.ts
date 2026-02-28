@@ -246,7 +246,7 @@ export const GameValues: GameValuesType = {
             minRollForMultiplier: 100,
             minPotForDouble: 1000,
             maxDoubleReward: 2500,
-            lootboxChance: 0,
+            lootboxChance: 0.05,
             lootbox: {
                 basic: { min: 0, max: 9999, cost: 5000 },
                 premium: { min: 10000, max: 24999, cost: 10000 },

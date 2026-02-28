@@ -37,6 +37,7 @@ interface IMoreOrLessUserGame {
 export class MoreOrLess extends AbstractCommands {
     private game: IMoreOrLess
     private userGames: Map<string, IMoreOrLessUserGame>
+    // :maggiscared:
     static blacklist: string[] = [
         'lol-champion-win-rates',
         'lol-champion-prices',

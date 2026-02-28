@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.5.1'
+    public static readonly currentVersion = '30.5.2'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,9 +27,8 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '## CCG',
-                '* Fikser KEKW Gun <:retarded:1294302257340354632>',
-                '* Høie har nå 2 decks for hver difficulty slik at du ikke vet nøyaktig hva du møter',
+                '* Mastermind sjekker nå faktisk om en spiller har fullført spillet før den rewarder chips ...',
+                '* Du må nå ha "#" et sted i meldingen for å (forsøke å) trigge gemini - ellers får du 8-ball Høie',
             ].join('\n')
         )
         container.addSeparator()
