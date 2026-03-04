@@ -64,15 +64,21 @@ export class MoreOrLess extends AbstractCommands {
 
     public static async getNewMoreOrLessGame(previous: string[]): Promise<IMoreOrLess> {
         const url = 'https://api.moreorless.io/en/games.json'
-        const games: IMoreOrLess[] = await (
-            await fetch(url, {
-                method: 'GET',
-                headers: {
-                    Accept: 'application/json',
-                },
-            })
-        ).json()
-        games.push(...CustomMOLHandler.getAllCustomGames())
+        const listResponse = await fetch(url, {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+
+        const customGames = CustomMOLHandler.getAllCustomGames()
+        let games: IMoreOrLess[]
+        if (!listResponse.ok) {
+            games = customGames
+        } else {
+            games = await listResponse.json()
+            games.push(...customGames)
+        }
 
         // Filter out blacklisted slugs
         const filteredGames = games.filter((game) => !this.blacklist.includes(game.slug))
@@ -82,16 +88,16 @@ export class MoreOrLess extends AbstractCommands {
             unplayed && unplayed.length > 0 ? RandomUtils.getRandomItemFromList(unplayed) : RandomUtils.getRandomItemFromList(filteredGames)
         if (game.tags?.includes(CustomMOLHandler.customGameTag)) return game
         const dataUrl = `https://api.moreorless.io/en/games/${game.slug}.json`
-        const check: any = (
-            await (
-                await fetch(dataUrl, {
-                    method: 'GET',
-                    headers: {
-                        Accept: 'application/json',
-                    },
-                })
-            ).json()
-        ).game
+        const dataResponse = await fetch(dataUrl, {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+        if (!dataResponse.ok) {
+            return MoreOrLess.getNewMoreOrLessGame([...previous, game.slug])
+        }
+        const check: any = (await dataResponse.json()).game
 
         if (check.data[0].length > 4) {
             return MoreOrLess.getNewMoreOrLessGame([...previous, game.slug])
@@ -108,16 +114,20 @@ export class MoreOrLess extends AbstractCommands {
             game = CustomMOLHandler.getJSONByName(this.game.slug as any).game
         } else {
             const url = `https://api.moreorless.io/en/games/${this.game.slug}.json`
-            game = (
-                await (
-                    await fetch(url, {
-                        method: 'GET',
-                        headers: {
-                            Accept: 'application/json',
-                        },
-                    })
-                ).json()
-            ).game
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    Accept: 'application/json',
+                },
+            })
+            if (!response.ok) {
+                const customGames = CustomMOLHandler.getAllCustomGames().filter((g) => !MoreOrLess.blacklist.includes(g.slug))
+                const unplayed = customGames.filter((g) => !storage.moreOrLess.previous?.includes(g.slug))
+                this.game = RandomUtils.getRandomItemFromList(unplayed.length > 0 ? unplayed : customGames)
+                game = CustomMOLHandler.getJSONByName(this.game.slug).game
+            } else {
+                game = (await response.json()).game
+            }
         }
         const data: IMoreOrLessData[] = game.data
             .filter((item) => item.length <= 4)
