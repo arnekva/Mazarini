@@ -1,5 +1,9 @@
 # Mazarini Bot v15
 
+## GitHub Copilot Coding Agent
+
+Se [docs/copilot-agents-vscode.md](docs/copilot-agents-vscode.md) for en guide til hvordan du bruker GitHub Copilot coding agent (bakgrunnsagenter) og kobler det til VS Code.
+
 ## Installering og Kjøring
 
 Kjør 'npm install' i mappen for å installere dependencies.
