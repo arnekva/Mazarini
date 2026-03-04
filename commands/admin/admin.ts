@@ -7,6 +7,7 @@ import {
     ButtonBuilder,
     ButtonInteraction,
     ButtonStyle,
+    ComponentType,
     GuildMember,
     ModalSubmitInteraction,
     User,
@@ -457,14 +458,10 @@ export class Admin extends AbstractCommands {
 
     private updateBotSettings(interaction: ChatInteraction) {
         this.buildSettingsModal(interaction)
-
-        // this.messageHelper.replyToInteraction(interaction, embed)
     }
     static botSettingsId = 'botSettingsModal'
     private async buildSettingsModal(interaction: ChatInteraction) {
         if (interaction) {
-            const modal = new ModalBuilder().setCustomId(Admin.botSettingsId).setTitle('Bot Innstillinger')
-
             const potValue = new TextInputBuilder()
                 .setCustomId('potValue')
                 // The label is the prompt the user sees for this input
@@ -500,8 +497,33 @@ export class Admin extends AbstractCommands {
                 .setStyle(TextInputStyle.Short)
 
             const thirdActionRow = new ActionRowBuilder().addComponents(statusType)
-            modal.addComponents(firstActionRow, secondActionRow, thirdActionRow)
-            await interaction.showModal(modal)
+            // Pass the modal as a raw object to avoid LabelBuilder calling createComponentBuilder
+            // on type 22 (CheckboxGroup) which is not yet registered in the builder registry.
+            await interaction.showModal({
+                custom_id: Admin.botSettingsId,
+                title: 'Bot Innstillinger',
+                components: [
+                    ...[firstActionRow, secondActionRow, thirdActionRow].map((r: any) => r.toJSON()),
+                    {
+                        type: ComponentType.Label,
+                        label: 'Kjør daglige jobber (velg én eller flere):',
+                        component: {
+                            type: ComponentType.CheckboxGroup,
+                            custom_id: 'daily_jobs',
+                            required: false,
+                            min_values: 0,
+                            options: [
+                                { value: 'daily_claim', label: 'Daily claim' },
+                                { value: 'daily_spin', label: 'Daily spin' },
+                                { value: 'user_effects', label: 'User effects' },
+                                { value: 'jail', label: 'Jail status' },
+                                { value: 'deathroll_numbers', label: 'Deathroll vinnertall' },
+                                { value: 'more_or_less', label: 'More or less' },
+                            ],
+                        },
+                    },
+                ],
+            } as any)
         }
     }
 
@@ -537,6 +559,14 @@ export class Admin extends AbstractCommands {
             )
         }
 
+        const components = (modalInteraction as any).components as any[]
+        const labelComp = components?.find((c: any) => c.type === ComponentType.Label)
+        const selectedJobs: string[] = labelComp?.component?.values ?? []
+        if (selectedJobs.length > 0) {
+            const dj = new DailyJobs(this.messageHelper, this.client)
+            await dj.runSpecificJobs(selectedJobs)
+            this.messageHelper.sendLogMessage(`Daglige jobber kjørt manuelt av ${modalInteraction.user.username}: ${selectedJobs.join(', ')}`)
+        }
         this.messageHelper.replyToInteraction(modalInteraction, 'Dine innstillinger er nå oppdatert', { ephemeral: true })
     }
 

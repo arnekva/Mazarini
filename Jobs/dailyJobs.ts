@@ -346,6 +346,17 @@ export class DailyJobs {
         return 'success'
     }
 
+    public async runSpecificJobs(jobKeys: string[]): Promise<void> {
+        const needsUsers = jobKeys.some((k) => ['daily_claim', 'daily_spin', 'user_effects', 'jail', 'more_or_less'].includes(k))
+        const users = needsUsers ? await this.client.database.getAllUsers() : []
+        if (jobKeys.includes('daily_claim')) this.validateAndResetDailyClaims(users)
+        if (jobKeys.includes('daily_spin')) this.resetDailySpin(users)
+        if (jobKeys.includes('user_effects')) this.resetUserEffects(users)
+        if (jobKeys.includes('jail')) this.updateJailAndJailbreakCounters(users)
+        if (jobKeys.includes('deathroll_numbers')) this.reRollWinningNumbers()
+        if (jobKeys.includes('more_or_less')) await this.awardAndResetMoreOrLess(users)
+    }
+
     private logEvent() {
         const todaysTime = new Date().toLocaleTimeString()
         console.log(`Daily jobs ran at ${todaysTime}`)
