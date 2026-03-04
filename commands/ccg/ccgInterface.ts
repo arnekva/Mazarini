@@ -155,6 +155,7 @@ export interface CCGCard {
     cannotMiss?: boolean
     emoji?: string
     selected?: boolean
+    blank?: string
 }
 
 export interface CCGCardEffect {

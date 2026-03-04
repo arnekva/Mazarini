@@ -4,6 +4,7 @@ import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
+import { CCGCardGenerator } from '../../helpers/ccgCardGenerator'
 import { ComponentsHelper } from '../../helpers/componentsHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
@@ -92,8 +93,7 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private async getCardImage(card: CCGCard) {
-        const path = `loot/${card.series}/${card.id}_small.png`
-        return await this.database.getFromStorage(path)
+        return await CCGCardGenerator.getCardBuffer(card)
     }
 
     private getPlayerHandButtons(game: CCGGame, player: CCGPlayer) {
@@ -739,6 +739,7 @@ export class CCGCommands extends AbstractCommands {
         const cmd = interaction.options.getSubcommand()
         const cmdGroup = interaction.options.getSubcommandGroup()
         if (cmdGroup && cmdGroup === 'play') {
+            if (!CCGCardGenerator.isReady) return this.messageHelper.replyToInteraction(interaction, 'Kortbilder genereres fortsatt, prøv igjen om litt.')
             const vsBot = cmd === 'bot'
             const validDeck = await this.userHasValidDeck(interaction)
             if (!validDeck) return this.handleUserHasInvalidDeck(interaction)

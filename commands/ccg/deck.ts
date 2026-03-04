@@ -5,6 +5,7 @@ import { ATCInteraction, BtnInteraction, ChatInteraction } from '../../Abstracts
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
+import { CCGCardGenerator } from '../../helpers/ccgCardGenerator'
 import { ComponentsHelper } from '../../helpers/componentsHelper'
 import { DeckEditorCard, ICCGDeck, ItemRarity, IUserLootItem, MazariniUser } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
@@ -199,9 +200,8 @@ export class DeckCommands extends AbstractCommands {
 
     private async getCardImage(editor: DeckEditor, card: CCGCard) {
         if (!editor.cardImages.has(card.id)) {
-            const path = `loot/${card.series}/${card.id}_small.png`
-            const img = await this.database.getFromStorage(path)
-            editor.cardImages.set(card.id, Buffer.from(img))
+            const img = await CCGCardGenerator.getCardBuffer(card)
+            editor.cardImages.set(card.id, img)
         }
         return editor.cardImages.get(card.id)
     }

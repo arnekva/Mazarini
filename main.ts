@@ -1,6 +1,7 @@
 import moment from 'moment'
 import { discordSecret } from './client-env'
 import { MazariniClient } from './client/MazariniClient'
+import { CCGCardGenerator } from './helpers/ccgCardGenerator'
 
 export class MazariniBot {
     private client: MazariniClient
@@ -25,6 +26,11 @@ export class MazariniBot {
         await this.client.login(discordSecret)
         console.log('Logged in, starting setup')
         this.client.createSlashCommands()
+
+        // Generate CCG card images asynchronously on startup
+        CCGCardGenerator.generateAll(this.client).catch((err) => {
+            console.error('[CCG] Card generation failed:', err)
+        })
 
         // this.client.user.edit({ avatar: 'hoie2.gif' })
         moment.updateLocale('nb', {})

@@ -15,6 +15,7 @@ import { ATCInteraction, BtnInteraction, ChatInteraction } from '../../Abstracts
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
+import { CCGCardGenerator } from '../../helpers/ccgCardGenerator'
 import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
@@ -352,8 +353,7 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private async getCCGCardImage(card: CCGCard) {
-        const path = `loot/${card.series}/${card.id}_small.png`
-        return await this.database.getFromStorage(path)
+        return await CCGCardGenerator.getCardBuffer(card)
     }
 
     private async getCardbackImage(user: MazariniUser) {
