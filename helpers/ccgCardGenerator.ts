@@ -5,6 +5,7 @@ import * as path from 'path'
 import sharp from 'sharp'
 import { MazariniClient } from '../client/MazariniClient'
 import { mazariniCCG } from '../commands/ccg/cards/mazariniCCG'
+import { swCCG } from '../commands/ccg/cards/swCCG'
 import { CCGCard, CCGCardEffect } from '../commands/ccg/ccgInterface'
 import { ItemRarity } from '../interfaces/database/databaseInterface'
 
@@ -13,6 +14,9 @@ const CARD_HEIGHT = 672
 const OUTPUT_DIR = path.resolve('res/ccg/generated')
 const HASH_FILE = path.resolve('res/ccg/generated/.hashes.json')
 const BLANKS_DIR = path.resolve('res/ccg/blanks')
+
+/** Series whose application emoji names match the card ID exactly (no series prefix) */
+const SERIES_EMOJI_IS_ID = new Set(['swCCG'])
 
 /** Map rarity to its blank background filename */
 const RARITY_BLANK: Record<string, string> = {
@@ -56,6 +60,14 @@ const DESC_X = 240
 const DESC_START_Y = 592
 
 let _isReady = false
+/** Processed (resized + rounded) art buffers cached during generateAll, keyed by card id */
+const artCache = new Map<string, { buffer: Buffer; width: number; height: number }>()
+
+/** A stat/value modification to apply when rendering a card image on the fly */
+export interface CardModification {
+    type: 'COST_DELTA' | 'DAMAGE_DELTA' | 'HEAL_DELTA' | 'ENERGY_DELTA' | 'SPEED_DELTA' | 'SPEED_MULTIPLIER' | 'ACCURACY_DELTA' | 'ACCURACY_OVERRIDE'
+    value: number
+}
 
 export class CCGCardGenerator {
     /** Returns true if card generation is complete and CCG games can be started */
@@ -84,11 +96,13 @@ export class CCGCardGenerator {
         let skipped = 0
 
         const genStart = Date.now()
-        for (const card of mazariniCCG) {
+        for (const card of [...mazariniCCG, ...swCCG]) {
             const hash = CCGCardGenerator.hashCard(card)
             const outputPath = CCGCardGenerator.getCardPath(card)
 
             if (existingHashes[card.id] === hash && fs.existsSync(outputPath)) {
+                // Still populate the art cache even for unchanged cards
+                await CCGCardGenerator.cacheArt(card, appEmojis)
                 skipped++
                 continue
             }
@@ -110,13 +124,90 @@ export class CCGCardGenerator {
 
     /** Get the local file path for a generated card image */
     static getCardPath(card: CCGCard): string {
-        return path.resolve(OUTPUT_DIR, `${card.id}_small.png`)
+        const seriesDir = path.resolve(OUTPUT_DIR, card.series)
+        if (!fs.existsSync(seriesDir)) fs.mkdirSync(seriesDir, { recursive: true })
+        return path.resolve(seriesDir, `${card.id}_small.png`)
     }
 
     /** Read a generated card image as a Buffer */
     static async getCardBuffer(card: CCGCard): Promise<Buffer> {
         const cardPath = CCGCardGenerator.getCardPath(card)
         return await fs.promises.readFile(cardPath)
+    }
+
+    /**
+     * Generate a modified card image to an in-memory Buffer without saving to disk.
+     * Uses cached art from the last generateAll run. Falls back to the unmodified card file
+     * if no art is cached (e.g. bot just restarted and generation hasn't run yet).
+     */
+    static async getModifiedCardBuffer(card: CCGCard, mods: CardModification[]): Promise<Buffer> {
+        const modified = CCGCardGenerator.applyModifications(card, mods)
+        const richSpans = CCGCardGenerator.buildRichDescription(modified)
+
+        const blankFile = card.blank ? `${card.blank}.png` : RARITY_BLANK[card.rarity] ?? RARITY_BLANK[ItemRarity.Common]
+        const blankPath = path.resolve(BLANKS_DIR, blankFile)
+        const base = sharp(blankPath).resize(CARD_WIDTH, CARD_HEIGHT).png()
+        const layers: sharp.OverlayOptions[] = []
+
+        const cached = artCache.get(card.id)
+        if (cached) {
+            const artLeft = ART_X + Math.floor((ART_SIZE - cached.width) / 2)
+            const artTop = ART_Y + Math.floor((ART_SIZE - cached.height) / 2)
+            layers.push({ input: cached.buffer, top: artTop, left: artLeft })
+        }
+
+        const overlaySvg = CCGCardGenerator.buildOverlaySVG(modified, richSpans)
+        layers.push({ input: Buffer.from(overlaySvg), top: 0, left: 0 })
+
+        const baseBuffer = await base.toBuffer()
+        return await sharp(baseBuffer).composite(layers).png().toBuffer()
+    }
+
+    /** Apply a list of modifications to a deep copy of a card */
+    private static applyModifications(card: CCGCard, mods: CardModification[]): CCGCard {
+        const c = structuredClone(card)
+        // Apply overrides first, then deltas
+        for (const mod of mods) {
+            if (mod.type === 'ACCURACY_OVERRIDE') c.accuracy = mod.value
+        }
+        for (const mod of mods) {
+            switch (mod.type) {
+                case 'COST_DELTA':
+                    c.cost = Math.max(0, c.cost + mod.value)
+                    break
+                case 'DAMAGE_DELTA':
+                    for (const effect of c.effects) {
+                        if (effect.type === 'DAMAGE' && effect.value !== undefined) {
+                            effect.value = Math.max(0, effect.value + mod.value)
+                        }
+                    }
+                    break
+                case 'HEAL_DELTA':
+                    for (const effect of c.effects) {
+                        if (effect.type === 'HEAL' && effect.value !== undefined) {
+                            effect.value = Math.max(0, effect.value + mod.value)
+                        }
+                    }
+                    break
+                case 'ENERGY_DELTA':
+                    for (const effect of c.effects) {
+                        if ((effect.type === 'GAIN_ENERGY' || effect.type === 'LOSE_ENERGY') && effect.value !== undefined) {
+                            effect.value = Math.max(0, effect.value + mod.value)
+                        }
+                    }
+                    break
+                case 'SPEED_DELTA':
+                    c.speed = Math.max(0, c.speed + mod.value)
+                    break
+                case 'SPEED_MULTIPLIER':
+                    c.speed = Math.floor(c.speed * mod.value)
+                    break
+                case 'ACCURACY_DELTA':
+                    c.accuracy = Math.min(100, Math.max(0, c.accuracy + mod.value))
+                    break
+            }
+        }
+        return c
     }
 
     private static hashCard(card: CCGCard): string {
@@ -147,9 +238,32 @@ export class CCGCardGenerator {
         fs.writeFileSync(HASH_FILE, JSON.stringify(hashes, null, 2))
     }
 
+    /** Fetch, resize and round-clip art for a card, storing it in the art cache */
+    private static async cacheArt(card: CCGCard, appEmojis: Collection<string, ApplicationEmoji>): Promise<void> {
+        if (artCache.has(card.id)) return
+        const artBuffer = await CCGCardGenerator.fetchEmojiArt(card, appEmojis)
+        if (!artBuffer) return
+        const resizedArt = await sharp(artBuffer).resize(ART_SIZE, ART_SIZE, { fit: 'inside' }).png().toBuffer()
+        const meta = await sharp(resizedArt).metadata()
+        const actualW = meta.width ?? ART_SIZE
+        const actualH = meta.height ?? ART_SIZE
+        const roundedArt = await sharp(resizedArt)
+            .composite([
+                {
+                    input: Buffer.from(
+                        `<svg width="${actualW}" height="${actualH}"><rect x="0" y="0" width="${actualW}" height="${actualH}" rx="12" ry="12" fill="white"/></svg>`
+                    ),
+                    blend: 'dest-in',
+                },
+            ])
+            .png()
+            .toBuffer()
+        artCache.set(card.id, { buffer: roundedArt, width: actualW, height: actualH })
+    }
+
     /** Fetch an emoji image from Discord CDN as a Buffer */
     private static async fetchEmojiArt(card: CCGCard, appEmojis: Collection<string, ApplicationEmoji>): Promise<Buffer | undefined> {
-        const emojiName = card.emoji ?? `${card.series}_${card.id}`
+        const emojiName = card.emoji ?? (SERIES_EMOJI_IS_ID.has(card.series) ? card.id : `${card.series}_${card.id}`)
         const emoji = appEmojis.find((e) => e.name === emojiName)
         if (!emoji) {
             console.warn(`[CCG] No emoji found for ${emojiName}`)
@@ -173,29 +287,13 @@ export class CCGCardGenerator {
         const base = sharp(blankPath).resize(CARD_WIDTH, CARD_HEIGHT).png()
         const layers: sharp.OverlayOptions[] = []
 
-        // Fetch card art from Discord application emojis
-        const artBuffer = await CCGCardGenerator.fetchEmojiArt(card, appEmojis)
-        if (artBuffer) {
-            // Resize to fit within bounding box without exceeding it, then center
-            const resizedArt = await sharp(artBuffer).resize(ART_SIZE, ART_SIZE, { fit: 'inside' }).png().toBuffer()
-            const meta = await sharp(resizedArt).metadata()
-            const actualW = meta.width ?? ART_SIZE
-            const actualH = meta.height ?? ART_SIZE
-            const artLeft = ART_X + Math.floor((ART_SIZE - actualW) / 2)
-            const artTop = ART_Y + Math.floor((ART_SIZE - actualH) / 2)
-            // Round-clip to the actual resized dimensions
-            const roundedArt = await sharp(resizedArt)
-                .composite([
-                    {
-                        input: Buffer.from(
-                            `<svg width="${actualW}" height="${actualH}"><rect x="0" y="0" width="${actualW}" height="${actualH}" rx="12" ry="12" fill="white"/></svg>`
-                        ),
-                        blend: 'dest-in',
-                    },
-                ])
-                .png()
-                .toBuffer()
-            layers.push({ input: roundedArt, top: artTop, left: artLeft })
+        // Fetch and cache art, then composite it
+        await CCGCardGenerator.cacheArt(card, appEmojis)
+        const cached = artCache.get(card.id)
+        if (cached) {
+            const artLeft = ART_X + Math.floor((ART_SIZE - cached.width) / 2)
+            const artTop = ART_Y + Math.floor((ART_SIZE - cached.height) / 2)
+            layers.push({ input: cached.buffer, top: artTop, left: artLeft })
         }
 
         // Build SVG overlay with stats, name, description
@@ -302,8 +400,31 @@ export class CCGCardGenerator {
             return CCGCardGenerator.parseBBCode(`Take [red]${effects[0].value} damage[/red], but gain [blue]${effects[1].value} extra energy[/blue]`)
         }
 
+        // Pattern: REDUCE_COST for both self and opponent → "Reduce all card costs"
+        if (
+            effects.length === 2 &&
+            effects[0].type === 'REDUCE_COST' &&
+            effects[1].type === 'REDUCE_COST' &&
+            effects[0].value === effects[1].value &&
+            effects[0].turns === effects[1].turns
+        ) {
+            return CCGCardGenerator.parseBBCode(
+                `Reduce [blue]all[/blue] card costs by [blue]${effects[0].value}[/blue] for [pink]${effects[0].turns} turns[/pink]`
+            )
+        }
+
         // Default: describe each effect, join with ". "
-        const parts = effects.map((e) => CCGCardGenerator.describeEffect(e))
+        // Collapse consecutive identical-text effects into "... TWICE"
+        const parts: string[] = []
+        for (let i = 0; i < effects.length; i++) {
+            const desc = CCGCardGenerator.describeEffect(effects[i])
+            if (i + 1 < effects.length && CCGCardGenerator.describeEffect(effects[i + 1]) === desc) {
+                parts.push(`${desc} [yellow]TWICE[/yellow]`)
+                i++
+            } else {
+                parts.push(desc)
+            }
+        }
         return CCGCardGenerator.parseBBCode(parts.join('. '))
     }
 
@@ -340,13 +461,23 @@ export class CCGCardGenerator {
             case 'VIEW_HAND':
                 return `View opponent's hand`
             case 'RETARDED':
-                return `Apply [pink]Retarded[/pink] for [pink]${effect.turns} turns[/pink] (${effect.statusAccuracy}%)`
+                return `Apply [pink]Retarded[/pink] to ${effect.target === 'SELF' ? 'self' : 'opponent'} for [pink]${effect.turns} turns[/pink] (${
+                    effect.statusAccuracy
+                }%)`
             case 'WAITING':
                 return `Randomly [yellow]waits[/yellow] between [pink]1 and ${effect.turns} turns[/pink] before doing damage equal to triple the turns waited`
             case 'CHOKE_SHIELD':
                 return `Apply [pink]Choke Shield[/pink] for [pink]${effect.turns} turns[/pink]`
             case 'REDUCE_COST':
                 return `Reduce card costs by [blue]${effect.value}[/blue] for [pink]${effect.turns} turns[/pink]`
+            case 'SPEED_BUFF':
+                return `Speed ([green]+50%[/green]) for [pink]${effect.turns} turns[/pink]`
+            case 'RECOVER':
+                return `Heal [green]${effect.value}[/green] each turn for [pink]${effect.turns} turns[/pink]`
+            case 'DAMAGE_BOOST':
+                return `Boost all damage by [red]+${effect.value}[/red] for [pink]${effect.turns} turns[/pink]`
+            case 'EXTRA_CARDS':
+                return `Play [blue]${effect.value} cards[/blue] next turn`
             default:
                 return `${effect.type}`
         }

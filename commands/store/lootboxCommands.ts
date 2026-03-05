@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+﻿import { randomUUID } from 'crypto'
 import {
     ActionRowBuilder,
     AttachmentBuilder,
@@ -177,11 +177,15 @@ export class LootboxCommands extends AbstractCommands {
     private async openAndRegisterLootPack(interaction: ChatInteraction | BtnInteraction) {
         const user = await this.client.database.getUser(interaction.user.id)
         const quality = this.resolveLootQuality(interaction)
-        const series = this.resolveLootSeries(user, interaction)
+        const series = interaction.isChatInputCommand()
+            ? (interaction.options.get('series')?.value as string) ?? 'swCCG'
+            : interaction.customId.split(';')[4] || 'swCCG'
         const seriesObj = await this.getSeriesOrDefault(series, true)
 
         const box = await this.resolveLootbox(quality, true)
+        if (!box) return this.messageHelper.replyToInteraction(interaction, `Fant ingen pakke med kvalitet "${quality}". Prøv igjen.`, { hasBeenDefered: true })
         if (interaction.isChatInputCommand() && !this.checkBalanceAndTakeMoney(user, box, interaction, true)) return
+        this.ensureUserLootSeries(user, seriesObj.name)
         const sh = new LootStatsHelper(user.loot[seriesObj.name].stats)
         sh.registerPurchase(box, true, interaction.isChatInputCommand())
 
@@ -193,6 +197,17 @@ export class LootboxCommands extends AbstractCommands {
             }
             chestItems.push(item)
         }
+
+        // Pity timer: exponential growth reaching 100% at 20 packs without a legendary
+        const pity = user.ccg?.pitySinceLastLegendary ?? 0
+        if (!chestItems.some((item) => item.rarity === ItemRarity.Legendary) && Math.random() < Math.pow(pity / 20, 4.5)) {
+            const replaceIdx = Math.floor(Math.random() * chestItems.length)
+            chestItems[replaceIdx] = this.getRandomItemForRarity(ItemRarity.Legendary, seriesObj, false, user)
+        }
+        const gotLegendary = chestItems.some((item) => item.rarity === ItemRarity.Legendary)
+        if (!user.ccg) user.ccg = {}
+        user.ccg.pitySinceLastLegendary = gotLegendary ? 0 : pity + 1
+        this.database.updateUser(user)
 
         this.revealCCGChest(interaction, chestItems, quality, seriesObj, user)
     }
@@ -303,8 +318,9 @@ export class LootboxCommands extends AbstractCommands {
             chestItems.set(itemId, item)
             const btn = lootChestButton(chestId, itemId)
             const card = cards.find((card) => card.id === item.name)
-            const emoji = await EmojiHelper.getApplicationEmoji(`${card.series}_${card.id}`, this.client)
-            btn.setLabel(' ').setEmoji({ name: emoji.emojiObject.name, id: emoji.emojiObject.id })
+            const emoji = await this.getLootApplicationEmoji(item)
+            if (emoji.emojiObject) btn.setLabel(' ').setEmoji({ name: emoji.emojiObject.name, id: emoji.emojiObject.id })
+            else btn.setLabel(card.name)
             buttons.addComponents(btn)
         }
 
@@ -561,6 +577,7 @@ export class LootboxCommands extends AbstractCommands {
 
     private registerItemOnUser(user: MazariniUser, newItem: IUserLootItem) {
         if (newItem.rarity === ItemRarity.Unobtainable) return this.updateUnobtainableHolder(newItem.series, user)
+        this.ensureUserLootSeries(user, newItem.series)
         let items = (user.loot[newItem.series][`inventory`][newItem.rarity]['items'] as IUserLootItem[]) ?? new Array<IUserLootItem>()
         const itemAlreadyCollected = items.some((item) => this.equalItems(item, newItem))
         if (itemAlreadyCollected) {
@@ -584,6 +601,35 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     equalItems = (item1: IUserLootItem, item2: IUserLootItem) => item1.name === item2.name && item1.color === item2.color
+
+    /** Creates a blank loot series entry on the user if it doesn't exist yet */
+    private ensureUserLootSeries(user: MazariniUser, seriesName: string) {
+        if (user.loot?.[seriesName]) return
+        if (!user.loot) user.loot = {} as any
+        user.loot[seriesName] = {
+            name: seriesName,
+            pityLevel: { level: 0, consequtiveDuplicates: 0, chipsSinceNonDuplicate: 0 },
+            inventory: {
+                common: { items: [], img: '' },
+                rare: { items: [], img: '' },
+                epic: { items: [], img: '' },
+                legendary: { items: [], img: '' },
+            },
+            stats: {
+                chipsSpent: 0,
+                chestsOpened: { basic: 0, premium: 0, elite: 0, special: 0 },
+                boxesOpened: { basic: 0, premium: 0, elite: 0, special: 0 },
+                rarities: {
+                    common: { none: 0, silver: 0, gold: 0, diamond: 0 },
+                    rare: { none: 0, silver: 0, gold: 0, diamond: 0 },
+                    epic: { none: 0, silver: 0, gold: 0, diamond: 0 },
+                    legendary: { none: 0, silver: 0, gold: 0, diamond: 0 },
+                },
+                trades: { in: 0, up: 0 },
+                achievements: { daysWithUnobtainable: 0 },
+            },
+        }
+    }
 
     private incrementItemCount(items: IUserLootItem[], newItem: IUserLootItem) {
         return items.map((item) => (this.equalItems(item, newItem) ? { ...item, amount: item.amount + newItem.amount } : item))

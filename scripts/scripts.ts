@@ -1,6 +1,7 @@
 import { ApplicationEmojiManager } from 'discord.js'
 import { MazariniClient } from '../client/MazariniClient'
 import { mazariniCCG } from '../commands/ccg/cards/mazariniCCG'
+import { swCCG } from '../commands/ccg/cards/swCCG'
 import { ImageGenerationHelper } from '../helpers/imageGenerationHelper'
 import {
     ICCGDeck,
@@ -98,6 +99,7 @@ export class Scripts {
         this.client.database.setLootpacks(packs)
         const allSeries = await this.client.database.getLootboxSeries()
         if (!allSeries.some((series) => series.name === mazariniCCG_series.name)) allSeries.push(mazariniCCG_series)
+        if (!allSeries.some((series) => series.name === swCCG_series.name)) allSeries.push(swCCG_series)
         this.client.database.setLootSeries(allSeries)
     }
 
@@ -109,6 +111,7 @@ export class Scripts {
         this.client.database.updateStorage({
             ccg: {
                 mazariniCCG: mazariniCCG,
+                swCCG: swCCG,
             },
         })
     }
@@ -116,6 +119,7 @@ export class Scripts {
     public updateCCGSeries() {
         this.setCCGCards()
         this.client.database.updateLootboxSeries(mazariniCCG_series)
+        this.client.database.updateLootboxSeries(swCCG_series)
     }
 
     public async refactorUserLoot(user: MazariniUser) {
@@ -281,6 +285,18 @@ const mazariniCCG_series: ILootSeries = {
     rare: ['the_chokester', 'maggiscared', 'sniff', 'are_you', 'kms2', 'yarrne', 'geggi_kill', 'choke_shield', 'turtle', 'waiting', 'catmygling'],
     epic: ['pointerbrothers1', 'same', 'KEKW_gun', 'kms_gun', 'arnenymous', 'polse', 'eivindpride'],
     legendary: ['kys', 'hoie'],
+    hasColor: false,
+    hasUnobtainable: false,
+    isCCG: true,
+}
+
+const swCCG_series: ILootSeries = {
+    name: 'swCCG',
+    added: new Date(),
+    common: ['sw_battle_droid_n', 'sw_gonk_droid_n', 'sw_darth_maul_n', 'sw_jarjar_n'],
+    rare: ['sw_general_grevious_n', 'sw_han_solo_n', 'sw_mace_windu_n'],
+    epic: ['sw_storm_trooper_n', 'sw_yoda_n', 'sw_padme_amidala_n', 'sw_princess_leia_n'],
+    legendary: ['sw_space_jesus_n', 'sw_qui_gon_jinn_n', 'sw_luke_skywalker_n'],
     hasColor: false,
     hasUnobtainable: false,
     isCCG: true,

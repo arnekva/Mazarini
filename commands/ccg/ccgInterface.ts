@@ -109,6 +109,10 @@ export type CCGStatusEffectType =
     | 'CHOKE_SHIELD'
     | 'REDUCE_COST'
     | 'VIEW_HAND'
+    | 'RECOVER'
+    | 'SPEED_BUFF'
+    | 'DAMAGE_BOOST'
+    | 'EXTRA_CARDS'
 
 export interface CCGLogEntry {
     turn: number
@@ -210,6 +214,7 @@ export enum UsageFilter {
 
 export enum CCGSeries {
     MazariniCCG = 'mazariniCCG',
+    SwCCG = 'swCCG',
 }
 
 export interface CCGHelper {

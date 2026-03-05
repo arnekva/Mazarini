@@ -108,6 +108,7 @@ export interface ICCGUserData {
     dailyShardBonusClaimed?: boolean
     weeklyShardsEarned?: number
     cardback?: string
+    pitySinceLastLegendary?: number
 }
 
 export interface ICCGDeck {
@@ -214,6 +215,7 @@ export interface IUserLoot {
     hp?: IUserLootSeries
     lotr?: IUserLootSeries
     mazariniCCG?: IUserLootSeries
+    swCCG?: IUserLootSeries
 }
 
 export interface IUserLootSeries {
@@ -382,6 +384,7 @@ export interface MazariniStorage {
 
 export interface ICCGSystem {
     mazariniCCG: CCGCard[]
+    swCCG?: CCGCard[]
 }
 
 export interface ILuckyWheelReward {

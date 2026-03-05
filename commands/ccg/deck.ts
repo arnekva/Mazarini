@@ -256,6 +256,10 @@ export class DeckCommands extends AbstractCommands {
             const index = editor.usageFilters.findIndex((usage) => usage === filter)
             if (index >= 0) editor.usageFilters.splice(index, 1)
             else editor.usageFilters.push(filter as UsageFilter)
+        } else if (Object.values(CCGSeries).includes(filter as CCGSeries)) {
+            const index = editor.seriesFilters.findIndex((series) => series === filter)
+            if (index >= 0) editor.seriesFilters.splice(index, 1)
+            else editor.seriesFilters.push(filter as CCGSeries)
         }
         this.updateFilterButtons(editor)
         this.filterCards(editor)
@@ -267,6 +271,9 @@ export class DeckCommands extends AbstractCommands {
         editor.deckInfo.container.replaceComponent('typeFilters', typeFilters(editor))
         editor.deckInfo.container.replaceComponent('rarityFilters', rarityFilters(editor))
         editor.deckInfo.container.replaceComponent('usageFilters', usageFilters(editor))
+        if (GameValues.ccg.activeCCGseries.length > 1) {
+            editor.deckInfo.container.replaceComponent('seriesFilters', seriesFilters(editor))
+        }
         editor.deckInfo.message.edit({ components: [editor.deckInfo.container.container] })
     }
 
@@ -275,7 +282,8 @@ export class DeckCommands extends AbstractCommands {
             (card) =>
                 ((editor.typeFilters.length ?? 0) === 0 || editor.typeFilters.includes(card.type)) &&
                 ((editor.rarityFilters.length ?? 0) === 0 || editor.rarityFilters.includes(card.rarity)) &&
-                ((editor.usageFilters.length ?? 0) === 0 || this.checkUsageFilter(editor, card))
+                ((editor.usageFilters.length ?? 0) === 0 || this.checkUsageFilter(editor, card)) &&
+                ((editor.seriesFilters.length ?? 0) === 0 || editor.seriesFilters.includes(card.series as CCGSeries))
         )
     }
 

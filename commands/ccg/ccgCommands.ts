@@ -4,7 +4,7 @@ import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
-import { CCGCardGenerator } from '../../helpers/ccgCardGenerator'
+import { CardModification, CCGCardGenerator } from '../../helpers/ccgCardGenerator'
 import { ComponentsHelper } from '../../helpers/componentsHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 import { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
@@ -36,6 +36,9 @@ import {
 import { CCGStatView } from './ccgStats'
 import { ProgressionHandler } from './progressionHandler'
 import { CCGValidator } from './validator'
+
+/** CCG series whose emoji names match the card ID exactly (no series_ prefix) */
+const SERIES_EMOJI_IS_ID = new Set(['swCCG'])
 
 export class CCGCommands extends AbstractCommands {
     private games: Map<string, CCGGame>
@@ -81,18 +84,19 @@ export class CCGCommands extends AbstractCommands {
         this.updatePlayerHand(game, player)
     }
 
-    private async getPlayerHandImage(player: CCGPlayer, includeAll = false) {
+    private async getPlayerHandImage(player: CCGPlayer, includeAll = false, mods: CardModification[] = []) {
         const cards = player.hand.filter((card) => includeAll || !player.submitted || !card.selected)
         if (!cards || cards.length === 0) return undefined
         const buffers = await Promise.all(
             cards.map(async (card) => {
-                return Buffer.from(await this.getCardImage(card))
+                return Buffer.from(await this.getCardImage(card, mods))
             })
         )
         return await this.igh.stitchImages(buffers, 'horizontal')
     }
 
-    private async getCardImage(card: CCGCard) {
+    private async getCardImage(card: CCGCard, mods: CardModification[] = []) {
+        if (mods.length > 0) return await CCGCardGenerator.getModifiedCardBuffer(card, mods)
         return await CCGCardGenerator.getCardBuffer(card)
     }
 
@@ -113,8 +117,10 @@ export class CCGCommands extends AbstractCommands {
                 ephemeral: true,
             })
         const submitted = player.hand.filter((card) => card.selected)
-        if (submitted.length > game.state.settings.maxCardsPlayed) {
-            return this.messageHelper.replyToInteraction(interaction, `Du kan ikke spille mer enn ${game.state.settings.maxCardsPlayed} kort om gangen`, {
+        const extraCardsEffects = this.getEffectsForPlayer(game, player, 'EXTRA_CARDS')
+        const maxCards = extraCardsEffects.length > 0 ? extraCardsEffects[0].value : game.state.settings.maxCardsPlayed
+        if (submitted.length > maxCards) {
+            return this.messageHelper.replyToInteraction(interaction, `Du kan ikke spille mer enn ${maxCards} kort om gangen`, {
                 ephemeral: true,
             })
         }
@@ -382,6 +388,32 @@ export class CCGCommands extends AbstractCommands {
                     )
                 }
             }
+            if (card.id === 'sw_storm_trooper_n') {
+                // Copies the opponent's LOWEST cost card played this round
+                const cardId = randomUUID().substring(0, 10)
+                const successful = this.isCardSuccessful(game, player, card)
+                const opponent = this.getOpponent(game, player.id)
+                const opponentCards = opponent.hand.filter((c) => c.selected && c.id !== 'sw_storm_trooper_n')?.sort((a, b) => a.cost - b.cost) // ascending → lowest cost first
+                const cardCopied = opponentCards?.length ?? 0 > 0 ? opponentCards[0] : undefined
+                if (cardCopied) {
+                    const speed = this.getSpeed(game, player, cardCopied)
+                    game.state.stack.push(
+                        ...cardCopied.effects.map((effect) => ({
+                            cardId: cardId,
+                            emoji: cardCopied.emoji,
+                            targetPlayerId: this.getTarget(game, player, effect),
+                            sourceCardName: cardCopied.name,
+                            sourcePlayerId: player.id,
+                            speed: speed,
+                            accuracy: effect.accuracy ?? 100,
+                            cardSuccessful: successful,
+                            type: effect.type,
+                            value: effect.value,
+                            turns: effect.turns,
+                        }))
+                    )
+                }
+            }
         }
     }
 
@@ -407,18 +439,39 @@ export class CCGCommands extends AbstractCommands {
 
     private getSpeed(game: CCGGame, player: CCGPlayer, card: CCGCard) {
         const isSlow = this.playerHasCondition(game, player, 'SLOW')
+        const hasSpeedBuff = this.playerHasStatus(game, player, 'SPEED_BUFF')
         const speedDivisor = isSlow ? GameValues.ccg.status.slow_speedDivideBy : 1
-        return Math.floor(card.speed / speedDivisor) + Math.random()
+        const speedMultiplier = hasSpeedBuff ? GameValues.ccg.status.speedBuff_multiplier : 1
+        return Math.floor((card.speed * speedMultiplier) / speedDivisor) + Math.random()
     }
 
     private async updatePlayerHand(game: CCGGame, player: CCGPlayer) {
+        const mods = CCGCommands.resolveHandModifications(game, player)
         const embed = EmbedUtils.createSimpleEmbed(' ', ' ')
-        const handImage = await this.getPlayerHandImage(player)
+        const handImage = await this.getPlayerHandImage(player, false, mods)
         if (!handImage) return player.handMessage.edit({ content: '', embeds: [embed.setTitle('Waiting for cards...')], components: [], files: [] })
         embed.setImage('attachment://hand.png')
         const attachment = new AttachmentBuilder(handImage, { name: 'hand.png' })
         const buttons = this.getPlayerHandButtons(game, player)
         player.handMessage.edit({ content: '', embeds: [embed], components: [buttons], files: [attachment] })
+    }
+
+    /** Derive active CardModifications for a player from the current status effects */
+    private static resolveHandModifications(game: CCGGame, player: CCGPlayer): CardModification[] {
+        const mods: CardModification[] = []
+        for (const effect of game.state.statusEffects) {
+            if (effect.ownerId !== player.id) continue
+            if (effect.type === 'REDUCE_COST') mods.push({ type: 'COST_DELTA', value: -effect.value })
+            if (effect.type === 'CHOKE_SHIELD') mods.push({ type: 'ACCURACY_DELTA', value: 20 })
+            if (effect.type === 'SPEED_BUFF') mods.push({ type: 'SPEED_MULTIPLIER', value: GameValues.ccg.status.speedBuff_multiplier })
+            if (effect.type === 'DAMAGE_BOOST') mods.push({ type: 'DAMAGE_DELTA', value: effect.value })
+        }
+        for (const condition of game.state.statusConditions) {
+            if (condition.ownerId !== player.id) continue
+            if (condition.type === 'SLOW') mods.push({ type: 'SPEED_MULTIPLIER', value: 1 / GameValues.ccg.status.slow_speedDivideBy })
+            if (condition.type === 'CHOKESTER') mods.push({ type: 'ACCURACY_OVERRIDE', value: 50 })
+        }
+        return mods
     }
 
     private async selectCard(interaction: BtnInteraction, player: CCGPlayer) {
@@ -670,8 +723,13 @@ export class CCGCommands extends AbstractCommands {
         const userCards = new Array<CCGCard>()
         for (const item of deck.cards) {
             const series = cards[item.series] as CCGCard[]
-            const card = series.find((card) => card.id === item.id)
-            const emoji = await EmojiHelper.getApplicationEmoji(`${card.series}_${card.id}`, this.client)
+            const card = series?.find((card) => card.id === item.id)
+            if (!card) {
+                this.messageHelper.sendLogMessage(`CCG: card not found in deck – series=${item.series}, id=${item.id}`)
+                continue
+            }
+            const emojiName = SERIES_EMOJI_IS_ID.has(card.series) ? card.id : `${card.series}_${card.id}`
+            const emoji = await EmojiHelper.getApplicationEmoji(emojiName, this.client)
             const fullCard = { ...card, selected: false, emoji: emoji.id }
             for (let i = 0; i < item.amount; i++) userCards.push(structuredClone(fullCard))
         }
@@ -682,6 +740,7 @@ export class CCGCommands extends AbstractCommands {
         const user = await this.database.getUser(interaction.user.id)
         const deck = user.ccg?.decks?.find((deck) => deck.active) ?? GameValues.ccg.defaultDeck
         deck.valid = true
+        return true
         await CCGValidator.validateDeck(this.client, user, deck, new Array<string>())
         return deck.valid
     }

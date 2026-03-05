@@ -201,6 +201,7 @@ export type GameValuesType = {
             slow_speedDivideBy: number
             chokester_accuracy: number
             bleed_damage: number
+            speedBuff_multiplier: number
         }
         isLootable: boolean
         activeCCGseries: string[]
@@ -457,9 +458,10 @@ export const GameValues: GameValuesType = {
             slow_speedDivideBy: 2,
             chokester_accuracy: 50,
             bleed_damage: 1,
+            speedBuff_multiplier: 1.5,
         },
         isLootable: false,
-        activeCCGseries: ['mazariniCCG'],
+        activeCCGseries: ['mazariniCCG', 'swCCG'],
         defaultDeck: {
             name: 'default',
             active: true,
@@ -478,24 +480,13 @@ export const GameValues: GameValuesType = {
                     name: 'easy',
                     active: true,
                     valid: true,
-                    cards: [
-                        { id: 'eivindpride', series: 'mazariniCCG', amount: 3, rarity: ItemRarity.Epic },
-                        { id: 'arne', series: 'mazariniCCG', amount: 4, rarity: ItemRarity.Common },
-                        { id: 'arne_caveman', series: 'mazariniCCG', amount: 4, rarity: ItemRarity.Common },
-                        { id: 'geggiexcited', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
-                        { id: 'shrekStare', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
-                    ],
+                    cards: [{ id: 'turtle', series: 'mazariniCCG', amount: 4, rarity: ItemRarity.Rare }],
                 },
                 {
                     name: 'easy',
                     active: true,
                     valid: true,
-                    cards: [
-                        { id: 'arne', series: 'mazariniCCG', amount: 5, rarity: ItemRarity.Common },
-                        { id: 'arne_caveman', series: 'mazariniCCG', amount: 5, rarity: ItemRarity.Common },
-                        { id: 'geggiexcited', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
-                        { id: 'shrekStare', series: 'mazariniCCG', amount: 3, rarity: ItemRarity.Common },
-                    ],
+                    cards: [{ id: 'turtle', series: 'mazariniCCG', amount: 4, rarity: ItemRarity.Rare }],
                 },
             ],
             medium: [

@@ -125,11 +125,35 @@ export class CardActionResolver {
                 this.applyStatusEffect(game, effect, target, 'EIVINDPRIDE')
                 this.log(game, `${effect.emoji}: Eivind might show up to attack ${target.name} in the next **${effect.turns} turns**`)
                 break
+
+            case 'RECOVER':
+                this.applyStatusEffect(game, effect, target, 'RECOVER')
+                this.log(game, `${effect.emoji}: ${target.name} will **recover ${effect.value} HP** per turn for **${effect.turns} turns**`)
+                break
+
+            case 'SPEED_BUFF':
+                this.applyStatusEffect(game, effect, target, 'SPEED_BUFF')
+                this.log(game, `${effect.emoji}: ${target.name} gains **+50% speed** for **${effect.turns - 1} turns**`)
+                break
+
+            case 'DAMAGE_BOOST':
+                this.applyStatusEffect(game, effect, target, 'DAMAGE_BOOST')
+                this.log(game, `${effect.emoji}: ${target.name}'s damage will be **increased by ${effect.value}** next turn`)
+                break
+
+            case 'EXTRA_CARDS':
+                this.applyStatusEffect(game, effect, target, 'EXTRA_CARDS')
+                this.log(game, `${effect.emoji}: ${target.name} can play **${effect.value} cards** next turn`)
+                break
         }
     }
 
     private applyDamage(game: CCGGame, effect: CCGEffect, source: CCGPlayer, target: CCGPlayer, amount: number) {
         let damage = amount
+
+        // Damage boost from DAMAGE_BOOST status
+        const damageBoost = this.getStatusEffect(game, source, 'DAMAGE_BOOST')
+        if (damageBoost && damage > 0) damage += damageBoost.value
 
         // Reflect damage
         const reflect = this.getStatusCondition(game, target, 'REFLECT')
@@ -232,6 +256,11 @@ export class CardActionResolver {
         } else if (status.type === 'GAIN_ENERGY') {
             player.energy += status.value
             this.log(game, `${player.name} gains ${status.value} energy`)
+            await this.delay(2000)
+        } else if (status.type === 'RECOVER') {
+            const healed = Math.min(player.hp + status.value, GameValues.ccg.gameSettings.startingHP) - player.hp
+            player.hp += healed
+            this.log(game, `${player.name} **recovers ${healed} HP**`)
             await this.delay(2000)
         } else if (status.type === 'MYGLING') {
             const healed = Math.min(player.hp + status.value, GameValues.ccg.gameSettings.startingHP) - player.hp

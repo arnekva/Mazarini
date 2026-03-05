@@ -14,6 +14,9 @@ import {
 import { TextUtils } from '../utils/textUtils'
 import { EmojiHelper } from './emojiHelper'
 
+/** CCG series whose emoji names match the card ID exactly (no series prefix) */
+const CCG_SERIES_EMOJI_IS_ID = new Set(['swCCG'])
+
 const fs = require('fs')
 
 interface ICollectableImage {
@@ -308,6 +311,7 @@ export class ImageGenerationHelper {
 
     private async getItemBuffer(collectable: IUserLootItem): Promise<Buffer> {
         const itemUrl = await this.getEmojiImageUrl(collectable, true)
+        if (!itemUrl) return undefined
         const item = await fetch(itemUrl)
         const itemBuffer = Buffer.from(await item.arrayBuffer())
         return await this.resize(itemBuffer, false, currentSetup.ratios.item.size)
@@ -607,6 +611,7 @@ export class ImageGenerationHelper {
 
     private async getImagesForSingleCollectable(item: IUserLootItem, coord: IItemShadowCoordinates): Promise<IImage[]> {
         const url = await this.getEmojiImageUrl(item)
+        if (!url) return []
         const emojiImageBuffer = await this.getPngBufferForWebpUrl(url)
         // const resizedItem = await sharp(emojiImageBuffer).resize({ fit: sharp.fit.inside, width: 75 }).toBuffer()
         const canvas = await getCanvasImage({ buffer: emojiImageBuffer })
@@ -618,15 +623,16 @@ export class ImageGenerationHelper {
         return emojiImageArray
     }
 
-    private async getEmojiImageUrl(item: IUserLootItem, large: boolean = false): Promise<string> {
+    private async getEmojiImageUrl(item: IUserLootItem, large: boolean = false): Promise<string | undefined> {
         const name = this.buildEmojiName(item)
         const emoji = await EmojiHelper.getApplicationEmoji(name, this.client)
+        if (!emoji.urlId) return undefined
         const params = large ? 'size=128&quality=lossless' : 'size=96'
         return `https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?${params}`
     }
 
     private buildEmojiName(item: IUserLootItem): string {
-        if (item.isCCG) return `${item.series}_${item.name}`
+        if (item.isCCG) return CCG_SERIES_EMOJI_IS_ID.has(item.series) ? item.name : `${item.series}_${item.name}`
         return `${item.series}_${item.name}_${item.color.charAt(0)}`.toLowerCase()
     }
 

@@ -7,7 +7,7 @@ export class BotResolver {
 
     public chooseBotCards(game: CCGGame) {
         const bot = game.player2
-        const playable = bot.hand.map((card) => ({ card: card, score: 1 }))
+        const playable = bot.hand.filter((card) => !!card).map((card) => ({ card: card, score: 1 }))
         this.buffCardsOfType(playable, 'DAMAGE', 1, 'OPPONENT')
         this.checkLethal(game, playable)
         this.checkSurvival(game, playable)

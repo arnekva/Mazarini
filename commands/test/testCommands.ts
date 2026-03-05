@@ -58,7 +58,8 @@ export class TestCommands extends AbstractCommands {
 
     private async test(interaction: ChatInteraction | BtnInteraction) {
         const scripts = new Scripts(this.client)
-        // scripts.setCCGCards()
+        scripts.setCCGCards()
+        await scripts.updateLootSeriesAndPacks()
         // scripts.setLootPacks()
         this.messageHelper.replyToInteraction(interaction, 'oppdaterer ccg greier')
     }
