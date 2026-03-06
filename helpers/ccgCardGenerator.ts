@@ -277,6 +277,11 @@ export class CCGCardGenerator {
         fs.writeFileSync(HASH_FILE, JSON.stringify(hashes, null, 2))
     }
 
+    static clearHashes(): void {
+        if (fs.existsSync(HASH_FILE)) fs.unlinkSync(HASH_FILE)
+        artCache.clear()
+    }
+
     /** Fetch, resize and round-clip art for a card, storing it in the art cache */
     private static async cacheArt(card: CCGCard, appEmojis: Collection<string, ApplicationEmoji>): Promise<void> {
         if (artCache.has(card.id)) return

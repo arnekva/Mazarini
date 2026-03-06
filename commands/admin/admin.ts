@@ -467,6 +467,7 @@ export class Admin extends AbstractCommands {
             return
         }
         const dbCards = [...(dbCcg.mazariniCCG ?? []), ...(dbCcg.swCCG ?? [])]
+        this.messageHelper.sendLogMessage(`[CCG] ${interaction.user.username} hentet CCG fra DB (${dbCards.length} kort) og starter regenerering.`)
         await CCGCardGenerator.generateAll(this.client, dbCards)
         await interaction.editReply(`CCG hentet fra DB: ${dbCards.length} kort lastet og generert.`)
     }
@@ -474,9 +475,18 @@ export class Admin extends AbstractCommands {
     private async pushCCGtoDB(interaction: BtnInteraction) {
         await interaction.deferReply({ ephemeral: true })
         const scripts = new Scripts(this.client)
+        this.messageHelper.sendLogMessage(`[CCG] ${interaction.user.username} pusher CCG til DB (lokale data) og starter regenerering.`)
         scripts.updateCCGSeries()
         await CCGCardGenerator.generateAll(this.client)
         await interaction.editReply('CCG-kort pushet til DB og bilder regenerert fra lokale data.')
+    }
+
+    private async regenCCGCards(interaction: BtnInteraction) {
+        await interaction.deferReply({ ephemeral: true })
+        this.messageHelper.sendLogMessage(`[CCG] ${interaction.user.username} tvinger full regenerering av CCG-bilder (cache tømt).`)
+        CCGCardGenerator.clearHashes()
+        await CCGCardGenerator.generateAll(this.client)
+        await interaction.editReply('CCG-bilder regenerert fra disk (cache tømt, alle kort tegnet på nytt).')
     }
 
     private updateBotSettings(interaction: ChatInteraction) {
@@ -498,7 +508,13 @@ export class Admin extends AbstractCommands {
             label: 'Push CCG til DB',
             type: 2,
         })
-        const row = new ActionRowBuilder<ButtonBuilder>().addComponents(settingsBtn, fetchCCGBtn, pushCCGBtn)
+        const regenCCGBtn = new ButtonBuilder({
+            custom_id: 'ADMIN_CCG_REGEN',
+            style: ButtonStyle.Secondary,
+            label: 'Regen CCG bilder',
+            type: 2,
+        })
+        const row = new ActionRowBuilder<ButtonBuilder>().addComponents(settingsBtn, fetchCCGBtn, pushCCGBtn, regenCCGBtn)
         this.messageHelper.replyToInteraction(interaction, 'Admin panel:', { ephemeral: true }, [row])
     }
     static botSettingsId = 'botSettingsModal'
@@ -697,6 +713,12 @@ export class Admin extends AbstractCommands {
                         commandName: 'ADMIN_CCG_PUSH',
                         command: (rawInteraction: BtnInteraction) => {
                             this.pushCCGtoDB(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'ADMIN_CCG_REGEN',
+                        command: (rawInteraction: BtnInteraction) => {
+                            this.regenCCGCards(rawInteraction)
                         },
                     },
                     {

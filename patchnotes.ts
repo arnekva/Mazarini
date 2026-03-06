@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.6.1'
+    public static readonly currentVersion = '30.6.2'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,11 +26,7 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            [
-                '# CCG',
-                '\n* Pity Timer:',
-                '\n* Du vil få økende sjanse for å åpne en legendary for hver pack du åpner uten legendary. Etter 20 pakker har du 100% sjanse for å få en.',
-            ].join('\n')
+            ['# CCG', '* Legger til knapp for å regenerere kort og cleare cache etter en buff', '* Lagt til mer logging'].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
