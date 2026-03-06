@@ -122,7 +122,7 @@ export interface DeckEditorCard {
     id: string
     series: string
     amount: number
-    rarity: ItemRarity
+    rarity?: ItemRarity
 }
 export interface IDailyGameStats {
     moreOrLess?: IMoreOrLessStats

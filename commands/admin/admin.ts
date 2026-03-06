@@ -18,6 +18,7 @@ import { ATCInteraction, BtnInteraction, ChatInteraction, ModalInteraction } fro
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
+import { CCGCardGenerator } from '../../helpers/ccgCardGenerator'
 import { ClientHelper } from '../../helpers/clientHelper'
 import { ComponentsHelper } from '../../helpers/componentsHelper'
 import { dbPrefix, ILootbox, prefixList } from '../../interfaces/database/databaseInterface'
@@ -25,6 +26,7 @@ import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { DailyJobs } from '../../Jobs/dailyJobs'
 import { WeeklyJobs } from '../../Jobs/weeklyJobs'
 import { MazariniBot } from '../../main'
+import { Scripts } from '../../scripts/scripts'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { MentionUtils } from '../../utils/mentionUtils'
 import { MessageUtils } from '../../utils/messageUtils'
@@ -456,11 +458,51 @@ export class Admin extends AbstractCommands {
         } else if (cmd === 'dealornodeal') this.dondAutocomplete(interaction)
     }
 
+    private async fetchCCGFromDB(interaction: BtnInteraction) {
+        await interaction.deferReply({ ephemeral: true })
+        const storage = await this.client.database.getStorage()
+        const dbCcg = storage?.ccg
+        if (!dbCcg?.mazariniCCG?.length) {
+            await interaction.editReply('Ingen CCG-kort funnet i DB.')
+            return
+        }
+        const dbCards = [...(dbCcg.mazariniCCG ?? []), ...(dbCcg.swCCG ?? [])]
+        await CCGCardGenerator.generateAll(this.client, dbCards)
+        await interaction.editReply(`CCG hentet fra DB: ${dbCards.length} kort lastet og generert.`)
+    }
+
+    private async pushCCGtoDB(interaction: BtnInteraction) {
+        await interaction.deferReply({ ephemeral: true })
+        const scripts = new Scripts(this.client)
+        scripts.setCCGCards()
+        await CCGCardGenerator.generateAll(this.client)
+        await interaction.editReply('CCG-kort pushet til DB og bilder regenerert fra lokale data.')
+    }
+
     private updateBotSettings(interaction: ChatInteraction) {
-        this.buildSettingsModal(interaction)
+        const settingsBtn = new ButtonBuilder({
+            custom_id: 'ADMIN_BOT_SETTINGS',
+            style: ButtonStyle.Primary,
+            label: 'Bot Innstillinger',
+            type: 2,
+        })
+        const fetchCCGBtn = new ButtonBuilder({
+            custom_id: 'ADMIN_CCG_FETCH',
+            style: ButtonStyle.Secondary,
+            label: 'Fetch CCG fra DB',
+            type: 2,
+        })
+        const pushCCGBtn = new ButtonBuilder({
+            custom_id: 'ADMIN_CCG_PUSH',
+            style: ButtonStyle.Danger,
+            label: 'Push CCG til DB',
+            type: 2,
+        })
+        const row = new ActionRowBuilder<ButtonBuilder>().addComponents(settingsBtn, fetchCCGBtn, pushCCGBtn)
+        this.messageHelper.replyToInteraction(interaction, 'Admin panel:', { ephemeral: true }, [row])
     }
     static botSettingsId = 'botSettingsModal'
-    private async buildSettingsModal(interaction: ChatInteraction) {
+    private async buildSettingsModal(interaction: ChatInteraction | BtnInteraction) {
         if (interaction) {
             const potValue = new TextInputBuilder()
                 .setCustomId('potValue')
@@ -639,6 +681,24 @@ export class Admin extends AbstractCommands {
                     },
                 ],
                 buttonInteractionComands: [
+                    {
+                        commandName: 'ADMIN_BOT_SETTINGS',
+                        command: (rawInteraction: BtnInteraction) => {
+                            this.buildSettingsModal(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'ADMIN_CCG_FETCH',
+                        command: (rawInteraction: BtnInteraction) => {
+                            this.fetchCCGFromDB(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'ADMIN_CCG_PUSH',
+                        command: (rawInteraction: BtnInteraction) => {
+                            this.pushCCGtoDB(rawInteraction)
+                        },
+                    },
                     {
                         commandName: 'ADMIN_FORCE_RESTART',
                         command: (rawInteraction: BtnInteraction) => {

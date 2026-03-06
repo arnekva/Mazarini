@@ -5,17 +5,18 @@ import { CCGCard, CCGEffectType } from './ccgInterface'
 
 export class CCGValidator {
     public static async validateDeck(client: MazariniClient, user: MazariniUser, deck: ICCGDeck, validationErrors: string[]) {
+        const allCards = (await client.database.getStorage()).ccg
         deck.valid = true
         this.validateDeckSize(deck, validationErrors)
-        this.validateRarityCaps(deck, validationErrors)
-        await this.validateTypeCaps(client, deck, validationErrors)
-        this.validateUserHasAllCards(user, deck, validationErrors)
+        this.validateRarityCaps(deck, validationErrors, allCards)
+        await this.validateTypeCaps(client, deck, validationErrors, allCards)
+        this.validateUserHasAllCards(user, deck, validationErrors, allCards)
         // this.validateMaxDupes?
     }
 
-    public static validateUserHasAllCards(user: MazariniUser, deck: ICCGDeck, validationErrors: string[]) {
+    public static validateUserHasAllCards(user: MazariniUser, deck: ICCGDeck, validationErrors: string[], allCards: ICCGSystem) {
         for (const card of deck.cards) {
-            if (card.amount > this.getCardAmountAvailable(user, card)) {
+            if (card.amount > this.getCardAmountAvailable(user, card, allCards)) {
                 deck.valid = false
                 validationErrors.push(`:warning: You have selected too many of card ${card.id}`)
             }
@@ -28,9 +29,15 @@ export class CCGValidator {
         if (numberOfCards > GameValues.ccg.deck.size) validationErrors.push(':warning: Too many cards')
     }
 
-    public static validateRarityCaps(deck: ICCGDeck, validationErrors: string[]) {
+    public static validateRarityCaps(deck: ICCGDeck, validationErrors: string[], allCards: ICCGSystem) {
         for (const rarity of [ItemRarity.Rare, ItemRarity.Epic, ItemRarity.Legendary]) {
-            const amount = deck.cards?.filter((card) => card.rarity === rarity).reduce((sum, instance) => sum + instance.amount, 0) ?? 0
+            const amount =
+                deck.cards
+                    ?.filter((card) => {
+                        const series = allCards[card.series] as CCGCard[]
+                        return series?.find((c) => c.id === card.id)?.rarity === rarity
+                    })
+                    .reduce((sum, instance) => sum + instance.amount, 0) ?? 0
             const limit = GameValues.ccg.deck.rarityCaps[rarity]
             if (amount > limit) {
                 deck.valid = false
@@ -39,8 +46,7 @@ export class CCGValidator {
         }
     }
 
-    public static async validateTypeCaps(client: MazariniClient, deck: ICCGDeck, validationErrors: string[]) {
-        const allCards = (await client.database.getStorage()).ccg
+    public static async validateTypeCaps(client: MazariniClient, deck: ICCGDeck, validationErrors: string[], allCards: ICCGSystem) {
         const types: CCGEffectType[] = GameValues.ccg.deck.validationTypes
         for (const type of types) {
             const amount = deck.cards?.filter((card) => this.cardHasEffectOfType(allCards, card, type)).reduce((sum, instance) => sum + instance.amount, 0) ?? 0
@@ -52,8 +58,9 @@ export class CCGValidator {
         }
     }
 
-    public static getCardAmountAvailable(user: MazariniUser, card: CCGCard | DeckEditorCard) {
-        const inventory: IUserLootItem[] = user.loot[card.series]?.inventory[card.rarity]?.items
+    public static getCardAmountAvailable(user: MazariniUser, card: CCGCard | DeckEditorCard, allCards?: ICCGSystem) {
+        const rarity = card.rarity ?? (allCards?.[card.series] as CCGCard[])?.find((c) => c.id === card.id)?.rarity
+        const inventory: IUserLootItem[] = user.loot[card.series]?.inventory[rarity]?.items
         return inventory?.find((item) => item.name === card.id)?.amount ?? 0
     }
 

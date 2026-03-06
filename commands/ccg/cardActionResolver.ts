@@ -68,7 +68,7 @@ export class CardActionResolver {
                 this.applyStatusEffect(game, effect, target, 'REDUCE_COST')
                 this.log(
                     game,
-                    `${effect.emoji}: ${target.name} **reduces the cost** of all their cards by **${effect.value}**  ${
+                    `${effect.emoji}: **${effect.sourceCardName}** – ${target.name}'s card costs reduced by **${effect.value}** ${
                         effect.turns ? `for ${effect.turns - 1} turns` : ''
                     }`
                 )

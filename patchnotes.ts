@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.5.2'
+    public static readonly currentVersion = '30.6.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,7 +27,17 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '* Du må nå ha "$" et sted i meldingen for å (forsøke å) trigge gemini - ellers får du 8-ball Høie',
+                '# CCG',
+                '\n* Ny serie: Star Wars',
+                '\n* Legger til 14 nye kort',
+                '\n* Høie kan nå generere kort underveis - dvs at effekter som påvirker kortene dine (både positivt og negativt) vil vises visuelt.',
+                '\n* Små visuelle endringer for å dra nytte av raskere generering',
+                '\n* Nerfs: ',
+                '\n	* Maggiscared - gjør nå damage på deg selv før motstanderen',
+                '\n* Buffs:',
+                '\n	* Turtle: 0 mana',
+                '\n	* Sniff: 0 mana',
+                '\n	* Choke shield: 1 mana',
             ].join('\n')
         )
         container.addSeparator()

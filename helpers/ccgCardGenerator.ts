@@ -26,6 +26,19 @@ const RARITY_BLANK: Record<string, string> = {
     [ItemRarity.Legendary]: 'mazarini_legendary_blank.png',
 }
 
+/** Per-series rarity blank overrides */
+const SERIES_RARITY_BLANK: Record<string, Record<string, string>> = {
+    swCCG: {
+        [ItemRarity.Common]: 'sw/sw_common_blank.png',
+        [ItemRarity.Rare]: 'sw/sw_rare_blank.png',
+        [ItemRarity.Epic]: 'sw/sw_epic_blank.png',
+        [ItemRarity.Legendary]: 'sw/sw_legendary_blank.png',
+    },
+}
+
+/** Resolve the blank filename for a card based on its series and rarity */
+const getBlankFile = (card: CCGCard): string => SERIES_RARITY_BLANK[card.series]?.[card.rarity] ?? RARITY_BLANK[card.rarity] ?? RARITY_BLANK[ItemRarity.Common]
+
 /** Description text colors */
 const RED = '#ef4444'
 const GREEN = '#52B329'
@@ -45,9 +58,18 @@ const TAG_COLORS: Record<string, string> = {
 }
 
 // Layout constants for 480x672 card (pixel-matched to blank templates)
-const ART_SIZE = 255
-const ART_X = 112
-const ART_Y = 78
+// Keep emoji art strictly inside this square with padding.
+const ART_BOUND_LEFT = 98
+const ART_BOUND_TOP = 60
+const ART_BOUND_RIGHT = 384
+const ART_BOUND_BOTTOM = 346
+const ART_PADDING = 15
+const ART_CENTER_X = 241
+const ART_CENTER_Y = 203
+const ART_MAX_SIZE = Math.min(ART_BOUND_RIGHT - ART_BOUND_LEFT, ART_BOUND_BOTTOM - ART_BOUND_TOP) - ART_PADDING * 2
+const ART_SCALE = 0.95
+/** Bump this whenever layout constants change to force card regeneration */
+const LAYOUT_VERSION = 24
 const SPEED_X = 57
 const SPEED_Y = 452
 const COST_X = 240
@@ -76,7 +98,7 @@ export class CCGCardGenerator {
     }
 
     /** Generate all card images. Only regenerates cards whose data has changed. */
-    static async generateAll(client: MazariniClient): Promise<void> {
+    static async generateAll(client: MazariniClient, cards?: CCGCard[]): Promise<void> {
         _isReady = false
         const totalStart = Date.now()
         client.messageHelper.sendLogMessage('[CCG] Starting card image generation...')
@@ -95,8 +117,9 @@ export class CCGCardGenerator {
         let generated = 0
         let skipped = 0
 
+        const allCards = cards ?? [...mazariniCCG, ...swCCG]
         const genStart = Date.now()
-        for (const card of [...mazariniCCG, ...swCCG]) {
+        for (const card of allCards) {
             const hash = CCGCardGenerator.hashCard(card)
             const outputPath = CCGCardGenerator.getCardPath(card)
 
@@ -144,15 +167,21 @@ export class CCGCardGenerator {
         const modified = CCGCardGenerator.applyModifications(card, mods)
         const richSpans = CCGCardGenerator.buildRichDescription(modified)
 
-        const blankFile = card.blank ? `${card.blank}.png` : RARITY_BLANK[card.rarity] ?? RARITY_BLANK[ItemRarity.Common]
+        const blankFile = getBlankFile(card)
         const blankPath = path.resolve(BLANKS_DIR, blankFile)
         const base = sharp(blankPath).resize(CARD_WIDTH, CARD_HEIGHT).png()
         const layers: sharp.OverlayOptions[] = []
 
         const cached = artCache.get(card.id)
         if (cached) {
-            const artLeft = ART_X + Math.floor((ART_SIZE - cached.width) / 2)
-            const artTop = ART_Y + Math.floor((ART_SIZE - cached.height) / 2)
+            const minLeft = ART_BOUND_LEFT + ART_PADDING
+            const minTop = ART_BOUND_TOP + ART_PADDING
+            const maxLeft = ART_BOUND_RIGHT - ART_PADDING - cached.width
+            const maxTop = ART_BOUND_BOTTOM - ART_PADDING - cached.height
+            const centeredLeft = ART_CENTER_X - Math.floor(cached.width / 2)
+            const centeredTop = ART_CENTER_Y - Math.floor(cached.height / 2)
+            const artLeft = Math.max(minLeft, Math.min(maxLeft, centeredLeft))
+            const artTop = Math.max(minTop, Math.min(maxTop, centeredTop))
             layers.push({ input: cached.buffer, top: artTop, left: artLeft })
         }
 
@@ -212,6 +241,17 @@ export class CCGCardGenerator {
 
     private static hashCard(card: CCGCard): string {
         const data = JSON.stringify({
+            _layoutVersion: LAYOUT_VERSION,
+            _artLayout: {
+                left: ART_BOUND_LEFT,
+                top: ART_BOUND_TOP,
+                right: ART_BOUND_RIGHT,
+                bottom: ART_BOUND_BOTTOM,
+                padding: ART_PADDING,
+                centerX: ART_CENTER_X,
+                centerY: ART_CENTER_Y,
+                maxSize: ART_MAX_SIZE,
+            },
             id: card.id,
             name: card.name,
             series: card.series,
@@ -222,7 +262,6 @@ export class CCGCardGenerator {
             accuracy: card.accuracy,
             speed: card.speed,
             cannotMiss: card.cannotMiss,
-            blank: card.blank,
         })
         return crypto.createHash('md5').update(data).digest('hex')
     }
@@ -243,10 +282,14 @@ export class CCGCardGenerator {
         if (artCache.has(card.id)) return
         const artBuffer = await CCGCardGenerator.fetchEmojiArt(card, appEmojis)
         if (!artBuffer) return
-        const resizedArt = await sharp(artBuffer).resize(ART_SIZE, ART_SIZE, { fit: 'inside' }).png().toBuffer()
+        // Trim transparent canvas margins first so visual content is truly centered.
+        const trimmedArt = await sharp(artBuffer).trim().png().toBuffer()
+        // Then scale down by 5% inside the allowed max size.
+        const targetSize = Math.max(1, Math.floor(ART_MAX_SIZE * ART_SCALE))
+        const resizedArt = await sharp(trimmedArt).resize(targetSize, targetSize, { fit: 'inside' }).png().toBuffer()
         const meta = await sharp(resizedArt).metadata()
-        const actualW = meta.width ?? ART_SIZE
-        const actualH = meta.height ?? ART_SIZE
+        const actualW = meta.width ?? targetSize
+        const actualH = meta.height ?? targetSize
         const roundedArt = await sharp(resizedArt)
             .composite([
                 {
@@ -281,8 +324,8 @@ export class CCGCardGenerator {
     private static async generateCardImage(card: CCGCard, outputPath: string, appEmojis: Collection<string, ApplicationEmoji>): Promise<void> {
         const richSpans = CCGCardGenerator.buildRichDescription(card)
 
-        // Load the blank background (card-level override or rarity default)
-        const blankFile = card.blank ? `${card.blank}.png` : RARITY_BLANK[card.rarity] ?? RARITY_BLANK[ItemRarity.Common]
+        // Load the blank background based on series + rarity
+        const blankFile = getBlankFile(card)
         const blankPath = path.resolve(BLANKS_DIR, blankFile)
         const base = sharp(blankPath).resize(CARD_WIDTH, CARD_HEIGHT).png()
         const layers: sharp.OverlayOptions[] = []
@@ -291,8 +334,14 @@ export class CCGCardGenerator {
         await CCGCardGenerator.cacheArt(card, appEmojis)
         const cached = artCache.get(card.id)
         if (cached) {
-            const artLeft = ART_X + Math.floor((ART_SIZE - cached.width) / 2)
-            const artTop = ART_Y + Math.floor((ART_SIZE - cached.height) / 2)
+            const minLeft = ART_BOUND_LEFT + ART_PADDING
+            const minTop = ART_BOUND_TOP + ART_PADDING
+            const maxLeft = ART_BOUND_RIGHT - ART_PADDING - cached.width
+            const maxTop = ART_BOUND_BOTTOM - ART_PADDING - cached.height
+            const centeredLeft = ART_CENTER_X - Math.floor(cached.width / 2)
+            const centeredTop = ART_CENTER_Y - Math.floor(cached.height / 2)
+            const artLeft = Math.max(minLeft, Math.min(maxLeft, centeredLeft))
+            const artTop = Math.max(minTop, Math.min(maxTop, centeredTop))
             layers.push({ input: cached.buffer, top: artTop, left: artLeft })
         }
 
@@ -323,25 +372,25 @@ export class CCGCardGenerator {
   <!-- ═══ STATS ═══ -->
 
   <!-- Speed (left) -->
-  <text x="${SPEED_X}" y="${SPEED_Y}" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${
+    <text x="${SPEED_X}" y="${SPEED_Y}" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${
             card.speed
         }</text>
 
   <!-- Cost (center) -->
-  <text x="${COST_X}" y="${COST_Y}" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${
+    <text x="${COST_X}" y="${COST_Y}" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${
             card.cost
         }</text>
 
   <!-- Accuracy (right) -->
-  <text x="${ACCURACY_X}" y="${ACCURACY_Y}" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${
+    <text x="${ACCURACY_X}" y="${ACCURACY_Y}" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${
             card.accuracy
         }</text>
 
   <!-- ═══ CARD NAME ═══ -->
-  <text x="${NAME_X}" y="${NAME_Y}" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${escapedName}</text>
+        <text x="${NAME_X}" y="${NAME_Y}" font-family="Arial, sans-serif" font-size="34" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${escapedName}</text>
 
-  <!-- ═══ EFFECT DESCRIPTION ═══ -->
-  <g font-family="Arial, sans-serif" font-size="26">
+    <!-- ═══ EFFECT DESCRIPTION ═══ -->
+    <g font-family="Arial, sans-serif" font-size="28">
     ${wrappedLines
         .map(
             (spans, i) =>
@@ -378,6 +427,9 @@ export class CCGCardGenerator {
 
     /** Build rich colored description from card effects */
     private static buildRichDescription(card: CCGCard): TextSpan[] {
+        if (card.id === 'same') return CCGCardGenerator.parseBBCode(`Copy opponent's [yellow]highest cost[/yellow] played card`)
+        if (card.id === 'sw_storm_trooper_n') return CCGCardGenerator.parseBBCode(`Copy opponent's [yellow]lowest cost[/yellow] played card`)
+        if (card.id === 'sw_darth_maul_n') return CCGCardGenerator.parseBBCode(`Cut opponent's [pink]speed[/pink] and [red]accuracy[/red] in half next turn`)
         if (!card.effects || card.effects.length === 0) return [{ text: 'No effect', color: WHITE }]
 
         const effects = card.effects

@@ -27,10 +27,22 @@ export class MazariniBot {
         console.log('Logged in, starting setup')
         this.client.createSlashCommands()
 
-        // Generate CCG card images asynchronously on startup
-        CCGCardGenerator.generateAll(this.client).catch((err) => {
-            console.error('[CCG] Card generation failed:', err)
-        })
+        // Generate CCG card images asynchronously on startup, using cards from DB if available
+        this.client.database
+            .getStorage()
+            .then((storage) => {
+                const dbCcg = storage?.ccg
+                const dbCards = dbCcg ? [...(dbCcg.mazariniCCG ?? []), ...(dbCcg.swCCG ?? [])] : undefined
+                CCGCardGenerator.generateAll(this.client, dbCards?.length ? dbCards : undefined).catch((err) => {
+                    console.error('[CCG] Card generation failed:', err)
+                })
+            })
+            .catch((err) => {
+                console.error('[CCG] Failed to fetch storage for card generation, falling back to local cards:', err)
+                CCGCardGenerator.generateAll(this.client).catch((err2) => {
+                    console.error('[CCG] Card generation (fallback) failed:', err2)
+                })
+            })
 
         // this.client.user.edit({ avatar: 'hoie2.gif' })
         moment.updateLocale('nb', {})

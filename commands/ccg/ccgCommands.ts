@@ -740,7 +740,6 @@ export class CCGCommands extends AbstractCommands {
         const user = await this.database.getUser(interaction.user.id)
         const deck = user.ccg?.decks?.find((deck) => deck.active) ?? GameValues.ccg.defaultDeck
         deck.valid = true
-        return true
         await CCGValidator.validateDeck(this.client, user, deck, new Array<string>())
         return deck.valid
     }
@@ -1093,7 +1092,7 @@ const cardBtn = (gameId: string, cardId: number, card: CCGCard) => {
         custom_id: `CCG_CARD;${gameId};${cardId}`,
         style: ButtonStyle.Secondary,
         disabled: false,
-        label: `${card.id}`,
+        label: `${card.name}`,
         type: 2,
     })
 }

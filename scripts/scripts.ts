@@ -65,7 +65,12 @@ export class Scripts {
 
     public async makeRevealGif() {
         const igh = new ImageGenerationHelper(this.client)
-        const allItems: gifTemplate[] = [...common, ...rare, ...epic, ...legendary]
+        const allItems: gifTemplate[] = [
+            ...common.map((i) => ({ ...i, rarity: ItemRarity.Common })),
+            ...rare.map((i) => ({ ...i, rarity: ItemRarity.Rare })),
+            ...epic.map((i) => ({ ...i, rarity: ItemRarity.Epic })),
+            ...legendary.map((i) => ({ ...i, rarity: ItemRarity.Legendary })),
+        ]
         for (const item of allItems) {
             console.log(item.rarity, ' - ', item.name)
             const lootItem = { name: item.name, series: 'lotr', rarity: item.rarity, color: ItemColor.None, amount: 1 }
@@ -80,7 +85,12 @@ export class Scripts {
         const appEmoji: ApplicationEmojiManager = this.client.application.emojis
         const appEmojis = await appEmoji.fetch()
         const igh = new ImageGenerationHelper(this.client)
-        const allItems: gifTemplate[] = [...common, ...rare, ...epic, ...legendary]
+        const allItems: gifTemplate[] = [
+            ...common.map((i) => ({ ...i, rarity: ItemRarity.Common })),
+            ...rare.map((i) => ({ ...i, rarity: ItemRarity.Rare })),
+            ...epic.map((i) => ({ ...i, rarity: ItemRarity.Epic })),
+            ...legendary.map((i) => ({ ...i, rarity: ItemRarity.Legendary })),
+        ]
         for (const item of allItems) {
             console.log(item.rarity, ' - ', item.name)
             const name = `lotr_${item.name}_n` // Change for CCG
@@ -400,103 +410,103 @@ const lotr_series: ILootSeries = {
 
 export interface gifTemplate {
     name: string
-    rarity: ItemRarity
+    rarity?: ItemRarity
     background: string
 }
 
 const common: gifTemplate[] = [
-    { name: 'barlinman_butterbur', background: 'bree', rarity: ItemRarity.Common },
-    { name: 'pj_cameo', background: 'bree', rarity: ItemRarity.Common },
-    { name: 'grima_wormtongue', background: 'isengard', rarity: ItemRarity.Common },
-    { name: 'sharku', background: 'isengard', rarity: ItemRarity.Common },
-    { name: 'ugluk', background: 'isengard', rarity: ItemRarity.Common },
-    { name: 'elven_brooch', background: 'lothlorien', rarity: ItemRarity.Common },
-    { name: 'lembas_bread', background: 'lothlorien', rarity: ItemRarity.Common },
-    { name: 'bag_end', background: 'middle_earth', rarity: ItemRarity.Common },
-    { name: 'meduseld', background: 'middle_earth', rarity: ItemRarity.Common },
-    { name: 'gondor_shield', background: 'minas_tirith', rarity: ItemRarity.Common },
-    { name: 'shagrat', background: 'mordor', rarity: ItemRarity.Common },
-    { name: 'elven_shield', background: 'rivendell', rarity: ItemRarity.Common },
-    { name: 'brego', background: 'rohan', rarity: ItemRarity.Common },
-    { name: 'gamling', background: 'rohan', rarity: ItemRarity.Common },
-    { name: 'hama', background: 'rohan', rarity: ItemRarity.Common },
-    { name: 'farmer_maggot', background: 'shire', rarity: ItemRarity.Common },
-    { name: 'gaffer_gamgee', background: 'shire', rarity: ItemRarity.Common },
-    { name: 'l_s_baggins', background: 'shire', rarity: ItemRarity.Common },
-    { name: 'odo_proudfoot', background: 'shire', rarity: ItemRarity.Common },
-    { name: 'rosie_cotton', background: 'shire', rarity: ItemRarity.Common },
+    { name: 'barlinman_butterbur', background: 'bree' },
+    { name: 'pj_cameo', background: 'bree' },
+    { name: 'grima_wormtongue', background: 'isengard' },
+    { name: 'sharku', background: 'isengard' },
+    { name: 'ugluk', background: 'isengard' },
+    { name: 'elven_brooch', background: 'lothlorien' },
+    { name: 'lembas_bread', background: 'lothlorien' },
+    { name: 'bag_end', background: 'middle_earth' },
+    { name: 'meduseld', background: 'middle_earth' },
+    { name: 'gondor_shield', background: 'minas_tirith' },
+    { name: 'shagrat', background: 'mordor' },
+    { name: 'elven_shield', background: 'rivendell' },
+    { name: 'brego', background: 'rohan' },
+    { name: 'gamling', background: 'rohan' },
+    { name: 'hama', background: 'rohan' },
+    { name: 'farmer_maggot', background: 'shire' },
+    { name: 'gaffer_gamgee', background: 'shire' },
+    { name: 'l_s_baggins', background: 'shire' },
+    { name: 'odo_proudfoot', background: 'shire' },
+    { name: 'rosie_cotton', background: 'shire' },
 ]
 
 const rare: gifTemplate[] = [
-    { name: 'grond', background: 'minas_morgul', rarity: ItemRarity.Rare },
-    { name: 'king_of_the_dead', background: 'dunharrow', rarity: ItemRarity.Rare },
-    { name: 'grishnakh', background: 'isengard', rarity: ItemRarity.Rare },
-    { name: 'snaga', background: 'isengard', rarity: ItemRarity.Rare },
-    { name: 'treebeard', background: 'isengard', rarity: ItemRarity.Rare },
-    { name: 'haldir', background: 'lothlorien', rarity: ItemRarity.Rare },
-    { name: 'argonath', background: 'middle_earth', rarity: ItemRarity.Rare },
-    { name: 'black_gate', background: 'middle_earth', rarity: ItemRarity.Rare },
-    { name: 'minas_morgul', background: 'middle_earth', rarity: ItemRarity.Rare },
-    { name: 'eight_nazgul', background: 'minas_morgul', rarity: ItemRarity.Rare },
-    { name: 'fell_beast', background: 'minas_morgul', rarity: ItemRarity.Rare },
-    { name: 'gothmog', background: 'minas_morgul', rarity: ItemRarity.Rare },
-    { name: 'ninth_nazgul', background: 'minas_morgul', rarity: ItemRarity.Rare },
-    { name: 'seventh_nazgul', background: 'minas_morgul', rarity: ItemRarity.Rare },
-    { name: 'sixth_nazgul', background: 'minas_morgul', rarity: ItemRarity.Rare },
-    { name: 'crown_of_gondor', background: 'minas_tirith', rarity: ItemRarity.Rare },
-    { name: 'horn_of_gondor', background: 'minas_tirith', rarity: ItemRarity.Rare },
-    { name: 'gorbag', background: 'mordor', rarity: ItemRarity.Rare },
-    { name: 'sting', background: 'rivendell', rarity: ItemRarity.Rare },
-    { name: 'eowyn', background: 'rohan', rarity: ItemRarity.Rare },
+    { name: 'grond', background: 'minas_morgul' },
+    { name: 'king_of_the_dead', background: 'dunharrow' },
+    { name: 'grishnakh', background: 'isengard' },
+    { name: 'snaga', background: 'isengard' },
+    { name: 'treebeard', background: 'isengard' },
+    { name: 'haldir', background: 'lothlorien' },
+    { name: 'argonath', background: 'middle_earth' },
+    { name: 'black_gate', background: 'middle_earth' },
+    { name: 'minas_morgul', background: 'middle_earth' },
+    { name: 'eight_nazgul', background: 'minas_morgul' },
+    { name: 'fell_beast', background: 'minas_morgul' },
+    { name: 'gothmog', background: 'minas_morgul' },
+    { name: 'ninth_nazgul', background: 'minas_morgul' },
+    { name: 'seventh_nazgul', background: 'minas_morgul' },
+    { name: 'sixth_nazgul', background: 'minas_morgul' },
+    { name: 'crown_of_gondor', background: 'minas_tirith' },
+    { name: 'horn_of_gondor', background: 'minas_tirith' },
+    { name: 'gorbag', background: 'mordor' },
+    { name: 'sting', background: 'rivendell' },
+    { name: 'eowyn', background: 'rohan' },
 ]
 
 const epic: gifTemplate[] = [
-    { name: 'gandalf_the_gray', background: 'council_of_elrond', rarity: ItemRarity.Epic },
-    { name: 'lurtz', background: 'isengard', rarity: ItemRarity.Epic },
-    { name: 'palantir', background: 'isengard', rarity: ItemRarity.Epic },
-    { name: 'celeborn', background: 'lothlorien', rarity: ItemRarity.Epic },
-    { name: 'light_of_earendil', background: 'lothlorien', rarity: ItemRarity.Epic },
-    { name: 'helms_deep', background: 'middle_earth', rarity: ItemRarity.Epic },
-    { name: 'mount_doom', background: 'middle_earth', rarity: ItemRarity.Epic },
-    { name: 'orthanc', background: 'middle_earth', rarity: ItemRarity.Epic },
-    { name: 'fifth_nazgul', background: 'minas_morgul', rarity: ItemRarity.Epic },
-    { name: 'fourth_nazgul', background: 'minas_morgul', rarity: ItemRarity.Epic },
-    { name: 'second_nazgul', background: 'minas_morgul', rarity: ItemRarity.Epic },
-    { name: 'third_nazgul', background: 'minas_morgul', rarity: ItemRarity.Epic },
-    { name: 'denethor', background: 'minas_tirith', rarity: ItemRarity.Epic },
-    { name: 'isildur', background: 'mordor', rarity: ItemRarity.Epic },
-    { name: 'shelob', background: 'mordor', rarity: ItemRarity.Epic },
-    { name: 'balrog', background: 'moria', rarity: ItemRarity.Epic },
-    { name: 'arwen', background: 'rivendell', rarity: ItemRarity.Epic },
-    { name: 'shards_of_narsil', background: 'rivendell', rarity: ItemRarity.Epic },
-    { name: 'eomer', background: 'rohan', rarity: ItemRarity.Epic },
-    { name: 'bilbo', background: 'shire', rarity: ItemRarity.Epic },
+    { name: 'gandalf_the_gray', background: 'council_of_elrond' },
+    { name: 'lurtz', background: 'isengard' },
+    { name: 'palantir', background: 'isengard' },
+    { name: 'celeborn', background: 'lothlorien' },
+    { name: 'light_of_earendil', background: 'lothlorien' },
+    { name: 'helms_deep', background: 'middle_earth' },
+    { name: 'mount_doom', background: 'middle_earth' },
+    { name: 'orthanc', background: 'middle_earth' },
+    { name: 'fifth_nazgul', background: 'minas_morgul' },
+    { name: 'fourth_nazgul', background: 'minas_morgul' },
+    { name: 'second_nazgul', background: 'minas_morgul' },
+    { name: 'third_nazgul', background: 'minas_morgul' },
+    { name: 'denethor', background: 'minas_tirith' },
+    { name: 'isildur', background: 'mordor' },
+    { name: 'shelob', background: 'mordor' },
+    { name: 'balrog', background: 'moria' },
+    { name: 'arwen', background: 'rivendell' },
+    { name: 'shards_of_narsil', background: 'rivendell' },
+    { name: 'eomer', background: 'rohan' },
+    { name: 'bilbo', background: 'shire' },
 ]
 
 const legendary: gifTemplate[] = [
-    { name: 'aragorn', background: 'council_of_elrond', rarity: ItemRarity.Legendary },
-    { name: 'boromir', background: 'council_of_elrond', rarity: ItemRarity.Legendary },
-    { name: 'gandalf_the_white', background: 'council_of_elrond', rarity: ItemRarity.Legendary },
-    { name: 'gimli', background: 'council_of_elrond', rarity: ItemRarity.Legendary },
-    { name: 'legolas', background: 'council_of_elrond', rarity: ItemRarity.Legendary },
-    { name: 'frodo', background: 'council_of_elrond', rarity: ItemRarity.Legendary },
-    { name: 'merry', background: 'council_of_elrond', rarity: ItemRarity.Legendary },
-    { name: 'pippin', background: 'council_of_elrond', rarity: ItemRarity.Legendary },
-    { name: 'samwise', background: 'council_of_elrond', rarity: ItemRarity.Legendary },
-    { name: 'anduril', background: 'dunharrow', rarity: ItemRarity.Legendary },
-    { name: 'saruman', background: 'isengard', rarity: ItemRarity.Legendary },
-    { name: 'galadriel', background: 'lothlorien', rarity: ItemRarity.Legendary },
-    { name: 'barad_dur', background: 'middle_earth', rarity: ItemRarity.Legendary },
-    { name: 'witch_king', background: 'minas_morgul', rarity: ItemRarity.Legendary },
-    { name: 'faramir', background: 'minas_tirith', rarity: ItemRarity.Legendary },
-    { name: 'staff_of_gandalf', background: 'minas_tirith', rarity: ItemRarity.Legendary },
-    { name: 'sauron', background: 'mordor', rarity: ItemRarity.Legendary },
-    { name: 'gollum', background: 'mordor', rarity: ItemRarity.Legendary },
-    { name: 'elrond', background: 'rivendell', rarity: ItemRarity.Legendary },
-    { name: 'theoden', background: 'rohan', rarity: ItemRarity.Legendary },
+    { name: 'aragorn', background: 'council_of_elrond' },
+    { name: 'boromir', background: 'council_of_elrond' },
+    { name: 'gandalf_the_white', background: 'council_of_elrond' },
+    { name: 'gimli', background: 'council_of_elrond' },
+    { name: 'legolas', background: 'council_of_elrond' },
+    { name: 'frodo', background: 'council_of_elrond' },
+    { name: 'merry', background: 'council_of_elrond' },
+    { name: 'pippin', background: 'council_of_elrond' },
+    { name: 'samwise', background: 'council_of_elrond' },
+    { name: 'anduril', background: 'dunharrow' },
+    { name: 'saruman', background: 'isengard' },
+    { name: 'galadriel', background: 'lothlorien' },
+    { name: 'barad_dur', background: 'middle_earth' },
+    { name: 'witch_king', background: 'minas_morgul' },
+    { name: 'faramir', background: 'minas_tirith' },
+    { name: 'staff_of_gandalf', background: 'minas_tirith' },
+    { name: 'sauron', background: 'mordor' },
+    { name: 'gollum', background: 'mordor' },
+    { name: 'elrond', background: 'rivendell' },
+    { name: 'theoden', background: 'rohan' },
 ]
 
-const unobtainable: gifTemplate = { name: 'the_one_ring', background: 'black_texture', rarity: ItemRarity.Unobtainable }
+const unobtainable: gifTemplate = { name: 'the_one_ring', background: 'black_texture' }
 
 const lotrInventoryArts: ILootSeriesInventoryArt[] = [
     { name: 'Argonath', opacity: 0.5 },
@@ -614,9 +624,9 @@ const premiumLootPack: ILootbox = {
 }
 
 const startingInventory: IUserLootItem[] = [
-    { name: 'arne', color: ItemColor.None, rarity: ItemRarity.Common, series: 'mazariniCCG', amount: 5, isCCG: true },
-    { name: 'arne_caveman', color: ItemColor.None, rarity: ItemRarity.Common, series: 'mazariniCCG', amount: 5, isCCG: true },
-    { name: 'geggiexcited', color: ItemColor.None, rarity: ItemRarity.Common, series: 'mazariniCCG', amount: 2, isCCG: true },
+    { name: 'arne', color: ItemColor.None, series: 'mazariniCCG', amount: 5, isCCG: true, rarity: ItemRarity.Common },
+    { name: 'arne_caveman', color: ItemColor.None, series: 'mazariniCCG', amount: 5, isCCG: true, rarity: ItemRarity.Common },
+    { name: 'geggiexcited', color: ItemColor.None, series: 'mazariniCCG', amount: 2, isCCG: true, rarity: ItemRarity.Common },
 ]
 
 const startingDeck: ICCGDeck = {
@@ -624,8 +634,8 @@ const startingDeck: ICCGDeck = {
     active: true,
     valid: true,
     cards: [
-        { id: 'arne', series: 'mazariniCCG', amount: 5, rarity: ItemRarity.Common },
-        { id: 'arne_caveman', series: 'mazariniCCG', amount: 5, rarity: ItemRarity.Common },
-        { id: 'geggiexcited', series: 'mazariniCCG', amount: 2, rarity: ItemRarity.Common },
+        { id: 'arne', series: 'mazariniCCG', amount: 5 },
+        { id: 'arne_caveman', series: 'mazariniCCG', amount: 5 },
+        { id: 'geggiexcited', series: 'mazariniCCG', amount: 2 },
     ],
 }

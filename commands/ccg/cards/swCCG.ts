@@ -2,7 +2,6 @@ import { ItemRarity } from '../../../interfaces/database/databaseInterface'
 import { CCGCard, CCGCardType } from '../ccgInterface'
 
 export const swCCG: CCGCard[] = [
-    // ── COMMON ──────────────────────────────────────────────────────────────
     {
         id: 'sw_battle_droid_n',
         name: 'Battle Droid',
@@ -19,7 +18,6 @@ export const swCCG: CCGCard[] = [
         speed: 40,
         rarity: ItemRarity.Common,
         accuracy: 95,
-        blank: 'sw/sw_common_blank',
     },
     {
         id: 'sw_gonk_droid_n',
@@ -42,27 +40,8 @@ export const swCCG: CCGCard[] = [
         speed: 30,
         rarity: ItemRarity.Common,
         accuracy: 90,
-        blank: 'sw/sw_common_blank',
     },
-    {
-        id: 'sw_darth_maul_n',
-        name: 'Darth Maul',
-        series: 'swCCG',
-        type: CCGCardType.Effect,
-        effects: [
-            {
-                type: 'GAIN_ENERGY',
-                target: 'SELF',
-                value: 4,
-            },
-        ],
-        cost: 2,
-        speed: 50,
-        rarity: ItemRarity.Common,
-        accuracy: 100,
-        cannotMiss: true,
-        blank: 'sw/sw_common_blank',
-    },
+
     {
         id: 'sw_jarjar_n',
         name: 'Jar Jar Binks',
@@ -86,7 +65,6 @@ export const swCCG: CCGCard[] = [
         speed: 35,
         rarity: ItemRarity.Common,
         accuracy: 80,
-        blank: 'sw/sw_common_blank',
     },
     // ── RARE ─────────────────────────────────────────────────────────────────
     {
@@ -117,7 +95,6 @@ export const swCCG: CCGCard[] = [
         speed: 30,
         rarity: ItemRarity.Rare,
         accuracy: 90,
-        blank: 'sw/sw_rare_blank',
     },
     {
         id: 'sw_han_solo_n',
@@ -141,7 +118,6 @@ export const swCCG: CCGCard[] = [
         speed: 55,
         rarity: ItemRarity.Rare,
         accuracy: 90,
-        blank: 'sw/sw_rare_blank',
     },
     {
         id: 'sw_mace_windu_n',
@@ -161,9 +137,7 @@ export const swCCG: CCGCard[] = [
         rarity: ItemRarity.Rare,
         accuracy: 100,
         cannotMiss: true,
-        blank: 'sw/sw_rare_blank',
     },
-    // ── EPIC ─────────────────────────────────────────────────────────────────
     {
         // Special card – copies opponent's LOWEST cost played card (handled in checkForSpecialCards)
         id: 'sw_storm_trooper_n',
@@ -173,9 +147,32 @@ export const swCCG: CCGCard[] = [
         effects: [],
         cost: 1,
         speed: 1,
-        rarity: ItemRarity.Epic,
+        rarity: ItemRarity.Rare,
         accuracy: 90,
-        blank: 'sw/sw_epic_blank',
+    },
+    // ── EPIC ─────────────────────────────────────────────────────────────────
+    {
+        id: 'sw_darth_maul_n',
+        name: 'Darth Maul',
+        series: 'swCCG',
+        type: CCGCardType.Effect,
+        effects: [
+            {
+                type: 'SLOW',
+                target: 'OPPONENT',
+                turns: 2,
+            },
+            {
+                type: 'CHOKESTER',
+                target: 'OPPONENT',
+                turns: 2,
+            },
+        ],
+        cost: 2,
+        speed: 50,
+        rarity: ItemRarity.Epic,
+        accuracy: 100,
+        cannotMiss: true,
     },
     {
         id: 'sw_yoda_n',
@@ -199,7 +196,6 @@ export const swCCG: CCGCard[] = [
         speed: 20,
         rarity: ItemRarity.Epic,
         accuracy: 85,
-        blank: 'sw/sw_epic_blank',
     },
     {
         id: 'sw_padme_amidala_n',
@@ -226,7 +222,6 @@ export const swCCG: CCGCard[] = [
         rarity: ItemRarity.Epic,
         accuracy: 100,
         cannotMiss: true,
-        blank: 'sw/sw_epic_blank',
     },
     {
         id: 'sw_princess_leia_n',
@@ -242,14 +237,13 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'HEAL',
                 target: 'SELF',
-                value: 1,
+                value: 3,
             },
         ],
         cost: 1,
-        speed: 45,
+        speed: 66,
         rarity: ItemRarity.Epic,
         accuracy: 90,
-        blank: 'sw/sw_epic_blank',
     },
     // ── LEGENDARY ─────────────────────────────────────────────────────────────
     {
@@ -271,7 +265,6 @@ export const swCCG: CCGCard[] = [
         rarity: ItemRarity.Legendary,
         accuracy: 100,
         cannotMiss: true,
-        blank: 'sw/sw_legendary_blank',
     },
     {
         id: 'sw_qui_gon_jinn_n',
@@ -292,7 +285,6 @@ export const swCCG: CCGCard[] = [
         rarity: ItemRarity.Legendary,
         accuracy: 100,
         cannotMiss: true,
-        blank: 'sw/sw_legendary_blank',
     },
     {
         id: 'sw_luke_skywalker_n',
@@ -315,6 +307,5 @@ export const swCCG: CCGCard[] = [
         speed: 60,
         rarity: ItemRarity.Legendary,
         accuracy: 90,
-        blank: 'sw/sw_legendary_blank',
     },
 ]

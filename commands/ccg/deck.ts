@@ -150,7 +150,8 @@ export class DeckCommands extends AbstractCommands {
         const values = GameValues.ccg.trade.values
         let total = 0
         for (const card of editor.deck.cards) {
-            total += values[card.rarity] * card.amount
+            const rarity = editor.userCards.find((c) => c.id === card.id)?.rarity ?? ItemRarity.Common
+            total += values[rarity] * card.amount
         }
         return total
     }
@@ -300,7 +301,7 @@ export class DeckCommands extends AbstractCommands {
         const changeValue = interaction.customId.split(';')[3] === 'more' ? 1 : -1
         const existingCard = editor.deck.cards.findIndex((card) => card.id === cardId)
         if (existingCard >= 0) editor.deck.cards[existingCard].amount = editor.deck.cards[existingCard].amount + changeValue
-        else editor.deck.cards.push({ id: cardId, series: card.series, amount: 1, rarity: card.rarity })
+        else editor.deck.cards.push({ id: cardId, series: card.series, amount: 1 })
         editor.deck.cards = editor.deck.cards.filter((card) => card.amount > 0)
         editor.saved = false
         await this.validateDeck(editor)
@@ -412,9 +413,10 @@ export class DeckCommands extends AbstractCommands {
         const tradeValue = this.getTradeValue(editor)
         user.ccg = { ...user.ccg, shards: (user.ccg?.shards ?? 0) + tradeValue }
         for (const card of editor.deck.cards) {
-            const inventory = user.loot[card.series][`inventory`][card.rarity]['items'] as IUserLootItem[]
+            const rarity = editor.userCards.find((c) => c.id === card.id)?.rarity ?? ItemRarity.Common
+            const inventory = user.loot[card.series][`inventory`][rarity]['items'] as IUserLootItem[]
             const newInventory = inventory.map((item) => (item.name === card.id ? { ...item, amount: item.amount - card.amount } : item))
-            user.loot[card.series][`inventory`][card.rarity]['items'] = newInventory
+            user.loot[card.series][`inventory`][rarity]['items'] = newInventory
         }
         await this.database.updateUser(user)
     }
