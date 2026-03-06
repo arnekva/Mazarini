@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.6.0'
+    public static readonly currentVersion = '30.6.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,18 +28,8 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '# CCG',
-                '\n* Ny serie: Star Wars',
-                '\n * Legger til 14 nye kort',
-                '\n* Høie kan nå generere kort underveis i spillet - dvs at effekter som påvirker kortene dine (både positivt og negativt) vil vises visuelt.',
-                '\n* Små visuelle endringer for å dra nytte av raskere generering',
-                '\n* Dette betyr at nerfs og buffs kan implementeres superraskt',
-                '\n* Nerfs: ',
-                '\n	* Maggiscared - gjør nå damage på deg selv før motstanderen',
-                '\n	* Kekw_gun - 2 -> 3 energy',
-                '\n* Buffs:',
-                '\n	* Turtle: 0 mana',
-                '\n	* Sniff: 0 mana',
-                '\n	* Choke shield: 1 mana',
+                '\n* Pity Timer:',
+                '\n* Du vil få økende sjanse for å åpne en legendary for hver pack du åpner uten legendary. Etter 20 pakker har du 100% sjanse for å få en.',
             ].join('\n')
         )
         container.addSeparator()
