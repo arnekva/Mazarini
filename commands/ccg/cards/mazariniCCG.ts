@@ -116,7 +116,7 @@ export const mazariniCCG: CCGCard[] = [
                 turns: 1,
             },
         ],
-        cost: 2,
+        cost: 3,
         speed: 100,
         rarity: ItemRarity.Epic,
         accuracy: 100,
