@@ -474,7 +474,7 @@ export class Admin extends AbstractCommands {
     private async pushCCGtoDB(interaction: BtnInteraction) {
         await interaction.deferReply({ ephemeral: true })
         const scripts = new Scripts(this.client)
-        scripts.setCCGCards()
+        scripts.updateCCGSeries()
         await CCGCardGenerator.generateAll(this.client)
         await interaction.editReply('CCG-kort pushet til DB og bilder regenerert fra lokale data.')
     }

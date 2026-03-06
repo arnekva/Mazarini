@@ -290,7 +290,7 @@ const defaultLootStats: ILootStats = {
 
 const mazariniCCG_series: ILootSeries = {
     name: 'mazariniCCG',
-    added: new Date(),
+    added: new Date('2024-01-01'),
     common: ['shrekStare', 'geggiexcited', 'arne', 'arne_caveman'],
     rare: ['the_chokester', 'maggiscared', 'sniff', 'are_you', 'kms2', 'yarrne', 'geggi_kill', 'choke_shield', 'turtle', 'waiting', 'catmygling'],
     epic: ['pointerbrothers1', 'same', 'KEKW_gun', 'kms_gun', 'arnenymous', 'polse', 'eivindpride'],

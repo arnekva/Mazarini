@@ -423,7 +423,8 @@ export class DatabaseHelper {
     public async updateLootboxSeries(series: ILootSeries) {
         const updates = {}
         const allSeries = (await this.getLootboxSeries()) ?? []
-        const updatedSeries = allSeries.map((s) => (s.name === series.name ? series : s))
+        const exists = allSeries.some((s) => s.name === series.name)
+        const updatedSeries = exists ? allSeries.map((s) => (s.name === series.name ? series : s)) : [...allSeries, series]
         updates[`/other/loot/series`] = updatedSeries
         this.db.updateData(updates)
     }
