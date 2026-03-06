@@ -435,6 +435,10 @@ export class CCGCardGenerator {
         if (card.id === 'same') return CCGCardGenerator.parseBBCode(`Copy opponent's [yellow]highest cost[/yellow] played card`)
         if (card.id === 'sw_storm_trooper_n') return CCGCardGenerator.parseBBCode(`Copy opponent's [yellow]lowest cost[/yellow] played card`)
         if (card.id === 'sw_darth_maul_n') return CCGCardGenerator.parseBBCode(`Cut opponent's [pink]speed[/pink] and [red]accuracy[/red] in half next turn`)
+        if (card.id === 'sw_boba_fett_n')
+            return CCGCardGenerator.parseBBCode(`Deal [red]2 damage[/red]. If played [yellow]alone[/yellow] this turn, deal [red]2 more[/red]`)
+        if (card.id === 'sw_chewbacca_n')
+            return CCGCardGenerator.parseBBCode(`Copy opponent's [yellow]highest cost[/yellow] played card. Target is [pink]random[/pink]`)
         if (!card.effects || card.effects.length === 0) return [{ text: 'No effect', color: WHITE }]
 
         const effects = card.effects

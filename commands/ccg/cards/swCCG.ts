@@ -15,7 +15,7 @@ export const swCCG: CCGCard[] = [
             },
         ],
         cost: 0,
-        speed: 40,
+        speed: 10,
         rarity: ItemRarity.Common,
         accuracy: 95,
     },
@@ -64,7 +64,7 @@ export const swCCG: CCGCard[] = [
         cost: 1,
         speed: 35,
         rarity: ItemRarity.Common,
-        accuracy: 80,
+        accuracy: 100,
     },
     // ── RARE ─────────────────────────────────────────────────────────────────
     {
@@ -92,9 +92,9 @@ export const swCCG: CCGCard[] = [
             },
         ],
         cost: 3,
-        speed: 30,
+        speed: 31,
         rarity: ItemRarity.Rare,
-        accuracy: 90,
+        accuracy: 95,
     },
     {
         id: 'sw_han_solo_n',
@@ -108,10 +108,10 @@ export const swCCG: CCGCard[] = [
                 value: 1,
             },
             {
-                // +50% speed for 2 turns
+                // +50% speed for 4 turns
                 type: 'SPEED_BUFF',
                 target: 'SELF',
-                turns: 3,
+                turns: 4,
             },
         ],
         cost: 1,
@@ -186,10 +186,10 @@ export const swCCG: CCGCard[] = [
                 value: 2,
             },
             {
-                // SLOW for 1 turn (turns - 1 displayed)
+                // SLOW for 3 turn (turns - 2 displayed)
                 type: 'SLOW',
                 target: 'OPPONENT',
-                turns: 2,
+                turns: 3,
             },
         ],
         cost: 2,
@@ -208,7 +208,7 @@ export const swCCG: CCGCard[] = [
                 type: 'REDUCE_COST',
                 target: 'SELF',
                 value: 1,
-                turns: 2,
+                turns: 3,
             },
             {
                 type: 'REDUCE_COST',
@@ -280,7 +280,7 @@ export const swCCG: CCGCard[] = [
                 turns: 2,
             },
         ],
-        cost: 2,
+        cost: 1,
         speed: 5,
         rarity: ItemRarity.Legendary,
         accuracy: 100,
@@ -307,5 +307,101 @@ export const swCCG: CCGCard[] = [
         speed: 60,
         rarity: ItemRarity.Legendary,
         accuracy: 90,
+    },
+    // ── COMMON (new) ──────────────────────────────────────────────────────────
+    {
+        id: 'sw_r2d2_n',
+        name: 'R2-D2',
+        series: 'swCCG',
+        type: CCGCardType.Attack,
+        effects: [
+            {
+                type: 'DAMAGE',
+                target: 'OPPONENT',
+                value: 1,
+            },
+            {
+                type: 'GAIN_ENERGY',
+                target: 'SELF',
+                value: 1,
+            },
+        ],
+        cost: 1,
+        speed: 25,
+        rarity: ItemRarity.Common,
+        accuracy: 90,
+    },
+    {
+        id: 'sw_3cpo_n',
+        name: 'C-3PO',
+        series: 'swCCG',
+        type: CCGCardType.Attack,
+        effects: [
+            {
+                type: 'DAMAGE',
+                target: 'OPPONENT',
+                value: 2,
+            },
+            {
+                type: 'GAIN_ENERGY',
+                target: 'SELF',
+                value: 2,
+            },
+        ],
+        cost: 2,
+        speed: 20,
+        rarity: ItemRarity.Common,
+        accuracy: 90,
+    },
+    {
+        id: 'sw_rebel_soldier_n',
+        name: 'Rebel Soldier',
+        series: 'swCCG',
+        type: CCGCardType.Attack,
+        effects: [
+            {
+                type: 'DAMAGE',
+                target: 'OPPONENT',
+                value: 1,
+            },
+            {
+                type: 'HEAL',
+                target: 'SELF',
+                value: 2,
+            },
+        ],
+        cost: 1,
+        speed: 30,
+        rarity: ItemRarity.Common,
+        accuracy: 85,
+    },
+    // ── RARE (new) ────────────────────────────────────────────────────────────
+    {
+        id: 'sw_boba_fett_n',
+        name: 'Boba Fett',
+        series: 'swCCG',
+        type: CCGCardType.Attack,
+        effects: [
+            {
+                type: 'DAMAGE',
+                target: 'OPPONENT',
+                value: 2,
+            },
+        ],
+        cost: 2,
+        speed: 55,
+        rarity: ItemRarity.Rare,
+        accuracy: 90,
+    },
+    {
+        id: 'sw_chewbacca_n',
+        name: 'Chewbacca',
+        series: 'swCCG',
+        type: CCGCardType.Effect,
+        effects: [],
+        cost: 1,
+        speed: 5,
+        rarity: ItemRarity.Rare,
+        accuracy: 80,
     },
 ]

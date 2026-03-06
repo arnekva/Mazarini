@@ -414,6 +414,52 @@ export class CCGCommands extends AbstractCommands {
                     )
                 }
             }
+            if (card.id === 'sw_boba_fett_n') {
+                // Solo bonus: if this is the only card played this turn, deal 2 extra damage
+                if (submitted.length === 1) {
+                    const cardId = randomUUID().substring(0, 10)
+                    const successful = this.isCardSuccessful(game, player, card)
+                    const speed = this.getSpeed(game, player, card)
+                    game.state.stack.push({
+                        cardId: cardId,
+                        emoji: card.emoji,
+                        targetPlayerId: player.opponentId,
+                        sourceCardName: card.name,
+                        sourcePlayerId: player.id,
+                        speed: speed,
+                        accuracy: 100,
+                        cardSuccessful: successful,
+                        type: 'DAMAGE',
+                        value: 2,
+                    })
+                }
+            }
+            if (card.id === 'sw_chewbacca_n') {
+                // Copy highest cost card from opponent this turn, target is RANDOM
+                const cardId = randomUUID().substring(0, 10)
+                const successful = this.isCardSuccessful(game, player, card)
+                const opponent = this.getOpponent(game, player.id)
+                const opponentCards = opponent.hand.filter((c) => c.selected).sort((a, b) => b.cost - a.cost) // descending → highest cost first
+                const cardCopied = opponentCards.length > 0 ? opponentCards[0] : undefined
+                if (cardCopied) {
+                    const speed = this.getSpeed(game, player, cardCopied)
+                    game.state.stack.push(
+                        ...cardCopied.effects.map((effect) => ({
+                            cardId: cardId,
+                            emoji: cardCopied.emoji,
+                            targetPlayerId: Math.random() > 0.5 ? player.id : opponent.id,
+                            sourceCardName: `${card.name} (${cardCopied.name})`,
+                            sourcePlayerId: player.id,
+                            speed: speed,
+                            accuracy: effect.accuracy ?? 100,
+                            cardSuccessful: successful,
+                            type: effect.type,
+                            value: effect.value,
+                            turns: effect.turns,
+                        }))
+                    )
+                }
+            }
         }
     }
 

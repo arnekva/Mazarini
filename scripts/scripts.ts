@@ -303,8 +303,8 @@ const mazariniCCG_series: ILootSeries = {
 const swCCG_series: ILootSeries = {
     name: 'swCCG',
     added: new Date(),
-    common: ['sw_battle_droid_n', 'sw_gonk_droid_n', 'sw_darth_maul_n', 'sw_jarjar_n'],
-    rare: ['sw_general_grevious_n', 'sw_han_solo_n', 'sw_mace_windu_n'],
+    common: ['sw_battle_droid_n', 'sw_gonk_droid_n', 'sw_darth_maul_n', 'sw_jarjar_n', 'sw_r2d2_n', 'sw_3cpo_n', 'sw_rebel_soldier_n'],
+    rare: ['sw_general_grevious_n', 'sw_han_solo_n', 'sw_mace_windu_n', 'sw_boba_fett_n', 'sw_chewbacca_n'],
     epic: ['sw_storm_trooper_n', 'sw_yoda_n', 'sw_padme_amidala_n', 'sw_princess_leia_n'],
     legendary: ['sw_space_jesus_n', 'sw_qui_gon_jinn_n', 'sw_luke_skywalker_n'],
     hasColor: false,
