@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.7.0'
+    public static readonly currentVersion = '30.7.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,19 +25,7 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(
-            [
-                '# CCG',
-                '* Legger til 6 kort i Star Wars serien',
-                '* Buffs:',
-                '   * Jarjar: Accuracy 80 -> 100',
-                '   * General Grievous: Accuracy 90 -> 100',
-                '   * Han Solo: Speed 3 -> 4 turns',
-                '   * Yoda: Slow 2 -> 3 turns',
-                '   * Qui-Gon: 2 -> 1 Energy cost',
-                '* Retarded effekten er nå tilbake til 50% (opp fra 33%)',
-            ].join('\n')
-        )
+        const text = new TextDisplayBuilder().setContent(['# CCG', '* Oppdatert alle deckene til Høie.'].join('\n'))
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 

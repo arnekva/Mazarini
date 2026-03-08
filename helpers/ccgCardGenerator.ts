@@ -439,6 +439,7 @@ export class CCGCardGenerator {
             return CCGCardGenerator.parseBBCode(`Deal [red]2 damage[/red]. If played [yellow]alone[/yellow] this turn, deal [red]2 more[/red]`)
         if (card.id === 'sw_chewbacca_n')
             return CCGCardGenerator.parseBBCode(`Copy opponent's [yellow]highest cost[/yellow] played card. Target is [pink]random[/pink]`)
+        if (card.id === 'maggiscared') return CCGCardGenerator.parseBBCode(`[red]25% chance[/red] to take [red]3 damage[/red]. Deal [red]3 damage[/red]`)
         if (!card.effects || card.effects.length === 0) return [{ text: 'No effect', color: WHITE }]
 
         const effects = card.effects
