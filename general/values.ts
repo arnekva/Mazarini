@@ -575,7 +575,7 @@ export const GameValues: GameValuesType = {
                         { id: 'shrekStare', series: 'mazariniCCG', amount: 2 },
                         { id: 'kms_gun', series: 'mazariniCCG', amount: 1 },
                         { id: 'hoie', series: 'mazariniCCG', amount: 1 },
-                        { id: 'space_jesus_n', series: 'swCCG', amount: 1 },
+                        { id: 'sw_space_jesus_n', series: 'swCCG', amount: 1 },
                         { id: 'sw_luke_skywalker_n', series: 'swCCG', amount: 1 },
                         { id: 'are_you', series: 'mazariniCCG', amount: 1 },
                         { id: 'pointerbrothers1', series: 'mazariniCCG', amount: 1 },
