@@ -305,7 +305,7 @@ export const mazariniCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'SELF',
-                value: 1,
+                value: 2,
             },
             {
                 type: 'GAIN_ENERGY',

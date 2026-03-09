@@ -539,7 +539,7 @@ export class CCGCardGenerator {
             case 'DAMAGE_BOOST':
                 return `Boost all damage by [red]+${effect.value}[/red] for [pink]${effect.turns} turns[/pink]`
             case 'EXTRA_CARDS':
-                return `Play [blue]${effect.value} cards[/blue] next turn`
+                return `Play [blue]${effect.value} cards[/blue] for [pink]${effect.turns} turns[/pink]`
             default:
                 return `${effect.type}`
         }

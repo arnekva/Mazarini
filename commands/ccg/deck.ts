@@ -181,9 +181,10 @@ export class DeckCommands extends AbstractCommands {
         editor.cardView.attachments.push(attachment)
         const available = this.getCardAmountAvailable(user, card)
         const inDeck = editor.deck.cards?.find((instance) => instance.id === card.id)?.amount ?? 0
+        const maxAllowed = card.rarity === ItemRarity.Legendary ? 1 : 2
         let cardInfo = `**${card.name}**\n${TextUtils.capitalizeFirstLetter(card.type)}\n${TextUtils.capitalizeFirstLetter(card.rarity)}\n\n${
             editor.isTradeEditor ? 'Tradeable:' : 'Available:'
-        } ${available}\n${editor.isTradeEditor ? 'Selected for trade:' : 'In deck:'} ${inDeck}`
+        } ${available}\n${editor.isTradeEditor ? 'Selected for trade:' : 'In deck:'} ${inDeck}${editor.isTradeEditor ? '' : ` / ${maxAllowed}`}`
         if (editor.isTradeEditor) {
             const activeDeck = user.ccg?.decks?.find((deck) => deck.active)
             const cardsInActiveDeck = activeDeck.cards.find((instance) => instance.id === card.id)?.amount ?? 0
@@ -195,7 +196,7 @@ export class DeckCommands extends AbstractCommands {
                 .setThumbnailAccessory((thumbnail) => thumbnail.setURL(`attachment://${card.id}.png`)),
             card.id
         )
-        container.addComponent(ccgDeckCardAmount(editor.id, card.id, available, inDeck), `${card.id}_buttons`)
+        container.addComponent(ccgDeckCardAmount(editor.id, card.id, available, inDeck, maxAllowed), `${card.id}_buttons`)
         container.addComponent(ComponentsHelper.createSeparatorComponent(), `${card.id}_separator`)
     }
 
@@ -665,7 +666,7 @@ const deleteDeckButton = (userId: string, deckName: string) => {
     )
 }
 
-const ccgDeckCardAmount = (editorId: string, cardId: string, available: number, inDeck: number) => {
+const ccgDeckCardAmount = (editorId: string, cardId: string, available: number, inDeck: number, maxAllowed: number = 99) => {
     return new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder({
             custom_id: `DECK_CARD;${editorId};${cardId};less`,
@@ -677,7 +678,7 @@ const ccgDeckCardAmount = (editorId: string, cardId: string, available: number, 
         new ButtonBuilder({
             custom_id: `DECK_CARD;${editorId};${cardId};more`,
             style: ButtonStyle.Success,
-            disabled: available <= inDeck,
+            disabled: available <= inDeck || inDeck >= maxAllowed,
             label: '+',
             type: 2,
         })

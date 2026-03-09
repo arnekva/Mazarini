@@ -9,9 +9,9 @@ export class CCGValidator {
         deck.valid = true
         this.validateDeckSize(deck, validationErrors)
         this.validateRarityCaps(deck, validationErrors, allCards)
-        await this.validateTypeCaps(client, deck, validationErrors, allCards)
+        this.validateTypeCaps(client, deck, validationErrors, allCards)
         this.validateUserHasAllCards(user, deck, validationErrors, allCards)
-        // this.validateMaxDupes?
+        this.validateMaxDuplicates(deck, validationErrors, allCards)
     }
 
     public static validateUserHasAllCards(user: MazariniUser, deck: ICCGDeck, validationErrors: string[], allCards: ICCGSystem) {
@@ -46,7 +46,24 @@ export class CCGValidator {
         }
     }
 
-    public static async validateTypeCaps(client: MazariniClient, deck: ICCGDeck, validationErrors: string[], allCards: ICCGSystem) {
+    public static validateMaxDuplicates(deck: ICCGDeck, validationErrors: string[], allCards: ICCGSystem) {
+        for (const card of deck.cards) {
+            const series = allCards[card.series] as CCGCard[]
+            const fullCard = series?.find((c) => c.id === card.id)
+
+            if (!fullCard) continue
+
+            const maxAllowed = fullCard.rarity === ItemRarity.Legendary ? 1 : 2
+
+            if (card.amount > maxAllowed) {
+                deck.valid = false
+                const cardName = fullCard.name || card.id
+                validationErrors.push(`:warning: Max ${maxAllowed} of "${cardName}" allowed per deck`)
+            }
+        }
+    }
+
+    public static validateTypeCaps(client: MazariniClient, deck: ICCGDeck, validationErrors: string[], allCards: ICCGSystem) {
         const types: CCGEffectType[] = GameValues.ccg.deck.validationTypes
         for (const type of types) {
             const amount = deck.cards?.filter((card) => this.cardHasEffectOfType(allCards, card, type)).reduce((sum, instance) => sum + instance.amount, 0) ?? 0

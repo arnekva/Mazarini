@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.7.1'
+    public static readonly currentVersion = '30.8.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,7 +25,19 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(['# CCG', '* Oppdatert alle deckene til Høie.'].join('\n'))
+        const text = new TextDisplayBuilder().setContent(
+            [
+                '# CCG',
+                '* Høie kan nå discarde kort når han ikke har nok energi.',
+                '* Oppdatert alle deckene til Høie.',
+                '* Du kan nå ha maks 2 av hvert kort i decket ditt (maks 1 av hver legendary)',
+                '* Legge til helt nye kort i seriene er nå enklere.',
+                '* Nerfs:',
+                '   * :kms2: Gjør nå 2 damage',
+                '* Buffs:',
+                '   * Qui-Gon Jinn: Redusert fra 3 til 2 runder',
+            ].join('\n')
+        )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 

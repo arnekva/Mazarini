@@ -4,9 +4,15 @@ import { CCGCard, CCGEffectType, CCGGame, CCGPlayer, CCGTarget } from './ccgInte
 
 export class BotResolver {
     constructor() {}
-
-    public chooseBotCards(game: CCGGame) {
+    public chooseBotCards(game: CCGGame): boolean {
         const bot = game.player2
+
+        // Check if bot should mulligan before selecting cards
+        if (this.shouldMulligan(game, bot)) {
+            this.selectCardsToDiscard(game, bot)
+            return true // returning true indicates bot is discarding
+        }
+
         const playable = bot.hand.filter((card) => !!card).map((card) => ({ card: card, score: 1 }))
         this.buffCardsOfType(playable, 'DAMAGE', 1, 'OPPONENT')
         this.checkLethal(game, playable)
@@ -20,8 +26,83 @@ export class BotResolver {
 
         if (this.shouldSaveEnergy(game, playable)) {
             bot.submitted = true
-            return
+            return false // returning false indicates bot is playing cards (or passing)
         } else this.selectCards(game, bot, playable)
+
+        return false // returning false indicates bot is playing cards
+    }
+
+    /**
+     * Determines if the bot should discard cards (mulligan)
+     * Returns true if:
+     * - Bot has 0-1 energy
+     * - No cards in hand are playable with current energy
+     * - Bot doesn't have energy-generating cards that are playable
+     */
+    private shouldMulligan(game: CCGGame, bot: CCGPlayer): boolean {
+        // Only consider mulligan if energy is very low
+        if (bot.energy > 1) return false
+
+        const hand = bot.hand.filter((card) => !!card)
+        if (hand.length === 0) return false
+
+        // Check if any card is playable
+        const hasPlayableCard = hand.some((card) => {
+            const cost = this.getCardCost(game, card)
+            return cost <= bot.energy
+        })
+
+        // If we have playable cards, don't mulligan
+        if (hasPlayableCard) return false
+
+        // Check if we have any energy-generating cards that would help
+        const hasEnergyCards = hand.some((card) => card.effects?.some((effect) => effect.type === 'GAIN_ENERGY' && effect.target === 'SELF'))
+
+        // If we have no playable cards and at least one card to discard, mulligan
+        // Prioritize mulligan if we don't have energy cards in hand
+        return hand.length >= 2 || !hasEnergyCards
+    }
+
+    /**
+     * Selects cards to discard, prioritizing:
+     * 1. High-cost cards (3+ energy)
+     * 2. Cards without immediate energy generation
+     * 3. Keeping at least 1-2 cards to avoid discarding everything
+     */
+    private selectCardsToDiscard(game: CCGGame, bot: CCGPlayer) {
+        const hand = bot.hand.filter((card) => !!card)
+
+        // Score cards based on what we want to keep vs discard
+        const scoredCards = hand.map((card) => {
+            let discardScore = 0
+            const cost = this.getCardCost(game, card)
+
+            // Prioritize discarding high-cost cards
+            if (cost >= 3) discardScore += 3
+            else if (cost === 2) discardScore += 2
+            else discardScore += 1
+
+            // Keep energy-generating cards (negative score = less likely to discard)
+            const hasImmediateEnergy = card.effects?.some((effect) => effect.type === 'GAIN_ENERGY' && effect.target === 'SELF' && (effect.turns ?? 0) === 0)
+            if (hasImmediateEnergy) discardScore -= 10
+
+            // Keep low-cost cards that might become playable
+            if (cost <= 1) discardScore -= 2
+
+            return { card, discardScore }
+        })
+
+        // Sort by discard score (highest = most likely to discard)
+        scoredCards.sort((a, b) => b.discardScore - a.discardScore)
+
+        // Discard 1-3 cards depending on hand size, but keep at least 1-2 cards
+        const numToDiscard = Math.min(Math.max(1, Math.floor(hand.length / 2)), hand.length - 1)
+
+        for (let i = 0; i < numToDiscard; i++) {
+            scoredCards[i].card.selected = true
+        }
+
+        bot.submitted = true
     }
 
     private selectCards(game: CCGGame, bot: CCGPlayer, playable: { card: CCGCard; score: number }[]) {

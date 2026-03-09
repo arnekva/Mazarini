@@ -595,8 +595,20 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private chooseBotCards(game: CCGGame) {
-        this.botResolver.chooseBotCards(game)
-        this.addEffectsToStack(game, game.player2)
+        const wantsToDiscard = this.botResolver.chooseBotCards(game)
+        // Only add effects to stack if bot is playing cards, not discarding
+        if (!wantsToDiscard) {
+            this.addEffectsToStack(game, game.player2)
+        } else {
+            // Add log entry for bot discarding
+            const discardedCards = game.player2.hand.filter((card) => card.selected)
+            if (discardedCards.length > 0) {
+                game.state.log.push({
+                    turn: game.state.turn,
+                    message: `*${game.player2.name} discarded ${discardedCards.length} card${discardedCards.length > 1 ? 's' : ''} to mulligan*`,
+                })
+            }
+        }
     }
 
     private updatePlayerStates(game: CCGGame) {

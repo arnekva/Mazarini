@@ -273,7 +273,6 @@ export const swCCG: CCGCard[] = [
         type: CCGCardType.Effect,
         effects: [
             {
-                // Play 3 cards next turn (turns: 2 → ticks once this turn, active next turn)
                 type: 'EXTRA_CARDS',
                 target: 'SELF',
                 value: 3,
@@ -332,7 +331,7 @@ export const swCCG: CCGCard[] = [
         accuracy: 90,
     },
     {
-        id: 'sw_3cpo_n',
+        id: 'sw_c3po_n',
         name: 'C-3PO',
         series: 'swCCG',
         type: CCGCardType.Attack,
