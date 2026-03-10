@@ -15,7 +15,7 @@ export const swCCG: CCGCard[] = [
             },
         ],
         cost: 0,
-        speed: 10,
+        speed: 60,
         rarity: ItemRarity.Common,
         accuracy: 95,
     },
@@ -33,7 +33,7 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'SELF',
-                value: 2,
+                value: 1,
             },
         ],
         cost: 0,
@@ -58,7 +58,7 @@ export const swCCG: CCGCard[] = [
                 type: 'RETARDED',
                 target: 'SELF',
                 turns: 2,
-                statusAccuracy: 100,
+                statusAccuracy: 50,
             },
         ],
         cost: 1,
@@ -136,7 +136,6 @@ export const swCCG: CCGCard[] = [
         speed: 10,
         rarity: ItemRarity.Rare,
         accuracy: 100,
-        cannotMiss: true,
     },
     {
         // Special card – copies opponent's LOWEST cost played card (handled in checkForSpecialCards)
@@ -168,7 +167,7 @@ export const swCCG: CCGCard[] = [
                 turns: 2,
             },
         ],
-        cost: 2,
+        cost: 1,
         speed: 50,
         rarity: ItemRarity.Epic,
         accuracy: 100,
@@ -183,7 +182,7 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 2,
+                value: 3,
             },
             {
                 // SLOW for 3 turn (turns - 2 displayed)
@@ -227,7 +226,7 @@ export const swCCG: CCGCard[] = [
         id: 'sw_princess_leia_n',
         name: 'Princess Leia',
         series: 'swCCG',
-        type: CCGCardType.Attack,
+        type: CCGCardType.Heal,
         effects: [
             {
                 type: 'DAMAGE',
@@ -303,7 +302,7 @@ export const swCCG: CCGCard[] = [
             },
         ],
         cost: 3,
-        speed: 60,
+        speed: 25,
         rarity: ItemRarity.Legendary,
         accuracy: 90,
     },
@@ -372,12 +371,12 @@ export const swCCG: CCGCard[] = [
         cost: 1,
         speed: 30,
         rarity: ItemRarity.Common,
-        accuracy: 85,
+        accuracy: 90,
     },
     // ── RARE (new) ────────────────────────────────────────────────────────────
     {
         id: 'sw_boba_fett_n',
-        name: 'Boba Fett',
+        name: '',
         series: 'swCCG',
         type: CCGCardType.Attack,
         effects: [
@@ -387,7 +386,7 @@ export const swCCG: CCGCard[] = [
                 value: 2,
             },
         ],
-        cost: 2,
+        cost: 1,
         speed: 55,
         rarity: ItemRarity.Rare,
         accuracy: 90,

@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.8.1'
+    public static readonly currentVersion = '30.8.2'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,8 +28,20 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '# CCG',
-                '* Fikser en bug hvor introduksjonen av nye copy-kort kunne forårsake infinite kopiering igjen',
-                '* Fikser en bug hvor spillet kunne krasje etter at Space Jesus ble spilt',
+                '* :areyou: 3 -> 2 energy. 2 -> 1 turns. Accuracy 90 -> 95',
+                '* :pointerbrothers1: 1 -> 0 energy. 5 -> 3 turns',
+                '* :kms_gun: 3 -> 1 energy. 0 energy regain. 90 -> 95 accuracy',
+                '* :polse: 3 -> 1. 0 energy regain. Heal 1. Fjerner fortsatt negative status effekter.',
+                '* :areyou: 3 -> 2 energy. 2 -> 1 turns',
+                '* Boba fett: 2 -> 1 energy',
+                '* Luke Skywalker: Speed 60 -> 25',
+                '* Yoda: Speed 2 -> 3 damage',
+                '* Darth Maul: 2 -> Energy',
+                '* Gonk Droid: Self damage 2 -> 1',
+                '* Battle Droid: Speed 10 -> 60',
+                '* Mace Windu: Fjernet "cannot miss" markering. Accuracy er fortsatt 100.',
+                '* JarJar: Har nå kun 50% sjanse for å gjøre deg selv retarded. Damage accuracy mot motstander er fortsatt 100',
+                '* Høie sin discard-strategi er oppdatert.',
             ].join('\n')
         )
         container.addSeparator()

@@ -514,7 +514,9 @@ export class CCGCardGenerator {
             case 'REFLECT':
                 return effect.turns ? `Reflect damage for [pink]${effect.turns} turn[/pink]` : `Reflect damage`
             case 'SLOW':
-                return `Apply [pink]Slow[/pink] to opponent for [pink]${effect.turns} turns[/pink]`
+                return effect.target === 'SELF'
+                    ? `Slow [pink]self[/pink] for [pink]${effect.turns} turns[/pink]`
+                    : `Apply [pink]Slow[/pink] to opponent for [pink]${effect.turns} turns[/pink]`
             case 'CHOKESTER':
                 return `Apply [pink]Chokester[/pink] for [pink]${effect.turns} turns[/pink]`
             case 'MYGLING':

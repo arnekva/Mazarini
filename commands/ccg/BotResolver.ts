@@ -36,31 +36,20 @@ export class BotResolver {
      * Determines if the bot should discard cards (mulligan)
      * Returns true if:
      * - Bot has 0-1 energy
-     * - No cards in hand are playable with current energy
-     * - Bot doesn't have energy-generating cards that are playable
+     * - Fewer than 2 cards in hand are playable with current energy
      */
     private shouldMulligan(game: CCGGame, bot: CCGPlayer): boolean {
         // Only consider mulligan if energy is very low
         if (bot.energy > 1) return false
 
         const hand = bot.hand.filter((card) => !!card)
-        if (hand.length === 0) return false
+        if (hand.length < 2) return false
 
-        // Check if any card is playable
-        const hasPlayableCard = hand.some((card) => {
-            const cost = this.getCardCost(game, card)
-            return cost <= bot.energy
-        })
+        // Count how many cards are playable with current energy
+        const playableCount = hand.filter((card) => this.getCardCost(game, card) <= bot.energy).length
 
-        // If we have playable cards, don't mulligan
-        if (hasPlayableCard) return false
-
-        // Check if we have any energy-generating cards that would help
-        const hasEnergyCards = hand.some((card) => card.effects?.some((effect) => effect.type === 'GAIN_ENERGY' && effect.target === 'SELF'))
-
-        // If we have no playable cards and at least one card to discard, mulligan
-        // Prioritize mulligan if we don't have energy cards in hand
-        return hand.length >= 2 || !hasEnergyCards
+        // Mulligan if fewer than 2 cards are playable
+        return playableCount < 2
     }
 
     /**

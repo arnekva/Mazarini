@@ -601,13 +601,16 @@ export class CCGCommands extends AbstractCommands {
         if (!wantsToDiscard) {
             this.addEffectsToStack(game, game.player2)
         } else {
-            // Add log entry for bot discarding
+            // Add log entry for bot discarding and remove cards from hand immediately
+            // so handlePlayerSubmit doesn't incorrectly deduct energy for discarded cards
             const discardedCards = game.player2.hand.filter((card) => card.selected)
             if (discardedCards.length > 0) {
                 game.state.log.push({
                     turn: game.state.turn,
                     message: `*${game.player2.name} discarded ${discardedCards.length} card${discardedCards.length > 1 ? 's' : ''} to mulligan*`,
                 })
+                game.player2.usedCards.push(...discardedCards)
+                game.player2.hand = game.player2.hand.filter((card) => !card.selected)
             }
         }
     }
