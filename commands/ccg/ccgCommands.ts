@@ -359,13 +359,14 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private checkForSpecialCards(game: CCGGame, player: CCGPlayer) {
+        const copyCardIds = ['same', 'sw_storm_trooper_n', 'sw_chewbacca_n']
         const submitted = player.hand.filter((card) => card.selected)
         for (const card of submitted) {
             if (card.id === 'same') {
                 const cardId = randomUUID().substring(0, 10)
                 const succesful = this.isCardSuccessful(game, player, card)
                 const opponent = this.getOpponent(game, player.id)
-                const opponentCards = opponent.hand.filter((card) => card.selected && card.id != 'same')?.sort((a, b) => b.cost - a.cost)
+                const opponentCards = opponent.hand.filter((card) => card.selected && !copyCardIds.includes(card.id))?.sort((a, b) => b.cost - a.cost)
                 const cardCopied = opponentCards?.length ?? 0 > 0 ? opponentCards[0] : undefined
                 if (cardCopied) {
                     const speed = this.getSpeed(game, player, cardCopied)
@@ -393,7 +394,7 @@ export class CCGCommands extends AbstractCommands {
                 const cardId = randomUUID().substring(0, 10)
                 const successful = this.isCardSuccessful(game, player, card)
                 const opponent = this.getOpponent(game, player.id)
-                const opponentCards = opponent.hand.filter((c) => c.selected && c.id !== 'sw_storm_trooper_n')?.sort((a, b) => a.cost - b.cost) // ascending → lowest cost first
+                const opponentCards = opponent.hand.filter((c) => c.selected && !copyCardIds.includes(c.id))?.sort((a, b) => a.cost - b.cost) // ascending → lowest cost first
                 const cardCopied = opponentCards?.length ?? 0 > 0 ? opponentCards[0] : undefined
                 if (cardCopied) {
                     const speed = this.getSpeed(game, player, cardCopied)
@@ -439,7 +440,7 @@ export class CCGCommands extends AbstractCommands {
                 const cardId = randomUUID().substring(0, 10)
                 const successful = this.isCardSuccessful(game, player, card)
                 const opponent = this.getOpponent(game, player.id)
-                const opponentCards = opponent.hand.filter((c) => c.selected).sort((a, b) => b.cost - a.cost) // descending → highest cost first
+                const opponentCards = opponent.hand.filter((c) => c.selected && !copyCardIds.includes(c.id)).sort((a, b) => b.cost - a.cost) // descending → highest cost first
                 const cardCopied = opponentCards.length > 0 ? opponentCards[0] : undefined
                 if (cardCopied) {
                     const speed = this.getSpeed(game, player, cardCopied)

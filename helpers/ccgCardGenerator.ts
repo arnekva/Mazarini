@@ -195,6 +195,7 @@ export class CCGCardGenerator {
     /** Apply a list of modifications to a deep copy of a card */
     private static applyModifications(card: CCGCard, mods: CardModification[]): CCGCard {
         const c = structuredClone(card)
+        const effects = c.effects ?? []
         // Apply overrides first, then deltas
         for (const mod of mods) {
             if (mod.type === 'ACCURACY_OVERRIDE') c.accuracy = mod.value
@@ -205,21 +206,21 @@ export class CCGCardGenerator {
                     c.cost = Math.max(0, c.cost + mod.value)
                     break
                 case 'DAMAGE_DELTA':
-                    for (const effect of c.effects) {
+                    for (const effect of effects) {
                         if (effect.type === 'DAMAGE' && effect.value !== undefined) {
                             effect.value = Math.max(0, effect.value + mod.value)
                         }
                     }
                     break
                 case 'HEAL_DELTA':
-                    for (const effect of c.effects) {
+                    for (const effect of effects) {
                         if (effect.type === 'HEAL' && effect.value !== undefined) {
                             effect.value = Math.max(0, effect.value + mod.value)
                         }
                     }
                     break
                 case 'ENERGY_DELTA':
-                    for (const effect of c.effects) {
+                    for (const effect of effects) {
                         if ((effect.type === 'GAIN_ENERGY' || effect.type === 'LOSE_ENERGY') && effect.value !== undefined) {
                             effect.value = Math.max(0, effect.value + mod.value)
                         }
