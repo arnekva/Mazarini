@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.8.3'
+    public static readonly currentVersion = '30.8.5'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,10 +28,9 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '# CCG',
-                '* :yarrne: 3 -> 2 energy. 2 -> 1 turns. Accuracy 90 -> 95',
-                '* :are_you: Fikser en feil fra forrige patch som satte accuracy på effekten til 50%.',
-                '* :padme: Reduserer dine kort i 2 runder, og motstanderens kort bare 1 runde.',
-                '* Fikser en feil i kortgenereringen som viste 1 turn for mye på noen labels',
+                '* Discards vil nå vises i spilloggen.',
+                '* Oppdaterer Høie sine deck.',
+                '* Fikser en bug som gjorde at dersom du fjernet en effekt som retarded fra deg selv ble ikke target oppdatert, og kunne føre til at du fortsatt kunne treffe feil',
             ].join('\n')
         )
         container.addSeparator()

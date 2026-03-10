@@ -11,6 +11,13 @@ export class CardActionResolver {
 
     public async resolveSingleEffect(game: CCGGame, effect: CCGEffect) {
         const source = this.getPlayer(game, effect.sourcePlayerId)
+        // Re-evaluate target now in case RETARDED was cleared by an earlier effect this round
+        if (effect.cardTarget) {
+            const retarded = game.state.statusConditions.find((s) => s.ownerId === source.id && s.type === 'RETARDED')
+            const flip = retarded && Math.random() < retarded.accuracy / 100
+            const wantsOpponent = effect.cardTarget === 'OPPONENT'
+            effect.targetPlayerId = wantsOpponent !== !!flip ? source.id : source.opponentId
+        }
         const target = this.getPlayer(game, effect.targetPlayerId)
         const opponent = this.getPlayer(game, source.opponentId)
         if (!effect.cardSuccessful) {
@@ -69,7 +76,7 @@ export class CardActionResolver {
                 this.log(
                     game,
                     `${effect.emoji}: **${effect.sourceCardName}** – ${target.name}'s card costs reduced by **${effect.value}** ${
-                        effect.turns ? `for ${effect.turns - 1} turns` : ''
+                        effect.turns ? `for ${effect.turns} turns` : ''
                     }`
                 )
                 break
@@ -90,17 +97,17 @@ export class CardActionResolver {
 
             case 'RETARDED':
                 this.applyStatusCondition(game, effect, target, 'RETARDED')
-                this.log(game, `${effect.emoji}: ${target.name} is **retarded** for the next **${effect.turns - 1} turns**`)
+                this.log(game, `${effect.emoji}: ${target.name} is **retarded** for the next **${effect.turns} turns**`)
                 break
 
             case 'SLOW':
                 this.applyStatusCondition(game, effect, target, 'SLOW')
-                this.log(game, `${effect.emoji}: ${target.name} is **slow** for the next **${effect.turns - 1} turns**`)
+                this.log(game, `${effect.emoji}: ${target.name} is **slow** for the next **${effect.turns} turns**`)
                 break
 
             case 'CHOKESTER':
                 this.applyStatusCondition(game, effect, target, 'CHOKESTER')
-                this.log(game, `${effect.emoji}: ${target.name} is a **chokester** for the next **${effect.turns - 1} turns**`)
+                this.log(game, `${effect.emoji}: ${target.name} is a **chokester** for the next **${effect.turns} turns**`)
                 break
 
             case 'CHOKE_SHIELD':
@@ -133,7 +140,7 @@ export class CardActionResolver {
 
             case 'SPEED_BUFF':
                 this.applyStatusEffect(game, effect, target, 'SPEED_BUFF')
-                this.log(game, `${effect.emoji}: ${target.name} gains **+50% speed** for **${effect.turns - 1} turns**`)
+                this.log(game, `${effect.emoji}: ${target.name} gains **+50% speed** for **${effect.turns} turns**`)
                 break
 
             case 'DAMAGE_BOOST':
@@ -151,9 +158,9 @@ export class CardActionResolver {
     private applyDamage(game: CCGGame, effect: CCGEffect, source: CCGPlayer, target: CCGPlayer, amount: number) {
         let damage = amount
 
-        // Damage boost from DAMAGE_BOOST status
+        // Damage boost from DAMAGE_BOOST status (skip if created this turn)
         const damageBoost = this.getStatusEffect(game, source, 'DAMAGE_BOOST')
-        if (damageBoost && damage > 0) damage += damageBoost.value
+        if (damageBoost && damage > 0 && damageBoost.createdOnTurn !== game.state.turn) damage += damageBoost.value
 
         // Reflect damage
         const reflect = this.getStatusCondition(game, target, 'REFLECT')
@@ -206,6 +213,8 @@ export class CardActionResolver {
             remainingTurns: effect.turns ?? 100,
             accuracy: effect.statusAccuracy ?? 100,
             emoji: effect.emoji,
+            includeCurrentTurn: effect.includeCurrentTurn,
+            createdOnTurn: game.state.turn,
         })
     }
 
@@ -220,6 +229,8 @@ export class CardActionResolver {
             remainingTurns: effect.turns ?? 100,
             accuracy: effect.statusAccuracy ?? 100,
             emoji: effect.emoji,
+            includeCurrentTurn: effect.includeCurrentTurn,
+            createdOnTurn: game.state.turn,
         })
     }
 
@@ -240,7 +251,7 @@ export class CardActionResolver {
     }
 
     private removeAllStatusForPlayer(game: CCGGame, target: CCGPlayer) {
-        game.state.statusConditions = game.state.statusConditions.filter((s) => s.ownerId !== target.id)
+        game.state.statusConditions = game.state.statusConditions.filter((s) => s.ownerId !== target.id || s.type === 'REFLECT')
     }
 
     public async tickStatusEffects(game: CCGGame, status: StatusEffect) {
@@ -285,7 +296,11 @@ export class CardActionResolver {
             await this.delay(2000)
         }
 
-        status.remainingTurns--
+        // Skip tick on the turn the status was created, unless it includes current turn
+        const skipTick = status.createdOnTurn === game.state.turn && !status.includeCurrentTurn
+        if (!skipTick) {
+            status.remainingTurns--
+        }
 
         game.state.statusEffects = game.state.statusEffects.filter((s) => s.remainingTurns > 0)
         game.state.statusConditions = game.state.statusConditions.filter((s) => s.remainingTurns > 0)

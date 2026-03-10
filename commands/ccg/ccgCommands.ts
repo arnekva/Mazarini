@@ -143,7 +143,14 @@ export class CCGCommands extends AbstractCommands {
                 ephemeral: true,
             })
         interaction.deferUpdate()
-        player.usedCards.push(...player.hand.filter((card) => card.selected))
+        const discarded = player.hand.filter((card) => card.selected)
+        if (discarded.length > 0) {
+            game.state.log.push({
+                turn: game.state.turn,
+                message: `*${player.name} discards ${discarded.length} card${discarded.length > 1 ? 's' : ''}*`,
+            })
+        }
+        player.usedCards.push(...discarded)
         player.hand = player.hand.filter((card) => !card.selected)
         player.submitted = true
         this.handlePlayerSubmit(game, player)
@@ -342,6 +349,7 @@ export class CCGCommands extends AbstractCommands {
                             cardId: cardId,
                             emoji: card.emoji,
                             targetPlayerId: this.getTarget(game, player, effect),
+                            cardTarget: effect.target,
                             sourceCardName: card.name,
                             sourcePlayerId: player.id,
                             speed: speed,
@@ -351,6 +359,7 @@ export class CCGCommands extends AbstractCommands {
                             value: effect.value,
                             turns: effect.turns,
                             statusAccuracy: effect.statusAccuracy ?? 100,
+                            includeCurrentTurn: effect.includeCurrentTurn,
                         }
                     })
                 )
@@ -384,6 +393,7 @@ export class CCGCommands extends AbstractCommands {
                                 type: effect.type,
                                 value: effect.value,
                                 turns: effect.turns,
+                                includeCurrentTurn: effect.includeCurrentTurn,
                             }
                         })
                     )
@@ -411,6 +421,7 @@ export class CCGCommands extends AbstractCommands {
                             type: effect.type,
                             value: effect.value,
                             turns: effect.turns,
+                            includeCurrentTurn: effect.includeCurrentTurn,
                         }))
                     )
                 }
@@ -457,6 +468,7 @@ export class CCGCommands extends AbstractCommands {
                             type: effect.type,
                             value: effect.value,
                             turns: effect.turns,
+                            includeCurrentTurn: effect.includeCurrentTurn,
                         }))
                     )
                 }
