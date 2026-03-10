@@ -72,6 +72,7 @@ export interface CCGEffect {
     sourceCardName: string
     sourcePlayerId: string
     targetPlayerId: string
+    cardTarget?: CCGTarget
     type: CCGEffectType
     speed: number
     accuracy: number

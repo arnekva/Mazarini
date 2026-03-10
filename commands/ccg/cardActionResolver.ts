@@ -11,6 +11,13 @@ export class CardActionResolver {
 
     public async resolveSingleEffect(game: CCGGame, effect: CCGEffect) {
         const source = this.getPlayer(game, effect.sourcePlayerId)
+        // Re-evaluate target now in case RETARDED was cleared by an earlier effect this round
+        if (effect.cardTarget) {
+            const retarded = game.state.statusConditions.find((s) => s.ownerId === source.id && s.type === 'RETARDED')
+            const flip = retarded && Math.random() < retarded.accuracy / 100
+            const wantsOpponent = effect.cardTarget === 'OPPONENT'
+            effect.targetPlayerId = wantsOpponent !== !!flip ? source.id : source.opponentId
+        }
         const target = this.getPlayer(game, effect.targetPlayerId)
         const opponent = this.getPlayer(game, source.opponentId)
         if (!effect.cardSuccessful) {

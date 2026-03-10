@@ -349,6 +349,7 @@ export class CCGCommands extends AbstractCommands {
                             cardId: cardId,
                             emoji: card.emoji,
                             targetPlayerId: this.getTarget(game, player, effect),
+                            cardTarget: effect.target,
                             sourceCardName: card.name,
                             sourcePlayerId: player.id,
                             speed: speed,

@@ -25,7 +25,14 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(['# CCG', '* Discards vil nå vises i spilloggen.'].join('\n'))
+        const text = new TextDisplayBuilder().setContent(
+            [
+                '# CCG',
+                '* Discards vil nå vises i spilloggen.',
+                '* Oppdaterer Høie sine deck.',
+                '* Fikser en bug som gjorde at dersom du fjernet en effekt som retarded fra deg selv ble ikke target oppdatert, og kunne føre til at du fortsatt kunne treffe feil',
+            ].join('\n')
+        )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 
