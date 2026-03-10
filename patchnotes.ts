@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.8.4'
+    public static readonly currentVersion = '30.8.5'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,14 +25,7 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(
-            [
-                '# CCG',
-                '* Refaktorert hvordan turn counter på kort fungerer',
-                '* Space jesus - Damage boost blir ikke lenger inkludert i nåværende runde',
-                '* Høie og Pølse vil ikke lenger fjerne kekw_gun',
-            ].join('\n')
-        )
+        const text = new TextDisplayBuilder().setContent(['# CCG', '* Discards vil nå vises i spilloggen.'].join('\n'))
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 

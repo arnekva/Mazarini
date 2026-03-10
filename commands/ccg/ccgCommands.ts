@@ -143,7 +143,14 @@ export class CCGCommands extends AbstractCommands {
                 ephemeral: true,
             })
         interaction.deferUpdate()
-        player.usedCards.push(...player.hand.filter((card) => card.selected))
+        const discarded = player.hand.filter((card) => card.selected)
+        if (discarded.length > 0) {
+            game.state.log.push({
+                turn: game.state.turn,
+                message: `*${player.name} discards ${discarded.length} card${discarded.length > 1 ? 's' : ''}*`,
+            })
+        }
+        player.usedCards.push(...discarded)
         player.hand = player.hand.filter((card) => !card.selected)
         player.submitted = true
         this.handlePlayerSubmit(game, player)
