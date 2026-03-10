@@ -288,6 +288,8 @@ export const mazariniCCG: CCGCard[] = [
             {
                 type: 'RETARDED',
                 target: 'OPPONENT',
+                turns: 2,
+                statusAccuracy: 50
                 turns: 1,
             },
         ],
