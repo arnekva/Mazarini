@@ -441,6 +441,12 @@ export class CCGCardGenerator {
         if (card.id === 'sw_chewbacca_n')
             return CCGCardGenerator.parseBBCode(`Copy opponent's [yellow]highest cost[/yellow] played card. Target is [pink]random[/pink]`)
         if (card.id === 'maggiscared') return CCGCardGenerator.parseBBCode(`[red]25% chance[/red] to take [red]3 damage[/red]. Deal [red]3 damage[/red]`)
+        if (card.id === 'sw_padme_amidala_n')
+            return CCGCardGenerator.parseBBCode(
+                `Reduce [blue]all[/blue] card costs by [blue]1[/blue]. You: [pink]${card.effects[0].turns - 1} turns[/pink], opponent: [pink]${
+                    card.effects[1].turns - 1
+                } turn[/pink]`
+            )
         if (!card.effects || card.effects.length === 0) return [{ text: 'No effect', color: WHITE }]
 
         const effects = card.effects
@@ -472,7 +478,7 @@ export class CCGCardGenerator {
             effects[0].turns === effects[1].turns
         ) {
             return CCGCardGenerator.parseBBCode(
-                `Reduce [blue]all[/blue] card costs by [blue]${effects[0].value}[/blue] for [pink]${effects[0].turns} turns[/pink]`
+                `Reduce [blue]all[/blue] card costs by [blue]${effects[0].value}[/blue] for [pink]${effects[0].turns - 1} turns[/pink]`
             )
         }
 
@@ -513,10 +519,12 @@ export class CCGCardGenerator {
                 return `Shield for [blue]${effect.value}[/blue]`
             case 'REFLECT':
                 return effect.turns ? `Reflect damage for [pink]${effect.turns} turn[/pink]` : `Reflect damage`
-            case 'SLOW':
+            case 'SLOW': {
+                const slowTurns = effect.turns - 1
                 return effect.target === 'SELF'
-                    ? `Slow [pink]self[/pink] for [pink]${effect.turns} turns[/pink]`
-                    : `Apply [pink]Slow[/pink] to opponent for [pink]${effect.turns} turns[/pink]`
+                    ? `Slow [pink]self[/pink] for [pink]${slowTurns} turn${slowTurns !== 1 ? 's' : ''}[/pink]`
+                    : `Apply [pink]Slow[/pink] to opponent for [pink]${slowTurns} turn${slowTurns !== 1 ? 's' : ''}[/pink]`
+            }
             case 'CHOKESTER':
                 return `Apply [pink]Chokester[/pink] for [pink]${effect.turns} turns[/pink]`
             case 'MYGLING':
@@ -525,16 +533,19 @@ export class CCGCardGenerator {
                 return `Apply [pink]Eivindpride[/pink] for [pink]${effect.turns} turns[/pink] (${effect.statusAccuracy}%)`
             case 'VIEW_HAND':
                 return `View opponent's hand`
-            case 'RETARDED':
-                return `Apply [pink]Retarded[/pink] to ${effect.target === 'SELF' ? 'self' : 'opponent'} for [pink]${effect.turns} turns[/pink] (${
-                    effect.statusAccuracy
-                }%)`
+            case 'RETARDED': {
+                const retTurns = effect.turns - 1
+                const retBase = `Apply [pink]Retarded[/pink] to ${effect.target === 'SELF' ? 'self' : 'opponent'} for [pink]${retTurns} turn${
+                    retTurns !== 1 ? 's' : ''
+                }[/pink]`
+                return effect.statusAccuracy !== undefined && effect.statusAccuracy < 100 ? `${retBase} (${effect.statusAccuracy}%)` : retBase
+            }
             case 'WAITING':
                 return `Randomly [yellow]waits[/yellow] between [pink]1 and ${effect.turns} turns[/pink] before doing damage equal to triple the turns waited`
             case 'CHOKE_SHIELD':
                 return `Apply [pink]Choke Shield[/pink] for [pink]${effect.turns} turns[/pink]`
             case 'REDUCE_COST':
-                return `Reduce card costs by [blue]${effect.value}[/blue] for [pink]${effect.turns} turns[/pink]`
+                return `Reduce card costs by [blue]${effect.value}[/blue] for [pink]${effect.turns - 1} turns[/pink]`
             case 'SPEED_BUFF':
                 return `Speed ([green]+50%[/green]) for [pink]${effect.turns} turns[/pink]`
             case 'RECOVER':

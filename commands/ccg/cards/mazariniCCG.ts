@@ -287,7 +287,6 @@ export const mazariniCCG: CCGCard[] = [
                 type: 'RETARDED',
                 target: 'OPPONENT',
                 turns: 2,
-                statusAccuracy: 50,
             },
         ],
         cost: 2,
@@ -331,7 +330,7 @@ export const mazariniCCG: CCGCard[] = [
         cost: 2,
         speed: 19,
         rarity: ItemRarity.Rare,
-        accuracy: 80,
+        accuracy: 90,
     },
     {
         id: 'geggi_kill',
