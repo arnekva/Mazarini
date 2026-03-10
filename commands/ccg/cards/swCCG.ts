@@ -54,10 +54,10 @@ export const swCCG: CCGCard[] = [
                 value: 4,
             },
             {
-                // applies RETARDED to self for 1 turn (turns - 1 displayed)
+                // applies RETARDED to self for 1 turn
                 type: 'RETARDED',
                 target: 'SELF',
-                turns: 2,
+                turns: 1,
                 statusAccuracy: 50,
             },
         ],
@@ -83,12 +83,14 @@ export const swCCG: CCGCard[] = [
                 target: 'OPPONENT',
                 value: 1,
                 turns: 2,
+                includeCurrentTurn: true,
             },
             {
                 type: 'BLEED',
                 target: 'OPPONENT',
                 value: 1,
                 turns: 2,
+                includeCurrentTurn: true,
             },
         ],
         cost: 3,
@@ -108,10 +110,10 @@ export const swCCG: CCGCard[] = [
                 value: 1,
             },
             {
-                // +50% speed for 4 turns
+                // +50% speed for 3 turns
                 type: 'SPEED_BUFF',
                 target: 'SELF',
-                turns: 4,
+                turns: 3,
             },
         ],
         cost: 1,
@@ -130,6 +132,7 @@ export const swCCG: CCGCard[] = [
                 target: 'SELF',
                 value: 2,
                 turns: 2,
+                includeCurrentTurn: true,
             },
         ],
         cost: 0,
@@ -159,12 +162,12 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'SLOW',
                 target: 'OPPONENT',
-                turns: 2,
+                turns: 1,
             },
             {
                 type: 'CHOKESTER',
                 target: 'OPPONENT',
-                turns: 2,
+                turns: 1,
             },
         ],
         cost: 1,
@@ -185,10 +188,10 @@ export const swCCG: CCGCard[] = [
                 value: 3,
             },
             {
-                // SLOW for 3 turn (turns - 2 displayed)
+                // SLOW for 2 turns
                 type: 'SLOW',
                 target: 'OPPONENT',
-                turns: 3,
+                turns: 2,
             },
         ],
         cost: 2,
@@ -203,17 +206,17 @@ export const swCCG: CCGCard[] = [
         type: CCGCardType.Effect,
         effects: [
             {
-                // REDUCE_COST 1 for 1 turn (turns - 1 displayed) for ALL players
+                // REDUCE_COST 1 for all players
                 type: 'REDUCE_COST',
                 target: 'SELF',
                 value: 1,
-                turns: 3,
+                turns: 2,
             },
             {
                 type: 'REDUCE_COST',
                 target: 'OPPONENT',
                 value: 1,
-                turns: 2,
+                turns: 1,
             },
         ],
         cost: 0,
@@ -252,11 +255,11 @@ export const swCCG: CCGCard[] = [
         type: CCGCardType.Effect,
         effects: [
             {
-                // Next turn, +2 to all damage (turns: 2 → ticks once this turn, active next turn)
+                // Next turn, +2 to all damage
                 type: 'DAMAGE_BOOST',
                 target: 'SELF',
                 value: 2,
-                turns: 2,
+                turns: 1,
             },
         ],
         cost: 2,
@@ -275,7 +278,7 @@ export const swCCG: CCGCard[] = [
                 type: 'EXTRA_CARDS',
                 target: 'SELF',
                 value: 3,
-                turns: 2,
+                turns: 1,
             },
         ],
         cost: 1,

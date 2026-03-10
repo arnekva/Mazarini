@@ -80,6 +80,7 @@ export interface CCGEffect {
     turns?: number
     reflected?: boolean
     statusAccuracy?: number
+    includeCurrentTurn?: boolean
 }
 
 export type CCGEffectType = 'DAMAGE' | 'HEAL' | 'LOSE_ENERGY' | 'REMOVE_STATUS' | 'STEAL_CARD' | CCGStatusEffectType
@@ -93,6 +94,8 @@ export interface StatusEffect {
     remainingTurns: number
     accuracy?: number
     emoji?: string
+    includeCurrentTurn?: boolean
+    createdOnTurn?: number
 }
 
 export type CCGStatusEffectType =
@@ -169,6 +172,7 @@ export interface CCGCardEffect {
     turns?: number
     accuracy?: number
     statusAccuracy?: number
+    includeCurrentTurn?: boolean
 }
 
 export type CCGTarget = 'SELF' | 'OPPONENT'

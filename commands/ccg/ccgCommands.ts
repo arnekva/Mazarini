@@ -351,6 +351,7 @@ export class CCGCommands extends AbstractCommands {
                             value: effect.value,
                             turns: effect.turns,
                             statusAccuracy: effect.statusAccuracy ?? 100,
+                            includeCurrentTurn: effect.includeCurrentTurn,
                         }
                     })
                 )
@@ -384,6 +385,7 @@ export class CCGCommands extends AbstractCommands {
                                 type: effect.type,
                                 value: effect.value,
                                 turns: effect.turns,
+                                includeCurrentTurn: effect.includeCurrentTurn,
                             }
                         })
                     )
@@ -411,6 +413,7 @@ export class CCGCommands extends AbstractCommands {
                             type: effect.type,
                             value: effect.value,
                             turns: effect.turns,
+                            includeCurrentTurn: effect.includeCurrentTurn,
                         }))
                     )
                 }
@@ -457,6 +460,7 @@ export class CCGCommands extends AbstractCommands {
                             type: effect.type,
                             value: effect.value,
                             turns: effect.turns,
+                            includeCurrentTurn: effect.includeCurrentTurn,
                         }))
                     )
                 }

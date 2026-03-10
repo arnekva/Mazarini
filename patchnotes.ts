@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.8.3'
+    public static readonly currentVersion = '30.8.4'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,10 +28,9 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '# CCG',
-                '* :yarrne: 3 -> 2 energy. 2 -> 1 turns. Accuracy 90 -> 95',
-                '* :are_you: Fikser en feil fra forrige patch som satte accuracy på effekten til 50%.',
-                '* :padme: Reduserer dine kort i 2 runder, og motstanderens kort bare 1 runde.',
-                '* Fikser en feil i kortgenereringen som viste 1 turn for mye på noen labels',
+                '* Refaktorert hvordan turn counter på kort fungerer',
+                '* Space jesus - Damage boost blir ikke lenger inkludert i nåværende runde',
+                '* Høie og Pølse vil ikke lenger fjerne kekw_gun',
             ].join('\n')
         )
         container.addSeparator()
