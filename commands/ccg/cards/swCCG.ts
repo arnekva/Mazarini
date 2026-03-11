@@ -379,7 +379,7 @@ export const swCCG: CCGCard[] = [
     // ── RARE (new) ────────────────────────────────────────────────────────────
     {
         id: 'sw_boba_fett_n',
-        name: '',
+        name: 'Boba Fett',
         series: 'swCCG',
         type: CCGCardType.Attack,
         effects: [
