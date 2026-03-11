@@ -19,7 +19,7 @@ export class CardActionResolver {
             )
             const flip = retarded && Math.random() < retarded.accuracy / 100
             const wantsOpponent = effect.cardTarget === 'OPPONENT'
-            effect.targetPlayerId = wantsOpponent !== !!flip ? source.id : source.opponentId
+            effect.targetPlayerId = wantsOpponent !== !!flip ? source.opponentId : source.id
         }
         const target = this.getPlayer(game, effect.targetPlayerId)
         const opponent = this.getPlayer(game, source.opponentId)
