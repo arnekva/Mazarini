@@ -113,7 +113,7 @@ export const swCCG: CCGCard[] = [
                 // +50% speed for 3 turns
                 type: 'SPEED_BUFF',
                 target: 'SELF',
-                turns: 3,
+                turns: 5,
             },
         ],
         cost: 1,
@@ -131,6 +131,13 @@ export const swCCG: CCGCard[] = [
                 type: 'RECOVER',
                 target: 'SELF',
                 value: 2,
+                turns: 2,
+                includeCurrentTurn: true,
+            },
+            {
+                type: 'MYGLING',
+                target: 'OPPONENT',
+                value: 0,
                 turns: 2,
                 includeCurrentTurn: true,
             },
@@ -162,7 +169,7 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'SLOW',
                 target: 'OPPONENT',
-                turns: 1,
+                turns: 2,
             },
             {
                 type: 'CHOKESTER',
@@ -239,13 +246,13 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'HEAL',
                 target: 'SELF',
-                value: 3,
+                value: 4,
             },
         ],
-        cost: 1,
+        cost: 2,
         speed: 66,
         rarity: ItemRarity.Epic,
-        accuracy: 90,
+        accuracy: 100,
     },
     // ── LEGENDARY ─────────────────────────────────────────────────────────────
     {
@@ -305,7 +312,7 @@ export const swCCG: CCGCard[] = [
             },
         ],
         cost: 3,
-        speed: 25,
+        speed: 15,
         rarity: ItemRarity.Legendary,
         accuracy: 90,
     },
@@ -330,7 +337,7 @@ export const swCCG: CCGCard[] = [
         cost: 1,
         speed: 25,
         rarity: ItemRarity.Common,
-        accuracy: 90,
+        accuracy: 100,
     },
     {
         id: 'sw_c3po_n',
@@ -400,7 +407,7 @@ export const swCCG: CCGCard[] = [
         series: 'swCCG',
         type: CCGCardType.Effect,
         effects: [],
-        cost: 1,
+        cost: 2,
         speed: 5,
         rarity: ItemRarity.Rare,
         accuracy: 80,

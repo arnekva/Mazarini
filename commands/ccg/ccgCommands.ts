@@ -447,20 +447,40 @@ export class CCGCommands extends AbstractCommands {
                 }
             }
             if (card.id === 'sw_chewbacca_n') {
-                // Copy highest cost card from opponent this turn, target is RANDOM
+                // Copy highest cost card (normal targets) AND lowest cost card (random targets)
                 const cardId = randomUUID().substring(0, 10)
                 const successful = this.isCardSuccessful(game, player, card)
                 const opponent = this.getOpponent(game, player.id)
-                const opponentCards = opponent.hand.filter((c) => c.selected && !copyCardIds.includes(c.id)).sort((a, b) => b.cost - a.cost) // descending → highest cost first
-                const cardCopied = opponentCards.length > 0 ? opponentCards[0] : undefined
-                if (cardCopied) {
-                    const speed = this.getSpeed(game, player, cardCopied)
+                const opponentCards = opponent.hand.filter((c) => c.selected && !copyCardIds.includes(c.id))
+                const highestCard = opponentCards.length > 0 ? [...opponentCards].sort((a, b) => b.cost - a.cost)[0] : undefined
+                const lowestCard = opponentCards.length > 0 ? [...opponentCards].sort((a, b) => a.cost - b.cost)[0] : undefined
+                if (highestCard) {
+                    const speed = this.getSpeed(game, player, highestCard)
                     game.state.stack.push(
-                        ...cardCopied.effects.map((effect) => ({
+                        ...highestCard.effects.map((effect) => ({
                             cardId: cardId,
-                            emoji: cardCopied.emoji,
+                            emoji: highestCard.emoji,
+                            targetPlayerId: this.getTarget(game, player, effect),
+                            sourceCardName: `${card.name} (${highestCard.name})`,
+                            sourcePlayerId: player.id,
+                            speed: speed,
+                            accuracy: effect.accuracy ?? 100,
+                            cardSuccessful: successful,
+                            type: effect.type,
+                            value: effect.value,
+                            turns: effect.turns,
+                            includeCurrentTurn: effect.includeCurrentTurn,
+                        }))
+                    )
+                }
+                if (lowestCard && lowestCard !== highestCard) {
+                    const speed = this.getSpeed(game, player, lowestCard)
+                    game.state.stack.push(
+                        ...lowestCard.effects.map((effect) => ({
+                            cardId: cardId,
+                            emoji: lowestCard.emoji,
                             targetPlayerId: Math.random() > 0.5 ? player.id : opponent.id,
-                            sourceCardName: `${card.name} (${cardCopied.name})`,
+                            sourceCardName: `${card.name} (${lowestCard.name})`,
                             sourcePlayerId: player.id,
                             speed: speed,
                             accuracy: effect.accuracy ?? 100,

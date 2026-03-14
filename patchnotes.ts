@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.8.5'
+    public static readonly currentVersion = '30.8.6'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,9 +28,14 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '# CCG',
-                '* Discards vil nå vises i spilloggen.',
-                '* Oppdaterer Høie sine deck.',
-                '* Fikser en bug som gjorde at dersom du fjernet en effekt som retarded fra deg selv ble ikke target oppdatert, og kunne føre til at du fortsatt kunne treffe feil',
+                '* Kekw_gun: Accuracy 100 -> 90',
+                '* same: Accuracy 90 -> 95',
+                '* Luke: Speed 25 -> 15',
+                '* Darth Maul: Slow: 1 -> 2 turns',
+                '* Han Solo: Speed: 3 -> 5 turns',
+                '* Leia: 1 -> 2 Energy. Heal: 3 -> 4. Accuracy: 90 -> 100',
+                '* R2D2: Accuracy: 90 -> 100',
+                '* ¨Chewbacca: Kopierer høyeste kortet med normale targets. Kopierer også laveste kort med TILFELDIG target',
             ].join('\n')
         )
         container.addSeparator()

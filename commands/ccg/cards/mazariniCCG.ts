@@ -108,7 +108,7 @@ export const mazariniCCG: CCGCard[] = [
         cost: 2,
         speed: 1,
         rarity: ItemRarity.Epic,
-        accuracy: 90,
+        accuracy: 95,
     },
     {
         id: 'KEKW_gun',
@@ -126,7 +126,7 @@ export const mazariniCCG: CCGCard[] = [
         cost: 3,
         speed: 100,
         rarity: ItemRarity.Epic,
-        accuracy: 100,
+        accuracy: 90,
     },
     {
         id: 'kms_gun',
@@ -422,6 +422,13 @@ export const mazariniCCG: CCGCard[] = [
                 target: 'SELF',
                 value: 2,
                 turns: 3,
+                includeCurrentTurn: true,
+            },
+            {
+                type: 'MYGLING',
+                target: 'OPPONENT',
+                value: 0,
+                turns: 2,
                 includeCurrentTurn: true,
             },
         ],
