@@ -109,8 +109,7 @@ export class BotResolver {
     }
 
     private shouldSaveEnergy(game: CCGGame, playable: { card: CCGCard; score: number }[]) {
-        const cost = this.getCardCost(game, playable[0].card)
-        return cost > game.player2.energy
+        return !playable.some(({ card }) => this.getCardCost(game, card) <= game.player2.energy)
     }
 
     private sortPlayable(playable: { card: CCGCard; score: number }[]) {
