@@ -128,7 +128,7 @@ export class CardActionResolver {
             }
             case 'MYGLING':
                 this.applyStatusEffect(game, effect, target, 'MYGLING')
-                this.log(game, `${effect.emoji}: ${target.name} is **mygling** for **${effect.turns} turns**`)
+                this.log(game, `${effect.emoji}: ${target.name} **Apply Mygling for ${effect.turns} turns**`)
                 break
 
             case 'EIVINDPRIDE':

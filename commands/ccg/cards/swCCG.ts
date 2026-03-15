@@ -136,7 +136,7 @@ export const swCCG: CCGCard[] = [
             },
             {
                 type: 'MYGLING',
-                target: 'OPPONENT',
+                target: 'SELF',
                 value: 0,
                 turns: 2,
                 includeCurrentTurn: true,

@@ -424,13 +424,6 @@ export const mazariniCCG: CCGCard[] = [
                 turns: 3,
                 includeCurrentTurn: true,
             },
-            {
-                type: 'MYGLING',
-                target: 'OPPONENT',
-                value: 0,
-                turns: 2,
-                includeCurrentTurn: true,
-            },
         ],
         cost: 1,
         speed: 63,
