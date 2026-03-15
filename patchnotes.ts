@@ -26,17 +26,7 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            [
-                '# CCG',
-                '* Kekw_gun: Accuracy 100 -> 90',
-                '* same: Accuracy 90 -> 95',
-                '* Luke: Speed 25 -> 15',
-                '* Darth Maul: Slow: 1 -> 2 turns',
-                '* Han Solo: Speed: 3 -> 5 turns',
-                '* Leia: 1 -> 2 Energy. Heal: 3 -> 4. Accuracy: 90 -> 100',
-                '* R2D2: Accuracy: 90 -> 100',
-                '* ¨Chewbacca: Kopierer høyeste kortet med normale targets. Kopierer også laveste kort med TILFELDIG target',
-            ].join('\n')
+            ['* Fikset feil med at du trengte "$" for å få reply fra Høie - $ kreves nå for Gemini svar, alle tags uten dett vil gi 8-ball høie'].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

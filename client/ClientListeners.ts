@@ -22,9 +22,11 @@ import { ErrorHandler } from '../handlers/errorHandler'
 import { ClientHelper } from '../helpers/clientHelper'
 import { MazariniBot } from '../main'
 import { PatchNotes } from '../patchnotes'
+import { ArrayUtils } from '../utils/arrayUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { ChannelIds, MentionUtils, ServerIds } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
+import { textArrays } from '../utils/textArrays'
 import { UserUtils } from '../utils/userUtils'
 import { MazariniClient } from './MazariniClient'
 
@@ -132,16 +134,20 @@ export class ClientListener {
                     const reference = await this.client.messageHelper.fetchMessage(message.channelId, msgId)
                     replyToHoie = reference.interactionMetadata === null
                 }
-                if (
-                    (hoieTagged || replyToHoie) &&
-                    isAskingQuestion &&
-                    ((environment === 'prod' && message.channelId !== ChannelIds.LOCALHOST) ||
-                        (environment === 'dev' && message.channelId === ChannelIds.LOCALHOST))
-                ) {
-                    this.client.gemini.fetchAndSendMessage(message, this.client.messageHelper, message.channelId, {
-                        displayName: UserUtils.getPrettyName(message.member),
-                        username: message.author.username,
-                    })
+                const correctChannel =
+                    (environment === 'prod' && message.channelId !== ChannelIds.LOCALHOST) ||
+                    (environment === 'dev' && message.channelId === ChannelIds.LOCALHOST)
+                if ((hoieTagged || replyToHoie) && correctChannel) {
+                    if (isAskingQuestion) {
+                        this.client.gemini.fetchAndSendMessage(message, this.client.messageHelper, message.channelId, {
+                            displayName: UserUtils.getPrettyName(message.member),
+                            username: message.author.username,
+                        })
+                    } else {
+                        const isQuestion = message.content.trimEnd().endsWith('?')
+                        const response = ArrayUtils.randomChoiceFromArray(isQuestion ? textArrays.bentHoieLinesAnswers : textArrays.bentHoieLines)
+                        this.client.messageHelper.sendMessage(message.channelId, { text: response })
+                    }
                 }
             }
         })
