@@ -482,6 +482,20 @@ export class CCGCardGenerator {
             )
         }
 
+        // Pattern: RECOVER + MYGLING → show recover amount, then the Mygling application sentence
+        if (effects.length === 2) {
+            const recover = effects.find((e) => e.type === 'RECOVER')
+            const mygling = effects.find((e) => e.type === 'MYGLING')
+            if (recover && mygling) {
+                const healValue = recover.value ?? 0
+                const healTurns = recover.turns ?? mygling.turns
+                const myglingTurns = mygling.turns ?? recover.turns
+                return CCGCardGenerator.parseBBCode(
+                    `Heal [green]${healValue}[/green] per turn for [pink]${healTurns} turns[/pink]. Apply [pink]Mygling[/pink] for [pink]${myglingTurns} turns[/pink]`
+                )
+            }
+        }
+
         // Default: describe each effect, join with ". "
         // Collapse consecutive identical-text effects into "... TWICE"
         const parts: string[] = []
@@ -529,7 +543,9 @@ export class CCGCardGenerator {
             case 'CHOKESTER':
                 return `Apply [pink]Chokester[/pink] for [pink]${effect.turns} turns[/pink]`
             case 'MYGLING':
-                return `Heal [green]${effect.value}[/green] each turn for [pink]${effect.turns} turns[/pink]`
+                return `Heal [green]${effect.value ?? 0}[/green] per turn for [pink]${effect.turns} turns[/pink]. Apply [pink]Mygling[/pink] for [pink]${
+                    effect.turns
+                } turns[/pink]`
             case 'EIVINDPRIDE':
                 return `Apply [pink]Eivindpride[/pink] for [pink]${effect.turns} turns[/pink] (${effect.statusAccuracy}%)`
             case 'VIEW_HAND':

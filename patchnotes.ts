@@ -25,15 +25,7 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(
-            [
-                '* Kekw_gun: 1 mana, reflekter kun første damage per runde',
-                '* Kekw_gun: Hvis begge spillere har kekw_gun aktiv, vil ingen ta damage.',
-                '* Kys: Accuracy 90 -> 100 + cannot miss',
-                '* Fikser tekst på Chewbacca (ingen endring i logikk)',
-                '* Høie sine vanskelige decks vil nå heale sjeldnere',
-            ].join('\n')
-        )
+        const text = new TextDisplayBuilder().setContent(['* Fikser tekst for Mace Windu'].join('\n'))
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 
