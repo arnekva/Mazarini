@@ -168,8 +168,19 @@ export class CardActionResolver {
         // Reflect damage
         const reflect = this.getStatusCondition(game, target, 'REFLECT')
         if (reflect && damage > 0 && !(effect.reflected ?? false)) {
-            // cannot reflect already reflected damage
-            this.log(game, `${effect.emoji}: ${target.name} reflects ${damage} damage`)
+            const sourceReflect = this.getStatusCondition(game, source, 'REFLECT')
+
+            if (sourceReflect) {
+                this.consumeReflect(game, reflect)
+                this.consumeReflect(game, sourceReflect)
+                this.log(game, `${effect.emoji}: Both players have reflect, so damage is negated`)
+                return
+            }
+
+            const reflectedDamage = damage
+            this.consumeReflect(game, reflect)
+
+            this.log(game, `${effect.emoji}: ${target.name} reflects ${reflectedDamage} damage`)
             game.state.stack.unshift({
                 cardId: effect.cardId,
                 emoji: effect.emoji,
@@ -180,10 +191,11 @@ export class CardActionResolver {
                 speed: effect.speed,
                 accuracy: 100,
                 cardSuccessful: true,
-                value: damage,
+                value: reflectedDamage,
                 reflected: true,
             })
-            return
+
+            damage -= reflectedDamage
         }
 
         // Shield
@@ -319,6 +331,10 @@ export class CardActionResolver {
 
     private getStatusCondition(game: CCGGame, player: CCGPlayer, type: StatusEffect['type']) {
         return game.state.statusConditions.find((s) => s.ownerId === player.id && s.type === type)
+    }
+
+    private consumeReflect(game: CCGGame, reflect: StatusEffect) {
+        game.state.statusConditions = game.state.statusConditions.filter((s) => s.id !== reflect.id)
     }
 
     private removeStatus(game: CCGGame, status: StatusEffect) {

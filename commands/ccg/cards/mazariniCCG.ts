@@ -119,11 +119,12 @@ export const mazariniCCG: CCGCard[] = [
             {
                 type: 'REFLECT',
                 target: 'SELF',
+                value: 1,
                 turns: 1,
                 includeCurrentTurn: true,
             },
         ],
-        cost: 3,
+        cost: 1,
         speed: 100,
         rarity: ItemRarity.Epic,
         accuracy: 90,
@@ -200,7 +201,8 @@ export const mazariniCCG: CCGCard[] = [
         cost: 3,
         speed: 49,
         rarity: ItemRarity.Legendary,
-        accuracy: 95,
+        accuracy: 100,
+        cannotMiss: true,
     },
     {
         id: 'hoie',

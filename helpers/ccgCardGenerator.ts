@@ -439,7 +439,9 @@ export class CCGCardGenerator {
         if (card.id === 'sw_boba_fett_n')
             return CCGCardGenerator.parseBBCode(`Deal [red]2 damage[/red]. If played [yellow]alone[/yellow] this turn, deal [red]2 more[/red]`)
         if (card.id === 'sw_chewbacca_n')
-            return CCGCardGenerator.parseBBCode(`Copy opponent's [yellow]highest cost[/yellow] played card. Target is [pink]random[/pink]`)
+            return CCGCardGenerator.parseBBCode(
+                `Copy your opponent's [yellow]highest cost[/yellow] card. Copy your opponent's [yellow]lowest cost[/yellow] card with [pink]random targets[/pink]`
+            )
         if (card.id === 'maggiscared') return CCGCardGenerator.parseBBCode(`[red]25% chance[/red] to take [red]3 damage[/red]. Deal [red]3 damage[/red]`)
         if (card.id === 'sw_padme_amidala_n')
             return CCGCardGenerator.parseBBCode(
@@ -516,7 +518,9 @@ export class CCGCardGenerator {
             case 'SHIELD':
                 return `Shield for [blue]${effect.value}[/blue]`
             case 'REFLECT':
-                return effect.turns ? `Reflect damage for [pink]${effect.turns} turn[/pink]` : `Reflect damage`
+                return effect.turns
+                    ? `Reflect the [red]first incoming damage[/red] for [pink]${effect.turns} turn${effect.turns !== 1 ? 's' : ''}[/pink]`
+                    : `Reflect the [red]first incoming damage[/red]`
             case 'SLOW': {
                 return effect.target === 'SELF'
                     ? `Slow [pink]self[/pink] for [pink]${effect.turns} turn${effect.turns !== 1 ? 's' : ''}[/pink]`
