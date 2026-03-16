@@ -560,7 +560,7 @@ export const GameValues: GameValuesType = {
                         { id: 'KEKW_gun', series: 'mazariniCCG', amount: 1 },
                         { id: 'are_you', series: 'mazariniCCG', amount: 1 },
                         { id: 'kms_gun', series: 'mazariniCCG', amount: 3 },
-                        { id: 'chewbacca', series: 'swCCG', amount: 1 },
+                        { id: 'sw_chewbacca_n', series: 'swCCG', amount: 1 },
                         { id: 'maggiscared', series: 'mazariniCCG', amount: 2 },
                         { id: 'sw_mace_windu_n', series: 'swCCG', amount: 1 },
                         { id: 'geggiexcited', series: 'mazariniCCG', amount: 1 },
