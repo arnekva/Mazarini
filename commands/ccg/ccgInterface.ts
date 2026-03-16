@@ -69,6 +69,7 @@ export type CCGPhase = 'DRAW' | 'PLAY' | 'RESOLVE' | 'END' | 'FINISHED'
 export interface CCGEffect {
     cardId: string
     emoji: string
+    statusText?: string
     sourceCardName: string
     sourcePlayerId: string
     targetPlayerId: string

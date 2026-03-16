@@ -378,25 +378,7 @@ export class CCGCommands extends AbstractCommands {
                 const opponentCards = opponent.hand.filter((card) => card.selected && !copyCardIds.includes(card.id))?.sort((a, b) => b.cost - a.cost)
                 const cardCopied = opponentCards?.length ?? 0 > 0 ? opponentCards[0] : undefined
                 if (cardCopied) {
-                    const speed = this.getSpeed(game, player, cardCopied)
-                    game.state.stack.push(
-                        ...cardCopied.effects.map((effect) => {
-                            return {
-                                cardId: cardId,
-                                emoji: cardCopied.emoji,
-                                targetPlayerId: this.getTarget(game, player, effect),
-                                sourceCardName: cardCopied.name,
-                                sourcePlayerId: player.id,
-                                speed: speed,
-                                accuracy: effect.accuracy ?? 100,
-                                cardSuccessful: succesful,
-                                type: effect.type,
-                                value: effect.value,
-                                turns: effect.turns,
-                                includeCurrentTurn: effect.includeCurrentTurn,
-                            }
-                        })
-                    )
+                    this.queueCopiedEffects(game, player, cardId, cardCopied, succesful)
                 }
             }
             if (card.id === 'sw_storm_trooper_n') {
@@ -407,23 +389,7 @@ export class CCGCommands extends AbstractCommands {
                 const opponentCards = opponent.hand.filter((c) => c.selected && !copyCardIds.includes(c.id))?.sort((a, b) => a.cost - b.cost) // ascending → lowest cost first
                 const cardCopied = opponentCards?.length ?? 0 > 0 ? opponentCards[0] : undefined
                 if (cardCopied) {
-                    const speed = this.getSpeed(game, player, cardCopied)
-                    game.state.stack.push(
-                        ...cardCopied.effects.map((effect) => ({
-                            cardId: cardId,
-                            emoji: cardCopied.emoji,
-                            targetPlayerId: this.getTarget(game, player, effect),
-                            sourceCardName: cardCopied.name,
-                            sourcePlayerId: player.id,
-                            speed: speed,
-                            accuracy: effect.accuracy ?? 100,
-                            cardSuccessful: successful,
-                            type: effect.type,
-                            value: effect.value,
-                            turns: effect.turns,
-                            includeCurrentTurn: effect.includeCurrentTurn,
-                        }))
-                    )
+                    this.queueCopiedEffects(game, player, cardId, cardCopied, successful)
                 }
             }
             if (card.id === 'sw_boba_fett_n') {
@@ -455,45 +421,62 @@ export class CCGCommands extends AbstractCommands {
                 const highestCard = opponentCards.length > 0 ? [...opponentCards].sort((a, b) => b.cost - a.cost)[0] : undefined
                 const lowestCard = opponentCards.length > 0 ? [...opponentCards].sort((a, b) => a.cost - b.cost)[0] : undefined
                 if (highestCard) {
-                    const speed = this.getSpeed(game, player, highestCard)
-                    game.state.stack.push(
-                        ...highestCard.effects.map((effect) => ({
-                            cardId: cardId,
-                            emoji: highestCard.emoji,
-                            targetPlayerId: this.getTarget(game, player, effect),
-                            sourceCardName: `${card.name} (${highestCard.name})`,
-                            sourcePlayerId: player.id,
-                            speed: speed,
-                            accuracy: effect.accuracy ?? 100,
-                            cardSuccessful: successful,
-                            type: effect.type,
-                            value: effect.value,
-                            turns: effect.turns,
-                            includeCurrentTurn: effect.includeCurrentTurn,
-                        }))
-                    )
+                    this.queueCopiedEffects(game, player, cardId, highestCard, successful, {
+                        sourceCardName: `${card.name} (${highestCard.name})`,
+                    })
                 }
                 if (lowestCard && lowestCard !== highestCard) {
-                    const speed = this.getSpeed(game, player, lowestCard)
-                    game.state.stack.push(
-                        ...lowestCard.effects.map((effect) => ({
-                            cardId: cardId,
-                            emoji: lowestCard.emoji,
-                            targetPlayerId: Math.random() > 0.5 ? player.id : opponent.id,
-                            sourceCardName: `${card.name} (${lowestCard.name})`,
-                            sourcePlayerId: player.id,
-                            speed: speed,
-                            accuracy: effect.accuracy ?? 100,
-                            cardSuccessful: successful,
-                            type: effect.type,
-                            value: effect.value,
-                            turns: effect.turns,
-                            includeCurrentTurn: effect.includeCurrentTurn,
-                        }))
-                    )
+                    this.queueCopiedEffects(game, player, cardId, lowestCard, successful, {
+                        sourceCardName: `${card.name} (${lowestCard.name})`,
+                        statusText: 'random target',
+                        randomTarget: true,
+                    })
                 }
             }
         }
+    }
+
+    private queueCopiedEffects(
+        game: CCGGame,
+        player: CCGPlayer,
+        cardId: string,
+        copiedCard: CCGCard,
+        cardSuccessful: boolean,
+        options?: {
+            sourceCardName?: string
+            statusText?: string
+            randomTarget?: boolean
+        }
+    ) {
+        const speed = this.getSpeed(game, player, copiedCard)
+        const opponent = this.getOpponent(game, player.id)
+        const sourceCardName = options?.sourceCardName ?? copiedCard.name
+        const statusText = options?.statusText ?? `${player.name}'s copy`
+
+        game.state.stack.push(
+            ...copiedCard.effects.map((effect) => {
+                let targetPlayerId = this.getTarget(game, player, effect)
+                if (options?.randomTarget) {
+                    targetPlayerId = Math.random() > 0.5 ? player.id : opponent.id
+                }
+
+                return {
+                    cardId,
+                    emoji: copiedCard.emoji,
+                    statusText,
+                    targetPlayerId,
+                    sourceCardName,
+                    sourcePlayerId: player.id,
+                    speed,
+                    accuracy: effect.accuracy ?? 100,
+                    cardSuccessful,
+                    type: effect.type,
+                    value: effect.value,
+                    turns: effect.turns,
+                    includeCurrentTurn: effect.includeCurrentTurn,
+                }
+            })
+        )
     }
 
     private getTarget(game: CCGGame, player: CCGPlayer, effect: CCGCardEffect) {

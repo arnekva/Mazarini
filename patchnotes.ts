@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.8.7'
+    public static readonly currentVersion = '30.8.8'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,7 +25,9 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(['* Fikser tekst for Mace Windu'].join('\n'))
+        const text = new TextDisplayBuilder().setContent(
+            ['* Viser nå tekster som (Copy) og (Random target) foran tekster i log for å hjelpe lesbarheten'].join('\n')
+        )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 

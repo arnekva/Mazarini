@@ -20,13 +20,16 @@ export class CardActionResolver {
             const flip = retarded && Math.random() < retarded.accuracy / 100
             const wantsOpponent = effect.cardTarget === 'OPPONENT'
             effect.targetPlayerId = wantsOpponent !== !!flip ? source.opponentId : source.id
+            if (flip) {
+                effect.statusText = effect.statusText ? `${effect.statusText}, random target` : 'random target'
+            }
         }
         const target = this.getPlayer(game, effect.targetPlayerId)
         const opponent = this.getPlayer(game, source.opponentId)
         if (!effect.cardSuccessful) {
             await this.delay(2500)
             game.state.stack = game.state.stack.filter((stackedEffect) => stackedEffect.cardId !== effect.cardId)
-            return this.log(game, `${effect.emoji}: ${source.name}'s ${effect.sourceCardName} failed`)
+            return this.log(game, `${this.getEffectLogPrefix(effect)}${source.name}'s ${effect.sourceCardName} failed`)
         }
         if (Math.random() > effect.accuracy / 100) {
             return
@@ -41,44 +44,44 @@ export class CardActionResolver {
             case 'HEAL': {
                 const healed = Math.min(target.hp + effect.value, GameValues.ccg.gameSettings.startingHP) - target.hp
                 target.hp += healed
-                this.log(game, `${effect.emoji}: ${target.name} **heals ${healed}**`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} **heals ${healed}**`)
                 break
             }
             case 'GAIN_ENERGY':
                 if (effect.turns) {
                     this.applyStatusEffect(game, effect, target, 'GAIN_ENERGY')
-                    this.log(game, `${effect.emoji}: ${target.name} gains **${effect.value} energy** extra for ${effect.turns} turns`)
+                    this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} gains **${effect.value} energy** extra for ${effect.turns} turns`)
                 } else {
                     target.energy = target.energy + (effect.value ?? 1)
-                    this.log(game, `${effect.emoji}: ${target.name} gains **${effect.value} energy**`)
+                    this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} gains **${effect.value} energy**`)
                 }
                 break
 
             case 'LOSE_ENERGY':
                 target.energy = Math.max(target.energy - (effect.value ?? 1), 0)
-                this.log(game, `${effect.emoji}: ${target.name} loses **${effect.value} energy**`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} loses **${effect.value} energy**`)
                 break
 
             case 'SHIELD':
                 this.applyStatusEffect(game, effect, target, 'SHIELD')
-                this.log(game, `${effect.emoji}: ${target.name} gains **${effect.value} shield**`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} gains **${effect.value} shield**`)
                 break
 
             case 'REFLECT':
                 this.applyStatusCondition(game, effect, target, 'REFLECT')
-                this.log(game, `${effect.emoji}: ${target.name} gains **reflect** for the remainder of the round`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} gains **reflect** for the remainder of the round`)
                 break
 
             case 'REMOVE_STATUS':
                 this.removeAllStatusForPlayer(game, target)
-                this.log(game, `${effect.emoji}: ${target.name} has all status conditions removed`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} has all status conditions removed`)
                 break
 
             case 'REDUCE_COST':
                 this.applyStatusEffect(game, effect, target, 'REDUCE_COST')
                 this.log(
                     game,
-                    `${effect.emoji}: **${effect.sourceCardName}** – ${target.name}'s card costs reduced by **${effect.value}** ${
+                    `${this.getEffectLogPrefix(effect)}**${effect.sourceCardName}** – ${target.name}'s card costs reduced by **${effect.value}** ${
                         effect.turns ? `for ${effect.turns} turns` : ''
                     }`
                 )
@@ -86,7 +89,7 @@ export class CardActionResolver {
 
             case 'VIEW_HAND':
                 this.applyStatusEffect(game, effect, target, 'VIEW_HAND')
-                this.log(game, `${effect.emoji}: ${target.name} gains a single-use button to view ${opponent.name}'s hand`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} gains a single-use button to view ${opponent.name}'s hand`)
                 break
 
             case 'STEAL_CARD':
@@ -95,27 +98,27 @@ export class CardActionResolver {
 
             case 'BLEED':
                 this.applyStatusCondition(game, effect, target, 'BLEED')
-                this.log(game, `${effect.emoji}: ${target.name} **bleeds** for **${effect.turns} turns**`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} **bleeds** for **${effect.turns} turns**`)
                 break
 
             case 'RETARDED':
                 this.applyStatusCondition(game, effect, target, 'RETARDED')
-                this.log(game, `${effect.emoji}: ${target.name} is **retarded** for the next **${effect.turns} turns**`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} is **retarded** for the next **${effect.turns} turns**`)
                 break
 
             case 'SLOW':
                 this.applyStatusCondition(game, effect, target, 'SLOW')
-                this.log(game, `${effect.emoji}: ${target.name} is **slow** for the next **${effect.turns} turns**`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} is **slow** for the next **${effect.turns} turns**`)
                 break
 
             case 'CHOKESTER':
                 this.applyStatusCondition(game, effect, target, 'CHOKESTER')
-                this.log(game, `${effect.emoji}: ${target.name} is a **chokester** for the next **${effect.turns} turns**`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} is a **chokester** for the next **${effect.turns} turns**`)
                 break
 
             case 'CHOKE_SHIELD':
                 this.applyStatusEffect(game, effect, target, 'CHOKE_SHIELD')
-                this.log(game, `${effect.emoji}: ${target.name} increases the accuracy of all their cards by 20%`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} increases the accuracy of all their cards by 20%`)
                 break
 
             case 'WAITING': {
@@ -123,37 +126,37 @@ export class CardActionResolver {
                 effect.value = turns * 3
                 effect.turns = turns + 1
                 this.applyStatusCondition(game, effect, target, 'WAITING')
-                this.log(game, `${effect.emoji}: ${source.name} is waiting to attack ${target.name}`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} is waiting to attack ${target.name}`)
                 break
             }
             case 'MYGLING':
                 this.applyStatusEffect(game, effect, target, 'MYGLING')
-                this.log(game, `${effect.emoji}: ${effect.sourceCardName} applies **Mygling** to ${target.name} for ${effect.turns} turns`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${effect.sourceCardName} applies **Mygling** to ${target.name} for ${effect.turns} turns`)
                 break
 
             case 'EIVINDPRIDE':
                 this.applyStatusEffect(game, effect, target, 'EIVINDPRIDE')
-                this.log(game, `${effect.emoji}: Eivind might show up to attack ${target.name} in the next **${effect.turns} turns**`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}Eivind might show up to attack ${target.name} in the next **${effect.turns} turns**`)
                 break
 
             case 'RECOVER':
                 this.applyStatusEffect(game, effect, target, 'RECOVER')
-                this.log(game, `${effect.emoji}: ${target.name} will **recover ${effect.value} HP** per turn for **${effect.turns} turns**`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} will **recover ${effect.value} HP** per turn for **${effect.turns} turns**`)
                 break
 
             case 'SPEED_BUFF':
                 this.applyStatusEffect(game, effect, target, 'SPEED_BUFF')
-                this.log(game, `${effect.emoji}: ${target.name} gains **+50% speed** for **${effect.turns} turns**`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} gains **+50% speed** for **${effect.turns} turns**`)
                 break
 
             case 'DAMAGE_BOOST':
                 this.applyStatusEffect(game, effect, target, 'DAMAGE_BOOST')
-                this.log(game, `${effect.emoji}: ${target.name}'s damage will be **increased by ${effect.value}** next turn`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s damage will be **increased by ${effect.value}** next turn`)
                 break
 
             case 'EXTRA_CARDS':
                 this.applyStatusEffect(game, effect, target, 'EXTRA_CARDS')
-                this.log(game, `${effect.emoji}: ${target.name} can play **${effect.value} cards** next turn`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} can play **${effect.value} cards** next turn`)
                 break
         }
     }
@@ -173,17 +176,18 @@ export class CardActionResolver {
             if (sourceReflect) {
                 this.consumeReflect(game, reflect)
                 this.consumeReflect(game, sourceReflect)
-                this.log(game, `${effect.emoji}: Both players have reflect, so damage is negated`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}Both players have reflect, so damage is negated`)
                 return
             }
 
             const reflectedDamage = damage
             this.consumeReflect(game, reflect)
 
-            this.log(game, `${effect.emoji}: ${target.name} reflects ${reflectedDamage} damage`)
+            this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} reflects ${reflectedDamage} damage`)
             game.state.stack.unshift({
                 cardId: effect.cardId,
                 emoji: effect.emoji,
+                statusText: effect.statusText,
                 sourceCardName: effect.sourceCardName,
                 type: 'DAMAGE',
                 sourcePlayerId: target.id,
@@ -205,7 +209,7 @@ export class CardActionResolver {
             shield.value -= absorbed
             damage -= absorbed
 
-            this.log(game, `${effect.emoji}: ${target.name}'s Shield absorbs ${absorbed}`)
+            this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s Shield absorbs ${absorbed}`)
             if (shield.value <= 0) this.removeStatus(game, shield)
         }
 
@@ -214,7 +218,7 @@ export class CardActionResolver {
             target.hp = target.hp - damage
             source.stats.damageDealt += damage
             target.stats.damageTaken += damage
-            this.log(game, `${effect.emoji}: ${source.name} deals **${damage} damage** to ${target.name}`)
+            this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} deals **${damage} damage** to ${target.name}`)
         }
     }
 
@@ -259,10 +263,17 @@ export class CardActionResolver {
         const cardStolen = target.usedCards.pop()
         if (cardStolen) {
             source.deck.push({ ...cardStolen, selected: false })
-            this.log(game, `${effect.emoji}: ${source.name} **steals ${cardStolen.name}** from ${target.name}'s used cards, and adds it to their deck`)
+            this.log(
+                game,
+                `${this.getEffectLogPrefix(effect)}${source.name} **steals ${cardStolen.name}** from ${target.name}'s used cards, and adds it to their deck`
+            )
         } else {
-            this.log(game, `${effect.emoji}: ${source.name}'s ${effect.sourceCardName} failed`)
+            this.log(game, `${this.getEffectLogPrefix(effect)}${source.name}'s ${effect.sourceCardName} failed`)
         }
+    }
+
+    private getEffectLogPrefix(effect: CCGEffect) {
+        return `${effect.emoji}: ${effect.statusText ? `*(${effect.statusText})* ` : ''}`
     }
 
     private removeAllStatusForPlayer(game: CCGGame, target: CCGPlayer) {
@@ -287,11 +298,6 @@ export class CardActionResolver {
             const healed = Math.min(player.hp + status.value, GameValues.ccg.gameSettings.startingHP) - player.hp
             player.hp += healed
             this.log(game, `${player.name} **recovers ${healed} HP**`)
-            await this.delay(2000)
-        } else if (status.type === 'MYGLING') {
-            const healed = Math.min(player.hp + status.value, GameValues.ccg.gameSettings.startingHP) - player.hp
-            player.hp += healed
-            this.log(game, `${status.emoji}: ${player.name} **heals ${healed}**`)
             await this.delay(2000)
         } else if (status.type === 'EIVINDPRIDE' && Math.random() < status.accuracy / 100) {
             const source = this.getPlayer(game, status.sourcePlayerId)
