@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.8.8'
+    public static readonly currentVersion = '30.8.9'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,7 +26,7 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            ['* Viser nå tekster som (Copy) og (Random target) foran tekster i log for å hjelpe lesbarheten'].join('\n')
+            ['* Luke er nå markert som HEAL kort, og teller mot grensen.', '* Leia applier nå BLEED (2 turns) i stedet for 1 DAMAGE.'].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

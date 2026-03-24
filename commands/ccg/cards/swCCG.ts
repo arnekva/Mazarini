@@ -239,9 +239,9 @@ export const swCCG: CCGCard[] = [
         type: CCGCardType.Heal,
         effects: [
             {
-                type: 'DAMAGE',
+                type: 'BLEED',
                 target: 'OPPONENT',
-                value: 1,
+                value: 2,
             },
             {
                 type: 'HEAL',
@@ -298,7 +298,7 @@ export const swCCG: CCGCard[] = [
         id: 'sw_luke_skywalker_n',
         name: 'Luke Skywalker',
         series: 'swCCG',
-        type: CCGCardType.Attack,
+        type: CCGCardType.Heal,
         effects: [
             {
                 type: 'DAMAGE',
