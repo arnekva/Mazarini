@@ -243,11 +243,12 @@ export const swCCG: CCGCard[] = [
                 target: 'OPPONENT',
                 value: 1,
                 turns: 2,
+                includeCurrentTurn: true,
             },
             {
                 type: 'HEAL',
                 target: 'SELF',
-                value: 4,
+                value: 3,
             },
         ],
         cost: 2,
