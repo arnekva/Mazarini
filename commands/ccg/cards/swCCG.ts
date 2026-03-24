@@ -285,7 +285,7 @@ export const swCCG: CCGCard[] = [
                 type: 'EXTRA_CARDS',
                 target: 'SELF',
                 value: 3,
-                turns: 1,
+                turns: 2,
             },
         ],
         cost: 1,
