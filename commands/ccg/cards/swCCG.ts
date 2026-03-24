@@ -241,7 +241,8 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'BLEED',
                 target: 'OPPONENT',
-                value: 2,
+                value: 1,
+                turns: 2,
             },
             {
                 type: 'HEAL',
