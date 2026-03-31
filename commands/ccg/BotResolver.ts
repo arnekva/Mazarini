@@ -200,7 +200,9 @@ export class BotResolver {
 
     private getCardCost(game: CCGGame, card: CCGCard) {
         const costReductionEffects = game.state.statusEffects.filter((effect) => effect.ownerId === game.player2.id && effect.type === 'REDUCE_COST')
-        const botCostReduction = costReductionEffects.reduce((sum, effect) => (sum += effect.value), 0)
+        const botCostReduction = costReductionEffects
+            .filter((e) => !e.identifier || card.identifier?.includes(e.identifier))
+            .reduce((sum, effect) => (sum += effect.value), 0)
         return Math.max(0, card.cost - botCostReduction)
     }
 }

@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto'
 import { ActionRowBuilder, APIButtonComponent, AttachmentBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
+import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
 import { CardModification, CCGCardGenerator } from '../../helpers/ccgCardGenerator'
@@ -54,7 +55,7 @@ export class CCGCommands extends AbstractCommands {
         this.igh = new ImageGenerationHelper(this.client)
         this.helper = new CCGHelp(this.client)
         this.games = new Map<string, CCGGame>()
-        this.resolver = new CardActionResolver()
+        this.resolver = new CardActionResolver(this.client)
         this.botResolver = new BotResolver()
         this.progressHandler = new ProgressionHandler(this.client)
         this.statViewer = new CCGStatView(this.client)
@@ -124,8 +125,11 @@ export class CCGCommands extends AbstractCommands {
                 ephemeral: true,
             })
         }
-        const costReduction = this.getEffectsForPlayer(game, player, 'REDUCE_COST').reduce((sum, effect) => (sum += effect.value), 0)
-        const submittedCost = submitted.reduce((sum, card) => (sum += Math.max(card.cost - costReduction, 0)), 0)
+        const costReductionEffects = this.getEffectsForPlayer(game, player, 'REDUCE_COST')
+        const submittedCost = submitted.reduce((sum, card) => {
+            const cardReduction = costReductionEffects.filter((e) => !e.identifier || card.identifier?.includes(e.identifier)).reduce((s, e) => s + e.value, 0)
+            return sum + Math.max(card.cost - cardReduction, 0)
+        }, 0)
         if (submittedCost > player.energy) {
             return this.messageHelper.replyToInteraction(interaction, 'Du har ikke nok energi!', { ephemeral: true })
         }
@@ -161,8 +165,13 @@ export class CCGCommands extends AbstractCommands {
         if (game.player1.submitted && game.player2.submitted) {
             if (game.vsBot) {
                 const botSubmitted = game.player2.hand.filter((card) => card.selected)
-                const botCostReduction = this.getEffectsForPlayer(game, game.player2, 'REDUCE_COST').reduce((sum, effect) => (sum += effect.value), 0)
-                const botCost = botSubmitted.reduce((sum, card) => (sum += Math.max(card.cost - botCostReduction, 0)), 0)
+                const botCostReductionEffects = this.getEffectsForPlayer(game, game.player2, 'REDUCE_COST')
+                const botCost = botSubmitted.reduce((sum, card) => {
+                    const cardReduction = botCostReductionEffects
+                        .filter((e) => !e.identifier || card.identifier?.includes(e.identifier))
+                        .reduce((s, e) => s + e.value, 0)
+                    return sum + Math.max(card.cost - cardReduction, 0)
+                }, 0)
                 game.player2.energy -= botCost
                 this.registerCardsPlayed(game.player2, botSubmitted)
             }
@@ -299,7 +308,7 @@ export class CCGCommands extends AbstractCommands {
         const submitted = player.hand.filter((card) => card.selected)
         return submitted
             .map((card) => {
-                return `${card.emoji} ${card.name}`
+                return card.emoji ? `${card.emoji} ${card.name}` : card.name
             })
             .join('\n')
     }
@@ -336,6 +345,15 @@ export class CCGCommands extends AbstractCommands {
 
     private addEffectsToStack(game: CCGGame, player: CCGPlayer) {
         const submitted = player.hand.filter((card) => card.selected)
+
+        // Track played cards for condition checking and match summary
+        let playerEntry = game.state.playedCardsAllGame.find((entry) => entry.playerId === player.id && entry.round === game.state.turn)
+        if (!playerEntry) {
+            playerEntry = { playerId: player.id, round: game.state.turn, cards: [] }
+            game.state.playedCardsAllGame.push(playerEntry)
+        }
+        playerEntry.cards.push(...submitted)
+
         for (const card of submitted) {
             const cardId = randomUUID().substring(0, 10)
             const succesful = this.isCardSuccessful(game, player, card)
@@ -343,14 +361,31 @@ export class CCGCommands extends AbstractCommands {
             if (succesful) player.stats.hits += 1
             else player.stats.misses += 1
             if (card.effects?.length ?? 0 > 0) {
+                // Group effects by gambleGroup and pick exactly one per group
+                const gambleWinners = new Set<CCGCardEffect>()
+                const groups = new Map<string, CCGCardEffect[]>()
+                for (const effect of card.effects) {
+                    if (effect.gambleGroup) {
+                        const g = groups.get(effect.gambleGroup) ?? []
+                        g.push(effect)
+                        groups.set(effect.gambleGroup, g)
+                    }
+                }
+                // Each gamble group contributes exactly one randomly-picked winner to the stack
+                for (const group of groups.values()) {
+                    gambleWinners.add(group[Math.floor(Math.random() * group.length)])
+                }
+
+                const effectsToQueue = card.effects.filter((e) => !e.gambleGroup || gambleWinners.has(e))
                 game.state.stack.push(
-                    ...card.effects.map((effect) => {
+                    ...effectsToQueue.map((effect) => {
                         return {
                             cardId: cardId,
                             emoji: card.emoji,
-                            targetPlayerId: this.getTarget(game, player, effect),
+                            targetPlayerId: this.getTarget(game, player, effect, card),
                             cardTarget: effect.target,
                             sourceCardName: card.name,
+                            sourceCardId: card.id,
                             sourcePlayerId: player.id,
                             speed: speed,
                             accuracy: effect.accuracy ?? 100,
@@ -358,8 +393,16 @@ export class CCGCommands extends AbstractCommands {
                             type: effect.type,
                             value: effect.value,
                             turns: effect.turns,
+                            amount: effect.amount,
+                            condition: effect.condition,
                             statusAccuracy: effect.statusAccuracy ?? 100,
                             includeCurrentTurn: effect.includeCurrentTurn,
+                            transformCardId: effect.transformCardId,
+                            identifier: effect.identifier,
+                            summonCardId: effect.summonCardId,
+                            delayedTrigger: effect.delayedTrigger,
+                            countTarget: effect.countTarget,
+                            base: effect.base,
                         }
                     })
                 )
@@ -368,7 +411,7 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private checkForSpecialCards(game: CCGGame, player: CCGPlayer) {
-        const copyCardIds = ['same', 'sw_storm_trooper_n', 'sw_chewbacca_n']
+        const copyCardIds = ['same']
         const submitted = player.hand.filter((card) => card.selected)
         for (const card of submitted) {
             if (card.id === 'same') {
@@ -379,58 +422,6 @@ export class CCGCommands extends AbstractCommands {
                 const cardCopied = opponentCards?.length ?? 0 > 0 ? opponentCards[0] : undefined
                 if (cardCopied) {
                     this.queueCopiedEffects(game, player, cardId, cardCopied, succesful)
-                }
-            }
-            if (card.id === 'sw_storm_trooper_n') {
-                // Copies the opponent's LOWEST cost card played this round
-                const cardId = randomUUID().substring(0, 10)
-                const successful = this.isCardSuccessful(game, player, card)
-                const opponent = this.getOpponent(game, player.id)
-                const opponentCards = opponent.hand.filter((c) => c.selected && !copyCardIds.includes(c.id))?.sort((a, b) => a.cost - b.cost) // ascending → lowest cost first
-                const cardCopied = opponentCards?.length ?? 0 > 0 ? opponentCards[0] : undefined
-                if (cardCopied) {
-                    this.queueCopiedEffects(game, player, cardId, cardCopied, successful)
-                }
-            }
-            if (card.id === 'sw_boba_fett_n') {
-                // Solo bonus: if this is the only card played this turn, deal 2 extra damage
-                if (submitted.length === 1) {
-                    const cardId = randomUUID().substring(0, 10)
-                    const successful = this.isCardSuccessful(game, player, card)
-                    const speed = this.getSpeed(game, player, card)
-                    game.state.stack.push({
-                        cardId: cardId,
-                        emoji: card.emoji,
-                        targetPlayerId: player.opponentId,
-                        sourceCardName: card.name,
-                        sourcePlayerId: player.id,
-                        speed: speed,
-                        accuracy: 100,
-                        cardSuccessful: successful,
-                        type: 'DAMAGE',
-                        value: 2,
-                    })
-                }
-            }
-            if (card.id === 'sw_chewbacca_n') {
-                // Copy highest cost card (normal targets) AND lowest cost card (random targets)
-                const cardId = randomUUID().substring(0, 10)
-                const successful = this.isCardSuccessful(game, player, card)
-                const opponent = this.getOpponent(game, player.id)
-                const opponentCards = opponent.hand.filter((c) => c.selected && !copyCardIds.includes(c.id))
-                const highestCard = opponentCards.length > 0 ? [...opponentCards].sort((a, b) => b.cost - a.cost)[0] : undefined
-                const lowestCard = opponentCards.length > 0 ? [...opponentCards].sort((a, b) => a.cost - b.cost)[0] : undefined
-                if (highestCard) {
-                    this.queueCopiedEffects(game, player, cardId, highestCard, successful, {
-                        sourceCardName: `${card.name} (${highestCard.name})`,
-                    })
-                }
-                if (lowestCard && lowestCard !== highestCard) {
-                    this.queueCopiedEffects(game, player, cardId, lowestCard, successful, {
-                        sourceCardName: `${card.name} (${lowestCard.name})`,
-                        statusText: 'random target',
-                        randomTarget: true,
-                    })
                 }
             }
         }
@@ -455,7 +446,7 @@ export class CCGCommands extends AbstractCommands {
 
         game.state.stack.push(
             ...copiedCard.effects.map((effect) => {
-                let targetPlayerId = this.getTarget(game, player, effect)
+                let targetPlayerId = this.getTarget(game, player, effect, copiedCard)
                 if (options?.randomTarget) {
                     targetPlayerId = Math.random() > 0.5 ? player.id : opponent.id
                 }
@@ -466,6 +457,7 @@ export class CCGCommands extends AbstractCommands {
                     statusText,
                     targetPlayerId,
                     sourceCardName,
+                    sourceCardId: copiedCard.id,
                     sourcePlayerId: player.id,
                     speed,
                     accuracy: effect.accuracy ?? 100,
@@ -473,16 +465,18 @@ export class CCGCommands extends AbstractCommands {
                     type: effect.type,
                     value: effect.value,
                     turns: effect.turns,
+                    condition: effect.condition,
                     includeCurrentTurn: effect.includeCurrentTurn,
+                    transformCardId: effect.transformCardId,
                 }
             })
         )
     }
 
-    private getTarget(game: CCGGame, player: CCGPlayer, effect: CCGCardEffect) {
+    private getTarget(game: CCGGame, player: CCGPlayer, effect: CCGCardEffect, card: CCGCard) {
         const retarded = this.getPlayerCondition(game, player, 'RETARDED')
         const roll = Math.random()
-        const flip = retarded && roll < retarded.accuracy / 100
+        const flip = retarded && !card.effectImmunities?.includes('RETARDED') && roll < retarded.accuracy / 100
         if (flip) {
             return effect.target === 'OPPONENT' ? player.id : player.opponentId
         } else {
@@ -500,7 +494,7 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private getSpeed(game: CCGGame, player: CCGPlayer, card: CCGCard) {
-        const isSlow = this.playerHasCondition(game, player, 'SLOW')
+        const isSlow = !card.effectImmunities?.includes('SLOW') && this.playerHasCondition(game, player, 'SLOW')
         const hasSpeedBuff = this.playerHasStatus(game, player, 'SPEED_BUFF')
         const speedDivisor = isSlow ? GameValues.ccg.status.slow_speedDivideBy : 1
         const speedMultiplier = hasSpeedBuff ? GameValues.ccg.status.speedBuff_multiplier : 1
@@ -523,7 +517,7 @@ export class CCGCommands extends AbstractCommands {
         const mods: CardModification[] = []
         for (const effect of game.state.statusEffects) {
             if (effect.ownerId !== player.id) continue
-            if (effect.type === 'REDUCE_COST') mods.push({ type: 'COST_DELTA', value: -effect.value })
+            if (effect.type === 'REDUCE_COST') mods.push({ type: 'COST_DELTA', value: -effect.value, identifier: effect.identifier })
             if (effect.type === 'CHOKE_SHIELD') mods.push({ type: 'ACCURACY_DELTA', value: 20 })
             if (effect.type === 'SPEED_BUFF') mods.push({ type: 'SPEED_MULTIPLIER', value: GameValues.ccg.status.speedBuff_multiplier })
             if (effect.type === 'DAMAGE_BOOST') mods.push({ type: 'DAMAGE_DELTA', value: effect.value })
@@ -741,6 +735,7 @@ export class CCGCommands extends AbstractCommands {
             log: new Array<CCGLogEntry>(),
             settings: GameValues.ccg.gameSettings,
             locked: false,
+            playedCardsAllGame: [],
         }
     }
 
@@ -814,6 +809,7 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private async userHasValidDeck(interaction: ChatInteraction | BtnInteraction) {
+        if (environment === 'dev') return true // skip deck validation in development for faster testing
         const user = await this.database.getUser(interaction.user.id)
         const deck = user.ccg?.decks?.find((deck) => deck.active) ?? GameValues.ccg.defaultDeck
         deck.valid = true
@@ -931,13 +927,22 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private getSummary(game: CCGGame) {
-        const summary = game.state.log
+        const roundLog = game.state.log
             .filter((entry) => entry.turn === game.summary.round)
-            .map((entry) => {
-                return entry.message
-            })
+            .map((entry) => entry.message)
             .join('\n\n')
-        return `Round ${game.summary.round} of ${game.state.turn}\n\n${summary}`
+
+        const cardsPlayedThisRound = game.state.playedCardsAllGame
+            .filter((entry) => entry.round === game.summary.round)
+            .map((entry) => {
+                const player = game.player1.id === entry.playerId ? game.player1 : game.player2
+                const cardNames = entry.cards.map((c) => c.name).join(', ')
+                return `${player.name}: ${cardNames}`
+            })
+            .join('\n')
+
+        const cardsSection = cardsPlayedThisRound ? `**Cards Played:**\n${cardsPlayedThisRound}\n\n` : ''
+        return `Round ${game.summary.round} of ${game.state.turn}\n\n${cardsSection}${roundLog}`
     }
 
     private async resendMessages(interaction: BtnInteraction, game: CCGGame) {

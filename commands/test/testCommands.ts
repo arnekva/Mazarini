@@ -58,10 +58,12 @@ export class TestCommands extends AbstractCommands {
 
     private async test(interaction: ChatInteraction | BtnInteraction) {
         const scripts = new Scripts(this.client)
-        scripts.setCCGCards()
-        await scripts.updateLootSeriesAndPacks()
+        // scripts.setCCGCards()
+        scripts.updateCCGSeries()
+        await scripts.resetChipsAndPerks()
+        await scripts.resetSwCCGInventory()
         // scripts.setLootPacks()
-        this.messageHelper.replyToInteraction(interaction, 'oppdaterer ccg greier')
+        this.messageHelper.replyToInteraction(interaction, 'Release prep')
     }
 
     private async testSelectMenu(selectMenu: SelectStringInteraction) {

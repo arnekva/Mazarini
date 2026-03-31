@@ -45,7 +45,7 @@ export class ClientListener {
     }
 
     setupListeners() {
-        this.client.on('ready', async () => {
+        this.client.on('clientReady', async () => {
             console.log(
                 `Setup ready, bot is running as ${this.client.user?.tag} at ${new Date().toLocaleDateString('nb', {
                     weekday: 'long',

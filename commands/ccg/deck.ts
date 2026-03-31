@@ -1,7 +1,16 @@
 import { randomUUID } from 'crypto'
-import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, GuildMember } from 'discord.js'
+import {
+    ActionRowBuilder,
+    AttachmentBuilder,
+    ButtonBuilder,
+    ButtonInteraction,
+    ButtonStyle,
+    GuildMember,
+    StringSelectMenuBuilder,
+    StringSelectMenuOptionBuilder,
+} from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
-import { ATCInteraction, BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
+import { ATCInteraction, BtnInteraction, ChatInteraction, SelectStringInteraction } from '../../Abstracts/MazariniInteraction'
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
@@ -11,7 +20,7 @@ import { DeckEditorCard, ICCGDeck, ItemRarity, IUserLootItem, MazariniUser } fro
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { CCGDeckEditor_Info, CCGDeckEditor_Trade } from '../../templates/containerTemplates'
 import { TextUtils } from '../../utils/textUtils'
-import { CCGCard, CCGCardType, CCGSeries, DeckEditor, UsageFilter } from './ccgInterface'
+import { CardIdentifier, CCGCard, CCGCardType, CCGSeries, DeckEditor, UsageFilter } from './ccgInterface'
 import { CCGValidator } from './validator'
 
 export class DeckCommands extends AbstractCommands {
@@ -87,6 +96,7 @@ export class DeckCommands extends AbstractCommands {
             rarityFilters: [],
             usageFilters: [],
             seriesFilters: [],
+            identifierFilters: [],
             userCards: structuredClone(fullCards),
             filteredCards: structuredClone(fullCards),
             cardImages: new Map<string, Buffer>(),
@@ -141,6 +151,7 @@ export class DeckCommands extends AbstractCommands {
         if (GameValues.ccg.activeCCGseries.length > 1) {
             deckInfo.replaceComponent('seriesFilters', seriesFilters(editor))
         }
+        deckInfo.replaceComponent('identifierFilters', identifierFilters(editor))
         deckInfo.setColor(editor.userColor)
         return deckInfo
     }
@@ -182,9 +193,12 @@ export class DeckCommands extends AbstractCommands {
         const available = this.getCardAmountAvailable(user, card)
         const inDeck = editor.deck.cards?.find((instance) => instance.id === card.id)?.amount ?? 0
         const maxAllowed = card.rarity === ItemRarity.Legendary ? 1 : 2
-        let cardInfo = `**${card.name}**\n${TextUtils.capitalizeFirstLetter(card.type)}\n${TextUtils.capitalizeFirstLetter(card.rarity)}\n\n${
-            editor.isTradeEditor ? 'Tradeable:' : 'Available:'
-        } ${available}\n${editor.isTradeEditor ? 'Selected for trade:' : 'In deck:'} ${inDeck}${editor.isTradeEditor ? '' : ` / ${maxAllowed}`}`
+        const identifiers = (card.identifier?.length ?? 0) > 0 ? `\n-# ${card.identifier.join(' · ')}` : ''
+        let cardInfo = `### **${card.name}**${identifiers}\n-# ${TextUtils.capitalizeFirstLetter(card.type)}\n-# ${TextUtils.capitalizeFirstLetter(
+            card.rarity
+        )}\n\n${editor.isTradeEditor ? 'Tradeable:' : 'Available:'} ${available}\n${editor.isTradeEditor ? 'Selected for trade:' : 'In deck:'} ${inDeck}${
+            editor.isTradeEditor ? '' : ` / ${maxAllowed}`
+        }`
         if (editor.isTradeEditor) {
             const activeDeck = user.ccg?.decks?.find((deck) => deck.active)
             const cardsInActiveDeck = activeDeck.cards.find((instance) => instance.id === card.id)?.amount ?? 0
@@ -276,6 +290,7 @@ export class DeckCommands extends AbstractCommands {
         if (GameValues.ccg.activeCCGseries.length > 1) {
             editor.deckInfo.container.replaceComponent('seriesFilters', seriesFilters(editor))
         }
+        editor.deckInfo.container.replaceComponent('identifierFilters', identifierFilters(editor))
         editor.deckInfo.message.edit({ components: [editor.deckInfo.container.container] })
     }
 
@@ -285,7 +300,8 @@ export class DeckCommands extends AbstractCommands {
                 ((editor.typeFilters.length ?? 0) === 0 || editor.typeFilters.includes(card.type)) &&
                 ((editor.rarityFilters.length ?? 0) === 0 || editor.rarityFilters.includes(card.rarity)) &&
                 ((editor.usageFilters.length ?? 0) === 0 || this.checkUsageFilter(editor, card)) &&
-                ((editor.seriesFilters.length ?? 0) === 0 || editor.seriesFilters.includes(card.series as CCGSeries))
+                ((editor.seriesFilters.length ?? 0) === 0 || editor.seriesFilters.includes(card.series as CCGSeries)) &&
+                ((editor.identifierFilters?.length ?? 0) === 0 || card.identifier?.some((i) => editor.identifierFilters.includes(i)))
         )
     }
 
@@ -479,6 +495,15 @@ export class DeckCommands extends AbstractCommands {
         } else this.messageHelper.replyToInteraction(interaction, 'nei', { ephemeral: true })
     }
 
+    private verifyUserAndCallSelectMenu(interaction: SelectStringInteraction, callback: (editor: DeckEditor, values: string[]) => void) {
+        const editorId = interaction.customId.split(';')[1]
+        const editor = this.editors.get(editorId)
+        if (editor && editor.userId === interaction.user.id) {
+            interaction.deferUpdate()
+            callback(editor, interaction.values)
+        } else this.messageHelper.replyToInteraction(interaction, 'nei', { ephemeral: true })
+    }
+
     getAllInteractions(): IInteractionElement {
         return {
             commands: {
@@ -549,6 +574,20 @@ export class DeckCommands extends AbstractCommands {
                         },
                     },
                 ],
+                selectMenuInteractionCommands: [
+                    {
+                        commandName: 'DECK_IDENTIFIER_FILTER',
+                        command: (rawInteraction: SelectStringInteraction) => {
+                            this.verifyUserAndCallSelectMenu(rawInteraction, (editor, values) => {
+                                editor.identifierFilters = values as CardIdentifier[]
+                                this.updateFilterButtons(editor)
+                                this.filterCards(editor)
+                                editor.page = 1
+                                this.updateCardView(editor, rawInteraction.user.id)
+                            })
+                        },
+                    },
+                ],
             },
         }
     }
@@ -584,6 +623,26 @@ const rarityFilters = (editor: DeckEditor) => {
         filterButton(editor.id, ItemRarity.Rare, editor.rarityFilters?.includes(ItemRarity.Rare)),
         filterButton(editor.id, ItemRarity.Epic, editor.rarityFilters?.includes(ItemRarity.Epic)),
         filterButton(editor.id, ItemRarity.Legendary, editor.rarityFilters?.includes(ItemRarity.Legendary))
+    )
+}
+
+const ALL_IDENTIFIERS: CardIdentifier[] = ['REBEL', 'SITH', 'JEDI', 'REPUBLIC', 'BOUNTY_HUNTER', 'CREATURE', 'EMPIRE', 'DROID']
+
+const identifierFilters = (editor: DeckEditor) => {
+    return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+        new StringSelectMenuBuilder()
+            .setCustomId(`DECK_IDENTIFIER_FILTER;${editor.id}`)
+            .setPlaceholder('Filter by identifier...')
+            .setMinValues(0)
+            .setMaxValues(ALL_IDENTIFIERS.length)
+            .addOptions(
+                ALL_IDENTIFIERS.map((id) =>
+                    new StringSelectMenuOptionBuilder()
+                        .setValue(id)
+                        .setLabel(id.replace(/_/g, ' '))
+                        .setDefault(editor.identifierFilters?.includes(id) ?? false)
+                )
+            )
     )
 }
 

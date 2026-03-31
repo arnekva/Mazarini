@@ -25,7 +25,7 @@ export class ProgressionHandler {
             player.stats.chipsWon = game.wager ?? 0
         } else {
             player.stats.lost += 1
-            player.stats.chipsWon = -game.wager ?? 0
+            player.stats.chipsWon = -(game.wager ?? 0)
         }
 
         const previousStats = user.userStats?.ccgStats?.findIndex(

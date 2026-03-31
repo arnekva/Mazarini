@@ -109,6 +109,7 @@ export const mazariniCCG: CCGCard[] = [
         speed: 1,
         rarity: ItemRarity.Epic,
         accuracy: 95,
+        customDescription: `Copy opponent's [yellow]highest cost[/yellow] played card`,
     },
     {
         id: 'KEKW_gun',
@@ -264,6 +265,7 @@ export const mazariniCCG: CCGCard[] = [
         speed: 42,
         rarity: ItemRarity.Rare,
         accuracy: 100,
+        customDescription: `[red]25% chance[/red] to take [red]3 damage[/red]. Deal [red]3 damage[/red]`,
     },
     {
         id: 'sniff',

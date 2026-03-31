@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '30.8.9'
+    public static readonly currentVersion = '31.0.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,7 +26,12 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            ['* Luke er nå markert som HEAL kort, og teller mot grensen.', '* Leia applier nå BLEED (2 turns) i stedet for 1 DAMAGE.'].join('\n')
+            [
+                '## SW CCG Reloaded',
+                '* 44 ny-designede kort ligger klare til å bli funnet i packs!',
+                '* swCCG inventory resettes for samtlige',
+                '* Alle kompenseres med 500 shards som kan brukes som et startskudd',
+            ].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

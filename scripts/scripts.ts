@@ -56,9 +56,10 @@ export class Scripts {
                 positive: {},
                 negative: {},
             }
-            user.chips = 0
+            user.chips = 10000
             user.daily = { ...user.daily, streak: 0, claimedToday: false }
             user.jail = { ...user.jail, daysInJail: 0, jailState: 'none' }
+            user.ccg = { ...user.ccg, shards: 500, pitySinceLastLegendary: 0, weeklyShardsEarned: 0 }
             await this.client.database.updateUser(user)
         }
     }
@@ -130,6 +131,20 @@ export class Scripts {
         this.setCCGCards()
         this.client.database.updateLootboxSeries(mazariniCCG_series)
         this.client.database.updateLootboxSeries(swCCG_series)
+    }
+
+    public async resetSwCCGInventory() {
+        const users = await this.client.database.getAllUsers()
+        const usersWithSwCCG = users.filter((user) => user.loot?.swCCG)
+        for (const user of usersWithSwCCG) {
+            user.loot.swCCG = {
+                name: 'swCCG',
+                pityLevel: structuredClone(defaultPityLevel),
+                inventory: structuredClone(defaultInventory),
+                stats: structuredClone(defaultLootStats),
+            }
+            await this.client.database.updateUser(user)
+        }
     }
 
     public async refactorUserLoot(user: MazariniUser) {

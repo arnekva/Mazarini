@@ -80,6 +80,7 @@ export const CCGDeckEditor_Info = (editor: DeckEditor) => {
     if (GameValues.ccg.activeCCGseries.length > 1) {
         container.addComponent(buttons3, 'seriesFilters')
     }
+    container.addComponent(buttons1, 'identifierFilters')
     return container
 }
 

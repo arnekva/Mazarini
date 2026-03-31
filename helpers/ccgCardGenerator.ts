@@ -6,7 +6,7 @@ import sharp from 'sharp'
 import { MazariniClient } from '../client/MazariniClient'
 import { mazariniCCG } from '../commands/ccg/cards/mazariniCCG'
 import { swCCG } from '../commands/ccg/cards/swCCG'
-import { CCGCard, CCGCardEffect } from '../commands/ccg/ccgInterface'
+import { CardIdentifier, CCGCard, CCGCardEffect } from '../commands/ccg/ccgInterface'
 import { ItemRarity } from '../interfaces/database/databaseInterface'
 
 const CARD_WIDTH = 480
@@ -57,6 +57,18 @@ const TAG_COLORS: Record<string, string> = {
     white: WHITE,
 }
 
+/** Identifier → pill background color */
+const IDENTIFIER_COLORS: Record<string, string> = {
+    JEDI: '#60a5fa',
+    SITH: '#ef4444',
+    REBEL: '#52B329',
+    EMPIRE: '#888888',
+    BOUNTY_HUNTER: '#F5C542',
+    CREATURE: '#8B4513',
+    DROID: '#00BCD4',
+    REPUBLIC: '#9b59b6',
+}
+
 // Layout constants for 480x672 card (pixel-matched to blank templates)
 // Keep emoji art strictly inside this square with padding.
 const ART_BOUND_LEFT = 98
@@ -69,7 +81,11 @@ const ART_CENTER_Y = 203
 const ART_MAX_SIZE = Math.min(ART_BOUND_RIGHT - ART_BOUND_LEFT, ART_BOUND_BOTTOM - ART_BOUND_TOP) - ART_PADDING * 2
 const ART_SCALE = 0.95
 /** Bump this whenever layout constants change to force card regeneration */
-const LAYOUT_VERSION = 25
+const LAYOUT_VERSION = 52
+
+/** Effect types that are implicit/mechanical and should not appear in card description text */
+const IMPLICIT_EFFECT_TYPES = new Set(['CLAIM_BOUNTY'])
+
 const SPEED_X = 57
 const SPEED_Y = 452
 const COST_X = 240
@@ -89,6 +105,8 @@ const artCache = new Map<string, { buffer: Buffer; width: number; height: number
 export interface CardModification {
     type: 'COST_DELTA' | 'DAMAGE_DELTA' | 'HEAL_DELTA' | 'ENERGY_DELTA' | 'SPEED_DELTA' | 'SPEED_MULTIPLIER' | 'ACCURACY_DELTA' | 'ACCURACY_OVERRIDE'
     value: number
+    /** If set, this modification only applies to cards that have this identifier */
+    identifier?: CardIdentifier
 }
 
 export class CCGCardGenerator {
@@ -201,6 +219,7 @@ export class CCGCardGenerator {
             if (mod.type === 'ACCURACY_OVERRIDE') c.accuracy = mod.value
         }
         for (const mod of mods) {
+            if (mod.identifier && !c.identifier?.includes(mod.identifier)) continue
             switch (mod.type) {
                 case 'COST_DELTA':
                     c.cost = Math.max(0, c.cost + mod.value)
@@ -263,6 +282,9 @@ export class CCGCardGenerator {
             accuracy: card.accuracy,
             speed: card.speed,
             cannotMiss: card.cannotMiss,
+            identifier: card.identifier,
+            effectImmunities: card.effectImmunities,
+            customDescription: card.customDescription,
         })
         return crypto.createHash('md5').update(data).digest('hex')
     }
@@ -363,10 +385,53 @@ export class CCGCardGenerator {
     /** Build a transparent SVG overlay with stats, card name, and effect description */
     private static buildOverlaySVG(card: CCGCard, richSpans: TextSpan[]): string {
         const escapedName = CCGCardGenerator.escapeXml(card.name)
-        const wrappedLines = CCGCardGenerator.wrapRichText(richSpans, 32)
-        const lineHeight = 34
+        // Adaptive font sizing: try largest first, step down if any line is too wide
+        const DESC_TIERS = [
+            { fontSize: 28, maxChars: 27, lineHeight: 34 },
+            { fontSize: 24, maxChars: 31, lineHeight: 29 },
+            { fontSize: 20, maxChars: 38, lineHeight: 24 },
+        ]
+        let wrappedLines: TextSpan[][] = []
+        let fontSize = 28
+        let lineHeight = 34
+        for (const tier of DESC_TIERS) {
+            wrappedLines = CCGCardGenerator.wrapRichText(richSpans, tier.maxChars)
+            fontSize = tier.fontSize
+            lineHeight = tier.lineHeight
+            // Accept this tier: no single line exceeds maxChars chars
+            const maxLineLen = wrappedLines.reduce(
+                (m, line) =>
+                    Math.max(
+                        m,
+                        line.reduce((s, sp) => s + sp.text.length, 0)
+                    ),
+                0
+            )
+            if (maxLineLen <= tier.maxChars) break
+        }
         const totalHeight = (wrappedLines.length - 1) * lineHeight
         const descStartY = DESC_START_Y - totalHeight / 2
+        const identifierPillsSVG = (() => {
+            if (!card.identifier?.length) return ''
+            const PILL_H = 36
+            const PILL_Y = 14
+            // For 22px bold Arial, cap-height ≈ 15px. Baseline at PILL_Y+26 visually centers text in the pill.
+            const PILL_TEXT_Y = PILL_Y + 26
+            const SEPARATOR = ' · '
+            // Estimate total text width: ~12.5px per char at 22px bold Arial, ~5.5px per separator char
+            const textW =
+                card.identifier.reduce((sum, id) => sum + id.replace(/_/g, ' ').length * 12.5, 0) + (card.identifier.length - 1) * SEPARATOR.length * 10
+            const pillW = Math.ceil(textW + 24)
+            const pillX = Math.round((CARD_WIDTH - pillW) / 2)
+            const label = card.identifier.map((id) => CCGCardGenerator.escapeXml(id.replace(/_/g, ' '))).join(SEPARATOR)
+            return (
+                `\n  <!-- ═══ IDENTIFIERS ═══ -->` +
+                `\n  <rect x="${pillX}" y="${PILL_Y}" width="${pillW}" height="${PILL_H}" rx="6" fill="#1a1a1a" fill-opacity="0.82" stroke="#555555" stroke-width="1"/>` +
+                `\n  <text x="${Math.floor(
+                    CARD_WIDTH / 2
+                )}" y="${PILL_TEXT_Y}" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#cccccc" text-anchor="middle">${label}</text>`
+            )
+        })()
 
         return `<svg xmlns="http://www.w3.org/2000/svg" width="${CARD_WIDTH}" height="${CARD_HEIGHT}" viewBox="0 0 ${CARD_WIDTH} ${CARD_HEIGHT}">
   <defs>
@@ -396,7 +461,7 @@ export class CCGCardGenerator {
         <text x="${NAME_X}" y="${NAME_Y}" font-family="Arial, sans-serif" font-size="34" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${escapedName}</text>
 
     <!-- ═══ EFFECT DESCRIPTION ═══ -->
-    <g font-family="Arial, sans-serif" font-size="28">
+    <g font-family="Arial, sans-serif" font-size="${fontSize}">
     ${wrappedLines
         .map(
             (spans, i) =>
@@ -405,8 +470,7 @@ export class CCGCardGenerator {
                     .join('')}</text>`
         )
         .join('\n    ')}
-  </g>
-</svg>`
+  </g>${identifierPillsSVG}</svg>`
     }
 
     // ═══ Rich text description system ═══
@@ -431,25 +495,38 @@ export class CCGCardGenerator {
         return spans
     }
 
-    /** Build rich colored description from card effects */
+    /** Build rich colored description from card effects, including immunity line */
     private static buildRichDescription(card: CCGCard): TextSpan[] {
-        if (card.id === 'same') return CCGCardGenerator.parseBBCode(`Copy opponent's [yellow]highest cost[/yellow] played card`)
-        if (card.id === 'sw_storm_trooper_n') return CCGCardGenerator.parseBBCode(`Copy opponent's [yellow]lowest cost[/yellow] played card`)
-        if (card.id === 'sw_darth_maul_n') return CCGCardGenerator.parseBBCode(`Cut opponent's [pink]speed[/pink] and [red]accuracy[/red] in half next turn`)
-        if (card.id === 'sw_boba_fett_n')
-            return CCGCardGenerator.parseBBCode(`Deal [red]2 damage[/red]. If played [yellow]alone[/yellow] this turn, deal [red]2 more[/red]`)
-        if (card.id === 'sw_chewbacca_n')
-            return CCGCardGenerator.parseBBCode(
-                `Copy your opponent's [yellow]highest cost[/yellow] card. Copy your opponent's [yellow]lowest cost[/yellow] card with [pink]random targets[/pink]`
-            )
-        if (card.id === 'maggiscared') return CCGCardGenerator.parseBBCode(`[red]25% chance[/red] to take [red]3 damage[/red]. Deal [red]3 damage[/red]`)
-        if (card.id === 'sw_padme_amidala_n')
-            return CCGCardGenerator.parseBBCode(
-                `Reduce [blue]all[/blue] card costs by [blue]1[/blue]. You: [pink]${card.effects[0].turns} turns[/pink], opponent: [pink]${card.effects[1].turns} turn[/pink]`
-            )
+        const spans = CCGCardGenerator.buildBaseDescription(card)
+        if (card.effectImmunities?.length) {
+            const immStr = card.effectImmunities.map((i) => `[pink]${i.replace(/_/g, ' ')}[/pink]`).join(', ')
+            return [...spans, ...CCGCardGenerator.parseBBCode(`. \nImmune to ${immStr}`)]
+        }
+        return spans
+    }
+
+    private static buildBaseDescription(card: CCGCard): TextSpan[] {
+        // Check for custom description override
+        if (card.customDescription) {
+            return CCGCardGenerator.parseBBCode(card.customDescription)
+        }
+
         if (!card.effects || card.effects.length === 0) return [{ text: 'No effect', color: WHITE }]
 
-        const effects = card.effects
+        // Strip effects that are implicit/mechanical and should not appear in description
+        const effects = card.effects.filter((e) => !IMPLICIT_EFFECT_TYPES.has(e.type))
+        if (effects.length === 0) return [{ text: 'No effect', color: WHITE }]
+
+        // Check for conditional effect patterns (either/or)
+        const conditionalPattern = CCGCardGenerator.detectConditionalPatterns(effects)
+        if (conditionalPattern) {
+            const description = CCGCardGenerator.buildConditionalDescription(
+                conditionalPattern.baseEffect,
+                conditionalPattern.bonusEffect,
+                conditionalPattern.condition
+            )
+            return CCGCardGenerator.parseBBCode(description)
+        }
 
         // Pattern: DAMAGE opponent + DAMAGE self → combined sentence
         if (
@@ -501,75 +578,242 @@ export class CCGCardGenerator {
         const parts: string[] = []
         for (let i = 0; i < effects.length; i++) {
             const desc = CCGCardGenerator.describeEffect(effects[i])
-            if (i + 1 < effects.length && CCGCardGenerator.describeEffect(effects[i + 1]) === desc) {
+            if (!desc) continue
+            const condDesc = CCGCardGenerator.describeCondition(effects[i].condition)
+            const fullDesc = condDesc ? `${desc} ${condDesc}` : desc
+            if (i + 1 < effects.length && CCGCardGenerator.describeEffect(effects[i + 1]) === desc && !effects[i].condition && !effects[i + 1].condition) {
                 parts.push(`${desc} [yellow]TWICE[/yellow]`)
                 i++
             } else {
-                parts.push(desc)
+                parts.push(fullDesc)
             }
         }
         return CCGCardGenerator.parseBBCode(parts.join('. '))
     }
 
+    /** Describe a condition in readable text */
+    private static describeCondition(condition: any): string {
+        if (!condition) return ''
+        const tgtPlay = condition.target === 'SELF' ? 'you play' : condition.target === 'OPPONENT' ? 'opponent plays' : 'both players play'
+
+        switch (condition.type) {
+            case 'NUM_CARDS_PLAYED':
+                if (condition.target === 'SELF' && condition.comparator === '==' && condition.value === 1) {
+                    return condition.invert ? 'if not played alone' : 'if played alone'
+                }
+                return `if ${tgtPlay} ${condition.comparator} ${condition.value} card${condition.value !== 1 ? 's' : ''}`
+            case 'PLAYED_CARD_IDENTIFIER': {
+                const identifiers = Array.isArray(condition.identifier) ? condition.identifier.join(' or ') : condition.identifier
+                if (condition.comparator === '>=' && condition.value >= 2) {
+                    return `if played alongside another ${identifiers.replace(/_/g, ' ')}`
+                }
+                return `if ${tgtPlay} ${identifiers.replace(/_/g, ' ')} card`
+            }
+            case 'PLAYED_CARD_ID': {
+                const cardName = [...mazariniCCG, ...swCCG].find((c) => c.id === condition.cardId)?.name ?? condition.cardId
+                if (condition.comparator === '>=' && condition.value >= 2) {
+                    return `if played alongside another ${cardName}`
+                }
+                if (condition.target === 'SELF' && condition.comparator === '>=' && condition.value === 1) {
+                    return `if played with a ${cardName}`
+                }
+                return `if ${tgtPlay} ${cardName}`
+            }
+            case 'HP_BELOW':
+                return `if ${condition.target.toLowerCase()} HP < ${condition.value}`
+            case 'HP_ABOVE':
+                return `if ${condition.target.toLowerCase()} HP > ${condition.value}`
+            case 'ENERGY_BELOW':
+                return `if ${condition.target.toLowerCase()} energy < ${condition.value}`
+            case 'ENERGY_ABOVE':
+                return `if ${condition.target.toLowerCase()} energy > ${condition.value}`
+            case 'HAS_STATUS': {
+                const statusName = (condition.status as string)?.replace(/_/g, ' ') ?? condition.status
+                return `if ${condition.target.toLowerCase()} has ${statusName}`
+            }
+            case 'NOT_HAS_STATUS': {
+                const statusName = (condition.status as string)?.replace(/_/g, ' ') ?? condition.status
+                return `if ${condition.target.toLowerCase()} doesn't have ${statusName}`
+            }
+            case 'PLAYED_EFFECT_TYPE': {
+                const effName = (condition.effectType as string)?.toLowerCase().replace(/_/g, ' ') ?? 'effect'
+                return `if ${tgtPlay} a ${effName} effect`
+            }
+            case 'RANDOM':
+                return `(${condition.chance}% chance)`
+            default:
+                return `if ${condition.type.toLowerCase()}`
+        }
+    }
+
+    /** Detect either/or conditional effect patterns */
+    private static detectConditionalPatterns(effects: CCGCardEffect[]): { baseEffect: CCGCardEffect; bonusEffect: CCGCardEffect; condition: any } | null {
+        if (effects.length !== 2) return null
+
+        const [effect1, effect2] = effects
+
+        // Must be same effect type and target
+        if (effect1.type !== effect2.type || effect1.target !== effect2.target) return null
+
+        // Pattern A: Both effects have explicit conditions — one without invert (bonus), one with invert:true (base/fallback)
+        if (effect1.condition && effect2.condition) {
+            const bonusEffect = [effect1, effect2].find((e) => e.condition && !e.condition.invert) ?? null
+            const baseEffect = [effect1, effect2].find((e) => e.condition?.invert) ?? null
+
+            if (!bonusEffect || !baseEffect) return null
+
+            // Verify both conditions describe the same predicate (minus invert flag)
+            const bonusCond = { ...bonusEffect.condition }
+            const baseCond = { ...baseEffect.condition }
+            delete baseCond.invert
+
+            if (JSON.stringify(bonusCond) !== JSON.stringify(baseCond)) return null
+
+            return { baseEffect, bonusEffect, condition: { ...bonusEffect.condition } }
+        }
+
+        // Pattern B: One effect has no condition (always applies = base), other has invert:true (fallback)
+        const conditionalEffect = effect1.condition ? effect1 : effect2.condition ? effect2 : null
+        const baseEffect = effect1.condition ? effect2 : effect2.condition ? effect1 : null
+
+        if (!conditionalEffect || !baseEffect || !conditionalEffect.condition) return null
+
+        if (!conditionalEffect.condition.invert) return null
+
+        const baseCondition = baseEffect.condition
+        if (baseCondition) {
+            const invertedCondition = { ...conditionalEffect.condition }
+            delete invertedCondition.invert
+
+            if (JSON.stringify(baseCondition) !== JSON.stringify(invertedCondition)) return null
+        }
+
+        return {
+            baseEffect,
+            bonusEffect: conditionalEffect,
+            condition: { ...conditionalEffect.condition },
+        }
+    }
+
+    /** Build description for conditional effects in "base + bonus" format */
+    private static buildConditionalDescription(baseEffect: CCGCardEffect, bonusEffect: CCGCardEffect, condition: any): string {
+        const baseDesc = CCGCardGenerator.describeEffect(baseEffect)
+        const bonusDesc = CCGCardGenerator.describeEffect(bonusEffect)
+        const conditionDesc = CCGCardGenerator.describeCondition(condition)
+
+        // Extract the numeric difference for cleaner display
+        if (baseEffect.type === bonusEffect.type && typeof baseEffect.value === 'number' && typeof bonusEffect.value === 'number') {
+            const diff = bonusEffect.value - baseEffect.value
+            if (diff > 0) {
+                // For same effect type, show as "+X bonus"
+                const effectType = baseEffect.type.toLowerCase().replace('_', ' ')
+                const colorTag = baseDesc.includes('[blue]') ? '[blue]' : baseDesc.includes('[red]') ? '[red]' : '[green]'
+                return `${baseDesc}. ${colorTag}+${diff} ${effectType}[/${colorTag.split('[')[1]} ${conditionDesc}`
+            }
+        }
+
+        // Fallback to full bonus description
+        return `${baseDesc}. ${bonusDesc} ${conditionDesc}`
+    }
+
     private static describeEffect(effect: CCGCardEffect): string {
+        const tgt = effect.target === 'SELF' ? 'self' : 'opponent'
+        const tgtPossessive = effect.target === 'SELF' ? 'your' : "opponent's"
         switch (effect.type) {
             case 'DAMAGE':
                 return effect.target === 'SELF' ? `Take [red]${effect.value} damage[/red]` : `Deal [red]${effect.value} damage[/red]`
             case 'HEAL':
-                return `Heal [green]${effect.value}[/green]`
+                if (effect.turns && effect.delayedTrigger) return `[green]Heal ${effect.value}[/green] in [pink]${effect.turns} turns[/pink]`
+                return effect.turns ? `[green]Heal ${effect.value}[/green] for [pink]${effect.turns} turns[/pink]` : `[green]Heal ${effect.value}[/green]`
             case 'GAIN_ENERGY':
+                if (effect.turns && effect.delayedTrigger) return `Gain [blue]${effect.value} energy[/blue] in [pink]${effect.turns} turns[/pink]`
                 return effect.turns
                     ? `Gain [blue]${effect.value} energy[/blue] for [pink]${effect.turns} turns[/pink]`
                     : `Gain [blue]${effect.value} energy[/blue]`
             case 'LOSE_ENERGY':
-                return `Remove [blue]${effect.value} energy[/blue] from opponent`
+                return `Remove [blue]${effect.value} energy[/blue] from ${tgt}`
             case 'REMOVE_STATUS':
-                return `Remove all [pink]status effects[/pink]`
+                return `Remove all [pink]status effects[/pink] from ${tgt}`
             case 'STEAL_CARD':
-                return `Steal a card from opponent`
+                return `Steal a card from ${tgt}`
             case 'BLEED':
-                return `Apply [pink]Bleed[/pink] to opponent for [pink]${effect.turns} turns[/pink]`
+                return `Apply [pink]Bleed[/pink] to ${tgt} for [pink]${effect.turns} turns[/pink]`
+            case 'SHOCK':
+                return `Apply [pink]Shock[/pink] to ${tgt} for [pink]${effect.turns} turns[/pink] ([red]${effect.value}[/red] dmg/turn)`
             case 'SHIELD':
                 return `Shield for [blue]${effect.value}[/blue]`
             case 'REFLECT':
                 return effect.turns
                     ? `Reflect the [red]first incoming damage[/red] for [pink]${effect.turns} turn${effect.turns !== 1 ? 's' : ''}[/pink]`
                     : `Reflect the [red]first incoming damage[/red]`
-            case 'SLOW': {
-                return effect.target === 'SELF'
-                    ? `Slow [pink]self[/pink] for [pink]${effect.turns} turn${effect.turns !== 1 ? 's' : ''}[/pink]`
-                    : `Apply [pink]Slow[/pink] to opponent for [pink]${effect.turns} turn${effect.turns !== 1 ? 's' : ''}[/pink]`
-            }
+            case 'SLOW':
+                return `Apply [pink]Slow[/pink] to ${tgt} for [pink]${effect.turns} turn${effect.turns !== 1 ? 's' : ''}[/pink]`
             case 'CHOKESTER':
-                return `Apply [pink]Chokester[/pink] for [pink]${effect.turns} turns[/pink]`
+                return `Apply [pink]Chokester[/pink] to ${tgt} for [pink]${effect.turns} turns[/pink]`
             case 'MYGLING':
-                return `Heal [green]${effect.value ?? 0}[/green] per turn for [pink]${effect.turns} turns[/pink]. Apply [pink]Mygling[/pink] for [pink]${
-                    effect.turns
-                } turns[/pink]`
+                return `Apply [pink]Mygling[/pink] to ${tgt} for [pink]${effect.turns} turns[/pink]`
             case 'EIVINDPRIDE':
-                return `Apply [pink]Eivindpride[/pink] for [pink]${effect.turns} turns[/pink] (${effect.statusAccuracy}%)`
+                return `Apply [pink]Eivindpride[/pink] to ${tgt} for [pink]${effect.turns} turns[/pink] (${effect.statusAccuracy}%)`
             case 'VIEW_HAND':
-                return `View opponent's hand`
+                return `View ${tgt}'s hand`
             case 'RETARDED': {
-                const retBase = `Apply [pink]Retarded[/pink] to ${effect.target === 'SELF' ? 'self' : 'opponent'} for [pink]${effect.turns} turn${
-                    effect.turns !== 1 ? 's' : ''
-                }[/pink]`
+                const retBase = `Apply [pink]Retarded[/pink] to ${tgt} for [pink]${effect.turns} turn${effect.turns !== 1 ? 's' : ''}[/pink]`
                 return effect.statusAccuracy !== undefined && effect.statusAccuracy < 100 ? `${retBase} (${effect.statusAccuracy}%)` : retBase
             }
             case 'WAITING':
                 return `Randomly [yellow]waits[/yellow] between [pink]1 and ${effect.turns} turns[/pink] before doing damage equal to triple the turns waited`
             case 'CHOKE_SHIELD':
-                return `Apply [pink]Choke Shield[/pink] for [pink]${effect.turns} turns[/pink]`
+                return `Apply [pink]Choke Shield[/pink] to ${tgt} for [pink]${effect.turns} turns[/pink]`
             case 'REDUCE_COST':
-                return `Reduce card costs by [blue]${effect.value}[/blue] for [pink]${effect.turns} turns[/pink]`
+                return `Reduce ${tgtPossessive} ${effect.identifier ? `[yellow]${effect.identifier}[/yellow] ` : ''}card costs by [blue]${
+                    effect.value
+                }[/blue] for [pink]${effect.turns} turns[/pink]`
             case 'SPEED_BUFF':
-                return `Speed ([green]+50%[/green]) for [pink]${effect.turns} turns[/pink]`
+                return `Increase [pink]${tgtPossessive}[/pink] speed ([green]+50%[/green]) for [pink]${effect.turns} turns[/pink]`
             case 'RECOVER':
                 return `Heal [green]${effect.value}[/green] each turn for [pink]${effect.turns} turns[/pink]`
             case 'DAMAGE_BOOST':
-                return `Boost all damage by [red]+${effect.value}[/red] for [pink]${effect.turns} turns[/pink]`
+                return `Boost ${tgtPossessive} direct damage by [red]+${effect.value}[/red] for [pink]${effect.turns} turns[/pink]`
             case 'EXTRA_CARDS':
                 return `Play [blue]${effect.value} cards[/blue] for [pink]${effect.turns} turns[/pink]`
+            case 'TRANSFORM':
+                return effect.transformCardId
+                    ? `Transform into [yellow]${effect.transformCardId}[/yellow] with ${effect.accuracy}% chance`
+                    : `Transform (unknown card)`
+            case 'SHOOT':
+                return `Fire [yellow]${effect.amount ?? 1}[/yellow] shots at ${tgt} ([yellow]${effect.accuracy ?? 100}%[/yellow] hit, [red]${
+                    effect.value ?? 1
+                }[/red] each)`
+            case 'DAMAGE_PER_IDENTIFIER':
+                return `Deal [red]${effect.base ?? 0} damage[/red] to ${tgt} (+[red]${effect.value ?? 1} damage[/red] per [yellow]${
+                    effect.identifier ?? ''
+                }[/yellow] played this round)`
+            case 'DAMAGE_PER_CARD_PLAYED': {
+                const who = effect.countTarget === 'BOTH' ? 'both players' : effect.countTarget === 'OPPONENT' ? 'opponent' : 'you'
+                return `Deal [red]${effect.value ?? 1} damage[/red] per card ${who} play${who === 'opponent' ? 's' : ''} this round`
+            }
+            case 'NEUTRALIZE_ATTACK':
+                return `Neutralize an incoming [red]attack[/red]`
+            case 'BOUNTY':
+                return `Apply [pink]BOUNTY[/pink] to ${tgt}`
+            case 'CLAIM_BOUNTY':
+                return ''
+            case 'STEAL_ENERGY':
+                return `Steal [blue]${effect.value ?? 1} energy[/blue] from ${tgt}`
+            case 'DISCARD_CARD':
+                return `Discard [yellow]${effect.amount ?? 1}[/yellow] card(s) from ${tgtPossessive} hand`
+            case 'ELUSIVE':
+                return `Apply [pink]ELUSIVE[/pink] to ${tgt} for [pink]${effect.turns} turns[/pink]`
+            case 'ARMOR':
+                return `Gain [green]${effect.value} Armor[/green] for [pink]${effect.turns} turns[/pink]`
+            case 'PERSISTENT_APPEARANCE':
+                return `Pester ${tgt} for [pink]${effect.turns} turns[/pink] ([yellow]${effect.accuracy ?? 100}%[/yellow] chance, [red]${
+                    effect.value ?? 1
+                }[/red] dmg/turn)`
+            case 'SUMMON_CARD':
+                return effect.summonCardId
+                    ? `Summon [yellow]${[...mazariniCCG, ...swCCG].find((c) => c.id === effect.summonCardId)?.name ?? effect.summonCardId}[/yellow] to hand`
+                    : `Summon a random [yellow]${effect.identifier?.replace(/_/g, ' ') ?? ''}[/yellow] card to hand`
             default:
                 return `${effect.type}`
         }

@@ -1,9 +1,19 @@
+import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
+import { EmojiHelper } from '../../helpers/emojiHelper'
 import { RandomUtils } from '../../utils/randomUtils'
-import { CCGEffect, CCGGame, CCGPlayer, CCGStatusEffectType, StatusEffect } from './ccgInterface'
+import { mazariniCCG } from './cards/mazariniCCG'
+import { swCCG } from './cards/swCCG'
+import { CardIdentifier, CCGCard, CCGCondition, CCGEffect, CCGGame, CCGPlayer, CCGStatusEffectType, StatusEffect } from './ccgInterface'
+
+const SERIES_EMOJI_IS_ID = new Set(['swCCG'])
 
 export class CardActionResolver {
-    constructor() {}
+    private client: MazariniClient
+
+    constructor(client: MazariniClient) {
+        this.client = client
+    }
 
     public sortStack(game: CCGGame) {
         game.state.stack.sort((a, b) => b.speed - a.speed)
@@ -26,10 +36,37 @@ export class CardActionResolver {
         }
         const target = this.getPlayer(game, effect.targetPlayerId)
         const opponent = this.getPlayer(game, source.opponentId)
+
+        if (effect.condition && !this.isConditionMet(game, source, target, effect.condition)) {
+            return
+        }
+
         if (!effect.cardSuccessful) {
             await this.delay(2500)
             game.state.stack = game.state.stack.filter((stackedEffect) => stackedEffect.cardId !== effect.cardId)
             return this.log(game, `${this.getEffectLogPrefix(effect)}${source.name}'s ${effect.sourceCardName} failed`)
+        }
+        // Elusive: each individual effect targeting an elusive opponent has a 25% chance to be dodged
+        if (target.id !== source.id) {
+            const targetIsElusive = game.state.statusEffects.filter((s) => s.ownerId === target.id && s.type === 'ELUSIVE')
+            if ((targetIsElusive?.length ?? 0) > 0 && Math.random() < 0.25 * targetIsElusive.length) {
+                return this.log(game, `${this.getEffectLogPrefix(effect)}${effect.sourceCardName} missed ${target.name} (**Elusive**)`)
+            }
+        }
+        if (effect.type === 'SHOOT') {
+            await this.delay(2500)
+            const shots = effect.amount ?? 1
+            let hits = 0
+            for (let i = 0; i < shots; i++) {
+                if (Math.random() <= effect.accuracy / 100) {
+                    hits++
+                }
+            }
+            this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} fires ${shots} shots at ${target.name} — ${hits} hit`)
+            if (hits > 0) {
+                this.applyDamage(game, effect, source, target, hits * (effect.value ?? 1))
+            }
+            return
         }
         if (Math.random() > effect.accuracy / 100) {
             return
@@ -41,10 +78,50 @@ export class CardActionResolver {
                 this.applyDamage(game, effect, source, target, effect.value ?? 0)
                 break
 
+            case 'DAMAGE_PER_IDENTIFIER': {
+                let players: CCGPlayer[]
+                if (effect.countTarget === 'BOTH') players = [source, target]
+                else if (effect.countTarget === 'OPPONENT') players = [target]
+                else players = [source]
+                let count = 0
+                for (const p of players) {
+                    const entry = game.state.playedCardsAllGame.find((e) => e.playerId === p.id && e.round === game.state.turn)
+                    count += entry ? entry.cards.filter((c) => c.identifier?.includes(effect.identifier))?.length ?? 0 : 0
+                }
+                const total = (effect.base ?? 0) + count * (effect.value ?? 1)
+                this.applyDamage(game, effect, source, target, total)
+                break
+            }
+
+            case 'DAMAGE_PER_CARD_PLAYED': {
+                let players: CCGPlayer[]
+                if (effect.countTarget === 'BOTH') players = [source, target]
+                else if (effect.countTarget === 'OPPONENT') players = [target]
+                else players = [source]
+                let count = 0
+                for (const p of players) {
+                    const entry = game.state.playedCardsAllGame.find((e) => e.playerId === p.id && e.round === game.state.turn)
+                    count += entry ? entry.cards.length : 0
+                }
+                const total = (effect.base ?? 0) + count * (effect.value ?? 1)
+                this.applyDamage(game, effect, source, target, total)
+                break
+            }
+
             case 'HEAL': {
-                const healed = Math.min(target.hp + effect.value, GameValues.ccg.gameSettings.startingHP) - target.hp
-                target.hp += healed
-                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} **heals ${healed}**`)
+                if (effect.turns) {
+                    this.applyStatusEffect(game, effect, target, 'RECOVER')
+                    this.log(
+                        game,
+                        `${this.getEffectLogPrefix(effect)}${target.name} will **recover ${effect.value} HP**${
+                            effect.delayedTrigger ? ` in ${effect.turns} turns` : ` per turn for ${effect.turns} turns`
+                        }`
+                    )
+                } else {
+                    const healed = Math.min(target.hp + effect.value, GameValues.ccg.gameSettings.startingHP) - target.hp
+                    target.hp += healed
+                    this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} **heals ${healed}**`)
+                }
                 break
             }
             case 'GAIN_ENERGY':
@@ -81,9 +158,9 @@ export class CardActionResolver {
                 this.applyStatusEffect(game, effect, target, 'REDUCE_COST')
                 this.log(
                     game,
-                    `${this.getEffectLogPrefix(effect)}**${effect.sourceCardName}** – ${target.name}'s card costs reduced by **${effect.value}** ${
-                        effect.turns ? `for ${effect.turns} turns` : ''
-                    }`
+                    `${this.getEffectLogPrefix(effect)}**${effect.sourceCardName}** – ${target.name}'s ${
+                        effect.identifier ? `**${effect.identifier}** ` : ''
+                    }card costs reduced by **${effect.value}** ${effect.turns ? `for ${effect.turns} turns` : ''}`
                 )
                 break
 
@@ -99,6 +176,11 @@ export class CardActionResolver {
             case 'BLEED':
                 this.applyStatusCondition(game, effect, target, 'BLEED')
                 this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} **bleeds** for **${effect.turns} turns**`)
+                break
+
+            case 'SHOCK':
+                this.applyStatusCondition(game, effect, target, 'SHOCK')
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} takes **shock damage** for **${effect.turns} turns**`)
                 break
 
             case 'RETARDED':
@@ -158,7 +240,158 @@ export class CardActionResolver {
                 this.applyStatusEffect(game, effect, target, 'EXTRA_CARDS')
                 this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} can play **${effect.value} cards** next turn`)
                 break
+
+            case 'BUILD_DEATHSTAR':
+                this.applyStatusCondition(game, effect, target, 'BUILD_DEATHSTAR')
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} builds the Death Star for ${effect.turns ?? 3} turns`)
+                break
+
+            case 'TRANSFORM':
+                // Transform card immediately (specific instance that triggered this effect).
+                if (effect.transformCardId) {
+                    const transformCard = await this.getCardById(effect.transformCardId)
+                    if (transformCard && Math.random() < effect.accuracy / 100) {
+                        const playedIndex = effect.sourceCardId
+                            ? target.hand.findIndex((card) => card.id === effect.sourceCardId)
+                            : target.hand.findIndex((card) => card.name === effect.sourceCardName)
+
+                        if (playedIndex !== -1) {
+                            target.hand[playedIndex] = { ...transformCard, selected: true }
+                            this.log(
+                                game,
+                                `${this.getEffectLogPrefix(effect)}${target.name} transforms! ${effect.sourceCardName} becomes ${transformCard.name}`
+                            )
+                        } else {
+                            this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} transformation target not found in hand`)
+                        }
+                    }
+                }
+                break
+
+            case 'STEAL_ENERGY': {
+                const stolen = Math.min(target.energy, effect.value ?? 1)
+                target.energy -= stolen
+                source.energy += stolen
+                this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} steals **${stolen} energy** from ${target.name}`)
+                break
+            }
+
+            case 'DISCARD_CARD': {
+                const amount = effect.amount ?? 1
+                // Only non-submitted cards can be discarded; submitted ones are mid-resolution
+                const discardPool = target.hand.filter((c) => !c.selected)
+                if (discardPool.length === 0) {
+                    this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} has no discardable cards`)
+                    break
+                }
+                const discarded: string[] = []
+                for (let i = 0; i < Math.min(amount, discardPool.length); i++) {
+                    const idx = Math.floor(Math.random() * discardPool.length)
+                    const card = discardPool.splice(idx, 1)[0]
+                    discarded.push(card.name)
+                    target.usedCards.push(card)
+                    target.hand.splice(target.hand.indexOf(card), 1)
+                }
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} discards **${discarded.join(', ')}**`)
+                break
+            }
+
+            case 'ELUSIVE':
+                this.applyStatusEffect(game, effect, target, 'ELUSIVE')
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} becomes **elusive** for ${effect.turns} turns`)
+                break
+
+            case 'ARMOR':
+                this.applyStatusEffect(game, effect, target, 'ARMOR')
+                this.log(
+                    game,
+                    `${this.getEffectLogPrefix(effect)}${target.name} gains **armor** (reduces incoming damage by ${effect.value}) for ${effect.turns} turns`
+                )
+                break
+
+            case 'BOUNTY':
+                this.applyStatusCondition(game, effect, target, 'BOUNTY')
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} has a **BOUNTY** placed on them`)
+                break
+
+            case 'CLAIM_BOUNTY': {
+                const bountyIndex = game.state.statusConditions.findIndex((s) => s.ownerId === target.id && s.type === 'BOUNTY')
+                if (bountyIndex !== -1) {
+                    game.state.statusConditions.splice(bountyIndex, 1)
+                    this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} **claims the bounty** on ${target.name}!`)
+                    this.applyDamage(game, effect, source, target, effect.value ?? 3)
+                } else {
+                    this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} found no bounty to claim on ${target.name}`)
+                }
+                break
+            }
+
+            case 'NEUTRALIZE_ATTACK': {
+                const attackIndex = game.state.stack.findIndex((e) => {
+                    if (e.type !== 'DAMAGE') return false
+                    if (e.sourcePlayerId === effect.sourcePlayerId) return false
+                    if (e.targetPlayerId !== effect.sourcePlayerId) return false
+                    if (e.condition && !this.isConditionMet(game, this.getPlayer(game, e.sourcePlayerId), this.getPlayer(game, e.targetPlayerId), e.condition))
+                        return false
+                    return true
+                })
+                if (attackIndex !== -1) {
+                    const neutralized = game.state.stack.splice(attackIndex, 1)[0]
+                    this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} **neutralizes** ${neutralized.sourceCardName}'s attack`)
+                } else {
+                    this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} found no incoming attack to neutralize`)
+                }
+                break
+            }
+
+            case 'PERSISTENT_APPEARANCE':
+                this.applyStatusEffect(game, effect, target, 'PERSISTENT_APPEARANCE')
+                this.log(game, `${this.getEffectLogPrefix(effect)}${effect.sourceCardName} will pester ${target.name} for ${effect.turns} turns`)
+                break
+
+            case 'SUMMON_CARD': {
+                const maxHandSize = GameValues.ccg.gameSettings.maxHandSize
+                // Submitted cards are still in hand during resolution; count only non-selected ones as remaining
+                const cardsRemainingAfterPlay = source.hand.filter((c) => !c.selected).length
+                if (cardsRemainingAfterPlay >= maxHandSize) {
+                    this.log(game, `${this.getEffectLogPrefix(effect)}${source.name}'s hand is full — could not summon a card`)
+                    break
+                }
+                let summoned: CCGCard | undefined
+                if (effect.summonCardId) {
+                    summoned = await this.getCardById(effect.summonCardId)
+                } else if (effect.identifier) {
+                    summoned = await this.getRandomCardByIdentifier(effect.identifier)
+                }
+                if (summoned) {
+                    source.hand.push(summoned)
+                    this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} summons **${summoned.name}** to their hand`)
+                } else {
+                    this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} could not summon a card — no matching card found`)
+                }
+                break
+            }
         }
+    }
+
+    private async getCardById(cardId: string): Promise<CCGCard | undefined> {
+        const card = [...mazariniCCG, ...swCCG].find((card) => card.id === cardId)
+        if (!card) return undefined
+        return await this.getCardWithEmoji(card)
+    }
+
+    private async getRandomCardByIdentifier(identifier: CardIdentifier): Promise<CCGCard | undefined> {
+        const eligible = [...mazariniCCG, ...swCCG].filter((c) => c.identifier?.includes(identifier))
+        if (eligible.length === 0) return undefined
+        const card = eligible[Math.floor(Math.random() * eligible.length)]
+        return await this.getCardWithEmoji(card)
+    }
+
+    private async getCardWithEmoji(card: CCGCard): Promise<CCGCard> {
+        const emojiName = SERIES_EMOJI_IS_ID.has(card.series) ? card.id : `${card.series}_${card.id}`
+        const emoji = await EmojiHelper.getApplicationEmoji(emojiName, this.client)
+        const fullCard = { ...card, selected: false, emoji: emoji.id }
+        return fullCard
     }
 
     private applyDamage(game: CCGGame, effect: CCGEffect, source: CCGPlayer, target: CCGPlayer, amount: number) {
@@ -188,6 +421,7 @@ export class CardActionResolver {
                 cardId: effect.cardId,
                 emoji: effect.emoji,
                 statusText: effect.statusText,
+                sourceCardId: effect.sourceCardId,
                 sourceCardName: effect.sourceCardName,
                 type: 'DAMAGE',
                 sourcePlayerId: target.id,
@@ -213,6 +447,15 @@ export class CardActionResolver {
             if (shield.value <= 0) this.removeStatus(game, shield)
         }
 
+        // Armor
+        const armor = game.state.statusEffects.filter((s) => s.ownerId === target.id && s.type === 'ARMOR')
+        if ((armor?.length ?? 0) > 0 && damage > 0) {
+            const totalArmor = armor.reduce((sum, a) => sum + a.value, 0)
+            const reduced = Math.min(totalArmor, damage)
+            damage -= reduced
+            this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s Armor reduces damage by ${reduced}`)
+        }
+
         if (damage > 0) {
             damage = Math.min(target.hp, damage)
             target.hp = target.hp - damage
@@ -234,6 +477,8 @@ export class CardActionResolver {
             emoji: effect.emoji,
             includeCurrentTurn: effect.includeCurrentTurn,
             createdOnTurn: game.state.turn,
+            identifier: effect.identifier,
+            delayedTrigger: effect.delayedTrigger,
         })
     }
 
@@ -283,21 +528,33 @@ export class CardActionResolver {
     public async tickStatusEffects(game: CCGGame, status: StatusEffect) {
         const player = this.getPlayer(game, status.ownerId)
 
-        if (status.type === 'BLEED') {
+        if (status.type === 'BLEED' || status.type === 'SHOCK') {
             const source = this.getPlayer(game, status.sourcePlayerId)
             player.hp -= status.value
             source.stats.damageDealt += status.value
             player.stats.damageTaken += status.value
-            this.log(game, `${player.name} takes ${status.value} bleed damage`)
+            this.log(game, `${player.name} takes ${status.value} ${status.type === 'SHOCK' ? 'shock' : 'bleed'} damage`)
             await this.delay(2000)
         } else if (status.type === 'GAIN_ENERGY') {
-            player.energy += status.value
-            this.log(game, `${player.name} gains ${status.value} energy`)
-            await this.delay(2000)
+            if (!status.delayedTrigger || status.remainingTurns === 1) {
+                player.energy += status.value
+                this.log(game, `${player.name} gains ${status.value} energy`)
+                await this.delay(2000)
+            }
         } else if (status.type === 'RECOVER') {
-            const healed = Math.min(player.hp + status.value, GameValues.ccg.gameSettings.startingHP) - player.hp
-            player.hp += healed
-            this.log(game, `${player.name} **recovers ${healed} HP**`)
+            if (!status.delayedTrigger || status.remainingTurns === 1) {
+                const healed = Math.min(player.hp + status.value, GameValues.ccg.gameSettings.startingHP) - player.hp
+                player.hp += healed
+                this.log(game, `${player.name} **recovers ${healed} HP**`)
+                await this.delay(2000)
+            }
+        } else if (status.type === 'PERSISTENT_APPEARANCE' && Math.random() < (status.accuracy ?? 100) / 100) {
+            const source = this.getPlayer(game, status.sourcePlayerId)
+            const damage = Math.min(player.hp, status.value)
+            player.hp -= damage
+            source.stats.damageDealt += damage
+            player.stats.damageTaken += damage
+            this.log(game, `${status.emoji}: ${source.name}'s card pesters ${player.name} for ${damage} damage`)
             await this.delay(2000)
         } else if (status.type === 'EIVINDPRIDE' && Math.random() < status.accuracy / 100) {
             const source = this.getPlayer(game, status.sourcePlayerId)
@@ -325,6 +582,82 @@ export class CardActionResolver {
 
         game.state.statusEffects = game.state.statusEffects.filter((s) => s.remainingTurns > 0)
         game.state.statusConditions = game.state.statusConditions.filter((s) => s.remainingTurns > 0)
+    }
+
+    private isConditionMet(game: CCGGame, source: CCGPlayer, target: CCGPlayer, condition: CCGCondition): boolean {
+        const subject = condition.target === 'OPPONENT' ? target : source
+        let result: boolean
+        switch (condition.type) {
+            case 'ALWAYS':
+                result = true
+                break
+            case 'RANDOM':
+                result = Math.random() <= (condition.chance ?? 50) / 100
+                break
+            case 'HP_BELOW':
+                result = subject.hp < (condition.value ?? 0)
+                break
+            case 'HP_ABOVE':
+                result = subject.hp > (condition.value ?? 0)
+                break
+            case 'ENERGY_BELOW':
+                result = subject.energy < (condition.value ?? 0)
+                break
+            case 'ENERGY_ABOVE':
+                result = subject.energy > (condition.value ?? 0)
+                break
+            case 'HAS_STATUS':
+                result = game.state.statusConditions.some((s) => s.ownerId === subject.id && s.type === condition.status)
+                break
+            case 'NOT_HAS_STATUS':
+                result = !game.state.statusConditions.some((s) => s.ownerId === subject.id && s.type === condition.status)
+                break
+            case 'PLAYED_CARD_ID': {
+                const playedEntries = game.state.playedCardsAllGame.find((entry) => entry.playerId === subject.id && entry.round === game.state.turn)
+                const cardsWithId = playedEntries ? playedEntries.cards.filter((card) => card.id === condition.cardId) : []
+                const comparator = condition.comparator ?? '>'
+                result = this.comparatorCheck(cardsWithId.length, comparator, condition.value ?? 0)
+                break
+            }
+            case 'PLAYED_CARD_IDENTIFIER': {
+                const playedEntries = game.state.playedCardsAllGame.find((entry) => entry.playerId === subject.id && entry.round === game.state.turn)
+                const count = playedEntries ? playedEntries.cards.filter((card) => card.identifier?.includes(condition.identifier)).length : 0
+                const comparator = condition.comparator ?? '>'
+                result = this.comparatorCheck(count, comparator, condition.value ?? 0)
+                break
+            }
+            case 'BUILD_DEATHSTAR':
+                result = game.state.statusConditions.some((s) => s.ownerId === subject.id && s.type === 'BUILD_DEATHSTAR')
+                break
+            case 'NUM_CARDS_PLAYED': {
+                const playedEntries = game.state.playedCardsAllGame.find((entry) => entry.playerId === subject.id && entry.round === game.state.turn)
+                const count = playedEntries ? playedEntries.cards.length : 0
+                const comparator = condition.comparator ?? '>'
+                result = this.comparatorCheck(count, comparator, condition.value ?? 0)
+                break
+            }
+            default:
+                result = true
+        }
+        return condition.invert ? !result : result
+    }
+
+    private comparatorCheck(count: number, comparator: CCGCondition['comparator'], value: number) {
+        switch (comparator) {
+            case '<':
+                return count < (value ?? 0)
+            case '<=':
+                return count <= (value ?? 0)
+            case '==':
+                return count === (value ?? 0)
+            case '!=':
+                return count !== (value ?? 0)
+            case '>=':
+                return count >= (value ?? 0)
+            case '>':
+            default:
+                return count > (value ?? 0)
+        }
     }
 
     private getPlayer(game: CCGGame, id: string): CCGPlayer {

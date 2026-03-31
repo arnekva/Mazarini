@@ -83,7 +83,7 @@ export class CCGValidator {
 
     public static cardHasEffectOfType(allCards: ICCGSystem, card: DeckEditorCard, type: CCGEffectType) {
         const series = allCards[card.series] as CCGCard[]
-        const fullCard = series.find((item) => item.id === card.id)
-        return fullCard.effects?.some((effect) => effect.type === type) ?? false
+        const fullCard = series?.find((item) => item.id === card.id)
+        return fullCard?.effects?.some((effect) => effect.type === type) ?? false
     }
 }

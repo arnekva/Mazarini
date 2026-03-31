@@ -62,6 +62,7 @@ export interface CCGGameState {
     winnerId?: string
     settings: CCGGameSettings
     locked: boolean // disable most buttons when locked
+    playedCardsAllGame: { playerId: string; round: number; cards: CCGCard[] }[]
 }
 
 export type CCGPhase = 'DRAW' | 'PLAY' | 'RESOLVE' | 'END' | 'FINISHED'
@@ -71,6 +72,7 @@ export interface CCGEffect {
     emoji: string
     statusText?: string
     sourceCardName: string
+    sourceCardId: string
     sourcePlayerId: string
     targetPlayerId: string
     cardTarget?: CCGTarget
@@ -81,11 +83,36 @@ export interface CCGEffect {
     value?: number
     turns?: number
     reflected?: boolean
+    condition?: CCGCondition
     statusAccuracy?: number
     includeCurrentTurn?: boolean
-}
+    transformCardId?: string
+    identifier?: CardIdentifier
+    summonCardId?: string
+    amount?: number
+    delayedTrigger?: boolean
+    countTarget?: 'SELF' | 'OPPONENT' | 'BOTH'
+    base?: number
+} //TODO: is this getting out of hand? Do we need to split this into multiple interfaces or classes? Maybe have a base CCGEffect and then extend it for different types of effects that require different properties?
 
-export type CCGEffectType = 'DAMAGE' | 'HEAL' | 'LOSE_ENERGY' | 'REMOVE_STATUS' | 'STEAL_CARD' | CCGStatusEffectType
+export type CCGEffectType =
+    | 'DAMAGE'
+    | 'HEAL'
+    | 'LOSE_ENERGY'
+    | 'REMOVE_STATUS'
+    | 'STEAL_CARD'
+    | 'STEAL_ENERGY'
+    | 'NEUTRALIZE_ATTACK'
+    | 'SUMMON_CARD'
+    | 'DISCARD_CARD'
+    | 'GAMBLE'
+    | 'FIRST_STRIKE'
+    | 'SHOOT'
+    | 'TRANSFORM'
+    | 'CLAIM_BOUNTY'
+    | 'DAMAGE_PER_IDENTIFIER'
+    | 'DAMAGE_PER_CARD_PLAYED'
+    | CCGStatusEffectType
 
 export interface StatusEffect {
     id: string
@@ -98,6 +125,8 @@ export interface StatusEffect {
     emoji?: string
     includeCurrentTurn?: boolean
     createdOnTurn?: number
+    identifier?: CardIdentifier
+    delayedTrigger?: boolean
 }
 
 export type CCGStatusEffectType =
@@ -118,6 +147,13 @@ export type CCGStatusEffectType =
     | 'SPEED_BUFF'
     | 'DAMAGE_BOOST'
     | 'EXTRA_CARDS'
+    | 'ELUSIVE'
+    | 'SHOCK'
+    | 'ARMOR'
+    | 'BOUNTY'
+    | 'BUILD_DEATHSTAR'
+    | 'DESTROY_DEATHSTAR'
+    | 'PERSISTENT_APPEARANCE'
 
 export interface CCGLogEntry {
     turn: number
@@ -165,18 +201,58 @@ export interface CCGCard {
     emoji?: string
     selected?: boolean
     blank?: string
+    identifier?: CardIdentifier[]
+    customDescription?: string
+    effectImmunities?: CCGStatusEffectType[]
+}
+
+export interface CCGCondition {
+    type:
+        | 'ALWAYS'
+        | 'RANDOM'
+        | 'HP_BELOW'
+        | 'HP_ABOVE'
+        | 'ENERGY_BELOW'
+        | 'ENERGY_ABOVE'
+        | 'HAS_STATUS'
+        | 'NOT_HAS_STATUS'
+        | 'BUILD_DEATHSTAR'
+        | 'PLAYED_CARD_ID'
+        | 'PLAYED_CARD_IDENTIFIER'
+        | 'PLAYED_EFFECT_TYPE'
+        | 'NUM_CARDS_PLAYED'
+    target: CCGTarget
+    value?: number
+    status?: CCGStatusEffectType
+    chance?: number
+    effectType?: CCGEffectType
+    cardId?: string
+    identifier?: CardIdentifier
+    comparator?: '<' | '<=' | '==' | '!=' | '>=' | '>'
+    invert?: boolean
 }
 
 export interface CCGCardEffect {
     target: CCGTarget
     type: CCGEffectType
     value?: number
+    amount?: number
     turns?: number
     accuracy?: number
     statusAccuracy?: number
     includeCurrentTurn?: boolean
+    condition?: CCGCondition
+    transformCardId?: string
+    identifier?: CardIdentifier
+    summonCardId?: string
+    gambleGroup?: string
+    delayedTrigger?: boolean
+    countTarget?: 'SELF' | 'OPPONENT' | 'BOTH'
+    base?: number
 }
 
+export type CardIdentifier = SwIdentifier
+export type SwIdentifier = 'REBEL' | 'SITH' | 'JEDI' | 'REPUBLIC' | 'BOUNTY_HUNTER' | 'CREATURE' | 'EMPIRE' | 'DROID'
 export type CCGTarget = 'SELF' | 'OPPONENT'
 
 export enum CCGCardType {
@@ -194,6 +270,7 @@ export interface DeckEditor {
     rarityFilters: ItemRarity[]
     usageFilters: UsageFilter[]
     seriesFilters: CCGSeries[]
+    identifierFilters: CardIdentifier[]
     userCards: CCGCard[]
     cardImages: Map<string, Buffer>
     filteredCards: CCGCard[]
