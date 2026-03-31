@@ -271,9 +271,10 @@ export class DailyJobs {
         //Find all users with the best attempt in the best first users
         const topFirstUsersWithBestTotalAttempts = topFirstUsers.filter((user) => user.dailyGameStats.moreOrLess.bestAttempt === bestAttemptInBestFirstUsers)
 
-        if (topFirstUsersWithBestTotalAttempts) {
+        if (topFirstUsersWithBestTotalAttempts && usersWithStats.length > 1) {
             topFirstUsersWithBestTotalAttempts.forEach((user) => {
                 this.client.bank.giveMoney(user, GameValues.moreOrLess.rewards.bestAttempt)
+                chestWinners.push(UserUtils.findUserById(user.id, this.client).username)
                 // const lootBtn = LootboxCommands.getLootRewardButton(
                 //     user.id,
                 //     'basic',
@@ -281,7 +282,6 @@ export class DailyJobs {
                 //     `${UserUtils.findUserById(user.id, this.client).username} - lootchest`
                 // )
                 // lootboxes.chests.push(lootBtn)
-                // chestWinners.push(UserUtils.findUserById(user.id, this.client).username)
             })
         }
 
@@ -308,12 +308,16 @@ export class DailyJobs {
                 )
                 .join('\n')
 
-            const firstAttemptWinners = chestWinners.join(' og ')
             // const bestTotalWinners = boxWinners.join(' og ')
-            description =
-                `Gratulerer til gårsdagens vinner${chestWinners.length > 1 ? 'e' : ''} for beste første forsøk på *${
-                    storage.moreOrLess.current.title
-                }*, ${firstAttemptWinners}, som vinner ${GameValues.moreOrLess.rewards.bestAttempt} chips!` + `\nResultater:\n${results}`
+            if (usersWithStats.length < 2) {
+                description = `Bare ${usersWithStats.length} spiller spilte gårsdagens *${storage.moreOrLess.current.title}*, ingen premie deles ut.\nResultater:\n${results}`
+            } else {
+                const firstAttemptWinners = chestWinners.join(' og ')
+                description =
+                    `Gratulerer til gårsdagens vinner${chestWinners.length > 1 ? 'e' : ''} for beste første forsøk på *${
+                        storage.moreOrLess.current.title
+                    }*, ${firstAttemptWinners}, som vinner ${GameValues.moreOrLess.rewards.bestAttempt} chips!` + `\nResultater:\n${results}`
+            }
             // description += `\nGårsdagen vinner av beste forsøk er ${bestTotalWinners}, som vinner lootbox!`
         }
 

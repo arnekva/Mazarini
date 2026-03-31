@@ -208,7 +208,9 @@ export class Mastermind extends AbstractCommands {
                 })
                 .join('\n')
 
-            if (winners && winners.length > 0) {
+            if (usersWithStats.length < 2) {
+                description = `Bare ${usersWithStats.length} spiller spilte gårsdagens mastermind, ingen premie deles ut.` + `\n\nResultater:\n${results}`
+            } else if (winners && winners.length > 0) {
                 const winnerNames = []
                 const winnerReward = Math.floor(GameValues.mastermind.winnerReward / winners.length)
                 for (const winner of winners) {
