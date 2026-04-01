@@ -243,7 +243,7 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 5,
+                value: 4,
                 condition: {
                     type: 'HP_BELOW',
                     target: 'OPPONENT',
@@ -253,7 +253,7 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 4,
+                value: 3,
                 condition: {
                     type: 'HP_BELOW',
                     target: 'OPPONENT',
@@ -274,7 +274,7 @@ export const swCCG: CCGCard[] = [
         rarity: ItemRarity.Epic,
         accuracy: 95,
         identifier: ['BOUNTY_HUNTER'],
-        customDescription: 'Deal [red]5 damage[/red] if opponent is below 50% HP, otherwise deal [red]4 damage[/red]',
+        customDescription: 'Deal [red]4 damage[/red] if opponent is below 50% HP, otherwise deal [red]3 damage[/red]',
     },
     {
         id: 'sw_general_grevious_n',
@@ -287,11 +287,11 @@ export const swCCG: CCGCard[] = [
                 target: 'OPPONENT',
                 identifier: 'JEDI',
                 countTarget: 'BOTH',
-                base: 3,
+                base: 2,
                 value: 1,
             },
         ],
-        // Deal 3 damage + 1 for every JEDI card played by either player this round
+        // Deal 2 damage + 1 for every JEDI card played by either player this round
         cost: 2,
         speed: 62,
         rarity: ItemRarity.Epic,
@@ -307,7 +307,7 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 6,
+                value: 5,
                 condition: {
                     type: 'PLAYED_CARD_IDENTIFIER',
                     target: 'OPPONENT',
@@ -319,7 +319,7 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 4,
+                value: 3,
                 condition: {
                     type: 'PLAYED_CARD_IDENTIFIER',
                     target: 'OPPONENT',
@@ -345,17 +345,15 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 3,
-                accuracy: 80,
+                value: 2,
             },
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 3,
-                accuracy: 80,
+                value: 2,
             },
         ],
-        customDescription: 'Dual wields. Deal 3 damage, twice. Each attack has 80% accuracy',
+        customDescription: 'Dual wields. Deal 2 damage, twice.',
         cost: 2,
         speed: 50,
         rarity: ItemRarity.Epic,
@@ -438,12 +436,12 @@ export const swCCG: CCGCard[] = [
         name: 'Ahsoka Tano',
         series: 'swCCG',
         type: CCGCardType.Attack,
-        customDescription: 'Deal [red]4 damage[/red]. [green]Heal 5[/green] instead if own HP below 5',
+        customDescription: 'Deal [red]3 damage[/red]. [green]Heal 4[/green] instead if own HP below 5',
         effects: [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 4,
+                value: 3,
                 condition: {
                     type: 'HP_BELOW',
                     target: 'SELF',
@@ -454,7 +452,7 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'HEAL',
                 target: 'SELF',
-                value: 5,
+                value: 4,
                 condition: {
                     type: 'HP_BELOW',
                     target: 'SELF',
@@ -518,7 +516,7 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 6,
+                value: 5,
                 condition: {
                     type: 'PLAYED_CARD_IDENTIFIER',
                     target: 'OPPONENT',
@@ -530,7 +528,7 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 4,
+                value: 3,
                 condition: {
                     type: 'PLAYED_CARD_IDENTIFIER',
                     target: 'OPPONENT',
@@ -568,7 +566,7 @@ export const swCCG: CCGCard[] = [
             },
         ],
         // Deal 1 damage every card played this round (CARD_COUNT_BONUS: not yet implemented)
-        cost: 1,
+        cost: 2,
         speed: 60,
         rarity: ItemRarity.Epic,
         accuracy: 100,
@@ -618,7 +616,7 @@ export const swCCG: CCGCard[] = [
             },
         ],
         cost: 1,
-        speed: 25,
+        speed: 65,
         rarity: ItemRarity.Rare,
         accuracy: 100,
         cannotMiss: true,
@@ -705,7 +703,7 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 1,
+                value: 3,
                 condition: {
                     type: 'HAS_STATUS',
                     target: 'OPPONENT',
@@ -715,7 +713,7 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 3,
+                value: 2,
                 condition: {
                     type: 'HAS_STATUS',
                     target: 'OPPONENT',
@@ -729,7 +727,7 @@ export const swCCG: CCGCard[] = [
         rarity: ItemRarity.Rare,
         accuracy: 100,
         identifier: ['REBEL', 'CREATURE'],
-        customDescription: "Deal [red]3 damage[/red], or [red]1 damage[/red] if opponent has [pink]Death Star[/pink] (It's a trap!)",
+        customDescription: 'Deal [red]2 damage[/red]. [red]+1 damage[/red] if opponent has [pink]Death Star[/pink]',
     },
     {
         id: 'sw_grogu_n',
@@ -777,7 +775,7 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'SELF',
-                value: 1,
+                value: 2,
                 gambleGroup: 'lando',
             },
         ],
@@ -787,7 +785,7 @@ export const swCCG: CCGCard[] = [
         rarity: ItemRarity.Rare,
         accuracy: 95,
         identifier: ['REBEL'],
-        customDescription: '[yellow]50/50[/yellow]: Deal [red]5 damage[/red] or take [red]1 damage[/red]',
+        customDescription: '[yellow]50/50[/yellow]: Deal [red]5 damage[/red] or take [red]2 damage[/red]',
     },
     {
         id: 'sw_din_djarin_n',
@@ -1078,7 +1076,7 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 5,
+                value: 4,
                 condition: {
                     type: 'PLAYED_CARD_ID',
                     target: 'SELF',
@@ -1090,7 +1088,7 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 4,
+                value: 3,
                 condition: {
                     type: 'PLAYED_CARD_ID',
                     target: 'SELF',

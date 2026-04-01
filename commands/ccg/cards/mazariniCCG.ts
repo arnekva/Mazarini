@@ -145,7 +145,7 @@ export const mazariniCCG: CCGCard[] = [
         cost: 1,
         speed: 45,
         rarity: ItemRarity.Epic,
-        accuracy: 95,
+        accuracy: 85,
     },
     {
         id: 'arnenymous',

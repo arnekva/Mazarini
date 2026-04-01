@@ -60,10 +60,8 @@ export class TestCommands extends AbstractCommands {
         const scripts = new Scripts(this.client)
         // scripts.setCCGCards()
         scripts.updateCCGSeries()
-        await scripts.resetChipsAndPerks()
-        await scripts.resetSwCCGInventory()
         // scripts.setLootPacks()
-        this.messageHelper.replyToInteraction(interaction, 'Release prep')
+        this.messageHelper.replyToInteraction(interaction, 'Oppdaterer CCG-greier')
     }
 
     private async testSelectMenu(selectMenu: SelectStringInteraction) {
