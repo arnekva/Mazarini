@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '31.0.0'
+    public static readonly currentVersion = '31.0.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,10 +27,10 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '## SW CCG Reloaded',
-                '* 44 ny-designede kort ligger klare til å bli funnet i packs!',
-                '* swCCG inventory resettes for samtlige',
-                '* Alle kompenseres med 500 shards som kan brukes som et startskudd',
+                '## CCG',
+                '* Fikset en bug som gjorde at neutralize attack ikke nøytraliserte alle direkte angrep. Claim bounty gjelder ikke som direkte angrep.',
+                '* Fikset Darth Maul.',
+                '* Space Jesus har nå armor i inneværende turn, heller enn å gjøre motstanderen slow.',
             ].join('\n')
         )
         container.addSeparator()

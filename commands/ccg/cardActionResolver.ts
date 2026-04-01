@@ -301,14 +301,15 @@ export class CardActionResolver {
                 this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} becomes **elusive** for ${effect.turns} turns`)
                 break
 
-            case 'ARMOR':
+            case 'ARMOR': {
                 this.applyStatusEffect(game, effect, target, 'ARMOR')
-                this.log(
-                    game,
-                    `${this.getEffectLogPrefix(effect)}${target.name} gains **armor** (reduces incoming damage by ${effect.value}) for ${effect.turns} turns`
-                )
+                const duration =
+                    effect.turns && effect.turns === 1 && effect.includeCurrentTurn
+                        ? ` for the remainder of the turn`
+                        : ` for ${effect.turns} turn${effect.turns > 1 ? 's' : ''}`
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} gains **armor** (reduces incoming damage by ${effect.value})${duration}`)
                 break
-
+            }
             case 'BOUNTY':
                 this.applyStatusCondition(game, effect, target, 'BOUNTY')
                 this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} has a **BOUNTY** placed on them`)
@@ -328,7 +329,7 @@ export class CardActionResolver {
 
             case 'NEUTRALIZE_ATTACK': {
                 const attackIndex = game.state.stack.findIndex((e) => {
-                    if (e.type !== 'DAMAGE') return false
+                    if (!['DAMAGE', 'DAMAGE_PER_IDENTIFIER', 'DAMAGE_PER_CARD_PLAYED', 'SHOOT'].includes(e.type)) return false
                     if (e.sourcePlayerId === effect.sourcePlayerId) return false
                     if (e.targetPlayerId !== effect.sourcePlayerId) return false
                     if (e.condition && !this.isConditionMet(game, this.getPlayer(game, e.sourcePlayerId), this.getPlayer(game, e.targetPlayerId), e.condition))
