@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '31.0.2'
+    public static readonly currentVersion = '31.1.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,18 +26,7 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            [
-                '## CCG',
-                '* Det er tydelig at power creep ble undervurdert i sw reloaded, så en rekke kort får justeringer.',
-                '* Design philosophy er at 1 energy skal ca tilsvare 2 damage. Mer kraftfulle kort kan gi en dårligere ratio her, men fordelen er at du får gjort større ting på kortere tid.',
-                '* Prøver også å belønne synergy, så her vil det ofte gi en bedre ratio hvis du har de riktige kortene i spill eller i hånden.',
-                '* Boba Fett, Greivous, Mace Windu, Darth Maul, Ahsoka, Dooku, Dark Trooper får alle -1 damage på sine damage effekter.',
-                '* Lando har nå litt større risiko ved å gamble, da han tar 2 damage ved tap i stedet for 1.',
-                '* Admiral Ackbar får effekten sin snudd. Default 2 damage, +1 damage hvis death star er bygget.',
-                '* IG-88 får +1 cost.',
-                '* kms gun får litt lavere accuracy, da det er litt for kraftig i forhold til andre 1 energy kort.',
-                '* Klager på disse endringene kan rettes til Forbrukerrådet',
-            ].join('\n')
+            ['## CCG', '* Høie er nå (forhåpentligvis) smartere', '* Småjusteringer til høie sine decks'].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
