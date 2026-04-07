@@ -820,7 +820,7 @@ export class CCGCardGenerator {
             case 'ARMOR':
                 return `Gain [green]${effect.value} Armor[/green] for [pink]${effect.turns} turns[/pink]`
             case 'PERSISTENT_APPEARANCE':
-                return `Pester ${tgt} for [pink]${effect.turns} turns[/pink] ([yellow]${effect.accuracy ?? 100}%[/yellow] chance, [red]${
+                return `Pester ${tgt} for [pink]${effect.turns} turns[/pink] ([yellow]${effect.statusAccuracy ?? 100}%[/yellow] chance, [red]${
                     effect.value ?? 1
                 }[/red] dmg/turn)`
             case 'SUMMON_CARD':
