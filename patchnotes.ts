@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '31.1.0'
+    public static readonly currentVersion = '31.1.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,7 +26,18 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            ['## CCG', '* Høie er nå (forhåpentligvis) smartere', '* Småjusteringer til høie sine decks'].join('\n')
+            [
+                '## CCG',
+                '* **Grand Moff Tarkin**: 5 damage når du spiller mer enn én Tarkin om gangen. Speed nerf',
+                '* **Director Krennic**: Speed nerf',
+                '* **C-3PO**: Fikset accuracy bug',
+                '* **Luke**: Fikset destroy death star bug',
+                '* **Luthen**: 3 turn -> 2 turn delay',
+                '* **R2-D2**: Speed buff',
+                '* **Grogu**: Speed buff',
+                '* **Moff Gideon**: Speed buff',
+                '* **Qui-Gon**: Speed buff',
+            ].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

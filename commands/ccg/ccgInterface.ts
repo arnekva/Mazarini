@@ -83,7 +83,7 @@ export interface CCGEffect {
     value?: number
     turns?: number
     reflected?: boolean
-    condition?: CCGCondition
+    condition?: CCGCondition | CCGCondition[]
     statusAccuracy?: number
     includeCurrentTurn?: boolean
     transformCardId?: string
@@ -241,7 +241,7 @@ export interface CCGCardEffect {
     accuracy?: number
     statusAccuracy?: number
     includeCurrentTurn?: boolean
-    condition?: CCGCondition
+    condition?: CCGCondition | CCGCondition[]
     transformCardId?: string
     identifier?: CardIdentifier
     summonCardId?: string

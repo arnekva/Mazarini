@@ -476,18 +476,46 @@ export const swCCG: CCGCard[] = [
                 type: 'DAMAGE',
                 target: 'OPPONENT',
                 value: 6,
-                condition: {
-                    type: 'BUILD_DEATHSTAR',
-                    target: 'SELF',
-                },
+                condition: [
+                    {
+                        type: 'BUILD_DEATHSTAR',
+                        target: 'SELF',
+                    },
+                    {
+                        type: 'PLAYED_CARD_ID',
+                        target: 'SELF',
+                        cardId: 'sw_grand_moff_tarkin_n',
+                        comparator: '>=',
+                        value: 2,
+                        invert: true,
+                    },
+                ],
+            },
+            {
+                type: 'DAMAGE',
+                target: 'OPPONENT',
+                value: 5,
+                condition: [
+                    {
+                        type: 'BUILD_DEATHSTAR',
+                        target: 'SELF',
+                    },
+                    {
+                        type: 'PLAYED_CARD_ID',
+                        target: 'SELF',
+                        cardId: 'sw_grand_moff_tarkin_n',
+                        comparator: '>=',
+                        value: 2,
+                    },
+                ],
             },
         ],
         cost: 2,
-        speed: 42,
+        speed: 22,
         rarity: ItemRarity.Epic,
         accuracy: 100,
         identifier: ['EMPIRE'],
-        customDescription: 'Use Death Star to deal [red]6 damage[/red]',
+        customDescription: 'Use Death Star to deal [red]6 damage[/red]. Paired: deal [red]5 damage[/red]',
     },
     {
         id: 'sw_grand_admiral_thrawn_n',
@@ -616,7 +644,7 @@ export const swCCG: CCGCard[] = [
             },
         ],
         cost: 1,
-        speed: 65,
+        speed: 85,
         rarity: ItemRarity.Rare,
         accuracy: 100,
         cannotMiss: true,
@@ -629,12 +657,11 @@ export const swCCG: CCGCard[] = [
         type: CCGCardType.Effect,
         effects: [
             {
-                //TODO update eivindpride to use same
                 type: 'PERSISTENT_APPEARANCE',
                 target: 'OPPONENT',
                 value: 1,
                 turns: 5,
-                accuracy: 40,
+                statusAccuracy: 40,
             },
         ],
         // 40% chance to appear and deal 1 damage for 5 turns
@@ -754,7 +781,7 @@ export const swCCG: CCGCard[] = [
             },
         ],
         cost: 2,
-        speed: 15,
+        speed: 65,
         rarity: ItemRarity.Rare,
         accuracy: 100,
         identifier: ['CREATURE'],
@@ -895,23 +922,23 @@ export const swCCG: CCGCard[] = [
                 type: 'GAIN_ENERGY',
                 target: 'SELF',
                 value: 4,
-                turns: 3,
+                turns: 2,
                 delayedTrigger: true,
             },
             {
                 type: 'HEAL',
                 target: 'SELF',
                 value: 3,
-                turns: 3,
+                turns: 2,
                 delayedTrigger: true,
             },
             {
                 type: 'SLOW',
                 target: 'SELF',
-                turns: 3,
+                turns: 2,
             },
         ],
-        // Gain 4 energy and heal 3, in 3 turns. Apply SLOW for 3 turns
+        // Gain 4 energy and heal 3, in 2 turns. Apply SLOW for 2 turns
         cost: 2,
         speed: 20,
         rarity: ItemRarity.Rare,
@@ -985,7 +1012,7 @@ export const swCCG: CCGCard[] = [
         ],
         // Heal 2. Summon a dark trooper to hand
         cost: 2,
-        speed: 40,
+        speed: 60,
         rarity: ItemRarity.Rare,
         accuracy: 90,
         identifier: ['EMPIRE'],
@@ -1061,11 +1088,11 @@ export const swCCG: CCGCard[] = [
         ],
         // Build Death Star (3 turns). Acts as a status condition that other cards can check
         cost: 1,
-        speed: 41,
+        speed: 20,
         rarity: ItemRarity.Rare,
         accuracy: 100,
         identifier: ['EMPIRE'],
-        customDescription: 'Build [yellow]Death Star[/yellow] for [pink]3 turns[/pink]',
+        customDescription: 'Build [yellow]Death Star[/yellow]. Stays built for [pink]3 turns[/pink]',
     },
     {
         id: 'sw_dark_trooper_n',
@@ -1171,7 +1198,7 @@ export const swCCG: CCGCard[] = [
         ],
         // Meditates. Gain 2 energy. Gain 2 hp
         cost: 1,
-        speed: 5,
+        speed: 85,
         rarity: ItemRarity.Legendary,
         accuracy: 100,
         cannotMiss: true,

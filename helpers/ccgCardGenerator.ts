@@ -6,7 +6,7 @@ import sharp from 'sharp'
 import { MazariniClient } from '../client/MazariniClient'
 import { mazariniCCG } from '../commands/ccg/cards/mazariniCCG'
 import { swCCG } from '../commands/ccg/cards/swCCG'
-import { CardIdentifier, CCGCard, CCGCardEffect } from '../commands/ccg/ccgInterface'
+import { CardIdentifier, CCGCard, CCGCardEffect, CCGCondition } from '../commands/ccg/ccgInterface'
 import { ItemRarity } from '../interfaces/database/databaseInterface'
 
 const CARD_WIDTH = 480
@@ -81,7 +81,7 @@ const ART_CENTER_Y = 203
 const ART_MAX_SIZE = Math.min(ART_BOUND_RIGHT - ART_BOUND_LEFT, ART_BOUND_BOTTOM - ART_BOUND_TOP) - ART_PADDING * 2
 const ART_SCALE = 0.95
 /** Bump this whenever layout constants change to force card regeneration */
-const LAYOUT_VERSION = 52
+const LAYOUT_VERSION = 53
 
 /** Effect types that are implicit/mechanical and should not appear in card description text */
 const IMPLICIT_EFFECT_TYPES = new Set(['CLAIM_BOUNTY'])
@@ -594,6 +594,12 @@ export class CCGCardGenerator {
     /** Describe a condition in readable text */
     private static describeCondition(condition: any): string {
         if (!condition) return ''
+        if (Array.isArray(condition)) {
+            return condition
+                .map((c) => CCGCardGenerator.describeCondition(c))
+                .filter(Boolean)
+                .join(' and ')
+        }
         const tgtPlay = condition.target === 'SELF' ? 'you play' : condition.target === 'OPPONENT' ? 'opponent plays' : 'both players play'
 
         switch (condition.type) {
@@ -655,10 +661,17 @@ export class CCGCardGenerator {
         // Must be same effect type and target
         if (effect1.type !== effect2.type || effect1.target !== effect2.target) return null
 
+        // Array conditions are not supported by the either/or pattern
+        if (Array.isArray(effect1.condition) || Array.isArray(effect2.condition)) return null
+
+        // After the array guard, conditions are CCGCondition (not CCGCondition[])
+        const e1 = effect1 as CCGCardEffect & { condition?: CCGCondition }
+        const e2 = effect2 as CCGCardEffect & { condition?: CCGCondition }
+
         // Pattern A: Both effects have explicit conditions — one without invert (bonus), one with invert:true (base/fallback)
-        if (effect1.condition && effect2.condition) {
-            const bonusEffect = [effect1, effect2].find((e) => e.condition && !e.condition.invert) ?? null
-            const baseEffect = [effect1, effect2].find((e) => e.condition?.invert) ?? null
+        if (e1.condition && e2.condition) {
+            const bonusEffect = [e1, e2].find((e) => e.condition && !e.condition.invert) ?? null
+            const baseEffect = [e1, e2].find((e) => e.condition?.invert) ?? null
 
             if (!bonusEffect || !baseEffect) return null
 
@@ -673,8 +686,8 @@ export class CCGCardGenerator {
         }
 
         // Pattern B: One effect has no condition (always applies = base), other has invert:true (fallback)
-        const conditionalEffect = effect1.condition ? effect1 : effect2.condition ? effect2 : null
-        const baseEffect = effect1.condition ? effect2 : effect2.condition ? effect1 : null
+        const conditionalEffect = e1.condition ? e1 : e2.condition ? e2 : null
+        const baseEffect = e1.condition ? e2 : e2.condition ? e1 : null
 
         if (!conditionalEffect || !baseEffect || !conditionalEffect.condition) return null
 

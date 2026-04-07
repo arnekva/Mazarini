@@ -268,11 +268,15 @@ export class BotResolver {
         const playerIdentifiers = new Set(playerHand.flatMap((c) => c.identifier ?? []))
         for (const item of playable) {
             for (const effect of item.card.effects ?? []) {
-                if (effect.condition?.type !== 'PLAYED_CARD_IDENTIFIER') continue
-                if (effect.condition.target !== 'OPPONENT') continue
-                if (effect.condition.invert) continue // skip fallback branches
-                if (effect.condition.identifier && playerIdentifiers.has(effect.condition.identifier)) {
-                    item.score += 4 // bonus damage condition is likely to fire
+                if (!effect.condition) continue
+                const conds = Array.isArray(effect.condition) ? effect.condition : [effect.condition]
+                for (const cond of conds) {
+                    if (cond.type !== 'PLAYED_CARD_IDENTIFIER') continue
+                    if (cond.target !== 'OPPONENT') continue
+                    if (cond.invert) continue // skip fallback branches
+                    if (cond.identifier && playerIdentifiers.has(cond.identifier)) {
+                        item.score += 4 // bonus damage condition is likely to fire
+                    }
                 }
             }
         }
@@ -308,7 +312,13 @@ export class BotResolver {
      * (PLAYED_CARD_ID, PLAYED_CARD_IDENTIFIER, NUM_CARDS_PLAYED, PLAYED_EFFECT_TYPE)
      * since card selection hasn't been committed yet.
      */
-    private evaluateConditionNow(game: CCGGame, condition: CCGCondition): boolean | null {
+    private evaluateConditionNow(game: CCGGame, condition: CCGCondition | CCGCondition[]): boolean | null {
+        if (Array.isArray(condition)) {
+            const results = condition.map((c) => this.evaluateConditionNow(game, c))
+            if (results.includes(false)) return false
+            if (results.includes(null)) return null
+            return true
+        }
         const subject = condition.target === 'OPPONENT' ? game.player1 : game.player2
         let result: boolean
         switch (
@@ -365,7 +375,7 @@ export class BotResolver {
             let anyDefinitelyFires = false
             let anyUnknowable = false
             for (const effect of effects) {
-                const result = this.evaluateConditionNow(game, effect.condition!)
+                const result = this.evaluateConditionNow(game, effect.condition! as CCGCondition | CCGCondition[])
                 if (result === null) {
                     anyUnknowable = true
                 } else if (result === true) {
@@ -391,41 +401,44 @@ export class BotResolver {
 
         for (const item of playable) {
             for (const effect of item.card.effects ?? []) {
-                const condition = effect.condition
-                if (!condition || condition.invert) continue // skip no-condition or fallback (inverted) branches
-                if (condition.target !== 'SELF') continue // opponent-based synergies are uncontrollable
+                if (!effect.condition) continue
+                const conds = Array.isArray(effect.condition) ? effect.condition : [effect.condition]
+                for (const condition of conds) {
+                    if (condition.invert) continue // skip fallback (inverted) branches
+                    if (condition.target !== 'SELF') continue // opponent-based synergies are uncontrollable
 
-                if (condition.type === 'PLAYED_CARD_IDENTIFIER' && condition.identifier) {
-                    const required = condition.value ?? 1
-                    // Cards in hand that carry the required identifier, cheapest first
-                    const candidates = playable
-                        .filter((p) => p.card.identifier?.includes(condition.identifier!))
-                        .sort((a, b) => this.getCardCost(game, a.card) - this.getCardCost(game, b.card))
-                    if (!this.synergySatisfied(candidates.length, condition.comparator, required)) continue
-                    // Check we can afford the cheapest `required` of them together
-                    const totalCost = candidates.slice(0, required).reduce((sum, p) => sum + this.getCardCost(game, p.card), 0)
-                    if (totalCost > botEnergy) continue
+                    if (condition.type === 'PLAYED_CARD_IDENTIFIER' && condition.identifier) {
+                        const required = condition.value ?? 1
+                        // Cards in hand that carry the required identifier, cheapest first
+                        const candidates = playable
+                            .filter((p) => p.card.identifier?.includes(condition.identifier!))
+                            .sort((a, b) => this.getCardCost(game, a.card) - this.getCardCost(game, b.card))
+                        if (!this.synergySatisfied(candidates.length, condition.comparator, required)) continue
+                        // Check we can afford the cheapest `required` of them together
+                        const totalCost = candidates.slice(0, required).reduce((sum, p) => sum + this.getCardCost(game, p.card), 0)
+                        if (totalCost > botEnergy) continue
 
-                    item.score += 3
-                    // Nudge the enabling cards — they're what unlocks this bonus
-                    for (const enabler of candidates.slice(0, required)) {
-                        if (enabler !== item) enabler.score += 2
+                        item.score += 3
+                        // Nudge the enabling cards — they're what unlocks this bonus
+                        for (const enabler of candidates.slice(0, required)) {
+                            if (enabler !== item) enabler.score += 2
+                        }
                     }
-                }
 
-                if (condition.type === 'PLAYED_CARD_ID' && condition.cardId) {
-                    const required = condition.value ?? 2
-                    // Copies of the required card in hand, cheapest first
-                    const copies = playable
-                        .filter((p) => p.card.id === condition.cardId)
-                        .sort((a, b) => this.getCardCost(game, a.card) - this.getCardCost(game, b.card))
-                    if (!this.synergySatisfied(copies.length, condition.comparator, required)) continue
-                    const totalCost = copies.slice(0, required).reduce((sum, p) => sum + this.getCardCost(game, p.card), 0)
-                    if (totalCost > botEnergy) continue
+                    if (condition.type === 'PLAYED_CARD_ID' && condition.cardId) {
+                        const required = condition.value ?? 2
+                        // Copies of the required card in hand, cheapest first
+                        const copies = playable
+                            .filter((p) => p.card.id === condition.cardId)
+                            .sort((a, b) => this.getCardCost(game, a.card) - this.getCardCost(game, b.card))
+                        if (!this.synergySatisfied(copies.length, condition.comparator, required)) continue
+                        const totalCost = copies.slice(0, required).reduce((sum, p) => sum + this.getCardCost(game, p.card), 0)
+                        if (totalCost > botEnergy) continue
 
-                    item.score += 3
-                    for (const copy of copies.slice(0, required)) {
-                        if (copy !== item) copy.score += 2
+                        item.score += 3
+                        for (const copy of copies.slice(0, required)) {
+                            if (copy !== item) copy.score += 2
+                        }
                     }
                 }
             }

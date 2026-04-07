@@ -37,7 +37,7 @@ export class CardActionResolver {
         const target = this.getPlayer(game, effect.targetPlayerId)
         const opponent = this.getPlayer(game, source.opponentId)
 
-        if (effect.condition && !this.isConditionMet(game, source, target, effect.condition)) {
+        if (effect.condition && !this.areConditionsMet(game, source, target, effect.condition)) {
             return
         }
 
@@ -246,6 +246,11 @@ export class CardActionResolver {
                 this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} builds the Death Star for ${effect.turns ?? 3} turns`)
                 break
 
+            case 'DESTROY_DEATHSTAR':
+                this.removeStatusTypeForPlayer(game, target, 'DESTROY_DEATHSTAR')
+                this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} destroys ${target.name}'s Death Star`)
+                break
+
             case 'TRANSFORM':
                 // Transform card immediately (specific instance that triggered this effect).
                 if (effect.transformCardId) {
@@ -332,7 +337,7 @@ export class CardActionResolver {
                     if (!['DAMAGE', 'DAMAGE_PER_IDENTIFIER', 'DAMAGE_PER_CARD_PLAYED', 'SHOOT'].includes(e.type)) return false
                     if (e.sourcePlayerId === effect.sourcePlayerId) return false
                     if (e.targetPlayerId !== effect.sourcePlayerId) return false
-                    if (e.condition && !this.isConditionMet(game, this.getPlayer(game, e.sourcePlayerId), this.getPlayer(game, e.targetPlayerId), e.condition))
+                    if (e.condition && !this.areConditionsMet(game, this.getPlayer(game, e.sourcePlayerId), this.getPlayer(game, e.targetPlayerId), e.condition))
                         return false
                     return true
                 })
@@ -526,6 +531,10 @@ export class CardActionResolver {
         game.state.statusConditions = game.state.statusConditions.filter((s) => s.ownerId !== target.id || s.type === 'REFLECT')
     }
 
+    private removeStatusTypeForPlayer(game: CCGGame, target: CCGPlayer, type: StatusEffect['type']) {
+        game.state.statusConditions = game.state.statusConditions.filter((s) => s.ownerId !== target.id || s.type !== type)
+    }
+
     public async tickStatusEffects(game: CCGGame, status: StatusEffect) {
         const player = this.getPlayer(game, status.ownerId)
 
@@ -583,6 +592,11 @@ export class CardActionResolver {
 
         game.state.statusEffects = game.state.statusEffects.filter((s) => s.remainingTurns > 0)
         game.state.statusConditions = game.state.statusConditions.filter((s) => s.remainingTurns > 0)
+    }
+
+    private areConditionsMet(game: CCGGame, source: CCGPlayer, target: CCGPlayer, condition: CCGCondition | CCGCondition[]): boolean {
+        const conditions = Array.isArray(condition) ? condition : [condition]
+        return conditions.every((c) => this.isConditionMet(game, source, target, c))
     }
 
     private isConditionMet(game: CCGGame, source: CCGPlayer, target: CCGPlayer, condition: CCGCondition): boolean {
