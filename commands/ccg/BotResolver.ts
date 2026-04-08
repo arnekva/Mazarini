@@ -46,14 +46,23 @@ export class BotResolver {
         // Only consider mulligan if energy is very low
         if (bot.energy > 1) return false
 
-        const hand = bot.hand.filter((card) => !!card)
-        if (hand.length < 2) return false
-
+        const hand = bot.hand.filter((card) => !!card && this.isPlayable(game, card))
         // Count how many cards are playable with current energy
         const playableCount = hand.filter((card) => this.getCardCost(game, card) <= bot.energy).length
 
         // Mulligan if fewer than 2 cards are playable
         return playableCount < 2
+    }
+
+    private isPlayable(game: CCGGame, card: CCGCard): boolean {
+        const cost = this.getCardCost(game, card)
+        const difficulty = this.getDifficultyLevel(game)
+        const conditionsMet = card.effects?.every((effect) => {
+            if (!effect.condition) return true
+            const result = this.evaluateConditionNow(game, effect.condition)
+            return result === null || result === true
+        })
+        return cost <= game.player2.energy && (conditionsMet || difficulty < 1)
     }
 
     /**

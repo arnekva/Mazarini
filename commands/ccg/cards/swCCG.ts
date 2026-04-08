@@ -1128,7 +1128,7 @@ export const swCCG: CCGCard[] = [
         ],
         // +1 dmg if played with another dark trooper
         cost: 2,
-        speed: 62,
+        speed: 55,
         rarity: ItemRarity.Rare,
         accuracy: 100,
         identifier: ['DROID', 'EMPIRE'],

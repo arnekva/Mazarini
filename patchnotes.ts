@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '31.1.1'
+    public static readonly currentVersion = '31.1.2'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,15 +28,17 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '## CCG',
-                '* **Grand Moff Tarkin**: 5 damage når du spiller mer enn én Tarkin om gangen. Speed nerf',
-                '* **Director Krennic**: Speed nerf',
-                '* **C-3PO**: Fikset accuracy bug',
-                '* **Luke**: Fikset destroy death star bug',
-                '* **Luthen**: 3 turn -> 2 turn delay',
-                '* **R2-D2**: Speed buff',
-                '* **Grogu**: Speed buff',
-                '* **Moff Gideon**: Speed buff',
-                '* **Qui-Gon**: Speed buff',
+                '* **Basic Pack**:',
+                '  * Common: 14% -> 25%',
+                '  * Rare: 75% -> 53%',
+                '  * Epic: 10% -> 20%',
+                '  * Legendary: 1% -> 2%',
+                '* **Premium Pack**:',
+                '  * Rare: 78% -> 56%',
+                '  * Epic: 20% -> 40%',
+                '  * Legendary: 2% -> 4%',
+                '* Fikser (forhåpentligvis) at boten spiller kort som ikke er spillbare',
+                '* **Dark Trooper**: Speed nerf',
             ].join('\n')
         )
         container.addSeparator()

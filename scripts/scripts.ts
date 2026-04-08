@@ -615,9 +615,9 @@ const basicLootPack: ILootbox = {
     price: 50,
     probabilities: {
         common: 1,
-        rare: 0.86,
-        epic: 0.11,
-        legendary: 0.01,
+        rare: 0.75,
+        epic: 0.22,
+        legendary: 0.02,
         color: 0,
     },
     isCCG: true,
@@ -630,8 +630,8 @@ const premiumLootPack: ILootbox = {
     probabilities: {
         common: 1,
         rare: 1,
-        epic: 0.22,
-        legendary: 0.02,
+        epic: 0.44,
+        legendary: 0.04,
         color: 0,
     },
     isCCG: true,
