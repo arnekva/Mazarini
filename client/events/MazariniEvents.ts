@@ -319,6 +319,34 @@ export class MazariniEvents {
     }
 
     private saveState(state: IMazariniEventState) {
-        this.client.database.updateStorage({ events: state })
+        this.client.database.updateStorage({ events: this.serializeState(state) })
+    }
+
+    private serializeState(state: IMazariniEventState): IMazariniEventState {
+        return {
+            dayKey: state.dayKey,
+            scheduled: state.scheduled.map((event) => this.serializeEntry(event)),
+            active: state.active.map((event) => this.serializeEntry(event)),
+            completed: state.completed.map((event) => this.serializeEntry(event)),
+        }
+    }
+
+    private serializeEntry(event: IMazariniEventEntry): IMazariniEventEntry {
+        const serialized = {
+            id: event.id,
+            type: event.type,
+            triggerHour: event.triggerHour,
+            triggerMinute: event.triggerMinute,
+            channelId: event.channelId,
+            title: event.title,
+            description: event.description,
+            reward: event.reward,
+        } as IMazariniEventEntry
+
+        if (event.activatedAt !== undefined) serialized.activatedAt = event.activatedAt
+        if (event.completedAt !== undefined) serialized.completedAt = event.completedAt
+        if (event.winnerId !== undefined) serialized.winnerId = event.winnerId
+
+        return serialized
     }
 }
