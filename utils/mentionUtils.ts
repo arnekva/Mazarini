@@ -1,7 +1,9 @@
-const { userMention, memberNicknameMention, channelMention, roleMention } = require('@discordjs/builders')
+const { userMention, channelMention, roleMention } = require('@discordjs/builders')
 
 export enum ChannelIds {
     VLADIVOSTOK = '808992127249678386',
+    CCG = '1467965812328497335',
+    LOOT = '1291704343128576160',
     BOT_UTVIKLING = '802716150484041751',
     GENERAL = '340626855990132747',
     ACTION_LOG = '1107958956573347910',

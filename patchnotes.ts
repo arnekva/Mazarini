@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '31.2.'
+    public static readonly currentVersion = '31.2.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,17 +25,7 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(
-            [
-                '## Events!',
-                '* Det kan nå trigge mellom 1 - 5 events per dag',
-                '  * Events vil vanligvis ha 1 vinner, og vil gi rewards som chips og shards.',
-                '  * Typisk vil det være førstemann til å utføre en oppgave som vinner eventet.',
-                '  * Andre ganger kan det være at man bare må gjøre noe innenfor en tidsperiode for å vinne.',
-                '  * Rewards hentes fra samme rewards som en finner i DonD etc.',
-                '* Fjernet rewards relatert til farge på loot.',
-            ].join('\n')
-        )
+        const text = new TextDisplayBuilder().setContent(['## Events!', '* Event-meldinger vil nå sendes til rett kanal.'].join('\n'))
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 

@@ -215,21 +215,21 @@ export class MazariniEvents {
                 return {
                     title: 'CCG',
                     description: 'CCG: Førstemann til å vinne et game mot minst middels Høie får en HQ reward. Training teller.',
-                    channelId: ChannelIds.GENERAL,
+                    channelId: ChannelIds.CCG,
                     reward: { tier: MazariniEventRewardTier.High },
                 }
             case MazariniEventType.CCGPlayerWin:
                 return {
                     title: 'CCG PVP',
                     description: 'CCG: Førstemann til å vinne et spill mot en annen spiller får en MQ reward.',
-                    channelId: ChannelIds.GENERAL,
+                    channelId: ChannelIds.CCG,
                     reward: { tier: MazariniEventRewardTier.Medium },
                 }
             case MazariniEventType.VladivostokGambleWin:
                 return {
                     title: 'Vladivostok-event',
                     description: 'Førstemann til å vinne minst 1000 chips på ein /gamble får ein LQ reward.',
-                    channelId: ChannelIds.VLADIVOSTOK,
+                    channelId: ChannelIds.LOOT,
                     reward: { tier: MazariniEventRewardTier.Low },
                 }
         }
