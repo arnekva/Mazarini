@@ -28,6 +28,47 @@ export interface MazariniStats {
     emojis: EmojiStats[]
 }
 
+export enum MazariniEventType {
+    DiceRoll = 'dice-roll',
+    DeathrollWin = 'deathroll-win',
+    DeathrollPotWin = 'deathroll-pot-win',
+    CCGHoieWin = 'ccg-hoie-win',
+    CCGPlayerWin = 'ccg-player-win',
+    VladivostokGambleWin = 'vladivostok-gamble-win',
+}
+
+export enum MazariniEventRewardTier {
+    VeryLow = 'vlq',
+    Low = 'lq',
+    Medium = 'mq',
+    High = 'hq',
+}
+
+export interface IMazariniEventReward {
+    tier: MazariniEventRewardTier
+}
+
+export interface IMazariniEventEntry {
+    id: string
+    type: MazariniEventType
+    triggerHour: number
+    triggerMinute: number
+    channelId: string
+    title: string
+    description: string
+    reward: IMazariniEventReward
+    activatedAt?: number
+    completedAt?: number
+    winnerId?: string
+}
+
+export interface IMazariniEventState {
+    dayKey: string
+    scheduled: IMazariniEventEntry[]
+    active: IMazariniEventEntry[]
+    completed: IMazariniEventEntry[]
+}
+
 export interface EmojiStats {
     name: string
     timesUsedInMessages: number
@@ -349,6 +390,7 @@ interface ISavedMessage {
 export interface MazariniStorage {
     /** Timer of when the storage was last updated. Updated automatically when storage is changed */
     updateTimer: number
+    events?: IMazariniEventState
     rocketLeagueTournaments?: {
         mainMessageId: string
         tournaments: RocketLeagueTournament[]

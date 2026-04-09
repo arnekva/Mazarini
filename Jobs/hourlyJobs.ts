@@ -13,9 +13,13 @@ export class HourJob {
         this.client = client
     }
     async runJobs() {
-        this.client.onTimedEvent('hourly')
-        await this.checkForUpcomingRLTournaments()
-        await this.sendScheduledMessage()
+        const isTopOfHour = new Date().getMinutes() === 0
+        if (isTopOfHour) {
+            this.client.onTimedEvent('hourly')
+            await this.checkForUpcomingRLTournaments()
+            await this.sendScheduledMessage()
+        }
+        await this.client.mazariniEvents.activateDueEvents()
     }
 
     private async checkForUpcomingRLTournaments() {
@@ -44,7 +48,7 @@ export class HourJob {
                 const date = new Date(msg.dateToSendOn * 1000)
                 const today = new Date()
                 const dateMatches = date.getDay() === today.getDay() && date.getMonth() === today.getMonth()
-                const timeMatches = date.getHours() === today.getHours()
+                const timeMatches = date.getHours() === today.getHours() && date.getMinutes() === today.getMinutes()
                 return dateMatches && timeMatches
             })
             messagesToSend.forEach((msg) => {

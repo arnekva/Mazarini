@@ -103,7 +103,7 @@ export class Deathroll extends AbstractCommands {
                 additionalMessage += this.checkForPotSkip(roll, diceTarget, user.id)
                 const rewards = await this.checkForReward(roll, diceTarget, interaction)
                 additionalMessage += rewards.text
-                additionalMessage += this.checkForJokes(roll, diceTarget, game.nextToRoll)
+                additionalMessage += this.checkForJokes(roll, diceTarget)
                 additionalMessage += await this.checkIfPotWon(game, roll, diceTarget, user.id)
 
                 if (roll >= 100 && roll !== diceTarget) {
@@ -112,6 +112,19 @@ export class Deathroll extends AbstractCommands {
                 }
                 if (roll == 1) {
                     this.checkForLossOnFirstRoll(game, diceTarget)
+                    const winnerId = game.players.find((player) => player.userID !== user.id)?.userID
+                    await this.client.eventTracker.trackTerningWin({
+                        winnerId: winnerId,
+                        loserId: user.id,
+                        initialTarget: game.initialTarget,
+                        loserRoll: roll,
+                    })
+                    await this.client.eventTracker.trackDeathrollWin({
+                        winnerId: winnerId,
+                        loserId: user.id,
+                        initialTarget: game.initialTarget,
+                        loserRoll: roll,
+                    })
                     const stat = await this.endGame(game)
                     additionalMessage += this.addToPotOnGameEnd(stat, diceTarget)
                     const kek = (await EmojiHelper.getEmoji('kekw', interaction)).id
@@ -198,7 +211,7 @@ export class Deathroll extends AbstractCommands {
         return reward >= GameValues.deathroll.addToPot.minReward ? `(pott + ${reward} = ${this.rewardPot} chips)` : ''
     }
 
-    private checkForJokes(roll: number, diceTarget: number, nextToRoll: string) {
+    private checkForJokes(roll: number, diceTarget: number) {
         if (diceTarget == 11 || roll == 911) {
             if ((roll == 9 || roll == 911) && Math.random() < GameValues.deathroll.jokes.nineElevenChance) {
                 const removed = this.rewardPot >= GameValues.deathroll.jokes.nineElevenRemove ? GameValues.deathroll.jokes.nineElevenRemove : this.rewardPot
@@ -333,7 +346,9 @@ export class Deathroll extends AbstractCommands {
         if (hasWon && game.initialTarget >= GameValues.deathroll.potWin.minTarget) {
             if (wonOnRandomNumber) this.reRollWinningNumbers(true)
             const addToPot = this.rewardPot > 0 ? diceTarget - roll : 0
-            return await this.rewardPotToUser(userid, addToPot)
+            const rewardText = await this.rewardPotToUser(userid, addToPot)
+            await this.client.eventTracker.trackDeathrollPotWin(userid)
+            return rewardText
         }
         return ''
     }

@@ -37,6 +37,7 @@ export class GamblingCommands extends AbstractCommands {
                 let newMoneyValue = 0
                 const multiplier = this.getMultiplier(roll)
                 const calculatedValue = this.calculatedNewMoneyValue(interaction.user.id, multiplier, chipsToGamble, userMoney)
+                const chipsWon = Math.max(0, calculatedValue.newMoneyValue - Number(userMoney))
 
                 if (roll >= 50) {
                     newMoneyValue = calculatedValue.newMoneyValue
@@ -49,6 +50,7 @@ export class GamblingCommands extends AbstractCommands {
                 }
                 user.chips = newMoneyValue
                 this.client.database.updateUser(user)
+                if (roll >= 50) await this.client.eventTracker.trackGambleWin(interaction.user.id, chipsWon)
                 const gambling = new EmbedBuilder()
                     .setTitle('Gambling')
                     .setThumbnail(`https://pngimg.com/d/dice_PNG51.png`)

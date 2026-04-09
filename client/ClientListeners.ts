@@ -116,6 +116,7 @@ export class ClientListener {
         /** For all sent messages */
         this.client.on('messageCreate', async (message: Message) => {
             MazariniBot.numMessages++
+            if (environment === 'dev' && message.channelId) this.client.currentDevelopmentChannelId = message.channelId
             //Do not reply to own messages. Do not trigger on pinned messages
             if (
                 message?.author?.id == MentionUtils.User_IDs.BOT_HOIE ||
@@ -136,7 +137,7 @@ export class ClientListener {
                 }
                 const correctChannel =
                     (environment === 'prod' && message.channelId !== ChannelIds.LOCALHOST) ||
-                    (environment === 'dev' && message.channelId === ChannelIds.LOCALHOST)
+                    (environment === 'dev' && message.channelId === this.client.currentDevelopmentChannelId)
                 if ((hoieTagged || replyToHoie) && correctChannel) {
                     if (isAskingQuestion) {
                         this.client.gemini.fetchAndSendMessage(message, this.client.messageHelper, message.channelId, {
@@ -205,6 +206,7 @@ export class ClientListener {
             // console.log(interaction.toJSON())
 
             MazariniBot.numCommands++
+            if (environment === 'dev' && interaction.channelId) this.client.currentDevelopmentChannelId = interaction.channelId
             this.commandRunner.checkForCommandInInteraction(interaction)
         })
 

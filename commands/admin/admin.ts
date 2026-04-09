@@ -10,18 +10,20 @@ import {
     ComponentType,
     GuildMember,
     ModalSubmitInteraction,
+    StringSelectMenuBuilder,
+    StringSelectMenuOptionBuilder,
     User,
 } from 'discord.js'
 import moment from 'moment'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
-import { ATCInteraction, BtnInteraction, ChatInteraction, ModalInteraction } from '../../Abstracts/MazariniInteraction'
+import { ATCInteraction, BtnInteraction, ChatInteraction, ModalInteraction, SelectStringInteraction } from '../../Abstracts/MazariniInteraction'
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { CCGCardGenerator } from '../../helpers/ccgCardGenerator'
 import { ClientHelper } from '../../helpers/clientHelper'
 import { ComponentsHelper } from '../../helpers/componentsHelper'
-import { dbPrefix, ILootbox, prefixList } from '../../interfaces/database/databaseInterface'
+import { dbPrefix, ILootbox, MazariniEventType, prefixList } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { DailyJobs } from '../../Jobs/dailyJobs'
 import { WeeklyJobs } from '../../Jobs/weeklyJobs'
@@ -52,6 +54,7 @@ type RewardType = 'chest' | 'chips' | 'box' | 'dealornodeal' | 'pack'
 
 export class Admin extends AbstractCommands {
     private pendingRewards: Map<string, IReward>
+    private static readonly eventTriggerSelectId = 'ADMIN_EVENT_TRIGGER_SELECT'
 
     constructor(client: MazariniClient) {
         super(client)
@@ -514,8 +517,21 @@ export class Admin extends AbstractCommands {
             label: 'Regen CCG bilder',
             type: 2,
         })
-        const row = new ActionRowBuilder<ButtonBuilder>().addComponents(settingsBtn, fetchCCGBtn, pushCCGBtn, regenCCGBtn)
-        this.messageHelper.replyToInteraction(interaction, 'Admin panel:', { ephemeral: true }, [row])
+        const scheduleBtn = new ButtonBuilder({
+            custom_id: 'ADMIN_EVENT_SCHEDULE',
+            style: ButtonStyle.Secondary,
+            label: 'Print eventplan',
+            type: 2,
+        })
+        const triggerEventsBtn = new ButtonBuilder({
+            custom_id: 'ADMIN_EVENT_TRIGGER_MENU',
+            style: ButtonStyle.Primary,
+            label: 'Trigge events',
+            type: 2,
+        })
+        const firstRow = new ActionRowBuilder<ButtonBuilder>().addComponents(settingsBtn, fetchCCGBtn, pushCCGBtn, regenCCGBtn, scheduleBtn)
+        const secondRow = new ActionRowBuilder<ButtonBuilder>().addComponents(triggerEventsBtn)
+        this.messageHelper.replyToInteraction(interaction, 'Admin panel:', { ephemeral: true }, [firstRow, secondRow])
     }
     static botSettingsId = 'botSettingsModal'
     private async buildSettingsModal(interaction: ChatInteraction | BtnInteraction) {
@@ -580,9 +596,86 @@ export class Admin extends AbstractCommands {
                             ],
                         },
                     },
+                    {
+                        type: ComponentType.Label,
+                        label: 'Trigge events manuelt (velg én eller flere):',
+                        component: {
+                            type: ComponentType.CheckboxGroup,
+                            custom_id: 'event_actions',
+                            required: false,
+                            min_values: 0,
+                            options: [
+                                { value: MazariniEventType.DiceRoll, label: 'Terningevent' },
+                                { value: MazariniEventType.DeathrollWin, label: 'Deathrollevent' },
+                                { value: MazariniEventType.DeathrollPotWin, label: 'Deathroll pot' },
+                                { value: MazariniEventType.CCGHoieWin, label: 'CCG-event' },
+                                { value: MazariniEventType.CCGPlayerWin, label: 'CCG PVP' },
+                                { value: MazariniEventType.VladivostokGambleWin, label: 'Vladivostok-event' },
+                            ],
+                        },
+                    },
                 ],
             } as any)
         }
+    }
+
+    private async printEventSchedule(interaction: ChatInteraction | BtnInteraction) {
+        const schedule = await this.client.mazariniEvents.getPrintableSchedule()
+        const embed = EmbedUtils.createSimpleEmbed(schedule.title, `Planlagte:\n${schedule.scheduled}`)
+        embed.addFields({ name: 'Aktive', value: schedule.active }, { name: 'Fullførte', value: schedule.completed })
+        this.messageHelper.replyToInteraction(interaction as any, embed, { ephemeral: true })
+    }
+
+    private showEventTriggerMenu(interaction: BtnInteraction) {
+        const menu = new StringSelectMenuBuilder()
+            .setCustomId(Admin.eventTriggerSelectId)
+            .setPlaceholder('Velg events som skal trigges')
+            .setMinValues(1)
+            .setMaxValues(6)
+            .addOptions(
+                new StringSelectMenuOptionBuilder().setLabel('Terningevent').setValue(MazariniEventType.DiceRoll),
+                new StringSelectMenuOptionBuilder().setLabel('Deathrollevent').setValue(MazariniEventType.DeathrollWin),
+                new StringSelectMenuOptionBuilder().setLabel('Deathroll pot').setValue(MazariniEventType.DeathrollPotWin),
+                new StringSelectMenuOptionBuilder().setLabel('CCG-event').setValue(MazariniEventType.CCGHoieWin),
+                new StringSelectMenuOptionBuilder().setLabel('CCG PVP').setValue(MazariniEventType.CCGPlayerWin),
+                new StringSelectMenuOptionBuilder().setLabel('Vladivostok-event').setValue(MazariniEventType.VladivostokGambleWin)
+            )
+        const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu)
+        this.messageHelper.replyToInteraction(interaction, 'Velg events som skal aktiveres nå:', { ephemeral: true }, [row])
+    }
+
+    private async handleEventTriggerSelect(interaction: SelectStringInteraction) {
+        const selectedEvents = interaction.values as MazariniEventType[]
+        for (const eventType of selectedEvents) {
+            await this.client.mazariniEvents.activateSpecificEvent(eventType)
+        }
+        this.messageHelper.sendLogMessage(`Events trigget manuelt av ${interaction.user.username}: ${selectedEvents.join(', ')}`)
+        await interaction.update({ content: `Trigget ${selectedEvents.length} event${selectedEvents.length > 1 ? 's' : ''}.`, components: [] })
+    }
+
+    private getModalCheckboxValues(modalInteraction: ModalSubmitInteraction, customId: string): string[] {
+        const interactionAsAny = modalInteraction as any
+        const roots = [interactionAsAny.components, interactionAsAny.data?.components, interactionAsAny.toJSON?.()?.data?.components].filter((value) => !!value)
+
+        const visit = (node: any): string[] | undefined => {
+            if (!node) return undefined
+            if (Array.isArray(node)) {
+                for (const item of node) {
+                    const result = visit(item)
+                    if (result) return result
+                }
+                return undefined
+            }
+            if (node.custom_id === customId && Array.isArray(node.values)) return node.values
+            if (node.component?.custom_id === customId && Array.isArray(node.component?.values)) return node.component.values
+            return visit(node.components ?? node.component)
+        }
+
+        for (const root of roots) {
+            const result = visit(root)
+            if (result) return result
+        }
+        return []
     }
 
     private async handleBotSettingsModalDialog(modalInteraction: ModalSubmitInteraction) {
@@ -617,13 +710,18 @@ export class Admin extends AbstractCommands {
             )
         }
 
-        const components = (modalInteraction as any).components as any[]
-        const labelComp = components?.find((c: any) => c.type === ComponentType.Label)
-        const selectedJobs: string[] = labelComp?.component?.values ?? []
+        const selectedJobs = this.getModalCheckboxValues(modalInteraction, 'daily_jobs')
+        const selectedEvents = this.getModalCheckboxValues(modalInteraction, 'event_actions') as MazariniEventType[]
         if (selectedJobs.length > 0) {
             const dj = new DailyJobs(this.messageHelper, this.client)
             await dj.runSpecificJobs(selectedJobs)
             this.messageHelper.sendLogMessage(`Daglige jobber kjørt manuelt av ${modalInteraction.user.username}: ${selectedJobs.join(', ')}`)
+        }
+        if (selectedEvents.length > 0) {
+            for (const eventType of selectedEvents) {
+                await this.client.mazariniEvents.activateSpecificEvent(eventType)
+            }
+            this.messageHelper.sendLogMessage(`Events trigget manuelt av ${modalInteraction.user.username}: ${selectedEvents.join(', ')}`)
         }
         this.messageHelper.replyToInteraction(modalInteraction, 'Dine innstillinger er nå oppdatert', { ephemeral: true })
     }
@@ -722,6 +820,18 @@ export class Admin extends AbstractCommands {
                         },
                     },
                     {
+                        commandName: 'ADMIN_EVENT_SCHEDULE',
+                        command: (rawInteraction: BtnInteraction) => {
+                            this.printEventSchedule(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'ADMIN_EVENT_TRIGGER_MENU',
+                        command: (rawInteraction: BtnInteraction) => {
+                            this.showEventTriggerMenu(rawInteraction)
+                        },
+                    },
+                    {
                         commandName: 'ADMIN_FORCE_RESTART',
                         command: (rawInteraction: BtnInteraction) => {
                             this.restartBot(rawInteraction)
@@ -745,6 +855,14 @@ export class Admin extends AbstractCommands {
                         commandName: Admin.botSettingsId,
                         command: (rawInteraction: ModalInteraction) => {
                             this.handleBotSettingsModalDialog(rawInteraction)
+                        },
+                    },
+                ],
+                selectMenuInteractionCommands: [
+                    {
+                        commandName: Admin.eventTriggerSelectId,
+                        command: (rawInteraction: SelectStringInteraction) => {
+                            this.handleEventTriggerSelect(rawInteraction)
                         },
                     },
                 ],

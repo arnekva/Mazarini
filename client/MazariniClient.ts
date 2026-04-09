@@ -1,10 +1,11 @@
 import { Client } from 'discord.js'
 import { initializeApp } from 'firebase/app'
-import { cloudflareConfig, environment, firebaseConfig } from '../client-env'
+import { cloudflareConfig, environment, firebaseConfig, secretDevelopment } from '../client-env'
 import { JobScheduler } from '../Jobs/jobScheduler'
 
 import { S3Client } from '@aws-sdk/client-s3'
 import { CommandBuilder } from '../builders/commandBuilder/commandBuilder'
+import { EventTracker } from '../general/eventTracker'
 import { MazariniTracker } from '../general/mazariniTracker'
 import { LockingHandler } from '../handlers/lockingHandler'
 import { CloudflareHelper } from '../helpers/cloudflareHelper'
@@ -14,7 +15,9 @@ import { GeminiHelper } from '../helpers/geminiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MoneyHelper } from '../helpers/moneyHelper'
 import { ICache } from '../interfaces/database/databaseInterface'
+import { ChannelIds } from '../utils/mentionUtils'
 import { ClientListener } from './ClientListeners'
+import { MazariniEvents } from './events/MazariniEvents'
 
 /** Extension of Discord Client with extra properties like MessageHelper */
 export class MazariniClient extends Client {
@@ -25,11 +28,14 @@ export class MazariniClient extends Client {
     private databaseHelper: DatabaseHelper
     private lockingHandler: LockingHandler
     private mazariniTracker: MazariniTracker
+    private timedEvents: MazariniEvents
+    private mazariniEventTracker: EventTracker
     /** Cache of the Mazarini Storage from the database. Is pulled on startup, and updated during saving events. */
     private clientCache: Partial<ICache>
     private clientListener: ClientListener
     private moneyHelper: MoneyHelper
     private geminiHelper: GeminiHelper
+    private developmentChannelId: string
 
     constructor() {
         super({
@@ -59,8 +65,11 @@ export class MazariniClient extends Client {
         this.jobScheduler = environment === 'prod' ? new JobScheduler(this.msgHelper, this) : undefined
         this.lockingHandler = new LockingHandler()
         this.mazariniTracker = new MazariniTracker(this)
+        this.timedEvents = new MazariniEvents(this)
+        this.mazariniEventTracker = new EventTracker(this)
         this.clientListener = new ClientListener(this)
         this.clientCache = { deathrollWinningNumbers: [], restartImpediments: [] }
+        this.developmentChannelId = secretDevelopment ? ChannelIds.SECRET_LOCALHOST : ChannelIds.LOCALHOST
         this.moneyHelper = new MoneyHelper(this)
         this.setupDatabase(this.msgHelper)
         this.geminiHelper = new GeminiHelper(this)
@@ -136,6 +145,14 @@ export class MazariniClient extends Client {
         return this.mazariniTracker
     }
 
+    get mazariniEvents() {
+        return this.timedEvents
+    }
+
+    get eventTracker() {
+        return this.mazariniEventTracker
+    }
+
     get gemini() {
         return this.geminiHelper
     }
@@ -143,6 +160,15 @@ export class MazariniClient extends Client {
     get cache() {
         return this.clientCache
     }
+
+    get currentDevelopmentChannelId() {
+        return this.developmentChannelId
+    }
+
+    set currentDevelopmentChannelId(channelId: string) {
+        if (channelId) this.developmentChannelId = channelId
+    }
+
     set cache(cache: Partial<ICache>) {
         this.clientCache = cache
     }

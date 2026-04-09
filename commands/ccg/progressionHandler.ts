@@ -80,10 +80,33 @@ export class ProgressionHandler {
 
     public async getMatchSummary(game: CCGGame) {
         const container = CCGMatchSummary(game)
+        const eventReward = await this.trackEventReward(game)
         const player1Reward = game.vsBot ? await this.rewardShards(game, game.player1) : await this.settleWager(game, game.player1)
         const player2Reward = game.vsBot ? '' : await this.settleWager(game, game.player2)
-        container.updateTextComponent('rewards', player1Reward + '\n' + player2Reward)
+        container.updateTextComponent('rewards', [player1Reward, player2Reward, eventReward].filter((text) => !!text).join('\n'))
         return container
+    }
+
+    private async trackEventReward(game: CCGGame) {
+        const rewards: string[] = []
+        const winner = [game.player1, game.player2].find((player) => player?.id === game.state.winnerId)
+        const hoieEvent = await this.client.eventTracker.trackCcgWin({
+            winnerId: game.state.winnerId,
+            opponentId: game.player2?.id,
+            difficulty: game.botDifficulty,
+            mode: game.mode,
+            vsBot: game.vsBot,
+        })
+        const playerEvent = await this.client.eventTracker.trackCcgPlayerWin({
+            winnerId: game.state.winnerId,
+            opponentId: game.player2?.id,
+            difficulty: game.botDifficulty,
+            mode: game.mode,
+            vsBot: game.vsBot,
+        })
+        if (hoieEvent && winner) rewards.push(`${winner.name} fullfører eventet og får ${hoieEvent.rewardSummary}`)
+        if (playerEvent && winner) rewards.push(`${winner.name} fullfører eventet og får ${playerEvent.rewardSummary}`)
+        return rewards.join('\n')
     }
 
     private async rewardShards(game: CCGGame, player: CCGPlayer) {

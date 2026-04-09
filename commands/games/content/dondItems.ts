@@ -1,4 +1,4 @@
-import { IUserEffects, MazariniUser } from '../../../interfaces/database/databaseInterface'
+import { IUserEffects, LootboxQuality, MazariniEventRewardTier, MazariniUser } from '../../../interfaces/database/databaseInterface'
 import { IEffectItem } from '../../store/lootboxCommands'
 
 export namespace DondItems {
@@ -6,6 +6,28 @@ export namespace DondItems {
         positive: {},
         negative: {},
     }
+
+    const shardReward = (amount: number): IEffectItem => ({
+        label: `${amount} shards`,
+        message: `${amount} shards!`,
+        effect: (user: MazariniUser) => {
+            user.ccg = {
+                ...user.ccg,
+                shards: (user.ccg?.shards ?? 0) + amount,
+            }
+            return undefined
+        },
+    })
+
+    const packReward = (): IEffectItem => ({
+        label: '1 pack',
+        message: '1 pack!',
+        effect: () => undefined,
+        lootReward: {
+            type: 'pack',
+            quality: LootboxQuality.Basic,
+        },
+    })
 
     export const veryLowQualityEffects: Array<IEffectItem> = [
         {
@@ -26,6 +48,7 @@ export namespace DondItems {
                 return undefined
             },
         },
+        shardReward(2),
     ]
 
     export const lowQualityEffects: Array<IEffectItem> = [
@@ -65,15 +88,7 @@ export namespace DondItems {
                 return undefined
             },
         },
-        {
-            label: '1x guaranteed colors',
-            message: 'at din neste loot-item har garantert farge (gjelder ikke trade)',
-            effect: (user: MazariniUser) => {
-                user.effects = user.effects ?? defaultEffects
-                user.effects.positive.guaranteedLootColor = (user.effects.positive.guaranteedLootColor ?? 0) + 1
-                return undefined
-            },
-        },
+        shardReward(5),
         {
             label: '1 Blackjack re-deal',
             message: 'en ekstra deal på nytt i blackjack!',
@@ -86,8 +101,8 @@ export namespace DondItems {
     ]
     export const mediumQualityEffects: Array<IEffectItem> = [
         {
-            label: '10 spins',
-            message: '10 ekstra /spin rewards!',
+            label: '1 spin',
+            message: '1 ekstra /spin reward!',
             effect: (user: MazariniUser) => {
                 user.dailySpins = 1
                 return undefined
@@ -102,30 +117,13 @@ export namespace DondItems {
                 return undefined
             },
         },
-        {
-            label: 'Flipped color odds',
-            message: 'at loot-farge-sannsynlighetene snus på hodet! Du har nå større sannsynlighet for å få diamond enn silver ut dagen!',
-            effect: (user: MazariniUser) => {
-                user.effects = user.effects ?? defaultEffects
-                user.effects.positive.lootColorsFlipped = true
-                return undefined
-            },
-        },
+        shardReward(10),
         {
             label: '7x doubled pot additions',
             message: 'at dine neste 5 hasjinnskudd hvor du triller over 100 dobles!',
             effect: (user: MazariniUser) => {
                 user.effects = user.effects ?? defaultEffects
                 user.effects.positive.doublePotDeposit = (user.effects.positive.doublePotDeposit ?? 0) + 7
-                return undefined
-            },
-        },
-        {
-            label: '2x guaranteed colors',
-            message: 'at dine neste 2 loot-items har garantert farge (gjelder ikke trade)',
-            effect: (user: MazariniUser) => {
-                user.effects = user.effects ?? defaultEffects
-                user.effects.positive.guaranteedLootColor = (user.effects.positive.guaranteedLootColor ?? 0) + 2
                 return undefined
             },
         },
@@ -158,15 +156,8 @@ export namespace DondItems {
                 return undefined
             },
         },
-        {
-            label: '3x guaranteed colors',
-            message: 'at dine neste 3 loot-items har garantert farge (gjelder ikke trade)',
-            effect: (user: MazariniUser) => {
-                user.effects = user.effects ?? defaultEffects
-                user.effects.positive.guaranteedLootColor = (user.effects.positive.guaranteedLootColor ?? 0) + 3
-                return undefined
-            },
-        },
+        shardReward(15),
+        packReward(),
         {
             label: '5 Blackjack re-deal',
             message: 'fem ekstra deal på nytt i blackjack!',
@@ -177,4 +168,17 @@ export namespace DondItems {
             },
         },
     ]
+
+    export const getRewardsForQuality = (quality: MazariniEventRewardTier) => {
+        switch (quality) {
+            case MazariniEventRewardTier.VeryLow:
+                return veryLowQualityEffects
+            case MazariniEventRewardTier.Low:
+                return lowQualityEffects
+            case MazariniEventRewardTier.Medium:
+                return mediumQualityEffects
+            case MazariniEventRewardTier.High:
+                return highQualityEffects
+        }
+    }
 }

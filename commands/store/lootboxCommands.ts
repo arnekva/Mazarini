@@ -28,6 +28,7 @@ import {
     ItemRarity,
     IUserEffects,
     IUserLootItem,
+    LootboxQuality,
     MazariniUser,
 } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement, IOnTimedEvent } from '../../interfaces/interactionInterface'
@@ -59,6 +60,10 @@ export interface IEffectItem {
     label: string
     message: string //følger formatet "Din kalendergave for {dato} er {message}"
     effect(user: MazariniUser, db?: DatabaseHelper): undefined | ActionRowBuilder<ButtonBuilder>[] | 'client-update'
+    lootReward?: {
+        type: LootType
+        quality: LootboxQuality
+    }
 }
 
 interface InventoryUpdate {
@@ -432,7 +437,7 @@ export class LootboxCommands extends AbstractCommands {
         interaction.message.edit({ embeds: [embed], components: [btnRow] })
         if (interaction.customId.split(';')[2] === 'effect') {
             const effect = pendingChest.effect
-            const completedEffect = effect.effect(user, this.database)
+            effect.effect(user, this.database)
 
             this.database.updateUser(user)
             this.messageHelper.replyToInteraction(interaction, `Du valgte ${effect.message}`, { hasBeenDefered: true })
@@ -650,7 +655,7 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private async revealCollectable(interaction: ChatInteraction | BtnInteraction, item: IUserLootItem, timer?: number) {
-        if (item.isCCG) return this.revealCCGLoot(interaction, item)
+        if (item.isCCG) return this.revealCCGLoot()
         const path = this.getGifPath(item)
         const url = await this.client.database.getLootGifLink(path)
         const container = new SimpleContainer()
@@ -665,7 +670,7 @@ export class LootboxCommands extends AbstractCommands {
         this.addReaction(reply, item, timer)
     }
 
-    private async revealCCGLoot(interaction: ChatInteraction | BtnInteraction, item: IUserLootItem) {
+    private async revealCCGLoot() {
         //TODO
     }
 

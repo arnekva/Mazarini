@@ -50,6 +50,8 @@ export class DailyJobs {
             embed.addFields({ name: 'Tilfeldige deathroll vinnertall', value: EmojiHelper.getStatusEmoji(drWinNum) })
             const moreOrLess = await this.awardAndResetMoreOrLess(users)
             embed.addFields({ name: 'More or less', value: EmojiHelper.getStatusEmoji(moreOrLess) })
+            const events = await this.generateDailyEvents()
+            embed.addFields({ name: 'Events', value: EmojiHelper.getStatusEmoji(events) })
             const todaysTime = new Date().toLocaleTimeString()
             embed.setFooter({ text: todaysTime })
             this.messageHelper.sendMessage(ChannelIds.ACTION_LOG, { embed: embed })
@@ -213,6 +215,11 @@ export class DailyJobs {
             }
         })
         this.client.database.updateData(updates)
+        return 'success'
+    }
+
+    private async generateDailyEvents(): Promise<JobStatus> {
+        await this.client.mazariniEvents.generateDailyEvents()
         return 'success'
     }
 

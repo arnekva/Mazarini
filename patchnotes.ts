@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '31.1.2'
+    public static readonly currentVersion = '31.2.'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,18 +27,13 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '## CCG',
-                '* **Basic Pack**:',
-                '  * Common: 14% -> 25%',
-                '  * Rare: 75% -> 53%',
-                '  * Epic: 10% -> 20%',
-                '  * Legendary: 1% -> 2%',
-                '* **Premium Pack**:',
-                '  * Rare: 78% -> 56%',
-                '  * Epic: 20% -> 40%',
-                '  * Legendary: 2% -> 4%',
-                '* Fikser (forhåpentligvis) at boten spiller kort som ikke er spillbare',
-                '* **Dark Trooper**: Speed nerf',
+                '## Events!',
+                '* Det kan nå trigge mellom 1 - 5 events per dag',
+                '  * Events vil vanligvis ha 1 vinner, og vil gi rewards som chips og shards.',
+                '  * Typisk vil det være førstemann til å utføre en oppgave som vinner eventet.',
+                '  * Andre ganger kan det være at man bare må gjøre noe innenfor en tidsperiode for å vinne.',
+                '  * Rewards hentes fra samme rewards som en finner i DonD etc.',
+                '* Fjernet rewards relatert til farge på loot.',
             ].join('\n')
         )
         container.addSeparator()
