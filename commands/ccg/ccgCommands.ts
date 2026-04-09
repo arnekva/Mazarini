@@ -681,6 +681,7 @@ export class CCGCommands extends AbstractCommands {
         const gameId = randomUUID()
         const game: CCGGame = {
             id: gameId,
+            channelId: interaction.channelId,
             player1: await this.newPlayer(interaction, vsBot),
             player2: vsBot ? await this.setupBotOpponent(difficulty, interaction.user.id) : undefined,
             container: CCGContainer(gameId, interaction.authorName, vsBot),

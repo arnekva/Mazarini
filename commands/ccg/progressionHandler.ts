@@ -96,6 +96,7 @@ export class ProgressionHandler {
             difficulty: game.botDifficulty,
             mode: game.mode,
             vsBot: game.vsBot,
+            channelId: game.channelId,
         })
         const playerEvent = await this.client.eventTracker.trackCcgPlayerWin({
             winnerId: game.state.winnerId,
@@ -103,6 +104,7 @@ export class ProgressionHandler {
             difficulty: game.botDifficulty,
             mode: game.mode,
             vsBot: game.vsBot,
+            channelId: game.channelId,
         })
         if (hoieEvent && winner) rewards.push(`${winner.name} fullfører eventet og får ${hoieEvent.rewardSummary}`)
         if (playerEvent && winner) rewards.push(`${winner.name} fullfører eventet og får ${playerEvent.rewardSummary}`)

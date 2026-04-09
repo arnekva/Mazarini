@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '31.2.1'
+    public static readonly currentVersion = '31.2.2'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,7 +25,7 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(['## Events!', '* Event-meldinger vil nå sendes til rett kanal.'].join('\n'))
+        const text = new TextDisplayBuilder().setContent(['## Events!', '* Flere Event-fikser', '* Forsøker en liten fiks på Rocket League stats'].join('\n'))
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 

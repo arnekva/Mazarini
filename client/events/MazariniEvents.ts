@@ -11,6 +11,7 @@ import {
 } from '../../interfaces/database/databaseInterface'
 import { ChannelIds, MentionUtils, ThreadIds } from '../../utils/mentionUtils'
 import { RandomUtils } from '../../utils/randomUtils'
+import { UserUtils } from '../../utils/userUtils'
 import { MazariniClient } from '../MazariniClient'
 
 export class MazariniEvents {
@@ -103,7 +104,7 @@ export class MazariniEvents {
         return dueEvent
     }
 
-    async completeFirstActiveEvent(type: MazariniEventType, winnerId: string) {
+    async completeFirstActiveEvent(type: MazariniEventType, winnerId: string, channelId?: string) {
         const state = await this.ensureTodayState()
         const eventIndex = state.active.findIndex((event) => event.type === type)
         if (eventIndex < 0) return undefined
@@ -118,20 +119,31 @@ export class MazariniEvents {
         this.saveState(state)
 
         const user = await this.client.database.getUser(winnerId)
-        const rewardSummary = await this.applyReward(user, completedEvent)
+        const targetChannelId = channelId ?? completedEvent.channelId
+        const rewardSummary = await this.applyReward(user, completedEvent, targetChannelId)
+        const winnerName = this.getPrettyUserName(winnerId)
         await this.client.messageHelper.sendMessage(
-            completedEvent.channelId,
+            targetChannelId,
             {
                 text: `${MentionUtils.mentionUser(winnerId)} fullførte eventet "${completedEvent.title}" og får ${rewardSummary}.`,
             },
             { sendAsSilent: true }
         )
-        this.client.messageHelper.sendLogMessage(`Event fullført: ${completedEvent.type} av ${MentionUtils.mentionUser(winnerId)} (${rewardSummary})`)
+        this.client.messageHelper.sendLogMessage(`Event fullført: ${completedEvent.type} av ${winnerName} (${rewardSummary})`)
         return { event: completedEvent, rewardSummary }
     }
 
     getActiveEventsOfType(state: IMazariniEventState, type: MazariniEventType) {
         return state.active.filter((event) => event.type === type)
+    }
+
+    private getPrettyUserName(userId: string) {
+        const guild = this.client.guilds.cache.find((candidate) => candidate.members.cache.has(userId))
+        const member = guild ? UserUtils.findMemberByUserID(userId, guild) : undefined
+        if (member) return UserUtils.getPrettyName(member)
+
+        const user = UserUtils.findUserById(userId, this.client)
+        return user?.displayName || user?.globalName || user?.username || userId
     }
 
     private createDailyState(date: Date): IMazariniEventState {
@@ -193,42 +205,42 @@ export class MazariniEvents {
             case MazariniEventType.DiceRoll:
                 return {
                     title: 'Terning',
-                    description: 'Førstemann til å vinne et game hvor taperen triller 1 (1 - 50). VLQ reward.',
+                    description: 'Førstemann til å vinne et game hvor taperen triller 1 (1 - 50). Veldig lav kvalitet reward.',
                     channelId: ThreadIds.GENERAL_TERNING,
                     reward: { tier: MazariniEventRewardTier.VeryLow },
                 }
             case MazariniEventType.DeathrollWin:
                 return {
                     title: 'Deathroll',
-                    description: 'Førstemann til å vinne et game hvor taperen triller 1 (51+). MQ reward.',
+                    description: 'Førstemann til å vinne et game hvor taperen triller 1 (51+). Middels kvalitet reward.',
                     channelId: ThreadIds.GENERAL_TERNING,
                     reward: { tier: MazariniEventRewardTier.Medium },
                 }
             case MazariniEventType.DeathrollPotWin:
                 return {
                     title: 'Deathroll Pot',
-                    description: 'Førstemann til å vinne deathroll-potten får en HQ reward.',
+                    description: 'Førstemann til å vinne deathroll-potten får en høy kvalitet reward.',
                     channelId: ThreadIds.GENERAL_TERNING,
                     reward: { tier: MazariniEventRewardTier.High },
                 }
             case MazariniEventType.CCGHoieWin:
                 return {
                     title: 'CCG',
-                    description: 'CCG: Førstemann til å vinne et game mot minst middels Høie får en HQ reward. Training teller.',
+                    description: 'CCG: Førstemann til å vinne et game mot minst middels Høie får en høy kvalitet reward. Training teller.',
                     channelId: ChannelIds.CCG,
                     reward: { tier: MazariniEventRewardTier.High },
                 }
             case MazariniEventType.CCGPlayerWin:
                 return {
                     title: 'CCG PVP',
-                    description: 'CCG: Førstemann til å vinne et spill mot en annen spiller får en MQ reward.',
+                    description: 'CCG: Førstemann til å vinne et spill mot en annen spiller får en middels kvalitet reward.',
                     channelId: ChannelIds.CCG,
                     reward: { tier: MazariniEventRewardTier.Medium },
                 }
             case MazariniEventType.VladivostokGambleWin:
                 return {
                     title: 'Vladivostok-event',
-                    description: 'Førstemann til å vinne minst 1000 chips på ein /gamble får ein LQ reward.',
+                    description: 'Førstemann til å vinne minst 1000 chips på ein /gamble får ein låg kvalitet reward.',
                     channelId: ChannelIds.LOOT,
                     reward: { tier: MazariniEventRewardTier.Low },
                 }
@@ -243,14 +255,14 @@ export class MazariniEvents {
         return `# Event: ${event.title}\n${event.description}`
     }
 
-    private async applyReward(user: MazariniUser, event: IMazariniEventEntry) {
+    private async applyReward(user: MazariniUser, event: IMazariniEventEntry, channelId: string) {
         const rewardItem = RandomUtils.getRandomItemFromList(DondItems.getRewardsForQuality(event.reward.tier)) as IEffectItem
         const effectResult = rewardItem.effect(user, this.client.database)
         await this.client.database.updateUser(user)
 
         if (rewardItem.lootReward) {
             this.client.bank.rewardLoot(
-                event.channelId,
+                channelId,
                 user.id,
                 rewardItem.lootReward.type,
                 rewardItem.lootReward.quality,
@@ -259,7 +271,7 @@ export class MazariniEvents {
         }
 
         if (Array.isArray(effectResult) && effectResult.length > 0) {
-            await this.client.messageHelper.sendMessage(event.channelId, { components: effectResult })
+            await this.client.messageHelper.sendMessage(channelId, { components: effectResult })
         }
 
         return rewardItem.label

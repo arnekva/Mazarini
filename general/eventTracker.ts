@@ -8,6 +8,7 @@ interface IDeathrollEventPayload {
     loserId?: string
     initialTarget: number
     loserRoll: number
+    channelId?: string
 }
 
 interface ICCGEventPayload {
@@ -16,6 +17,7 @@ interface ICCGEventPayload {
     difficulty?: Difficulty
     mode?: Mode
     vsBot: boolean
+    channelId?: string
 }
 
 export class EventTracker {
@@ -25,24 +27,24 @@ export class EventTracker {
         this.client = client
     }
 
-    async trackDiceRoll(userId: string) {
-        return await this.client.mazariniEvents.completeFirstActiveEvent(MazariniEventType.DiceRoll, userId)
+    async trackDiceRoll(userId: string, channelId?: string) {
+        return await this.client.mazariniEvents.completeFirstActiveEvent(MazariniEventType.DiceRoll, userId, channelId)
     }
 
     async trackTerningWin(payload: IDeathrollEventPayload) {
         if (!payload.winnerId || payload.initialTarget < 1 || payload.initialTarget > 50 || payload.loserRoll !== 1 || payload.winnerId === payload.loserId)
             return undefined
-        return await this.client.mazariniEvents.completeFirstActiveEvent(MazariniEventType.DiceRoll, payload.winnerId)
+        return await this.client.mazariniEvents.completeFirstActiveEvent(MazariniEventType.DiceRoll, payload.winnerId, payload.channelId)
     }
 
     async trackDeathrollWin(payload: IDeathrollEventPayload) {
         if (!payload.winnerId || payload.initialTarget <= 50 || payload.loserRoll !== 1 || payload.winnerId === payload.loserId) return undefined
-        return await this.client.mazariniEvents.completeFirstActiveEvent(MazariniEventType.DeathrollWin, payload.winnerId)
+        return await this.client.mazariniEvents.completeFirstActiveEvent(MazariniEventType.DeathrollWin, payload.winnerId, payload.channelId)
     }
 
-    async trackDeathrollPotWin(winnerId: string) {
+    async trackDeathrollPotWin(winnerId: string, channelId?: string) {
         if (!winnerId) return undefined
-        return await this.client.mazariniEvents.completeFirstActiveEvent(MazariniEventType.DeathrollPotWin, winnerId)
+        return await this.client.mazariniEvents.completeFirstActiveEvent(MazariniEventType.DeathrollPotWin, winnerId, channelId)
     }
 
     async trackCcgWin(payload: ICCGEventPayload) {
@@ -55,16 +57,16 @@ export class EventTracker {
             !validDifficulty
         )
             return undefined
-        return await this.client.mazariniEvents.completeFirstActiveEvent(MazariniEventType.CCGHoieWin, payload.winnerId)
+        return await this.client.mazariniEvents.completeFirstActiveEvent(MazariniEventType.CCGHoieWin, payload.winnerId, payload.channelId)
     }
 
     async trackCcgPlayerWin(payload: ICCGEventPayload) {
         if (payload.vsBot || !payload.winnerId) return undefined
-        return await this.client.mazariniEvents.completeFirstActiveEvent(MazariniEventType.CCGPlayerWin, payload.winnerId)
+        return await this.client.mazariniEvents.completeFirstActiveEvent(MazariniEventType.CCGPlayerWin, payload.winnerId, payload.channelId)
     }
 
-    async trackGambleWin(userId: string, chipsWon: number) {
+    async trackGambleWin(userId: string, chipsWon: number, channelId?: string) {
         if (!userId || chipsWon < 1000) return undefined
-        return await this.client.mazariniEvents.completeFirstActiveEvent(MazariniEventType.VladivostokGambleWin, userId)
+        return await this.client.mazariniEvents.completeFirstActiveEvent(MazariniEventType.VladivostokGambleWin, userId, channelId)
     }
 }

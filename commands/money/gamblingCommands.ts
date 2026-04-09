@@ -50,7 +50,7 @@ export class GamblingCommands extends AbstractCommands {
                 }
                 user.chips = newMoneyValue
                 this.client.database.updateUser(user)
-                if (roll >= 50) await this.client.eventTracker.trackGambleWin(interaction.user.id, chipsWon)
+                if (roll >= 50) await this.client.eventTracker.trackGambleWin(interaction.user.id, chipsWon, interaction.channelId)
                 const gambling = new EmbedBuilder()
                     .setTitle('Gambling')
                     .setThumbnail(`https://pngimg.com/d/dice_PNG51.png`)

@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, TextChannel } from 'discord.js'
 
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
-import { ChatInteraction, BtnInteraction } from '../../Abstracts/MazariniInteraction'
+import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { environment, rapidApiKey } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { RocketLeagueTournament } from '../../interfaces/database/databaseInterface'
@@ -72,31 +72,48 @@ export class RocketLeagueCommands extends AbstractCommands {
             browser = await puppeteer.launch({
                 headless: true,
                 executablePath: '/usr/bin/chromium',
+                args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--remote-debugging-port=0'],
             })
         else
             browser = await puppeteer.launch({
                 headless: true,
             })
 
-        const page = await browser.newPage()
-        page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36')
-        await page.goto(url)
-        const content = await page.content()
+        let content = ''
+        let statusCode = 0
+        try {
+            const page = await browser.newPage()
+            page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36')
+            const response = await page.goto(url, { waitUntil: 'networkidle2' })
+            statusCode = response?.status() ?? 0
+            content = (await page.content()) as string
+        } finally {
+            await browser.close()
+        }
 
-        await browser.close()
         const contentString = content as string
-        if (contentString.includes('Access denied')) {
-            interaction.editReply(`Access denied.`)
+        if (statusCode === 403 || contentString.includes('Access denied')) {
+            await interaction.editReply('Rocket League-stats er utilgjengelige akkurat nå. Tracker.gg returnerer Access Denied.')
             this.messageHelper.sendLogMessage(
-                `api.tracker.gg for Rocket League gir Access Denied. Melding stammer fra ${interaction.user.username} i ${
+                `api.tracker.gg for Rocket League returnerte ${statusCode || 'Access Denied'}. Melding stammer fra ${interaction.user.username} i ${
                     (interaction?.channel as TextChannel).name
                 }`
             )
+            return false
         }
 
-        const response = JSON.parse(striptags(content))
+        let response
+        try {
+            response = JSON.parse(striptags(contentString))
+        } catch {
+            await interaction.editReply('Klarte ikke lese Rocket League-data frå Tracker.gg akkurat no.')
+            this.messageHelper.sendLogMessage(`Rocket League-data kunne ikke parses for ${interaction.user.username}.`)
+            return false
+        }
+
         if (!response.data) {
-            interaction.editReply('Fant ikke data')
+            await interaction.editReply('Fant ikke data')
+            return false
         }
         const segments = response.data.segments
 
@@ -106,12 +123,13 @@ export class RocketLeagueCommands extends AbstractCommands {
         const tournament: rocketLeagueStats = {}
         const lifetimeStats: rocketLeagueLifetime = {}
         if (!segments) {
-            interaction.editReply('Fetch til Rocket League API feilet')
+            await interaction.editReply('Fetch til Rocket League API feilet')
+            return false
         }
         for (const segment of segments) {
             if (!segment) {
-                interaction.editReply('Fetch til Rocket League API feilet')
-                break
+                await interaction.editReply('Fetch til Rocket League API feilet')
+                return false
             }
             if (segment.metadata.name === 'Lifetime') {
                 //Lifetime stats

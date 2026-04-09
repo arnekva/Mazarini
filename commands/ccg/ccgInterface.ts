@@ -4,6 +4,7 @@ import { ICCGDeck, ItemRarity } from '../../interfaces/database/databaseInterfac
 
 export interface CCGGame {
     id: string
+    channelId: string
     player1: CCGPlayer
     player2: CCGPlayer
     message?: InteractionResponse<boolean> | Message<boolean>

@@ -22,6 +22,7 @@ export interface DRPlayer {
 
 export interface DRGame {
     id: string
+    channelId?: string
     players: DRPlayer[]
     joinable: boolean
     lastRoll: number
@@ -93,7 +94,7 @@ export class Deathroll extends AbstractCommands {
             this.messageHelper.replyToInteraction(interaction, `Du kan ikke trille en terning med mindre enn 1 side`, { ephemeral: true })
         else {
             const user = interaction.user
-            const game = this.getGame(user.id, diceTarget)
+            const game = this.getGame(user.id, diceTarget, interaction.channelId)
             const roll = RandomUtils.getRandomInteger(1, diceTarget)
 
             let additionalMessage = ''
@@ -104,7 +105,7 @@ export class Deathroll extends AbstractCommands {
                 const rewards = await this.checkForReward(roll, diceTarget, interaction)
                 additionalMessage += rewards.text
                 additionalMessage += this.checkForJokes(roll, diceTarget)
-                additionalMessage += await this.checkIfPotWon(game, roll, diceTarget, user.id)
+                additionalMessage += await this.checkIfPotWon(game, roll, diceTarget, user.id, interaction.channelId)
 
                 if (roll >= 100 && roll !== diceTarget) {
                     //Check if roll is a shuffled variant of the target number
@@ -118,12 +119,14 @@ export class Deathroll extends AbstractCommands {
                         loserId: user.id,
                         initialTarget: game.initialTarget,
                         loserRoll: roll,
+                        channelId: game.channelId ?? interaction.channelId,
                     })
                     await this.client.eventTracker.trackDeathrollWin({
                         winnerId: winnerId,
                         loserId: user.id,
                         initialTarget: game.initialTarget,
                         loserRoll: roll,
+                        channelId: game.channelId ?? interaction.channelId,
                     })
                     const stat = await this.endGame(game)
                     additionalMessage += this.addToPotOnGameEnd(stat, diceTarget)
@@ -339,7 +342,7 @@ export class Deathroll extends AbstractCommands {
         else return 0
     }
 
-    private async checkIfPotWon(game: DRGame, roll: number, diceTarget: number, userid: string) {
+    private async checkIfPotWon(game: DRGame, roll: number, diceTarget: number, userid: string, channelId?: string) {
         const wonOnRandomNumber = this.client.cache.deathrollWinningNumbers.includes(roll)
         const wonOnStandard = roll === GameValues.deathroll.potWin.winOn
         const hasWon = wonOnRandomNumber || wonOnStandard
@@ -347,7 +350,7 @@ export class Deathroll extends AbstractCommands {
             if (wonOnRandomNumber) this.reRollWinningNumbers(true)
             const addToPot = this.rewardPot > 0 ? diceTarget - roll : 0
             const rewardText = await this.rewardPotToUser(userid, addToPot)
-            await this.client.eventTracker.trackDeathrollPotWin(userid)
+            await this.client.eventTracker.trackDeathrollPotWin(userid, game.channelId ?? channelId)
             return rewardText
         }
         return ''
@@ -416,10 +419,10 @@ export class Deathroll extends AbstractCommands {
         interaction.message.delete()
     }
 
-    private getGame(userID: string, diceTarget: number) {
+    private getGame(userID: string, diceTarget: number, channelId?: string) {
         let game = this.findActiveGame(userID, diceTarget)
         if (!game) game = this.joinGame(this.checkForAvailableGame(userID, diceTarget), userID)
-        return game ?? (diceTarget >= 10000 ? this.registerNewGame(userID, diceTarget) : undefined)
+        return game ?? (diceTarget >= 10000 ? this.registerNewGame(userID, diceTarget, channelId) : undefined)
     }
 
     private findActiveGame(userID: string, diceTarget: number) {
@@ -443,9 +446,17 @@ export class Deathroll extends AbstractCommands {
         )
     }
 
-    private registerNewGame(userID: string, diceTarget: number) {
+    private registerNewGame(userID: string, diceTarget: number, channelId?: string) {
         const p1: DRPlayer = { userID: userID, rolls: [] }
-        const game: DRGame = { id: randomUUID(), players: [p1], joinable: true, lastRoll: diceTarget, nextToRoll: userID, initialTarget: diceTarget }
+        const game: DRGame = {
+            id: randomUUID(),
+            channelId,
+            players: [p1],
+            joinable: true,
+            lastRoll: diceTarget,
+            nextToRoll: userID,
+            initialTarget: diceTarget,
+        }
         this.drGames.push(game)
         return game
     }
