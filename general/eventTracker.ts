@@ -32,8 +32,7 @@ export class EventTracker {
     }
 
     async trackTerningWin(payload: IDeathrollEventPayload) {
-        if (!payload.winnerId || payload.initialTarget < 1 || payload.initialTarget > 50 || payload.loserRoll !== 1 || payload.winnerId === payload.loserId)
-            return undefined
+        if (!payload.winnerId || payload.initialTarget < 20 || payload.loserRoll !== 1 || payload.winnerId === payload.loserId) return undefined
         return await this.client.mazariniEvents.completeFirstActiveEvent(MazariniEventType.DiceRoll, payload.winnerId, payload.channelId)
     }
 

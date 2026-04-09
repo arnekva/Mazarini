@@ -205,7 +205,7 @@ export class MazariniEvents {
             case MazariniEventType.DiceRoll:
                 return {
                     title: 'Terning',
-                    description: 'Førstemann til å vinne et game hvor taperen triller 1 (1 - 50). Veldig lav kvalitet reward.',
+                    description: 'Førstemann til å vinne et game hvor taperen triller 1 (20+). Veldig lav kvalitet reward.',
                     channelId: ThreadIds.GENERAL_TERNING,
                     reward: { tier: MazariniEventRewardTier.VeryLow },
                 }
@@ -228,7 +228,7 @@ export class MazariniEvents {
                     title: 'CCG',
                     description: 'CCG: Førstemann til å vinne et game mot minst middels Høie får en høy kvalitet reward. Training teller.',
                     channelId: ChannelIds.CCG,
-                    reward: { tier: MazariniEventRewardTier.High },
+                    reward: { tier: MazariniEventRewardTier.Medium },
                 }
             case MazariniEventType.CCGPlayerWin:
                 return {
