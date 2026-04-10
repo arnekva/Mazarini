@@ -60,7 +60,7 @@ export class TestCommands extends AbstractCommands {
         const scripts = new Scripts(this.client)
         // scripts.updateCCGSeries()
         scripts.setCCGCards()
-        scripts.setLootPacks()
+        // scripts.setLootPacks()
         this.messageHelper.replyToInteraction(interaction, 'Oppdaterer CCG greier')
     }
 

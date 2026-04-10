@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '31.2.3'
+    public static readonly currentVersion = '31.2.4'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,7 +26,19 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            ['* Daily jobs skal ikke lenger kræsje hvis ingen spiller mastermind', '* Fikser manuel triggering av daily jobs'].join('\n')
+            [
+                '### CCG',
+                '* **Grand Admiral Thrawn**: Opponent mygling 3 -> 2 turns, self mygling 1 turn',
+                '* **IG-88**: Speed nerf',
+                '* **Cassian Andor**: Speed nerf',
+                '* **Darth Vader**: Speed nerf',
+                '* **Anakin Skywalker**: 100 -> 90 accuracy',
+                '* **Moff Gideon**: Slight speed buff',
+                '* **Luke Skywalker**: -1 damage',
+                '* **Qui-Gon**: +1 heal',
+                '* **Space Jesus**: 3 -> 4 heal, 1 -> 2 cost',
+                '* **Emperor Palpatine**: 3dmg + 2shock (2 turns) -> 4dmg + 1shock (3 turns). Samme totale damage, men spredt mer ut. Speed nerf',
+            ].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

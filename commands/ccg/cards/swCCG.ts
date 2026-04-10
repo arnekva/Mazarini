@@ -526,7 +526,12 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'MYGLING',
                 target: 'OPPONENT',
-                turns: 3,
+                turns: 2,
+            },
+            {
+                type: 'MYGLING',
+                target: 'SELF',
+                turns: 1,
             },
         ],
         cost: 1,
@@ -595,7 +600,7 @@ export const swCCG: CCGCard[] = [
         ],
         // Deal 1 damage every card played this round (CARD_COUNT_BONUS: not yet implemented)
         cost: 2,
-        speed: 60,
+        speed: 47,
         rarity: ItemRarity.Epic,
         accuracy: 100,
         identifier: ['BOUNTY_HUNTER', 'DROID'],
@@ -621,7 +626,7 @@ export const swCCG: CCGCard[] = [
         cost: 1,
         speed: 50,
         rarity: ItemRarity.Epic,
-        accuracy: 100,
+        accuracy: 90,
         identifier: ['JEDI', 'REPUBLIC'],
         customDescription: 'Deal [red]3 damage[/red]. [red]33% chance[/red] of turning to the dark side and becoming Darth Vader after this turn',
     },
@@ -907,7 +912,7 @@ export const swCCG: CCGCard[] = [
             },
         ],
         cost: 2,
-        speed: 50,
+        speed: 5,
         rarity: ItemRarity.Rare,
         accuracy: 90,
         identifier: ['REBEL'],
@@ -1012,7 +1017,7 @@ export const swCCG: CCGCard[] = [
         ],
         // Heal 2. Summon a dark trooper to hand
         cost: 2,
-        speed: 60,
+        speed: 62,
         rarity: ItemRarity.Rare,
         accuracy: 90,
         identifier: ['EMPIRE'],
@@ -1144,7 +1149,7 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 4,
+                value: 3,
                 condition: {
                     type: 'HAS_STATUS',
                     target: 'OPPONENT',
@@ -1154,7 +1159,7 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 5,
+                value: 4,
                 condition: {
                     type: 'HAS_STATUS',
                     target: 'OPPONENT',
@@ -1177,7 +1182,7 @@ export const swCCG: CCGCard[] = [
         rarity: ItemRarity.Legendary,
         accuracy: 100,
         identifier: ['JEDI', 'REBEL'],
-        customDescription: "Deal [red]4 damage[/red]. [yellow]Destroy opponent's Death Star[/yellow] if built, otherwise [red]deal +1 damage[/red]",
+        customDescription: "Deal [red]3 damage[/red]. [yellow]Destroy opponent's Death Star[/yellow] if built, otherwise [red]deal +1 damage[/red]",
     },
     {
         id: 'sw_qui_gon_jinn_n',
@@ -1193,10 +1198,10 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'HEAL',
                 target: 'SELF',
-                value: 2,
+                value: 3,
             },
         ],
-        // Meditates. Gain 2 energy. Gain 2 hp
+        // Meditates. Gain 2 energy. Gain 3 hp
         cost: 1,
         speed: 85,
         rarity: ItemRarity.Legendary,
@@ -1213,7 +1218,7 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'HEAL',
                 target: 'SELF',
-                value: 3,
+                value: 4,
             },
             {
                 type: 'ARMOR',
@@ -1223,8 +1228,8 @@ export const swCCG: CCGCard[] = [
                 includeCurrentTurn: true,
             },
         ],
-        customDescription: '[green]Heal 3[/green] and [blue]gain armor[/blue] for this turn',
-        cost: 1,
+        customDescription: '[green]Heal 4[/green] and [blue]gain armor[/blue] for this turn',
+        cost: 2,
         speed: 85,
         rarity: ItemRarity.Legendary,
         accuracy: 100,
@@ -1251,7 +1256,7 @@ export const swCCG: CCGCard[] = [
         ],
         // Force choke opponent
         cost: 2,
-        speed: 70,
+        speed: 55,
         rarity: ItemRarity.Legendary,
         accuracy: 100,
         identifier: ['SITH', 'EMPIRE'],
@@ -1266,23 +1271,22 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 3,
+                value: 4,
             },
             {
                 type: 'SHOCK',
                 target: 'OPPONENT',
-                value: 2,
-                turns: 2,
+                value: 1,
+                turns: 3,
                 includeCurrentTurn: true,
             },
         ],
-        // Force lightning. Deal 3 damage. Target takes 2 shock damage for 2 turns
         cost: 3,
-        speed: 75,
+        speed: 47,
         rarity: ItemRarity.Legendary,
         accuracy: 100,
         cannotMiss: true,
         identifier: ['SITH', 'EMPIRE'],
-        customDescription: '[red]Force lightning.[/red] Deal [red]3 damage[/red]. Target takes [red]2 shock damage[/red] for 2 turns',
+        customDescription: '[red]Force lightning.[/red] Deal [red]4 damage[/red]. Target takes [red]1 shock damage[/red] for 3 turns',
     },
 ]
