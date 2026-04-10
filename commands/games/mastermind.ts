@@ -185,7 +185,7 @@ export class Mastermind extends AbstractCommands {
         const attempted = (usersWithStats?.length ?? 0) > 0
         let description = `Ingen forsøk ble gjort på gårsdagens mastermind`
         if (attempted) {
-            const sortedUsers = usersWithStats
+            const completedUsers = usersWithStats
                 .filter((g) => !!g.dailyGameStats?.mastermind?.completed)
                 .sort((a, b) => {
                     const aBest = a.dailyGameStats?.mastermind?.completed ? a.dailyGameStats?.mastermind?.numAttempts : GameValues.mastermind.totalAttempts + 1
@@ -193,14 +193,25 @@ export class Mastermind extends AbstractCommands {
                     return aBest - bBest
                 })
 
-            const bestScore = sortedUsers[0].dailyGameStats.mastermind.numAttempts
-            const winners = sortedUsers[0].dailyGameStats.mastermind.completed
-                ? sortedUsers
-                      .slice()
-                      .filter((user) => user.dailyGameStats.mastermind.numAttempts === bestScore && user.dailyGameStats.mastermind.numAttempts > 0)
-                : []
+            const bestScore = completedUsers[0]?.dailyGameStats?.mastermind?.numAttempts
+            const winners =
+                typeof bestScore === 'number'
+                    ? completedUsers.filter(
+                          (user) => user.dailyGameStats.mastermind.numAttempts === bestScore && user.dailyGameStats.mastermind.numAttempts > 0
+                      )
+                    : []
 
-            const results = sortedUsers
+            const results = usersWithStats
+                .slice()
+                .sort((a, b) => {
+                    const aCompleted = a.dailyGameStats?.mastermind?.completed
+                    const bCompleted = b.dailyGameStats?.mastermind?.completed
+                    if (aCompleted !== bCompleted) return aCompleted ? -1 : 1
+
+                    const aAttempts = a.dailyGameStats?.mastermind?.numAttempts ?? GameValues.mastermind.totalAttempts + 1
+                    const bAttempts = b.dailyGameStats?.mastermind?.numAttempts ?? GameValues.mastermind.totalAttempts + 1
+                    return aAttempts - bAttempts
+                })
                 .map((user) => {
                     const isWinner = winners.some((winner) => winner.id === user.id)
                     const userResult = `${user.dailyGameStats.mastermind.completed ? user.dailyGameStats.mastermind.numAttempts + ' forsøk' : ':x:'}`

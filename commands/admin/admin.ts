@@ -654,6 +654,13 @@ export class Admin extends AbstractCommands {
     }
 
     private getModalCheckboxValues(modalInteraction: ModalSubmitInteraction, customId: string): string[] {
+        try {
+            const field = (modalInteraction.fields as any).getField?.(customId)
+            if (Array.isArray(field?.values)) return field.values
+        } catch {
+            // Fall back to raw component traversal below for compatibility.
+        }
+
         const interactionAsAny = modalInteraction as any
         const roots = [interactionAsAny.components, interactionAsAny.data?.components, interactionAsAny.toJSON?.()?.data?.components].filter((value) => !!value)
 
@@ -666,8 +673,10 @@ export class Admin extends AbstractCommands {
                 }
                 return undefined
             }
-            if (node.custom_id === customId && Array.isArray(node.values)) return node.values
-            if (node.component?.custom_id === customId && Array.isArray(node.component?.values)) return node.component.values
+            if ((node.customId === customId || node.custom_id === customId) && Array.isArray(node.values)) return node.values
+            if ((node.component?.customId === customId || node.component?.custom_id === customId) && Array.isArray(node.component?.values)) {
+                return node.component.values
+            }
             return visit(node.components ?? node.component)
         }
 
