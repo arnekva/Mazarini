@@ -287,7 +287,7 @@ export const swCCG: CCGCard[] = [
                 target: 'OPPONENT',
                 identifier: 'JEDI',
                 countTarget: 'BOTH',
-                base: 2,
+                base: 3,
                 value: 1,
             },
         ],
@@ -801,23 +801,23 @@ export const swCCG: CCGCard[] = [
                 //TODO: maybe add possibility of setting odds for each effect instead of just 50/50?
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 5,
+                value: 4,
                 gambleGroup: 'lando',
             }, //TODO: maybe rename gambleGroup to something more generic since it can be used for more than just lando cards
             {
                 type: 'DAMAGE',
                 target: 'SELF',
-                value: 2,
+                value: 1,
                 gambleGroup: 'lando',
             },
         ],
-        // 50/50 between dealing 5 damage or taking 1 damage
-        cost: 2,
+        // 50/50 between dealing 4 damage or taking 1 damage
+        cost: 1,
         speed: 50,
         rarity: ItemRarity.Rare,
         accuracy: 95,
         identifier: ['REBEL'],
-        customDescription: '[yellow]50/50[/yellow]: Deal [red]5 damage[/red] or take [red]2 damage[/red]',
+        customDescription: '[yellow]50/50[/yellow]: Deal [red]4 damage[/red] or take [red]1 damage[/red]',
     },
     {
         id: 'sw_din_djarin_n',

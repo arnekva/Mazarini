@@ -26,19 +26,7 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            [
-                '### CCG',
-                '* **Grand Admiral Thrawn**: Opponent mygling 3 -> 2 turns, self mygling 1 turn',
-                '* **IG-88**: Speed nerf',
-                '* **Cassian Andor**: Speed nerf',
-                '* **Darth Vader**: Speed nerf',
-                '* **Anakin Skywalker**: 100 -> 90 accuracy',
-                '* **Moff Gideon**: Slight speed buff',
-                '* **Luke Skywalker**: -1 damage',
-                '* **Qui-Gon**: +1 heal',
-                '* **Space Jesus**: 3 -> 4 heal, 1 -> 2 cost',
-                '* **Emperor Palpatine**: 3dmg + 2shock (2 turns) -> 4dmg + 1shock (3 turns). Samme totale damage, men spredt mer ut. Speed nerf',
-            ].join('\n')
+            ['### CCG', '* **General Grievous**: base damage 2 -> 3', '* **Lando Calrissian**: 5 -> 4 damage, 2 -> 1 self damage, 2 -> 1 cost'].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
