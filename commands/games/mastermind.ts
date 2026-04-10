@@ -193,14 +193,20 @@ export class Mastermind extends AbstractCommands {
                     return aBest - bBest
                 })
 
-            const bestScore = sortedUsers[0].dailyGameStats.mastermind.numAttempts
-            const winners = sortedUsers[0].dailyGameStats.mastermind.completed
-                ? sortedUsers
-                      .slice()
-                      .filter((user) => user.dailyGameStats.mastermind.numAttempts === bestScore && user.dailyGameStats.mastermind.numAttempts > 0)
-                : []
+            const bestScore = sortedUsers.length > 0 ? sortedUsers[0].dailyGameStats.mastermind.numAttempts : 0
+            const winners =
+                sortedUsers.length > 0 && sortedUsers[0].dailyGameStats.mastermind.completed
+                    ? sortedUsers
+                          .slice()
+                          .filter((user) => user.dailyGameStats.mastermind.numAttempts === bestScore && user.dailyGameStats.mastermind.numAttempts > 0)
+                    : []
 
-            const results = sortedUsers
+            const results = usersWithStats
+                .sort((a, b) => {
+                    const aBest = a.dailyGameStats?.mastermind?.completed ? a.dailyGameStats?.mastermind?.numAttempts : GameValues.mastermind.totalAttempts + 1
+                    const bBest = b.dailyGameStats?.mastermind?.completed ? b.dailyGameStats?.mastermind?.numAttempts : GameValues.mastermind.totalAttempts + 1
+                    return aBest - bBest
+                })
                 .map((user) => {
                     const isWinner = winners.some((winner) => winner.id === user.id)
                     const userResult = `${user.dailyGameStats.mastermind.completed ? user.dailyGameStats.mastermind.numAttempts + ' forsøk' : ':x:'}`

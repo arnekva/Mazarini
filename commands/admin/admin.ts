@@ -655,7 +655,18 @@ export class Admin extends AbstractCommands {
 
     private getModalCheckboxValues(modalInteraction: ModalSubmitInteraction, customId: string): string[] {
         const interactionAsAny = modalInteraction as any
-        const roots = [interactionAsAny.components, interactionAsAny.data?.components, interactionAsAny.toJSON?.()?.data?.components].filter((value) => !!value)
+
+        // Discord.js v14.25+: ModalSubmitInteraction.components is a ModalComponentResolver
+        // with a hoistedComponents Collection that maps customId -> component data,
+        // handling both ActionRow (legacy) and Label-wrapped CheckboxGroup components.
+        const fromResolver = interactionAsAny.components?.hoistedComponents?.get(customId)?.values
+        if (Array.isArray(fromResolver)) return fromResolver
+
+        const roots = [
+            interactionAsAny.components?.data,
+            interactionAsAny.data?.components,
+            interactionAsAny.toJSON?.()?.data?.components,
+        ].filter((value) => !!value)
 
         const visit = (node: any): string[] | undefined => {
             if (!node) return undefined
@@ -666,8 +677,10 @@ export class Admin extends AbstractCommands {
                 }
                 return undefined
             }
-            if (node.custom_id === customId && Array.isArray(node.values)) return node.values
-            if (node.component?.custom_id === customId && Array.isArray(node.component?.values)) return node.component.values
+            const nodeCustomId = node.custom_id ?? node.customId
+            if (nodeCustomId === customId && Array.isArray(node.values)) return node.values
+            const compCustomId = node.component?.custom_id ?? node.component?.customId
+            if (compCustomId === customId && Array.isArray(node.component?.values)) return node.component.values
             return visit(node.components ?? node.component)
         }
 
