@@ -193,7 +193,7 @@ export class Mastermind extends AbstractCommands {
                     return aBest - bBest
                 })
 
-            const bestScore = sortedUsers.length > 0 ? sortedUsers[0].dailyGameStats.mastermind.numAttempts : 0
+            const bestScore = sortedUsers.length > 0 ? sortedUsers[0].dailyGameStats.mastermind.numAttempts : Infinity
             const winners =
                 sortedUsers.length > 0 && sortedUsers[0].dailyGameStats.mastermind.completed
                     ? sortedUsers
