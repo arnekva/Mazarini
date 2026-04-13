@@ -240,7 +240,7 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private preparePlayerForNewRound(game: CCGGame, player: CCGPlayer, isBot = false) {
-        player.usedCards.push(...player.hand.filter((card) => card.selected))
+        player.usedCards.push(...player.hand.filter((card) => card.selected && !card.summoned))
         player.hand = player.hand.filter((card) => !card.selected)
         player.submitted = false
         const isMygling = this.playerHasStatus(game, player, 'MYGLING')

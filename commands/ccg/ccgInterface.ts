@@ -205,6 +205,7 @@ export interface CCGCard {
     identifier?: CardIdentifier[]
     customDescription?: string
     effectImmunities?: CCGStatusEffectType[]
+    summoned?: boolean
 }
 
 export interface CCGCondition {

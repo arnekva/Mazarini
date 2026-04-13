@@ -373,7 +373,7 @@ export class CardActionResolver {
                     summoned = await this.getRandomCardByIdentifier(effect.identifier)
                 }
                 if (summoned) {
-                    source.hand.push(summoned)
+                    source.hand.push({ ...summoned, summoned: true })
                     this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} summons **${summoned.name}** to their hand`)
                 } else {
                     this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} could not summon a card — no matching card found`)
