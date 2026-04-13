@@ -2,19 +2,28 @@ import { GameValues } from '../../general/values'
 import { RandomUtils } from '../../utils/randomUtils'
 import { CCGCard, CCGCondition, CCGEffectType, CCGGame, CCGPlayer, CCGStatusEffectType, CCGTarget, Difficulty } from './ccgInterface'
 
+interface BotCard {
+    card: CCGCard
+    score: number
+    playable: boolean
+    cost: number
+}
 export class BotResolver {
     constructor() {}
     public chooseBotCards(game: CCGGame): boolean {
         const bot = game.player2
         const difficulty = this.getDifficultyLevel(game)
+        const playable: BotCard[] = bot.hand
+            .filter((card) => !!card)
+            .map((card) => ({ card: card, score: 1, playable: this.isPlayable(game, card), cost: this.getCardCost(game, card) }))
 
         // Check if bot should mulligan before selecting cards
-        if (this.shouldMulligan(game, bot)) {
+        if (this.shouldMulligan(game, bot, playable)) {
             this.selectCardsToDiscard(game, bot)
             return true // returning true indicates bot is discarding
         }
 
-        const playable = bot.hand.filter((card) => !!card).map((card) => ({ card: card, score: 1 }))
+        this.debuffUnplayable(playable)
         this.buffCardsOfType(playable, ['DAMAGE', 'DAMAGE_PER_IDENTIFIER', 'DAMAGE_PER_CARD_PLAYED', 'SHOOT'], 2, 'OPPONENT')
         this.checkLethal(game, playable)
         this.checkSurvival(game, playable)
@@ -42,22 +51,33 @@ export class BotResolver {
      * - Bot has 0-1 energy
      * - Fewer than 2 cards in hand are playable with current energy
      */
-    private shouldMulligan(game: CCGGame, bot: CCGPlayer): boolean {
+    private shouldMulligan(game: CCGGame, bot: CCGPlayer, playable: BotCard[]): boolean {
         // Only consider mulligan if energy is very low
         if (bot.energy > 1) return false
 
-        const hand = bot.hand.filter((card) => !!card && this.isPlayable(game, card))
         // Count how many cards are playable with current energy
-        const playableCount = hand.filter((card) => this.getCardCost(game, card) <= bot.energy).length
+        const playableCount = playable.filter((card) => card.playable).length
 
         // Mulligan if fewer than 2 cards are playable
-        return playableCount < 2
+        if (playableCount < 2) return true
+
+        // On hard difficulty, also check that at least two cards can be played together
+        const difficulty = this.getDifficultyLevel(game)
+        if (difficulty >= 2) {
+            const sortedCosts = playable
+                .filter((card) => card.playable)
+                .map((card) => card.cost)
+                .sort((a, b) => a - b)
+            if (sortedCosts[0] + sortedCosts[1] > bot.energy) return true
+        }
+
+        return false
     }
 
     private isPlayable(game: CCGGame, card: CCGCard): boolean {
         const cost = this.getCardCost(game, card)
         const difficulty = this.getDifficultyLevel(game)
-        const conditionsMet = card.effects?.every((effect) => {
+        const conditionsMet = card.effects?.some((effect) => {
             if (!effect.condition) return true
             const result = this.evaluateConditionNow(game, effect.condition)
             return result === null || result === true
@@ -107,10 +127,10 @@ export class BotResolver {
         bot.submitted = true
     }
 
-    private selectCards(game: CCGGame, bot: CCGPlayer, playable: { card: CCGCard; score: number }[]) {
+    private selectCards(game: CCGGame, bot: CCGPlayer, playable: BotCard[]) {
         let energy = bot.energy
         let selected = 0
-        for (const { card, score } of playable) {
+        for (const { card, score } of playable.filter((c) => c.playable)) {
             const cost = this.getCardCost(game, card)
             if (selected < GameValues.ccg.gameSettings.maxCardsPlayed && cost <= energy && score > 0) {
                 selected += 1
@@ -121,11 +141,11 @@ export class BotResolver {
         bot.submitted = true
     }
 
-    private sortPlayable(playable: { card: CCGCard; score: number }[]) {
+    private sortPlayable(playable: BotCard[]) {
         playable.sort((a, b) => b.card.cost + b.score - (a.card.cost + a.score))
     }
 
-    private checkLethal(game: CCGGame, playable: { card: CCGCard; score: number }[]) {
+    private checkLethal(game: CCGGame, playable: BotCard[]) {
         playable.sort((a, b) => this.getCardDamageEstimate(b.card) - this.getCardDamageEstimate(a.card))
         for (let i = 0; i < playable.length; i++) {
             const card = playable[i].card
@@ -169,7 +189,7 @@ export class BotResolver {
             }, 0)
     }
 
-    private checkSurvival(game: CCGGame, playable: { card: CCGCard; score: number }[]) {
+    private checkSurvival(game: CCGGame, playable: BotCard[]) {
         const bot = game.player2
         const maxHP = GameValues.ccg.gameSettings.startingHP
         const room = maxHP - bot.hp
@@ -197,13 +217,13 @@ export class BotResolver {
         }
     }
 
-    private checkGainEnergy(game: CCGGame, playable: { card: CCGCard; score: number }[]) {
+    private checkGainEnergy(game: CCGGame, playable: BotCard[]) {
         // Energy cards are almost always worth playing; boost harder when running low
         const boost = game.player2.energy < 5 ? 8 : 4
         this.buffCardsOfType(playable, 'GAIN_ENERGY', boost, 'SELF')
     }
 
-    private checkRemoveStatus(game: CCGGame, playable: { card: CCGCard; score: number }[]) {
+    private checkRemoveStatus(game: CCGGame, playable: BotCard[]) {
         const damagingTypes: CCGStatusEffectType[] = ['BLEED', 'SHOCK']
         const botConditions = game.state.statusConditions.filter((c) => c.ownerId === game.player2.id && c.remainingTurns > 1)
         if (botConditions.length === 0) return
@@ -212,20 +232,22 @@ export class BotResolver {
         this.buffCardsOfType(playable, 'REMOVE_STATUS', hasDamagingStatus ? 10 : 5, 'SELF')
     }
 
-    private checkSteal(game: CCGGame, playable: { card: CCGCard; score: number }[]) {
+    private checkSteal(game: CCGGame, playable: BotCard[]) {
         const lastCard = game.player1.usedCards[game.player1.usedCards.length - 1]
         if (lastCard && lastCard.id === 'kms2') {
             this.buffCardsOfType(playable, 'STEAL_CARD', 5, 'OPPONENT')
         }
     }
 
-    private buffCardsOfType(
-        playable: { card: CCGCard; score: number }[],
-        type: CCGEffectType | CCGEffectType[],
-        buffAmount: number,
-        target: CCGTarget,
-        immediate: boolean = false
-    ) {
+    private debuffUnplayable(playable: BotCard[]) {
+        for (const item of playable) {
+            if (!item.playable) {
+                item.score = -100
+            }
+        }
+    }
+
+    private buffCardsOfType(playable: BotCard[], type: CCGEffectType | CCGEffectType[], buffAmount: number, target: CCGTarget, immediate: boolean = false) {
         const types = Array.isArray(type) ? type : [type]
         for (const card of playable) {
             if (card.card.effects?.some((effect) => types.includes(effect.type) && effect.target === target && (!immediate || (effect.turns ?? 0) === 0))) {
@@ -241,7 +263,7 @@ export class BotResolver {
      * Check 3 — Race vs tank: if player's max affordable damage >= bot HP, shift to full survival.
      * Check 4 — Identifier counter-play: boost bot cards whose OPPONENT-target condition matches player's held identifiers.
      */
-    private checkOpponentHand(game: CCGGame, playable: { card: CCGCard; score: number }[]) {
+    private checkOpponentHand(game: CCGGame, playable: BotCard[]) {
         const player = game.player1
         const bot = game.player2
         const playerHand = player.hand.filter((c) => !!c)
@@ -374,7 +396,7 @@ export class BotResolver {
      * Cards with any unconditional effect, any true condition, or any play-order-dependent
      * condition (which can't be known yet) are left unchanged.
      */
-    private applyConditionAwareness(game: CCGGame, playable: { card: CCGCard; score: number }[]) {
+    private applyConditionAwareness(game: CCGGame, playable: BotCard[]) {
         for (const item of playable) {
             const effects = item.card.effects ?? []
             if (effects.length === 0) continue
@@ -394,7 +416,7 @@ export class BotResolver {
 
             // Only suppress if we're certain nothing fires and nothing is unknowable
             if (!anyDefinitelyFires && !anyUnknowable) {
-                item.score = 0
+                item.score = -100
             }
         }
     }
@@ -405,7 +427,7 @@ export class BotResolver {
      * Only considers SELF-target conditions — opponent-based synergies are uncontrollable.
      * Also nudges the enabler cards that make the synergy possible.
      */
-    private checkPlayOrderSynergies(game: CCGGame, playable: { card: CCGCard; score: number }[]) {
+    private checkPlayOrderSynergies(game: CCGGame, playable: BotCard[]) {
         const botEnergy = game.player2.energy
 
         for (const item of playable) {
