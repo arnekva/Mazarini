@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '31.2.5'
+    public static readonly currentVersion = '31.2.6'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,9 +25,7 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(
-            ['### CCG', '* **General Grievous**: base damage 2 -> 3', '* **Lando Calrissian**: 5 -> 4 damage, 2 -> 1 self damage, 2 -> 1 cost'].join('\n')
-        )
+        const text = new TextDisplayBuilder().setContent(['### CCG', '* Bugfix: luke now actually destroys the Death Star'].join('\n'))
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 
