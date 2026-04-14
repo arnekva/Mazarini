@@ -77,6 +77,7 @@ export class RocketLeagueCommands extends AbstractCommands {
         else
             browser = await puppeteer.launch({
                 headless: true,
+                timeout: 0,
             })
 
         let content = ''
