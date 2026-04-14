@@ -71,6 +71,7 @@ export class RocketLeagueCommands extends AbstractCommands {
         if (environment === 'prod')
             browser = await puppeteer.launch({
                 headless: true,
+                timeout: 0,
                 executablePath: '/usr/bin/chromium',
                 args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--remote-debugging-port=0'],
             })
