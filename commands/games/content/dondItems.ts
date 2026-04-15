@@ -19,6 +19,16 @@ export namespace DondItems {
         },
     })
 
+    const deathrollPotReward = (amount: number): IEffectItem => ({
+        label: `${amount} til deathroll potten`,
+        message: `at deathroll potten økes med ${amount}!`,
+        effect: async (_user: MazariniUser, db) => {
+            const currentPot = (await db?.getDeathrollPot()) ?? 0
+            db?.saveDeathrollPot(currentPot + amount)
+            return undefined
+        },
+    })
+
     const packReward = (): IEffectItem => ({
         label: '1 pack',
         message: '1 pack!',
@@ -30,65 +40,32 @@ export namespace DondItems {
     })
 
     export const veryLowQualityEffects: Array<IEffectItem> = [
+        shardReward(2),
+        deathrollPotReward(5000),
+        {
+            label: '3 free rolls',
+            message: '3 gratis /roll!',
+            effect: (user: MazariniUser) => {
+                user.effects = user.effects ?? defaultEffects
+                user.effects.positive.freeRolls = (user.effects.positive.freeRolls ?? 0) + 3
+                return undefined
+            },
+        },
+    ]
+
+    export const lowQualityEffects: Array<IEffectItem> = [
         {
             label: '1x doubled potwins',
-            message: 'at din neste hasjwin dobles!',
+            message: 'at din neste hasjwins dobles!',
             effect: (user: MazariniUser) => {
                 user.effects = user.effects ?? defaultEffects
                 user.effects.positive.doublePotWins = (user.effects.positive.doublePotWins ?? 0) + 1
                 return undefined
             },
         },
-        {
-            label: '1 free rolls',
-            message: '1 gratis /roll!',
-            effect: (user: MazariniUser) => {
-                user.effects = user.effects ?? defaultEffects
-                user.effects.positive.freeRolls = (user.effects.positive.freeRolls ?? 0) + 1
-                return undefined
-            },
-        },
-        shardReward(2),
-    ]
 
-    export const lowQualityEffects: Array<IEffectItem> = [
-        {
-            label: '3x doubled potwins',
-            message: 'at dine tre neste hasjwins dobles!',
-            effect: (user: MazariniUser) => {
-                user.effects = user.effects ?? defaultEffects
-                user.effects.positive.doublePotWins = (user.effects.positive.doublePotWins ?? 0) + 3
-                return undefined
-            },
-        },
-        {
-            label: '5 free rolls',
-            message: '5 gratis /roll!',
-            effect: (user: MazariniUser) => {
-                user.effects = user.effects ?? defaultEffects
-                user.effects.positive.freeRolls = (user.effects.positive.freeRolls ?? 0) + 5
-                return undefined
-            },
-        },
-        {
-            label: '3x lootbox odds in deathroll',
-            message: 'at du har 3x større sannsynlighet for å heller få en lootbox som reward ved hasjinnskudd - ut dagen!',
-            effect: (user: MazariniUser) => {
-                user.effects = user.effects ?? defaultEffects
-                user.effects.positive.deahtrollLootboxChanceMultiplier = 3
-                return undefined
-            },
-        },
-        {
-            label: '5x doubled pot additions',
-            message: 'at dine neste 5 hasjinnskudd hvor du triller over 100 dobles!',
-            effect: (user: MazariniUser) => {
-                user.effects = user.effects ?? defaultEffects
-                user.effects.positive.doublePotDeposit = (user.effects.positive.doublePotDeposit ?? 0) + 5
-                return undefined
-            },
-        },
         shardReward(5),
+        deathrollPotReward(10000),
         {
             label: '1 Blackjack re-deal',
             message: 'en ekstra deal på nytt i blackjack!',
@@ -98,8 +75,6 @@ export namespace DondItems {
                 return undefined
             },
         },
-    ]
-    export const mediumQualityEffects: Array<IEffectItem> = [
         {
             label: '1 spin',
             message: '1 ekstra /spin reward!',
@@ -108,19 +83,30 @@ export namespace DondItems {
                 return undefined
             },
         },
+    ]
+    export const mediumQualityEffects: Array<IEffectItem> = [
         {
-            label: '10 free rolls',
-            message: '10 gratis /roll!',
+            label: '2 spin',
+            message: '2 ekstra /spin reward!',
+            effect: (user: MazariniUser) => {
+                user.dailySpins = 2
+                return undefined
+            },
+        },
+        {
+            label: '7 free rolls',
+            message: '7 gratis /roll!',
             effect: (user: MazariniUser) => {
                 user.effects = user.effects ?? defaultEffects
-                user.effects.positive.freeRolls = (user.effects.positive.freeRolls ?? 0) + 10
+                user.effects.positive.freeRolls = (user.effects.positive.freeRolls ?? 0) + 7
                 return undefined
             },
         },
         shardReward(10),
+        packReward(),
         {
-            label: '7x doubled pot additions',
-            message: 'at dine neste 5 hasjinnskudd hvor du triller over 100 dobles!',
+            label: '2x doubled pot additions',
+            message: 'at dine neste 2 hasjinnskudd hvor du triller over 100 dobles!',
             effect: (user: MazariniUser) => {
                 user.effects = user.effects ?? defaultEffects
                 user.effects.positive.doublePotDeposit = (user.effects.positive.doublePotDeposit ?? 0) + 7
@@ -128,8 +114,8 @@ export namespace DondItems {
             },
         },
         {
-            label: '3 Blackjack re-deal',
-            message: 'tre ekstra deal på nytt i blackjack!',
+            label: '1 Blackjack re-deal',
+            message: 'en ekstra deal på nytt i blackjack!',
             effect: (user: MazariniUser) => {
                 user.effects = user.effects ?? defaultEffects
                 user.effects.positive.blackjackReDeals = (user.effects.positive.blackjackReDeals ?? 0) + 3
@@ -139,17 +125,8 @@ export namespace DondItems {
     ]
     export const highQualityEffects: Array<IEffectItem> = [
         {
-            label: '8x lootbox odds in deathroll',
-            message: 'at du har 8x større sannsynlighet for å heller få en lootbox som reward ved hasjinnskudd - ut dagen!',
-            effect: (user: MazariniUser) => {
-                user.effects = user.effects ?? defaultEffects
-                user.effects.positive.deahtrollLootboxChanceMultiplier = 8
-                return undefined
-            },
-        },
-        {
-            label: '10x doubled pot additions',
-            message: 'at dine neste 5 hasjinnskudd hvor du triller over 100 dobles!',
+            label: '3x doubled pot additions',
+            message: 'at dine neste 3 hasjinnskudd hvor du triller over 100 dobles!',
             effect: (user: MazariniUser) => {
                 user.effects = user.effects ?? defaultEffects
                 user.effects.positive.doublePotDeposit = (user.effects.positive.doublePotDeposit ?? 0) + 10
@@ -159,11 +136,19 @@ export namespace DondItems {
         shardReward(15),
         packReward(),
         {
-            label: '5 Blackjack re-deal',
-            message: 'fem ekstra deal på nytt i blackjack!',
+            label: '4 Blackjack re-deal',
+            message: 'fire ekstra deal på nytt i blackjack!',
             effect: (user: MazariniUser) => {
                 user.effects = user.effects ?? defaultEffects
                 user.effects.positive.blackjackReDeals = (user.effects.positive.blackjackReDeals ?? 0) + 5
+                return undefined
+            },
+        },
+        {
+            label: '3 spin',
+            message: '3 ekstra /spin reward!',
+            effect: (user: MazariniUser) => {
+                user.dailySpins = 3
                 return undefined
             },
         },

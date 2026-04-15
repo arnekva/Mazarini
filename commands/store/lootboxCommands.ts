@@ -59,7 +59,10 @@ interface IPendingChest {
 export interface IEffectItem {
     label: string
     message: string //følger formatet "Din kalendergave for {dato} er {message}"
-    effect(user: MazariniUser, db?: DatabaseHelper): undefined | ActionRowBuilder<ButtonBuilder>[] | 'client-update'
+    effect(
+        user: MazariniUser,
+        db?: DatabaseHelper
+    ): undefined | ActionRowBuilder<ButtonBuilder>[] | 'client-update' | Promise<undefined | ActionRowBuilder<ButtonBuilder>[] | 'client-update'>
     lootReward?: {
         type: LootType
         quality: LootboxQuality
@@ -437,7 +440,7 @@ export class LootboxCommands extends AbstractCommands {
         interaction.message.edit({ embeds: [embed], components: [btnRow] })
         if (interaction.customId.split(';')[2] === 'effect') {
             const effect = pendingChest.effect
-            effect.effect(user, this.database)
+            await effect.effect(user, this.database)
 
             this.database.updateUser(user)
             this.messageHelper.replyToInteraction(interaction, `Du valgte ${effect.message}`, { hasBeenDefered: true })

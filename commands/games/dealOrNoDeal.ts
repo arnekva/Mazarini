@@ -344,7 +344,7 @@ export class DealOrNoDeal extends AbstractCommands {
                 }
             } else {
                 const effectItem = game.latestOffer as IEffectItem
-                const effect = effectItem.effect(user)
+                await effectItem.effect(user, this.database)
                 this.updateUserStats(user, 0, game.cases.get(game.player.caseNr).value, game.quality, undefined, undefined, undefined, true)
                 this.database.updateUser(user)
                 this.messageHelper.sendMessage(interaction.channelId, {

@@ -47,7 +47,7 @@ export class EventTracker {
     }
 
     async trackCcgWin(payload: ICCGEventPayload) {
-        const validDifficulty = payload.difficulty === Difficulty.Medium || payload.difficulty === Difficulty.Hard
+        const validDifficulty = payload.difficulty === Difficulty.Hard
         if (
             !payload.vsBot ||
             !payload.winnerId ||

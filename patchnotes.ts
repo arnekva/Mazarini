@@ -26,7 +26,9 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            ['### CCG', '* **General Grievous**: base damage 2 -> 3', '* **Lando Calrissian**: 5 -> 4 damage, 2 -> 1 self damage, 2 -> 1 cost'].join('\n')
+            ['# Dond', '* Reward i stedet for chips: 10% -> 20%', '# Rewards', '* PvE:teller kun mot vanskelig', '* Justeringer av rewards i alle nivå'].join(
+                '\n'
+            )
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

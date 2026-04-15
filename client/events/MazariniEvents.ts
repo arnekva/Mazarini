@@ -226,7 +226,7 @@ export class MazariniEvents {
             case MazariniEventType.CCGHoieWin:
                 return {
                     title: 'CCG',
-                    description: 'CCG: Førstemann til å vinne et game mot minst middels Høie får en høy kvalitet reward. Training teller.',
+                    description: 'CCG: Førstemann til å vinne et game mot Høie på vanskelig får en middels kvalitet reward.',
                     channelId: ChannelIds.CCG,
                     reward: { tier: MazariniEventRewardTier.Medium },
                 }
@@ -257,7 +257,7 @@ export class MazariniEvents {
 
     private async applyReward(user: MazariniUser, event: IMazariniEventEntry, channelId: string) {
         const rewardItem = RandomUtils.getRandomItemFromList(DondItems.getRewardsForQuality(event.reward.tier)) as IEffectItem
-        const effectResult = rewardItem.effect(user, this.client.database)
+        const effectResult = await rewardItem.effect(user, this.client.database)
         await this.client.database.updateUser(user)
 
         if (rewardItem.lootReward) {
