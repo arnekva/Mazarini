@@ -247,7 +247,7 @@ export class CardActionResolver {
                 break
 
             case 'DESTROY_DEATHSTAR':
-                this.removeStatusTypeForPlayer(game, target, 'DESTROY_DEATHSTAR')
+                this.removeStatusTypeForPlayer(game, target, 'BUILD_DEATHSTAR')
                 this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} destroys ${target.name}'s Death Star`)
                 break
 
@@ -337,7 +337,10 @@ export class CardActionResolver {
                     if (!['DAMAGE', 'DAMAGE_PER_IDENTIFIER', 'DAMAGE_PER_CARD_PLAYED', 'SHOOT'].includes(e.type)) return false
                     if (e.sourcePlayerId === effect.sourcePlayerId) return false
                     if (e.targetPlayerId !== effect.sourcePlayerId) return false
-                    if (e.condition && !this.areConditionsMet(game, this.getPlayer(game, e.sourcePlayerId), this.getPlayer(game, e.targetPlayerId), e.condition))
+                    if (
+                        e.condition &&
+                        !this.areConditionsMet(game, this.getPlayer(game, e.sourcePlayerId), this.getPlayer(game, e.targetPlayerId), e.condition)
+                    )
                         return false
                     return true
                 })
@@ -370,7 +373,7 @@ export class CardActionResolver {
                     summoned = await this.getRandomCardByIdentifier(effect.identifier)
                 }
                 if (summoned) {
-                    source.hand.push(summoned)
+                    source.hand.push({ ...summoned, summoned: true })
                     this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} summons **${summoned.name}** to their hand`)
                 } else {
                     this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} could not summon a card — no matching card found`)
