@@ -1,5 +1,4 @@
 import { EmbedBuilder, Message, User } from 'discord.js'
-import { Headers } from 'node-fetch'
 import { URLSearchParams } from 'url'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { BaseInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
@@ -11,13 +10,26 @@ import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { UserUtils } from '../../utils/userUtils'
 import { Music } from './musicCommands'
-const SpotifyWebApi = require('spotify-web-api-node')
-const base64 = require('base-64')
-const request = require('request')
-const fetch = require('node-fetch')
+
 export class SpotifyCommands extends AbstractCommands {
     constructor(client: MazariniClient) {
         super(client)
+    }
+
+    private getSpotifyWebApi() {
+        return require('spotify-web-api-node')
+    }
+
+    private getRequest() {
+        return require('request')
+    }
+
+    private getFetch() {
+        return require('node-fetch')
+    }
+
+    private encodeBase64(value: string) {
+        return require('base-64').encode(value)
     }
 
     private getUsersCurrentSong(rawMessage: Message, content: string, args: string[]) {
@@ -25,6 +37,7 @@ export class SpotifyCommands extends AbstractCommands {
 
         const url = `https://api.spotify.com/v1/search?type=track&include_external=audio`
         const _msg = this.messageHelper
+        const request = this.getRequest()
         request(
             {
                 url: url,
@@ -47,8 +60,10 @@ export class SpotifyCommands extends AbstractCommands {
      *  @returns Access Token for API
      */
     private async authorize() {
+        const fetch = this.getFetch()
+        const { Headers } = fetch
         const myHeaders = new Headers()
-        myHeaders.append('Authorization', `Basic ${base64.encode(spotifyClientID + ':' + spotifyClientSecret)}`)
+        myHeaders.append('Authorization', `Basic ${this.encodeBase64(spotifyClientID + ':' + spotifyClientSecret)}`)
         myHeaders.append('Content-Type', 'application/x-www-form-urlencoded')
 
         const urlencoded = new URLSearchParams()
@@ -77,6 +92,7 @@ export class SpotifyCommands extends AbstractCommands {
 
     private async searchForSongOnSpotifyAPI(track: string, artist?: string) {
         const auth = await this.authorize() //Autoriser appen
+        const SpotifyWebApi = this.getSpotifyWebApi()
         const spotifyApi = new SpotifyWebApi({
             clientId: spotifyClientID,
             clientSecret: spotifyClientSecret,

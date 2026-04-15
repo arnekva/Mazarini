@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '31.2.10'
+    public static readonly currentVersion = '31.3.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -36,8 +36,8 @@ export class PatchNotes extends AbstractCommands {
                 '* Flere justeringer for å forbedre oppstartstid',
                 '* Fjerner Gemini',
                 '* Redigerer ikke lenger aktive blackjack spill ved omstart, men chips blir fortsatt refundert',
-                '* Skrur av watch for live bot',
-                '* Import av store moduler (som puppeteer) gjøres nå dynamisk ved behov.',
+                '* Skrur av watch for live bot (ecosystem.config er nå i gitignore, skru på watch lokalt)',
+                '* Import av store moduler (som puppeteer, Sharp, Spotify, wikijs, m.m.) gjøres nå dynamisk ved behov.',
             ].join('\n')
         )
         container.addSeparator()

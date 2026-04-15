@@ -41,11 +41,18 @@ const emptyStats: rocketLeagueDbData = {
     mmr: { mmr1v1: '0', mmr2v2: '0', mmr3v3: '0', tournament: '0' },
 }
 
-const striptags = require('striptags')
-const puppeteer = require('puppeteer')
 export class RocketLeagueCommands extends AbstractCommands {
     constructor(client: MazariniClient) {
         super(client)
+    }
+
+    private getPuppeteer() {
+        return require('puppeteer')
+    }
+
+    private stripTags(content: string) {
+        const stripTags = require('striptags')
+        return stripTags(content)
     }
 
     private async rocketLeagueRanks(interaction: ChatInteraction) {
@@ -65,6 +72,7 @@ export class RocketLeagueCommands extends AbstractCommands {
         const platform = user[0]
         const name = user[1]
         const url = `https://api.tracker.gg/api/v2/rocket-league/standard/profile/${platform}/${name}`
+        const puppeteer = this.getPuppeteer()
 
         //Need to specify executable path on Raspberry Pi, as it for some reason doesn't like the Puppeteer-supplied chromium version. Should work on Windows/Mac.
         let browser
@@ -106,7 +114,7 @@ export class RocketLeagueCommands extends AbstractCommands {
 
         let response
         try {
-            response = JSON.parse(striptags(contentString))
+            response = JSON.parse(this.stripTags(contentString))
         } catch {
             await interaction.editReply('Klarte ikke lese Rocket League-data frå Tracker.gg akkurat no.')
             this.messageHelper.sendLogMessage(`Rocket League-data kunne ikke parses for ${interaction.user.username}.`)

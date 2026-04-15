@@ -15,10 +15,10 @@ import { ATCInteraction, BtnInteraction, ChatInteraction } from '../../Abstracts
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
-import { CCGCardGenerator } from '../../helpers/ccgCardGenerator'
+import type { CCGCardGenerator as CCGCardGeneratorType } from '../../helpers/ccgCardGenerator'
 import { DatabaseHelper } from '../../helpers/databaseHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
-import { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
+import type { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
 import { LootStatsHelper } from '../../helpers/statsHelper'
 import {
     ILootbox,
@@ -87,10 +87,21 @@ export class LootboxCommands extends AbstractCommands {
 
     constructor(client: MazariniClient) {
         super(client)
-        this.imageGenerator = new ImageGenerationHelper(client)
         this.pendingTrades = new Map<string, IPendingTrade>()
         this.pendingChests = new Map<string, IPendingChest>()
         this.inventoryUpdateQueue = new Array<InventoryUpdate>()
+    }
+
+    private getImageGenerator() {
+        if (!this.imageGenerator) {
+            const { ImageGenerationHelper } = require('../../helpers/imageGenerationHelper') as typeof import('../../helpers/imageGenerationHelper')
+            this.imageGenerator = new ImageGenerationHelper(this.client)
+        }
+        return this.imageGenerator
+    }
+
+    private getCardGenerator() {
+        return require('../../helpers/ccgCardGenerator').CCGCardGenerator as typeof CCGCardGeneratorType
     }
 
     async onReady(): Promise<void> {
@@ -373,16 +384,16 @@ export class LootboxCommands extends AbstractCommands {
             const cardback = Buffer.from(await this.getCCGCardback(user))
             for (let i = 0; i < numCardbacks; i++) buffers.push(cardback)
         }
-        return await this.imageGenerator.stitchImages(buffers, 'horizontal')
+        return await this.getImageGenerator().stitchImages(buffers, 'horizontal')
     }
 
     private async getCCGCardImage(card: CCGCard) {
-        return await CCGCardGenerator.getCardBuffer(card)
+        return await this.getCardGenerator().getCardBuffer(card)
     }
 
     private async getCardbackImage(user: MazariniUser) {
         const cardback = Buffer.from(await this.getCCGCardback(user))
-        return await this.imageGenerator.stitchImages([cardback, cardback, cardback], 'horizontal')
+        return await this.getImageGenerator().stitchImages([cardback, cardback, cardback], 'horizontal')
     }
 
     private async getCCGCardback(user: MazariniUser) {
@@ -754,7 +765,7 @@ export class LootboxCommands extends AbstractCommands {
                     user = await this.client.database.getUser(interaction.user.id)
                 }
                 const unobtainableSeries = (series.unobtainableHolder ?? '') === user.id ? series.name : ''
-                const img = await this.imageGenerator.stitchInventory(user.loot[series.name].inventory, unobtainableSeries)
+                const img = await this.getImageGenerator().stitchInventory(user.loot[series.name].inventory, unobtainableSeries)
                 const file = new AttachmentBuilder(img, { name: 'inventory.png' })
                 const refreshBtn = refreshInventoryBtn(user.id, series.name)
                 if (interaction.isButton()) {
@@ -878,7 +889,7 @@ export class LootboxCommands extends AbstractCommands {
         this.inventoryUpdateQueue.push(...updates)
         const seriesObj = await this.getSeriesOrDefault(series, isCCG)
         for (const rarity of rarities) {
-            const img = await this.imageGenerator.generateImageForCollectablesRarity(user, seriesObj, rarity)
+            const img = await this.getImageGenerator().generateImageForCollectablesRarity(user, seriesObj, rarity)
             await this.database.uploadUserInventory(user, `${series}/${rarity}.png`, img)
         }
         await this.updateUserInventoryLinks(user.id, series, rarities)

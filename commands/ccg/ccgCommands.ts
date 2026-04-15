@@ -5,10 +5,10 @@ import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInterac
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
-import { CardModification, CCGCardGenerator } from '../../helpers/ccgCardGenerator'
+import type { CardModification } from '../../helpers/ccgCardGenerator'
 import { ComponentsHelper } from '../../helpers/componentsHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
-import { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
+import type { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
 import { ICCGDeck, MazariniUser } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement, IOnTimedEvent } from '../../interfaces/interactionInterface'
@@ -52,13 +52,24 @@ export class CCGCommands extends AbstractCommands {
 
     constructor(client: MazariniClient) {
         super(client)
-        this.igh = new ImageGenerationHelper(this.client)
         this.helper = new CCGHelp(this.client)
         this.games = new Map<string, CCGGame>()
         this.resolver = new CardActionResolver(this.client)
         this.botResolver = new BotResolver()
         this.progressHandler = new ProgressionHandler(this.client)
         this.statViewer = new CCGStatView(this.client)
+    }
+
+    private getImageHelper() {
+        if (!this.igh) {
+            const { ImageGenerationHelper } = require('../../helpers/imageGenerationHelper') as typeof import('../../helpers/imageGenerationHelper')
+            this.igh = new ImageGenerationHelper(this.client)
+        }
+        return this.igh
+    }
+
+    private getCardGenerator() {
+        return require('../../helpers/ccgCardGenerator').CCGCardGenerator as typeof import('../../helpers/ccgCardGenerator').CCGCardGenerator
     }
 
     private drawCards(game: CCGGame, player: CCGPlayer) {
@@ -93,10 +104,11 @@ export class CCGCommands extends AbstractCommands {
                 return Buffer.from(await this.getCardImage(card, mods))
             })
         )
-        return await this.igh.stitchImages(buffers, 'horizontal')
+        return await this.getImageHelper().stitchImages(buffers, 'horizontal')
     }
 
     private async getCardImage(card: CCGCard, mods: CardModification[] = []) {
+        const CCGCardGenerator = this.getCardGenerator()
         if (mods.length > 0) return await CCGCardGenerator.getModifiedCardBuffer(card, mods)
         return await CCGCardGenerator.getCardBuffer(card)
     }
@@ -871,7 +883,8 @@ export class CCGCommands extends AbstractCommands {
         const cmd = interaction.options.getSubcommand()
         const cmdGroup = interaction.options.getSubcommandGroup()
         if (cmdGroup && cmdGroup === 'play') {
-            if (!CCGCardGenerator.isReady) return this.messageHelper.replyToInteraction(interaction, 'Kortbilder genereres fortsatt, prøv igjen om litt.')
+            if (!this.getCardGenerator().isReady)
+                return this.messageHelper.replyToInteraction(interaction, 'Kortbilder genereres fortsatt, prøv igjen om litt.')
             const vsBot = cmd === 'bot'
             const validDeck = await this.userHasValidDeck(interaction)
             if (!validDeck) return this.handleUserHasInvalidDeck(interaction)

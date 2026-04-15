@@ -7,8 +7,6 @@ import { MazariniClient } from '../client/MazariniClient'
 import { IInteractionElement } from '../interfaces/interactionInterface'
 import { DateUtils } from '../utils/dateUtils'
 import { WeatherUtils } from '../utils/weatherUtils'
-const fetch = require('node-fetch')
-const NodeGeocoder = require('node-geocoder')
 
 interface GeoLocation {
     latitude: string
@@ -28,18 +26,26 @@ interface GeoLocation {
 export class Weather extends AbstractCommands {
     static baseUrl = 'https://api.met.no/weatherapi/locationforecast/2.0/complete'
     static iconUrl = 'https://api.met.no/images/weathericons/png/'
+    private static geocoder: any
 
     constructor(client: MazariniClient) {
         super(client)
     }
 
-    static geocoder = NodeGeocoder({
-        provider: 'opencage',
-        apiKey: openCageAPIKey,
-        formatter: null,
-    })
+    private static getGeocoder() {
+        if (!this.geocoder) {
+            const NodeGeocoder = require('node-geocoder')
+            this.geocoder = NodeGeocoder({
+                provider: 'opencage',
+                apiKey: openCageAPIKey,
+                formatter: null,
+            })
+        }
+        return this.geocoder
+    }
 
     static async fetchMETWeatherForCoordinates(latitude: string, longitude: string) {
+        const fetch = require('node-fetch')
         const data = await fetch(`${Weather.baseUrl}?lat=${latitude}&lon=${longitude}`, {
             method: 'GET',
             headers: {
@@ -50,6 +56,7 @@ export class Weather extends AbstractCommands {
     }
 
     static async fetchOPENWeatherForCity(city: string) {
+        const fetch = require('node-fetch')
         const rootUrl = 'https://api.openweathermap.org/data/2.5/weather?'
         const cityWithoutSpecialChars = city.replace('æ', 'ae').replace('ø', 'o').replace('å', 'a')
         const fullUrl = rootUrl + 'q=' + cityWithoutSpecialChars + '&appid=' + openWeatherAPIKey + '&lang=NO'
@@ -149,12 +156,12 @@ export class Weather extends AbstractCommands {
     }
 
     public static async getCoordinatesForLocation(location: string) {
-        const res = await this.geocoder.geocode(location)
+        const res = await this.getGeocoder().geocode(location)
         return res[0] as GeoLocation
     }
 
     public static async getLocationForCoordinates(latitude: string, longitude: string) {
-        const res = await this.geocoder.reverse({ lat: latitude, lon: longitude })
+        const res = await this.getGeocoder().reverse({ lat: latitude, lon: longitude })
         return res[0] as GeoLocation
     }
 

@@ -1,4 +1,3 @@
-import wiki from 'wikijs'
 import { AbstractCommands } from '../Abstracts/AbstractCommand'
 import { ChatInteraction } from '../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../client/MazariniClient'
@@ -15,6 +14,7 @@ export class TextCommands extends AbstractCommands {
         await interaction.deferReply()
         const search = interaction.options.get('search')?.value as string
         const locale = interaction.options.get('locale')?.value as string
+        const wiki = require('wikijs')
 
         const capitalizeFirstLetter = (text: string) => {
             if (text.charAt(0).toUpperCase() === text.charAt(0)) return text.charAt(0).toLowerCase() + text.slice(1)
