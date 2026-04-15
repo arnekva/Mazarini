@@ -128,7 +128,6 @@ export class ClientListener {
             } else {
                 this.commandRunner.runCommands(message)
                 const hoieTagged = message.content.includes(`<@${MentionUtils.User_IDs.BOT_HOIE}>`)
-                const isAskingQuestion = message.content.includes('$')
                 let replyToHoie = false
                 if (message.mentions?.repliedUser?.id === MentionUtils.User_IDs.BOT_HOIE) {
                     const msgId = message.reference.messageId
@@ -139,16 +138,9 @@ export class ClientListener {
                     (environment === 'prod' && message.channelId !== ChannelIds.LOCALHOST) ||
                     (environment === 'dev' && message.channelId === this.client.currentDevelopmentChannelId)
                 if ((hoieTagged || replyToHoie) && correctChannel) {
-                    if (isAskingQuestion) {
-                        this.client.gemini.fetchAndSendMessage(message, this.client.messageHelper, message.channelId, {
-                            displayName: UserUtils.getPrettyName(message.member),
-                            username: message.author.username,
-                        })
-                    } else {
-                        const isQuestion = message.content.trimEnd().endsWith('?')
-                        const response = ArrayUtils.randomChoiceFromArray(isQuestion ? textArrays.bentHoieLinesAnswers : textArrays.bentHoieLines)
-                        this.client.messageHelper.sendMessage(message.channelId, { text: response })
-                    }
+                    const isQuestion = message.content.trimEnd().endsWith('?')
+                    const response = ArrayUtils.randomChoiceFromArray(isQuestion ? textArrays.bentHoieLinesAnswers : textArrays.bentHoieLines)
+                    this.client.messageHelper.sendMessage(message.channelId, { text: response })
                 }
             }
         })

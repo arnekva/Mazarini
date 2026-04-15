@@ -26,9 +26,19 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            ['# Dond', '* Reward i stedet for chips: 10% -> 20%', '# Rewards', '* PvE:teller kun mot vanskelig', '* Justeringer av rewards i alle nivå'].join(
-                '\n'
-            )
+            [
+                '# Dond',
+                '* Reward i stedet for chips: 10% -> 20%',
+                '# Rewards',
+                '* PvE:teller kun mot vanskelig',
+                '* Justeringer av rewards i alle nivå',
+                '# Bot',
+                '* Flere justeringer for å forbedre oppstartstid',
+                '* Fjerner Gemini',
+                '* Redigerer ikke lenger aktive blackjack spill ved omstart, men chips blir fortsatt refundert',
+                '* Skrur av watch for live bot',
+                '* Import av store moduler (som puppeteer) gjøres nå dynamisk ved behov.',
+            ].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

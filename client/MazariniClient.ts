@@ -11,7 +11,6 @@ import { LockingHandler } from '../handlers/lockingHandler'
 import { CloudflareHelper } from '../helpers/cloudflareHelper'
 import { DatabaseHelper } from '../helpers/databaseHelper'
 import { FirebaseHelper } from '../helpers/firebaseHelper'
-import { GeminiHelper } from '../helpers/geminiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
 import { MoneyHelper } from '../helpers/moneyHelper'
 import { ICache } from '../interfaces/database/databaseInterface'
@@ -34,7 +33,6 @@ export class MazariniClient extends Client {
     private clientCache: Partial<ICache>
     private clientListener: ClientListener
     private moneyHelper: MoneyHelper
-    private geminiHelper: GeminiHelper
     private developmentChannelId: string
 
     constructor() {
@@ -72,7 +70,6 @@ export class MazariniClient extends Client {
         this.developmentChannelId = secretDevelopment ? ChannelIds.SECRET_LOCALHOST : ChannelIds.LOCALHOST
         this.moneyHelper = new MoneyHelper(this)
         this.setupDatabase(this.msgHelper)
-        this.geminiHelper = new GeminiHelper(this)
         this.clientListener.setupListeners()
     }
 
@@ -117,12 +114,6 @@ export class MazariniClient extends Client {
     onBotReady() {
         this.clientListener.commandRunner.runOnReady()
         this.messageHelper.sendLogMessage('Running onLogin for all command classes')
-
-        this.setupGeminiContext()
-    }
-
-    private setupGeminiContext() {
-        this.geminiHelper.addContext()
     }
 
     get messageHelper() {
@@ -151,10 +142,6 @@ export class MazariniClient extends Client {
 
     get eventTracker() {
         return this.mazariniEventTracker
-    }
-
-    get gemini() {
-        return this.geminiHelper
     }
 
     get cache() {

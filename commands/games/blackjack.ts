@@ -623,25 +623,19 @@ export class Blackjack extends AbstractCommands {
     }
 
     private async returnStakes() {
-        for (const game of this.games.filter((game) => !game.resolved)) {
+        const unresolvedGames = this.games.filter((game) => !game.resolved)
+        for (const game of unresolvedGames) {
             for (const player of game.players) {
                 const user = await this.client.database.getUser(player.id)
                 let refundedChips = player.stake * player.hands.length
                 if (player.insurance) refundedChips += Math.ceil(player.stake / 2)
                 user.chips += refundedChips
                 this.client.database.updateUser(user)
-                game.messages.embedContent = game.messages.embedContent
-                    .setTitle('Stengt')
-                    .setDescription(`Kasinoet ble dessverre uanmeldt stengt av en /restart. Du har fått tilbake dine ${refundedChips} chips`)
-            }
-            try {
-                await game.messages.embed.edit({ embeds: [game.messages.embedContent] })
-            } catch (e: any) {
-                this.client.messageHelper.sendLogMessage(
-                    'Forsøkte å redigere en blackjackmelding, men klarte det ikke. Det må vel bety at den aldri eksisterte, sant?'
-                )
             }
             await this.deleteGame(game)
+        }
+        if (unresolvedGames.length > 0) {
+            this.client.messageHelper.sendLogMessage(`Refunded ${unresolvedGames.length} blackjack games`)
         }
     }
 

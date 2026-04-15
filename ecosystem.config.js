@@ -3,7 +3,7 @@ module.exports = {
         {
             name: 'mazarini',
             script: 'index.ts',
-            watch: true,
+            watch: false,
             ignore_watch: ['node_modules', 'res/ccg/generated', '.git'],
         },
     ],
