@@ -425,7 +425,7 @@ export const GameValues: GameValuesType = {
             dailyBonus: 10,
             weeklyLimit: 100,
             limitPenalty: 5,
-            bonusAfterLimit: false,
+            bonusAfterLimit: true,
             win: 10,
             loss: 5,
             difficultyMultiplier: {

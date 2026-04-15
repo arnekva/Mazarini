@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '31.2.8'
+    public static readonly currentVersion = '31.2.9'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,7 +25,12 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(['### CCG', '* Høie CCG-IQ: +10'].join('\n'))
+        const text = new TextDisplayBuilder().setContent(
+            [
+                '### CCG',
+                '* Daily ccg bonus gjelder nå også etter å ha nådd ukentlig limit. Penalty-etter-limit på 5 shards blir værende (tap gir 0 shards). Limit forblir uendret på 100.',
+            ].join('\n')
+        )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 
