@@ -6,10 +6,14 @@ import { CCGCard, CCGEffectType } from './ccgInterface'
 export class CCGValidator {
     public static async validateDeck(client: MazariniClient, user: MazariniUser, deck: ICCGDeck, validationErrors: string[]) {
         const allCards = (await client.database.getStorage()).ccg
+        return this.validateDeckWithCards(user, deck, validationErrors, allCards)
+    }
+
+    public static validateDeckWithCards(user: MazariniUser, deck: ICCGDeck, validationErrors: string[], allCards: ICCGSystem) {
         deck.valid = true
         this.validateDeckSize(deck, validationErrors)
         this.validateRarityCaps(deck, validationErrors, allCards)
-        this.validateTypeCaps(client, deck, validationErrors, allCards)
+        this.validateTypeCaps(deck, validationErrors, allCards)
         this.validateUserHasAllCards(user, deck, validationErrors, allCards)
         this.validateMaxDuplicates(deck, validationErrors, allCards)
     }
@@ -63,7 +67,7 @@ export class CCGValidator {
         }
     }
 
-    public static validateTypeCaps(client: MazariniClient, deck: ICCGDeck, validationErrors: string[], allCards: ICCGSystem) {
+    public static validateTypeCaps(deck: ICCGDeck, validationErrors: string[], allCards: ICCGSystem) {
         const types: CCGEffectType[] = GameValues.ccg.deck.validationTypes
         for (const type of types) {
             const amount = deck.cards?.filter((card) => this.cardHasEffectOfType(allCards, card, type)).reduce((sum, instance) => sum + instance.amount, 0) ?? 0

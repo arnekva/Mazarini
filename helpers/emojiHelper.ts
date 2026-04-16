@@ -10,15 +10,10 @@ export interface emojiReturnType {
     emojiObject?: GuildEmoji | ApplicationEmoji
     urlId?: string | number
 }
-type emojiObject = {
-    name: string
-    id: string
-}
 
 export type JobStatus = 'success' | 'failed' | 'not sendt'
 export class EmojiHelper {
-    //FIXME: No reason for this to be async?
-    static async getEmoji(emojiType: string, accessPoint: Message | BaseInteraction | Client<boolean>): Promise<emojiReturnType> {
+    static getEmoji(emojiType: string, accessPoint: Message | BaseInteraction | Client<boolean>): emojiReturnType {
         const ap = accessPoint instanceof Client ? accessPoint : accessPoint.client
         const emojiObj = ap.emojis.cache.find((emoji) => emoji.name == emojiType)
         if (!emojiObj) return { id: '<Fant ikke emojien>' }
@@ -28,13 +23,6 @@ export class EmojiHelper {
     static getGuildEmoji(emojiType: string, accessPoint: Message | BaseInteraction | Client<boolean>): GuildEmoji {
         const ap = accessPoint instanceof Client ? accessPoint : accessPoint.client
         return ap.emojis.cache.find((emoji) => emoji.name == emojiType)
-    }
-
-    static async getApplicationEmoji(emojiType: string, client: Client<boolean>): Promise<emojiReturnType> {
-        const appEmojis = await client.application.emojis.fetch()
-        const emojiObj = appEmojis.find((emoji) => emoji.name == emojiType)
-        if (!emojiObj) return { id: '<Fant ikke emojien>' }
-        return { id: `<${emojiObj.animated ? 'a' : ''}:${emojiObj.name}:${emojiObj?.id}>`, emojiObject: emojiObj, urlId: emojiObj?.id }
     }
 
     static getHelgEmoji(accessPoint: Message | BaseInteraction | Client<boolean>, isGeggi?: boolean) {

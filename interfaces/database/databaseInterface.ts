@@ -1,3 +1,4 @@
+import type { ApplicationEmoji, Collection } from 'discord.js'
 import { CCGCard, CCGPlayerStats } from '../../commands/ccg/ccgInterface'
 import { CodBRStatsType, CodStats } from '../../commands/gaming/callofdutyCommands'
 import { rocketLeagueDbData } from '../../commands/gaming/rocketleagueCommands'
@@ -472,6 +473,7 @@ export interface ICache {
     deathrollWinningNumbers: number[]
     restartImpediments?: string[]
     deathrollPot?: number
+    applicationEmojis?: Collection<string, ApplicationEmoji>
 }
 
 export type FavoritePol = {

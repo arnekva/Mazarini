@@ -1,4 +1,4 @@
-import { Client } from 'discord.js'
+import { ApplicationEmoji, Client, Collection } from 'discord.js'
 import { initializeApp } from 'firebase/app'
 import { cloudflareConfig, environment, firebaseConfig, secretDevelopment } from '../client-env'
 import { JobScheduler } from '../Jobs/jobScheduler'
@@ -114,6 +114,31 @@ export class MazariniClient extends Client {
     onBotReady() {
         this.clientListener.commandRunner.runOnReady()
         this.messageHelper.sendLogMessage('Running onLogin for all command classes')
+    }
+
+    async getEmojis(): Promise<Collection<string, ApplicationEmoji>> {
+        if (this.clientCache.applicationEmojis) return this.clientCache.applicationEmojis
+        const applicationEmojis = await this.application.emojis.fetch()
+        this.clientCache.applicationEmojis = applicationEmojis
+        return applicationEmojis
+    }
+
+    getEmojiFromCollection(name: string, emojis: Collection<string, ApplicationEmoji>) {
+        const emoji = emojis.find((candidate) => candidate.name === name)
+        if (!emoji) return { id: '<Fant ikke emojien>' }
+        return {
+            id: `<${emoji.animated ? 'a' : ''}:${emoji.name}:${emoji.id}>`,
+            emojiObject: emoji,
+            urlId: emoji.id,
+        }
+    }
+
+    async getEmoji(name: string) {
+        return this.getEmojiFromCollection(name, await this.getEmojis())
+    }
+
+    invalidateEmojiCache() {
+        delete this.clientCache.applicationEmojis
     }
 
     get messageHelper() {

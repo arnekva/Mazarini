@@ -208,6 +208,7 @@ export class ClientListener {
         })
 
         this.client.on('emojiCreate', (emoji: GuildEmoji) => {
+            this.client.invalidateEmojiCache()
             if (emoji.guild.id == ServerIds.MAZARINI) {
                 this.client.database.registerEmojiStats(emoji.name, emoji.animated)
             }
@@ -216,6 +217,7 @@ export class ClientListener {
         })
 
         this.client.on('emojiDelete', (emoji: GuildEmoji) => {
+            this.client.invalidateEmojiCache()
             if (emoji.guild.id == ServerIds.MAZARINI) {
                 this.client.database.registerEmojiRemoved(emoji.name)
             }
@@ -224,6 +226,7 @@ export class ClientListener {
         })
 
         this.client.on('emojiUpdate', (oldEmoji: GuildEmoji, newEmoji: GuildEmoji) => {
+            this.client.invalidateEmojiCache()
             if (newEmoji.guild.id == ServerIds.MAZARINI) {
                 this.client.database.registerEmojiUpdated(oldEmoji.name, newEmoji.name)
             }

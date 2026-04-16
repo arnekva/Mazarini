@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto'
+import type { ApplicationEmoji, Collection } from 'discord.js'
 import { ActionRowBuilder, APIButtonComponent, AttachmentBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
@@ -7,10 +8,9 @@ import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
 import type { CardModification } from '../../helpers/ccgCardGenerator'
 import { ComponentsHelper } from '../../helpers/componentsHelper'
-import { EmojiHelper } from '../../helpers/emojiHelper'
 import type { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
-import { ICCGDeck, MazariniUser } from '../../interfaces/database/databaseInterface'
+import { ICCGDeck, ICCGSystem, MazariniUser } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement, IOnTimedEvent } from '../../interfaces/interactionInterface'
 import { CCGContainer } from '../../templates/containerTemplates'
 import { EmbedUtils } from '../../utils/embedUtils'
@@ -42,7 +42,10 @@ import { CCGValidator } from './validator'
 const SERIES_EMOJI_IS_ID = new Set(['swCCG'])
 
 export class CCGCommands extends AbstractCommands {
+    private ccgStoragePromise: Promise<ICCGSystem>
     private games: Map<string, CCGGame>
+    private gameMessageUpdateQueue: Map<string, Promise<void>>
+    private gameMessageUpdateRequested: Set<string>
     private resolver: CardActionResolver
     private botResolver: BotResolver
     private igh: ImageGenerationHelper
@@ -54,6 +57,8 @@ export class CCGCommands extends AbstractCommands {
         super(client)
         this.helper = new CCGHelp(this.client)
         this.games = new Map<string, CCGGame>()
+        this.gameMessageUpdateQueue = new Map<string, Promise<void>>()
+        this.gameMessageUpdateRequested = new Set<string>()
         this.resolver = new CardActionResolver(this.client)
         this.botResolver = new BotResolver()
         this.progressHandler = new ProgressionHandler(this.client)
@@ -70,6 +75,13 @@ export class CCGCommands extends AbstractCommands {
 
     private getCardGenerator() {
         return require('../../helpers/ccgCardGenerator').CCGCardGenerator as typeof import('../../helpers/ccgCardGenerator').CCGCardGenerator
+    }
+
+    private getCcgStorage() {
+        if (!this.ccgStoragePromise) {
+            this.ccgStoragePromise = this.database.getStorage().then((storage) => storage.ccg)
+        }
+        return this.ccgStoragePromise
     }
 
     private drawCards(game: CCGGame, player: CCGPlayer) {
@@ -93,7 +105,6 @@ export class CCGCommands extends AbstractCommands {
     private async sendPlayerHand(interaction: BtnInteraction, game: CCGGame, player: CCGPlayer) {
         const msg = await this.messageHelper.replyToInteraction(interaction, 'Fetching hand...', { ephemeral: !game.vsBot })
         player.handMessage = msg
-        this.updatePlayerHand(game, player)
     }
 
     private async getPlayerHandImage(player: CCGPlayer, includeAll = false, mods: CardModification[] = []) {
@@ -226,7 +237,7 @@ export class CCGCommands extends AbstractCommands {
         } else {
             game.container.replaceComponent('main-button', nextRoundBtn(game.id))
             game.state.locked = false
-            this.updateGameMessage(game)
+            await this.updateGameMessage(game)
         }
     }
 
@@ -561,11 +572,12 @@ export class CCGCommands extends AbstractCommands {
         const user = await this.database.getUser(interaction.user.id)
         const game = this.getGame(interaction)
         if (game && !game.player2 && game.player1.id !== interaction.user.id) {
-            const validDeck = await this.userHasValidDeck(interaction)
+            const ccgStorage = await this.getCcgStorage()
+            const validDeck = await this.userHasValidDeck(interaction, user, ccgStorage)
             if (!validDeck) return this.handleUserHasInvalidDeck(interaction)
             if (!this.userCanJoin(game, user)) return this.messageHelper.replyToInteraction(interaction, 'Du har ikke råd til å være med på denne')
             interaction.deferUpdate()
-            game.player2 = await this.newPlayer(interaction)
+            game.player2 = this.buildPendingPlayer(interaction)
             game.player2.opponentId = game.player1.id
             game.player1.opponentId = game.player2.id
             game.container.updateTextComponent('sub-header', `### ${game.player1.name} vs ${game.player2.name}`)
@@ -580,6 +592,7 @@ export class CCGCommands extends AbstractCommands {
         await game.message.delete()
         const wager = game.wager
         this.games.delete(game.id)
+        this.clearGameMessageUpdateState(game.id)
         const user = await this.database.getUser(interaction.user.id)
         if (wager && wager > 0) this.client.bank.giveUnrestrictedMoney(user, wager)
     }
@@ -602,12 +615,20 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private async readyUp(interaction: BtnInteraction, game: CCGGame, player: CCGPlayer) {
+        if (!player.handMessage) {
+            await this.sendPlayerHand(interaction, game, player)
+        }
+        const ccgStorage = await this.getCcgStorage()
+        const appEmojis = await this.client.getEmojis()
+        const user = game.vsBot ? undefined : await this.database.getUser(player.id)
+        await this.ensurePlayerLoaded(game, player, ccgStorage, appEmojis, user)
         this.drawCards(game, player)
         if (game.vsBot) {
+            await this.ensurePlayerLoaded(game, game.player2, ccgStorage, appEmojis)
             this.drawCards(game, game.player2)
             this.chooseBotCards(game)
         }
-        await this.sendPlayerHand(interaction, game, player)
+        await this.updatePlayerHand(game, player)
         if (game.player1.handMessage && (game.vsBot || game.player2.handMessage)) {
             this.startGame(game)
         } else {
@@ -694,8 +715,8 @@ export class CCGCommands extends AbstractCommands {
         const game: CCGGame = {
             id: gameId,
             channelId: interaction.channelId,
-            player1: await this.newPlayer(interaction, vsBot),
-            player2: vsBot ? await this.setupBotOpponent(difficulty, interaction.user.id) : undefined,
+            player1: this.buildPendingPlayer(interaction, vsBot ? MentionUtils.User_IDs.BOT_HOIE : undefined),
+            player2: vsBot ? this.buildPendingBotOpponent(difficulty, interaction.user.id) : undefined,
             container: CCGContainer(gameId, interaction.authorName, vsBot),
             state: this.getInitialGameState(),
             vsBot: vsBot,
@@ -717,6 +738,63 @@ export class CCGCommands extends AbstractCommands {
         const msg = await this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, [game.container.container])
         game.message = msg
         this.games.set(gameId, game)
+    }
+
+    private buildPendingBotOpponent(difficulty: Difficulty, playerId: string): CCGPlayer {
+        return {
+            id: MentionUtils.User_IDs.BOT_HOIE,
+            name: 'Høie',
+            deck: [],
+            hand: [],
+            usedCards: [],
+            energy: GameValues.ccg.gameSettings.startingEnergy,
+            hp: GameValues.ccg.gameSettings.startingHP,
+            handMessage: undefined,
+            submitted: false,
+            opponentId: playerId,
+            stunned: false,
+            stats: this.freshCCGStats(),
+            cardbackEmoji: '',
+        }
+    }
+
+    private buildPendingPlayer(interaction: ChatInteraction | BtnInteraction, opponentId?: string): CCGPlayer {
+        return {
+            id: interaction.user.id,
+            name: interaction.authorName,
+            deck: [],
+            hand: [],
+            usedCards: [],
+            energy: GameValues.ccg.gameSettings.startingEnergy,
+            hp: GameValues.ccg.gameSettings.startingHP,
+            handMessage: undefined,
+            submitted: false,
+            opponentId: opponentId,
+            stunned: false,
+            stats: this.freshCCGStats(),
+            cardbackEmoji: '',
+        }
+    }
+
+    private async ensurePlayerLoaded(
+        game: CCGGame,
+        player: CCGPlayer,
+        cards: ICCGSystem,
+        appEmojis: Collection<string, ApplicationEmoji>,
+        user?: MazariniUser
+    ) {
+        if (player.deck.length > 0 && player.cardbackEmoji) return
+        if (player.id === MentionUtils.User_IDs.BOT_HOIE) {
+            const botCards = await this.getBotCards(game.botDifficulty, cards, appEmojis)
+            player.deck = RandomUtils.shuffleList(structuredClone(botCards))
+            player.cardbackEmoji = await this.getCardbackEmoji(undefined, appEmojis)
+            return
+        }
+
+        const resolvedUser = user ?? (await this.database.getUser(player.id))
+        const playerCards = await this.getPlayerCards(resolvedUser, cards, appEmojis)
+        player.deck = RandomUtils.shuffleList(structuredClone(playerCards))
+        player.cardbackEmoji = await this.getCardbackEmoji(resolvedUser, appEmojis)
     }
 
     private async setupBotOpponent(difficulty: Difficulty, playerId: string) {
@@ -772,9 +850,9 @@ export class CCGCommands extends AbstractCommands {
         }
     }
 
-    private async getCardbackEmoji(user?: MazariniUser) {
+    private async getCardbackEmoji(user?: MazariniUser, appEmojis?: Collection<string, ApplicationEmoji>) {
         const cardback = user?.ccg?.cardback ?? GameValues.ccg.defaultCardback
-        const emoji = await EmojiHelper.getApplicationEmoji(`cardback_${cardback}`, this.client)
+        const emoji = appEmojis ? this.client.getEmojiFromCollection(`cardback_${cardback}`, appEmojis) : await this.client.getEmoji(`cardback_${cardback}`)
         return emoji.id
     }
 
@@ -793,40 +871,46 @@ export class CCGCommands extends AbstractCommands {
         }
     }
 
-    private async getPlayerCards(user: MazariniUser): Promise<CCGCard[]> {
+    private async getPlayerCards(user: MazariniUser, cards?: ICCGSystem, appEmojis?: Collection<string, ApplicationEmoji>): Promise<CCGCard[]> {
+        const resolvedCards = cards ?? (await this.getCcgStorage())
+        const resolvedEmojis = appEmojis ?? (await this.client.getEmojis())
         const deck = user.ccg?.decks?.find((deck) => deck.active) ?? GameValues.ccg.defaultDeck
-        return await this.getFullCards(deck)
+        return await this.getFullCards(deck, resolvedCards, resolvedEmojis)
     }
 
-    private async getBotCards(difficulty: Difficulty): Promise<CCGCard[]> {
+    private async getBotCards(difficulty: Difficulty, cards?: ICCGSystem, appEmojis?: Collection<string, ApplicationEmoji>): Promise<CCGCard[]> {
+        const resolvedCards = cards ?? (await this.getCcgStorage())
+        const resolvedEmojis = appEmojis ?? (await this.client.getEmojis())
         const deck = RandomUtils.getRandomItemFromList(GameValues.ccg.botDeck[difficulty])
-        return await this.getFullCards(deck)
+        return await this.getFullCards(deck, resolvedCards, resolvedEmojis)
     }
 
-    private async getFullCards(deck: ICCGDeck) {
-        const cards = (await this.database.getStorage()).ccg
+    private async getFullCards(deck: ICCGDeck, cards?: ICCGSystem, appEmojis?: Collection<string, ApplicationEmoji>) {
+        const resolvedCards = cards ?? (await this.getCcgStorage())
+        const resolvedEmojis = appEmojis ?? (await this.client.getEmojis())
         const userCards = new Array<CCGCard>()
         for (const item of deck.cards) {
-            const series = cards[item.series] as CCGCard[]
+            const series = resolvedCards[item.series] as CCGCard[]
             const card = series?.find((card) => card.id === item.id)
             if (!card) {
                 this.messageHelper.sendLogMessage(`CCG: card not found in deck – series=${item.series}, id=${item.id}`)
                 continue
             }
             const emojiName = SERIES_EMOJI_IS_ID.has(card.series) ? card.id : `${card.series}_${card.id}`
-            const emoji = await EmojiHelper.getApplicationEmoji(emojiName, this.client)
+            const emoji = this.client.getEmojiFromCollection(emojiName, resolvedEmojis)
             const fullCard = { ...card, selected: false, emoji: emoji.id }
             for (let i = 0; i < item.amount; i++) userCards.push(structuredClone(fullCard))
         }
         return userCards
     }
 
-    private async userHasValidDeck(interaction: ChatInteraction | BtnInteraction) {
+    private async userHasValidDeck(interaction: ChatInteraction | BtnInteraction, user?: MazariniUser, cards?: ICCGSystem) {
         if (environment === 'dev') return true // skip deck validation in development for faster testing
-        const user = await this.database.getUser(interaction.user.id)
-        const deck = user.ccg?.decks?.find((deck) => deck.active) ?? GameValues.ccg.defaultDeck
+        const resolvedUser = user ?? (await this.database.getUser(interaction.user.id))
+        const resolvedCards = cards ?? (await this.getCcgStorage())
+        const deck = resolvedUser.ccg?.decks?.find((deck) => deck.active) ?? GameValues.ccg.defaultDeck
         deck.valid = true
-        await CCGValidator.validateDeck(this.client, user, deck, new Array<string>())
+        CCGValidator.validateDeckWithCards(resolvedUser, deck, new Array<string>(), resolvedCards)
         return deck.valid
     }
 
@@ -871,8 +955,34 @@ export class CCGCommands extends AbstractCommands {
         }
     }
 
+    private clearGameMessageUpdateState(gameId: string) {
+        this.gameMessageUpdateRequested.delete(gameId)
+        this.gameMessageUpdateQueue.delete(gameId)
+    }
+
     private updateGameMessage(game: CCGGame) {
-        if (game.message) game.message.edit({ components: [game.container.container] })
+        if (!game.message) return Promise.resolve()
+
+        const queuedUpdate = this.gameMessageUpdateQueue.get(game.id) ?? Promise.resolve()
+        this.gameMessageUpdateRequested.add(game.id)
+
+        const nextUpdate = queuedUpdate
+            .catch(() => undefined)
+            .then(async () => {
+                while (this.gameMessageUpdateRequested.has(game.id) && game.message) {
+                    this.gameMessageUpdateRequested.delete(game.id)
+                    await game.message.edit({ components: [game.container.container] })
+                }
+            })
+
+        const trackedUpdate = nextUpdate.finally(() => {
+            if (this.gameMessageUpdateQueue.get(game.id) === trackedUpdate) {
+                this.gameMessageUpdateQueue.delete(game.id)
+            }
+        })
+
+        this.gameMessageUpdateQueue.set(game.id, trackedUpdate)
+        return trackedUpdate
     }
 
     private delay(ms: number): Promise<void> {
@@ -886,17 +996,18 @@ export class CCGCommands extends AbstractCommands {
             if (!this.getCardGenerator().isReady)
                 return this.messageHelper.replyToInteraction(interaction, 'Kortbilder genereres fortsatt, prøv igjen om litt.')
             const vsBot = cmd === 'bot'
-            const validDeck = await this.userHasValidDeck(interaction)
+            const user = await this.database.getUser(interaction.user.id)
+            const ccgStorage = await this.getCcgStorage()
+            const validDeck = await this.userHasValidDeck(interaction, user, ccgStorage)
             if (!validDeck) return this.handleUserHasInvalidDeck(interaction)
-            const canAfford = await this.userCanAfford(interaction, vsBot)
+            const canAfford = this.userCanAfford(user, interaction, vsBot)
             if (!canAfford) return this.messageHelper.replyToInteraction(interaction, 'Du har ikke råd til dette')
-            this.setupGame(interaction, vsBot)
+            await this.setupGame(interaction, vsBot)
         } else if (cmd === 'help') this.helper.newCCGHelper(interaction)
         else if (cmd === 'stats') this.statViewer.newCCGStatView(interaction)
     }
 
-    private async userCanAfford(interaction: ChatInteraction, vsBot: boolean) {
-        const user = await this.database.getUser(interaction.user.id)
+    private userCanAfford(user: MazariniUser, interaction: ChatInteraction, vsBot: boolean) {
         if (vsBot) {
             // if ((user.ccg?.weeklyShardsEarned ?? 0) >= GameValues.ccg.rewards.weeklyLimit) return true
             const mode = interaction.options.get('mode')?.value as string as Mode
@@ -988,7 +1099,10 @@ export class CCGCommands extends AbstractCommands {
 
     private deleteFinishedGames() {
         const finishedGames = Array.from(this.games.values()).filter((game) => game.state.phase === 'FINISHED')
-        for (const game of finishedGames) this.games.delete(game.id)
+        for (const game of finishedGames) {
+            this.games.delete(game.id)
+            this.clearGameMessageUpdateState(game.id)
+        }
         return true
     }
 

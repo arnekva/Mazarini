@@ -12,7 +12,6 @@ import {
     MazariniUser,
 } from '../interfaces/database/databaseInterface'
 import { TextUtils } from '../utils/textUtils'
-import { EmojiHelper } from './emojiHelper'
 
 /** CCG series whose emoji names match the card ID exactly (no series prefix) */
 const CCG_SERIES_EMOJI_IS_ID = new Set(['swCCG'])
@@ -625,7 +624,7 @@ export class ImageGenerationHelper {
 
     private async getEmojiImageUrl(item: IUserLootItem, large: boolean = false): Promise<string | undefined> {
         const name = this.buildEmojiName(item)
-        const emoji = await EmojiHelper.getApplicationEmoji(name, this.client)
+        const emoji = await this.client.getEmoji(name)
         if (!emoji.urlId) return undefined
         const params = large ? 'size=128&quality=lossless' : 'size=96'
         return `https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?${params}`

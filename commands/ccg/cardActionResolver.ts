@@ -1,6 +1,5 @@
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
-import { EmojiHelper } from '../../helpers/emojiHelper'
 import { RandomUtils } from '../../utils/randomUtils'
 import { mazariniCCG } from './cards/mazariniCCG'
 import { swCCG } from './cards/swCCG'
@@ -398,7 +397,7 @@ export class CardActionResolver {
 
     private async getCardWithEmoji(card: CCGCard): Promise<CCGCard> {
         const emojiName = SERIES_EMOJI_IS_ID.has(card.series) ? card.id : `${card.series}_${card.id}`
-        const emoji = await EmojiHelper.getApplicationEmoji(emojiName, this.client)
+        const emoji = await this.client.getEmoji(emojiName)
         const fullCard = { ...card, selected: false, emoji: emoji.id }
         return fullCard
     }

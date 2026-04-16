@@ -271,7 +271,7 @@ export class LootboxCommands extends AbstractCommands {
             chestItems.set(itemId, item)
             const btn = lootChestButton(chestId, itemId)
             if (!series.hasColor) {
-                const emoji = (await EmojiHelper.getApplicationEmoji(`${item.rarity}_button`, this.client)).emojiObject
+                const emoji = (await this.client.getEmoji(`${item.rarity}_button`)).emojiObject
                 btn.setEmoji({ name: emoji.name, id: emoji.id })
                 btn.setStyle(ButtonStyle.Secondary)
             } else if (item.color !== ItemColor.None) {
@@ -707,7 +707,7 @@ export class LootboxCommands extends AbstractCommands {
     private async getLootApplicationEmoji(item: IUserLootItem) {
         let emojiName = `${item.series}_${item.name}_${item.color.charAt(0)}`.toLowerCase()
         if (item.rarity === ItemRarity.Unobtainable) emojiName = `${item.series}_unobtainable`
-        return await EmojiHelper.getApplicationEmoji(emojiName, this.client)
+        return await this.client.getEmoji(emojiName)
     }
 
     private getGifPath(item: IUserLootItem): string {

@@ -84,7 +84,7 @@ export class Blackjack extends AbstractCommands {
     // }
 
     private async getArrowEmoji() {
-        this.arrowEmoji = this.arrowEmoji ?? (await EmojiHelper.getApplicationEmoji('arrow_left', this.client))
+        this.arrowEmoji = this.arrowEmoji ?? (await this.client.getEmoji('arrow_left'))
         return this.arrowEmoji
     }
 
@@ -509,7 +509,7 @@ export class Blackjack extends AbstractCommands {
         if (player.allIn) player.stake = user.chips
         else if (game.fromDeathroll) player.stake = player.gameWinnings
         if (!this.client.bank.userCanAfford(user, player.stake)) {
-            const emoji = await EmojiHelper.getApplicationEmoji('arneouf', this.client)
+            const emoji = await this.client.getEmoji('arneouf')
             game.messages.embedContent = game.messages.embedContent
                 .setThumbnail(`https://cdn.discordapp.com/emojis/${emoji.urlId}.webp?size=96&quality=lossless`)
                 .setDescription(`Du har ikke råd til en ny`)

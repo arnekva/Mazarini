@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '31.3.0'
+    public static readonly currentVersion = '31.4.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,17 +27,18 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '# Dond',
-                '* Reward i stedet for chips: 10% -> 20%',
-                '# Rewards',
-                '* PvE:teller kun mot vanskelig',
-                '* Justeringer av rewards i alle nivå',
+                '# CCG',
+                '* Flere forbedringer i start av games',
+                '   * Henter ikke lenger emojier 300 ganger, bruker nå cache i stedet',
+                '   * Flere instansieringer starter ikke før "ready" er trykket av begge spillere',
+                '   * Senket ned antall databasekall for brukeren',
+                '* Gjort flere optimaliseringer under spillet for å få det til å gå raskere',
+                '   * Oppdatering i loggen skal nå unngå overlappende edits',
+                '   * Dvs. hvis timeout mellom oppdateringer tilfeldigvis overlapper med Discords egen rate limit, vil de kondensere til én oppdatering, heller enn å øke køen betraktelig.',
                 '# Bot',
-                '* Flere justeringer for å forbedre oppstartstid',
-                '* Fjerner Gemini',
-                '* Redigerer ikke lenger aktive blackjack spill ved omstart, men chips blir fortsatt refundert',
-                '* Skrur av watch for live bot (ecosystem.config er nå i gitignore, skru på watch lokalt)',
-                '* Import av store moduler (som puppeteer, Sharp, Spotify, wikijs, m.m.) gjøres nå dynamisk ved behov.',
+                '* Emojier caches nå, slik at man slipper å gjøre en fetch for alle hver gang ( client.getEmoji(navn) )',
+                '   * Cache blir invalidert ved endringer i emoji-listen.',
+                '   * Cache blir laget på ny første gang en emoji blir forsøkt hentet',
             ].join('\n')
         )
         container.addSeparator()
