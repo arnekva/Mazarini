@@ -24,8 +24,11 @@ export namespace DondItems {
         message: `at deathroll potten økes med ${amount}!`,
         effect: async (_user: MazariniUser, db) => {
             const currentPot = (await db?.getDeathrollPot()) ?? 0
-            db?.saveDeathrollPot(currentPot + amount)
+            await db?.saveDeathrollPot(currentPot + amount)
             return undefined
+        },
+        syncClientCache: (client) => {
+            client.cache.deathrollPot = (client.cache.deathrollPot ?? 0) + amount
         },
     })
 

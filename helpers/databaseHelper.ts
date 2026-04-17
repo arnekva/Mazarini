@@ -73,8 +73,8 @@ export class DatabaseHelper {
         this.db.updateUser(updatedUser)
     }
 
-    public updateData(updates: object) {
-        this.db.updateData(updates)
+    public async updateData(updates: object) {
+        await this.db.updateData(updates)
     }
 
     /** Get the cache. Will create and return an empty object if it doesnt exist */
@@ -355,13 +355,13 @@ export class DatabaseHelper {
         return (await this.db.getData('other/deathrollPot')) as number
     }
 
-    public saveDeathrollPot(amount: number) {
+    public async saveDeathrollPot(amount: number) {
         if (isNaN(amount)) {
             amount = 0
         }
         const updates = {}
         updates[`/other/deathrollPot`] = amount
-        this.db.updateData(updates)
+        await this.db.updateData(updates)
     }
     public saveDeathrollGames(games: DRGame[]) {
         if (games) {

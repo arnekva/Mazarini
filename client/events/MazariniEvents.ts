@@ -258,6 +258,7 @@ export class MazariniEvents {
     private async applyReward(user: MazariniUser, event: IMazariniEventEntry, channelId: string) {
         const rewardItem = RandomUtils.getRandomItemFromList(DondItems.getRewardsForQuality(event.reward.tier)) as IEffectItem
         const effectResult = await rewardItem.effect(user, this.client.database)
+        await rewardItem.syncClientCache?.(this.client, user)
         await this.client.database.updateUser(user)
 
         if (rewardItem.lootReward) {

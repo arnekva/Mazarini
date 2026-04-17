@@ -63,6 +63,7 @@ export interface IEffectItem {
         user: MazariniUser,
         db?: DatabaseHelper
     ): undefined | ActionRowBuilder<ButtonBuilder>[] | 'client-update' | Promise<undefined | ActionRowBuilder<ButtonBuilder>[] | 'client-update'>
+    syncClientCache?: (client: MazariniClient, user: MazariniUser) => void | Promise<void>
     lootReward?: {
         type: LootType
         quality: LootboxQuality
@@ -452,6 +453,7 @@ export class LootboxCommands extends AbstractCommands {
         if (interaction.customId.split(';')[2] === 'effect') {
             const effect = pendingChest.effect
             await effect.effect(user, this.database)
+            await effect.syncClientCache?.(this.client, user)
 
             this.database.updateUser(user)
             this.messageHelper.replyToInteraction(interaction, `Du valgte ${effect.message}`, { hasBeenDefered: true })

@@ -119,8 +119,8 @@ export class FirebaseHelper {
         }
     }
 
-    public updateData(updates: object) {
-        update(ref(this.db, database), updates)
+    public async updateData(updates: object) {
+        await update(ref(this.db, database), updates)
     }
 
     public updateUser(user: MazariniUser) {
