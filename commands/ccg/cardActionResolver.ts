@@ -296,7 +296,7 @@ export class CardActionResolver {
                     target.usedCards.push(card)
                     target.hand.splice(target.hand.indexOf(card), 1)
                 }
-                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} discards **${discarded.join(', ')}**`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} discards a random card`)
                 break
             }
 
@@ -373,7 +373,8 @@ export class CardActionResolver {
                 }
                 if (summoned) {
                     source.hand.push({ ...summoned, summoned: true })
-                    this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} summons **${summoned.name}** to their hand`)
+                    const summonedDesc = effect.identifier ? `a ${effect.identifier} card` : summoned.name
+                    this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} summons **${summonedDesc}** to their hand`)
                 } else {
                     this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} could not summon a card — no matching card found`)
                 }

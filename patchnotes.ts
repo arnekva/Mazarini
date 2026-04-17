@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '31.4.0'
+    public static readonly currentVersion = '31.4.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,17 +28,11 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '# CCG',
-                '* Flere forbedringer i start av games',
-                '   * Henter ikke lenger emojier 300 ganger, bruker nå cache i stedet',
-                '   * Flere instansieringer starter ikke før "ready" er trykket av begge spillere',
-                '   * Senket ned antall databasekall for brukeren',
-                '* Gjort flere optimaliseringer under spillet for å få det til å gå raskere',
-                '   * Oppdatering i loggen skal nå unngå overlappende edits',
-                '   * Dvs. hvis timeout mellom oppdateringer tilfeldigvis overlapper med Discords egen rate limit, vil de kondensere til én oppdatering, heller enn å øke køen betraktelig.',
-                '# Bot',
-                '* Emojier caches nå, slik at man slipper å gjøre en fetch for alle hver gang ( client.getEmoji(navn) )',
-                '   * Cache blir invalidert ved endringer i emoji-listen.',
-                '   * Cache blir laget på ny første gang en emoji blir forsøkt hentet',
+                '* Lagt til to nye Høie decks',
+                '   * Rebel Alliance (medium)',
+                '   * Mixed (vanskelig)',
+                '* Loggen viser nå en generisk melding om at et kort er discarded, i stedet for å nevne det faktiske kortet',
+                '* Loggen viser ikke hvilket kort som er summoned hvis det er et tilfeldig kort som blir summoned',
             ].join('\n')
         )
         container.addSeparator()
