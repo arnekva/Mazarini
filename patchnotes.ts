@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '31.4.0'
+    public static readonly currentVersion = '31.5.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,17 +28,10 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '# CCG',
-                '* Flere forbedringer i start av games',
-                '   * Henter ikke lenger emojier 300 ganger, bruker nå cache i stedet',
-                '   * Flere instansieringer starter ikke før "ready" er trykket av begge spillere',
-                '   * Senket ned antall databasekall for brukeren',
-                '* Gjort flere optimaliseringer under spillet for å få det til å gå raskere',
-                '   * Oppdatering i loggen skal nå unngå overlappende edits',
-                '   * Dvs. hvis timeout mellom oppdateringer tilfeldigvis overlapper med Discords egen rate limit, vil de kondensere til én oppdatering, heller enn å øke køen betraktelig.',
-                '# Bot',
-                '* Emojier caches nå, slik at man slipper å gjøre en fetch for alle hver gang ( client.getEmoji(navn) )',
-                '   * Cache blir invalidert ved endringer i emoji-listen.',
-                '   * Cache blir laget på ny første gang en emoji blir forsøkt hentet',
+                '* Concede knapp',
+                '   * Det har en kostnad å gi seg: 11 shards minus 1 shard for hver tur som har gått i spillet',
+                '   * Du må bekrefte at du vil gi deg - så du skal slippe å gi deg ved et uhell',
+                '* Fikser en feil hvor hånden din viser feil i hvilke kort som er valgt',
             ].join('\n')
         )
         container.addSeparator()

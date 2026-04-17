@@ -204,6 +204,7 @@ export type GameValuesType = {
             speedBuff_multiplier: number
         }
         isLootable: boolean
+        concedeShardPenalty: number
         activeCCGseries: string[]
         defaultDeck: ICCGDeck
         defaultCardback: string
@@ -461,6 +462,7 @@ export const GameValues: GameValuesType = {
             speedBuff_multiplier: 1.5,
         },
         isLootable: false,
+        concedeShardPenalty: 11,
         activeCCGseries: ['mazariniCCG', 'swCCG'],
         defaultDeck: {
             name: 'default',
@@ -543,6 +545,23 @@ export const GameValues: GameValuesType = {
                         { id: 'sw_moff_gideon_n', series: 'swCCG', amount: 2 },
                     ],
                 },
+                {
+                    // Medium #3 — Rebel Alliance
+                    name: 'medium',
+                    active: true,
+                    valid: true,
+                    cards: [
+                        { id: 'sw_princess_leia_n', series: 'swCCG', amount: 1 },
+                        { id: 'sw_han_solo_n', series: 'swCCG', amount: 2 },
+                        { id: 'sw_chewbacca_n', series: 'swCCG', amount: 2 },
+                        { id: 'sw_lando_calrissian_n', series: 'swCCG', amount: 2 },
+                        { id: 'sw_cassian_andor_n', series: 'swCCG', amount: 1 },
+                        { id: 'sw_luthen_rael_n', series: 'swCCG', amount: 1 },
+                        { id: 'sw_rebel_soldier_n', series: 'swCCG', amount: 2 },
+                        { id: 'sw_admiral_ackbar_n', series: 'swCCG', amount: 2 },
+                        { id: 'sw_gonk_droid_n', series: 'swCCG', amount: 2 },
+                    ],
+                },
             ],
             hard: [
                 {
@@ -575,13 +594,30 @@ export const GameValues: GameValuesType = {
                         { id: 'sw_clone_trooper_n', series: 'swCCG', amount: 2 },
                         { id: 'sw_plo_koon_n', series: 'swCCG', amount: 1 },
                         { id: 'sw_mace_windu_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_yoda_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_ahsoka_tano_n', series: 'swCCG', amount: 1 },
+                        { id: 'sw_yoda_n', series: 'swCCG', amount: 2 },
+                        { id: 'sw_kit_fisto_n', series: 'swCCG', amount: 1 },
                         { id: 'sw_anakin_skywalker_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_chewbacca_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_cassian_andor_n', series: 'swCCG', amount: 1 },
+                        { id: 'sw_space_jesus_n', series: 'swCCG', amount: 1 },
                         { id: 'sw_qui_gon_jinn_n', series: 'swCCG', amount: 1 },
                         { id: 'sw_luke_skywalker_n', series: 'swCCG', amount: 1 },
+                    ],
+                },
+                {
+                    // Vanskelig #3 — Mixed
+                    name: 'hard',
+                    active: true,
+                    valid: true,
+                    cards: [
+                        { id: 'sw_gonk_droid_n', series: 'swCCG', amount: 2 },
+                        { id: 'pointerbrothers1', series: 'mazariniCCG', amount: 2 },
+                        { id: 'sw_r2d2_n', series: 'swCCG', amount: 1 },
+                        { id: 'sw_anakin_skywalker_n', series: 'swCCG', amount: 2 },
+                        { id: 'sw_yoda_n', series: 'swCCG', amount: 2 },
+                        { id: 'sw_kit_fisto_n', series: 'swCCG', amount: 2 },
+                        { id: 'sw_ig88_n', series: 'swCCG', amount: 1 },
+                        { id: 'sw_space_jesus_n', series: 'swCCG', amount: 1 },
+                        { id: 'sw_qui_gon_jinn_n', series: 'swCCG', amount: 1 },
+                        { id: 'sw_emperor_palpatine_n', series: 'swCCG', amount: 1 },
                     ],
                 },
             ],

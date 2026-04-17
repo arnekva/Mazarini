@@ -540,13 +540,19 @@ const lotrInventoryArts: ILootSeriesInventoryArt[] = [
 
 const luckyWheelRewards: ILuckyWheelReward[] = [
     { name: '10K Dond', type: LuckyWheelRewardType.dond, amount: 10, weight: 4 },
-    { name: '20K Dond', type: LuckyWheelRewardType.dond, amount: 20, weight: 3 },
-    { name: '50K Dond', type: LuckyWheelRewardType.dond, amount: 50, weight: 2 },
+    { name: '20K Dond', type: LuckyWheelRewardType.dond, amount: 20, weight: 4 },
+    { name: '50K Dond', type: LuckyWheelRewardType.dond, amount: 50, weight: 4 },
     {
         name: 'Basic Pack',
         type: LuckyWheelRewardType.pack,
         quality: LootboxQuality.Basic,
-        weight: 1,
+        weight: 4,
+    },
+    {
+        name: 'Premium Pack',
+        type: LuckyWheelRewardType.pack,
+        quality: LootboxQuality.Premium,
+        weight: 4,
     },
     {
         name: '500 chips',
