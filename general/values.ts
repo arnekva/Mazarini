@@ -204,6 +204,7 @@ export type GameValuesType = {
             speedBuff_multiplier: number
         }
         isLootable: boolean
+        concedeShardPenalty: number
         activeCCGseries: string[]
         defaultDeck: ICCGDeck
         defaultCardback: string
@@ -461,6 +462,7 @@ export const GameValues: GameValuesType = {
             speedBuff_multiplier: 1.5,
         },
         isLootable: false,
+        concedeShardPenalty: 11,
         activeCCGseries: ['mazariniCCG', 'swCCG'],
         defaultDeck: {
             name: 'default',

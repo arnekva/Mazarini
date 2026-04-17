@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '31.4.1'
+    public static readonly currentVersion = '31.5.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,11 +28,10 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '# CCG',
-                '* Lagt til to nye Høie decks',
-                '   * Rebel Alliance (medium)',
-                '   * Mixed (vanskelig)',
-                '* Loggen viser nå en generisk melding om at et kort er discarded, i stedet for å nevne det faktiske kortet',
-                '* Loggen viser ikke hvilket kort som er summoned hvis det er et tilfeldig kort som blir summoned',
+                '* Concede knapp',
+                '   * Det har en kostnad å gi seg: 11 shards minus 1 shard for hver tur som har gått i spillet',
+                '   * Du må bekrefte at du vil gi deg - så du skal slippe å gi deg ved et uhell',
+                '* Fikser en feil hvor hånden din viser feil i hvilke kort som er valgt',
             ].join('\n')
         )
         container.addSeparator()

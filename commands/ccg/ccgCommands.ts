@@ -105,6 +105,7 @@ export class CCGCommands extends AbstractCommands {
     private async sendPlayerHand(interaction: BtnInteraction, game: CCGGame, player: CCGPlayer) {
         const msg = await this.messageHelper.replyToInteraction(interaction, 'Fetching hand...', { ephemeral: !game.vsBot })
         player.handMessage = msg
+        this.updatePlayerHand(game, player)
     }
 
     private async getPlayerHandImage(player: CCGPlayer, includeAll = false, mods: CardModification[] = []) {
@@ -183,6 +184,36 @@ export class CCGCommands extends AbstractCommands {
         this.handlePlayerSubmit(game, player)
     }
 
+    private async concedeGame(interaction: BtnInteraction, game: CCGGame, player: CCGPlayer) {
+        const penalty = Math.max(0, GameValues.ccg.concedeShardPenalty - game.state.turn)
+        const btn = confirmConcede(game.id, player.id)
+        await this.messageHelper.replyToInteraction(interaction, `Er du sikker på at du vil gi deg? Dette vil koste deg ${penalty} shards!`, undefined, [btn])
+    }
+
+    private async confirmConcedeGame(interaction: BtnInteraction, game: CCGGame, player: CCGPlayer) {
+        if (interaction.user.id !== interaction.customId.split(';')[2]) return interaction.deferUpdate()
+        await interaction.message.delete()
+        interaction.deferUpdate()
+        // Deduct shard penalty from conceder
+        const user = await this.client.database.getUser(player.id)
+        const penalty = Math.max(0, GameValues.ccg.concedeShardPenalty - game.state.turn)
+        if (user.ccg) {
+            user.ccg.shards = Math.max(0, (user.ccg.shards ?? 0) - penalty)
+        } else {
+            user.ccg = { shards: 0, weeklyShardsEarned: 0, dailyShardBonusClaimed: false }
+        }
+        await this.client.database.updateUser(user)
+        // Set opponent as winner
+        game.state.winnerId = player.opponentId
+        // Log concede
+        game.state.log.push({
+            turn: game.state.turn,
+            message: `*${player.name} concedes the game*`,
+        })
+        // End game
+        await this.endGame(game)
+    }
+
     private async handlePlayerSubmit(game: CCGGame, player: CCGPlayer) {
         await this.updatePlayerHand(game, player)
         if (game.player1.submitted && game.player2.submitted) {
@@ -249,14 +280,14 @@ export class CCGCommands extends AbstractCommands {
         game.container.removeComponent('effect-summary')
         game.container.removeComponent('separator3')
         game.container.updateTextComponent('game-text', `Choose up to 2 cards\n${game.vsBot ? '' : 'Players submitted: ( 0 / 2 )'}`)
-        game.container.replaceComponent('main-button', readyBtn(game.id, !game.vsBot))
+        game.container.replaceComponent('main-button', getPlayButtons(game, !game.vsBot))
         this.preparePlayerForNewRound(game, game.player1)
         this.preparePlayerForNewRound(game, game.player2, game.vsBot)
         this.updatePlayerStates(game)
         this.updateGameMessage(game)
         if (!game.vsBot) {
             setTimeout(() => {
-                game.container.replaceComponent('main-button', readyBtn(game.id))
+                game.container.replaceComponent('main-button', getPlayButtons(game))
                 this.updateGameMessage(game)
             }, 3000)
         }
@@ -323,7 +354,7 @@ export class CCGCommands extends AbstractCommands {
             `${game.player2.name} plays:\n${this.getPlayedCardsString(game.player2)}\n\n` +
             `${game.player1.name} plays:\n${this.getPlayedCardsString(game.player1)}`
         game.container.updateTextComponent('game-text', playedCards)
-        game.container.replaceComponent('main-button', readyBtn(game.id, game.state.locked))
+        game.container.replaceComponent('main-button', getPlayButtons(game, game.state.locked))
         this.updateGameMessage(game)
     }
 
@@ -558,12 +589,8 @@ export class CCGCommands extends AbstractCommands {
         const cardIndex = Number(interaction.customId.split(';')[2])
         player.hand[cardIndex].selected = !player.hand[cardIndex].selected
         const row = interaction.message.components[0] as any
-        ;(row.components as any) = row.components.map((button) =>
-            button.customId === interaction.customId
-                ? ButtonBuilder.from(button as APIButtonComponent).setStyle(
-                      (button as APIButtonComponent).style === ButtonStyle.Secondary ? ButtonStyle.Primary : ButtonStyle.Secondary
-                  )
-                : button
+        ;(row.components as any) = row.components.map((button, index) =>
+            ButtonBuilder.from(button as APIButtonComponent).setStyle(player.hand[index].selected ? ButtonStyle.Primary : ButtonStyle.Secondary)
         )
         await player.handMessage.edit({ components: [row] })
     }
@@ -679,7 +706,7 @@ export class CCGCommands extends AbstractCommands {
             ComponentsHelper.createTextComponent().setContent(this.getPlayerStateString(game, game.player1)),
             'separator2'
         )
-        game.container.replaceComponent('main-button', readyBtn(game.id))
+        game.container.replaceComponent('main-button', getPlayButtons(game))
         game.container.replaceComponent('resendButtons', resendButtons(game.id, true))
     }
 
@@ -1175,6 +1202,18 @@ export class CCGCommands extends AbstractCommands {
                         },
                     },
                     {
+                        commandName: 'CCG_CONCEDE',
+                        command: (interaction: ButtonInteraction) => {
+                            this.verifyUserAndCallMethod(interaction, (game, player) => this.concedeGame(interaction, game, player))
+                        },
+                    },
+                    {
+                        commandName: 'CCG_CONFIRM_CONCEDE',
+                        command: (interaction: ButtonInteraction) => {
+                            this.verifyUserAndCallMethod(interaction, (game, player) => this.confirmConcedeGame(interaction, game, player))
+                        },
+                    },
+                    {
                         commandName: 'CCG_HELPER',
                         command: (interaction: ButtonInteraction) => {
                             this.helper.setCategory(interaction)
@@ -1265,20 +1304,45 @@ const readyUpBtn = (gameId: string) => {
     )
 }
 
-const readyBtn = (gameId: string, disabled = false) => {
-    return new ActionRowBuilder<ButtonBuilder>().addComponents(
+const getPlayButtons = (game: CCGGame, disabled = false) => {
+    const components = [
         new ButtonBuilder({
-            custom_id: `CCG_READY;${gameId}`,
+            custom_id: `CCG_READY;${game.id}`,
             style: ButtonStyle.Success,
             disabled: disabled,
             label: 'Play',
             type: 2,
         }),
         new ButtonBuilder({
-            custom_id: `CCG_DISCARD;${gameId}`,
+            custom_id: `CCG_DISCARD;${game.id}`,
             style: ButtonStyle.Secondary,
             disabled: disabled,
             label: 'Discard',
+            type: 2,
+        }),
+    ]
+    // Add concede button if PvP
+    if (!game.vsBot) {
+        components.push(
+            new ButtonBuilder({
+                custom_id: `CCG_CONCEDE;${game.id}`,
+                style: ButtonStyle.Secondary,
+                disabled: disabled,
+                label: `Concede`,
+                type: 2,
+            })
+        )
+    }
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(...components)
+}
+
+const confirmConcede = (gameId: string, userId: string) => {
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder({
+            custom_id: `CCG_CONFIRM_CONCEDE;${gameId};${userId}`,
+            style: ButtonStyle.Danger,
+            disabled: false,
+            label: 'Confirm Concede',
             type: 2,
         })
     )
