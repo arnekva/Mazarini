@@ -28,7 +28,7 @@ import {
 import { Moment } from 'moment'
 import { Stream } from 'stream'
 import { BtnInteraction, ChatInteraction, MenuSelectInteraction, ModalInteraction } from '../Abstracts/MazariniInteraction'
-import { environment } from '../client-env'
+import { environment, secretDevelopment } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
 import { MazariniBot } from '../main'
 import { ChannelIds, MentionUtils } from '../utils/mentionUtils'
@@ -212,7 +212,7 @@ export class MessageHelper {
             return undefined
         }
 
-        if (environment === 'dev') channelId = this.client.currentDevelopmentChannelId
+        if (environment === 'dev') channelId = secretDevelopment ? ChannelIds.SECRET_LOCALHOST : ChannelIds.LOCALHOST
 
         const channel = this.findChannelById(channelId) as TextChannel
         if (channel && channel.permissionsFor(UserUtils.findMemberByUserID(MentionUtils.User_IDs.BOT_HOIE, channel.guild)).toArray().includes('SendMessages')) {

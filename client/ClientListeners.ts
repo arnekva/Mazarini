@@ -116,7 +116,6 @@ export class ClientListener {
         /** For all sent messages */
         this.client.on('messageCreate', async (message: Message) => {
             MazariniBot.numMessages++
-            if (environment === 'dev' && message.channelId) this.client.currentDevelopmentChannelId = message.channelId
             //Do not reply to own messages. Do not trigger on pinned messages
             if (
                 message?.author?.id == MentionUtils.User_IDs.BOT_HOIE ||
@@ -134,9 +133,7 @@ export class ClientListener {
                     const reference = await this.client.messageHelper.fetchMessage(message.channelId, msgId)
                     replyToHoie = reference.interactionMetadata === null
                 }
-                const correctChannel =
-                    (environment === 'prod' && message.channelId !== ChannelIds.LOCALHOST) ||
-                    (environment === 'dev' && message.channelId === this.client.currentDevelopmentChannelId)
+                const correctChannel = MessageUtils.isLegalChannel(message.channelId)
                 if ((hoieTagged || replyToHoie) && correctChannel) {
                     const isQuestion = message.content.trimEnd().endsWith('?')
                     const response = ArrayUtils.randomChoiceFromArray(isQuestion ? textArrays.bentHoieLinesAnswers : textArrays.bentHoieLines)
