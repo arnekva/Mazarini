@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '31.5.0'
+    public static readonly currentVersion = '31.5.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,15 +25,7 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(
-            [
-                '# CCG',
-                '* Concede knapp',
-                '   * Det har en kostnad å gi seg: 11 shards minus 1 shard for hver tur som har gått i spillet',
-                '   * Du må bekrefte at du vil gi deg - så du skal slippe å gi deg ved et uhell',
-                '* Fikser en feil hvor hånden din viser feil i hvilke kort som er valgt',
-            ].join('\n')
-        )
+        const text = new TextDisplayBuilder().setContent(['# CCG', '* Trade editor har nå et "3+" filter'].join('\n'))
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 
