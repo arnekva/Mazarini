@@ -98,6 +98,7 @@ export const CCGDeckEditor_Trade = () => {
     if (GameValues.ccg.activeCCGseries.length > 1) {
         container.addComponent(buttons3, 'seriesFilters')
     }
+    container.addComponent(buttons2, 'amountFilters')
     return container
 }
 

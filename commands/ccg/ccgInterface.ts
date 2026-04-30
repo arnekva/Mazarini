@@ -272,6 +272,7 @@ export interface DeckEditor {
     rarityFilters: ItemRarity[]
     usageFilters: UsageFilter[]
     seriesFilters: CCGSeries[]
+    amountFilters: AmountFilter[]
     identifierFilters: CardIdentifier[]
     userCards: CCGCard[]
     cardImages: Map<string, Buffer>
@@ -290,6 +291,10 @@ export interface DeckEditor {
         container?: SimpleContainer
         message?: Message | InteractionResponse
     }
+}
+
+export enum AmountFilter {
+    ThreePlus = '3+',
 }
 
 export enum UsageFilter {

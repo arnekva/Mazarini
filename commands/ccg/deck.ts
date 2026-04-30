@@ -20,7 +20,7 @@ import { DeckEditorCard, ICCGDeck, ItemRarity, IUserLootItem, MazariniUser } fro
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { CCGDeckEditor_Info, CCGDeckEditor_Trade } from '../../templates/containerTemplates'
 import { TextUtils } from '../../utils/textUtils'
-import { CardIdentifier, CCGCard, CCGCardType, CCGSeries, DeckEditor, UsageFilter } from './ccgInterface'
+import { AmountFilter, CardIdentifier, CCGCard, CCGCardType, CCGSeries, DeckEditor, UsageFilter } from './ccgInterface'
 import { CCGValidator } from './validator'
 
 export class DeckCommands extends AbstractCommands {
@@ -97,6 +97,7 @@ export class DeckCommands extends AbstractCommands {
             usageFilters: [],
             seriesFilters: [],
             identifierFilters: [],
+            amountFilters: [],
             userCards: structuredClone(fullCards),
             filteredCards: structuredClone(fullCards),
             cardImages: new Map<string, Buffer>(),
@@ -152,6 +153,7 @@ export class DeckCommands extends AbstractCommands {
             deckInfo.replaceComponent('seriesFilters', seriesFilters(editor))
         }
         deckInfo.replaceComponent('identifierFilters', identifierFilters(editor))
+        deckInfo.replaceComponent('amountFilters', amountFilters(editor))
         deckInfo.setColor(editor.userColor)
         return deckInfo
     }
@@ -192,7 +194,8 @@ export class DeckCommands extends AbstractCommands {
         editor.cardView.attachments.push(attachment)
         const available = this.getCardAmountAvailable(user, card)
         const inDeck = editor.deck.cards?.find((instance) => instance.id === card.id)?.amount ?? 0
-        const maxAllowed = card.rarity === ItemRarity.Legendary ? 1 : 2
+        let maxAllowed = card.rarity === ItemRarity.Legendary ? 1 : 2
+        if (editor.isTradeEditor) maxAllowed = available
         const identifiers = (card.identifier?.length ?? 0) > 0 ? `\n-# ${card.identifier.join(' · ')}` : ''
         let cardInfo = `### **${card.name}**${identifiers}\n-# ${TextUtils.capitalizeFirstLetter(card.type)}\n-# ${TextUtils.capitalizeFirstLetter(
             card.rarity
@@ -258,7 +261,7 @@ export class DeckCommands extends AbstractCommands {
         return userCards
     }
 
-    private setFilter(interaction: BtnInteraction, editor: DeckEditor) {
+    private async setFilter(interaction: BtnInteraction, editor: DeckEditor) {
         const filter = interaction.customId.split(';')[2]
         if (Object.values(ItemRarity).includes(filter as ItemRarity)) {
             const index = editor.rarityFilters.findIndex((rarity) => rarity === filter)
@@ -276,9 +279,13 @@ export class DeckCommands extends AbstractCommands {
             const index = editor.seriesFilters.findIndex((series) => series === filter)
             if (index >= 0) editor.seriesFilters.splice(index, 1)
             else editor.seriesFilters.push(filter as CCGSeries)
+        } else if (Object.values(AmountFilter).includes(filter as AmountFilter)) {
+            const index = editor.amountFilters.findIndex((series) => series === filter)
+            if (index >= 0) editor.amountFilters.splice(index, 1)
+            else editor.amountFilters.push(filter as AmountFilter)
         }
         this.updateFilterButtons(editor)
-        this.filterCards(editor)
+        await this.filterCards(editor)
         editor.page = 1
         this.updateCardView(editor, interaction.user.id)
     }
@@ -291,16 +298,19 @@ export class DeckCommands extends AbstractCommands {
             editor.deckInfo.container.replaceComponent('seriesFilters', seriesFilters(editor))
         }
         editor.deckInfo.container.replaceComponent('identifierFilters', identifierFilters(editor))
+        editor.deckInfo.container.replaceComponent('amountFilters', amountFilters(editor))
         editor.deckInfo.message.edit({ components: [editor.deckInfo.container.container] })
     }
 
-    private filterCards(editor: DeckEditor) {
+    private async filterCards(editor: DeckEditor) {
+        const user = await this.database.getUser(editor.userId)
         editor.filteredCards = structuredClone(editor.userCards).filter(
             (card) =>
                 ((editor.typeFilters.length ?? 0) === 0 || editor.typeFilters.includes(card.type)) &&
                 ((editor.rarityFilters.length ?? 0) === 0 || editor.rarityFilters.includes(card.rarity)) &&
                 ((editor.usageFilters.length ?? 0) === 0 || this.checkUsageFilter(editor, card)) &&
                 ((editor.seriesFilters.length ?? 0) === 0 || editor.seriesFilters.includes(card.series as CCGSeries)) &&
+                ((editor.amountFilters.length ?? 0) === 0 || this.getCardAmountAvailable(user, card) >= 3) &&
                 ((editor.identifierFilters?.length ?? 0) === 0 || card.identifier?.some((i) => editor.identifierFilters.includes(i)))
         )
     }
@@ -626,6 +636,12 @@ const rarityFilters = (editor: DeckEditor) => {
     )
 }
 
+const amountFilters = (editor: DeckEditor) => {
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(
+        filterButton(editor.id, AmountFilter.ThreePlus, editor.amountFilters?.includes(AmountFilter.ThreePlus))
+    )
+}
+
 const ALL_IDENTIFIERS: CardIdentifier[] = ['REBEL', 'SITH', 'JEDI', 'REPUBLIC', 'BOUNTY_HUNTER', 'CREATURE', 'EMPIRE', 'DROID']
 
 const identifierFilters = (editor: DeckEditor) => {
@@ -646,7 +662,7 @@ const identifierFilters = (editor: DeckEditor) => {
     )
 }
 
-const filterButton = (editorId: string, filter: CCGCardType | ItemRarity | UsageFilter | CCGSeries, filterIsActive = false) => {
+const filterButton = (editorId: string, filter: CCGCardType | ItemRarity | UsageFilter | AmountFilter | CCGSeries, filterIsActive = false) => {
     return new ButtonBuilder({
         custom_id: `DECK_FILTER;${editorId};${filter}`,
         style: filterIsActive ? ButtonStyle.Primary : ButtonStyle.Secondary,
