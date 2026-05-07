@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '31.5.2'
+    public static readonly currentVersion = '31.5.3'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,7 +26,7 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            ['# Events', '\n* Kvaliteten på rewards står nå mer etter forventningene (med mindre du er Geggi?)'].join('\n')
+            ['# Events', '\n* Skrur av daglig generering av events'].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
