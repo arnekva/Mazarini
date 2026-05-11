@@ -19,7 +19,8 @@ export class HourJob {
             await this.checkForUpcomingRLTournaments()
             await this.sendScheduledMessage()
         }
-        await this.client.mazariniEvents.activateDueEvents()
+        // Daily events disabled
+        // await this.client.mazariniEvents.activateDueEvents()
     }
 
     private async checkForUpcomingRLTournaments() {

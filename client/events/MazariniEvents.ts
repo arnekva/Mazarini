@@ -40,7 +40,9 @@ export class MazariniEvents {
             this.saveState(current)
             return current
         }
-        return this.generateDailyEvents(date)
+        // Daily events generation disabled
+        return current
+        // return this.generateDailyEvents(date)
     }
 
     async activateSpecificEvent(type: MazariniEventType, date = new Date()) {
