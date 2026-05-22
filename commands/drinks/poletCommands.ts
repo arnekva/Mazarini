@@ -4,6 +4,7 @@ import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { vinBearer, vinKey, vinmonopoletKey, vinUserAgent } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
+import { EmojiHelper } from '../../helpers/emojiHelper'
 
 import { Languages } from '../../helpers/languageHelpers'
 import { MessageHelper } from '../../helpers/messageHelper'
@@ -47,12 +48,22 @@ interface PoletData {
         exceptionHours: exceptionHours[]
     }
 }
+/** Only implemented used variables - can be expanded if needed */
+interface VGRating {
+    lead: string
+    grade_num: number
+    score_num: number
+    product_id: string
+    created_at: string
+    author_description: string
+}
 export class PoletCommands extends AbstractCommands {
     static baseStoreDataURL = 'https://apis.vinmonopolet.no/stores/v0/details'
     static baseProductURL = 'https://apis.vinmonopolet.no/products/v0/details-normal'
     static pressProductURL = 'https://www.vinmonopolet.no/vmpws/v3/vmp/products'
     static stockURL = 'https://www.vinmonopolet.no/vmpws/v2/vmp/products'
     static barCodeURL = 'https://www.vinmonopolet.no/vmpws/v3/vmp/products/barCodeSearch'
+    static vgRatingUrl = 'https://api.vg.no/insanity-cms/wines'
     static baseStoreID = '416'
 
     constructor(client: MazariniClient) {
@@ -241,11 +252,20 @@ export class PoletCommands extends AbstractCommands {
         return 'Stengt'
     }
 
+    private static async fetchVGRating(productId: string): Promise<VGRating | undefined> {
+        const response = await fetch(`${PoletCommands.vgRatingUrl}?skip=0&take=30&query=${productId}`, { method: 'GET' })
+
+        if (!response.ok) return undefined
+
+        const rating = (await response.json()) as VGRating[]
+        return rating[0]
+    }
+
     //TODO & FIXME: Is this the best placement for this function?
     static async checkForVinmonopolContent(message: Message, messageHelper: MessageHelper) {
         const content = message.content
         const barCodeRegex = /\d{9,15}/gi
-        const productIdRegex = /(?<!.)\d{7,8}(?!.)/gi
+        const productIdRegex = /(?<!.)\d{6,8}(?!.)/gi
         const hasUrl = content.includes('https://www.vinmonopolet.no/')
         let hasBarCode = barCodeRegex.test(content)
         const hasProductId = productIdRegex.test(content)
@@ -257,16 +277,17 @@ export class PoletCommands extends AbstractCommands {
             hasBarCode = !!barcodes
         }
         if (hasUrl || hasBarCode || hasProductId) {
-            const id = hasBarCode ? barcodes[0] : hasProductId ? content : content.split('/p/')[1]
+            let id = ''
+            if (hasBarCode) id = barcodes[0]
+            else if (hasProductId) id = content.match(productIdRegex)[0]
+            else id = content.split('/p/')[1].split('/')[0] as string
+
             if (id && !isNaN(Number(id))) {
                 let data: any = undefined
                 let barcode: any = undefined
-                console.log('1')
-
                 if (hasProductId) data = await PoletCommands.fetchProductDataFromId(content, false)
                 else if (hasUrl) data = await PoletCommands.fetchProductDataFromId(content.split('/p/')[1], false)
                 else {
-                    console.log('2')
                     let found = false
                     for (let i = 0; !found && i < barcodes?.length; i++) {
                         data = await PoletCommands.fetchProductDataFromId(barcodes[i], true)
@@ -319,6 +340,23 @@ export class PoletCommands extends AbstractCommands {
                         if (!f.value) f.value = 'Ukjent'
                         if (f.value.includes('undefined')) f.value = f.value.replace('undefined', 'Ukjent')
                     })
+
+                    const rating = await PoletCommands.fetchVGRating(id)
+                    if (rating) {
+                        const diceRoll = EmbedUtils.createField(
+                            `VG Terningkast`,
+                            `${EmojiHelper.getEmoji('dice_' + rating.grade_num, message).emojiObject ?? rating.grade_num} `,
+                            true
+                        )
+                        const wineScore = EmbedUtils.createField(`VG Rating`, `${rating.score_num} poeng`, true)
+                        const description = EmbedUtils.createField(
+                            `VG anmeldelse`,
+                            `*${rating.lead ?? ''}*: ${rating?.author_description ? rating.author_description : 'Ingen anmeldelse'}`
+                        )
+                        embed.addFields(diceRoll, wineScore, description)
+
+                        console.log(rating)
+                    }
 
                     //Possible formats: product, thumbnail, zoom, cartIcon and superZoom (some may be identical or not exist at all.)
                     //"zoom" seems to be the version used on the website, but still not all products have photos so it might be undefined

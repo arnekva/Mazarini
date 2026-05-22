@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '31.5.4'
+    public static readonly currentVersion = '31.5.5'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,7 +25,9 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(['# Events', '\n* Skrur av fallback generering av events i hour job'].join('\n'))
+        const text = new TextDisplayBuilder().setContent(
+            ['# Vinmonopolet', '\n* Når du sender en produkt-id til kanalen vil botten forsøke å finne en rating fra VG i samme slengen'].join('\n')
+        )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 
