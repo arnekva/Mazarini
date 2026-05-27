@@ -209,10 +209,12 @@ export class LootboxCommands extends AbstractCommands {
         const sh = new LootStatsHelper(user.loot[seriesObj.name].stats)
         sh.registerPurchase(box, true, interaction.isChatInputCommand())
 
+        const ccgStorage = (await this.database.getStorage()).ccg
+        const isValidCard = (item: IUserLootItem) => ccgStorage[item.series]?.some((card) => card.id === item.name)
         const chestItems: IUserLootItem[] = new Array<IUserLootItem>()
         for (let i = 0; i < 3; i++) {
             let item = this.calculateRewardItem(box, seriesObj, user)
-            while (this.itemIsDuplicate(item, chestItems)) {
+            while (this.itemIsDuplicate(item, chestItems) || !isValidCard(item)) {
                 item = this.calculateRewardItem(box, seriesObj, user)
             }
             chestItems.push(item)
@@ -408,8 +410,8 @@ export class LootboxCommands extends AbstractCommands {
         const userCards = new Array<CCGCard>()
         for (const item of items) {
             const series = cards[item.series] as CCGCard[]
-            userCards.push(series.find((card) => card.id === item.name))
-            // userCards.push(cards.find((card) => card.id === item.name))
+            const card = series?.find((card) => card.id === item.name)
+            if (card) userCards.push(card)
         }
         return userCards
     }
