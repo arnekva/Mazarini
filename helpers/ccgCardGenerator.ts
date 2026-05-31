@@ -29,6 +29,12 @@ const RARITY_BLANK: Record<string, string> = {
 
 /** Per-series rarity blank overrides */
 const SERIES_RARITY_BLANK: Record<string, Record<string, string>> = {
+    hpCCG: {
+        [ItemRarity.Common]: 'hp/hp_common_blank.png',
+        [ItemRarity.Rare]: 'hp/hp_rare_blank.png',
+        [ItemRarity.Epic]: 'hp/hp_epic_blank.png',
+        [ItemRarity.Legendary]: 'hp/hp_legendary_blank.png',
+    },
     swCCG: {
         [ItemRarity.Common]: 'sw/sw_common_blank.png',
         [ItemRarity.Rare]: 'sw/sw_rare_blank.png',
