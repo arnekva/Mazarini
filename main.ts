@@ -32,7 +32,7 @@ export class MazariniBot {
             .getStorage()
             .then((storage) => {
                 const dbCcg = storage?.ccg
-                const dbCards = dbCcg ? [...(dbCcg.mazariniCCG ?? []), ...(dbCcg.swCCG ?? [])] : undefined
+                const dbCards = dbCcg ? Object.values(dbCcg).flat() : undefined
                 CCGCardGenerator.generateAll(this.client, dbCards?.length ? dbCards : undefined).catch((err) => {
                     console.error('[CCG] Card generation failed:', err)
                 })

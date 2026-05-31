@@ -146,7 +146,7 @@ export const hpCCG: CCGCard[] = [
             {
                 type: 'SUMMON_CARD',
                 target: 'SELF',
-                summonCardId: 'hp_polyjuice_n',
+                summonCardId: 'hp_polyjuice_potion_n',
             },
         ],
         cost: 1,
@@ -734,7 +734,7 @@ export const hpCCG: CCGCard[] = [
         identifier: ['MAGICAL_CREATURE'],
     },
     {
-        id: 'hp_polyjuice_n',
+        id: 'hp_polyjuice_potion_n',
         name: 'Polyjuice Potion',
         series: 'hpCCG',
         type: CCGCardType.Effect,
@@ -982,7 +982,7 @@ export const hpCCG: CCGCard[] = [
     // ── LEGENDARY ─────────────────────────────────────────────────────────
 
     {
-        id: 'hp_harry_n',
+        id: 'hp_harry_potter_n',
         name: 'Harry Potter',
         series: 'hpCCG',
         type: CCGCardType.Attack,

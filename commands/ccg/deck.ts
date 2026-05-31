@@ -256,7 +256,9 @@ export class DeckCommands extends AbstractCommands {
         const userCards = new Array<CCGCard>()
         for (const item of items) {
             const series = cards[item.series] as CCGCard[]
-            userCards.push(series.find((card) => card.id === item.name))
+            if (!series) continue
+            const card = series.find((card) => card.id === item.name)
+            if (card) userCards.push(card)
         }
         return userCards
     }

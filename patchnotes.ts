@@ -7,7 +7,7 @@ import { MazariniClient } from './client/MazariniClient'
 import { DatabaseHelper } from './helpers/databaseHelper'
 import { MessageHelper } from './helpers/messageHelper'
 import { IInteractionElement } from './interfaces/interactionInterface'
-import { ChannelIds } from './utils/mentionUtils'
+import { ChannelIds, MentionUtils } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '31.5.5'
+    public static readonly currentVersion = '32.0.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,7 +26,20 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            ['# Vinmonopolet', '\n* Når du sender en produkt-id til kanalen vil botten forsøke å finne en rating fra VG i samme slengen'].join('\n')
+            [
+                '# CCG',
+                '* Ny serie: Harry Potter',
+                '* 48 nye kort',
+                `* Alt er perfekt balansert av CCG-geniet ${MentionUtils.mentionUser('715963046861865091')}`,
+                `* Alle deckene til Høie er oppdaterte`,
+                `## Visuelle endringer`,
+                `* Verdier på kort som endres i løpet av spillet vil nå få en visuell indikator som viser om verdien har økt eller sunket`,
+                `* Grønt for positiv endring, rødt for negativ`,
+                `* Eksempel: Hvis du har blitt slow, vil speed-verdien vises i rødt på kortene det gjelder.`,
+                '## Diverse',
+                `* Økonomien er nullstilt, alle har fått 5000 chips og 50 shards til en starter-pakke`,
+                `* Re-worket /botinnstillinger`,
+            ].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

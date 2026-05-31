@@ -50,6 +50,18 @@ export class Scripts {
         this.client.cache.deathrollPot = 0
     }
 
+    public async resetChipsAndShardsAndDaily() {
+        const users = await this.client.database.getAllUsers()
+        for (const user of users) {
+            user.chips = 5000
+            user.ccg = { ...user.ccg, shards: 50 }
+            user.daily = { ...user.daily, claimedToday: false }
+            user.dailySpins = 0
+            user.dailyGameStats = {}
+            await this.client.database.updateUser(user)
+        }
+    }
+
     public async resetChipsAndPerks() {
         const users = await this.client.database.getAllUsers()
         for (const user of users) {

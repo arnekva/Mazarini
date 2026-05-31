@@ -212,7 +212,7 @@ export class CCGCardGenerator {
             layers.push({ input: cached.buffer, top: artTop, left: artLeft })
         }
 
-        const overlaySvg = CCGCardGenerator.buildOverlaySVG(modified, richSpans)
+        const overlaySvg = CCGCardGenerator.buildOverlaySVG(modified, richSpans, card.cost, card.speed, card.accuracy)
         layers.push({ input: Buffer.from(overlaySvg), top: 0, left: 0 })
 
         const baseBuffer = await base.toBuffer()
@@ -392,7 +392,7 @@ export class CCGCardGenerator {
     }
 
     /** Build a transparent SVG overlay with stats, card name, and effect description */
-    private static buildOverlaySVG(card: CCGCard, richSpans: TextSpan[]): string {
+    private static buildOverlaySVG(card: CCGCard, richSpans: TextSpan[], originalCost?: number, originalSpeed?: number, originalAccuracy?: number): string {
         const escapedName = CCGCardGenerator.escapeXml(card.name)
         // Adaptive font sizing: try largest first, step down if any line is too wide
         const DESC_TIERS = [
@@ -452,19 +452,31 @@ export class CCGCardGenerator {
   <!-- ═══ STATS ═══ -->
 
   <!-- Speed (left) -->
-    <text x="${SPEED_X}" y="${SPEED_Y}" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${
-            card.speed
-        }</text>
+    <text x="${SPEED_X}" y="${SPEED_Y}" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="${
+            originalSpeed === undefined || card.speed === originalSpeed
+                ? 'white'
+                : card.speed > originalSpeed
+                  ? '#36a836'
+                  : '#bf4b4b'
+        }" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${card.speed}</text>
 
   <!-- Cost (center) -->
-    <text x="${COST_X}" y="${COST_Y}" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${
-            card.cost
-        }</text>
+    <text x="${COST_X}" y="${COST_Y}" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="${
+            originalCost === undefined || card.cost === originalCost
+                ? 'white'
+                : card.cost < originalCost
+                  ? '#36a836'
+                  : '#bf4b4b'
+        }" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${card.cost}</text>
 
   <!-- Accuracy (right) -->
-    <text x="${ACCURACY_X}" y="${ACCURACY_Y}" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${
-            card.accuracy
-        }</text>
+    <text x="${ACCURACY_X}" y="${ACCURACY_Y}" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="${
+            originalAccuracy === undefined || card.accuracy === originalAccuracy
+                ? 'white'
+                : card.accuracy > originalAccuracy
+                  ? '#36a836'
+                  : '#bf4b4b'
+        }" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${card.accuracy}</text>
 
   <!-- ═══ CARD NAME ═══ -->
         <text x="${NAME_X}" y="${NAME_Y}" font-family="Arial, sans-serif" font-size="34" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${escapedName}</text>

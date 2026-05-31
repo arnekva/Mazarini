@@ -469,7 +469,7 @@ export class Admin extends AbstractCommands {
             await interaction.editReply('Ingen CCG-kort funnet i DB.')
             return
         }
-        const dbCards = [...(dbCcg.mazariniCCG ?? []), ...(dbCcg.swCCG ?? [])]
+        const dbCards = Object.values(dbCcg).flat()
         this.messageHelper.sendLogMessage(`[CCG] ${interaction.user.username} hentet CCG fra DB (${dbCards.length} kort) og starter regenerering.`)
         await CCGCardGenerator.generateAll(this.client, dbCards)
         await interaction.editReply(`CCG hentet fra DB: ${dbCards.length} kort lastet og generert.`)
@@ -492,6 +492,153 @@ export class Admin extends AbstractCommands {
         await interaction.editReply('CCG-bilder regenerert fra disk (cache tømt, alle kort tegnet på nytt).')
     }
 
+    private async showCCGModal(interaction: BtnInteraction) {
+        await interaction.showModal({
+            custom_id: Admin.ccgModalId,
+            title: 'CCG',
+            components: [
+                {
+                    type: ComponentType.Label,
+                    label: 'CCG-handlinger (velg én eller flere):',
+                    component: {
+                        type: ComponentType.CheckboxGroup,
+                        custom_id: 'ccg_actions',
+                        required: false,
+                        min_values: 0,
+                        options: [
+                            { value: 'fetch', label: 'Fetch CCG fra DB' },
+                            { value: 'push', label: 'Push CCG til DB' },
+                            { value: 'regen', label: 'Regen CCG bilder' },
+                        ],
+                    },
+                },
+            ],
+        } as any)
+    }
+
+    private async handleCCGModal(modalInteraction: ModalSubmitInteraction) {
+        await modalInteraction.deferReply({ ephemeral: true })
+        const selected = this.getModalCheckboxValues(modalInteraction, 'ccg_actions')
+        const results: string[] = []
+
+        if (selected.includes('fetch')) {
+            const storage = await this.client.database.getStorage()
+            const dbCcg = storage?.ccg
+            if (!dbCcg?.mazariniCCG?.length) {
+                results.push('Fetch: ingen CCG-kort funnet i DB.')
+            } else {
+                const dbCards = Object.values(dbCcg).flat()
+                await CCGCardGenerator.generateAll(this.client, dbCards)
+                results.push(`Fetch: ${dbCards.length} kort hentet fra DB og generert.`)
+                this.messageHelper.sendLogMessage(`[CCG] ${modalInteraction.user.username} hentet CCG fra DB (${dbCards.length} kort).`)
+            }
+        }
+        if (selected.includes('push')) {
+            const scripts = new Scripts(this.client)
+            scripts.updateCCGSeries()
+            await CCGCardGenerator.generateAll(this.client)
+            results.push('Push: CCG-kort pushet til DB og bilder regenerert.')
+            this.messageHelper.sendLogMessage(`[CCG] ${modalInteraction.user.username} pushet CCG til DB.`)
+        }
+        if (selected.includes('regen')) {
+            CCGCardGenerator.clearHashes()
+            await CCGCardGenerator.generateAll(this.client)
+            results.push('Regen: CCG-bilder regenerert (cache tømt).')
+            this.messageHelper.sendLogMessage(`[CCG] ${modalInteraction.user.username} tvinger full regenerering av CCG-bilder.`)
+        }
+
+        await modalInteraction.editReply(results.length ? results.join('\n') : 'Ingenting valgt.')
+    }
+
+    private async showScriptsModal(interaction: BtnInteraction) {
+        await interaction.showModal({
+            custom_id: Admin.scriptsModalId,
+            title: 'Scripts',
+            components: [
+                {
+                    type: ComponentType.Label,
+                    label: 'Scripts (velg én eller flere):',
+                    component: {
+                        type: ComponentType.CheckboxGroup,
+                        custom_id: 'script_actions',
+                        required: false,
+                        min_values: 0,
+                        options: [
+                            { value: 'reset_chips_shards_daily', label: 'Reset chips (5000), shards (50) og daily for alle' },
+                        ],
+                    },
+                },
+            ],
+        } as any)
+    }
+
+    private async handleScriptsModal(modalInteraction: ModalSubmitInteraction) {
+        await modalInteraction.deferReply({ ephemeral: true })
+        const selected = this.getModalCheckboxValues(modalInteraction, 'script_actions')
+        const results: string[] = []
+
+        if (selected.includes('reset_chips_shards_daily')) {
+            const scripts = new Scripts(this.client)
+            await scripts.resetChipsAndShardsAndDaily()
+            results.push('Reset chips/shards/daily: fullført for alle brukere.')
+            this.messageHelper.sendLogMessage(`[Scripts] ${modalInteraction.user.username} kjørte reset chips/shards/daily for alle brukere.`)
+        }
+
+        await modalInteraction.editReply(results.length ? results.join('\n') : 'Ingenting valgt.')
+    }
+
+    private async showEventsModal(interaction: BtnInteraction) {
+        await interaction.showModal({
+            custom_id: Admin.eventsModalId,
+            title: 'Events',
+            components: [
+                {
+                    type: ComponentType.Label,
+                    label: 'Hendelser (velg én eller flere):',
+                    component: {
+                        type: ComponentType.CheckboxGroup,
+                        custom_id: 'event_modal_actions',
+                        required: false,
+                        min_values: 0,
+                        options: [
+                            { value: 'print_schedule', label: 'Print eventplan' },
+                            { value: MazariniEventType.DiceRoll, label: 'Trigge: Terningevent' },
+                            { value: MazariniEventType.DeathrollWin, label: 'Trigge: Deathrollevent' },
+                            { value: MazariniEventType.DeathrollPotWin, label: 'Trigge: Deathroll pot' },
+                            { value: MazariniEventType.CCGHoieWin, label: 'Trigge: CCG-event' },
+                            { value: MazariniEventType.CCGPlayerWin, label: 'Trigge: CCG PVP' },
+                            { value: MazariniEventType.VladivostokGambleWin, label: 'Trigge: Vladivostok-event' },
+                        ],
+                    },
+                },
+            ],
+        } as any)
+    }
+
+    private async handleEventsModal(modalInteraction: ModalSubmitInteraction) {
+        await modalInteraction.deferReply({ ephemeral: true })
+        const selected = this.getModalCheckboxValues(modalInteraction, 'event_modal_actions')
+        const results: string[] = []
+
+        if (selected.includes('print_schedule')) {
+            const schedule = await this.client.mazariniEvents.getPrintableSchedule()
+            const embed = EmbedUtils.createSimpleEmbed(schedule.title, `Planlagte:\n${schedule.scheduled}`)
+            embed.addFields({ name: 'Aktive', value: schedule.active }, { name: 'Fullførte', value: schedule.completed })
+            await modalInteraction.followUp({ embeds: [embed.toJSON()], ephemeral: true })
+        }
+
+        const eventsToTrigger = selected.filter((v) => v !== 'print_schedule') as MazariniEventType[]
+        if (eventsToTrigger.length > 0) {
+            for (const eventType of eventsToTrigger) {
+                await this.client.mazariniEvents.activateSpecificEvent(eventType)
+            }
+            results.push(`Trigget ${eventsToTrigger.length} event${eventsToTrigger.length > 1 ? 's' : ''}: ${eventsToTrigger.join(', ')}`)
+            this.messageHelper.sendLogMessage(`Events trigget manuelt av ${modalInteraction.user.username}: ${eventsToTrigger.join(', ')}`)
+        }
+
+        await modalInteraction.editReply(results.length ? results.join('\n') : 'Fullført.')
+    }
+
     private updateBotSettings(interaction: ChatInteraction) {
         const settingsBtn = new ButtonBuilder({
             custom_id: 'ADMIN_BOT_SETTINGS',
@@ -499,40 +646,30 @@ export class Admin extends AbstractCommands {
             label: 'Bot Innstillinger',
             type: 2,
         })
-        const fetchCCGBtn = new ButtonBuilder({
-            custom_id: 'ADMIN_CCG_FETCH',
+        const ccgBtn = new ButtonBuilder({
+            custom_id: 'ADMIN_CCG_MODAL',
             style: ButtonStyle.Secondary,
-            label: 'Fetch CCG fra DB',
+            label: 'CCG',
             type: 2,
         })
-        const pushCCGBtn = new ButtonBuilder({
-            custom_id: 'ADMIN_CCG_PUSH',
+        const eventsBtn = new ButtonBuilder({
+            custom_id: 'ADMIN_EVENTS_MODAL',
+            style: ButtonStyle.Secondary,
+            label: 'Events',
+            type: 2,
+        })
+        const scriptsBtn = new ButtonBuilder({
+            custom_id: 'ADMIN_SCRIPTS_MODAL',
             style: ButtonStyle.Danger,
-            label: 'Push CCG til DB',
+            label: 'Scripts',
             type: 2,
         })
-        const regenCCGBtn = new ButtonBuilder({
-            custom_id: 'ADMIN_CCG_REGEN',
-            style: ButtonStyle.Secondary,
-            label: 'Regen CCG bilder',
-            type: 2,
-        })
-        const scheduleBtn = new ButtonBuilder({
-            custom_id: 'ADMIN_EVENT_SCHEDULE',
-            style: ButtonStyle.Secondary,
-            label: 'Print eventplan',
-            type: 2,
-        })
-        const triggerEventsBtn = new ButtonBuilder({
-            custom_id: 'ADMIN_EVENT_TRIGGER_MENU',
-            style: ButtonStyle.Primary,
-            label: 'Trigge events',
-            type: 2,
-        })
-        const firstRow = new ActionRowBuilder<ButtonBuilder>().addComponents(settingsBtn, fetchCCGBtn, pushCCGBtn, regenCCGBtn, scheduleBtn)
-        const secondRow = new ActionRowBuilder<ButtonBuilder>().addComponents(triggerEventsBtn)
-        this.messageHelper.replyToInteraction(interaction, 'Admin panel:', { ephemeral: true }, [firstRow, secondRow])
+        const firstRow = new ActionRowBuilder<ButtonBuilder>().addComponents(settingsBtn, ccgBtn, eventsBtn, scriptsBtn)
+        this.messageHelper.replyToInteraction(interaction, 'Admin panel:', { ephemeral: true }, [firstRow])
     }
+    static ccgModalId = 'ccgActionsModal'
+    static scriptsModalId = 'scriptsActionsModal'
+    static eventsModalId = 'eventsActionsModal'
     static botSettingsId = 'botSettingsModal'
     private async buildSettingsModal(interaction: ChatInteraction | BtnInteraction) {
         if (interaction) {
@@ -811,6 +948,24 @@ export class Admin extends AbstractCommands {
                         },
                     },
                     {
+                        commandName: 'ADMIN_CCG_MODAL',
+                        command: (rawInteraction: BtnInteraction) => {
+                            this.showCCGModal(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'ADMIN_EVENTS_MODAL',
+                        command: (rawInteraction: BtnInteraction) => {
+                            this.showEventsModal(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'ADMIN_SCRIPTS_MODAL',
+                        command: (rawInteraction: BtnInteraction) => {
+                            this.showScriptsModal(rawInteraction)
+                        },
+                    },
+                    {
                         commandName: 'ADMIN_CCG_FETCH',
                         command: (rawInteraction: BtnInteraction) => {
                             this.fetchCCGFromDB(rawInteraction)
@@ -864,6 +1019,24 @@ export class Admin extends AbstractCommands {
                         commandName: Admin.botSettingsId,
                         command: (rawInteraction: ModalInteraction) => {
                             this.handleBotSettingsModalDialog(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: Admin.ccgModalId,
+                        command: (rawInteraction: ModalInteraction) => {
+                            this.handleCCGModal(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: Admin.eventsModalId,
+                        command: (rawInteraction: ModalInteraction) => {
+                            this.handleEventsModal(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: Admin.scriptsModalId,
+                        command: (rawInteraction: ModalInteraction) => {
+                            this.handleScriptsModal(rawInteraction)
                         },
                     },
                 ],
