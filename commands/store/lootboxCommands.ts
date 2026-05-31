@@ -577,7 +577,7 @@ export class LootboxCommands extends AbstractCommands {
 
     private async getSeries(): Promise<ILootSeries[]> {
         if (!this.series) this.series = await this.client.database.getLootboxSeries()
-        return this.series.filter((s) => s.name !== 'hpCCG') //TODO: remove filter when hpCCG series is properly set up
+        return this.series
     }
 
     private getRarityItems(series: ILootSeries, rarity: ItemRarity): string[] {
