@@ -58,10 +58,13 @@ export class TestCommands extends AbstractCommands {
 
     private async test(interaction: ChatInteraction | BtnInteraction) {
         const scripts = new Scripts(this.client)
-        // scripts.updateCCGSeries()
-        scripts.setCCGCards()
-        // scripts.setLootPacks()
-        this.messageHelper.replyToInteraction(interaction, 'Oppdaterer CCG greier')
+        await this.messageHelper.replyToInteraction(interaction, 'Kjører scripts...')
+        await scripts.resetChipsAndShardsAndDaily()
+        scripts.setLuckyWheelRewards()
+        scripts.updateCCGSeries()
+        await scripts.updateLootSeriesAndPacks()
+        await scripts.initializeHpCCGInventory()
+        await this.messageHelper.replyToInteraction(interaction, 'Ferdig! Reset chips/shards/daily, lucky wheel rewards oppdatert, CCG pushet til DB, HP CCG initialisert for alle brukere.')
     }
 
     private async testSelectMenu(selectMenu: SelectStringInteraction) {

@@ -1,8 +1,8 @@
 import { ApplicationEmojiManager } from 'discord.js'
 import { MazariniClient } from '../client/MazariniClient'
+import { hpCCG } from '../commands/ccg/cards/hpCCG'
 import { mazariniCCG } from '../commands/ccg/cards/mazariniCCG'
 import { swCCG } from '../commands/ccg/cards/swCCG'
-import { hpCCG } from '../commands/ccg/cards/hpCCG'
 import { ImageGenerationHelper } from '../helpers/imageGenerationHelper'
 import {
     ICCGDeck,
@@ -18,7 +18,6 @@ import {
     IUserLoot,
     IUserLootItem,
     IUserLootSeries,
-    LootboxQuality,
     LuckyWheelRewardType,
     MazariniUser,
 } from '../interfaces/database/databaseInterface'
@@ -147,6 +146,24 @@ export class Scripts {
         this.client.database.updateLootboxSeries(mazariniCCG_series)
         this.client.database.updateLootboxSeries(swCCG_series)
         this.client.database.updateLootboxSeries(hpCCG_series)
+    }
+
+    public async initializeHpCCGInventory() {
+        const users = await this.client.database.getAllUsers()
+        for (const user of users) {
+            if (!user.loot?.hpCCG) {
+                user.loot = {
+                    ...user.loot,
+                    hpCCG: {
+                        name: 'hpCCG',
+                        pityLevel: structuredClone(defaultPityLevel),
+                        inventory: structuredClone(defaultInventory),
+                        stats: structuredClone(defaultLootStats),
+                    },
+                }
+                await this.client.database.updateUser(user)
+            }
+        }
     }
 
     public async resetSwCCGInventory() {
@@ -566,82 +583,18 @@ const lotrInventoryArts: ILootSeriesInventoryArt[] = [
     { name: 'Witch_King', opacity: 0.5 },
 ]
 
+// Total weight: 90. 500 chips = 36/90 = 40%. Each other (×9) = 6/90 ≈ 6.67% → combined 60%.
 const luckyWheelRewards: ILuckyWheelReward[] = [
-    { name: '10K Dond', type: LuckyWheelRewardType.dond, amount: 10, weight: 4 },
-    { name: '20K Dond', type: LuckyWheelRewardType.dond, amount: 20, weight: 4 },
-    { name: '50K Dond', type: LuckyWheelRewardType.dond, amount: 50, weight: 4 },
-    {
-        name: 'Basic Pack',
-        type: LuckyWheelRewardType.pack,
-        quality: LootboxQuality.Basic,
-        weight: 4,
-    },
-    {
-        name: 'Premium Pack',
-        type: LuckyWheelRewardType.pack,
-        quality: LootboxQuality.Premium,
-        weight: 4,
-    },
-    {
-        name: '500 chips',
-        type: LuckyWheelRewardType.chips,
-        amount: 500,
-        weight: 4,
-    },
-    {
-        name: '1000 chips',
-        type: LuckyWheelRewardType.chips,
-        amount: 1000,
-        weight: 4,
-    },
-    {
-        name: '1500 chips',
-        type: LuckyWheelRewardType.chips,
-        amount: 1500,
-        weight: 4,
-    },
-    {
-        name: '2000 chips',
-        type: LuckyWheelRewardType.chips,
-        amount: 2000,
-        weight: 4,
-    },
-    {
-        name: '2500 chips',
-        type: LuckyWheelRewardType.chips,
-        amount: 2500,
-        weight: 4,
-    },
-    {
-        name: '3000 chips',
-        type: LuckyWheelRewardType.chips,
-        amount: 3000,
-        weight: 4,
-    },
-    {
-        name: '3500 chips',
-        type: LuckyWheelRewardType.chips,
-        amount: 3500,
-        weight: 4,
-    },
-    {
-        name: '4000 chips',
-        type: LuckyWheelRewardType.chips,
-        amount: 4000,
-        weight: 4,
-    },
-    {
-        name: '4500 chips',
-        type: LuckyWheelRewardType.chips,
-        amount: 4500,
-        weight: 4,
-    },
-    {
-        name: '5000 chips',
-        type: LuckyWheelRewardType.chips,
-        amount: 5000,
-        weight: 4,
-    },
+    { name: '500 chips', type: LuckyWheelRewardType.chips, amount: 500, weight: 36 },
+    { name: '1000 chips', type: LuckyWheelRewardType.chips, amount: 1000, weight: 6 },
+    { name: '1500 chips', type: LuckyWheelRewardType.chips, amount: 1500, weight: 6 },
+    { name: '2000 chips', type: LuckyWheelRewardType.chips, amount: 2000, weight: 6 },
+    { name: '2500 chips', type: LuckyWheelRewardType.chips, amount: 2500, weight: 6 },
+    { name: '3000 chips', type: LuckyWheelRewardType.chips, amount: 3000, weight: 6 },
+    { name: '3500 chips', type: LuckyWheelRewardType.chips, amount: 3500, weight: 6 },
+    { name: '4000 chips', type: LuckyWheelRewardType.chips, amount: 4000, weight: 6 },
+    { name: '4500 chips', type: LuckyWheelRewardType.chips, amount: 4500, weight: 6 },
+    { name: '5000 chips', type: LuckyWheelRewardType.chips, amount: 5000, weight: 6 },
 ]
 
 const basicLootPack: ILootbox = {
