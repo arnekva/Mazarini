@@ -463,7 +463,7 @@ export const GameValues: GameValuesType = {
         },
         isLootable: false,
         concedeShardPenalty: 11,
-        activeCCGseries: ['mazariniCCG', 'swCCG'],
+        activeCCGseries: ['hpCCG', 'mazariniCCG', 'swCCG'],
         defaultDeck: {
             name: 'default',
             active: true,
@@ -478,6 +478,19 @@ export const GameValues: GameValuesType = {
         defaultCardback: 'standard',
         botDeck: {
             easy: [
+                {
+                    // HP Lett #1 (placeholder – to be balanced later)
+                    name: 'easy',
+                    active: true,
+                    valid: true,
+                    cards: [
+                        { id: 'hp_filch_n', series: 'hpCCG', amount: 3 },
+                        { id: 'hp_kreacher_n', series: 'hpCCG', amount: 3 },
+                        { id: 'hp_aragog_n', series: 'hpCCG', amount: 3 },
+                        { id: 'hp_neville_n', series: 'hpCCG', amount: 3 },
+                        { id: 'hp_myrtle_n', series: 'hpCCG', amount: 3 },
+                    ],
+                },
                 {
                     // Lett #1 — Rebel Alliance
                     name: 'easy',
@@ -510,6 +523,24 @@ export const GameValues: GameValuesType = {
                 },
             ],
             medium: [
+                {
+                    // HP Middels #1 (placeholder – to be balanced later)
+                    name: 'medium',
+                    active: true,
+                    valid: true,
+                    cards: [
+                        { id: 'hp_hermione_n', series: 'hpCCG', amount: 1 },
+                        { id: 'hp_sirius_n', series: 'hpCCG', amount: 1 },
+                        { id: 'hp_lupin_n', series: 'hpCCG', amount: 1 },
+                        { id: 'hp_nymphadora_n', series: 'hpCCG', amount: 2 },
+                        { id: 'hp_shacklebolt_n', series: 'hpCCG', amount: 2 },
+                        { id: 'hp_trelawney_n', series: 'hpCCG', amount: 1 },
+                        { id: 'hp_aragog_n', series: 'hpCCG', amount: 2 },
+                        { id: 'hp_filch_n', series: 'hpCCG', amount: 2 },
+                        { id: 'hp_lockhart_n', series: 'hpCCG', amount: 2 },
+                        { id: 'hp_kreacher_n', series: 'hpCCG', amount: 1 },
+                    ],
+                },
                 {
                     // Middels #1 — The Empire
                     name: 'medium',
@@ -564,6 +595,23 @@ export const GameValues: GameValuesType = {
                 },
             ],
             hard: [
+                {
+                    // HP Vanskelig #1 (placeholder – to be balanced later)
+                    name: 'hard',
+                    active: true,
+                    valid: true,
+                    cards: [
+                        { id: 'hp_voldemort_n', series: 'hpCCG', amount: 1 },
+                        { id: 'hp_bellatrix_n', series: 'hpCCG', amount: 1 },
+                        { id: 'hp_snape_n', series: 'hpCCG', amount: 1 },
+                        { id: 'hp_dark_mark_n', series: 'hpCCG', amount: 2 },
+                        { id: 'hp_lucius_n', series: 'hpCCG', amount: 2 },
+                        { id: 'hp_barty_crouch_jr_n', series: 'hpCCG', amount: 2 },
+                        { id: 'hp_draco_n', series: 'hpCCG', amount: 2 },
+                        { id: 'hp_pettigrew_n', series: 'hpCCG', amount: 2 },
+                        { id: 'hp_aragog_n', series: 'hpCCG', amount: 2 },
+                    ],
+                },
                 {
                     // Vanskelig #1 — Sith Order
                     name: 'hard',

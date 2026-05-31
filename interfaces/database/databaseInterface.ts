@@ -258,6 +258,7 @@ export interface IUserLoot {
     lotr?: IUserLootSeries
     mazariniCCG?: IUserLootSeries
     swCCG?: IUserLootSeries
+    hpCCG?: IUserLootSeries
 }
 
 export interface IUserLootSeries {
@@ -428,6 +429,7 @@ export interface MazariniStorage {
 export interface ICCGSystem {
     mazariniCCG: CCGCard[]
     swCCG?: CCGCard[]
+    hpCCG?: CCGCard[]
 }
 
 export interface ILuckyWheelReward {

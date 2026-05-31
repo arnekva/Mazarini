@@ -198,8 +198,8 @@ export class LootboxCommands extends AbstractCommands {
         const user = await this.client.database.getUser(interaction.user.id)
         const quality = this.resolveLootQuality(interaction)
         const series = interaction.isChatInputCommand()
-            ? (interaction.options.get('series')?.value as string) ?? 'swCCG'
-            : interaction.customId.split(';')[4] || 'swCCG'
+            ? (interaction.options.get('series')?.value as string) ?? 'hpCCG'
+            : interaction.customId.split(';')[4] || 'hpCCG'
         const seriesObj = await this.getSeriesOrDefault(series, true)
 
         const box = await this.resolveLootbox(quality, true)
@@ -802,16 +802,12 @@ export class LootboxCommands extends AbstractCommands {
         const rarities = [ItemRarity.Common, ItemRarity.Rare, ItemRarity.Epic, ItemRarity.Legendary]
         for (const rarity of rarities) {
             const url = user.loot[series].inventory[rarity].img
-            let hasValidImage = true
             const res = await fetch(url)
-            if (!res.ok) hasValidImage = false
-            if (!hasValidImage) {
-                allLinksValid = true
-                const imgUrl = await this.database.getUserInventory(user, series, rarity)
-                user.loot[series]['inventory'][rarity]['img'] = imgUrl
+            if (!res.ok) {
+                allLinksValid = false
+                await this.generateInventoryParts(user, series, [rarity])
             }
         }
-        if (!allLinksValid) await this.database.updateUser(user)
         return allLinksValid
     }
 

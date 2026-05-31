@@ -130,9 +130,11 @@ export class BotResolver {
     private selectCards(game: CCGGame, bot: CCGPlayer, playable: BotCard[]) {
         let energy = bot.energy
         let selected = 0
+        const restrictedConditions = game.state.statusConditions.filter((s) => s.ownerId === bot.id && s.type === 'RESTRICT_CARDS')
+        const maxCards = restrictedConditions.length > 0 ? restrictedConditions[0].value : GameValues.ccg.gameSettings.maxCardsPlayed
         for (const { card, score } of playable.filter((c) => c.playable)) {
             const cost = this.getCardCost(game, card)
-            if (selected < GameValues.ccg.gameSettings.maxCardsPlayed && cost <= energy && score > 0) {
+            if (selected < maxCards && cost <= energy && score > 0) {
                 selected += 1
                 card.selected = true
                 energy -= cost

@@ -1,11 +1,13 @@
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
 import { RandomUtils } from '../../utils/randomUtils'
+import { hpCCG } from './cards/hpCCG'
 import { mazariniCCG } from './cards/mazariniCCG'
 import { swCCG } from './cards/swCCG'
-import { CardIdentifier, CCGCard, CCGCondition, CCGEffect, CCGGame, CCGPlayer, CCGStatusEffectType, StatusEffect } from './ccgInterface'
+import { CardIdentifier, CCGCard, CCGCondition, CCGEffect, CCGEffectType, CCGGame, CCGPlayer, CCGStatusEffectType, ReflectType, StatusEffect } from './ccgInterface'
 
-const SERIES_EMOJI_IS_ID = new Set(['swCCG'])
+const SERIES_EMOJI_IS_ID = new Set(['swCCG', 'hpCCG'])
+const ALL_CARDS = [...mazariniCCG, ...swCCG, ...hpCCG]
 
 export class CardActionResolver {
     private client: MazariniClient
@@ -72,6 +74,24 @@ export class CardActionResolver {
         }
         await this.delay(2500)
 
+        // REFLECT: redirect the first incoming effect from an opponent back at them
+        if (target.id !== source.id && !effect.reflected) {
+            const reflect = this.getStatusCondition(game, target, 'REFLECT')
+            if (reflect && this.isReflectedByType(reflect.reflectType, effect.type)) {
+                const sourceReflect = this.getStatusCondition(game, source, 'REFLECT')
+                if (sourceReflect && this.isReflectedByType(sourceReflect.reflectType, effect.type)) {
+                    this.consumeReflect(game, reflect)
+                    this.consumeReflect(game, sourceReflect)
+                    return this.log(game, `${this.getEffectLogPrefix(effect)}Both players have reflect — **${effect.sourceCardName}** is negated`)
+                }
+                this.consumeReflect(game, reflect)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} **reflects** ${effect.sourceCardName}!`)
+                // Re-queue with source/target swapped; strip conditions so they aren't re-evaluated in the new context
+                game.state.stack.unshift({ ...effect, sourcePlayerId: target.id, targetPlayerId: source.id, reflected: true, condition: undefined })
+                return
+            }
+        }
+
         switch (effect.type) {
             case 'DAMAGE':
                 this.applyDamage(game, effect, source, target, effect.value ?? 0)
@@ -117,7 +137,10 @@ export class CardActionResolver {
                         }`
                     )
                 } else {
-                    const healed = Math.min(target.hp + effect.value, GameValues.ccg.gameSettings.startingHP) - target.hp
+                    const healBoost = this.getStatusEffect(game, target, 'HEAL_BOOST')
+                    const bonus = healBoost && healBoost.createdOnTurn !== game.state.turn ? healBoost.value : 0
+                    const maxHp = target.maxHp ?? GameValues.ccg.gameSettings.startingHP
+                    const healed = Math.min(target.hp + (effect.value ?? 0) + bonus, maxHp) - target.hp
                     target.hp += healed
                     this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} **heals ${healed}**`)
                 }
@@ -153,15 +176,20 @@ export class CardActionResolver {
                 this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} has all status conditions removed`)
                 break
 
-            case 'REDUCE_COST':
+            case 'REDUCE_COST': {
                 this.applyStatusEffect(game, effect, target, 'REDUCE_COST')
+                const costDesc =
+                    (effect.value ?? 0) >= 99
+                        ? `reduced to **0**`
+                        : `reduced by **${effect.value}**`
                 this.log(
                     game,
                     `${this.getEffectLogPrefix(effect)}**${effect.sourceCardName}** – ${target.name}'s ${
                         effect.identifier ? `**${effect.identifier}** ` : ''
-                    }card costs reduced by **${effect.value}** ${effect.turns ? `for ${effect.turns} turns` : ''}`
+                    }card costs ${costDesc} ${effect.turns ? `for ${effect.turns} turns` : ''}`
                 )
                 break
+            }
 
             case 'VIEW_HAND':
                 this.applyStatusEffect(game, effect, target, 'VIEW_HAND')
@@ -380,17 +408,54 @@ export class CardActionResolver {
                 }
                 break
             }
+
+            case 'COPY_CARD':
+                this.copyCard(game, effect, source, target)
+                break
+
+            case 'HEAL_PER_OPPONENT_COST': {
+                const opponentEntry = game.state.playedCardsAllGame.find((e) => e.playerId === opponent.id && e.round === game.state.turn)
+                const totalCost = opponentEntry ? opponentEntry.cards.reduce((sum, c) => sum + c.cost, 0) : 0
+                const maxHp = source.maxHp ?? GameValues.ccg.gameSettings.startingHP
+                const healed = Math.min(source.hp + totalCost, maxHp) - source.hp
+                source.hp += healed
+                this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} **heals ${healed} HP** (opponent spent ${totalCost} energy)`)
+                break
+            }
+
+            case 'DAMAGE_PER_OPPONENT_COST': {
+                const opponentEntry = game.state.playedCardsAllGame.find((e) => e.playerId === target.id && e.round === game.state.turn)
+                const totalCost = opponentEntry ? opponentEntry.cards.reduce((sum, c) => sum + c.cost, 0) : 0
+                this.applyDamage(game, effect, source, target, totalCost)
+                break
+            }
+
+            case 'INCREASE_MAX_HP': {
+                source.maxHp = (source.maxHp ?? GameValues.ccg.gameSettings.startingHP) + (effect.value ?? 0)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${source.name}'s max HP raised to **${source.maxHp}**`)
+                break
+            }
+
+            case 'HEAL_BOOST':
+                this.applyStatusEffect(game, effect, target, 'HEAL_BOOST')
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s heals are **boosted by ${effect.value}** for ${effect.turns} turn${effect.turns > 1 ? 's' : ''}`)
+                break
+
+            case 'RESTRICT_CARDS':
+                this.applyStatusCondition(game, effect, target, 'RESTRICT_CARDS')
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} is **restricted** to playing ${effect.value ?? 1} card(s) next turn`)
+                break
         }
     }
 
     private async getCardById(cardId: string): Promise<CCGCard | undefined> {
-        const card = [...mazariniCCG, ...swCCG].find((card) => card.id === cardId)
+        const card = ALL_CARDS.find((card) => card.id === cardId)
         if (!card) return undefined
         return await this.getCardWithEmoji(card)
     }
 
     private async getRandomCardByIdentifier(identifier: CardIdentifier): Promise<CCGCard | undefined> {
-        const eligible = [...mazariniCCG, ...swCCG].filter((c) => c.identifier?.includes(identifier))
+        const eligible = ALL_CARDS.filter((c) => c.identifier?.includes(identifier))
         if (eligible.length === 0) return undefined
         const card = eligible[Math.floor(Math.random() * eligible.length)]
         return await this.getCardWithEmoji(card)
@@ -410,41 +475,6 @@ export class CardActionResolver {
         const damageBoost = this.getStatusEffect(game, source, 'DAMAGE_BOOST')
         if (damageBoost && damage > 0 && damageBoost.createdOnTurn !== game.state.turn) damage += damageBoost.value
 
-        // Reflect damage
-        const reflect = this.getStatusCondition(game, target, 'REFLECT')
-        if (reflect && damage > 0 && !(effect.reflected ?? false)) {
-            const sourceReflect = this.getStatusCondition(game, source, 'REFLECT')
-
-            if (sourceReflect) {
-                this.consumeReflect(game, reflect)
-                this.consumeReflect(game, sourceReflect)
-                this.log(game, `${this.getEffectLogPrefix(effect)}Both players have reflect, so damage is negated`)
-                return
-            }
-
-            const reflectedDamage = damage
-            this.consumeReflect(game, reflect)
-
-            this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} reflects ${reflectedDamage} damage`)
-            game.state.stack.unshift({
-                cardId: effect.cardId,
-                emoji: effect.emoji,
-                statusText: effect.statusText,
-                sourceCardId: effect.sourceCardId,
-                sourceCardName: effect.sourceCardName,
-                type: 'DAMAGE',
-                sourcePlayerId: target.id,
-                targetPlayerId: target.opponentId,
-                speed: effect.speed,
-                accuracy: 100,
-                cardSuccessful: true,
-                value: reflectedDamage,
-                reflected: true,
-            })
-
-            damage -= reflectedDamage
-        }
-
         // Shield
         const shield = this.getStatusEffect(game, target, 'SHIELD')
         if (shield) {
@@ -456,8 +486,13 @@ export class CardActionResolver {
             if (shield.value <= 0) this.removeStatus(game, shield)
         }
 
-        // Armor
-        const armor = game.state.statusEffects.filter((s) => s.ownerId === target.id && s.type === 'ARMOR')
+        // Armor (identifier-filtered armor only applies against cards with that identifier)
+        const armor = game.state.statusEffects.filter((s) => {
+            if (s.ownerId !== target.id || s.type !== 'ARMOR') return false
+            if (!s.identifier) return true
+            const sourceCard = ALL_CARDS.find((c) => c.id === effect.sourceCardId)
+            return sourceCard?.identifier?.includes(s.identifier) ?? false
+        })
         if ((armor?.length ?? 0) > 0 && damage > 0) {
             const totalArmor = armor.reduce((sum, a) => sum + a.value, 0)
             const reduced = Math.min(totalArmor, damage)
@@ -504,6 +539,7 @@ export class CardActionResolver {
             emoji: effect.emoji,
             includeCurrentTurn: effect.includeCurrentTurn,
             createdOnTurn: game.state.turn,
+            reflectType: type === 'REFLECT' ? effect.reflectType : undefined,
         })
     }
 
@@ -523,6 +559,16 @@ export class CardActionResolver {
             )
         } else {
             this.log(game, `${this.getEffectLogPrefix(effect)}${source.name}'s ${effect.sourceCardName} failed`)
+        }
+    }
+
+    private copyCard(game: CCGGame, effect: CCGEffect, source: CCGPlayer, target: CCGPlayer) {
+        const cardToCopy = target.usedCards[target.usedCards.length - 1]
+        if (cardToCopy) {
+            source.deck.push({ ...cardToCopy, selected: false })
+            this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} **copies ${cardToCopy.name}** from ${target.name}'s used cards into their deck`)
+        } else {
+            this.log(game, `${this.getEffectLogPrefix(effect)}${source.name}'s ${effect.sourceCardName} found no card to copy`)
         }
     }
 
@@ -556,7 +602,10 @@ export class CardActionResolver {
             }
         } else if (status.type === 'RECOVER') {
             if (!status.delayedTrigger || status.remainingTurns === 1) {
-                const healed = Math.min(player.hp + status.value, GameValues.ccg.gameSettings.startingHP) - player.hp
+                const healBoost = this.getStatusEffect(game, player, 'HEAL_BOOST')
+                const bonus = healBoost ? healBoost.value : 0
+                const maxHp = player.maxHp ?? GameValues.ccg.gameSettings.startingHP
+                const healed = Math.min(player.hp + status.value + bonus, maxHp) - player.hp
                 player.hp += healed
                 this.log(game, `${player.name} **recovers ${healed} HP**`)
                 await this.delay(2000)
@@ -692,6 +741,15 @@ export class CardActionResolver {
 
     private consumeReflect(game: CCGGame, reflect: StatusEffect) {
         game.state.statusConditions = game.state.statusConditions.filter((s) => s.id !== reflect.id)
+    }
+
+    private isReflectedByType(reflectType: ReflectType | undefined, effectType: CCGEffectType): boolean {
+        const DAMAGE_TYPES: CCGEffectType[] = ['DAMAGE', 'DAMAGE_PER_IDENTIFIER', 'DAMAGE_PER_CARD_PLAYED', 'DAMAGE_PER_OPPONENT_COST']
+        const type = reflectType ?? 'damage'
+        if (type === 'all') return true
+        if (type === 'damage') return DAMAGE_TYPES.includes(effectType)
+        if (type === 'allEffects') return !DAMAGE_TYPES.includes(effectType)
+        return (type as CCGEffectType[]).includes(effectType)
     }
 
     private removeStatus(game: CCGGame, status: StatusEffect) {

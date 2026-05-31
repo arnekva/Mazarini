@@ -4,6 +4,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import sharp from 'sharp'
 import { MazariniClient } from '../client/MazariniClient'
+import { hpCCG } from '../commands/ccg/cards/hpCCG'
 import { mazariniCCG } from '../commands/ccg/cards/mazariniCCG'
 import { swCCG } from '../commands/ccg/cards/swCCG'
 import { CardIdentifier, CCGCard, CCGCardEffect, CCGCondition } from '../commands/ccg/ccgInterface'
@@ -16,7 +17,7 @@ const HASH_FILE = path.resolve('res/ccg/generated/.hashes.json')
 const BLANKS_DIR = path.resolve('res/ccg/blanks')
 
 /** Series whose application emoji names match the card ID exactly (no series prefix) */
-const SERIES_EMOJI_IS_ID = new Set(['swCCG'])
+const SERIES_EMOJI_IS_ID = new Set(['swCCG', 'hpCCG'])
 
 /** Map rarity to its blank background filename */
 const RARITY_BLANK: Record<string, string> = {
@@ -67,6 +68,14 @@ const IDENTIFIER_COLORS: Record<string, string> = {
     CREATURE: '#8B4513',
     DROID: '#00BCD4',
     REPUBLIC: '#9b59b6',
+    GRYFFINDOR: '#ae0001',
+    SLYTHERIN: '#1a472a',
+    RAVENCLAW: '#222f5b',
+    HUFFLEPUFF: '#ecb939',
+    DEATH_EATER: '#333333',
+    SEEKER: '#c0a000',
+    MAGICAL_CREATURE: '#6b3a2a',
+    HOUSE_ELF: '#7a7a7a',
 }
 
 // Layout constants for 480x672 card (pixel-matched to blank templates)
@@ -135,7 +144,7 @@ export class CCGCardGenerator {
         let generated = 0
         let skipped = 0
 
-        const allCards = cards ?? [...mazariniCCG, ...swCCG]
+        const allCards = cards ?? [...mazariniCCG, ...swCCG, ...hpCCG]
         const genStart = Date.now()
         for (const card of allCards) {
             const hash = CCGCardGenerator.hashCard(card)
@@ -555,7 +564,7 @@ export class CCGCardGenerator {
             effects[0].turns === effects[1].turns
         ) {
             return CCGCardGenerator.parseBBCode(
-                `Reduce [blue]all[/blue] card costs by [blue]${effects[0].value}[/blue] for [pink]${effects[0].turns} turns[/pink]`
+                `Reduce [blue]all[/blue] card costs ${(effects[0].value ?? 0) >= 99 ? `to [blue]0[/blue]` : `by [blue]${effects[0].value}[/blue]`} for [pink]${effects[0].turns} turns[/pink]`
             )
         }
 
@@ -616,7 +625,7 @@ export class CCGCardGenerator {
                 return `if ${tgtPlay} ${identifiers.replace(/_/g, ' ')} card`
             }
             case 'PLAYED_CARD_ID': {
-                const cardName = [...mazariniCCG, ...swCCG].find((c) => c.id === condition.cardId)?.name ?? condition.cardId
+                const cardName = [...mazariniCCG, ...swCCG, ...hpCCG].find((c) => c.id === condition.cardId)?.name ?? condition.cardId
                 if (condition.comparator === '>=' && condition.value >= 2) {
                     return `if played alongside another ${cardName}`
                 }
@@ -738,11 +747,13 @@ export class CCGCardGenerator {
             case 'HEAL':
                 if (effect.turns && effect.delayedTrigger) return `[green]Heal ${effect.value}[/green] in [pink]${effect.turns} turns[/pink]`
                 return effect.turns ? `[green]Heal ${effect.value}[/green] for [pink]${effect.turns} turns[/pink]` : `[green]Heal ${effect.value}[/green]`
-            case 'GAIN_ENERGY':
-                if (effect.turns && effect.delayedTrigger) return `Gain [blue]${effect.value} energy[/blue] in [pink]${effect.turns} turns[/pink]`
+            case 'GAIN_ENERGY': {
+                const energyVerb = effect.target === 'SELF' ? 'Gain' : 'Give opponent'
+                if (effect.turns && effect.delayedTrigger) return `${energyVerb} [blue]${effect.value} energy[/blue] in [pink]${effect.turns} turns[/pink]`
                 return effect.turns
-                    ? `Gain [blue]${effect.value} energy[/blue] for [pink]${effect.turns} turns[/pink]`
-                    : `Gain [blue]${effect.value} energy[/blue]`
+                    ? `${energyVerb} [blue]${effect.value} energy[/blue] for [pink]${effect.turns} turns[/pink]`
+                    : `${energyVerb} [blue]${effect.value} energy[/blue]`
+            }
             case 'LOSE_ENERGY':
                 return `Remove [blue]${effect.value} energy[/blue] from ${tgt}`
             case 'REMOVE_STATUS':
@@ -755,10 +766,17 @@ export class CCGCardGenerator {
                 return `Apply [pink]Shock[/pink] to ${tgt} for [pink]${effect.turns} turns[/pink] ([red]${effect.value}[/red] dmg/turn)`
             case 'SHIELD':
                 return `Shield for [blue]${effect.value}[/blue]`
-            case 'REFLECT':
+            case 'REFLECT': {
+                const reflectWhat =
+                    effect.reflectType === 'allEffects'
+                        ? 'first incoming [red]non-damage effect[/red]'
+                        : effect.reflectType === 'all'
+                          ? 'first incoming [red]effect[/red]'
+                          : 'first incoming [red]damage[/red]'
                 return effect.turns
-                    ? `Reflect the [red]first incoming damage[/red] for [pink]${effect.turns} turn${effect.turns !== 1 ? 's' : ''}[/pink]`
-                    : `Reflect the [red]first incoming damage[/red]`
+                    ? `Reflect the ${reflectWhat} for [pink]${effect.turns} turn${effect.turns !== 1 ? 's' : ''}[/pink]`
+                    : `Reflect the ${reflectWhat}`
+            }
             case 'SLOW':
                 return `Apply [pink]Slow[/pink] to ${tgt} for [pink]${effect.turns} turn${effect.turns !== 1 ? 's' : ''}[/pink]`
             case 'CHOKESTER':
@@ -777,10 +795,10 @@ export class CCGCardGenerator {
                 return `Randomly [yellow]waits[/yellow] between [pink]1 and ${effect.turns} turns[/pink] before doing damage equal to triple the turns waited`
             case 'CHOKE_SHIELD':
                 return `Apply [pink]Choke Shield[/pink] to ${tgt} for [pink]${effect.turns} turns[/pink]`
-            case 'REDUCE_COST':
-                return `Reduce ${tgtPossessive} ${effect.identifier ? `[yellow]${effect.identifier}[/yellow] ` : ''}card costs by [blue]${
-                    effect.value
-                }[/blue] for [pink]${effect.turns} turns[/pink]`
+            case 'REDUCE_COST': {
+                const costAmt = (effect.value ?? 0) >= 99 ? `to [blue]0[/blue]` : `by [blue]${effect.value}[/blue]`
+                return `Reduce ${tgtPossessive} ${effect.identifier ? `[yellow]${effect.identifier}[/yellow] ` : ''}card costs ${costAmt} for [pink]${effect.turns} turns[/pink]`
+            }
             case 'SPEED_BUFF':
                 return `Increase [pink]${tgtPossessive}[/pink] speed ([green]+50%[/green]) for [pink]${effect.turns} turns[/pink]`
             case 'RECOVER':
@@ -825,7 +843,7 @@ export class CCGCardGenerator {
                 }[/red] dmg/turn)`
             case 'SUMMON_CARD':
                 return effect.summonCardId
-                    ? `Summon [yellow]${[...mazariniCCG, ...swCCG].find((c) => c.id === effect.summonCardId)?.name ?? effect.summonCardId}[/yellow] to hand`
+                    ? `Summon [yellow]${[...mazariniCCG, ...swCCG, ...hpCCG].find((c) => c.id === effect.summonCardId)?.name ?? effect.summonCardId}[/yellow] to hand`
                     : `Summon a random [yellow]${effect.identifier?.replace(/_/g, ' ') ?? ''}[/yellow] card to hand`
             default:
                 return `${effect.type}`

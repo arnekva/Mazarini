@@ -123,6 +123,7 @@ export const mazariniCCG: CCGCard[] = [
                 value: 1,
                 turns: 1,
                 includeCurrentTurn: true,
+                reflectType: 'damage',
             },
         ],
         cost: 1,

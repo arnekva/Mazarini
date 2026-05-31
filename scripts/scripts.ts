@@ -2,6 +2,7 @@ import { ApplicationEmojiManager } from 'discord.js'
 import { MazariniClient } from '../client/MazariniClient'
 import { mazariniCCG } from '../commands/ccg/cards/mazariniCCG'
 import { swCCG } from '../commands/ccg/cards/swCCG'
+import { hpCCG } from '../commands/ccg/cards/hpCCG'
 import { ImageGenerationHelper } from '../helpers/imageGenerationHelper'
 import {
     ICCGDeck,
@@ -111,6 +112,7 @@ export class Scripts {
         const allSeries = await this.client.database.getLootboxSeries()
         if (!allSeries.some((series) => series.name === mazariniCCG_series.name)) allSeries.push(mazariniCCG_series)
         if (!allSeries.some((series) => series.name === swCCG_series.name)) allSeries.push(swCCG_series)
+        if (!allSeries.some((series) => series.name === hpCCG_series.name)) allSeries.push(hpCCG_series)
         this.client.database.setLootSeries(allSeries)
     }
 
@@ -123,6 +125,7 @@ export class Scripts {
             ccg: {
                 mazariniCCG: mazariniCCG,
                 swCCG: swCCG,
+                hpCCG: hpCCG,
             },
         })
     }
@@ -131,6 +134,7 @@ export class Scripts {
         this.setCCGCards()
         this.client.database.updateLootboxSeries(mazariniCCG_series)
         this.client.database.updateLootboxSeries(swCCG_series)
+        this.client.database.updateLootboxSeries(hpCCG_series)
     }
 
     public async resetSwCCGInventory() {
@@ -317,13 +321,25 @@ const mazariniCCG_series: ILootSeries = {
 
 const swCCG_series: ILootSeries = {
     name: 'swCCG',
-    added: new Date(),
+    added: new Date('2024-06-01'),
     common: swCCG.filter((c) => c.rarity === ItemRarity.Common).map((c) => c.id),
     rare: swCCG.filter((c) => c.rarity === ItemRarity.Rare).map((c) => c.id),
     epic: swCCG.filter((c) => c.rarity === ItemRarity.Epic).map((c) => c.id),
     legendary: swCCG.filter((c) => c.rarity === ItemRarity.Legendary).map((c) => c.id),
     hasColor: false,
     hasUnobtainable: false,
+    isCCG: true,
+}
+
+const hpCCG_series: ILootSeries = {
+    name: 'hpCCG',
+    added: new Date('2025-01-01'),
+    common: hpCCG.filter((c) => c.rarity === ItemRarity.Common).map((c) => c.id),
+    rare: hpCCG.filter((c) => c.rarity === ItemRarity.Rare).map((c) => c.id),
+    epic: hpCCG.filter((c) => c.rarity === ItemRarity.Epic).map((c) => c.id),
+    legendary: hpCCG.filter((c) => c.rarity === ItemRarity.Legendary).map((c) => c.id),
+    hasColor: false,
+    hasUnobtainable: true,
     isCCG: true,
 }
 

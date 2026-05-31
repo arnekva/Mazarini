@@ -2,7 +2,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Message } f
 import moment from 'moment'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
-import { vinBearer, vinKey, vinmonopoletKey, vinUserAgent } from '../../client-env'
+import { environment, vinBearer, vinKey, vinmonopoletKey, vinUserAgent } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { EmojiHelper } from '../../helpers/emojiHelper'
 
@@ -270,7 +270,7 @@ export class PoletCommands extends AbstractCommands {
         let hasBarCode = barCodeRegex.test(content)
         const hasProductId = productIdRegex.test(content)
         let barcodes: any = content
-        if (!hasUrl && !hasBarCode && !hasProductId && message.attachments?.first()?.url) {
+        if (!hasUrl && !hasBarCode && !hasProductId && message.attachments?.first()?.url && environment === 'prod') {
             const msg = await messageHelper.sendLogMessage('Sjekker bilde for strekkode...')
             barcodes = await BarcodeUtils.decodeImage(message.attachments.first().url, msg)
             msg.edit(`Fant ${barcodes ? '' : 'ikke '}strekkode i bilde sendt i kanalen ${MentionUtils.mentionChannel(message.channelId)}`)

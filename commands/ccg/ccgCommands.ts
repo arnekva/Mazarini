@@ -39,7 +39,7 @@ import { ProgressionHandler } from './progressionHandler'
 import { CCGValidator } from './validator'
 
 /** CCG series whose emoji names match the card ID exactly (no series_ prefix) */
-const SERIES_EMOJI_IS_ID = new Set(['swCCG'])
+const SERIES_EMOJI_IS_ID = new Set(['swCCG', 'hpCCG'])
 
 export class CCGCommands extends AbstractCommands {
     private ccgStoragePromise: Promise<ICCGSystem>
@@ -143,7 +143,9 @@ export class CCGCommands extends AbstractCommands {
             })
         const submitted = player.hand.filter((card) => card.selected)
         const extraCardsEffects = this.getEffectsForPlayer(game, player, 'EXTRA_CARDS')
-        const maxCards = extraCardsEffects.length > 0 ? extraCardsEffects[0].value : game.state.settings.maxCardsPlayed
+        const restrictedConditions = this.getConditionsForPlayer(game, player, 'RESTRICT_CARDS')
+        const maxCards = restrictedConditions.length > 0 ? restrictedConditions[0].value :
+            extraCardsEffects.length > 0 ? extraCardsEffects[0].value : game.state.settings.maxCardsPlayed
         if (submitted.length > maxCards) {
             return this.messageHelper.replyToInteraction(interaction, `Du kan ikke spille mer enn ${maxCards} kort om gangen`, {
                 ephemeral: true,
@@ -294,7 +296,7 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private preparePlayerForNewRound(game: CCGGame, player: CCGPlayer, isBot = false) {
-        player.usedCards.push(...player.hand.filter((card) => card.selected && !card.summoned))
+        player.usedCards.push(...player.hand.filter((card) => card.selected && !card.summoned && !card.consumable))
         player.hand = player.hand.filter((card) => !card.selected)
         player.submitted = false
         const isMygling = this.playerHasStatus(game, player, 'MYGLING')
@@ -457,6 +459,7 @@ export class CCGCommands extends AbstractCommands {
                             delayedTrigger: effect.delayedTrigger,
                             countTarget: effect.countTarget,
                             base: effect.base,
+                            reflectType: effect.reflectType,
                         }
                     })
                 )
@@ -575,6 +578,7 @@ export class CCGCommands extends AbstractCommands {
             if (effect.type === 'CHOKE_SHIELD') mods.push({ type: 'ACCURACY_DELTA', value: 20 })
             if (effect.type === 'SPEED_BUFF') mods.push({ type: 'SPEED_MULTIPLIER', value: GameValues.ccg.status.speedBuff_multiplier })
             if (effect.type === 'DAMAGE_BOOST') mods.push({ type: 'DAMAGE_DELTA', value: effect.value })
+            if (effect.type === 'HEAL_BOOST') mods.push({ type: 'HEAL_DELTA', value: effect.value })
         }
         for (const condition of game.state.statusConditions) {
             if (condition.ownerId !== player.id) continue

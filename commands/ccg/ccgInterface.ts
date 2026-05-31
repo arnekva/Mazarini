@@ -94,6 +94,7 @@ export interface CCGEffect {
     delayedTrigger?: boolean
     countTarget?: 'SELF' | 'OPPONENT' | 'BOTH'
     base?: number
+    reflectType?: ReflectType
 } //TODO: is this getting out of hand? Do we need to split this into multiple interfaces or classes? Maybe have a base CCGEffect and then extend it for different types of effects that require different properties?
 
 export type CCGEffectType =
@@ -113,7 +114,13 @@ export type CCGEffectType =
     | 'CLAIM_BOUNTY'
     | 'DAMAGE_PER_IDENTIFIER'
     | 'DAMAGE_PER_CARD_PLAYED'
+    | 'COPY_CARD'
+    | 'HEAL_PER_OPPONENT_COST'
+    | 'DAMAGE_PER_OPPONENT_COST'
+    | 'INCREASE_MAX_HP'
     | CCGStatusEffectType
+
+export type ReflectType = 'damage' | 'allEffects' | 'all' | CCGEffectType[]
 
 export interface StatusEffect {
     id: string
@@ -128,6 +135,7 @@ export interface StatusEffect {
     createdOnTurn?: number
     identifier?: CardIdentifier
     delayedTrigger?: boolean
+    reflectType?: ReflectType
 }
 
 export type CCGStatusEffectType =
@@ -155,6 +163,8 @@ export type CCGStatusEffectType =
     | 'BUILD_DEATHSTAR'
     | 'DESTROY_DEATHSTAR'
     | 'PERSISTENT_APPEARANCE'
+    | 'HEAL_BOOST'
+    | 'RESTRICT_CARDS'
 
 export interface CCGLogEntry {
     turn: number
@@ -181,6 +191,7 @@ export interface CCGPlayer {
     handMessage: InteractionResponse<boolean> | Message<boolean>
     energy: number
     hp: number
+    maxHp?: number
     submitted: boolean
     opponentId: string
     stunned: boolean
@@ -206,6 +217,7 @@ export interface CCGCard {
     customDescription?: string
     effectImmunities?: CCGStatusEffectType[]
     summoned?: boolean
+    consumable?: boolean
 }
 
 export interface CCGCondition {
@@ -251,9 +263,11 @@ export interface CCGCardEffect {
     delayedTrigger?: boolean
     countTarget?: 'SELF' | 'OPPONENT' | 'BOTH'
     base?: number
+    reflectType?: ReflectType
 }
 
-export type CardIdentifier = SwIdentifier
+export type HpIdentifier = 'GRYFFINDOR' | 'SLYTHERIN' | 'RAVENCLAW' | 'HUFFLEPUFF' | 'DEATH_EATER' | 'SEEKER' | 'MAGICAL_CREATURE' | 'HOUSE_ELF'
+export type CardIdentifier = SwIdentifier | HpIdentifier
 export type SwIdentifier = 'REBEL' | 'SITH' | 'JEDI' | 'REPUBLIC' | 'BOUNTY_HUNTER' | 'CREATURE' | 'EMPIRE' | 'DROID'
 export type CCGTarget = 'SELF' | 'OPPONENT'
 
@@ -305,6 +319,7 @@ export enum UsageFilter {
 export enum CCGSeries {
     MazariniCCG = 'mazariniCCG',
     SwCCG = 'swCCG',
+    HpCCG = 'hpCCG',
 }
 
 export interface CCGHelper {
