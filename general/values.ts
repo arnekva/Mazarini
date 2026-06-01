@@ -519,37 +519,7 @@ export const GameValues: GameValuesType = {
                         { id: 'hp_lucius_n', series: 'hpCCG', amount: 1 },
                         { id: 'hp_barty_crouch_jr_n', series: 'hpCCG', amount: 1 },
                     ],
-                },
-                {
-                    // Lett #1 — Rebel Alliance
-                    name: 'easy',
-                    active: true,
-                    valid: true,
-                    cards: [
-                        { id: 'sw_gonk_droid_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_rebel_soldier_n', series: 'swCCG', amount: 3 },
-                        { id: 'sw_jarjar_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_han_solo_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_chewbacca_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_r2d2_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_kit_fisto_n', series: 'swCCG', amount: 2 },
-                    ],
-                },
-                {
-                    // Lett #2 — Droid Factory
-                    name: 'easy',
-                    active: true,
-                    valid: true,
-                    cards: [
-                        { id: 'sw_battle_droid_n', series: 'swCCG', amount: 3 },
-                        { id: 'sw_gonk_droid_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_storm_trooper_n', series: 'swCCG', amount: 3 },
-                        { id: 'sw_ewok_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_c3po_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_r2d2_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_moff_gideon_n', series: 'swCCG', amount: 1 },
-                    ],
-                },
+                }
             ],
             medium: [
                 {
@@ -595,59 +565,7 @@ export const GameValues: GameValuesType = {
                         { id: 'hp_trelawney_n', series: 'hpCCG', amount: 1 },
                         { id: 'hp_bellatrix_n', series: 'hpCCG', amount: 1 },
                     ],
-                },
-                {
-                    // Middels #1 — The Empire
-                    name: 'medium',
-                    active: true,
-                    valid: true,
-                    cards: [
-                        { id: 'pointerbrothers1', series: 'mazariniCCG', amount: 1 },
-                        { id: 'sw_gonk_droid_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_storm_trooper_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_director_krennic_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_grand_moff_tarkin_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_grand_admiral_thrawn_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_dark_trooper_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_moff_gideon_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_emperor_palpatine_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_darth_vader_n', series: 'swCCG', amount: 1 },
-                    ],
-                },
-                {
-                    // Middels #2 — Bounty Board
-                    name: 'medium',
-                    active: true,
-                    valid: true,
-                    cards: [
-                        { id: 'pointerbrothers1', series: 'mazariniCCG', amount: 1 },
-                        { id: 'sw_jabba_the_hutt_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_boba_fett_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_bossk_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_cad_bane_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_ig88_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_din_djarin_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_gonk_droid_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_moff_gideon_n', series: 'swCCG', amount: 2 },
-                    ],
-                },
-                {
-                    // Medium #3 — Rebel Alliance
-                    name: 'medium',
-                    active: true,
-                    valid: true,
-                    cards: [
-                        { id: 'sw_princess_leia_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_han_solo_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_chewbacca_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_lando_calrissian_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_cassian_andor_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_luthen_rael_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_rebel_soldier_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_admiral_ackbar_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_gonk_droid_n', series: 'swCCG', amount: 2 },
-                    ],
-                },
+                }
             ],
             hard: [
                 {
@@ -693,63 +611,7 @@ export const GameValues: GameValuesType = {
                         { id: 'hp_lupin_n', series: 'hpCCG', amount: 1 },
                         { id: 'hp_shacklebolt_n', series: 'hpCCG', amount: 1 },
                     ],
-                },
-                {
-                    // Vanskelig #1 — Sith Order
-                    name: 'hard',
-                    active: true,
-                    valid: true,
-                    cards: [
-                        { id: 'pointerbrothers1', series: 'mazariniCCG', amount: 2 },
-                        { id: 'sw_darth_maul_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_count_dooku_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_cad_bane_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_darth_vader_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_emperor_palpatine_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_director_krennic_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_grand_moff_tarkin_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_grand_admiral_thrawn_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_gonk_droid_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_storm_trooper_n', series: 'swCCG', amount: 1 },
-                    ],
-                },
-                {
-                    // Vanskelig #2 — Jedi Council
-                    name: 'hard',
-                    active: true,
-                    valid: true,
-                    cards: [
-                        { id: 'sw_gonk_droid_n', series: 'swCCG', amount: 2 },
-                        { id: 'pointerbrothers1', series: 'mazariniCCG', amount: 2 },
-                        { id: 'sw_clone_trooper_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_plo_koon_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_mace_windu_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_yoda_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_kit_fisto_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_anakin_skywalker_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_space_jesus_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_qui_gon_jinn_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_luke_skywalker_n', series: 'swCCG', amount: 1 },
-                    ],
-                },
-                {
-                    // Vanskelig #3 — Mixed
-                    name: 'hard',
-                    active: true,
-                    valid: true,
-                    cards: [
-                        { id: 'sw_gonk_droid_n', series: 'swCCG', amount: 2 },
-                        { id: 'pointerbrothers1', series: 'mazariniCCG', amount: 2 },
-                        { id: 'sw_r2d2_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_anakin_skywalker_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_yoda_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_kit_fisto_n', series: 'swCCG', amount: 2 },
-                        { id: 'sw_ig88_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_space_jesus_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_qui_gon_jinn_n', series: 'swCCG', amount: 1 },
-                        { id: 'sw_emperor_palpatine_n', series: 'swCCG', amount: 1 },
-                    ],
-                },
+                }
             ],
         },
     },
