@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '32.0.0'
+    public static readonly currentVersion = '32.0.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,17 +28,7 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '# CCG',
-                '* Ny serie: Harry Potter',
-                '* 48 nye kort',
-                `* Alt er perfekt balansert av CCG-geniet ${MentionUtils.mentionUser('715963046861865091')}`,
-                `* Alle deckene til Høie er oppdaterte`,
-                `## Visuelle endringer`,
-                `* Verdier på kort som endres i løpet av spillet vil nå få en visuell indikator som viser om verdien har økt eller sunket`,
-                `* Grønt for positiv endring, rødt for negativ`,
-                `* Eksempel: Hvis du har blitt slow, vil speed-verdien vises i rødt på kortene det gjelder.`,
-                '## Diverse',
-                `* Økonomien er nullstilt, alle har fått 5000 chips og 50 shards til en starter-pakke`,
-                `* Re-worket /botinnstillinger`,
+                '* Fjernet SW decks fra Høie sine decks',
             ].join('\n')
         )
         container.addSeparator()
