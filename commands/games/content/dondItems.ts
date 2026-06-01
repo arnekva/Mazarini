@@ -95,6 +95,7 @@ export namespace DondItems {
             },
         },
     ]
+
     export const mediumQualityEffects: Array<IEffectItem> = [
         {
             label: '2 spin',

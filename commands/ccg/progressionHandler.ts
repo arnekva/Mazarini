@@ -1,7 +1,7 @@
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
 import { CCGMatchSummary } from '../../templates/containerTemplates'
-import { CCGCardStats, CCGGame, CCGPlayer, CCGPlayerStats, CCGStatusStats, Mode } from './ccgInterface'
+import { CardSet, CCGCardStats, CCGGame, CCGPlayer, CCGPlayerStats, CCGStatusStats, Mode } from './ccgInterface'
 
 export class ProgressionHandler {
     private client: MazariniClient
@@ -119,9 +119,11 @@ export class ProgressionHandler {
         const limitReached = (user.ccg?.weeklyShardsEarned ?? 0) >= rewards.weeklyLimit
         const dailyBonus = (!rewards.bonusAfterLimit && limitReached) || user.ccg?.dailyShardBonusClaimed ? 0 : rewards.dailyBonus
         const gameReward = playerWon ? rewards.win : rewards.loss
-        const multiplier = game.vsBot && playerWon ? rewards.difficultyMultiplier[game.botDifficulty] : 1
+        const difficultyMultiplier = game.vsBot && playerWon ? rewards.difficultyMultiplier[game.botDifficulty] : 1
+        const cardSetMultiplier = game.cardSet === CardSet.Full ? 0.5 : 1
+        const multiplier = difficultyMultiplier * cardSetMultiplier
         const penalty = limitReached ? rewards.limitPenalty : 0
-        const reward = gameReward * multiplier + dailyBonus - penalty
+        const reward = Math.round(gameReward * multiplier + dailyBonus - penalty)
         user.ccg = {
             ...user.ccg,
             dailyShardBonusClaimed: true,

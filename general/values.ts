@@ -206,9 +206,16 @@ export type GameValuesType = {
         isLootable: boolean
         concedeShardPenalty: number
         activeCCGseries: string[]
+        /** Series allowed in Standard mode (core + newest expansion) */
+        standardSeries: string[]
         defaultDeck: ICCGDeck
         defaultCardback: string
         botDeck: {
+            easy: ICCGDeck[]
+            medium: ICCGDeck[]
+            hard: ICCGDeck[]
+        }
+        botDeckFull: {
             easy: ICCGDeck[]
             medium: ICCGDeck[]
             hard: ICCGDeck[]
@@ -464,6 +471,7 @@ export const GameValues: GameValuesType = {
         isLootable: false,
         concedeShardPenalty: 11,
         activeCCGseries: ['hpCCG', 'mazariniCCG', 'swCCG'],
+        standardSeries: ['mazariniCCG', 'hpCCG'],
         defaultDeck: {
             name: 'default',
             active: true,
@@ -612,6 +620,73 @@ export const GameValues: GameValuesType = {
                         { id: 'hp_shacklebolt_n', series: 'hpCCG', amount: 1 },
                     ],
                 }
+            ],
+        },
+        botDeckFull: {
+            easy: [
+                {
+                    // Full Lett #1
+                    name: 'easy',
+                    active: true,
+                    valid: true,
+                    cards: [
+                        { id: 'pointerbrothers1', series: 'mazariniCCG', amount: 1 },
+                        { id: 'hp_sirius_n', series: 'hpCCG', amount: 1 },
+                        { id: 'hp_neville_n', series: 'hpCCG', amount: 2 },
+                        { id: 'sw_darth_vader_n', series: 'swCCG', amount: 1 },
+                        { id: 'sw_anakin_skywalker_n', series: 'swCCG', amount: 1 },
+                        { id: 'hoie', series: 'mazariniCCG', amount: 1 },
+                        { id: 'sw_luke_skywalker_n', series: 'swCCG', amount: 1 },
+                        { id: 'hp_hermione_n', series: 'hpCCG', amount: 1 },
+                        { id: 'sw_qui_gon_jinn_n', series: 'swCCG', amount: 1 },
+                        { id: 'sw_yoda_n', series: 'swCCG', amount: 2 },
+                        { id: 'sw_emperor_palpatine_n', series: 'swCCG', amount: 1 },
+                        { id: 'sw_k2so_n', series: 'swCCG', amount: 2 },
+                    ],
+                },
+            ],
+            medium: [
+                {
+                    // Full Middels #1
+                    name: 'medium',
+                    active: true,
+                    valid: true,
+                    cards: [
+                        { id: 'pointerbrothers1', series: 'mazariniCCG', amount: 2 },
+                        { id: 'hp_kreacher_n', series: 'hpCCG', amount: 2 },
+                        { id: 'sw_darth_vader_n', series: 'swCCG', amount: 1 },
+                        { id: 'sw_anakin_skywalker_n', series: 'swCCG', amount: 1 },
+                        { id: 'hp_dobby_n', series: 'hpCCG', amount: 1 },
+                        { id: 'sw_luke_skywalker_n', series: 'swCCG', amount: 1 },
+                        { id: 'hp_shacklebolt_n', series: 'hpCCG', amount: 1 },
+                        { id: 'sw_qui_gon_jinn_n', series: 'swCCG', amount: 1 },
+                        { id: 'sw_yoda_n', series: 'swCCG', amount: 2 },
+                        { id: 'sw_emperor_palpatine_n', series: 'swCCG', amount: 1 },
+                        { id: 'sw_k2so_n', series: 'swCCG', amount: 2 },
+                    ],
+                },
+            ],
+            hard: [
+                {
+                    // Full Vanskelig #1
+                    name: 'hard',
+                    active: true,
+                    valid: true,
+                    cards: [
+                        { id: 'sw_gonk_droid_n', series: 'swCCG', amount: 1 },
+                        { id: 'hp_shacklebolt_n', series: 'hpCCG', amount: 1 },
+                        { id: 'hp_kreacher_n', series: 'hpCCG', amount: 2 },
+                        { id: 'sw_darth_vader_n', series: 'swCCG', amount: 1 },
+                        { id: 'sw_anakin_skywalker_n', series: 'swCCG', amount: 1 },
+                        { id: 'hoie', series: 'mazariniCCG', amount: 1 },
+                        { id: 'sw_luke_skywalker_n', series: 'swCCG', amount: 1 },
+                        { id: 'sw_space_jesus_n', series: 'swCCG', amount: 1 },
+                        { id: 'sw_qui_gon_jinn_n', series: 'swCCG', amount: 1 },
+                        { id: 'sw_yoda_n', series: 'swCCG', amount: 2 },
+                        { id: 'sw_emperor_palpatine_n', series: 'swCCG', amount: 1 },
+                        { id: 'sw_k2so_n', series: 'swCCG', amount: 2 },
+                    ],
+                },
             ],
         },
     },

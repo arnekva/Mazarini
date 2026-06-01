@@ -7,7 +7,7 @@ import { MazariniClient } from './client/MazariniClient'
 import { DatabaseHelper } from './helpers/databaseHelper'
 import { MessageHelper } from './helpers/messageHelper'
 import { IInteractionElement } from './interfaces/interactionInterface'
-import { ChannelIds, MentionUtils } from './utils/mentionUtils'
+import { ChannelIds } from './utils/mentionUtils'
 
 export class PatchNotes extends AbstractCommands {
     public static readonly trelloBoardUrl = `https://trello.com/b/g4KkZwaX/bot-h%C3%B8ie`
@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '32.0.1'
+    public static readonly currentVersion = '32.1.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,7 +28,14 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '# CCG',
-                '* Fjernet SW decks fra Høie sine decks',
+                '* To nye moduser:',
+                '  * Standard: Core (Mazarini) + nyeste expansion (HP)',
+                '  * Full: Core + alle expansions',
+                '* Du kan spille mot Høie i begge moduser, men merk at Full gir halvparten så mange shards som vanlig (pga. stress med balansering av decks)',
+                '* Deck editor har nå et filter for Standard',
+                '* Har også prøvd å fikse kortbakgrunnen til HP-serien, men det er nesten beyond saving.',
+                '* Det er nå støtte for å automatisk generere svart kant til kortbakgrunnene.',
+                '* Alle har fått 100 shards hver.',
             ].join('\n')
         )
         container.addSeparator()

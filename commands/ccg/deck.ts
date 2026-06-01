@@ -98,6 +98,7 @@ export class DeckCommands extends AbstractCommands {
             seriesFilters: [],
             identifierFilters: [],
             amountFilters: [],
+            standardFilter: false,
             userCards: structuredClone(fullCards),
             filteredCards: structuredClone(fullCards),
             cardImages: new Map<string, Buffer>(),
@@ -152,8 +153,9 @@ export class DeckCommands extends AbstractCommands {
         if (GameValues.ccg.activeCCGseries.length > 1) {
             deckInfo.replaceComponent('seriesFilters', seriesFilters(editor))
         }
-        deckInfo.replaceComponent('identifierFilters', identifierFilters(editor))
         deckInfo.replaceComponent('amountFilters', amountFilters(editor))
+        deckInfo.replaceComponent('standardFilter', standardFilterRow(editor))
+        deckInfo.replaceComponent('identifierFilters', identifierFilters(editor))
         deckInfo.setColor(editor.userColor)
         return deckInfo
     }
@@ -299,8 +301,9 @@ export class DeckCommands extends AbstractCommands {
         if (GameValues.ccg.activeCCGseries.length > 1) {
             editor.deckInfo.container.replaceComponent('seriesFilters', seriesFilters(editor))
         }
-        editor.deckInfo.container.replaceComponent('identifierFilters', identifierFilters(editor))
         editor.deckInfo.container.replaceComponent('amountFilters', amountFilters(editor))
+        editor.deckInfo.container.replaceComponent('standardFilter', standardFilterRow(editor))
+        editor.deckInfo.container.replaceComponent('identifierFilters', identifierFilters(editor))
         editor.deckInfo.message.edit({ components: [editor.deckInfo.container.container] })
     }
 
@@ -313,7 +316,8 @@ export class DeckCommands extends AbstractCommands {
                 ((editor.usageFilters.length ?? 0) === 0 || this.checkUsageFilter(editor, card)) &&
                 ((editor.seriesFilters.length ?? 0) === 0 || editor.seriesFilters.includes(card.series as CCGSeries)) &&
                 ((editor.amountFilters.length ?? 0) === 0 || this.getCardAmountAvailable(user, card) >= 3) &&
-                ((editor.identifierFilters?.length ?? 0) === 0 || card.identifier?.some((i) => editor.identifierFilters.includes(i)))
+                ((editor.identifierFilters?.length ?? 0) === 0 || card.identifier?.some((i) => editor.identifierFilters.includes(i))) &&
+                (!editor.standardFilter || GameValues.ccg.standardSeries.includes(card.series))
         )
     }
 
@@ -335,6 +339,14 @@ export class DeckCommands extends AbstractCommands {
         editor.saved = false
         await this.validateDeck(editor)
         this.updateDeckInfo(editor)
+        this.updateCardView(editor, interaction.user.id)
+    }
+
+    private toggleStandardFilter(interaction: BtnInteraction, editor: DeckEditor) {
+        editor.standardFilter = !editor.standardFilter
+        this.updateFilterButtons(editor)
+        this.filterCards(editor)
+        editor.page = 1
         this.updateCardView(editor, interaction.user.id)
     }
 
@@ -585,6 +597,12 @@ export class DeckCommands extends AbstractCommands {
                             this.verifyUserAndCallMethod(interaction, (editor) => this.confirmTradeCards(interaction, editor))
                         },
                     },
+                    {
+                        commandName: 'DECK_STANDARD_FILTER',
+                        command: (interaction: ButtonInteraction) => {
+                            this.verifyUserAndCallMethod(interaction, (editor) => this.toggleStandardFilter(interaction, editor))
+                        },
+                    },
                 ],
                 selectMenuInteractionCommands: [
                     {
@@ -644,7 +662,22 @@ const amountFilters = (editor: DeckEditor) => {
     )
 }
 
-const ALL_IDENTIFIERS: CardIdentifier[] = ['REBEL', 'SITH', 'JEDI', 'REPUBLIC', 'BOUNTY_HUNTER', 'CREATURE', 'EMPIRE', 'DROID']
+const standardFilterRow = (editor: DeckEditor) => {
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder({
+            custom_id: `DECK_STANDARD_FILTER;${editor.id}`,
+            style: editor.standardFilter ? ButtonStyle.Primary : ButtonStyle.Secondary,
+            disabled: false,
+            label: 'Standard',
+            type: 2,
+        })
+    )
+}
+
+const ALL_IDENTIFIERS: CardIdentifier[] = [
+    'REBEL', 'SITH', 'JEDI', 'REPUBLIC', 'BOUNTY_HUNTER', 'CREATURE', 'EMPIRE', 'DROID',
+    'GRYFFINDOR', 'SLYTHERIN', 'RAVENCLAW', 'HUFFLEPUFF', 'DEATH_EATER', 'SEEKER', 'MAGICAL_CREATURE', 'HOUSE_ELF',
+]
 
 const identifierFilters = (editor: DeckEditor) => {
     return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
@@ -652,7 +685,7 @@ const identifierFilters = (editor: DeckEditor) => {
             .setCustomId(`DECK_IDENTIFIER_FILTER;${editor.id}`)
             .setPlaceholder('Filter by identifier...')
             .setMinValues(0)
-            .setMaxValues(ALL_IDENTIFIERS.length)
+            .setMaxValues(Math.min(ALL_IDENTIFIERS.length, 25))
             .addOptions(
                 ALL_IDENTIFIERS.map((id) =>
                     new StringSelectMenuOptionBuilder()

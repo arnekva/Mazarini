@@ -49,6 +49,16 @@ export class Scripts {
         this.client.cache.deathrollPot = 0
     }
 
+    public async addShardsToAllUsers(amount: number) {
+        const users = await this.client.database.getAllUsers()
+        await Promise.all(
+            users.map((user) => {
+                user.ccg = { ...user.ccg, shards: (user.ccg?.shards ?? 0) + amount }
+                return this.client.database.updateUser(user)
+            })
+        )
+    }
+
     public async resetChipsAndShardsAndDaily() {
         const users = await this.client.database.getAllUsers()
         for (const user of users) {

@@ -4,7 +4,6 @@ import { cloudflareConfig, environment, firebaseConfig, secretDevelopment } from
 import { JobScheduler } from '../Jobs/jobScheduler'
 
 import { S3Client } from '@aws-sdk/client-s3'
-import { CommandBuilder } from '../builders/commandBuilder/commandBuilder'
 import { EventTracker } from '../general/eventTracker'
 import { MazariniTracker } from '../general/mazariniTracker'
 import { LockingHandler } from '../handlers/lockingHandler'
@@ -88,7 +87,7 @@ export class MazariniClient extends Client {
         if (environment === 'dev') {
             //hehe ty one time hack
             //Uncomment to run command creation
-            CommandBuilder.createCommands(this)
+            // CommandBuilder.createCommands(this)
             // CommandBuilder.deleteCommandByName('grid', this)
         }
     }

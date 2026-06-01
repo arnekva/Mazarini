@@ -9,13 +9,24 @@ export class CCGValidator {
         return this.validateDeckWithCards(user, deck, validationErrors, allCards)
     }
 
-    public static validateDeckWithCards(user: MazariniUser, deck: ICCGDeck, validationErrors: string[], allCards: ICCGSystem) {
+    public static validateDeckWithCards(user: MazariniUser, deck: ICCGDeck, validationErrors: string[], allCards: ICCGSystem, standardOnly = false) {
         deck.valid = true
         this.validateDeckSize(deck, validationErrors)
         this.validateRarityCaps(deck, validationErrors, allCards)
         this.validateTypeCaps(deck, validationErrors, allCards)
         this.validateUserHasAllCards(user, deck, validationErrors, allCards)
         this.validateMaxDuplicates(deck, validationErrors, allCards)
+        if (standardOnly) this.validateStandardSet(deck, validationErrors)
+    }
+
+    public static validateStandardSet(deck: ICCGDeck, validationErrors: string[]) {
+        const allowed = GameValues.ccg.standardSeries
+        const invalidCards = deck.cards.filter((card) => !allowed.includes(card.series))
+        if (invalidCards.length > 0) {
+            deck.valid = false
+            const names = invalidCards.map((c) => c.id).join(', ')
+            validationErrors.push(`:warning: Standard mode only allows cards from: ${allowed.join(', ')}. Invalid: ${names}`)
+        }
     }
 
     public static validateUserHasAllCards(user: MazariniUser, deck: ICCGDeck, validationErrors: string[], allCards: ICCGSystem) {

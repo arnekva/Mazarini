@@ -3,7 +3,6 @@ import type { ApplicationEmoji, Collection } from 'discord.js'
 import { ActionRowBuilder, APIButtonComponent, AttachmentBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
-import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
 import type { CardModification } from '../../helpers/ccgCardGenerator'
@@ -20,6 +19,7 @@ import { BotResolver } from './BotResolver'
 import { CardActionResolver } from './cardActionResolver'
 import { CCGHelp } from './ccgHelp'
 import {
+    CardSet,
     CCGCard,
     CCGCardEffect,
     CCGCardStats,
@@ -144,8 +144,12 @@ export class CCGCommands extends AbstractCommands {
         const submitted = player.hand.filter((card) => card.selected)
         const extraCardsEffects = this.getEffectsForPlayer(game, player, 'EXTRA_CARDS')
         const restrictedConditions = this.getConditionsForPlayer(game, player, 'RESTRICT_CARDS')
-        const maxCards = restrictedConditions.length > 0 ? restrictedConditions[0].value :
-            extraCardsEffects.length > 0 ? extraCardsEffects[0].value : game.state.settings.maxCardsPlayed
+        const maxCards =
+            restrictedConditions.length > 0
+                ? restrictedConditions[0].value
+                : extraCardsEffects.length > 0
+                ? extraCardsEffects[0].value
+                : game.state.settings.maxCardsPlayed
         if (submitted.length > maxCards) {
             return this.messageHelper.replyToInteraction(interaction, `Du kan ikke spille mer enn ${maxCards} kort om gangen`, {
                 ephemeral: true,
@@ -740,7 +744,10 @@ export class CCGCommands extends AbstractCommands {
     private async setupGame(interaction: ChatInteraction, vsBot: boolean) {
         await this.messageHelper.deferReply(interaction)
         const difficulty = vsBot ? (interaction.options.get('difficulty')?.value as string as Difficulty) : undefined
-        const mode = vsBot ? (interaction.options.get('mode')?.value as string as Mode) : undefined
+        const modeRaw = vsBot ? (interaction.options.get('mode')?.value as string) : undefined
+        const [modeValue, cardSetValue] = modeRaw ? modeRaw.split('_') : [undefined, undefined]
+        const mode = modeValue as Mode | undefined
+        const cardSet = (cardSetValue as CardSet | undefined) ?? CardSet.Standard
         const wager = !vsBot ? SlashCommandHelper.getCleanNumberValue(interaction.options.get('innsats')?.value) : undefined
         const gameId = randomUUID()
         const game: CCGGame = {
@@ -754,6 +761,7 @@ export class CCGCommands extends AbstractCommands {
             summary: { visible: false, round: 1 },
             botDifficulty: difficulty ?? null,
             mode: mode,
+            cardSet: cardSet,
             wager: Math.max(wager ?? 0, 0),
         }
         const button = vsBot ? readyUpBtn(game.id) : joinButton(game.id)
@@ -816,7 +824,7 @@ export class CCGCommands extends AbstractCommands {
     ) {
         if (player.deck.length > 0 && player.cardbackEmoji) return
         if (player.id === MentionUtils.User_IDs.BOT_HOIE) {
-            const botCards = await this.getBotCards(game.botDifficulty, cards, appEmojis)
+            const botCards = await this.getBotCards(game.botDifficulty, cards, appEmojis, game.cardSet)
             player.deck = RandomUtils.shuffleList(structuredClone(botCards))
             player.cardbackEmoji = await this.getCardbackEmoji(undefined, appEmojis)
             return
@@ -909,10 +917,16 @@ export class CCGCommands extends AbstractCommands {
         return await this.getFullCards(deck, resolvedCards, resolvedEmojis)
     }
 
-    private async getBotCards(difficulty: Difficulty, cards?: ICCGSystem, appEmojis?: Collection<string, ApplicationEmoji>): Promise<CCGCard[]> {
+    private async getBotCards(
+        difficulty: Difficulty,
+        cards?: ICCGSystem,
+        appEmojis?: Collection<string, ApplicationEmoji>,
+        cardSet?: CardSet
+    ): Promise<CCGCard[]> {
         const resolvedCards = cards ?? (await this.getCcgStorage())
         const resolvedEmojis = appEmojis ?? (await this.client.getEmojis())
-        const deck = RandomUtils.getRandomItemFromList(GameValues.ccg.botDeck[difficulty])
+        const deckPool = cardSet === CardSet.Full ? GameValues.ccg.botDeckFull[difficulty] : GameValues.ccg.botDeck[difficulty]
+        const deck = RandomUtils.getRandomItemFromList(deckPool)
         return await this.getFullCards(deck, resolvedCards, resolvedEmojis)
     }
 
@@ -935,13 +949,13 @@ export class CCGCommands extends AbstractCommands {
         return userCards
     }
 
-    private async userHasValidDeck(interaction: ChatInteraction | BtnInteraction, user?: MazariniUser, cards?: ICCGSystem) {
-        if (environment === 'dev') return true // skip deck validation in development for faster testing
+    private async userHasValidDeck(interaction: ChatInteraction | BtnInteraction, user?: MazariniUser, cards?: ICCGSystem, standardOnly = false) {
+        // if (environment === 'dev') return true // skip deck validation in development for faster testing
         const resolvedUser = user ?? (await this.database.getUser(interaction.user.id))
         const resolvedCards = cards ?? (await this.getCcgStorage())
         const deck = resolvedUser.ccg?.decks?.find((deck) => deck.active) ?? GameValues.ccg.defaultDeck
         deck.valid = true
-        CCGValidator.validateDeckWithCards(resolvedUser, deck, new Array<string>(), resolvedCards)
+        CCGValidator.validateDeckWithCards(resolvedUser, deck, new Array<string>(), resolvedCards, standardOnly)
         return deck.valid
     }
 
@@ -1029,7 +1043,10 @@ export class CCGCommands extends AbstractCommands {
             const vsBot = cmd === 'bot'
             const user = await this.database.getUser(interaction.user.id)
             const ccgStorage = await this.getCcgStorage()
-            const validDeck = await this.userHasValidDeck(interaction, user, ccgStorage)
+            const modeRaw = vsBot ? (interaction.options.get('mode')?.value as string) : undefined
+            const cardSet = (modeRaw?.split('_')[1] as CardSet | undefined) ?? CardSet.Full
+            const standardOnly = vsBot && cardSet === CardSet.Standard
+            const validDeck = await this.userHasValidDeck(interaction, user, ccgStorage, standardOnly)
             if (!validDeck) return this.handleUserHasInvalidDeck(interaction)
             const canAfford = this.userCanAfford(user, interaction, vsBot)
             if (!canAfford) return this.messageHelper.replyToInteraction(interaction, 'Du har ikke råd til dette')
@@ -1041,7 +1058,8 @@ export class CCGCommands extends AbstractCommands {
     private userCanAfford(user: MazariniUser, interaction: ChatInteraction, vsBot: boolean) {
         if (vsBot) {
             // if ((user.ccg?.weeklyShardsEarned ?? 0) >= GameValues.ccg.rewards.weeklyLimit) return true
-            const mode = interaction.options.get('mode')?.value as string as Mode
+            const modeRaw = interaction.options.get('mode')?.value as string
+            const mode = modeRaw?.split('_')[0] as Mode
             return mode === Mode.Practice || this.client.bank.takeMoney(user, GameValues.ccg.rewards.entryFee)
         } else {
             const wager = SlashCommandHelper.getCleanNumberValue(interaction.options.get('innsats')?.value)

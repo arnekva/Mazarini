@@ -1,5 +1,5 @@
 import { ApplicationCommandOptionType } from 'discord.js'
-import { Difficulty, Mode } from '../../../commands/ccg/ccgInterface'
+import { CardSet, Difficulty, Mode } from '../../../commands/ccg/ccgInterface'
 import { GameValues } from '../../../general/values'
 import { ISlashCommandItem } from '../commandBuilder'
 
@@ -28,17 +28,25 @@ export const ccgCommand: ISlashCommandItem = {
                     options: [
                         {
                             name: 'mode',
-                            description: 'Velg om du vil spille for shards eller om du bare vil øve',
+                            description: 'Velg spillmodus og kortsett',
                             type: ApplicationCommandOptionType.String,
                             required: true,
                             choices: [
                                 {
-                                    name: 'Practice (free)',
-                                    value: Mode.Practice,
+                                    name: `Practice (free) – Standard`,
+                                    value: `${Mode.Practice}_${CardSet.Standard}`,
                                 },
                                 {
-                                    name: `Reward (${GameValues.ccg.rewards.entryFee / 1000}K)`,
-                                    value: Mode.Reward,
+                                    name: `Practice (free) – Full`,
+                                    value: `${Mode.Practice}_${CardSet.Full}`,
+                                },
+                                {
+                                    name: `Reward (${GameValues.ccg.rewards.entryFee / 1000}K) – Standard`,
+                                    value: `${Mode.Reward}_${CardSet.Standard}`,
+                                },
+                                {
+                                    name: `Reward (${GameValues.ccg.rewards.entryFee / 1000}K) – Full`,
+                                    value: `${Mode.Reward}_${CardSet.Full}`,
                                 },
                             ],
                         },

@@ -27,6 +27,13 @@ const RARITY_BLANK: Record<string, string> = {
     [ItemRarity.Legendary]: 'mazarini_legendary_blank.png',
 }
 
+/** Per-series border width in pixels. The card content is scaled down to fit inside the border. */
+const SERIES_CARD_BORDER: Record<string, number> = {
+    hpCCG: 12,
+}
+const BORDER_OUTER_RADIUS = 18
+const BORDER_INNER_RADIUS = 10
+
 /** Per-series rarity blank overrides */
 const SERIES_RARITY_BLANK: Record<string, Record<string, string>> = {
     hpCCG: {
@@ -222,7 +229,9 @@ export class CCGCardGenerator {
         layers.push({ input: Buffer.from(overlaySvg), top: 0, left: 0 })
 
         const baseBuffer = await base.toBuffer()
-        return await sharp(baseBuffer).composite(layers).png().toBuffer()
+        const fullCard = await sharp(baseBuffer).composite(layers).png().toBuffer()
+        const borderWidth = SERIES_CARD_BORDER[card.series]
+        return borderWidth ? CCGCardGenerator.applyCardBorder(fullCard, borderWidth) : fullCard
     }
 
     /** Apply a list of modifications to a deep copy of a card */
@@ -394,7 +403,35 @@ export class CCGCardGenerator {
 
         // Composite everything onto the blank
         const baseBuffer = await base.toBuffer()
-        await sharp(baseBuffer).composite(layers).png().toFile(outputPath)
+        const fullCard = await sharp(baseBuffer).composite(layers).png().toBuffer()
+        const borderWidth = SERIES_CARD_BORDER[card.series]
+        const finalCard = borderWidth ? await CCGCardGenerator.applyCardBorder(fullCard, borderWidth) : fullCard
+        await fs.promises.writeFile(outputPath, finalCard)
+    }
+
+    private static async applyCardBorder(cardBuffer: Buffer, borderWidth: number): Promise<Buffer> {
+        const innerW = CARD_WIDTH - 2 * borderWidth
+        const innerH = CARD_HEIGHT - 2 * borderWidth
+
+        // Shrink card content to inner dimensions and clip with rounded corners
+        const resized = await sharp(cardBuffer).resize(innerW, innerH).png().toBuffer()
+        const roundedInner = await sharp(resized)
+            .composite([{
+                input: Buffer.from(`<svg width="${innerW}" height="${innerH}"><rect width="${innerW}" height="${innerH}" rx="${BORDER_INNER_RADIUS}" ry="${BORDER_INNER_RADIUS}" fill="white"/></svg>`),
+                blend: 'dest-in',
+            }])
+            .png()
+            .toBuffer()
+
+        // Black rounded base at full card size
+        const blackBase = await sharp(
+            Buffer.from(`<svg width="${CARD_WIDTH}" height="${CARD_HEIGHT}"><rect width="${CARD_WIDTH}" height="${CARD_HEIGHT}" rx="${BORDER_OUTER_RADIUS}" ry="${BORDER_OUTER_RADIUS}" fill="black"/></svg>`)
+        ).png().toBuffer()
+
+        return sharp(blackBase)
+            .composite([{ input: roundedInner, top: borderWidth, left: borderWidth }])
+            .png()
+            .toBuffer()
     }
 
     /** Build a transparent SVG overlay with stats, card name, and effect description */

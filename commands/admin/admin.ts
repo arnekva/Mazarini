@@ -565,6 +565,7 @@ export class Admin extends AbstractCommands {
                         min_values: 0,
                         options: [
                             { value: 'reset_chips_shards_daily', label: 'Reset chips (5000), shards (50) og daily for alle' },
+                            { value: 'add_shards_100', label: 'Gi alle 100 shards' },
                         ],
                     },
                 },
@@ -582,6 +583,12 @@ export class Admin extends AbstractCommands {
             await scripts.resetChipsAndShardsAndDaily()
             results.push('Reset chips/shards/daily: fullført for alle brukere.')
             this.messageHelper.sendLogMessage(`[Scripts] ${modalInteraction.user.username} kjørte reset chips/shards/daily for alle brukere.`)
+        }
+        if (selected.includes('add_shards_100')) {
+            const scripts = new Scripts(this.client)
+            await scripts.addShardsToAllUsers(100)
+            results.push('Ga alle brukere 100 shards.')
+            this.messageHelper.sendLogMessage(`[Scripts] ${modalInteraction.user.username} ga alle brukere 100 shards.`)
         }
 
         await modalInteraction.editReply(results.length ? results.join('\n') : 'Ingenting valgt.')

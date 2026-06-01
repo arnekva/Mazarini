@@ -14,6 +14,7 @@ export interface CCGGame {
     summary: CCGSummary
     botDifficulty?: Difficulty
     mode?: Mode
+    cardSet?: CardSet
     wager?: number
 }
 
@@ -26,6 +27,11 @@ export enum Difficulty {
 export enum Mode {
     Practice = 'practice',
     Reward = 'reward',
+}
+
+export enum CardSet {
+    Standard = 'standard',
+    Full = 'full',
 }
 
 export interface CCGPlayerStats {
@@ -288,6 +294,7 @@ export interface DeckEditor {
     seriesFilters: CCGSeries[]
     amountFilters: AmountFilter[]
     identifierFilters: CardIdentifier[]
+    standardFilter: boolean
     userCards: CCGCard[]
     cardImages: Map<string, Buffer>
     filteredCards: CCGCard[]
