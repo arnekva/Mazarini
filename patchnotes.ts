@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '32.1.0'
+    public static readonly currentVersion = '32.1.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,14 +28,10 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '# CCG',
-                '* To nye moduser:',
-                '  * Standard: Core (Mazarini) + nyeste expansion (HP)',
-                '  * Full: Core + alle expansions',
-                '* Du kan spille mot Høie i begge moduser, men merk at Full gir halvparten så mange shards som vanlig (pga. stress med balansering av decks)',
-                '* Deck editor har nå et filter for Standard',
-                '* Har også prøvd å fikse kortbakgrunnen til HP-serien, men det er nesten beyond saving.',
-                '* Det er nå støtte for å automatisk generere svart kant til kortbakgrunnene.',
-                '* Alle har fått 100 shards hver.',
+                '* Standard (Vanskelig) har nå to oppdarte decks',
+                '* Høie kan nå spille 3 kort hvis han vil',
+                '* Expecto patronum healer deg også for 5.',
+                '* Standard (Full) har nå et mikroskopisk lettere Lett deck',
             ].join('\n')
         )
         container.addSeparator()

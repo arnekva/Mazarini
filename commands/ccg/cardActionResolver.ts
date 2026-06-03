@@ -431,7 +431,9 @@ export class CardActionResolver {
             }
 
             case 'INCREASE_MAX_HP': {
-                source.maxHp = (source.maxHp ?? GameValues.ccg.gameSettings.startingHP) + (effect.value ?? 0)
+                const hpGain = effect.value ?? 0
+                source.maxHp = (source.maxHp ?? GameValues.ccg.gameSettings.startingHP) + hpGain
+                source.hp = Math.min(source.hp + hpGain, source.maxHp)
                 this.log(game, `${this.getEffectLogPrefix(effect)}${source.name}'s max HP raised to **${source.maxHp}**`)
                 break
             }
