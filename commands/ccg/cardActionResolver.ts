@@ -409,6 +409,41 @@ export class CardActionResolver {
                 break
             }
 
+            case 'PRANK': {
+                const prankCards = [
+                    'hp_prank_damage_n',
+                    'hp_prank_shield_n',
+                    'hp_prank_both_n',
+                    'hp_prank_energy_n',
+                ]
+                const prankId = prankCards[Math.floor(Math.random() * prankCards.length)]
+                const prankCard = ALL_CARDS.find((c) => c.id === prankId)
+                if (!prankCard) break
+                const fredEmoji = source.hand.find((c) => c.id === 'hp_fred_n' || c.id === 'hp_george_n')?.emoji ?? effect.emoji
+                for (const prankEffect of prankCard.effects ?? []) {
+                    const prankTarget = prankEffect.target === 'OPPONENT' ? target : source
+                    const stackEffect: CCGEffect = {
+                        cardId: prankCard.id,
+                        emoji: fredEmoji,
+                        sourceCardName: prankCard.name,
+                        sourceCardId: prankCard.id,
+                        sourcePlayerId: source.id,
+                        targetPlayerId: prankTarget.id,
+                        cardTarget: prankEffect.target,
+                        type: prankEffect.type,
+                        speed: prankCard.speed,
+                        accuracy: 100,
+                        cardSuccessful: true,
+                        value: prankEffect.value,
+                        turns: prankEffect.turns,
+                    } as CCGEffect
+                    game.state.stack.push(stackEffect)
+                }
+                this.sortStack(game)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} sets off **${prankCard.name}**!`)
+                break
+            }
+
             case 'COPY_CARD':
                 this.copyCard(game, effect, source, target)
                 break

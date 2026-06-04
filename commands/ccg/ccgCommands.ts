@@ -925,7 +925,7 @@ export class CCGCommands extends AbstractCommands {
     ): Promise<CCGCard[]> {
         const resolvedCards = cards ?? (await this.getCcgStorage())
         const resolvedEmojis = appEmojis ?? (await this.client.getEmojis())
-        const deckPool = cardSet === CardSet.Full ? GameValues.ccg.botDeckFull[difficulty] : GameValues.ccg.botDeck[difficulty]
+        const deckPool = cardSet === CardSet.Wild ? GameValues.ccg.botDeckFull[difficulty] : GameValues.ccg.botDeck[difficulty]
         const deck = RandomUtils.getRandomItemFromList(deckPool)
         return await this.getFullCards(deck, resolvedCards, resolvedEmojis)
     }
@@ -988,8 +988,6 @@ export class CCGCommands extends AbstractCommands {
             const msg = await this.messageHelper.replyToInteraction(interaction, `Fetching ${opponent.name}'s hand...`, { ephemeral: !game.vsBot })
 
             const effectId = customId[3]
-            const index = game.state.statusEffects.findIndex((effect) => effect.id === effectId)
-            game.state.statusEffects.splice(index, 1)
             game.container.removeComponent(effectId)
             this.updateGameMessage(game)
 
@@ -1044,7 +1042,7 @@ export class CCGCommands extends AbstractCommands {
             const user = await this.database.getUser(interaction.user.id)
             const ccgStorage = await this.getCcgStorage()
             const modeRaw = vsBot ? (interaction.options.get('mode')?.value as string) : undefined
-            const cardSet = (modeRaw?.split('_')[1] as CardSet | undefined) ?? CardSet.Full
+            const cardSet = (modeRaw?.split('_')[1] as CardSet | undefined) ?? CardSet.Wild
             const standardOnly = vsBot && cardSet === CardSet.Standard
             const validDeck = await this.userHasValidDeck(interaction, user, ccgStorage, standardOnly)
             if (!validDeck) return this.handleUserHasInvalidDeck(interaction)

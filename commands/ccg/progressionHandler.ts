@@ -120,7 +120,7 @@ export class ProgressionHandler {
         const dailyBonus = (!rewards.bonusAfterLimit && limitReached) || user.ccg?.dailyShardBonusClaimed ? 0 : rewards.dailyBonus
         const gameReward = playerWon ? rewards.win : rewards.loss
         const difficultyMultiplier = game.vsBot && playerWon ? rewards.difficultyMultiplier[game.botDifficulty] : 1
-        const cardSetMultiplier = game.cardSet === CardSet.Full ? 0.5 : 1
+        const cardSetMultiplier = game.cardSet === CardSet.Wild ? 1 : 1
         const multiplier = difficultyMultiplier * cardSetMultiplier
         const penalty = limitReached ? rewards.limitPenalty : 0
         const reward = Math.round(gameReward * multiplier + dailyBonus - penalty)

@@ -31,7 +31,7 @@ export enum Mode {
 
 export enum CardSet {
     Standard = 'standard',
-    Full = 'full',
+    Wild = 'wild',
 }
 
 export interface CCGPlayerStats {
@@ -124,6 +124,7 @@ export type CCGEffectType =
     | 'HEAL_PER_OPPONENT_COST'
     | 'DAMAGE_PER_OPPONENT_COST'
     | 'INCREASE_MAX_HP'
+    | 'PRANK'
     | CCGStatusEffectType
 
 export type ReflectType = 'damage' | 'allEffects' | 'all' | CCGEffectType[]
@@ -224,6 +225,7 @@ export interface CCGCard {
     effectImmunities?: CCGStatusEffectType[]
     summoned?: boolean
     consumable?: boolean
+    collectible?: boolean
 }
 
 export interface CCGCondition {

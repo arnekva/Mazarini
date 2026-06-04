@@ -955,6 +955,278 @@ export class CCGCardGenerator {
     private static escapeXml(str: string): string {
         return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
     }
+
+    // ─── Programmatic blank generation ───────────────────────────────────────
+
+    /** Accent colours used per rarity when generating blanks programmatically */
+    private static readonly RARITY_ACCENT: Record<string, string> = {
+        [ItemRarity.Common]:    '#7f9bb5',
+        [ItemRarity.Rare]:      '#1a92ce',
+        [ItemRarity.Epic]:      '#9b59b6',
+        [ItemRarity.Legendary]: '#c8a000',
+    }
+
+    /**
+     * Generate a single blank template (480×672 PNG) from a background image.
+     *
+     * The background is stretched to fill the full card. The Dextrous-derived
+     * frame (portrait border, separator, stat badges, cost ring, accuracy
+     * bullseye, card border) is drawn on top as an SVG layer. All coordinates
+     * are derived from the Dextrous HTML (240×336 base) scaled ×2.
+     *
+     * @param backgroundBuffer  Raw image buffer for the card background
+     * @param rarity            ItemRarity – controls the accent colour
+     */
+    /**
+     * Generate a single blank template (480×672 PNG) from one background image.
+     *
+     * The background is stretched to fill the full card. The frame SVG is
+     * transparent over the portrait area so the background always shows through —
+     * only the glow, badges, ring, separator and border are drawn. This means
+     * any series background (HP castle, SW starfield, etc.) works with the same
+     * frame; only the accent colour changes per rarity.
+     *
+     * @param bgBuffer        Full-card background image (scaled to fill 480×672)
+     * @param rarity          Controls the accent colour
+     * @param accentOverride  Optional hex colour to override the rarity default
+     */
+    static async generateBlankBuffer(
+        bgBuffer: Buffer,
+        rarity: ItemRarity,
+        accentOverride?: string,
+    ): Promise<Buffer> {
+        const W = CARD_WIDTH   // 480
+        const H = CARD_HEIGHT  // 672
+        const accent = accentOverride ?? CCGCardGenerator.RARITY_ACCENT[rarity] ?? '#1a92ce'
+
+        // 1. Scale background to full card and round corners
+        const bg = await sharp(bgBuffer)
+            .resize(W, H, { fit: 'fill' })
+            .png()
+            .toBuffer()
+
+        const roundedBg = await sharp(bg)
+            .composite([{
+                input: Buffer.from(
+                    `<svg width="${W}" height="${H}"><rect width="${W}" height="${H}" rx="20" ry="20" fill="white"/></svg>`
+                ),
+                blend: 'dest-in',
+            }])
+            .png()
+            .toBuffer()
+
+        // 2. Composite the frame (transparent portrait area + all chrome elements)
+        const frameSvg = CCGCardGenerator.buildBlankFrameSVG(W, H, accent)
+        return sharp(roundedBg)
+            .composite([{ input: Buffer.from(frameSvg), top: 0, left: 0 }])
+            .png()
+            .toBuffer()
+    }
+
+    /**
+     * Generate and save all four rarity blanks for a series.
+     *
+     * @param seriesDir     Absolute path to the series blank directory (e.g. res/ccg/blanks/newSeries)
+     * @param bgBuffer      Background image buffer shared across all rarities
+     * @param prefix        Filename prefix, e.g. 'newSeries' → 'newSeries_common_blank.png'
+     */
+    static async generateAndSaveBlanks(seriesDir: string, bgBuffer: Buffer, prefix: string): Promise<void> {
+        if (!fs.existsSync(seriesDir)) fs.mkdirSync(seriesDir, { recursive: true })
+        for (const rarity of [ItemRarity.Common, ItemRarity.Rare, ItemRarity.Epic, ItemRarity.Legendary]) {
+            const buf = await CCGCardGenerator.generateBlankBuffer(bgBuffer, rarity)
+            const filename = `${prefix}_${rarity}_blank.png`
+            fs.writeFileSync(path.resolve(seriesDir, filename), buf)
+            console.log(`[CCG] Generated blank: ${filename}`)
+        }
+    }
+
+
+    /**
+     * Build the SVG frame overlay that is composited onto the background to
+     * produce a card blank. Coordinates are pixel-matched to the Dextrous
+     * card design (240×336 base × 2 = 480×672).
+     */
+    private static buildBlankFrameSVG(W: number, H: number, accent: string): string {
+        // Pentagon clip-path (badge shape: rectangle with pointed bottom centre)
+        const pentagon = 'polygon(0% 0%, 100% 0%, 100% 95%, 50% 100%, 0% 95%)'
+
+        // ── Portrait frame ──────────────────────────────────
+        // image zone: left 55.5×2=111, top 39×2=78, 128×2=256 sq.
+        const pX = 111, pY = 78, pW = 256, pH = 256, pR = 10
+
+        // ── Stat strip ──────────────────────────────────────
+        // separator: top 190×2=380, left 3×2=6, width 233×2=466
+        const sepY = 380, sepX = 6, sepW = 466
+
+        // ── Left stat badge (speed) ──────────────────────────
+        // zone-77: left 9×2=18, top 204×2=408, w 30.7×2=61.4, h 29×2=58
+        const lbX = 18, lbY = 408, lbW = 61, lbH = 58
+
+        // ── Right stat badge (accuracy container) ────────────
+        // zone-43: left 199.4×2=399, top 204×2=408, same size
+        const rbX = 399, rbY = 408, rbW = 61, rbH = 58
+
+        // ── Speed arrows (two right-pointing chevrons) ────────
+        // Speed chevrons — centered inside the left badge (cx≈49, cy≈437)
+        // Two >> chevrons as stroked paths, not filled triangles
+        const sCx = lbX + Math.round(lbW / 2)  // badge center x ≈ 49
+        const sCy = lbY + Math.round(lbH / 2)  // badge center y ≈ 437
+        const sH  = 26  // half-height of each chevron arm
+        const sW  = 11  // horizontal reach of each chevron
+        // Chevron 1 left edge x, chevron 2 left edge x (4px gap between them)
+        const s1X = sCx - sW - 2, s2X = sCx + 2
+
+        // ── Cost ring ────────────────────────────────────────
+        // outer: left 100×2=200, top 183.5×2=367, size 40×2=80 → cx=240, cy=407, r=40
+        // inner: offset 2.5×2=5 → cx=240, cy=407, r=35
+        const cX = 240, cY = 407, cOuter = 40, cInner = 35, cRing = 32
+
+        // ── Accuracy bullseye ────────────────────────────────
+        // zone-26: left 203.6×2=407, top 209.2×2=418, w 19.7×2=39, h 19.3×2=39
+        // cx = 407+19.5=426.5≈427, cy = 418+19.5=437.5≈438
+        const bX = 427, bY = 438
+        const bR = [19.5, 16, 12.9, 9.8, 6.5, 3.3]
+        const bColors = ['#990910', '#d7d7d7', '#990910', '#d7d7d7', '#990910', '#d7d7d7']
+
+        const lineY = 404  // separator line y (zone-67: top 190×2=380, clip 60% of 40px = +24)
+
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
+  <defs>
+
+    <!-- Portrait glow filter: blurs the accent stroke outward -->
+    <filter id="portraitGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="12"/>
+    </filter>
+
+    <!-- Upper accent overlay: tints background from bottom (accent) to top (dark wash) -->
+    <linearGradient id="upperOverlay" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%"   stop-color="${accent}" stop-opacity="0.5"/>
+      <stop offset="50%"  stop-color="black"     stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="black"     stop-opacity="0.05"/>
+    </linearGradient>
+
+    <!-- Lower dark overlay: keeps description area readable over any background -->
+    <linearGradient id="lowerOverlay" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="black" stop-opacity="0"/>
+      <stop offset="25%"  stop-color="black" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="black" stop-opacity="0.85"/>
+    </linearGradient>
+
+    <!-- Separator: black → accent → black -->
+    <linearGradient id="sepGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="black"/>
+      <stop offset="50%"  stop-color="${accent}"/>
+      <stop offset="100%" stop-color="black"/>
+    </linearGradient>
+
+    <!-- Stat badge: accent top → black bottom -->
+    <linearGradient id="badgeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="${accent}"/>
+      <stop offset="100%" stop-color="black"/>
+    </linearGradient>
+    <radialGradient id="badgeShell">
+      <stop offset="0%"   stop-color="white"/>
+      <stop offset="100%" stop-color="black"/>
+    </radialGradient>
+
+    <!-- Cost ring outer: dark → accent (54%) → dark -->
+    <linearGradient id="costGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="rgba(0,0,0,0.69)"/>
+      <stop offset="54%"  stop-color="${accent}"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.69)"/>
+    </linearGradient>
+    <!-- Cost inner fill -->
+    <linearGradient id="costFill" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="rgba(61,61,61,0.69)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.5)"/>
+    </linearGradient>
+
+  </defs>
+
+  <!-- ═══ 1. UPPER ACCENT TINT ═══ -->
+  <!-- Rarity colour bleeds up from the bottom of the portrait area over the background -->
+  <rect x="0" y="0" width="${W}" height="${pY + pH + 60}" fill="url(#upperOverlay)"/>
+
+  <!-- ═══ 2. PORTRAIT GLOW (transparent interior — background shows through) ═══ -->
+  <!-- Blurred outer glow ring — drawn BEFORE the frame so it bleeds outward -->
+  <rect x="${pX - 8}" y="${pY - 8}" width="${pW + 16}" height="${pH + 16}"
+        rx="${pR + 4}" ry="${pR + 4}"
+        fill="none" stroke="${accent}" stroke-width="22" opacity="0.45"
+        filter="url(#portraitGlow)"/>
+  <!-- Crisp accent border on top -->
+  <rect x="${pX}" y="${pY}" width="${pW}" height="${pH}"
+        rx="${pR}" ry="${pR}"
+        fill="none" stroke="${accent}" stroke-width="2" opacity="0.8"/>
+
+  <!-- ═══ 3. LOWER DARK OVERLAY (behind name + description text) ═══ -->
+  <!-- Fades the background to dark so text is always readable -->
+  <rect x="0" y="${lineY - 20}" width="${W}" height="${H - lineY + 20}" fill="url(#lowerOverlay)"/>
+
+  <!-- ═══ 4. SEPARATOR LINE + GLOW (zone-67 / zone-78) ═══ -->
+  <rect x="${sepX}" y="${lineY}" width="${sepW}" height="4" fill="url(#sepGrad)" opacity="0.9"/>
+  <ellipse cx="${W / 2}" cy="${lineY + 18}" rx="220" ry="16" fill="${accent}" opacity="0.15"/>
+
+  <!-- ═══ 5. DECORATIVE DIVIDER (zone-66 description_line) ═══ -->
+  <!-- Left rule -->
+  <line x1="${sepX + 6}" y1="${lineY + 22}" x2="${W / 2 - 26}" y2="${lineY + 22}"
+        stroke="${accent}" stroke-width="1" opacity="0.5"/>
+  <!-- Right rule -->
+  <line x1="${W / 2 + 26}" y1="${lineY + 22}" x2="${sepX + sepW - 6}" y2="${lineY + 22}"
+        stroke="${accent}" stroke-width="1" opacity="0.5"/>
+  <!-- Centre diamond -->
+  <polygon points="${W / 2},${lineY + 14} ${W / 2 + 9},${lineY + 22} ${W / 2},${lineY + 30} ${W / 2 - 9},${lineY + 22}"
+           fill="${accent}" opacity="0.8"/>
+  <!-- Flanking small diamonds -->
+  <polygon points="${W / 2 - 20},${lineY + 19} ${W / 2 - 15},${lineY + 22} ${W / 2 - 20},${lineY + 25} ${W / 2 - 25},${lineY + 22}"
+           fill="${accent}" opacity="0.5"/>
+  <polygon points="${W / 2 + 20},${lineY + 19} ${W / 2 + 25},${lineY + 22} ${W / 2 + 20},${lineY + 25} ${W / 2 + 15},${lineY + 22}"
+           fill="${accent}" opacity="0.5"/>
+
+  <!-- ═══ 6. LEFT STAT BADGE (speed) ═══ -->
+  <polygon points="${lbX},${lbY} ${lbX + lbW},${lbY} ${lbX + lbW},${lbY + lbH * 0.95} ${lbX + lbW / 2},${lbY + lbH} ${lbX},${lbY + lbH * 0.95}"
+           fill="url(#badgeShell)" opacity="0.15"/>
+  <polygon points="${lbX + 2},${lbY + 1} ${lbX + lbW - 2},${lbY + 1} ${lbX + lbW - 2},${lbY + lbH * 0.94} ${lbX + lbW / 2},${lbY + lbH - 1} ${lbX + 2},${lbY + lbH * 0.94}"
+           fill="url(#badgeGrad)" opacity="0.9"/>
+
+  <!-- ═══ 7. SPEED CHEVRONS (>>) — centered in left badge ═══ -->
+  <!-- Chevron 1 -->
+  <path d="M ${s1X} ${sCy - sH} L ${s1X + sW} ${sCy} L ${s1X} ${sCy + sH}"
+        fill="none" stroke="white" stroke-width="4.5"
+        stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+  <!-- Chevron 2 -->
+  <path d="M ${s2X} ${sCy - sH} L ${s2X + sW} ${sCy} L ${s2X} ${sCy + sH}"
+        fill="none" stroke="white" stroke-width="4.5"
+        stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+  <!-- Subtle accent colour echo behind for depth -->
+  <path d="M ${s1X} ${sCy - sH} L ${s1X + sW} ${sCy} L ${s1X} ${sCy + sH}"
+        fill="none" stroke="${accent}" stroke-width="7"
+        stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/>
+  <path d="M ${s2X} ${sCy - sH} L ${s2X + sW} ${sCy} L ${s2X} ${sCy + sH}"
+        fill="none" stroke="${accent}" stroke-width="7"
+        stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/>
+
+  <!-- ═══ 8. RIGHT STAT BADGE (accuracy) ═══ -->
+  <polygon points="${rbX},${rbY} ${rbX + rbW},${rbY} ${rbX + rbW},${rbY + rbH * 0.95} ${rbX + rbW / 2},${rbY + rbH} ${rbX},${rbY + rbH * 0.95}"
+           fill="url(#badgeShell)" opacity="0.15"/>
+  <polygon points="${rbX + 2},${rbY + 1} ${rbX + rbW - 2},${rbY + 1} ${rbX + rbW - 2},${rbY + rbH * 0.94} ${rbX + rbW / 2},${rbY + rbH - 1} ${rbX + 2},${rbY + rbH * 0.94}"
+           fill="url(#badgeGrad)" opacity="0.9"/>
+
+  <!-- ═══ 9. ACCURACY BULLSEYE ═══ -->
+  ${bR.map((r, i) => `<circle cx="${bX}" cy="${bY}" r="${r}" fill="${bColors[i]}"/>`).join('\n  ')}
+
+  <!-- ═══ 10. COST RING ═══ -->
+  <circle cx="${cX}" cy="${cY}" r="${cOuter}" fill="url(#costGrad)"/>
+  <circle cx="${cX}" cy="${cY}" r="${cInner}" fill="${accent}" opacity="0.85"/>
+  <circle cx="${cX}" cy="${cY}" r="${cRing}"  fill="url(#costFill)"/>
+
+  <!-- ═══ 11. CARD BORDER ═══ -->
+  <rect x="7" y="7" width="${W - 14}" height="${H - 14}" rx="20" ry="20"
+        fill="none" stroke="${accent}" stroke-width="7" opacity="0.65"/>
+  <rect x="11" y="11" width="${W - 22}" height="${H - 22}" rx="17" ry="17"
+        fill="none" stroke="white" stroke-width="1" opacity="0.08"/>
+
+</svg>`
+    }
 }
 
 interface TextSpan {
