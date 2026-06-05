@@ -9,6 +9,7 @@ import { mazariniCCG } from '../commands/ccg/cards/mazariniCCG'
 import { swCCG } from '../commands/ccg/cards/swCCG'
 import { CardIdentifier, CCGCard, CCGCardEffect, CCGCondition } from '../commands/ccg/ccgInterface'
 import { ItemRarity } from '../interfaces/database/databaseInterface'
+import { ArrayUtils } from '../utils/arrayUtils'
 
 const CARD_WIDTH = 480
 const CARD_HEIGHT = 672
@@ -156,6 +157,7 @@ export class CCGCardGenerator {
         const existingHashes = CCGCardGenerator.loadHashes()
         let generated = 0
         let skipped = 0
+        const changedSeries = new Set<string>()
 
         const allCards = cards ?? [...mazariniCCG, ...swCCG, ...hpCCG]
         const genStart = Date.now()
@@ -169,7 +171,7 @@ export class CCGCardGenerator {
                 skipped++
                 continue
             }
-
+            if (!changedSeries.has(card.series)) changedSeries.add(card.series)
             await CCGCardGenerator.generateCardImage(card, outputPath, appEmojis)
             existingHashes[card.id] = hash
             generated++
@@ -183,6 +185,65 @@ export class CCGCardGenerator {
             `[CCG] Card generation complete in ${totalElapsed}s (emoji fetch: ${fetchElapsed}s, generation: ${genElapsed}s). Generated: ${generated}, Skipped: ${skipped}`
         )
         _isReady = true
+        for (const series of changedSeries) this.generateCollage(client, series)
+    }
+
+    static async generateCollage(client: MazariniClient, series: string): Promise<void> {
+        const { ImageGenerationHelper } = require('./imageGenerationHelper') as typeof import('./imageGenerationHelper')
+        const igh = new ImageGenerationHelper(client)
+        const totalStart = Date.now()
+        client.messageHelper.sendLogMessage('[CCG] Starting series collage generation...')
+
+        if (!fs.existsSync(OUTPUT_DIR)) {
+            fs.mkdirSync(OUTPUT_DIR, { recursive: true })
+        }
+
+        let cards: CCGCard[] = undefined
+        switch (series) {
+            case 'mazariniCCG':
+                cards = mazariniCCG
+                break
+            case 'swCCG':
+                cards = swCCG
+                break
+            case 'hpCCG':
+                cards = hpCCG
+                break
+            default:
+                cards = mazariniCCG
+                break
+        }
+
+        const sortOrder: Record<ItemRarity, number> = {
+            [ItemRarity.Common]: 0,
+            [ItemRarity.Rare]: 1,
+            [ItemRarity.Epic]: 2,
+            [ItemRarity.Legendary]: 3,
+            [ItemRarity.Unobtainable]: 4,
+        }
+        cards.sort((a, b) => sortOrder[a.rarity] - sortOrder[b.rarity])
+        if (!cards || cards.length === 0) return undefined
+        const buffers = await Promise.all(
+            cards.map(async (card) => {
+                return Buffer.from(await CCGCardGenerator.getCardBuffer(card))
+            })
+        )
+
+        const bufferChunks = ArrayUtils.chunkArray<Buffer>(buffers, 8)
+
+        const stitchedBuffers = await Promise.all(
+            bufferChunks.map(async (chunk) => {
+                return Buffer.from(await igh.stitchImages(chunk, 'horizontal'))
+            })
+        )
+        const fullImage = await igh.stitchImages(stitchedBuffers, 'vertical')
+        const outputPath = this.getCollagePath(series)
+        await fs.promises.writeFile(outputPath, fullImage)
+
+        const totalElapsed = ((Date.now() - totalStart) / 1000).toFixed(2)
+
+        client.messageHelper.sendLogMessage(`[CCG] Series collage generation complete in ${totalElapsed}s`)
+        return
     }
 
     /** Get the local file path for a generated card image */
@@ -192,10 +253,22 @@ export class CCGCardGenerator {
         return path.resolve(seriesDir, `${card.id}_small.png`)
     }
 
+    static getCollagePath(series: string): string {
+        const seriesDir = path.resolve(OUTPUT_DIR, series)
+        if (!fs.existsSync(seriesDir)) fs.mkdirSync(seriesDir, { recursive: true })
+        return path.resolve(seriesDir, `pokedex.png`)
+    }
+
     /** Read a generated card image as a Buffer */
     static async getCardBuffer(card: CCGCard): Promise<Buffer> {
         const cardPath = CCGCardGenerator.getCardPath(card)
         return await fs.promises.readFile(cardPath)
+    }
+
+    static async getSeriesCollage(client: MazariniClient, series: string): Promise<Buffer> {
+        const collagePath = this.getCollagePath(series)
+        if (!fs.existsSync(collagePath)) await this.generateCollage(client, series)
+        return await fs.promises.readFile(collagePath)
     }
 
     /**
@@ -416,17 +489,25 @@ export class CCGCardGenerator {
         // Shrink card content to inner dimensions and clip with rounded corners
         const resized = await sharp(cardBuffer).resize(innerW, innerH).png().toBuffer()
         const roundedInner = await sharp(resized)
-            .composite([{
-                input: Buffer.from(`<svg width="${innerW}" height="${innerH}"><rect width="${innerW}" height="${innerH}" rx="${BORDER_INNER_RADIUS}" ry="${BORDER_INNER_RADIUS}" fill="white"/></svg>`),
-                blend: 'dest-in',
-            }])
+            .composite([
+                {
+                    input: Buffer.from(
+                        `<svg width="${innerW}" height="${innerH}"><rect width="${innerW}" height="${innerH}" rx="${BORDER_INNER_RADIUS}" ry="${BORDER_INNER_RADIUS}" fill="white"/></svg>`
+                    ),
+                    blend: 'dest-in',
+                },
+            ])
             .png()
             .toBuffer()
 
         // Black rounded base at full card size
         const blackBase = await sharp(
-            Buffer.from(`<svg width="${CARD_WIDTH}" height="${CARD_HEIGHT}"><rect width="${CARD_WIDTH}" height="${CARD_HEIGHT}" rx="${BORDER_OUTER_RADIUS}" ry="${BORDER_OUTER_RADIUS}" fill="black"/></svg>`)
-        ).png().toBuffer()
+            Buffer.from(
+                `<svg width="${CARD_WIDTH}" height="${CARD_HEIGHT}"><rect width="${CARD_WIDTH}" height="${CARD_HEIGHT}" rx="${BORDER_OUTER_RADIUS}" ry="${BORDER_OUTER_RADIUS}" fill="black"/></svg>`
+            )
+        )
+            .png()
+            .toBuffer()
 
         return sharp(blackBase)
             .composite([{ input: roundedInner, top: borderWidth, left: borderWidth }])
@@ -496,29 +577,17 @@ export class CCGCardGenerator {
 
   <!-- Speed (left) -->
     <text x="${SPEED_X}" y="${SPEED_Y}" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="${
-            originalSpeed === undefined || card.speed === originalSpeed
-                ? 'white'
-                : card.speed > originalSpeed
-                  ? '#36a836'
-                  : '#bf4b4b'
+            originalSpeed === undefined || card.speed === originalSpeed ? 'white' : card.speed > originalSpeed ? '#36a836' : '#bf4b4b'
         }" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${card.speed}</text>
 
   <!-- Cost (center) -->
     <text x="${COST_X}" y="${COST_Y}" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="${
-            originalCost === undefined || card.cost === originalCost
-                ? 'white'
-                : card.cost < originalCost
-                  ? '#36a836'
-                  : '#bf4b4b'
+            originalCost === undefined || card.cost === originalCost ? 'white' : card.cost < originalCost ? '#36a836' : '#bf4b4b'
         }" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${card.cost}</text>
 
   <!-- Accuracy (right) -->
     <text x="${ACCURACY_X}" y="${ACCURACY_Y}" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="${
-            originalAccuracy === undefined || card.accuracy === originalAccuracy
-                ? 'white'
-                : card.accuracy > originalAccuracy
-                  ? '#36a836'
-                  : '#bf4b4b'
+            originalAccuracy === undefined || card.accuracy === originalAccuracy ? 'white' : card.accuracy > originalAccuracy ? '#36a836' : '#bf4b4b'
         }" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${card.accuracy}</text>
 
   <!-- ═══ CARD NAME ═══ -->
@@ -619,7 +688,9 @@ export class CCGCardGenerator {
             effects[0].turns === effects[1].turns
         ) {
             return CCGCardGenerator.parseBBCode(
-                `Reduce [blue]all[/blue] card costs ${(effects[0].value ?? 0) >= 99 ? `to [blue]0[/blue]` : `by [blue]${effects[0].value}[/blue]`} for [pink]${effects[0].turns} turns[/pink]`
+                `Reduce [blue]all[/blue] card costs ${(effects[0].value ?? 0) >= 99 ? `to [blue]0[/blue]` : `by [blue]${effects[0].value}[/blue]`} for [pink]${
+                    effects[0].turns
+                } turns[/pink]`
             )
         }
 
@@ -826,8 +897,8 @@ export class CCGCardGenerator {
                     effect.reflectType === 'allEffects'
                         ? 'first incoming [red]non-damage effect[/red]'
                         : effect.reflectType === 'all'
-                          ? 'first incoming [red]effect[/red]'
-                          : 'first incoming [red]damage[/red]'
+                        ? 'first incoming [red]effect[/red]'
+                        : 'first incoming [red]damage[/red]'
                 return effect.turns
                     ? `Reflect the ${reflectWhat} for [pink]${effect.turns} turn${effect.turns !== 1 ? 's' : ''}[/pink]`
                     : `Reflect the ${reflectWhat}`
@@ -852,7 +923,9 @@ export class CCGCardGenerator {
                 return `Apply [pink]Choke Shield[/pink] to ${tgt} for [pink]${effect.turns} turns[/pink]`
             case 'REDUCE_COST': {
                 const costAmt = (effect.value ?? 0) >= 99 ? `to [blue]0[/blue]` : `by [blue]${effect.value}[/blue]`
-                return `Reduce ${tgtPossessive} ${effect.identifier ? `[yellow]${effect.identifier}[/yellow] ` : ''}card costs ${costAmt} for [pink]${effect.turns} turns[/pink]`
+                return `Reduce ${tgtPossessive} ${effect.identifier ? `[yellow]${effect.identifier}[/yellow] ` : ''}card costs ${costAmt} for [pink]${
+                    effect.turns
+                } turns[/pink]`
             }
             case 'SPEED_BUFF':
                 return `Increase [pink]${tgtPossessive}[/pink] speed ([green]+50%[/green]) for [pink]${effect.turns} turns[/pink]`
@@ -898,7 +971,9 @@ export class CCGCardGenerator {
                 }[/red] dmg/turn)`
             case 'SUMMON_CARD':
                 return effect.summonCardId
-                    ? `Summon [yellow]${[...mazariniCCG, ...swCCG, ...hpCCG].find((c) => c.id === effect.summonCardId)?.name ?? effect.summonCardId}[/yellow] to hand`
+                    ? `Summon [yellow]${
+                          [...mazariniCCG, ...swCCG, ...hpCCG].find((c) => c.id === effect.summonCardId)?.name ?? effect.summonCardId
+                      }[/yellow] to hand`
                     : `Summon a random [yellow]${effect.identifier?.replace(/_/g, ' ') ?? ''}[/yellow] card to hand`
             default:
                 return `${effect.type}`
@@ -960,9 +1035,9 @@ export class CCGCardGenerator {
 
     /** Accent colours used per rarity when generating blanks programmatically */
     private static readonly RARITY_ACCENT: Record<string, string> = {
-        [ItemRarity.Common]:    '#7f9bb5',
-        [ItemRarity.Rare]:      '#1a92ce',
-        [ItemRarity.Epic]:      '#9b59b6',
+        [ItemRarity.Common]: '#7f9bb5',
+        [ItemRarity.Rare]: '#1a92ce',
+        [ItemRarity.Epic]: '#9b59b6',
         [ItemRarity.Legendary]: '#c8a000',
     }
 
@@ -990,28 +1065,21 @@ export class CCGCardGenerator {
      * @param rarity          Controls the accent colour
      * @param accentOverride  Optional hex colour to override the rarity default
      */
-    static async generateBlankBuffer(
-        bgBuffer: Buffer,
-        rarity: ItemRarity,
-        accentOverride?: string,
-    ): Promise<Buffer> {
-        const W = CARD_WIDTH   // 480
-        const H = CARD_HEIGHT  // 672
+    static async generateBlankBuffer(bgBuffer: Buffer, rarity: ItemRarity, accentOverride?: string): Promise<Buffer> {
+        const W = CARD_WIDTH // 480
+        const H = CARD_HEIGHT // 672
         const accent = accentOverride ?? CCGCardGenerator.RARITY_ACCENT[rarity] ?? '#1a92ce'
 
         // 1. Scale background to full card and round corners
-        const bg = await sharp(bgBuffer)
-            .resize(W, H, { fit: 'fill' })
-            .png()
-            .toBuffer()
+        const bg = await sharp(bgBuffer).resize(W, H, { fit: 'fill' }).png().toBuffer()
 
         const roundedBg = await sharp(bg)
-            .composite([{
-                input: Buffer.from(
-                    `<svg width="${W}" height="${H}"><rect width="${W}" height="${H}" rx="20" ry="20" fill="white"/></svg>`
-                ),
-                blend: 'dest-in',
-            }])
+            .composite([
+                {
+                    input: Buffer.from(`<svg width="${W}" height="${H}"><rect width="${W}" height="${H}" rx="20" ry="20" fill="white"/></svg>`),
+                    blend: 'dest-in',
+                },
+            ])
             .png()
             .toBuffer()
 
@@ -1040,7 +1108,6 @@ export class CCGCardGenerator {
         }
     }
 
-
     /**
      * Build the SVG frame overlay that is composited onto the background to
      * produce a card blank. Coordinates are pixel-matched to the Dextrous
@@ -1052,43 +1119,61 @@ export class CCGCardGenerator {
 
         // ── Portrait frame ──────────────────────────────────
         // image zone: left 55.5×2=111, top 39×2=78, 128×2=256 sq.
-        const pX = 111, pY = 78, pW = 256, pH = 256, pR = 10
+        const pX = 111,
+            pY = 78,
+            pW = 256,
+            pH = 256,
+            pR = 10
 
         // ── Stat strip ──────────────────────────────────────
         // separator: top 190×2=380, left 3×2=6, width 233×2=466
-        const sepY = 380, sepX = 6, sepW = 466
+        const sepY = 380,
+            sepX = 6,
+            sepW = 466
 
         // ── Left stat badge (speed) ──────────────────────────
         // zone-77: left 9×2=18, top 204×2=408, w 30.7×2=61.4, h 29×2=58
-        const lbX = 18, lbY = 408, lbW = 61, lbH = 58
+        const lbX = 18,
+            lbY = 408,
+            lbW = 61,
+            lbH = 58
 
         // ── Right stat badge (accuracy container) ────────────
         // zone-43: left 199.4×2=399, top 204×2=408, same size
-        const rbX = 399, rbY = 408, rbW = 61, rbH = 58
+        const rbX = 399,
+            rbY = 408,
+            rbW = 61,
+            rbH = 58
 
         // ── Speed arrows (two right-pointing chevrons) ────────
         // Speed chevrons — centered inside the left badge (cx≈49, cy≈437)
         // Two >> chevrons as stroked paths, not filled triangles
-        const sCx = lbX + Math.round(lbW / 2)  // badge center x ≈ 49
-        const sCy = lbY + Math.round(lbH / 2)  // badge center y ≈ 437
-        const sH  = 26  // half-height of each chevron arm
-        const sW  = 11  // horizontal reach of each chevron
+        const sCx = lbX + Math.round(lbW / 2) // badge center x ≈ 49
+        const sCy = lbY + Math.round(lbH / 2) // badge center y ≈ 437
+        const sH = 26 // half-height of each chevron arm
+        const sW = 11 // horizontal reach of each chevron
         // Chevron 1 left edge x, chevron 2 left edge x (4px gap between them)
-        const s1X = sCx - sW - 2, s2X = sCx + 2
+        const s1X = sCx - sW - 2,
+            s2X = sCx + 2
 
         // ── Cost ring ────────────────────────────────────────
         // outer: left 100×2=200, top 183.5×2=367, size 40×2=80 → cx=240, cy=407, r=40
         // inner: offset 2.5×2=5 → cx=240, cy=407, r=35
-        const cX = 240, cY = 407, cOuter = 40, cInner = 35, cRing = 32
+        const cX = 240,
+            cY = 407,
+            cOuter = 40,
+            cInner = 35,
+            cRing = 32
 
         // ── Accuracy bullseye ────────────────────────────────
         // zone-26: left 203.6×2=407, top 209.2×2=418, w 19.7×2=39, h 19.3×2=39
         // cx = 407+19.5=426.5≈427, cy = 418+19.5=437.5≈438
-        const bX = 427, bY = 438
+        const bX = 427,
+            bY = 438
         const bR = [19.5, 16, 12.9, 9.8, 6.5, 3.3]
         const bColors = ['#990910', '#d7d7d7', '#990910', '#d7d7d7', '#990910', '#d7d7d7']
 
-        const lineY = 404  // separator line y (zone-67: top 190×2=380, clip 60% of 40px = +24)
+        const lineY = 404 // separator line y (zone-67: top 190×2=380, clip 60% of 40px = +24)
 
         return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
   <defs>
@@ -1185,7 +1270,9 @@ export class CCGCardGenerator {
   <!-- ═══ 6. LEFT STAT BADGE (speed) ═══ -->
   <polygon points="${lbX},${lbY} ${lbX + lbW},${lbY} ${lbX + lbW},${lbY + lbH * 0.95} ${lbX + lbW / 2},${lbY + lbH} ${lbX},${lbY + lbH * 0.95}"
            fill="url(#badgeShell)" opacity="0.15"/>
-  <polygon points="${lbX + 2},${lbY + 1} ${lbX + lbW - 2},${lbY + 1} ${lbX + lbW - 2},${lbY + lbH * 0.94} ${lbX + lbW / 2},${lbY + lbH - 1} ${lbX + 2},${lbY + lbH * 0.94}"
+  <polygon points="${lbX + 2},${lbY + 1} ${lbX + lbW - 2},${lbY + 1} ${lbX + lbW - 2},${lbY + lbH * 0.94} ${lbX + lbW / 2},${lbY + lbH - 1} ${lbX + 2},${
+            lbY + lbH * 0.94
+        }"
            fill="url(#badgeGrad)" opacity="0.9"/>
 
   <!-- ═══ 7. SPEED CHEVRONS (>>) — centered in left badge ═══ -->
@@ -1208,7 +1295,9 @@ export class CCGCardGenerator {
   <!-- ═══ 8. RIGHT STAT BADGE (accuracy) ═══ -->
   <polygon points="${rbX},${rbY} ${rbX + rbW},${rbY} ${rbX + rbW},${rbY + rbH * 0.95} ${rbX + rbW / 2},${rbY + rbH} ${rbX},${rbY + rbH * 0.95}"
            fill="url(#badgeShell)" opacity="0.15"/>
-  <polygon points="${rbX + 2},${rbY + 1} ${rbX + rbW - 2},${rbY + 1} ${rbX + rbW - 2},${rbY + rbH * 0.94} ${rbX + rbW / 2},${rbY + rbH - 1} ${rbX + 2},${rbY + rbH * 0.94}"
+  <polygon points="${rbX + 2},${rbY + 1} ${rbX + rbW - 2},${rbY + 1} ${rbX + rbW - 2},${rbY + rbH * 0.94} ${rbX + rbW / 2},${rbY + rbH - 1} ${rbX + 2},${
+            rbY + rbH * 0.94
+        }"
            fill="url(#badgeGrad)" opacity="0.9"/>
 
   <!-- ═══ 9. ACCURACY BULLSEYE ═══ -->

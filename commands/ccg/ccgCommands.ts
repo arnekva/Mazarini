@@ -1051,6 +1051,16 @@ export class CCGCommands extends AbstractCommands {
             await this.setupGame(interaction, vsBot)
         } else if (cmd === 'help') this.helper.newCCGHelper(interaction)
         else if (cmd === 'stats') this.statViewer.newCCGStatView(interaction)
+        else if (cmd === 'cards') this.getAllCardsImage(interaction)
+    }
+
+    private async getAllCardsImage(interaction: ChatInteraction) {
+        await interaction.deferReply()
+        const series = interaction.options.get('serie')?.value as string
+        const CCGCardGenerator = this.getCardGenerator()
+        const img = await CCGCardGenerator.getSeriesCollage(this.client, series)
+        const file = new AttachmentBuilder(img, { name: `${series}_pokedex.png` })
+        this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, undefined, [file])
     }
 
     private userCanAfford(user: MazariniUser, interaction: ChatInteraction, vsBot: boolean) {

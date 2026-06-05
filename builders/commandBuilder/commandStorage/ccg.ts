@@ -16,6 +16,32 @@ export const ccgCommand: ISlashCommandItem = {
             commandName: 'stats',
             commandDescription: 'Sjekk CCG stats',
         },
+        {
+            commandName: 'cards',
+            commandDescription: 'Se alle kortene i en serie',
+            options: [
+                {
+                    name: 'serie',
+                    description: 'Velg serie',
+                    type: ApplicationCommandOptionType.String,
+                    required: true,
+                    choices: [
+                        {
+                            name: `Mazarini`,
+                            value: `mazariniCCG`,
+                        },
+                        {
+                            name: `SW`,
+                            value: `swCCG`,
+                        },
+                        {
+                            name: `HP`,
+                            value: `hpCCG`,
+                        },
+                    ],
+                },
+            ],
+        },
     ],
     subCommandGroups: [
         {
@@ -37,16 +63,16 @@ export const ccgCommand: ISlashCommandItem = {
                                     value: `${Mode.Practice}_${CardSet.Standard}`,
                                 },
                                 {
-                                    name: `Practice (free) – Full`,
-                                    value: `${Mode.Practice}_${CardSet.Full}`,
+                                    name: `Practice (free) – Wild`,
+                                    value: `${Mode.Practice}_${CardSet.Wild}`,
                                 },
                                 {
                                     name: `Reward (${GameValues.ccg.rewards.entryFee / 1000}K) – Standard`,
                                     value: `${Mode.Reward}_${CardSet.Standard}`,
                                 },
                                 {
-                                    name: `Reward (${GameValues.ccg.rewards.entryFee / 1000}K) – Full`,
-                                    value: `${Mode.Reward}_${CardSet.Full}`,
+                                    name: `Reward (${GameValues.ccg.rewards.entryFee / 1000}K) – Wild`,
+                                    value: `${Mode.Reward}_${CardSet.Wild}`,
                                 },
                             ],
                         },

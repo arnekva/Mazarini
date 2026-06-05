@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '32.3.0'
+    public static readonly currentVersion = '32.4.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,56 +27,9 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '# CCG',
-                '## Generelt',
-                '* "Full" modus er omdøpt til **Wild**',
-                '* Wild gir nå full belønning – samme som Standard',
-                '* Wild Lett er nå betraktelig enklere',
-                '* Fikset kortbakgrunn for HP serien',
-                '',
-                '## Nye bot-decks (Standard)',
-                '* Vanskelig: To nye decks – **Dødsetere** og **Gryffindor**',
-                '',
-                '## Kortbalansering – HP',
-                '* Arthur: accuracy 95% → 100%',
-                '* Basilisk: accuracy 90% → 95%',
-                '* Bellatrix: cost 2 → 1',
-                '* Buckbeak: Heal Boost 1 → 2 turns',
-                '* Dark Mark: cost 2 → 1, +2 energy immediate → over 2 turns',
-                '* Draco: accuracy 80% → 85%',
-                '* Fawkes: accuracy 90% → 100%',
-                '* Fleur: accuracy 75% → 85%',
-                '* Gyllen Snik: ny effekt – gir +2 energy ved bruk',
-                '* Hagrid: cost 2 → 1',
-                '* Harry Potter: cost 3 → 2, damage 3 → 4',
-                '* Hermione: Heal 3 → 4',
-                '* Kreacher: accuracy 100% → 90%',
-                '* Gal-Øye Moody: cost 2 → 3, 1 → 2 turns',
-                '* Molly: utløses nå av alle Dødsetere (ikke bare Bellatrix)',
-                '* Neville: motstander energy chance 25% → 50%, accuracy 85% → 90%',
-                '* Nymfadora Tonks: speed 100 → 5',
-                '* Ron: +2 energy over 3 → 2 turns',
-                '* Slughorn: accuracy 75% → 95%',
-                '* Snape: Heal 5 → 3, fjerner +1 energy, ny effekt – deal 3 damage til motstander',
-                '* Umbridge: Armor 1 → 2 turns',
-                '* Fred & George: cost 2 → 1, gir flat 2 energy. Spilt sammen: **Utløser et tilfeldig prank!**',
-                '',
-                '## Pranks (Fred & George)',
-                '* Dungbomb – 2 damage til motstander',
-                '* Decoy Detonator – reduser neste innkommende angrep med 1',
-                '* Wildfire Whiz-bang – 2 damage til begge spillere',
-                '* Ton-Tongue Toffee – +2 energy over 2 turns',
-                '',
-                '## Kortbalansering – Mazarini',
-                '* ShrekStare: Slow 1 → 2 turns',
-                '* Geggi Excited: speed 60 → 84',
-                '* kms2: damage 2 → 3',
-                '* kys: speed 49 → 40',
-                '* Høie: speed 65 → 85',
-                '* Eivindpride: chance 15% → 18%',
-                '* Arnenymous: accuracy 90% → 100%, cost reduction 1 → 2, 5 → 2 turns',
-                '* PointerBrothers1: 3 → 2 turns',
-                '* Sniff: viser motstanderens hånd i 3 turns (tidligere engangsbruk)',
+                '### CCG',
+                '* Du kan nå få et bilde av samtlige kort i en series ved å bruke "/ccg cards"',
+                '* Dette bildet re-genereres hver gang et kort i serien oppdateres og vil derfor alltid være oppdatert',
             ].join('\n')
         )
         container.addSeparator()
