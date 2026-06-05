@@ -769,8 +769,8 @@ export const hpCCG: CCGCard[] = [
             {
                 type: 'GAIN_ENERGY',
                 target: 'SELF',
-                value: 2,
-                turns: 2,
+                value: 1,
+                turns: 4,
             },
         ],
         cost: 2,
