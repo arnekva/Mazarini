@@ -158,6 +158,7 @@ export interface ICCGDeck {
     cards: DeckEditorCard[]
     valid: boolean
     active: boolean
+    activeWild?: boolean
 }
 
 export interface DeckEditorCard {

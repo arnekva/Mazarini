@@ -159,7 +159,11 @@ export class CCGCardGenerator {
         let skipped = 0
         const changedSeries = new Set<string>()
 
-        const allCards = cards ?? [...mazariniCCG, ...swCCG, ...hpCCG]
+        const rawCards = cards ?? [...mazariniCCG, ...swCCG, ...hpCCG]
+        const badCount = rawCards.filter((c) => !c).length
+        if (badCount > 0)
+            client.messageHelper.sendLogMessage(`[CCG] Warning: ${badCount} null/undefined card(s) skipped. Source: ${cards ? 'DB' : 'local'} (${rawCards.length} total)`)
+        const allCards = rawCards.filter(Boolean) as CCGCard[]
         const genStart = Date.now()
         for (const card of allCards) {
             const hash = CCGCardGenerator.hashCard(card)
@@ -936,9 +940,12 @@ export class CCGCardGenerator {
             case 'EXTRA_CARDS':
                 return `Play [blue]${effect.value} cards[/blue] for [pink]${effect.turns} turns[/pink]`
             case 'TRANSFORM':
-                return effect.transformCardId
-                    ? `Transform into [yellow]${effect.transformCardId}[/yellow] with ${effect.accuracy}% chance`
-                    : `Transform (unknown card)`
+                if (effect.transformCardId) {
+                    const name = [...mazariniCCG, ...swCCG, ...hpCCG].find((c) => c.id === effect.transformCardId)?.name ?? effect.transformCardId
+                    return `Transform into [yellow]${name}[/yellow] with ${effect.accuracy ?? 100}% chance`
+                }
+                if (effect.transformSeries) return `Transform into a random [yellow]${effect.transformSeries.replace('CCG', '')} card[/yellow] and resolve it`
+                return `Transform (unknown card)`
             case 'SHOOT':
                 return `Fire [yellow]${effect.amount ?? 1}[/yellow] shots at ${tgt} ([yellow]${effect.accuracy ?? 100}%[/yellow] hit, [red]${
                     effect.value ?? 1

@@ -2,6 +2,7 @@ import moment from 'moment'
 import { discordSecret } from './client-env'
 import { MazariniClient } from './client/MazariniClient'
 import { CCGCardGenerator } from './helpers/ccgCardGenerator'
+import { CCGCard } from './commands/ccg/ccgInterface'
 
 export class MazariniBot {
     private client: MazariniClient
@@ -32,7 +33,7 @@ export class MazariniBot {
             .getStorage()
             .then((storage) => {
                 const dbCcg = storage?.ccg
-                const dbCards = dbCcg ? Object.values(dbCcg).flat() : undefined
+                const dbCards = dbCcg ? (Object.values(dbCcg) as unknown[]).flat().filter((c): c is CCGCard => !!c && typeof c === 'object') : undefined
                 CCGCardGenerator.generateAll(this.client, dbCards?.length ? dbCards : undefined).catch((err) => {
                     console.error('[CCG] Card generation failed:', err)
                 })

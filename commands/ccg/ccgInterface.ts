@@ -94,6 +94,7 @@ export interface CCGEffect {
     statusAccuracy?: number
     includeCurrentTurn?: boolean
     transformCardId?: string
+    transformSeries?: string
     identifier?: CardIdentifier
     summonCardId?: string
     amount?: number
@@ -265,6 +266,7 @@ export interface CCGCardEffect {
     includeCurrentTurn?: boolean
     condition?: CCGCondition | CCGCondition[]
     transformCardId?: string
+    transformSeries?: string
     identifier?: CardIdentifier
     summonCardId?: string
     gambleGroup?: string

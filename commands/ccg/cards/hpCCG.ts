@@ -951,10 +951,12 @@ export const hpCCG: CCGCard[] = [
                 identifier: 'DEATH_EATER',
             },
             {
+                // Delayed trigger: gives 2 energy once after 2 turns, not 2 energy per turn
                 type: 'GAIN_ENERGY',
                 target: 'SELF',
                 value: 2,
                 turns: 2,
+                delayedTrigger: true,
             },
         ],
         cost: 1,
@@ -1063,6 +1065,24 @@ export const hpCCG: CCGCard[] = [
         identifier: ['SLYTHERIN'],
     },
     {
+        id: 'hp_bertie_botts_n',
+        name: "Bertie Bott's Every Flavour Beans",
+        series: 'hpCCG',
+        type: CCGCardType.Effect,
+        effects: [
+            {
+                type: 'TRANSFORM',
+                target: 'SELF',
+                transformSeries: 'hpCCG',
+            },
+        ],
+        customDescription: 'Becomes a random [yellow]HP card[/yellow] and resolves it immediately.',
+        cost: 2,
+        speed: 50,
+        rarity: ItemRarity.Epic,
+        accuracy: 100,
+    },
+    {
         id: 'hp_expecto_patronum_n',
         name: 'Expecto Patronum',
         series: 'hpCCG',
@@ -1084,7 +1104,6 @@ export const hpCCG: CCGCard[] = [
     },
 
     // ── UNOBTAINABLE ──────────────────────────────────────────────────────
-
     {
         id: 'hp_golden_snitch_n',
         name: 'Golden Snitch',
@@ -1104,7 +1123,7 @@ export const hpCCG: CCGCard[] = [
             },
         ],
         customDescription: '⚡ Catch the Snitch! Deal [red]25 damage[/red].',
-        cost: 0,
+        cost: 10,
         speed: 80,
         rarity: ItemRarity.Unobtainable,
         accuracy: 99,

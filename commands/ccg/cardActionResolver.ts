@@ -284,8 +284,8 @@ export class CardActionResolver {
                     const transformCard = await this.getCardById(effect.transformCardId)
                     if (transformCard && Math.random() < effect.accuracy / 100) {
                         const playedIndex = effect.sourceCardId
-                            ? target.hand.findIndex((card) => card.id === effect.sourceCardId)
-                            : target.hand.findIndex((card) => card.name === effect.sourceCardName)
+                            ? target.hand.findIndex((card) => card.id === effect.sourceCardId && card.selected)
+                            : target.hand.findIndex((card) => card.name === effect.sourceCardName && card.selected)
 
                         if (playedIndex !== -1) {
                             target.hand[playedIndex] = { ...transformCard, selected: true }
@@ -297,6 +297,8 @@ export class CardActionResolver {
                             this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} transformation target not found in hand`)
                         }
                     }
+                } else if (effect.transformSeries) {
+                    await this.playAsRandomCardFromSeries(game, effect, source)
                 }
                 break
 
@@ -496,6 +498,53 @@ export class CardActionResolver {
         if (eligible.length === 0) return undefined
         const card = eligible[Math.floor(Math.random() * eligible.length)]
         return await this.getCardWithEmoji(card)
+    }
+
+    private async playAsRandomCardFromSeries(game: CCGGame, effect: CCGEffect, source: CCGPlayer): Promise<void> {
+        const eligible = ALL_CARDS.filter(
+            (c) => c.series === effect.transformSeries && !c.summoned && c.collectible !== false && !c.consumable && c.id !== effect.sourceCardId
+        )
+        if (eligible.length === 0) return
+        const card = eligible[Math.floor(Math.random() * eligible.length)]
+        const fullCard = await this.getCardWithEmoji(card)
+        this.log(game, `${this.getEffectLogPrefix(effect)}${source.name}'s ${effect.sourceCardName} becomes **${card.name}**!`)
+
+        // Update the visual card in hand — match selected only so duplicate card IDs in hand don't steal the wrong slot
+        const playedIndex = source.hand.findIndex((c) => c.id === effect.sourceCardId && c.selected)
+        if (playedIndex !== -1) source.hand[playedIndex] = { ...fullCard, selected: true }
+
+        // Push the random card's effects onto the stack so they resolve this round
+        const opponent = this.getPlayer(game, source.opponentId)
+        for (const cardEffect of card.effects) {
+            const targetPlayerId = cardEffect.target === 'SELF' ? source.id : opponent.id
+            game.state.stack.push({
+                cardId: effect.cardId,
+                emoji: fullCard.emoji,
+                statusText: `via ${effect.sourceCardName}`,
+                sourceCardName: card.name,
+                sourceCardId: card.id,
+                sourcePlayerId: source.id,
+                targetPlayerId,
+                cardTarget: cardEffect.target,
+                speed: effect.speed,
+                accuracy: cardEffect.accuracy ?? card.accuracy,
+                cardSuccessful: true,
+                type: cardEffect.type,
+                value: cardEffect.value,
+                turns: cardEffect.turns,
+                amount: cardEffect.amount,
+                condition: cardEffect.condition,
+                statusAccuracy: cardEffect.statusAccuracy ?? 100,
+                includeCurrentTurn: cardEffect.includeCurrentTurn,
+                transformCardId: cardEffect.transformCardId,
+                identifier: cardEffect.identifier,
+                summonCardId: cardEffect.summonCardId,
+                delayedTrigger: cardEffect.delayedTrigger,
+                countTarget: cardEffect.countTarget,
+                base: cardEffect.base,
+                reflectType: cardEffect.reflectType,
+            })
+        }
     }
 
     private async getCardWithEmoji(card: CCGCard): Promise<CCGCard> {

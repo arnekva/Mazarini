@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '32.4.0'
+    public static readonly currentVersion = '32.5.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,9 +27,16 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '### CCG',
-                '* Du kan nå få et bilde av samtlige kort i en series ved å bruke "/ccg cards"',
-                '* Dette bildet re-genereres hver gang et kort i serien oppdateres og vil derfor alltid være oppdatert',
+                '### CCG – Nytt kort',
+                "* **Bertie Bott's Every Flavour Beans** lagt til i HP-serien (Epic)",
+                '  - Kost 2, Speed 50 – Forvandles til et tilfeldig HP-kort og løser det umiddelbart',
+                '### CCG – Kortendringer',
+                '* Dark Mark: Energigevinst endret fra én per runde i 2 runder → 2 energi gis én gang etter 2 runder',
+                '* Golden Snitch, Weasley-pranks: Kan ikke lenger droppes fra loot packs',
+                '* Golden Snitch: 2 -> 10 energy',
+                '### CCG – Kortstokkforbedringer',
+                '* Du kan nå ha separate aktive kortstokker for **Standard** og **Wild/Full**-modus',
+                '  - Bruk de nye knappene i kortstokk-editoren for å sette aktiv kortstokk per spillmodus',
             ].join('\n')
         )
         container.addSeparator()

@@ -5,6 +5,7 @@ import { ATCInteraction, BtnInteraction, ChatInteraction, ModalInteraction, Sele
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
+import { ItemColor, ItemRarity } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { Scripts } from '../../scripts/scripts'
 import { LootboxCommands } from '../store/lootboxCommands'
@@ -64,7 +65,10 @@ export class TestCommands extends AbstractCommands {
         scripts.updateCCGSeries()
         await scripts.updateLootSeriesAndPacks()
         await scripts.initializeHpCCGInventory()
-        await this.messageHelper.replyToInteraction(interaction, 'Ferdig! Reset chips/shards/daily, lucky wheel rewards oppdatert, CCG pushet til DB, HP CCG initialisert for alle brukere.')
+        await this.messageHelper.replyToInteraction(
+            interaction,
+            'Ferdig! Reset chips/shards/daily, lucky wheel rewards oppdatert, CCG pushet til DB, HP CCG initialisert for alle brukere.'
+        )
     }
 
     private async testSelectMenu(selectMenu: SelectStringInteraction) {
@@ -114,13 +118,16 @@ export class TestCommands extends AbstractCommands {
         this.buttonsMessage = undefined
     }
 
-    private testSwitch(interaction: ChatInteraction) {
+    private async testSwitch(interaction: ChatInteraction) {
         const action = interaction.options.getSubcommand()
         interaction.user
         if (action) {
             switch (action.toLowerCase()) {
                 case '-1-': {
-                    this.test(interaction)
+                    const user = await this.database.getUser(interaction.user.id)
+                    const bertie = { name: 'hp_bertie_botts_n', series: 'hpCCG', rarity: ItemRarity.Epic, color: ItemColor.None, amount: 1, isCCG: true }
+                    this.lootCmmds.giveCardsForTesting(user, [bertie, bertie, bertie])
+                    this.messageHelper.replyToInteraction(interaction, "Added 3× Bertie Bott's Every Flavour Beans to your hpCCG collection.")
                     break
                 }
                 case '-2-': {

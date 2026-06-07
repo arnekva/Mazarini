@@ -9,6 +9,7 @@ import {
     StringSelectMenuBuilder,
     StringSelectMenuOptionBuilder,
 } from 'discord.js'
+import { environment } from '../../client-env'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { ATCInteraction, BtnInteraction, ChatInteraction, SelectStringInteraction } from '../../Abstracts/MazariniInteraction'
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
@@ -50,10 +51,22 @@ export class DeckCommands extends AbstractCommands {
         this.database.updateUser(user)
     }
 
+    private setActiveWildDeck(user: MazariniUser, deckChoice: string) {
+        user.ccg.decks = user.ccg?.decks?.map((deck) => (deck.name === deckChoice ? { ...deck, activeWild: true } : { ...deck, activeWild: false }))
+        this.database.updateUser(user)
+    }
+
     private async activateCurrentDeck(interaction: BtnInteraction, editor: DeckEditor) {
         const user = await this.database.getUser(interaction.user.id)
         editor.deck.active = true
         this.setActiveDeck(user, editor.deck.name)
+        this.updateDeckInfo(editor)
+    }
+
+    private async activateCurrentDeckWild(interaction: BtnInteraction, editor: DeckEditor) {
+        const user = await this.database.getUser(interaction.user.id)
+        editor.deck.activeWild = true
+        this.setActiveWildDeck(user, editor.deck.name)
         this.updateDeckInfo(editor)
     }
 
@@ -136,7 +149,11 @@ export class DeckCommands extends AbstractCommands {
         const deckInfo = editor.isTradeEditor ? CCGDeckEditor_Trade() : CCGDeckEditor_Info(editor)
         const buttons = editor.isTradeEditor
             ? tradeButtons(editor.id, (editor.deck?.cards?.length ?? 0) > 0)
-            : saveAndCloseButtons(editor.id, editor.deck.valid && !editor.deck.active && editor.saved)
+            : saveAndCloseButtons(
+                  editor.id,
+                  editor.deck.valid && !editor.deck.active && editor.saved,
+                  editor.deck.valid && !editor.deck.activeWild && editor.saved
+              )
         deckInfo.replaceComponent('action_buttons', buttons)
         const tradeValue = this.getTradeValue(editor)
         if (tradeValue) {
@@ -351,6 +368,11 @@ export class DeckCommands extends AbstractCommands {
     }
 
     private async validateDeck(editor: DeckEditor) {
+        if (environment === 'dev') {
+            editor.deck.valid = true
+            editor.validationErrors = new Array<string>()
+            return
+        }
         const user = await this.database.getUser(editor.userId)
         editor.deck.valid = true
         editor.validationErrors = new Array<string>()
@@ -493,7 +515,8 @@ export class DeckCommands extends AbstractCommands {
 
     private async autocompleteDeck(interaction: ATCInteraction) {
         const user = await this.database.getUser(interaction.user.id)
-        const response = user.ccg?.decks?.map((deck) => ({ name: `${deck.name} ${deck.active ? '(aktiv)' : ''}`, value: deck.name }))
+        const tags = (deck: ICCGDeck) => [deck.active ? 'Standard' : '', deck.activeWild ? 'Wild' : ''].filter(Boolean).join('/')
+        const response = user.ccg?.decks?.map((deck) => ({ name: `${deck.name}${tags(deck) ? ` (${tags(deck)})` : ''}`, value: deck.name }))
         interaction.respond(response ?? [{ name: 'no decks found', value: 'NO_DECK_FOUND' }])
     }
 
@@ -577,6 +600,12 @@ export class DeckCommands extends AbstractCommands {
                         commandName: 'DECK_ACTIVATE',
                         command: (interaction: ButtonInteraction) => {
                             this.verifyUserAndCallMethod(interaction, (editor) => this.activateCurrentDeck(interaction, editor))
+                        },
+                    },
+                    {
+                        commandName: 'DECK_ACTIVATE_WILD',
+                        command: (interaction: ButtonInteraction) => {
+                            this.verifyUserAndCallMethod(interaction, (editor) => this.activateCurrentDeckWild(interaction, editor))
                         },
                     },
                     {
@@ -707,7 +736,7 @@ const filterButton = (editorId: string, filter: CCGCardType | ItemRarity | Usage
     })
 }
 
-const saveAndCloseButtons = (editorId: string, canSetActive: boolean) => {
+const saveAndCloseButtons = (editorId: string, canSetStandard: boolean, canSetWild: boolean) => {
     return new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder({
             custom_id: `DECK_SAVE;${editorId}`,
@@ -726,8 +755,15 @@ const saveAndCloseButtons = (editorId: string, canSetActive: boolean) => {
         new ButtonBuilder({
             custom_id: `DECK_ACTIVATE;${editorId}`,
             style: ButtonStyle.Primary,
-            disabled: !canSetActive,
-            label: 'Set as active deck',
+            disabled: !canSetStandard,
+            label: 'Set Standard deck',
+            type: 2,
+        }),
+        new ButtonBuilder({
+            custom_id: `DECK_ACTIVATE_WILD;${editorId}`,
+            style: ButtonStyle.Primary,
+            disabled: !canSetWild,
+            label: 'Set Wild deck',
             type: 2,
         })
     )

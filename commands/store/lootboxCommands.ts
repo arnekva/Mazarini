@@ -210,7 +210,7 @@ export class LootboxCommands extends AbstractCommands {
         sh.registerPurchase(box, true, interaction.isChatInputCommand())
 
         const ccgStorage = (await this.database.getStorage()).ccg
-        const isValidCard = (item: IUserLootItem) => ccgStorage[item.series]?.some((card) => card.id === item.name)
+        const isValidCard = (item: IUserLootItem) => ccgStorage[item.series]?.some((card) => card.id === item.name && !card.summoned)
         const chestItems: IUserLootItem[] = new Array<IUserLootItem>()
         for (let i = 0; i < 3; i++) {
             let item = this.calculateRewardItem(box, seriesObj, user)
@@ -624,6 +624,10 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     equalItems = (item1: IUserLootItem, item2: IUserLootItem) => item1.name === item2.name && item1.color === item2.color
+
+    public giveCardsForTesting(user: MazariniUser, items: IUserLootItem[]) {
+        for (const item of items) this.registerItemOnUser(user, item)
+    }
 
     /** Creates a blank loot series entry on the user if it doesn't exist yet */
     private ensureUserLootSeries(user: MazariniUser, seriesName: string) {

@@ -3,6 +3,7 @@ import type { ApplicationEmoji, Collection } from 'discord.js'
 import { ActionRowBuilder, APIButtonComponent, AttachmentBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
+import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
 import type { CardModification } from '../../helpers/ccgCardGenerator'
@@ -99,7 +100,7 @@ export class CCGCommands extends AbstractCommands {
             player.usedCards = []
             card = player.deck.pop()
         }
-        player.hand.push(card)
+        if (card) player.hand.push(card)
     }
 
     private async sendPlayerHand(interaction: BtnInteraction, game: CCGGame, player: CCGPlayer) {
@@ -458,6 +459,7 @@ export class CCGCommands extends AbstractCommands {
                             statusAccuracy: effect.statusAccuracy ?? 100,
                             includeCurrentTurn: effect.includeCurrentTurn,
                             transformCardId: effect.transformCardId,
+                            transformSeries: effect.transformSeries,
                             identifier: effect.identifier,
                             summonCardId: effect.summonCardId,
                             delayedTrigger: effect.delayedTrigger,
@@ -608,7 +610,7 @@ export class CCGCommands extends AbstractCommands {
         const game = this.getGame(interaction)
         if (game && !game.player2 && game.player1.id !== interaction.user.id) {
             const ccgStorage = await this.getCcgStorage()
-            const validDeck = await this.userHasValidDeck(interaction, user, ccgStorage)
+            const validDeck = await this.userHasValidDeck(interaction, user, ccgStorage, game.cardSet === CardSet.Standard, game.cardSet)
             if (!validDeck) return this.handleUserHasInvalidDeck(interaction)
             if (!this.userCanJoin(game, user)) return this.messageHelper.replyToInteraction(interaction, 'Du har ikke råd til å være med på denne')
             interaction.deferUpdate()
@@ -831,7 +833,7 @@ export class CCGCommands extends AbstractCommands {
         }
 
         const resolvedUser = user ?? (await this.database.getUser(player.id))
-        const playerCards = await this.getPlayerCards(resolvedUser, cards, appEmojis)
+        const playerCards = await this.getPlayerCards(resolvedUser, cards, appEmojis, game.cardSet)
         player.deck = RandomUtils.shuffleList(structuredClone(playerCards))
         player.cardbackEmoji = await this.getCardbackEmoji(resolvedUser, appEmojis)
     }
@@ -910,10 +912,14 @@ export class CCGCommands extends AbstractCommands {
         }
     }
 
-    private async getPlayerCards(user: MazariniUser, cards?: ICCGSystem, appEmojis?: Collection<string, ApplicationEmoji>): Promise<CCGCard[]> {
+    private async getPlayerCards(user: MazariniUser, cards?: ICCGSystem, appEmojis?: Collection<string, ApplicationEmoji>, cardSet?: CardSet): Promise<CCGCard[]> {
         const resolvedCards = cards ?? (await this.getCcgStorage())
         const resolvedEmojis = appEmojis ?? (await this.client.getEmojis())
-        const deck = user.ccg?.decks?.find((deck) => deck.active) ?? GameValues.ccg.defaultDeck
+
+        const deck =
+            (cardSet === CardSet.Wild
+                ? (user.ccg?.decks?.find((deck) => deck.activeWild) ?? user.ccg?.decks?.find((deck) => deck.active))
+                : user.ccg?.decks?.find((deck) => deck.active)) ?? GameValues.ccg.defaultDeck
         return await this.getFullCards(deck, resolvedCards, resolvedEmojis)
     }
 
@@ -949,11 +955,14 @@ export class CCGCommands extends AbstractCommands {
         return userCards
     }
 
-    private async userHasValidDeck(interaction: ChatInteraction | BtnInteraction, user?: MazariniUser, cards?: ICCGSystem, standardOnly = false) {
-        // if (environment === 'dev') return true // skip deck validation in development for faster testing
+    private async userHasValidDeck(interaction: ChatInteraction | BtnInteraction, user?: MazariniUser, cards?: ICCGSystem, standardOnly = false, cardSet?: CardSet) {
+        if (environment === 'dev') return true
         const resolvedUser = user ?? (await this.database.getUser(interaction.user.id))
         const resolvedCards = cards ?? (await this.getCcgStorage())
-        const deck = resolvedUser.ccg?.decks?.find((deck) => deck.active) ?? GameValues.ccg.defaultDeck
+        const deck =
+            (cardSet === CardSet.Wild
+                ? (resolvedUser.ccg?.decks?.find((deck) => deck.activeWild) ?? resolvedUser.ccg?.decks?.find((deck) => deck.active))
+                : resolvedUser.ccg?.decks?.find((deck) => deck.active)) ?? GameValues.ccg.defaultDeck
         deck.valid = true
         CCGValidator.validateDeckWithCards(resolvedUser, deck, new Array<string>(), resolvedCards, standardOnly)
         return deck.valid
@@ -1043,8 +1052,8 @@ export class CCGCommands extends AbstractCommands {
             const ccgStorage = await this.getCcgStorage()
             const modeRaw = vsBot ? (interaction.options.get('mode')?.value as string) : undefined
             const cardSet = (modeRaw?.split('_')[1] as CardSet | undefined) ?? CardSet.Wild
-            const standardOnly = vsBot && cardSet === CardSet.Standard
-            const validDeck = await this.userHasValidDeck(interaction, user, ccgStorage, standardOnly)
+            const standardOnly = cardSet === CardSet.Standard
+            const validDeck = await this.userHasValidDeck(interaction, user, ccgStorage, standardOnly, cardSet)
             if (!validDeck) return this.handleUserHasInvalidDeck(interaction)
             const canAfford = this.userCanAfford(user, interaction, vsBot)
             if (!canAfford) return this.messageHelper.replyToInteraction(interaction, 'Du har ikke råd til dette')
