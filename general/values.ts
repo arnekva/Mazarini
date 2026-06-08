@@ -166,6 +166,7 @@ export type GameValuesType = {
         rewards: {
             entryFee: number
             dailyBonus: number
+            easyBotDailyBonus: number
             weeklyLimit: number
             limitPenalty: number
             bonusAfterLimit: boolean
@@ -431,6 +432,7 @@ export const GameValues: GameValuesType = {
         rewards: {
             entryFee: 10000,
             dailyBonus: 10,
+            easyBotDailyBonus: 15,
             weeklyLimit: 100,
             limitPenalty: 5,
             bonusAfterLimit: true,
@@ -486,55 +488,18 @@ export const GameValues: GameValuesType = {
         botDeck: {
             easy: [
                 {
-                    // HP Lett #1
+                    // Høie Lett — 5x pointerbrothers + 10x berties
                     name: 'easy',
                     active: true,
                     valid: true,
                     cards: [
-                        { id: 'hp_trelawney_n', series: 'hpCCG', amount: 1 },
-                        { id: 'hp_neville_n', series: 'hpCCG', amount: 1 },
-                        { id: 'hp_lockhart_n', series: 'hpCCG', amount: 1 },
-                        { id: 'hp_finnigan_n', series: 'hpCCG', amount: 1 },
-                        { id: 'hp_luna_n', series: 'hpCCG', amount: 2 },
-                        { id: 'hp_flitwick_n', series: 'hpCCG', amount: 1 },
-                        { id: 'hp_aragog_n', series: 'hpCCG', amount: 1 },
-                        { id: 'hp_shacklebolt_n', series: 'hpCCG', amount: 1 },
-                        { id: 'hp_fleur_n', series: 'hpCCG', amount: 1 },
-                        { id: 'hp_myrtle_n', series: 'hpCCG', amount: 1 },
-                        { id: 'hp_polyjuice_potion_n', series: 'hpCCG', amount: 1 },
-                        { id: 'hp_pettigrew_n', series: 'hpCCG', amount: 1 },
-                        { id: 'hp_nymphadora_n', series: 'hpCCG', amount: 1 },
-                    ],
-                },
-                {
-                    // HP Lett #2
-                    name: 'easy',
-                    active: true,
-                    valid: true,
-                    cards: [
-                        { id: 'hp_kreacher_n', series: 'hpCCG', amount: 1 },
-                        { id: 'hp_neville_n', series: 'hpCCG', amount: 1 },
-                        { id: 'hp_lockhart_n', series: 'hpCCG', amount: 1 },
-                        { id: 'hp_finnigan_n', series: 'hpCCG', amount: 1 },
-                        { id: 'hp_filch_n', series: 'hpCCG', amount: 2 },
-                        { id: 'hp_umbridge_n', series: 'hpCCG', amount: 1 },
-                        { id: 'hp_fleur_n', series: 'hpCCG', amount: 1 },
-                        { id: 'hp_luna_n', series: 'hpCCG', amount: 1 },
-                        { id: 'hp_shacklebolt_n', series: 'hpCCG', amount: 1 },
-                        { id: 'hp_myrtle_n', series: 'hpCCG', amount: 1 },
-                        { id: 'hp_ginny_n', series: 'hpCCG', amount: 1 },
-                        { id: 'hp_lucius_n', series: 'hpCCG', amount: 1 },
-                        { id: 'hp_barty_crouch_jr_n', series: 'hpCCG', amount: 1 },
+                        { id: 'pointerbrothers1', series: 'mazariniCCG', amount: 5 },
+                        { id: 'hp_bertie_botts_n', series: 'hpCCG', amount: 10 },
                     ],
                 },
             ],
             medium: [
                 {
-                    // HP Middels #1 — Ravenclaw Control
-                    // Strategy: Flitwick pairs with itself for 3 energy; Luna heals 3 alongside a Ravenclaw;
-                    // Trelawney/Myrtle/kms_gun provide control and chip damage;
-                    // Neville x2 + Kreacher + pointerbrothers1 keep energy flowing every turn.
-                    // Heals: Luna x2, Shacklebolt.
                     name: 'medium',
                     active: true,
                     valid: true,
@@ -547,16 +512,10 @@ export const GameValues: GameValuesType = {
                         { id: 'hp_kreacher_n', series: 'hpCCG', amount: 1 },
                         { id: 'hp_shacklebolt_n', series: 'hpCCG', amount: 1 },
                         { id: 'kms_gun', series: 'mazariniCCG', amount: 2 },
-                        { id: 'pointerbrothers1', series: 'mazariniCCG', amount: 1 },
+                        { id: 'pointerbrothers1', series: 'mazariniCCG', amount: 2 },
                     ],
                 },
                 {
-                    // HP Middels #2 — Dark Pressure
-                    // Strategy: Kreacher x2 + pointerbrothers1 keep energy up; Dark Mark summons extra
-                    // Death Eaters and refunds its own cost; Barty Crouch Jr stacks bleed; Lucius and
-                    // Pettigrew are reliable damage; kms_gun replaces Aragog for immediate burst (bleed
-                    // already covered by Barty x2); Bellatrix disrupts the opponent's rhythm.
-                    // Heals: Snape (big heal + 1e), Fleur (2 heal + 1 dmg).
                     name: 'medium',
                     active: true,
                     valid: true,
@@ -570,7 +529,7 @@ export const GameValues: GameValuesType = {
                         { id: 'hp_snape_n', series: 'hpCCG', amount: 1 },
                         { id: 'hp_fleur_n', series: 'hpCCG', amount: 1 },
                         { id: 'kms_gun', series: 'mazariniCCG', amount: 1 },
-                        { id: 'pointerbrothers1', series: 'mazariniCCG', amount: 1 },
+                        { id: 'pointerbrothers1', series: 'mazariniCCG', amount: 2 },
                     ],
                 },
             ],
@@ -581,13 +540,14 @@ export const GameValues: GameValuesType = {
                     valid: true,
                     cards: [
                         { id: 'hp_bertie_botts_n', series: 'hpCCG', amount: 2 },
-                        { id: 'hp_harry_potter_n', series: 'hpCCG', amount: 2 },
+                        { id: 'hp_harry_potter_n', series: 'hpCCG', amount: 1 },
                         { id: 'hoie', series: 'mazariniCCG', amount: 1 },
                         { id: 'maggiscared', series: 'mazariniCCG', amount: 2 },
                         { id: 'kms_gun', series: 'mazariniCCG', amount: 2 },
                         { id: 'shrekStare', series: 'mazariniCCG', amount: 2 },
                         { id: 'hp_neville_n', series: 'hpCCG', amount: 2 },
                         { id: 'geggiexcited', series: 'mazariniCCG', amount: 1 },
+                        { id: 'pointerbrothers1', series: 'mazariniCCG', amount: 1 },
                         { id: 'hp_snape_n', series: 'hpCCG', amount: 1 },
                     ],
                 },

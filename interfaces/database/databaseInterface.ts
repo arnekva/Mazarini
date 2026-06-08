@@ -148,6 +148,7 @@ export interface ICCGUserData {
     decks?: ICCGDeck[]
     shards?: number
     dailyShardBonusClaimed?: boolean
+    dailyEasyBotBonusClaimed?: boolean
     weeklyShardsEarned?: number
     cardback?: string
     pitySinceLastLegendary?: number

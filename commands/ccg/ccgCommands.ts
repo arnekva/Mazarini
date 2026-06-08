@@ -1170,6 +1170,7 @@ export class CCGCommands extends AbstractCommands {
         const usersWithStats = users.filter((user) => user.ccg?.weeklyShardsEarned ?? 0 > 0)
         for (const user of usersWithStats) {
             user.ccg.dailyShardBonusClaimed = false
+            user.ccg.dailyEasyBotBonusClaimed = false
             user.ccg.weeklyShardsEarned = weekly ? 0 : user.ccg.weeklyShardsEarned
             await this.database.updateUser(user)
         }
