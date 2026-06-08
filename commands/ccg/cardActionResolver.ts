@@ -509,7 +509,7 @@ export class CardActionResolver {
         const fullCard = await this.getCardWithEmoji(card)
         this.log(game, `${this.getEffectLogPrefix(effect)}${source.name}'s ${effect.sourceCardName} becomes **${card.name}**!`)
 
-        // Update the visual card in hand — match selected only so duplicate card IDs in hand don't steal the wrong slot
+        // Update the visual card in hand temporarily for display — match selected only so duplicate card IDs don't steal the wrong slot
         const playedIndex = source.hand.findIndex((c) => c.id === effect.sourceCardId && c.selected)
         if (playedIndex !== -1) source.hand[playedIndex] = { ...fullCard, selected: true }
 
@@ -544,6 +544,12 @@ export class CardActionResolver {
                 base: cardEffect.base,
                 reflectType: cardEffect.reflectType,
             })
+        }
+
+        // Restore the original card in hand so it shuffles back as itself (transform is visual/effect only for this round)
+        if (playedIndex !== -1 && effect.sourceCardId) {
+            const originalCard = await this.getCardById(effect.sourceCardId)
+            if (originalCard) source.hand[playedIndex] = { ...originalCard, selected: true }
         }
     }
 

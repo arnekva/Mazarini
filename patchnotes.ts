@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '32.5.2'
+    public static readonly currentVersion = '32.5.3'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,10 +27,9 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '### CCG – Bot og belønninger',
-                '* Høie har fått et nytt Lett deck!',
-                '* Vinner du mot Høie på **lett** vanskelighetsgrad, får du +15 shards som daglig bonus (én gang per dag)',
-                '* Små justeringer på Vanskelig deck',
+                '# CCG',
+                '* Fikset en feil som gjorde at Bertie shufflet inn det transformerte kortet, og ikke en ny bean',
+                '* Pointerbrothers1: 90 -> 95 accuracy',
             ].join('\n')
         )
         container.addSeparator()
