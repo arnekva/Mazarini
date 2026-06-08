@@ -181,7 +181,9 @@ export class CardActionResolver {
                 const costDesc =
                     (effect.value ?? 0) >= 99
                         ? `reduced to **0**`
-                        : `reduced by **${effect.value}**`
+                        : (effect.value ?? 0) < 0
+                          ? `increased by **${Math.abs(effect.value)}**`
+                          : `reduced by **${effect.value}**`
                 this.log(
                     game,
                     `${this.getEffectLogPrefix(effect)}**${effect.sourceCardName}** – ${target.name}'s ${

@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '32.5.3'
+    public static readonly currentVersion = '32.5.4'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,13 +25,7 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(
-            [
-                '# CCG',
-                '* Fikset en feil som gjorde at Bertie shufflet inn det transformerte kortet, og ikke en ny bean',
-                '* Pointerbrothers1: 90 -> 95 accuracy',
-            ].join('\n')
-        )
+        const text = new TextDisplayBuilder().setContent(['# CCG', '* Same kan nå kopiere Bertie', '* Fikset log-tekst på Arthur'].join('\n'))
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 

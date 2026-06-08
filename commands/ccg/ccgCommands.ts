@@ -543,6 +543,7 @@ export class CCGCommands extends AbstractCommands {
                     condition: effect.condition,
                     includeCurrentTurn: effect.includeCurrentTurn,
                     transformCardId: effect.transformCardId,
+                    transformSeries: effect.transformSeries,
                 }
             })
         )
