@@ -92,6 +92,18 @@ export class CCGCommands extends AbstractCommands {
         }
     }
 
+    private guaranteeBotEnergyCard(bot: CCGPlayer) {
+        const hasEnergy = bot.hand.some((c) => c?.effects?.some((e) => e.type === 'GAIN_ENERGY' && e.target === 'SELF'))
+        if (hasEnergy) return
+        const deckEnergyIdx = bot.deck.findIndex((c) => c?.effects?.some((e) => e.type === 'GAIN_ENERGY' && e.target === 'SELF'))
+        if (deckEnergyIdx === -1) return
+        const handSwapIdx = bot.hand.findIndex((c) => !c?.effects?.some((e) => e.type === 'GAIN_ENERGY'))
+        if (handSwapIdx === -1) return
+        const [energyCard] = bot.deck.splice(deckEnergyIdx, 1)
+        bot.deck.push(bot.hand[handSwapIdx])
+        bot.hand[handSwapIdx] = energyCard
+    }
+
     private drawCard(game: CCGGame, player: CCGPlayer) {
         if (player.hand.length === game.state.settings.maxHandSize) return
         let card = player.deck.pop()
@@ -663,6 +675,7 @@ export class CCGCommands extends AbstractCommands {
         if (game.vsBot) {
             await this.ensurePlayerLoaded(game, game.player2, ccgStorage, appEmojis)
             this.drawCards(game, game.player2)
+            this.guaranteeBotEnergyCard(game.player2)
             this.chooseBotCards(game)
         }
         await this.updatePlayerHand(game, player)

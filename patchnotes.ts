@@ -27,16 +27,15 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '### CCG – Nytt kort',
-                "* **Bertie Bott's Every Flavour Beans** lagt til i HP-serien (Epic)",
-                '  - Kost 2, Speed 50 – Forvandles til et tilfeldig HP-kort og løser det umiddelbart',
-                '### CCG – Kortendringer',
-                '* Dark Mark: Energigevinst endret fra én per runde i 2 runder → 2 energi gis én gang etter 2 runder',
-                '* Golden Snitch, Weasley-pranks: Kan ikke lenger droppes fra loot packs',
-                '* Golden Snitch: 2 -> 10 energy',
-                '### CCG – Kortstokkforbedringer',
-                '* Du kan nå ha separate aktive kortstokker for **Standard** og **Wild/Full**-modus',
-                '  - Bruk de nye knappene i kortstokk-editoren for å sette aktiv kortstokk per spillmodus',
+                '### CCG – AI forbedringer',
+                '* Effects: Effect kort scorer ikke lenger unormalt høyt. Dette kunne, i noen tilfeller, føre til at botten foretrakk effekter foran healing',
+                '* Kort sortes ikke lenger etter mana-cost. Før kunne et 3-cost kort med score 0 prioriteres over et 1-cost kort med score 3. Nå skal de beste kortene spilles først',
+                '* Den kan nå vurdere å kun spille ett kort i stedet for å discarde, gitt at kortet scorer høyt nok',
+                '* Healing vil nå prioriteres litt oftere.',
+                "* Vil oftere spille kort med lav score bare for å 'cycle' gjennom kort, hvis den har nok energy.",
+                "* Peak at hand: Vanskelig vil nå også ta i betrakning hva du har råd til å spille",
+                "* Tempo: Prioriterer energy-gain i early-game for å sikre tilgang til å spille tyngre kort senere.",
+                "* Fikser at botten alltid discarder minst 2 kort når den discarder."
             ].join('\n')
         )
         container.addSeparator()

@@ -1,6 +1,7 @@
 import { GameValues } from '../../general/values'
-import { RandomUtils } from '../../utils/randomUtils'
 import { CCGCard, CCGCondition, CCGEffectType, CCGGame, CCGPlayer, CCGStatusEffectType, CCGTarget, Difficulty } from './ccgInterface'
+
+const UNPLAYABLE_SCORE = -100
 
 interface BotCard {
     card: CCGCard
@@ -24,10 +25,10 @@ export class BotResolver {
         }
 
         this.debuffUnplayable(playable)
-        this.buffCardsOfType(playable, ['DAMAGE', 'DAMAGE_PER_IDENTIFIER', 'DAMAGE_PER_CARD_PLAYED', 'SHOOT'], 2, 'OPPONENT')
         this.checkLethal(game, playable)
         this.checkSurvival(game, playable)
         this.checkRemoveStatus(game, playable)
+        this.buffCardsOfType(playable, ['DAMAGE', 'DAMAGE_PER_IDENTIFIER', 'DAMAGE_PER_CARD_PLAYED', 'SHOOT'], 2, 'OPPONENT')
         this.sortPlayable(playable)
         this.checkGainEnergy(game, playable)
         this.sortPlayable(playable)
@@ -40,38 +41,35 @@ export class BotResolver {
             this.checkOpponentHand(game, playable)
             this.sortPlayable(playable)
         }
+        this.checkCycleValue(game, playable)
+        this.sortPlayable(playable)
 
         this.selectCards(game, bot, playable)
         return false // returning false indicates bot is playing cards
     }
 
     /**
-     * Determines if the bot should discard cards (mulligan)
-     * Returns true if:
-     * - Bot has 0-1 energy
-     * - Fewer than 2 cards in hand are playable with current energy
+     * Determines if the bot should discard cards (mulligan).
+     * Mulligans when energy is very low AND hand has no playable energy cards.
+     * The goal isn't to play 2 cards — it's to find energy cards to get back on track.
+     * Also peeks at the top of the deck: if energy cards are coming soon, no need to mulligan.
      */
     private shouldMulligan(game: CCGGame, bot: CCGPlayer, playable: BotCard[]): boolean {
-        // Only consider mulligan if energy is very low
         if (bot.energy > 1) return false
 
-        // Count how many cards are playable with current energy
-        const playableCount = playable.filter((card) => card.playable).length
+        const hasPlayableEnergyCard = playable.some(
+            (c) => c.playable && c.card.effects?.some((e) => e.type === 'GAIN_ENERGY' && e.target === 'SELF')
+        )
+        // If we can already play an energy card, no need to mulligan
+        if (hasPlayableEnergyCard) return false
 
-        // Mulligan if fewer than 2 cards are playable
-        if (playableCount < 2) return true
+        // Peek at the top 2 cards of the deck — if energy is incoming, hold off
+        const topOfDeck = bot.deck.slice(-2)
+        const energyComingFromDeck = topOfDeck.some((c) => c.effects?.some((e) => e.type === 'GAIN_ENERGY' && e.target === 'SELF'))
+        if (energyComingFromDeck) return false
 
-        // On hard difficulty, also check that at least two cards can be played together
-        const difficulty = this.getDifficultyLevel(game)
-        if (difficulty >= 2) {
-            const sortedCosts = playable
-                .filter((card) => card.playable)
-                .map((card) => card.cost)
-                .sort((a, b) => a - b)
-            if (sortedCosts[0] + sortedCosts[1] > bot.energy) return true
-        }
-
-        return false
+        // No playable energy cards and none coming — mulligan to find some
+        return true
     }
 
     private isPlayable(game: CCGGame, card: CCGCard): boolean {
@@ -104,9 +102,9 @@ export class BotResolver {
             else if (cost === 2) discardScore += 2
             else discardScore += 1
 
-            // Keep energy-generating cards (negative score = less likely to discard)
-            const hasImmediateEnergy = card.effects?.some((effect) => effect.type === 'GAIN_ENERGY' && effect.target === 'SELF' && (effect.turns ?? 0) === 0)
-            if (hasImmediateEnergy) discardScore -= 10
+            // Keep any playable energy card — doesn't matter if it's delayed, it's what we're mulliganing for
+            const isPlayableEnergyCard = cost <= bot.energy && card.effects?.some((effect) => effect.type === 'GAIN_ENERGY' && effect.target === 'SELF')
+            if (isPlayableEnergyCard) discardScore -= 10
 
             // Keep low-cost cards that might become playable
             if (cost <= 1) discardScore -= 2
@@ -117,11 +115,11 @@ export class BotResolver {
         // Sort by discard score (highest = most likely to discard)
         scoredCards.sort((a, b) => b.discardScore - a.discardScore)
 
-        // Discard 1-3 cards depending on hand size, but keep at least 1-2 cards
-        const numToDiscard = Math.min(Math.max(1, Math.floor(hand.length / 2)), hand.length - 1)
-
-        for (let i = 0; i < numToDiscard; i++) {
-            scoredCards[i].card.selected = true
+        // Only discard cards that actually scored positively (genuinely bad to keep),
+        // but always keep at least 1 card in hand
+        const toDiscard = scoredCards.filter((c) => c.discardScore > 0).slice(0, hand.length - 1)
+        for (const { card } of toDiscard) {
+            card.selected = true
         }
 
         bot.submitted = true
@@ -150,7 +148,7 @@ export class BotResolver {
     }
 
     private sortPlayable(playable: BotCard[]) {
-        playable.sort((a, b) => b.card.cost + b.score - (a.card.cost + a.score))
+        playable.sort((a, b) => b.score - a.score)
     }
 
     private checkLethal(game: CCGGame, playable: BotCard[]) {
@@ -202,14 +200,16 @@ export class BotResolver {
         const maxHP = GameValues.ccg.gameSettings.startingHP
         const room = maxHP - bot.hp
 
-        // HP urgency: boost heals when low
-        if (bot.hp <= RandomUtils.getRandomInteger(7, 12) && bot.hp > 5) {
-            this.buffCardsOfType(playable, 'HEAL', 5, 'SELF')
-        } else if (bot.hp <= 5) {
+        // Always value heals — boosted more urgently when low
+        if (bot.hp <= 5) {
             this.buffCardsOfType(playable, 'HEAL', 8, 'SELF')
+        } else if (bot.hp <= 10) {
+            this.buffCardsOfType(playable, 'HEAL', 5, 'SELF')
+        } else {
+            this.buffCardsOfType(playable, 'HEAL', 2, 'SELF')
         }
 
-        // Per-card waste check: penalize only when the heal would be mostly or fully wasted
+        // Penalize heals only when the heal would be mostly or fully wasted
         for (const item of playable) {
             const healValue = this.getCardHealEstimate(item.card)
             if (healValue <= 0) continue
@@ -220,37 +220,75 @@ export class BotResolver {
                 if (wasteFraction >= 0.5) {
                     item.score -= 4 // more than half wasted
                 }
-                // less than half wasted — still meaningful, no penalty
             }
         }
     }
 
+    /**
+     * Boosts cheap cards when the bot has excess energy it would otherwise waste.
+     * The idea: playing a low-value card is still worth it to cycle through the deck,
+     * as long as the energy cost is covered by what's left after the "main" plays.
+     * Bonus scales with leftover energy so it only kicks in meaningfully when there's real slack.
+     */
+    private checkCycleValue(game: CCGGame, playable: BotCard[]) {
+        const bot = game.player2
+        const maxCards = GameValues.ccg.gameSettings.maxCardsPlayed
+
+        // Simulate which cards would be selected by the current scores, then compute real leftover energy
+        let simulatedEnergy = bot.energy
+        let simulatedSelected = 0
+        const wouldPlay = new Set<BotCard>()
+        for (const item of playable.filter((c) => c.playable && c.score > 0)) {
+            if (simulatedSelected >= maxCards) break
+            if (item.cost <= simulatedEnergy) {
+                wouldPlay.add(item)
+                simulatedEnergy -= item.cost
+                simulatedSelected++
+            }
+        }
+
+        const leftover = simulatedEnergy
+        if (leftover < 2) return // not enough slack to bother cycling
+
+        for (const item of playable) {
+            if (!item.playable || wouldPlay.has(item) || item.cost > leftover) continue
+            // Cycle bonus: up to +3, proportional to slack after playing this card too
+            const slack = leftover - item.cost
+            const cycleBonus = Math.min(slack + 1, 3)
+            item.score += cycleBonus
+        }
+    }
+
     private checkGainEnergy(game: CCGGame, playable: BotCard[]) {
-        // Energy cards are almost always worth playing; boost harder when running low
-        const boost = game.player2.energy < 5 ? 8 : 4
+        // Target: always maintain 3+ energy to keep heavy-hitters accessible.
+        // Below 3 is critical — heavily prioritize energy. Above 3 still value it, but less urgently.
+        const energy = game.player2.energy
+        let boost: number
+        if (energy < 2) boost = 12
+        else if (energy < 3) boost = 8
+        else if (energy < 5) boost = 4
+        else boost = 1
         this.buffCardsOfType(playable, 'GAIN_ENERGY', boost, 'SELF')
     }
 
     private checkRemoveStatus(game: CCGGame, playable: BotCard[]) {
         const damagingTypes: CCGStatusEffectType[] = ['BLEED', 'SHOCK']
-        const botConditions = game.state.statusConditions.filter((c) => c.ownerId === game.player2.id && c.remainingTurns > 1)
+        const botConditions = game.state.statusConditions.filter((c) => c.ownerId === game.player2.id)
         if (botConditions.length === 0) return
 
-        const hasDamagingStatus = botConditions.some((c) => damagingTypes.includes(c.type as CCGStatusEffectType))
-        this.buffCardsOfType(playable, 'REMOVE_STATUS', hasDamagingStatus ? 10 : 5, 'SELF')
-    }
+        const multiTurnDamaging = botConditions.some((c) => damagingTypes.includes(c.type as CCGStatusEffectType) && c.remainingTurns > 1)
+        const singleTurnDamaging = botConditions.some((c) => damagingTypes.includes(c.type as CCGStatusEffectType) && c.remainingTurns === 1)
+        const nonDamaging = botConditions.some((c) => !damagingTypes.includes(c.type as CCGStatusEffectType) && c.remainingTurns > 1)
 
-    private checkSteal(game: CCGGame, playable: BotCard[]) {
-        const lastCard = game.player1.usedCards[game.player1.usedCards.length - 1]
-        if (lastCard && lastCard.id === 'kms2') {
-            this.buffCardsOfType(playable, 'STEAL_CARD', 5, 'OPPONENT')
-        }
+        if (multiTurnDamaging) this.buffCardsOfType(playable, 'REMOVE_STATUS', 10, 'SELF')
+        else if (nonDamaging) this.buffCardsOfType(playable, 'REMOVE_STATUS', 5, 'SELF')
+        else if (singleTurnDamaging) this.buffCardsOfType(playable, 'REMOVE_STATUS', 1, 'SELF') // 1 damage not worth a card slot unless nothing else to do
     }
 
     private debuffUnplayable(playable: BotCard[]) {
         for (const item of playable) {
             if (!item.playable) {
-                item.score = -100
+                item.score = UNPLAYABLE_SCORE
             }
         }
     }
@@ -303,8 +341,8 @@ export class BotResolver {
         }
 
         // Check 4: identifier counter-play — boost bot cards whose bonus damage condition
-        // triggers on identifiers the player is actually holding this turn
-        const playerIdentifiers = new Set(playerHand.flatMap((c) => c.identifier ?? []))
+        // triggers on identifiers the player can actually afford to play this turn
+        const playerIdentifiers = new Set(playerHand.filter((c) => c.cost <= player.energy).flatMap((c) => c.identifier ?? []))
         for (const item of playable) {
             for (const effect of item.card.effects ?? []) {
                 if (!effect.condition) continue
@@ -323,7 +361,19 @@ export class BotResolver {
 
     /** Returns the total damage the player can afford to deal this turn from their hand. */
     private getPlayerAffordableDamage(game: CCGGame): number {
-        return game.player1.hand.filter((c) => !!c && c.cost <= game.player1.energy).reduce((sum, c) => sum + this.getCardDamageEstimate(c), 0)
+        const player = game.player1
+        let remaining = player.energy
+        let total = 0
+        const sorted = player.hand
+            .filter((c) => !!c)
+            .sort((a, b) => this.getCardDamageEstimate(b) - this.getCardDamageEstimate(a))
+        for (const card of sorted) {
+            if (card.cost <= remaining) {
+                total += this.getCardDamageEstimate(card)
+                remaining -= card.cost
+            }
+        }
+        return total
     }
 
     private getDifficultyLevel(game: CCGGame): 0 | 1 | 2 {
@@ -424,7 +474,7 @@ export class BotResolver {
 
             // Only suppress if we're certain nothing fires and nothing is unknowable
             if (!anyDefinitelyFires && !anyUnknowable) {
-                item.score = -100
+                item.score = UNPLAYABLE_SCORE
             }
         }
     }
