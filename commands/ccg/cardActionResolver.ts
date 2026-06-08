@@ -528,7 +528,7 @@ export class CardActionResolver {
                 sourcePlayerId: source.id,
                 targetPlayerId,
                 cardTarget: cardEffect.target,
-                speed: effect.speed,
+                speed: card.speed,
                 accuracy: cardEffect.accuracy ?? card.accuracy,
                 cardSuccessful: true,
                 type: cardEffect.type,

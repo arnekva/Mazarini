@@ -25,7 +25,9 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(['# CCG', '* Same kan nå kopiere Bertie', '* Fikset log-tekst på Arthur'].join('\n'))
+        const text = new TextDisplayBuilder().setContent(
+            ['# CCG', '* Same kan nå kopiere Bertie', '* Fikset log-tekst på Arthur', '* Bertie sitt transformerte kort spilles nå på korrekt speed'].join('\n')
+        )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 
