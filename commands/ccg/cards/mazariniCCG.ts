@@ -336,7 +336,7 @@ export const mazariniCCG: CCGCard[] = [
                 reflectType: 'damage',
             },
         ],
-        cost: 1,
+        cost: 2,
         speed: 100,
         rarity: ItemRarity.Epic,
         accuracy: 90,

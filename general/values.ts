@@ -166,7 +166,6 @@ export type GameValuesType = {
         rewards: {
             entryFee: number
             dailyBonus: number
-            easyBotDailyBonus: number
             weeklyLimit: number
             limitPenalty: number
             bonusAfterLimit: boolean
@@ -432,7 +431,6 @@ export const GameValues: GameValuesType = {
         rewards: {
             entryFee: 10000,
             dailyBonus: 10,
-            easyBotDailyBonus: 15,
             weeklyLimit: 100,
             limitPenalty: 5,
             bonusAfterLimit: true,
