@@ -150,9 +150,10 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private submitCards(interaction: BtnInteraction, game: CCGGame, player: CCGPlayer) {
+        const isSleeping = this.playerHasStatus(game, player, 'SLEEP')
+        if (isSleeping) return this.handlePlayerSubmit(game, player)
         if (player.submitted) {
-            const isSleeping = this.playerHasStatus(game, player, 'SLEEP')
-            return this.messageHelper.replyToInteraction(interaction, isSleeping ? 'Du sover' : `Du har allerede spilt denne runden`, {
+            return this.messageHelper.replyToInteraction(interaction, `Du har allerede spilt denne runden`, {
                 ephemeral: true,
             })
         }
