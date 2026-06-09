@@ -209,12 +209,10 @@ export class LootboxCommands extends AbstractCommands {
         const sh = new LootStatsHelper(user.loot[seriesObj.name].stats)
         sh.registerPurchase(box, true, interaction.isChatInputCommand())
 
-        const ccgStorage = (await this.database.getStorage()).ccg
-        const isValidCard = (item: IUserLootItem) => ccgStorage[item.series]?.some((card) => card.id === item.name && !card.summoned)
         const chestItems: IUserLootItem[] = new Array<IUserLootItem>()
         for (let i = 0; i < 3; i++) {
             let item = this.calculateRewardItem(box, seriesObj, user)
-            while (this.itemIsDuplicate(item, chestItems) || !isValidCard(item)) {
+            while (this.itemIsDuplicate(item, chestItems)) {
                 item = this.calculateRewardItem(box, seriesObj, user)
             }
             chestItems.push(item)
@@ -566,7 +564,30 @@ export class LootboxCommands extends AbstractCommands {
     private async getSeriesOrDefault(series: string, isPack: boolean = false): Promise<ILootSeries> {
         const lootboxSeries = (await this.getSeries()).filter((serie) => (isPack && serie.isCCG) || (!isPack && (!serie.isCCG || GameValues.ccg.isLootable)))
         const seriesName = series && series !== '' ? series : lootboxSeries.sort((a, b) => new Date(b.added).getTime() - new Date(a.added).getTime())[0].name
-        return lootboxSeries.find((x) => x.name === seriesName) ?? lootboxSeries[0]
+        const selectedSeries = lootboxSeries.find((x) => x.name === seriesName) ?? lootboxSeries[0]
+        return await this.filterOutNonCollectible(selectedSeries)
+    }
+
+    private async filterOutNonCollectible(series: ILootSeries): Promise<ILootSeries> {
+        if (!series.isCCG) return series
+        const cards = (await this.database.getStorage()).ccg
+        const fullSeries = cards[series.name] as CCGCard[]
+        return {
+            ...series,
+            common: this.filterRarity(series.common, fullSeries),
+            rare: this.filterRarity(series.rare, fullSeries),
+            epic: this.filterRarity(series.epic, fullSeries),
+            legendary: this.filterRarity(series.legendary, fullSeries),
+        }
+    }
+
+    private filterRarity(items: string[], series: CCGCard[]) {
+        return items.filter((item) => this.isCollectible(item, series))
+    }
+
+    private isCollectible(item: string, series: CCGCard[]) {
+        const seriesItem = series.find((card) => card.id == item)
+        return seriesItem.collectible ?? true
     }
 
     private async getSeriesOrDefaultForInventory(series: string): Promise<ILootSeries> {

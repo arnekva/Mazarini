@@ -5,7 +5,6 @@ import { ATCInteraction, BtnInteraction, ChatInteraction, ModalInteraction, Sele
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
-import { ItemColor, ItemRarity } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { Scripts } from '../../scripts/scripts'
 import { LootboxCommands } from '../store/lootboxCommands'
@@ -60,11 +59,11 @@ export class TestCommands extends AbstractCommands {
     private async test(interaction: ChatInteraction | BtnInteraction) {
         const scripts = new Scripts(this.client)
         await this.messageHelper.replyToInteraction(interaction, 'Kjører scripts...')
-        await scripts.resetChipsAndShardsAndDaily()
-        scripts.setLuckyWheelRewards()
+        // await scripts.resetChipsAndShardsAndDaily()
+        // scripts.setLuckyWheelRewards()
         scripts.updateCCGSeries()
-        await scripts.updateLootSeriesAndPacks()
-        await scripts.initializeHpCCGInventory()
+        // await scripts.updateLootSeriesAndPacks()
+        // await scripts.initializeHpCCGInventory()
         await this.messageHelper.replyToInteraction(
             interaction,
             'Ferdig! Reset chips/shards/daily, lucky wheel rewards oppdatert, CCG pushet til DB, HP CCG initialisert for alle brukere.'
@@ -124,10 +123,7 @@ export class TestCommands extends AbstractCommands {
         if (action) {
             switch (action.toLowerCase()) {
                 case '-1-': {
-                    const user = await this.database.getUser(interaction.user.id)
-                    const bertie = { name: 'hp_bertie_botts_n', series: 'hpCCG', rarity: ItemRarity.Epic, color: ItemColor.None, amount: 1, isCCG: true }
-                    this.lootCmmds.giveCardsForTesting(user, [bertie, bertie, bertie])
-                    this.messageHelper.replyToInteraction(interaction, "Added 3× Bertie Bott's Every Flavour Beans to your hpCCG collection.")
+                    this.test(interaction)
                     break
                 }
                 case '-2-': {

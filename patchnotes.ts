@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '32.5.5'
+    public static readonly currentVersion = '32.6.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,7 +26,56 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            ['## CCG – Kortendringer', '* **KEKW Gun**: Kost 1 → 2', '## CCG – Feilfikser', '* **Same**: Kan nå kopiere Berties transform-effekt'].join('\n')
+            [
+                '## CCG – Kortendringer',
+                '* **Myrtle**: 4 -> 3 turns',
+                '* **Lockhart**: 0 -> 1 cost. 80 -> 100 accuracy',
+                '* **Seamus**: 3 -> 2 self damage',
+                '* **Hagrid**: tilleggseffekt: summon random magical creature',
+                '* **Luna**: 1 -> 0 cost',
+                '* **Buckbeak**: 2 -> 1 cost',
+                '* **Molly**: 2 -> 1 cost. 2 -> 3 damage',
+                '* **Ron**: 2 -> 1 cost. Tilleggseffekt: bleed self 3 turns',
+                '* **Mad-Eye**: 3 -> 2 cost',
+                '* **Voldemort**: 3 -> 4 damage',
+                '* **Snape**:',
+                '  * 3 -> 2 heal',
+                '  * 3 -> 2 damage',
+                '  * Tilleggseffekt: Brew a random potion',
+                '* **Slughorn**: Nytt design',
+                '  * Steal 1 energy',
+                '  * Brew a random potion',
+                '* **Remus**: Nytt design',
+                '  * 70 speed',
+                '  * Shield 2 this turn',
+                '  * 50% chance to transform into werewolf',
+                '## Nye kort',
+                '* **Werewolf**:',
+                '  * Cost 2',
+                '  * Deal 4 damage',
+                '  * Kan ikke lootes - kan kun fås via summon eller Lupin transformation',
+                '* **Felix Felicus**:',
+                '  * Cannot Miss for 3 turns',
+                '  * Cost 0',
+                '  * Kan ikke lootes - kan kun fås via Snape eller Slughorn',
+                '* **Amortentia**:',
+                '  * Cost 1',
+                '  * Neutralize an incoming attack',
+                '  * Kan ikke lootes - kan kun fås via summon eller Lupin transformation',
+                '* **Draught of Living Death**:',
+                '  * Cost 2',
+                '  * Make target sleep for 1 turn',
+                '  * Kan ikke lootes - kan kun fås via summon eller Lupin transformation',
+                '## Nye effekter',
+                '* **Sleep**:',
+                '  * Når du sover kan du hverken spille eller discarde kort.',
+                '  * Men du får dobbel energy-recovery',
+                '* **Cannot Miss**:',
+                '  * Kortene dine får 100% accuracy',
+                '  * Immun mot elusive',
+                '## Bugfix',
+                '* Fikset sånn at kort som ikke skal kunne lootes, faktisk ikke dukker opp i packs',
+            ].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

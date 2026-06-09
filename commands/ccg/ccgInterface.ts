@@ -173,6 +173,8 @@ export type CCGStatusEffectType =
     | 'PERSISTENT_APPEARANCE'
     | 'HEAL_BOOST'
     | 'RESTRICT_CARDS'
+    | 'SLEEP'
+    | 'CANNOT_MISS'
 
 export interface CCGLogEntry {
     turn: number
@@ -276,7 +278,7 @@ export interface CCGCardEffect {
     reflectType?: ReflectType
 }
 
-export type HpIdentifier = 'GRYFFINDOR' | 'SLYTHERIN' | 'RAVENCLAW' | 'HUFFLEPUFF' | 'DEATH_EATER' | 'SEEKER' | 'MAGICAL_CREATURE' | 'HOUSE_ELF'
+export type HpIdentifier = 'GRYFFINDOR' | 'SLYTHERIN' | 'RAVENCLAW' | 'HUFFLEPUFF' | 'DEATH_EATER' | 'SEEKER' | 'MAGICAL_CREATURE' | 'HOUSE_ELF' | 'POTION'
 export type CardIdentifier = SwIdentifier | HpIdentifier
 export type SwIdentifier = 'REBEL' | 'SITH' | 'JEDI' | 'REPUBLIC' | 'BOUNTY_HUNTER' | 'CREATURE' | 'EMPIRE' | 'DROID'
 export type CCGTarget = 'SELF' | 'OPPONENT'

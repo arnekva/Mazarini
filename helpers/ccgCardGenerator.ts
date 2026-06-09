@@ -162,7 +162,9 @@ export class CCGCardGenerator {
         const rawCards = cards ?? [...mazariniCCG, ...swCCG, ...hpCCG]
         const badCount = rawCards.filter((c) => !c).length
         if (badCount > 0)
-            client.messageHelper.sendLogMessage(`[CCG] Warning: ${badCount} null/undefined card(s) skipped. Source: ${cards ? 'DB' : 'local'} (${rawCards.length} total)`)
+            client.messageHelper.sendLogMessage(
+                `[CCG] Warning: ${badCount} null/undefined card(s) skipped. Source: ${cards ? 'DB' : 'local'} (${rawCards.length} total)`
+            )
         const allCards = rawCards.filter(Boolean) as CCGCard[]
         const genStart = Date.now()
         for (const card of allCards) {

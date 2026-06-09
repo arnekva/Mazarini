@@ -150,10 +150,12 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private submitCards(interaction: BtnInteraction, game: CCGGame, player: CCGPlayer) {
-        if (player.submitted)
-            return this.messageHelper.replyToInteraction(interaction, `Du har allerede spilt denne runden`, {
+        if (player.submitted) {
+            const isSleeping = this.playerHasStatus(game, player, 'SLEEP')
+            return this.messageHelper.replyToInteraction(interaction, isSleeping ? 'Du sover' : `Du har allerede spilt denne runden`, {
                 ephemeral: true,
             })
+        }
         const submitted = player.hand.filter((card) => card.selected)
         const extraCardsEffects = this.getEffectsForPlayer(game, player, 'EXTRA_CARDS')
         const restrictedConditions = this.getConditionsForPlayer(game, player, 'RESTRICT_CARDS')
@@ -185,10 +187,12 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private discardCards(interaction: BtnInteraction, game: CCGGame, player: CCGPlayer) {
-        if (player.submitted)
-            return this.messageHelper.replyToInteraction(interaction, `Du har allerede spilt denne runden`, {
+        if (player.submitted) {
+            const isSleeping = this.playerHasStatus(game, player, 'SLEEP')
+            return this.messageHelper.replyToInteraction(interaction, isSleeping ? 'Du sover' : `Du har allerede spilt denne runden`, {
                 ephemeral: true,
             })
+        }
         interaction.deferUpdate()
         const discarded = player.hand.filter((card) => card.selected)
         if (discarded.length > 0) {
@@ -315,12 +319,18 @@ export class CCGCommands extends AbstractCommands {
     private preparePlayerForNewRound(game: CCGGame, player: CCGPlayer, isBot = false) {
         player.usedCards.push(...player.hand.filter((card) => card.selected && !card.summoned && !card.consumable))
         player.hand = player.hand.filter((card) => !card.selected)
-        player.submitted = false
+        const isSleeping = this.playerHasStatus(game, player, 'SLEEP')
+        player.submitted = isSleeping
         const isMygling = this.playerHasStatus(game, player, 'MYGLING')
-        player.energy += isMygling ? 0 : game.state.settings.energyRecoveryPerRound
+        let energyRecovery = game.state.settings.energyRecoveryPerRound
+        if (isSleeping) energyRecovery = energyRecovery * 2
+        if (isMygling) energyRecovery = 0
+        player.energy += energyRecovery
         this.drawCards(game, player)
-        if (isBot) this.chooseBotCards(game)
-        else this.updatePlayerHand(game, player)
+        if (isBot) {
+            if (isSleeping) return
+            this.chooseBotCards(game)
+        } else this.updatePlayerHand(game, player)
     }
 
     private async endGame(game: CCGGame) {
@@ -598,6 +608,7 @@ export class CCGCommands extends AbstractCommands {
             if (effect.type === 'SPEED_BUFF') mods.push({ type: 'SPEED_MULTIPLIER', value: GameValues.ccg.status.speedBuff_multiplier })
             if (effect.type === 'DAMAGE_BOOST') mods.push({ type: 'DAMAGE_DELTA', value: effect.value })
             if (effect.type === 'HEAL_BOOST') mods.push({ type: 'HEAL_DELTA', value: effect.value })
+            if (effect.type === 'CANNOT_MISS') mods.push({ type: 'ACCURACY_OVERRIDE', value: 100 })
         }
         for (const condition of game.state.statusConditions) {
             if (condition.ownerId !== player.id) continue
@@ -926,13 +937,18 @@ export class CCGCommands extends AbstractCommands {
         }
     }
 
-    private async getPlayerCards(user: MazariniUser, cards?: ICCGSystem, appEmojis?: Collection<string, ApplicationEmoji>, cardSet?: CardSet): Promise<CCGCard[]> {
+    private async getPlayerCards(
+        user: MazariniUser,
+        cards?: ICCGSystem,
+        appEmojis?: Collection<string, ApplicationEmoji>,
+        cardSet?: CardSet
+    ): Promise<CCGCard[]> {
         const resolvedCards = cards ?? (await this.getCcgStorage())
         const resolvedEmojis = appEmojis ?? (await this.client.getEmojis())
 
         const deck =
             (cardSet === CardSet.Wild
-                ? (user.ccg?.decks?.find((deck) => deck.activeWild) ?? user.ccg?.decks?.find((deck) => deck.active))
+                ? user.ccg?.decks?.find((deck) => deck.activeWild) ?? user.ccg?.decks?.find((deck) => deck.active)
                 : user.ccg?.decks?.find((deck) => deck.active)) ?? GameValues.ccg.defaultDeck
         return await this.getFullCards(deck, resolvedCards, resolvedEmojis)
     }
@@ -969,13 +985,19 @@ export class CCGCommands extends AbstractCommands {
         return userCards
     }
 
-    private async userHasValidDeck(interaction: ChatInteraction | BtnInteraction, user?: MazariniUser, cards?: ICCGSystem, standardOnly = false, cardSet?: CardSet) {
+    private async userHasValidDeck(
+        interaction: ChatInteraction | BtnInteraction,
+        user?: MazariniUser,
+        cards?: ICCGSystem,
+        standardOnly = false,
+        cardSet?: CardSet
+    ) {
         if (environment === 'dev') return true
         const resolvedUser = user ?? (await this.database.getUser(interaction.user.id))
         const resolvedCards = cards ?? (await this.getCcgStorage())
         const deck =
             (cardSet === CardSet.Wild
-                ? (resolvedUser.ccg?.decks?.find((deck) => deck.activeWild) ?? resolvedUser.ccg?.decks?.find((deck) => deck.active))
+                ? resolvedUser.ccg?.decks?.find((deck) => deck.activeWild) ?? resolvedUser.ccg?.decks?.find((deck) => deck.active)
                 : resolvedUser.ccg?.decks?.find((deck) => deck.active)) ?? GameValues.ccg.defaultDeck
         deck.valid = true
         CCGValidator.validateDeckWithCards(resolvedUser, deck, new Array<string>(), resolvedCards, standardOnly)

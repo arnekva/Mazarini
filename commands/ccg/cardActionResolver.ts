@@ -4,7 +4,18 @@ import { RandomUtils } from '../../utils/randomUtils'
 import { hpCCG } from './cards/hpCCG'
 import { mazariniCCG } from './cards/mazariniCCG'
 import { swCCG } from './cards/swCCG'
-import { CardIdentifier, CCGCard, CCGCondition, CCGEffect, CCGEffectType, CCGGame, CCGPlayer, CCGStatusEffectType, ReflectType, StatusEffect } from './ccgInterface'
+import {
+    CardIdentifier,
+    CCGCard,
+    CCGCondition,
+    CCGEffect,
+    CCGEffectType,
+    CCGGame,
+    CCGPlayer,
+    CCGStatusEffectType,
+    ReflectType,
+    StatusEffect,
+} from './ccgInterface'
 
 const SERIES_EMOJI_IS_ID = new Set(['swCCG', 'hpCCG'])
 const ALL_CARDS = [...mazariniCCG, ...swCCG, ...hpCCG]
@@ -37,18 +48,19 @@ export class CardActionResolver {
         }
         const target = this.getPlayer(game, effect.targetPlayerId)
         const opponent = this.getPlayer(game, source.opponentId)
+        const sourceCannotMiss = (game.state.statusEffects.filter((s) => s.ownerId === source.id && s.type === 'CANNOT_MISS')?.length ?? 0) > 0
 
         if (effect.condition && !this.areConditionsMet(game, source, target, effect.condition)) {
             return
         }
 
-        if (!effect.cardSuccessful) {
+        if (!effect.cardSuccessful && !sourceCannotMiss) {
             await this.delay(2500)
             game.state.stack = game.state.stack.filter((stackedEffect) => stackedEffect.cardId !== effect.cardId)
             return this.log(game, `${this.getEffectLogPrefix(effect)}${source.name}'s ${effect.sourceCardName} failed`)
         }
         // Elusive: each individual effect targeting an elusive opponent has a 25% chance to be dodged
-        if (target.id !== source.id) {
+        if (target.id !== source.id && !sourceCannotMiss) {
             const targetIsElusive = game.state.statusEffects.filter((s) => s.ownerId === target.id && s.type === 'ELUSIVE')
             if ((targetIsElusive?.length ?? 0) > 0 && Math.random() < 0.25 * targetIsElusive.length) {
                 return this.log(game, `${this.getEffectLogPrefix(effect)}${effect.sourceCardName} missed ${target.name} (**Elusive**)`)
@@ -166,6 +178,11 @@ export class CardActionResolver {
                 this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} gains **${effect.value} shield**`)
                 break
 
+            case 'SLEEP':
+                this.applyStatusEffect(game, effect, target, 'SLEEP')
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} **sleeps** for ${effect.turns} turn${effect.turns > 1 ? 's' : ''}`)
+                break
+
             case 'REFLECT':
                 this.applyStatusCondition(game, effect, target, 'REFLECT')
                 this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} gains **reflect** for the remainder of the round`)
@@ -182,8 +199,8 @@ export class CardActionResolver {
                     (effect.value ?? 0) >= 99
                         ? `reduced to **0**`
                         : (effect.value ?? 0) < 0
-                          ? `increased by **${Math.abs(effect.value)}**`
-                          : `reduced by **${effect.value}**`
+                        ? `increased by **${Math.abs(effect.value)}**`
+                        : `reduced by **${effect.value}**`
                 this.log(
                     game,
                     `${this.getEffectLogPrefix(effect)}**${effect.sourceCardName}** – ${target.name}'s ${
@@ -296,7 +313,7 @@ export class CardActionResolver {
                                 `${this.getEffectLogPrefix(effect)}${target.name} transforms! ${effect.sourceCardName} becomes ${transformCard.name}`
                             )
                         } else {
-                            this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} transformation target not found in hand`)
+                            this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} immitation card cannot transform further`)
                         }
                     }
                 } else if (effect.transformSeries) {
@@ -414,12 +431,7 @@ export class CardActionResolver {
             }
 
             case 'PRANK': {
-                const prankCards = [
-                    'hp_prank_damage_n',
-                    'hp_prank_shield_n',
-                    'hp_prank_both_n',
-                    'hp_prank_energy_n',
-                ]
+                const prankCards = ['hp_prank_damage_n', 'hp_prank_shield_n', 'hp_prank_both_n', 'hp_prank_energy_n']
                 const prankId = prankCards[Math.floor(Math.random() * prankCards.length)]
                 const prankCard = ALL_CARDS.find((c) => c.id === prankId)
                 if (!prankCard) break
@@ -479,12 +491,25 @@ export class CardActionResolver {
 
             case 'HEAL_BOOST':
                 this.applyStatusEffect(game, effect, target, 'HEAL_BOOST')
-                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s heals are **boosted by ${effect.value}** for ${effect.turns} turn${effect.turns > 1 ? 's' : ''}`)
+                this.log(
+                    game,
+                    `${this.getEffectLogPrefix(effect)}${target.name}'s heals are **boosted by ${effect.value}** for ${effect.turns} turn${
+                        effect.turns > 1 ? 's' : ''
+                    }`
+                )
                 break
 
             case 'RESTRICT_CARDS':
                 this.applyStatusCondition(game, effect, target, 'RESTRICT_CARDS')
                 this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} is **restricted** to playing ${effect.value ?? 1} card(s) next turn`)
+                break
+
+            case 'CANNOT_MISS':
+                this.applyStatusEffect(game, effect, target, 'CANNOT_MISS')
+                this.log(
+                    game,
+                    `${this.getEffectLogPrefix(effect)}${target.name}'s cards are **100% accurate** for ${effect.turns} turn${effect.turns > 1 ? 's' : ''}`
+                )
                 break
         }
     }
