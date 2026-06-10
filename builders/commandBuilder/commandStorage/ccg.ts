@@ -17,6 +17,32 @@ export const ccgCommand: ISlashCommandItem = {
             commandDescription: 'Sjekk CCG stats',
         },
         {
+            commandName: 'inventory',
+            commandDescription: 'Se en oversikt over kortene dine',
+            options: [
+                {
+                    name: 'series',
+                    description: 'hvilken ccg-serie ønsker du å se oversikten til?',
+                    type: ApplicationCommandOptionType.String,
+                    required: true,
+                    choices: [
+                        {
+                            name: `Mazarini`,
+                            value: `mazariniCCG`,
+                        },
+                        {
+                            name: `SW`,
+                            value: `swCCG`,
+                        },
+                        {
+                            name: `HP`,
+                            value: `hpCCG`,
+                        },
+                    ],
+                },
+            ],
+        },
+        {
             commandName: 'cards',
             commandDescription: 'Se alle kortene i en serie',
             options: [

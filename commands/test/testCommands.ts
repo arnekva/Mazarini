@@ -58,16 +58,17 @@ export class TestCommands extends AbstractCommands {
 
     private async test(interaction: ChatInteraction | BtnInteraction) {
         const scripts = new Scripts(this.client)
-        await this.messageHelper.replyToInteraction(interaction, 'Kjører scripts...')
+        // interaction.deferReply()
         // await scripts.resetChipsAndShardsAndDaily()
         // scripts.setLuckyWheelRewards()
-        scripts.updateCCGSeries()
+        // scripts.updateCCGSeries()
         // await scripts.updateLootSeriesAndPacks()
         // await scripts.initializeHpCCGInventory()
-        await this.messageHelper.replyToInteraction(
-            interaction,
-            'Ferdig! Reset chips/shards/daily, lucky wheel rewards oppdatert, CCG pushet til DB, HP CCG initialisert for alle brukere.'
-        )
+        // const igh = new ImageGenerationHelper(this.client)
+        // const user = await this.database.getUser(interaction.user.id)
+        // await igh.generateCcgInventory(user, 'swCCG')
+        // await this.messageHelper.replyToInteraction(interaction, 'Check?', { hasBeenDefered: true })
+        await this.messageHelper.replyToInteraction(interaction, 'Kjører script')
     }
 
     private async testSelectMenu(selectMenu: SelectStringInteraction) {

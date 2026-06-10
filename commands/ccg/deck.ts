@@ -9,14 +9,15 @@ import {
     StringSelectMenuBuilder,
     StringSelectMenuOptionBuilder,
 } from 'discord.js'
-import { environment } from '../../client-env'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { ATCInteraction, BtnInteraction, ChatInteraction, SelectStringInteraction } from '../../Abstracts/MazariniInteraction'
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
+import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
 import { CCGCardGenerator } from '../../helpers/ccgCardGenerator'
 import { ComponentsHelper } from '../../helpers/componentsHelper'
+import { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
 import { DeckEditorCard, ICCGDeck, ItemRarity, IUserLootItem, MazariniUser } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { CCGDeckEditor_Info, CCGDeckEditor_Trade } from '../../templates/containerTemplates'
@@ -462,6 +463,10 @@ export class DeckCommands extends AbstractCommands {
         this.filterCards(editor)
         this.updateDeckInfo(editor)
         this.updateCardView(editor, user.id)
+        const igh = new ImageGenerationHelper(this.client)
+        const alteredSeries = new Set<string>()
+        for (const card of cards) if (!alteredSeries.has(card.series)) alteredSeries.add(card.series)
+        for (const series of alteredSeries) igh.generateCcgInventory(user, series)
     }
 
     private userHasTradeCards(userCards: IUserLootItem[], tradeCards: DeckEditorCard[]) {
@@ -704,8 +709,22 @@ const standardFilterRow = (editor: DeckEditor) => {
 }
 
 const ALL_IDENTIFIERS: CardIdentifier[] = [
-    'REBEL', 'SITH', 'JEDI', 'REPUBLIC', 'BOUNTY_HUNTER', 'CREATURE', 'EMPIRE', 'DROID',
-    'GRYFFINDOR', 'SLYTHERIN', 'RAVENCLAW', 'HUFFLEPUFF', 'DEATH_EATER', 'SEEKER', 'MAGICAL_CREATURE', 'HOUSE_ELF',
+    'REBEL',
+    'SITH',
+    'JEDI',
+    'REPUBLIC',
+    'BOUNTY_HUNTER',
+    'CREATURE',
+    'EMPIRE',
+    'DROID',
+    'GRYFFINDOR',
+    'SLYTHERIN',
+    'RAVENCLAW',
+    'HUFFLEPUFF',
+    'DEATH_EATER',
+    'SEEKER',
+    'MAGICAL_CREATURE',
+    'HOUSE_ELF',
 ]
 
 const identifierFilters = (editor: DeckEditor) => {

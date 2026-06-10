@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '32.6.1'
+    public static readonly currentVersion = '32.7.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,7 +26,16 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            ['## Bugfix', '* Fikser sleep-locked games. Nå kan du trykke på "play" for å fortsette spillet når du sover'].join('\n')
+            [
+                '## Nytt',
+                '* /ccg inventory',
+                '  * Nå kan du se samme type visning som /ccg kort, for din ccg inventory',
+                '  * Bildet re-genereres automatisk ved valg av nye kort, og ved trade.',
+                '## CCG – Kortendringer',
+                '* **Lupin**: 2 shield -> 2 armor',
+                '* **Amortentia**: 15 -> 99 speed',
+                '* **Felix Felicus**: 15 -> 99 speed',
+            ].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

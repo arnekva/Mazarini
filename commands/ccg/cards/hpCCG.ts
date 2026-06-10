@@ -755,11 +755,12 @@ export const hpCCG: CCGCard[] = [
                 type: 'CANNOT_MISS',
                 target: 'SELF',
                 turns: 3,
+                includeCurrentTurn: true,
             },
         ],
         customDescription: 'All your cards are [yellow]100% accurate[/yellow] for 3 turns',
         cost: 0,
-        speed: 15,
+        speed: 99,
         rarity: ItemRarity.Rare,
         accuracy: 100,
         collectible: false,
@@ -778,7 +779,7 @@ export const hpCCG: CCGCard[] = [
         ],
         customDescription: 'Opponent loves you too much to attack you. Neutralize an attack.',
         cost: 1,
-        speed: 15,
+        speed: 99,
         rarity: ItemRarity.Rare,
         accuracy: 100,
         collectible: false,
@@ -967,10 +968,11 @@ export const hpCCG: CCGCard[] = [
         type: CCGCardType.Effect,
         effects: [
             {
-                type: 'SHIELD',
+                type: 'ARMOR',
                 target: 'SELF',
                 value: 2,
                 turns: 1,
+                includeCurrentTurn: true,
             },
             {
                 type: 'TRANSFORM',
@@ -984,6 +986,7 @@ export const hpCCG: CCGCard[] = [
         rarity: ItemRarity.Epic,
         accuracy: 95,
         identifier: ['GRYFFINDOR'],
+        customDescription: 'Gain [blue]2 armor[/blue] this turn. 50% chance to turn into a [yellow]werewolf[/yellow].',
     },
     {
         id: 'hp_werewolf_n',

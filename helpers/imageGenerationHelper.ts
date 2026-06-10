@@ -2,6 +2,10 @@ import { Image } from 'canvas'
 import sharp from 'sharp'
 import { getCanvasImage, IFontWeight, IImage, IOptions, IRepeat, registerFont, UltimateTextToImage } from 'ultimate-text-to-image'
 import { MazariniClient } from '../client/MazariniClient'
+import { hpCCG } from '../commands/ccg/cards/hpCCG'
+import { mazariniCCG } from '../commands/ccg/cards/mazariniCCG'
+import { swCCG } from '../commands/ccg/cards/swCCG'
+import { CCGCard } from '../commands/ccg/ccgInterface'
 import {
     ILootSeries,
     ILootSeriesInventoryArt,
@@ -11,7 +15,9 @@ import {
     IUserLootSeriesInventory,
     MazariniUser,
 } from '../interfaces/database/databaseInterface'
+import { ArrayUtils } from '../utils/arrayUtils'
 import { TextUtils } from '../utils/textUtils'
+import { CCGCardGenerator } from './ccgCardGenerator'
 
 /** CCG series whose emoji names match the card ID exactly (no series prefix) */
 const CCG_SERIES_EMOJI_IS_ID = new Set(['swCCG'])
@@ -687,6 +693,30 @@ export class ImageGenerationHelper {
         return { ...amountCoord, canvasImage: canvas }
     }
 
+    private async getInventoryCountImage(item: IUserLootItem) {
+        if (item.amount <= 1) return undefined
+        const bg = fs.readFileSync(`graphics/number_bg.png`)
+        const bgMeta = await sharp(bg).metadata()
+        const fontSize = 88
+        const amountBuffer = new UltimateTextToImage(`${item.amount}`, {
+            fontFamily: 'Work Sans',
+            fontColor: '#ffffff',
+            fontSize: fontSize,
+            fontWeight: 500,
+            margin: 2,
+        })
+            .render()
+            .toBuffer()
+        const resizedAmount = await sharp(amountBuffer).resize({ fit: sharp.fit.inside, height: 44 }).toBuffer()
+        const amountMeta = await sharp(resizedAmount).metadata()
+        const amountImage = await sharp(bg)
+            .composite([
+                { input: resizedAmount, top: Math.floor(bgMeta.height / 2 - amountMeta.height / 2), left: Math.floor(bgMeta.width / 2 - amountMeta.width / 2) },
+            ])
+            .toBuffer()
+        return amountImage
+    }
+
     // Places the counter in the top right corner of the item
     private getInventoryCoordinates(coord: IItemShadowCoordinates, img: Image): IImageCoordinates {
         return {
@@ -701,6 +731,45 @@ export class ImageGenerationHelper {
 
     private percentage(initialNumber: number, percentage: number): number {
         return Math.ceil((initialNumber / 100) * percentage)
+    }
+
+    public async generateCcgInventory(user: MazariniUser, series: string) {
+        let ccgCards: CCGCard[] = undefined
+        if (series == 'mazariniCCG') ccgCards = mazariniCCG
+        else if (series == 'swCCG') ccgCards = swCCG
+        else if (series == 'hpCCG') ccgCards = hpCCG
+        const inventory = new Array<IUserLootItem>()
+        for (const rarity of ['common', 'rare', 'epic', 'legendary']) {
+            const items = user.loot[series]?.inventory[rarity]?.items
+            if (items) inventory.push(...items)
+        }
+        if (inventory.length == 0) return
+        const cardImages = new Array<Buffer>()
+        for (const item of inventory) {
+            const card = ccgCards.find((card) => card.id == item.name)
+            const cardBuffer = await CCGCardGenerator.getCardBuffer(card)
+            if (item.amount > 1) {
+                const cardMeta = await sharp(cardBuffer).metadata()
+                const countImg = await this.getInventoryCountImage(item)
+                const countMeta = await sharp(countImg).metadata()
+                const cardWithAmount = await sharp(cardBuffer)
+                    .composite([{ input: countImg, top: 20, left: Math.floor(cardMeta.width - countMeta.width - 20) }])
+                    .toBuffer()
+                cardImages.push(cardWithAmount)
+            } else {
+                cardImages.push(cardBuffer)
+            }
+        }
+        const bufferChunks = ArrayUtils.chunkArray<Buffer>(cardImages, 8)
+
+        const stitchedBuffers = await Promise.all(
+            bufferChunks.map(async (chunk) => {
+                return Buffer.from(await this.stitchImages(chunk, 'horizontal'))
+            })
+        )
+        const fullImage = await this.stitchImages(stitchedBuffers, 'vertical')
+        const outputPath = CCGCardGenerator.getUserInventoryPath(user, series)
+        await fs.promises.writeFile(outputPath, fullImage)
     }
 }
 

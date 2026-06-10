@@ -6,7 +6,7 @@ import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInterac
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
-import type { CardModification } from '../../helpers/ccgCardGenerator'
+import { CCGCardGenerator, type CardModification } from '../../helpers/ccgCardGenerator'
 import { ComponentsHelper } from '../../helpers/componentsHelper'
 import type { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
@@ -1098,6 +1098,7 @@ export class CCGCommands extends AbstractCommands {
         } else if (cmd === 'help') this.helper.newCCGHelper(interaction)
         else if (cmd === 'stats') this.statViewer.newCCGStatView(interaction)
         else if (cmd === 'cards') this.getAllCardsImage(interaction)
+        else if (cmd === 'inventory') this.getInventory(interaction)
     }
 
     private async getAllCardsImage(interaction: ChatInteraction) {
@@ -1106,6 +1107,15 @@ export class CCGCommands extends AbstractCommands {
         const CCGCardGenerator = this.getCardGenerator()
         const img = await CCGCardGenerator.getSeriesCollage(this.client, series)
         const file = new AttachmentBuilder(img, { name: `${series}_pokedex.png` })
+        this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, undefined, [file])
+    }
+
+    private async getInventory(interaction: ChatInteraction) {
+        await interaction.deferReply()
+        const user = await this.client.database.getUser(interaction.user.id)
+        const seriesParam = interaction.options.get('series')?.value as string
+        const img = await CCGCardGenerator.getUserInventory(this.client, user, seriesParam)
+        const file = new AttachmentBuilder(img, { name: `inventory.png` })
         this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, undefined, [file])
     }
 

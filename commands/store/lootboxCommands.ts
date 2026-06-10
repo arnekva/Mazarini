@@ -479,7 +479,7 @@ export class LootboxCommands extends AbstractCommands {
         })
         const btnRow = new ActionRowBuilder<ButtonBuilder>().addComponents(disabledBtns)
         interaction.message.edit({ components: [btnRow] })
-        if (!(item.rarity === ItemRarity.Unobtainable)) this.generateInventoryParts(user, item.series, [item.rarity], true)
+        this.imageGenerator.generateCcgInventory(user, item.series)
         this.deletePendingChest(interaction)
     }
 

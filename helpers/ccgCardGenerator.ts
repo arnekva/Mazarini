@@ -8,14 +8,16 @@ import { hpCCG } from '../commands/ccg/cards/hpCCG'
 import { mazariniCCG } from '../commands/ccg/cards/mazariniCCG'
 import { swCCG } from '../commands/ccg/cards/swCCG'
 import { CardIdentifier, CCGCard, CCGCardEffect, CCGCondition } from '../commands/ccg/ccgInterface'
-import { ItemRarity } from '../interfaces/database/databaseInterface'
+import { ItemRarity, MazariniUser } from '../interfaces/database/databaseInterface'
 import { ArrayUtils } from '../utils/arrayUtils'
+import { ImageGenerationHelper } from './imageGenerationHelper'
 
 const CARD_WIDTH = 480
 const CARD_HEIGHT = 672
 const OUTPUT_DIR = path.resolve('res/ccg/generated')
 const HASH_FILE = path.resolve('res/ccg/generated/.hashes.json')
 const BLANKS_DIR = path.resolve('res/ccg/blanks')
+const INVENTORY_DIR = path.resolve('res/ccg/inventory')
 
 /** Series whose application emoji names match the card ID exactly (no series prefix) */
 const SERIES_EMOJI_IS_ID = new Set(['swCCG', 'hpCCG'])
@@ -252,6 +254,11 @@ export class CCGCardGenerator {
         return
     }
 
+    static async generateUserInventory(client: MazariniClient, user: MazariniUser, series: string) {
+        const igh = new ImageGenerationHelper(client)
+        await igh.generateCcgInventory(user, series)
+    }
+
     /** Get the local file path for a generated card image */
     static getCardPath(card: CCGCard): string {
         const seriesDir = path.resolve(OUTPUT_DIR, card.series)
@@ -265,10 +272,22 @@ export class CCGCardGenerator {
         return path.resolve(seriesDir, `pokedex.png`)
     }
 
+    static getUserInventoryPath(user: MazariniUser, series: string): string {
+        const seriesDir = path.resolve(INVENTORY_DIR, series)
+        if (!fs.existsSync(seriesDir)) fs.mkdirSync(seriesDir, { recursive: true })
+        return path.resolve(seriesDir, `${user.id}.png`)
+    }
+
     /** Read a generated card image as a Buffer */
     static async getCardBuffer(card: CCGCard): Promise<Buffer> {
         const cardPath = CCGCardGenerator.getCardPath(card)
         return await fs.promises.readFile(cardPath)
+    }
+
+    static async getUserInventory(client: MazariniClient, user: MazariniUser, series: string): Promise<Buffer> {
+        const path = CCGCardGenerator.getUserInventoryPath(user, series)
+        if (!fs.existsSync(path)) await this.generateUserInventory(client, user, series)
+        return await fs.promises.readFile(path)
     }
 
     static async getSeriesCollage(client: MazariniClient, series: string): Promise<Buffer> {
