@@ -382,7 +382,7 @@ export class CardActionResolver {
 
             case 'NEUTRALIZE_ATTACK': {
                 const attackIndex = game.state.stack.findIndex((e) => {
-                    if (!['DAMAGE', 'DAMAGE_PER_IDENTIFIER', 'DAMAGE_PER_CARD_PLAYED', 'SHOOT'].includes(e.type)) return false
+                    if (!['DAMAGE', 'DAMAGE_PER_IDENTIFIER', 'DAMAGE_PER_CARD_PLAYED', 'SHOOT', 'DAMAGE_PER_OPPONENT_COST'].includes(e.type)) return false
                     if (e.sourcePlayerId === effect.sourcePlayerId) return false
                     if (e.targetPlayerId !== effect.sourcePlayerId) return false
                     if (
