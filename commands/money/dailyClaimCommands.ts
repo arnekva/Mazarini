@@ -23,7 +23,7 @@ export class DailyClaimCommands extends AbstractCommands {
         if (canClaim) {
             const updates = {}
             const oldData: DailyReward = user.daily || { claimedToday: false, streak: 0 }
-            const newData: DailyReward = { ...oldData, streak: oldData?.streak + 1 ?? 1, claimedToday: true }
+            const newData: DailyReward = { ...oldData, streak: (oldData?.streak ?? 0) + 1, claimedToday: true }
 
             let reward = this.getDailyReward(newData)
             reward = this.client.bank.giveMoney(user, reward)

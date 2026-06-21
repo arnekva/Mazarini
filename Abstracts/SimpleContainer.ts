@@ -22,7 +22,7 @@ export class SimpleContainer {
     }
 
     public addComponentAfterReference(reference: string, component: APIComponentInContainer | ContainerComponentBuilder, afterRef: string) {
-        const insert = this.getComponentIndex(afterRef) + 1 ?? this.customContainer.components?.length ?? 0
+        const insert = this.getComponentIndex(afterRef) + 1
         this.customContainer.spliceComponents(insert, 0, component)
         this.components.splice(insert, 0, { name: reference, component: component })
     }
