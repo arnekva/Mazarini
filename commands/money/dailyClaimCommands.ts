@@ -16,7 +16,7 @@ export class DailyClaimCommands extends AbstractCommands {
 
     private async claimDailyReward(interaction: ChatInteraction | BtnInteraction) {
         const embed = new EmbedBuilder()
-        embed.setTitle(`📅  Daily (arne tester endring) 🗓️`)
+        embed.setTitle(`📅  Daily  🗓️`)
 
         const user = await this.client.database.getUser(interaction.user.id)
         const canClaim = !user.daily?.claimedToday
