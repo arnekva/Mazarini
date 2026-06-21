@@ -641,6 +641,7 @@ const startingInventory: IUserLootItem[] = [
     { name: 'geggiexcited', color: ItemColor.None, series: 'mazariniCCG', amount: 2, isCCG: true, rarity: ItemRarity.Common },
 ]
 
+//Test comment
 const startingDeck: ICCGDeck = {
     name: 'default',
     active: true,
