@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '32.7.1'
+    public static readonly currentVersion = '32.8.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,7 +26,24 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            ['## Bugfix', '* Lagt til "DAMAGE_PER_OPPONENT_COST" (Basilisk) til i neutralize-able attack listen'].join('\n')
+            [
+                '## Bugfix',
+                ' * /rocket: Stats ble ikke lagret hvis ein av modusane (t.d. Tournament) mangla data frå tracker.gg. No fell det tilbake til siste kjente verdi og viser *(outdated)* i embeden.',
+                '',
+                '## Ytelsesforbedringer',
+                ' * Brukare vert no bufra i minnet i 30 minutt. Dette gjer at knappeinteraksjonar og kommandoar som hentar same brukar fleire gongar er mykje raskare.',
+                ' * Knapp- og kommandooppslag brukar no eit Map i staden for lineært søk – O(1) i staden for O(n).',
+                ' * Pickpocket, vipps og frame-job hentar no begge brukarane parallelt i staden for sekvensielt.',
+                ' * Wordle-oppdateringar vert no utført parallelt for alle brukarar.',
+                '',
+                '## Tekniske forbetringar',
+                ' * Tøm brukarcache er lagt til under Scripts i botinnstillinger – nyttig om ein brukar er endra manuelt i Firebase.',
+                ' * Firebase-skriv ventar no korrekt på svar frå databasen i heile kjeda.',
+                ' * Boten bundlar no all kode til éi fil ved oppstart (esbuild). Dette reduserer talet på fillesingar frå SD-kortet og gjer oppstart raskare.',
+                ' * Kommandoar vert no initialiserte etter at boten har logga inn på Discord i staden for før. Viss du brukar ein kommando i det korte vindauget medan boten startar opp, får du ein melding om at kommandoane ikkje er klare enno.',
+                ' * Fleire stader som tidlegare svelgde feil vil no logge dei.',
+                ' * Fleire småfiks og opprydding i gammal kode.',
+            ].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

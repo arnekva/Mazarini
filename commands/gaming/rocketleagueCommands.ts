@@ -199,31 +199,47 @@ export class RocketLeagueCommands extends AbstractCommands {
             userData.stats = lifetimeStats
         }
         if (!statsType || statsType === '1v1') {
-            mmrDiff = this.compareOldNewStats(oneVone.mmr, userData.mmr?.mmr1v1, false)
-            msgContent.addFields([{ name: `${oneVone.modeName}`, value: `${oneVone.rank} ${oneVone.division}\n${oneVone.mmr} MMR ${mmrDiff}` }])
-            if (oneVone.iconURL) msgContent.setThumbnail(oneVone.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
-            userData.mmr.mmr1v1 = oneVone.mmr
+            if (oneVone.mmr !== undefined) {
+                mmrDiff = this.compareOldNewStats(oneVone.mmr, userData.mmr?.mmr1v1, false)
+                msgContent.addFields([{ name: `${oneVone.modeName}`, value: `${oneVone.rank} ${oneVone.division}\n${oneVone.mmr} MMR ${mmrDiff}` }])
+                if (oneVone.iconURL) msgContent.setThumbnail(oneVone.iconURL)
+                userData.mmr.mmr1v1 = oneVone.mmr
+            } else {
+                msgContent.addFields([{ name: 'Ranked Duel 1v1', value: `${userData.mmr?.mmr1v1 ?? '?'} MMR (outdated)` }])
+            }
         }
         if (!statsType || statsType === '2v2') {
-            mmrDiff = this.compareOldNewStats(twoVtwo.mmr, userData.mmr?.mmr2v2, false)
-            msgContent.addFields([{ name: `${twoVtwo.modeName}`, value: `${twoVtwo.rank} ${twoVtwo.division}\n${twoVtwo.mmr} MMR ${mmrDiff}` }])
-            if (twoVtwo.iconURL) msgContent.setThumbnail(twoVtwo.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
-            userData.mmr.mmr2v2 = twoVtwo.mmr
+            if (twoVtwo.mmr !== undefined) {
+                mmrDiff = this.compareOldNewStats(twoVtwo.mmr, userData.mmr?.mmr2v2, false)
+                msgContent.addFields([{ name: `${twoVtwo.modeName}`, value: `${twoVtwo.rank} ${twoVtwo.division}\n${twoVtwo.mmr} MMR ${mmrDiff}` }])
+                if (twoVtwo.iconURL) msgContent.setThumbnail(twoVtwo.iconURL)
+                userData.mmr.mmr2v2 = twoVtwo.mmr
+            } else {
+                msgContent.addFields([{ name: 'Ranked Doubles 2v2', value: `${userData.mmr?.mmr2v2 ?? '?'} MMR (outdated)` }])
+            }
         }
         if (!statsType || statsType === '3v3') {
-            mmrDiff = this.compareOldNewStats(threeVthree.mmr, userData.mmr?.mmr3v3, false)
-            msgContent.addFields([{ name: `${threeVthree.modeName}`, value: `${threeVthree.rank} ${threeVthree.division}\n${threeVthree.mmr} MMR ${mmrDiff}` }])
-            if (threeVthree.iconURL) msgContent.setThumbnail(threeVthree.iconURL)
-            userData.mmr.mmr3v3 = threeVthree.mmr
+            if (threeVthree.mmr !== undefined) {
+                mmrDiff = this.compareOldNewStats(threeVthree.mmr, userData.mmr?.mmr3v3, false)
+                msgContent.addFields([{ name: `${threeVthree.modeName}`, value: `${threeVthree.rank} ${threeVthree.division}\n${threeVthree.mmr} MMR ${mmrDiff}` }])
+                if (threeVthree.iconURL) msgContent.setThumbnail(threeVthree.iconURL)
+                userData.mmr.mmr3v3 = threeVthree.mmr
+            } else {
+                msgContent.addFields([{ name: 'Ranked Standard 3v3', value: `${userData.mmr?.mmr3v3 ?? '?'} MMR (outdated)` }])
+            }
         }
         if (!statsType || statsType.toLowerCase() === 'tournament') {
-            mmrDiff = this.compareOldNewStats(tournament.mmr, userData.mmr?.tournament, false)
-            msgContent.addFields([{ name: `${tournament.modeName}`, value: `${tournament.rank} ${tournament.division}\n${tournament.mmr} MMR ${mmrDiff}` }])
-            if (tournament.iconURL) msgContent.setThumbnail(tournament.iconURL) //{ url: twoVtwo.iconURL, height: 25, width: 25 }
-            userData.mmr.tournament = tournament.mmr
+            if (tournament.mmr !== undefined) {
+                mmrDiff = this.compareOldNewStats(tournament.mmr, userData.mmr?.tournament, false)
+                msgContent.addFields([{ name: `${tournament.modeName}`, value: `${tournament.rank} ${tournament.division}\n${tournament.mmr} MMR ${mmrDiff}` }])
+                if (tournament.iconURL) msgContent.setThumbnail(tournament.iconURL)
+                userData.mmr.tournament = tournament.mmr
+            } else {
+                msgContent.addFields([{ name: 'Tournament Matches', value: `${userData.mmr?.tournament ?? '?'} MMR (outdated)` }])
+            }
         }
         if (!statsType) msgContent.setThumbnail('https://www.pngkey.com/png/full/15-158249_rocket-league-logo.png')
-        this.saveUserStats(interaction, userData)
+        await this.saveUserStats(interaction, userData)
         interaction.editReply({ embeds: [msgContent] })
         return true
     }
@@ -242,7 +258,7 @@ export class RocketLeagueCommands extends AbstractCommands {
     private async saveUserStats(interaction: ChatInteraction, stats: rocketLeagueDbData) {
         const user = await this.client.database.getUser(interaction.user.id)
         user.rocketLeagueStats = stats
-        this.client.database.updateUser(user)
+        await this.client.database.updateUser(user)
     }
 
     private async getUserStats(interaction: ChatInteraction) {

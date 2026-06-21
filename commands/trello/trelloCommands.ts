@@ -343,12 +343,14 @@ export class TrelloCommands extends AbstractCommands {
                     },
                     {
                         commandName: 'TRELLO_REFRESH',
-                        command: (rawInteraction: BtnInteraction) => {
-                            this.fetchTrelloCards().then(() => {
-                                this.getCardsDropdown(rawInteraction).then(() => {
-                                    rawInteraction.deferUpdate()
-                                })
-                            })
+                        command: async (rawInteraction: BtnInteraction) => {
+                            try {
+                                await this.fetchTrelloCards()
+                                await this.getCardsDropdown(rawInteraction)
+                                rawInteraction.deferUpdate()
+                            } catch (error) {
+                                this.client.messageHelper.sendLogMessage(`Feil i TRELLO_REFRESH: ${error}`)
+                            }
                         },
                     },
                     {

@@ -1,4 +1,5 @@
 node_modules
+bin/
 client-env.ts
 package-lock.json
 .VSCodeCounter/

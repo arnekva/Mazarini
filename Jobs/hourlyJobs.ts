@@ -57,7 +57,7 @@ export class HourJob {
                 this.messageHelper.sendLogMessage(`En planlagt melding ble sendt til ${MentionUtils.mentionChannel(msg.channelId)}`)
                 shceduledMessages = ArrayUtils.removeItemOnce(shceduledMessages, msg)
             })
-            this.client.database.updateStorage({ scheduledMessages: shceduledMessages })
+            await this.client.database.updateStorage({ scheduledMessages: shceduledMessages })
         }
     }
 }

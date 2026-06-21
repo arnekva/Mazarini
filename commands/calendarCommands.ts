@@ -73,7 +73,7 @@ export class CalendarCommands extends AbstractCommands {
                 storage.effects.positive.shuffleIgnoresDigits = GameValues.deathroll.shuffleIgnoresDigitsDefault
                 this.client.database.updateStorage?.(storage)
             }
-        })
+        }).catch((error) => this.messageHelper.sendLogMessage(`Feil i resetShuffleEffect: ${error}`))
         return true
     }
 

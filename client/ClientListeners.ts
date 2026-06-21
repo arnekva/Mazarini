@@ -104,6 +104,8 @@ export class ClientListener {
             if (environment === 'prod') {
                 this.client.messageHelper.sendLogMessage(msg)
             }
+            this.commandRunner.initCommands()
+
             ClientHelper.setDisplayNameMode(this.client, 'online')
             ClientHelper.setStatusFromStorage(this.client, this.client.database)
             PatchNotes.compareAndSendPatchNotes(this.client.messageHelper, this.client.database)
@@ -248,21 +250,21 @@ export class ClientListener {
             UserUtils.onMemberLeave(member, this.client.messageHelper)
         })
 
-        this.client.on('userUpdate', function (oldUser: User | PartialUser, newUser: User) {
-            UserUtils.onUserUpdate(oldUser, newUser, this.messageHelper)
+        this.client.on('userUpdate', (oldUser: User | PartialUser, newUser: User) => {
+            UserUtils.onUserUpdate(oldUser, newUser, this.client.messageHelper)
         })
 
         //Emitted whenever a guild member changes - i.e. new role, removed role, nickname.
-        this.client.on('guildMemberUpdate', function (oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) {
-            UserUtils.onMemberUpdate(oldMember, newMember, this.messageHelper)
+        this.client.on('guildMemberUpdate', (oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) => {
+            UserUtils.onMemberUpdate(oldMember, newMember, this.client.messageHelper)
         })
 
-        this.client.on('roleCreate', function (role: Role) {
-            this.messageHelper.sendLogMessage('En ny rolle er opprettet: ' + role.name)
+        this.client.on('roleCreate', (role: Role) => {
+            this.client.messageHelper.sendLogMessage('En ny rolle er opprettet: ' + role.name)
         })
 
-        this.client.on('roleDelete', function (role: Role) {
-            this.messageHelper.sendLogMessage('En rolle er slettet: ' + role.name)
+        this.client.on('roleDelete', (role: Role) => {
+            this.client.messageHelper.sendLogMessage('En rolle er slettet: ' + role.name)
         })
 
         this.client.on('messageReactionAdd', (messageReaction: MessageReaction) => {

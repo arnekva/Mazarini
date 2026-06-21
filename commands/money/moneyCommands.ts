@@ -17,8 +17,10 @@ export class MoneyCommands extends AbstractCommands {
         const target = interaction.options.get('bruker')?.user
         const amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('chips')?.value)
 
-        const user = await this.client.database.getUser(interaction.user.id)
-        const targetUser = await this.client.database.getUser(target.id)
+        const [user, targetUser] = await Promise.all([
+            this.client.database.getUser(interaction.user.id),
+            this.client.database.getUser(target.id),
+        ])
         const userBalance = user.chips
 
         if (interaction.user.id === target.id) {

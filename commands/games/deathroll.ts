@@ -57,7 +57,9 @@ export class Deathroll extends AbstractCommands {
 
         this.reRollWinningNumbers()
 
-        this.client.database.getDeathrollPot().then((value) => (this.client.cache.deathrollPot = value ?? 0))
+        this.client.database.getDeathrollPot()
+            .then((value) => (this.client.cache.deathrollPot = value ?? 0))
+            .catch((error) => this.client.messageHelper.sendLogMessage(`Feil ved lasting av deathroll pot: ${error}`))
     }
 
     private reRollWinningNumbers(printOldNumbers = false) {

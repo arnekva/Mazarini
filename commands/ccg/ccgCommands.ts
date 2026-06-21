@@ -8,7 +8,7 @@ import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
 import { CCGCardGenerator, type CardModification } from '../../helpers/ccgCardGenerator'
 import { ComponentsHelper } from '../../helpers/componentsHelper'
-import type { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
+import { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
 import { ICCGDeck, ICCGSystem, MazariniUser } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement, IOnTimedEvent } from '../../interfaces/interactionInterface'
@@ -68,14 +68,13 @@ export class CCGCommands extends AbstractCommands {
 
     private getImageHelper() {
         if (!this.igh) {
-            const { ImageGenerationHelper } = require('../../helpers/imageGenerationHelper') as typeof import('../../helpers/imageGenerationHelper')
             this.igh = new ImageGenerationHelper(this.client)
         }
         return this.igh
     }
 
     private getCardGenerator() {
-        return require('../../helpers/ccgCardGenerator').CCGCardGenerator as typeof import('../../helpers/ccgCardGenerator').CCGCardGenerator
+        return CCGCardGenerator
     }
 
     private getCcgStorage() {

@@ -26,6 +26,12 @@ export interface DeathRollStats {
 export class DatabaseHelper {
     private db: FirebaseHelper
     private storage: CloudflareHelper
+    private userCache = new Map<string, { user: MazariniUser; expiresAt: number }>()
+    private static readonly USER_CACHE_TTL = 30 * 60 * 1_000
+
+    public clearUserCache() {
+        this.userCache.clear()
+    }
 
     constructor(firebaseHelper: FirebaseHelper, cloudflareHelper: CloudflareHelper) {
         this.db = firebaseHelper
@@ -33,14 +39,17 @@ export class DatabaseHelper {
     }
 
     /**
-     * Get a user object by ID.
+     * Get a user object by ID. Results are cached in memory; all writes go through updateUser which refreshes
+     * the cache immediately, so the TTL is purely for garbage collection — not for correctness.
      * @param userID ID of the user as a string
-     * @returns
      */
     public async getUser(userID: string): Promise<MazariniUser> {
+        const cached = this.userCache.get(userID)
+        if (cached && cached.expiresAt > Date.now()) return cached.user
         const user = await this.db.getUser(userID)
-        if (user) return user
-        return await this.addUser(DatabaseHelper.defaultUser(userID))
+        const resolved = user ?? (await this.addUser(DatabaseHelper.defaultUser(userID)))
+        this.userCache.set(userID, { user: resolved, expiresAt: Date.now() + DatabaseHelper.USER_CACHE_TTL })
+        return resolved
     }
 
     public async addUser(user: MazariniUser): Promise<MazariniUser> {
@@ -62,6 +71,7 @@ export class DatabaseHelper {
      *  @param logDiff - Set to true to log the difference between updated and current user. Note that this can cause a delay when updating the user, as it first needs to await a fetch for current
      */
     public async updateUser(user: MazariniUser, logDiff?: boolean) {
+        this.userCache.set(user.id, { user, expiresAt: Date.now() + DatabaseHelper.USER_CACHE_TTL })
         const updatedUser = user
         if (logDiff) {
             const oldUser = await this.db.getUser(user.id)
@@ -70,7 +80,7 @@ export class DatabaseHelper {
                 `User ${user.id} oppdater i Database, diff fra gammel bruker. Oppdaterte keys: ${diff.keys}.\nTotal diff:\n ${diff.diff}`
             )
         }
-        this.db.updateUser(updatedUser)
+        await this.db.updateUser(updatedUser)
     }
 
     public async updateData(updates: object) {

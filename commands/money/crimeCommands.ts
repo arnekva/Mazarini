@@ -232,8 +232,10 @@ export class CrimeCommands extends AbstractCommands {
         const amount = SlashCommandHelper.getCleanNumberValue(interaction.options.get('chips')?.value)
         const amountAsNum = Number(amount)
 
-        const engager = await this.client.database.getUser(interaction.user.id)
-        const victim = await this.client.database.getUser(target.id)
+        const [engager, victim] = await Promise.all([
+            this.client.database.getUser(interaction.user.id),
+            this.client.database.getUser(target.id),
+        ])
 
         if (await this.handleTheftEdgeCases(interaction, engager, victim, amountAsNum)) return
         const theftAttempt = this.theftAttemptIsSuccessful(amountAsNum)
@@ -458,9 +460,11 @@ export class CrimeCommands extends AbstractCommands {
     }
 
     private async frameSomeone(interaction: ChatInteraction) {
-        const user = await this.client.database.getUser(interaction.user.id)
         const targetUser = interaction.options.get('bruker')?.user
-        const target = await this.client.database.getUser(targetUser.id)
+        const [user, target] = await Promise.all([
+            this.client.database.getUser(interaction.user.id),
+            this.client.database.getUser(targetUser.id),
+        ])
         const userDaysLeftInJail = user?.jail?.daysInJail
         const targetDaysLeftInJail = target?.jail?.daysInJail
         const roll = Math.random()

@@ -135,8 +135,9 @@ export class MessageChecker {
             const winnerSet = new Set(userIds)
             const uniqueUserIds = Array.from(new Set(allUserIds))
 
-            uniqueUserIds.forEach((userId) => {
-                this.client.database.getUser(userId).then((user) => {
+            await Promise.all(
+                uniqueUserIds.map(async (userId) => {
+                    const user = await this.client.database.getUser(userId)
                     if (user) {
                         if (!user.userStats) {
                             user.userStats = { wordleStats: { wins: 0, gamesPlayed: 0 } }
@@ -148,7 +149,6 @@ export class MessageChecker {
                             user.userStats.wordleStats.wins += 1
                             if (!user.userStats.wordleStats.winsOnGuessNumber)
                                 user.userStats.wordleStats.winsOnGuessNumber = { one: 0, two: 0, three: 0, four: 0, five: 0, six: 0 }
-                            //Copilot might have cooked?
                             const guessKey = ['one', 'two', 'three', 'four', 'five', 'six'][
                                 score - 1
                             ] as keyof typeof user.userStats.wordleStats.winsOnGuessNumber
@@ -157,13 +157,13 @@ export class MessageChecker {
 
                             this.client.bank.giveMoney(user, chipsPerWinner)
                         } else {
-                            this.client.database.updateUser(user)
+                            await this.client.database.updateUser(user)
                         }
                     } else {
                         this.client.messageHelper.sendLogMessage(`User with ID ${userId} not found in database.`)
                     }
                 })
-            })
+            )
 
             this.client.messageHelper.sendMessage(message.channelId, { text: response }, { sendAsSilent: true })
         }

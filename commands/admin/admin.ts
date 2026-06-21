@@ -393,7 +393,7 @@ export class Admin extends AbstractCommands {
         )}. Henter data fra Git og restarter botten ...`
         const msg = await this.messageHelper.sendLogMessage(restartMsg)
         const commitId = await this.client.database.getBotData('commit-id')
-        await exec(`git pull && pm2 restart mazarini -- --restartedForGit restartedForGit --${commitId}`, async (error, stdout) => {
+        await exec(`git pull && npm run bundle && pm2 restart mazarini -- --restartedForGit restartedForGit --${commitId}`, async (error, stdout) => {
             if (error) {
                 restartMsg += `\nKlarte ikke restarte: \n${error}`
                 msg.edit(restartMsg)
@@ -566,6 +566,7 @@ export class Admin extends AbstractCommands {
                         options: [
                             { value: 'reset_chips_shards_daily', label: 'Reset chips (5000), shards (50) og daily for alle' },
                             { value: 'add_shards_100', label: 'Gi alle 100 shards' },
+                            { value: 'clear_user_cache', label: 'Tøm brukercache (tvinger ny henting fra Firebase)' },
                         ],
                     },
                 },
@@ -589,6 +590,11 @@ export class Admin extends AbstractCommands {
             await scripts.addShardsToAllUsers(100)
             results.push('Ga alle brukere 100 shards.')
             this.messageHelper.sendLogMessage(`[Scripts] ${modalInteraction.user.username} ga alle brukere 100 shards.`)
+        }
+        if (selected.includes('clear_user_cache')) {
+            this.client.database.clearUserCache()
+            results.push('Brukercache tømt. Neste henting vil hente fersk data fra Firebase.')
+            this.messageHelper.sendLogMessage(`[Scripts] ${modalInteraction.user.username} tømte brukercachen.`)
         }
 
         await modalInteraction.editReply(results.length ? results.join('\n') : 'Ingenting valgt.')

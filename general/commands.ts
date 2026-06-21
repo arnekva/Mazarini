@@ -90,10 +90,10 @@ export class Commands {
     private ccgCommands: CCGCommands
     private deckCommands: DeckCommands
 
-    allTextCommands: IInteractionCommand<ChatInteraction>[]
-    allModalCommands: IInteractionCommand<ModalInteraction>[]
-    allButtonCommands: IInteractionCommand<BtnInteraction>[]
-    allSelectMenuCommands: IInteractionCommand<SelectStringInteraction>[]
+    allTextCommands: Map<string, IInteractionCommand<ChatInteraction>>
+    allModalCommands: Map<string, IInteractionCommand<ModalInteraction>>
+    allButtonCommands: Map<string, IInteractionCommand<BtnInteraction>>
+    allSelectMenuCommands: Map<string, IInteractionCommand<SelectStringInteraction>>
 
     constructor(client: MazariniClient) {
         this.client = client
@@ -111,7 +111,6 @@ export class Commands {
         this.musicCommands = new Music(this.client)
         this.memeCommands = new MemeCommands(this.client)
         this.userCommands = new UserCommands(this.client)
-        this.weatherCommands = new Weather(this.client)
         this.patchNotes = new PatchNotes(this.client)
         this.soundCommands = new SoundCommands(this.client)
         this.cardCommands = new CardCommands(this.client)
@@ -139,10 +138,10 @@ export class Commands {
         this.ccgCommands = new CCGCommands(this.client)
         this.deckCommands = new DeckCommands(this.client)
 
-        this.allTextCommands = this.getAllTextCommands()
-        this.allModalCommands = this.getAllModalCommands()
-        this.allButtonCommands = this.getAllButtonCommands()
-        this.allSelectMenuCommands = this.getAllSelectMenuCommands()
+        this.allTextCommands = this.buildMap(this.getAllTextCommands())
+        this.allModalCommands = this.buildMap(this.getAllModalCommands())
+        this.allButtonCommands = this.buildMap(this.getAllButtonCommands())
+        this.allSelectMenuCommands = this.buildMap(this.getAllSelectMenuCommands())
     }
 
     getAll(): AbstractCommands[] {
@@ -189,6 +188,10 @@ export class Commands {
                 await job()
             }
         }
+    }
+
+    private buildMap<T>(commands: IInteractionCommand<T>[]): Map<string, IInteractionCommand<T>> {
+        return new Map(commands.map((cmd) => [cmd.commandName, cmd]))
     }
 
     private getAllTextCommands() {

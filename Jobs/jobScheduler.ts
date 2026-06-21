@@ -1,16 +1,17 @@
 import { MazariniClient } from '../client/MazariniClient'
 import { MessageHelper } from '../helpers/messageHelper'
+import * as schedule from 'node-schedule'
+import type { Job } from 'node-schedule'
 import { DailyJobs } from './dailyJobs'
 import { DayJob } from './dayJobs'
 import { HourJob } from './hourlyJobs'
 import { WeeklyJobs } from './weeklyJobs'
 
-const schedule = require('node-schedule')
 export class JobScheduler {
-    fridayJobs: any
-    dailyJobs: any
-    weeklyJobs: any
-    hourlyJobs: any
+    fridayJobs: Job
+    dailyJobs: Job
+    weeklyJobs: Job
+    hourlyJobs: Job
     constructor(msgHelper: MessageHelper, client: MazariniClient) {
         this.dailyJobs = schedule.scheduleJob('0 5 * * *', function () {
             const jobs = new DailyJobs(msgHelper, client)

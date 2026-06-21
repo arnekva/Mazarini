@@ -12,7 +12,8 @@ import { Commands, TimedEvent } from './commands'
 import { MessageChecker } from './messageChecker'
 
 export class CommandRunner {
-    private commands: Commands
+    private commands: Commands | undefined
+    private commandsReady = false
 
     private client: MazariniClient
     messageChecker: MessageChecker
@@ -21,8 +22,12 @@ export class CommandRunner {
 
     constructor(client: MazariniClient) {
         this.client = client
-        this.commands = new Commands(client)
         this.messageChecker = new MessageChecker(this.client)
+    }
+
+    initCommands() {
+        this.commands = new Commands(this.client)
+        this.commandsReady = true
     }
     async runCommands(message: Message) {
         try {
@@ -50,6 +55,12 @@ export class CommandRunner {
     }
 
     async checkForCommandInInteraction(interaction: Interaction<CacheType>) {
+        if (!this.commandsReady) {
+            if (interaction.isRepliable()) {
+                interaction.reply({ content: 'Boten starter opp – kommandoene er ikke klare ennå. Prøv igjen om et øyeblikk. 🔄', ephemeral: true })
+            }
+            return
+        }
         /** Check if any part of the interaction is currently locked - if it is, do not proceed. Answer with an ephemeral message explaining the lock */
         if (this.client.lockHandler.checkIfLockedPath(interaction)) {
             if (interaction.isRepliable()) {
@@ -68,40 +79,34 @@ export class CommandRunner {
             //TODO: This might have to be refactored, but ContextMenuCommands are for now treated as regular ChatInputCommands, as they only have a commandName
             //Autocomplete Interactions are also handled by this block, since they are triggered by ChatInputs.
             if (interaction.isChatInputCommand() || interaction.isContextMenuCommand() || interaction.isAutocomplete()) {
-                this.commands.allTextCommands.forEach((cmd) => {
-                    if (cmd.commandName === interaction.commandName) {
-                        if (interaction.isAutocomplete()) {
-                            //Need to also check if autoCompleteCallback is present, since AutoComplete can trigger on normal input fields.
-                            if (cmd.autoCompleteCallback) cmd.autoCompleteCallback(interaction)
-                        } else {
-                            this.runInteractionElement<ChatInteraction | ContextMenuCommandInteraction<CacheType>>(cmd, interaction)
-                        }
-                        hasAcknowledged = true
+                const cmd = this.commands!.allTextCommands.get(interaction.commandName)
+                if (cmd) {
+                    if (interaction.isAutocomplete()) {
+                        //Need to also check if autoCompleteCallback is present, since AutoComplete can trigger on normal input fields.
+                        if (cmd.autoCompleteCallback) cmd.autoCompleteCallback(interaction)
+                    } else {
+                        this.runInteractionElement<ChatInteraction | ContextMenuCommandInteraction<CacheType>>(cmd, interaction)
                     }
-                })
+                    hasAcknowledged = true
+                }
             } else if (interaction.type === InteractionType.ModalSubmit) {
-                this.commands.allModalCommands.forEach((cmd) => {
-                    if (cmd.commandName === interaction.customId.split(';')[0]) {
-                        this.runInteractionElement<ModalInteraction>(cmd, interaction)
-                        hasAcknowledged = true
-                    }
-                })
+                const cmd = this.commands!.allModalCommands.get(interaction.customId.split(';')[0])
+                if (cmd) {
+                    this.runInteractionElement<ModalInteraction>(cmd, interaction)
+                    hasAcknowledged = true
+                }
             } else if (interaction.isStringSelectMenu()) {
-                this.commands.allSelectMenuCommands.forEach((cmd) => {
-                    if (cmd.commandName === interaction.customId.split(';')[0]) {
-                        this.runInteractionElement<SelectStringInteraction>(cmd, interaction)
-                        // this.runSelectMenuInteractionElement(cmd, interaction)
-                        hasAcknowledged = true
-                    }
-                })
+                const cmd = this.commands!.allSelectMenuCommands.get(interaction.customId.split(';')[0])
+                if (cmd) {
+                    this.runInteractionElement<SelectStringInteraction>(cmd, interaction)
+                    hasAcknowledged = true
+                }
             } else if (interaction.isButton()) {
-                this.commands.allButtonCommands.forEach((cmd) => {
-                    if (cmd.commandName === interaction.customId.split(';')[0]) {
-                        this.runInteractionElement<BtnInteraction>(cmd, interaction)
-                        // this.runButtonInteractionElement(cmd, interaction)
-                        hasAcknowledged = true
-                    }
-                })
+                const cmd = this.commands!.allButtonCommands.get(interaction.customId.split(';')[0])
+                if (cmd) {
+                    this.runInteractionElement<BtnInteraction>(cmd, interaction)
+                    hasAcknowledged = true
+                }
             }
 
             // New interactions are added online, so it is instantly available in the production version of the app, despite being on development
@@ -126,18 +131,19 @@ export class CommandRunner {
     }
 
     async runSave() {
-        return await this.commands.doSaveAllCommands()
+        return this.commands ? await this.commands.doSaveAllCommands() : undefined
     }
 
     async runRefresh() {
-        return await this.commands.doRefreshAllCommands()
+        return this.commands ? await this.commands.doRefreshAllCommands() : undefined
     }
+
     async runJobs(timing: TimedEvent) {
-        return await this.commands.doJobs(timing)
+        return this.commands ? await this.commands.doJobs(timing) : undefined
     }
 
     runOnReady() {
-        return this.commands.doOnReadyAllCommands()
+        return this.commands?.doOnReadyAllCommands()
     }
 
     async checkIfBlockedByJail(interaction: BaseInteraction) {
@@ -160,6 +166,6 @@ export class CommandRunner {
 
     /** @deprecated To be removed */
     get commandsList() {
-        return this.commands
+        return this.commands!
     }
 }

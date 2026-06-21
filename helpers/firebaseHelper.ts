@@ -123,10 +123,10 @@ export class FirebaseHelper {
         await update(ref(this.db, database), updates)
     }
 
-    public updateUser(user: MazariniUser) {
+    public async updateUser(user: MazariniUser) {
         const updates = {}
         updates[`/users/${user.id}`] = user
-        this.updateData(updates)
+        await this.updateData(updates)
     }
 
     public incrementData(paths: string[], negative?: boolean) {
