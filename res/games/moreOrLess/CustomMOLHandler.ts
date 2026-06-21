@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const MOL_RES_DIR = path.resolve(process.cwd(), 'res/games/moreOrLess')
 
 export type customGameNames =
     | 'norwegianCities'
@@ -69,18 +70,18 @@ export class CustomMOLHandler {
             throw new Error(`Game JSON for name "${name}" not found.`)
         }
 
-        const filePath = path.resolve(__dirname, 'customGames', fileName)
+        const filePath = path.resolve(MOL_RES_DIR, 'customGames', fileName)
         const data = fs.readFileSync(filePath, 'utf-8')
         return JSON.parse(data)
     }
 
     static getAllCustomGames() {
-        const filePath = path.resolve(__dirname, 'allCustomGames.json')
+        const filePath = path.resolve(MOL_RES_DIR, 'allCustomGames.json')
         const data = fs.readFileSync(filePath, 'utf-8')
         return JSON.parse(data)
     }
     static collectAllJSONsFromFolder() {
-        const folderPath = path.resolve(__dirname, 'customGames')
+        const folderPath = path.resolve(MOL_RES_DIR, 'customGames')
         const files = fs.readdirSync(folderPath)
         const jsonFiles = files.filter((file) => file.endsWith('.json'))
 

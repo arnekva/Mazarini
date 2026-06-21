@@ -624,16 +624,18 @@ export class Blackjack extends AbstractCommands {
 
     private async returnStakes() {
         const unresolvedGames = this.games.filter((game) => !game.resolved)
-        for (const game of unresolvedGames) {
-            for (const player of game.players) {
-                const user = await this.client.database.getUser(player.id)
-                let refundedChips = player.stake * player.hands.length
-                if (player.insurance) refundedChips += Math.ceil(player.stake / 2)
-                user.chips += refundedChips
-                this.client.database.updateUser(user)
-            }
-            await this.deleteGame(game)
-        }
+        await Promise.all(
+            unresolvedGames.flatMap((game) =>
+                game.players.map(async (player) => {
+                    const user = await this.client.database.getUser(player.id)
+                    let refundedChips = player.stake * player.hands.length
+                    if (player.insurance) refundedChips += Math.ceil(player.stake / 2)
+                    user.chips += refundedChips
+                    this.client.database.updateUser(user)
+                })
+            )
+        )
+        await Promise.all(unresolvedGames.map((game) => this.deleteGame(game)))
         if (unresolvedGames.length > 0) {
             this.client.messageHelper.sendLogMessage(`Refunded ${unresolvedGames.length} blackjack games`)
         }

@@ -160,10 +160,7 @@ export class Commands {
     }
 
     async doSaveAllCommands() {
-        const allClasses = this.getAll()
-        for (const c of allClasses) {
-            await c.onSave()
-        }
+        await Promise.all(this.getAll().map((c) => c.onSave()))
     }
     async doRefreshAllCommands() {
         const allClasses = this.getAll()
