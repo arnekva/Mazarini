@@ -75,23 +75,23 @@ const url = `https://api.tracker.gg/api/v2/rocket-league/standard/profile/${plat
 
 let data: any //TODO: type this
 try {
-    const response = await fetch(url, {
-        headers: {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36',
-            'Accept': 'application/json, text/plain, */*',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Referer': 'https://rocketleague.tracker.network/',
-            'Origin': 'https://rocketleague.tracker.network',
-        }
+    const { execFile } = require('child_process') as typeof import('child_process')
+    const body: string = await new Promise((resolve, reject) => {
+        execFile(
+            'curl_chrome116',
+            [
+                '-s',
+                '-H', 'Accept: application/json, text/plain, */*',
+                '-H', 'Accept-Language: en-US,en;q=0.9',
+                '-H', 'Referer: https://rocketleague.tracker.network/',
+                '-H', 'Origin: https://rocketleague.tracker.network',
+                url,
+            ],
+            { timeout: 15000 },
+            (err, stdout) => (err ? reject(err) : resolve(stdout))
+        )
     })
-
-    if (!response.ok) {
-        await interaction.editReply('Klarte ikke lese Rocket League-data frå Tracker.gg akkurat no.')
-        this.messageHelper.sendLogMessage(`Tracker.gg svarte med ${response.status} for ${interaction.user.username}.`)
-        return false
-    }
-
-    data = await response.json()
+    data = JSON.parse(body)
 } catch {
     await interaction.editReply('Klarte ikke lese Rocket League-data frå Tracker.gg akkurat no.')
     this.messageHelper.sendLogMessage(`Rocket League-data kunne ikke parses for ${interaction.user.username}.`)
