@@ -160,7 +160,15 @@ export class Commands {
     }
 
     async doSaveAllCommands() {
-        await Promise.all(this.getAll().map((c) => c.onSave()))
+        await Promise.all(
+            this.getAll().map(async (c) => {
+                const name = c.constructor.name
+                const start = Date.now()
+                await c.onSave()
+                const elapsed = Date.now() - start
+                if (elapsed > 50) console.log(`[onSave] ${name}: ${elapsed}ms`)
+            })
+        )
     }
     async doRefreshAllCommands() {
         const allClasses = this.getAll()

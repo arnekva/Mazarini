@@ -541,8 +541,8 @@ export class Deathroll extends AbstractCommands {
             this.client.cache.restartImpediments.push('Noen har trilt terning innen det siste minuttet')
         }
         this.printOldNumbers()
-        this.saveRewardPot(true)
-        await this.saveActiveGamesToDatabase()
+        if (this.rewardPot > 0) this.saveRewardPot(true)
+        if (this.drGames.length > 0) await this.saveActiveGamesToDatabase()
         return true
     }
 

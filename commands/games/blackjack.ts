@@ -642,7 +642,9 @@ export class Blackjack extends AbstractCommands {
     }
 
     override async onSave() {
-        await this.returnStakes()
+        if (this.games.some((game) => !game.resolved)) {
+            await this.returnStakes()
+        }
         return true
     }
 
