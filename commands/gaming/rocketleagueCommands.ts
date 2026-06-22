@@ -2,7 +2,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, TextChannel
 
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
-import { environment, rapidApiKey } from '../../client-env'
+import {  rapidApiKey } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { RocketLeagueTournament } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
@@ -68,64 +68,41 @@ export class RocketLeagueCommands extends AbstractCommands {
                 "Du må linke Rocket League kontoen din. Bruk '/link rocket <psn|xbl|steam|epic> <brukernavn>'"
             )
         }
-        await interaction.deferReply()
-        const platform = user[0]
-        const name = user[1]
-        const url = `https://api.tracker.gg/api/v2/rocket-league/standard/profile/${platform}/${name}`
-        const puppeteer = this.getPuppeteer()
+     await interaction.deferReply()
+const platform = user[0]
+const name = user[1]
+const url = `https://api.tracker.gg/api/v2/rocket-league/standard/profile/${platform}/${name}`
 
-        //Need to specify executable path on Raspberry Pi, as it for some reason doesn't like the Puppeteer-supplied chromium version. Should work on Windows/Mac.
-        let browser
-        if (environment === 'prod')
-            browser = await puppeteer.launch({
-                headless: true,
-                timeout: 0,
-                executablePath: '/usr/bin/chromium',
-                args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--remote-debugging-port=0'],
-            })
-        else
-            browser = await puppeteer.launch({
-                headless: true,
-                timeout: 0,
-            })
-
-        let content = ''
-        let statusCode = 0
-        try {
-            const page = await browser.newPage()
-            page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36')
-            const response = await page.goto(url, { waitUntil: 'networkidle2' })
-            statusCode = response?.status() ?? 0
-            content = (await page.content()) as string
-        } finally {
-            await browser.close()
+let data: any //TODO: type this
+try {
+    const response = await fetch(url, {
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36',
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': 'https://rocketleague.tracker.network/',
+            'Origin': 'https://rocketleague.tracker.network',
         }
+    })
 
-        const contentString = content as string
-        if (statusCode === 403 || contentString.includes('Access denied')) {
-            await interaction.editReply('Rocket League-stats er utilgjengelige akkurat nå. Tracker.gg returnerer Access Denied.')
-            this.messageHelper.sendLogMessage(
-                `api.tracker.gg for Rocket League returnerte ${statusCode || 'Access Denied'}. Melding stammer fra ${interaction.user.username} i ${
-                    (interaction?.channel as TextChannel).name
-                }`
-            )
-            return false
-        }
+    if (!response.ok) {
+        await interaction.editReply('Klarte ikke lese Rocket League-data frå Tracker.gg akkurat no.')
+        this.messageHelper.sendLogMessage(`Tracker.gg svarte med ${response.status} for ${interaction.user.username}.`)
+        return false
+    }
 
-        let response
-        try {
-            response = JSON.parse(this.stripTags(contentString))
-        } catch {
-            await interaction.editReply('Klarte ikke lese Rocket League-data frå Tracker.gg akkurat no.')
-            this.messageHelper.sendLogMessage(`Rocket League-data kunne ikke parses for ${interaction.user.username}.`)
-            return false
-        }
+    data = await response.json()
+} catch {
+    await interaction.editReply('Klarte ikke lese Rocket League-data frå Tracker.gg akkurat no.')
+    this.messageHelper.sendLogMessage(`Rocket League-data kunne ikke parses for ${interaction.user.username}.`)
+    return false
+}
 
-        if (!response.data) {
-            await interaction.editReply('Fant ikke data')
-            return false
-        }
-        const segments = response.data.segments
+if (!data?.data) {
+    await interaction.editReply('Fant ikke data')
+    return false
+}
+        const segments = data.data.segments
 
         const threeVthree: rocketLeagueStats = {}
         const twoVtwo: rocketLeagueStats = {}
