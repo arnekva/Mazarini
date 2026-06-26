@@ -35,7 +35,7 @@ export class CalendarCommands extends AbstractCommands {
             gift.opened = true
             const calendarGift = christmasCalendarGifts.find((calendarGift) => calendarGift.id === gift.calendarGiftId)
 
-            const button = calendarGift.effect(user)
+            const button = calendarGift.effect(user, this.client.database, this.client)
             embed.setDescription(`Din kalendergave for ${DateUtils.formatDate(new Date(gift.date))} er ${calendarGift.message}`)
             embed.setThumbnail('https://freepngimg.com/thumb/gift/8-2-gift-png-image.png')
             this.client.database.updateUser(user, true)
@@ -72,6 +72,7 @@ export class CalendarCommands extends AbstractCommands {
             if (storage?.effects?.positive?.shuffleIgnoresDigits) {
                 storage.effects.positive.shuffleIgnoresDigits = GameValues.deathroll.shuffleIgnoresDigitsDefault
                 this.client.database.updateStorage?.(storage)
+                this.client.cache.shuffleIgnoresDigits = GameValues.deathroll.shuffleIgnoresDigitsDefault
             }
         }).catch((error) => this.messageHelper.sendLogMessage(`Feil i resetShuffleEffect: ${error}`))
         return true
@@ -107,10 +108,10 @@ export class CalendarCommands extends AbstractCommands {
 export interface ICalendarGift {
     id: number
     message: string //følger formatet "Din kalendergave for {dato} er {message}"
-    effect(user: MazariniUser, db?: DatabaseHelper): undefined | ActionRowBuilder<ButtonBuilder>[] | 'client'
+    effect(user: MazariniUser, db?: DatabaseHelper, client?: MazariniClient): undefined | ActionRowBuilder<ButtonBuilder>[] | 'client'
 }
 
-const shuffleIgnoresDigitsEffect = async (db: DatabaseHelper) => {
+const shuffleIgnoresDigitsEffect = async (db: DatabaseHelper, client: MazariniClient) => {
     const storage = await db.getStorage()
     if (storage) {
         if (!storage.effects) storage.effects = { positive: {} }
@@ -118,6 +119,7 @@ const shuffleIgnoresDigitsEffect = async (db: DatabaseHelper) => {
         storage.effects.positive.shuffleIgnoresDigits = true
     }
     db.updateStorage(storage)
+    client.cache.shuffleIgnoresDigits = true
 }
 
 const christmasCalendarGifts: Array<ICalendarGift> = [
@@ -283,16 +285,16 @@ const christmasCalendarGifts: Array<ICalendarGift> = [
     {
         id: 18,
         message: 'shuffle er ikke lenger siffer-begrenset for alle ut dagen!',
-        effect: (user: MazariniUser, db: DatabaseHelper) => {
-            shuffleIgnoresDigitsEffect(db)
+        effect: (user: MazariniUser, db: DatabaseHelper, client: MazariniClient) => {
+            shuffleIgnoresDigitsEffect(db, client)
             return undefined
         },
     },
     {
         id: 19,
         message: 'shuffle er ikke lenger siffer-begrenset for alle ut dagen!',
-        effect: (user: MazariniUser, db: DatabaseHelper) => {
-            shuffleIgnoresDigitsEffect(db)
+        effect: (user: MazariniUser, db: DatabaseHelper, client: MazariniClient) => {
+            shuffleIgnoresDigitsEffect(db, client)
             return undefined
         },
     },

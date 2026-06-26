@@ -36,8 +36,8 @@ export class DailyClaimCommands extends AbstractCommands {
                 newData.streak = 0
                 embed.setFooter({ text: 'Streaken din resettes nå te 0' })
             }
-            updates[`/users/${user.id}/daily`] = newData
-            this.client.database.updateData(updates)
+            user.daily = newData
+            this.client.database.updateUser(user)
             this.messageHelper.replyToInteraction(interaction, embed, undefined /*, lootButton*/)
         } else {
             embed.setDescription('Du har allerede henta daily i dag. Vent te imårå klokkå 05:00')

@@ -5,7 +5,7 @@ import { CCGCard, CCGEffectType } from './ccgInterface'
 
 export class CCGValidator {
     public static async validateDeck(client: MazariniClient, user: MazariniUser, deck: ICCGDeck, validationErrors: string[]) {
-        const allCards = (await client.database.getStorage()).ccg
+        const allCards = client.cache.ccg ?? (await client.database.getStorage()).ccg
         return this.validateDeckWithCards(user, deck, validationErrors, allCards)
     }
 

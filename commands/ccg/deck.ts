@@ -272,7 +272,7 @@ export class DeckCommands extends AbstractCommands {
     }
 
     private async getFullCards(items: IUserLootItem[]) {
-        const cards = (await this.database.getStorage()).ccg
+        const cards = this.client.cache.ccg ?? (await this.database.getStorage()).ccg
         const userCards = new Array<CCGCard>()
         for (const item of items) {
             const series = cards[item.series] as CCGCard[]

@@ -43,7 +43,6 @@ import { CCGValidator } from './validator'
 const SERIES_EMOJI_IS_ID = new Set(['swCCG', 'hpCCG'])
 
 export class CCGCommands extends AbstractCommands {
-    private ccgStoragePromise: Promise<ICCGSystem>
     private games: Map<string, CCGGame>
     private gameMessageUpdateQueue: Map<string, Promise<void>>
     private gameMessageUpdateRequested: Set<string>
@@ -77,11 +76,22 @@ export class CCGCommands extends AbstractCommands {
         return CCGCardGenerator
     }
 
-    private getCcgStorage() {
-        if (!this.ccgStoragePromise) {
-            this.ccgStoragePromise = this.database.getStorage().then((storage) => storage.ccg)
+    async onReady() {
+        this.database.getStorage()
+            .then((storage) => (this.client.cache.ccg = storage.ccg))
+            .catch((error) => this.client.messageHelper.sendLogMessage(`Feil ved lasting av CCG-kort: ${error}`))
+    }
+
+    private async getCcgStorage(): Promise<ICCGSystem> {
+        if (!this.client.cache.ccg) {
+            const storage = await this.database.getStorage()
+            this.client.cache.ccg = storage.ccg
         }
-        return this.ccgStoragePromise
+        return this.client.cache.ccg
+    }
+
+    public clearCcgCache() {
+        this.client.cache.ccg = undefined
     }
 
     private drawCards(game: CCGGame, player: CCGPlayer) {
@@ -171,10 +181,7 @@ export class CCGCommands extends AbstractCommands {
             })
         }
         const costReductionEffects = this.getEffectsForPlayer(game, player, 'REDUCE_COST')
-        const submittedCost = submitted.reduce((sum, card) => {
-            const cardReduction = costReductionEffects.filter((e) => !e.identifier || card.identifier?.includes(e.identifier)).reduce((s, e) => s + e.value, 0)
-            return sum + Math.max(card.cost - cardReduction, 0)
-        }, 0)
+        const submittedCost = submitted.reduce((sum, card) => sum + this.calcCardCost(card, costReductionEffects), 0)
         if (submittedCost > player.energy) {
             return this.messageHelper.replyToInteraction(interaction, 'Du har ikke nok energi!', { ephemeral: true })
         }
@@ -243,12 +250,7 @@ export class CCGCommands extends AbstractCommands {
             if (game.vsBot) {
                 const botSubmitted = game.player2.hand.filter((card) => card.selected)
                 const botCostReductionEffects = this.getEffectsForPlayer(game, game.player2, 'REDUCE_COST')
-                const botCost = botSubmitted.reduce((sum, card) => {
-                    const cardReduction = botCostReductionEffects
-                        .filter((e) => !e.identifier || card.identifier?.includes(e.identifier))
-                        .reduce((s, e) => s + e.value, 0)
-                    return sum + Math.max(card.cost - cardReduction, 0)
-                }, 0)
+                const botCost = botSubmitted.reduce((sum, card) => sum + this.calcCardCost(card, botCostReductionEffects), 0)
                 game.player2.energy -= botCost
                 this.registerCardsPlayed(game.player2, botSubmitted)
             }
@@ -274,6 +276,14 @@ export class CCGCommands extends AbstractCommands {
 
     private getConditionsForPlayer(game: CCGGame, player: CCGPlayer, type?: CCGEffectType) {
         return game.state.statusConditions.filter((effect) => effect.ownerId === player.id && (!type || effect.type === type))
+    }
+
+    private calcCardCost(card: CCGCard, costReductionEffects: ReturnType<typeof this.getEffectsForPlayer>) {
+        const reduction = costReductionEffects.reduce((sum, e) => {
+            if (!e.identifier || card.identifier?.includes(e.identifier)) return sum + e.value
+            return sum
+        }, 0)
+        return Math.max(card.cost - reduction, 0)
     }
 
     private async resolveRound(game: CCGGame) {
@@ -679,9 +689,11 @@ export class CCGCommands extends AbstractCommands {
         if (!player.handMessage) {
             await this.sendPlayerHand(interaction, game, player)
         }
-        const ccgStorage = await this.getCcgStorage()
-        const appEmojis = await this.client.getEmojis()
-        const user = game.vsBot ? undefined : await this.database.getUser(player.id)
+        const [ccgStorage, appEmojis, user] = await Promise.all([
+            this.getCcgStorage(),
+            this.client.getEmojis(),
+            game.vsBot ? Promise.resolve(undefined) : this.database.getUser(player.id),
+        ])
         await this.ensurePlayerLoaded(game, player, ccgStorage, appEmojis, user)
         this.drawCards(game, player)
         if (game.vsBot) {
@@ -1204,8 +1216,8 @@ export class CCGCommands extends AbstractCommands {
         for (const user of usersWithStats) {
             user.ccg.dailyShardBonusClaimed = false
             user.ccg.weeklyShardsEarned = weekly ? 0 : user.ccg.weeklyShardsEarned
-            await this.database.updateUser(user)
         }
+        await Promise.all(usersWithStats.map((user) => this.database.updateUser(user)))
         return true
     }
 

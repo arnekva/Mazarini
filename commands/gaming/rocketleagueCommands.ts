@@ -46,6 +46,12 @@ export class RocketLeagueCommands extends AbstractCommands {
         super(client)
     }
 
+    async onReady() {
+        this.client.database.getStorage()
+            .then((storage) => (this.client.cache.rocketLeagueTournaments = storage.rocketLeagueTournaments))
+            .catch((error) => this.client.messageHelper.sendLogMessage(`Feil ved lasting av RL tournaments: ${error}`))
+    }
+
     private getPuppeteer() {
         return require('puppeteer')
     }
@@ -255,8 +261,7 @@ if (!data?.data) {
     }
 
     private async getRocketLeagueTournaments(): Promise<{ embed: EmbedBuilder; buttons: ActionRowBuilder<ButtonBuilder> }> {
-        const storage = await this.client.database.getStorage()
-        const currentTournaments = storage?.rocketLeagueTournaments?.tournaments
+        const currentTournaments = this.client.cache.rocketLeagueTournaments?.tournaments
         if (currentTournaments && DateUtils.isToday(new Date(currentTournaments[0].starts))) {
             return {
                 buttons: RocketLeagueCommands.getButtonRow(currentTournaments),
@@ -297,8 +302,7 @@ if (!data?.data) {
     }
 
     private async getAllRLTournamentsAsEmbed() {
-        const storage = await this.client.database.getStorage()
-        const currentTournaments = storage?.rocketLeagueTournaments.tournaments
+        const currentTournaments = this.client.cache.rocketLeagueTournaments?.tournaments
         if (currentTournaments) {
             const embed = EmbedUtils.createSimpleEmbed(
                 `Rocket League Tournaments`,
@@ -316,11 +320,11 @@ if (!data?.data) {
     }
 
     private async createTournamentReminder(interaction: BtnInteraction) {
-        const storage = await this.client.database.getStorage()
-        const tournaments = storage?.rocketLeagueTournaments?.tournaments
+        const cachedRL = this.client.cache.rocketLeagueTournaments
+        const tournaments = cachedRL?.tournaments
         const ids = interaction.customId.split(';')
         const idToUpdate = Number(ids[1])
-        const tournamentToUpdate = tournaments.find((t) => {
+        const tournamentToUpdate = tournaments?.find((t) => {
             return t.id === idToUpdate
         })
 
@@ -336,12 +340,12 @@ if (!data?.data) {
 
                 tournamentToUpdate.shouldNotify = true
 
-                this.client.database.updateStorage({
-                    rocketLeagueTournaments: {
-                        mainMessageId: storage.rocketLeagueTournaments.mainMessageId ?? 'Unknown',
-                        tournaments: tournaments,
-                    },
-                })
+                const updated = {
+                    mainMessageId: cachedRL.mainMessageId ?? 'Unknown',
+                    tournaments: tournaments,
+                }
+                this.client.cache.rocketLeagueTournaments = updated
+                this.client.database.updateStorage({ rocketLeagueTournaments: updated })
             }
         }
     }

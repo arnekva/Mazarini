@@ -11,8 +11,7 @@ export class ProgressionHandler {
     }
 
     public async registerStats(game: CCGGame) {
-        await this.registerPlayerStats(game, game.player1)
-        await this.registerPlayerStats(game, game.player2)
+        await Promise.all([this.registerPlayerStats(game, game.player1), this.registerPlayerStats(game, game.player2)])
     }
 
     private async registerPlayerStats(game: CCGGame, player: CCGPlayer) {
@@ -130,7 +129,7 @@ export class ProgressionHandler {
             shards: (user.ccg?.shards ?? 0) + reward,
             weeklyShardsEarned: (user.ccg?.weeklyShardsEarned ?? 0) + reward,
         }
-        this.client.database.updateUser(user)
+        await this.client.database.updateUser(user)
         return `${player.name} earns ${reward} shards`
     }
 

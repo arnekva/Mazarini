@@ -60,6 +60,10 @@ export class Deathroll extends AbstractCommands {
         this.client.database.getDeathrollPot()
             .then((value) => (this.client.cache.deathrollPot = value ?? 0))
             .catch((error) => this.client.messageHelper.sendLogMessage(`Feil ved lasting av deathroll pot: ${error}`))
+
+        this.client.database.getStorage()
+            .then((storage) => (this.client.cache.shuffleIgnoresDigits = !!storage?.effects?.positive?.shuffleIgnoresDigits))
+            .catch((error) => this.client.messageHelper.sendLogMessage(`Feil ved lasting av storage (shuffle): ${error}`))
     }
 
     private reRollWinningNumbers(printOldNumbers = false) {
@@ -111,7 +115,7 @@ export class Deathroll extends AbstractCommands {
 
                 if (roll >= 100 && roll !== diceTarget) {
                     //Check if roll is a shuffled variant of the target number
-                    additionalMessage = await this.checkForShuffle(roll, diceTarget, additionalMessage)
+                    additionalMessage = this.checkForShuffle(roll, diceTarget, additionalMessage)
                 }
                 if (roll == 1) {
                     this.checkForLossOnFirstRoll(game, diceTarget)
@@ -171,7 +175,7 @@ export class Deathroll extends AbstractCommands {
         return ''
     }
 
-    private async checkForShuffle(roll: number, target: number, additionalMessage: string): Promise<string> {
+    private checkForShuffle(roll: number, target: number, additionalMessage: string): string {
         let msg = additionalMessage
         const rollAsString: string = roll.toString()
         const targetAsString = target.toString()
@@ -179,8 +183,7 @@ export class Deathroll extends AbstractCommands {
         if (shuffled) {
             //Shuffle the reward pot digits into a new number in random order
             const potArray = this.rewardPot.toString()
-            const storage = await this.database.getStorage()
-            const shuffleIgnoresDigitLength = !!storage?.effects?.positive?.shuffleIgnoresDigits
+            const shuffleIgnoresDigitLength = !!this.client.cache.shuffleIgnoresDigits
             const dontShuffle = shuffleIgnoresDigitLength ? '' : potArray.substring(0, potArray.length - targetAsString.length)
             const shuffle = potArray.substring(shuffleIgnoresDigitLength ? 0 : dontShuffle.length, potArray.length)
 

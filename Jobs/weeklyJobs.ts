@@ -35,6 +35,7 @@ export class WeeklyJobs {
         const todaysTime = new Date().toLocaleTimeString()
         embed.setFooter({ text: todaysTime })
         this.messageHelper.sendMessage(ChannelIds.ACTION_LOG, { embed: embed })
+        this.client.database.clearUserCache()
     }
 
     private async checkPoletHours(): Promise<JobStatus> {

@@ -87,7 +87,7 @@ export class Commands {
     private dealOrNoDeal: DealOrNoDeal
     private mastemind: Mastermind
     private luckywheel: LuckyWheel
-    private ccgCommands: CCGCommands
+    ccgCommands: CCGCommands
     private deckCommands: DeckCommands
 
     allTextCommands: Map<string, IInteractionCommand<ChatInteraction>>

@@ -152,26 +152,22 @@ export class BotResolver {
     }
 
     private checkLethal(game: CCGGame, playable: BotCard[]) {
-        playable.sort((a, b) => this.getCardDamageEstimate(b.card) - this.getCardDamageEstimate(a.card))
-        for (let i = 0; i < playable.length; i++) {
-            const card = playable[i].card
-            const cost = this.getCardCost(game, card)
-            const dmg = this.getCardDamageEstimate(card)
-            if (dmg > 0) {
-                if (dmg >= game.player1.hp && cost <= game.player2.energy) {
-                    playable[i].score += 10
+        const withDmg = playable
+            .map((p) => ({ ...p, dmg: this.getCardDamageEstimate(p.card) }))
+            .filter((p) => p.dmg > 0)
+            .sort((a, b) => b.dmg - a.dmg)
+        for (let i = 0; i < withDmg.length; i++) {
+            const { dmg, cost } = withDmg[i]
+            if (dmg >= game.player1.hp && cost <= game.player2.energy) {
+                withDmg[i].score += 10
+                return
+            }
+            for (let y = i + 1; y < withDmg.length; y++) {
+                const p2 = withDmg[y]
+                if (p2.dmg + dmg >= game.player1.hp && p2.cost + cost <= game.player2.energy) {
+                    withDmg[i].score += 10
+                    withDmg[y].score += 10
                     return
-                } else {
-                    for (let y = i + 1; y < playable.length; y++) {
-                        const card2 = playable[y].card
-                        const cost2 = this.getCardCost(game, card2)
-                        const dmg2 = this.getCardDamageEstimate(card2)
-                        if (dmg2 > 0 && dmg2 + dmg >= game.player1.hp && cost + cost2 <= game.player2.energy) {
-                            playable[i].score += 10
-                            playable[y].score += 10
-                            return
-                        }
-                    }
                 }
             }
         }

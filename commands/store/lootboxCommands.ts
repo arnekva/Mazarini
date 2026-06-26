@@ -404,7 +404,7 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private async getFullCards(items: IUserLootItem[]) {
-        const cards = (await this.database.getStorage()).ccg
+        const cards = this.client.cache.ccg ?? (await this.database.getStorage()).ccg
         const userCards = new Array<CCGCard>()
         for (const item of items) {
             const series = cards[item.series] as CCGCard[]
@@ -570,7 +570,7 @@ export class LootboxCommands extends AbstractCommands {
 
     private async filterOutNonCollectible(series: ILootSeries): Promise<ILootSeries> {
         if (!series.isCCG) return series
-        const cards = (await this.database.getStorage()).ccg
+        const cards = this.client.cache.ccg ?? (await this.database.getStorage()).ccg
         const fullSeries = cards[series.name] as CCGCard[]
         return {
             ...series,

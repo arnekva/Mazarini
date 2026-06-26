@@ -476,6 +476,9 @@ export interface ICache {
     deathrollWinningNumbers: number[]
     restartImpediments?: string[]
     deathrollPot?: number
+    shuffleIgnoresDigits?: boolean
+    ccg?: ICCGSystem
+    rocketLeagueTournaments?: MazariniStorage['rocketLeagueTournaments']
     applicationEmojis?: Collection<string, ApplicationEmoji>
 }
 

@@ -509,6 +509,7 @@ export class Admin extends AbstractCommands {
                             { value: 'fetch', label: 'Fetch CCG fra DB' },
                             { value: 'push', label: 'Push CCG til DB' },
                             { value: 'regen', label: 'Regen CCG bilder' },
+                            { value: 'clear_cache', label: 'Tøm CCG cache' },
                         ],
                     },
                 },
@@ -545,6 +546,11 @@ export class Admin extends AbstractCommands {
             await CCGCardGenerator.generateAll(this.client)
             results.push('Regen: CCG-bilder regenerert (cache tømt).')
             this.messageHelper.sendLogMessage(`[CCG] ${modalInteraction.user.username} tvinger full regenerering av CCG-bilder.`)
+        }
+        if (selected.includes('clear_cache')) {
+            this.client.cache.ccg = undefined
+            results.push('Cache tømt. Neste CCG-operasjon henter kort fra DB.')
+            this.messageHelper.sendLogMessage(`[CCG] ${modalInteraction.user.username} tømte CCG-cache.`)
         }
 
         await modalInteraction.editReply(results.length ? results.join('\n') : 'Ingenting valgt.')
