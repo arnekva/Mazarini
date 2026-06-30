@@ -435,14 +435,14 @@ export const hpCCG: CCGCard[] = [
                 value: 4,
             },
             {
-                // 25% "loses his wand" (flavor) => permanently reduce Lucius's own cost by 1 (no identifier => matches this card)
+                // 25% "keeps his wand" (flavor) => permanently reduce Lucius's own cost by 1 (no identifier => matches this card)
                 type: 'MODIFY_COST_PERMANENT',
                 target: 'SELF',
                 value: -1,
                 condition: { type: 'RANDOM', target: 'SELF', chance: 25 },
             },
         ],
-        customDescription: 'Deal [red]4 damage[/red]. [grey](25%)[/grey] loses his wand — Lucius permanently costs [blue]1 less[/blue].',
+        customDescription: 'Deal [red]4 damage[/red]. [grey](25%)[/grey] keeps his wand — Lucius permanently costs [blue]1 less[/blue].',
         cost: 3,
         speed: 40,
         rarity: ItemRarity.Rare,
