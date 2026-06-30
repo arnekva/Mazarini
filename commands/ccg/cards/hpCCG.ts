@@ -45,7 +45,7 @@ export const hpCCG: CCGCard[] = [
         cost: 1,
         speed: 21,
         rarity: ItemRarity.Common,
-        accuracy: 85,
+        accuracy: 100,
         identifier: ['RAVENCLAW'],
     },
     {
@@ -55,17 +55,23 @@ export const hpCCG: CCGCard[] = [
         type: CCGCardType.Shield,
         effects: [
             {
-                // identifier on ARMOR means it only reduces damage from cards with that identifier
+                // Shield is a pool that persists across turns until depleted (no turn limit)
+                type: 'SHIELD',
+                target: 'SELF',
+                value: 2,
+            },
+            {
+                // Armor reduces each incoming attack this turn only
                 type: 'ARMOR',
                 target: 'SELF',
-                value: 1,
-                turns: 2,
-                identifier: 'GRYFFINDOR',
+                value: 2,
+                turns: 1,
+                includeCurrentTurn: true,
             },
         ],
-        customDescription: 'Reduce damage from [gold]Gryffindor[/gold] cards by 1 for **2 turns**.',
-        cost: 1,
-        speed: 100,
+        customDescription: 'Gain [blue]Shield 2[/blue] and [blue]Armor 2[/blue] this turn.',
+        cost: 3,
+        speed: 70,
         rarity: ItemRarity.Common,
         accuracy: 90,
         identifier: ['SLYTHERIN'],
@@ -80,8 +86,10 @@ export const hpCCG: CCGCard[] = [
                 type: 'DAMAGE',
                 target: 'OPPONENT',
                 value: 2,
+                ignoreDefense: true,
             },
         ],
+        customDescription: '[gold]Pierce[/gold]: deal [red]2 damage[/red] (ignores [blue]armor[/blue] and [blue]shield[/blue]).',
         cost: 1,
         speed: 28,
         rarity: ItemRarity.Common,
@@ -96,40 +104,23 @@ export const hpCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 3,
+                value: 4,
             },
             {
-                // 30% chance of applying RETARDED to self
+                // 40% chance of applying RETARDED to self
                 type: 'RETARDED',
                 target: 'SELF',
                 value: 1,
                 turns: 1,
-                condition: { type: 'RANDOM', target: 'SELF', chance: 30 },
+                condition: { type: 'RANDOM', target: 'SELF', chance: 40 },
             },
         ],
+        customDescription: 'Deal [red]4 damage[/red]. [red](40%)[/red] become [purple]retarded[/purple] for 1 turn.',
         cost: 1,
         speed: 44,
         rarity: ItemRarity.Common,
         accuracy: 100,
         identifier: ['RAVENCLAW'],
-    },
-    {
-        id: 'hp_ginny_n',
-        name: 'Ginny Weasley',
-        series: 'hpCCG',
-        type: CCGCardType.Effect,
-        effects: [
-            {
-                type: 'REMOVE_STATUS',
-                target: 'SELF',
-                value: 99,
-            },
-        ],
-        cost: 1,
-        speed: 5,
-        rarity: ItemRarity.Common,
-        accuracy: 90,
-        identifier: ['GRYFFINDOR'],
     },
     {
         id: 'hp_barty_crouch_jr_n',
@@ -165,34 +156,27 @@ export const hpCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 3,
-                condition: {
-                    type: 'PLAYED_CARD_ID',
-                    target: 'SELF',
-                    cardId: 'hp_voldemort_n',
-                    comparator: '>=',
-                    value: 1,
-                },
+                value: 2,
             },
             {
-                type: 'DAMAGE',
-                target: 'OPPONENT',
-                value: 2,
+                // Pettigrew is a Death Eater himself, so >=2 means another Death Eater was played alongside him
+                type: 'SHIELD',
+                target: 'SELF',
+                value: 1,
                 condition: {
-                    type: 'PLAYED_CARD_ID',
+                    type: 'PLAYED_CARD_IDENTIFIER',
                     target: 'SELF',
-                    cardId: 'hp_voldemort_n',
+                    identifier: 'DEATH_EATER',
                     comparator: '>=',
-                    value: 1,
-                    invert: true,
+                    value: 2,
                 },
             },
         ],
-        customDescription: 'Deal [red]3 damage[/red] if Voldemort was played this round, otherwise [red]2 damage[/red].',
+        customDescription: 'Deal [red]2 damage[/red]. Gain [blue]1 shield[/blue] if played with a [red]Death Eater[/red].',
         cost: 1,
         speed: 40,
         rarity: ItemRarity.Common,
-        accuracy: 80,
+        accuracy: 95,
         identifier: ['GRYFFINDOR', 'DEATH_EATER'],
     },
     {
@@ -202,7 +186,7 @@ export const hpCCG: CCGCard[] = [
         type: CCGCardType.Effect,
         effects: [
             {
-                // 1 + 2 bonus if played alongside another Ravenclaw (flitwick counts as 1, needs >=2 total)
+                // 2 + 1 bonus if played alongside another Ravenclaw (flitwick counts as 1, needs >=2 total)
                 type: 'GAIN_ENERGY',
                 target: 'SELF',
                 value: 3,
@@ -217,7 +201,7 @@ export const hpCCG: CCGCard[] = [
             {
                 type: 'GAIN_ENERGY',
                 target: 'SELF',
-                value: 1,
+                value: 2,
                 condition: {
                     type: 'PLAYED_CARD_IDENTIFIER',
                     target: 'SELF',
@@ -228,7 +212,7 @@ export const hpCCG: CCGCard[] = [
                 },
             },
         ],
-        customDescription: 'Gain [blue]1 energy[/blue] + [blue]2 extra[/blue] if played with another [purple]Ravenclaw[/purple].',
+        customDescription: 'Gain [blue]2 energy[/blue] + [blue]1 extra[/blue] if played with another [purple]Ravenclaw[/purple].',
         cost: 0,
         speed: 25,
         rarity: ItemRarity.Common,
@@ -244,17 +228,17 @@ export const hpCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 2,
+                value: 4,
             },
             {
-                // 25% chance of blowing up yourself
+                // 50% chance of blowing up yourself
                 type: 'DAMAGE',
                 target: 'SELF',
                 value: 2,
-                accuracy: 25,
+                accuracy: 50,
             },
         ],
-        customDescription: 'Deal [red]2 damage[/red]. [red](25%)[/red] blow yourself up for [red]3 damage[/red].',
+        customDescription: 'Deal [red]4 damage[/red]. [red](50%)[/red] blow yourself up for [red]2 damage[/red].',
         cost: 1,
         speed: 35,
         rarity: ItemRarity.Common,
@@ -281,7 +265,7 @@ export const hpCCG: CCGCard[] = [
         cost: 1,
         speed: 37,
         rarity: ItemRarity.Common,
-        accuracy: 85,
+        accuracy: 95,
     },
     {
         id: 'hp_kreacher_n',
@@ -290,40 +274,20 @@ export const hpCCG: CCGCard[] = [
         type: CCGCardType.Effect,
         effects: [
             {
+                // 50% chance each turn (statusAccuracy) to gain 1 energy, for 6 turns
                 type: 'GAIN_ENERGY',
                 target: 'SELF',
-                value: 2,
+                value: 1,
+                turns: 6,
+                statusAccuracy: 50,
             },
         ],
+        customDescription: 'Each turn for 6 turns: [red]50%[/red] chance to gain [blue]1 energy[/blue].',
         cost: 0,
         speed: 10,
         rarity: ItemRarity.Common,
         accuracy: 90,
         identifier: ['HOUSE_ELF'],
-    },
-    {
-        id: 'hp_aragog_n',
-        name: 'Aragog',
-        series: 'hpCCG',
-        type: CCGCardType.Attack,
-        effects: [
-            {
-                type: 'DAMAGE',
-                target: 'OPPONENT',
-                value: 1,
-            },
-            {
-                type: 'BLEED',
-                target: 'OPPONENT',
-                value: 1,
-                turns: 2,
-            },
-        ],
-        cost: 1,
-        speed: 53,
-        rarity: ItemRarity.Common,
-        accuracy: 100,
-        identifier: ['MAGICAL_CREATURE'],
     },
 
     // ── RARE ───────────────────────────────────────────────────────────────
@@ -332,25 +296,29 @@ export const hpCCG: CCGCard[] = [
         id: 'hp_draco_n',
         name: 'Draco Malfoy',
         series: 'hpCCG',
-        type: CCGCardType.Attack,
+        type: CCGCardType.Heal,
         effects: [
             {
                 type: 'DAMAGE',
-                target: 'OPPONENT',
-                value: 2,
+                target: 'SELF',
+                value: 4,
             },
             {
-                // 1% chance of catching the Golden Snitch (adds it to hand)
-                type: 'SUMMON_CARD',
+                type: 'HEAL',
                 target: 'SELF',
-                summonCardId: 'hp_golden_snitch_n',
-                condition: { type: 'RANDOM', target: 'SELF', chance: 1 },
+                value: 6,
+            },
+            {
+                type: 'GAIN_ENERGY',
+                target: 'SELF',
+                value: 2,
             },
         ],
+        customDescription: 'Take [red]4 damage[/red], [green]heal 6[/green] and gain [blue]2 energy[/blue].',
         cost: 1,
         speed: 45,
         rarity: ItemRarity.Rare,
-        accuracy: 85,
+        accuracy: 100,
         identifier: ['SLYTHERIN', 'SEEKER', 'DEATH_EATER'],
     },
     {
@@ -360,18 +328,14 @@ export const hpCCG: CCGCard[] = [
         type: CCGCardType.Effect,
         effects: [
             {
-                type: 'REDUCE_COST',
-                target: 'SELF',
-                value: 1,
-                turns: 2,
-                identifier: 'MAGICAL_CREATURE',
-            },
-            {
+                // value reduces the summoned creature's cost (baked into the summoned instance, lasts until played)
                 type: 'SUMMON_CARD',
                 target: 'SELF',
                 identifier: 'MAGICAL_CREATURE',
+                value: 2,
             },
         ],
+        customDescription: 'Summon a random [yellow]Magical Creature[/yellow] with its cost reduced by [blue]2[/blue].',
         cost: 1,
         speed: 10,
         rarity: ItemRarity.Rare,
@@ -385,14 +349,17 @@ export const hpCCG: CCGCard[] = [
         type: CCGCardType.Effect,
         effects: [
             {
-                type: 'STEAL_ENERGY',
+                // Collect a random card from the opponent's deck; value = permanent cost reduction
+                type: 'COLLECT_CARD',
                 target: 'OPPONENT',
                 value: 1,
             },
             {
+                // Put a random potion on top of your own deck
                 type: 'SUMMON_CARD',
                 target: 'SELF',
                 identifier: 'POTION',
+                toDeckTop: true,
             },
         ],
         cost: 2,
@@ -400,7 +367,8 @@ export const hpCCG: CCGCard[] = [
         rarity: ItemRarity.Rare,
         accuracy: 95,
         identifier: ['SLYTHERIN'],
-        customDescription: 'Steal [blue]1 energy[/blue] from opponent.\nMake a random [yellow]potion[/yellow]',
+        customDescription:
+            "Collect a card from the opponent's deck — its cost is permanently reduced by [blue]1[/blue].\nPut a random [yellow]potion[/yellow] on top of your deck.",
     },
     {
         id: 'hp_shacklebolt_n',
@@ -418,31 +386,44 @@ export const hpCCG: CCGCard[] = [
                 target: 'SELF',
                 value: 1,
             },
+            {
+                // Auror: if the opponent played a Death Eater this round, permanently raise that card's cost by 1
+                type: 'AUROR',
+                target: 'OPPONENT',
+            },
         ],
+        customDescription:
+            '[green]Heal 2[/green], gain [blue]1 energy[/blue]. [grey]Auror[/grey]: a [red]Death Eater[/red] played this round costs [blue]+1[/blue] permanently.',
         cost: 1,
         speed: 62,
         rarity: ItemRarity.Rare,
         accuracy: 90,
+        identifier: ['AUROR'],
     },
     {
         id: 'hp_nymphadora_n',
         name: 'Nymphadora Tonks',
         series: 'hpCCG',
-        type: CCGCardType.Shield,
+        type: CCGCardType.Heal,
         effects: [
             {
-                // Removes all negative status conditions from self (primarily intended to neutralize Bleed)
-                type: 'REMOVE_STATUS',
+                type: 'HEAL',
                 target: 'SELF',
-                value: 99,
+                value: 2,
+            },
+            {
+                // Auror: if the opponent played a Death Eater this round, permanently raise that card's cost by 1
+                type: 'AUROR',
+                target: 'OPPONENT',
             },
         ],
-        customDescription: 'Remove all [red]Bleed[/red] and status conditions from self.',
+        customDescription:
+            '[green]Heal 2[/green]. [grey]Auror[/grey]: a [red]Death Eater[/red] played this round costs [blue]+1[/blue] permanently.',
         cost: 1,
         speed: 5,
         rarity: ItemRarity.Rare,
         accuracy: 95,
-        identifier: ['HUFFLEPUFF'],
+        identifier: ['HUFFLEPUFF', 'AUROR'],
     },
     {
         id: 'hp_lucius_n',
@@ -451,34 +432,20 @@ export const hpCCG: CCGCard[] = [
         type: CCGCardType.Attack,
         effects: [
             {
-                // +1 bonus damage if opponent played a House Elf card this round
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 3,
-                condition: {
-                    type: 'PLAYED_CARD_IDENTIFIER',
-                    target: 'OPPONENT',
-                    identifier: 'HOUSE_ELF',
-                    comparator: '>=',
-                    value: 1,
-                },
+                value: 4,
             },
             {
-                type: 'DAMAGE',
-                target: 'OPPONENT',
-                value: 2,
-                condition: {
-                    type: 'PLAYED_CARD_IDENTIFIER',
-                    target: 'OPPONENT',
-                    identifier: 'HOUSE_ELF',
-                    comparator: '>=',
-                    value: 1,
-                    invert: true,
-                },
+                // 25% "loses his wand" (flavor) => permanently reduce Lucius's own cost by 1 (no identifier => matches this card)
+                type: 'MODIFY_COST_PERMANENT',
+                target: 'SELF',
+                value: -1,
+                condition: { type: 'RANDOM', target: 'SELF', chance: 25 },
             },
         ],
-        customDescription: 'Deal [red]3 damage[/red] if opponent played a [grey]House Elf[/grey], otherwise [red]2 damage[/red].',
-        cost: 1,
+        customDescription: 'Deal [red]4 damage[/red]. [grey](25%)[/grey] loses his wand — Lucius permanently costs [blue]1 less[/blue].',
+        cost: 3,
         speed: 40,
         rarity: ItemRarity.Rare,
         accuracy: 85,
@@ -491,33 +458,12 @@ export const hpCCG: CCGCard[] = [
         type: CCGCardType.Heal,
         effects: [
             {
-                // +2 bonus if played alongside another Ravenclaw (luna counts as 1, needs >=2 total)
                 type: 'HEAL',
                 target: 'SELF',
-                value: 3,
-                condition: {
-                    type: 'PLAYED_CARD_IDENTIFIER',
-                    target: 'SELF',
-                    identifier: 'RAVENCLAW',
-                    comparator: '>=',
-                    value: 2,
-                },
-            },
-            {
-                type: 'HEAL',
-                target: 'SELF',
-                value: 1,
-                condition: {
-                    type: 'PLAYED_CARD_IDENTIFIER',
-                    target: 'SELF',
-                    identifier: 'RAVENCLAW',
-                    comparator: '>=',
-                    value: 2,
-                    invert: true,
-                },
+                value: 2,
             },
         ],
-        customDescription: 'Heal [green]1[/green] + [green]2 extra[/green] if played with another [purple]Ravenclaw[/purple].',
+        customDescription: 'Heal [green]2[/green].',
         cost: 0,
         speed: 65,
         rarity: ItemRarity.Rare,
@@ -528,29 +474,25 @@ export const hpCCG: CCGCard[] = [
         id: 'hp_molly_n',
         name: 'Molly Weasley',
         series: 'hpCCG',
-        type: CCGCardType.Effect,
+        type: CCGCardType.Shield,
         effects: [
             {
-                type: 'GAIN_ENERGY',
+                // Shield is a persistent pool (no turn limit)
+                type: 'SHIELD',
                 target: 'SELF',
-                value: 2,
+                value: 3,
             },
             {
-                // Deal 2 damage if opponent played a Death Eater this round
-                type: 'DAMAGE',
-                target: 'OPPONENT',
+                // Armor reduces each incoming attack this turn only
+                type: 'ARMOR',
+                target: 'SELF',
                 value: 3,
-                condition: {
-                    type: 'PLAYED_CARD_IDENTIFIER',
-                    target: 'OPPONENT',
-                    identifier: 'DEATH_EATER',
-                    comparator: '>=',
-                    value: 1,
-                },
+                turns: 1,
+                includeCurrentTurn: true,
             },
         ],
-        customDescription: 'Gain [blue]2 energy[/blue]. Deal [red]2 damage[/red] if opponent played a [red]Death Eater[/red].',
-        cost: 1,
+        customDescription: 'Gain [blue]Shield 3[/blue] and [blue]Armor 3[/blue] this turn.',
+        cost: 3,
         speed: 50,
         rarity: ItemRarity.Rare,
         accuracy: 100,
@@ -568,6 +510,7 @@ export const hpCCG: CCGCard[] = [
                 value: 2,
             },
             {
+                // Single prank for the pair lives on Fred only (George no longer carries one) to avoid double-firing
                 type: 'PRANK',
                 target: 'SELF',
                 condition: {
@@ -583,7 +526,7 @@ export const hpCCG: CCGCard[] = [
         cost: 1,
         speed: 15,
         rarity: ItemRarity.Rare,
-        accuracy: 85,
+        accuracy: 100,
         identifier: ['GRYFFINDOR'],
     },
     {
@@ -597,23 +540,13 @@ export const hpCCG: CCGCard[] = [
                 target: 'SELF',
                 value: 2,
             },
-            {
-                type: 'PRANK',
-                target: 'SELF',
-                condition: {
-                    type: 'PLAYED_CARD_ID',
-                    target: 'SELF',
-                    cardId: 'hp_fred_n',
-                    comparator: '>=',
-                    value: 1,
-                },
-            },
+            // The prank is triggered by Fred (see hp_fred_n) so the pair only ever fires ONE prank
         ],
         customDescription: 'Gain [blue]2 energy[/blue]. Paired with Fred: [gold]Set off a random prank![/gold]',
         cost: 1,
         speed: 15,
         rarity: ItemRarity.Rare,
-        accuracy: 85,
+        accuracy: 100,
         identifier: ['GRYFFINDOR'],
     },
     {
@@ -623,14 +556,13 @@ export const hpCCG: CCGCard[] = [
         type: CCGCardType.Effect,
         effects: [
             {
-                // Negative value on REDUCE_COST = cost increase. Math: card.cost - (-1) = card.cost + 1.
-                type: 'REDUCE_COST',
+                // Shuffle a junk Rubber Duck into the opponent's deck
+                type: 'SHUFFLE_CARD',
                 target: 'OPPONENT',
-                value: -1,
-                turns: 1,
+                summonCardId: 'hp_rubber_duck_n',
             },
         ],
-        customDescription: "Increase cost of all opponent's cards by 1 for 1 turn.",
+        customDescription: "Shuffle a [yellow]Rubber Duck[/yellow] into the opponent's deck.",
         cost: 1,
         speed: 5,
         rarity: ItemRarity.Rare,
@@ -641,25 +573,21 @@ export const hpCCG: CCGCard[] = [
         id: 'hp_cedric_n',
         name: 'Cedric Diggory',
         series: 'hpCCG',
-        type: CCGCardType.Attack,
+        type: CCGCardType.Effect,
         effects: [
             {
-                type: 'DAMAGE',
-                target: 'OPPONENT',
-                value: 2,
-            },
-            {
-                // 1% chance of catching the Golden Snitch
-                type: 'SUMMON_CARD',
+                // Foresight 4: the next 4 cards drawn each get a permanent -1 cost (charges = how many, value = reduction)
+                type: 'FORESIGHT',
                 target: 'SELF',
-                summonCardId: 'hp_golden_snitch_n',
-                condition: { type: 'RANDOM', target: 'SELF', chance: 1 },
+                value: 1,
+                charges: 4,
             },
         ],
-        cost: 1,
+        customDescription: '[gold]Foresight 4[/gold]: the next [gold]4 cards[/gold] you draw cost [blue]1 less[/blue] permanently.',
+        cost: 3,
         speed: 50,
         rarity: ItemRarity.Rare,
-        accuracy: 99,
+        accuracy: 100,
         identifier: ['HUFFLEPUFF', 'SEEKER'],
     },
     {
@@ -669,12 +597,18 @@ export const hpCCG: CCGCard[] = [
         type: CCGCardType.Effect,
         effects: [
             {
+                type: 'VIEW_HAND',
+                target: 'SELF',
+                turns: 3,
+            },
+            {
                 type: 'SLOW',
                 target: 'OPPONENT',
                 value: 1,
-                turns: 3,
+                turns: 2,
             },
         ],
+        customDescription: "See the opponent's hand for the next 3 turns. Apply [purple]Slow[/purple] for 2 turns.",
         cost: 2,
         speed: 5,
         rarity: ItemRarity.Rare,
@@ -690,41 +624,27 @@ export const hpCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 2,
+                value: 3,
             },
             {
-                // 1% chance of catching the Golden Snitch
+                type: 'DAMAGE',
+                target: 'SELF',
+                value: 3,
+            },
+            {
+                // 10% chance of catching the Golden Snitch
                 type: 'SUMMON_CARD',
                 target: 'SELF',
                 summonCardId: 'hp_golden_snitch_n',
-                condition: { type: 'RANDOM', target: 'SELF', chance: 1 },
+                condition: { type: 'RANDOM', target: 'SELF', chance: 10 },
             },
         ],
+        customDescription: 'Deal [red]3 damage[/red] to [red]both players[/red]. [red](10%)[/red] catch the [gold]Snitch[/gold].',
         cost: 1,
-        speed: 50,
+        speed: 75,
         rarity: ItemRarity.Rare,
         accuracy: 95,
         identifier: ['SEEKER'],
-    },
-    {
-        id: 'hp_buckbeak_n',
-        name: 'Buckbeak',
-        series: 'hpCCG',
-        type: CCGCardType.Effect,
-        effects: [
-            {
-                type: 'HEAL_BOOST',
-                target: 'SELF',
-                value: 1,
-                turns: 2,
-            },
-        ],
-        customDescription: 'Increase all heals by 1 for **2 turns**.',
-        cost: 1,
-        speed: 20,
-        rarity: ItemRarity.Rare,
-        accuracy: 100,
-        identifier: ['MAGICAL_CREATURE'],
     },
     {
         id: 'hp_polyjuice_potion_n',
@@ -809,6 +729,89 @@ export const hpCCG: CCGCard[] = [
     // ── EPIC ───────────────────────────────────────────────────────────────
 
     {
+        id: 'hp_ginny_n',
+        name: 'Ginny Weasley',
+        series: 'hpCCG',
+        type: CCGCardType.Heal,
+        effects: [
+            {
+                type: 'NEUTRALIZE_ATTACK',
+                target: 'OPPONENT',
+            },
+            {
+                type: 'HEAL',
+                target: 'SELF',
+                value: 2,
+            },
+        ],
+        customDescription: '[gold]Shut it![/gold] Negate an incoming attack and [green]heal 2[/green].',
+        cost: 3,
+        speed: 95, // high so the negate resolves before incoming attacks land
+        rarity: ItemRarity.Epic,
+        accuracy: 100,
+        identifier: ['GRYFFINDOR'],
+    },
+    {
+        id: 'hp_aragog_n',
+        name: 'Aragog',
+        series: 'hpCCG',
+        type: CCGCardType.Attack,
+        effects: [
+            {
+                type: 'BLEED',
+                target: 'OPPONENT',
+                value: 1,
+                turns: 20,
+            },
+        ],
+        customDescription: 'Apply [red]Bleed 1[/red] to the opponent for [red]20 turns[/red].',
+        cost: 2,
+        speed: 53,
+        rarity: ItemRarity.Epic,
+        accuracy: 100,
+        identifier: ['MAGICAL_CREATURE'],
+        // Magical creatures are summon-only (Hagrid); not obtainable from loot
+        collectible: false,
+    },
+    {
+        id: 'hp_buckbeak_n',
+        name: 'Buckbeak',
+        series: 'hpCCG',
+        type: CCGCardType.Shield,
+        effects: [
+            {
+                // Persistent shield pool
+                type: 'SHIELD',
+                target: 'SELF',
+                value: 1,
+            },
+            {
+                // Armor reduces each incoming attack this turn
+                type: 'ARMOR',
+                target: 'SELF',
+                value: 1,
+                turns: 1,
+                includeCurrentTurn: true,
+            },
+            {
+                // One-time saving grace: negates a single lethal hit this turn and heals 1 (value). Consumed on use.
+                type: 'CANNOT_DIE',
+                target: 'SELF',
+                value: 1,
+                turns: 1,
+                includeCurrentTurn: true,
+            },
+        ],
+        customDescription: 'Gain [blue]Shield 1[/blue] and [blue]Armor 1[/blue]. If a lethal hit would kill you this turn, negate it and [green]heal 1[/green] instead.',
+        cost: 2,
+        speed: 95,
+        rarity: ItemRarity.Epic,
+        accuracy: 100,
+        identifier: ['MAGICAL_CREATURE'],
+        // Magical creatures are summon-only (Hagrid); not obtainable from loot
+        collectible: false,
+    },
+    {
         id: 'hp_hermione_n',
         name: 'Hermione Granger',
         series: 'hpCCG',
@@ -817,15 +820,15 @@ export const hpCCG: CCGCard[] = [
             {
                 type: 'HEAL',
                 target: 'SELF',
-                value: 4,
+                value: 6,
             },
             {
-                type: 'RECOVER',
+                type: 'SUMMON_CARD',
                 target: 'SELF',
-                value: 1,
-                turns: 3,
+                identifier: 'POTION',
             },
         ],
+        customDescription: '[green]Heal 6[/green] and make a random [yellow]potion[/yellow].',
         cost: 3,
         speed: 70,
         rarity: ItemRarity.Epic,
@@ -836,22 +839,22 @@ export const hpCCG: CCGCard[] = [
         id: 'hp_ron_n',
         name: 'Ron Weasley',
         series: 'hpCCG',
-        type: CCGCardType.Effect,
+        type: CCGCardType.Attack,
         effects: [
             {
-                type: 'GAIN_ENERGY',
-                target: 'SELF',
-                value: 1,
-                turns: 4,
+                type: 'DAMAGE',
+                target: 'OPPONENT',
+                value: 4,
             },
             {
-                type: 'BLEED',
+                // Move Fred & George to the top of the draw pile if they're still in the deck
+                type: 'MOVE_TO_TOP',
                 target: 'SELF',
-                value: 1,
-                turns: 3,
+                cardIds: ['hp_fred_n', 'hp_george_n'],
             },
         ],
-        cost: 1,
+        customDescription: 'Deal [red]4 damage[/red]. Move [gold]Fred[/gold] & [gold]George[/gold] to the top of your draw pile.',
+        cost: 2,
         speed: 20,
         rarity: ItemRarity.Epic,
         accuracy: 90,
@@ -866,15 +869,16 @@ export const hpCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 2,
+                value: 1,
             },
             {
                 type: 'MYGLING',
                 target: 'OPPONENT',
                 value: 1,
-                turns: 1,
+                turns: 2,
             },
         ],
+        customDescription: 'Deal [red]1 damage[/red]. Apply [purple]Mygling[/purple] to the opponent for 2 turns.',
         cost: 2,
         speed: 50,
         rarity: ItemRarity.Epic,
@@ -891,12 +895,12 @@ export const hpCCG: CCGCard[] = [
                 type: 'REFLECT',
                 target: 'SELF',
                 value: 1,
-                turns: 1,
+                turns: 2,
                 reflectType: 'allEffects',
             },
         ],
-        customDescription: 'Reflect all effects targeting you for 1 turn.',
-        cost: 1,
+        customDescription: 'Reflect all effects targeting you for 2 turns.',
+        cost: 2,
         speed: 100,
         rarity: ItemRarity.Epic,
         accuracy: 99,
@@ -929,14 +933,20 @@ export const hpCCG: CCGCard[] = [
         type: CCGCardType.Effect,
         effects: [
             {
-                type: 'RESTRICT_CARDS',
+                type: 'MYGLING',
+                target: 'SELF',
+                value: 1,
+                turns: 2,
+            },
+            {
+                type: 'MYGLING',
                 target: 'OPPONENT',
                 value: 1,
-                turns: 1,
+                turns: 2,
             },
         ],
-        customDescription: 'Opponent can only play [red]1 card[/red] next turn.',
-        cost: 1,
+        customDescription: 'Apply [purple]Mygling[/purple] to [red]both players[/red] for 2 turns.',
+        cost: 0,
         speed: 15,
         rarity: ItemRarity.Epic,
         accuracy: 100,
@@ -955,11 +965,19 @@ export const hpCCG: CCGCard[] = [
                 value: 3,
                 turns: 2,
             },
+            {
+                // Auror: if the opponent played a Death Eater this round, permanently raise that card's cost by 1
+                type: 'AUROR',
+                target: 'OPPONENT',
+            },
         ],
+        customDescription:
+            'Play [gold]1 extra card[/gold] for 2 turns. [grey]Auror[/grey]: a [red]Death Eater[/red] played this round costs [blue]+1[/blue] permanently.',
         cost: 2,
         speed: 10,
         rarity: ItemRarity.Epic,
         accuracy: 100,
+        identifier: ['AUROR'],
     },
     {
         id: 'hp_lupin_n',
@@ -968,11 +986,10 @@ export const hpCCG: CCGCard[] = [
         type: CCGCardType.Effect,
         effects: [
             {
-                type: 'ARMOR',
+                // Persistent shield pool
+                type: 'SHIELD',
                 target: 'SELF',
                 value: 2,
-                turns: 1,
-                includeCurrentTurn: true,
             },
             {
                 type: 'TRANSFORM',
@@ -986,7 +1003,7 @@ export const hpCCG: CCGCard[] = [
         rarity: ItemRarity.Epic,
         accuracy: 95,
         identifier: ['GRYFFINDOR'],
-        customDescription: 'Gain [blue]2 armor[/blue] this turn. 50% chance to turn into a [yellow]werewolf[/yellow].',
+        customDescription: 'Gain [blue]2 shield[/blue]. 50% chance to turn into a [yellow]werewolf[/yellow].',
     },
     {
         id: 'hp_werewolf_n',
@@ -1003,7 +1020,7 @@ export const hpCCG: CCGCard[] = [
         cost: 2,
         speed: 45,
         rarity: ItemRarity.Epic,
-        accuracy: 95,
+        accuracy: 100,
         identifier: ['MAGICAL_CREATURE'],
         collectible: false,
     },
@@ -1014,16 +1031,20 @@ export const hpCCG: CCGCard[] = [
         type: CCGCardType.Heal,
         effects: [
             {
+                // value acts as a multiplier on the opponent's total spent cost
                 type: 'HEAL_PER_OPPONENT_COST',
                 target: 'SELF',
+                value: 2,
             },
         ],
-        customDescription: "[green]Heal[/green] equal to total cost of opponent's cards played this round.",
+        customDescription: "[green]Heal[/green] equal to [green]2x[/green] the total cost of opponent's cards played this round.",
         cost: 2,
         speed: 70,
         rarity: ItemRarity.Epic,
         accuracy: 100,
         identifier: ['MAGICAL_CREATURE'],
+        // Magical creatures are summon-only (Hagrid); not obtainable from loot
+        collectible: false,
     },
     {
         id: 'hp_basilisk_n',
@@ -1036,12 +1057,14 @@ export const hpCCG: CCGCard[] = [
                 target: 'OPPONENT',
             },
         ],
-        customDescription: "[red]Deal damage[/red] equal to total cost of opponent's cards played this round.",
+        customDescription: "[red]Deal damage[/red] equal to the total cost of opponent's cards played this round.",
         cost: 2,
         speed: 55,
         rarity: ItemRarity.Epic,
-        accuracy: 95,
+        accuracy: 100,
         identifier: ['MAGICAL_CREATURE'],
+        // Magical creatures are summon-only (Hagrid); not obtainable from loot
+        collectible: false,
     },
     {
         id: 'hp_dark_mark_n',
@@ -1050,20 +1073,24 @@ export const hpCCG: CCGCard[] = [
         type: CCGCardType.Effect,
         effects: [
             {
-                // Summon a random Death Eater card to hand
+                // Summon two random Death Eater cards to hand
                 type: 'SUMMON_CARD',
                 target: 'SELF',
                 identifier: 'DEATH_EATER',
             },
             {
-                // Delayed trigger: gives 2 energy once after 2 turns, not 2 energy per turn
-                type: 'GAIN_ENERGY',
+                type: 'SUMMON_CARD',
                 target: 'SELF',
-                value: 2,
-                turns: 2,
-                delayedTrigger: true,
+                identifier: 'DEATH_EATER',
+            },
+            {
+                // The next Death Eater you play deals 3 damage (consumed on trigger, like a bounty)
+                type: 'DEATH_EATER_BOUNTY',
+                target: 'SELF',
+                value: 3,
             },
         ],
+        customDescription: 'Summon [red]2 random Death Eaters[/red]. Your next Death Eater played deals [red]3 damage[/red].',
         cost: 1,
         speed: 20,
         rarity: ItemRarity.Epic,
@@ -1079,20 +1106,27 @@ export const hpCCG: CCGCard[] = [
         type: CCGCardType.Attack,
         effects: [
             {
-                type: 'DAMAGE',
+                // Disarm: negate ALL slower incoming attacks (high speed lets it resolve before them). amount=99 => all.
+                type: 'NEUTRALIZE_ATTACK',
                 target: 'OPPONENT',
-                value: 4,
+                amount: 99,
             },
             {
-                // 3% chance of catching the Golden Snitch — adds it to hand
-                type: 'SUMMON_CARD',
+                // Sacrifice 3 HP...
+                type: 'DAMAGE',
                 target: 'SELF',
-                summonCardId: 'hp_golden_snitch_n',
-                condition: { type: 'RANDOM', target: 'SELF', chance: 3 },
+                value: 3,
+            },
+            {
+                // ...to deal 6
+                type: 'DAMAGE',
+                target: 'OPPONENT',
+                value: 6,
             },
         ],
-        cost: 2,
-        speed: 45,
+        customDescription: '[gold]Disarm[/gold] the opponent — negate all incoming attacks. Sacrifice [red]3 HP[/red] to deal [red]6 damage[/red].',
+        cost: 3,
+        speed: 90,
         rarity: ItemRarity.Legendary,
         accuracy: 100,
         identifier: ['GRYFFINDOR', 'SEEKER'],
@@ -1101,19 +1135,28 @@ export const hpCCG: CCGCard[] = [
         id: 'hp_dumbledore_n',
         name: 'Albus Dumbledore',
         series: 'hpCCG',
-        type: CCGCardType.Effect,
+        type: CCGCardType.Attack,
         effects: [
             {
-                // value: 99 ensures all Gryffindor cards are effectively free (clamped to 0 cost)
-                type: 'REDUCE_COST',
+                // Permanently discard a random card from your own deck
+                type: 'SACRIFICE_CARD',
                 target: 'SELF',
-                value: 99,
-                turns: 3,
-                identifier: 'GRYFFINDOR',
+            },
+            {
+                type: 'DAMAGE',
+                target: 'OPPONENT',
+                value: 6,
+            },
+            {
+                // 5% chance to take 30 damage to yourself (effectively death)
+                type: 'DAMAGE',
+                target: 'SELF',
+                value: 30,
+                condition: { type: 'RANDOM', target: 'SELF', chance: 5 },
             },
         ],
-        customDescription: '[gold]Gryffindor[/gold] cards cost [blue]0 energy[/blue] for 3 turns.',
-        cost: 2,
+        customDescription: 'Sacrifice a random card from your deck to deal [red]6 damage[/red]. [red](5%)[/red] you die instantly.',
+        cost: 1,
         speed: 10,
         rarity: ItemRarity.Legendary,
         accuracy: 100,
@@ -1124,17 +1167,21 @@ export const hpCCG: CCGCard[] = [
         id: 'hp_snape_n',
         name: 'Severus Snape',
         series: 'hpCCG',
-        type: CCGCardType.Heal,
+        type: CCGCardType.Shield,
         effects: [
             {
-                type: 'HEAL',
+                // Persistent shield pool
+                type: 'SHIELD',
                 target: 'SELF',
-                value: 2,
+                value: 3,
             },
             {
-                type: 'DAMAGE',
-                target: 'OPPONENT',
-                value: 2,
+                // Armor reduces each incoming attack this turn
+                type: 'ARMOR',
+                target: 'SELF',
+                value: 3,
+                turns: 1,
+                includeCurrentTurn: true,
             },
             {
                 type: 'SUMMON_CARD',
@@ -1147,8 +1194,8 @@ export const hpCCG: CCGCard[] = [
         rarity: ItemRarity.Legendary,
         accuracy: 100,
         cannotMiss: true,
-        identifier: ['SLYTHERIN'],
-        customDescription: '[green]Heal 2[/green], Deal [red]2 damage[/red] and make a random [yellow]potion[/yellow]',
+        identifier: ['SLYTHERIN', 'DEATH_EATER'],
+        customDescription: 'Gain [blue]Shield 3[/blue] and [blue]Armor 3[/blue]. Make a random [yellow]potion[/yellow].',
     },
     {
         id: 'hp_voldemort_n',
@@ -1159,21 +1206,20 @@ export const hpCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 4,
+                value: 6,
             },
             {
-                type: 'REDUCE_COST',
+                type: 'ELUSIVE',
                 target: 'SELF',
-                value: 1,
                 turns: 2,
-                identifier: 'DEATH_EATER',
             },
         ],
+        customDescription: 'Deal [red]6 damage[/red]. Become [purple]Elusive[/purple] for 2 turns.',
         cost: 3,
         speed: 45,
         rarity: ItemRarity.Legendary,
         accuracy: 100,
-        identifier: ['SLYTHERIN'],
+        identifier: ['SLYTHERIN', 'DEATH_EATER'],
     },
     {
         id: 'hp_bertie_botts_n',
@@ -1200,13 +1246,23 @@ export const hpCCG: CCGCard[] = [
         type: CCGCardType.Effect,
         effects: [
             {
+                // value = max-HP increase; amount = how much is actually healed
                 type: 'INCREASE_MAX_HP',
                 target: 'SELF',
                 value: 5,
+                amount: 5,
+            },
+            {
+                // Permanently raise the cost of every Death Eater card the opponent owns (hand/deck/used) by 1
+                type: 'MODIFY_COST_PERMANENT',
+                target: 'OPPONENT',
+                value: 1,
+                identifier: 'DEATH_EATER',
             },
         ],
-        customDescription: 'Increase max HP by 5. [grey]Removed from deck once played.[/grey]',
-        cost: 5,
+        customDescription:
+            "Increase max HP by 5 and [green]heal 5[/green]. Permanently raise the cost of all the opponent's [red]Death Eater[/red] cards by [blue]1[/blue]. [grey]Removed from deck once played.[/grey]",
+        cost: 4,
         speed: 10,
         rarity: ItemRarity.Legendary,
         accuracy: 100,
@@ -1240,6 +1296,29 @@ export const hpCCG: CCGCard[] = [
         accuracy: 99,
         summoned: true,
         collectible: false,
+    },
+
+    // ── JUNK (non-collectible, shuffled into a deck by Arthur) ─────────────────
+    {
+        id: 'hp_rubber_duck_n',
+        name: 'Rubber Duck',
+        series: 'hpCCG',
+        type: CCGCardType.Attack,
+        effects: [
+            {
+                type: 'DAMAGE',
+                target: 'OPPONENT',
+                value: 1,
+            },
+        ],
+        customDescription: 'Deal [red]1 damage[/red]. [grey]Permanently removed if discarded.[/grey]',
+        cost: 1,
+        speed: 50,
+        rarity: ItemRarity.Common,
+        accuracy: 100,
+        cannotMiss: true,
+        collectible: false,
+        removeOnDiscard: true,
     },
 
     // ── PRANKS (non-collectible, triggered by Fred+George) ─────────────────────
@@ -1320,10 +1399,9 @@ export const hpCCG: CCGCard[] = [
                 type: 'GAIN_ENERGY',
                 target: 'SELF',
                 value: 2,
-                turns: 2,
             },
         ],
-        customDescription: 'Gain [blue]2 energy[/blue] over 2 turns.',
+        customDescription: 'Gain [blue]2 energy[/blue].',
         cost: 0,
         speed: 50,
         rarity: ItemRarity.Common,

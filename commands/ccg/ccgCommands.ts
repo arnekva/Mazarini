@@ -121,7 +121,21 @@ export class CCGCommands extends AbstractCommands {
             player.usedCards = []
             card = player.deck.pop()
         }
-        if (card) player.hand.push(card)
+        if (card) {
+            this.applyForesightOnDraw(game, player, card)
+            player.hand.push(card)
+        }
+    }
+
+    /** Foresight (e.g. Cedric): each charge permanently reduces the cost of a card as it is drawn */
+    private applyForesightOnDraw(game: CCGGame, player: CCGPlayer, card: CCGCard) {
+        const foresight = game.state.statusEffects.find((s) => s.ownerId === player.id && s.type === 'FORESIGHT' && (s.charges ?? 0) > 0)
+        if (!foresight) return
+        card.cost = Math.max(0, card.cost - (foresight.value ?? 1))
+        foresight.charges = (foresight.charges ?? 1) - 1
+        if (foresight.charges <= 0) {
+            game.state.statusEffects = game.state.statusEffects.filter((s) => s.id !== foresight.id)
+        }
     }
 
     private async sendPlayerHand(interaction: BtnInteraction, game: CCGGame, player: CCGPlayer) {
@@ -208,7 +222,8 @@ export class CCGCommands extends AbstractCommands {
                 message: `*${player.name} discards ${discarded.length} card${discarded.length > 1 ? 's' : ''}*`,
             })
         }
-        player.usedCards.push(...discarded)
+        // Cards flagged removeOnDiscard (e.g. Rubber Duck) are gone for good instead of recycling
+        player.usedCards.push(...discarded.filter((card) => !card.removeOnDiscard))
         player.hand = player.hand.filter((card) => !card.selected)
         player.submitted = true
         this.handlePlayerSubmit(game, player)
@@ -498,6 +513,10 @@ export class CCGCommands extends AbstractCommands {
                             countTarget: effect.countTarget,
                             base: effect.base,
                             reflectType: effect.reflectType,
+                            ignoreDefense: effect.ignoreDefense,
+                            cardIds: effect.cardIds,
+                            toDeckTop: effect.toDeckTop,
+                            charges: effect.charges,
                         }
                     })
                 )
@@ -520,6 +539,32 @@ export class CCGCommands extends AbstractCommands {
                 }
             }
         }
+        this.checkDeathEaterBounty(game, player, submitted)
+    }
+
+    /** Dark Mark: the first Death Eater played after it resolves deals 3 damage, then the bounty is consumed */
+    private checkDeathEaterBounty(game: CCGGame, player: CCGPlayer, submitted: CCGCard[]) {
+        const bounty = game.state.statusEffects.find((s) => s.ownerId === player.id && s.type === 'DEATH_EATER_BOUNTY')
+        if (!bounty) return
+        const deathEater = submitted.find((card) => card.identifier?.includes('DEATH_EATER'))
+        if (!deathEater) return
+        const opponent = this.getOpponent(game, player.id)
+        game.state.statusEffects = game.state.statusEffects.filter((s) => s.id !== bounty.id)
+        game.state.stack.push({
+            cardId: randomUUID().substring(0, 10),
+            emoji: bounty.emoji ?? deathEater.emoji,
+            statusText: 'Dark Mark',
+            sourceCardName: 'Dark Mark',
+            sourceCardId: 'hp_dark_mark_n',
+            sourcePlayerId: player.id,
+            targetPlayerId: opponent.id,
+            cardTarget: 'OPPONENT',
+            type: 'DAMAGE',
+            speed: 60,
+            accuracy: 100,
+            cardSuccessful: true,
+            value: bounty.value ?? 3,
+        })
     }
 
     private queueCopiedEffects(
@@ -725,7 +770,7 @@ export class CCGCommands extends AbstractCommands {
                     turn: game.state.turn,
                     message: `*${game.player2.name} discarded ${discardedCards.length} card${discardedCards.length > 1 ? 's' : ''} to mulligan*`,
                 })
-                game.player2.usedCards.push(...discardedCards)
+                game.player2.usedCards.push(...discardedCards.filter((card) => !card.removeOnDiscard))
                 game.player2.hand = game.player2.hand.filter((card) => !card.selected)
             }
         }

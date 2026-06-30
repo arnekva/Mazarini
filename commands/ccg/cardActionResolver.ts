@@ -381,21 +381,24 @@ export class CardActionResolver {
             }
 
             case 'NEUTRALIZE_ATTACK': {
-                const attackIndex = game.state.stack.findIndex((e) => {
+                // amount = how many incoming attacks to negate (default 1). Harry uses a large number to disarm ALL.
+                const isIncomingAttack = (e: CCGEffect) => {
                     if (!['DAMAGE', 'DAMAGE_PER_IDENTIFIER', 'DAMAGE_PER_CARD_PLAYED', 'SHOOT', 'DAMAGE_PER_OPPONENT_COST'].includes(e.type)) return false
                     if (e.sourcePlayerId === effect.sourcePlayerId) return false
                     if (e.targetPlayerId !== effect.sourcePlayerId) return false
-                    if (
-                        e.condition &&
-                        !this.areConditionsMet(game, this.getPlayer(game, e.sourcePlayerId), this.getPlayer(game, e.targetPlayerId), e.condition)
-                    )
+                    if (e.condition && !this.areConditionsMet(game, this.getPlayer(game, e.sourcePlayerId), this.getPlayer(game, e.targetPlayerId), e.condition))
                         return false
                     return true
-                })
-                if (attackIndex !== -1) {
+                }
+                const toNegate = effect.amount ?? 1
+                let negated = 0
+                let attackIndex: number
+                while (negated < toNegate && (attackIndex = game.state.stack.findIndex(isIncomingAttack)) !== -1) {
                     const neutralized = game.state.stack.splice(attackIndex, 1)[0]
                     this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} **neutralizes** ${neutralized.sourceCardName}'s attack`)
-                } else {
+                    negated++
+                }
+                if (negated === 0) {
                     this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} found no incoming attack to neutralize`)
                 }
                 break
@@ -410,7 +413,8 @@ export class CardActionResolver {
                 const maxHandSize = GameValues.ccg.gameSettings.maxHandSize
                 // Submitted cards are still in hand during resolution; count only non-selected ones as remaining
                 const cardsRemainingAfterPlay = source.hand.filter((c) => !c.selected).length
-                if (cardsRemainingAfterPlay >= maxHandSize) {
+                // Hand-full only blocks summons to hand; deck-top summons are always allowed
+                if (!effect.toDeckTop && cardsRemainingAfterPlay >= maxHandSize) {
                     this.log(game, `${this.getEffectLogPrefix(effect)}${source.name}'s hand is full — could not summon a card`)
                     break
                 }
@@ -421,9 +425,18 @@ export class CardActionResolver {
                     summoned = await this.getRandomCardByIdentifier(effect.identifier)
                 }
                 if (summoned) {
-                    source.hand.push({ ...summoned, summoned: true })
-                    const summonedDesc = effect.identifier ? `a ${effect.identifier} card` : summoned.name
-                    this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} summons **${summonedDesc}** to their hand`)
+                    // value reduces the summoned card's cost (e.g. Hagrid's discount), baked into the instance
+                    const reducedCost = Math.max(0, summoned.cost - (effect.value ?? 0))
+                    const summonedCard = { ...summoned, summoned: true, cost: reducedCost, selected: false }
+                    if (effect.toDeckTop) {
+                        source.deck.push(summonedCard) // deck is drawn from the end => top of pile
+                        this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} puts **${summoned.name}** on top of their deck`)
+                    } else {
+                        source.hand.push(summonedCard)
+                        const summonedDesc = effect.identifier ? `a ${effect.identifier} card` : summoned.name
+                        const discount = (effect.value ?? 0) > 0 ? ` (cost reduced to ${reducedCost})` : ''
+                        this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} summons **${summonedDesc}**${discount} to their hand`)
+                    }
                 } else {
                     this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} could not summon a card — no matching card found`)
                 }
@@ -466,26 +479,158 @@ export class CardActionResolver {
 
             case 'HEAL_PER_OPPONENT_COST': {
                 const opponentEntry = game.state.playedCardsAllGame.find((e) => e.playerId === opponent.id && e.round === game.state.turn)
-                const totalCost = opponentEntry ? opponentEntry.cards.reduce((sum, c) => sum + c.cost, 0) : 0
+                const baseCost = opponentEntry ? opponentEntry.cards.reduce((sum, c) => sum + c.cost, 0) : 0
+                // value acts as a multiplier (e.g. Fawkes heals x2 the opponent's spent cost)
+                const totalCost = baseCost * (effect.value ?? 1)
                 const maxHp = source.maxHp ?? GameValues.ccg.gameSettings.startingHP
                 const healed = Math.min(source.hp + totalCost, maxHp) - source.hp
                 source.hp += healed
-                this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} **heals ${healed} HP** (opponent spent ${totalCost} energy)`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} **heals ${healed} HP** (opponent spent ${baseCost} energy)`)
                 break
             }
 
             case 'DAMAGE_PER_OPPONENT_COST': {
                 const opponentEntry = game.state.playedCardsAllGame.find((e) => e.playerId === target.id && e.round === game.state.turn)
-                const totalCost = opponentEntry ? opponentEntry.cards.reduce((sum, c) => sum + c.cost, 0) : 0
+                const baseCost = opponentEntry ? opponentEntry.cards.reduce((sum, c) => sum + c.cost, 0) : 0
+                // value acts as a multiplier (e.g. Basilisk deals x2 the opponent's spent cost)
+                const totalCost = baseCost * (effect.value ?? 1)
                 this.applyDamage(game, effect, source, target, totalCost)
                 break
             }
 
             case 'INCREASE_MAX_HP': {
                 const hpGain = effect.value ?? 0
+                // amount overrides how much is healed; defaults to the full max-HP gain
+                const healAmount = effect.amount ?? hpGain
                 source.maxHp = (source.maxHp ?? GameValues.ccg.gameSettings.startingHP) + hpGain
-                source.hp = Math.min(source.hp + hpGain, source.maxHp)
+                source.hp = Math.min(source.hp + healAmount, source.maxHp)
                 this.log(game, `${this.getEffectLogPrefix(effect)}${source.name}'s max HP raised to **${source.maxHp}**`)
+                break
+            }
+
+            case 'CANNOT_DIE':
+                // One-time saving grace: negates a single lethal hit and heals `value`. Consumed on use (see applyDamage).
+                this.applyStatusEffect(game, effect, target, 'CANNOT_DIE')
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} is shielded from a **lethal blow** this turn`)
+                break
+
+            case 'COLLECT_CARD': {
+                // Take a random card from the opponent's deck into your own, permanently reducing its cost
+                if (target.deck.length === 0) {
+                    this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} has no cards left in their deck to collect`)
+                    break
+                }
+                const idx = Math.floor(Math.random() * target.deck.length)
+                const collected = target.deck.splice(idx, 1)[0]
+                const costReduction = effect.value ?? 1
+                const collectedCard = { ...collected, selected: false, cost: Math.max(0, collected.cost - costReduction) }
+                source.deck.push(collectedCard)
+                this.log(
+                    game,
+                    `${this.getEffectLogPrefix(effect)}${source.name} **collects ${collectedCard.name}** from ${target.name}'s deck (cost reduced to ${
+                        collectedCard.cost
+                    })`
+                )
+                break
+            }
+
+            case 'MOVE_TO_TOP': {
+                // Move matching cards to the top of the draw pile (deck is popped from the end)
+                const ids = effect.cardIds ?? []
+                const moved: string[] = []
+                for (const id of ids) {
+                    const deckIdx = source.deck.findIndex((c) => c.id === id)
+                    if (deckIdx !== -1) {
+                        const [card] = source.deck.splice(deckIdx, 1)
+                        source.deck.push(card)
+                        moved.push(card.name)
+                    }
+                }
+                if (moved.length > 0) {
+                    this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} moves **${moved.join(' & ')}** to the top of their draw pile`)
+                } else {
+                    this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} found no matching cards in their deck to move`)
+                }
+                break
+            }
+
+            case 'FORESIGHT':
+                // Charges that apply a permanent cost reduction to the next `charges` cards drawn (handled in drawCard)
+                this.applyStatusEffect(game, effect, target, 'FORESIGHT')
+                this.log(
+                    game,
+                    `${this.getEffectLogPrefix(effect)}${target.name}'s next **${effect.charges ?? 1} drawn cards** cost **${effect.value ?? 1} less** (permanent)`
+                )
+                break
+
+            case 'DEATH_EATER_BOUNTY':
+                // Dark Mark: the next Death Eater this player plays deals `value` damage (handled in checkForSpecialCards)
+                this.applyStatusEffect(game, effect, target, 'DEATH_EATER_BOUNTY')
+                this.log(game, `${this.getEffectLogPrefix(effect)}The **Dark Mark** burns — ${target.name}'s next Death Eater will strike for ${effect.value ?? 3}`)
+                break
+
+            case 'SACRIFICE_CARD': {
+                // Permanently remove a random card from your own deck (it does not recycle)
+                if (source.deck.length === 0) {
+                    this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} has no cards in their deck to sacrifice`)
+                    break
+                }
+                const sacIdx = Math.floor(Math.random() * source.deck.length)
+                const [sacrificed] = source.deck.splice(sacIdx, 1)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} **sacrifices ${sacrificed.name}** from their deck`)
+                break
+            }
+
+            case 'MODIFY_COST_PERMANENT': {
+                // Permanently change the cost of cards in the target's hand/deck/used pile.
+                // identifier set => every card of that identifier; otherwise => every copy of the source card (e.g. Lucius)
+                const delta = effect.value ?? 0
+                const matches = (c: CCGCard) => (effect.identifier ? c.identifier?.includes(effect.identifier) : c.id === effect.sourceCardId)
+                let changed = 0
+                for (const card of [...target.hand, ...target.deck, ...target.usedCards]) {
+                    if (matches(card)) {
+                        card.cost = Math.max(0, card.cost + delta)
+                        changed++
+                    }
+                }
+                const what = effect.identifier ? `${effect.identifier} cards` : effect.sourceCardName
+                const dir = delta >= 0 ? `increased by ${delta}` : `reduced by ${Math.abs(delta)}`
+                this.log(
+                    game,
+                    changed > 0
+                        ? `${this.getEffectLogPrefix(effect)}${target.name}'s **${what}** permanently ${dir}`
+                        : `${this.getEffectLogPrefix(effect)}no **${what}** found to modify`
+                )
+                break
+            }
+
+            case 'AUROR': {
+                // If the opponent played any Death Eater this round, permanently increase the cost of those specific cards by 1
+                const playedEntry = game.state.playedCardsAllGame.find((e) => e.playerId === target.id && e.round === game.state.turn)
+                const deathEaterIds = new Set((playedEntry?.cards ?? []).filter((c) => c.identifier?.includes('DEATH_EATER')).map((c) => c.id))
+                if (deathEaterIds.size === 0) {
+                    this.log(game, `${this.getEffectLogPrefix(effect)}${source.name}'s Auror finds no Death Eater to tax`)
+                    break
+                }
+                const taxed: string[] = []
+                for (const card of [...target.hand, ...target.deck, ...target.usedCards]) {
+                    if (deathEaterIds.has(card.id)) {
+                        card.cost = card.cost + 1
+                        if (!taxed.includes(card.name)) taxed.push(card.name)
+                    }
+                }
+                this.log(game, `${this.getEffectLogPrefix(effect)}**Auror**: ${target.name}'s ${taxed.join(', ')} permanently costs **+1**`)
+                break
+            }
+
+            case 'SHUFFLE_CARD': {
+                // Insert a card into the target's deck at a random position
+                if (!effect.summonCardId) break
+                const card = await this.getCardById(effect.summonCardId)
+                if (!card) break
+                const insertAt = Math.floor(Math.random() * (target.deck.length + 1))
+                target.deck.splice(insertAt, 0, { ...card, selected: false })
+                this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} shuffles a **${card.name}** into ${target.name}'s deck`)
                 break
             }
 
@@ -570,6 +715,10 @@ export class CardActionResolver {
                 countTarget: cardEffect.countTarget,
                 base: cardEffect.base,
                 reflectType: cardEffect.reflectType,
+                ignoreDefense: cardEffect.ignoreDefense,
+                cardIds: cardEffect.cardIds,
+                toDeckTop: cardEffect.toDeckTop,
+                charges: cardEffect.charges,
             })
         }
 
@@ -594,32 +743,45 @@ export class CardActionResolver {
         const damageBoost = this.getStatusEffect(game, source, 'DAMAGE_BOOST')
         if (damageBoost && damage > 0 && damageBoost.createdOnTurn !== game.state.turn) damage += damageBoost.value
 
-        // Shield
-        const shield = this.getStatusEffect(game, target, 'SHIELD')
-        if (shield) {
-            const absorbed = Math.min(shield.value, damage)
-            shield.value -= absorbed
-            damage -= absorbed
+        // ignoreDefense (e.g. Filch) pierces straight through shield and armor
+        if (!effect.ignoreDefense) {
+            // Shield
+            const shield = this.getStatusEffect(game, target, 'SHIELD')
+            if (shield) {
+                const absorbed = Math.min(shield.value, damage)
+                shield.value -= absorbed
+                damage -= absorbed
 
-            this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s Shield absorbs ${absorbed}`)
-            if (shield.value <= 0) this.removeStatus(game, shield)
-        }
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s Shield absorbs ${absorbed}`)
+                if (shield.value <= 0) this.removeStatus(game, shield)
+            }
 
-        // Armor (identifier-filtered armor only applies against cards with that identifier)
-        const armor = game.state.statusEffects.filter((s) => {
-            if (s.ownerId !== target.id || s.type !== 'ARMOR') return false
-            if (!s.identifier) return true
-            const sourceCard = ALL_CARDS.find((c) => c.id === effect.sourceCardId)
-            return sourceCard?.identifier?.includes(s.identifier) ?? false
-        })
-        if ((armor?.length ?? 0) > 0 && damage > 0) {
-            const totalArmor = armor.reduce((sum, a) => sum + a.value, 0)
-            const reduced = Math.min(totalArmor, damage)
-            damage -= reduced
-            this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s Armor reduces damage by ${reduced}`)
+            // Armor (identifier-filtered armor only applies against cards with that identifier)
+            const armor = game.state.statusEffects.filter((s) => {
+                if (s.ownerId !== target.id || s.type !== 'ARMOR') return false
+                if (!s.identifier) return true
+                const sourceCard = ALL_CARDS.find((c) => c.id === effect.sourceCardId)
+                return sourceCard?.identifier?.includes(s.identifier) ?? false
+            })
+            if ((armor?.length ?? 0) > 0 && damage > 0) {
+                const totalArmor = armor.reduce((sum, a) => sum + a.value, 0)
+                const reduced = Math.min(totalArmor, damage)
+                damage -= reduced
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s Armor reduces damage by ${reduced}`)
+            }
         }
 
         if (damage > 0) {
+            // CANNOT_DIE (e.g. Buckbeak): one-time saving grace — negate a lethal hit, heal `value`, then consume the status.
+            // Only saves once; a second lethal hit the same turn still kills.
+            const cannotDie = this.getStatusEffect(game, target, 'CANNOT_DIE')
+            if (cannotDie && damage >= target.hp) {
+                this.removeStatus(game, cannotDie)
+                const heal = cannotDie.value ?? 0
+                target.hp += heal
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} **survives a lethal blow**${heal > 0 ? ` and heals ${heal}` : ''}`)
+                return
+            }
             damage = Math.min(target.hp, damage)
             target.hp = target.hp - damage
             source.stats.damageDealt += damage
@@ -642,6 +804,7 @@ export class CardActionResolver {
             createdOnTurn: game.state.turn,
             identifier: effect.identifier,
             delayedTrigger: effect.delayedTrigger,
+            charges: effect.charges,
         })
     }
 
@@ -708,16 +871,27 @@ export class CardActionResolver {
 
         if (status.type === 'BLEED' || status.type === 'SHOCK') {
             const source = this.getPlayer(game, status.sourcePlayerId)
-            player.hp -= status.value
-            source.stats.damageDealt += status.value
-            player.stats.damageTaken += status.value
-            this.log(game, `${player.name} takes ${status.value} ${status.type === 'SHOCK' ? 'shock' : 'bleed'} damage`)
+            // CANNOT_DIE (e.g. Buckbeak) saves once against a lethal damage-over-time tick too
+            const cannotDie = this.getStatusEffect(game, player, 'CANNOT_DIE')
+            if (cannotDie && status.value >= player.hp) {
+                this.removeStatus(game, cannotDie)
+                player.hp += cannotDie.value ?? 0
+                this.log(game, `${player.name} **survives a lethal blow**${(cannotDie.value ?? 0) > 0 ? ` and heals ${cannotDie.value}` : ''}`)
+            } else {
+                player.hp -= status.value
+                source.stats.damageDealt += status.value
+                player.stats.damageTaken += status.value
+                this.log(game, `${player.name} takes ${status.value} ${status.type === 'SHOCK' ? 'shock' : 'bleed'} damage`)
+            }
             await this.delay(2000)
         } else if (status.type === 'GAIN_ENERGY') {
             if (!status.delayedTrigger || status.remainingTurns === 1) {
-                player.energy += status.value
-                this.log(game, `${player.name} gains ${status.value} energy`)
-                await this.delay(2000)
+                // statusAccuracy gates the gain — e.g. Kreacher rolls 50% each turn
+                if (Math.random() <= (status.accuracy ?? 100) / 100) {
+                    player.energy += status.value
+                    this.log(game, `${player.name} gains ${status.value} energy`)
+                    await this.delay(2000)
+                }
             }
         } else if (status.type === 'RECOVER') {
             if (!status.delayedTrigger || status.remainingTurns === 1) {

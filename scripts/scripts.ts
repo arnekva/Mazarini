@@ -86,6 +86,80 @@ export class Scripts {
         }
     }
 
+    /**
+     * HP CCG wipe + economy reset for ALL users:
+     *  - remove every HP card from inventories
+     *  - shards -> 300 (everyone)
+     *  - 2 Bertie Bott's added back for anyone who has played CCG before
+     *  - chips -> 10000
+     *  - daily streak -> 0
+     *  - released from jail
+     * NB: HP cards remaining in a user's saved decks will make those decks invalid until rebuilt.
+     */
+    public async wipeHpCardsAndReset() {
+        const users = await this.client.database.getAllUsers()
+        let hpWiped = 0
+        let bertiesGiven = 0
+        for (const user of users) {
+            // Capture CCG history BEFORE mutating ccg — resetting shards below creates user.ccg for everyone
+            const playedCCG = this.hasPlayedCCG(user)
+
+            // 1. Remove ALL HP cards
+            if (user.loot?.hpCCG) {
+                user.loot.hpCCG.inventory = structuredClone(defaultInventory)
+                hpWiped++
+            }
+
+            // 2. Shards -> 300 for everyone
+            user.ccg = { ...user.ccg, shards: 300 }
+
+            // 3. Give returning CCG players 2 Bertie Bott's back
+            if (playedCCG) {
+                if (!user.loot) user.loot = {}
+                if (!user.loot.hpCCG) {
+                    user.loot.hpCCG = {
+                        name: 'hpCCG',
+                        pityLevel: structuredClone(defaultPityLevel),
+                        inventory: structuredClone(defaultInventory),
+                        stats: structuredClone(defaultLootStats),
+                    }
+                }
+                user.loot.hpCCG.inventory.epic.items.push({
+                    name: 'hp_bertie_botts_n',
+                    series: 'hpCCG',
+                    rarity: ItemRarity.Epic,
+                    color: ItemColor.None,
+                    amount: 2,
+                    isCCG: true,
+                })
+                bertiesGiven++
+            }
+
+            // 4. Chips -> 10000
+            user.chips = 10000
+
+            // 5. Daily -> 0
+            user.daily = { ...user.daily, streak: 0, claimedToday: false }
+
+            // 6. Release from jail
+            user.jail = { ...user.jail, daysInJail: 0, jailState: 'none', attemptedJailbreaks: 0, timesJailedToday: 0, attemptedFrameJobs: 0 }
+
+            await this.client.database.updateUser(user)
+        }
+        return { total: users.length, hpWiped, bertiesGiven }
+    }
+
+    /** True if the user has ever engaged with CCG (has a ccg data object or any CCG loot) */
+    private hasPlayedCCG(user: MazariniUser): boolean {
+        if (user.ccg) return true
+        const ccgSeries: (keyof IUserLoot)[] = ['mazariniCCG', 'swCCG', 'hpCCG']
+        return ccgSeries.some((series) => {
+            const inventory = user.loot?.[series]?.inventory
+            if (!inventory) return false
+            return [inventory.common, inventory.rare, inventory.epic, inventory.legendary].some((rarity) => (rarity?.items?.length ?? 0) > 0)
+        })
+    }
+
     public async makeRevealGif() {
         const igh = new ImageGenerationHelper(this.client)
         const allItems: gifTemplate[] = [

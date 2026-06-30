@@ -32,7 +32,7 @@ export class DailyJobs {
         } else {
             //TODO: This could be refactored
             const users = await this.client.database.getAllUsers()
-            const embed = EmbedUtils.createSimpleEmbed(`Daily Jobs`, `Kjører 7 jobber`)
+            const embed = EmbedUtils.createSimpleEmbed(`Daily Jobs`, `Kjører 8 jobber`)
 
             const claim = this.validateAndResetDailyClaims(users)
             embed.addFields({ name: 'Daily claim', value: EmojiHelper.getStatusEmoji(claim) })
@@ -50,12 +50,46 @@ export class DailyJobs {
             embed.addFields({ name: 'Tilfeldige deathroll vinnertall', value: EmojiHelper.getStatusEmoji(drWinNum) })
             const moreOrLess = await this.awardAndResetMoreOrLess(users)
             embed.addFields({ name: 'More or less', value: EmojiHelper.getStatusEmoji(moreOrLess) })
+            const shardReward = await this.awardScheduledShardReward(users)
+            embed.addFields({ name: 'Shard-belønning', value: EmojiHelper.getStatusEmoji(shardReward) })
             //const events = await this.generateDailyEvents()
             //embed.addFields({ name: 'Events', value: EmojiHelper.getStatusEmoji(events) })
             const todaysTime = new Date().toLocaleTimeString()
             embed.setFooter({ text: todaysTime })
             this.messageHelper.sendMessage(ChannelIds.ACTION_LOG, { embed: embed })
             this.client.database.clearUserCache()
+        }
+    }
+
+    /**
+     * Multi-day shard reward: while scheduledTasks.dailyShardReward.daysRemaining > 0,
+     * grant every user `shardsPerDay` shards and decrement the counter by one day.
+     * Started/stopped from the admin "Cont." panel.
+     */
+    private async awardScheduledShardReward(users: MazariniUser[]): Promise<JobStatus> {
+        try {
+            const storage = await this.client.database.getStorage()
+            const reward = storage.scheduledTasks?.dailyShardReward
+            if (!reward || reward.daysRemaining <= 0 || reward.shardsPerDay <= 0) return 'success' // nothing scheduled
+
+            const updates = this.client.database.getUpdatesObject<'ccg'>()
+            users.forEach((user) => {
+                user.ccg = { ...user.ccg, shards: (user.ccg?.shards ?? 0) + reward.shardsPerDay }
+                const updatePath = this.client.database.getUserPathToUpdate(user.id, 'ccg')
+                updates[updatePath] = user.ccg
+            })
+            this.client.database.updateData(updates)
+
+            const daysRemaining = reward.daysRemaining - 1
+            this.client.database.updateStorage({
+                scheduledTasks: { ...storage.scheduledTasks, dailyShardReward: { ...reward, daysRemaining } },
+            })
+            this.messageHelper.sendLogMessage(
+                `[DailyJobs] Ga ${reward.shardsPerDay} shards til ${users.length} brukere. ${daysRemaining} dag${daysRemaining === 1 ? '' : 'er'} igjen.`
+            )
+            return 'success'
+        } catch {
+            return 'failed'
         }
     }
 

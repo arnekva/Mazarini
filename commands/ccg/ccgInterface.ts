@@ -102,6 +102,10 @@ export interface CCGEffect {
     countTarget?: 'SELF' | 'OPPONENT' | 'BOTH'
     base?: number
     reflectType?: ReflectType
+    ignoreDefense?: boolean
+    cardIds?: string[]
+    toDeckTop?: boolean
+    charges?: number
 } //TODO: is this getting out of hand? Do we need to split this into multiple interfaces or classes? Maybe have a base CCGEffect and then extend it for different types of effects that require different properties?
 
 export type CCGEffectType =
@@ -126,6 +130,12 @@ export type CCGEffectType =
     | 'DAMAGE_PER_OPPONENT_COST'
     | 'INCREASE_MAX_HP'
     | 'PRANK'
+    | 'COLLECT_CARD'
+    | 'MOVE_TO_TOP'
+    | 'AUROR'
+    | 'SACRIFICE_CARD'
+    | 'MODIFY_COST_PERMANENT'
+    | 'SHUFFLE_CARD'
     | CCGStatusEffectType
 
 export type ReflectType = 'damage' | 'allEffects' | 'all' | CCGEffectType[]
@@ -144,6 +154,7 @@ export interface StatusEffect {
     identifier?: CardIdentifier
     delayedTrigger?: boolean
     reflectType?: ReflectType
+    charges?: number
 }
 
 export type CCGStatusEffectType =
@@ -175,6 +186,9 @@ export type CCGStatusEffectType =
     | 'RESTRICT_CARDS'
     | 'SLEEP'
     | 'CANNOT_MISS'
+    | 'CANNOT_DIE'
+    | 'FORESIGHT'
+    | 'DEATH_EATER_BOUNTY'
 
 export interface CCGLogEntry {
     turn: number
@@ -229,6 +243,8 @@ export interface CCGCard {
     summoned?: boolean
     consumable?: boolean
     collectible?: boolean
+    /** Permanently removed (not recycled into used pile) when discarded — e.g. Rubber Duck */
+    removeOnDiscard?: boolean
 }
 
 export interface CCGCondition {
@@ -276,9 +292,23 @@ export interface CCGCardEffect {
     countTarget?: 'SELF' | 'OPPONENT' | 'BOTH'
     base?: number
     reflectType?: ReflectType
+    ignoreDefense?: boolean
+    cardIds?: string[]
+    toDeckTop?: boolean
+    charges?: number
 }
 
-export type HpIdentifier = 'GRYFFINDOR' | 'SLYTHERIN' | 'RAVENCLAW' | 'HUFFLEPUFF' | 'DEATH_EATER' | 'SEEKER' | 'MAGICAL_CREATURE' | 'HOUSE_ELF' | 'POTION'
+export type HpIdentifier =
+    | 'GRYFFINDOR'
+    | 'SLYTHERIN'
+    | 'RAVENCLAW'
+    | 'HUFFLEPUFF'
+    | 'DEATH_EATER'
+    | 'SEEKER'
+    | 'MAGICAL_CREATURE'
+    | 'HOUSE_ELF'
+    | 'POTION'
+    | 'AUROR'
 export type CardIdentifier = SwIdentifier | HpIdentifier
 export type SwIdentifier = 'REBEL' | 'SITH' | 'JEDI' | 'REPUBLIC' | 'BOUNTY_HUNTER' | 'CREATURE' | 'EMPIRE' | 'DROID'
 export type CCGTarget = 'SELF' | 'OPPONENT'

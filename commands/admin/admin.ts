@@ -572,6 +572,10 @@ export class Admin extends AbstractCommands {
                         options: [
                             { value: 'reset_chips_shards_daily', label: 'Reset chips (5000), shards (50) og daily for alle' },
                             { value: 'add_shards_100', label: 'Gi alle 100 shards' },
+                            {
+                                value: 'hp_wipe_reset',
+                                label: 'HP-wipe + reset (slett HP-kort, shards=300, 2 Bertie til CCG-spillere, chips=10000, daily=0, løslat)',
+                            },
                             { value: 'clear_user_cache', label: 'Tøm brukercache (tvinger ny henting fra Firebase)' },
                         ],
                     },
@@ -597,10 +601,67 @@ export class Admin extends AbstractCommands {
             results.push('Ga alle brukere 100 shards.')
             this.messageHelper.sendLogMessage(`[Scripts] ${modalInteraction.user.username} ga alle brukere 100 shards.`)
         }
+        if (selected.includes('hp_wipe_reset')) {
+            const scripts = new Scripts(this.client)
+            const res = await scripts.wipeHpCardsAndReset()
+            results.push(`HP-wipe + reset fullført: ${res.total} brukere (${res.hpWiped} HP-inventar tømt, ${res.bertiesGiven} fikk 2 Bertie's).`)
+            this.messageHelper.sendLogMessage(
+                `[Scripts] ${modalInteraction.user.username} kjørte HP-wipe + reset for alle brukere (${res.total} brukere, ${res.bertiesGiven} fikk Bertie's).`
+            )
+        }
         if (selected.includes('clear_user_cache')) {
             this.client.database.clearUserCache()
             results.push('Brukercache tømt. Neste henting vil hente fersk data fra Firebase.')
             this.messageHelper.sendLogMessage(`[Scripts] ${modalInteraction.user.username} tømte brukercachen.`)
+        }
+
+        await modalInteraction.editReply(results.length ? results.join('\n') : 'Ingenting valgt.')
+    }
+
+    /** Multi-day "continuous" scripts that are driven down one step per daily job run */
+    private async showContinuousModal(interaction: BtnInteraction) {
+        await interaction.showModal({
+            custom_id: Admin.continuousModalId,
+            title: 'Continuous scripts',
+            components: [
+                {
+                    type: ComponentType.Label,
+                    label: 'Flerdagers-scripts (velg én eller flere):',
+                    component: {
+                        type: ComponentType.CheckboxGroup,
+                        custom_id: 'continuous_actions',
+                        required: false,
+                        min_values: 0,
+                        options: [
+                            { value: 'start_shard_reward_7d', label: 'Start: 50 shards til alle hver dag i 7 dager' },
+                            { value: 'stop_shard_reward', label: 'Stopp: pågående daglig shard-belønning' },
+                        ],
+                    },
+                },
+            ],
+        } as any)
+    }
+
+    private async handleContinuousModal(modalInteraction: ModalSubmitInteraction) {
+        await modalInteraction.deferReply({ ephemeral: true })
+        const selected = this.getModalCheckboxValues(modalInteraction, 'continuous_actions')
+        const results: string[] = []
+
+        if (selected.includes('start_shard_reward_7d')) {
+            const storage = await this.client.database.getStorage()
+            this.client.database.updateStorage({
+                scheduledTasks: { ...storage.scheduledTasks, dailyShardReward: { daysRemaining: 7, shardsPerDay: 50 } },
+            })
+            results.push('Startet daglig shard-belønning: 50 shards til alle i 7 dager (teller ned med daily jobs).')
+            this.messageHelper.sendLogMessage(`[Scripts] ${modalInteraction.user.username} startet daglig shard-belønning (50 shards x 7 dager).`)
+        }
+        if (selected.includes('stop_shard_reward')) {
+            const storage = await this.client.database.getStorage()
+            this.client.database.updateStorage({
+                scheduledTasks: { ...storage.scheduledTasks, dailyShardReward: { daysRemaining: 0, shardsPerDay: 0 } },
+            })
+            results.push('Stoppet pågående daglig shard-belønning.')
+            this.messageHelper.sendLogMessage(`[Scripts] ${modalInteraction.user.username} stoppet daglig shard-belønning.`)
         }
 
         await modalInteraction.editReply(results.length ? results.join('\n') : 'Ingenting valgt.')
@@ -683,11 +744,18 @@ export class Admin extends AbstractCommands {
             label: 'Scripts',
             type: 2,
         })
-        const firstRow = new ActionRowBuilder<ButtonBuilder>().addComponents(settingsBtn, ccgBtn, eventsBtn, scriptsBtn)
+        const continuousBtn = new ButtonBuilder({
+            custom_id: 'ADMIN_CONTINUOUS_MODAL',
+            style: ButtonStyle.Danger,
+            label: 'Cont.',
+            type: 2,
+        })
+        const firstRow = new ActionRowBuilder<ButtonBuilder>().addComponents(settingsBtn, ccgBtn, eventsBtn, scriptsBtn, continuousBtn)
         this.messageHelper.replyToInteraction(interaction, 'Admin panel:', { ephemeral: true }, [firstRow])
     }
     static ccgModalId = 'ccgActionsModal'
     static scriptsModalId = 'scriptsActionsModal'
+    static continuousModalId = 'continuousActionsModal'
     static eventsModalId = 'eventsActionsModal'
     static botSettingsId = 'botSettingsModal'
     private async buildSettingsModal(interaction: ChatInteraction | BtnInteraction) {
@@ -985,6 +1053,12 @@ export class Admin extends AbstractCommands {
                         },
                     },
                     {
+                        commandName: 'ADMIN_CONTINUOUS_MODAL',
+                        command: (rawInteraction: BtnInteraction) => {
+                            this.showContinuousModal(rawInteraction)
+                        },
+                    },
+                    {
                         commandName: 'ADMIN_CCG_FETCH',
                         command: (rawInteraction: BtnInteraction) => {
                             this.fetchCCGFromDB(rawInteraction)
@@ -1056,6 +1130,12 @@ export class Admin extends AbstractCommands {
                         commandName: Admin.scriptsModalId,
                         command: (rawInteraction: ModalInteraction) => {
                             this.handleScriptsModal(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: Admin.continuousModalId,
+                        command: (rawInteraction: ModalInteraction) => {
+                            this.handleContinuousModal(rawInteraction)
                         },
                     },
                 ],

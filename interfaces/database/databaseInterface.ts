@@ -425,6 +425,16 @@ export interface MazariniStorage {
         }
     }
     ccg?: ICCGSystem
+    /** Multi-day scheduled tasks driven down by the daily jobs */
+    scheduledTasks?: IScheduledTasks
+}
+
+export interface IScheduledTasks {
+    /** Grants every user `shardsPerDay` shards each day until `daysRemaining` hits 0 */
+    dailyShardReward?: {
+        daysRemaining: number
+        shardsPerDay: number
+    }
 }
 
 export interface ICCGSystem {
