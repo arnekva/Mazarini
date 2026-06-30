@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '33.0.0'
+    public static readonly currentVersion = '34.0.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,22 +27,21 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '## Bugfix',
-                ' * /rocket: Stats ble ikke lagret hvis én av modusene (f.eks. Tournament) manglet data fra tracker.gg. Faller nå tilbake til siste kjente verdi og viser *(outdated)* i embeden.',
+                '## HP CCG – stor revamp',
+                ' * Hele Harry Potter-settet er rebalansert fra bunnen av, med flere helt nye mekanikker.',
+                ' * Samlingene er nullstilt: alle HP-kort er fjernet, så decka med HP-kort må bygges opp på nytt.',
+                ' * Alle starter friskt med **300 shards**. Har du spilt CCG før, har du fått **2x Bertie Bott\'s** tilbake i inventaret.',
+                ' * De neste **7 dagene** får alle **+50 shards hver dag** – logg innom og samle!',
                 '',
-                '## Ytelsesforbedringer',
-                ' * Brukere caches nå i minnet i 30 minutter. Dette gjør at interactions og kommandoer som henter samme bruker flere ganger er mye raskere.',
-                ' * Knapp- og kommandooppslag bruker nå et Map i stedet for lineært søk – O(1) i stedet for O(n).',
-                ' * Pickpocket, vipps og frame-job henter nå begge brukerne parallelt i stedet for sekvensielt.',
-                ' * Wordle-oppdateringer utføres nå parallelt for alle brukere.',
+                '## Nye nøkkelord',
+                ' * **Shield** – en pool som tar imot skade over flere runder, helt til den er brukt opp.',
+                ' * **Armor** – reduserer hvert innkommende angrep, men kun denne runden.',
+                ' * **Pierce** – skade som går rett gjennom både shield og armor (f.eks. Filch).',
+                ' * **Foresight** – en effekt som trigger når kortet trekkes (f.eks. Cedric: de neste 4 kortene du trekker koster permanent 1 mindre).',
+                ' * **Auror** – spilte motstanderen en Death Eater denne runden, blir det kortet permanent 1 dyrere for dem.',
                 '',
-                '## Tekniske forbedringer',
-                ' * Tøm brukercache er lagt til under Scripts i botinnstillinger – må gjøres om en bruker er endres manuelt i Firebase.',
-                ' * Firebase-writes venter nå korrekt på svar fra databasen i hele kjeden.',
-                ' * Boten bundler nå all kode til én fil ved oppstart (esbuild). Dette reduserer antall fillesinger fra SD-kortet og gjør oppstart raskere.',
-                ' * Kommandoer initialiseres nå etter at boten har logget inn på Discord i stedet for før. Hvis du bruker en kommando i det korte vinduet mens boten starter opp, får du en melding om at kommandoene ikke er klare ennå.',
-                ' * Flere steder som tidligere svelget feil vil nå logge dem.',
-                ' * Flere småfikser og opprydding i gammel kode.',
+                '## Annet',
+                ' * Magiske skapninger (Aragog, Basilisk, Fawkes, Buckbeak, Werewolf) kan ikke lenger trekkes fra pakker – de må tilkalles av Hagrid.',
             ].join('\n')
         )
         container.addSeparator()
