@@ -161,7 +161,13 @@ export class CardActionResolver {
             case 'GAIN_ENERGY':
                 if (effect.turns) {
                     this.applyStatusEffect(game, effect, target, 'GAIN_ENERGY')
-                    this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} gains **${effect.value} energy** extra for ${effect.turns} turns`)
+                    const energyChance = effect.statusAccuracy ?? 100
+                    this.log(
+                        game,
+                        energyChance < 100
+                            ? `${this.getEffectLogPrefix(effect)}${target.name} has a **${energyChance}% chance** to gain **${effect.value} energy** each turn for **${effect.turns} turns**`
+                            : `${this.getEffectLogPrefix(effect)}${target.name} gains **${effect.value} energy** extra for ${effect.turns} turns`
+                    )
                 } else {
                     target.energy = target.energy + (effect.value ?? 1)
                     this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} gains **${effect.value} energy**`)

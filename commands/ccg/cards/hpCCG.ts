@@ -392,8 +392,7 @@ export const hpCCG: CCGCard[] = [
                 target: 'OPPONENT',
             },
         ],
-        customDescription:
-            '[green]Heal 2[/green], gain [blue]1 energy[/blue]. [grey]Auror[/grey]: a [red]Death Eater[/red] played this round costs [blue]+1[/blue] permanently.',
+        customDescription: '[green]Heal 2[/green], gain [blue]1 energy[/blue]. [grey]Auror[/grey]',
         cost: 1,
         speed: 62,
         rarity: ItemRarity.Rare,
@@ -417,8 +416,7 @@ export const hpCCG: CCGCard[] = [
                 target: 'OPPONENT',
             },
         ],
-        customDescription:
-            '[green]Heal 2[/green]. [grey]Auror[/grey]: a [red]Death Eater[/red] played this round costs [blue]+1[/blue] permanently.',
+        customDescription: '[green]Heal 2[/green]. [grey]Auror[/grey]',
         cost: 1,
         speed: 5,
         rarity: ItemRarity.Rare,
@@ -971,8 +969,7 @@ export const hpCCG: CCGCard[] = [
                 target: 'OPPONENT',
             },
         ],
-        customDescription:
-            'Play [gold]1 extra card[/gold] for 2 turns. [grey]Auror[/grey]: a [red]Death Eater[/red] played this round costs [blue]+1[/blue] permanently.',
+        customDescription: 'Play [gold]1 extra card[/gold] for 2 turns. [grey]Auror[/grey]',
         cost: 2,
         speed: 10,
         rarity: ItemRarity.Epic,
