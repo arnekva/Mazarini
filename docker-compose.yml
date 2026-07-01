@@ -1,8 +1,31 @@
 services:
   mazarini:
+    # On the server the image is pulled from ghcr (built by CI). `build: .` is kept so it can
+    # still be built locally for dev with `docker compose build`.
+    image: ghcr.io/arnekva/mazarini:latest
     build: .
     container_name: mazarini
     restart: unless-stopped
     # Secrets stay out of the image: .env is mounted read-only and loaded by dotenv at runtime.
     volumes:
       - ./.env:/app/.env:ro
+    labels:
+      # Watchtower watches this container and, before swapping in a new image, runs the pre-update
+      # command inside it. curl -f exits non-zero on a 423 (active games), which makes Watchtower
+      # skip the update this cycle and retry next poll — the same guard as the /restart command.
+      - com.centurylinklabs.watchtower.enable=true
+      - com.centurylinklabs.watchtower.lifecycle.pre-update-timeout=1
+      - com.centurylinklabs.watchtower.lifecycle.pre-update=/usr/bin/curl -fs http://localhost:8475/restart-check
+
+  watchtower:
+    # Polls ghcr for a new mazarini image and deploys it (gated by the pre-update hook above).
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_LABEL_ENABLE=true
+      - WATCHTOWER_LIFECYCLE_HOOKS=true
+      - WATCHTOWER_POLL_INTERVAL=60
+      - WATCHTOWER_CLEANUP=true

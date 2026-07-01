@@ -21,11 +21,12 @@ FROM node:20-bookworm-slim
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Runtime libs for canvas/sharp + tools to fetch curl-impersonate
+# Runtime libs for canvas/sharp + git (startup commit-log feature) + tools to fetch curl-impersonate
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libjpeg62-turbo libgif7 librsvg2-2 \
-    ca-certificates fonts-liberation curl \
- && rm -rf /var/lib/apt/lists/*
+    ca-certificates fonts-liberation curl git \
+ && rm -rf /var/lib/apt/lists/* \
+ && git config --system --add safe.directory /app
 
 # Install curl-impersonate (provides the curl_chrome116 binary used for scraping).
 # TARGETARCH is set automatically by Docker buildkit (arm64 on Apple Silicon / Oracle A1, amd64 on Intel).

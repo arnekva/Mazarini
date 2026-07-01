@@ -5,8 +5,7 @@
 node_modules
 bin
 
-# Git / editor / OS cruft
-.git
+# Editor / OS cruft (.git IS included so the startup commit-log feature works)
 .gitignore
 .vscode
 .idea

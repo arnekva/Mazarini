@@ -91,7 +91,7 @@ export class RestartServer {
     private logSwapping(): void {
         this.lastImpedimentsKey = ''
         if (!this.swapLogged) {
-            this.client.messageHelper.sendLogMessage('✅ Klar for restart – GitHub-deploy bytter til ny build nå')
+            this.client.messageHelper.sendLogMessage('🔄 Starter swap til ny build nå')
             this.swapLogged = true
         }
     }

@@ -1,4 +1,3 @@
-import { exec } from 'child_process'
 import { randomUUID } from 'crypto'
 import {
     ActionRowBuilder,
@@ -386,22 +385,14 @@ export class Admin extends AbstractCommands {
             await this.client.onRestart() //has just been run in attemptRestart() if interaction is ChatInputCommandInteraction
         }
         ClientHelper.setDisplayNameMode(this.client, 'offline')
-        await this.messageHelper.replyToInteraction(interaction, `Forsøker å restarte botten`, { hasBeenDefered: deferred })
-        let restartMsg = `Restart trigget av ${interaction.user.username} i kanalen ${MentionUtils.mentionChannel(
+        await this.messageHelper.replyToInteraction(interaction, `Restarter botten ...`, { hasBeenDefered: deferred })
+        const restartMsg = `Restart trigget av ${interaction.user.username} i kanalen ${MentionUtils.mentionChannel(
             interaction.channelId
-        )}. Henter data fra Git og restarter botten ...`
-        const msg = await this.messageHelper.sendLogMessage(restartMsg)
-        const commitId = await this.client.database.getBotData('commit-id')
-        await exec(`git pull && npm run bundle && pm2 restart mazarini -- --restartedForGit restartedForGit --${commitId}`, async (error, stdout) => {
-            if (error) {
-                restartMsg += `\nKlarte ikke restarte: \n${error}`
-                msg.edit(restartMsg)
-            }
-            if (stdout) {
-                restartMsg += `\n* Hentet data fra git`
-                await msg.edit(restartMsg)
-            }
-        })
+        )}. Restarter botten ...`
+        await this.messageHelper.sendLogMessage(restartMsg)
+        // Running in Docker: exiting the process triggers the container restart policy (unless-stopped),
+        // which brings the bot back up on the current image. New code is deployed separately via CI + Watchtower.
+        setTimeout(() => process.exit(0), 1500)
     }
     //TODO: Make a command that triggers this
     private async refreshBot() {

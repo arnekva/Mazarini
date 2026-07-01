@@ -54,7 +54,7 @@ export class ClientListener {
                     day: 'numeric',
                 })} ${new Date().toLocaleTimeString('nb')} !`
             )
-            const msg = 'Boten er nå live i production mode. '
+            const msg = '✅ Build byttet inn — boten er live i production mode.'
 
             //TODO: Work out this stuff
 
