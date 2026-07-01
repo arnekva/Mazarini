@@ -1,6 +1,6 @@
 node_modules
 bin/
-client-env.ts
+.env
 package-lock.json
 .VSCodeCounter/
 yarn.lock

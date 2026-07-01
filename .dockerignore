@@ -1,0 +1,22 @@
+# Secrets are bind-mounted at runtime, never baked into the image
+.env
+
+# Rebuilt inside the image
+node_modules
+bin
+
+# Git / editor / OS cruft
+.git
+.gitignore
+.vscode
+.idea
+.DS_Store
+.VSCodeCounter
+
+# Generated at runtime
+res/ccg/generated
+res/ccg/inventory
+
+# Docs / misc not needed at runtime
+README.MD
+*.log

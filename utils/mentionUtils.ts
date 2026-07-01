@@ -55,6 +55,7 @@ export class MentionUtils {
         BOT_SUPPORT: '863038817794392106',
         NATO: '963396965947801630',
         WARZONE: '1034860501383004161',
+        DEVELOPER: '1521495578838831217',
     }
 
     static User_IDs = {

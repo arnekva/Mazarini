@@ -355,7 +355,7 @@ export class PoletCommands extends AbstractCommands {
                         )
                         embed.addFields(diceRoll, wineScore, description)
 
-                        console.log(rating)
+
                     }
 
                     //Possible formats: product, thumbnail, zoom, cartIcon and superZoom (some may be identical or not exist at all.)

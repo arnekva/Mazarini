@@ -1,0 +1,8 @@
+services:
+  mazarini:
+    build: .
+    container_name: mazarini
+    restart: unless-stopped
+    # Secrets stay out of the image: .env is mounted read-only and loaded by dotenv at runtime.
+    volumes:
+      - ./.env:/app/.env:ro

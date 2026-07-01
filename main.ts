@@ -3,6 +3,7 @@ import { discordSecret } from './client-env'
 import { MazariniClient } from './client/MazariniClient'
 import { CCGCardGenerator } from './helpers/ccgCardGenerator'
 import { CCGCard } from './commands/ccg/ccgInterface'
+import { RestartServer } from './helpers/restartServer'
 
 export class MazariniBot {
     private client: MazariniClient
@@ -27,6 +28,9 @@ export class MazariniBot {
         await this.client.login(discordSecret)
         console.log('Logged in, starting setup')
         this.client.createSlashCommands()
+
+        // Localhost endpoint that gates automated deploys on the same guards as the /restart command
+        new RestartServer(this.client).start()
 
         // Generate CCG card images asynchronously on startup, using cards from DB if available
         this.client.database

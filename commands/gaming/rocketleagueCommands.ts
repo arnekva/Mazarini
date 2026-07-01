@@ -52,10 +52,6 @@ export class RocketLeagueCommands extends AbstractCommands {
             .catch((error) => this.client.messageHelper.sendLogMessage(`Feil ved lasting av RL tournaments: ${error}`))
     }
 
-    private getPuppeteer() {
-        return require('puppeteer')
-    }
-
     private stripTags(content: string) {
         const stripTags = require('striptags')
         return stripTags(content)

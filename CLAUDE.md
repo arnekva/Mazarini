@@ -7,7 +7,7 @@ A feature-rich Discord bot for a private Norwegian friend group. Written in Type
 - **Discord.js** — bot framework
 - **Firebase Realtime Database** — primary data store (`FirebaseHelper` → `DatabaseHelper`)
 - **Cloudflare R2** — blob/image storage (`CloudflareHelper`)
-- **Puppeteer** — headless browser for scraping (e.g. tracker.gg for Rocket League stats)
+- **curl-impersonate** (`curl_chrome116`) — browser-impersonating HTTP client shelled out to for scraping (e.g. tracker.gg for Rocket League stats)
 - **Gemini AI** — used via `GeminiHelper`
 - **Node.js / TypeScript** — `npm run build` compiles, `npm start` runs
 
@@ -49,7 +49,7 @@ Timed work lives in `Jobs/` — `dailyJobs.ts`, `hourlyJobs.ts`, `weeklyJobs.ts`
 | Money / economy | `commands/money/` |
 | Gambling games (blackjack, deathroll, ludo, mastermind…) | `commands/games/` |
 | Loot boxes / store | `commands/store/` |
-| Rocket League stats (tracker.gg via Puppeteer) | `commands/gaming/` |
+| Rocket League stats (tracker.gg via curl-impersonate) | `commands/gaming/` |
 | Drinks / Vinmonopolet | `commands/drinks/` |
 | Calendar | `commands/calendarCommands.ts` |
 | Crime | `commands/money/crimeCommands.ts` |
@@ -57,10 +57,12 @@ Timed work lives in `Jobs/` — `dailyJobs.ts`, `hourlyJobs.ts`, `weeklyJobs.ts`
 
 ## Environments
 
-- **prod** — Raspberry Pi. Puppeteer uses `/usr/bin/chromium` with `--no-sandbox` flags.
-- **dev** — local Windows/Mac. Puppeteer uses its bundled Chromium.
+- **prod** — Raspberry Pi.
+- **dev** — local Windows/Mac.
 
 Check `environment` from `client-env.ts` to branch between them (see e.g. `rocketleagueCommands.ts`).
+
+Scraping (e.g. Rocket League stats) shells out to the `curl_chrome116` binary (curl-impersonate), which must be installed on the host / in the container.
 
 ## Language
 
