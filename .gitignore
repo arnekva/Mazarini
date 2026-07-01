@@ -1,7 +1,6 @@
 node_modules
 bin/
 .env
-package-lock.json
 .VSCodeCounter/
 yarn.lock
 .DS_Store
@@ -9,6 +8,5 @@ yarn.lock
 myDataBase.json
 ./graphics/file.gif
 ./graphics/file.gif
-./package-lock.json
 res/ccg/generated/
 res/ccg/inventory
