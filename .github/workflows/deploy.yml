@@ -67,7 +67,7 @@ jobs:
                   DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
               run: |
                   [ -z "$DISCORD_WEBHOOK" ] && exit 0
-                  msg="📦 Build ferdig — image pushet til ghcr (\`${GITHUB_SHA:0:8}\`). Watchtower deployer straks (venter på aktive spill)."
+                  msg="📦 Build ferdig — image pushet til ghcr (\`${GITHUB_SHA:0:8}\`). Watchtower ruller ut så snart ingen spill er aktive."
                   payload=$(jq -n --arg c "$msg" '{content:$c}')
                   curl -s -H "Content-Type: application/json" -d "$payload" "$DISCORD_WEBHOOK" || true
 

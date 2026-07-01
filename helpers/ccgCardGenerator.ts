@@ -275,6 +275,13 @@ export class CCGCardGenerator {
         return path.resolve(seriesDir, `${card.id}_small.png`)
     }
 
+    /** Local file path for a card's cached, pre-processed art layer (used to warm artCache fast on startup) */
+    static getArtPath(card: CCGCard): string {
+        const seriesDir = path.resolve(OUTPUT_DIR, card.series)
+        if (!fs.existsSync(seriesDir)) fs.mkdirSync(seriesDir, { recursive: true })
+        return path.resolve(seriesDir, `${card.id}_art.png`)
+    }
+
     static getCollagePath(series: string): string {
         const seriesDir = path.resolve(OUTPUT_DIR, series)
         if (!fs.existsSync(seriesDir)) fs.mkdirSync(seriesDir, { recursive: true })
@@ -439,8 +446,21 @@ export class CCGCardGenerator {
     }
 
     /** Fetch, resize and round-clip art for a card, storing it in the art cache */
-    private static async cacheArt(card: CCGCard, appEmojis: Collection<string, ApplicationEmoji>): Promise<void> {
+    private static async cacheArt(card: CCGCard, appEmojis: Collection<string, ApplicationEmoji>, forceRegenerate = false): Promise<void> {
         if (artCache.has(card.id)) return
+        const artPath = CCGCardGenerator.getArtPath(card)
+        // Fast path: the processed art layer was persisted on a previous run — read it back (a single
+        // file read + metadata) instead of re-fetching from the Discord CDN and re-running sharp.
+        if (!forceRegenerate && fs.existsSync(artPath)) {
+            try {
+                const buffer = await fs.promises.readFile(artPath)
+                const meta = await sharp(buffer).metadata()
+                artCache.set(card.id, { buffer, width: meta.width ?? 0, height: meta.height ?? 0 })
+                return
+            } catch {
+                // Unreadable cache file — fall through and regenerate it below.
+            }
+        }
         const artBuffer = await CCGCardGenerator.fetchEmojiArt(card, appEmojis)
         if (!artBuffer) return
         // Trim transparent canvas margins first so visual content is truly centered.
@@ -462,6 +482,8 @@ export class CCGCardGenerator {
             ])
             .png()
             .toBuffer()
+        // Persist the processed art layer so future startups take the fast path above.
+        await fs.promises.writeFile(artPath, roundedArt).catch(() => {})
         artCache.set(card.id, { buffer: roundedArt, width: actualW, height: actualH })
     }
 
@@ -491,8 +513,9 @@ export class CCGCardGenerator {
         const base = sharp(blankPath).resize(CARD_WIDTH, CARD_HEIGHT).png()
         const layers: sharp.OverlayOptions[] = []
 
-        // Fetch and cache art, then composite it
-        await CCGCardGenerator.cacheArt(card, appEmojis)
+        // Fetch and cache art, then composite it. Force a fresh fetch here (a card is being (re)generated,
+        // so its persisted art layer may be stale) — this also refreshes the on-disk art cache.
+        await CCGCardGenerator.cacheArt(card, appEmojis, true)
         const cached = artCache.get(card.id)
         if (cached) {
             const minLeft = ART_BOUND_LEFT + ART_PADDING
