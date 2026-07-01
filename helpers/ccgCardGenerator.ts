@@ -231,11 +231,20 @@ export class CCGCardGenerator {
         }
         cards.sort((a, b) => sortOrder[a.rarity] - sortOrder[b.rarity])
         if (!cards || cards.length === 0) return undefined
-        const buffers = await Promise.all(
+        // A card image may not exist yet (still generating after a fresh start/deploy). Skip it instead
+        // of letting the ENOENT reject and crash the whole bot; the collage rebuilds fully once cards exist.
+        const maybeBuffers = await Promise.all(
             cards.map(async (card) => {
-                return Buffer.from(await CCGCardGenerator.getCardBuffer(card))
+                try {
+                    return Buffer.from(await CCGCardGenerator.getCardBuffer(card))
+                } catch (e) {
+                    client.messageHelper.sendLogMessage(`[CCG] Hoppet over kort ${card.id} i collage (bilde ikke klart enda)`)
+                    return null
+                }
             })
         )
+        const buffers = maybeBuffers.filter((b): b is Buffer => b !== null)
+        if (buffers.length === 0) return undefined
 
         const bufferChunks = ArrayUtils.chunkArray<Buffer>(buffers, 8)
 
@@ -290,9 +299,11 @@ export class CCGCardGenerator {
         return await fs.promises.readFile(path)
     }
 
-    static async getSeriesCollage(client: MazariniClient, series: string): Promise<Buffer> {
+    static async getSeriesCollage(client: MazariniClient, series: string): Promise<Buffer | undefined> {
         const collagePath = this.getCollagePath(series)
         if (!fs.existsSync(collagePath)) await this.generateCollage(client, series)
+        // Still missing means no cards were ready to build it yet — don't ENOENT-crash the caller.
+        if (!fs.existsSync(collagePath)) return undefined
         return await fs.promises.readFile(collagePath)
     }
 

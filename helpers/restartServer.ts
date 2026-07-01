@@ -18,6 +18,8 @@ import { MentionUtils } from '../utils/mentionUtils'
  */
 export class RestartServer {
     private static readonly IMPEDED_LOG_THROTTLE_MS = 5 * 60 * 1000
+    /** How long the same impediment set may block a deploy before it's treated as stagnant and overridden */
+    private static readonly STAGNANT_OVERRIDE_MS = Number(process.env.STAGNANT_OVERRIDE_MINUTES ?? 10) * 60 * 1000
 
     /** Last impediment set we logged, joined to a string — used to detect changes and avoid repeats */
     private lastImpedimentsKey = ''
@@ -25,6 +27,10 @@ export class RestartServer {
     private lastImpededLogAt = 0
     /** Whether we've already logged the "swapping" message for the current safe window */
     private swapLogged = false
+    /** When the current uninterrupted blocking streak began (0 = not currently blocked) */
+    private blockingSince = 0
+    /** Impediments seen during the current blocking streak — a genuinely new one resets the stagnation timer */
+    private readonly seenImpediments = new Set<string>()
 
     constructor(private readonly client: MazariniClient) {}
 
@@ -56,9 +62,23 @@ export class RestartServer {
             try {
                 const impediments = await this.client.collectRestartImpediments(true)
                 if (impediments.length > 0) {
+                    const now = Date.now()
+                    // A genuinely new impediment (fresh activity) resets the stagnation timer; the same
+                    // set persisting does not. This way an actively-played channel is never interrupted,
+                    // but a stuck/abandoned game can't block the deploy forever.
+                    const hasNew = impediments.some((i) => !this.seenImpediments.has(i))
+                    if (this.blockingSince === 0 || hasNew) this.blockingSince = now
+                    impediments.forEach((i) => this.seenImpediments.add(i))
+
+                    if (now - this.blockingSince >= RestartServer.STAGNANT_OVERRIDE_MS) {
+                        this.logStagnantOverride(impediments, now - this.blockingSince)
+                        this.resetBlocking()
+                        return this.send(res, 200, { safe: true, overridden: true })
+                    }
                     this.logImpeded(impediments)
                     return this.send(res, 423, { safe: false, impediments })
                 }
+                this.resetBlocking()
                 this.logSwapping()
                 return this.send(res, 200, { safe: true })
             } catch (err) {
@@ -85,6 +105,21 @@ export class RestartServer {
             this.lastImpedimentsKey = key
             this.lastImpededLogAt = now
         }
+    }
+
+    /** Clear the stagnation-tracking state (impediments gone, or a stagnant set was just overridden) */
+    private resetBlocking(): void {
+        this.blockingSince = 0
+        this.seenImpediments.clear()
+    }
+
+    /** Log that a stuck impediment set was forced through after the stagnation timeout */
+    private logStagnantOverride(impediments: string[], waitedMs: number): void {
+        const mins = Math.round(waitedMs / 60000)
+        const reasons = impediments.map((i) => `• ${i}`).join('\n')
+        this.client.messageHelper.sendLogMessage(
+            `⚠️ Deploy tvunget gjennom etter ${mins} min – ignorerer fastlåste hindringer og bytter til ny build:\n${reasons}`
+        )
     }
 
     /** Log that the gate is clear and the new build is about to be swapped in — once per safe window */

@@ -9,6 +9,9 @@ services:
     # Secrets stay out of the image: .env is mounted read-only and loaded by dotenv at runtime.
     volumes:
       - ./.env:/app/.env:ro
+      # Persist generated CCG card images across restarts/deploys so they aren't wiped and
+      # regenerated every time (the regeneration window otherwise causes ENOENT crashes).
+      - ccg-generated:/app/res/ccg/generated
     labels:
       # Watchtower watches this container and, before swapping in a new image, runs the pre-update
       # command inside it. curl -f exits non-zero on a 423 (active games), which makes Watchtower
@@ -32,3 +35,8 @@ services:
       - WATCHTOWER_LIFECYCLE_HOOKS=true
       - WATCHTOWER_POLL_INTERVAL=60
       - WATCHTOWER_CLEANUP=true
+      # Debug so the pre-update hook (restart-check gate) execution is visible in watchtower logs.
+      - WATCHTOWER_DEBUG=true
+
+volumes:
+  ccg-generated:

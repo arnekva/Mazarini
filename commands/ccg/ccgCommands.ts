@@ -1162,6 +1162,9 @@ export class CCGCommands extends AbstractCommands {
         const series = interaction.options.get('serie')?.value as string
         const CCGCardGenerator = this.getCardGenerator()
         const img = await CCGCardGenerator.getSeriesCollage(this.client, series)
+        if (!img) {
+            return this.messageHelper.replyToInteraction(interaction, 'Kortene genereres fortsatt – prøv igjen om litt.', { hasBeenDefered: true })
+        }
         const file = new AttachmentBuilder(img, { name: `${series}_pokedex.png` })
         this.messageHelper.replyToInteraction(interaction, '', { hasBeenDefered: true }, undefined, [file])
     }
