@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '34.1.0'
+    public static readonly currentVersion = '34.1.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,20 +28,22 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '## Kortendringer (HP CCG)',
-                ' * **Sirius Black** – gjør nå **2 skade** (opp fra 1).',
-                ' * **Kreacher** – varer nå **5 runder** (ned fra 6).',
-                ' * **Bellatrix Lestrange** – bygd om: **+1 skade** i 2 runder, og motstanderens **helbredelse reduseres med 1** i 2 runder.',
-                ' * **Horace Slughorn** – *Collect* **kopierer** nå kortet (stjeler ikke lenger), og hvilken toddy som legges på toppen av decket avsløres ikke lenger.',
-                ' * **Dark Mark** – bruker nå nøkkelordet **Bounty: 3**.',
-                ' * Tilkalte kort som ikke får plass på hånda (maks 4) havner nå på **toppen av decket** i stedet for å forsvinne.',
+                ' * **Ginny Weasley** – koster nå **2 energi** (ned fra 3).',
+                ' * **Remus Lupin** – gir nå **3 skjold** (opp fra 2).',
                 '',
-                '## Nytt nøkkelord',
-                ' * **Heal reduction** – reduserer hvor mye målet helbreder (Bellatrix).',
+                '## Prank-oppdateringer (Fred & George)',
+                ' * **Dungbomb** – gjør nå **5 skade** på begge spillere, helbreder deg selv for **4** og motstanderen for **2**.',
+                ' * **Ton-Tongue Toffee** – **stjeler 1 energi** fra motstanderen (i stedet for å gi 2 til deg selv).',
+                ' * **Decoy Detonator** – fjerner nå **alle skjold og rustning** fra begge spillere.',
                 '',
-                '## Annet',
-                ' * **/weather** heter nå **/værmelding**, og viser i tillegg **UV-indeks** og **vanntemperatur**.',
-                ' * Boten kræsjer ikke lenger på tilfeldige «Unknown Interaction»-feil.',
-                ' * Fikser tidssone',
+                '## Nye pranks',
+                ' * **Fainting Fancy** – begge spilleres energi settes til **2**.',
+                ' * **Fever Fudge** – begge spilleres HP settes til **15**.',
+                ' * **Peruvian Instant Darkness Powder** – kaster alle kortene på motstanderens hånd.',
+                ' * **Hiccough Sweets** – alle kortkostnader randomiseres (1–5) i **3 runder** for begge spillere.',
+                '',
+                '## Høes hard deck',
+                ' * Oppdatert med nytt utvalg kort.',
             ].join('\n')
         )
         container.addSeparator()

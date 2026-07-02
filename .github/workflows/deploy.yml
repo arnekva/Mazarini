@@ -71,6 +71,18 @@ jobs:
                   payload=$(jq -n --arg c "$msg" '{content:$c}')
                   curl -s -H "Content-Type: application/json" -d "$payload" "$DISCORD_WEBHOOK" || true
 
+            - name: Trigger Watchtower update
+              if: success()
+              env:
+                  ORACLE_SSH_KEY: ${{ secrets.ORACLE_SSH_KEY }}
+                  WATCHTOWER_TOKEN: ${{ secrets.WATCHTOWER_TOKEN }}
+              run: |
+                  mkdir -p ~/.ssh
+                  echo "$ORACLE_SSH_KEY" > ~/.ssh/oracle_key
+                  chmod 600 ~/.ssh/oracle_key
+                  ssh -i ~/.ssh/oracle_key -o StrictHostKeyChecking=no ubuntu@79.76.57.158 \
+                    "curl -s -f -H 'Authorization: Bearer $WATCHTOWER_TOKEN' http://localhost:8080/v1/update"
+
             - name: Notify Discord — build failed
               if: failure()
               env:
