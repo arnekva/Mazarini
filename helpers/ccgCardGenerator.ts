@@ -128,7 +128,7 @@ const artCache = new Map<string, { buffer: Buffer; width: number; height: number
 
 /** A stat/value modification to apply when rendering a card image on the fly */
 export interface CardModification {
-    type: 'COST_DELTA' | 'DAMAGE_DELTA' | 'HEAL_DELTA' | 'ENERGY_DELTA' | 'SPEED_DELTA' | 'SPEED_MULTIPLIER' | 'ACCURACY_DELTA' | 'ACCURACY_OVERRIDE'
+    type: 'COST_DELTA' | 'DAMAGE_DELTA' | 'HEAL_DELTA' | 'ENERGY_DELTA' | 'SPEED_DELTA' | 'SPEED_MULTIPLIER' | 'ACCURACY_DELTA' | 'ACCURACY_OVERRIDE' | 'COST_RANDOMIZE'
     value: number
     /** If set, this modification only applies to cards that have this identifier */
     identifier?: CardIdentifier
@@ -363,6 +363,9 @@ export class CCGCardGenerator {
             switch (mod.type) {
                 case 'COST_DELTA':
                     c.cost = Math.max(0, c.cost + mod.value)
+                    break
+                case 'COST_RANDOMIZE':
+                    c.cost = Math.floor(Math.random() * 5) + 1
                     break
                 case 'DAMAGE_DELTA':
                     for (const effect of effects) {
@@ -650,7 +653,7 @@ export class CCGCardGenerator {
         }" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${card.accuracy}</text>
 
   <!-- ═══ CARD NAME ═══ -->
-        <text x="${NAME_X}" y="${NAME_Y}" font-family="Arial, sans-serif" font-size="34" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${escapedName}</text>
+        <text x="${NAME_X}" y="${NAME_Y}" font-family="Arial, sans-serif" font-size="${card.nameFontSize ?? 34}" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${escapedName}</text>
 
     <!-- ═══ EFFECT DESCRIPTION ═══ -->
     <g font-family="Arial, sans-serif" font-size="${fontSize}">

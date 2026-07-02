@@ -136,6 +136,8 @@ export type CCGEffectType =
     | 'SACRIFICE_CARD'
     | 'MODIFY_COST_PERMANENT'
     | 'SHUFFLE_CARD'
+    | 'SET_ENERGY'
+    | 'SET_HP'
     | CCGStatusEffectType
 
 export type ReflectType = 'damage' | 'allEffects' | 'all' | CCGEffectType[]
@@ -187,6 +189,7 @@ export type CCGStatusEffectType =
     | 'RESTRICT_CARDS'
     | 'SLEEP'
     | 'CANNOT_MISS'
+    | 'RANDOMIZE_COST'
     | 'CANNOT_DIE'
     | 'FORESIGHT'
     | 'DEATH_EATER_BOUNTY'
@@ -240,6 +243,7 @@ export interface CCGCard {
     blank?: string
     identifier?: CardIdentifier[]
     customDescription?: string
+    nameFontSize?: number
     effectImmunities?: CCGStatusEffectType[]
     summoned?: boolean
     consumable?: boolean

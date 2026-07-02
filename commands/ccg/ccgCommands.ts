@@ -195,7 +195,8 @@ export class CCGCommands extends AbstractCommands {
             })
         }
         const costReductionEffects = this.getEffectsForPlayer(game, player, 'REDUCE_COST')
-        const submittedCost = submitted.reduce((sum, card) => sum + this.calcCardCost(card, costReductionEffects), 0)
+        const hasRandomizeCost = this.getEffectsForPlayer(game, player, 'RANDOMIZE_COST').length > 0
+        const submittedCost = submitted.reduce((sum, card) => sum + this.calcCardCost(card, costReductionEffects, hasRandomizeCost), 0)
         if (submittedCost > player.energy) {
             return this.messageHelper.replyToInteraction(interaction, 'Du har ikke nok energi!', { ephemeral: true })
         }
@@ -265,7 +266,8 @@ export class CCGCommands extends AbstractCommands {
             if (game.vsBot) {
                 const botSubmitted = game.player2.hand.filter((card) => card.selected)
                 const botCostReductionEffects = this.getEffectsForPlayer(game, game.player2, 'REDUCE_COST')
-                const botCost = botSubmitted.reduce((sum, card) => sum + this.calcCardCost(card, botCostReductionEffects), 0)
+                const botHasRandomizeCost = this.getEffectsForPlayer(game, game.player2, 'RANDOMIZE_COST').length > 0
+                const botCost = botSubmitted.reduce((sum, card) => sum + this.calcCardCost(card, botCostReductionEffects, botHasRandomizeCost), 0)
                 game.player2.energy -= botCost
                 this.registerCardsPlayed(game.player2, botSubmitted)
             }
@@ -293,7 +295,8 @@ export class CCGCommands extends AbstractCommands {
         return game.state.statusConditions.filter((effect) => effect.ownerId === player.id && (!type || effect.type === type))
     }
 
-    private calcCardCost(card: CCGCard, costReductionEffects: ReturnType<typeof this.getEffectsForPlayer>) {
+    private calcCardCost(card: CCGCard, costReductionEffects: ReturnType<typeof this.getEffectsForPlayer>, randomizeCost = false) {
+        if (randomizeCost) return Math.floor(Math.random() * 5) + 1
         const reduction = costReductionEffects.reduce((sum, e) => {
             if (!e.identifier || card.identifier?.includes(e.identifier)) return sum + e.value
             return sum
@@ -659,6 +662,7 @@ export class CCGCommands extends AbstractCommands {
         for (const effect of game.state.statusEffects) {
             if (effect.ownerId !== player.id) continue
             if (effect.type === 'REDUCE_COST') mods.push({ type: 'COST_DELTA', value: -effect.value, identifier: effect.identifier })
+            if (effect.type === 'RANDOMIZE_COST') mods.push({ type: 'COST_RANDOMIZE', value: 0 })
             if (effect.type === 'CHOKE_SHIELD') mods.push({ type: 'ACCURACY_DELTA', value: 20 })
             if (effect.type === 'SPEED_BUFF') mods.push({ type: 'SPEED_MULTIPLIER', value: GameValues.ccg.status.speedBuff_multiplier })
             if (effect.type === 'DAMAGE_BOOST') mods.push({ type: 'DAMAGE_DELTA', value: effect.value })

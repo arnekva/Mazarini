@@ -198,8 +198,13 @@ export class CardActionResolver {
                 break
 
             case 'REMOVE_STATUS':
-                this.removeAllStatusForPlayer(game, target)
-                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} has all status conditions removed`)
+                if (effect.status) {
+                    this.removeStatusTypeForPlayer(game, target, effect.status)
+                    this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s **${effect.status}** is removed`)
+                } else {
+                    this.removeAllStatusForPlayer(game, target)
+                    this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} has all status conditions removed`)
+                }
                 break
 
             case 'REDUCE_COST': {
@@ -338,6 +343,25 @@ export class CardActionResolver {
                 break
             }
 
+            case 'SET_ENERGY': {
+                const val = effect.value ?? 2
+                target.energy = val
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s energy is set to **${val}**`)
+                break
+            }
+
+            case 'SET_HP': {
+                const val = effect.value ?? 15
+                target.hp = val
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s HP is set to **${val}**`)
+                break
+            }
+
+            case 'RANDOMIZE_COST':
+                this.applyStatusEffect(game, effect, target, 'RANDOMIZE_COST')
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s card costs are randomized for ${effect.turns} turns`)
+                break
+
             case 'DISCARD_CARD': {
                 const amount = effect.amount ?? 1
                 // Only non-submitted cards can be discarded; submitted ones are mid-resolution
@@ -451,7 +475,16 @@ export class CardActionResolver {
             }
 
             case 'PRANK': {
-                const prankCards = ['hp_prank_damage_n', 'hp_prank_shield_n', 'hp_prank_both_n', 'hp_prank_energy_n']
+                const prankCards = [
+                    'hp_prank_damage_n',
+                    'hp_prank_shield_n',
+                    'hp_prank_both_n',
+                    'hp_prank_energy_n',
+                    'hp_prank_fainting_fancy_n',
+                    'hp_prank_fever_fudge_n',
+                    'hp_prank_darkness_powder_n',
+                    'hp_prank_hiccough_sweets_n',
+                ]
                 const prankId = prankCards[Math.floor(Math.random() * prankCards.length)]
                 const prankCard = ALL_CARDS.find((c) => c.id === prankId)
                 if (!prankCard) break

@@ -1,8 +1,10 @@
 import { ApplicationEmojiManager } from 'discord.js'
+import * as fs from 'fs'
 import { MazariniClient } from '../client/MazariniClient'
 import { hpCCG } from '../commands/ccg/cards/hpCCG'
 import { mazariniCCG } from '../commands/ccg/cards/mazariniCCG'
 import { swCCG } from '../commands/ccg/cards/swCCG'
+import { CCGCardGenerator } from '../helpers/ccgCardGenerator'
 import { ImageGenerationHelper } from '../helpers/imageGenerationHelper'
 import {
     ICCGDeck,
@@ -145,6 +147,10 @@ export class Scripts {
             user.jail = { ...user.jail, daysInJail: 0, jailState: 'none', attemptedJailbreaks: 0, timesJailedToday: 0, attemptedFrameJobs: 0 }
 
             await this.client.database.updateUser(user)
+
+            // Invalidate the cached /ccg inventory image so it regenerates from the wiped data on next view
+            const inventoryPath = CCGCardGenerator.getUserInventoryPath(user, 'hpCCG')
+            if (fs.existsSync(inventoryPath)) fs.unlinkSync(inventoryPath)
         }
         return { total: users.length, hpWiped, bertiesGiven }
     }
