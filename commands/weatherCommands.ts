@@ -55,6 +55,23 @@ export class Weather extends AbstractCommands {
         return await data.json()
     }
 
+    /** MET ocean forecast — only returns data for coastal coordinates; undefined inland or on error */
+    static async fetchMETOceanForecast(latitude: string, longitude: string) {
+        const fetch = require('node-fetch')
+        try {
+            const res = await fetch(`https://api.met.no/weatherapi/oceanforecast/2.0/complete?lat=${latitude}&lon=${longitude}`, {
+                method: 'GET',
+                headers: {
+                    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
+                },
+            })
+            if (!res.ok) return undefined
+            return await res.json()
+        } catch {
+            return undefined
+        }
+    }
+
     static async fetchOPENWeatherForCity(city: string) {
         const fetch = require('node-fetch')
         const rootUrl = 'https://api.openweathermap.org/data/2.5/weather?'
@@ -84,6 +101,7 @@ export class Weather extends AbstractCommands {
 
         const data = await Weather.fetchMETWeatherForCoordinates(geoLocation.latitude, geoLocation.longitude)
         const today = this.getTodaysTimeseries(data)
+        const ocean = await Weather.fetchMETOceanForecast(geoLocation.latitude, geoLocation.longitude)
         const conditions = geoLocation.city ? await Weather.fetchOPENWeatherForCity(geoLocation.city) : ''
 
         const weatherConditions = geoLocation.city ? 'Det er ' + conditions.weather.map((weatherObj: any) => weatherObj.description).join(', ') : ' '
@@ -111,6 +129,17 @@ export class Weather extends AbstractCommands {
             .addFields({
                 name: `Regn 1t / 6t`,
                 value: `${closestHour.data.next_1_hours.details.precipitation_amount} mm / ${closestHour.data.next_6_hours.details.precipitation_amount} mm`,
+                inline: true,
+            })
+
+        const uvIndex = closestHour.data.instant.details.ultraviolet_index_clear_sky
+        const waterTemp = ocean?.properties?.timeseries?.[0]?.data?.instant?.details?.sea_water_temperature
+        weather
+            .addFields({ name: 'UV-indeks', value: `${uvIndex ?? '–'} :sunny:`, inline: true })
+            .addFields({ name: '\t\t', value: '\t\t', inline: true })
+            .addFields({
+                name: 'Vanntemperatur',
+                value: waterTemp !== undefined ? `${waterTemp} °C :ocean:` : 'Ikke ved kysten',
                 inline: true,
             })
 
@@ -170,7 +199,7 @@ export class Weather extends AbstractCommands {
             commands: {
                 interactionCommands: [
                     {
-                        commandName: 'weather',
+                        commandName: 'værmelding',
                         command: (rawInteraction: ChatInteraction) => {
                             this.getWeatherForGivenCity(rawInteraction)
                         },

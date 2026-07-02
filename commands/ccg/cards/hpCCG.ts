@@ -274,15 +274,15 @@ export const hpCCG: CCGCard[] = [
         type: CCGCardType.Effect,
         effects: [
             {
-                // 50% chance each turn (statusAccuracy) to gain 1 energy, for 6 turns
+                // 50% chance each turn (statusAccuracy) to gain 1 energy, for 5 turns
                 type: 'GAIN_ENERGY',
                 target: 'SELF',
                 value: 1,
-                turns: 6,
+                turns: 5,
                 statusAccuracy: 50,
             },
         ],
-        customDescription: 'Each turn for 6 turns: [red]50%[/red] chance to gain [blue]1 energy[/blue].',
+        customDescription: 'Each turn for 5 turns: [red]50%[/red] chance to gain [blue]1 energy[/blue].',
         cost: 0,
         speed: 10,
         rarity: ItemRarity.Common,
@@ -867,7 +867,7 @@ export const hpCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 1,
+                value: 2,
             },
             {
                 type: 'MYGLING',
@@ -876,7 +876,7 @@ export const hpCCG: CCGCard[] = [
                 turns: 2,
             },
         ],
-        customDescription: 'Deal [red]1 damage[/red]. Apply [purple]Mygling[/purple] to the opponent for 2 turns.',
+        customDescription: 'Deal [red]2 damage[/red]. Apply [purple]Mygling[/purple] to the opponent for 2 turns.',
         cost: 2,
         speed: 50,
         rarity: ItemRarity.Epic,
@@ -931,19 +931,21 @@ export const hpCCG: CCGCard[] = [
         type: CCGCardType.Effect,
         effects: [
             {
-                type: 'MYGLING',
+                // +1 to your damage for 2 turns
+                type: 'DAMAGE_BOOST',
                 target: 'SELF',
                 value: 1,
                 turns: 2,
             },
             {
-                type: 'MYGLING',
+                // Reduce the opponent's heals by 1 for 2 turns
+                type: 'HEAL_REDUCTION',
                 target: 'OPPONENT',
                 value: 1,
                 turns: 2,
             },
         ],
-        customDescription: 'Apply [purple]Mygling[/purple] to [red]both players[/red] for 2 turns.',
+        customDescription: 'Increase your [red]damage by 1[/red] for 2 turns. Reduce the opponent’s [green]heals by 1[/green] for 2 turns.',
         cost: 0,
         speed: 15,
         rarity: ItemRarity.Epic,
@@ -1081,13 +1083,13 @@ export const hpCCG: CCGCard[] = [
                 identifier: 'DEATH_EATER',
             },
             {
-                // The next Death Eater you play deals 3 damage (consumed on trigger, like a bounty)
+                // Bounty 3: the next Death Eater you play deals 3 bonus damage (consumed on trigger)
                 type: 'DEATH_EATER_BOUNTY',
                 target: 'SELF',
                 value: 3,
             },
         ],
-        customDescription: 'Summon [red]2 random Death Eaters[/red]. Your next Death Eater played deals [red]3 damage[/red].',
+        customDescription: 'Summon [red]2 random Death Eaters[/red]. [gold]Bounty: 3[/gold] — your next Death Eater deals [red]3 bonus damage[/red].',
         cost: 1,
         speed: 20,
         rarity: ItemRarity.Epic,

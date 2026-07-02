@@ -34,6 +34,7 @@ import { terningCommand } from './commandStorage/terning'
 import { testCommand } from './commandStorage/test'
 import { tournamentCommand } from './commandStorage/tournaments'
 import { userSettingsCommand } from './commandStorage/usersettings'
+import { vaermeldingCommand } from './commandStorage/vaermelding'
 import { vivinoCommand } from './commandStorage/vivino'
 import { whamageddonCommand } from './commandStorage/whamageddon'
 
@@ -80,4 +81,5 @@ export namespace CommandStorage {
     export const Redacted = redactedCommand
     export const CCG = ccgCommand
     export const Deck = deckCommand
+    export const Vaermelding = vaermeldingCommand
 }

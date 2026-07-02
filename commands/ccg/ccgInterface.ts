@@ -183,6 +183,7 @@ export type CCGStatusEffectType =
     | 'DESTROY_DEATHSTAR'
     | 'PERSISTENT_APPEARANCE'
     | 'HEAL_BOOST'
+    | 'HEAL_REDUCTION'
     | 'RESTRICT_CARDS'
     | 'SLEEP'
     | 'CANNOT_MISS'

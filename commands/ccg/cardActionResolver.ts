@@ -151,8 +151,11 @@ export class CardActionResolver {
                 } else {
                     const healBoost = this.getStatusEffect(game, target, 'HEAL_BOOST')
                     const bonus = healBoost && healBoost.createdOnTurn !== game.state.turn ? healBoost.value : 0
+                    const healReduction = this.getStatusEffect(game, target, 'HEAL_REDUCTION')
+                    const penalty = healReduction && healReduction.createdOnTurn !== game.state.turn ? healReduction.value : 0
                     const maxHp = target.maxHp ?? GameValues.ccg.gameSettings.startingHP
-                    const healed = Math.min(target.hp + (effect.value ?? 0) + bonus, maxHp) - target.hp
+                    const effectiveHeal = Math.max(0, (effect.value ?? 0) + bonus - penalty)
+                    const healed = Math.min(target.hp + effectiveHeal, maxHp) - target.hp
                     target.hp += healed
                     this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} **heals ${healed}**`)
                 }
@@ -419,11 +422,8 @@ export class CardActionResolver {
                 const maxHandSize = GameValues.ccg.gameSettings.maxHandSize
                 // Submitted cards are still in hand during resolution; count only non-selected ones as remaining
                 const cardsRemainingAfterPlay = source.hand.filter((c) => !c.selected).length
-                // Hand-full only blocks summons to hand; deck-top summons are always allowed
-                if (!effect.toDeckTop && cardsRemainingAfterPlay >= maxHandSize) {
-                    this.log(game, `${this.getEffectLogPrefix(effect)}${source.name}'s hand is full — could not summon a card`)
-                    break
-                }
+                // Universal rule: a summon that can't fit in hand goes to the top of the deck instead of being lost.
+                const toDeckTop = effect.toDeckTop || cardsRemainingAfterPlay >= maxHandSize
                 let summoned: CCGCard | undefined
                 if (effect.summonCardId) {
                     summoned = await this.getCardById(effect.summonCardId)
@@ -434,12 +434,13 @@ export class CardActionResolver {
                     // value reduces the summoned card's cost (e.g. Hagrid's discount), baked into the instance
                     const reducedCost = Math.max(0, summoned.cost - (effect.value ?? 0))
                     const summonedCard = { ...summoned, summoned: true, cost: reducedCost, selected: false }
-                    if (effect.toDeckTop) {
+                    // For random (identifier-based) summons, don't reveal the specific card — keep it hidden.
+                    const summonedDesc = effect.identifier ? `a ${effect.identifier} card` : summoned.name
+                    if (toDeckTop) {
                         source.deck.push(summonedCard) // deck is drawn from the end => top of pile
-                        this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} puts **${summoned.name}** on top of their deck`)
+                        this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} puts **${summonedDesc}** on top of their deck`)
                     } else {
                         source.hand.push(summonedCard)
-                        const summonedDesc = effect.identifier ? `a ${effect.identifier} card` : summoned.name
                         const discount = (effect.value ?? 0) > 0 ? ` (cost reduced to ${reducedCost})` : ''
                         this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} summons **${summonedDesc}**${discount} to their hand`)
                     }
@@ -521,19 +522,20 @@ export class CardActionResolver {
                 break
 
             case 'COLLECT_CARD': {
-                // Take a random card from the opponent's deck into your own, permanently reducing its cost
+                // Copy a random card from the opponent's deck into your own (the opponent keeps theirs),
+                // permanently reducing the copy's cost.
                 if (target.deck.length === 0) {
-                    this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} has no cards left in their deck to collect`)
+                    this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} has no cards left in their deck to copy`)
                     break
                 }
                 const idx = Math.floor(Math.random() * target.deck.length)
-                const collected = target.deck.splice(idx, 1)[0]
+                const collected = target.deck[idx]
                 const costReduction = effect.value ?? 1
                 const collectedCard = { ...collected, selected: false, cost: Math.max(0, collected.cost - costReduction) }
                 source.deck.push(collectedCard)
                 this.log(
                     game,
-                    `${this.getEffectLogPrefix(effect)}${source.name} **collects ${collectedCard.name}** from ${target.name}'s deck (cost reduced to ${
+                    `${this.getEffectLogPrefix(effect)}${source.name} **copies ${collectedCard.name}** from ${target.name}'s deck (cost reduced to ${
                         collectedCard.cost
                     })`
                 )
@@ -645,6 +647,16 @@ export class CardActionResolver {
                 this.log(
                     game,
                     `${this.getEffectLogPrefix(effect)}${target.name}'s heals are **boosted by ${effect.value}** for ${effect.turns} turn${
+                        effect.turns > 1 ? 's' : ''
+                    }`
+                )
+                break
+
+            case 'HEAL_REDUCTION':
+                this.applyStatusEffect(game, effect, target, 'HEAL_REDUCTION')
+                this.log(
+                    game,
+                    `${this.getEffectLogPrefix(effect)}${target.name}'s heals are **reduced by ${effect.value}** for ${effect.turns} turn${
                         effect.turns > 1 ? 's' : ''
                     }`
                 )

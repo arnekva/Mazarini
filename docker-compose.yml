@@ -6,6 +6,9 @@ services:
     build: .
     container_name: mazarini
     restart: unless-stopped
+    # Local timezone (must be a real container env var — Node reads TZ at process start, before dotenv).
+    environment:
+      - TZ=Europe/Oslo
     # Secrets stay out of the image: .env is mounted read-only and loaded by dotenv at runtime.
     volumes:
       - ./.env:/app/.env:ro

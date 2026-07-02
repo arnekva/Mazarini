@@ -20,11 +20,13 @@ RUN npm run bundle
 FROM node:20-bookworm-slim
 WORKDIR /app
 ENV NODE_ENV=production
+# Default timezone (overridable via the TZ env var in compose). Node reads TZ at startup.
+ENV TZ=Europe/Oslo
 
-# Runtime libs for canvas/sharp + git (startup commit-log feature) + tools to fetch curl-impersonate
+# Runtime libs for canvas/sharp + git (startup commit-log) + tzdata (correct local time) + curl-impersonate tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libjpeg62-turbo libgif7 librsvg2-2 \
-    ca-certificates fonts-liberation curl git \
+    ca-certificates fonts-liberation curl git tzdata \
  && rm -rf /var/lib/apt/lists/* \
  && git config --system --add safe.directory /app
 
