@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '34.0.0'
+    public static readonly currentVersion = '34.1.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,21 +27,21 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '## HP CCG – stor revamp',
-                ' * Hele Harry Potter-settet er rebalansert fra bunnen av, med flere helt nye mekanikker.',
-                ' * Samlingene er nullstilt: alle HP-kort er fjernet, så decka med HP-kort må bygges opp på nytt.',
-                ' * Alle starter friskt med **300 shards**. Har du spilt CCG før, har du fått **2x Bertie Bott\'s** tilbake i inventaret.',
-                ' * De neste **7 dagene** får alle **+50 shards hver dag** – logg innom og samle!',
+                '## Kortendringer (HP CCG)',
+                ' * **Sirius Black** – gjør nå **2 skade** (opp fra 1).',
+                ' * **Kreacher** – varer nå **5 runder** (ned fra 6).',
+                ' * **Bellatrix Lestrange** – bygd om: **+1 skade** i 2 runder, og motstanderens **helbredelse reduseres med 1** i 2 runder.',
+                ' * **Horace Slughorn** – *Collect* **kopierer** nå kortet (stjeler ikke lenger), og hvilken toddy som legges på toppen av decket avsløres ikke lenger.',
+                ' * **Dark Mark** – bruker nå nøkkelordet **Bounty: 3**.',
+                ' * Tilkalte kort som ikke får plass på hånda (maks 4) havner nå på **toppen av decket** i stedet for å forsvinne.',
                 '',
-                '## Nye nøkkelord',
-                ' * **Shield** – en pool som tar imot skade over flere runder, helt til den er brukt opp.',
-                ' * **Armor** – reduserer hvert innkommende angrep, men kun denne runden.',
-                ' * **Pierce** – skade som går rett gjennom både shield og armor (f.eks. Filch).',
-                ' * **Foresight** – en effekt som trigger når kortet trekkes (f.eks. Cedric: de neste 4 kortene du trekker koster permanent 1 mindre).',
-                ' * **Auror** – spilte motstanderen en Death Eater denne runden, blir det kortet permanent 1 dyrere for dem.',
+                '## Nytt nøkkelord',
+                ' * **Heal reduction** – reduserer hvor mye målet helbreder (Bellatrix).',
                 '',
                 '## Annet',
-                ' * Magiske skapninger (Aragog, Basilisk, Fawkes, Buckbeak, Werewolf) kan ikke lenger trekkes fra pakker – de må tilkalles av Hagrid.',
+                ' * **/weather** heter nå **/værmelding**, og viser i tillegg **UV-indeks** og **vanntemperatur**.',
+                ' * Boten kræsjer ikke lenger på tilfeldige «Unknown Interaction»-feil.',
+                ' * Fikser tidssone',
             ].join('\n')
         )
         container.addSeparator()
