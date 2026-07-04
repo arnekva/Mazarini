@@ -163,9 +163,18 @@ export class CCGCommands extends AbstractCommands {
 
     private getPlayerHandButtons(game: CCGGame, player: CCGPlayer) {
         const cards = player.hand.filter((card) => !player.submitted || !card.selected)
+        const isObfuscated = game.state.statusConditions.some((s) => s.ownerId === player.id && s.type === 'OBFUSCATE_HAND')
+        const indices = cards.map((_, i) => i)
+        if (isObfuscated) {
+            for (let i = indices.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [indices[i], indices[j]] = [indices[j], indices[i]]
+            }
+        }
         return new ActionRowBuilder<ButtonBuilder>().addComponents(
-            cards.map((card, index) => {
-                return cardBtn(game.id, index, card)
+            indices.map((realIndex) => {
+                const card = cards[realIndex]
+                return (isObfuscated ? cardBtn(game.id, realIndex, card).setLabel('Card') : cardBtn(game.id, realIndex, card))
                     .setStyle(card.selected ? ButtonStyle.Primary : ButtonStyle.Secondary)
                     .setDisabled(game.state.locked || player.submitted)
             })
@@ -296,7 +305,7 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private calcCardCost(card: CCGCard, costReductionEffects: ReturnType<typeof this.getEffectsForPlayer>, randomizeCost = false) {
-        if (randomizeCost) return Math.floor(Math.random() * 5) + 1
+        if (randomizeCost) return card.randomizedCost ?? Math.floor(Math.random() * 5) + 1
         const reduction = costReductionEffects.reduce((sum, e) => {
             if (!e.identifier || card.identifier?.includes(e.identifier)) return sum + e.value
             return sum
@@ -345,7 +354,7 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private preparePlayerForNewRound(game: CCGGame, player: CCGPlayer, isBot = false) {
-        player.usedCards.push(...player.hand.filter((card) => card.selected && !card.summoned && !card.consumable))
+        player.usedCards.push(...player.hand.filter((card) => card.selected && !card.summoned && !card.consumable).map((card) => ({ ...card, randomizedCost: undefined })))
         player.hand = player.hand.filter((card) => !card.selected)
         const isSleeping = this.playerHasStatus(game, player, 'SLEEP')
         player.submitted = isSleeping
@@ -355,6 +364,12 @@ export class CCGCommands extends AbstractCommands {
         if (isMygling) energyRecovery = 0
         player.energy += energyRecovery
         this.drawCards(game, player)
+        if (isBot) this.botResolver.applyCheatDraw(game, player)
+        if (this.getEffectsForPlayer(game, player, 'RANDOMIZE_COST').length > 0) {
+            for (const card of player.hand) {
+                card.randomizedCost = Math.floor(Math.random() * 5) + 1
+            }
+        }
         if (isBot) {
             if (isSleeping) return
             this.chooseBotCards(game)
@@ -374,6 +389,7 @@ export class CCGCommands extends AbstractCommands {
     private async resolveEffects(game: CCGGame) {
         this.resolver.sortStack(game)
         let effectSummaryPosted = false
+        game.state.resolveIndex = 0
         if (game.state.stack.length === 0) {
             game.state.log.push({
                 turn: game.state.turn,
@@ -382,6 +398,7 @@ export class CCGCommands extends AbstractCommands {
         }
         while (game.state.stack.length > 0) {
             effectSummaryPosted = true
+            game.state.resolveIndex++
             const effect = game.state.stack.shift()
             await this.resolver.resolveSingleEffect(game, effect)
             this.checkForWinner(game)
@@ -630,6 +647,8 @@ export class CCGCommands extends AbstractCommands {
 
     private isCardSuccessful(game: CCGGame, player: CCGPlayer, card: CCGCard) {
         if (card.cannotMiss) return true
+        const hasRandomizeAccuracy = this.playerHasCondition(game, player, 'RANDOMIZE_ACCURACY')
+        if (hasRandomizeAccuracy) return Math.random() <= (Math.floor(Math.random() * 99) + 1) / 100
         const isChokester = this.playerHasCondition(game, player, 'CHOKESTER')
         const hasChokeShield = this.playerHasStatus(game, player, 'CHOKE_SHIELD')
         let accuracy = isChokester ? 50 : card.accuracy
@@ -673,6 +692,7 @@ export class CCGCommands extends AbstractCommands {
             if (condition.ownerId !== player.id) continue
             if (condition.type === 'SLOW') mods.push({ type: 'SPEED_MULTIPLIER', value: 1 / GameValues.ccg.status.slow_speedDivideBy })
             if (condition.type === 'CHOKESTER') mods.push({ type: 'ACCURACY_OVERRIDE', value: 50 })
+            if (condition.type === 'BLANK_HAND') mods.push({ type: 'BLANK_CARD', value: 0 })
         }
         return mods
     }
@@ -835,7 +855,7 @@ export class CCGCommands extends AbstractCommands {
         const modeRaw = vsBot ? (interaction.options.get('mode')?.value as string) : undefined
         const [modeValue, cardSetValue] = modeRaw ? modeRaw.split('_') : [undefined, undefined]
         const mode = modeValue as Mode | undefined
-        const cardSet = (cardSetValue as CardSet | undefined) ?? CardSet.Standard
+        const cardSet = (cardSetValue as CardSet | undefined) ?? (vsBot ? CardSet.Standard : CardSet.Wild)
         const wager = !vsBot ? SlashCommandHelper.getCleanNumberValue(interaction.options.get('innsats')?.value) : undefined
         const gameId = randomUUID()
         const game: CCGGame = {
@@ -1074,9 +1094,9 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private checkForSpecialEffects(game: CCGGame) {
+        const activeViewHandIds = new Set(game.state.statusEffects.filter((e) => e.type === 'VIEW_HAND').map((e) => e.id))
         for (const effect of game.state.statusEffects) {
             if (game.container.getComponentIndex(effect.id) < 0) {
-                //check if game-container already has this effect
                 if (effect.type === 'VIEW_HAND') {
                     const opponent = this.getOpponent(game, effect.ownerId)
                     const btn = viewHandBtn(game.id, effect.ownerId, opponent.name, effect.id)
@@ -1084,6 +1104,13 @@ export class CCGCommands extends AbstractCommands {
                 }
             }
         }
+        // Remove VIEW_HAND buttons whose status effect has expired
+        for (const id of game.state.expiredViewHandIds ?? []) {
+            if (!activeViewHandIds.has(id) && game.container.getComponentIndex(id) >= 0) {
+                game.container.removeComponent(id)
+            }
+        }
+        game.state.expiredViewHandIds = [...activeViewHandIds]
     }
 
     private async viewOpponentHand(interaction: BtnInteraction, game: CCGGame, player: CCGPlayer) {

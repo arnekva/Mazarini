@@ -139,6 +139,50 @@ export class CardActionResolver {
                 break
             }
 
+            case 'DAMAGE_BY_RESOLVE_ORDER': {
+                const order = game.state.resolveIndex ?? 1
+                this.applyDamage(game, effect, source, target, order)
+                break
+            }
+
+            case 'SWAP_ENERGY': {
+                const tmp = source.energy
+                source.energy = target.energy
+                target.energy = tmp
+                this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} and ${target.name} swap energy!`)
+                break
+            }
+
+            case 'EQUALIZE_HP': {
+                const avg = Math.floor((source.hp + target.hp) / 2)
+                source.hp = avg
+                target.hp = avg
+                this.log(game, `${this.getEffectLogPrefix(effect)}Both players' HP is equalized to **${avg}**!`)
+                break
+            }
+
+            case 'SORT_DECK': {
+                target.deck.sort((a, b) => b.cost - a.cost)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s deck is sorted by cost!`)
+                break
+            }
+
+            case 'FILL_HAND_RUBBER_DUCK': {
+                const rubberDuck = ALL_CARDS.find((c) => c.id === 'hp_rubber_duck_n')
+                if (!rubberDuck) break
+                const fill = (player: CCGPlayer) => {
+                    player.usedCards.push(...player.hand.filter((c) => !c.removeOnDiscard))
+                    player.hand = []
+                    for (let i = 0; i < game.state.settings.defaultHandSize; i++) {
+                        player.hand.push({ ...structuredClone(rubberDuck), selected: false })
+                    }
+                }
+                fill(source)
+                fill(target)
+                this.log(game, `${this.getEffectLogPrefix(effect)}Both players' hands are filled with **Rubber Ducks**! 🦆`)
+                break
+            }
+
             case 'HEAL': {
                 if (effect.turns) {
                     this.applyStatusEffect(game, effect, target, 'RECOVER')
@@ -362,23 +406,48 @@ export class CardActionResolver {
                 this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s card costs are randomized for ${effect.turns} turns`)
                 break
 
+            case 'BLANK_HAND':
+                this.applyStatusCondition(game, effect, target, 'BLANK_HAND')
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s cards are **blank** for ${effect.turns} turn${effect.turns !== 1 ? 's' : ''}!`)
+                break
+
+            case 'RANDOMIZE_ACCURACY':
+                this.applyStatusCondition(game, effect, target, 'RANDOMIZE_ACCURACY')
+                this.log(game, `${this.getEffectLogPrefix(effect)}All cards have **randomized accuracy** for ${effect.turns} turns!`)
+                break
+
+            case 'OBFUSCATE_HAND':
+                this.applyStatusCondition(game, effect, target, 'OBFUSCATE_HAND')
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s hand buttons are **shuffled and unlabelled**!`)
+                break
+
             case 'DISCARD_CARD': {
                 const amount = effect.amount ?? 1
                 // Only non-submitted cards can be discarded; submitted ones are mid-resolution
-                const discardPool = target.hand.filter((c) => !c.selected)
+                let discardPool = target.hand.filter((c) => !c.selected)
+                // If an identifier filter is set, only discard cards with that identifier
+                if (effect.identifier) {
+                    discardPool = discardPool.filter((c) => c.identifier?.includes(effect.identifier))
+                }
                 if (discardPool.length === 0) {
                     this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} has no discardable cards`)
                     break
                 }
                 const discarded: string[] = []
-                for (let i = 0; i < Math.min(amount, discardPool.length); i++) {
-                    const idx = Math.floor(Math.random() * discardPool.length)
-                    const card = discardPool.splice(idx, 1)[0]
+                const toDiscard = effect.identifier ? discardPool : discardPool.slice(0, Math.min(amount, discardPool.length))
+                if (!effect.identifier) {
+                    for (let i = toDiscard.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [toDiscard[i], toDiscard[j]] = [toDiscard[j], toDiscard[i]]
+                    }
+                    toDiscard.splice(Math.min(amount, toDiscard.length))
+                }
+                for (const card of toDiscard) {
                     discarded.push(card.name)
-                    target.usedCards.push(card)
+                    if (!card.removeOnDiscard) target.usedCards.push(card)
                     target.hand.splice(target.hand.indexOf(card), 1)
                 }
-                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} discards a random card`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} discards ${discarded.length} card${discarded.length !== 1 ? 's' : ''}`)
                 break
             }
 
@@ -416,7 +485,7 @@ export class CardActionResolver {
             case 'NEUTRALIZE_ATTACK': {
                 // amount = how many incoming attacks to negate (default 1). Harry uses a large number to disarm ALL.
                 const isIncomingAttack = (e: CCGEffect) => {
-                    if (!['DAMAGE', 'DAMAGE_PER_IDENTIFIER', 'DAMAGE_PER_CARD_PLAYED', 'SHOOT', 'DAMAGE_PER_OPPONENT_COST'].includes(e.type)) return false
+                    if (!['DAMAGE', 'DAMAGE_PER_IDENTIFIER', 'DAMAGE_PER_CARD_PLAYED', 'SHOOT', 'DAMAGE_PER_OPPONENT_COST', 'DAMAGE_BY_RESOLVE_ORDER'].includes(e.type)) return false
                     if (e.sourcePlayerId === effect.sourcePlayerId) return false
                     if (e.targetPlayerId !== effect.sourcePlayerId) return false
                     if (e.condition && !this.areConditionsMet(game, this.getPlayer(game, e.sourcePlayerId), this.getPlayer(game, e.targetPlayerId), e.condition))
@@ -443,11 +512,8 @@ export class CardActionResolver {
                 break
 
             case 'SUMMON_CARD': {
-                const maxHandSize = GameValues.ccg.gameSettings.maxHandSize
-                // Submitted cards are still in hand during resolution; count only non-selected ones as remaining
-                const cardsRemainingAfterPlay = source.hand.filter((c) => !c.selected).length
-                // Universal rule: a summon that can't fit in hand goes to the top of the deck instead of being lost.
-                const toDeckTop = effect.toDeckTop || cardsRemainingAfterPlay >= maxHandSize
+                const extraCardsEffect = game.state.statusEffects.find((e) => e.ownerId === source.id && e.type === 'EXTRA_CARDS')
+                const effectiveMaxHandSize = extraCardsEffect ? extraCardsEffect.value : GameValues.ccg.gameSettings.maxHandSize
                 let summoned: CCGCard | undefined
                 if (effect.summonCardId) {
                     summoned = await this.getCardById(effect.summonCardId)
@@ -460,13 +526,25 @@ export class CardActionResolver {
                     const summonedCard = { ...summoned, summoned: true, cost: reducedCost, selected: false }
                     // For random (identifier-based) summons, don't reveal the specific card — keep it hidden.
                     const summonedDesc = effect.identifier ? `a ${effect.identifier} card` : summoned.name
-                    if (toDeckTop) {
-                        source.deck.push(summonedCard) // deck is drawn from the end => top of pile
+                    // Always push to hand first, then overflow any excess (non-selected cards beyond max) to deck top.
+                    // Checking after the push ensures multiple summons in one round and EXTRA_CARDS are all handled correctly.
+                    if (effect.toDeckTop) {
+                        source.deck.push(summonedCard)
                         this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} puts **${summonedDesc}** on top of their deck`)
                     } else {
                         source.hand.push(summonedCard)
                         const discount = (effect.value ?? 0) > 0 ? ` (cost reduced to ${reducedCost})` : ''
                         this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} summons **${summonedDesc}**${discount} to their hand`)
+                        // Enforce hand size cap: move overflow (oldest unselected cards) to top of deck
+                        const unselected = source.hand.filter((c) => !c.selected)
+                        if (unselected.length > effectiveMaxHandSize) {
+                            const overflow = unselected.slice(0, unselected.length - effectiveMaxHandSize)
+                            for (const card of overflow) {
+                                source.hand.splice(source.hand.indexOf(card), 1)
+                                source.deck.push(card)
+                                this.log(game, `${this.getEffectLogPrefix(effect)}Hand full — **${card.name}** moved to top of deck`)
+                            }
+                        }
                     }
                 } else {
                     this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} could not summon a card — no matching card found`)
@@ -480,10 +558,14 @@ export class CardActionResolver {
                     'hp_prank_shield_n',
                     'hp_prank_both_n',
                     'hp_prank_energy_n',
-                    'hp_prank_fainting_fancy_n',
-                    'hp_prank_fever_fudge_n',
                     'hp_prank_darkness_powder_n',
                     'hp_prank_hiccough_sweets_n',
+                    'hp_prank_fainting_fancy_n',
+                    'hp_prank_fever_fudge_n',
+                    'hp_prank_sorting_jinx_n',
+                    'hp_prank_confundus_n',
+                    'hp_prank_malfunction_n',
+                    'hp_prank_rubber_duck_fill_n',
                 ]
                 const prankId = prankCards[Math.floor(Math.random() * prankCards.length)]
                 const prankCard = ALL_CARDS.find((c) => c.id === prankId)
@@ -947,9 +1029,11 @@ export class CardActionResolver {
         } else if (status.type === 'RECOVER') {
             if (!status.delayedTrigger || status.remainingTurns === 1) {
                 const healBoost = this.getStatusEffect(game, player, 'HEAL_BOOST')
+                const healReduction = this.getStatusEffect(game, player, 'HEAL_REDUCTION')
                 const bonus = healBoost ? healBoost.value : 0
+                const reduction = healReduction ? healReduction.value : 0
                 const maxHp = player.maxHp ?? GameValues.ccg.gameSettings.startingHP
-                const healed = Math.min(player.hp + status.value + bonus, maxHp) - player.hp
+                const healed = Math.max(0, Math.min(player.hp + status.value + bonus - reduction, maxHp) - player.hp)
                 player.hp += healed
                 this.log(game, `${player.name} **recovers ${healed} HP**`)
                 await this.delay(2000)
@@ -1088,11 +1172,12 @@ export class CardActionResolver {
     }
 
     private isReflectedByType(reflectType: ReflectType | undefined, effectType: CCGEffectType): boolean {
-        const DAMAGE_TYPES: CCGEffectType[] = ['DAMAGE', 'DAMAGE_PER_IDENTIFIER', 'DAMAGE_PER_CARD_PLAYED', 'DAMAGE_PER_OPPONENT_COST']
+        const DAMAGE_TYPES: CCGEffectType[] = ['DAMAGE', 'DAMAGE_PER_IDENTIFIER', 'DAMAGE_PER_CARD_PLAYED', 'DAMAGE_PER_OPPONENT_COST', 'DAMAGE_BY_RESOLVE_ORDER']
         const type = reflectType ?? 'damage'
+        const NON_HOSTILE_TYPES: CCGEffectType[] = ['NEUTRALIZE_ATTACK']
         if (type === 'all') return true
         if (type === 'damage') return DAMAGE_TYPES.includes(effectType)
-        if (type === 'allEffects') return !DAMAGE_TYPES.includes(effectType)
+        if (type === 'allEffects') return !NON_HOSTILE_TYPES.includes(effectType)
         return (type as CCGEffectType[]).includes(effectType)
     }
 

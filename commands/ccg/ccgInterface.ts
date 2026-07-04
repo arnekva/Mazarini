@@ -70,6 +70,8 @@ export interface CCGGameState {
     settings: CCGGameSettings
     locked: boolean // disable most buttons when locked
     playedCardsAllGame: { playerId: string; round: number; cards: CCGCard[] }[]
+    expiredViewHandIds?: string[]
+    resolveIndex?: number
 }
 
 export type CCGPhase = 'DRAW' | 'PLAY' | 'RESOLVE' | 'END' | 'FINISHED'
@@ -138,6 +140,11 @@ export type CCGEffectType =
     | 'SHUFFLE_CARD'
     | 'SET_ENERGY'
     | 'SET_HP'
+    | 'DAMAGE_BY_RESOLVE_ORDER'
+    | 'SWAP_ENERGY'
+    | 'EQUALIZE_HP'
+    | 'SORT_DECK'
+    | 'FILL_HAND_RUBBER_DUCK'
     | CCGStatusEffectType
 
 export type ReflectType = 'damage' | 'allEffects' | 'all' | CCGEffectType[]
@@ -193,6 +200,9 @@ export type CCGStatusEffectType =
     | 'CANNOT_DIE'
     | 'FORESIGHT'
     | 'DEATH_EATER_BOUNTY'
+    | 'BLANK_HAND'
+    | 'RANDOMIZE_ACCURACY'
+    | 'OBFUSCATE_HAND'
 
 export interface CCGLogEntry {
     turn: number
@@ -244,12 +254,15 @@ export interface CCGCard {
     identifier?: CardIdentifier[]
     customDescription?: string
     nameFontSize?: number
+    randomizedCost?: number
     effectImmunities?: CCGStatusEffectType[]
     summoned?: boolean
     consumable?: boolean
     collectible?: boolean
     /** Permanently removed (not recycled into used pile) when discarded — e.g. Rubber Duck */
     removeOnDiscard?: boolean
+    /** When true, only cost is rendered on the card (name/description/speed/accuracy are hidden) */
+    blank?: boolean
 }
 
 export interface CCGCondition {

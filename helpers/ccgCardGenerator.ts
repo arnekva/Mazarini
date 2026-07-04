@@ -128,7 +128,7 @@ const artCache = new Map<string, { buffer: Buffer; width: number; height: number
 
 /** A stat/value modification to apply when rendering a card image on the fly */
 export interface CardModification {
-    type: 'COST_DELTA' | 'DAMAGE_DELTA' | 'HEAL_DELTA' | 'ENERGY_DELTA' | 'SPEED_DELTA' | 'SPEED_MULTIPLIER' | 'ACCURACY_DELTA' | 'ACCURACY_OVERRIDE' | 'COST_RANDOMIZE'
+    type: 'COST_DELTA' | 'DAMAGE_DELTA' | 'HEAL_DELTA' | 'ENERGY_DELTA' | 'SPEED_DELTA' | 'SPEED_MULTIPLIER' | 'ACCURACY_DELTA' | 'ACCURACY_OVERRIDE' | 'COST_RANDOMIZE' | 'BLANK_CARD'
     value: number
     /** If set, this modification only applies to cards that have this identifier */
     identifier?: CardIdentifier
@@ -354,6 +354,10 @@ export class CCGCardGenerator {
     private static applyModifications(card: CCGCard, mods: CardModification[]): CCGCard {
         const c = structuredClone(card)
         const effects = c.effects ?? []
+        if (mods.some((m) => m.type === 'BLANK_CARD')) {
+            c.blank = true
+            return c
+        }
         // Apply overrides first, then deltas
         for (const mod of mods) {
             if (mod.type === 'ACCURACY_OVERRIDE') c.accuracy = mod.value
@@ -365,7 +369,7 @@ export class CCGCardGenerator {
                     c.cost = Math.max(0, c.cost + mod.value)
                     break
                 case 'COST_RANDOMIZE':
-                    c.cost = Math.floor(Math.random() * 5) + 1
+                    c.cost = c.randomizedCost ?? Math.floor(Math.random() * 5) + 1
                     break
                 case 'DAMAGE_DELTA':
                     for (const effect of effects) {
@@ -638,9 +642,9 @@ export class CCGCardGenerator {
   <!-- ═══ STATS ═══ -->
 
   <!-- Speed (left) -->
-    <text x="${SPEED_X}" y="${SPEED_Y}" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="${
+    ${card.blank ? '' : `<text x="${SPEED_X}" y="${SPEED_Y}" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="${
             originalSpeed === undefined || card.speed === originalSpeed ? 'white' : card.speed > originalSpeed ? '#36a836' : '#bf4b4b'
-        }" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${card.speed}</text>
+        }" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${card.speed}</text>`}
 
   <!-- Cost (center) -->
     <text x="${COST_X}" y="${COST_Y}" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="${
@@ -648,16 +652,16 @@ export class CCGCardGenerator {
         }" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${card.cost}</text>
 
   <!-- Accuracy (right) -->
-    <text x="${ACCURACY_X}" y="${ACCURACY_Y}" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="${
+    ${card.blank ? '' : `<text x="${ACCURACY_X}" y="${ACCURACY_Y}" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="${
             originalAccuracy === undefined || card.accuracy === originalAccuracy ? 'white' : card.accuracy > originalAccuracy ? '#36a836' : '#bf4b4b'
-        }" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${card.accuracy}</text>
+        }" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${card.accuracy}</text>`}
 
   <!-- ═══ CARD NAME ═══ -->
-        <text x="${NAME_X}" y="${NAME_Y}" font-family="Arial, sans-serif" font-size="${card.nameFontSize ?? 34}" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${escapedName}</text>
+        ${card.blank ? '' : `<text x="${NAME_X}" y="${NAME_Y}" font-family="Arial, sans-serif" font-size="${card.nameFontSize ?? 34}" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central" filter="url(#textShadow)">${escapedName}</text>`}
 
     <!-- ═══ EFFECT DESCRIPTION ═══ -->
     <g font-family="Arial, sans-serif" font-size="${fontSize}">
-    ${wrappedLines
+    ${card.blank ? '' : wrappedLines
         .map(
             (spans, i) =>
                 `<text x="${DESC_X}" y="${descStartY + i * lineHeight}" text-anchor="middle" dominant-baseline="central" xml:space="preserve">${spans
@@ -665,7 +669,7 @@ export class CCGCardGenerator {
                     .join('')}</text>`
         )
         .join('\n    ')}
-  </g>${identifierPillsSVG}</svg>`
+  </g>${card.blank ? '' : identifierPillsSVG}</svg>`
     }
 
     // ═══ Rich text description system ═══

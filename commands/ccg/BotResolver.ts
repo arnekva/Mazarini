@@ -548,4 +548,54 @@ export class BotResolver {
                 return count >= value
         }
     }
+
+    /**
+     * Subtle cheat: ~30% chance to swap a weak hand card for a favorable deck card
+     * when the bot is in a bad spot. Fires independently for HP and energy need.
+     */
+    public applyCheatDraw(game: CCGGame, bot: CCGPlayer) {
+        const lowHp = bot.hp < 10
+        const lowEnergy = bot.energy < 3
+
+        if (!lowHp && !lowEnergy) return
+
+        const isHealCard = (c: CCGCard) => c.effects?.some((e) => e.type === 'HEAL' && e.target === 'SELF')
+        const isEnergyCard = (c: CCGCard) => c.effects?.some((e) => e.type === 'GAIN_ENERGY' && e.target === 'SELF')
+
+        const trySwap = (needsCard: (c: CCGCard) => boolean) => {
+            if (Math.random() > 0.3) return
+            const pool = [...bot.deck, ...bot.usedCards]
+            const candidates = pool.filter((c) => needsCard(c) && this.getCardCost(game, c) <= bot.energy)
+            if (candidates.length === 0) return
+            const pick = candidates[Math.floor(Math.random() * candidates.length)]
+            // Find the worst hand card (no beneficial effect for current need)
+            const worstIdx = bot.hand.reduce<number>((worstI, card, i) => {
+                if (!card) return worstI
+                if (needsCard(card)) return worstI // don't replace something already useful
+                if (worstI === -1) return i
+                const worstCost = this.getCardCost(game, bot.hand[worstI])
+                const thisCost = this.getCardCost(game, card)
+                return thisCost > worstCost ? i : worstI
+            }, -1)
+            if (worstIdx === -1) return
+            // Remove pick from wherever it was
+            const deckIdx = bot.deck.indexOf(pick)
+            if (deckIdx !== -1) bot.deck.splice(deckIdx, 1)
+            else {
+                const usedIdx = bot.usedCards.indexOf(pick)
+                if (usedIdx !== -1) bot.usedCards.splice(usedIdx, 1)
+            }
+            bot.deck.push(bot.hand[worstIdx])
+            bot.hand[worstIdx] = pick
+        }
+
+        if (lowHp && (!lowEnergy || bot.hp < 5)) {
+            trySwap(isHealCard)
+        } else if (lowEnergy) {
+            trySwap(isEnergyCard)
+        }
+        if (lowHp && lowEnergy && bot.hp >= 5) {
+            trySwap(isEnergyCard)
+        }
+    }
 }

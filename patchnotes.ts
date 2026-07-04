@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '34.1.1'
+    public static readonly currentVersion = '34.2.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,23 +27,52 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '## Kortendringer (HP CCG)',
-                ' * **Ginny Weasley** – koster nå **2 energi** (ned fra 3).',
-                ' * **Remus Lupin** – gir nå **3 skjold** (opp fra 2).',
+                '## Balanse (HP CCG)',
+                ' * **Harry Potter** – hastighet 90 → 72. Selvskade økt til 4 HP.',
+                ' * **Snape** – hastighet 65 → 95. Skjold redusert til 2, Rustning økt til 4.',
+                ' * **Hermione** – nøyaktighet → 100.',
+                ' * **Ron** – nøyaktighet 90 → 100.',
+                ' * **Ginny** – helbred 2 → 4.',
+                ' * **Buckbeak** – nødhelbred 1 → 3.',
+                ' * **Dobby** – restitusjonsvarighet 3 → 2 runder.',
+                ' * **Myrtle** – blødningsvarighet 3 → 4 runder.',
+                ' * **Umbridge** – nøyaktighet 90 → 100.',
+                ' * **Tonks** – hastighet 5 → 100. Redesignet: helbreder 3 HP og kaller inn Lupin.',
+                ' * **Lupin** – kaller nå også inn Tonks når han spilles.',
+                ' * **Kingsley Shacklebolt** – hastighet 62 → 89. Helbred 2 → 3. Nøyaktighet → 100.',
+                ' * **Luna Lovegood** – kostnad 3 → 1. Hastighet → 75. Nøyaktighet → 100. Redesignet: gjør 2 skade + 50 % sjanse for å helbrede 2.',
+                ' * **Barty Crouch Jr.** – blødningsvarighet 2 → 3 runder.',
+                ' * **Fleur Delacour** – redesignet: 50 % sjanse for å helbrede 4, 50 % sjanse for å gjøre 3 skade.',
+                ' * **Draco Malfoy** – fullstendig redesign. Kostnad 3. Gjør 1 skade, kaller inn en Dødseter, legger Dusør 4 på motstanderen, og kaster alle Gryffindor-kort fra motstanderens hånd.',
+                ' * **Lucius Malfoy** – betingelsestrigger 25 % → 50 %.',
+                ' * **Hagrid** – innkallingsverdi 2 → 3. Kortbeskrivelsen avslører ikke lenger kostnad på innkalt kort.',
+                ' * **Sirius Black** – fullstendig redesign. Kostnad 1, hastighet 68. Gjør skade lik posisjonen kortet løses i – 1. kort gjør 1 skade, siste gjør opptil 4.',
+                ' * **Viktor Krum** – hastighet 75 → 40. Snitch-fangstsjanse 10 % → 5 %.',
+                ' * **Polyjuice-drikk** – kostnad 1 → 0.',
+                ' * **Den gyldne snapen** – kostnad 10 → 12. Hastighet 80 → 70.',
+                ' * **Bertie Botts bønner** – kostnad 2 → 1.',
+                ' * **Minerva McGonagall** – Reflect varer nå kun inneværende runde (ned fra 2).',
+                ' * **Fred Weasley** – helbreder 3. Bonus når spilt med George: +1 energi og utløser en prank.',
+                ' * **George Weasley** – gjør 3 skade. Bonus når spilt med Fred: +1 energi.',
                 '',
-                '## Prank-oppdateringer (Fred & George)',
-                ' * **Dungbomb** – gjør nå **5 skade** på begge spillere, helbreder deg selv for **4** og motstanderen for **2**.',
-                ' * **Ton-Tongue Toffee** – **stjeler 1 energi** fra motstanderen (i stedet for å gi 2 til deg selv).',
-                ' * **Decoy Detonator** – fjerner nå **alle skjold og rustning** fra begge spillere.',
+                '## Prank-revisjon',
+                "Prank-poolen er fullstendig redesignet med 12 unike pranks basert på Weasleys' Wizard Wheezes-produkter:",
+                ' * **Dungbomb** – gjør 3 skade på motstanderen.',
+                ' * **Decoy Detonator** – gir deg Skjold 2.',
+                ' * **Wildfire Whiz-bang** – gjør 3 skade på motstanderen og 3 på deg selv.',
+                ' * **Ton-Tongue Toffee** – bytter energi med motstanderen.',
+                ' * **Peruvian Darkness Powder** – motstanderens hånd vises som blank i 1 runde.',
+                ' * **Hiccough Sweets** – randomiserer kortkostnader for begge spillere i 3 runder.',
+                ' * **Fainting Fancy** – utjevner begge spilleres HP til gjennomsnittet.',
+                ' * **Fever Fudge** – randomiserer nøyaktighet for begge spillere i 2 runder.',
+                ' * **Sorting Jinx** – sorterer motstanderens kortstokk alfabetisk.',
+                ' * **Confundus Candy** – motstanderens håndknapper stokkes og merkes "Kort" i 1 runde.',
+                ' * **Malfunction** – gjør 7 skade på deg selv.',
+                ' * **Rubber Duck** – fyller motstanderens hånd med gummikanaer.',
                 '',
-                '## Nye pranks',
-                ' * **Fainting Fancy** – begge spilleres energi settes til **2**.',
-                ' * **Fever Fudge** – begge spilleres HP settes til **15**.',
-                ' * **Peruvian Instant Darkness Powder** – kaster alle kortene på motstanderens hånd.',
-                ' * **Hiccough Sweets** – alle kortkostnader randomiseres (1–5) i **3 runder** for begge spillere.',
-                '',
-                '## Høes hard deck',
-                ' * Oppdatert med nytt utvalg kort.',
+                '## Feilrettinger',
+                ' * Rettet en feil der spillere med gyldige Wild-dekk feilaktig ble avvist i PvP.',
+                ' * Rettet Minervas Reflect som feilaktig reflekterte alle effekter i stedet for kun fiendtlige.',
             ].join('\n')
         )
         container.addSeparator()
