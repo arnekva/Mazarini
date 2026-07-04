@@ -242,9 +242,9 @@ export class CardActionResolver {
                 break
 
             case 'REMOVE_STATUS':
-                if (effect.status) {
-                    this.removeStatusTypeForPlayer(game, target, effect.status)
-                    this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s **${effect.status}** is removed`)
+                if (effect.statusType) {
+                    this.removeStatusTypeForPlayer(game, target, effect.statusType)
+                    this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s **${effect.statusType}** is removed`)
                 } else {
                     this.removeAllStatusForPlayer(game, target)
                     this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} has all status conditions removed`)

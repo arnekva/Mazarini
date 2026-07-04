@@ -108,6 +108,7 @@ export interface CCGEffect {
     cardIds?: string[]
     toDeckTop?: boolean
     charges?: number
+    statusType?: CCGStatusEffectType
 } //TODO: is this getting out of hand? Do we need to split this into multiple interfaces or classes? Maybe have a base CCGEffect and then extend it for different types of effects that require different properties?
 
 export type CCGEffectType =
@@ -250,7 +251,6 @@ export interface CCGCard {
     cannotMiss?: boolean
     emoji?: string
     selected?: boolean
-    blank?: string
     identifier?: CardIdentifier[]
     customDescription?: string
     nameFontSize?: number
@@ -314,6 +314,7 @@ export interface CCGCardEffect {
     cardIds?: string[]
     toDeckTop?: boolean
     charges?: number
+    statusType?: CCGStatusEffectType
 }
 
 export type HpIdentifier =
