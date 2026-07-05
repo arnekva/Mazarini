@@ -42,6 +42,7 @@ export class BotResolver {
             this.sortPlayable(playable)
         }
         this.checkCycleValue(game, playable)
+        this.penalizeDuplicateNonStackingCards(playable)
         this.sortPlayable(playable)
 
         this.selectCards(game, bot, playable)
@@ -530,6 +531,26 @@ export class BotResolver {
         }
     }
 
+    /**
+     * Non-stacking status effects (SHIELD, REFLECT, ELUSIVE, SLEEP, CANNOT_DIE, etc.) don't benefit
+     * from being played twice in the same round. After the first copy is the top scorer, demote
+     * all subsequent copies of the same card id so the bot only plays one unless cycle value carries it.
+     */
+    private penalizeDuplicateNonStackingCards(playable: BotCard[]) {
+        const NON_STACKING_TYPES: CCGEffectType[] = ['SHIELD', 'REFLECT', 'ELUSIVE', 'SLEEP', 'CANNOT_DIE', 'ARMOR', 'REDUCE_COST', 'DAMAGE_BOOST', 'HEAL_BOOST']
+        const seen = new Set<string>()
+        for (const item of playable) {
+            if (item.score <= 0) continue
+            const hasNonStacking = item.card.effects?.some((e) => NON_STACKING_TYPES.includes(e.type as CCGEffectType))
+            if (!hasNonStacking) continue
+            if (seen.has(item.card.id)) {
+                item.score = Math.min(item.score, 1) // demote — only cycle value can justify it
+            } else {
+                seen.add(item.card.id)
+            }
+        }
+    }
+
     private synergySatisfied(count: number, comparator: CCGCondition['comparator'], value: number): boolean {
         switch (comparator) {
             case '<':
@@ -564,8 +585,7 @@ export class BotResolver {
 
         const trySwap = (needsCard: (c: CCGCard) => boolean) => {
             if (Math.random() > 0.3) return
-            const pool = [...bot.deck, ...bot.usedCards]
-            const candidates = pool.filter((c) => needsCard(c) && this.getCardCost(game, c) <= bot.energy)
+            const candidates = bot.deck.filter((c) => needsCard(c) && this.getCardCost(game, c) <= bot.energy)
             if (candidates.length === 0) return
             const pick = candidates[Math.floor(Math.random() * candidates.length)]
             // Find the worst hand card (no beneficial effect for current need)
@@ -578,13 +598,10 @@ export class BotResolver {
                 return thisCost > worstCost ? i : worstI
             }, -1)
             if (worstIdx === -1) return
-            // Remove pick from wherever it was
+            // Swap: pull pick out of deck, send the displaced hand card back to the bottom
             const deckIdx = bot.deck.indexOf(pick)
-            if (deckIdx !== -1) bot.deck.splice(deckIdx, 1)
-            else {
-                const usedIdx = bot.usedCards.indexOf(pick)
-                if (usedIdx !== -1) bot.usedCards.splice(usedIdx, 1)
-            }
+            if (deckIdx === -1) return
+            bot.deck.splice(deckIdx, 1)
             bot.deck.push(bot.hand[worstIdx])
             bot.hand[worstIdx] = pick
         }

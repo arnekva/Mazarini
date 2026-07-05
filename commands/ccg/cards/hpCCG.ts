@@ -564,21 +564,8 @@ export const hpCCG: CCGCard[] = [
                 target: 'OPPONENT',
                 value: 3,
             },
-            {
-                // Paired bonus: gain 1 energy (prank lives on Fred only to avoid double-firing)
-                type: 'GAIN_ENERGY',
-                target: 'SELF',
-                value: 1,
-                condition: {
-                    type: 'PLAYED_CARD_ID',
-                    target: 'SELF',
-                    cardId: 'hp_fred_n',
-                    comparator: '>=',
-                    value: 1,
-                },
-            },
         ],
-        customDescription: 'Deal [red]3 damage[/red]. Paired with Fred: Gain [blue]1 energy[/blue] and [gold]set off a random prank![/gold]',
+        customDescription: 'Deal [red]3 damage[/red]. Paired with Fred: [gold]set off a random prank![/gold]',
         cost: 1,
         speed: 15,
         rarity: ItemRarity.Rare,
@@ -856,7 +843,7 @@ export const hpCCG: CCGCard[] = [
             {
                 type: 'HEAL',
                 target: 'SELF',
-                value: 6,
+                value: 9,
             },
             {
                 type: 'SUMMON_CARD',
@@ -864,10 +851,10 @@ export const hpCCG: CCGCard[] = [
                 identifier: 'POTION',
             },
         ],
-        customDescription: '[green]Heal 6[/green] and make a random [yellow]potion[/yellow].',
+        customDescription: '[green]Heal 9[/green] and make a random [yellow]potion[/yellow].',
         cost: 3,
         speed: 70,
-        rarity: ItemRarity.Epic,
+        rarity: ItemRarity.Legendary,
         accuracy: 100,
         identifier: ['GRYFFINDOR'],
     },
@@ -1142,25 +1129,19 @@ export const hpCCG: CCGCard[] = [
         type: CCGCardType.Attack,
         effects: [
             {
-                // Disarm: negate ALL slower incoming attacks (high speed lets it resolve before them). amount=99 => all.
-                type: 'NEUTRALIZE_ATTACK',
+                // Expeliarmus: opponent's cards cost 2 more for 2 turns
+                type: 'REDUCE_COST',
                 target: 'OPPONENT',
-                amount: 99,
+                value: -2,
+                turns: 2,
             },
             {
-                // Sacrifice 4 HP...
-                type: 'DAMAGE',
-                target: 'SELF',
-                value: 4,
-            },
-            {
-                // ...to deal 6
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 6,
+                value: 3,
             },
         ],
-        customDescription: '[gold]Disarm[/gold] the opponent — negate all incoming attacks. Sacrifice [red]4 HP[/red] to deal [red]6 damage[/red].',
+        customDescription: '[gold]Expeliarmus![/gold] Opponent\'s cards cost [red]2 more[/red] for 2 turns. Deal [red]3 damage[/red].',
         cost: 3,
         speed: 72,
         rarity: ItemRarity.Legendary,
@@ -1206,18 +1187,9 @@ export const hpCCG: CCGCard[] = [
         type: CCGCardType.Shield,
         effects: [
             {
-                // Persistent shield pool
                 type: 'SHIELD',
                 target: 'SELF',
-                value: 2,
-            },
-            {
-                // Armor reduces each incoming attack this turn
-                type: 'ARMOR',
-                target: 'SELF',
-                value: 4,
-                turns: 1,
-                includeCurrentTurn: true,
+                value: 6,
             },
             {
                 type: 'SUMMON_CARD',
@@ -1231,7 +1203,7 @@ export const hpCCG: CCGCard[] = [
         accuracy: 100,
         cannotMiss: true,
         identifier: ['SLYTHERIN', 'DEATH_EATER'],
-        customDescription: 'Gain [blue]Shield 2[/blue] and [blue]Armor 4[/blue]. Make a random [yellow]potion[/yellow].',
+        customDescription: 'Gain [blue]Shield 6[/blue]. Make a random [yellow]potion[/yellow].',
     },
     {
         id: 'hp_voldemort_n',
