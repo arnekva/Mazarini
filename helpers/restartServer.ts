@@ -98,7 +98,7 @@ export class RestartServer {
         const changed = key !== this.lastImpedimentsKey
         if (changed || now - this.lastImpededLogAt > RestartServer.IMPEDED_LOG_THROTTLE_MS) {
             const reasons = impediments.map((i) => `• ${i}`).join('\n')
-            const developer = MentionUtils.mentionRole(MentionUtils.ROLE_IDs.DEVELOPER)
+            const developer = MentionUtils.mentionRole(MentionUtils.ROLE_IDs.DEPLOY_GUARD)
             this.client.messageHelper.sendLogMessage(
                 `${developer} ⏳ Deploy utsatt – venter på at følgende skal bli ferdig:\n${reasons}\nKan tvinges gjennom med /restart.`
             )
