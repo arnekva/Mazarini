@@ -789,8 +789,6 @@ export const hpCCG: CCGCard[] = [
         rarity: ItemRarity.Epic,
         accuracy: 100,
         identifier: ['MAGICAL_CREATURE'],
-        // Magical creatures are summon-only (Hagrid); not obtainable from loot
-        collectible: false,
     },
     {
         id: 'hp_buckbeak_n',
@@ -828,8 +826,6 @@ export const hpCCG: CCGCard[] = [
         rarity: ItemRarity.Epic,
         accuracy: 100,
         identifier: ['MAGICAL_CREATURE'],
-        // Magical creatures are summon-only (Hagrid); not obtainable from loot
-        collectible: false,
     },
     {
         id: 'hp_hermione_n',
@@ -1064,8 +1060,6 @@ export const hpCCG: CCGCard[] = [
         rarity: ItemRarity.Epic,
         accuracy: 100,
         identifier: ['MAGICAL_CREATURE'],
-        // Magical creatures are summon-only (Hagrid); not obtainable from loot
-        collectible: false,
     },
     {
         id: 'hp_basilisk_n',
@@ -1084,8 +1078,6 @@ export const hpCCG: CCGCard[] = [
         rarity: ItemRarity.Epic,
         accuracy: 100,
         identifier: ['MAGICAL_CREATURE'],
-        // Magical creatures are summon-only (Hagrid); not obtainable from loot
-        collectible: false,
     },
     {
         id: 'hp_dark_mark_n',

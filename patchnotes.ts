@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '34.2.3'
+    public static readonly currentVersion = '34.2.4'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,14 +28,7 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '## Kortendringer (HP CCG)',
-                ' * **Hermione Granger** – redesignet: 4 energi. Forvirrer motstanderen (**Retarded** i 2 runder). Helbred 4.',
-                ' * **Kingsley Shacklebolt** – redesignet: 2 energi. Gjør **5 skade**. Auror.',
-                ' * **Sirius Black** – kostnad 1 → 2.',
-                ' * **Cedric Diggory** – redesignet: 3 energi. Gjør **2 skade**. Foresight 3.',
-                ' * **Bertie Botts bønner** – kan ikke lenger finnes i pakker.',
-                '',
-                '## Bot',
-                ' * Hard-modusen til boten har fått et nytt kortsett.',
+                ' * **Magiske skapninger** (Aragog, Buckbeak, Fawkes, Basilisk) – kan nå finnes i pakker og samles.',
             ].join('\n')
         )
         container.addSeparator()
