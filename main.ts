@@ -2,7 +2,6 @@ import moment from 'moment'
 import { discordSecret } from './client-env'
 import { MazariniClient } from './client/MazariniClient'
 import { CCGCardGenerator } from './helpers/ccgCardGenerator'
-import { CCGCard } from './commands/ccg/ccgInterface'
 import { RestartServer } from './helpers/restartServer'
 
 export class MazariniBot {
@@ -67,22 +66,10 @@ export class MazariniBot {
         // Localhost endpoint that gates automated deploys on the same guards as the /restart command
         new RestartServer(this.client).start()
 
-        // Generate CCG card images asynchronously on startup, using cards from DB if available
-        this.client.database
-            .getStorage()
-            .then((storage) => {
-                const dbCcg = storage?.ccg
-                const dbCards = dbCcg ? (Object.values(dbCcg) as unknown[]).flat().filter((c): c is CCGCard => !!c && typeof c === 'object') : undefined
-                CCGCardGenerator.generateAll(this.client, dbCards?.length ? dbCards : undefined).catch((err) => {
-                    console.error('[CCG] Card generation failed:', err)
-                })
-            })
-            .catch((err) => {
-                console.error('[CCG] Failed to fetch storage for card generation, falling back to local cards:', err)
-                CCGCardGenerator.generateAll(this.client).catch((err2) => {
-                    console.error('[CCG] Card generation (fallback) failed:', err2)
-                })
-            })
+        // Generate CCG card images asynchronously on startup using local card definitions
+        CCGCardGenerator.generateAll(this.client).catch((err) => {
+            console.error('[CCG] Card generation failed:', err)
+        })
 
         // this.client.user.edit({ avatar: 'hoie2.gif' })
         moment.updateLocale('nb', {})
