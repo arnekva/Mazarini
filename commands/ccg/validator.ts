@@ -1,11 +1,13 @@
-import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
 import { DeckEditorCard, ICCGDeck, ICCGSystem, ItemRarity, IUserLootItem, MazariniUser } from '../../interfaces/database/databaseInterface'
 import { CCGCard, CCGEffectType } from './ccgInterface'
+import { hpCCG } from './cards/hpCCG'
+import { mazariniCCG } from './cards/mazariniCCG'
+import { swCCG } from './cards/swCCG'
 
 export class CCGValidator {
-    public static async validateDeck(client: MazariniClient, user: MazariniUser, deck: ICCGDeck, validationErrors: string[]) {
-        const allCards = client.cache.ccg ?? (await client.database.getStorage()).ccg
+    public static validateDeck(user: MazariniUser, deck: ICCGDeck, validationErrors: string[]) {
+        const allCards = { mazariniCCG, swCCG, hpCCG }
         return this.validateDeckWithCards(user, deck, validationErrors, allCards)
     }
 

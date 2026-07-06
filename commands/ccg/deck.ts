@@ -23,6 +23,9 @@ import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { CCGDeckEditor_Info, CCGDeckEditor_Trade } from '../../templates/containerTemplates'
 import { TextUtils } from '../../utils/textUtils'
 import { AmountFilter, CardIdentifier, CCGCard, CCGCardType, CCGSeries, DeckEditor, UsageFilter } from './ccgInterface'
+import { hpCCG } from './cards/hpCCG'
+import { mazariniCCG } from './cards/mazariniCCG'
+import { swCCG } from './cards/swCCG'
 import { CCGValidator } from './validator'
 
 export class DeckCommands extends AbstractCommands {
@@ -272,7 +275,7 @@ export class DeckCommands extends AbstractCommands {
     }
 
     private async getFullCards(items: IUserLootItem[]) {
-        const cards = this.client.cache.ccg ?? (await this.database.getStorage()).ccg
+        const cards = { mazariniCCG, swCCG, hpCCG }
         const userCards = new Array<CCGCard>()
         for (const item of items) {
             const series = cards[item.series] as CCGCard[]
@@ -377,7 +380,7 @@ export class DeckCommands extends AbstractCommands {
         const user = await this.database.getUser(editor.userId)
         editor.deck.valid = true
         editor.validationErrors = new Array<string>()
-        await CCGValidator.validateDeck(this.client, user, editor.deck, editor.validationErrors)
+        CCGValidator.validateDeck(user, editor.deck, editor.validationErrors)
     }
 
     private updateCardPage(interaction: BtnInteraction, editor: DeckEditor) {

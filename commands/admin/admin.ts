@@ -538,9 +538,7 @@ export class Admin extends AbstractCommands {
             this.messageHelper.sendLogMessage(`[CCG] ${modalInteraction.user.username} tvinger full regenerering av CCG-bilder.`)
         }
         if (selected.includes('clear_cache')) {
-            this.client.cache.ccg = undefined
-            results.push('Cache tømt. Neste CCG-operasjon henter kort fra DB.')
-            this.messageHelper.sendLogMessage(`[CCG] ${modalInteraction.user.username} tømte CCG-cache.`)
+            results.push('Cache-tømming ikke lenger nødvendig — kort leses direkte fra kode.')
         }
 
         await modalInteraction.editReply(results.length ? results.join('\n') : 'Ingenting valgt.')

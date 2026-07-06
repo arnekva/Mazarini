@@ -18,6 +18,9 @@ import { MentionUtils } from '../../utils/mentionUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { BotResolver } from './BotResolver'
 import { CardActionResolver } from './cardActionResolver'
+import { hpCCG } from './cards/hpCCG'
+import { mazariniCCG } from './cards/mazariniCCG'
+import { swCCG } from './cards/swCCG'
 import { CCGHelp } from './ccgHelp'
 import {
     CardSet,
@@ -76,22 +79,8 @@ export class CCGCommands extends AbstractCommands {
         return CCGCardGenerator
     }
 
-    async onReady() {
-        this.database.getStorage()
-            .then((storage) => (this.client.cache.ccg = storage.ccg))
-            .catch((error) => this.client.messageHelper.sendLogMessage(`Feil ved lasting av CCG-kort: ${error}`))
-    }
-
-    private async getCcgStorage(): Promise<ICCGSystem> {
-        if (!this.client.cache.ccg) {
-            const storage = await this.database.getStorage()
-            this.client.cache.ccg = storage.ccg
-        }
-        return this.client.cache.ccg
-    }
-
-    public clearCcgCache() {
-        this.client.cache.ccg = undefined
+    private getCcgStorage(): ICCGSystem {
+        return { mazariniCCG, swCCG, hpCCG }
     }
 
     private drawCards(game: CCGGame, player: CCGPlayer) {
@@ -657,9 +646,11 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private getSpeed(game: CCGGame, player: CCGPlayer, card: CCGCard) {
-        const isSlow = !card.effectImmunities?.includes('SLOW') && this.playerHasCondition(game, player, 'SLOW')
+        const slowStacks = card.effectImmunities?.includes('SLOW')
+            ? 0
+            : game.state.statusConditions.filter((e) => e.ownerId === player.id && e.type === 'SLOW').length
         const hasSpeedBuff = this.playerHasStatus(game, player, 'SPEED_BUFF')
-        const speedDivisor = isSlow ? GameValues.ccg.status.slow_speedDivideBy : 1
+        const speedDivisor = Math.pow(GameValues.ccg.status.slow_speedDivideBy, slowStacks)
         const speedMultiplier = hasSpeedBuff ? GameValues.ccg.status.speedBuff_multiplier : 1
         return Math.floor((card.speed * speedMultiplier) / speedDivisor) + Math.random()
     }
@@ -690,7 +681,12 @@ export class CCGCommands extends AbstractCommands {
         }
         for (const condition of game.state.statusConditions) {
             if (condition.ownerId !== player.id) continue
-            if (condition.type === 'SLOW') mods.push({ type: 'SPEED_MULTIPLIER', value: 1 / GameValues.ccg.status.slow_speedDivideBy })
+            if (condition.type === 'SLOW') {
+                const divisor = GameValues.ccg.status.slow_speedDivideBy
+                const existing = mods.find((m) => m.type === 'SPEED_MULTIPLIER')
+                if (existing) existing.value /= divisor
+                else mods.push({ type: 'SPEED_MULTIPLIER', value: 1 / divisor })
+            }
             if (condition.type === 'CHOKESTER') mods.push({ type: 'ACCURACY_OVERRIDE', value: 50 })
             if (condition.type === 'BLANK_HAND') mods.push({ type: 'BLANK_CARD', value: 0 })
         }
@@ -712,7 +708,7 @@ export class CCGCommands extends AbstractCommands {
         const user = await this.database.getUser(interaction.user.id)
         const game = this.getGame(interaction)
         if (game && !game.player2 && game.player1.id !== interaction.user.id) {
-            const ccgStorage = await this.getCcgStorage()
+            const ccgStorage = this.getCcgStorage()
             const validDeck = await this.userHasValidDeck(interaction, user, ccgStorage, game.cardSet === CardSet.Standard, game.cardSet)
             if (!validDeck) return this.handleUserHasInvalidDeck(interaction)
             if (!this.userCanJoin(game, user)) return this.messageHelper.replyToInteraction(interaction, 'Du har ikke råd til å være med på denne')
@@ -1024,7 +1020,7 @@ export class CCGCommands extends AbstractCommands {
         appEmojis?: Collection<string, ApplicationEmoji>,
         cardSet?: CardSet
     ): Promise<CCGCard[]> {
-        const resolvedCards = cards ?? (await this.getCcgStorage())
+        const resolvedCards = cards ?? (this.getCcgStorage())
         const resolvedEmojis = appEmojis ?? (await this.client.getEmojis())
 
         const deck =
@@ -1040,7 +1036,7 @@ export class CCGCommands extends AbstractCommands {
         appEmojis?: Collection<string, ApplicationEmoji>,
         cardSet?: CardSet
     ): Promise<CCGCard[]> {
-        const resolvedCards = cards ?? (await this.getCcgStorage())
+        const resolvedCards = cards ?? (this.getCcgStorage())
         const resolvedEmojis = appEmojis ?? (await this.client.getEmojis())
         const deckPool = cardSet === CardSet.Wild ? GameValues.ccg.botDeckFull[difficulty] : GameValues.ccg.botDeck[difficulty]
         const deck = RandomUtils.getRandomItemFromList(deckPool)
@@ -1048,7 +1044,7 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private async getFullCards(deck: ICCGDeck, cards?: ICCGSystem, appEmojis?: Collection<string, ApplicationEmoji>) {
-        const resolvedCards = cards ?? (await this.getCcgStorage())
+        const resolvedCards = cards ?? (this.getCcgStorage())
         const resolvedEmojis = appEmojis ?? (await this.client.getEmojis())
         const userCards = new Array<CCGCard>()
         for (const item of deck.cards) {
@@ -1075,7 +1071,7 @@ export class CCGCommands extends AbstractCommands {
     ) {
         if (environment === 'dev') return true
         const resolvedUser = user ?? (await this.database.getUser(interaction.user.id))
-        const resolvedCards = cards ?? (await this.getCcgStorage())
+        const resolvedCards = cards ?? (this.getCcgStorage())
         const deck =
             (cardSet === CardSet.Wild
                 ? resolvedUser.ccg?.decks?.find((deck) => deck.activeWild) ?? resolvedUser.ccg?.decks?.find((deck) => deck.active)
@@ -1173,7 +1169,7 @@ export class CCGCommands extends AbstractCommands {
                 return this.messageHelper.replyToInteraction(interaction, 'Kortbilder genereres fortsatt, prøv igjen om litt.')
             const vsBot = cmd === 'bot'
             const user = await this.database.getUser(interaction.user.id)
-            const ccgStorage = await this.getCcgStorage()
+            const ccgStorage = this.getCcgStorage()
             const modeRaw = vsBot ? (interaction.options.get('mode')?.value as string) : undefined
             const cardSet = (modeRaw?.split('_')[1] as CardSet | undefined) ?? CardSet.Wild
             const standardOnly = cardSet === CardSet.Standard

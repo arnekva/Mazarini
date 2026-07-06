@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '34.2.2'
+    public static readonly currentVersion = '34.2.3'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,11 +28,14 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '## Kortendringer (HP CCG)',
-                ' * **Harry Potter** – redesignet: Expeliarmus! Motstanderens kort koster **2 mer** i 2 runder. Gjør **3 skade**.',
-                ' * **Snape** – Rustning fjernet. Skjold økt til **6**.',
-                ' * **Hermione Granger** – Helbred økt til **9** (opp fra 6). Rarity oppgradert til **Legendary**. Eksisterende kopier er refundert med 50 shards per kopi.',
-                ' * **Fred Weasley** – Parede bonus justert: kun Fred gir **+1 energi**. Prank utløses fortsatt av Fred.',
-                ' * **George Weasley** – Parede bonus justert: George gir ikke lenger energi, kun prank fra Fred-siden.',
+                ' * **Hermione Granger** – redesignet: 4 energi. Forvirrer motstanderen (**Retarded** i 2 runder). Helbred 4.',
+                ' * **Kingsley Shacklebolt** – redesignet: 2 energi. Gjør **5 skade**. Auror.',
+                ' * **Sirius Black** – kostnad 1 → 2.',
+                ' * **Cedric Diggory** – redesignet: 3 energi. Gjør **2 skade**. Foresight 3.',
+                ' * **Bertie Botts bønner** – kan ikke lenger finnes i pakker.',
+                '',
+                '## Bot',
+                ' * Hard-modusen til boten har fått et nytt kortsett.',
             ].join('\n')
         )
         container.addSeparator()

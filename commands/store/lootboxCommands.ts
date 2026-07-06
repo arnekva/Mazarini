@@ -35,6 +35,9 @@ import { IInteractionElement, IOnTimedEvent } from '../../interfaces/interaction
 import { EmbedUtils } from '../../utils/embedUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { TextUtils } from '../../utils/textUtils'
+import { hpCCG } from '../ccg/cards/hpCCG'
+import { mazariniCCG } from '../ccg/cards/mazariniCCG'
+import { swCCG } from '../ccg/cards/swCCG'
 import { CCGCard } from '../ccg/ccgInterface'
 import { DealOrNoDeal } from '../games/dealOrNoDeal'
 
@@ -404,7 +407,7 @@ export class LootboxCommands extends AbstractCommands {
     }
 
     private async getFullCards(items: IUserLootItem[]) {
-        const cards = this.client.cache.ccg ?? (await this.database.getStorage()).ccg
+        const cards = { mazariniCCG, swCCG, hpCCG }
         const userCards = new Array<CCGCard>()
         for (const item of items) {
             const series = cards[item.series] as CCGCard[]
@@ -570,7 +573,7 @@ export class LootboxCommands extends AbstractCommands {
 
     private async filterOutNonCollectible(series: ILootSeries): Promise<ILootSeries> {
         if (!series.isCCG) return series
-        const cards = this.client.cache.ccg ?? (await this.database.getStorage()).ccg
+        const cards = { mazariniCCG, swCCG, hpCCG }
         const fullSeries = cards[series.name] as CCGCard[]
         return {
             ...series,
