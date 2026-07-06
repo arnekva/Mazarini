@@ -1244,7 +1244,7 @@ export const hpCCG: CCGCard[] = [
         speed: 50,
         rarity: ItemRarity.Epic,
         accuracy: 100,
-        nameFontSize: 18,
+        nameFontSize: 22,
         collectible: false,
     },
     {
