@@ -165,6 +165,8 @@ export interface StatusEffect {
     delayedTrigger?: boolean
     reflectType?: ReflectType
     charges?: number
+    sourceCardId?: string
+    sourceCardName?: string
 }
 
 export type CCGStatusEffectType =
@@ -331,6 +333,14 @@ export type HpIdentifier =
 export type CardIdentifier = SwIdentifier | HpIdentifier
 export type SwIdentifier = 'REBEL' | 'SITH' | 'JEDI' | 'REPUBLIC' | 'BOUNTY_HUNTER' | 'CREATURE' | 'EMPIRE' | 'DROID'
 export type CCGTarget = 'SELF' | 'OPPONENT'
+
+/** 'DEATH_EATER' -> 'Death Eater'. Used to render an identifier as a bounty trigger type label. */
+export function formatIdentifierLabel(identifier: string): string {
+    return identifier
+        .split('_')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ')
+}
 
 export enum CCGCardType {
     Attack = 'attack',

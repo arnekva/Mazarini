@@ -93,6 +93,7 @@ export type GameValuesType = {
             tier6: number
             completed: number
             bestAttempt: number
+            bestAttemptShards: number
         }
     }
     spinner: {
@@ -126,6 +127,7 @@ export type GameValuesType = {
     }
     wordle: {
         reward: number
+        rewardShards: number
         wordleCapPerPerson: number
     }
     loot: {
@@ -140,6 +142,7 @@ export type GameValuesType = {
         totalAttempts: number
         codeLength: number
         winnerReward: number
+        winnerRewardShards: number
     }
     misc: {
         idJokeReward: number
@@ -298,6 +301,7 @@ export const GameValues: GameValuesType = {
             tier6: 50, // 51+
             completed: 2500,
             bestAttempt: 2500,
+            bestAttemptShards: 5,
         },
     },
 
@@ -391,6 +395,7 @@ export const GameValues: GameValuesType = {
     },
     wordle: {
         reward: 10000,
+        rewardShards: 5,
         wordleCapPerPerson: 2500,
     },
     loot: {
@@ -405,6 +410,7 @@ export const GameValues: GameValuesType = {
         totalAttempts: 10,
         codeLength: 4,
         winnerReward: 2500,
+        winnerRewardShards: 10,
     },
     misc: {
         idJokeReward: 1000,

@@ -1,5 +1,5 @@
 import { FirebaseApp } from 'firebase/app'
-import { child, Database, get, getDatabase, increment, ref, remove, set, update } from 'firebase/database'
+import { child, Database, get, getDatabase, increment, onValue, ref, remove, set, update, Unsubscribe } from 'firebase/database'
 import {
     FirebaseStorage,
     getBytes,
@@ -80,6 +80,19 @@ export class FirebaseHelper {
 
     public async getUser(userId: string): Promise<MazariniUser> {
         return (await this.getData(`users/${userId}`)) as MazariniUser
+    }
+
+    /**
+     * Live-subscribe to a single user's DB record. `callback` fires immediately with the current
+     * value, then again on every subsequent change to that path — including writes made by other
+     * processes (e.g. the lucky wheel activity), which a one-shot `get()` would never see.
+     * Returns an unsubscribe function; the caller is responsible for detaching it when done.
+     */
+    public subscribeToUser(userId: string, callback: (user: MazariniUser | null) => void): Unsubscribe {
+        const userRef = ref(this.db, `${database}/users/${userId}`)
+        return onValue(userRef, (snapshot) => {
+            callback(snapshot.exists() ? (snapshot.val() as MazariniUser) : null)
+        })
     }
 
     public async getAllBotData(): Promise<BotData> {

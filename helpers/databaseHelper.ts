@@ -1,4 +1,5 @@
 import { PutObjectCommandOutput } from '@aws-sdk/client-s3'
+import { Unsubscribe } from 'firebase/database'
 import moment from 'moment'
 import { environment } from '../client-env'
 import { DRGame } from '../commands/games/deathroll'
@@ -26,11 +27,19 @@ export interface DeathRollStats {
 export class DatabaseHelper {
     private db: FirebaseHelper
     private storage: CloudflareHelper
-    private userCache = new Map<string, { user: MazariniUser; expiresAt: number }>()
-    private static readonly USER_CACHE_TTL = 30 * 60 * 1_000
+    private userCache = new Map<string, MazariniUser>()
+    // One live Firebase listener per user we've ever fetched, so writes from OTHER processes
+    // (e.g. the lucky wheel activity, which writes straight to Firebase) reach our cache instantly
+    // instead of being masked until a poll/TTL expiry.
+    private userListeners = new Map<string, Unsubscribe>()
+    private userLoadPromises = new Map<string, Promise<MazariniUser>>()
 
+    /** Detach every live user listener and clear the cache. Listeners are re-established lazily on next getUser(). */
     public clearUserCache() {
+        this.userListeners.forEach((unsubscribe) => unsubscribe())
+        this.userListeners.clear()
         this.userCache.clear()
+        this.userLoadPromises.clear()
     }
 
     constructor(firebaseHelper: FirebaseHelper, cloudflareHelper: CloudflareHelper) {
@@ -39,17 +48,43 @@ export class DatabaseHelper {
     }
 
     /**
-     * Get a user object by ID. Results are cached in memory; all writes go through updateUser which refreshes
-     * the cache immediately, so the TTL is purely for garbage collection — not for correctness.
+     * Get a user object by ID. The first call for a given ID attaches a live Firebase listener
+     * (not a one-shot read), so the cached copy is kept in sync with the DB indefinitely afterwards —
+     * including updates written by other processes, not just this bot's own updateUser() calls.
      * @param userID ID of the user as a string
      */
     public async getUser(userID: string): Promise<MazariniUser> {
         const cached = this.userCache.get(userID)
-        if (cached && cached.expiresAt > Date.now()) return cached.user
-        const user = await this.db.getUser(userID)
-        const resolved = user ?? (await this.addUser(DatabaseHelper.defaultUser(userID)))
-        this.userCache.set(userID, { user: resolved, expiresAt: Date.now() + DatabaseHelper.USER_CACHE_TTL })
-        return resolved
+        if (cached) return cached
+
+        const pending = this.userLoadPromises.get(userID)
+        if (pending) return pending
+
+        const promise = new Promise<MazariniUser>((resolve) => {
+            let firstValueHandled = false
+            const unsubscribe = this.db.subscribeToUser(userID, (user) => {
+                if (user) {
+                    this.userCache.set(userID, user)
+                    if (!firstValueHandled) {
+                        firstValueHandled = true
+                        this.userLoadPromises.delete(userID)
+                        resolve(user)
+                    }
+                    return
+                }
+                if (!firstValueHandled) {
+                    firstValueHandled = true
+                    this.addUser(DatabaseHelper.defaultUser(userID)).then((created) => {
+                        this.userCache.set(userID, created)
+                        this.userLoadPromises.delete(userID)
+                        resolve(created)
+                    })
+                }
+            })
+            this.userListeners.set(userID, unsubscribe)
+        })
+        this.userLoadPromises.set(userID, promise)
+        return promise
     }
 
     public async addUser(user: MazariniUser): Promise<MazariniUser> {
@@ -71,7 +106,7 @@ export class DatabaseHelper {
      *  @param logDiff - Set to true to log the difference between updated and current user. Note that this can cause a delay when updating the user, as it first needs to await a fetch for current
      */
     public async updateUser(user: MazariniUser, logDiff?: boolean) {
-        this.userCache.set(user.id, { user, expiresAt: Date.now() + DatabaseHelper.USER_CACHE_TTL })
+        this.userCache.set(user.id, user)
         const updatedUser = user
         if (logDiff) {
             const oldUser = await this.db.getUser(user.id)

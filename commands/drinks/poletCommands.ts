@@ -311,6 +311,12 @@ export class PoletCommands extends AbstractCommands {
                             messageHelper.sendLogMessage(`Score fetch was aborted after 6000ms. Error: ${error}`)
                         }
                     }
+                    // Vinmonopolet moved alcohol % and ingredients off the top-level fields and into
+                    // `content.traits` / `content.ingredients` at some point; the old fields are kept
+                    // as a fallback in case a response (e.g. barcode search) still uses the old shape.
+                    const alcoholTrait = data.content?.traits?.find((t) => t.name === 'Alkohol')
+                    const ingredients = data.content?.ingredients ?? data.raastoff
+
                     const embed = EmbedUtils.createSimpleEmbed(`${data.name}`, description, [
                         { name: `Lukt`, value: `${data.smell}` },
                         { name: `Pris`, value: `${data.price.formattedValue}`, inline: true },
@@ -318,7 +324,7 @@ export class PoletCommands extends AbstractCommands {
                         { name: `Årgang`, value: `${data.year === '0000' ? 'Ukjent' : data.year}`, inline: true },
                         { name: `Volum`, value: `${data.volume?.formattedValue}`, inline: true },
                         { name: `Land`, value: `${data.main_country?.name}`, inline: true },
-                        { name: `Alkohol`, value: `${data.alcohol?.formattedValue}`, inline: true },
+                        { name: `Alkohol`, value: `${data.alcohol?.formattedValue ?? alcoholTrait?.formattedValue}`, inline: true },
 
                         { name: `Stil`, value: `${data.style?.name}`, inline: true },
                     ])
@@ -326,10 +332,10 @@ export class PoletCommands extends AbstractCommands {
                     /** In case of wines, it will be something like [Pinot Noir 80%, Merlot 20%]
                      * For liquers, ciders, etc. it may only be "Plommer, epler", since they dont display the percentage of the mix.
                      */
-                    if (data.raastoff) {
+                    if (ingredients?.length) {
                         embed.addFields({
                             name: `Innhold`,
-                            value: `${data.raastoff.map((rs) => `${rs.name} ${rs.percentage ? '(' + rs.percentage + '%)' : ''}`).join(', ')}`,
+                            value: `${ingredients.map((rs) => rs.formattedValue ?? `${rs.name} ${rs.percentage ? '(' + rs.percentage + '%)' : ''}`).join(', ')}`,
                             inline: true,
                         })
                     }

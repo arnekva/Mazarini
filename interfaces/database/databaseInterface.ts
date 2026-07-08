@@ -454,6 +454,7 @@ export interface ILuckyWheelReward {
 
 export enum LuckyWheelRewardType {
     chips = 'chips',
+    shards = 'shards',
     dond = 'dond',
     chest = 'chest',
     box = 'box',

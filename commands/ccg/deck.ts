@@ -249,8 +249,14 @@ export class DeckCommands extends AbstractCommands {
     }
 
     private getCardAmountAvailable(user: MazariniUser, card: CCGCard | DeckEditorCard) {
-        const inventory: IUserLootItem[] = user.loot[card.series].inventory[card.rarity].items
-        return inventory.find((item) => item.name === card.id)?.amount ?? 0
+        // Sum across every rarity bucket, not just the card's current rarity: a copy earned
+        // before a rarity change (e.g. Hermione Epic -> Legendary) can still be filed under the
+        // old bucket, and it's still a legitimately owned copy.
+        const inventory = user.loot[card.series].inventory
+        return Object.keys(inventory).reduce((sum, rarity) => {
+            const match = inventory[rarity]?.items?.find((item) => item.name === card.id)
+            return sum + (match?.amount ?? 0)
+        }, 0)
     }
 
     private getUserCards(user: MazariniUser, isTrade: boolean) {
@@ -262,7 +268,23 @@ export class DeckCommands extends AbstractCommands {
                 if (items) loot.push(...items)
             }
         }
-        return isTrade ? this.filterOutDefaultDeck(loot) : loot
+        const merged = this.mergeDuplicateCardEntries(loot)
+        return isTrade ? this.filterOutDefaultDeck(merged) : merged
+    }
+
+    // A card's rarity can change after a redesign (e.g. Hermione Epic -> Legendary), leaving a
+    // stale copy filed under the old rarity bucket alongside newly-earned copies under the new
+    // one. Both buckets get concatenated above, so collapse same name+series entries into one
+    // here rather than showing the same card as separate rows in the deck editor.
+    private mergeDuplicateCardEntries(items: IUserLootItem[]): IUserLootItem[] {
+        const merged = new Map<string, IUserLootItem>()
+        for (const item of items) {
+            const key = `${item.series}:${item.name}`
+            const existing = merged.get(key)
+            if (existing) existing.amount += item.amount
+            else merged.set(key, { ...item })
+        }
+        return [...merged.values()]
     }
 
     private filterOutDefaultDeck(items: IUserLootItem[]) {
@@ -484,12 +506,26 @@ export class DeckCommands extends AbstractCommands {
         const tradeValue = this.getTradeValue(editor)
         user.ccg = { ...user.ccg, shards: (user.ccg?.shards ?? 0) + tradeValue }
         for (const card of editor.deck.cards) {
-            const rarity = editor.userCards.find((c) => c.id === card.id)?.rarity ?? ItemRarity.Common
-            const inventory = user.loot[card.series][`inventory`][rarity]['items'] as IUserLootItem[]
-            const newInventory = inventory.map((item) => (item.name === card.id ? { ...item, amount: item.amount - card.amount } : item))
-            user.loot[card.series][`inventory`][rarity]['items'] = newInventory
+            this.decrementCardAmount(user, card.series, card.id, card.amount)
         }
         await this.database.updateUser(user)
+    }
+
+    // Mirrors getCardAmountAvailable: a card's copies can be spread across more than one rarity
+    // bucket (e.g. a stale pre-rarity-change copy alongside a current one), so draining `amount`
+    // has to walk every bucket rather than assuming they're all filed under the current rarity.
+    private decrementCardAmount(user: MazariniUser, series: CCGSeries, cardId: string, amount: number) {
+        const inventory = user.loot[series].inventory
+        let remaining = amount
+        for (const rarity of Object.keys(inventory)) {
+            if (remaining <= 0) break
+            const items: IUserLootItem[] = inventory[rarity]?.items ?? []
+            const idx = items.findIndex((item) => item.name === cardId)
+            if (idx === -1) continue
+            const take = Math.min(items[idx].amount, remaining)
+            items[idx] = { ...items[idx], amount: items[idx].amount - take }
+            remaining -= take
+        }
     }
 
     private async confirmDeleteDeck(interaction: BtnInteraction) {

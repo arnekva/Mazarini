@@ -673,7 +673,8 @@ const lotrInventoryArts: ILootSeriesInventoryArt[] = [
     { name: 'Witch_King', opacity: 0.5 },
 ]
 
-// Total weight: 90. 500 chips = 36/90 = 40%. Each other (×9) = 6/90 ≈ 6.67% → combined 60%.
+// Total weight: 114. 500 chips = 36/114 ≈ 31.6% (weight unchanged from before the shard slices were added).
+// Each other chip tier (×9) = 6/114 ≈ 5.3%. Each shard tier (×4) = 6/114 ≈ 5.3%.
 const luckyWheelRewards: ILuckyWheelReward[] = [
     { name: '500 chips', type: LuckyWheelRewardType.chips, amount: 500, weight: 36 },
     { name: '1000 chips', type: LuckyWheelRewardType.chips, amount: 1000, weight: 6 },
@@ -685,6 +686,10 @@ const luckyWheelRewards: ILuckyWheelReward[] = [
     { name: '4000 chips', type: LuckyWheelRewardType.chips, amount: 4000, weight: 6 },
     { name: '4500 chips', type: LuckyWheelRewardType.chips, amount: 4500, weight: 6 },
     { name: '5000 chips', type: LuckyWheelRewardType.chips, amount: 5000, weight: 6 },
+    { name: '2 shards', type: LuckyWheelRewardType.shards, amount: 2, weight: 6 },
+    { name: '5 shards', type: LuckyWheelRewardType.shards, amount: 5, weight: 6 },
+    { name: '10 shards', type: LuckyWheelRewardType.shards, amount: 10, weight: 6 },
+    { name: '15 shards', type: LuckyWheelRewardType.shards, amount: 15, weight: 6 },
 ]
 
 const basicLootPack: ILootbox = {

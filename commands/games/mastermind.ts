@@ -224,14 +224,16 @@ export class Mastermind extends AbstractCommands {
             } else if (winners && winners.length > 0) {
                 const winnerNames = []
                 const winnerReward = Math.floor(GameValues.mastermind.winnerReward / winners.length)
+                const winnerRewardShards = Math.floor(GameValues.mastermind.winnerRewardShards / winners.length)
                 for (const winner of winners) {
+                    winner.ccg = { ...winner.ccg, shards: (winner.ccg?.shards ?? 0) + winnerRewardShards }
                     this.client.bank.giveMoney(winner, winnerReward)
                     winnerNames.push(UserUtils.findUserById(winner.id, this.client))
                 }
                 description =
                     `Gratulerer til gårsdagens vinner${winners.length > 1 ? 'e' : ''} for raskeste løst mastermind, ${winnerNames.join(
                         ' og '
-                    )}, som vinner ${winnerReward} chips!` + `\n\nResultater:\n${results}`
+                    )}, som vinner ${winnerReward} chips og ${winnerRewardShards} shards!` + `\n\nResultater:\n${results}`
             } else {
                 description = `Det ble ingen vinner av gårsdagens mastermind` + `\nResultater:\n${results}`
             }

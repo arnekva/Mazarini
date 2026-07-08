@@ -35,6 +35,7 @@ import {
     CCGPlayer,
     CCGStatusStats,
     Difficulty,
+    formatIdentifierLabel,
     Mode,
     StatusEffect,
 } from './ccgInterface'
@@ -551,20 +552,23 @@ export class CCGCommands extends AbstractCommands {
         this.checkDeathEaterBounty(game, player, submitted)
     }
 
-    /** Dark Mark: the first Death Eater played after it resolves deals 3 damage, then the bounty is consumed */
+    /** Generic HP bounty: the first card matching the bounty's trigger identifier played after it's
+     *  granted deals bonus damage, then the bounty is consumed. Currently used by Dark Mark and
+     *  Draco, both triggered by Death Eater, but the trigger type comes from the bounty itself. */
     private checkDeathEaterBounty(game: CCGGame, player: CCGPlayer, submitted: CCGCard[]) {
         const bounty = game.state.statusEffects.find((s) => s.ownerId === player.id && s.type === 'DEATH_EATER_BOUNTY')
         if (!bounty) return
-        const deathEater = submitted.find((card) => card.identifier?.includes('DEATH_EATER'))
-        if (!deathEater) return
+        const triggerIdentifier = bounty.identifier ?? 'DEATH_EATER'
+        const triggerCard = submitted.find((card) => card.identifier?.includes(triggerIdentifier))
+        if (!triggerCard) return
         const opponent = this.getOpponent(game, player.id)
         game.state.statusEffects = game.state.statusEffects.filter((s) => s.id !== bounty.id)
         game.state.stack.push({
             cardId: randomUUID().substring(0, 10),
-            emoji: bounty.emoji ?? deathEater.emoji,
-            statusText: 'Dark Mark',
-            sourceCardName: 'Dark Mark',
-            sourceCardId: 'hp_dark_mark_n',
+            emoji: bounty.emoji ?? triggerCard.emoji,
+            statusText: `Bounty ${bounty.value ?? 3}: ${formatIdentifierLabel(triggerIdentifier)}`,
+            sourceCardName: bounty.sourceCardName ?? 'Dark Mark',
+            sourceCardId: bounty.sourceCardId ?? 'hp_dark_mark_n',
             sourcePlayerId: player.id,
             targetPlayerId: opponent.id,
             cardTarget: 'OPPONENT',
@@ -840,7 +844,7 @@ export class CCGCommands extends AbstractCommands {
             statusString = statusString + ' | '
         }
         if (hasStatus) {
-            statusString += `${statuses.map((effect) => effect.emoji).join('  ')}`
+            statusString += `${statuses.map((effect) => (effect.type === 'SHIELD' ? `:shield: ${effect.value}` : effect.emoji)).join('  ')}`
         }
         return statusString
     }

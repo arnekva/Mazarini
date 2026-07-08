@@ -13,6 +13,7 @@ import {
     CCGGame,
     CCGPlayer,
     CCGStatusEffectType,
+    formatIdentifierLabel,
     ReflectType,
     StatusEffect,
 } from './ccgInterface'
@@ -162,8 +163,12 @@ export class CardActionResolver {
             }
 
             case 'SORT_DECK': {
-                target.deck.sort((a, b) => b.cost - a.cost)
-                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s deck is sorted by cost!`)
+                // Direction depends on the prankster's own energy at cast time: plenty of energy (>4)
+                // sorts ascending (cheapest first, so the opponent draws their priciest cards first);
+                // low energy (<=4) sorts descending (opponent draws their cheapest cards first).
+                const ascending = source.energy > 4
+                target.deck.sort((a, b) => (ascending ? a.cost - b.cost : b.cost - a.cost))
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s hand is sorted in an unfavorable fashion`)
                 break
             }
 
@@ -226,10 +231,19 @@ export class CardActionResolver {
                 this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} loses **${effect.value} energy**`)
                 break
 
-            case 'SHIELD':
-                this.applyStatusEffect(game, effect, target, 'SHIELD')
-                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} gains **${effect.value} shield**`)
+            case 'SHIELD': {
+                // Shield is a single pooled stack per player: additional shield effects add onto
+                // the existing pool instead of creating a separate, independently-tracked entry.
+                const existingShield = this.getStatusEffect(game, target, 'SHIELD')
+                if (existingShield) {
+                    existingShield.value += effect.value ?? 0
+                } else {
+                    this.applyStatusEffect(game, effect, target, 'SHIELD')
+                }
+                const pooled = existingShield ? existingShield.value : effect.value
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name} gains **${effect.value} shield** (:shield: ${pooled} total)`)
                 break
+            }
 
             case 'SLEEP':
                 this.applyStatusEffect(game, effect, target, 'SLEEP')
@@ -686,11 +700,15 @@ export class CardActionResolver {
                 )
                 break
 
-            case 'DEATH_EATER_BOUNTY':
-                // Dark Mark: the next Death Eater this player plays deals `value` damage (handled in checkForSpecialCards)
+            case 'DEATH_EATER_BOUNTY': {
+                // Generic bounty: the next card this player plays matching `effect.identifier`
+                // deals `value` bonus damage (handled in checkDeathEaterBounty). Shared by any
+                // HP card that wants a bounty — currently Dark Mark and Draco, both Death Eater.
                 this.applyStatusEffect(game, effect, target, 'DEATH_EATER_BOUNTY')
-                this.log(game, `${this.getEffectLogPrefix(effect)}The **Dark Mark** burns — ${target.name}'s next Death Eater will strike for ${effect.value ?? 3}`)
+                const triggerType = formatIdentifierLabel(effect.identifier ?? 'DEATH_EATER')
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}: **Bounty ${effect.value ?? 3}: ${triggerType}**`)
                 break
+            }
 
             case 'SACRIFICE_CARD': {
                 // Permanently remove a random card from your own deck (it does not recycle)
@@ -938,6 +956,8 @@ export class CardActionResolver {
             identifier: effect.identifier,
             delayedTrigger: effect.delayedTrigger,
             charges: effect.charges,
+            sourceCardId: effect.sourceCardId,
+            sourceCardName: effect.sourceCardName,
         })
     }
 

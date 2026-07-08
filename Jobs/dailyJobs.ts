@@ -315,6 +315,7 @@ export class DailyJobs {
 
         if (topFirstUsersWithBestTotalAttempts && usersWithStats.length > 1) {
             topFirstUsersWithBestTotalAttempts.forEach((user) => {
+                user.ccg = { ...user.ccg, shards: (user.ccg?.shards ?? 0) + GameValues.moreOrLess.rewards.bestAttemptShards }
                 this.client.bank.giveMoney(user, GameValues.moreOrLess.rewards.bestAttempt)
                 chestWinners.push(UserUtils.findUserById(user.id, this.client).username)
                 // const lootBtn = LootboxCommands.getLootRewardButton(
@@ -358,7 +359,8 @@ export class DailyJobs {
                 description =
                     `Gratulerer til gårsdagens vinner${chestWinners.length > 1 ? 'e' : ''} for beste første forsøk på *${
                         storage.moreOrLess.current.title
-                    }*, ${firstAttemptWinners}, som vinner ${GameValues.moreOrLess.rewards.bestAttempt} chips!` + `\nResultater:\n${results}`
+                    }*, ${firstAttemptWinners}, som vinner ${GameValues.moreOrLess.rewards.bestAttempt} chips og ${GameValues.moreOrLess.rewards.bestAttemptShards} shards!` +
+                    `\nResultater:\n${results}`
             }
             // description += `\nGårsdagen vinner av beste forsøk er ${bestTotalWinners}, som vinner lootbox!`
         }

@@ -123,12 +123,19 @@ export class MessageChecker {
         if (lowestScoringUsers) {
             const { score, userIds, allUserIds } = lowestScoringUsers
             const chipsPerWinner = Math.min(Math.floor(GameValues.wordle.reward / userIds.length), GameValues.wordle.wordleCapPerPerson)
+            const shardsPerWinner = Math.floor(GameValues.wordle.rewardShards / userIds.length)
             const userMentions = userIds.map((user) => MentionUtils.mentionUser(user.replace(/<@|>/g, ''))).join(' ')
             const response = `Det er ${userIds.length} bruker${userIds.length > 1 ? 'e' : ''} som har fått laveste poengsum (${score}/6): ${userMentions}. ${
                 userMentions.length > 1 ? 'De' : 'Han'
-            } får ${chipsPerWinner} chips hver!`
+            } får ${chipsPerWinner} chips og ${shardsPerWinner} shards hver!`
             this.client.messageHelper.sendLogMessage(
-                'Sjekker Wordle resultater: ' + userIds.length + ' personer er markert som vinnere. De får ' + chipsPerWinner + ' chips hver.'
+                'Sjekker Wordle resultater: ' +
+                    userIds.length +
+                    ' personer er markert som vinnere. De får ' +
+                    chipsPerWinner +
+                    ' chips og ' +
+                    shardsPerWinner +
+                    ' shards hver.'
             )
 
             // Use a Set to avoid duplicate updates if a user is both in allUserIds and userIds
@@ -154,6 +161,7 @@ export class MessageChecker {
                             ] as keyof typeof user.userStats.wordleStats.winsOnGuessNumber
 
                             user.userStats.wordleStats.winsOnGuessNumber[guessKey] += 1
+                            user.ccg = { ...user.ccg, shards: (user.ccg?.shards ?? 0) + shardsPerWinner }
 
                             this.client.bank.giveMoney(user, chipsPerWinner)
                         } else {

@@ -312,14 +312,14 @@ export const hpCCG: CCGCard[] = [
                 identifier: 'DEATH_EATER',
             },
             {
-                type: 'BOUNTY',
-                target: 'OPPONENT',
-                value: 2,
+                // Same mechanic as Dark Mark: caster's next card matching `identifier` deals bonus damage
+                type: 'DEATH_EATER_BOUNTY',
+                target: 'SELF',
+                value: 3,
                 identifier: 'DEATH_EATER',
             },
         ],
-        customDescription:
-            'Deal [red]6 damage[/red]. Summon a random [purple]Death Eater[/purple]. Place a [gold]Bounty 2[/gold] on the opponent (triggered by Death Eaters).',
+        customDescription: 'Deal [red]6 damage[/red]. Summon a random [purple]Death Eater[/purple]. [gold]Bounty 3: Death Eater[/gold].',
         cost: 3,
         speed: 45,
         rarity: ItemRarity.Rare,
@@ -414,9 +414,10 @@ export const hpCCG: CCGCard[] = [
                 type: 'SUMMON_CARD',
                 target: 'SELF',
                 summonCardId: 'hp_lupin_n',
+                toDeckTop: true,
             },
         ],
-        customDescription: '[green]Heal 3[/green]. Summon **Remus Lupin** to hand.',
+        customDescription: '[green]Heal 3[/green]. Put **Remus Lupin** on top of your deck.',
         cost: 1,
         speed: 100,
         rarity: ItemRarity.Rare,
@@ -1011,6 +1012,7 @@ export const hpCCG: CCGCard[] = [
                 type: 'SUMMON_CARD',
                 target: 'SELF',
                 summonCardId: 'hp_nymphadora_n',
+                toDeckTop: true,
             },
             {
                 type: 'TRANSFORM',
@@ -1024,7 +1026,7 @@ export const hpCCG: CCGCard[] = [
         rarity: ItemRarity.Epic,
         accuracy: 95,
         identifier: ['GRYFFINDOR'],
-        customDescription: 'Gain [blue]3 shield[/blue]. Summon **Tonks** to hand. 50% chance to turn into a [yellow]werewolf[/yellow].',
+        customDescription: 'Gain [blue]3 shield[/blue]. Put **Tonks** on top of your deck. 50% chance to turn into a [yellow]werewolf[/yellow].',
     },
     {
         id: 'hp_werewolf_n',
@@ -1105,13 +1107,14 @@ export const hpCCG: CCGCard[] = [
                 identifier: 'DEATH_EATER',
             },
             {
-                // Bounty 3: the next Death Eater you play deals 3 bonus damage (consumed on trigger)
+                // Bounty 3: the next card matching `identifier` you play deals 3 bonus damage (consumed on trigger)
                 type: 'DEATH_EATER_BOUNTY',
                 target: 'SELF',
                 value: 3,
+                identifier: 'DEATH_EATER',
             },
         ],
-        customDescription: 'Summon [red]2 random Death Eaters[/red]. [gold]Bounty: 3[/gold] — your next Death Eater deals [red]3 bonus damage[/red].',
+        customDescription: 'Summon [red]2 random Death Eaters[/red]. [gold]Bounty 3: Death Eater[/gold].',
         cost: 1,
         speed: 20,
         rarity: ItemRarity.Epic,
@@ -1457,7 +1460,8 @@ export const hpCCG: CCGCard[] = [
         series: 'hpCCG',
         type: CCGCardType.Effect,
         effects: [{ type: 'SORT_DECK', target: 'OPPONENT' }],
-        customDescription: "Sort the opponent's deck by cost, [red]highest first[/red].",
+        customDescription:
+            "Sort the opponent's deck unfavorably by cost — [red]priciest first[/red] if you have [blue]>4 energy[/blue], [red]cheapest first[/red] otherwise.",
         cost: 0,
         speed: 50,
         rarity: ItemRarity.Common,
