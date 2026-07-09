@@ -38,7 +38,7 @@ export class MazariniClient extends Client {
         super({
             //Specifies intents needed to perform certain actions, i.e. what permissions the bot must have
             intents: [
-                1, //  GatewayIntentBits.Guilds ,
+                1, //  GatewayIntentBits.Guilds,
                 2, //GatewayIntentBits.GuildMembers,
                 4, // GatewayIntentBits.GuildBans,
                 8, // GatewayIntentBits.GuildEmojisAndStickers,
