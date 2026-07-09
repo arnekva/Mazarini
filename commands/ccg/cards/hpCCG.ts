@@ -838,7 +838,7 @@ export const hpCCG: CCGCard[] = [
                 type: 'RETARDED',
                 target: 'OPPONENT',
                 value: 1,
-                turns: 2,
+                turns: 1,
             },
             {
                 type: 'HEAL',
@@ -1126,7 +1126,7 @@ export const hpCCG: CCGCard[] = [
                 type: 'REDUCE_COST',
                 target: 'OPPONENT',
                 value: -2,
-                turns: 2,
+                turns: 1,
             },
             {
                 type: 'DAMAGE',
