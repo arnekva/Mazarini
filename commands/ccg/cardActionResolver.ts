@@ -163,10 +163,11 @@ export class CardActionResolver {
             }
 
             case 'SORT_DECK': {
-                // Direction depends on the prankster's own energy at cast time: plenty of energy (>4)
-                // sorts ascending (cheapest first, so the opponent draws their priciest cards first);
-                // low energy (<=4) sorts descending (opponent draws their cheapest cards first).
-                const ascending = source.energy > 4
+                // Direction depends on the OPPONENT's own energy at cast time: if they're flush with
+                // energy (>4), sort so they draw their cheapest cards first (their surplus energy goes
+                // to waste on weak options); if they're low on energy (<=4), sort so they draw their
+                // priciest cards first (cards they likely can't even afford yet).
+                const ascending = target.energy <= 4
                 target.deck.sort((a, b) => (ascending ? a.cost - b.cost : b.cost - a.cost))
                 this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s hand is sorted in an unfavorable fashion`)
                 break

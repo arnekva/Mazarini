@@ -1453,7 +1453,7 @@ export const hpCCG: CCGCard[] = [
         type: CCGCardType.Effect,
         effects: [{ type: 'SORT_DECK', target: 'OPPONENT' }],
         customDescription:
-            "Sort the opponent's deck unfavorably by cost — [red]priciest first[/red] if you have [blue]>4 energy[/blue], [red]cheapest first[/red] otherwise.",
+            "Sort the opponent's deck unfavorably by cost — [red]cheapest first[/red] if they have [blue]>4 energy[/blue], [red]priciest first[/red] otherwise.",
         cost: 0,
         speed: 50,
         rarity: ItemRarity.Common,

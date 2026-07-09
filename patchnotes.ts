@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '34.3.0'
+    public static readonly currentVersion = '34.3.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,18 +28,7 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '## Kortendringer (HP CCG)',
-                ' * **Skjold** – stacker nå til ett felles lager i stedet for separate, uavhengige skjold. Vises nå som :shield: + totalt antall.',
-                ' * **Remus Lupin & Nymphadora Tonks** – summoner ikke lenger hverandre til hånden. Legger i stedet den andre øverst i bunken.',
-                ' * **Draco Malfoy** – bounty-effekten fungerer nå som Dark Mark sin: **Bounty 3: Death Eater** (egen neste Death Eater gjør bonus-skade), i stedet for den gamle debuff-varianten på motstanderen.',
-                ' * **Prank: Sorting Jinx** (Fred & George) – sorteringsretningen avhenger nå av kasterens energi: over 4 energi sorterer motstanderens bunke med dyreste kort først, ellers billigste først.',
-                '',
-                '## Belønninger',
-                ' * **More or Less**, **Wordle** og **Mastermind** – dagens vinnere får nå også shards (henholdsvis 5/5/10), i tillegg til chips.',
-                '',
-                '## Bot',
-                ' * Fikset en feil der kort man eide fra før en sjeldenhetsendring (f.eks. Hermione Epic → Legendary) kunne vises som duplikater i deck-editoren.',
-                ' * Fikset en feil der belønninger fra eksterne aktiviteter (f.eks. Lykkehjulet) kunne ta opptil 30 minutter før de dukket opp i boten.',
-                ' * Hvis du er heldig kan du nå få shards fra lykkehjulet',
+                ' * **Prank: Sorting Jinx** (Fred & George) – sorteringsretningen avhenger nå av motstanderens energi: over 4 energi sorterer bunken med *billigste* kort først, ellers *dyreste* først.',
             ].join('\n')
         )
         container.addSeparator()
