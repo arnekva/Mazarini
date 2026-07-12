@@ -1009,7 +1009,8 @@ export class CardActionResolver {
     }
 
     private getEffectLogPrefix(effect: CCGEffect) {
-        return `${effect.emoji}: ${effect.statusText ? `*(${effect.statusText})* ` : ''}`
+        const label = effect.emoji ?? effect.sourceCardName
+        return `${label}: ${effect.statusText ? `*(${effect.statusText})* ` : ''}`
     }
 
     private removeAllStatusForPlayer(game: CCGGame, target: CCGPlayer) {

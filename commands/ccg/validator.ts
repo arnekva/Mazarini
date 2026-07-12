@@ -93,9 +93,15 @@ export class CCGValidator {
     }
 
     public static getCardAmountAvailable(user: MazariniUser, card: CCGCard | DeckEditorCard, allCards?: ICCGSystem) {
-        const rarity = card.rarity ?? (allCards?.[card.series] as CCGCard[])?.find((c) => c.id === card.id)?.rarity
-        const inventory: IUserLootItem[] = user.loot[card.series]?.inventory[rarity]?.items
-        return inventory?.find((item) => item.name === card.id)?.amount ?? 0
+        // Sum across every rarity bucket, not just the card's current rarity: a copy earned
+        // before a rarity change (e.g. Hermione Epic -> Legendary) can still be filed under the
+        // old bucket, and it's still a legitimately owned copy. Mirrors deck.ts's getCardAmountAvailable.
+        const inventory = user.loot[card.series]?.inventory
+        if (!inventory) return 0
+        return Object.keys(inventory).reduce((sum, rarity) => {
+            const match = inventory[rarity]?.items?.find((item: IUserLootItem) => item.name === card.id)
+            return sum + (match?.amount ?? 0)
+        }, 0)
     }
 
     public static cardHasEffectOfType(allCards: ICCGSystem, card: DeckEditorCard, type: CCGEffectType) {

@@ -828,14 +828,16 @@ export class CCGCommands extends AbstractCommands {
 
     private getPlayerStateString(game: CCGGame, player: CCGPlayer) {
         const statusString = this.getPlayerStatusesString(game, player)
-        return `### ${player.name}\n:heart: ${player.hp}    :zap: ${player.energy}    ${player.cardbackEmoji} ${player.deck.length}` + statusString
+        const shield = this.getEffectsForPlayer(game, player, 'SHIELD')[0]
+        const shieldString = shield ? `    :shield: ${shield.value}` : ''
+        return `### ${player.name}\n:heart: ${player.hp}    :zap: ${player.energy}${shieldString}    ${player.cardbackEmoji} ${player.deck.length}` + statusString
     }
 
     private getPlayerStatusesString(game: CCGGame, player: CCGPlayer) {
         let statusString = '\n'
         const conditions = this.getConditionsForPlayer(game, player).filter((effect) => effect.emoji)
         const hasConditions = conditions?.length ?? 0 > 0
-        const statuses = this.getEffectsForPlayer(game, player).filter((effect) => effect.emoji)
+        const statuses = this.getEffectsForPlayer(game, player).filter((effect) => effect.type !== 'SHIELD' && effect.emoji)
         const hasStatus = statuses?.length ?? 0 > 0
         if (hasConditions) {
             statusString += `${conditions.map((effect) => effect.emoji).join('  ')}`
@@ -844,7 +846,7 @@ export class CCGCommands extends AbstractCommands {
             statusString = statusString + ' | '
         }
         if (hasStatus) {
-            statusString += `${statuses.map((effect) => (effect.type === 'SHIELD' ? `:shield: ${effect.value}` : effect.emoji)).join('  ')}`
+            statusString += `${statuses.map((effect) => effect.emoji).join('  ')}`
         }
         return statusString
     }

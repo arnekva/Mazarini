@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '34.3.1'
+    public static readonly currentVersion = '34.3.2'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,7 +28,13 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '## Kortendringer (HP CCG)',
-                ' * **Prank: Sorting Jinx** (Fred & George) – sorteringsretningen avhenger nå av motstanderens energi: over 4 energi sorterer bunken med *billigste* kort først, ellers *dyreste* først.',
+                ' * **Hermione Granger** – kostnad 4 → 3 energi. Beskrivelsestekst rettet (Retarded varte kun 1 runde, men teksten sa 2).',
+                ' * **Harry Potter** – fikk **5% sjanse** til å fange Golden Snitch. Beskrivelsestekst rettet (Reduce Cost varte kun 1 runde, men teksten sa 2).',
+                '',
+                '## Bugfikser',
+                ' * **Shield** vises nå på samme linje som HP og energi, i stedet for å forsvinne fra statuslinja.',
+                ' * Rettet en feil der spillere med en gammel (Epic) kopi av Hermione Granger fikk "for mange kort"-feil i decket, selv med kun ett kort. Skyldtes at kortet ble flyttet fra Epic til Legendary uten at pakke-/eier-data ble migrert – dette er nå fikset og eksisterende kopier flyttet til riktig sjeldenhet.',
+                ' * Kortlogger som mangler emoji (f.eks. **Rubber Duck**) viser nå kortnavnet i stedet for "undefined".',
             ].join('\n')
         )
         container.addSeparator()

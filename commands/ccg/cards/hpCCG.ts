@@ -828,31 +828,36 @@ export const hpCCG: CCGCard[] = [
         accuracy: 100,
         identifier: ['MAGICAL_CREATURE'],
     },
-    {
-        id: 'hp_hermione_n',
-        name: 'Hermione Granger',
-        series: 'hpCCG',
-        type: CCGCardType.Heal,
-        effects: [
-            {
-                type: 'RETARDED',
-                target: 'OPPONENT',
-                value: 1,
-                turns: 1,
-            },
-            {
-                type: 'HEAL',
-                target: 'SELF',
-                value: 4,
-            },
-        ],
-        customDescription: '[gold]Confund[/gold] the opponent — they are [purple]Retarded[/purple] for 2 turns. [green]Heal 4[/green].',
-        cost: 4,
-        speed: 70,
-        rarity: ItemRarity.Legendary,
-        accuracy: 100,
-        identifier: ['GRYFFINDOR'],
-    },
+    ((): CCGCard => {
+        const retardedTurns = 1
+        return {
+            id: 'hp_hermione_n',
+            name: 'Hermione Granger',
+            series: 'hpCCG',
+            type: CCGCardType.Heal,
+            effects: [
+                {
+                    type: 'RETARDED',
+                    target: 'OPPONENT',
+                    value: 1,
+                    turns: retardedTurns,
+                },
+                {
+                    type: 'HEAL',
+                    target: 'SELF',
+                    value: 4,
+                },
+            ],
+            customDescription: `[gold]Confund[/gold] the opponent — they are [purple]Retarded[/purple] for ${retardedTurns} turn${
+                retardedTurns !== 1 ? 's' : ''
+            }. [green]Heal 4[/green].`,
+            cost: 3,
+            speed: 70,
+            rarity: ItemRarity.Legendary,
+            accuracy: 100,
+            identifier: ['GRYFFINDOR'],
+        }
+    })(),
     {
         id: 'hp_ron_n',
         name: 'Ron Weasley',
@@ -1115,32 +1120,44 @@ export const hpCCG: CCGCard[] = [
 
     // ── LEGENDARY ─────────────────────────────────────────────────────────
 
-    {
-        id: 'hp_harry_potter_n',
-        name: 'Harry Potter',
-        series: 'hpCCG',
-        type: CCGCardType.Attack,
-        effects: [
-            {
-                // Expeliarmus: opponent's cards cost 2 more for 2 turns
-                type: 'REDUCE_COST',
-                target: 'OPPONENT',
-                value: -2,
-                turns: 1,
-            },
-            {
-                type: 'DAMAGE',
-                target: 'OPPONENT',
-                value: 3,
-            },
-        ],
-        customDescription: "[gold]Expeliarmus![/gold] Opponent's cards cost [red]2 more[/red] for 2 turns. Deal [red]3 damage[/red].",
-        cost: 3,
-        speed: 72,
-        rarity: ItemRarity.Legendary,
-        accuracy: 100,
-        identifier: ['GRYFFINDOR', 'SEEKER'],
-    },
+    ((): CCGCard => {
+        const reduceCostTurns = 1
+        const snitchChance = 5
+        return {
+            id: 'hp_harry_potter_n',
+            name: 'Harry Potter',
+            series: 'hpCCG',
+            type: CCGCardType.Attack,
+            effects: [
+                {
+                    // Expeliarmus: opponent's cards cost 2 more for reduceCostTurns turn(s)
+                    type: 'REDUCE_COST',
+                    target: 'OPPONENT',
+                    value: -2,
+                    turns: reduceCostTurns,
+                },
+                {
+                    type: 'DAMAGE',
+                    target: 'OPPONENT',
+                    value: 3,
+                },
+                {
+                    type: 'SUMMON_CARD',
+                    target: 'SELF',
+                    summonCardId: 'hp_golden_snitch_n',
+                    condition: { type: 'RANDOM', target: 'SELF', chance: snitchChance },
+                },
+            ],
+            customDescription: `[gold]Expeliarmus![/gold] Opponent's cards cost [red]2 more[/red] for ${reduceCostTurns} turn${
+                reduceCostTurns !== 1 ? 's' : ''
+            }. Deal [red]3 damage[/red]. [red](${snitchChance}%)[/red] catch the [gold]Snitch[/gold].`,
+            cost: 3,
+            speed: 72,
+            rarity: ItemRarity.Legendary,
+            accuracy: 100,
+            identifier: ['GRYFFINDOR', 'SEEKER'],
+        }
+    })(),
     {
         id: 'hp_dumbledore_n',
         name: 'Albus Dumbledore',
