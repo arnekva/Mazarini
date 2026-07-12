@@ -32,6 +32,7 @@ export class PatchNotes extends AbstractCommands {
                 ' * **Harry Potter** – fikk **5% sjanse** til å fange Golden Snitch. Beskrivelsestekst rettet (Reduce Cost varte kun 1 runde, men teksten sa 2).',
                 '',
                 '## Bugfikser',
+
                 ' * **Shield** vises nå på samme linje som HP og energi, i stedet for å forsvinne fra statuslinja.',
                 ' * Rettet en feil der spillere med en gammel (Epic) kopi av Hermione Granger fikk "for mange kort"-feil i decket, selv med kun ett kort. Skyldtes at kortet ble flyttet fra Epic til Legendary uten at pakke-/eier-data ble migrert – dette er nå fikset og eksisterende kopier flyttet til riktig sjeldenhet.',
                 ' * Kortlogger som mangler emoji (f.eks. **Rubber Duck**) viser nå kortnavnet i stedet for "undefined".',
