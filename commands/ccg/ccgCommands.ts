@@ -91,6 +91,21 @@ export class CCGCommands extends AbstractCommands {
         }
     }
 
+    /** Safety net: if a player somehow ends up over the hand size cap (e.g. summons stacking with EXTRA_CARDS expiring),
+     *  move the surplus to the top of their deck rather than let it linger indefinitely. */
+    private enforceHandSizeCap(game: CCGGame, player: CCGPlayer) {
+        const extraCardsEffects = this.getEffectsForPlayer(game, player, 'EXTRA_CARDS')
+        const effectiveMaxHandSize = extraCardsEffects.length > 0 ? extraCardsEffects[0].value : game.state.settings.maxHandSize
+        const unselected = player.hand.filter((card) => !card.selected)
+        if (unselected.length > effectiveMaxHandSize) {
+            const overflow = unselected.slice(0, unselected.length - effectiveMaxHandSize)
+            for (const card of overflow) {
+                player.hand.splice(player.hand.indexOf(card), 1)
+                player.deck.push(card)
+            }
+        }
+    }
+
     private guaranteeBotEnergyCard(bot: CCGPlayer) {
         const hasEnergy = bot.hand.some((c) => c?.effects?.some((e) => e.type === 'GAIN_ENERGY' && e.target === 'SELF'))
         if (hasEnergy) return
@@ -346,6 +361,7 @@ export class CCGCommands extends AbstractCommands {
     private preparePlayerForNewRound(game: CCGGame, player: CCGPlayer, isBot = false) {
         player.usedCards.push(...player.hand.filter((card) => card.selected && !card.summoned && !card.consumable).map((card) => ({ ...card, randomizedCost: undefined })))
         player.hand = player.hand.filter((card) => !card.selected)
+        this.enforceHandSizeCap(game, player)
         const isSleeping = this.playerHasStatus(game, player, 'SLEEP')
         player.submitted = isSleeping
         const isMygling = this.playerHasStatus(game, player, 'MYGLING')

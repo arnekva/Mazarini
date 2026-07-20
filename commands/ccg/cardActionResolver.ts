@@ -964,6 +964,8 @@ export class CardActionResolver {
 
     private applyStatusCondition(game: CCGGame, effect: CCGEffect, target: CCGPlayer, type: StatusEffect['type']) {
         this.registerStatusStats(target, type)
+        // RETARDED's accuracy gates the 50/50 target-flip chance while active, not whether the status itself is applied.
+        const defaultAccuracy = type === 'RETARDED' ? 50 : 100
         game.state.statusConditions.push({
             id: crypto.randomUUID().substring(0, 10),
             ownerId: target.id,
@@ -971,7 +973,7 @@ export class CardActionResolver {
             type,
             value: effect.value,
             remainingTurns: effect.turns ?? 100,
-            accuracy: effect.statusAccuracy ?? 100,
+            accuracy: effect.statusAccuracy ?? defaultAccuracy,
             emoji: effect.emoji,
             includeCurrentTurn: effect.includeCurrentTurn,
             createdOnTurn: game.state.turn,

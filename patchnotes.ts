@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '34.3.2'
+    public static readonly currentVersion = '34.3.3'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,14 +28,13 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '## Kortendringer (HP CCG)',
-                ' * **Hermione Granger** – kostnad 4 → 3 energi. Beskrivelsestekst rettet (Retarded varte kun 1 runde, men teksten sa 2).',
-                ' * **Harry Potter** – fikk **5% sjanse** til å fange Golden Snitch. Beskrivelsestekst rettet (Reduce Cost varte kun 1 runde, men teksten sa 2).',
+                ' * **Fred & George Weasley** – parbonusen (gain 1 energy + prank) er flyttet fra Fred til George, siden George nå har lavest speed av de to og dermed resolver sist.',
+                ' * **Retarded** – sjansen for at target på kort-effektene dine flippes er nå korrekt **50/50**. Enkelte kort (bl.a. Lockhart og Hermione) hadde utilsiktet 100% flip-sjanse siden de manglet en eksplisitt verdi. Hjelpeteksten er også oppdatert.',
                 '',
                 '## Bugfikser',
 
-                ' * **Shield** vises nå på samme linje som HP og energi, i stedet for å forsvinne fra statuslinja.',
-                ' * Rettet en feil der spillere med en gammel (Epic) kopi av Hermione Granger fikk "for mange kort"-feil i decket, selv med kun ett kort. Skyldtes at kortet ble flyttet fra Epic til Legendary uten at pakke-/eier-data ble migrert – dette er nå fikset og eksisterende kopier flyttet til riktig sjeldenhet.',
-                ' * Kortlogger som mangler emoji (f.eks. **Rubber Duck**) viser nå kortnavnet i stedet for "undefined".',
+                ' * **Wordle** – spillere med emoji eller spesialtegn (f.eks. æøå) i visningsnavnet sitt, som ikke blir tagget av Wordle-boten, ble tidligere ekskludert fra vinnerlisten. Dette er nå fikset.',
+                ' * Lagt til en sikkerhetssjekk ved rundestart: hvis en spiller av en eller annen grunn har flere kort enn maks håndstørrelse, flyttes overskuddet nå til toppen av bunken.',
             ].join('\n')
         )
         container.addSeparator()

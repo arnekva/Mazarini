@@ -178,7 +178,8 @@ export class MessageChecker {
     }
 
     async getLowestScoringUserIds(message: Message): Promise<{ score: number; userIds: string[]; allUserIds: string[] } | null> {
-        const scoreUserRegex = /(?:👑\s*)?(\d)\/6:\s*((?:<@[\d]+>|@\w+)(?:\s+(?:<@[\d]+>|@\w+))*)/g
+        // @\S+ (not @\w+) so untagged display names with emoji or non-ASCII letters (æøå etc.) aren't dropped
+        const scoreUserRegex = /(?:👑\s*)?(\d)\/6:\s*((?:<@[\d]+>|@\S+)(?:\s+(?:<@[\d]+>|@\S+))*)/g
 
         let match: RegExpExecArray | null
         let lowestScore = 7
@@ -189,7 +190,7 @@ export class MessageChecker {
             const score = parseInt(match[1])
             const userSegment = match[2]
 
-            const users = userSegment.match(/<@(\d+)>|@(\w+)/g) || []
+            const users = userSegment.match(/<@(\d+)>|@(\S+)/g) || []
 
             if (!scoreMap[score]) {
                 scoreMap[score] = []
@@ -213,7 +214,7 @@ export class MessageChecker {
 
             for (const user of rawUsers) {
                 const discordMatch = user.match(/^<@(\d+)>$/)
-                const nameMatch = user.match(/^@(\w+)$/)
+                const nameMatch = user.match(/^@(\S+)$/)
 
                 if (discordMatch) {
                     discordIds.push(discordMatch[1])

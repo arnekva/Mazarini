@@ -88,7 +88,7 @@ const statuses_and_effects = [
     '• **Chokester** – Alle kortene dine har 50 % accuracy',
     '• **Slow** – Speed på alle kortene dine halveres',
     '• **Bleed** – Du tar bleed-skade mellom rundene',
-    '• **Retarded** – 33% sannsynlighet for at target på kort-effektene dine flippes',
+    '• **Retarded** – 50% sannsynlighet for at target på kort-effektene dine flippes',
     '• **Mygling** – Du eller motstanderen din (avhengig av kortet) får ikke passive energy mellom runder',
     '• **Reflect** – Reflekterer all innkommende aktiv skade tilbake til avsenderen',
     '• **Bounty** – Du har en dusør på deg. Bounty Hunters vil gjøre ekstra skade',

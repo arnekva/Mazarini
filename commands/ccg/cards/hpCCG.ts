@@ -514,30 +514,6 @@ export const hpCCG: CCGCard[] = [
                 target: 'SELF',
                 value: 3,
             },
-            {
-                // Paired bonus: gain 1 energy + set off a prank (prank lives on Fred only to avoid double-firing)
-                type: 'GAIN_ENERGY',
-                target: 'SELF',
-                value: 1,
-                condition: {
-                    type: 'PLAYED_CARD_ID',
-                    target: 'SELF',
-                    cardId: 'hp_george_n',
-                    comparator: '>=',
-                    value: 1,
-                },
-            },
-            {
-                type: 'PRANK',
-                target: 'SELF',
-                condition: {
-                    type: 'PLAYED_CARD_ID',
-                    target: 'SELF',
-                    cardId: 'hp_george_n',
-                    comparator: '>=',
-                    value: 1,
-                },
-            },
         ],
         customDescription: '[green]Heal 3[/green]. Paired with George: Gain [blue]1 energy[/blue] and [gold]set off a random prank![/gold]',
         cost: 1,
@@ -557,8 +533,33 @@ export const hpCCG: CCGCard[] = [
                 target: 'OPPONENT',
                 value: 3,
             },
+            {
+                // Paired bonus: gain 1 energy + set off a prank (prank lives on George only to avoid double-firing;
+                // George is the slower of the two, so he resolves after Fred and holds the pair check)
+                type: 'GAIN_ENERGY',
+                target: 'SELF',
+                value: 1,
+                condition: {
+                    type: 'PLAYED_CARD_ID',
+                    target: 'SELF',
+                    cardId: 'hp_fred_n',
+                    comparator: '>=',
+                    value: 1,
+                },
+            },
+            {
+                type: 'PRANK',
+                target: 'SELF',
+                condition: {
+                    type: 'PLAYED_CARD_ID',
+                    target: 'SELF',
+                    cardId: 'hp_fred_n',
+                    comparator: '>=',
+                    value: 1,
+                },
+            },
         ],
-        customDescription: 'Deal [red]3 damage[/red]. Paired with Fred: [gold]set off a random prank![/gold]',
+        customDescription: 'Deal [red]3 damage[/red]. Paired with Fred: Gain [blue]1 energy[/blue] and [gold]set off a random prank![/gold]',
         cost: 1,
         speed: 15,
         rarity: ItemRarity.Rare,
