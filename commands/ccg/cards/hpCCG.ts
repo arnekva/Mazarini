@@ -541,7 +541,7 @@ export const hpCCG: CCGCard[] = [
         ],
         customDescription: '[green]Heal 3[/green]. Paired with George: Gain [blue]1 energy[/blue] and [gold]set off a random prank![/gold]',
         cost: 1,
-        speed: 15,
+        speed: 78,
         rarity: ItemRarity.Rare,
         accuracy: 100,
         identifier: ['GRYFFINDOR'],
@@ -1152,7 +1152,7 @@ export const hpCCG: CCGCard[] = [
                 reduceCostTurns !== 1 ? 's' : ''
             }. Deal [red]3 damage[/red]. [red](${snitchChance}%)[/red] catch the [gold]Snitch[/gold].`,
             cost: 3,
-            speed: 72,
+            speed: 55,
             rarity: ItemRarity.Legendary,
             accuracy: 100,
             identifier: ['GRYFFINDOR', 'SEEKER'],
