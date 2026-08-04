@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '34.3.3'
+    public static readonly currentVersion = '34.3.4'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,14 +27,17 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '## Kortendringer (HP CCG)',
-                ' * **Fred & George Weasley** – parbonusen (gain 1 energy + prank) er flyttet fra Fred til George, siden George nå har lavest speed av de to og dermed resolver sist.',
-                ' * **Retarded** – sjansen for at target på kort-effektene dine flippes er nå korrekt **50/50**. Enkelte kort (bl.a. Lockhart og Hermione) hadde utilsiktet 100% flip-sjanse siden de manglet en eksplisitt verdi. Hjelpeteksten er også oppdatert.',
+                '## Nytt',
+                ' * **/vipps boten** – å vippse boten gjorde tidligere ingenting, chipsen forsvant bare inn i et tomrom. Nå er det en faktisk gamble: du kan vinne shards, og sjansen dobler seg for hver 10.000 kr du vippser (f.eks. 5.000 kr har lav sjanse, 10.000 kr gir 50% sjanse for 20 shards). Fra 20.000 kr og oppover er du i tillegg garantert en stigende minimumsgevinst selv om du bommer, så store beløp går aldri helt til spille. (takk, claude - ikkje klag hvis du vippse 100k og får null shards omega',
                 '',
-                '## Bugfikser',
-
-                ' * **Wordle** – spillere med emoji eller spesialtegn (f.eks. æøå) i visningsnavnet sitt, som ikke blir tagget av Wordle-boten, ble tidligere ekskludert fra vinnerlisten. Dette er nå fikset.',
-                ' * Lagt til en sikkerhetssjekk ved rundestart: hvis en spiller av en eller annen grunn har flere kort enn maks håndstørrelse, flyttes overskuddet nå til toppen av bunken.',
+                '## Belønninger',
+                ' * **Daily Mastermind** – shards deles ikke lenger på antall vinnere, hver vinner får nå fullt shard-beløp. Chips deles fortsatt likt mellom vinnerne.',
+                ' * **Daily Mastermind** – premie deles nå ut selv om det bare er én spiller som fullfører dagens mastermind (minimum antall spillere er nå styrt av en variabel, satt til 1).',
+                '',
+                '## Verifisert',
+                ' * **Retarded** – dobbeltsjekket at hvert enkelt kort-treff regner sin egen uavhengige 50/50-sjanse for target-flip, ikke bare ett flip for hele kortet.',
+                '## Annet',
+                ' * jævla dependabot e skrudd av så null mer spam fra han (yolo)',
             ].join('\n')
         )
         container.addSeparator()

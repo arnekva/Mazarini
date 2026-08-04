@@ -143,6 +143,19 @@ export type GameValuesType = {
         codeLength: number
         winnerReward: number
         winnerRewardShards: number
+        minPlayers: number
+    }
+    vipps: {
+        shardReward: {
+            /** Kr-amount it takes to double the win chance (win chance = 1 - 2^(-amount / doublingAmount)) */
+            doublingAmount: number
+            /** Kr-amount needed per shard won, when the roll succeeds */
+            krPerShard: number
+            /** Every multiple of this kr-amount guarantees a growing minimum (pity) shard reward, even on a failed roll */
+            pityStepAmount: number
+            /** Guaranteed shards per pityStepAmount reached */
+            pityShardsPerStep: number
+        }
     }
     misc: {
         idJokeReward: number
@@ -411,6 +424,15 @@ export const GameValues: GameValuesType = {
         codeLength: 4,
         winnerReward: 2500,
         winnerRewardShards: 10,
+        minPlayers: 1,
+    },
+    vipps: {
+        shardReward: {
+            doublingAmount: 10000,
+            krPerShard: 500,
+            pityStepAmount: 20000,
+            pityShardsPerStep: 10,
+        },
     },
     misc: {
         idJokeReward: 1000,
