@@ -71,7 +71,6 @@ export class MazariniBot {
             console.error('[CCG] Card generation failed:', err)
         })
 
-        // this.client.user.edit({ avatar: 'hoie2.gif' })
         moment.updateLocale('nb', {})
     }
 }
