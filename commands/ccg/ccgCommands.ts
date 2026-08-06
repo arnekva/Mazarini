@@ -396,6 +396,7 @@ export class CCGCommands extends AbstractCommands {
         this.resolver.sortStack(game)
         let effectSummaryPosted = false
         game.state.resolveIndex = 0
+        const hpAtRoundStart = { [game.player1.id]: game.player1.hp, [game.player2.id]: game.player2.hp }
         if (game.state.stack.length === 0) {
             game.state.log.push({
                 turn: game.state.turn,
@@ -421,6 +422,24 @@ export class CCGCommands extends AbstractCommands {
             if (game.state.winnerId) return
         }
         if (!effectSummaryPosted) this.postEffectSummary(game)
+        this.logRoundStatusSummary(game, hpAtRoundStart)
+        this.postEffectSummary(game)
+    }
+
+    /** Appends an end-of-round HP/energy/shield snapshot for both players to the persistent round log/summary. */
+    private logRoundStatusSummary(game: CCGGame, hpAtRoundStart: Record<string, number>) {
+        const line = (player: CCGPlayer) => {
+            const shield = game.state.statusEffects.find((s) => s.ownerId === player.id && s.type === 'SHIELD')?.value ?? 0
+            const maxHp = player.maxHp ?? GameValues.ccg.gameSettings.startingHP
+            const damageTaken = Math.max(0, (hpAtRoundStart[player.id] ?? player.hp) - player.hp)
+            return `**${player.name}**: ❤️ ${player.hp}/${maxHp} HP${damageTaken > 0 ? ` (-${damageTaken})` : ''} · ⚡ ${player.energy} energy${
+                shield > 0 ? ` · 🛡️ ${shield} shield` : ''
+            }`
+        }
+        game.state.log.push({
+            turn: game.state.turn,
+            message: `📊 End of round:\n${line(game.player1)}\n${line(game.player2)}`,
+        })
     }
 
     private checkForWinner(game: CCGGame) {

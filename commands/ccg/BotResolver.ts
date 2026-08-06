@@ -385,6 +385,9 @@ export class BotResolver {
     }
 
     private getCardCost(game: CCGGame, card: CCGCard) {
+        // Mirrors calcCardCost in ccgCommands.ts - once RANDOMIZE_COST rolls a cost for this card, that's what
+        // actually gets charged on submit, so the AI has to plan around it instead of the card's base cost.
+        if (card.randomizedCost !== undefined) return card.randomizedCost
         const costReductionEffects = game.state.statusEffects.filter((effect) => effect.ownerId === game.player2.id && effect.type === 'REDUCE_COST')
         const botCostReduction = costReductionEffects
             .filter((e) => !e.identifier || card.identifier?.includes(e.identifier))

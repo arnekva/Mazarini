@@ -506,7 +506,7 @@ export class DeckCommands extends AbstractCommands {
         const tradeValue = this.getTradeValue(editor)
         user.ccg = { ...user.ccg, shards: (user.ccg?.shards ?? 0) + tradeValue }
         for (const card of editor.deck.cards) {
-            this.decrementCardAmount(user, card.series, card.id, card.amount)
+            this.decrementCardAmount(user, card.series as CCGSeries, card.id, card.amount)
         }
         await this.database.updateUser(user)
     }

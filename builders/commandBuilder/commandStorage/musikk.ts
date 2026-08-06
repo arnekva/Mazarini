@@ -86,5 +86,77 @@ export const musicCommand: ISlashCommandItem = {
                 },
             ],
         },
+        {
+            commandName: 'kollasje',
+            commandDescription: 'Lag en 4x4-bildekollasje av dine mest spilte album eller sanger',
+            options: [
+                {
+                    name: 'data',
+                    description: 'hva kollasjen skal vise',
+                    type: ApplicationCommandOptionType.String,
+                    required: true,
+                    choices: [
+                        {
+                            name: 'topp album',
+                            value: 'toptenalbum',
+                        },
+                        {
+                            name: 'topp sanger',
+                            value: 'toptensongs',
+                        },
+                    ],
+                },
+                {
+                    name: 'bruker',
+                    description: 'bruker du vil se data for',
+                    type: ApplicationCommandOptionType.User,
+                    required: false,
+                },
+                {
+                    name: 'periode',
+                    description: 'tidsperiode',
+                    type: ApplicationCommandOptionType.String,
+                    required: false,
+                    choices: [
+                        {
+                            name: 'all-time',
+                            value: 'overall',
+                        },
+                        {
+                            name: 'uke',
+                            value: '7day',
+                        },
+                        {
+                            name: 'måned',
+                            value: '1month',
+                        },
+                        {
+                            name: 'tre måneder',
+                            value: '3month',
+                        },
+                        {
+                            name: 'seks måneder',
+                            value: '6month',
+                        },
+                        {
+                            name: 'år',
+                            value: '12month',
+                        },
+                    ],
+                },
+            ],
+        },
+        {
+            commandName: 'profil',
+            commandDescription: 'Årsoppsummering for siste 12 måneder, pluss estimert total lyttetid',
+            options: [
+                {
+                    name: 'bruker',
+                    description: 'bruker du vil se data for',
+                    type: ApplicationCommandOptionType.User,
+                    required: false,
+                },
+            ],
+        },
     ],
 }

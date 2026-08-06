@@ -1,13 +1,21 @@
-import { User } from 'discord.js'
+import { AttachmentBuilder, User } from 'discord.js'
+import sharp from 'sharp'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { BaseInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { lfKey, musixMatchKey } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
+import { ImageGenerationHelper } from '../../helpers/imageGenerationHelper'
 
 import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { ArrayUtils } from '../../utils/arrayUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { TextUtils } from '../../utils/textUtils'
 const fetch = require('node-fetch')
+
+/** Rough average track length, used to turn a scrobble count into an estimated listening-time figure */
+const AVERAGE_TRACK_LENGTH_MINUTES = 3.5
+/** Side length (px) of each cover art tile in a generated collage */
+const COLLAGE_TILE_SIZE = 300
 export type musicCommand = 'top'
 
 export type topMethods = 'songs' | 'artist' | 'album' | 'tags'
@@ -208,7 +216,15 @@ export class Music extends AbstractCommands {
 
     private async handleMusicInteractions(interaction: ChatInteraction) {
         if (interaction) {
-            const isShow = interaction.options.getSubcommand() === 'vis'
+            const subcommand = interaction.options.getSubcommand()
+            const isShow = subcommand === 'vis'
+            if (subcommand === 'kollasje') {
+                this.handleCollageInteraction(interaction)
+                return
+            } else if (subcommand === 'profil') {
+                this.handleProfileInteraction(interaction)
+                return
+            }
             if (isShow) {
                 const options = interaction.options.get('data')?.value as string
                 const user = interaction.options.get('bruker')?.user
@@ -349,13 +365,19 @@ export class Music extends AbstractCommands {
         }
     }
 
-    async findCommandForInteraction(interaction: BaseInteraction, options: string, user?: User, period?: string): Promise<IMusicData[] | string> {
+    async findCommandForInteraction(
+        interaction: BaseInteraction,
+        options: string,
+        user?: User,
+        period?: string,
+        limit?: string
+    ): Promise<IMusicData[] | string> {
         const fmUser = await this.client.database.getUser(user ? user?.id : interaction.user.id)
         if (fmUser.lastFMUsername) {
             const data: fetchData = {
                 user: fmUser.lastFMUsername,
                 method: { cmd: '', desc: '' },
-                limit: '10',
+                limit: limit ?? '10',
                 includeStats: true, //If overriding username, stats index is pushed back by 1 index
                 silent: false,
                 includeNameInOutput: false,
@@ -384,6 +406,126 @@ export class Music extends AbstractCommands {
             const lastFmData = await this.findLastFmData(data)
             return lastFmData
         } else return `Brukeren ${user?.username} har ikke knyttet til et Last.fm-brukernavn`
+    }
+
+    /** Fetches cover art and resizes/crops it to a uniform square tile. Falls back to a blank tile when no art is available. */
+    private async fetchCollageTile(url: string | undefined): Promise<Buffer> {
+        if (!url) {
+            return sharp({
+                create: { width: COLLAGE_TILE_SIZE, height: COLLAGE_TILE_SIZE, channels: 4, background: { r: 40, g: 40, b: 40, alpha: 1 } },
+            })
+                .png()
+                .toBuffer()
+        }
+        const res = await fetch(url)
+        const raw = Buffer.from(await res.arrayBuffer())
+        return sharp(raw)
+            .resize(COLLAGE_TILE_SIZE, COLLAGE_TILE_SIZE, { fit: 'cover' })
+            .png()
+            .toBuffer()
+    }
+
+    /** Composes cover art from the given data into a single grid image, `columns` tiles wide. */
+    private async buildCollageImage(data: IMusicData[], columns: number): Promise<Buffer> {
+        const igh = new ImageGenerationHelper(this.client)
+        const tiles = await Promise.all(data.map((d) => this.fetchCollageTile(d.coverArtUrl)))
+        const rows = ArrayUtils.chunkArray(tiles, columns)
+        const rowBuffers = await Promise.all(rows.map((row) => igh.stitchImages(row, 'horizontal')))
+        return igh.stitchImages(rowBuffers, 'vertical')
+    }
+
+    private async handleCollageInteraction(interaction: ChatInteraction) {
+        await interaction.deferReply()
+        const options = interaction.options.get('data')?.value as string
+        const user = interaction.options.get('bruker')?.user
+        const timePeriod = interaction.options.get('periode')?.value as string
+        const isAlbum = options === 'toptenalbum'
+
+        const data = await this.findCommandForInteraction(interaction, options, user instanceof User ? user : undefined, timePeriod, '16')
+        if (typeof data === 'string' || !data.length) {
+            this.messageHelper.replyToInteraction(interaction, typeof data === 'string' ? data : 'Fant ingen data', { hasBeenDefered: true })
+            return
+        }
+
+        const collage = await this.buildCollageImage(data.slice(0, 16), 4)
+        const file = new AttachmentBuilder(collage, { name: 'kollasje.png' })
+        const emb = EmbedUtils.createSimpleEmbed(
+            `Last.fm`,
+            `Topp 16 ${isAlbum ? 'album' : 'sanger'} for ${user instanceof User ? user.username : interaction.user.username}${
+                timePeriod ? '\n' + this.prettyprintPeriod(timePeriod) : ''
+            }`
+        ).setImage('attachment://kollasje.png')
+        this.messageHelper.replyToInteraction(interaction, emb, { hasBeenDefered: true }, undefined, [file])
+    }
+
+    /** All-time total scrobble count, straight from user.getinfo */
+    private async getTotalScrobbles(username: string): Promise<number> {
+        const res = await fetch(`${this.baseUrl}?method=user.getinfo&user=${username}&api_key=${lfKey}&format=json`)
+        const json = await res.json()
+        return Number(json?.user?.playcount ?? 0)
+    }
+
+    private async handleProfileInteraction(interaction: ChatInteraction) {
+        await interaction.deferReply()
+        const user = interaction.options.get('bruker')?.user
+        const targetUser = user instanceof User ? user : undefined
+        const dbUser = await this.client.database.getUser(targetUser ? targetUser.id : interaction.user.id)
+        const displayName = targetUser ? targetUser.username : interaction.user.username
+        const username = dbUser.lastFMUsername
+
+        if (!username) {
+            this.messageHelper.replyToInteraction(interaction, `${targetUser ? targetUser.username : 'Du'} har ikke knyttet til et Last.fm-brukernavn`, {
+                hasBeenDefered: true,
+            })
+            return
+        }
+
+        const fetchTop = (method: topMethods, limit: string) =>
+            this.findLastFmData({
+                user: username,
+                method: { cmd: this.getCommand('topp', method), desc: '' },
+                limit,
+                period: '12month',
+                includeStats: false,
+                silent: false,
+                includeNameInOutput: false,
+                username: displayName,
+                header: '',
+            })
+
+        const [topArtists, topTracks, topAlbums, totalScrobbles] = await Promise.all([
+            fetchTop('artist', '5'),
+            fetchTop('songs', '5'),
+            fetchTop('album', '4'),
+            this.getTotalScrobbles(username),
+        ])
+
+        const estimatedMinutes = totalScrobbles * AVERAGE_TRACK_LENGTH_MINUTES
+        const estimatedHours = Math.round(estimatedMinutes / 60)
+        const estimatedDays = (estimatedHours / 24).toFixed(1)
+
+        const emb = EmbedUtils.createSimpleEmbed(`🎧 Last.fm-profil: ${displayName}`, `Årsoppsummering (siste 12 måneder)`)
+        if (topArtists.length) {
+            emb.addFields({ name: 'Topp artister', value: topArtists.map((a, i) => `${i + 1}. ${a.track} (${a.numPlays})`).join('\n') })
+        }
+        if (topTracks.length) {
+            emb.addFields({ name: 'Topp sanger', value: topTracks.map((t, i) => `${i + 1}. ${t.artist} - ${t.track} (${t.numPlays})`).join('\n') })
+        }
+        if (topAlbums.length) {
+            emb.addFields({ name: 'Topp album', value: topAlbums.map((a, i) => `${i + 1}. ${a.artist} - ${a.track} (${a.numPlays})`).join('\n') })
+        }
+        emb.addFields({
+            name: 'Total lyttetid (estimat, all-time)',
+            value: `${totalScrobbles} avspillinger ≈ ${estimatedHours} timer (${estimatedDays} dager)`,
+        })
+
+        let files: AttachmentBuilder[] | undefined
+        if (topAlbums.length) {
+            const collage = await this.buildCollageImage(topAlbums, 2)
+            files = [new AttachmentBuilder(collage, { name: 'profil.png' })]
+            emb.setImage('attachment://profil.png')
+        }
+        this.messageHelper.replyToInteraction(interaction, emb, { hasBeenDefered: true }, undefined, files)
     }
 
     private async findLyrics(interaction: ChatInteraction) {

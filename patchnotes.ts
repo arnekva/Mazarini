@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '34.3.4'
+    public static readonly currentVersion = '34.4.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,15 +27,13 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
+                '## Kortendringer (HP CCG)',
+                ' * **Fred & George Weasley** – prank-effekten paret setter av resolver nå før Georges egen skade, slik det var tiltenkt.',
+                ' * **Prank: Hiccough Sweets** – boten tok tidligere ikke hensyn til at kortkostnadene ble randomisert, og kunne ende opp med negativ energi fordi den planla ut fra grunnkostnaden. Boten regner nå med de faktiske (randomiserte) kostnadene. Effekten varer også korrekt i 2 runder (neste runde + én til) i stedet for 3.',
+                '',
                 '## Nytt',
-                ' * **/vipps boten** – å vippse boten gjorde tidligere ingenting, chipsen forsvant bare inn i et tomrom. Nå er det en faktisk gamble: du kan vinne shards, og sjansen dobler seg for hver 10.000 kr du vippser (f.eks. 5.000 kr har lav sjanse, 10.000 kr gir 50% sjanse for 20 shards). Fra 20.000 kr og oppover er du i tillegg garantert en stigende minimumsgevinst selv om du bommer, så store beløp går aldri helt til spille. (takk, claude - ikkje klag hvis du vippse 100k og får null shards omega',
+                ' * **Spilloggen** viser nå mer enn bare hvilke kort som ble spilt – på slutten av hver runde logges HP, skade tatt, energi og skjold for begge spillere, omtrent som å følge et livespill.',
                 '',
-                '## Belønninger',
-                ' * **Daily Mastermind** – shards deles ikke lenger på antall vinnere, hver vinner får nå fullt shard-beløp. Chips deles fortsatt likt mellom vinnerne.',
-                ' * **Daily Mastermind** – premie deles nå ut selv om det bare er én spiller som fullfører dagens mastermind (minimum antall spillere er nå styrt av en variabel, satt til 1).',
-                '',
-                '## Verifisert',
-                ' * **Retarded** – dobbeltsjekket at hvert enkelt kort-treff regner sin egen uavhengige 50/50-sjanse for target-flip, ikke bare ett flip for hele kortet.',
                 '## Annet',
                 ' * jævla dependabot e skrudd av så null mer spam fra han (yolo)',
             ].join('\n')

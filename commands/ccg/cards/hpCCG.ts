@@ -529,13 +529,21 @@ export const hpCCG: CCGCard[] = [
         type: CCGCardType.Attack,
         effects: [
             {
-                type: 'DAMAGE',
-                target: 'OPPONENT',
-                value: 3,
+                // Paired bonus: set off a prank + gain 1 energy, resolved before George's own damage below
+                // (prank lives on George only to avoid double-firing; George is the slower of the two, so he
+                // resolves after Fred and holds the pair check). All of George's effects share the same speed,
+                // so within-card resolution order follows array order - keep PRANK/GAIN_ENERGY ahead of DAMAGE.
+                type: 'PRANK',
+                target: 'SELF',
+                condition: {
+                    type: 'PLAYED_CARD_ID',
+                    target: 'SELF',
+                    cardId: 'hp_fred_n',
+                    comparator: '>=',
+                    value: 1,
+                },
             },
             {
-                // Paired bonus: gain 1 energy + set off a prank (prank lives on George only to avoid double-firing;
-                // George is the slower of the two, so he resolves after Fred and holds the pair check)
                 type: 'GAIN_ENERGY',
                 target: 'SELF',
                 value: 1,
@@ -548,15 +556,9 @@ export const hpCCG: CCGCard[] = [
                 },
             },
             {
-                type: 'PRANK',
-                target: 'SELF',
-                condition: {
-                    type: 'PLAYED_CARD_ID',
-                    target: 'SELF',
-                    cardId: 'hp_fred_n',
-                    comparator: '>=',
-                    value: 1,
-                },
+                type: 'DAMAGE',
+                target: 'OPPONENT',
+                value: 3,
             },
         ],
         customDescription: 'Deal [red]3 damage[/red]. Paired with Fred: Gain [blue]1 energy[/blue] and [gold]set off a random prank![/gold]',
@@ -1422,10 +1424,10 @@ export const hpCCG: CCGCard[] = [
         series: 'hpCCG',
         type: CCGCardType.Effect,
         effects: [
-            { type: 'RANDOMIZE_COST', target: 'SELF', value: 0, turns: 3 },
-            { type: 'RANDOMIZE_COST', target: 'OPPONENT', value: 0, turns: 3 },
+            { type: 'RANDOMIZE_COST', target: 'SELF', value: 0, turns: 2 },
+            { type: 'RANDOMIZE_COST', target: 'OPPONENT', value: 0, turns: 2 },
         ],
-        customDescription: 'All card costs are [gold]randomized (0–5)[/gold] for 3 turns.',
+        customDescription: 'All card costs are [gold]randomized (0–5)[/gold] for 2 turns.',
         cost: 0,
         speed: 50,
         rarity: ItemRarity.Common,

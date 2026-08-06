@@ -40,11 +40,21 @@ export class CardActionResolver {
             const retarded = game.state.statusConditions.find(
                 (s) => s.ownerId === source.id && s.type === 'RETARDED' && (s.createdOnTurn !== game.state.turn || s.includeCurrentTurn)
             )
-            const flip = retarded && Math.random() < retarded.accuracy / 100
+            const roll = retarded ? Math.random() : undefined
+            const flip = retarded && roll < retarded.accuracy / 100
             const wantsOpponent = effect.cardTarget === 'OPPONENT'
             effect.targetPlayerId = wantsOpponent !== !!flip ? source.opponentId : source.id
             if (flip) {
                 effect.statusText = effect.statusText ? `${effect.statusText}, random target` : 'random target'
+            }
+            // TEMP DEBUG: verify the RETARDED roll against the resolved target live in #log. Remove once confirmed.
+            if (retarded) {
+                const finalTarget = this.getPlayer(game, effect.targetPlayerId)
+                this.client.messageHelper.sendLogMessage(
+                    `🎲 RETARDED (${source.name}): roll ${(roll * 100).toFixed(1)}% vs threshold ${retarded.accuracy}% → ${
+                        flip ? 'FLIPPED' : 'not flipped'
+                    } → ${effect.sourceCardName ?? effect.type} (intended ${effect.cardTarget}) resolves on **${finalTarget.name}**`
+                )
             }
         }
         const target = this.getPlayer(game, effect.targetPlayerId)
