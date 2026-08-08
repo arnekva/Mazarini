@@ -16,6 +16,7 @@ import { ICache } from '../interfaces/database/databaseInterface'
 import { ChannelIds } from '../utils/mentionUtils'
 import { ClientListener } from './ClientListeners'
 import { MazariniEvents } from './events/MazariniEvents'
+import { CommandBuilder } from '../builders/commandBuilder/commandBuilder'
 
 /** Extension of Discord Client with extra properties like MessageHelper */
 export class MazariniClient extends Client {
@@ -87,7 +88,7 @@ export class MazariniClient extends Client {
         if (environment === 'dev') {
             //hehe ty one time hack
             //Uncomment to run command creation
-            // CommandBuilder.createCommands(this)
+            CommandBuilder.createCommands(this)
             // CommandBuilder.deleteCommandByName('grid', this)
         }
     }

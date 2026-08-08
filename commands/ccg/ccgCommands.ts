@@ -664,8 +664,8 @@ export class CCGCommands extends AbstractCommands {
 
     private getTarget(game: CCGGame, player: CCGPlayer, effect: CCGCardEffect, card: CCGCard) {
         const retarded = this.getPlayerCondition(game, player, 'RETARDED')
-        const roll = Math.random()
-        const flip = retarded && !card.effectImmunities?.includes('RETARDED') && roll < retarded.accuracy / 100
+        // Retarded is always a straight 50/50 coin flip on the target — never derived from any accuracy value.
+        const flip = retarded && !card.effectImmunities?.includes('RETARDED') && Math.random() < 0.5
         if (flip) {
             return effect.target === 'OPPONENT' ? player.id : player.opponentId
         } else {

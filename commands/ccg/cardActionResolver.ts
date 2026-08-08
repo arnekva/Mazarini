@@ -40,18 +40,19 @@ export class CardActionResolver {
             const retarded = game.state.statusConditions.find(
                 (s) => s.ownerId === source.id && s.type === 'RETARDED' && (s.createdOnTurn !== game.state.turn || s.includeCurrentTurn)
             )
+            // Retarded is always a straight 50/50 coin flip on the target — never derived from any accuracy value.
             const roll = retarded ? Math.random() : undefined
-            const flip = retarded && roll < retarded.accuracy / 100
+            const flip = retarded && roll < 0.5
             const wantsOpponent = effect.cardTarget === 'OPPONENT'
             effect.targetPlayerId = wantsOpponent !== !!flip ? source.opponentId : source.id
             if (flip) {
                 effect.statusText = effect.statusText ? `${effect.statusText}, random target` : 'random target'
             }
-            // TEMP DEBUG: verify the RETARDED roll against the resolved target live in #log. Remove once confirmed.
+            // TEMP DEBUG: verify the RETARDED coin flip against the resolved target live in #log. Remove once confirmed.
             if (retarded) {
                 const finalTarget = this.getPlayer(game, effect.targetPlayerId)
                 this.client.messageHelper.sendLogMessage(
-                    `🎲 RETARDED (${source.name}): roll ${(roll * 100).toFixed(1)}% vs threshold ${retarded.accuracy}% → ${
+                    `🎲 RETARDED (${source.name}): roll ${(roll * 100).toFixed(1)}% vs 50% coin flip → ${
                         flip ? 'FLIPPED' : 'not flipped'
                     } → ${effect.sourceCardName ?? effect.type} (intended ${effect.cardTarget}) resolves on **${finalTarget.name}**`
                 )
@@ -974,8 +975,6 @@ export class CardActionResolver {
 
     private applyStatusCondition(game: CCGGame, effect: CCGEffect, target: CCGPlayer, type: StatusEffect['type']) {
         this.registerStatusStats(target, type)
-        // RETARDED's accuracy gates the 50/50 target-flip chance while active, not whether the status itself is applied.
-        const defaultAccuracy = type === 'RETARDED' ? 50 : 100
         game.state.statusConditions.push({
             id: crypto.randomUUID().substring(0, 10),
             ownerId: target.id,
@@ -983,7 +982,7 @@ export class CardActionResolver {
             type,
             value: effect.value,
             remainingTurns: effect.turns ?? 100,
-            accuracy: effect.statusAccuracy ?? defaultAccuracy,
+            accuracy: effect.statusAccuracy ?? 100,
             emoji: effect.emoji,
             includeCurrentTurn: effect.includeCurrentTurn,
             createdOnTurn: game.state.turn,
