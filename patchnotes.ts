@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '34.4.0'
+    public static readonly currentVersion = '34.5.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,14 +28,29 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '## Kortendringer (HP CCG)',
-                ' * **Fred & George Weasley** – prank-effekten paret setter av resolver nå før Georges egen skade, slik det var tiltenkt.',
-                ' * **Prank: Hiccough Sweets** – boten tok tidligere ikke hensyn til at kortkostnadene ble randomisert, og kunne ende opp med negativ energi fordi den planla ut fra grunnkostnaden. Boten regner nå med de faktiske (randomiserte) kostnadene. Effekten varer også korrekt i 2 runder (neste runde + én til) i stedet for 3.',
+                ' * **Dark Mark** – 0 energi, tilkaller 2 Death Eaters (ingen bounty lenger).',
+                ' * **Voldemort** – 6 → 5 skade, Elusive 2 → 1 runde.',
+                ' * **Harry Potter** – motstanderens kort koster nå 1 mer (ned fra 2).',
+                ' * **Dumbledore** – 1 energi. Deal 6 skade, men blør nå selv i 5 runder.',
+                ' * **Hermione** – healing 4 → 3.',
+                ' * **Flitwick** – gir 1 energi, +2 hvis spilt med en annen Ravenclaw.',
+                ' * **Draco** – tilkaller ikke lenger Death Eater, men beholder bounty.',
+                ' * **Remus Lupin** – 2 energi. Deal 2 skade + Bleed på motstander i 2 runder. Beholder 50% sjanse til å bli varulv.',
+                ' * **Tonks** – 2 energi. Heal 4 + Recover i 2 runder.',
+                ' * **Molly** – speed 50 → 75.',
+                ' * **Bertie Bott** – 1 → 0 energi.',
+                ' * **Dobby** – Recover i 3 runder.',
+                ' * **Ron** – 2 energi. Deal 3 skade, +3 hvis spilt med et annet Gryffindor-kort.',
+                ' * **Hagrid** – gjør nå også 3 skade hvis spilt sammen med et magisk vesen.',
                 '',
-                '## Nytt',
-                ' * **Spilloggen** viser nå mer enn bare hvilke kort som ble spilt – på slutten av hver runde logges HP, skade tatt, energi og skjold for begge spillere, omtrent som å følge et livespill.',
+                '## Pranks',
+                ' * **Instant Darkness Powder** – motstanderens hånd stokkes inn i bunken; de trekker 4 nye, blanke kort (kun kostnad synlig) neste runde.',
+                ' * **Hiccough Sweets** – rammer nå kun motstanderen (kostnader randomiseres 0–4).',
+                ' * **Rubber Duck** – rammer nå kun motstanderen.',
+                ' * **Malfunction** – fjernet.',
                 '',
                 '## Annet',
-                ' * jævla dependabot e skrudd av så null mer spam fra han (yolo)',
+                ' * Alle "summon"-effekter legger nå kortet øverst i bunken i stedet for på hånden.',
             ].join('\n')
         )
         container.addSeparator()

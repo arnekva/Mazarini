@@ -210,6 +210,8 @@ export type CCGStatusEffectType =
 export interface CCGLogEntry {
     turn: number
     message: string
+    // Only surfaced in the playback summary (getSummary), not the live in-game effect feed (postEffectSummary)
+    playbackOnly?: boolean
 }
 
 export interface CCGGameSettings {

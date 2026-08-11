@@ -310,7 +310,7 @@ export class CCGCommands extends AbstractCommands {
     }
 
     private calcCardCost(card: CCGCard, costReductionEffects: ReturnType<typeof this.getEffectsForPlayer>, randomizeCost = false) {
-        if (randomizeCost) return card.randomizedCost ?? Math.floor(Math.random() * 5) + 1
+        if (randomizeCost) return card.randomizedCost ?? Math.floor(Math.random() * 5)
         const reduction = costReductionEffects.reduce((sum, e) => {
             if (!e.identifier || card.identifier?.includes(e.identifier)) return sum + e.value
             return sum
@@ -373,7 +373,7 @@ export class CCGCommands extends AbstractCommands {
         if (isBot) this.botResolver.applyCheatDraw(game, player)
         if (this.getEffectsForPlayer(game, player, 'RANDOMIZE_COST').length > 0) {
             for (const card of player.hand) {
-                card.randomizedCost = Math.floor(Math.random() * 5) + 1
+                card.randomizedCost = Math.floor(Math.random() * 5)
             }
         }
         if (isBot) {
@@ -431,14 +431,16 @@ export class CCGCommands extends AbstractCommands {
         const line = (player: CCGPlayer) => {
             const shield = game.state.statusEffects.find((s) => s.ownerId === player.id && s.type === 'SHIELD')?.value ?? 0
             const maxHp = player.maxHp ?? GameValues.ccg.gameSettings.startingHP
-            const damageTaken = Math.max(0, (hpAtRoundStart[player.id] ?? player.hp) - player.hp)
-            return `**${player.name}**: ❤️ ${player.hp}/${maxHp} HP${damageTaken > 0 ? ` (-${damageTaken})` : ''} · ⚡ ${player.energy} energy${
+            const hpDelta = player.hp - (hpAtRoundStart[player.id] ?? player.hp)
+            const deltaStr = hpDelta > 0 ? ` (+${hpDelta})` : hpDelta < 0 ? ` (${hpDelta})` : ''
+            return `**${player.name}**: ❤️ ${player.hp}/${maxHp} HP${deltaStr} · ⚡ ${player.energy} energy${
                 shield > 0 ? ` · 🛡️ ${shield} shield` : ''
             }`
         }
         game.state.log.push({
             turn: game.state.turn,
             message: `📊 End of round:\n${line(game.player1)}\n${line(game.player2)}`,
+            playbackOnly: true,
         })
     }
 
@@ -468,7 +470,7 @@ export class CCGCommands extends AbstractCommands {
 
     private postEffectSummary(game: CCGGame) {
         const summary = game.state.log
-            .filter((entry) => entry.turn === game.state.turn)
+            .filter((entry) => entry.turn === game.state.turn && !entry.playbackOnly)
             .map((entry) => {
                 return entry.message
             })

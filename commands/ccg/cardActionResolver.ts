@@ -180,23 +180,19 @@ export class CardActionResolver {
                 // priciest cards first (cards they likely can't even afford yet).
                 const ascending = target.energy <= 4
                 target.deck.sort((a, b) => (ascending ? a.cost - b.cost : b.cost - a.cost))
-                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s hand is sorted in an unfavorable fashion`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s deck is sorted in an unfavorable fashion`)
                 break
             }
 
             case 'FILL_HAND_RUBBER_DUCK': {
                 const rubberDuck = ALL_CARDS.find((c) => c.id === 'hp_rubber_duck_n')
                 if (!rubberDuck) break
-                const fill = (player: CCGPlayer) => {
-                    player.usedCards.push(...player.hand.filter((c) => !c.removeOnDiscard))
-                    player.hand = []
-                    for (let i = 0; i < game.state.settings.defaultHandSize; i++) {
-                        player.hand.push({ ...structuredClone(rubberDuck), selected: false })
-                    }
+                target.usedCards.push(...target.hand.filter((c) => !c.removeOnDiscard))
+                target.hand = []
+                for (let i = 0; i < game.state.settings.defaultHandSize; i++) {
+                    target.hand.push({ ...structuredClone(rubberDuck), selected: false })
                 }
-                fill(source)
-                fill(target)
-                this.log(game, `${this.getEffectLogPrefix(effect)}Both players' hands are filled with **Rubber Ducks**! 🦆`)
+                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s hand is filled with **Rubber Ducks**! 🦆`)
                 break
             }
 
@@ -432,10 +428,20 @@ export class CardActionResolver {
                 this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s card costs are randomized for ${effect.turns} turns`)
                 break
 
-            case 'BLANK_HAND':
+            case 'BLANK_HAND': {
+                // Shuffle the target's unplayed hand back into their deck (removeOnDiscard cards are discarded), so
+                // they draw a fresh set of defaultHandSize cards next turn — which the BLANK_HAND status then blanks.
+                const returned = target.hand.filter((c) => !c.selected && !c.removeOnDiscard)
+                target.hand = target.hand.filter((c) => c.selected)
+                target.deck.push(...returned.map((c) => ({ ...c, selected: false })))
+                target.deck = RandomUtils.shuffleList(target.deck)
                 this.applyStatusCondition(game, effect, target, 'BLANK_HAND')
-                this.log(game, `${this.getEffectLogPrefix(effect)}${target.name}'s cards are **blank** for ${effect.turns} turn${effect.turns !== 1 ? 's' : ''}!`)
+                this.log(
+                    game,
+                    `${this.getEffectLogPrefix(effect)}${target.name}'s hand is shuffled into their deck — they draw a **blank** hand next turn!`
+                )
                 break
+            }
 
             case 'RANDOMIZE_ACCURACY':
                 this.applyStatusCondition(game, effect, target, 'RANDOMIZE_ACCURACY')
@@ -538,8 +544,6 @@ export class CardActionResolver {
                 break
 
             case 'SUMMON_CARD': {
-                const extraCardsEffect = game.state.statusEffects.find((e) => e.ownerId === source.id && e.type === 'EXTRA_CARDS')
-                const effectiveMaxHandSize = extraCardsEffect ? extraCardsEffect.value : GameValues.ccg.gameSettings.maxHandSize
                 let summoned: CCGCard | undefined
                 if (effect.summonCardId) {
                     summoned = await this.getCardById(effect.summonCardId)
@@ -552,26 +556,9 @@ export class CardActionResolver {
                     const summonedCard = { ...summoned, summoned: true, cost: reducedCost, selected: false }
                     // For random (identifier-based) summons, don't reveal the specific card — keep it hidden.
                     const summonedDesc = effect.identifier ? `a ${effect.identifier} card` : summoned.name
-                    // Always push to hand first, then overflow any excess (non-selected cards beyond max) to deck top.
-                    // Checking after the push ensures multiple summons in one round and EXTRA_CARDS are all handled correctly.
-                    if (effect.toDeckTop) {
-                        source.deck.push(summonedCard)
-                        this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} puts **${summonedDesc}** on top of their deck`)
-                    } else {
-                        source.hand.push(summonedCard)
-                        const discount = (effect.value ?? 0) > 0 ? ` (cost reduced to ${reducedCost})` : ''
-                        this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} summons **${summonedDesc}**${discount} to their hand`)
-                        // Enforce hand size cap: move overflow (oldest unselected cards) to top of deck
-                        const unselected = source.hand.filter((c) => !c.selected)
-                        if (unselected.length > effectiveMaxHandSize) {
-                            const overflow = unselected.slice(0, unselected.length - effectiveMaxHandSize)
-                            for (const card of overflow) {
-                                source.hand.splice(source.hand.indexOf(card), 1)
-                                source.deck.push(card)
-                                this.log(game, `${this.getEffectLogPrefix(effect)}Hand full — **${card.name}** moved to top of deck`)
-                            }
-                        }
-                    }
+                    // Summoned cards always go on top of the deck (drawn next), never straight to hand.
+                    source.deck.push(summonedCard)
+                    this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} puts **${summonedDesc}** on top of their deck`)
                 } else {
                     this.log(game, `${this.getEffectLogPrefix(effect)}${source.name} could not summon a card — no matching card found`)
                 }
@@ -590,7 +577,6 @@ export class CardActionResolver {
                     'hp_prank_fever_fudge_n',
                     'hp_prank_sorting_jinx_n',
                     'hp_prank_confundus_n',
-                    'hp_prank_malfunction_n',
                     'hp_prank_rubber_duck_fill_n',
                 ]
                 const prankId = prankCards[Math.floor(Math.random() * prankCards.length)]
