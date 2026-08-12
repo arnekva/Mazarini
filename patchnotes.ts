@@ -34,12 +34,7 @@ export class PatchNotes extends AbstractCommands {
                 ' * **Kingsley Shacklebolt** – speed 89 → 35.',
                 '',
                 '## Bot',
-                ' * Bots vanskelige deck er utvidet med Kingsley, 2x Aragog, Bertie Bott og Ron.',
-                ' * Boten prøver nå å spille Ron sammen med andre Gryffindor-kort for bonusskaden.',
-                ' * Er boten "retarded" og har god HP og energi, bruker den runden som en mulligan i stedet for å risikere å skade seg selv.',
-                '',
-                '## Bugfikser',
-                ' * **Bertie Bott** kloner nå kort korrekt: alle effektfelt kopieres, gamble-kort (f.eks. Fleur) trigger kun én effekt, og transformasjonen har 100% treffsikkerhet (men påvirkes fortsatt av accuracy-modifikatorer som Chokester).',
+                ' * Bots vanskelige deck er endret.',
             ].join('\n')
         )
         container.addSeparator()
