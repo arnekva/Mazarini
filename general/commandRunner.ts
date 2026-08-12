@@ -38,6 +38,8 @@ export class CommandRunner {
 
             this.messageChecker.checkMessageForHolidays(message)
 
+            this.messageChecker.checkForRandomReaction(message)
+
             if (message.author.id === MentionUtils.User_IDs.WORDLE_BOT) await this.messageChecker.checkWordleResults(message)
 
             await this.client.tracker.trackEmojiStats(message)

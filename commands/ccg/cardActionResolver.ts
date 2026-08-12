@@ -7,6 +7,7 @@ import { swCCG } from './cards/swCCG'
 import {
     CardIdentifier,
     CCGCard,
+    CCGCardEffect,
     CCGCondition,
     CCGEffect,
     CCGEffectType,
@@ -41,21 +42,11 @@ export class CardActionResolver {
                 (s) => s.ownerId === source.id && s.type === 'RETARDED' && (s.createdOnTurn !== game.state.turn || s.includeCurrentTurn)
             )
             // Retarded is always a straight 50/50 coin flip on the target — never derived from any accuracy value.
-            const roll = retarded ? Math.random() : undefined
-            const flip = retarded && roll < 0.5
+            const flip = retarded && Math.random() < 0.5
             const wantsOpponent = effect.cardTarget === 'OPPONENT'
             effect.targetPlayerId = wantsOpponent !== !!flip ? source.opponentId : source.id
             if (flip) {
                 effect.statusText = effect.statusText ? `${effect.statusText}, random target` : 'random target'
-            }
-            // TEMP DEBUG: verify the RETARDED coin flip against the resolved target live in #log. Remove once confirmed.
-            if (retarded) {
-                const finalTarget = this.getPlayer(game, effect.targetPlayerId)
-                this.client.messageHelper.sendLogMessage(
-                    `🎲 RETARDED (${source.name}): roll ${(roll * 100).toFixed(1)}% vs 50% coin flip → ${
-                        flip ? 'FLIPPED' : 'not flipped'
-                    } → ${effect.sourceCardName ?? effect.type} (intended ${effect.cardTarget}) resolves on **${finalTarget.name}**`
-                )
             }
         }
         const target = this.getPlayer(game, effect.targetPlayerId)
@@ -834,11 +825,32 @@ export class CardActionResolver {
         const playedIndex = source.hand.findIndex((c) => c.id === effect.sourceCardId && c.selected)
         if (playedIndex !== -1) source.hand[playedIndex] = { ...fullCard, selected: true }
 
-        // Push the random card's effects onto the stack so they resolve this round
-        const opponent = this.getPlayer(game, source.opponentId)
+        // Respect gambleGroup: exactly one effect per group fires, same as a normally-played card.
+        const gambleWinners = new Set<CCGCardEffect>()
+        const gambleGroups = new Map<string, CCGCardEffect[]>()
         for (const cardEffect of card.effects) {
+            if (cardEffect.gambleGroup) {
+                const group = gambleGroups.get(cardEffect.gambleGroup) ?? []
+                group.push(cardEffect)
+                gambleGroups.set(cardEffect.gambleGroup, group)
+            }
+        }
+        for (const group of gambleGroups.values()) {
+            gambleWinners.add(group[Math.floor(Math.random() * group.length)])
+        }
+        const effectsToQueue = card.effects.filter((e) => !e.gambleGroup || gambleWinners.has(e))
+
+        // Bertie itself is 100% accurate — the rolled card's own accuracy is ignored — but any accuracy modifier
+        // on the caster (Chokester, Randomize Accuracy, Choke Shield) still applies, decided once for the whole card.
+        const transformSuccessful = this.rollTransformSuccess(game, source)
+
+        // Push the random card's effects onto the stack so they resolve this round.
+        // Spread the whole effect so every field is carried over — a manual field list silently drops any it forgets.
+        const opponent = this.getPlayer(game, source.opponentId)
+        for (const cardEffect of effectsToQueue) {
             const targetPlayerId = cardEffect.target === 'SELF' ? source.id : opponent.id
             game.state.stack.push({
+                ...cardEffect,
                 cardId: effect.cardId,
                 emoji: fullCard.emoji,
                 statusText: `via ${effect.sourceCardName}`,
@@ -848,26 +860,9 @@ export class CardActionResolver {
                 targetPlayerId,
                 cardTarget: cardEffect.target,
                 speed: card.speed,
-                accuracy: cardEffect.accuracy ?? card.accuracy,
-                cardSuccessful: true,
-                type: cardEffect.type,
-                value: cardEffect.value,
-                turns: cardEffect.turns,
-                amount: cardEffect.amount,
-                condition: cardEffect.condition,
+                accuracy: cardEffect.accuracy ?? 100,
+                cardSuccessful: transformSuccessful,
                 statusAccuracy: cardEffect.statusAccuracy ?? 100,
-                includeCurrentTurn: cardEffect.includeCurrentTurn,
-                transformCardId: cardEffect.transformCardId,
-                identifier: cardEffect.identifier,
-                summonCardId: cardEffect.summonCardId,
-                delayedTrigger: cardEffect.delayedTrigger,
-                countTarget: cardEffect.countTarget,
-                base: cardEffect.base,
-                reflectType: cardEffect.reflectType,
-                ignoreDefense: cardEffect.ignoreDefense,
-                cardIds: cardEffect.cardIds,
-                toDeckTop: cardEffect.toDeckTop,
-                charges: cardEffect.charges,
             })
         }
 
@@ -876,6 +871,19 @@ export class CardActionResolver {
             const originalCard = await this.getCardById(effect.sourceCardId)
             if (originalCard) source.hand[playedIndex] = { ...originalCard, selected: true }
         }
+    }
+
+    /**
+     * Whether a Bertie-style transform lands. Base accuracy is 100% (Bertie's own), NOT the rolled card's accuracy,
+     * but the caster's accuracy modifiers still apply — mirrors isCardSuccessful() in ccgCommands with a 100 base.
+     */
+    private rollTransformSuccess(game: CCGGame, player: CCGPlayer): boolean {
+        const hasCondition = (type: CCGStatusEffectType) => game.state.statusConditions.some((s) => s.ownerId === player.id && s.type === type)
+        const hasEffect = (type: CCGStatusEffectType) => game.state.statusEffects.some((s) => s.ownerId === player.id && s.type === type)
+        if (hasCondition('RANDOMIZE_ACCURACY')) return Math.random() <= (Math.floor(Math.random() * 99) + 1) / 100
+        let accuracy = hasCondition('CHOKESTER') ? 50 : 100
+        accuracy += hasEffect('CHOKE_SHIELD') ? 20 : 0
+        return Math.random() <= accuracy / 100
     }
 
     private async getCardWithEmoji(card: CCGCard): Promise<CCGCard> {

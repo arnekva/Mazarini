@@ -402,7 +402,7 @@ export const hpCCG: CCGCard[] = [
         ],
         customDescription: 'Deal [red]5 damage[/red]. [grey]Auror[/grey]',
         cost: 2,
-        speed: 89,
+        speed: 35,
         rarity: ItemRarity.Rare,
         accuracy: 90,
         identifier: ['AUROR'],
@@ -793,12 +793,12 @@ export const hpCCG: CCGCard[] = [
                 type: 'BLEED',
                 target: 'OPPONENT',
                 value: 1,
-                turns: 20,
+                turns: 10,
             },
         ],
-        customDescription: 'Apply [red]Bleed 1[/red] to the opponent for [red]20 turns[/red].',
+        customDescription: 'Apply [red]Bleed 1[/red] to the opponent for [red]10 turns[/red].',
         cost: 2,
-        speed: 53,
+        speed: 10,
         rarity: ItemRarity.Epic,
         accuracy: 100,
         identifier: ['MAGICAL_CREATURE'],
@@ -1152,7 +1152,7 @@ export const hpCCG: CCGCard[] = [
                 {
                     type: 'DAMAGE',
                     target: 'OPPONENT',
-                    value: 3,
+                    value: 4,
                 },
                 {
                     type: 'SUMMON_CARD',
@@ -1163,7 +1163,7 @@ export const hpCCG: CCGCard[] = [
             ],
             customDescription: `[gold]Expeliarmus![/gold] Opponent's cards cost [red]1 more[/red] for ${reduceCostTurns} turn${
                 reduceCostTurns !== 1 ? 's' : ''
-            }. Deal [red]3 damage[/red]. [red](${snitchChance}%)[/red] catch the [gold]Snitch[/gold].`,
+            }. Deal [red]4 damage[/red]. [red](${snitchChance}%)[/red] catch the [gold]Snitch[/gold].`,
             cost: 3,
             speed: 55,
             rarity: ItemRarity.Legendary,
@@ -1183,14 +1183,14 @@ export const hpCCG: CCGCard[] = [
                 value: 6,
             },
             {
-                // Recoil: bleed yourself for 5 turns
+                // Recoil: bleed yourself for 3 turns
                 type: 'BLEED',
                 target: 'SELF',
                 value: 1,
-                turns: 5,
+                turns: 3,
             },
         ],
-        customDescription: 'Deal [red]6 damage[/red]. Apply [red]Bleed 1[/red] to yourself for 5 turns.',
+        customDescription: 'Deal [red]6 damage[/red]. Apply [red]Bleed 1[/red] to yourself for 3 turns.',
         cost: 1,
         speed: 10,
         rarity: ItemRarity.Legendary,

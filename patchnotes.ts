@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '34.5.0'
+    public static readonly currentVersion = '34.6.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,29 +28,18 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '## Kortendringer (HP CCG)',
-                ' * **Dark Mark** – 0 energi, tilkaller 2 Death Eaters (ingen bounty lenger).',
-                ' * **Voldemort** – 6 → 5 skade, Elusive 2 → 1 runde.',
-                ' * **Harry Potter** – motstanderens kort koster nå 1 mer (ned fra 2).',
-                ' * **Dumbledore** – 1 energi. Deal 6 skade, men blør nå selv i 5 runder.',
-                ' * **Hermione** – healing 4 → 3.',
-                ' * **Flitwick** – gir 1 energi, +2 hvis spilt med en annen Ravenclaw.',
-                ' * **Draco** – tilkaller ikke lenger Death Eater, men beholder bounty.',
-                ' * **Remus Lupin** – 2 energi. Deal 2 skade + Bleed på motstander i 2 runder. Beholder 50% sjanse til å bli varulv.',
-                ' * **Tonks** – 2 energi. Heal 4 + Recover i 2 runder.',
-                ' * **Molly** – speed 50 → 75.',
-                ' * **Bertie Bott** – 1 → 0 energi.',
-                ' * **Dobby** – Recover i 3 runder.',
-                ' * **Ron** – 2 energi. Deal 3 skade, +3 hvis spilt med et annet Gryffindor-kort.',
-                ' * **Hagrid** – gjør nå også 3 skade hvis spilt sammen med et magisk vesen.',
+                ' * **Harry Potter** – 3 → 4 skade.',
+                ' * **Dumbledore** – blør nå selv i 3 runder (ned fra 5).',
+                ' * **Aragog** – Bleed varer 10 runder (ned fra 20), speed 53 → 10.',
+                ' * **Kingsley Shacklebolt** – speed 89 → 35.',
                 '',
-                '## Pranks',
-                ' * **Instant Darkness Powder** – motstanderens hånd stokkes inn i bunken; de trekker 4 nye, blanke kort (kun kostnad synlig) neste runde.',
-                ' * **Hiccough Sweets** – rammer nå kun motstanderen (kostnader randomiseres 0–4).',
-                ' * **Rubber Duck** – rammer nå kun motstanderen.',
-                ' * **Malfunction** – fjernet.',
+                '## Bot',
+                ' * Bots vanskelige deck er utvidet med Kingsley, 2x Aragog, Bertie Bott og Ron.',
+                ' * Boten prøver nå å spille Ron sammen med andre Gryffindor-kort for bonusskaden.',
+                ' * Er boten "retarded" og har god HP og energi, bruker den runden som en mulligan i stedet for å risikere å skade seg selv.',
                 '',
-                '## Annet',
-                ' * Alle "summon"-effekter legger nå kortet øverst i bunken i stedet for på hånden.',
+                '## Bugfikser',
+                ' * **Bertie Bott** kloner nå kort korrekt: alle effektfelt kopieres, gamble-kort (f.eks. Fleur) trigger kun én effekt, og transformasjonen har 100% treffsikkerhet (men påvirkes fortsatt av accuracy-modifikatorer som Chokester).',
             ].join('\n')
         )
         container.addSeparator()

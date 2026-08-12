@@ -56,6 +56,13 @@ export class BotResolver {
      * Also peeks at the top of the deck: if energy cards are coming soon, no need to mulligan.
      */
     private shouldMulligan(game: CCGGame, bot: CCGPlayer, playable: BotCard[]): boolean {
+        // If retarded (target-flip active) and in a comfortable spot, skip the round as a mulligan rather than
+        // risk a card's target flipping onto ourselves — no point gambling self-damage when we're healthy.
+        if (this.isRetardedActive(game, bot)) {
+            const maxHp = bot.maxHp ?? GameValues.ccg.gameSettings.startingHP
+            if (bot.hp >= maxHp * 0.6 && bot.energy >= 3) return true
+        }
+
         if (bot.energy > 1) return false
 
         const hasPlayableEnergyCard = playable.some(
@@ -71,6 +78,13 @@ export class BotResolver {
 
         // No playable energy cards and none coming — mulligan to find some
         return true
+    }
+
+    /** Whether a RETARDED (target-flip) condition is active on the player this turn. */
+    private isRetardedActive(game: CCGGame, player: CCGPlayer): boolean {
+        return game.state.statusConditions.some(
+            (s) => s.ownerId === player.id && s.type === 'RETARDED' && (s.createdOnTurn !== game.state.turn || s.includeCurrentTurn)
+        )
     }
 
     private isPlayable(game: CCGGame, card: CCGCard): boolean {

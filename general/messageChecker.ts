@@ -110,6 +110,15 @@ export class MessageChecker {
         }
     }
 
+    checkForRandomReaction(message: Message) {
+        if (message.author.bot) return
+        if (Math.random() > 0.01) return
+        const reaction = Math.random() < 0.5 ? '✅' : '❌'
+        message.react(reaction).catch(() => {
+            this.client.messageHelper.sendLogMessage('Klarte ikke reagere med ' + reaction + ' på melding: ' + message.content)
+        })
+    }
+
     checkMessageForHolidays(message: Message) {
         const holidayString = HelgHelper.checkMessageForHolidays(message.content)
         if (holidayString) {
