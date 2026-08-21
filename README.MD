@@ -9,7 +9,6 @@ Kjør 'npm run start' for å starte index.ts via nodemon. Denne gir hot reloads 
 ## Viktig
 
 Du må opprette en fil i main folder som heter 'client-env.ts' - bruk 'npm run create:env'
-Denne filen må inneholde koden
 
 ```typescript
 export type env = 'dev' | 'prod'
