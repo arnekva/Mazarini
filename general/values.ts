@@ -428,10 +428,10 @@ export const GameValues: GameValuesType = {
     },
     vipps: {
         shardReward: {
-            doublingAmount: 10000,
-            krPerShard: 500,
-            pityStepAmount: 20000,
-            pityShardsPerStep: 10,
+            doublingAmount: 20000,
+            krPerShard: 750,
+            pityStepAmount: 40000,
+            pityShardsPerStep: 5,
         },
     },
     misc: {
