@@ -115,12 +115,10 @@ export namespace DondItems {
             },
         },
         shardReward(15),
-        packReward(LootboxQuality.Basic),
     ]
     export const highQualityEffects: Array<IEffectItem> = [
         shardReward(20),
         shardReward(25),
-        packReward(LootboxQuality.Premium),
         {
             label: '3 spin',
             message: '3 ekstra /spin reward!',
