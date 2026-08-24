@@ -6,7 +6,6 @@ import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
-import { Scripts } from '../../scripts/scripts'
 import { LootboxCommands } from '../store/lootboxCommands'
 
 const defaultBtn = (id: string) => {
@@ -58,7 +57,7 @@ export class TestCommands extends AbstractCommands {
 
     private async test(interaction: ChatInteraction | BtnInteraction) {
         // await interaction.deferReply()
-        const scripts = new Scripts(this.client)
+        // const scripts = new Scripts(this.client)
         // const igh = new ImageGenerationHelper(this.client)
         // const item = { name: 'stanley', background: 'office', rarity: ItemRarity.Rare }
         // const lootItem = { name: item.name, series: 'lootfice', rarity: item.rarity, color: ItemColor.Gold, amount: 1 }
