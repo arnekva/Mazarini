@@ -27,18 +27,18 @@ export class DailyClaimCommands extends AbstractCommands {
 
             let reward = this.getDailyReward(newData)
             reward = this.client.bank.giveMoney(user, reward)
-            // const lootButton = this.getLootboxReward(user.id, newData)
+            const lootButton = this.getLootboxReward(user.id, newData)
             embed.setDescription(`Du har henta dine daglige ${reward} chips`)
             embed.addFields([{ name: 'Streak', value: `${newData.streak ?? 1}` + ' dager', inline: true }])
-            // const lootboxField = this.getLootboxField(newData)
-            // if (lootboxField) embed.addFields([lootboxField])
+            const lootboxField = this.getLootboxField(newData)
+            if (lootboxField) embed.addFields([lootboxField])
             if (newData.streak === 7) {
                 newData.streak = 0
                 embed.setFooter({ text: 'Streaken din resettes nå te 0' })
             }
             user.daily = newData
             this.client.database.updateUser(user)
-            this.messageHelper.replyToInteraction(interaction, embed, undefined /*, lootButton*/)
+            this.messageHelper.replyToInteraction(interaction, embed, undefined, lootButton)
         } else {
             embed.setDescription('Du har allerede henta daily i dag. Vent te imårå klokkå 05:00')
             this.messageHelper.replyToInteraction(interaction, embed)
@@ -47,13 +47,14 @@ export class DailyClaimCommands extends AbstractCommands {
 
     private getDailyReward(daily: DailyReward): number {
         const dailyPrice = GameValues.daily.baseReward
-        return Math.floor((dailyPrice + dailyPrice * ((daily.streak ?? 1) - 1)) * (GameValues.daily.streakMultiplier ?? 1))
+        return Math.floor((dailyPrice + dailyPrice * (daily.streak ?? 1)) * (GameValues.daily.streakMultiplier ?? 1))
     }
 
     private getLootboxReward(userId: string, daily: DailyReward): ActionRowBuilder<ButtonBuilder>[] {
-        if (daily.streak === 4 || daily.streak === 7) {
+        if (daily.streak === 7) {
             const buttons = new ActionRowBuilder<ButtonBuilder>()
-            const reward = daily.streak === 7 ? GameValues.daily.streak7Reward : GameValues.daily.streak4Reward
+            // const reward = daily.streak === 7 ? GameValues.daily.streak7Reward : GameValues.daily.streak4Reward
+            const reward = GameValues.daily.streak7Reward
             if (reward === 'chest') return [LootboxCommands.getLootRewardButton(userId, LootboxQuality.Basic, 'chest')]
             else if (reward === 'box') return [LootboxCommands.getLootRewardButton(userId, LootboxQuality.Basic, 'box')]
             else if (reward === 'dond') {
@@ -66,8 +67,8 @@ export class DailyClaimCommands extends AbstractCommands {
     }
 
     private getLootboxField(daily: DailyReward): APIEmbedField {
-        if (daily.streak === 4) return { name: 'Lootbox', value: '4? Keep up the good work' }
-        else if (daily.streak === 7) return { name: 'Lootbox', value: 'Sakko! 7 dager i strekk!?\nSe her, ta deg ein boks!' }
+        // if (daily.streak === 4) return { name: 'Lootbox', value: '4? Keep up the good work' }
+        if (daily.streak === 7) return { name: 'Lootbox', value: `Sakko! 7 dager i strekk!?\nSe her, ta deg ein ${GameValues.daily.streak7Reward}!` }
         else return undefined
     }
 

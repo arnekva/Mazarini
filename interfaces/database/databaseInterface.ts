@@ -257,6 +257,7 @@ export interface IUserLoot {
     sw?: IUserLootSeries
     hp?: IUserLootSeries
     lotr?: IUserLootSeries
+    lootfice?: IUserLootSeries
     mazariniCCG?: IUserLootSeries
     swCCG?: IUserLootSeries
     hpCCG?: IUserLootSeries

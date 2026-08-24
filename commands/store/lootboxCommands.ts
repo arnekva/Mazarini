@@ -1003,7 +1003,7 @@ export class LootboxCommands extends AbstractCommands {
 
     private getUserLoot(user: MazariniUser, filter?: { series: string; rarity: string }) {
         const loot = new Array<IUserLootItem>()
-        const series = filter ? [filter.series] : ['mazarini', 'sw', 'hp', 'lotr'] // Don't add CCG series here
+        const series = filter ? [filter.series] : ['mazarini', 'sw', 'hp', 'lotr', 'lootfice'] // Don't add CCG series here
         const rarities = filter ? [filter.rarity] : ['common', 'rare', 'epic', 'legendary']
         for (const serie of series) {
             for (const rarity of rarities) {

@@ -20,6 +20,7 @@ import {
     IUserLoot,
     IUserLootItem,
     IUserLootSeries,
+    LootboxQuality,
     LuckyWheelRewardType,
     MazariniUser,
 } from '../interfaces/database/databaseInterface'
@@ -37,18 +38,16 @@ export class Scripts {
 
     public async prepareNewSeries() {
         const users = await this.client.database.getAllUsers()
-        for (const user of users) {
-            await this.refactorUserLoot(user)
-        }
-        // this.updateLootSeriesAndBoxes()
+        // await this.updateLootSeries()
+        // await this.initializeNewInventories()
         const usersWithLoot = users.filter((user) => (user.collectables?.length ?? 0) > 0)
         for (const user of usersWithLoot) {
             await this.generateNewLootInventory(user)
-            await this.setInventoryUrls(user)
+            // await this.setInventoryUrls(user)
         }
-        await this.resetChipsAndPerks()
-        this.client.database.saveDeathrollPot(0)
-        this.client.cache.deathrollPot = 0
+        // await this.resetChipsAndPerks()
+        // this.client.database.saveDeathrollPot(0)
+        // this.client.cache.deathrollPot = 0
     }
 
     public async addShardsToAllUsers(amount: number) {
@@ -83,7 +82,7 @@ export class Scripts {
             user.chips = 10000
             user.daily = { ...user.daily, streak: 0, claimedToday: false }
             user.jail = { ...user.jail, daysInJail: 0, jailState: 'none' }
-            user.ccg = { ...user.ccg, shards: 500, pitySinceLastLegendary: 0, weeklyShardsEarned: 0 }
+            // user.ccg = { ...user.ccg, shards: 500, pitySinceLastLegendary: 0, weeklyShardsEarned: 0 }
             await this.client.database.updateUser(user)
         }
     }
@@ -168,19 +167,13 @@ export class Scripts {
 
     public async makeRevealGif() {
         const igh = new ImageGenerationHelper(this.client)
-        const allItems: gifTemplate[] = [
-            ...common.map((i) => ({ ...i, rarity: ItemRarity.Common })),
-            ...rare.map((i) => ({ ...i, rarity: ItemRarity.Rare })),
-            ...epic.map((i) => ({ ...i, rarity: ItemRarity.Epic })),
-            ...legendary.map((i) => ({ ...i, rarity: ItemRarity.Legendary })),
-        ]
-        for (const item of allItems) {
-            console.log(item.rarity, ' - ', item.name)
-            const lootItem = { name: item.name, series: 'lotr', rarity: item.rarity, color: ItemColor.None, amount: 1 }
-            const reveal = await igh.generateRevealGifForCollectable(lootItem, item.background)
-            this.client.database.uploadLootGif(`loot/lotr/${item.name}_none.webp`, reveal)
-            // return new AttachmentBuilder(reveal, { name: 'reveal.webp' })
-            // this.client.database.uploadLootGif(`loot/lotr/unobtainable.webp`, reveal)
+        for (const item of lootfice) {
+            for (const color of [ItemColor.None, ItemColor.Silver, ItemColor.Gold, ItemColor.Diamond]) {
+                console.log(item.rarity, ' - ', item.name, ` (${color})`)
+                const lootItem = { name: item.name, series: 'lootfice', rarity: item.rarity, color: color, amount: 1 }
+                const reveal = await igh.generateRevealGifForCollectable(lootItem, item.background)
+                this.client.database.uploadLootGif(`loot/lootfice/${item.name}_${color}.webp`, reveal)
+            }
         }
     }
 
@@ -188,20 +181,16 @@ export class Scripts {
         const appEmoji: ApplicationEmojiManager = this.client.application.emojis
         const appEmojis = await appEmoji.fetch()
         const igh = new ImageGenerationHelper(this.client)
-        const allItems: gifTemplate[] = [
-            ...common.map((i) => ({ ...i, rarity: ItemRarity.Common })),
-            ...rare.map((i) => ({ ...i, rarity: ItemRarity.Rare })),
-            ...epic.map((i) => ({ ...i, rarity: ItemRarity.Epic })),
-            ...legendary.map((i) => ({ ...i, rarity: ItemRarity.Legendary })),
-        ]
-        for (const item of allItems) {
-            console.log(item.rarity, ' - ', item.name)
-            const name = `lotr_${item.name}_n` // Change for CCG
-            const emojiObj = appEmojis.find((emoji) => emoji.name == name)
-            if (!emojiObj) {
-                const lootItem = { name: item.name, series: 'lotr', rarity: item.rarity, color: ItemColor.None, amount: 1 }
-                const emoji = await igh.makeApplicationEmoji(lootItem)
-                appEmoji.create({ name: name, attachment: emoji })
+        for (const item of lootfice) {
+            for (const color of [ItemColor.None, ItemColor.Silver, ItemColor.Gold, ItemColor.Diamond]) {
+                const name = `lootfice_${item.name}_${color.charAt(0)}` // Change for CCG
+                const emojiObj = appEmojis.find((emoji) => emoji.name == name)
+                if (!emojiObj) {
+                    console.log(item.rarity, ' - ', item.name, ` (${color})`)
+                    const lootItem = { name: item.name, series: 'lootfice', rarity: item.rarity, color: color, amount: 1 }
+                    const emoji = await igh.makeApplicationEmoji(lootItem)
+                    appEmoji.create({ name: name, attachment: emoji })
+                }
             }
         }
     }
@@ -214,6 +203,12 @@ export class Scripts {
         if (!allSeries.some((series) => series.name === mazariniCCG_series.name)) allSeries.push(mazariniCCG_series)
         if (!allSeries.some((series) => series.name === swCCG_series.name)) allSeries.push(swCCG_series)
         if (!allSeries.some((series) => series.name === hpCCG_series.name)) allSeries.push(hpCCG_series)
+        this.client.database.setLootSeries(allSeries)
+    }
+
+    public async updateLootSeries() {
+        const allSeries = await this.client.database.getLootboxSeries()
+        if (!allSeries.some((series) => series.name === lootfice_series.name)) allSeries.push(lootfice_series)
         this.client.database.setLootSeries(allSeries)
     }
 
@@ -318,16 +313,15 @@ export class Scripts {
     public async initializeNewInventories() {
         const users = (await this.client.database.getAllUsers()).filter((user) => (user.collectables?.length ?? 0) > 0)
         for (const user of users) {
-            const mazariniCCG: IUserLootSeries = {
-                name: 'mazariniCCG',
-                pityLevel: user.loot.mazariniCCG?.pityLevel ?? structuredClone(defaultPityLevel),
-                inventory: user.loot.mazariniCCG?.inventory ?? structuredClone(defaultInventory),
-                stats: user.loot.mazariniCCG?.stats ?? structuredClone(defaultLootStats),
+            const lootfice: IUserLootSeries = {
+                name: 'lootfice',
+                pityLevel: user.loot.lootfice?.pityLevel ?? structuredClone(defaultPityLevel),
+                inventory: user.loot.lootfice?.inventory ?? structuredClone(defaultInventory),
+                stats: user.loot.lootfice?.stats ?? structuredClone(defaultLootStats),
             }
-            mazariniCCG.inventory.common.items = startingInventory
-            // user.loot = {...user.loot, mazariniCCG: mazariniCCG}
-            user.loot.mazariniCCG = mazariniCCG
-            user.ccg = { ...user.ccg, decks: [startingDeck] }
+            user.loot = { ...user.loot, lootfice: lootfice }
+            // user.loot.lootfice = lootfice
+            // user.ccg = { ...user.ccg, decks: [startingDeck] }
             await this.client.database.updateUser(user)
         }
     }
@@ -336,7 +330,7 @@ export class Scripts {
         const seriess = await this.client.database.getLootboxSeries()
         const imgGen = new ImageGenerationHelper(this.client)
         for (const series of seriess) {
-            if (series.name === 'lotr') {
+            if (series.name === 'lootfice') {
                 const common = await imgGen.generateImageForCollectablesRarity(user, series, ItemRarity.Common)
                 this.client.database.uploadUserInventory(user, `${series.name}/common.png`, common)
 
@@ -558,13 +552,54 @@ const lotr_series: ILootSeries = {
     unobtainableHolder: '',
 }
 
+const lootfice: gifTemplate[] = [
+    // Legendary
+    { name: 'michael', background: 'office', rarity: ItemRarity.Legendary },
+    { name: 'dwight', background: 'office', rarity: ItemRarity.Legendary },
+    { name: 'jim', background: 'office', rarity: ItemRarity.Legendary },
+    { name: 'pam', background: 'office', rarity: ItemRarity.Legendary },
+    { name: 'robert_california', background: 'office', rarity: ItemRarity.Legendary },
+
+    // Epic
+    { name: 'gabe', background: 'office', rarity: ItemRarity.Epic },
+    { name: 'darryl', background: 'office', rarity: ItemRarity.Epic },
+    { name: 'creed', background: 'office', rarity: ItemRarity.Epic },
+    { name: 'david_wallace', background: 'office', rarity: ItemRarity.Epic },
+    { name: 'ryan', background: 'office', rarity: ItemRarity.Epic },
+
+    // Rare
+    { name: 'kelly', background: 'office', rarity: ItemRarity.Rare },
+    { name: 'oscar', background: 'office', rarity: ItemRarity.Rare },
+    { name: 'stanley', background: 'office', rarity: ItemRarity.Rare },
+    { name: 'andy', background: 'office', rarity: ItemRarity.Rare },
+    { name: 'kevin', background: 'office', rarity: ItemRarity.Rare },
+
+    // Common
+    { name: 'meredith', background: 'office', rarity: ItemRarity.Common },
+    { name: 'phyllis', background: 'office', rarity: ItemRarity.Common },
+    { name: 'toby', background: 'office', rarity: ItemRarity.Common },
+    { name: 'angela', background: 'office', rarity: ItemRarity.Common },
+    { name: 'erin', background: 'office', rarity: ItemRarity.Common },
+]
+
+const lootfice_series: ILootSeries = {
+    name: 'lootfice',
+    added: new Date(),
+    common: lootfice.filter((entry) => entry.rarity === ItemRarity.Common).map((entry) => entry.name),
+    rare: lootfice.filter((entry) => entry.rarity === ItemRarity.Rare).map((entry) => entry.name),
+    epic: lootfice.filter((entry) => entry.rarity === ItemRarity.Epic).map((entry) => entry.name),
+    legendary: lootfice.filter((entry) => entry.rarity === ItemRarity.Legendary).map((entry) => entry.name),
+    hasColor: true,
+    hasUnobtainable: false,
+}
+
 export interface gifTemplate {
     name: string
     rarity?: ItemRarity
     background: string
 }
 
-const common: gifTemplate[] = [
+const lotr_common: gifTemplate[] = [
     { name: 'barlinman_butterbur', background: 'bree' },
     { name: 'pj_cameo', background: 'bree' },
     { name: 'grima_wormtongue', background: 'isengard' },
@@ -587,7 +622,7 @@ const common: gifTemplate[] = [
     { name: 'rosie_cotton', background: 'shire' },
 ]
 
-const rare: gifTemplate[] = [
+const lotr_rare: gifTemplate[] = [
     { name: 'grond', background: 'minas_morgul' },
     { name: 'king_of_the_dead', background: 'dunharrow' },
     { name: 'grishnakh', background: 'isengard' },
@@ -610,7 +645,7 @@ const rare: gifTemplate[] = [
     { name: 'eowyn', background: 'rohan' },
 ]
 
-const epic: gifTemplate[] = [
+const lotr_epic: gifTemplate[] = [
     { name: 'gandalf_the_gray', background: 'council_of_elrond' },
     { name: 'lurtz', background: 'isengard' },
     { name: 'palantir', background: 'isengard' },
@@ -633,7 +668,7 @@ const epic: gifTemplate[] = [
     { name: 'bilbo', background: 'shire' },
 ]
 
-const legendary: gifTemplate[] = [
+const lotr_legendary: gifTemplate[] = [
     { name: 'aragorn', background: 'council_of_elrond' },
     { name: 'boromir', background: 'council_of_elrond' },
     { name: 'gandalf_the_white', background: 'council_of_elrond' },
@@ -676,20 +711,22 @@ const lotrInventoryArts: ILootSeriesInventoryArt[] = [
 // Total weight: 114. 500 chips = 36/114 ≈ 31.6% (weight unchanged from before the shard slices were added).
 // Each other chip tier (×9) = 6/114 ≈ 5.3%. Each shard tier (×4) = 6/114 ≈ 5.3%.
 const luckyWheelRewards: ILuckyWheelReward[] = [
-    { name: '500 chips', type: LuckyWheelRewardType.chips, amount: 500, weight: 36 },
-    { name: '1000 chips', type: LuckyWheelRewardType.chips, amount: 1000, weight: 6 },
-    { name: '1500 chips', type: LuckyWheelRewardType.chips, amount: 1500, weight: 6 },
-    { name: '2000 chips', type: LuckyWheelRewardType.chips, amount: 2000, weight: 6 },
-    { name: '2500 chips', type: LuckyWheelRewardType.chips, amount: 2500, weight: 6 },
-    { name: '3000 chips', type: LuckyWheelRewardType.chips, amount: 3000, weight: 6 },
-    { name: '3500 chips', type: LuckyWheelRewardType.chips, amount: 3500, weight: 6 },
-    { name: '4000 chips', type: LuckyWheelRewardType.chips, amount: 4000, weight: 6 },
-    { name: '4500 chips', type: LuckyWheelRewardType.chips, amount: 4500, weight: 6 },
-    { name: '5000 chips', type: LuckyWheelRewardType.chips, amount: 5000, weight: 6 },
-    { name: '2 shards', type: LuckyWheelRewardType.shards, amount: 2, weight: 6 },
-    { name: '5 shards', type: LuckyWheelRewardType.shards, amount: 5, weight: 6 },
-    { name: '10 shards', type: LuckyWheelRewardType.shards, amount: 10, weight: 6 },
-    { name: '15 shards', type: LuckyWheelRewardType.shards, amount: 15, weight: 6 },
+    { name: '4000 chips', type: LuckyWheelRewardType.chips, amount: 4000, weight: 5 },
+    { name: '3000 chips', type: LuckyWheelRewardType.chips, amount: 3000, weight: 5 },
+    { name: '2500 chips', type: LuckyWheelRewardType.chips, amount: 2500, weight: 5 },
+    { name: '2000 chips', type: LuckyWheelRewardType.chips, amount: 2000, weight: 5 },
+    { name: '1500 chips', type: LuckyWheelRewardType.chips, amount: 1500, weight: 5 },
+    { name: '1000 chips', type: LuckyWheelRewardType.chips, amount: 1000, weight: 5 },
+    { name: '500 chips', type: LuckyWheelRewardType.chips, amount: 500, weight: 10 },
+    { name: 'Loot chest', type: LuckyWheelRewardType.chest, quality: LootboxQuality.Basic, weight: 1 },
+    { name: '500 chips', type: LuckyWheelRewardType.chips, amount: 500, weight: 10 },
+    { name: '1000 chips', type: LuckyWheelRewardType.chips, amount: 1000, weight: 5 },
+    { name: '1500 chips', type: LuckyWheelRewardType.chips, amount: 1500, weight: 5 },
+    { name: '2000 chips', type: LuckyWheelRewardType.chips, amount: 2000, weight: 5 },
+    { name: '2500 chips', type: LuckyWheelRewardType.chips, amount: 2500, weight: 5 },
+    { name: '3000 chips', type: LuckyWheelRewardType.chips, amount: 3000, weight: 5 },
+    { name: '4000 chips', type: LuckyWheelRewardType.chips, amount: 4000, weight: 5 },
+    { name: '5000 chips', type: LuckyWheelRewardType.box, amount: 5000, weight: 5 },
 ]
 
 const basicLootPack: ILootbox = {

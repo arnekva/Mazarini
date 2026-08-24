@@ -1,7 +1,7 @@
 import { PutObjectCommandOutput } from '@aws-sdk/client-s3'
 import { Unsubscribe } from 'firebase/database'
 import moment from 'moment'
-import { environment } from '../client-env'
+import { database, environment } from '../client-env'
 import { DRGame } from '../commands/games/deathroll'
 import {
     botDataPrefix,
@@ -487,7 +487,7 @@ export class DatabaseHelper {
     }
 
     public async uploadUserInventory(user: MazariniUser, path: string, img: Buffer): Promise<PutObjectCommandOutput> {
-        const key = `loot_inventory/${user.id}/${environment}/${path}`
+        const key = `loot_inventory/${user.id}/${database}/${path}`
         return await this.storage.uploadToStorage(key, img)
     }
 

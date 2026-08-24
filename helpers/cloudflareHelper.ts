@@ -15,7 +15,7 @@ export class CloudflareHelper {
         const command = new GetObjectCommand({ Bucket: 'mazarini', Key: key })
         const response = await this.client.send(command)
         const arrayBuffer = (await response.Body.transformToByteArray()).buffer
-        return arrayBuffer
+        return arrayBuffer as ArrayBuffer
     }
 
     public async getStorageLink(key: string): Promise<string> {

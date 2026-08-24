@@ -349,7 +349,7 @@ export const GameValues: GameValuesType = {
 
     // Daily Claim
     daily: {
-        baseReward: 1000,
+        baseReward: 500,
         streakMultiplier: 1.0, // Multiplies with streak
         streak4Reward: 1000,
         streak7Reward: 'chest',
@@ -421,9 +421,9 @@ export const GameValues: GameValuesType = {
     },
     mastermind: {
         totalAttempts: 10,
-        codeLength: 4,
+        codeLength: 5,
         winnerReward: 2500,
-        winnerRewardShards: 10,
+        winnerRewardShards: 0,
         minPlayers: 1,
     },
     vipps: {

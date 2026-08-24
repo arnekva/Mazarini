@@ -1,6 +1,6 @@
 import { EmbedBuilder, TextDisplayBuilder, User } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
-import { ChatInteraction, ATCInteraction } from '../../Abstracts/MazariniInteraction'
+import { ATCInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { MazariniClient } from '../../client/MazariniClient'
 
@@ -48,7 +48,7 @@ export class StatsCommands extends AbstractCommands {
     }
 
     private getLootStatsContainer(user: MazariniUser, username: string) {
-        const lootStats = ['lotr'].map((series) => ({ series: series, stats: user.loot[series].stats as ILootStats }))
+        const lootStats = ['lootfice'].map((series) => ({ series: series, stats: user.loot[series].stats as ILootStats }))
         const container = new SimpleContainer()
         const text1 = new TextDisplayBuilder().setContent(['# Loot stats', `## ${username}`].join('\n'))
         container.addComponent(text1, 'header')
@@ -72,7 +72,7 @@ export class StatsCommands extends AbstractCommands {
                 }, 0)
                 let achievements = ''
                 for (const key in stats.achievements) {
-                    achievements += `\n* ${lootAchievementTexts.get(key) ?? key}: ${stats.achievements[key]}`
+                    if (stats.achievements[key]) achievements += `\n* ${lootAchievementTexts.get(key) ?? key}: ${stats.achievements[key]}`
                 }
                 let itemsSplit = ''
                 const itemsTotal = rarities.reduce((acc, rarity) => {

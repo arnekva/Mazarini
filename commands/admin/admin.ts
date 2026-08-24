@@ -330,7 +330,8 @@ export class Admin extends AbstractCommands {
 
     private async lootQualityAutocomplete(interaction: ATCInteraction) {
         const cmd = interaction.options.getSubcommand()
-        const boxes = cmd === 'pack' ? await this.client.database.getLootpacks() : await this.client.database.getLootboxes()
+        let boxes = cmd === 'pack' ? await this.client.database.getLootpacks() : await this.client.database.getLootboxes()
+        boxes = boxes.filter((box) => LootboxCommands.lootboxIsValid(box))
         const price = (box: ILootbox) => (cmd === 'pack' ? `${box.price} shards` : `${(cmd === 'chest' ? 2 : 1) * (box.price / 1000)}K`)
         interaction.respond(
             boxes.filter((box) => !box.rewardOnly).map((box) => ({ name: `${TextUtils.capitalizeFirstLetter(box.name)} ${price(box)}`, value: box.name }))

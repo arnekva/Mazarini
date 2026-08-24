@@ -57,18 +57,16 @@ export class TestCommands extends AbstractCommands {
     }
 
     private async test(interaction: ChatInteraction | BtnInteraction) {
+        // await interaction.deferReply()
         const scripts = new Scripts(this.client)
-        // interaction.deferReply()
-        // await scripts.resetChipsAndShardsAndDaily()
-        // scripts.setLuckyWheelRewards()
-        // scripts.updateCCGSeries()
-        // await scripts.updateLootSeriesAndPacks()
-        // await scripts.initializeHpCCGInventory()
         // const igh = new ImageGenerationHelper(this.client)
-        // const user = await this.database.getUser(interaction.user.id)
-        // await igh.generateCcgInventory(user, 'swCCG')
-        // await this.messageHelper.replyToInteraction(interaction, 'Check?', { hasBeenDefered: true })
-        await this.messageHelper.replyToInteraction(interaction, 'Kjører script')
+        // const item = { name: 'stanley', background: 'office', rarity: ItemRarity.Rare }
+        // const lootItem = { name: item.name, series: 'lootfice', rarity: item.rarity, color: ItemColor.Gold, amount: 1 }
+        // const reveal = await igh.generateRevealGifForCollectable(lootItem, item.background)
+        // const file = new AttachmentBuilder(reveal, { name: 'reveal.webp' })
+        // scripts.prepareNewSeries()
+        // scripts.setLuckyWheelRewards()
+        await this.messageHelper.replyToInteraction(interaction, 'doing stuff')
     }
 
     private async testSelectMenu(selectMenu: SelectStringInteraction) {

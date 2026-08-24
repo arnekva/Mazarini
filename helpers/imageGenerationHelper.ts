@@ -71,6 +71,8 @@ interface IRatios {
     rarityEffect: IRarityEffectRatios
     item: IItemRatios
     textHeight: number
+    leftOffset?: number
+    bottomShift?: number
 }
 
 interface IRarityEffectRatios {
@@ -212,7 +214,74 @@ const lotr_setup: IRevealGifSetup = {
     },
 }
 
-const currentSetup: IRevealGifSetup = lotr_setup
+const lootfice_setup_saved: IRevealGifSetup = {
+    revealWidth: 800,
+    revealHeight: 600,
+    background: '',
+    gif: 'temp/intro2.webp',
+    font: {
+        path: 'temp/lootfice_font.otf',
+        family: 'American Typewriter',
+        weight: 500,
+        primaryColor: '#FFFFFF',
+        outlineColor: '#ffffff',
+    },
+    ratios: {
+        halo: Math.floor(600 * 0.85),
+        rarityEffect: {
+            scaleWidth: Math.floor(800 * 1.25),
+            scaleHeight: Math.floor(600 * 0.8),
+            top: Math.floor(600 * 0.35),
+        },
+        item: {
+            size: Math.floor(600 * 0.75),
+            coords: async (item: Buffer) => {
+                const meta = await sharp(item).metadata()
+                const top = 500 - meta.height
+                const left = Math.floor(800 / 2 - meta.width / 2)
+                return { top: top, left: left }
+            },
+        },
+        textHeight: Math.floor(600 * 0.056),
+        leftOffset: 135,
+    },
+}
+
+const lootfice_setup: IRevealGifSetup = {
+    revealWidth: 800,
+    revealHeight: 600,
+    background: '',
+    gif: 'temp/intro2.webp',
+    font: {
+        path: 'temp/lootfice_font.otf',
+        family: 'American Typewriter',
+        weight: 500,
+        primaryColor: '#FFFFFF',
+        outlineColor: '#ffffff',
+    },
+    ratios: {
+        halo: Math.floor(600 * 0.85),
+        rarityEffect: {
+            scaleWidth: Math.floor(800 * 1.25),
+            scaleHeight: Math.floor(600 * 0.8),
+            top: Math.floor(600 * 0.35),
+        },
+        item: {
+            size: Math.floor(600 * 0.75),
+            coords: async (item: Buffer) => {
+                const meta = await sharp(item).metadata()
+                const top = 500 - meta.height
+                const left = Math.floor(800 / 2 - meta.width / 2)
+                return { top: top, left: left }
+            },
+        },
+        textHeight: Math.floor(600 * 0.056),
+        leftOffset: 143,
+        bottomShift: 155,
+    },
+}
+
+const currentSetup: IRevealGifSetup = lootfice_setup
 
 const inventoryOptions: IImageCoordinates = {
     layer: -1,
@@ -240,7 +309,7 @@ export class ImageGenerationHelper {
     }
 
     public async makeApplicationEmoji(collectable: IUserLootItem): Promise<Buffer> {
-        const item = fs.readFileSync(`temp/${collectable.rarity}/${collectable.name}.png`)
+        const item = fs.readFileSync(`temp/images/${collectable.color}/${collectable.name}_${collectable.color}.png`)
         const resizedItem = await sharp(item).resize({ fit: sharp.fit.cover, width: 128, height: 128 }).toBuffer()
         return resizedItem
     }
@@ -266,10 +335,10 @@ export class ImageGenerationHelper {
         const resizedBg = await sharp(background)
             .resize({ fit: sharp.fit.cover, width: currentSetup.revealWidth, height: currentSetup.revealHeight })
             .toBuffer()
-        const halo = await this.getHalo(collectable.rarity)
-        const item = fs.readFileSync(`temp/${collectable.rarity}/${collectable.name}.png`) //await this.getItemBuffer(collectable)
+        const halo = await this.getHalo(collectable.color)
+        const item = fs.readFileSync(`temp/images/${collectable.color}/${collectable.name}_${collectable.color}.png`) //await this.getItemBuffer(collectable)
         const isUnobtainable = collectable.rarity === ItemRarity.Unobtainable
-        const size = isUnobtainable ? 120 : 400
+        const size = isUnobtainable ? 120 : 514
         const resizedItem = await sharp(item).resize({ fit: sharp.fit.cover, width: size, height: size }).toBuffer()
         let backgroundBuffer = resizedBg
         if (isUnobtainable) {
@@ -281,28 +350,40 @@ export class ImageGenerationHelper {
         }
         if (halo) {
             const coords = await currentSetup.ratios.item.coords(halo)
-            backgroundBuffer = await this.compositeBuffers(backgroundBuffer, halo, isUnobtainable ? 0 : 10 - 50 /*coords.top*/, coords.left)
+            backgroundBuffer = await this.compositeBuffers(
+                backgroundBuffer,
+                halo,
+                isUnobtainable ? 0 : 10 - 50 + (currentSetup.ratios.bottomShift ?? 0) /*coords.top*/,
+                coords.left - (currentSetup.ratios.leftOffset ?? 0)
+            )
         }
         // return backgroundBuffer
-        const nameplate = fs.readFileSync(`temp/nameplate/${collectable.rarity}_w.png`)
-        // const resizedNameplate = await sharp(nameplate).resize({ fit: sharp.fit.inside, width: 500, height: 200 }).toBuffer()
+        const nameplate = fs.readFileSync(`temp/nameplates/${collectable.rarity}/${collectable.color}.png`)
+        const resizedNameplate = await sharp(nameplate).resize({ fit: sharp.fit.inside, height: 70 }).toBuffer()
 
         // const badgeHalo = this.getRarityHalo(collectable.rarity)
         // const badgeWithHalo = await this.compositeBuffers(badgeHalo, resizedBadge, 100, 120)
         const coords = await currentSetup.ratios.item.coords(resizedItem)
         const top = isUnobtainable ? 200 : coords.top - 50
-        const img = await this.compositeBuffers(backgroundBuffer, resizedItem, top, coords.left)
+        const img = await this.compositeBuffers(
+            backgroundBuffer,
+            resizedItem,
+            top + (currentSetup.ratios.bottomShift ?? 0),
+            coords.left - (currentSetup.ratios.leftOffset ?? 0)
+        )
         if (isUnobtainable) return img
-        return await this.compositeBuffers(img, nameplate, 400, 150)
+        return await this.compositeBuffers(img, resizedNameplate, 10, 243 - (currentSetup.ratios.leftOffset ?? 0))
+        // return await this.compositeBuffers(img, nameplate, 400 + (currentSetup.ratios.bottomShift ?? 0), 150 - (currentSetup.ratios.leftOffset ?? 0))
         return img
         // return await this.compositeBuffers(img, badgeWithHalo, 400, 660)
     }
 
-    private async getHalo(rarity: ItemRarity): Promise<Buffer> {
-        const isUnobtainable = rarity === ItemRarity.Unobtainable
+    private async getHalo(color: ItemColor): Promise<Buffer> {
+        // const isUnobtainable = rarity === ItemRarity.Unobtainable
         // if (rarity === ItemRarity.Unobtainable) return undefined
-        const halo = fs.readFileSync(`temp/halo/${rarity}.png`)
-        return await this.resize(halo, false, isUnobtainable ? 800 : 600)
+        const halo = fs.readFileSync(`temp/halo/${color}.png`)
+        // return await this.resize(halo, false, isUnobtainable ? 800 : 600)
+        return await this.resize(halo, false, 600)
     }
 
     private getRarityHalo(rarity: ItemRarity): Buffer {
@@ -349,7 +430,7 @@ export class ImageGenerationHelper {
             .render()
             .toBuffer()
         const resizedHeader = await sharp(itemHeader)
-            .resize({ fit: sharp.fit.inside, height: currentSetup.ratios.textHeight, width: isUnobtainable ? 700 : 360 })
+            .resize({ fit: sharp.fit.inside, height: currentSetup.ratios.textHeight, width: isUnobtainable ? 700 : 300 })
             .toBuffer()
         // legendary: '#d1700f'
         // epic: '#7223cc'
@@ -367,7 +448,12 @@ export class ImageGenerationHelper {
         const top = Math.floor(330 - headerMeta.height / 2)
         const left = Math.floor(400 - headerMeta.width / 2)
         const texts: sharp.OverlayOptions[] = new Array<sharp.OverlayOptions>()
-        texts.push({ input: resizedHeader, top: top - 48 + currentSetup.ratios.rarityEffect.top, left: left })
+        texts.push({
+            input: resizedHeader,
+            // top: top - 85 + currentSetup.ratios.rarityEffect.top + (currentSetup.ratios.bottomShift ?? 0),
+            top: 30,
+            left: left - (currentSetup.ratios.leftOffset ?? 0),
+        })
         return texts
         // return this.getOutlineText(resizedHeader, resizedOutline, top - 40, left, 2)
     }
@@ -408,7 +494,7 @@ export class ImageGenerationHelper {
         const imgRoll = backgroundImg.extend({ bottom: metadata.pageHeight * (metadata.pages - 1), extendWith: 'repeat' }) //Must extend to repeat how ever many pages (frames) are in the gif.
 
         const result = imgRoll.composite([{ input: await overlay.toBuffer(), gravity: 'north', animated: true }]).webp(
-            { delay: metadata.delay, loop: 1, effort: 0 }
+            { delay: metadata.delay, loop: 1, effort: 4, quality: 75, lossless: false }
             // new Array(metadata.delay.length).fill(50)
             //Just copying the metadata from the gif to the output format (not sure this is necessary).
         )
