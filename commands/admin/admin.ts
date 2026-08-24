@@ -806,6 +806,7 @@ export class Admin extends AbstractCommands {
                                 { value: 'jail', label: 'Jail status' },
                                 { value: 'deathroll_numbers', label: 'Deathroll vinnertall' },
                                 { value: 'more_or_less', label: 'More or less' },
+                                { value: 'mastermind', label: 'Reset mastermind' },
                             ],
                         },
                     },

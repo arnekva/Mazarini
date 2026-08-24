@@ -4,6 +4,7 @@ import fetch from 'node-fetch'
 import { rapidApiKey, rapidApiKey2 } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
 import { Deathroll } from '../commands/games/deathroll'
+import { Mastermind } from '../commands/games/mastermind'
 import { MoreOrLess } from '../commands/games/moreOrLess'
 import { RocketLeagueCommands } from '../commands/gaming/rocketleagueCommands'
 import { GameValues } from '../general/values'
@@ -13,6 +14,7 @@ import { MazariniUser, RocketLeagueTournament } from '../interfaces/database/dat
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { ChannelIds, ThreadIds } from '../utils/mentionUtils'
+import { RandomUtils } from '../utils/randomUtils'
 import { UserUtils } from '../utils/userUtils'
 export class DailyJobs {
     private messageHelper: MessageHelper
@@ -258,6 +260,28 @@ export class DailyJobs {
         return 'success'
     }
 
+    private async resetMastermind(): Promise<JobStatus> {
+        // Reset user stats
+        const users = await this.client.database.getAllUsers()
+        const usersWithStats = users.filter((user) => user.dailyGameStats?.mastermind?.attempted)
+        const updates = {}
+        users.forEach((user) => {
+            const updatePath = this.client.database.getUserPathToUpdate(user.id, 'dailyGameStats')
+            updates[`${updatePath}/mastermind`] = { attempted: false, completed: false, numAttempts: 0 }
+        })
+        this.client.database.updateData(updates)
+
+        // Set new solution
+        const newSolution = new Array<string>()
+        for (let i = 0; i < GameValues.mastermind.codeLength; i++) {
+            newSolution.push(RandomUtils.getRandomItemFromList(Mastermind.colors))
+        }
+        this.client.cache.mastermindSolution = newSolution
+        this.client.database.setMastermindSolution(newSolution)
+
+        return 'success'
+    }
+
     private async awardAndResetMoreOrLess(users: MazariniUser[]): Promise<JobStatus> {
         const threadId = ThreadIds.MORE_OR_LESS
         const usersWithStats = users.filter((user) => !user.userSettings?.excludeFromMoL).filter((user) => user.dailyGameStats?.moreOrLess?.attempted)
@@ -359,8 +383,9 @@ export class DailyJobs {
                 description =
                     `Gratulerer til gårsdagens vinner${chestWinners.length > 1 ? 'e' : ''} for beste første forsøk på *${
                         storage.moreOrLess.current.title
-                    }*, ${firstAttemptWinners}, som vinner ${GameValues.moreOrLess.rewards.bestAttempt} chips og ${GameValues.moreOrLess.rewards.bestAttemptShards} shards!` +
-                    `\nResultater:\n${results}`
+                    }*, ${firstAttemptWinners}, som vinner ${GameValues.moreOrLess.rewards.bestAttempt} chips og ${
+                        GameValues.moreOrLess.rewards.bestAttemptShards
+                    } shards!` + `\nResultater:\n${results}`
             }
             // description += `\nGårsdagen vinner av beste forsøk er ${bestTotalWinners}, som vinner lootbox!`
         }
@@ -403,6 +428,7 @@ export class DailyJobs {
         if (jobKeys.includes('jail')) this.updateJailAndJailbreakCounters(users)
         if (jobKeys.includes('deathroll_numbers')) this.reRollWinningNumbers()
         if (jobKeys.includes('more_or_less')) await this.awardAndResetMoreOrLess(users)
+        if (jobKeys.includes('mastermind')) await this.resetMastermind()
     }
 
     private logEvent() {

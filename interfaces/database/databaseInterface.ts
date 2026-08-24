@@ -492,6 +492,7 @@ export interface ICache {
     ccg?: ICCGSystem
     rocketLeagueTournaments?: MazariniStorage['rocketLeagueTournaments']
     applicationEmojis?: Collection<string, ApplicationEmoji>
+    mastermindSolution?: string[]
 }
 
 export type FavoritePol = {

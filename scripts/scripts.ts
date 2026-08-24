@@ -726,7 +726,7 @@ const luckyWheelRewards: ILuckyWheelReward[] = [
     { name: '2500 chips', type: LuckyWheelRewardType.chips, amount: 2500, weight: 5 },
     { name: '3000 chips', type: LuckyWheelRewardType.chips, amount: 3000, weight: 5 },
     { name: '4000 chips', type: LuckyWheelRewardType.chips, amount: 4000, weight: 5 },
-    { name: '5000 chips', type: LuckyWheelRewardType.box, amount: 5000, weight: 5 },
+    { name: '5000 chips', type: LuckyWheelRewardType.chips, amount: 5000, weight: 5 },
 ]
 
 const basicLootPack: ILootbox = {

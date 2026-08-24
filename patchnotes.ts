@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '35.0.0'
+    public static readonly currentVersion = '35.0.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,16 +26,7 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            [
-                '# Loot er tilbake!',
-                '## Seriens tema er... :drum: :drum: :drum: The Office!',
-                '### Denne gangen går vi tilbake til det gode gamle formatet med farget (<:maggiscared:1024960624763088906>) loot!',
-                '### Annet nytt',
-                '* Oppdatert rewards i luckywheel',
-                '* Daily reward justeres til 500 + (500 * streak) chips ',
-                '* Gode gamle chest ligger og venter bak luke nr 7',
-                '* Mastermind er nå en 5-farget kode (opp fra 4)!',
-            ].join('\n')
+            ['* Lagt til script for å resette mastermind i botinnstillinger', '* Økt maks mastermind forsøk til 12'].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

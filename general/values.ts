@@ -420,7 +420,7 @@ export const GameValues: GameValuesType = {
         artPrice: 10000,
     },
     mastermind: {
-        totalAttempts: 10,
+        totalAttempts: 12,
         codeLength: 5,
         winnerReward: 2500,
         winnerRewardShards: 0,

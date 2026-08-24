@@ -28,15 +28,21 @@ interface MMHint {
     white: number
 }
 
-const colors = ['red', 'blue', 'yellow', 'green', 'black', 'white']
-
 export class Mastermind extends AbstractCommands {
-    private solution: string[]
+    private solutions: string[]
     private userGames: Map<string, MMGame>
+    static colors = ['red', 'blue', 'yellow', 'green', 'black', 'white']
 
     constructor(client: MazariniClient) {
         super(client)
         this.userGames = new Map<string, MMGame>()
+    }
+
+    get solution() {
+        return this.client.cache.mastermindSolution
+    }
+    set solution(solution: string[]) {
+        this.client.cache.mastermindSolution = solution
     }
 
     async onReady(): Promise<void> {
@@ -260,7 +266,7 @@ export class Mastermind extends AbstractCommands {
     private setNewSolution() {
         const newSolution = new Array<string>()
         for (let i = 0; i < GameValues.mastermind.codeLength; i++) {
-            newSolution.push(RandomUtils.getRandomItemFromList(colors))
+            newSolution.push(RandomUtils.getRandomItemFromList(Mastermind.colors))
         }
         this.solution = newSolution
         this.database.setMastermindSolution(newSolution)

@@ -4,6 +4,7 @@ import { cloudflareConfig, environment, firebaseConfig, secretDevelopment } from
 import { JobScheduler } from '../Jobs/jobScheduler'
 
 import { S3Client } from '@aws-sdk/client-s3'
+import { CommandBuilder } from '../builders/commandBuilder/commandBuilder'
 import { EventTracker } from '../general/eventTracker'
 import { MazariniTracker } from '../general/mazariniTracker'
 import { LockingHandler } from '../handlers/lockingHandler'
@@ -16,7 +17,6 @@ import { ICache } from '../interfaces/database/databaseInterface'
 import { ChannelIds } from '../utils/mentionUtils'
 import { ClientListener } from './ClientListeners'
 import { MazariniEvents } from './events/MazariniEvents'
-import { CommandBuilder } from '../builders/commandBuilder/commandBuilder'
 
 /** Extension of Discord Client with extra properties like MessageHelper */
 export class MazariniClient extends Client {
@@ -66,7 +66,7 @@ export class MazariniClient extends Client {
         this.timedEvents = new MazariniEvents(this)
         this.mazariniEventTracker = new EventTracker(this)
         this.clientListener = new ClientListener(this)
-        this.clientCache = { deathrollWinningNumbers: [], restartImpediments: [] }
+        this.clientCache = { deathrollWinningNumbers: [], restartImpediments: [], mastermindSolution: [] }
         this.developmentChannelId = secretDevelopment ? ChannelIds.SECRET_LOCALHOST : ChannelIds.LOCALHOST
         this.moneyHelper = new MoneyHelper(this)
         this.setupDatabase(this.msgHelper)
