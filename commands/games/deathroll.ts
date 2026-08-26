@@ -615,7 +615,7 @@ const noThanksButton = (userId: string, rewarded: number) => {
     )
 }
 export const blackjackButton = (userId: string, rewarded: number) => {
-    const emoji = rewarded >= 20000 ? { name: 'arne', id: '860282686605230130' } : { name: 'pointerbrothers1', id: '1177653110852825158' }
+    const emoji = rewarded >= 12500 ? { name: 'arne', id: '860282686605230130' } : { name: 'pointerbrothers1', id: '1177653110852825158' }
     return new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder({
             custom_id: `BLACKJACK_DEATHROLL;${userId};${rewarded}`,
