@@ -3,7 +3,7 @@ import { MazariniClient } from '../client/MazariniClient'
 import { HelgHelper } from '../helpers/helgHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { DateUtils } from '../utils/dateUtils'
-import { MentionUtils } from '../utils/mentionUtils'
+import { ChannelIds, MentionUtils, ThreadIds } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
 import { MiscUtils } from '../utils/miscUtils'
 import { UserUtils } from '../utils/userUtils'
@@ -110,8 +110,18 @@ export class MessageChecker {
         }
     }
 
+    private static readonly RANDOM_REACTION_CHANNELS: Set<string> = new Set([
+        ChannelIds.GENERAL_DEV,
+        ChannelIds.CCG,
+        ThreadIds.GENERAL_TERNING,
+        ChannelIds.LOOT,
+        ThreadIds.MORE_OR_LESS,
+        ChannelIds.BOT_UTVIKLING,
+    ])
+
     checkForRandomReaction(message: Message) {
         if (message.author.bot) return
+        if (!MessageChecker.RANDOM_REACTION_CHANNELS.has(message.channelId)) return
         if (Math.random() > 0.01) return
         const reaction = Math.random() < 0.5 ? '✅' : '❌'
         message.react(reaction).catch(() => {

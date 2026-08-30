@@ -1291,7 +1291,7 @@ export const hpCCG: CCGCard[] = [
         customDescription:
             "Increase max HP by 5 and [green]heal 5[/green]. Permanently raise the cost of all the opponent's [red]Death Eater[/red] cards by [blue]1[/blue]. [grey]Removed from deck once played.[/grey]",
         cost: 4,
-        speed: 10,
+        speed: 100,
         rarity: ItemRarity.Legendary,
         accuracy: 100,
         cannotMiss: true,

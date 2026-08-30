@@ -26,6 +26,7 @@ import { ArrayUtils } from '../utils/arrayUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { ChannelIds, MentionUtils, ServerIds } from '../utils/mentionUtils'
 import { MessageUtils } from '../utils/messageUtils'
+import { MiscUtils } from '../utils/miscUtils'
 import { textArrays } from '../utils/textArrays'
 import { UserUtils } from '../utils/userUtils'
 import { MazariniClient } from './MazariniClient'
@@ -137,9 +138,14 @@ export class ClientListener {
                 }
                 const correctChannel = MessageUtils.isLegalChannel(message.channelId)
                 if ((hoieTagged || replyToHoie) && correctChannel) {
-                    const isQuestion = message.content.trimEnd().endsWith('?')
-                    const response = ArrayUtils.randomChoiceFromArray(isQuestion ? textArrays.bentHoieLinesAnswers : textArrays.bentHoieLines)
-                    this.client.messageHelper.sendMessage(message.channelId, { text: response })
+                    const calcResult = MiscUtils.tryCalculate(message.content)
+                    if (calcResult) {
+                        this.client.messageHelper.sendMessage(message.channelId, { text: calcResult })
+                    } else {
+                        const isQuestion = message.content.trimEnd().endsWith('?')
+                        const response = ArrayUtils.randomChoiceFromArray(isQuestion ? textArrays.bentHoieLinesAnswers : textArrays.bentHoieLines)
+                        this.client.messageHelper.sendMessage(message.channelId, { text: response })
+                    }
                 }
             }
         })

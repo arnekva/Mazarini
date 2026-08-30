@@ -62,9 +62,12 @@ export class CardActionResolver {
             game.state.stack = game.state.stack.filter((stackedEffect) => stackedEffect.cardId !== effect.cardId)
             return this.log(game, `${this.getEffectLogPrefix(effect)}${source.name}'s ${effect.sourceCardName} failed`)
         }
-        // Elusive: each individual effect targeting an elusive opponent has a 25% chance to be dodged
+        // Elusive: each individual effect targeting an elusive opponent has a 25% chance to be dodged.
+        // Only counts Elusive from a prior turn (or explicitly includeCurrentTurn) — same as RETARDED.
         if (target.id !== source.id && !sourceCannotMiss) {
-            const targetIsElusive = game.state.statusEffects.filter((s) => s.ownerId === target.id && s.type === 'ELUSIVE')
+            const targetIsElusive = game.state.statusEffects.filter(
+                (s) => s.ownerId === target.id && s.type === 'ELUSIVE' && (s.createdOnTurn !== game.state.turn || s.includeCurrentTurn)
+            )
             if ((targetIsElusive?.length ?? 0) > 0 && Math.random() < 0.25 * targetIsElusive.length) {
                 return this.log(game, `${this.getEffectLogPrefix(effect)}${effect.sourceCardName} missed ${target.name} (**Elusive**)`)
             }
@@ -557,6 +560,11 @@ export class CardActionResolver {
             }
 
             case 'PRANK': {
+                // Pranks that only work by hiding/obscuring the hand visually (blank cards, shuffled buttons) are
+                // wasted against a bot — it reads the real card data regardless of what's rendered — so exclude
+                // them from the pool whenever this prank would land on the bot.
+                const visualOnlyPranks = new Set(['hp_prank_darkness_powder_n', 'hp_prank_confundus_n'])
+                const prankTargetIsBot = game.vsBot && opponent.id === game.player2.id
                 const prankCards = [
                     'hp_prank_damage_n',
                     'hp_prank_shield_n',
@@ -569,13 +577,15 @@ export class CardActionResolver {
                     'hp_prank_sorting_jinx_n',
                     'hp_prank_confundus_n',
                     'hp_prank_rubber_duck_fill_n',
-                ]
+                ].filter((id) => !prankTargetIsBot || !visualOnlyPranks.has(id))
                 const prankId = prankCards[Math.floor(Math.random() * prankCards.length)]
                 const prankCard = ALL_CARDS.find((c) => c.id === prankId)
                 if (!prankCard) break
                 const fredEmoji = source.hand.find((c) => c.id === 'hp_fred_n' || c.id === 'hp_george_n')?.emoji ?? effect.emoji
                 for (const prankEffect of prankCard.effects ?? []) {
-                    const prankTarget = prankEffect.target === 'OPPONENT' ? target : source
+                    // Bug fix: this was `target` (the PRANK trigger's own SELF-resolved target, i.e. == source),
+                    // so every OPPONENT-facing prank effect was landing on the caster instead of the real opponent.
+                    const prankTarget = prankEffect.target === 'OPPONENT' ? opponent : source
                     const stackEffect: CCGEffect = {
                         cardId: prankCard.id,
                         emoji: fredEmoji,
@@ -825,6 +835,14 @@ export class CardActionResolver {
         const playedIndex = source.hand.findIndex((c) => c.id === effect.sourceCardId && c.selected)
         if (playedIndex !== -1) source.hand[playedIndex] = { ...fullCard, selected: true }
 
+        // Swap the played-card record too, so this round's PLAYED_CARD_ID / PLAYED_CARD_IDENTIFIER synergy checks
+        // (e.g. Ron's "another Gryffindor played") see the rolled card, not the original Bertie Bott's entry.
+        const playedEntry = game.state.playedCardsAllGame.find((e) => e.playerId === source.id && e.round === game.state.turn)
+        if (playedEntry) {
+            const bertieIndex = playedEntry.cards.findIndex((c) => c.id === effect.sourceCardId)
+            if (bertieIndex !== -1) playedEntry.cards[bertieIndex] = { ...card }
+        }
+
         // Respect gambleGroup: exactly one effect per group fires, same as a normally-played card.
         const gambleWinners = new Set<CCGCardEffect>()
         const gambleGroups = new Map<string, CCGCardEffect[]>()
@@ -865,6 +883,8 @@ export class CardActionResolver {
                 statusAccuracy: cardEffect.statusAccuracy ?? 100,
             })
         }
+        // Re-sort: pushed effects must resolve at the rolled card's own speed, not just get appended to the tail.
+        this.sortStack(game)
 
         // Restore the original card in hand so it shuffles back as itself (transform is visual/effect only for this round)
         if (playedIndex !== -1 && effect.sourceCardId) {

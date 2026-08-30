@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '35.0.1'
+    public static readonly currentVersion = '35.1.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -26,7 +26,17 @@ export class PatchNotes extends AbstractCommands {
         container.addComponent(text1, 'header')
 
         const text = new TextDisplayBuilder().setContent(
-            ['* Lagt til script for å resette mastermind i botinnstillinger', '* Økt maks mastermind forsøk til 12'].join('\n')
+            [
+                '## Kortendringer (HP CCG)',
+                ' * **Expecto Patronum** – speed 10 → 100.',
+                '',
+                '## Bugfikser',
+                " * **Bertie Bott's** resolver nå på riktig speed når den blir et annet kort, i stedet for alltid å havne sist i køen.",
+                " * **Bertie Bott's** telles nå som det kortet den ble, for effekter som sjekker om andre kort ble spilt samtidig (f.eks. Rons Gryffindor-bonus).",
+                '',
+                '## Kalkulator',
+                ' * Boten svarer nå med riktig svar hvis du spør den et enkelt regnestykke (f.eks. "134/10") (eeekstreeeemt allegedly!)',
+            ].join('\n')
         )
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')

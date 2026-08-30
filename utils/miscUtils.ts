@@ -2,10 +2,49 @@ import { ArrayUtils } from './arrayUtils'
 import { RandomUtils } from './randomUtils'
 
 const prideReg = new RegExp(/(xD)|(:3)|(pls)|(dritt)|(tinder)|(date)|(pølse)|(eivindpride)|(pride)|(rip)|(søren)|(malin)/gi)
+const mathExpressionReg = /^(-?\d+(?:[.,]\d+)?)\s*([+\-*/])\s*(-?\d+(?:[.,]\d+)?)$/
 
 export namespace MiscUtils {
     export function doesThisMessageNeedAnEivindPride(content: string, polseCounter: number) {
         return Math.random() < 0.1 || polseCounter > 0 || prideReg.test(content)
+    }
+
+    /** If the message (once mentions/trailing punctuation are stripped) is a simple "x op y" expression
+     * (+, -, *, /), returns the calculated answer as text. Otherwise returns null. */
+    export function tryCalculate(content: string): string | null {
+        const stripped = content
+            .replace(/<@!?\d+>/g, '')
+            .trim()
+            .replace(/[?!]+$/, '')
+            .trim()
+        const match = mathExpressionReg.exec(stripped)
+        if (!match) return null
+
+        const x = parseFloat(match[1].replace(',', '.'))
+        const operator = match[2]
+        const y = parseFloat(match[3].replace(',', '.'))
+
+        let result: number
+        switch (operator) {
+            case '+':
+                result = x + y
+                break
+            case '-':
+                result = x - y
+                break
+            case '*':
+                result = x * y
+                break
+            case '/':
+                if (y === 0) return 'imagine å prøva å dela på 0'
+                result = x / y
+                break
+            default:
+                return null
+        }
+
+        const rounded = Math.round(result * 10000) / 10000
+        return `${stripped} = ${rounded}`
     }
 
     /** Return a matching emoji for the given letter. Some letters have more than one matching emoji (set isSecond to true to get second one), and there can be up to 7 spaces */

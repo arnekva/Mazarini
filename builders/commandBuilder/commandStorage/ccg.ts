@@ -80,24 +80,16 @@ export const ccgCommand: ISlashCommandItem = {
                     options: [
                         {
                             name: 'mode',
-                            description: 'Velg spillmodus og kortsett',
+                            description: 'Velg spillmodus',
                             type: ApplicationCommandOptionType.String,
                             required: true,
                             choices: [
                                 {
-                                    name: `Practice (free) – Standard`,
-                                    value: `${Mode.Practice}_${CardSet.Standard}`,
-                                },
-                                {
-                                    name: `Practice (free) – Wild`,
+                                    name: `Practice (free)`,
                                     value: `${Mode.Practice}_${CardSet.Wild}`,
                                 },
                                 {
-                                    name: `Reward (${GameValues.ccg.rewards.entryFee / 1000}K) – Standard`,
-                                    value: `${Mode.Reward}_${CardSet.Standard}`,
-                                },
-                                {
-                                    name: `Reward (${GameValues.ccg.rewards.entryFee / 1000}K) – Wild`,
+                                    name: `Reward (${GameValues.ccg.rewards.entryFee / 1000}K)`,
                                     value: `${Mode.Reward}_${CardSet.Wild}`,
                                 },
                             ],
