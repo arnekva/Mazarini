@@ -250,7 +250,7 @@ export const GameValues: GameValuesType = {
             [176, 200],
             [201, 10002],
         ],
-        potSkip: { diceTarget: 200, roll: 69, potPenalty: 0 },
+        potSkip: { diceTarget: 200, roll: 69, potPenalty: 200 },
         addToPot: {
             athStreakMultiplier: 2000,
             streakMultiplier: 1000,
@@ -260,7 +260,7 @@ export const GameValues: GameValuesType = {
         },
         jokes: {
             nineElevenRemove: 2977,
-            nineElevenChance: 0.25,
+            nineElevenChance: 0.6,
         },
         checkForReward: {
             sameDigitsMultiplier: 3,
@@ -283,7 +283,7 @@ export const GameValues: GameValuesType = {
                 1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 669, 690, 8008, 6969, 420, 123, 1234, 12345, 2469, 1984, 2026, 2012, 1945, 2468, 1359, 6900,
                 2026, 4060, 1989,
             ],
-            unSpecialNumbers: [2025, 2027, 68, 70],
+            unSpecialNumbers: [2025, 2027, 68, 70, 1998, 1995],
             multiplier: 1,
             unSpecialNumberPenalty: -1,
         },

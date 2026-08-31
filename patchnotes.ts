@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '35.2.0'
+    public static readonly currentVersion = '35.2.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -25,14 +25,7 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(
-            [
-                '* Oppdatert dond rewards',
-                '* Oppdatert chest effect items',
-                '* Deathroll kan nå gi lootbox rewards igjen',
-                '* Deathroll gir deg nå en dpn på kjøpet ved en hasjwin',
-            ].join('\n')
-        )
+        const text = new TextDisplayBuilder().setContent(['* Yoda: Elusive 2 -> 1 turn', '* Potskips trekker nå fra litt fra potten igjen :/'].join('\n'))
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 

@@ -65,7 +65,7 @@ export namespace DondItems {
     export const veryLowQualityEffects: Array<IEffectItem> = [
         deathrollPotReward(5000),
         {
-            label: '5 free rolls',
+            label: '3 free rolls',
             message: '3 gratis /roll!',
             effect: (user: MazariniUser) => {
                 user.effects = user.effects ?? defaultEffects
@@ -116,6 +116,7 @@ export namespace DondItems {
     ]
 
     export const mediumQualityEffects: Array<IEffectItem> = [
+        deathrollPotReward(20000),
         {
             label: '2 spin',
             message: '2 ekstra /spin reward!',
@@ -125,11 +126,11 @@ export namespace DondItems {
             },
         },
         {
-            label: '7 free rolls',
-            message: '7 gratis /roll!',
+            label: '10 free rolls',
+            message: '10 gratis /roll!',
             effect: (user: MazariniUser) => {
                 user.effects = user.effects ?? defaultEffects
-                user.effects.positive.freeRolls = (user.effects.positive.freeRolls ?? 0) + 7
+                user.effects.positive.freeRolls = (user.effects.positive.freeRolls ?? 0) + 10
                 return undefined
             },
         },
@@ -146,11 +147,12 @@ export namespace DondItems {
         lootchestReward(LootboxQuality.Basic),
     ]
     export const highQualityEffects: Array<IEffectItem> = [
+        deathrollPotReward(45000),
         {
-            label: '3 spin',
-            message: '3 ekstra /spin reward!',
+            label: '4 spin',
+            message: '4 ekstra /spin reward!',
             effect: (user: MazariniUser) => {
-                user.dailySpins = 3
+                user.dailySpins = 4
                 return undefined
             },
         },

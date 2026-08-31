@@ -421,7 +421,7 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'ELUSIVE',
                 target: 'SELF',
-                turns: 2,
+                turns: 1,
             },
         ],
         // Deal 3 damage. Apply ELUSIVE to self for 2 turns. (Elusive makes you harder to hit - effectively lowering opponent's accuracy 20%)
