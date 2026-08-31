@@ -416,7 +416,7 @@ export const swCCG: CCGCard[] = [
             {
                 type: 'DAMAGE',
                 target: 'OPPONENT',
-                value: 3,
+                value: 4,
             },
             {
                 type: 'ELUSIVE',
