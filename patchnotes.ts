@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '35.1.0'
+    public static readonly currentVersion = '35.2.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,15 +27,10 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '## Kortendringer (HP CCG)',
-                ' * **Expecto Patronum** – speed 10 → 100.',
-                '',
-                '## Bugfikser',
-                " * **Bertie Bott's** resolver nå på riktig speed når den blir et annet kort, i stedet for alltid å havne sist i køen.",
-                " * **Bertie Bott's** telles nå som det kortet den ble, for effekter som sjekker om andre kort ble spilt samtidig (f.eks. Rons Gryffindor-bonus).",
-                '',
-                '## Kalkulator',
-                ' * Boten svarer nå med riktig svar hvis du spør den et enkelt regnestykke (f.eks. "134/10") (eeekstreeeemt allegedly!)',
+                '* Oppdatert dond rewards',
+                '* Oppdatert chest effect items',
+                '* Deathroll kan nå gi lootbox rewards igjen',
+                '* Deathroll gir deg nå en dpn på kjøpet ved en hasjwin',
             ].join('\n')
         )
         container.addSeparator()

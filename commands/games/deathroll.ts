@@ -57,11 +57,13 @@ export class Deathroll extends AbstractCommands {
 
         this.reRollWinningNumbers()
 
-        this.client.database.getDeathrollPot()
+        this.client.database
+            .getDeathrollPot()
             .then((value) => (this.client.cache.deathrollPot = value ?? 0))
             .catch((error) => this.client.messageHelper.sendLogMessage(`Feil ved lasting av deathroll pot: ${error}`))
 
-        this.client.database.getStorage()
+        this.client.database
+            .getStorage()
             .then((storage) => (this.client.cache.shuffleIgnoresDigits = !!storage?.effects?.positive?.shuffleIgnoresDigits))
             .catch((error) => this.client.messageHelper.sendLogMessage(`Feil ved lasting av storage (shuffle): ${error}`))
     }
@@ -318,11 +320,11 @@ export class Deathroll extends AbstractCommands {
             }
             remainingChips = Math.ceil(totalAdded - cost)
             this.rewardPot += Math.max(remainingChips, 0)
-            const totalText = `Pack reward? *(pott + ${Math.max(0, remainingChips)} = ${this.rewardPot} chips)*`
+            const totalText = `Loot reward! *(pott + ${Math.max(0, remainingChips)} = ${this.rewardPot} chips)*`
             this.client.bank.rewardLoot(
                 int.channelId,
                 int.user.id,
-                'pack',
+                'box',
                 quality,
                 `${MentionUtils.mentionUser(int.user.id)} du får ein ${quality} lootbox for ${roll}. Gz! `
             )

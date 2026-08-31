@@ -42,8 +42,27 @@ export namespace DondItems {
         },
     })
 
+    const lootboxReward = (quality: LootboxQuality): IEffectItem => ({
+        label: `${quality} lootbox!`,
+        message: `${quality} lootbox!`,
+        effect: () => undefined,
+        lootReward: {
+            type: 'box',
+            quality: quality,
+        },
+    })
+
+    const lootchestReward = (quality: LootboxQuality): IEffectItem => ({
+        label: `${quality} lootchest!`,
+        message: `${quality} lootchest!`,
+        effect: () => undefined,
+        lootReward: {
+            type: 'chest',
+            quality: quality,
+        },
+    })
+
     export const veryLowQualityEffects: Array<IEffectItem> = [
-        shardReward(5),
         deathrollPotReward(5000),
         {
             label: '5 free rolls',
@@ -75,7 +94,6 @@ export namespace DondItems {
     ]
 
     export const lowQualityEffects: Array<IEffectItem> = [
-        shardReward(10),
         deathrollPotReward(10000),
         {
             label: '2 Blackjack re-deal',
@@ -94,6 +112,7 @@ export namespace DondItems {
                 return undefined
             },
         },
+        lootboxReward(LootboxQuality.Basic),
     ]
 
     export const mediumQualityEffects: Array<IEffectItem> = [
@@ -106,7 +125,7 @@ export namespace DondItems {
             },
         },
         {
-            label: '10 free rolls',
+            label: '7 free rolls',
             message: '7 gratis /roll!',
             effect: (user: MazariniUser) => {
                 user.effects = user.effects ?? defaultEffects
@@ -114,11 +133,19 @@ export namespace DondItems {
                 return undefined
             },
         },
-        shardReward(15),
+        {
+            label: 'Flipped color odds',
+            message: 'at loot-farge-sannsynlighetene snus på hodet! Du har nå større sannsynlighet for å få diamond enn silver ut dagen!',
+            effect: (user: MazariniUser) => {
+                user.effects = user.effects ?? defaultEffects
+                user.effects.positive.lootColorsFlipped = true
+                return undefined
+            },
+        },
+        lootboxReward(LootboxQuality.Premium),
+        lootchestReward(LootboxQuality.Basic),
     ]
     export const highQualityEffects: Array<IEffectItem> = [
-        shardReward(20),
-        shardReward(25),
         {
             label: '3 spin',
             message: '3 ekstra /spin reward!',
@@ -127,6 +154,17 @@ export namespace DondItems {
                 return undefined
             },
         },
+        {
+            label: '3x guaranteed colors',
+            message: 'at dine neste 3 loot-items har garantert farge (gjelder ikke trade)',
+            effect: (user: MazariniUser) => {
+                user.effects = user.effects ?? defaultEffects
+                user.effects.positive.guaranteedLootColor = (user.effects.positive.guaranteedLootColor ?? 0) + 3
+                return undefined
+            },
+        },
+        lootboxReward(LootboxQuality.Elite),
+        lootchestReward(LootboxQuality.Premium),
     ]
 
     export const getRewardsForQuality = (quality: MazariniEventRewardTier) => {
