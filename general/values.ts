@@ -248,7 +248,8 @@ export const GameValues: GameValuesType = {
             [126, 150],
             [151, 175],
             [176, 200],
-            [201, 10002],
+            [201, 400],
+            [401, 10002],
         ],
         potSkip: { diceTarget: 200, roll: 69, potPenalty: -200 },
         addToPot: {
@@ -266,7 +267,7 @@ export const GameValues: GameValuesType = {
             sameDigitsMultiplier: 3,
             allDigitsExceptFirstAreZeroMultiplier: 3,
             diceTargetMultiplier: 3,
-            roll2Reward: 5,
+            roll2Reward: 10,
             doublePotDepositMultiplier: 2,
             minRollForMultiplier: 100,
             minPotForDouble: 1000,
@@ -281,7 +282,7 @@ export const GameValues: GameValuesType = {
         getRollReward: {
             specialNumbers: [
                 1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 669, 690, 8008, 6969, 420, 123, 1234, 12345, 2469, 1984, 2026, 2012, 1945, 2468, 1359, 6900,
-                2026, 4060, 1989,
+                2026, 4060, 1989, 170, 1001, 911
             ],
             unSpecialNumbers: [2025, 2027, 68, 70, 1998, 1995],
             multiplier: 1,
@@ -397,7 +398,7 @@ export const GameValues: GameValuesType = {
 
     // Deal Or No Deal
     dealOrNoDeal: {
-        effectItemChance: 20, // percent chance to get an effect item
+        effectItemChance: 35, // percent chance to get an effect item
         offerBase: 0.5, // base offer percentage
         offerPerRound: 0.05, // offer percentage increase per round
     },
