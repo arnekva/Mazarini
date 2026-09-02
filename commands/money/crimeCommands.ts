@@ -21,34 +21,19 @@ export class CrimeCommands extends AbstractCommands {
     static jailBreakAttempts = 1
     static frameJobAttempts = 1
 
-    private async checkBalance(userID: string[], amountAsNumber: number): Promise<boolean> {
-        let notEnough = false
-        for (const u of userID) {
-            const user = await this.client.database.getUser(u)
-            const balance = user.chips
-            if (Number(balance) < amountAsNumber || Number(balance) === 0) notEnough = true
-        }
-
-        return notEnough
-    }
-
-    private async getUserWallets(engagerID: string, victimID: string): Promise<{ engagerChips: number; victimChips: number }> {
-        const engagerValue = await this.client.database.getUser(engagerID)
-        const victimValue = await this.client.database.getUser(victimID)
-        return {
-            engagerChips: engagerValue.chips,
-            victimChips: victimValue.chips,
-        }
+    /** Checks if any of the given (already-fetched) users can't afford amountAsNumber. No DB access - callers fetch users up front. */
+    private notEnoughChips(users: MazariniUser[], amountAsNumber: number): boolean {
+        return users.some((user) => Number(user.chips) < amountAsNumber || Number(user.chips) === 0)
     }
 
     private async krig(interaction: ChatInteraction | BtnInteraction, target: User, amount: number) {
         await interaction.deferReply({ ephemeral: true })
-        const userWallets = await this.getUserWallets(interaction.user.id, target.id)
+        const [engager, victim] = await Promise.all([this.client.database.getUser(interaction.user.id), this.client.database.getUser(target.id)])
         const hasAmount = !!amount
 
-        const largestPossibleValue = Math.min(userWallets.engagerChips, userWallets.victimChips)
+        const largestPossibleValue = Math.min(engager.chips, victim.chips)
         const amountAsNum = hasAmount ? Number(amount) : largestPossibleValue
-        const notEnoughChips = await this.checkBalance([interaction.user.id, target.id], amountAsNum)
+        const notEnoughChips = this.notEnoughChips([engager, victim], amountAsNum)
 
         if (amountAsNum <= 0) {
             this.messageHelper.replyToInteraction(interaction, `Dere må krige om minst 1 chip`, { ephemeral: true, hasBeenDefered: true })
@@ -87,8 +72,8 @@ export class CrimeCommands extends AbstractCommands {
         /** Engager */
         const engagerUser = UserUtils.findUserById(engagerId, interaction)
         if (userAsMember.id === eligibleTargetId && interaction.message.components.length) {
-            const notEnoughChips = await this.checkBalance([engagerId, eligibleTargetId], amountAsNum)
-            if (notEnoughChips) {
+            const [engager, target] = await Promise.all([this.client.database.getUser(engagerId), this.client.database.getUser(eligibleTargetId)])
+            if (this.notEnoughChips([engager, target], amountAsNum)) {
                 this.messageHelper.replyToInteraction(interaction, `En av dere har ikke lenger råd til krigen`, { ephemeral: true })
             } else {
                 //We update the row with a new, disabled button, so that the user cannot enage the Krig more than once
@@ -105,9 +90,6 @@ export class CrimeCommands extends AbstractCommands {
                 await interaction.message.edit({
                     components: [row],
                 })
-
-                const engager = await this.client.database.getUser(engagerId)
-                const target = await this.client.database.getUser(eligibleTargetId)
 
                 let engagerValue = engager.chips
                 let victimValue = target.chips

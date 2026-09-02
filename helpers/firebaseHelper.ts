@@ -107,6 +107,19 @@ export class FirebaseHelper {
         return (await this.getData(`other`)) as MazariniStorage
     }
 
+    /**
+     * Live-subscribe to the shared MazariniStorage ("other") node. `callback` fires immediately with the
+     * current value, then again on every subsequent change - including writes made by other processes -
+     * so a cached copy never goes stale the way a one-shot get() would between polls.
+     * Returns an unsubscribe function; the caller is responsible for detaching it when done.
+     */
+    public subscribeToStorage(callback: (storage: MazariniStorage | null) => void): Unsubscribe {
+        const otherRef = ref(this.db, `${database}/other`)
+        return onValue(otherRef, (snapshot) => {
+            callback(snapshot.exists() ? (snapshot.val() as MazariniStorage) : null)
+        })
+    }
+
     public async getMemes(): Promise<Meme[]> {
         return (await this.getData(`memes`)) as Meme[]
     }

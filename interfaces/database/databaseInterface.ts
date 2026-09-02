@@ -80,7 +80,7 @@ export interface EmojiStats {
     weeklyAverage?: number
 }
 
-export type botDataPrefix = 'status' | 'statusType' | 'version' | 'commit-id'
+export type botDataPrefix = 'status' | 'statusType' | 'statusState' | 'version' | 'commit-id'
 export type JailState = 'solitairy' | 'max' | 'standard' | 'none'
 
 export interface UserJail {
@@ -476,8 +476,10 @@ export enum LuckyWheelRewardType {
 export interface IMoreOrLessVote {
     /** The 3 candidate categories put up for vote, fully validated so the winner can be used directly */
     candidates: IMoreOrLess[]
-    /** userId -> slug of the candidate voted for, or 'BLACKLIST_ALL' */
+    /** userId -> slug of the candidate voted for */
     votes: { [userId: string]: string }
+    /** userId -> slugs the user has voted to blacklist. Independent of `votes` - a user can blacklist any number of candidates */
+    blacklistVotes?: { [userId: string]: string[] }
 }
 
 export interface IMoreOrLess {

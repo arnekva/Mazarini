@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '35.3.0'
+    public static readonly currentVersion = '35.3.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,14 +28,9 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '* # More or Less',
-                '* Oppdatert UI',
-                '* Sender npå automatisk resultat klokken 18',
-                '* Du kan nå stemme på morgendagens kategori fra 18:00 til 05:00',
-                '* Det vil også være mulighet å stemme på å blackliste kategoriene - men da må samtlige stemmer være for dette.',
-                '* Ny command: /admin',
-                '  * /admin moreorless next [slug] - for å tvinge frem morgendagens kategori. Tar prioritet over stemmer.',
-                '  * /admin moreorless blacklist [slug] - for å blacklist kategorier.',
-                '  * /admin moreorless list <remaining|blacklist|completed> - for å liste opp de respektive listene.',
+                '* Det vil nå være mulighet å stemme på å blackliste kategoriene - men da må samtlige stemmer være for dette.',
+                '* # Terning',
+                '* Forbedringer',
             ].join('\n')
         )
         container.addSeparator()

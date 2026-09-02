@@ -122,20 +122,14 @@ export class Deathroll extends AbstractCommands {
                 if (roll == 1) {
                     this.checkForLossOnFirstRoll(game, diceTarget)
                     const winnerId = game.players.find((player) => player.userID !== user.id)?.userID
-                    await this.client.eventTracker.trackTerningWin({
+                    const winPayload = {
                         winnerId: winnerId,
                         loserId: user.id,
                         initialTarget: game.initialTarget,
                         loserRoll: roll,
                         channelId: game.channelId ?? interaction.channelId,
-                    })
-                    await this.client.eventTracker.trackDeathrollWin({
-                        winnerId: winnerId,
-                        loserId: user.id,
-                        initialTarget: game.initialTarget,
-                        loserRoll: roll,
-                        channelId: game.channelId ?? interaction.channelId,
-                    })
+                    }
+                    await Promise.all([this.client.eventTracker.trackTerningWin(winPayload), this.client.eventTracker.trackDeathrollWin(winPayload)])
                     const stat = await this.endGame(game)
                     additionalMessage += this.addToPotOnGameEnd(stat, diceTarget)
                     const kek = (await EmojiHelper.getEmoji('kekw', interaction)).id

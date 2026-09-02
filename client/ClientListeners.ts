@@ -72,7 +72,13 @@ export class ClientListener {
                         if (latestMessage) {
                             const lastCommit = await this.client.database.getBotData('commit-id')
                             const indexOfLastID = allMessages.map((c) => c.slice(0, 8)).indexOf(lastCommit)
-                            allMessages = allMessages.slice(0, indexOfLastID > 0 ? indexOfLastID : 1)
+                            // indexOfLastID === 0 means the newest commit is the same one we already announced last time -
+                            // i.e. this start-up did NOT bring in new code (e.g. /restart cycling the same image, or a
+                            // Watchtower swap that got skipped). Don't fall through to the -1 ("not found") handling below,
+                            // which used to treat both cases the same and falsely announce the current HEAD as "new".
+                            if (indexOfLastID === 0) return
+
+                            allMessages = allMessages.slice(0, indexOfLastID > 0 ? indexOfLastID : allMessages.length)
 
                             const formatCommitLine = (line: string) => {
                                 const allWords = line.split('¶')

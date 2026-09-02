@@ -378,7 +378,7 @@ export class MoreOrLess extends AbstractCommands {
         }
     }
 
-    private async buildResultsContainer(resolveUsername: (userId: string) => string): Promise<SimpleContainer> {
+    private async buildResultsContainer(resolveUsername: (userId: string) => string, includeEntryCounter = true): Promise<SimpleContainer> {
         const container = new SimpleContainer()
         const imageUrl = this.game.image ? `https://api.moreorless.io/img/${this.game.image}_512.jpg` : undefined
         const isImageReal = imageUrl && (await FetchUtils.checkImageUrl(imageUrl))
@@ -402,7 +402,7 @@ export class MoreOrLess extends AbstractCommands {
         for (const user of sortedUsers) {
             const name = resolveUsername(user.id)
             const numAttempts = user.dailyGameStats.moreOrLess.numAttempts ?? 0
-            const showEntryCounter = numAttempts >= 2 && !!this.game.totalEntries
+            const showEntryCounter = includeEntryCounter && numAttempts >= 2 && !!this.game.totalEntries
             const bestAttemptValue = `${user.dailyGameStats.moreOrLess.bestAttempt}${showEntryCounter ? `/${this.game.totalEntries}` : ''} riktige`
             const firstAttemptValue = user.dailyGameStats.moreOrLess.firstAttempt ?? 0
             const secondAttemptValue = user.dailyGameStats.moreOrLess.secondAttempt ?? 0
@@ -426,45 +426,48 @@ export class MoreOrLess extends AbstractCommands {
     }
 
     private async revealResults(interaction: ChatInteraction) {
-        const container = await this.buildResultsContainer((userId) => UserUtils.findMemberByUserID(userId, interaction).user.username)
+        const container = await this.buildResultsContainer((userId) => UserUtils.findMemberByUserID(userId, interaction).user.username, false)
         this.messageHelper.replyToInteraction(interaction, '', {}, [container.container])
     }
 
-    static readonly BLACKLIST_ALL_VOTE_ID = 'BLACKLIST_ALL'
-
-    private buildVoteButtonRow(vote: IMoreOrLessVote): ActionRowBuilder<ButtonBuilder> {
+    private buildVoteButtonRows(vote: IMoreOrLessVote): ActionRowBuilder<ButtonBuilder>[] {
         const counts: { [key: string]: number } = {}
         Object.values(vote.votes ?? {}).forEach((choice) => {
             counts[choice] = (counts[choice] ?? 0) + 1
         })
-        const row = new ActionRowBuilder<ButtonBuilder>()
-        vote.candidates.forEach((candidate) => {
-            row.addComponents(
+        const totalVoters = Object.keys(vote.votes ?? {}).length
+
+        const blacklistCounts: { [key: string]: number } = {}
+        Object.values(vote.blacklistVotes ?? {}).forEach((slugs) => {
+            slugs.forEach((slug) => {
+                blacklistCounts[slug] = (blacklistCounts[slug] ?? 0) + 1
+            })
+        })
+
+        return vote.candidates.map((candidate) =>
+            new ActionRowBuilder<ButtonBuilder>().addComponents(
                 new ButtonBuilder({
                     custom_id: `MORE_OR_LESS_VOTE;${candidate.slug}`,
                     style: ButtonStyle.Primary,
                     label: `${candidate.title} (${counts[candidate.slug] ?? 0})`,
                     disabled: false,
                     type: 2,
+                }),
+                new ButtonBuilder({
+                    custom_id: `MORE_OR_LESS_BLACKLIST;${candidate.slug}`,
+                    style: ButtonStyle.Danger,
+                    label: `Blacklist (${blacklistCounts[candidate.slug] ?? 0}/${totalVoters})`,
+                    disabled: false,
+                    type: 2,
                 })
             )
-        })
-        row.addComponents(
-            new ButtonBuilder({
-                custom_id: `MORE_OR_LESS_VOTE;${MoreOrLess.BLACKLIST_ALL_VOTE_ID}`,
-                style: ButtonStyle.Danger,
-                label: `Blacklist alle (${counts[MoreOrLess.BLACKLIST_ALL_VOTE_ID] ?? 0})`,
-                disabled: false,
-                type: 2,
-            })
         )
-        return row
     }
 
     private addVoteComponents(container: SimpleContainer, vote: IMoreOrLessVote) {
         container.addSeparator()
         container.addComponent(new TextDisplayBuilder().setContent('**Morgendagens kategori:**'), 'vote-header')
-        container.addComponent(this.buildVoteButtonRow(vote), 'vote-buttons')
+        this.buildVoteButtonRows(vote).forEach((row, i) => container.addComponent(row, `vote-buttons-${i}`))
     }
 
     /** Automatically posts the daily More or Less results to the dedicated thread at 18:00, along with a vote for tomorrow's category. */
@@ -498,8 +501,31 @@ export class MoreOrLess extends AbstractCommands {
         vote.votes[interaction.user.id] = choice
         await this.client.database.updateStorage({ moreOrLess: { ...storage.moreOrLess, vote } })
 
-        const choiceName = choice === MoreOrLess.BLACKLIST_ALL_VOTE_ID ? 'Blacklist alle' : vote.candidates.find((c) => c.slug === choice)?.title ?? choice
+        const choiceName = vote.candidates.find((c) => c.slug === choice)?.title ?? choice
         this.messageHelper.sendLogMessage(`${interaction.user.username} stemte for ${choiceName}`)
+
+        interaction.deferUpdate()
+        const container = await this.buildResultsContainer((userId) => UserUtils.findUserById(userId, this.client)?.username ?? 'Ukjent')
+        this.addVoteComponents(container, vote)
+        await interaction.message.edit({ components: [container.container] })
+    }
+
+    /** Toggles the calling user's blacklist vote for a single candidate. Unlike the category vote, a user can blacklist any number of candidates. */
+    private async castBlacklistVote(interaction: BtnInteraction) {
+        const storage = await this.client.database.getStorage()
+        const vote = storage.moreOrLess.vote
+        if (!vote) {
+            return this.messageHelper.replyToInteraction(interaction, 'Avstemningen for morgendagens kategori er ikke lenger åpen.', { ephemeral: true })
+        }
+        const choice = interaction.customId.split(';')[1]
+        vote.blacklistVotes = vote.blacklistVotes ?? {} // firebase drops empty objects, so a freshly created vote may come back without `blacklistVotes`
+        const userBlacklistVotes = vote.blacklistVotes[interaction.user.id] ?? []
+        const alreadyVoted = userBlacklistVotes.includes(choice)
+        vote.blacklistVotes[interaction.user.id] = alreadyVoted ? userBlacklistVotes.filter((slug) => slug !== choice) : [...userBlacklistVotes, choice]
+        await this.client.database.updateStorage({ moreOrLess: { ...storage.moreOrLess, vote } })
+
+        const choiceName = vote.candidates.find((c) => c.slug === choice)?.title ?? choice
+        this.messageHelper.sendLogMessage(`${interaction.user.username} stemte ${alreadyVoted ? 'ikke lenger' : ''} for å blackliste ${choiceName}`)
 
         interaction.deferUpdate()
         const container = await this.buildResultsContainer((userId) => UserUtils.findUserById(userId, this.client)?.username ?? 'Ukjent')
@@ -562,6 +588,12 @@ export class MoreOrLess extends AbstractCommands {
                         commandName: 'MORE_OR_LESS_VOTE',
                         command: (rawInteraction: BtnInteraction) => {
                             this.castVote(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'MORE_OR_LESS_BLACKLIST',
+                        command: (rawInteraction: BtnInteraction) => {
+                            this.castBlacklistVote(rawInteraction)
                         },
                     },
                 ],

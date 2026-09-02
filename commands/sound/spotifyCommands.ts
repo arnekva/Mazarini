@@ -171,11 +171,12 @@ export class SpotifyCommands extends AbstractCommands {
             })
             if (users) {
                 const emb = EmbedUtils.createSimpleEmbed(`🎶 Musikk 🎶`, 'Fra alle')
-                for (let i = 0; i < users.length; i++) {
-                    const user = await this.client.database.getUser(users[i].id)
-                    const lastFmName = user?.lastFMUsername
+                const fields = await Promise.all(
+                    users.map(async (u) => {
+                        const user = await this.client.database.getUser(u.id)
+                        const lastFmName = user?.lastFMUsername
+                        if (!lastFmName) return undefined
 
-                    if (lastFmName) {
                         const data = await _music.findLastFmData({
                             user: lastFmName,
                             includeNameInOutput: true,
@@ -183,17 +184,18 @@ export class SpotifyCommands extends AbstractCommands {
                             limit: '1',
                             method: { cmd: _music.getCommand('siste', '1'), desc: 'Siste 1' },
                             silent: false,
-                            username: users[i].name,
+                            username: u.name,
                             header: '',
                         })
                         const dataToUse = data[0]
                         const datePlayed = dataToUse.datePlayed ? dataToUse.datePlayed : ''
-                        emb.addFields({
+                        return {
                             name: dataToUse.username,
                             value: `${dataToUse.artist} - ${dataToUse.track}  *${dataToUse.isCurrentlyPlaying ? '(spiller nå)' : datePlayed}*`,
-                        })
-                    }
-                }
+                        }
+                    })
+                )
+                fields.filter((field) => !!field).forEach((field) => emb.addFields(field))
                 // if (musicRet.length < 1) musicRet = 'Fant ingen data'
                 return emb
             } else return 'Ingen data funnet'

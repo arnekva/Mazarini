@@ -284,8 +284,9 @@ export class DailyJobs {
 
     /**
      * Resolves tomorrow's More or Less category from the previous evening's vote (if one was cast).
-     * The category with the most votes wins, unless literally every vote was cast for "Blacklist alle" -
-     * in that case all 3 candidates are blacklisted for good and a fresh random category is picked instead.
+     * A candidate is blacklisted for good only if it got zero regular votes AND every single person who
+     * cast a category vote also voted to blacklist it (100% agreement). Any candidate that survives is
+     * eligible to win, and the one with the most regular votes does.
      * Falls back to the old random pick if no vote is pending (e.g. the feature just got enabled).
      */
     private async resolveNextMoreOrLessGame(
@@ -304,28 +305,42 @@ export class DailyJobs {
         }
 
         const voteCounts: { [slug: string]: number } = {}
-        let blacklistVotes = 0
         Object.values(vote.votes ?? {}).forEach((choice) => {
-            if (choice === MoreOrLess.BLACKLIST_ALL_VOTE_ID) blacklistVotes++
-            else voteCounts[choice] = (voteCounts[choice] ?? 0) + 1
+            voteCounts[choice] = (voteCounts[choice] ?? 0) + 1
         })
-        const totalCategoryVotes = Object.values(voteCounts).reduce((a, b) => a + b, 0)
+        const totalVoters = Object.keys(vote.votes ?? {}).length
 
-        if (totalCategoryVotes === 0 && blacklistVotes > 0) {
-            const newBlacklist = [...blacklist, ...vote.candidates.map((c) => c.slug)]
+        const blacklistCounts: { [slug: string]: number } = {}
+        Object.values(vote.blacklistVotes ?? {}).forEach((slugs) => {
+            slugs.forEach((slug) => {
+                blacklistCounts[slug] = (blacklistCounts[slug] ?? 0) + 1
+            })
+        })
+
+        const newlyBlacklisted =
+            totalVoters > 0
+                ? vote.candidates.filter((c) => (voteCounts[c.slug] ?? 0) === 0 && (blacklistCounts[c.slug] ?? 0) === totalVoters)
+                : []
+        const remainingCandidates = vote.candidates.filter((c) => !newlyBlacklisted.includes(c))
+        const newBlacklist = newlyBlacklisted.length > 0 ? [...blacklist, ...newlyBlacklisted.map((c) => c.slug)] : blacklist
+        const blacklistedTitles = newlyBlacklisted.map((c) => c.title)
+
+        if (remainingCandidates.length === 0) {
             const game = await MoreOrLess.getNewMoreOrLessGame(storage.moreOrLess.previous, [...newBlacklist, ...MoreOrLess.defaultBlacklistSeed])
-            const blacklistedTitles = vote.candidates.map((c) => c.title)
             this.messageHelper.sendLogMessage(
                 `Kategoriene ${blacklistedTitles.join(', ')} ble blacklistet, og kategori ${game.title} ble tilfeldig valgt`
             )
             return { game, blacklist: newBlacklist, blacklistedTitles }
         }
 
-        const maxVotes = Math.max(0, ...Object.values(voteCounts))
-        const topCandidates = maxVotes > 0 ? vote.candidates.filter((c) => voteCounts[c.slug] === maxVotes) : vote.candidates
+        const maxVotes = Math.max(0, ...remainingCandidates.map((c) => voteCounts[c.slug] ?? 0))
+        const topCandidates = maxVotes > 0 ? remainingCandidates.filter((c) => (voteCounts[c.slug] ?? 0) === maxVotes) : remainingCandidates
         const game = RandomUtils.getRandomItemFromList(topCandidates)
+        if (blacklistedTitles.length > 0) {
+            this.messageHelper.sendLogMessage(`Kategoriene ${blacklistedTitles.join(', ')} ble blacklistet`)
+        }
         this.messageHelper.sendLogMessage(`Kategori ${game.title} vant med ${maxVotes} stemmer og blir dagens MOL`)
-        return { game, blacklist, blacklistedTitles: [] }
+        return { game, blacklist: newBlacklist, blacklistedTitles }
     }
 
     private async awardAndResetMoreOrLess(users: MazariniUser[]): Promise<JobStatus> {

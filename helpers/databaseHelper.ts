@@ -34,6 +34,13 @@ export class DatabaseHelper {
     private userListeners = new Map<string, Unsubscribe>()
     private userLoadPromises = new Map<string, Promise<MazariniUser>>()
 
+    // Same live-listener pattern as userCache, but for the single shared MazariniStorage node.
+    // getStorage() used to be an uncached Firebase read on every call (many call sites, several
+    // per deathroll loss alone) - now it's a live-synced cache after the first read.
+    private storageCache: MazariniStorage
+    private storageListener: Unsubscribe
+    private storageLoadPromise: Promise<MazariniStorage>
+
     /** Detach every live user listener and clear the cache. Listeners are re-established lazily on next getUser(). */
     public clearUserCache() {
         this.userListeners.forEach((unsubscribe) => unsubscribe())
@@ -124,7 +131,22 @@ export class DatabaseHelper {
 
     /** Get the cache. Will create and return an empty object if it doesnt exist */
     public async getStorage(): Promise<MazariniStorage> {
-        return await this.db.getMazariniStorage()
+        if (this.storageCache) return this.storageCache
+
+        if (this.storageLoadPromise) return this.storageLoadPromise
+
+        this.storageLoadPromise = new Promise<MazariniStorage>((resolve) => {
+            let firstValueHandled = false
+            this.storageListener = this.db.subscribeToStorage((storage) => {
+                this.storageCache = storage
+                if (!firstValueHandled) {
+                    firstValueHandled = true
+                    this.storageLoadPromise = undefined
+                    resolve(storage)
+                }
+            })
+        })
+        return this.storageLoadPromise
     }
 
     /** Directly uppdates the storage with the given props.
@@ -299,10 +321,11 @@ export class DatabaseHelper {
 
     public async registerDeathrollStats(game: DRGame): Promise<DeathRollStats> {
         let loserStats: DeathRollStats = { didGetNewBiggestLoss: 0, isOnATHLossStreak: 0, userId: '' }
+        const players = await Promise.all(game.players.map((player) => this.getUser(player.userID)))
         for (let i = 0; i < game.players.length; i++) {
             const player = game.players[i]
 
-            const user = await this.getUser(player.userID)
+            const user = players[i]
 
             if (user) {
                 const defaultStats = {

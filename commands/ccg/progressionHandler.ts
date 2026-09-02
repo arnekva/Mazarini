@@ -79,9 +79,11 @@ export class ProgressionHandler {
 
     public async getMatchSummary(game: CCGGame) {
         const container = CCGMatchSummary(game)
-        const eventReward = await this.trackEventReward(game)
-        const player1Reward = game.vsBot ? await this.rewardShards(game, game.player1) : await this.settleWager(game, game.player1)
-        const player2Reward = game.vsBot ? '' : await this.settleWager(game, game.player2)
+        const [eventReward, player1Reward, player2Reward] = await Promise.all([
+            this.trackEventReward(game),
+            game.vsBot ? this.rewardShards(game, game.player1) : this.settleWager(game, game.player1),
+            game.vsBot ? Promise.resolve('') : this.settleWager(game, game.player2),
+        ])
         container.updateTextComponent('rewards', [player1Reward, player2Reward, eventReward].filter((text) => !!text).join('\n'))
         return container
     }
@@ -89,22 +91,24 @@ export class ProgressionHandler {
     private async trackEventReward(game: CCGGame) {
         const rewards: string[] = []
         const winner = [game.player1, game.player2].find((player) => player?.id === game.state.winnerId)
-        const hoieEvent = await this.client.eventTracker.trackCcgWin({
-            winnerId: game.state.winnerId,
-            opponentId: game.player2?.id,
-            difficulty: game.botDifficulty,
-            mode: game.mode,
-            vsBot: game.vsBot,
-            channelId: game.channelId,
-        })
-        const playerEvent = await this.client.eventTracker.trackCcgPlayerWin({
-            winnerId: game.state.winnerId,
-            opponentId: game.player2?.id,
-            difficulty: game.botDifficulty,
-            mode: game.mode,
-            vsBot: game.vsBot,
-            channelId: game.channelId,
-        })
+        const [hoieEvent, playerEvent] = await Promise.all([
+            this.client.eventTracker.trackCcgWin({
+                winnerId: game.state.winnerId,
+                opponentId: game.player2?.id,
+                difficulty: game.botDifficulty,
+                mode: game.mode,
+                vsBot: game.vsBot,
+                channelId: game.channelId,
+            }),
+            this.client.eventTracker.trackCcgPlayerWin({
+                winnerId: game.state.winnerId,
+                opponentId: game.player2?.id,
+                difficulty: game.botDifficulty,
+                mode: game.mode,
+                vsBot: game.vsBot,
+                channelId: game.channelId,
+            }),
+        ])
         if (hoieEvent && winner) rewards.push(`${winner.name} fullfører eventet og får ${hoieEvent.rewardSummary}`)
         if (playerEvent && winner) rewards.push(`${winner.name} fullfører eventet og får ${playerEvent.rewardSummary}`)
         return rewards.join('\n')

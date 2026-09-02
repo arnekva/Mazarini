@@ -892,13 +892,23 @@ export class Admin extends AbstractCommands {
                 .setStyle(TextInputStyle.Short)
 
             const thirdActionRow = new ActionRowBuilder().addComponents(statusType)
+
+            const oldStatusState = await this.client.database.getBotData('statusState')
+            const statusState = new TextInputBuilder()
+                .setCustomId('statusState')
+                .setLabel('Undertekst (valgfritt)')
+                .setPlaceholder(`vises som ekstra linje under statusen`)
+                .setValue(`${oldStatusState ?? ''}`)
+                .setRequired(false)
+                .setStyle(TextInputStyle.Short)
+            const fourthActionRow = new ActionRowBuilder().addComponents(statusState)
             // Pass the modal as a raw object to avoid LabelBuilder calling createComponentBuilder
             // on type 22 (CheckboxGroup) which is not yet registered in the builder registry.
             await interaction.showModal({
                 custom_id: Admin.botSettingsId,
                 title: 'Bot Innstillinger',
                 components: [
-                    ...[firstActionRow, secondActionRow, thirdActionRow].map((r: any) => r.toJSON()),
+                    ...[firstActionRow, secondActionRow, thirdActionRow, fourthActionRow].map((r: any) => r.toJSON()),
                     {
                         type: ComponentType.Label,
                         label: 'Kjør daglige jobber (velg én eller flere):',
@@ -1013,6 +1023,7 @@ export class Admin extends AbstractCommands {
         const potValue = modalInteraction.fields.getTextInputValue('potValue')
         const status = modalInteraction.fields.getTextInputValue('status')
         const statusType = modalInteraction.fields.getTextInputValue('statusType')
+        const statusState = modalInteraction.fields.getTextInputValue('statusState')
         const actualStatusType: Exclude<ActivityType, ActivityType.Custom> = this.translateActivityType(statusType)
         if (potValue) {
             const potNum = Number(potValue)
@@ -1030,14 +1041,18 @@ export class Admin extends AbstractCommands {
             const actualStatusType = this.translateActivityType(statusType)
             this.client.database.setBotData('statusType', actualStatusType)
         }
+        this.client.database.setBotData('statusState', statusState ?? '')
         const statusToUse = status || ((await this.client.database.getBotData('status')) as string)
         const statusTypeToUse = statusType
             ? actualStatusType
             : ((await this.client.database.getBotData('statusType')) as Exclude<ActivityType, ActivityType.Custom>)
-        if (status || statusType) {
-            ClientHelper.updatePresence(this.client, statusTypeToUse, statusToUse)
+        const statusStateToUse = statusState || ((await this.client.database.getBotData('statusState')) as string)
+        if (status || statusType || statusState) {
+            ClientHelper.updatePresence(this.client, statusTypeToUse, statusToUse, undefined, statusStateToUse)
             this.messageHelper.sendLogMessage(
-                `Bot status ble oppdatert av ${modalInteraction.user.username} til '${statusTypeToUse}' med teksten '${statusToUse}'`
+                `Bot status ble oppdatert av ${modalInteraction.user.username} til '${statusTypeToUse}' med teksten '${statusToUse}'${
+                    statusStateToUse ? ` (${statusStateToUse})` : ''
+                }`
             )
         }
 
