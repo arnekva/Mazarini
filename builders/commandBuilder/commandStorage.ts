@@ -1,3 +1,4 @@
+import { adminCommand } from './commandStorage/admin'
 import { blackjackCommand } from './commandStorage/blackjack'
 import { botSettingsCommand } from './commandStorage/botsettings'
 import { calendarCommand } from './commandStorage/calendar'
@@ -82,4 +83,5 @@ export namespace CommandStorage {
     export const CCG = ccgCommand
     export const Deck = deckCommand
     export const Vaermelding = vaermeldingCommand
+    export const Admin = adminCommand
 }

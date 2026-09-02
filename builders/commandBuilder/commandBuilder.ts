@@ -138,6 +138,7 @@ export namespace CommandBuilder {
         // CommandBuilder.deleteCommand('1356989552941727935', client)
         // CommandBuilder.createSlashCommand(CommandStorage.Deck, client)
         CommandBuilder.createSlashCommand(CommandStorage.CCG, client)
+        CommandBuilder.createSlashCommand(CommandStorage.Admin, client)
 
         // CommandBuilder.deleteCommand('1025783112648642701', client)
         // CommandBuilder.createContextMenuCommand({ commandName: 'helg' }, client)

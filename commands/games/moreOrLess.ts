@@ -1,15 +1,15 @@
-import { ActionRowBuilder, APIEmbedField, ButtonBuilder, ButtonStyle, InteractionResponse, Message } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionResponse, Message, SectionBuilder, TextDisplayBuilder, ThumbnailBuilder } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
 
 import { randomUUID } from 'crypto'
 import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
-import { IMoreOrLess } from '../../interfaces/database/databaseInterface'
+import { SimpleContainer } from '../../Abstracts/SimpleContainer'
+import { IMoreOrLess, IMoreOrLessVote, MazariniStorage } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement, IOnTimedEvent } from '../../interfaces/interactionInterface'
 import { CustomMOLHandler } from '../../res/games/moreOrLess/CustomMOLHandler'
 import { DateUtils } from '../../utils/dateUtils'
-import { EmbedUtils } from '../../utils/embedUtils'
 import { FetchUtils } from '../../utils/fetchUtils'
 import { MentionUtils, ThreadIds } from '../../utils/mentionUtils'
 import { RandomUtils } from '../../utils/randomUtils'
@@ -32,13 +32,18 @@ interface IMoreOrLessUserGame {
     active: boolean
     totalQuestions: number
     startTime?: Date
+    /** Number of daily attempts already completed before this game, used to decide when to show the entry counter. */
+    numAttempts: number
 }
 
 export class MoreOrLess extends AbstractCommands {
+    /** Reference to the single MoreOrLess instance created by Commands, so scheduled jobs can reach it without a full registry. */
+    static instance: MoreOrLess
     private game: IMoreOrLess
     private userGames: Map<string, IMoreOrLessUserGame>
+    /** Historical blacklist, kept as a permanent seed alongside whatever the community votes into `storage.moreOrLess.blacklist` in firebase. */
     // :maggiscared:
-    static blacklist: string[] = [
+    static readonly defaultBlacklistSeed: string[] = [
         'lol-champion-win-rates',
         'lol-champion-prices',
         'fortnite-youtubers',
@@ -56,13 +61,14 @@ export class MoreOrLess extends AbstractCommands {
     constructor(client: MazariniClient) {
         super(client)
         this.userGames = new Map<string, IMoreOrLessUserGame>()
+        MoreOrLess.instance = this
     }
 
     onReady(): void {
         this.database.getStorage().then((storage) => (this.game = storage.moreOrLess.current))
     }
 
-    public static async getNewMoreOrLessGame(previous: string[]): Promise<IMoreOrLess> {
+    public static async fetchAllGames(): Promise<IMoreOrLess[]> {
         const url = 'https://api.moreorless.io/en/games.json'
         const listResponse = await fetch(url, {
             method: 'GET',
@@ -72,20 +78,14 @@ export class MoreOrLess extends AbstractCommands {
         })
 
         const customGames = CustomMOLHandler.getAllCustomGames()
-        let games: IMoreOrLess[]
-        if (!listResponse.ok) {
-            games = customGames
-        } else {
-            games = await listResponse.json()
-            games.push(...customGames)
-        }
+        if (!listResponse.ok) return customGames
+        const games: IMoreOrLess[] = await listResponse.json()
+        games.push(...customGames)
+        return games
+    }
 
-        // Filter out blacklisted slugs
-        const filteredGames = games.filter((game) => !this.blacklist.includes(game.slug))
-        const unplayed = filteredGames.filter((game) => !previous.includes(game.slug))
-
-        const game: IMoreOrLess =
-            unplayed && unplayed.length > 0 ? RandomUtils.getRandomItemFromList(unplayed) : RandomUtils.getRandomItemFromList(filteredGames)
+    /** Validates a candidate game, fetching its dataset and strings. Returns undefined if the game turns out to be unplayable. */
+    private static async validateGame(game: IMoreOrLess): Promise<IMoreOrLess | undefined> {
         if (game.tags?.includes(CustomMOLHandler.customGameTag)) return game
         const dataUrl = `https://api.moreorless.io/en/games/${game.slug}.json`
         const dataResponse = await fetch(dataUrl, {
@@ -94,21 +94,59 @@ export class MoreOrLess extends AbstractCommands {
                 Accept: 'application/json',
             },
         })
-        if (!dataResponse.ok) {
-            return MoreOrLess.getNewMoreOrLessGame([...previous, game.slug])
-        }
+        if (!dataResponse.ok) return undefined
         const check: any = (await dataResponse.json()).game
+        if (check.data[0].length > 4) return undefined
+        return { ...game, strings: check.strings }
+    }
 
-        if (check.data[0].length > 4) {
-            return MoreOrLess.getNewMoreOrLessGame([...previous, game.slug])
-        } else {
-            return { ...game, strings: check.strings }
+    /** Picks up to `count` distinct, validated, non-blacklisted categories - preferring ones not in `previous` until that pool runs dry. */
+    public static async pickValidGames(count: number, previous: string[], blacklist: string[]): Promise<IMoreOrLess[]> {
+        const games = await MoreOrLess.fetchAllGames()
+        const filteredGames = games.filter((game) => !blacklist.includes(game.slug))
+        const excluded = [...previous]
+        const picked: IMoreOrLess[] = []
+        while (picked.length < count) {
+            let candidates = filteredGames.filter((game) => !excluded.includes(game.slug))
+            if (candidates.length === 0) {
+                // Ran out of unplayed categories - reshuffle within the picks made so far this round
+                candidates = filteredGames.filter((game) => !picked.some((p) => p.slug === game.slug))
+            }
+            if (candidates.length === 0) break // fully exhausted, nothing left to pick even after reshuffling
+
+            const candidate = RandomUtils.getRandomItemFromList(candidates)
+            excluded.push(candidate.slug)
+            const validated = await MoreOrLess.validateGame(candidate)
+            if (validated) picked.push(validated)
         }
+        return picked
+    }
+
+    public static async getNewMoreOrLessGame(previous: string[], blacklist: string[] = []): Promise<IMoreOrLess> {
+        const [game] = await MoreOrLess.pickValidGames(1, previous, blacklist)
+        return game
+    }
+
+    /** Finds a game by slug (across API + custom games) and validates it, for admin overrides. Returns undefined if not found or unplayable. */
+    public static async findAndValidateGame(slug: string): Promise<IMoreOrLess | undefined> {
+        const games = await MoreOrLess.fetchAllGames()
+        const match = games.find((g) => g.slug === slug)
+        if (!match) return undefined
+        return MoreOrLess.validateGame(match)
+    }
+
+    public static getEffectiveBlacklist(storage: MazariniStorage): string[] {
+        return [...(storage.moreOrLess.blacklist ?? []), ...MoreOrLess.defaultBlacklistSeed]
+    }
+
+    private getBlacklist(storage: MazariniStorage): string[] {
+        return MoreOrLess.getEffectiveBlacklist(storage)
     }
 
     private async fetchGameData() {
         const storage = await this.client.database.getStorage()
-        this.game = storage.moreOrLess.current ?? (await MoreOrLess.getNewMoreOrLessGame(storage.moreOrLess.previous ?? []))
+        const blacklist = this.getBlacklist(storage)
+        this.game = storage.moreOrLess.current ?? (await MoreOrLess.getNewMoreOrLessGame(storage.moreOrLess.previous ?? [], blacklist))
         let game: any = {}
         if (this.game.tags?.includes(CustomMOLHandler.customGameTag)) {
             game = CustomMOLHandler.getJSONByName(this.game.slug as any).game
@@ -121,7 +159,7 @@ export class MoreOrLess extends AbstractCommands {
                 },
             })
             if (!response.ok) {
-                const customGames = CustomMOLHandler.getAllCustomGames().filter((g) => !MoreOrLess.blacklist.includes(g.slug))
+                const customGames = CustomMOLHandler.getAllCustomGames().filter((g) => !blacklist.includes(g.slug))
                 const unplayed = customGames.filter((g) => !storage.moreOrLess.previous?.includes(g.slug))
                 this.game = RandomUtils.getRandomItemFromList(unplayed.length > 0 ? unplayed : customGames)
                 game = CustomMOLHandler.getJSONByName(this.game.slug).game
@@ -135,14 +173,31 @@ export class MoreOrLess extends AbstractCommands {
                 return { subject: item[0], answer: item[1], image: item[2] }
             })
         this.game.strings = game.strings
+        this.game.totalEntries = data.length
         return data
+    }
+
+    /** Builds a text block with a small thumbnail alongside it (instead of a full-size image), falling back to plain text if no valid image is given. */
+    private buildTextWithThumbnail(content: string, imageUrl?: string): SectionBuilder | TextDisplayBuilder {
+        const text = new TextDisplayBuilder().setContent(content)
+        if (!imageUrl) return text
+        return new SectionBuilder().addTextDisplayComponents(text).setThumbnailAccessory(new ThumbnailBuilder().setURL(imageUrl))
+    }
+
+    private async buildIntroContainer(): Promise<SimpleContainer> {
+        const container = new SimpleContainer()
+        const imageUrl = this.game.image ? `https://api.moreorless.io/img/${this.game.image}_512.jpg` : undefined
+        const isImageReal = imageUrl && (await FetchUtils.checkImageUrl(imageUrl))
+        container.addComponent(this.buildTextWithThumbnail(`# ${this.game.title}\n${this.game.description}`, isImageReal ? imageUrl : undefined), 'header')
+        container.addSeparator()
+        container.addComponent(startBtnRow, 'start-btn')
+        return container
     }
 
     private async setupGame(interaction: ChatInteraction | BtnInteraction) {
         const data = await this.fetchGameData()
-        const embed = EmbedUtils.createSimpleEmbed(this.game.title, this.game.description).setThumbnail(
-            `https://api.moreorless.io/img/${this.game.image}_512.jpg`
-        )
+        const user = await this.database.getUser(interaction.user.id)
+        const numAttempts = user.dailyGameStats?.moreOrLess?.numAttempts ?? 0
         if (interaction.isButton()) {
             //assumes origin is play again button
             interaction.deferUpdate()
@@ -150,15 +205,22 @@ export class MoreOrLess extends AbstractCommands {
             previousGame.data = data
             previousGame.correctAnswers = 0
             previousGame.id = randomUUID()
-            previousGame.message.edit({ embeds: [embed], components: [startBtnRow] })
+            previousGame.numAttempts = numAttempts
+            previousGame.message.edit({
+                components: [(await this.buildIntroContainer()).container],
+            })
         } else {
             const activeGame = this.userGames.get(interaction.user.id)
             if (activeGame && activeGame.active) {
-                const msg = await this.messageHelper.replyToInteraction(interaction, embed, { ephemeral: true, dontSendDMOnError: true })
+                const msg = await this.messageHelper.replyToInteraction(interaction, '', { ephemeral: true, dontSendDMOnError: true }, [
+                    (await this.buildIntroContainer()).container,
+                ])
                 activeGame.message = msg
                 this.updateGame(activeGame)
             } else {
-                const msg = await this.messageHelper.replyToInteraction(interaction, embed, { ephemeral: true, dontSendDMOnError: true }, [startBtnRow])
+                const msg = await this.messageHelper.replyToInteraction(interaction, '', { ephemeral: true, dontSendDMOnError: true }, [
+                    (await this.buildIntroContainer()).container,
+                ])
                 const userGame: IMoreOrLessUserGame = {
                     id: randomUUID(),
                     data: data,
@@ -167,6 +229,7 @@ export class MoreOrLess extends AbstractCommands {
                     active: false,
                     totalQuestions: data.length,
                     startTime: new Date(),
+                    numAttempts: numAttempts,
                 }
                 this.userGames.set(interaction.user.id, userGame)
             }
@@ -212,21 +275,27 @@ export class MoreOrLess extends AbstractCommands {
     }
 
     private async updateGame(game: IMoreOrLessUserGame) {
-        const description =
-            `${game.current.subject} ${this.game.strings?.verb} **${TextUtils.formatLargeNumber(game.current.answer)}${
-                this.game.strings?.valueSuffix ?? ''
-            }** ${this.game.strings?.valueTitle}` +
-            `\n\nVS\n\n` +
-            `${game.next.subject}`
-        const embed = EmbedUtils.createSimpleEmbed(this.game.title, description).setFooter({
-            text: `${game.correctAnswers} riktige.`,
-        })
+        const container = new SimpleContainer()
+        container.addComponent(new TextDisplayBuilder().setContent(`# ${this.game.title}`), 'header')
 
-        const isImageReal = await FetchUtils.checkImageUrl(game.current.image)
-        if (isImageReal) embed.setThumbnail(game.current.image)
+        const currentText = `**${game.current.subject}** ${this.game.strings?.verb} **${TextUtils.formatLargeNumber(game.current.answer)}${
+            this.game.strings?.valueSuffix ?? ''
+        }** ${this.game.strings?.valueTitle}`
+        const isCurrentImageReal = await FetchUtils.checkImageUrl(game.current.image)
+        container.addComponent(this.buildTextWithThumbnail(currentText, isCurrentImageReal ? game.current.image : undefined), 'current')
+
+        container.addComponent(new TextDisplayBuilder().setContent('VS'), 'vs')
+
+        const isNextImageReal = await FetchUtils.checkImageUrl(game.next.image)
+        container.addComponent(this.buildTextWithThumbnail(`**${game.next.subject}**`, isNextImageReal ? game.next.image : undefined), 'next')
+
+        container.addSeparator()
+        const footerText = game.numAttempts >= 2 ? `${game.correctAnswers + 1}/${game.totalQuestions}` : `${game.correctAnswers} riktige.`
+        container.addComponent(new TextDisplayBuilder().setContent(footerText), 'footer')
+        container.addComponent(guessBtnRow(game.id, this.game.strings?.buttonMore, this.game.strings?.buttonLess), 'guess-btns')
+
         game.message.edit({
-            embeds: [embed],
-            components: [guessBtnRow(game.id, this.game.strings?.buttonMore, this.game.strings?.buttonLess)],
+            components: [container.container],
         })
     }
 
@@ -277,16 +346,22 @@ export class MoreOrLess extends AbstractCommands {
             rewardMsg = ` og får ${awarded} chips`
         } else this.database.updateUser(user)
         const msg = completedNow ? 'Du har fullført dagens more or less!' : 'Du tok dessverre feil'
+        const showEntryCounter = numTries >= 2 && !!this.game.totalEntries
         const description =
-            `${game.next.subject} ${this.game.strings.verb} **${TextUtils.formatLargeNumber(game.next.answer)}${this.game.strings?.valueSuffix ?? ''}** ${
+            `**${game.next.subject}** ${this.game.strings.verb} **${TextUtils.formatLargeNumber(game.next.answer)}${this.game.strings?.valueSuffix ?? ''}** ${
                 this.game.strings.valueTitle
             }` +
             `\n\n${msg}\n\n` +
-            `Du fikk ${game.correctAnswers} riktige${rewardMsg}!`
-        const embed = EmbedUtils.createSimpleEmbed(this.game.title, description)
-        if (await FetchUtils.checkImageUrl(game.next.image)) embed.setThumbnail(game.next.image)
+            `Du fikk ${game.correctAnswers}${showEntryCounter ? `/${this.game.totalEntries}` : ''} riktige${rewardMsg}!`
 
-        game.message.edit({ embeds: [embed], components: [playAgainBtnRow] })
+        const container = new SimpleContainer()
+        container.addComponent(new TextDisplayBuilder().setContent(`# ${this.game.title}`), 'header')
+        const isNextImageReal = await FetchUtils.checkImageUrl(game.next.image)
+        container.addComponent(this.buildTextWithThumbnail(description, isNextImageReal ? game.next.image : undefined), 'description')
+        container.addSeparator()
+        container.addComponent(playAgainBtnRow, 'play-again-btn')
+
+        game.message.edit({ components: [container.container] })
         if (completedNow && !completedPreviously) {
             // const buttons = new ActionRowBuilder<ButtonBuilder>()
 
@@ -303,10 +378,16 @@ export class MoreOrLess extends AbstractCommands {
         }
     }
 
-    private async revealResults(interaction: ChatInteraction) {
-        const embed = EmbedUtils.createSimpleEmbed('Dagens more or less resultater', this.game.title).setThumbnail(
-            `https://api.moreorless.io/img/${this.game.image}_512.jpg`
+    private async buildResultsContainer(resolveUsername: (userId: string) => string): Promise<SimpleContainer> {
+        const container = new SimpleContainer()
+        const imageUrl = this.game.image ? `https://api.moreorless.io/img/${this.game.image}_512.jpg` : undefined
+        const isImageReal = imageUrl && (await FetchUtils.checkImageUrl(imageUrl))
+        container.addComponent(
+            this.buildTextWithThumbnail(`# Dagens more or less resultater\n${this.game.title}`, isImageReal ? imageUrl : undefined),
+            'header'
         )
+        container.addSeparator()
+
         const users = (await this.database.getAllUsers()).filter((user) => user.dailyGameStats?.moreOrLess?.attempted)
 
         const shouldReveal = DateUtils.isTimeOfDayAfter(18) || DateUtils.isTimeOfDayBefore(5)
@@ -318,10 +399,11 @@ export class MoreOrLess extends AbstractCommands {
                   return bBest - aBest
               })
             : users
-        const fields: APIEmbedField[] = []
         for (const user of sortedUsers) {
-            const name = UserUtils.findMemberByUserID(user.id, interaction).user.username
-            const shouldShowBestResult = true // user.dailyGameStats.moreOrLess.numAttempts > 1 || DateUtils.isTimeOfDayAfter(18)
+            const name = resolveUsername(user.id)
+            const numAttempts = user.dailyGameStats.moreOrLess.numAttempts ?? 0
+            const showEntryCounter = numAttempts >= 2 && !!this.game.totalEntries
+            const bestAttemptValue = `${user.dailyGameStats.moreOrLess.bestAttempt}${showEntryCounter ? `/${this.game.totalEntries}` : ''} riktige`
             const firstAttemptValue = user.dailyGameStats.moreOrLess.firstAttempt ?? 0
             const secondAttemptValue = user.dailyGameStats.moreOrLess.secondAttempt ?? 0
             const shouldBoldFirst = firstAttemptValue > secondAttemptValue && firstAttemptValue >= 0
@@ -333,15 +415,96 @@ export class MoreOrLess extends AbstractCommands {
                 user.dailyGameStats.moreOrLess.secondAttempt !== undefined ? user.dailyGameStats.moreOrLess.secondAttempt + ' riktige' : 'Ikke spilt'
             }${shouldBoldSecond ? '**' : ''}`
             const result =
-                `Første forsøk: ${shouldReveal ? firstAttempt : 'Skjult'} ` +
+                `**${name}**` +
+                `\nFørste forsøk: ${shouldReveal ? firstAttempt : 'Skjult'} ` +
                 `\nAndre forsøk: ${shouldReveal ? secondAttempt : 'Skjult'}` +
-                `\nBeste forsøk: ${shouldShowBestResult ? user.dailyGameStats.moreOrLess.bestAttempt + ' riktige' : 'Skjult'}` +
-                `\nAntall forsøk: ${shouldReveal ? user.dailyGameStats.moreOrLess.numAttempts : 'Skjult'}`
-            fields.push({ name: name, value: result })
+                `\nBeste forsøk: ${bestAttemptValue}` +
+                `\nAntall forsøk: ${shouldReveal ? numAttempts : 'Skjult'}`
+            container.addComponent(new TextDisplayBuilder().setContent(result), `user-${user.id}`)
         }
+        return container
+    }
 
-        embed.addFields(fields)
-        this.messageHelper.replyToInteraction(interaction, embed)
+    private async revealResults(interaction: ChatInteraction) {
+        const container = await this.buildResultsContainer((userId) => UserUtils.findMemberByUserID(userId, interaction).user.username)
+        this.messageHelper.replyToInteraction(interaction, '', {}, [container.container])
+    }
+
+    static readonly BLACKLIST_ALL_VOTE_ID = 'BLACKLIST_ALL'
+
+    private buildVoteButtonRow(vote: IMoreOrLessVote): ActionRowBuilder<ButtonBuilder> {
+        const counts: { [key: string]: number } = {}
+        Object.values(vote.votes ?? {}).forEach((choice) => {
+            counts[choice] = (counts[choice] ?? 0) + 1
+        })
+        const row = new ActionRowBuilder<ButtonBuilder>()
+        vote.candidates.forEach((candidate) => {
+            row.addComponents(
+                new ButtonBuilder({
+                    custom_id: `MORE_OR_LESS_VOTE;${candidate.slug}`,
+                    style: ButtonStyle.Primary,
+                    label: `${candidate.title} (${counts[candidate.slug] ?? 0})`,
+                    disabled: false,
+                    type: 2,
+                })
+            )
+        })
+        row.addComponents(
+            new ButtonBuilder({
+                custom_id: `MORE_OR_LESS_VOTE;${MoreOrLess.BLACKLIST_ALL_VOTE_ID}`,
+                style: ButtonStyle.Danger,
+                label: `Blacklist alle (${counts[MoreOrLess.BLACKLIST_ALL_VOTE_ID] ?? 0})`,
+                disabled: false,
+                type: 2,
+            })
+        )
+        return row
+    }
+
+    private addVoteComponents(container: SimpleContainer, vote: IMoreOrLessVote) {
+        container.addSeparator()
+        container.addComponent(new TextDisplayBuilder().setContent('**Morgendagens kategori:**'), 'vote-header')
+        container.addComponent(this.buildVoteButtonRow(vote), 'vote-buttons')
+    }
+
+    /** Automatically posts the daily More or Less results to the dedicated thread at 18:00, along with a vote for tomorrow's category. */
+    public async sendScheduledResults(): Promise<void> {
+        if (!this.game) return
+        const container = await this.buildResultsContainer((userId) => UserUtils.findUserById(userId, this.client)?.username ?? 'Ukjent')
+
+        const storage = await this.client.database.getStorage()
+        const blacklist = this.getBlacklist(storage)
+        const previous = storage.moreOrLess.previous ?? []
+        const candidates = await MoreOrLess.pickValidGames(3, previous, blacklist)
+
+        let vote: IMoreOrLessVote | undefined
+        if (candidates.length > 0) {
+            vote = { candidates, votes: {} }
+            this.addVoteComponents(container, vote)
+        }
+        await this.client.database.updateStorage({ moreOrLess: { ...storage.moreOrLess, vote: vote ?? null } })
+
+        this.messageHelper.sendMessage(ThreadIds.MORE_OR_LESS, { components: [container.container] }, { isComponentOnly: true })
+    }
+
+    private async castVote(interaction: BtnInteraction) {
+        const storage = await this.client.database.getStorage()
+        const vote = storage.moreOrLess.vote
+        if (!vote) {
+            return this.messageHelper.replyToInteraction(interaction, 'Avstemningen for morgendagens kategori er ikke lenger åpen.', { ephemeral: true })
+        }
+        const choice = interaction.customId.split(';')[1]
+        vote.votes = vote.votes ?? {} // firebase drops empty objects, so a freshly created vote may come back without `votes`
+        vote.votes[interaction.user.id] = choice
+        await this.client.database.updateStorage({ moreOrLess: { ...storage.moreOrLess, vote } })
+
+        const choiceName = choice === MoreOrLess.BLACKLIST_ALL_VOTE_ID ? 'Blacklist alle' : vote.candidates.find((c) => c.slug === choice)?.title ?? choice
+        this.messageHelper.sendLogMessage(`${interaction.user.username} stemte for ${choiceName}`)
+
+        interaction.deferUpdate()
+        const container = await this.buildResultsContainer((userId) => UserUtils.findUserById(userId, this.client)?.username ?? 'Ukjent')
+        this.addVoteComponents(container, vote)
+        await interaction.message.edit({ components: [container.container] })
     }
 
     override onSave(): Promise<boolean> {
@@ -393,6 +556,12 @@ export class MoreOrLess extends AbstractCommands {
                         commandName: 'MORE_OR_LESS_TRY_AGAIN',
                         command: (rawInteraction: BtnInteraction) => {
                             this.setupGame(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'MORE_OR_LESS_VOTE',
+                        command: (rawInteraction: BtnInteraction) => {
+                            this.castVote(rawInteraction)
                         },
                     },
                 ],

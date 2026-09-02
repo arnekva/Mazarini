@@ -10,7 +10,7 @@ import { RocketLeagueCommands } from '../commands/gaming/rocketleagueCommands'
 import { GameValues } from '../general/values'
 import { EmojiHelper, JobStatus } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { MazariniUser, RocketLeagueTournament } from '../interfaces/database/databaseInterface'
+import { IMoreOrLess, MazariniStorage, MazariniUser, RocketLeagueTournament } from '../interfaces/database/databaseInterface'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { ChannelIds, ThreadIds } from '../utils/mentionUtils'
@@ -282,6 +282,52 @@ export class DailyJobs {
         return 'success'
     }
 
+    /**
+     * Resolves tomorrow's More or Less category from the previous evening's vote (if one was cast).
+     * The category with the most votes wins, unless literally every vote was cast for "Blacklist alle" -
+     * in that case all 3 candidates are blacklisted for good and a fresh random category is picked instead.
+     * Falls back to the old random pick if no vote is pending (e.g. the feature just got enabled).
+     */
+    private async resolveNextMoreOrLessGame(
+        storage: MazariniStorage
+    ): Promise<{ game: IMoreOrLess; blacklist: string[]; blacklistedTitles: string[] }> {
+        const blacklist = storage.moreOrLess.blacklist ?? []
+        if (storage.moreOrLess.forcedNext) {
+            // An admin manually forced tomorrow's category - takes priority over any pending vote
+            return { game: storage.moreOrLess.forcedNext, blacklist, blacklistedTitles: [] }
+        }
+        const vote = storage.moreOrLess.vote
+        if (!vote || vote.candidates.length === 0) {
+            const game = await MoreOrLess.getNewMoreOrLessGame(storage.moreOrLess.previous, [...blacklist, ...MoreOrLess.defaultBlacklistSeed])
+            this.messageHelper.sendLogMessage(`Kategori ${game.title} ble tilfeldig valgt og blir dagens MOL (ingen avstemning var aktiv)`)
+            return { game, blacklist, blacklistedTitles: [] }
+        }
+
+        const voteCounts: { [slug: string]: number } = {}
+        let blacklistVotes = 0
+        Object.values(vote.votes ?? {}).forEach((choice) => {
+            if (choice === MoreOrLess.BLACKLIST_ALL_VOTE_ID) blacklistVotes++
+            else voteCounts[choice] = (voteCounts[choice] ?? 0) + 1
+        })
+        const totalCategoryVotes = Object.values(voteCounts).reduce((a, b) => a + b, 0)
+
+        if (totalCategoryVotes === 0 && blacklistVotes > 0) {
+            const newBlacklist = [...blacklist, ...vote.candidates.map((c) => c.slug)]
+            const game = await MoreOrLess.getNewMoreOrLessGame(storage.moreOrLess.previous, [...newBlacklist, ...MoreOrLess.defaultBlacklistSeed])
+            const blacklistedTitles = vote.candidates.map((c) => c.title)
+            this.messageHelper.sendLogMessage(
+                `Kategoriene ${blacklistedTitles.join(', ')} ble blacklistet, og kategori ${game.title} ble tilfeldig valgt`
+            )
+            return { game, blacklist: newBlacklist, blacklistedTitles }
+        }
+
+        const maxVotes = Math.max(0, ...Object.values(voteCounts))
+        const topCandidates = maxVotes > 0 ? vote.candidates.filter((c) => voteCounts[c.slug] === maxVotes) : vote.candidates
+        const game = RandomUtils.getRandomItemFromList(topCandidates)
+        this.messageHelper.sendLogMessage(`Kategori ${game.title} vant med ${maxVotes} stemmer og blir dagens MOL`)
+        return { game, blacklist, blacklistedTitles: [] }
+    }
+
     private async awardAndResetMoreOrLess(users: MazariniUser[]): Promise<JobStatus> {
         const threadId = ThreadIds.MORE_OR_LESS
         const usersWithStats = users.filter((user) => !user.userSettings?.excludeFromMoL).filter((user) => user.dailyGameStats?.moreOrLess?.attempted)
@@ -353,9 +399,16 @@ export class DailyJobs {
         }
 
         const storage = await this.client.database.getStorage()
-        const game = await MoreOrLess.getNewMoreOrLessGame(storage.moreOrLess.previous)
+        const { game, blacklist, blacklistedTitles } = await this.resolveNextMoreOrLessGame(storage)
         const previous = storage.moreOrLess.previous.includes(game.slug) ? [] : [...storage.moreOrLess.previous]
         previous.push(game.slug)
+        if (blacklistedTitles.length > 0) {
+            this.messageHelper.sendMessage(threadId, {
+                text: `Alle stemmer gikk til å blackliste kategorien${
+                    blacklistedTitles.length > 1 ? 'e' : ''
+                } ${blacklistedTitles.join(', ')}, som nå er fjernet for godt.`,
+            })
+        }
 
         let description = `Ingen forsøk ble gjort på gårsdagens tema *${storage.moreOrLess.current.title}*`
         if (attempted) {
@@ -400,6 +453,9 @@ export class DailyJobs {
             moreOrLess: {
                 current: game,
                 previous: previous,
+                blacklist: blacklist,
+                vote: null,
+                forcedNext: null,
             },
         })
 

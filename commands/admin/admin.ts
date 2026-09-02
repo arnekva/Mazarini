@@ -33,6 +33,7 @@ import { MentionUtils } from '../../utils/mentionUtils'
 import { MessageUtils } from '../../utils/messageUtils'
 import { TextUtils } from '../../utils/textUtils'
 import { DealOrNoDeal, DonDQuality } from '../games/dealOrNoDeal'
+import { MoreOrLess } from '../games/moreOrLess'
 import { LootboxCommands, LootType } from '../store/lootboxCommands'
 
 const { ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js')
@@ -452,6 +453,106 @@ export class Admin extends AbstractCommands {
         } else if (cmd === 'dealornodeal') this.dondAutocomplete(interaction)
     }
 
+    private async moreOrLessSlugAutocomplete(interaction: ATCInteraction) {
+        const optionList: any = interaction.options
+        const input = (optionList.getFocused() as string).toLowerCase()
+        const games = await MoreOrLess.fetchAllGames()
+        const matches = games.filter((g) => g.title.toLowerCase().includes(input) || g.slug.toLowerCase().includes(input)).slice(0, 25)
+        interaction.respond(matches.map((g) => ({ name: `${g.title} (${g.slug})`, value: g.slug })))
+    }
+
+    private async adminMoreOrLessNext(interaction: ChatInteraction) {
+        await interaction.deferReply({ ephemeral: true })
+        const slug = interaction.options.get('slug')?.value as string
+        const game = await MoreOrLess.findAndValidateGame(slug)
+        if (!game) {
+            return this.messageHelper.replyToInteraction(interaction, `Fant ingen gyldig kategori med slug \`${slug}\`.`, {
+                hasBeenDefered: true,
+                ephemeral: true,
+            })
+        }
+        const storage = await this.client.database.getStorage()
+        await this.client.database.updateStorage({
+            moreOrLess: {
+                ...storage.moreOrLess,
+                forcedNext: game,
+            },
+        })
+        this.messageHelper.replyToInteraction(interaction, `Morgendagens more or less er nå satt til **${game.title}** (\`${game.slug}\`).`, {
+            hasBeenDefered: true,
+            ephemeral: true,
+        })
+        this.messageHelper.sendLogMessage(`${interaction.user.username} tvang neste kategori til å bli ${game.title}`)
+    }
+
+    private async adminMoreOrLessBlacklist(interaction: ChatInteraction) {
+        await interaction.deferReply({ ephemeral: true })
+        const slug = interaction.options.get('slug')?.value as string
+        const storage = await this.client.database.getStorage()
+        const existing = storage.moreOrLess.blacklist ?? []
+        if (existing.includes(slug)) {
+            return this.messageHelper.replyToInteraction(interaction, `\`${slug}\` er allerede blacklistet.`, { hasBeenDefered: true, ephemeral: true })
+        }
+        const blacklist = [...existing, slug]
+        // Also strip it from any currently pending vote, so people can't vote for something that just got blacklisted
+        const vote = storage.moreOrLess.vote
+        const updatedVote = vote ? { ...vote, candidates: vote.candidates.filter((c) => c.slug !== slug) } : vote
+        await this.client.database.updateStorage({
+            moreOrLess: {
+                ...storage.moreOrLess,
+                blacklist,
+                vote: updatedVote,
+            },
+        })
+        this.messageHelper.replyToInteraction(interaction, `\`${slug}\` er nå lagt til i blacklisten.`, { hasBeenDefered: true, ephemeral: true })
+        this.messageHelper.sendLogMessage(`${interaction.user.username} blacklistet ${slug}`)
+    }
+
+    private async adminMoreOrLessList(interaction: ChatInteraction) {
+        await interaction.deferReply({ ephemeral: true })
+        const type = interaction.options.get('type')?.value as 'blacklisted' | 'completed' | 'remaining'
+        const storage = await this.client.database.getStorage()
+        const allGames = await MoreOrLess.fetchAllGames()
+        const titleForSlug = (slug: string) => allGames.find((g) => g.slug === slug)?.title ?? slug
+
+        let title: string
+        let slugs: string[]
+        if (type === 'blacklisted') {
+            title = 'Blacklistede kategorier'
+            slugs = MoreOrLess.getEffectiveBlacklist(storage)
+        } else if (type === 'completed') {
+            title = 'Spilte kategorier (denne runden)'
+            slugs = storage.moreOrLess.previous ?? []
+        } else {
+            title = 'Gjenstående kategorier (ikke spilt ennå)'
+            const blacklist = MoreOrLess.getEffectiveBlacklist(storage)
+            const previous = storage.moreOrLess.previous ?? []
+            slugs = allGames.map((g) => g.slug).filter((slug) => !blacklist.includes(slug) && !previous.includes(slug))
+        }
+
+        if (slugs.length === 0) {
+            return this.messageHelper.replyToInteraction(interaction, `${title}: ingen.`, { hasBeenDefered: true, ephemeral: true })
+        }
+
+        const lines = slugs.map((slug) => `- ${titleForSlug(slug)}`)
+        const header = `**${title} (${slugs.length}):**\n`
+        const chunks: string[] = []
+        let current = header
+        for (const line of lines) {
+            if (current.length + line.length + 1 > 1900) {
+                chunks.push(current)
+                current = ''
+            }
+            current += `${line}\n`
+        }
+        if (current) chunks.push(current)
+
+        await this.messageHelper.replyToInteraction(interaction, chunks[0], { hasBeenDefered: true, ephemeral: true })
+        for (const chunk of chunks.slice(1)) {
+            await interaction.followUp({ content: chunk, ephemeral: true })
+        }
+    }
+
     private async fetchCCGFromDB(interaction: BtnInteraction) {
         await interaction.deferReply({ ephemeral: true })
         const storage = await this.client.database.getStorage()
@@ -566,6 +667,7 @@ export class Admin extends AbstractCommands {
                                 label: 'HP-wipe + reset (slett HP-kort, shards=300, 2 Bertie til CCG-spillere, chips=10000, daily=0, løslat)',
                             },
                             { value: 'clear_user_cache', label: 'Tøm brukercache (tvinger ny henting fra Firebase)' },
+                            { value: 'seed_mol_blacklist', label: 'Push MOL-blacklist (hardkodet liste) til Firebase' },
                         ],
                     },
                 },
@@ -602,6 +704,12 @@ export class Admin extends AbstractCommands {
             this.client.database.clearUserCache()
             results.push('Brukercache tømt. Neste henting vil hente fersk data fra Firebase.')
             this.messageHelper.sendLogMessage(`[Scripts] ${modalInteraction.user.username} tømte brukercachen.`)
+        }
+        if (selected.includes('seed_mol_blacklist')) {
+            const scripts = new Scripts(this.client)
+            const blacklist = await scripts.seedMoreOrLessBlacklist()
+            results.push(`MOL-blacklist pushet til Firebase: ${blacklist.length} kategorier.`)
+            this.messageHelper.sendLogMessage(`[Scripts] ${modalInteraction.user.username} pushet MOL-blacklist til Firebase (${blacklist.length} kategorier).`)
         }
 
         await modalInteraction.editReply(results.length ? results.join('\n') : 'Ingenting valgt.')
@@ -953,6 +1061,21 @@ export class Admin extends AbstractCommands {
         return {
             commands: {
                 interactionCommands: [
+                    {
+                        commandName: 'admin',
+                        command: (rawInteraction: ChatInteraction) => {
+                            const group = rawInteraction.options.getSubcommandGroup(false)
+                            const cmd = rawInteraction.options.getSubcommand()
+                            if (group === 'moreorless') {
+                                if (cmd === 'next') this.adminMoreOrLessNext(rawInteraction)
+                                else if (cmd === 'blacklist') this.adminMoreOrLessBlacklist(rawInteraction)
+                                else if (cmd === 'list') this.adminMoreOrLessList(rawInteraction)
+                            }
+                        },
+                        autoCompleteCallback: (interaction: ATCInteraction) => {
+                            this.moreOrLessSlugAutocomplete(interaction)
+                        },
+                    },
                     {
                         commandName: 'send',
                         command: (rawInteraction: ChatInteraction) => {

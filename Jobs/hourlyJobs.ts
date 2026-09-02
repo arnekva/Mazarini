@@ -1,4 +1,5 @@
 import { MazariniClient } from '../client/MazariniClient'
+import { MoreOrLess } from '../commands/games/moreOrLess'
 import { MessageHelper } from '../helpers/messageHelper'
 import { ArrayUtils } from '../utils/arrayUtils'
 import { EmbedUtils } from '../utils/embedUtils'
@@ -18,6 +19,9 @@ export class HourJob {
             this.client.onTimedEvent('hourly')
             await this.checkForUpcomingRLTournaments()
             await this.sendScheduledMessage()
+            if (new Date().getHours() === 18) {
+                await MoreOrLess.instance?.sendScheduledResults()
+            }
         }
         // Daily events disabled
         // await this.client.mazariniEvents.activateDueEvents()

@@ -3,6 +3,7 @@ import * as fs from 'fs'
 import { MazariniClient } from '../client/MazariniClient'
 import { hpCCG } from '../commands/ccg/cards/hpCCG'
 import { mazariniCCG } from '../commands/ccg/cards/mazariniCCG'
+import { MoreOrLess } from '../commands/games/moreOrLess'
 import { swCCG } from '../commands/ccg/cards/swCCG'
 import { CCGCardGenerator } from '../helpers/ccgCardGenerator'
 import { ImageGenerationHelper } from '../helpers/imageGenerationHelper'
@@ -224,6 +225,20 @@ export class Scripts {
                 hpCCG: hpCCG,
             },
         })
+    }
+
+    /** One-time migration: pushes the old hardcoded More or Less blacklist into firebase (storage.moreOrLess.blacklist),
+     * merged with whatever is already there, so previously-blacklisted categories can't reappear once the code-side list is removed. */
+    public async seedMoreOrLessBlacklist(): Promise<string[]> {
+        const storage = await this.client.database.getStorage()
+        const merged = Array.from(new Set([...(storage.moreOrLess.blacklist ?? []), ...MoreOrLess.defaultBlacklistSeed]))
+        await this.client.database.updateStorage({
+            moreOrLess: {
+                ...storage.moreOrLess,
+                blacklist: merged,
+            },
+        })
+        return merged
     }
 
     public updateCCGSeries() {

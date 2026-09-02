@@ -6,6 +6,7 @@ import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { MoreOrLess } from '../games/moreOrLess'
 import { LootboxCommands } from '../store/lootboxCommands'
 
 const defaultBtn = (id: string) => {
@@ -65,7 +66,8 @@ export class TestCommands extends AbstractCommands {
         // const file = new AttachmentBuilder(reveal, { name: 'reveal.webp' })
         // scripts.prepareNewSeries()
         // scripts.setLuckyWheelRewards()
-        await this.messageHelper.replyToInteraction(interaction, 'doing stuff')
+        await MoreOrLess.instance?.sendScheduledResults()
+        await this.messageHelper.replyToInteraction(interaction, 'Trigget MoreOrLess.sendScheduledResults()', { ephemeral: true })
     }
 
     private async testSelectMenu(selectMenu: SelectStringInteraction) {
