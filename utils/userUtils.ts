@@ -159,7 +159,7 @@ export namespace UserUtils {
         msgHelper.sendLogMessage(
             'Oppdatert bruker:   ' +
                 newUser.username +
-                `. Følgende keys er oppdatert: ${Object.keys(keyDifference).join(', ')}. \nVerdier som er endret blir forsøkt sendt her: ${vals}`
+                `. Følgende keys er oppdatert: ${Object.keys(keyDifference).join(', ')}. \nVerdier som er endret blir sendt her: ${vals}`
         )
     }
 
