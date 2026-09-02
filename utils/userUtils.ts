@@ -211,9 +211,14 @@ export namespace UserUtils {
 
         const changedRole = roleArraysEqual([...oldMember.roles.cache.values()], [...newMember.roles.cache.values()])
         if (changedRole) {
+            const oldRoles = [...oldMember.roles.cache.values()]
+            const newRoles = [...newMember.roles.cache.values()]
+            const added = newRoles.filter((r) => !oldRoles.some((old) => old.id === r.id)).map((r) => r.name)
+            const removed = oldRoles.filter((r) => !newRoles.some((cur) => cur.id === r.id)).map((r) => r.name)
+
             changedKeys.push('roles')
-            newValues['roles'] = [...newMember.roles.cache.values()].map((r) => r.name).join(', ')
-            oldValues['roles'] = [...oldMember.roles.cache.values()].map((r) => r.name).join(', ')
+            newValues['roles'] = added.length ? `+ ${added.join(', ')}` : '(ingen lagt til)'
+            oldValues['roles'] = removed.length ? `- ${removed.join(', ')}` : '(ingen fjernet)'
         }
 
         if (!changedKeys.length) return

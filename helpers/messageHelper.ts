@@ -333,7 +333,7 @@ export class MessageHelper {
     sendLogMessage(msg: string, options?: IMessageOptions) {
         if (environment === 'dev') return
         MazariniBot.numMessagesNumErrorMessages++
-        options ? (options.dontIncrementMessageCounter = true) : (options = { dontIncrementMessageCounter: true })
+        options = { ...options, dontIncrementMessageCounter: true, noMentions: true }
 
         return this.sendMessage(ChannelIds.ACTION_LOG, { text: msg }, options)
     }
