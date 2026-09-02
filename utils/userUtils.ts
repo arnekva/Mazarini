@@ -178,12 +178,19 @@ export namespace UserUtils {
         return { changedKeys, oldValues, newValues }
     }
 
-    const logDiff = (msgHelper: MessageHelper, prefix: string, name: string, changedKeys: string[], oldValues: Record<string, any>, newValues: Record<string, any>) => {
-        const vals = changedKeys
-            .map((key) => `\n**${key}:** ${JSON.stringify(newValues[key])} \nGammel verdi:\n ${JSON.stringify(oldValues[key])}`)
-            .join(' ')
+    const logDiff = (
+        msgHelper: MessageHelper,
+        prefix: string,
+        name: string,
+        changedKeys: string[],
+        oldValues: Record<string, any>,
+        newValues: Record<string, any>
+    ) => {
+        const vals = changedKeys.map((key) => `\n**${key}:** ${JSON.stringify(newValues[key])} \nGammel verdi:\n ${JSON.stringify(oldValues[key])}`).join(' ')
 
-        msgHelper.sendLogMessage(`${prefix}   ${name}. Følgende keys er oppdatert: ${changedKeys.join(', ')}. \nVerdier som er endret blir forsøkt sendt her: ${vals}`)
+        msgHelper.sendLogMessage(
+            `${prefix}   ${name}. Følgende keys er oppdatert: ${changedKeys.join(', ')}. \nVerdier som er endret blir forsøkt sendt her: ${vals}`
+        )
     }
 
     export const onUserUpdate = (oldUser: User | PartialUser, newUser: User | PartialUser, msgHelper: MessageHelper) => {

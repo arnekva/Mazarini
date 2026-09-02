@@ -248,9 +248,10 @@ export const GameValues: GameValuesType = {
             [126, 150],
             [151, 175],
             [176, 200],
-            [201, 10002],
+            [201, 400],
+            [401, 10002],
         ],
-        potSkip: { diceTarget: 200, roll: 69, potPenalty: 200 },
+        potSkip: { diceTarget: 200, roll: 69, potPenalty: -50 },
         addToPot: {
             athStreakMultiplier: 2000,
             streakMultiplier: 1000,
@@ -260,18 +261,18 @@ export const GameValues: GameValuesType = {
         },
         jokes: {
             nineElevenRemove: 2977,
-            nineElevenChance: 0.6,
+            nineElevenChance: 0.75,
         },
         checkForReward: {
             sameDigitsMultiplier: 3,
             allDigitsExceptFirstAreZeroMultiplier: 3,
             diceTargetMultiplier: 3,
-            roll2Reward: 5,
+            roll2Reward: 10,
             doublePotDepositMultiplier: 2,
             minRollForMultiplier: 100,
             minPotForDouble: 1000,
             maxDoubleReward: 2500,
-            lootboxChance: 5,
+            lootboxChance: 7,
             lootbox: {
                 basic: { min: 0, max: 9999, cost: 5000 },
                 premium: { min: 10000, max: 24999, cost: 10000 },
@@ -281,7 +282,7 @@ export const GameValues: GameValuesType = {
         getRollReward: {
             specialNumbers: [
                 1996, 1997, 1881, 1337, 1030, 1349, 1814, 1905, 669, 690, 8008, 6969, 420, 123, 1234, 12345, 2469, 1984, 2026, 2012, 1945, 2468, 1359, 6900,
-                2026, 4060, 1989,
+                2026, 4060, 1989, 170, 1001, 1914, 1918, 1939, 1945, 1969, 6040, 2469
             ],
             unSpecialNumbers: [2025, 2027, 68, 70, 1998, 1995],
             multiplier: 1,
@@ -397,7 +398,7 @@ export const GameValues: GameValuesType = {
 
     // Deal Or No Deal
     dealOrNoDeal: {
-        effectItemChance: 20, // percent chance to get an effect item
+        effectItemChance: 35, // percent chance to get an effect item
         offerBase: 0.5, // base offer percentage
         offerPerRound: 0.05, // offer percentage increase per round
     },

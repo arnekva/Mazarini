@@ -417,6 +417,12 @@ export interface MazariniStorage {
     moreOrLess?: {
         current: IMoreOrLess
         previous: string[] //list of slugs
+        /** Category slugs the community has voted to permanently remove from the pool */
+        blacklist?: string[]
+        /** Active vote for tomorrow's category. Created at 18:00, resolved and cleared (set to null) at 05:00 */
+        vote?: IMoreOrLessVote | null
+        /** Admin override for tomorrow's category (/admin moreorless next). Takes priority over any pending vote, cleared at 05:00 once consumed */
+        forcedNext?: IMoreOrLess | null
     }
     mastermind?: string[]
     luckyWheel?: ILuckyWheelReward[]
@@ -467,6 +473,13 @@ export enum LuckyWheelRewardType {
     effect_lootbox_odds = 'effect_lootbox_odds',
 }
 
+export interface IMoreOrLessVote {
+    /** The 3 candidate categories put up for vote, fully validated so the winner can be used directly */
+    candidates: IMoreOrLess[]
+    /** userId -> slug of the candidate voted for, or 'BLACKLIST_ALL' */
+    votes: { [userId: string]: string }
+}
+
 export interface IMoreOrLess {
     title: string
     description: string
@@ -475,6 +488,8 @@ export interface IMoreOrLess {
     badge?: string
     slug: string
     image: string
+    /** Number of entries/items in this category's dataset. Populated once the dataset has been fetched. */
+    totalEntries?: number
     strings?: {
         verb: string
         valueTitle: string

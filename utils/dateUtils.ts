@@ -48,10 +48,12 @@ export class DateUtils {
     }
 
     static isTimeOfDayAfter(hour: number, minute?: number) {
-        return moment().isAfter(
+        return moment().isSameOrAfter(
             moment()
                 .hour(hour)
                 .minute(minute || 0)
+                .second(0)
+                .millisecond(0)
         )
     }
     static isTimeOfDayBefore(hour: number, minute?: number) {
@@ -59,6 +61,8 @@ export class DateUtils {
             moment()
                 .hour(hour)
                 .minute(minute || 0)
+                .second(0)
+                .millisecond(0)
         )
     }
 

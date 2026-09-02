@@ -4,7 +4,7 @@ export namespace WeatherUtils {
     }
 
     export const windDegreesToDirectionalArrow = (degrees: number) => {
-        const wind: string[] = ["⬇️", "↙️", "⬅️", "↖️", "⬆️", "↗️", "➡️", "↘️", "⬇️"]
-        return wind[Math.round(degrees/45)]
+        const wind: string[] = ['⬇️', '↙️', '⬅️', '↖️', '⬆️', '↗️', '➡️', '↘️', '⬇️']
+        return wind[Math.round(degrees / 45)]
     }
 }
