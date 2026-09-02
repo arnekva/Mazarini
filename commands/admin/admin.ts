@@ -847,10 +847,18 @@ export class Admin extends AbstractCommands {
             label: 'Cont.',
             type: 2,
         })
+        const statusBtn = new ButtonBuilder({
+            custom_id: 'ADMIN_STATUS_MODAL',
+            style: ButtonStyle.Secondary,
+            label: 'Status',
+            type: 2,
+        })
         const firstRow = new ActionRowBuilder<ButtonBuilder>().addComponents(settingsBtn, ccgBtn, eventsBtn, scriptsBtn, continuousBtn)
-        this.messageHelper.replyToInteraction(interaction, 'Admin panel:', { ephemeral: true }, [firstRow])
+        const secondRow = new ActionRowBuilder<ButtonBuilder>().addComponents(statusBtn)
+        this.messageHelper.replyToInteraction(interaction, 'Admin panel:', { ephemeral: true }, [firstRow, secondRow])
     }
     static ccgModalId = 'ccgActionsModal'
+    static statusModalId = 'statusModal'
     static scriptsModalId = 'scriptsActionsModal'
     static continuousModalId = 'continuousActionsModal'
     static eventsModalId = 'eventsActionsModal'
@@ -867,49 +875,13 @@ export class Admin extends AbstractCommands {
                 // Short means only a single line of text
                 .setStyle(TextInputStyle.Short)
             const firstActionRow = new ActionRowBuilder().addComponents(potValue)
-
-            const botData = await this.client.database.getAllBotData()
-            const oldStatus = botData?.status
-            const oldStatusType = botData?.statusType
-            const oldStatusState = botData?.statusState
-
-            const status = new TextInputBuilder()
-                .setCustomId('status')
-                // The label is the prompt the user sees for this input
-                .setLabel('Status')
-                .setPlaceholder(`statustekst`)
-                .setValue(`${oldStatus}`)
-                .setRequired(false)
-                // Short means only a single line of text
-                .setStyle(TextInputStyle.Short)
-            const secondActionRow = new ActionRowBuilder().addComponents(status)
-            const statusType = new TextInputBuilder()
-                .setCustomId('statusType')
-                // The label is the prompt the user sees for this input
-                .setLabel('WAT,LIS,PLA,STR,COM')
-                .setPlaceholder(`WATCHING`)
-                .setValue(`${oldStatusType}`)
-                .setRequired(false)
-                // Short means only a single line of text
-                .setStyle(TextInputStyle.Short)
-
-            const thirdActionRow = new ActionRowBuilder().addComponents(statusType)
-
-            const statusState = new TextInputBuilder()
-                .setCustomId('statusState')
-                .setLabel('Undertekst (valgfritt)')
-                .setPlaceholder(`vises som ekstra linje under statusen`)
-                .setValue(`${oldStatusState ?? ''}`)
-                .setRequired(false)
-                .setStyle(TextInputStyle.Short)
-            const fourthActionRow = new ActionRowBuilder().addComponents(statusState)
             // Pass the modal as a raw object to avoid LabelBuilder calling createComponentBuilder
             // on type 22 (CheckboxGroup) which is not yet registered in the builder registry.
             await interaction.showModal({
                 custom_id: Admin.botSettingsId,
                 title: 'Bot Innstillinger',
                 components: [
-                    ...[firstActionRow, secondActionRow, thirdActionRow, fourthActionRow].map((r: any) => r.toJSON()),
+                    ...[firstActionRow].map((r: any) => r.toJSON()),
                     {
                         type: ComponentType.Label,
                         label: 'Kjør daglige jobber (velg én eller flere):',
@@ -950,6 +922,80 @@ export class Admin extends AbstractCommands {
                 ],
             } as any)
         }
+    }
+
+    private static readonly statusTypeOptions = [
+        { value: 'WATCHING', label: 'Watching' },
+        { value: 'LISTENING', label: 'Listening' },
+        { value: 'PLAYING', label: 'Playing' },
+        { value: 'STREAMING', label: 'Streaming' },
+        { value: 'COMPETING', label: 'Competing' },
+    ]
+
+    private async buildStatusModal(interaction: BtnInteraction) {
+        const botData = await this.client.database.getAllBotData()
+
+        const status = new TextInputBuilder()
+            .setCustomId('status')
+            .setLabel('Status')
+            .setPlaceholder(`statustekst`)
+            .setValue(`${botData?.status ?? ''}`)
+            .setRequired(false)
+            .setStyle(TextInputStyle.Short)
+        const statusState = new TextInputBuilder()
+            .setCustomId('statusState')
+            .setLabel('Undertekst (valgfritt)')
+            .setPlaceholder(`vises som ekstra linje under statusen`)
+            .setValue(`${botData?.statusState ?? ''}`)
+            .setRequired(false)
+            .setStyle(TextInputStyle.Short)
+        const firstActionRow = new ActionRowBuilder().addComponents(status)
+        const secondActionRow = new ActionRowBuilder().addComponents(statusState)
+
+        const currentType = `${botData?.statusType ?? 'WATCHING'}`.toUpperCase()
+        // Pass the modal as a raw object, same as buildSettingsModal, since discord.js's builders don't yet
+        // support wrapping a StringSelect in a Label inside a modal.
+        await interaction.showModal({
+            custom_id: Admin.statusModalId,
+            title: 'Bot Status',
+            components: [
+                ...[firstActionRow, secondActionRow].map((r: any) => r.toJSON()),
+                {
+                    type: ComponentType.Label,
+                    label: 'Type',
+                    component: {
+                        type: ComponentType.StringSelect,
+                        custom_id: 'statusType',
+                        required: false,
+                        min_values: 0,
+                        max_values: 1,
+                        options: Admin.statusTypeOptions.map((o) => ({ ...o, default: o.value === currentType })),
+                    },
+                },
+            ],
+        } as any)
+    }
+
+    private async handleStatusModalDialog(modalInteraction: ModalSubmitInteraction) {
+        const status = modalInteraction.fields.getTextInputValue('status')
+        const statusState = modalInteraction.fields.getTextInputValue('statusState')
+        const selectedType = this.getModalCheckboxValues(modalInteraction, 'statusType')[0]
+
+        if (status) this.client.database.setBotData('status', status)
+        this.client.database.setBotData('statusState', statusState ?? '')
+        const actualStatusType = selectedType ? this.translateActivityType(selectedType) : undefined
+        if (actualStatusType !== undefined) this.client.database.setBotData('statusType', actualStatusType)
+
+        const statusToUse = status || ((await this.client.database.getBotData('status')) as string)
+        const statusTypeToUse = actualStatusType ?? ((await this.client.database.getBotData('statusType')) as Exclude<ActivityType, ActivityType.Custom>)
+
+        ClientHelper.updatePresence(this.client, statusTypeToUse, statusToUse, undefined, statusState)
+        this.messageHelper.sendLogMessage(
+            `Bot status ble oppdatert av ${modalInteraction.user.username} til '${statusTypeToUse}' med teksten '${statusToUse}'${
+                statusState ? ` (${statusState})` : ''
+            }`
+        )
+        this.messageHelper.replyToInteraction(modalInteraction, 'Status er nå oppdatert', { ephemeral: true })
     }
 
     private async printEventSchedule(interaction: ChatInteraction | BtnInteraction) {
@@ -1022,10 +1068,6 @@ export class Admin extends AbstractCommands {
 
     private async handleBotSettingsModalDialog(modalInteraction: ModalSubmitInteraction) {
         const potValue = modalInteraction.fields.getTextInputValue('potValue')
-        const status = modalInteraction.fields.getTextInputValue('status')
-        const statusType = modalInteraction.fields.getTextInputValue('statusType')
-        const statusState = modalInteraction.fields.getTextInputValue('statusState')
-        const actualStatusType: Exclude<ActivityType, ActivityType.Custom> = this.translateActivityType(statusType)
         if (potValue) {
             const potNum = Number(potValue)
             if (potNum && !isNaN(potNum) && potNum !== this.client.cache.deathrollPot) {
@@ -1033,28 +1075,6 @@ export class Admin extends AbstractCommands {
                 this.client.cache.deathrollPot = potNum
                 this.messageHelper.sendLogMessage(`Pot ble oppdatert av ${modalInteraction.user.username} til '${potNum}'`)
             }
-        }
-        if (status) {
-            this.client.database.setBotData('status', status)
-        }
-
-        if (statusType) {
-            const actualStatusType = this.translateActivityType(statusType)
-            this.client.database.setBotData('statusType', actualStatusType)
-        }
-        this.client.database.setBotData('statusState', statusState ?? '')
-        const statusToUse = status || ((await this.client.database.getBotData('status')) as string)
-        const statusTypeToUse = statusType
-            ? actualStatusType
-            : ((await this.client.database.getBotData('statusType')) as Exclude<ActivityType, ActivityType.Custom>)
-        const statusStateToUse = statusState || ((await this.client.database.getBotData('statusState', true)) as string)
-        if (status || statusType || statusState) {
-            ClientHelper.updatePresence(this.client, statusTypeToUse, statusToUse, undefined, statusStateToUse)
-            this.messageHelper.sendLogMessage(
-                `Bot status ble oppdatert av ${modalInteraction.user.username} til '${statusTypeToUse}' med teksten '${statusToUse}'${
-                    statusStateToUse ? ` (${statusStateToUse})` : ''
-                }`
-            )
         }
 
         const selectedJobs = this.getModalCheckboxValues(modalInteraction, 'daily_jobs')
@@ -1164,6 +1184,12 @@ export class Admin extends AbstractCommands {
                         },
                     },
                     {
+                        commandName: 'ADMIN_STATUS_MODAL',
+                        command: (rawInteraction: BtnInteraction) => {
+                            this.buildStatusModal(rawInteraction)
+                        },
+                    },
+                    {
                         commandName: 'ADMIN_CCG_MODAL',
                         command: (rawInteraction: BtnInteraction) => {
                             this.showCCGModal(rawInteraction)
@@ -1241,6 +1267,12 @@ export class Admin extends AbstractCommands {
                         commandName: Admin.botSettingsId,
                         command: (rawInteraction: ModalInteraction) => {
                             this.handleBotSettingsModalDialog(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: Admin.statusModalId,
+                        command: (rawInteraction: ModalInteraction) => {
+                            this.handleStatusModalDialog(rawInteraction)
                         },
                     },
                     {
