@@ -29,17 +29,25 @@ export interface DRGame {
     nextToRoll: string
     initialTarget: number
     loserID?: string
+    /** Set when this game's continuation was just suggested via autocomplete, cleared as soon as a roll actually lands on it.
+     * Lets the autocomplete prefer a different game over re-suggesting one that's already pending a roll. */
+    awaitingRoll?: boolean
+}
+
+interface DRSuggestion {
+    gameId: string
+    diceTarget: number
 }
 
 export class Deathroll extends AbstractCommands {
     private drGames: DRGame[]
 
     private latestRoll: Date
-    private previousSuggestions: Map<string, number>
+    private previousSuggestions: Map<string, DRSuggestion>
 
     constructor(client: MazariniClient) {
         super(client)
-        this.previousSuggestions = new Map<string, number>()
+        this.previousSuggestions = new Map<string, DRSuggestion>()
 
         // this.reRollWinningNumbers()
     }
@@ -103,6 +111,15 @@ export class Deathroll extends AbstractCommands {
         else {
             const user = interaction.user
             const game = this.getGame(user.id, diceTarget, interaction.channelId)
+
+            if (!game && this.isStaleSuggestion(user.id, diceTarget)) {
+                return this.messageHelper.replyToInteraction(
+                    interaction,
+                    `Det spillet har allerede blitt rullet ferdig - du er ikke lenger i tur der. Prøv \`/terning\` på nytt for å se riktig tall.`,
+                    { ephemeral: true }
+                )
+            }
+
             const roll = RandomUtils.getRandomInteger(1, diceTarget)
 
             let additionalMessage = ''
@@ -430,6 +447,17 @@ export class Deathroll extends AbstractCommands {
         return this.drGames.find((game) => game.nextToRoll === userID && game.lastRoll === diceTarget && game.players.length > 1)
     }
 
+    /** True if this diceTarget matches what we JUST autocompleted for this user, but the game it pointed to has since moved
+     * on (already rolled by them elsewhere, or ended) - i.e. this looks like a stale duplicate submission rather than a
+     * deliberate standalone roll. Only ever compares against this user's own last suggestion, so it stays correct
+     * regardless of how many other concurrent games (their own or others') exist. */
+    private isStaleSuggestion(userID: string, diceTarget: number): boolean {
+        const suggestion = this.previousSuggestions.get(userID)
+        if (!suggestion || suggestion.diceTarget !== diceTarget) return false
+        const suggestedGame = this.drGames.find((g) => g.id === suggestion.gameId)
+        return !suggestedGame || suggestedGame.nextToRoll !== userID
+    }
+
     private joinGame(game: DRGame, userID: string) {
         if (game && game.joinable) {
             game.players.push({ userID: userID, rolls: [] })
@@ -463,6 +491,7 @@ export class Deathroll extends AbstractCommands {
     }
 
     private updateGame(game: DRGame, userID: string, newRoll: number) {
+        game.awaitingRoll = false
         if (newRoll === 1) {
             game.loserID = userID
         } else {
@@ -488,18 +517,19 @@ export class Deathroll extends AbstractCommands {
     }
 
     private getActiveGameForUser(userID: string) {
-        const previousRoll = this.previousSuggestions.get(userID)
-        const game = this.drGames?.find((game) => game.nextToRoll === userID && game.players.length > 1 && game.lastRoll !== previousRoll)
+        const game = this.drGames?.find((game) => game.nextToRoll === userID && game.players.length > 1 && !game.awaitingRoll)
         return game ?? this.drGames?.find((game) => game.nextToRoll === userID && game.players.length > 1)
     }
 
     private autoCompleteDice(interaction: ATCInteraction) {
-        let game = this.getActiveGameForUser(interaction.user.id)
-        if (!game) game = this.checkForAvailableGame(interaction.user.id)
+        const userID = interaction.user.id
+        let game = this.getActiveGameForUser(userID)
+        if (game) game.awaitingRoll = true
+        else game = this.checkForAvailableGame(userID)
 
         if (game) {
             const diceTarget = Math.min(...game.players.map((p) => p.rolls).flat())
-            this.previousSuggestions.set(interaction.user.id, diceTarget)
+            this.previousSuggestions.set(userID, { gameId: game.id, diceTarget })
             return interaction.respond([{ name: `${diceTarget}`, value: diceTarget }])
         }
         return interaction.respond([{ name: GameValues.deathroll.autoCompleteDiceDefault.toString(), value: GameValues.deathroll.autoCompleteDiceDefault }])
