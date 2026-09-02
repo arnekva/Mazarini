@@ -22,6 +22,7 @@ export interface BotData {
     commitId: string
     status: string
     statusType: number
+    statusState?: string
     version: string
 }
 

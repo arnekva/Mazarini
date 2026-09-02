@@ -868,8 +868,10 @@ export class Admin extends AbstractCommands {
                 .setStyle(TextInputStyle.Short)
             const firstActionRow = new ActionRowBuilder().addComponents(potValue)
 
-            const oldStatus = await this.client.database.getBotData('status')
-            const oldStatusType = await this.client.database.getBotData('statusType')
+            const botData = await this.client.database.getAllBotData()
+            const oldStatus = botData?.status
+            const oldStatusType = botData?.statusType
+            const oldStatusState = botData?.statusState
 
             const status = new TextInputBuilder()
                 .setCustomId('status')
@@ -893,7 +895,6 @@ export class Admin extends AbstractCommands {
 
             const thirdActionRow = new ActionRowBuilder().addComponents(statusType)
 
-            const oldStatusState = await this.client.database.getBotData('statusState')
             const statusState = new TextInputBuilder()
                 .setCustomId('statusState')
                 .setLabel('Undertekst (valgfritt)')
@@ -1046,7 +1047,7 @@ export class Admin extends AbstractCommands {
         const statusTypeToUse = statusType
             ? actualStatusType
             : ((await this.client.database.getBotData('statusType')) as Exclude<ActivityType, ActivityType.Custom>)
-        const statusStateToUse = statusState || ((await this.client.database.getBotData('statusState')) as string)
+        const statusStateToUse = statusState || ((await this.client.database.getBotData('statusState', true)) as string)
         if (status || statusType || statusState) {
             ClientHelper.updatePresence(this.client, statusTypeToUse, statusToUse, undefined, statusStateToUse)
             this.messageHelper.sendLogMessage(

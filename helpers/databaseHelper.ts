@@ -210,8 +210,12 @@ export class DatabaseHelper {
         }
     }
 
-    public async getBotData(prefix: botDataPrefix) {
-        return await this.db.getBotData(prefix)
+    public async getBotData(prefix: botDataPrefix, silent = false) {
+        return await this.db.getBotData(prefix, silent)
+    }
+
+    public async getAllBotData() {
+        return await this.db.getAllBotData()
     }
 
     public setBotData(prefix: botDataPrefix, value: any) {

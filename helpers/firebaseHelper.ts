@@ -99,8 +99,8 @@ export class FirebaseHelper {
         return (await this.getData(`bot`)) as BotData
     }
 
-    public async getBotData(path: string): Promise<any> {
-        return await this.getData(`bot/${path}`)
+    public async getBotData(path: string, silent = false): Promise<any> {
+        return await this.getData(`bot/${path}`, silent)
     }
 
     public async getMazariniStorage(): Promise<MazariniStorage> {
@@ -136,11 +136,11 @@ export class FirebaseHelper {
         return (await this.getData(`stats/emojis/${name}`)) as EmojiStats
     }
 
-    public async getData(path: string): Promise<any> {
+    public async getData(path: string, silent = false): Promise<any> {
         const response = await get(child(ref(this.db), `${database}/${path}`))
         if (response.exists()) return response.val() as any
         else {
-            this.messageHelper?.sendLogMessage(`Prøvde å hente ${path}, men fant ingen data.`)
+            if (!silent) this.messageHelper?.sendLogMessage(`Prøvde å hente ${path}, men fant ingen data.`)
             return null
         }
     }

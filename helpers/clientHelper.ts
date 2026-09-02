@@ -29,7 +29,7 @@ export class ClientHelper {
     static async setStatusFromStorage(client: Client, dbHelper: DatabaseHelper) {
         const status = (await dbHelper.getBotData('status')) ?? 'Kaptein Sabeltann'
         const activityType: Exclude<ActivityType, ActivityType.Custom> = (await dbHelper.getBotData('statusType')) ?? 'WATCHING'
-        const state = (await dbHelper.getBotData('statusState')) as string
+        const state = (await dbHelper.getBotData('statusState', true)) as string
         client.user?.setPresence({
             activities: [
                 {
