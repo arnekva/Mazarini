@@ -147,20 +147,52 @@ export namespace UserUtils {
         msgHelper.sendLogMessage('En bruker forlot Mazarini: ' + (member.nickname ?? member.displayName))
     }
 
+    /**
+     * Compares two objects' own enumerable properties and returns the keys whose values actually differ,
+     * along with their old and new values. Handles values that are re-instantiated on every access but
+     * carry no real change (e.g. discord.js BitFields), and values that need a deep comparison (arrays/objects),
+     * instead of naively comparing by reference.
+     */
+    export const diffCheck = <T extends Record<string, any>>(oldObj: T, newObj: T) => {
+        const valuesEqual = (a: any, b: any): boolean => {
+            if (a === b) return true
+            if (a?.bitfield !== undefined && b?.bitfield !== undefined) return a.bitfield === b.bitfield
+            if (a && b && typeof a === 'object' && typeof b === 'object') {
+                try {
+                    return JSON.stringify(a) === JSON.stringify(b)
+                } catch {
+                    return false
+                }
+            }
+            return false
+        }
+
+        const changedKeys = Object.keys(newObj).filter((k) => !valuesEqual(oldObj[k], newObj[k]))
+        const oldValues: Record<string, any> = {}
+        const newValues: Record<string, any> = {}
+        changedKeys.forEach((k) => {
+            oldValues[k] = oldObj[k]
+            newValues[k] = newObj[k]
+        })
+
+        return { changedKeys, oldValues, newValues }
+    }
+
+    const logDiff = (msgHelper: MessageHelper, prefix: string, name: string, changedKeys: string[], oldValues: Record<string, any>, newValues: Record<string, any>) => {
+        const vals = changedKeys
+            .map((key) => `\n**${key}:** ${JSON.stringify(newValues[key])} \nGammel verdi:\n ${JSON.stringify(oldValues[key])}`)
+            .join(' ')
+
+        msgHelper.sendLogMessage(`${prefix}   ${name}. Følgende keys er oppdatert: ${changedKeys.join(', ')}. \nVerdier som er endret blir forsøkt sendt her: ${vals}`)
+    }
+
     export const onUserUpdate = (oldUser: User | PartialUser, newUser: User | PartialUser, msgHelper: MessageHelper) => {
         if (oldUser.id === '802945796457758760') return
 
-        const keyDifference = Object.fromEntries(Object.entries(newUser).filter(([k, v]) => oldUser[k] !== v))
-        const keyDifferenceOld = Object.fromEntries(Object.entries(oldUser).filter(([k, v]) => newUser[k] !== v))
-        const vals = Object.entries(keyDifference)
-            .map(([key, value]) => `\n**${key}:** ${JSON.stringify(value)} \nGammel verdi:\n ${JSON.stringify(keyDifferenceOld[key])}`)
-            .join(' ')
+        const { changedKeys, oldValues, newValues } = diffCheck(oldUser, newUser)
+        if (!changedKeys.length) return
 
-        msgHelper.sendLogMessage(
-            'Oppdatert bruker:   ' +
-                newUser.username +
-                `. Følgende keys er oppdatert: ${Object.keys(keyDifference).join(', ')}. \nVerdier som er endret blir forsøkt sendt her: ${vals}`
-        )
+        logDiff(msgHelper, 'Oppdatert bruker:', newUser.username, changedKeys, oldValues, newValues)
     }
 
     export const onMemberUpdate = async (oldMember: GuildMember | PartialGuildMember, newMember: GuildMember, msgHelper: MessageHelper) => {
@@ -168,19 +200,18 @@ export namespace UserUtils {
         if (oldMember.id === '802945796457758760') return
         if (oldMember.user.username === 'MazariniBot') return
 
-        if (oldMember.id === '802945796457758760') return
+        const { changedKeys, oldValues, newValues } = diffCheck(oldMember, newMember)
 
-        const keyDifference = Object.fromEntries(Object.entries(newMember).filter(([k, v]) => oldMember[k] !== v))
-        const keyDifferenceOld = Object.fromEntries(Object.entries(oldMember).filter(([k, v]) => newMember[k] !== v))
-        const vals = Object.entries(keyDifference)
-            .map(([key, value]) => `\n**${key}:** ${JSON.stringify(value)} \nGammel verdi:\n ${JSON.stringify(keyDifferenceOld[key])}`)
-            .join(' ')
+        const changedRole = roleArraysEqual([...oldMember.roles.cache.values()], [...newMember.roles.cache.values()])
+        if (changedRole) {
+            changedKeys.push('roles')
+            newValues['roles'] = [...newMember.roles.cache.values()].map((r) => r.name).join(', ')
+            oldValues['roles'] = [...oldMember.roles.cache.values()].map((r) => r.name).join(', ')
+        }
 
-        msgHelper.sendLogMessage(
-            'Oppdatert member:   ' +
-                newMember.user.username +
-                `. Følgende keys er oppdatert: ${Object.keys(keyDifference).join(', ')}. \nVerdier som er endret blir forsøkt sendt her: ${vals}`
-        )
+        if (!changedKeys.length) return
+
+        logDiff(msgHelper, 'Oppdatert member:', newMember.user.username, changedKeys, oldValues, newValues)
     }
 
     export const getPrettyName = (member: GuildMember | PartialGuildMember | ThreadMember) => {
