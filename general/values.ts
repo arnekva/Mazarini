@@ -8,7 +8,7 @@ type rewardType = number | 'dond' | 'box' | 'chest' | 'pack'
 export type GameValuesType = {
     deathroll: {
         winningNumberRanges: [number, number][]
-        /** Defines what counts as a pot-skip (for tracking stats only) */
+        /** Defines what counts as a pot-skip (for tracking stats only)  */
         potSkip: { diceTarget: number; roll: number; potPenalty: number }
         addToPot: {
             /** When on new ATH streak, this multiplier will be applied to streak */
