@@ -405,7 +405,7 @@ export const GameValues: GameValuesType = {
 
     // Blackjack
     blackjack: {
-        deathrollRefundEnabled: false, // If true, lostAddedBack is shown and refund is applied
+        deathrollRefundEnabled: true, // If true, lostAddedBack is shown and refund is applied
     },
     wordle: {
         reward: 10000,
