@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '35.3.1'
+    public static readonly currentVersion = '35.3.2'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,9 +28,8 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '* # More or Less',
-                '* Det vil nå være mulighet å stemme på å blackliste kategoriene - men da må samtlige stemmer være for dette.',
-                '* # Terning',
-                '* Forbedringer',
+                '* Tredje kategorien sier nå bare "mysteriekategori"',
+                '* Du kan nå stemme for å blackliste gårsdagens kategori når resultate kommer 05:00 (krever 100% stemmer)',
             ].join('\n')
         )
         container.addSeparator()

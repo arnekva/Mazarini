@@ -10,7 +10,7 @@ import { RocketLeagueCommands } from '../commands/gaming/rocketleagueCommands'
 import { GameValues } from '../general/values'
 import { EmojiHelper, JobStatus } from '../helpers/emojiHelper'
 import { MessageHelper } from '../helpers/messageHelper'
-import { IMoreOrLess, MazariniStorage, MazariniUser, RocketLeagueTournament } from '../interfaces/database/databaseInterface'
+import { IMoreOrLess, IMoreOrLessBanVote, MazariniStorage, MazariniUser, RocketLeagueTournament } from '../interfaces/database/databaseInterface'
 import { DateUtils } from '../utils/dateUtils'
 import { EmbedUtils } from '../utils/embedUtils'
 import { ChannelIds, ThreadIds } from '../utils/mentionUtils'
@@ -462,8 +462,13 @@ export class DailyJobs {
         //     this.messageHelper.sendMessage(threadId, { components: [r] })
         // })
 
+        // Snapshotted here since usersWithStats' `attempted` flag gets reset below, once the new day's category takes over
+        const banVote: IMoreOrLessBanVote | null = attempted
+            ? { slug: storage.moreOrLess.current.slug, title: storage.moreOrLess.current.title, eligibleVoters: usersWithStats.map((u) => u.id), votes: [] }
+            : null
+
         const embed = EmbedUtils.createSimpleEmbed('More or Less', description + `\n\nDagens tema er **${game.title}**`)
-        this.messageHelper.sendMessage(threadId, { embed: embed })
+        this.messageHelper.sendMessage(threadId, { embed: embed, ...(banVote ? { components: [MoreOrLess.buildBanVoteButtonRow(banVote)] } : {}) })
         this.client.database.updateStorage({
             moreOrLess: {
                 current: game,
@@ -471,6 +476,7 @@ export class DailyJobs {
                 blacklist: blacklist,
                 vote: null,
                 forcedNext: null,
+                banVote: banVote,
             },
         })
 

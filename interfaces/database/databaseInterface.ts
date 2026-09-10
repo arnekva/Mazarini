@@ -424,6 +424,8 @@ export interface MazariniStorage {
         vote?: IMoreOrLessVote | null
         /** Admin override for tomorrow's category (/admin moreorless next). Takes priority over any pending vote, cleared at 05:00 once consumed */
         forcedNext?: IMoreOrLess | null
+        /** Vote to permanently ban the category that just closed, opened alongside the 05:00 "gårsdagens kategori" results. Replaced the next time that job runs. */
+        banVote?: IMoreOrLessBanVote | null
     }
     mastermind?: string[]
     luckyWheel?: ILuckyWheelReward[]
@@ -481,6 +483,17 @@ export interface IMoreOrLessVote {
     votes: { [userId: string]: string }
     /** userId -> slugs the user has voted to blacklist. Independent of `votes` - a user can blacklist any number of candidates */
     blacklistVotes?: { [userId: string]: string[] }
+}
+
+export interface IMoreOrLessBanVote {
+    slug: string
+    title: string
+    /** Snapshot of userIds who played this category, taken when it closes (their `attempted` flag gets reset right after) - only they may vote to ban it */
+    eligibleVoters: string[]
+    /** userIds who have voted to ban this category */
+    votes: string[]
+    /** Set once `votes` covers every eligible voter and the category has been added to the blacklist */
+    banned?: boolean
 }
 
 export interface IMoreOrLess {

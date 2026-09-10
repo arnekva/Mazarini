@@ -6,7 +6,7 @@ import { GameValues } from '../../general/values'
 import { randomUUID } from 'crypto'
 import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { SimpleContainer } from '../../Abstracts/SimpleContainer'
-import { IMoreOrLess, IMoreOrLessVote, MazariniStorage } from '../../interfaces/database/databaseInterface'
+import { IMoreOrLess, IMoreOrLessBanVote, IMoreOrLessVote, MazariniStorage } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement, IOnTimedEvent } from '../../interfaces/interactionInterface'
 import { CustomMOLHandler } from '../../res/games/moreOrLess/CustomMOLHandler'
 import { DateUtils } from '../../utils/dateUtils'
@@ -444,15 +444,19 @@ export class MoreOrLess extends AbstractCommands {
             })
         })
 
-        return vote.candidates.map((candidate) =>
-            new ActionRowBuilder<ButtonBuilder>().addComponents(
-                new ButtonBuilder({
-                    custom_id: `MORE_OR_LESS_VOTE;${candidate.slug}`,
-                    style: ButtonStyle.Primary,
-                    label: `${candidate.title} (${counts[candidate.slug] ?? 0})`,
-                    disabled: false,
-                    type: 2,
-                }),
+        return vote.candidates.map((candidate, i) => {
+            // the 3rd candidate is kept as a surprise pick, so its name is hidden - and since no one knows what it is, it can't be voted to be blacklisted either
+            const isMystery = i === 2
+            const voteBtn = new ButtonBuilder({
+                custom_id: `MORE_OR_LESS_VOTE;${candidate.slug}`,
+                style: ButtonStyle.Primary,
+                label: `${isMystery ? 'Mysteriekategori' : candidate.title} (${counts[candidate.slug] ?? 0})`,
+                disabled: false,
+                type: 2,
+            })
+            if (isMystery) return new ActionRowBuilder<ButtonBuilder>().addComponents(voteBtn)
+            return new ActionRowBuilder<ButtonBuilder>().addComponents(
+                voteBtn,
                 new ButtonBuilder({
                     custom_id: `MORE_OR_LESS_BLACKLIST;${candidate.slug}`,
                     style: ButtonStyle.Danger,
@@ -461,13 +465,28 @@ export class MoreOrLess extends AbstractCommands {
                     type: 2,
                 })
             )
-        )
+        })
     }
 
     private addVoteComponents(container: SimpleContainer, vote: IMoreOrLessVote) {
         container.addSeparator()
         container.addComponent(new TextDisplayBuilder().setContent('**Morgendagens kategori:**'), 'vote-header')
         this.buildVoteButtonRows(vote).forEach((row, i) => container.addComponent(row, `vote-buttons-${i}`))
+    }
+
+    /** Builds the ban-vote button shown on the 05:00 "gårsdagens kategori" results message. Only the users who played that category may vote with it. */
+    static buildBanVoteButtonRow(banVote: IMoreOrLessBanVote): ActionRowBuilder<ButtonBuilder> {
+        return new ActionRowBuilder<ButtonBuilder>().addComponents(
+            new ButtonBuilder({
+                custom_id: 'MORE_OR_LESS_BAN_CATEGORY',
+                style: ButtonStyle.Danger,
+                label: banVote.banned
+                    ? 'Kategorien er bannet!'
+                    : `Ban gårsdagens kategori (${banVote.votes.length}/${banVote.eligibleVoters.length})`,
+                disabled: !!banVote.banned,
+                type: 2,
+            })
+        )
     }
 
     /** Automatically posts the daily More or Less results to the dedicated thread at 18:00, along with a vote for tomorrow's category. */
@@ -533,6 +552,39 @@ export class MoreOrLess extends AbstractCommands {
         await interaction.message.edit({ components: [container.container] })
     }
 
+    /** Lets a user who played the category that just closed (posted at 05:00) vote to permanently blacklist it. Goes through once every eligible voter agrees. */
+    private async castBanVote(interaction: BtnInteraction) {
+        const storage = await this.client.database.getStorage()
+        const banVote = storage.moreOrLess.banVote
+        if (!banVote || banVote.banned) {
+            interaction.deferUpdate()
+            return
+        }
+        if (!banVote.eligibleVoters.includes(interaction.user.id)) {
+            return this.messageHelper.replyToInteraction(interaction, 'Bare de som spilte denne kategorien kan stemme på å banne den.', { ephemeral: true })
+        }
+
+        const alreadyVoted = banVote.votes.includes(interaction.user.id)
+        banVote.votes = alreadyVoted ? banVote.votes.filter((id) => id !== interaction.user.id) : [...banVote.votes, interaction.user.id]
+
+        const shouldBan = banVote.votes.length === banVote.eligibleVoters.length
+        if (shouldBan) {
+            banVote.banned = true
+            const existing = storage.moreOrLess.blacklist ?? []
+            if (!existing.includes(banVote.slug)) storage.moreOrLess.blacklist = [...existing, banVote.slug]
+        }
+        await this.client.database.updateStorage({ moreOrLess: { ...storage.moreOrLess, banVote } })
+
+        this.messageHelper.sendLogMessage(
+            `${interaction.user.username} stemte ${alreadyVoted ? 'ikke lenger ' : ''}for å banne ${banVote.title}${
+                shouldBan ? ' - kategorien er nå blacklistet!' : ''
+            }`
+        )
+
+        interaction.deferUpdate()
+        await interaction.message.edit({ components: [MoreOrLess.buildBanVoteButtonRow(banVote)] })
+    }
+
     override onSave(): Promise<boolean> {
         this.userGames.forEach((game, user) => {
             if (game.active) {
@@ -594,6 +646,12 @@ export class MoreOrLess extends AbstractCommands {
                         commandName: 'MORE_OR_LESS_BLACKLIST',
                         command: (rawInteraction: BtnInteraction) => {
                             this.castBlacklistVote(rawInteraction)
+                        },
+                    },
+                    {
+                        commandName: 'MORE_OR_LESS_BAN_CATEGORY',
+                        command: (rawInteraction: BtnInteraction) => {
+                            this.castBanVote(rawInteraction)
                         },
                     },
                 ],
