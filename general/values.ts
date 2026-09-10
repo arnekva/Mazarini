@@ -8,7 +8,7 @@ type rewardType = number | 'dond' | 'box' | 'chest' | 'pack'
 export type GameValuesType = {
     deathroll: {
         winningNumberRanges: [number, number][]
-        /** Defines what counts as a pot-skip (for tracking stats only) */
+        /** Defines what counts as a pot-skip (for tracking stats only)  */
         potSkip: { diceTarget: number; roll: number; potPenalty: number }
         addToPot: {
             /** When on new ATH streak, this multiplier will be applied to streak */
@@ -251,7 +251,7 @@ export const GameValues: GameValuesType = {
             [201, 400],
             [401, 10002],
         ],
-        potSkip: { diceTarget: 200, roll: 69, potPenalty: -50 },
+        potSkip: { diceTarget: 200, roll: 69, potPenalty: 0 },
         addToPot: {
             athStreakMultiplier: 2000,
             streakMultiplier: 1000,
@@ -405,7 +405,7 @@ export const GameValues: GameValuesType = {
 
     // Blackjack
     blackjack: {
-        deathrollRefundEnabled: false, // If true, lostAddedBack is shown and refund is applied
+        deathrollRefundEnabled: true, // If true, lostAddedBack is shown and refund is applied
     },
     wordle: {
         reward: 10000,

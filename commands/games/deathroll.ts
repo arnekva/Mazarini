@@ -132,7 +132,7 @@ export class Deathroll extends AbstractCommands {
                 additionalMessage += this.checkForJokes(roll, diceTarget)
                 additionalMessage += await this.checkIfPotWon(game, roll, diceTarget, user.id, interaction.channelId)
 
-                if (roll >= 100 && roll !== diceTarget) {
+                if (diceTarget >= 100 && roll !== diceTarget) {
                     //Check if roll is a shuffled variant of the target number
                     additionalMessage = this.checkForShuffle(roll, diceTarget, additionalMessage)
                 }
