@@ -73,12 +73,11 @@ export class RocketLeagueCommands extends AbstractCommands {
      await interaction.deferReply()
 const platform = user[0]
 const name = user[1]
-const url = `https://api.tracker.gg/api/v2/rocket-league/standard/profile/${platform}/${name}`
+const url = `https://api.tracker.gg/api/v2/rocket-league/standard/profile/${platform}/${encodeURIComponent(name)}`
 
-let data: any //TODO: type this
-try {
+const fetchTrackerBody = (): Promise<string> => {
     const { execFile } = require('child_process') as typeof import('child_process')
-    const body: string = await new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         execFile(
             'curl_chrome116',
             [
@@ -90,13 +89,35 @@ try {
                 url,
             ],
             { timeout: 15000 },
-            (err, stdout) => (err ? reject(err) : resolve(stdout))
+            (err, stdout, stderr) => (err ? reject(new Error(stderr?.trim() || err.message)) : resolve(stdout))
         )
     })
+}
+
+let data: any //TODO: type this
+let body: string
+try {
+    body = await fetchTrackerBody()
+} catch (err) {
+    // Tracker.gg/Cloudflare occasionally blocks or times out the first attempt - one retry clears most of these
+    try {
+        body = await fetchTrackerBody()
+    } catch (retryErr) {
+        await interaction.editReply('Klarte ikke lese Rocket League-data frå Tracker.gg akkurat no.')
+        this.messageHelper.sendLogMessage(
+            `Rocket League curl feilet for ${interaction.user.username} (${platform}/${name}): ${(retryErr as Error).message}`
+        )
+        return false
+    }
+}
+
+try {
     data = JSON.parse(body)
 } catch {
     await interaction.editReply('Klarte ikke lese Rocket League-data frå Tracker.gg akkurat no.')
-    this.messageHelper.sendLogMessage(`Rocket League-data kunne ikke parses for ${interaction.user.username}.`)
+    this.messageHelper.sendLogMessage(
+        `Rocket League-data kunne ikke parses for ${interaction.user.username} (${platform}/${name}). Svar: ${body?.slice(0, 300)}`
+    )
     return false
 }
 
