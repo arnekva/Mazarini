@@ -509,6 +509,13 @@ export class MoreOrLess extends AbstractCommands {
         this.messageHelper.sendMessage(ThreadIds.MORE_OR_LESS, { components: [container.container] }, { isComponentOnly: true })
     }
 
+    /** Title to use in logs/messages for a vote candidate - never the real title for the hidden 3rd (mystery) candidate. */
+    private candidateLogName(vote: IMoreOrLessVote, slug: string): string {
+        const isMystery = vote.candidates.findIndex((c) => c.slug === slug) === 2
+        if (isMystery) return 'Mysteriekategori'
+        return vote.candidates.find((c) => c.slug === slug)?.title ?? slug
+    }
+
     private async castVote(interaction: BtnInteraction) {
         const storage = await this.client.database.getStorage()
         const vote = storage.moreOrLess.vote
@@ -520,8 +527,7 @@ export class MoreOrLess extends AbstractCommands {
         vote.votes[interaction.user.id] = choice
         await this.client.database.updateStorage({ moreOrLess: { ...storage.moreOrLess, vote } })
 
-        const choiceName = vote.candidates.find((c) => c.slug === choice)?.title ?? choice
-        this.messageHelper.sendLogMessage(`${interaction.user.username} stemte for ${choiceName}`)
+        this.messageHelper.sendLogMessage(`${interaction.user.username} stemte for ${this.candidateLogName(vote, choice)}`)
 
         interaction.deferUpdate()
         const container = await this.buildResultsContainer((userId) => UserUtils.findUserById(userId, this.client)?.username ?? 'Ukjent')
@@ -536,6 +542,11 @@ export class MoreOrLess extends AbstractCommands {
         if (!vote) {
             return this.messageHelper.replyToInteraction(interaction, 'Avstemningen for morgendagens kategori er ikke lenger åpen.', { ephemeral: true })
         }
+        if (!vote.votes?.[interaction.user.id]) {
+            return this.messageHelper.replyToInteraction(interaction, 'Du må stemma på ein kategori før du kan velga stemma for å blacklista', {
+                ephemeral: true,
+            })
+        }
         const choice = interaction.customId.split(';')[1]
         vote.blacklistVotes = vote.blacklistVotes ?? {} // firebase drops empty objects, so a freshly created vote may come back without `blacklistVotes`
         const userBlacklistVotes = vote.blacklistVotes[interaction.user.id] ?? []
@@ -543,8 +554,9 @@ export class MoreOrLess extends AbstractCommands {
         vote.blacklistVotes[interaction.user.id] = alreadyVoted ? userBlacklistVotes.filter((slug) => slug !== choice) : [...userBlacklistVotes, choice]
         await this.client.database.updateStorage({ moreOrLess: { ...storage.moreOrLess, vote } })
 
-        const choiceName = vote.candidates.find((c) => c.slug === choice)?.title ?? choice
-        this.messageHelper.sendLogMessage(`${interaction.user.username} stemte ${alreadyVoted ? 'ikke lenger' : ''} for å blackliste ${choiceName}`)
+        this.messageHelper.sendLogMessage(
+            `${interaction.user.username} stemte ${alreadyVoted ? 'ikke lenger' : ''} for å blackliste ${this.candidateLogName(vote, choice)}`
+        )
 
         interaction.deferUpdate()
         const container = await this.buildResultsContainer((userId) => UserUtils.findUserById(userId, this.client)?.username ?? 'Ukjent')
