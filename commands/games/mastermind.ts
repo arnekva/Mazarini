@@ -294,7 +294,7 @@ export class Mastermind extends AbstractCommands {
                         commandName: 'mastermind',
                         command: (interaction: ChatInteraction) => {
                             const cmd = interaction.options.getSubcommand()
-                            if (cmd === 'spill') this.setupMastermind(interaction)
+                            if (cmd === 'spill') this.messageHelper.replyToInteraction(interaction, 'Denne er nå flyttet til /daily')
                         },
                     },
                 ],

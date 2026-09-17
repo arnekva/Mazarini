@@ -7,6 +7,10 @@ name: Build and push Docker image
 on:
     push:
         branches: [master]
+        # The daily-hub Activity (activities/) deploys separately via Vercel - a push that only
+        # touches it shouldn't trigger a bot rebuild/redeploy.
+        paths-ignore:
+            - 'activities/**'
 
 jobs:
     build-and-push:
