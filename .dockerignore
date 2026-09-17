@@ -19,3 +19,6 @@ res/ccg/inventory
 # Docs / misc not needed at runtime
 README.MD
 *.log
+
+# The daily-hub Activity is its own Next.js app, deployed separately to Vercel - never part of the bot image
+/activities
