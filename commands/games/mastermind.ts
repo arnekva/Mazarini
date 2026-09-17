@@ -185,28 +185,14 @@ export class Mastermind extends AbstractCommands {
         return true
     }
 
+    /** Daily recap: each solver is already paid individually as they solve (via the daily-hub activity),
+     * so this is just a results summary now - no winner-takes-all prize (that would double-pay). */
     private async revealWinner() {
         const users = await this.database.getAllUsers()
         const usersWithStats = users.filter((user) => user.dailyGameStats?.mastermind?.attempted)
         const attempted = (usersWithStats?.length ?? 0) > 0
         let description = `Ingen forsøk ble gjort på gårsdagens mastermind`
         if (attempted) {
-            const completedUsers = usersWithStats
-                .filter((g) => !!g.dailyGameStats?.mastermind?.completed)
-                .sort((a, b) => {
-                    const aBest = a.dailyGameStats?.mastermind?.completed ? a.dailyGameStats?.mastermind?.numAttempts : GameValues.mastermind.totalAttempts + 1
-                    const bBest = b.dailyGameStats?.mastermind?.completed ? b.dailyGameStats?.mastermind?.numAttempts : GameValues.mastermind.totalAttempts + 1
-                    return aBest - bBest
-                })
-
-            const bestScore = completedUsers[0]?.dailyGameStats?.mastermind?.numAttempts
-            const winners =
-                typeof bestScore === 'number'
-                    ? completedUsers.filter(
-                          (user) => user.dailyGameStats.mastermind.numAttempts === bestScore && user.dailyGameStats.mastermind.numAttempts > 0
-                      )
-                    : []
-
             const results = usersWithStats
                 .slice()
                 .sort((a, b) => {
@@ -219,30 +205,11 @@ export class Mastermind extends AbstractCommands {
                     return aAttempts - bAttempts
                 })
                 .map((user) => {
-                    const isWinner = winners.some((winner) => winner.id === user.id)
                     const userResult = `${user.dailyGameStats.mastermind.completed ? user.dailyGameStats.mastermind.numAttempts + ' forsøk' : ':x:'}`
-                    return `${UserUtils.findUserById(user.id, this.client).displayName}: ${userResult} ${isWinner ? ':first_place:' : ''}`
+                    return `${UserUtils.findUserById(user.id, this.client).displayName}: ${userResult}`
                 })
                 .join('\n')
-
-            if (usersWithStats.length < GameValues.mastermind.minPlayers) {
-                description = `Bare ${usersWithStats.length} spiller spilte gårsdagens mastermind, ingen premie deles ut.` + `\n\nResultater:\n${results}`
-            } else if (winners && winners.length > 0) {
-                const winnerNames = []
-                const winnerReward = Math.floor(GameValues.mastermind.winnerReward / winners.length)
-                const winnerRewardShards = GameValues.mastermind.winnerRewardShards
-                for (const winner of winners) {
-                    winner.ccg = { ...winner.ccg, shards: (winner.ccg?.shards ?? 0) + winnerRewardShards }
-                    this.client.bank.giveMoney(winner, winnerReward)
-                    winnerNames.push(UserUtils.findUserById(winner.id, this.client))
-                }
-                description =
-                    `Gratulerer til gårsdagens vinner${winners.length > 1 ? 'e' : ''} for raskeste løst mastermind, ${winnerNames.join(
-                        ' og '
-                    )}, som vinner ${winnerReward} chips og ${winnerRewardShards} shards!` + `\n\nResultater:\n${results}`
-            } else {
-                description = `Det ble ingen vinner av gårsdagens mastermind` + `\nResultater:\n${results}`
-            }
+            description = `Resultater fra gårsdagens mastermind:\n${results}`
         }
 
         const embed = EmbedUtils.createSimpleEmbed('Mastermind', description)

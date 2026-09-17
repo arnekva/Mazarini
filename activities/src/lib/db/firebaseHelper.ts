@@ -22,6 +22,12 @@ export class FirebaseHelper {
     return this.getData(`users/${userId}`)
   }
 
+  /** Shallow-merges `fields` onto users/{userId} - only the given fields change, everything else (including
+   * concurrent writes from the bot itself) is left alone. Prefer this over reading+writing the whole user. */
+  public updateUserFields(userId: string, fields: Record<string, unknown>) {
+    return update(ref(this.db, `${database}/users/${userId}`), fields)
+  }
+
   public updateData(updates: Record<string, unknown>) {
     return update(ref(this.db, database), updates)
   }

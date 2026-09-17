@@ -171,6 +171,10 @@ export interface DeckEditorCard {
 export interface IDailyGameStats {
     moreOrLess?: IMoreOrLessStats
     mastermind?: IMastermindStats
+    /** Daily-hub challenges (reuses the same shape as mastermind - attempted/completed/numAttempts) */
+    flag?: IMastermindStats
+    outline?: IMastermindStats
+    capital?: IMastermindStats
 }
 
 export interface IMoreOrLessStats {
@@ -186,6 +190,9 @@ export interface IMastermindStats {
     attempted?: boolean
     completed?: boolean
     numAttempts?: number
+    /** Guess history for the daily-hub Mastermind (the old chat-based game kept this in memory instead - a
+     * stateless HTTP API needs it persisted so a page reload doesn't lose progress). Unused by flag/outline/capital. */
+    guesses?: { guess: string[]; black: number; white: number }[]
 }
 
 export interface IUserSettings {
@@ -437,6 +444,34 @@ export interface MazariniStorage {
     ccg?: ICCGSystem
     /** Multi-day scheduled tasks driven down by the daily jobs */
     scheduledTasks?: IScheduledTasks
+    /** Today's shared daily-hub puzzles (flag/outline/capital), generated once by the daily job. */
+    dailyHubChallenges?: IDailyHubChallenges
+}
+
+export interface IDailyHubChallenges {
+    /** yyyy-mm-dd - the date these puzzles were generated for */
+    date: string
+    flag: IDailyHubCountryChallenge
+    capital: IDailyHubCountryChallenge
+    outline: IDailyHubOutlineChallenge
+}
+
+export interface IDailyHubCountryChallenge {
+    /** Multiple-choice options (shuffled), never includes which one is correct - only the server checks that */
+    options: string[]
+    answer: string
+    /** Only set on the flag challenge */
+    flagPng?: string
+    /** Only set on the capital challenge - the country name shown to the player */
+    countryName?: string
+}
+
+export interface IDailyHubOutlineChallenge {
+    options: string[]
+    answer: string
+    /** Precomputed SVG path for the country's outline, so the activity never has to bundle/process a world map itself */
+    path: string
+    viewBox: string
 }
 
 export interface IScheduledTasks {

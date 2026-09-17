@@ -1,0 +1,83 @@
+.itemBox {
+  text-align: center;
+  padding: 16px;
+  border-radius: 12px;
+  background: #1e2128;
+  border: 1px solid var(--card-border);
+}
+
+.itemImg {
+  max-width: 100%;
+  max-height: 100px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.itemSubject {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.itemValue {
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 18px;
+  margin-top: 4px;
+}
+
+.vs {
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.guessRow {
+  display: flex;
+  gap: 10px;
+}
+
+.guessBtn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  background: #1e2128;
+  color: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.guessBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.lessBtn:hover:not(:disabled) {
+  border-color: var(--blue);
+}
+
+.moreBtn:hover:not(:disabled) {
+  border-color: var(--red);
+}
+
+.score {
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.startBtn {
+  background: linear-gradient(135deg, var(--gold), var(--purple));
+  border: none;
+  border-radius: 10px;
+  padding: 14px;
+  color: #111;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.startBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
