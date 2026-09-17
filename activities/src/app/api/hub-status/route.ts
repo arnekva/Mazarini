@@ -18,7 +18,9 @@ export async function GET(request: Request) {
     dailyClaimedToday: !!dbUser.daily?.claimedToday,
     dailyStreak: dbUser.daily?.streak ?? 0,
     wheelSpinsLeft: dbUser.dailySpins ?? 1,
-    challengesCompleted: getChallengesCompletedCount(stats),
+    // A 4th completion is real (shows as "solved" on its own card) but doesn't earn a reward, so the
+    // "X/3" summary caps display at the max rather than showing e.g. "4/3".
+    challengesCompleted: Math.min(getChallengesCompletedCount(stats), MAX_REWARDED_CHALLENGES_PER_DAY),
     maxChallenges: MAX_REWARDED_CHALLENGES_PER_DAY,
     challenges: {
       flag: { completed: !!stats.flag?.completed, numAttempts: stats.flag?.numAttempts ?? 0 },

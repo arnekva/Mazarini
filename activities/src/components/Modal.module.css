@@ -17,10 +17,10 @@
   background: var(--card);
   border: 1px solid var(--card-border);
   border-radius: 16px;
-  padding: 20px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
 .header {

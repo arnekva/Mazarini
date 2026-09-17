@@ -140,16 +140,20 @@ export function MoreOrLessModal({ accessToken, onClose, onReward }: { accessToke
               <>
                 <div className={styles.itemBox}>
                   {current.image && <img className={styles.itemImg} src={proxyImageUrl(current.image)} alt="" />}
-                  <div className={styles.itemSubject}>{current.subject}</div>
-                  <div className={styles.itemValue}>
-                    {status.category.strings?.verb} {formatValue(current.answer, status.category.strings?.valueSuffix)}{" "}
-                    {relevantValueTitle(status.category.strings?.verb, status.category.strings?.valueTitle)}
+                  <div className={styles.itemText}>
+                    <div className={styles.itemSubject}>{current.subject}</div>
+                    <div className={styles.itemValue}>
+                      {status.category.strings?.verb} {formatValue(current.answer, status.category.strings?.valueSuffix)}{" "}
+                      {relevantValueTitle(status.category.strings?.verb, status.category.strings?.valueTitle)}
+                    </div>
                   </div>
                 </div>
                 <div className={styles.vs}>VS</div>
                 <div className={styles.itemBox}>
                   {next.image && <img className={styles.itemImg} src={proxyImageUrl(next.image)} alt="" />}
-                  <div className={styles.itemSubject}>{next.subject}</div>
+                  <div className={styles.itemText}>
+                    <div className={styles.itemSubject}>{next.subject}</div>
+                  </div>
                 </div>
 
                 <div className={styles.guessRow}>
