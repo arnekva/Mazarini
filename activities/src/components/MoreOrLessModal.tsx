@@ -37,6 +37,14 @@ function formatValue(n: number | undefined, suffix?: string) {
   return `${n.toLocaleString("no-NO")}${suffix ?? ""}`
 }
 
+// Some categories' `verb` already spells out what valueTitle would repeat (e.g. "has the atomic
+// number" + "Atomic number") - skip valueTitle in that case rather than showing it twice.
+function relevantValueTitle(verb: string | undefined, valueTitle: string | undefined) {
+  if (!valueTitle) return undefined
+  if (verb && verb.toLowerCase().includes(valueTitle.toLowerCase())) return undefined
+  return valueTitle
+}
+
 export function MoreOrLessModal({ accessToken, onClose, onReward }: { accessToken: string; onClose: () => void; onReward: (reward: number, chips: number) => void }) {
   const [status, setStatus] = useState<StatusResponse | null>(null)
   const [current, setCurrent] = useState<Item | null>(null)
@@ -133,7 +141,8 @@ export function MoreOrLessModal({ accessToken, onClose, onReward }: { accessToke
                   {current.image && <img className={styles.itemImg} src={current.image} alt="" />}
                   <div className={styles.itemSubject}>{current.subject}</div>
                   <div className={styles.itemValue}>
-                    {status.category.strings?.verb} {formatValue(current.answer, status.category.strings?.valueSuffix)} {status.category.strings?.valueTitle}
+                    {status.category.strings?.verb} {formatValue(current.answer, status.category.strings?.valueSuffix)}{" "}
+                    {relevantValueTitle(status.category.strings?.verb, status.category.strings?.valueTitle)}
                   </div>
                 </div>
                 <div className={styles.vs}>VS</div>
