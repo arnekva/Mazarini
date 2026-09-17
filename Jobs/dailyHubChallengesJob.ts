@@ -70,6 +70,9 @@ export async function generateDailyHubChallenges(client: MazariniClient, users: 
         resetDailyHubUserStats(client, users)
         return 'success'
     } catch (err) {
+        // sendLogMessage is a no-op when ENVIRONMENT=dev (see helpers/messageHelper.ts), so also log
+        // to the console - otherwise a local run swallows the real error with no visibility at all.
+        console.error('Daily hub-utfordringer feilet:', err)
         client.messageHelper.sendLogMessage(`Daily hub-utfordringer feilet: ${err}`)
         return 'failed'
     }
