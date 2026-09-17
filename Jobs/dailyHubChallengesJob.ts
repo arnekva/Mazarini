@@ -69,7 +69,8 @@ export async function generateDailyHubChallenges(client: MazariniClient, users: 
         client.database.updateStorage({ dailyHubChallenges: challenges })
         resetDailyHubUserStats(client, users)
         return 'success'
-    } catch {
+    } catch (err) {
+        client.messageHelper.sendLogMessage(`Daily hub-utfordringer feilet: ${err}`)
         return 'failed'
     }
 }
