@@ -1,18 +1,25 @@
 "use client"
 
 import { callApi } from "@/lib/apiClient"
+import { capitalNames, countryNames } from "@/lib/countryLists"
 import { proxyImageUrl } from "@/lib/imgProxy"
 import { useEffect, useState } from "react"
 import styles from "./Modal.module.css"
+import { TypeaheadInput } from "./TypeaheadInput"
 
 type GameId = "flag" | "outline" | "capital"
 
 interface Challenge {
-  options: string[]
   flagPng?: string
   countryName?: string
   path?: string
   viewBox?: string
+}
+
+const suggestionsByGame: Record<GameId, string[]> = {
+  flag: countryNames,
+  outline: countryNames,
+  capital: capitalNames,
 }
 
 interface StatusResponse {
@@ -124,13 +131,7 @@ export function CountryGuessModal({
 
             {message && <div className={`${styles.result} ${message.startsWith("Riktig") ? styles.resultCorrect : styles.resultWrong}`}>{message}</div>}
 
-            <div className={styles.optionsGrid}>
-              {status.challenge.options.map((option) => (
-                <button key={option} className={styles.optionBtn} type="button" disabled={busy || done || status.completed} onClick={() => guess(option)}>
-                  {option}
-                </button>
-              ))}
-            </div>
+            {!(busy || done || status.completed) && <TypeaheadInput suggestions={suggestionsByGame[game]} onSubmit={guess} disabled={busy} />}
           </>
         )}
       </div>

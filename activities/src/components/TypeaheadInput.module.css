@@ -1,0 +1,65 @@
+.wrapper {
+  position: relative;
+}
+
+.input {
+  width: 100%;
+  background: #1e2128;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: inherit;
+  font-size: 15px;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--blue);
+}
+
+.suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #1e2128;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 10;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.suggestion {
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.suggestion:hover,
+.suggestionActive {
+  background: #2a2d34;
+}
+
+.submitBtn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, var(--gold), var(--purple));
+  color: #111;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
