@@ -4,10 +4,13 @@ import { JobStatus } from '../helpers/emojiHelper'
 import { IDailyHubChallenges, MazariniUser } from '../interfaces/database/databaseInterface'
 import { RandomUtils } from '../utils/randomUtils'
 
-interface RestCountry {
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const worldCountries = require('world-countries')
+
+interface Country {
     name: { common: string }
     capital?: string[]
-    flags: { png: string }
+    cca2: string
     ccn3?: string
 }
 
@@ -22,19 +25,24 @@ function pickDistractors<T>(pool: T[], exclude: T, count: number): T[] {
     return shuffled(candidates).slice(0, count)
 }
 
-async function fetchCountries(): Promise<RestCountry[]> {
-    const response = await fetch('https://restcountries.com/v3.1/all?fields=name,capital,flags,ccn3')
-    if (!response.ok) throw new Error(`REST Countries fetch failed: ${response.status}`)
-    return (await response.json()) as RestCountry[]
+/** Flag image URL for a country - flagcdn.com is a free, keyless CDN, so this needs no live "list
+ * countries" API call at all (REST Countries' v3.1 API was deprecated without warning - see the
+ * git history here - so this data now comes from the bundled `world-countries` package instead). */
+function flagPngUrl(cca2: string): string {
+    return `https://flagcdn.com/w320/${cca2.toLowerCase()}.png`
+}
+
+function getCountries(): Country[] {
+    return worldCountries as Country[]
 }
 
 /** Generates today's shared daily-hub puzzles (Flag, Outline, Capital) - same for every user, like the
  * existing Mastermind solution. Run once a day by the daily job. */
 export async function generateDailyHubChallenges(client: MazariniClient, users: MazariniUser[]): Promise<JobStatus> {
     try {
-        const countries = await fetchCountries()
+        const countries = getCountries()
         const withCapital = countries.filter((c) => c.name?.common && c.capital?.[0])
-        const withFlag = countries.filter((c) => c.name?.common && c.flags?.png)
+        const withFlag = countries.filter((c) => c.name?.common && c.cca2)
         const outlineCapableIds = await getOutlineCapableCcn3s()
         const withOutline = countries.filter((c) => c.name?.common && c.ccn3 && outlineCapableIds.has(c.ccn3))
 
@@ -61,7 +69,7 @@ export async function generateDailyHubChallenges(client: MazariniClient, users: 
 
         const challenges: IDailyHubChallenges = {
             date: new Date().toISOString().slice(0, 10),
-            flag: { options: flagOptions, answer: flagCountry.name.common, flagPng: flagCountry.flags.png },
+            flag: { options: flagOptions, answer: flagCountry.name.common, flagPng: flagPngUrl(flagCountry.cca2) },
             capital: { options: capitalOptions, answer: capitalCountry.capital[0], countryName: capitalCountry.name.common },
             outline: { options: outlineOptions, answer: outlineCountry.name.common, path: outline.path, viewBox: outline.viewBox },
         }
