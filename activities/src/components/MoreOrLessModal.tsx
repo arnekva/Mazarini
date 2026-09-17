@@ -1,6 +1,7 @@
 "use client"
 
 import { callApi } from "@/lib/apiClient"
+import { proxyImageUrl } from "@/lib/imgProxy"
 import { useEffect, useState } from "react"
 import modalStyles from "./Modal.module.css"
 import styles from "./MoreOrLessModal.module.css"
@@ -138,7 +139,7 @@ export function MoreOrLessModal({ accessToken, onClose, onReward }: { accessToke
             {current && next && !roundOver && (
               <>
                 <div className={styles.itemBox}>
-                  {current.image && <img className={styles.itemImg} src={current.image} alt="" />}
+                  {current.image && <img className={styles.itemImg} src={proxyImageUrl(current.image)} alt="" />}
                   <div className={styles.itemSubject}>{current.subject}</div>
                   <div className={styles.itemValue}>
                     {status.category.strings?.verb} {formatValue(current.answer, status.category.strings?.valueSuffix)}{" "}
@@ -147,7 +148,7 @@ export function MoreOrLessModal({ accessToken, onClose, onReward }: { accessToke
                 </div>
                 <div className={styles.vs}>VS</div>
                 <div className={styles.itemBox}>
-                  {next.image && <img className={styles.itemImg} src={next.image} alt="" />}
+                  {next.image && <img className={styles.itemImg} src={proxyImageUrl(next.image)} alt="" />}
                   <div className={styles.itemSubject}>{next.subject}</div>
                 </div>
 

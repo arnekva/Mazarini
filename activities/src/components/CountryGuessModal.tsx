@@ -1,6 +1,7 @@
 "use client"
 
 import { callApi } from "@/lib/apiClient"
+import { proxyImageUrl } from "@/lib/imgProxy"
 import { useEffect, useState } from "react"
 import styles from "./Modal.module.css"
 
@@ -111,7 +112,7 @@ export function CountryGuessModal({
 
             <div className={styles.visualBox}>
               {game === "flag" && status.challenge.flagPng && (
-                <img className={styles.flagImg} src={status.challenge.flagPng} alt="Flagg" />
+                <img className={styles.flagImg} src={proxyImageUrl(status.challenge.flagPng)} alt="Flagg" />
               )}
               {game === "outline" && status.challenge.path && (
                 <svg className={styles.outlineSvg} viewBox={status.challenge.viewBox}>
