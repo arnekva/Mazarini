@@ -575,7 +575,7 @@ export class MoreOrLess extends AbstractCommands {
         if (!banVote.eligibleVoters.includes(interaction.user.id)) {
             return this.messageHelper.replyToInteraction(interaction, 'Bare de som spilte denne kategorien kan stemme på å banne den.', { ephemeral: true })
         }
-
+        banVote.votes = banVote.votes ?? []
         const alreadyVoted = banVote.votes.includes(interaction.user.id)
         banVote.votes = alreadyVoted ? banVote.votes.filter((id) => id !== interaction.user.id) : [...banVote.votes, interaction.user.id]
 
