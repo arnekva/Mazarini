@@ -35,7 +35,7 @@ export async function generateDailyHubChallenges(client: MazariniClient, users: 
         const countries = await fetchCountries()
         const withCapital = countries.filter((c) => c.name?.common && c.capital?.[0])
         const withFlag = countries.filter((c) => c.name?.common && c.flags?.png)
-        const outlineCapableIds = getOutlineCapableCcn3s()
+        const outlineCapableIds = await getOutlineCapableCcn3s()
         const withOutline = countries.filter((c) => c.name?.common && c.ccn3 && outlineCapableIds.has(c.ccn3))
 
         if (withCapital.length < DISTRACTOR_COUNT + 1 || withFlag.length < DISTRACTOR_COUNT + 1 || withOutline.length < DISTRACTOR_COUNT + 1) {
@@ -52,7 +52,7 @@ export async function generateDailyHubChallenges(client: MazariniClient, users: 
         ])
 
         const outlineCountry = RandomUtils.getRandomItemFromList(withOutline)
-        const outline = getCountryOutlinePath(outlineCountry.ccn3)
+        const outline = await getCountryOutlinePath(outlineCountry.ccn3)
         if (!outline) return 'failed'
         const outlineOptions = shuffled([
             outlineCountry.name.common,
