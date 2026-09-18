@@ -6,6 +6,7 @@ import { MazariniClient } from '../client/MazariniClient'
 import { Deathroll } from '../commands/games/deathroll'
 import { Mastermind } from '../commands/games/mastermind'
 import { MoreOrLess } from '../commands/games/moreOrLess'
+import { generateDailyHubChallenges } from './dailyHubChallengesJob'
 import { RocketLeagueCommands } from '../commands/gaming/rocketleagueCommands'
 import { GameValues } from '../general/values'
 import { EmojiHelper, JobStatus } from '../helpers/emojiHelper'
@@ -34,7 +35,7 @@ export class DailyJobs {
         } else {
             //TODO: This could be refactored
             const users = await this.client.database.getAllUsers()
-            const embed = EmbedUtils.createSimpleEmbed(`Daily Jobs`, `Kjører 8 jobber`)
+            const embed = EmbedUtils.createSimpleEmbed(`Daily Jobs`, `Kjører 9 jobber`)
 
             const claim = this.validateAndResetDailyClaims(users)
             embed.addFields({ name: 'Daily claim', value: EmojiHelper.getStatusEmoji(claim) })
@@ -54,6 +55,8 @@ export class DailyJobs {
             embed.addFields({ name: 'More or less', value: EmojiHelper.getStatusEmoji(moreOrLess) })
             const shardReward = await this.awardScheduledShardReward(users)
             embed.addFields({ name: 'Shard-belønning', value: EmojiHelper.getStatusEmoji(shardReward) })
+            const dailyHub = await generateDailyHubChallenges(this.client, users)
+            embed.addFields({ name: 'Daily hub-utfordringer', value: EmojiHelper.getStatusEmoji(dailyHub) })
             //const events = await this.generateDailyEvents()
             //embed.addFields({ name: 'Events', value: EmojiHelper.getStatusEmoji(events) })
             const todaysTime = new Date().toLocaleTimeString()

@@ -624,7 +624,7 @@ export class MoreOrLess extends AbstractCommands {
                         commandName: 'moreorless',
                         command: (rawInteraction: ChatInteraction) => {
                             const cmd = rawInteraction.options.getSubcommand()
-                            if (cmd === 'spill') this.setupGame(rawInteraction)
+                            if (cmd === 'spill') this.messageHelper.replyToInteraction(rawInteraction, 'Denne er nå flyttet til /daily')
                             else if (cmd === 'resultater') this.revealResults(rawInteraction)
                         },
                     },

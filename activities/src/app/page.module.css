@@ -12,6 +12,16 @@
   font-weight: 800;
   letter-spacing: 0.08em;
   margin: 12px 0 0;
+  background: linear-gradient(135deg, var(--gold), var(--purple));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.chips {
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 15px;
 }
 
 .section {
@@ -38,21 +48,77 @@
   cursor: pointer;
   font-size: 15px;
   font-weight: 600;
-  transition: border-color 0.15s ease, transform 0.1s ease;
+  transition: border-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
 }
 
-.card:hover {
-  border-color: var(--accent);
+.card:hover:not(:disabled) {
+  transform: scale(1.01);
 }
 
-.card:active {
+.card:active:not(:disabled) {
   transform: scale(0.98);
 }
 
 .card:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: default;
   transform: none;
+}
+
+.cardGold {
+  border-color: color-mix(in srgb, var(--gold) 45%, var(--card-border));
+  box-shadow: 0 0 0 0 var(--gold-glow);
+}
+.cardGold:hover:not(:disabled) {
+  box-shadow: 0 0 18px var(--gold-glow);
+}
+
+.cardPurple {
+  border-color: color-mix(in srgb, var(--purple) 45%, var(--card-border));
+}
+.cardPurple:hover:not(:disabled) {
+  box-shadow: 0 0 18px var(--purple-glow);
+}
+
+.cardBlue {
+  border-color: color-mix(in srgb, var(--blue) 40%, var(--card-border));
+}
+.cardBlue:hover:not(:disabled) {
+  box-shadow: 0 0 16px var(--blue-glow);
+}
+
+.cardGreen {
+  border-color: color-mix(in srgb, var(--green) 40%, var(--card-border));
+}
+.cardGreen:hover:not(:disabled) {
+  box-shadow: 0 0 16px var(--green-glow);
+}
+
+.cardRed {
+  border-color: color-mix(in srgb, var(--red) 40%, var(--card-border));
+}
+.cardRed:hover:not(:disabled) {
+  box-shadow: 0 0 16px var(--red-glow);
+}
+
+.cardTeal {
+  border-color: color-mix(in srgb, var(--teal) 40%, var(--card-border));
+}
+.cardTeal:hover:not(:disabled) {
+  box-shadow: 0 0 16px var(--teal-glow);
+}
+
+.sectionHeading {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.cardSub {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
 }
 
 .challengeHeader {
@@ -62,9 +128,9 @@
 }
 
 .challengeCount {
-  color: var(--muted);
+  color: var(--gold);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .challengeGrid {
@@ -83,4 +149,31 @@
   color: var(--muted);
   font-size: 13px;
   margin: -8px 0 0;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  margin-top: 24px;
+  border: 3px solid var(--card-border);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.toast {
+  width: 100%;
+  max-width: 480px;
+  background: var(--card);
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 14px;
+  text-align: center;
 }

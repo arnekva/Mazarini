@@ -1,75 +1,31 @@
-import { ActionRowBuilder, APIEmbedField, ButtonBuilder, EmbedBuilder } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
-import { BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
+import { ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../../client/MazariniClient'
-import { GameValues } from '../../general/values'
-
-import { DailyReward, LootboxQuality } from '../../interfaces/database/databaseInterface'
+import { discordAppId, discordSecret } from '../../client-env'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
-import { DealOrNoDeal, DonDQuality } from '../games/dealOrNoDeal'
-import { LootboxCommands } from '../store/lootboxCommands'
 
 export class DailyClaimCommands extends AbstractCommands {
     constructor(client: MazariniClient) {
         super(client)
     }
 
-    private async claimDailyReward(interaction: ChatInteraction | BtnInteraction) {
-        const embed = new EmbedBuilder()
-        embed.setTitle(`📅  Daily  🗓️`)
-
-        const user = await this.client.database.getUser(interaction.user.id)
-        const canClaim = !user.daily?.claimedToday
-        if (canClaim) {
-            const updates = {}
-            const oldData: DailyReward = user.daily || { claimedToday: false, streak: 0 }
-            const newData: DailyReward = { ...oldData, streak: (oldData?.streak ?? 0) + 1, claimedToday: true }
-
-            let reward = this.getDailyReward(newData)
-            reward = this.client.bank.giveMoney(user, reward)
-            const lootButton = this.getLootboxReward(user.id, newData)
-            embed.setDescription(`Du har henta dine daglige ${reward} chips`)
-            embed.addFields([{ name: 'Streak', value: `${newData.streak ?? 1}` + ' dager', inline: true }])
-            const lootboxField = this.getLootboxField(newData)
-            if (lootboxField) embed.addFields([lootboxField])
-            if (newData.streak === 7) {
-                newData.streak = 0
-                embed.setFooter({ text: 'Streaken din resettes nå te 0' })
-            }
-            user.daily = newData
-            this.client.database.updateUser(user)
-            this.messageHelper.replyToInteraction(interaction, embed, undefined, lootButton)
-        } else {
-            embed.setDescription('Du har allerede henta daily i dag. Vent te imårå klokkå 05:00')
-            this.messageHelper.replyToInteraction(interaction, embed)
-        }
-    }
-
-    private getDailyReward(daily: DailyReward): number {
-        const dailyPrice = GameValues.daily.baseReward
-        return Math.floor((dailyPrice + dailyPrice * (daily.streak ?? 1)) * (GameValues.daily.streakMultiplier ?? 1))
-    }
-
-    private getLootboxReward(userId: string, daily: DailyReward): ActionRowBuilder<ButtonBuilder>[] {
-        if (daily.streak === 7) {
-            const buttons = new ActionRowBuilder<ButtonBuilder>()
-            // const reward = daily.streak === 7 ? GameValues.daily.streak7Reward : GameValues.daily.streak4Reward
-            const reward = GameValues.daily.streak7Reward
-            if (reward === 'chest') return [LootboxCommands.getLootRewardButton(userId, LootboxQuality.Basic, 'chest')]
-            else if (reward === 'box') return [LootboxCommands.getLootRewardButton(userId, LootboxQuality.Basic, 'box')]
-            else if (reward === 'dond') {
-                const dond = DealOrNoDeal.getDealOrNoDealButton(userId, DonDQuality.Basic)
-                buttons.addComponents(dond)
-                return [buttons]
-            }
-        }
-        return undefined
-    }
-
-    private getLootboxField(daily: DailyReward): APIEmbedField {
-        // if (daily.streak === 4) return { name: 'Lootbox', value: '4? Keep up the good work' }
-        if (daily.streak === 7) return { name: 'Lootbox', value: `Sakko! 7 dager i strekk!?\nSe her, ta deg ein ${GameValues.daily.streak7Reward}!` }
-        else return undefined
+    /** Launches the daily activity hub (Daily Claim, Lykkehjul, and the daily challenges) as a Discord Activity in this channel. */
+    private async launchActivity(interaction: ChatInteraction) {
+        const invite = await fetch(`https://discord.com/api/v10/channels/${interaction.channelId}/invites`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bot ${discordSecret}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                max_age: 0,
+                max_uses: 0,
+                target_application_id: discordAppId,
+                target_type: 2, // 2 = Embedded Application
+                temporary: false,
+            }),
+        }).then((res) => res.json())
+        this.messageHelper.replyToInteraction(interaction, `https://discord.com/invite/${invite.code}`)
     }
 
     getAllInteractions(): IInteractionElement {
@@ -79,7 +35,7 @@ export class DailyClaimCommands extends AbstractCommands {
                     {
                         commandName: 'daily',
                         command: (rawInteraction: ChatInteraction) => {
-                            this.claimDailyReward(rawInteraction)
+                            this.launchActivity(rawInteraction)
                         },
                     },
                 ],

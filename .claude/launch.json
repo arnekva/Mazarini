@@ -2,9 +2,9 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "mazarini-activities-dev",
+      "name": "daily-hub",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "C:/Users/Arne/Documents/projects/mazarini-activities"],
+      "runtimeArgs": ["run", "dev", "--prefix", "activities"],
       "port": 3000
     }
   ]

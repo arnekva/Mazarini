@@ -1,0 +1,49 @@
+.status {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.visualBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+}
+
+.flagImg {
+  max-width: 100%;
+  max-height: 160px;
+  border-radius: 6px;
+  border: 1px solid var(--card-border);
+}
+
+.outlineSvg {
+  width: 100%;
+  max-width: 220px;
+  height: auto;
+  fill: var(--foreground);
+}
+
+.countryName {
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.result {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.resultCorrect {
+  background: var(--green-glow);
+  color: var(--green);
+}
+
+.resultWrong {
+  background: var(--red-glow);
+  color: var(--red);
+}

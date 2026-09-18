@@ -421,8 +421,8 @@ export const GameValues: GameValuesType = {
         artPrice: 10000,
     },
     mastermind: {
-        totalAttempts: 12,
-        codeLength: 5,
+        totalAttempts: 10,
+        codeLength: 4,
         winnerReward: 2500,
         winnerRewardShards: 0,
         minPlayers: 1,

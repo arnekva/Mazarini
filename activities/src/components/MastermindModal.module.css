@@ -1,0 +1,90 @@
+.colorRow {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.colorSwatch {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid var(--card-border);
+  cursor: pointer;
+  padding: 0;
+}
+
+.colorSwatch:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.currentGuess {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.slot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px dashed var(--card-border);
+}
+
+.actionsRow {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.smallBtn {
+  background: #1e2128;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  color: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.smallBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.history {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.historyRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.historyPegs {
+  display: flex;
+  gap: 4px;
+}
+
+.peg {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.pegBlack {
+  background: #111;
+  border: 1px solid #555;
+}
+
+.pegWhite {
+  background: #eee;
+}
