@@ -2,6 +2,7 @@ import { FirebaseHelper } from "./db/firebaseHelper"
 import { AuthenticatedDiscordUser } from "./discordAuth"
 import { CountryChallenge, DailyGameStats, DailyHubChallenges, hasRewardedSlotsLeft, publicChallenge } from "./dailyHub"
 import { postChannelMessage } from "./discordMessage"
+import { getGuessHint } from "./geo"
 import { ANNOUNCE_CHANNEL_ID, countryChallengeValues } from "./gameValues"
 
 export type CountryGameId = "flag" | "outline" | "capital"
@@ -74,10 +75,14 @@ export async function submitCountryGuess(game: CountryGameId, user: Authenticate
     [`dailyGameStats/${game}`]: { attempted: true, completed: false, numAttempts },
   })
 
+  // No hint once the answer is being revealed outright - it'd just be redundant noise at that point.
+  const hint = finished ? undefined : getGuessHint(game === "capital" ? "capital" : "country", guess, challenge.answer)
+
   return Response.json({
     correct: false,
     numAttempts,
     attemptsLeft: countryChallengeValues.maxAttempts - numAttempts,
     revealAnswer: finished ? challenge.answer : undefined,
+    hint,
   })
 }

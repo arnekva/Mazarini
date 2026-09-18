@@ -40,6 +40,7 @@ interface GuessResponse {
   alreadyCompleted?: boolean
   noAttemptsLeft?: boolean
   answer?: string
+  hint?: { arrow: string; distanceKm: number }
 }
 
 const titles: Record<GameId, string> = {
@@ -88,8 +89,9 @@ export function CountryGuessModal({
         setDone(true)
         onSolved(result.reward ?? 0, result.chips ?? 0)
       } else {
-        const revealed = result.revealAnswer ? ` Riktig svar var: ${result.revealAnswer}` : ""
-        setMessage(`Feil!${revealed} ${result.attemptsLeft ?? 0} forsøk igjen.`)
+        const revealed = result.revealAnswer ? ` Riktig svar var: ${result.revealAnswer}.` : ""
+        const hint = result.hint ? ` ${result.hint.arrow} ~${result.hint.distanceKm.toLocaleString("no-NO")} km unna.` : ""
+        setMessage(`Feil!${hint}${revealed} ${result.attemptsLeft ?? 0} forsøk igjen.`)
         if (result.revealAnswer) setDone(true)
         setStatus((s) => (s ? { ...s, numAttempts: result.numAttempts ?? s.numAttempts } : s))
       }
