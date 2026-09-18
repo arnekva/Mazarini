@@ -46,13 +46,20 @@ function relevantValueTitle(verb: string | undefined, valueTitle: string | undef
   return valueTitle
 }
 
+interface RoundResult {
+  correct: boolean
+  rewardLine: string
+  revealLine: string
+}
+
 export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
   const [status, setStatus] = useState<StatusResponse | null>(null)
   const [current, setCurrent] = useState<Item | null>(null)
   const [next, setNext] = useState<Item | null>(null)
   const [correctAnswers, setCorrectAnswers] = useState(0)
   const [busy, setBusy] = useState(false)
-  const [result, setResult] = useState<string | null>(null)
+  const [startError, setStartError] = useState<string | null>(null)
+  const [result, setResult] = useState<RoundResult | null>(null)
   const [roundOver, setRoundOver] = useState(false)
 
   useEffect(() => {
@@ -73,13 +80,14 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
         method: "POST",
       })
       if (res.error) {
-        setResult(res.error)
+        setStartError(res.error)
         return
       }
       setCurrent(res.current)
       setNext(res.next)
       setCorrectAnswers(0)
       setRoundOver(false)
+      setStartError(null)
       setResult(null)
     } finally {
       setBusy(false)
@@ -98,13 +106,11 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
       if (res.finished) {
         setRoundOver(true)
         setCorrectAnswers(res.correctAnswers ?? correctAnswers)
-        const rewardMsg = res.reward ? ` Du fikk ${res.reward} chips (ny beste)!` : " Ingen ny chips - slo ikke din beste."
-        setResult(
-          `${res.correct ? "Du fullførte kategorien!" : "Feil svar."}${rewardMsg} ${res.revealedNext?.subject}: ${formatValue(
-            res.revealedNext?.answer,
-            status?.category.strings?.valueSuffix
-          )}`
-        )
+        setResult({
+          correct: !!res.correct,
+          rewardLine: res.reward ? `+${res.reward} chips - ny beste!` : "Ingen nye chips - slo ikke din beste.",
+          revealLine: `${res.revealedNext?.subject}: ${formatValue(res.revealedNext?.answer, status?.category.strings?.valueSuffix)}`,
+        })
       } else {
         setCurrent(res.current ?? null)
         setNext(res.next ?? null)
@@ -123,6 +129,7 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
       <p className={contentStyles.status}>{status.category.title}</p>
 
       {status.unsupported && <p className={contentStyles.status}>Denne kategorien støttes ikke i appen ennå - prøv /moreorless i chat.</p>}
+      {startError && <p className={contentStyles.status}>{startError}</p>}
 
       {!status.unsupported && !current && (
         <button className={styles.startBtn} type="button" disabled={busy} onClick={start}>
@@ -162,7 +169,13 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
         </>
       )}
 
-      {result && <div className={`${contentStyles.result} ${result.startsWith("Du full") ? contentStyles.resultCorrect : contentStyles.resultWrong}`}>{result}</div>}
+      {result && (
+        <div className={`${contentStyles.result} ${result.correct ? contentStyles.resultCorrect : contentStyles.resultWrong}`}>
+          <div className={styles.resultHeadline}>{result.correct ? "Fullført!" : "Feil svar"}</div>
+          <div className={styles.resultLine}>{result.rewardLine}</div>
+          <div className={styles.resultLine}>{result.revealLine}</div>
+        </div>
+      )}
 
       {roundOver && (
         <button className={styles.startBtn} type="button" disabled={busy} onClick={start}>

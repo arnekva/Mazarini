@@ -90,3 +90,19 @@
   opacity: 0.5;
   cursor: default;
 }
+
+.resultHeadline {
+  text-align: left;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.resultLine {
+  text-align: left;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
