@@ -39,48 +39,56 @@ export default function Home() {
   return (
     <div className={styles.page}>
       <h1 className={styles.title}>DAILY</h1>
-      {status && <span className={styles.chips}>{status.chips} chips</span>}
+      {/* Always rendered (even before status loads) so its height is reserved from first paint -
+          otherwise the cards below jump down once this pops in, right where you're about to click. */}
+      <span className={styles.chips}>{status ? `${status.chips} chips` : " "}</span>
 
-      <div className={styles.section}>
-        <div className={styles.row}>
-          <HubCard href="/daily-claim" enabled={loggedIn} cardClass="cardGold">
-            Daily claim
-            <span className={styles.cardSub}>{status?.dailyClaimedToday ? "Hentet i dag" : status ? `Streak: ${status.dailyStreak}` : " "}</span>
-          </HubCard>
-          <HubCard href="/wheel" enabled={loggedIn} cardClass="cardPurple">
-            Lykkehjul
-            <span className={styles.cardSub}>{status ? `${status.wheelSpinsLeft} spinn igjen` : " "}</span>
-          </HubCard>
-        </div>
-      </div>
-
-      <div className={styles.section}>
-        <div className={styles.challengeHeader}>
-          <strong>Daglige utfordringer</strong>
-          <span className={styles.challengeCount}>
-            {status?.challengesCompleted ?? 0} / {status?.maxChallenges ?? 3}
-          </span>
-        </div>
-        <p className={styles.subtitle}>Fullfør opptil 3 for chips i dag - de samme oppgavene gjelder for alle.</p>
-        <div className={styles.challengeGrid}>
-          {challenges.map((c) => {
-            const state = status?.challenges[c.id]
-            return (
-              <HubCard key={c.id} href={`/${c.id}`} enabled={loggedIn} cardClass={c.cardClass}>
-                {c.label}
-                <span className={styles.cardSub}>{state?.completed ? "Løst i dag" : state ? `${state.numAttempts} forsøk brukt` : " "}</span>
+      {!ready ? (
+        <div className={styles.spinner} aria-label="Laster..." />
+      ) : (
+        <>
+          <div className={styles.section}>
+            <div className={styles.row}>
+              <HubCard href="/daily-claim" enabled={loggedIn} cardClass="cardGold">
+                Daily claim
+                <span className={styles.cardSub}>{status?.dailyClaimedToday ? "Hentet i dag" : status ? `Streak: ${status.dailyStreak}` : " "}</span>
               </HubCard>
-            )
-          })}
-        </div>
-      </div>
+              <HubCard href="/wheel" enabled={loggedIn} cardClass="cardPurple">
+                Lykkehjul
+                <span className={styles.cardSub}>{status ? `${status.wheelSpinsLeft} spinn igjen` : " "}</span>
+              </HubCard>
+            </div>
+          </div>
 
-      <div className={styles.section}>
-        <HubCard href="/more-or-less" enabled={loggedIn} cardClass="cardGreen" fullWidth>
-          More or Less
-          <span className={styles.cardSub}>Ubegrenset antall forsøk</span>
-        </HubCard>
-      </div>
+          <div className={styles.section}>
+            <div className={styles.challengeHeader}>
+              <strong>Daglige utfordringer</strong>
+              <span className={styles.challengeCount}>
+                {status?.challengesCompleted ?? 0} / {status?.maxChallenges ?? 3}
+              </span>
+            </div>
+            <p className={styles.subtitle}>Fullfør opptil 3 for chips i dag - de samme oppgavene gjelder for alle.</p>
+            <div className={styles.challengeGrid}>
+              {challenges.map((c) => {
+                const state = status?.challenges[c.id]
+                return (
+                  <HubCard key={c.id} href={`/${c.id}`} enabled={loggedIn} cardClass={c.cardClass}>
+                    {c.label}
+                    <span className={styles.cardSub}>{state?.completed ? "Løst i dag" : state ? `${state.numAttempts} forsøk brukt` : " "}</span>
+                  </HubCard>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className={styles.section}>
+            <HubCard href="/more-or-less" enabled={loggedIn} cardClass="cardGreen" fullWidth>
+              More or Less
+              <span className={styles.cardSub}>Ubegrenset antall forsøk</span>
+            </HubCard>
+          </div>
+        </>
+      )}
     </div>
   )
 }

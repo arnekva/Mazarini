@@ -69,8 +69,14 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
         setCurrent(s.active.current)
         setNext(s.active.next)
         setCorrectAnswers(s.active.correctAnswers)
+      } else if (!s.unsupported) {
+        // No round in progress - jump straight into one instead of making the player click a
+        // "Start" button that, on a repeat visit, read as a bare "Prøv igjen" with nothing else
+        // on screen (looked like a failure state rather than an invitation to play).
+        start()
       }
     })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken])
 
   async function start() {
@@ -130,12 +136,7 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
 
       {status.unsupported && <p className={contentStyles.status}>Denne kategorien støttes ikke i appen ennå - prøv /moreorless i chat.</p>}
       {startError && <p className={contentStyles.status}>{startError}</p>}
-
-      {!status.unsupported && !current && (
-        <button className={styles.startBtn} type="button" disabled={busy} onClick={start}>
-          {status.stats.numAttempts ? "Prøv igjen" : "Start"}
-        </button>
-      )}
+      {!status.unsupported && !current && !roundOver && !startError && <p className={contentStyles.status}>Laster spill...</p>}
 
       {current && next && !roundOver && (
         <>
