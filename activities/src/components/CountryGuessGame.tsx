@@ -4,10 +4,10 @@ import { callApi } from "@/lib/apiClient"
 import { capitalNames, countryNames } from "@/lib/countryLists"
 import { proxyImageUrl } from "@/lib/imgProxy"
 import { useEffect, useState } from "react"
-import styles from "./Modal.module.css"
+import styles from "./GameContent.module.css"
 import { TypeaheadInput } from "./TypeaheadInput"
 
-type GameId = "flag" | "outline" | "capital"
+export type CountryGameId = "flag" | "outline" | "capital"
 
 interface Challenge {
   flagPng?: string
@@ -16,7 +16,7 @@ interface Challenge {
   viewBox?: string
 }
 
-const suggestionsByGame: Record<GameId, string[]> = {
+const suggestionsByGame: Record<CountryGameId, string[]> = {
   flag: countryNames,
   outline: countryNames,
   capital: capitalNames,
@@ -43,23 +43,7 @@ interface GuessResponse {
   hint?: { arrow: string; distanceKm: number }
 }
 
-const titles: Record<GameId, string> = {
-  flag: "Gjett flagget",
-  outline: "Gjett landet fra outline",
-  capital: "Si hovedstaden",
-}
-
-export function CountryGuessModal({
-  game,
-  accessToken,
-  onClose,
-  onSolved,
-}: {
-  game: GameId
-  accessToken: string
-  onClose: () => void
-  onSolved: (reward: number, chips: number) => void
-}) {
+export function CountryGuessGame({ game, accessToken }: { game: CountryGameId; accessToken: string }) {
   const [status, setStatus] = useState<StatusResponse | null>(null)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
@@ -87,7 +71,6 @@ export function CountryGuessModal({
       } else if (result.correct) {
         setMessage(`Riktig! ${result.reward ? `Du fikk ${result.reward} chips.` : "Ingen chips denne gangen (maks 3/dag)."}`)
         setDone(true)
-        onSolved(result.reward ?? 0, result.chips ?? 0)
       } else {
         const revealed = result.revealAnswer ? ` Riktig svar var: ${result.revealAnswer}.` : ""
         const hint = result.hint ? ` ${result.hint.arrow} ~${result.hint.distanceKm.toLocaleString("no-NO")} km unna.` : ""
@@ -100,43 +83,28 @@ export function CountryGuessModal({
     }
   }
 
+  if (!status) return <p className={styles.status}>Laster...</p>
+  if (status.error) return <p className={styles.status}>{status.error}</p>
+
   return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.header}>
-          <h2 className={styles.title}>{titles[game]}</h2>
-          <button className={styles.closeBtn} onClick={onClose} type="button">
-            ✕
-          </button>
-        </div>
+    <>
+      <p className={styles.status}>
+        Forsøk: {status.numAttempts} / {status.maxAttempts}
+      </p>
 
-        {!status && <p className={styles.status}>Laster...</p>}
-        {status?.error && <p className={styles.status}>{status.error}</p>}
-
-        {status && !status.error && (
-          <>
-            <p className={styles.status}>
-              Forsøk: {status.numAttempts} / {status.maxAttempts}
-            </p>
-
-            <div className={styles.visualBox}>
-              {game === "flag" && status.challenge.flagPng && (
-                <img className={styles.flagImg} src={proxyImageUrl(status.challenge.flagPng)} alt="Flagg" />
-              )}
-              {game === "outline" && status.challenge.path && (
-                <svg className={styles.outlineSvg} viewBox={status.challenge.viewBox}>
-                  <path d={status.challenge.path} />
-                </svg>
-              )}
-              {game === "capital" && <div className={styles.countryName}>{status.challenge.countryName}</div>}
-            </div>
-
-            {message && <div className={`${styles.result} ${message.startsWith("Riktig") ? styles.resultCorrect : styles.resultWrong}`}>{message}</div>}
-
-            {!(busy || done || status.completed) && <TypeaheadInput suggestions={suggestionsByGame[game]} onSubmit={guess} disabled={busy} />}
-          </>
+      <div className={styles.visualBox}>
+        {game === "flag" && status.challenge.flagPng && <img className={styles.flagImg} src={proxyImageUrl(status.challenge.flagPng)} alt="Flagg" />}
+        {game === "outline" && status.challenge.path && (
+          <svg className={styles.outlineSvg} viewBox={status.challenge.viewBox}>
+            <path d={status.challenge.path} />
+          </svg>
         )}
+        {game === "capital" && <div className={styles.countryName}>{status.challenge.countryName}</div>}
       </div>
-    </div>
+
+      {message && <div className={`${styles.result} ${message.startsWith("Riktig") ? styles.resultCorrect : styles.resultWrong}`}>{message}</div>}
+
+      {!(busy || done || status.completed) && <TypeaheadInput suggestions={suggestionsByGame[game]} onSubmit={guess} disabled={busy} />}
+    </>
   )
 }
