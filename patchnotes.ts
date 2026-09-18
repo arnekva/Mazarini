@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '35.3.2'
+    public static readonly currentVersion = '36.0.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,9 +27,16 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '* # More or Less',
-                '* Tredje kategorien sier nå bare "mysteriekategori"',
-                '* Du kan nå stemme for å blackliste gårsdagens kategori når resultate kommer 05:00 (krever 100% stemmer)',
+                '* # Daily',
+                '* komplett(.no) redesign av Daily!',
+                '   * Du har nå en hub for daily på /daily hvor du finner alt du trenger - ingen mer leting i forkjellige kanaler',
+                '   * Du kan ALLTID få chips fra daily, MOL og lykkehjul',
+                '   * Du kan nå velge hvilke 3 videre utfordringer du får chips fra:',
+                '       * Gjett hovedstaden',
+                '       * Gjett flagget',
+                '       * Gjett landet fra outline',
+                '       * Mastermind - er nå 2000 - 200*antall forsøk, ikke lenger delt utfordring',
+                '## Dette e ein mega Yolo push, så hvis ingenting funke imårå får alle masse chips gratis :geggiexcited:',
             ].join('\n')
         )
         container.addSeparator()
