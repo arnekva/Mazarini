@@ -62,12 +62,12 @@ export default function Home() {
 
           <div className={styles.section}>
             <div className={styles.challengeHeader}>
-              <strong>Daglige utfordringer</strong>
+              <strong>Quiz - velg 3 for chips</strong>
               <span className={styles.challengeCount}>
                 {status?.challengesCompleted ?? 0} / {status?.maxChallenges ?? 3}
               </span>
             </div>
-            <p className={styles.subtitle}>Fullfør opptil 3 for chips i dag - de samme oppgavene gjelder for alle.</p>
+            <p className={styles.subtitle}>Samme 4 oppgaver for alle i dag - de 3 første riktige gir chips.</p>
             <div className={styles.challengeGrid}>
               {challenges.map((c) => {
                 const state = status?.challenges[c.id]
