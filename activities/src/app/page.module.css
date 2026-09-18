@@ -101,6 +101,18 @@
   box-shadow: 0 0 16px var(--red-glow);
 }
 
+.cardTeal {
+  border-color: color-mix(in srgb, var(--teal) 40%, var(--card-border));
+}
+.cardTeal:hover:not(:disabled) {
+  box-shadow: 0 0 16px var(--teal-glow);
+}
+
+.sectionHeading {
+  font-weight: 700;
+  font-size: 15px;
+}
+
 .cardSub {
   display: block;
   margin-top: 4px;

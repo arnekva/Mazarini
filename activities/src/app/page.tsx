@@ -82,9 +82,10 @@ export default function Home() {
           </div>
 
           <div className={styles.section}>
-            <HubCard href="/more-or-less" enabled={loggedIn} cardClass="cardGreen" fullWidth>
+            <strong className={styles.sectionHeading}>Andre spill</strong>
+            <HubCard href="/more-or-less" enabled={loggedIn} cardClass="cardTeal" fullWidth>
               More or Less
-              <span className={styles.cardSub}>Ubegrenset antall forsøk</span>
+              <span className={styles.cardSub}>Ubegrenset antall forsøk - ikke en del av 0/3</span>
             </HubCard>
           </div>
         </>
