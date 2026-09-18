@@ -58,6 +58,10 @@ export default function Home() {
                 <span className={styles.cardSub}>{status ? `${status.wheelSpinsLeft} spinn igjen` : " "}</span>
               </HubCard>
             </div>
+            <HubCard href="/more-or-less" enabled={loggedIn} cardClass="cardTeal" fullWidth>
+              More or Less
+              <span className={styles.cardSub}>Ubegrenset antall forsøk</span>
+            </HubCard>
           </div>
 
           <div className={styles.section}>
@@ -79,14 +83,6 @@ export default function Home() {
                 )
               })}
             </div>
-          </div>
-
-          <div className={styles.section}>
-            <strong className={styles.sectionHeading}>Andre spill</strong>
-            <HubCard href="/more-or-less" enabled={loggedIn} cardClass="cardTeal" fullWidth>
-              More or Less
-              <span className={styles.cardSub}>Ubegrenset antall forsøk - ikke en del av 0/3</span>
-            </HubCard>
           </div>
         </>
       )}
