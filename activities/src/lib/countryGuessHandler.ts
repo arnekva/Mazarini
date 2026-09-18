@@ -7,10 +7,11 @@ import { ANNOUNCE_CHANNEL_ID, countryChallengeValues } from "./gameValues"
 
 export type CountryGameId = "flag" | "outline" | "capital"
 
-const gameLabels: Record<CountryGameId, string> = {
-  flag: "Gjett flagget",
-  outline: "Gjett landet fra outline",
-  capital: "Si hovedstaden",
+// Short noun-phrase form for the announce messages ("gjettet rett på ... flagget").
+const shortLabels: Record<CountryGameId, string> = {
+  flag: "flagget",
+  outline: "landet fra outline",
+  capital: "hovedstaden",
 }
 
 export function isCountryGameId(value: string): value is CountryGameId {
@@ -64,7 +65,9 @@ export async function submitCountryGuess(game: CountryGameId, user: Authenticate
     })
 
     await postChannelMessage(ANNOUNCE_CHANNEL_ID, {
-      content: `<@${user.id}> fullførte **${gameLabels[game]}** på ${numAttempts} forsøk${reward > 0 ? ` og fikk ${reward} chips!` : "!"}`,
+      content: `<@${user.id}> gjettet rett på ${numAttempts}/${countryChallengeValues.maxAttempts} forsøk på ${shortLabels[game]}${
+        reward > 0 ? ` og fikk ${reward} chips!` : "!"
+      }`,
     })
 
     return Response.json({ correct: true, reward, chips, numAttempts })
@@ -74,6 +77,12 @@ export async function submitCountryGuess(game: CountryGameId, user: Authenticate
   await firebase.updateUserFields(user.id, {
     [`dailyGameStats/${game}`]: { attempted: true, completed: false, numAttempts },
   })
+
+  if (finished) {
+    await postChannelMessage(ANNOUNCE_CHANNEL_ID, {
+      content: `<@${user.id}> gjettet FEIL på ${shortLabels[game]}!`,
+    })
+  }
 
   // No hint once the answer is being revealed outright - it'd just be redundant noise at that point.
   const hint = finished ? undefined : getGuessHint(game === "capital" ? "capital" : "country", guess, challenge.answer)

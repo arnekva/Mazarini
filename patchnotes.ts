@@ -25,20 +25,7 @@ export class PatchNotes extends AbstractCommands {
 
         container.addComponent(text1, 'header')
 
-        const text = new TextDisplayBuilder().setContent(
-            [
-                '* # Daily',
-                '* komplett(.no) redesign av Daily!',
-                '   * Du har nå en hub for daily på /daily hvor du finner alt du trenger - ingen mer leting i forkjellige kanaler',
-                '   * Du kan ALLTID få chips fra daily, MOL og lykkehjul',
-                '   * Du kan nå velge hvilke 3 videre utfordringer du får chips fra:',
-                '       * Gjett hovedstaden',
-                '       * Gjett flagget',
-                '       * Gjett landet fra outline',
-                '       * Mastermind - er nå 2000 - 200*antall forsøk, ikke lenger delt utfordring',
-                '## Dette e ein mega Yolo push, så hvis ingenting funke imårå får alle masse chips gratis :geggiexcited:',
-            ].join('\n')
-        )
+        const text = new TextDisplayBuilder().setContent(['# Daily', '* Vil også sende meldinger på failed attempts'].join('\n'))
         container.addSeparator()
         container.addComponent(text, 'currentPatchNotes')
 

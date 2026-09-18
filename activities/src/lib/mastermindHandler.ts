@@ -99,7 +99,11 @@ export async function submitMastermindGuess(user: AuthenticatedDiscordUser, gues
 
   if (completed) {
     await postChannelMessage(ANNOUNCE_CHANNEL_ID, {
-      content: `<@${user.id}> fullførte **Mastermind** på ${numAttempts} forsøk${reward > 0 ? ` og fikk ${reward} chips!` : "!"}`,
+      content: `<@${user.id}> klarte mastermind på ${numAttempts}/${mastermindValues.totalAttempts} forsøk${reward > 0 ? ` og fikk ${reward} chips!` : "!"}`,
+    })
+  } else if (finished) {
+    await postChannelMessage(ANNOUNCE_CHANNEL_ID, {
+      content: `<@${user.id}> klarte IKKE mastermind på ${mastermindValues.totalAttempts} forsøk!`,
     })
   }
 
