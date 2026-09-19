@@ -448,6 +448,13 @@ export interface MazariniStorage {
     scheduledTasks?: IScheduledTasks
     /** Today's shared daily-hub puzzles (flag/outline/capital), generated once by the daily job. */
     dailyHubChallenges?: IDailyHubChallenges
+    /** Recently-used countries per daily-hub game, to avoid repeats - same "previous" pattern as More or Less: keeps
+     * growing until the eligible pool is exhausted, then cycles back to just the latest pick. */
+    dailyHubHistory?: {
+        flag?: string[]
+        capital?: string[]
+        outline?: string[]
+    }
 }
 
 export interface IDailyHubChallenges {

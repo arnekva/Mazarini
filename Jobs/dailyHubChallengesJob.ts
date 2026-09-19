@@ -25,6 +25,15 @@ function pickDistractors<T>(pool: T[], exclude: T, count: number): T[] {
     return shuffled(candidates).slice(0, count)
 }
 
+/** Picks a random country not in `previous` (falls back to the full pool once every candidate has been used),
+ * and returns the updated history - mirrors More or Less's `previous` cycling in Jobs/dailyJobs.ts. */
+function pickWithHistory(pool: Country[], previous: string[]): { picked: Country; newPrevious: string[] } {
+    const candidates = pool.filter((c) => !previous.includes(c.name.common))
+    const picked = RandomUtils.getRandomItemFromList(candidates.length > 0 ? candidates : pool)
+    const newPrevious = previous.includes(picked.name.common) ? [picked.name.common] : [...previous, picked.name.common]
+    return { picked, newPrevious }
+}
+
 /** Flag image URL for a country - flagcdn.com is a free, keyless CDN, so this needs no live "list
  * countries" API call at all (REST Countries' v3.1 API was deprecated without warning - see the
  * git history here - so this data now comes from the bundled `world-countries` package instead). */
@@ -50,16 +59,18 @@ export async function generateDailyHubChallenges(client: MazariniClient, users: 
             return 'failed'
         }
 
-        const flagCountry = RandomUtils.getRandomItemFromList(withFlag)
+        const history = (await client.database.getStorage()).dailyHubHistory ?? {}
+
+        const { picked: flagCountry, newPrevious: flagHistory } = pickWithHistory(withFlag, history.flag ?? [])
         const flagOptions = shuffled([flagCountry.name.common, ...pickDistractors(withFlag, flagCountry, DISTRACTOR_COUNT).map((c) => c.name.common)])
 
-        const capitalCountry = RandomUtils.getRandomItemFromList(withCapital)
+        const { picked: capitalCountry, newPrevious: capitalHistory } = pickWithHistory(withCapital, history.capital ?? [])
         const capitalOptions = shuffled([
             capitalCountry.capital[0],
             ...pickDistractors(withCapital, capitalCountry, DISTRACTOR_COUNT).map((c) => c.capital[0]),
         ])
 
-        const outlineCountry = RandomUtils.getRandomItemFromList(withOutline)
+        const { picked: outlineCountry, newPrevious: outlineHistory } = pickWithHistory(withOutline, history.outline ?? [])
         const outline = await getCountryOutlinePath(outlineCountry.ccn3)
         if (!outline) return 'failed'
         const outlineOptions = shuffled([
@@ -74,8 +85,11 @@ export async function generateDailyHubChallenges(client: MazariniClient, users: 
             outline: { options: outlineOptions, answer: outlineCountry.name.common, path: outline.path, viewBox: outline.viewBox },
         }
 
-        client.database.updateStorage({ dailyHubChallenges: challenges })
-        resetDailyHubUserStats(client, users)
+        client.database.updateStorage({
+            dailyHubChallenges: challenges,
+            dailyHubHistory: { flag: flagHistory, capital: capitalHistory, outline: outlineHistory },
+        })
+        await resetDailyHubUserStats(client, users)
         return 'success'
     } catch (err) {
         // sendLogMessage is a no-op when ENVIRONMENT=dev (see helpers/messageHelper.ts), so also log
@@ -86,13 +100,16 @@ export async function generateDailyHubChallenges(client: MazariniClient, users: 
     }
 }
 
-function resetDailyHubUserStats(client: MazariniClient, users: MazariniUser[]) {
-    const updates = client.database.getUpdatesObject<'dailyGameStats'>()
+async function resetDailyHubUserStats(client: MazariniClient, users: MazariniUser[]) {
+    // Firebase's update() rejects the whole batch if any value is `undefined` (object-spread keeps
+    // the key rather than dropping it) - `null` is what actually deletes a path.
+    const updates: Record<string, null> = {}
     users.forEach((user) => {
         if (!user.dailyGameStats?.flag && !user.dailyGameStats?.outline && !user.dailyGameStats?.capital) return
-        user.dailyGameStats = { ...user.dailyGameStats, flag: undefined, outline: undefined, capital: undefined }
         const updatePath = client.database.getUserPathToUpdate(user.id, 'dailyGameStats')
-        updates[updatePath] = user.dailyGameStats
+        updates[`${updatePath}/flag`] = null
+        updates[`${updatePath}/outline`] = null
+        updates[`${updatePath}/capital`] = null
     })
-    client.database.updateData(updates)
+    await client.database.updateData(updates)
 }

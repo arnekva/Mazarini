@@ -7,6 +7,15 @@
   gap: 14px;
 }
 
+/* Discord's own mobile client renders a title bar over the activity iframe that isn't reported
+   through env(safe-area-inset-top) (that's for OS notches, not Discord's chrome) - so on narrow
+   viewports we clear it with a flat offset instead, on top of whatever notch inset may also apply. */
+@media (max-width: 600px) {
+  .page {
+    padding-top: calc(70px + env(safe-area-inset-top, 0px));
+  }
+}
+
 .header {
   width: 100%;
   max-width: 480px;
@@ -18,7 +27,7 @@
 .backLink {
   color: var(--muted);
   text-decoration: none;
-  font-size: 20px;
+  font-size: 26px;
   line-height: 1;
   padding: 4px 8px;
   border-radius: 8px;
@@ -30,7 +39,7 @@
 }
 
 .title {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 700;
   margin: 0;
 }
