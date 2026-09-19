@@ -35,6 +35,22 @@ interface MolStat {
   completed?: boolean
 }
 
+/** Chips earned for correct answers strictly after `fromExclusive` up to `toInclusive` - used both
+ * for the live "how much have I earned so far this round" counter and the final round-over payout. */
+function calcTierReward(fromExclusive: number, toInclusive: number): number {
+  const rewards = moreOrLessValues.rewards
+  let reward = 0
+  for (let i = fromExclusive + 1; i <= toInclusive; i++) {
+    if (i <= 10) reward += rewards.tier1
+    else if (i <= 20) reward += rewards.tier2
+    else if (i <= 30) reward += rewards.tier3
+    else if (i <= 40) reward += rewards.tier4
+    else if (i <= 50) reward += rewards.tier5
+    else reward += rewards.tier6
+  }
+  return reward
+}
+
 function shuffle<T>(items: T[]): T[] {
   const copy = [...items]
   for (let i = copy.length - 1; i > 0; i--) {
@@ -122,12 +138,19 @@ export async function guessMoreOrLess(user: AuthenticatedDiscordUser, more: bool
     const newSession: MolSession = { ...session, current: session.next, next: newNext, data: remaining, correctAnswers }
     await firebase.updateUserFields(user.id, { moreOrLessSession: newSession })
 
+    // Live "how much would I earn if I stopped right now" - lets the client show a running
+    // (+N chips) counter once you've passed your best, instead of only at round-end.
+    const bestAttempt = dbUser?.dailyGameStats?.moreOrLess?.bestAttempt ?? 0
+    const liveReward = correctAnswers > bestAttempt ? calcTierReward(bestAttempt, correctAnswers) : 0
+
     return Response.json({
       correct: true,
       finished: false,
       current: { subject: newSession.current.subject, answer: newSession.current.answer, image: newSession.current.image },
       next: { subject: newNext.subject, image: newNext.image },
       correctAnswers,
+      bestAttempt,
+      liveReward,
     })
   }
 
@@ -147,16 +170,8 @@ export async function guessMoreOrLess(user: AuthenticatedDiscordUser, more: bool
   let completed = completedPreviously
 
   if (correctAnswers > bestAttempt) {
-    const rewards = moreOrLessValues.rewards
-    for (let i = bestAttempt + 1; i <= correctAnswers; i++) {
-      if (i <= 10) reward += rewards.tier1
-      else if (i <= 20) reward += rewards.tier2
-      else if (i <= 30) reward += rewards.tier3
-      else if (i <= 40) reward += rewards.tier4
-      else if (i <= 50) reward += rewards.tier5
-      else reward += rewards.tier6
-    }
-    if (completedNow && !completedPreviously) reward += rewards.completed
+    reward = calcTierReward(bestAttempt, correctAnswers)
+    if (completedNow && !completedPreviously) reward += moreOrLessValues.rewards.completed
     newBest = correctAnswers
     if (session.data.length === 0) completed = true
     chips += reward
@@ -177,6 +192,8 @@ export async function guessMoreOrLess(user: AuthenticatedDiscordUser, more: bool
     correctAnswers,
     reward,
     chips,
+    bestAttempt: newBest,
+    numAttempts: numTries,
     revealedNext: { subject: session.next.subject, answer: session.next.answer, image: session.next.image },
   })
 }

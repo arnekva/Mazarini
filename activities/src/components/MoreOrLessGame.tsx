@@ -31,6 +31,9 @@ interface GuessResponse {
   chips?: number
   revealedNext?: Item
   completedNow?: boolean
+  bestAttempt?: number
+  numAttempts?: number
+  liveReward?: number
 }
 
 function formatValue(n: number | undefined, suffix?: string) {
@@ -54,9 +57,14 @@ interface RoundResult {
 
 export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
   const [status, setStatus] = useState<StatusResponse | null>(null)
+  // Tracked separately from `status.stats` because it needs to update after every round ends,
+  // not just on the initial page load - status itself is never re-fetched mid-session.
+  const [liveStats, setLiveStats] = useState({ bestAttempt: 0, numAttempts: 0 })
+  const [totalEntries, setTotalEntries] = useState<number | undefined>(undefined)
   const [current, setCurrent] = useState<Item | null>(null)
   const [next, setNext] = useState<Item | null>(null)
   const [correctAnswers, setCorrectAnswers] = useState(0)
+  const [liveReward, setLiveReward] = useState(0)
   const [busy, setBusy] = useState(false)
   const [startError, setStartError] = useState<string | null>(null)
   const [result, setResult] = useState<RoundResult | null>(null)
@@ -65,6 +73,8 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
   useEffect(() => {
     callApi<StatusResponse>("/api/games/more-or-less/status", accessToken).then((s) => {
       setStatus(s)
+      setLiveStats({ bestAttempt: s.stats.bestAttempt ?? 0, numAttempts: s.stats.numAttempts ?? 0 })
+      setTotalEntries(s.category.totalEntries)
       if (s.active) {
         setCurrent(s.active.current)
         setNext(s.active.next)
@@ -82,9 +92,11 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
   async function start() {
     setBusy(true)
     try {
-      const res = await callApi<{ current: Item; next: Item; correctAnswers: number; error?: string }>("/api/games/more-or-less/start", accessToken, {
-        method: "POST",
-      })
+      const res = await callApi<{ current: Item; next: Item; correctAnswers: number; totalEntries?: number; error?: string }>(
+        "/api/games/more-or-less/start",
+        accessToken,
+        { method: "POST" }
+      )
       if (res.error) {
         setStartError(res.error)
         return
@@ -92,9 +104,11 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
       setCurrent(res.current)
       setNext(res.next)
       setCorrectAnswers(0)
+      setLiveReward(0)
       setRoundOver(false)
       setStartError(null)
       setResult(null)
+      if (res.totalEntries !== undefined) setTotalEntries(res.totalEntries)
     } finally {
       setBusy(false)
     }
@@ -112,6 +126,7 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
       if (res.finished) {
         setRoundOver(true)
         setCorrectAnswers(res.correctAnswers ?? correctAnswers)
+        setLiveStats((s) => ({ bestAttempt: res.bestAttempt ?? s.bestAttempt, numAttempts: res.numAttempts ?? s.numAttempts }))
         setResult({
           correct: !!res.correct,
           reward: res.reward ?? 0,
@@ -121,6 +136,7 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
         setCurrent(res.current ?? null)
         setNext(res.next ?? null)
         setCorrectAnswers(res.correctAnswers ?? correctAnswers)
+        setLiveReward(res.liveReward ?? 0)
       }
     } finally {
       setBusy(false)
@@ -129,6 +145,12 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
 
   if (!status) return <p className={contentStyles.status}>Laster...</p>
   if (status.error) return <p className={contentStyles.status}>{status.error}</p>
+
+  // Total entry count is only revealed once you've already completed 2+ rounds today - on your
+  // first couple of attempts it stays a "?" so you can't infer the deck size from it early on.
+  const showTotal = liveStats.numAttempts >= 2
+  const totalDisplay = showTotal && totalEntries !== undefined ? totalEntries : "?"
+  const beatingBest = liveStats.bestAttempt > 0 && correctAnswers > liveStats.bestAttempt
 
   return (
     <>
@@ -166,14 +188,33 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
               Mer
             </button>
           </div>
-          <div className={styles.score}>{correctAnswers} riktige denne runden</div>
+          <div className={styles.score}>
+            {correctAnswers}/{totalDisplay}
+            {liveStats.bestAttempt > 0 &&
+              (beatingBest ? (
+                <>
+                  {" "}
+                  (+<span className={styles.textGreen}>{liveReward}</span> chips)
+                </>
+              ) : (
+                ` (score: ${liveStats.bestAttempt})`
+              ))}
+          </div>
         </>
       )}
 
       {result && (
         <div className={styles.resultBlock}>
           <p className={styles.resultLine}>
-            Du svarte <span className={result.correct ? styles.textGreen : styles.textRed}>{result.correct ? "riktig" : "feil"}</span>
+            {result.correct ? (
+              <>
+                Du <span className={styles.textGreen}>fullførte</span> hele kategorien!
+              </>
+            ) : (
+              <>
+                Du svarte <span className={styles.textRed}>feil</span>
+              </>
+            )}
           </p>
           <p className={styles.resultLine}>
             {result.reward > 0 ? (

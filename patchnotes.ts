@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '36.0.2'
+    public static readonly currentVersion = '36.0.3'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,9 +28,10 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '# Daily',
-                '* Fikset en feil som gjorde at daglige challenges ikke ble nullstilt',
-                '* Du får nå 1000 chips for å fullføre en challenge i daily hub, i stedet for 300',
-                '* Country outline skal nå genereres korrekt, i stedet for å bare være en blob :yikes:',
+                '* Bedre meldinger på slutten av MOL spill',
+                '* Bedre meldinger på slutten av MOL spill',
+                '* Fikset padding på hjemskjerm',
+                '* ',
             ].join('\n')
         )
         container.addSeparator()
