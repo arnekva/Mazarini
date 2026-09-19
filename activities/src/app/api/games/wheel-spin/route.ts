@@ -47,8 +47,14 @@ export async function POST(request: Request) {
 
   if (reward.type === "chips") {
     updates.chips = (dbUser.chips ?? 0) + (reward.amount ?? 0)
+    await postChannelMessage(ANNOUNCE_CHANNEL_ID, {
+      content: `<@${user.id}> vant ${reward.amount} chips på Lykkehjulet!`,
+    })
   } else if (reward.type === "shards") {
     updates.ccg = { ...dbUser.ccg, shards: (dbUser.ccg?.shards ?? 0) + (reward.amount ?? 0) }
+    await postChannelMessage(ANNOUNCE_CHANNEL_ID, {
+      content: `<@${user.id}> vant ${reward.amount} shards på Lykkehjulet!`,
+    })
   } else if (reward.type === "chest" || reward.type === "box") {
     await postChannelMessage(ANNOUNCE_CHANNEL_ID, {
       content: `<@${user.id}> vant en ${reward.type} på Lykkehjulet!`,

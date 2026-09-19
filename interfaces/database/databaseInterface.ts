@@ -143,6 +143,8 @@ export interface MazariniUser {
     christmasCalendar?: UserCalendarGift[]
     dailyGameStats?: IDailyGameStats
     ccg?: ICCGUserData
+    /** Set by the daily-hub web app while a More or Less round is in progress; cleared on finish or by the daily reset job. */
+    moreOrLessSession?: Record<string, unknown> | null
 }
 
 export interface ICCGUserData {

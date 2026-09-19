@@ -18,7 +18,7 @@ export const MAX_REWARDED_CHALLENGES_PER_DAY = 3
 
 export const countryChallengeValues = {
   maxAttempts: 3,
-  reward: 300,
+  reward: 1000,
 }
 
 export const moreOrLessValues = {

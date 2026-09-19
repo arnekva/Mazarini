@@ -35,7 +35,7 @@ export class DailyJobs {
         } else {
             //TODO: This could be refactored
             const users = await this.client.database.getAllUsers()
-            const embed = EmbedUtils.createSimpleEmbed(`Daily Jobs`, `Kjører 9 jobber`)
+            const embed = EmbedUtils.createSimpleEmbed(`Daily Jobs`, `Kjører 10 jobber`)
 
             const claim = this.validateAndResetDailyClaims(users)
             embed.addFields({ name: 'Daily claim', value: EmojiHelper.getStatusEmoji(claim) })
@@ -57,6 +57,8 @@ export class DailyJobs {
             embed.addFields({ name: 'Shard-belønning', value: EmojiHelper.getStatusEmoji(shardReward) })
             const dailyHub = await generateDailyHubChallenges(this.client, users)
             embed.addFields({ name: 'Daily hub-utfordringer', value: EmojiHelper.getStatusEmoji(dailyHub) })
+            const mastermind = await this.resetMastermind()
+            embed.addFields({ name: 'Mastermind', value: EmojiHelper.getStatusEmoji(mastermind) })
             //const events = await this.generateDailyEvents()
             //embed.addFields({ name: 'Events', value: EmojiHelper.getStatusEmoji(events) })
             const todaysTime = new Date().toLocaleTimeString()
@@ -494,6 +496,17 @@ export class DailyJobs {
                 updates[`${updatePath}/moreOrLess`] = { attempted: false, firstAttempt: 0, bestAttempt: 0, secondAttempt: null, numAttempts: 0 }
             })
             this.client.database.updateData(updates)
+        }
+
+        // Clear any in-progress session left over from a round nobody finished before the day rolled
+        // over - otherwise the next guess would be resolved against yesterday's category data.
+        const usersWithSession = users.filter((user) => user.moreOrLessSession)
+        if (usersWithSession.length > 0) {
+            const sessionUpdates = {}
+            usersWithSession.forEach((user) => {
+                sessionUpdates[this.client.database.getUserPathToUpdate(user.id, 'moreOrLessSession')] = null
+            })
+            this.client.database.updateData(sessionUpdates)
         }
 
         return 'success'

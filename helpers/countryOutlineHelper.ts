@@ -1,5 +1,7 @@
+// 110m was too coarse to recognize most countries by shape alone (near-featureless blobs for anything
+// but the largest countries) - 50m keeps the SVG paths reasonably light while giving real detail.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const worldAtlas = require('world-atlas/countries-110m.json')
+const worldAtlas = require('world-atlas/countries-50m.json')
 
 const VIEW_SIZE = 300
 

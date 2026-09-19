@@ -3,7 +3,7 @@
 import { conicGradient, WheelSector } from "@/lib/wheelGeometry"
 import styles from "./SpinWheel.module.css"
 
-const SECTOR_COLORS = ["#f5b942", "#9b7bff", "#5865f2", "#43b581", "#ef5b5b", "#f5d442"]
+const SECTOR_COLORS = ["var(--gold)", "var(--purple)", "var(--blue)", "var(--green)", "var(--red)", "var(--teal)"]
 const LABEL_RADIUS = 88
 
 export function SpinWheel({ sectors, rotation }: { sectors: WheelSector[]; rotation: number }) {

@@ -50,7 +50,13 @@ export async function getMoreOrLessStatus(user: AuthenticatedDiscordUser) {
   const category: MolCategory | undefined = storage?.moreOrLess?.current
   if (!category) return Response.json({ error: "Ingen kategori satt ennå" }, { status: 503 })
 
-  const session: MolSession | undefined = dbUser?.moreOrLessSession
+  let session: MolSession | undefined = dbUser?.moreOrLessSession
+  if (session && session.slug !== category.slug) {
+    // Leftover session from a category the daily reset has since rolled past - drop it rather
+    // than resuming play against yesterday's data under today's title.
+    await firebase.updateUserFields(user.id, { moreOrLessSession: null })
+    session = undefined
+  }
   return Response.json({
     category: { title: category.title, description: category.description, image: category.image, strings: category.strings, totalEntries: category.totalEntries },
     unsupported: !!category.tags?.includes(CUSTOM_MOL_GAME_TAG),
@@ -96,9 +102,16 @@ export async function startMoreOrLessGame(user: AuthenticatedDiscordUser) {
 
 export async function guessMoreOrLess(user: AuthenticatedDiscordUser, more: boolean) {
   const firebase = new FirebaseHelper()
-  const dbUser = await firebase.getUser(user.id)
+  const [dbUser, storage] = await Promise.all([firebase.getUser(user.id), firebase.getData("other")])
   const session: MolSession | undefined = dbUser?.moreOrLessSession
   if (!session) return Response.json({ error: "Ingen aktiv runde - start en ny" }, { status: 400 })
+
+  const category: MolCategory | undefined = storage?.moreOrLess?.current
+  if (!category || session.slug !== category.slug) {
+    // Session belongs to a category the daily reset has since rolled past.
+    await firebase.updateUserFields(user.id, { moreOrLessSession: null })
+    return Response.json({ error: "Ingen aktiv runde - start en ny" }, { status: 400 })
+  }
 
   const correct = (more && session.next.answer >= session.current.answer) || (!more && session.next.answer <= session.current.answer)
   const correctAnswers = correct ? session.correctAnswers + 1 : session.correctAnswers
