@@ -1,10 +1,20 @@
 .page {
   min-height: 100vh;
-  padding: 24px 16px 48px;
+  padding: max(24px, calc(env(safe-area-inset-top) + 12px)) 16px 48px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 28px;
+}
+
+/* Discord's own mobile client renders a title bar over the activity iframe that isn't reported
+   through env(safe-area-inset-top) (that's for OS notches, not Discord's chrome) - so on narrow
+   viewports we clear it with a flat offset instead, on top of whatever notch inset may also apply.
+   Mirrors PageShell.module.css's .page - the game pages already got this fix, the hub hadn't. */
+@media (max-width: 600px) {
+  .page {
+    padding-top: calc(70px + env(safe-area-inset-top, 0px));
+  }
 }
 
 .title {
