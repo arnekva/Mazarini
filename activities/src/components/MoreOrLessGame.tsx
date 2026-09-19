@@ -48,7 +48,7 @@ function relevantValueTitle(verb: string | undefined, valueTitle: string | undef
 
 interface RoundResult {
   correct: boolean
-  rewardLine: string
+  reward: number
   revealLine: string
 }
 
@@ -114,7 +114,7 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
         setCorrectAnswers(res.correctAnswers ?? correctAnswers)
         setResult({
           correct: !!res.correct,
-          rewardLine: res.reward ? `+${res.reward} chips - ny beste!` : "Ingen nye chips - slo ikke din beste.",
+          reward: res.reward ?? 0,
           revealLine: `${res.revealedNext?.subject}: ${formatValue(res.revealedNext?.answer, status?.category.strings?.valueSuffix)}`,
         })
       } else {
@@ -171,10 +171,20 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
       )}
 
       {result && (
-        <div className={`${contentStyles.result} ${result.correct ? contentStyles.resultCorrect : contentStyles.resultWrong}`}>
-          <div className={styles.resultHeadline}>{result.correct ? "Fullført!" : "Feil svar"}</div>
-          <div className={styles.resultLine}>{result.rewardLine}</div>
-          <div className={styles.resultLine}>{result.revealLine}</div>
+        <div className={styles.resultBlock}>
+          <p className={styles.resultLine}>
+            Du svarte <span className={result.correct ? styles.textGreen : styles.textRed}>{result.correct ? "riktig" : "feil"}</span>
+          </p>
+          <p className={styles.resultLine}>
+            {result.reward > 0 ? (
+              <>
+                Du fikk <span className={styles.textGreen}>+{result.reward}</span> chips
+              </>
+            ) : (
+              "Ingen nye chips - slo ikke din beste"
+            )}
+          </p>
+          <p className={styles.resultLine}>{result.revealLine}</p>
         </div>
       )}
 

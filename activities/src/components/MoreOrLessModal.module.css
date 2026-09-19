@@ -91,18 +91,29 @@
   cursor: default;
 }
 
-.resultHeadline {
-  text-align: left;
-  font-size: 16px;
-  font-weight: 700;
-  margin-bottom: 6px;
+.resultBlock {
+  padding: 4px 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .resultLine {
   text-align: left;
-  font-size: 13px;
-  font-weight: 400;
+  font-size: 16px;
+  font-weight: 500;
   line-height: 1.5;
-  opacity: 0.9;
+  margin: 0;
+  color: var(--foreground);
+}
+
+.textRed {
+  color: var(--red);
+  font-weight: 700;
+}
+
+.textGreen {
+  color: var(--green);
+  font-weight: 700;
 }
 
