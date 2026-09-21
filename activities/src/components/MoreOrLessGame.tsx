@@ -70,22 +70,38 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
   const [result, setResult] = useState<RoundResult | null>(null)
   const [roundOver, setRoundOver] = useState(false)
 
+  async function loadStatus() {
+    const s = await callApi<StatusResponse>("/api/games/more-or-less/status", accessToken)
+    setStatus(s)
+    setLiveStats({ bestAttempt: s.stats.bestAttempt ?? 0, numAttempts: s.stats.numAttempts ?? 0 })
+    setTotalEntries(s.category.totalEntries)
+    if (s.active) {
+      setCurrent(s.active.current)
+      setNext(s.active.next)
+      setCorrectAnswers(s.active.correctAnswers)
+    } else if (!s.unsupported) {
+      // No round in progress - jump straight into one instead of making the player click a
+      // "Start" button that, on a repeat visit, read as a bare "Prøv igjen" with nothing else
+      // on screen (looked like a failure state rather than an invitation to play).
+      start()
+    }
+  }
+
   useEffect(() => {
-    callApi<StatusResponse>("/api/games/more-or-less/status", accessToken).then((s) => {
-      setStatus(s)
-      setLiveStats({ bestAttempt: s.stats.bestAttempt ?? 0, numAttempts: s.stats.numAttempts ?? 0 })
-      setTotalEntries(s.category.totalEntries)
-      if (s.active) {
-        setCurrent(s.active.current)
-        setNext(s.active.next)
-        setCorrectAnswers(s.active.correctAnswers)
-      } else if (!s.unsupported) {
-        // No round in progress - jump straight into one instead of making the player click a
-        // "Start" button that, on a repeat visit, read as a bare "Prøv igjen" with nothing else
-        // on screen (looked like a failure state rather than an invitation to play).
-        start()
-      }
-    })
+    loadStatus()
+
+    // The category header otherwise only ever reflects whatever was current when the page first
+    // loaded - if the Activity is left open across the daily category rotation, it'd keep showing
+    // yesterday's (or older) title indefinitely. Re-check whenever the tab/Activity regains focus.
+    function onVisible() {
+      if (document.visibilityState === "visible") loadStatus()
+    }
+    document.addEventListener("visibilitychange", onVisible)
+    window.addEventListener("focus", onVisible)
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible)
+      window.removeEventListener("focus", onVisible)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken])
 

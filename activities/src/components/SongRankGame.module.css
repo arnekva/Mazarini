@@ -1,0 +1,272 @@
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.authRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.authStatus {
+  color: var(--muted);
+}
+
+.authLink {
+  color: var(--green);
+  text-decoration: none;
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0;
+}
+
+.input {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: var(--foreground);
+  font-size: 14px;
+}
+
+.startBtn {
+  background: var(--green);
+  color: #0b0c10;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.startBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.error {
+  color: var(--red);
+  font-size: 13px;
+}
+
+.progress {
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.vsRow {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.trackCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.trackHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.trackImg {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.trackText {
+  min-width: 0;
+}
+
+.trackName {
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trackArtist {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.embed {
+  border-radius: 8px;
+  width: 100%;
+}
+
+.betterBtn {
+  background: var(--teal);
+  color: #0b0c10;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.vsDivider {
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.resultList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.resultRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.rank {
+  font-weight: 700;
+  color: var(--gold);
+  width: 24px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.resultImg {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.resultText {
+  min-width: 0;
+}
+
+.resultName {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.resultArtist {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.resumeBtn {
+  background: var(--purple-glow);
+  border: 1px solid var(--purple);
+  color: var(--foreground);
+  border-radius: 10px;
+  padding: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.filterRow {
+  display: flex;
+  gap: 10px;
+}
+
+.skipBtn,
+.keepBtn {
+  flex: 1;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.skipBtn {
+  background: var(--card);
+  border: 1px solid var(--red);
+  color: var(--red);
+}
+
+.keepBtn {
+  background: var(--green);
+  color: #0b0c10;
+}
+
+.keptToggle {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 0;
+  text-align: left;
+}
+
+.keptList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 160px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.keptList li {
+  border-bottom: 1px solid var(--card-border);
+  padding: 4px 0;
+}
+
+.keptListActive {
+  color: var(--teal);
+  font-weight: 700;
+}
+
+.restartBtn {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  color: var(--foreground);
+  border-radius: 10px;
+  padding: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 4px;
+}

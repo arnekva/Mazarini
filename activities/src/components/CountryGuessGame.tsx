@@ -2,6 +2,7 @@
 
 import { callApi } from "@/lib/apiClient"
 import { capitalNames, countryNames } from "@/lib/countryLists"
+import { findDidYouMean } from "@/lib/fuzzyMatch"
 import { proxyImageUrl } from "@/lib/imgProxy"
 import { useEffect, useState } from "react"
 import styles from "./GameContent.module.css"
@@ -16,10 +17,13 @@ interface Challenge {
   viewBox?: string
 }
 
+// Capital names double as the answer list here, which would make an always-visible suggestion
+// dropdown basically a multiple-choice picker - so it gets none, unlike flag/outline's country names
+// (which are just a spelling aid, not the thing being guessed).
 const suggestionsByGame: Record<CountryGameId, string[]> = {
   flag: countryNames,
   outline: countryNames,
-  capital: capitalNames,
+  capital: [],
 }
 
 interface StatusResponse {
@@ -48,13 +52,26 @@ export function CountryGuessGame({ game, accessToken }: { game: CountryGameId; a
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [done, setDone] = useState(false)
+  const [didYouMean, setDidYouMean] = useState<{ original: string; suggestion: string } | null>(null)
 
   useEffect(() => {
     callApi<StatusResponse>(`/api/games/${game}`, accessToken).then(setStatus)
   }, [game, accessToken])
 
+  function handleSubmit(option: string) {
+    if (game === "capital") {
+      const suggestion = findDidYouMean(option, capitalNames)
+      if (suggestion) {
+        setDidYouMean({ original: option, suggestion })
+        return
+      }
+    }
+    guess(option)
+  }
+
   async function guess(option: string) {
     if (busy || done) return
+    setDidYouMean(null)
     setBusy(true)
     try {
       const result = await callApi<GuessResponse>(`/api/games/${game}`, accessToken, {
@@ -104,7 +121,19 @@ export function CountryGuessGame({ game, accessToken }: { game: CountryGameId; a
 
       {message && <div className={`${styles.result} ${message.startsWith("Riktig") ? styles.resultCorrect : styles.resultWrong}`}>{message}</div>}
 
-      {!(busy || done || status.completed) && <TypeaheadInput suggestions={suggestionsByGame[game]} onSubmit={guess} disabled={busy} />}
+      {didYouMean && !(busy || done || status.completed) && (
+        <div className={styles.status}>
+          Mente du <strong>{didYouMean.suggestion}</strong>?{" "}
+          <button type="button" onClick={() => guess(didYouMean.suggestion)}>
+            Ja
+          </button>{" "}
+          <button type="button" onClick={() => guess(didYouMean.original)}>
+            Nei, send som skrevet
+          </button>
+        </div>
+      )}
+
+      {!didYouMean && !(busy || done || status.completed) && <TypeaheadInput suggestions={suggestionsByGame[game]} onSubmit={handleSubmit} disabled={busy} />}
     </>
   )
 }

@@ -379,6 +379,13 @@ export class MoreOrLess extends AbstractCommands {
     }
 
     private async buildResultsContainer(resolveUsername: (userId: string) => string, includeEntryCounter = true): Promise<SimpleContainer> {
+        // this.game is only refreshed when someone actually plays a round (see startNewRound) - if
+        // the daily category has rolled over but nobody's played it yet by the time results are
+        // posted, it'd still be pointing at an older category. Re-sync against storage first.
+        const storage = await this.database.getStorage()
+        const current = storage.moreOrLess.current
+        if (current && current.slug !== this.game?.slug) this.game = current
+
         const container = new SimpleContainer()
         const imageUrl = this.game.image ? `https://api.moreorless.io/img/${this.game.image}_512.jpg` : undefined
         const isImageReal = imageUrl && (await FetchUtils.checkImageUrl(imageUrl))

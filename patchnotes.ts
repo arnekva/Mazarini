@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '36.0.3'
+    public static readonly currentVersion = '36.0.4'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,9 +28,9 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '# Daily',
-                '* Bedre meldinger på slutten av MOL spill',
-                '* Bedre meldinger på slutten av MOL spill',
-                '* Fikset padding på hjemskjerm',
+                '* Delay på melding fra Luckywheel (bedre css komme snart)',
+                '* MOL: fikset header på resultatmelding',
+                '* Ikke lenger alternativ på hovedsteder',
                 '* ',
             ].join('\n')
         )

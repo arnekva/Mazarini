@@ -1,7 +1,15 @@
+import { after } from "next/server"
 import { FirebaseHelper } from "@/lib/db/firebaseHelper"
 import { authenticateRequest } from "@/lib/discordAuth"
 import { lootButtonComponent, postChannelMessage } from "@/lib/discordMessage"
 import { ANNOUNCE_CHANNEL_ID } from "@/lib/gameValues"
+
+// The client plays a several-second spin animation before revealing the result - announcing it in
+// Discord immediately would let anyone reading the channel see the outcome before the wheel stops.
+const ANNOUNCE_DELAY_MS = 5000
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
 
 interface LuckyWheelReward {
   name: string
@@ -47,18 +55,23 @@ export async function POST(request: Request) {
 
   if (reward.type === "chips") {
     updates.chips = (dbUser.chips ?? 0) + (reward.amount ?? 0)
-    await postChannelMessage(ANNOUNCE_CHANNEL_ID, {
-      content: `<@${user.id}> vant ${reward.amount} chips på Lykkehjulet!`,
+    after(async () => {
+      await delay(ANNOUNCE_DELAY_MS)
+      await postChannelMessage(ANNOUNCE_CHANNEL_ID, { content: `<@${user.id}> vant ${reward.amount} chips på Lykkehjulet!` })
     })
   } else if (reward.type === "shards") {
     updates.ccg = { ...dbUser.ccg, shards: (dbUser.ccg?.shards ?? 0) + (reward.amount ?? 0) }
-    await postChannelMessage(ANNOUNCE_CHANNEL_ID, {
-      content: `<@${user.id}> vant ${reward.amount} shards på Lykkehjulet!`,
+    after(async () => {
+      await delay(ANNOUNCE_DELAY_MS)
+      await postChannelMessage(ANNOUNCE_CHANNEL_ID, { content: `<@${user.id}> vant ${reward.amount} shards på Lykkehjulet!` })
     })
   } else if (reward.type === "chest" || reward.type === "box") {
-    await postChannelMessage(ANNOUNCE_CHANNEL_ID, {
-      content: `<@${user.id}> vant en ${reward.type} på Lykkehjulet!`,
-      components: [lootButtonComponent(user.id, reward.quality ?? "basic", reward.type)],
+    after(async () => {
+      await delay(ANNOUNCE_DELAY_MS)
+      await postChannelMessage(ANNOUNCE_CHANNEL_ID, {
+        content: `<@${user.id}> vant en ${reward.type} på Lykkehjulet!`,
+        components: [lootButtonComponent(user.id, reward.quality ?? "basic", reward.type)],
+      })
     })
   } else {
     // dond / pack / effect_* - not implemented yet, spin is still consumed

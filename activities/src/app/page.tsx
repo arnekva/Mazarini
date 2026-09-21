@@ -62,6 +62,14 @@ export default function Home() {
               More or Less
               <span className={styles.cardSub}>Ubegrenset antall forsøk</span>
             </HubCard>
+            <HubCard href="/song-rank" enabled cardClass="cardGreen" fullWidth>
+              Song Rank
+              <span className={styles.cardSub}>Rangér en spilleliste</span>
+            </HubCard>
+            <HubCard href="/multiplayer" enabled={loggedIn} cardClass="cardBlue" fullWidth>
+              Multiplayer
+              <span className={styles.cardSub}>Spill sammen med andre i kanalen</span>
+            </HubCard>
           </div>
 
           <div className={styles.section}>

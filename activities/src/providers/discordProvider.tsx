@@ -15,6 +15,9 @@ interface DiscordContextType {
   discordUser: DiscordUser | null
   accessToken: string | null
   ready: boolean
+  /** Shared by everyone who launched this Activity from the same voice channel - the natural
+   * multiplayer "room" key. Null outside Discord (e.g. local dev in a plain browser tab). */
+  instanceId: string | null
 }
 
 const DiscordContext = createContext<DiscordContextType>({
@@ -22,6 +25,7 @@ const DiscordContext = createContext<DiscordContextType>({
   discordUser: null,
   accessToken: null,
   ready: false,
+  instanceId: null,
 })
 
 export const DiscordProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -29,6 +33,7 @@ export const DiscordProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [discordUser, setDiscordUser] = useState<DiscordUser | null>(null)
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [ready, setReady] = useState(false)
+  const [instanceId, setInstanceId] = useState<string | null>(null)
 
   useEffect(() => {
     const clientId = process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID as string
@@ -63,6 +68,7 @@ export const DiscordProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setAccessToken(access_token)
       setDiscordUser(auth.user as DiscordUser)
       setSdk(discordSdk)
+      setInstanceId(discordSdk.instanceId)
       setReady(true)
     }
 
@@ -73,7 +79,7 @@ export const DiscordProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [])
 
   return (
-    <DiscordContext.Provider value={{ sdk, discordUser, accessToken, ready }}>{children}</DiscordContext.Provider>
+    <DiscordContext.Provider value={{ sdk, discordUser, accessToken, ready, instanceId }}>{children}</DiscordContext.Provider>
   )
 }
 

@@ -9,6 +9,13 @@ export const discordBotToken = str("DISCORD_BOT_TOKEN")
 
 export const database = str("DATABASE", "dev")
 
+// App-only Spotify auth (client-credentials grant) for reading public playlist data.
+// No user login involved - playback itself happens via Spotify's own embed player.
+export const spotifyClientId = str("SPOTIFY_CLIENT_ID")
+export const spotifyClientSecret = str("SPOTIFY_CLIENT_SECRET")
+// Must exactly match a Redirect URI registered on this Spotify app (Developer Dashboard > Settings).
+export const spotifyRedirectUri = str("SPOTIFY_REDIRECT_URI", "http://127.0.0.1:3000/api/spotify/callback")
+
 export const firebaseConfig = {
   apiKey: str("FIREBASE_API_KEY"),
   authDomain: str("FIREBASE_AUTH_DOMAIN"),

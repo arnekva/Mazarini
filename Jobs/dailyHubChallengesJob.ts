@@ -12,6 +12,7 @@ interface Country {
     capital?: string[]
     cca2: string
     ccn3?: string
+    independent?: boolean
 }
 
 const DISTRACTOR_COUNT = 3
@@ -41,8 +42,13 @@ function flagPngUrl(cca2: string): string {
     return `https://flagcdn.com/w320/${cca2.toLowerCase()}.png`
 }
 
+// Dependent territories (French Guiana, Puerto Rico, etc.) shouldn't turn up as a Flag/Capital/Outline
+// answer - `independent` is world-countries' own flag for exactly this. A few are kept in anyway
+// despite being tagged `independent: false` there - contested-statehood cases (Taiwan, Palestine) or
+// widely-known distinct territories (Hong Kong, Western Sahara), not simple "just part of another country" ones.
+const KEEP_DESPITE_DEPENDENT = new Set(['Hong Kong', 'Taiwan', 'Palestine', 'Western Sahara'])
 function getCountries(): Country[] {
-    return worldCountries as Country[]
+    return (worldCountries as Country[]).filter((c) => c.independent !== false || KEEP_DESPITE_DEPENDENT.has(c.name.common))
 }
 
 /** Generates today's shared daily-hub puzzles (Flag, Outline, Capital) - same for every user, like the
