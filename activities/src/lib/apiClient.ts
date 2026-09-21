@@ -13,7 +13,11 @@ export async function callApi<T>(path: string, accessToken: string, init?: Reque
   })
   if (!response.ok) {
     const body = await response.json().catch(() => ({}))
-    throw new Error(body.error ?? `Request to ${path} failed (${response.status})`)
+    const err = new Error(body.error ?? `Request to ${path} failed (${response.status})`)
+    // Some routes attach a server-side stack while a specific bug is being chased (see their own
+    // comments) - tack it onto the message so it's visible wherever the caller just does err.message.
+    if (body.stack) err.message += `\n\n${body.stack}`
+    throw err
   }
   return response.json()
 }

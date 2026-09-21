@@ -81,14 +81,15 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
     setBusy(true)
     setError(null)
     try {
-      const t = await callApi<TableView & { error?: string }>("/api/multiplayer/blackjack", accessToken, {
+      // callApi throws on any non-ok response (400 validation errors included), so a resolved
+      // promise here always means success - no separate `.error` branch to check.
+      const t = await callApi<TableView>("/api/multiplayer/blackjack", accessToken, {
         method: "POST",
         body: JSON.stringify({ instanceId, action }),
       })
-      if (t.error) setError(t.error)
-      else setTable(t)
-    } catch {
-      setError("Noe gikk galt")
+      setTable(t)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Noe gikk galt")
     } finally {
       setBusy(false)
     }
