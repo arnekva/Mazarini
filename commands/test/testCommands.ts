@@ -6,6 +6,7 @@ import { SimpleContainer } from '../../Abstracts/SimpleContainer'
 import { environment } from '../../client-env'
 import { MazariniClient } from '../../client/MazariniClient'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
+import { Deathroll } from '../games/deathroll'
 import { MoreOrLess } from '../games/moreOrLess'
 import { LootboxCommands } from '../store/lootboxCommands'
 
@@ -66,8 +67,19 @@ export class TestCommands extends AbstractCommands {
         // const file = new AttachmentBuilder(reveal, { name: 'reveal.webp' })
         // scripts.prepareNewSeries()
         // scripts.setLuckyWheelRewards()
-        await MoreOrLess.instance?.sendScheduledResults()
-        await this.messageHelper.replyToInteraction(interaction, 'Trigget MoreOrLess.sendScheduledResults()', { ephemeral: true })
+        // await MoreOrLess.instance?.sendScheduledResults()
+
+        // Simulates winning a 1000-chip /terning pot (grants the chips + posts the same "Spill
+        // Blackjack" invite button a real win would) and forces the next blackjack deal for this
+        // user to a double-5 opening hand, to test the multiplayer Blackjack Activity's Split flow
+        // without waiting on a random pot win or a natural pair.
+        await Deathroll.instance?.simulatePotWin(interaction.user.id, 1000)
+        await this.database.updateData({ [`other/pendingBlackjackTestHand/${interaction.user.id}`]: { rank: '5' } })
+        await this.messageHelper.replyToInteraction(
+            interaction,
+            'Simulerte 1000 chips i terning-pott (se knapp) og satt neste blackjack-hånd til to 5-ere for splitt-testing.',
+            { ephemeral: true }
+        )
     }
 
     private async testSelectMenu(selectMenu: SelectStringInteraction) {

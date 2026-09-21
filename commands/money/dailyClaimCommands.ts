@@ -1,7 +1,6 @@
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../../client/MazariniClient'
-import { discordAppId, discordSecret } from '../../client-env'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 
 export class DailyClaimCommands extends AbstractCommands {
@@ -9,23 +8,12 @@ export class DailyClaimCommands extends AbstractCommands {
         super(client)
     }
 
-    /** Launches the daily activity hub (Daily Claim, Lykkehjul, and the daily challenges) as a Discord Activity in this channel. */
+    /** Launches the daily activity hub (Daily Claim, Lykkehjul, and the daily challenges) as a Discord
+     * Activity in this channel. Uses interaction.launchActivity() (Discord's LAUNCH_ACTIVITY response
+     * type) rather than creating a target_type:2 channel invite - that invite mechanism only works on
+     * voice channels, which doesn't match how this server actually uses the bot (text channels only). */
     private async launchActivity(interaction: ChatInteraction) {
-        const invite = await fetch(`https://discord.com/api/v10/channels/${interaction.channelId}/invites`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bot ${discordSecret}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                max_age: 0,
-                max_uses: 0,
-                target_application_id: discordAppId,
-                target_type: 2, // 2 = Embedded Application
-                temporary: false,
-            }),
-        }).then((res) => res.json())
-        this.messageHelper.replyToInteraction(interaction, `https://discord.com/invite/${invite.code}`)
+        await interaction.launchActivity()
     }
 
     getAllInteractions(): IInteractionElement {

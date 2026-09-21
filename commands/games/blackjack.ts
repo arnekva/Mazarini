@@ -88,21 +88,17 @@ export class Blackjack extends AbstractCommands {
         return this.arrowEmoji
     }
 
+    /** Opens the multiplayer Blackjack Activity - deathroll.ts already wrote the pot amount as a
+     * pending auto-start buy-in (other/pendingBlackjackAutoStart/{userId}) before posting this
+     * button, so the winner lands straight at a table configured with it. Chips aren't touched here
+     * at all anymore; the Activity's own buy-in flow handles that once they actually deal. */
     private async deathrollBlackjack(interaction: BtnInteraction) {
         const userId = interaction.customId.split(';')[1]
         if (userId !== interaction.user.id) {
             interaction.deferUpdate()
-        } else {
-            const stake = Number(interaction.customId.split(';')[2])
-            const user = await this.client.database.getUser(userId)
-            if (this.client.bank.takeMoney(user, stake)) {
-                await this.setupGame(interaction, user, stake, false, stake)
-            } else {
-                const huh = await EmojiHelper.getEmoji('kekhuh', interaction)
-                this.messageHelper.replyToInteraction(interaction, 'Du kan ikke gamble chipsene hvis du allerede har mistet dem ' + huh.id)
-            }
-            interaction.message.delete()
+            return
         }
+        await interaction.launchActivity()
     }
 
     private async setupGame(interaction: ChatInteraction | BtnInteraction, user: MazariniUser, stake: number, allIn: boolean, isDeathrollPot: number = 0) {

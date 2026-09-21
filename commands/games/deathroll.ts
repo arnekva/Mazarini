@@ -3,7 +3,6 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { ATCInteraction, BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../../client/MazariniClient'
-import { discordAppId, discordSecret } from '../../client-env'
 import { GameValues } from '../../general/values'
 import { DeathRollStats } from '../../helpers/databaseHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
@@ -421,26 +420,14 @@ export class Deathroll extends AbstractCommands {
     /** Instead of staking the pot in the bot's own text-based blackjack, this hands it to the winner
      * as an auto-configured buy-in on the multiplayer Blackjack Activity table - the pending buy-in
      * is picked up by activities/src/lib/blackjackHandler.ts's consumePendingBlackjackAutoStart once
-     * they open the Activity, so others in the channel can join in (or just watch). */
-    private async sendBlackjackButton(userId: string, rewarded: number) {
-        await this.client.database.updateData({ [`other/pendingBlackjackAutoStart/${userId}`]: { buyIn: rewarded, createdAt: Date.now() } })
-
-        const invite = await fetch(`https://discord.com/api/v10/channels/${ThreadIds.GENERAL_TERNING}/invites`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bot ${discordSecret}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                max_age: 0,
-                max_uses: 0,
-                target_application_id: discordAppId,
-                target_type: 2, // 2 = Embedded Application
-                temporary: false,
-            }),
-        }).then((res) => res.json())
-
-        const button = blackjackButton(`https://discord.com/invite/${invite.code}`)
+     * they open the Activity, so others in the channel can join in (or just watch).
+     *
+     * This just posts a normal button - the actual Activity launch happens in blackjack.ts's
+     * BLACKJACK_DEATHROLL handler via interaction.launchActivity(), which works from a plain text
+     * channel/thread (unlike a target_type:2 invite, which Discord only allows on a voice channel). */
+    private sendBlackjackButton(userId: string, rewarded: number) {
+        this.client.database.updateData({ [`other/pendingBlackjackAutoStart/${userId}`]: { buyIn: rewarded, createdAt: Date.now() } })
+        const button = blackjackButton(userId, rewarded)
         setTimeout(() => {
             this.messageHelper.sendMessage(ThreadIds.GENERAL_TERNING, { components: [button] })
         }, 500)
@@ -672,14 +659,14 @@ const noThanksButton = (userId: string, rewarded: number) => {
         })
     )
 }
-/** A Link-style button - clicking it opens the Activity invite directly, no interaction handler
- * needed (unlike the old BLACKJACK_DEATHROLL custom_id flow, still left wired up in blackjack.ts
- * only so any already-posted old buttons don't dead-end). */
-export const blackjackButton = (inviteUrl: string) => {
+/** Clicking this fires the BLACKJACK_DEATHROLL handler in blackjack.ts, which responds with
+ * interaction.launchActivity() - that's what actually opens the Activity, works fine from this
+ * plain text thread since it isn't the voice-only invite mechanism. */
+export const blackjackButton = (userId: string, rewarded: number) => {
     return new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder({
-            style: ButtonStyle.Link,
-            url: inviteUrl,
+            custom_id: `BLACKJACK_DEATHROLL;${userId};${rewarded}`,
+            style: ButtonStyle.Success,
             label: 'Spill Blackjack',
             emoji: { name: '🃏' },
             disabled: false,
