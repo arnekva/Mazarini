@@ -127,6 +127,7 @@
 
 .playerBlockMe {
   border-color: color-mix(in srgb, var(--teal) 45%, var(--card-border));
+  background: linear-gradient(160deg, color-mix(in srgb, var(--teal) 12%, var(--card)) 0%, var(--card) 65%);
 }
 
 .playerBlockSittingOut {
@@ -286,6 +287,96 @@
 }
 
 .leaveBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.multiHandNote {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.handsRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.handBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+
+.handBlockActive {
+  border-color: color-mix(in srgb, var(--gold) 50%, transparent);
+  background: var(--gold-glow);
+}
+
+.handBlockWin {
+  border-color: var(--green);
+  background: var(--green-glow);
+}
+
+.handBlockLose {
+  border-color: var(--red);
+  background: var(--red-glow);
+}
+
+.handFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.splitBtn {
+  flex: 1;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  background: var(--purple);
+  color: #0b0c10;
+}
+
+.splitBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.voteBanner {
+  background: var(--gold-glow);
+  border: 1px solid color-mix(in srgb, var(--gold) 50%, var(--card-border));
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+
+.voteBanner .info {
+  margin: 0 0 6px;
+}
+
+.redealBtn {
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--card-border));
+  border-radius: 10px;
+  padding: 10px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  background: none;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+
+.redealBtn:disabled {
   opacity: 0.5;
   cursor: default;
 }

@@ -3,6 +3,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js'
 import { AbstractCommands } from '../../Abstracts/AbstractCommand'
 import { ATCInteraction, BtnInteraction, ChatInteraction } from '../../Abstracts/MazariniInteraction'
 import { MazariniClient } from '../../client/MazariniClient'
+import { discordAppId, discordSecret } from '../../client-env'
 import { GameValues } from '../../general/values'
 import { DeathRollStats } from '../../helpers/databaseHelper'
 import { EmojiHelper } from '../../helpers/emojiHelper'
@@ -40,6 +41,7 @@ interface DRSuggestion {
 }
 
 export class Deathroll extends AbstractCommands {
+    static instance: Deathroll
     private drGames: DRGame[]
 
     private latestRoll: Date
@@ -48,8 +50,17 @@ export class Deathroll extends AbstractCommands {
     constructor(client: MazariniClient) {
         super(client)
         this.previousSuggestions = new Map<string, DRSuggestion>()
+        Deathroll.instance = this
 
         // this.reRollWinningNumbers()
+    }
+
+    /** Test-only entry point (see TestCommands) - grants the chips and drives the exact same
+     * pot-win button flow a real /terning win would, without needing an actual winning roll. */
+    public async simulatePotWin(userId: string, amount: number) {
+        const user = await this.client.database.getUser(userId)
+        this.client.bank.giveMoney(user, amount)
+        await this.sendBlackjackButton(userId, amount)
     }
     get rewardPot() {
         return this.client.cache.deathrollPot
@@ -407,8 +418,29 @@ export class Deathroll extends AbstractCommands {
         }, 500)
     }
 
-    private sendBlackjackButton(userId: string, rewarded: number) {
-        const button = blackjackButton(userId, rewarded)
+    /** Instead of staking the pot in the bot's own text-based blackjack, this hands it to the winner
+     * as an auto-configured buy-in on the multiplayer Blackjack Activity table - the pending buy-in
+     * is picked up by activities/src/lib/blackjackHandler.ts's consumePendingBlackjackAutoStart once
+     * they open the Activity, so others in the channel can join in (or just watch). */
+    private async sendBlackjackButton(userId: string, rewarded: number) {
+        await this.client.database.updateData({ [`other/pendingBlackjackAutoStart/${userId}`]: { buyIn: rewarded, createdAt: Date.now() } })
+
+        const invite = await fetch(`https://discord.com/api/v10/channels/${ThreadIds.GENERAL_TERNING}/invites`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bot ${discordSecret}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                max_age: 0,
+                max_uses: 0,
+                target_application_id: discordAppId,
+                target_type: 2, // 2 = Embedded Application
+                temporary: false,
+            }),
+        }).then((res) => res.json())
+
+        const button = blackjackButton(`https://discord.com/invite/${invite.code}`)
         setTimeout(() => {
             this.messageHelper.sendMessage(ThreadIds.GENERAL_TERNING, { components: [button] })
         }, 500)
@@ -640,14 +672,17 @@ const noThanksButton = (userId: string, rewarded: number) => {
         })
     )
 }
-export const blackjackButton = (userId: string, rewarded: number) => {
-    const emoji = rewarded >= 12500 ? { name: 'arne', id: '860282686605230130' } : { name: 'pointerbrothers1', id: '1177653110852825158' }
+/** A Link-style button - clicking it opens the Activity invite directly, no interaction handler
+ * needed (unlike the old BLACKJACK_DEATHROLL custom_id flow, still left wired up in blackjack.ts
+ * only so any already-posted old buttons don't dead-end). */
+export const blackjackButton = (inviteUrl: string) => {
     return new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder({
-            custom_id: `BLACKJACK_DEATHROLL;${userId};${rewarded}`,
-            style: ButtonStyle.Success,
+            style: ButtonStyle.Link,
+            url: inviteUrl,
+            label: 'Spill Blackjack',
+            emoji: { name: '🃏' },
             disabled: false,
-            emoji: emoji,
             type: 2,
         })
     )

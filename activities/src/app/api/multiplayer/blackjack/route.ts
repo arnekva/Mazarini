@@ -6,7 +6,10 @@ import {
   hitBlackjack,
   joinBlackjackLobby,
   leaveBlackjackLobby,
+  requestBlackjackRedeal,
+  splitBlackjack,
   standBlackjack,
+  voteBlackjackRedeal,
 } from "@/lib/blackjackHandler"
 
 // TEMPORARY while chasing intermittent 500s in production - surfaces the real error and stack
@@ -40,7 +43,7 @@ export async function POST(request: Request) {
     const { user, error } = await authenticateRequest(request)
     if (error) return error
 
-    const { instanceId, lobbyId, action, buyIn } = await request.json()
+    const { instanceId, lobbyId, action, buyIn, approve } = await request.json()
     if (!instanceId) return Response.json({ error: "Mangler instanceId" }, { status: 400 })
 
     if (action === "create") return await createBlackjackLobby(instanceId, user, buyIn)
@@ -51,6 +54,9 @@ export async function POST(request: Request) {
     if (action === "deal") return await dealBlackjackRound(instanceId, lobbyId, user)
     if (action === "hit") return await hitBlackjack(instanceId, lobbyId, user)
     if (action === "stand") return await standBlackjack(instanceId, lobbyId, user)
+    if (action === "split") return await splitBlackjack(instanceId, lobbyId, user)
+    if (action === "requestRedeal") return await requestBlackjackRedeal(instanceId, lobbyId, user)
+    if (action === "voteRedeal") return await voteBlackjackRedeal(instanceId, lobbyId, user, !!approve)
     return Response.json({ error: "Ukjent handling" }, { status: 400 })
   } catch (err) {
     return debugError(err)

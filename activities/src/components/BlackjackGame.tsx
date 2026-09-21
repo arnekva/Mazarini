@@ -10,12 +10,29 @@ interface CardView {
   suit: string
 }
 
+type HandStatus = "playing" | "stood" | "bust" | "blackjack"
+
+interface HandView {
+  cards: CardView[]
+  status: HandStatus
+  value: number
+}
+
 interface PlayerView {
   id: string
   username: string
-  hand: CardView[]
-  status: "waiting" | "playing" | "stood" | "bust" | "blackjack" | "sittingOut"
-  value: number
+  sittingOut: boolean
+  hands: HandView[]
+}
+
+type Result = "win" | "lose" | "push" | "blackjack"
+
+interface RedealVoteView {
+  requestedBy: string
+  requestedByUsername: string
+  yesCount: number
+  totalNeeded: number
+  myVoted: boolean
 }
 
 interface TableView {
@@ -24,9 +41,11 @@ interface TableView {
   status: "waiting" | "playing" | "roundOver"
   buyIn: number
   myChips: number
+  myRedealsAvailable: number
   players: PlayerView[]
   dealer: { hand: CardView[]; value?: number }
-  results?: Record<string, "win" | "lose" | "push" | "blackjack">
+  results?: Record<string, Result[]>
+  redealVote?: RedealVoteView
 }
 
 interface LobbySummary {
@@ -66,20 +85,38 @@ function CardFace({ card }: { card: CardView }) {
   )
 }
 
-const statusLabel: Record<PlayerView["status"], string> = {
-  waiting: "Venter på neste runde",
-  playing: "Din tur",
-  stood: "Sto",
+// "playing" isn't in here - its label depends on whose hand it is (see HandBlock), not just the status.
+const handStatusLabel: Record<Exclude<HandStatus, "playing">, string> = {
+  stood: "Står",
   bust: "Bust",
   blackjack: "Blackjack!",
-  sittingOut: "Ikke nok chips til å bli med",
 }
 
-const resultLabel: Record<NonNullable<TableView["results"]>[string], string> = {
+const resultLabel: Record<Result, string> = {
   win: "Vant",
   lose: "Tapte",
   push: "Uavgjort",
   blackjack: "Blackjack!",
+}
+
+function HandBlock({ hand, result, active, isMine }: { hand: HandView; result?: Result; active: boolean; isMine: boolean }) {
+  const label = hand.status === "playing" ? (isMine ? "Din tur" : "Venter...") : handStatusLabel[hand.status]
+  const outcomeClass = result === "win" || result === "blackjack" ? styles.handBlockWin : result === "lose" ? styles.handBlockLose : ""
+  return (
+    <div className={`${styles.handBlock} ${active ? styles.handBlockActive : ""} ${outcomeClass}`}>
+      <div className={styles.hand}>
+        {hand.cards.map((c, i) => (
+          <CardFace key={i} card={c} />
+        ))}
+      </div>
+      <div className={styles.handFooter}>
+        <span className={styles.value}>{hand.value}</span>
+        <span className={`${styles.status} ${hand.status === "bust" ? styles.statusBust : ""} ${result === "win" || result === "blackjack" ? styles.statusWin : ""}`}>
+          {result ? resultLabel[result] : label}
+        </span>
+      </div>
+    </div>
+  )
 }
 
 export function BlackjackGame({ accessToken }: { accessToken: string }) {
@@ -126,7 +163,10 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
     }
   }
 
-  async function action(actionName: "create" | "join" | "leave" | "deal" | "hit" | "stand", extra?: Record<string, unknown>) {
+  async function action(
+    actionName: "create" | "join" | "leave" | "deal" | "hit" | "stand" | "split" | "requestRedeal" | "voteRedeal",
+    extra?: Record<string, unknown>
+  ) {
     if (!instanceId || busy) return
     setBusy(true)
     setError(null)
@@ -155,16 +195,26 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
   useEffect(() => {
     if (!instanceId || initedRef.current) return
     initedRef.current = true
-    refreshLobbies()
+    // Won the pot from /terning and clicked "Spill Blackjack"? Skip the lobby list entirely and
+    // land straight at a table already set up with the pot as buy-in, for others to join or watch.
+    callApi<{ buyIn: number | null }>("/api/multiplayer/blackjack/pending-autostart", accessToken)
+      .then((res) => {
+        if (res.buyIn !== null) action("create", { buyIn: res.buyIn })
+        else refreshLobbies()
+      })
+      .catch(refreshLobbies)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instanceId])
 
   useEffect(() => {
     if (!instanceId) return
-    const interval = setInterval(() => {
-      if (lobbyId) refreshTable(lobbyId)
-      else refreshLobbies()
-    }, lobbyId ? TABLE_POLL_MS : LOBBY_POLL_MS)
+    const interval = setInterval(
+      () => {
+        if (lobbyId) refreshTable(lobbyId)
+        else refreshLobbies()
+      },
+      lobbyId ? TABLE_POLL_MS : LOBBY_POLL_MS
+    )
     return () => clearInterval(interval)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instanceId, lobbyId])
@@ -201,7 +251,8 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
               >
                 <span className={styles.lobbyHost}>{l.hostUsername}s bord</span>
                 <span className={styles.lobbyMeta}>
-                  {l.buyIn} chips buy-in · {l.numPlayers} spiller{l.numPlayers === 1 ? "" : "e"} · {l.status === "waiting" ? "venter" : l.status === "playing" ? "spiller" : "mellom runder"}
+                  {l.buyIn} chips buy-in · {l.numPlayers} spiller{l.numPlayers === 1 ? "" : "e"} ·{" "}
+                  {l.status === "waiting" ? "venter" : l.status === "playing" ? "spiller" : "mellom runder"}
                 </span>
               </button>
             ))}
@@ -239,9 +290,12 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
   if (!table) return <p className={styles.info}>Kobler til bordet...</p>
 
   const me = table.players.find((p) => p.id === discordUser?.id)
+  const myActiveHandIndex = me?.hands.findIndex((h) => h.status === "playing") ?? -1
+  const myActiveHand = myActiveHandIndex >= 0 ? me?.hands[myActiveHandIndex] : undefined
   const canDeal = table.status !== "playing" && table.players.length > 0
-  const canAct = table.status === "playing" && me?.status === "playing"
-  const iAmSittingOut = table.status === "playing" && me?.status === "sittingOut"
+  const canAct = table.status === "playing" && !!myActiveHand
+  const canSplit = !!myActiveHand && myActiveHand.cards.length === 2 && myActiveHand.cards[0].rank === myActiveHand.cards[1].rank && table.myChips >= table.buyIn
+  const iAmSittingOut = table.status === "playing" && me?.sittingOut
 
   return (
     <>
@@ -264,39 +318,61 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
       </div>
 
       <div className={styles.playersGrid}>
-        {table.players.map((p) => (
-          <div
-            key={p.id}
-            className={`${styles.playerBlock} ${p.id === discordUser?.id ? styles.playerBlockMe : ""} ${
-              p.status === "sittingOut" ? styles.playerBlockSittingOut : ""
-            }`}
-          >
-            <div className={styles.playerHeader}>
-              <span>
-                {p.username}
-                {p.id === table.hostId ? " 👑" : ""}
-              </span>
-              <span
-                className={`${styles.status} ${p.status === "bust" || p.status === "sittingOut" ? styles.statusBust : ""} ${
-                  table.results?.[p.id] === "win" || table.results?.[p.id] === "blackjack" ? styles.statusWin : ""
-                }`}
-              >
-                {table.results?.[p.id] ? resultLabel[table.results[p.id]] : statusLabel[p.status]}
-              </span>
+        {table.players.map((p) => {
+          const activeIdx = p.hands.findIndex((h) => h.status === "playing")
+          return (
+            <div
+              key={p.id}
+              className={`${styles.playerBlock} ${p.id === discordUser?.id ? styles.playerBlockMe : ""} ${p.sittingOut ? styles.playerBlockSittingOut : ""}`}
+            >
+              <div className={styles.playerHeader}>
+                <span>
+                  {p.username}
+                  {p.id === table.hostId ? " 👑" : ""}
+                </span>
+                {p.sittingOut && <span className={`${styles.status} ${styles.statusBust}`}>Ikke nok chips til å bli med</span>}
+                {!p.sittingOut && p.hands.length === 0 && <span className={styles.status}>Venter på neste runde</span>}
+              </div>
+              {p.hands.length > 1 && <div className={styles.multiHandNote}>{p.hands.length} hender (splittet)</div>}
+              <div className={styles.handsRow}>
+                {p.hands.map((h, i) => (
+                  <HandBlock key={i} hand={h} result={table.results?.[p.id]?.[i]} active={i === activeIdx} isMine={p.id === discordUser?.id} />
+                ))}
+              </div>
             </div>
-            <div className={styles.hand}>
-              {p.hand.map((c, i) => (
-                <CardFace key={i} card={c} />
-              ))}
-            </div>
-            {p.hand.length > 0 && <div className={styles.value}>{p.value}</div>}
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       {error && <p className={styles.error}>{error}</p>}
 
       {iAmSittingOut && <p className={styles.info}>Du har ikke nok chips til denne runden - blir med igjen automatisk neste runde du har råd til.</p>}
+
+      {table.redealVote && (
+        <div className={styles.voteBanner}>
+          <p className={styles.info}>
+            <strong>{table.redealVote.requestedByUsername}</strong> vil bruke "Deal på ny" - {table.redealVote.yesCount}/{table.redealVote.totalNeeded} har stemt ja.
+          </p>
+          {table.redealVote.myVoted ? (
+            <p className={styles.info}>Venter på de andre...</p>
+          ) : (
+            <div className={styles.actionRow}>
+              <button className={styles.hitBtn} type="button" disabled={busy} onClick={() => action("voteRedeal", { approve: true })}>
+                Ja
+              </button>
+              <button className={styles.standBtn} type="button" disabled={busy} onClick={() => action("voteRedeal", { approve: false })}>
+                Nei
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {!table.redealVote && !iAmSittingOut && table.status === "playing" && table.myRedealsAvailable > 0 && (
+        <button className={styles.redealBtn} type="button" disabled={busy} onClick={() => action("requestRedeal")}>
+          🔄 Deal på ny ({table.myRedealsAvailable})
+        </button>
+      )}
 
       {canAct && (
         <div className={styles.actionRow}>
@@ -306,6 +382,11 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
           <button className={styles.standBtn} type="button" disabled={busy} onClick={() => action("stand")}>
             Stand
           </button>
+          {canSplit && (
+            <button className={styles.splitBtn} type="button" disabled={busy} onClick={() => action("split")}>
+              Split
+            </button>
+          )}
         </div>
       )}
 
