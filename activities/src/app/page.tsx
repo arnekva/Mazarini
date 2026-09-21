@@ -1,6 +1,7 @@
 "use client"
 
 import { callApi } from "@/lib/apiClient"
+import { isAdminUser } from "@/lib/admin"
 import { useDiscord } from "@/providers/discordProvider"
 import Link from "next/link"
 import { useEffect, useState } from "react"
@@ -26,8 +27,9 @@ interface HubStatus {
 }
 
 export default function Home() {
-  const { accessToken, ready } = useDiscord()
+  const { accessToken, ready, discordUser } = useDiscord()
   const [status, setStatus] = useState<HubStatus | null>(null)
+  const isAdmin = isAdminUser(discordUser?.id)
 
   useEffect(() => {
     if (!accessToken) return
@@ -62,10 +64,12 @@ export default function Home() {
               More or Less
               <span className={styles.cardSub}>Ubegrenset antall forsøk</span>
             </HubCard>
-            <HubCard href="/song-rank" enabled cardClass="cardGreen" fullWidth>
-              Song Rank
-              <span className={styles.cardSub}>Rangér en spilleliste</span>
-            </HubCard>
+            {isAdmin && (
+              <HubCard href="/song-rank" enabled cardClass="cardGreen" fullWidth>
+                Song Rank
+                <span className={styles.cardSub}>Rangér en spilleliste</span>
+              </HubCard>
+            )}
             <HubCard href="/multiplayer" enabled={loggedIn} cardClass="cardBlue" fullWidth>
               Multiplayer
               <span className={styles.cardSub}>Spill sammen med andre i kanalen</span>

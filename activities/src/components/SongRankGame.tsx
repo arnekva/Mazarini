@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { RankTrack } from "@/app/api/spotify/playlist/route"
+import { isAdminUser } from "@/lib/admin"
 import { RankState, answer, currentCandidate, currentComparison, init, keep, skip } from "@/lib/songRanker"
 import { extractPlaylistId } from "@/lib/spotifyIds"
 import { clearProgress, loadProgress, saveProgress } from "@/lib/songRankStorage"
@@ -10,13 +11,9 @@ import styles from "./SongRankGame.module.css"
 
 type Screen = "input" | "playing"
 
-// Spotify login/write-access is a power-user feature for one person, not something every
-// Discord server member who opens the daily hub should see or be able to trigger.
-const ADMIN_DISCORD_ID = "245607554254766081"
-
 export function SongRankGame() {
   const { discordUser } = useDiscord()
-  const isAdmin = discordUser?.id === ADMIN_DISCORD_ID
+  const isAdmin = isAdminUser(discordUser?.id)
 
   const [screen, setScreen] = useState<Screen>("input")
   const [playlistInput, setPlaylistInput] = useState("")

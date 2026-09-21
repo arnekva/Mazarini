@@ -1,4 +1,4 @@
-import { FirebaseApp, initializeApp } from "firebase/app"
+import { FirebaseApp, getApp, getApps, initializeApp } from "firebase/app"
 import { Database, get, getDatabase, ref, update } from "firebase/database"
 import { database, firebaseConfig } from "../env"
 
@@ -9,7 +9,11 @@ export class FirebaseHelper {
   private db: Database
 
   constructor() {
-    this.firebaseApp = initializeApp(firebaseConfig)
+    // A warm serverless container reuses the same Node process across requests, and every route
+    // constructs its own `new FirebaseHelper()` - calling initializeApp() unconditionally here
+    // throws "Firebase App named '[DEFAULT]' already exists" on any request after the first one
+    // to land on that container. Reuse the existing app instead of re-initializing it.
+    this.firebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig)
     this.db = getDatabase(this.firebaseApp)
   }
 
