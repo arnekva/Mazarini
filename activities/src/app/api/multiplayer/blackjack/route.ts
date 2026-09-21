@@ -1,5 +1,5 @@
 import { authenticateRequest } from "@/lib/discordAuth"
-import { dealBlackjackRound, getBlackjackStatus, hitBlackjack, joinBlackjackTable, standBlackjack } from "@/lib/blackjackHandler"
+import { dealBlackjackRound, getBlackjackStatus, hitBlackjack, joinBlackjackTable, standBlackjack, startBlackjackGame } from "@/lib/blackjackHandler"
 
 // TEMPORARY while chasing intermittent 500s in production - surfaces the real error and stack
 // instead of a bare 500, since there's no other way to see server logs from here right now.
@@ -30,10 +30,11 @@ export async function POST(request: Request) {
     const { user, error } = await authenticateRequest(request)
     if (error) return error
 
-    const { instanceId, action } = await request.json()
+    const { instanceId, action, buyIn } = await request.json()
     if (!instanceId) return Response.json({ error: "Mangler instanceId" }, { status: 400 })
 
     if (action === "join") return await joinBlackjackTable(instanceId, user)
+    if (action === "start") return await startBlackjackGame(instanceId, user, buyIn)
     if (action === "deal") return await dealBlackjackRound(instanceId, user)
     if (action === "hit") return await hitBlackjack(instanceId, user)
     if (action === "stand") return await standBlackjack(instanceId, user)
