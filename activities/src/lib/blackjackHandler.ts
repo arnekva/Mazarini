@@ -32,9 +32,29 @@ function emptyTable(): BlackjackTable {
   return { status: "waiting", players: {}, playerOrder: [], dealerHand: [], dealerHidden: false, deck: [], updatedAt: Date.now() }
 }
 
+/** Firebase RTDB drops empty-array fields on write (no children = indistinguishable from "not
+ * there"), so a table that's never had a round dealt can come back with `dealerHand`/`deck`
+ * missing entirely, and a just-joined player with `hand` missing - normalize those back to `[]`. */
 async function readTable(firebase: FirebaseHelper, instanceId: string): Promise<BlackjackTable> {
   const data = await firebase.getData(`other/${PATH_PREFIX}/${instanceId}`)
-  return (data as BlackjackTable) ?? emptyTable()
+  if (!data) return emptyTable()
+
+  const raw = data as BlackjackTable
+  const players: Record<string, BlackjackPlayer> = {}
+  for (const id of Object.keys(raw.players ?? {})) {
+    players[id] = { ...raw.players[id], hand: raw.players[id].hand ?? [] }
+  }
+
+  return {
+    status: raw.status ?? "waiting",
+    players,
+    playerOrder: raw.playerOrder ?? [],
+    dealerHand: raw.dealerHand ?? [],
+    dealerHidden: raw.dealerHidden ?? false,
+    deck: raw.deck ?? [],
+    results: raw.results,
+    updatedAt: raw.updatedAt ?? Date.now(),
+  }
 }
 
 async function writeTable(firebase: FirebaseHelper, instanceId: string, table: BlackjackTable) {

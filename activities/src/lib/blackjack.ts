@@ -19,11 +19,13 @@ export function freshShuffledDeck(): Card[] {
   return deck
 }
 
-/** Best possible total for a hand, counting aces as 11 unless that would bust. */
-export function handValue(hand: Card[]): number {
+/** Best possible total for a hand, counting aces as 11 unless that would bust.
+ * Tolerates a missing hand defensively - Firebase RTDB drops empty-array fields on write, so an
+ * unstarted hand can come back as `undefined` instead of `[]` after a round-trip through the DB. */
+export function handValue(hand: Card[] | undefined): number {
   let total = 0
   let aces = 0
-  for (const card of hand) {
+  for (const card of hand ?? []) {
     if (card.rank === "A") {
       total += 11
       aces++
@@ -40,13 +42,14 @@ export function handValue(hand: Card[]): number {
   return total
 }
 
-export function isBlackjack(hand: Card[]): boolean {
-  return hand.length === 2 && handValue(hand) === 21
+export function isBlackjack(hand: Card[] | undefined): boolean {
+  return (hand?.length ?? 0) === 2 && handValue(hand) === 21
 }
 
-/** Draws one card, reshuffling a fresh deck first in the (very unlikely) case the shared deck ran dry. */
-export function drawCard(deck: Card[]): { card: Card; remaining: Card[] } {
-  const source = deck.length > 0 ? deck : freshShuffledDeck()
+/** Draws one card, reshuffling a fresh deck first if the shared deck ran dry (or came back
+ * `undefined` from Firebase - see the note on handValue above). */
+export function drawCard(deck: Card[] | undefined): { card: Card; remaining: Card[] } {
+  const source = deck && deck.length > 0 ? deck : freshShuffledDeck()
   const [card, ...remaining] = source
   return { card, remaining }
 }
