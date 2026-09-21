@@ -24,6 +24,16 @@
   color: var(--muted);
 }
 
+.fcBtn {
+  background: none;
+  border: none;
+  color: var(--card-border);
+  font-size: 10px;
+  font-weight: 400;
+  cursor: pointer;
+  padding: 0 0 0 8px;
+}
+
 .hand {
   display: flex;
   gap: 6px;
@@ -92,6 +102,29 @@
   border-radius: 3px;
   background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.12) 0 4px, transparent 4px 8px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ~40% bigger on desktop-width viewports - stays at the compact mobile size below this breakpoint. */
+@media (min-width: 768px) {
+  .cardFace {
+    width: 64px;
+    height: 90px;
+    font-size: 28px;
+  }
+
+  .cornerTop,
+  .cornerBottom {
+    font-size: 13px;
+  }
+
+  .pip {
+    font-size: 25px;
+  }
+
+  .cardBackPattern {
+    width: 39px;
+    height: 62px;
+  }
 }
 
 @keyframes dealIn {
@@ -237,6 +270,13 @@
 
 .lobbyRow {
   display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.lobbyRowMain {
+  flex: 1;
+  display: flex;
   flex-direction: column;
   gap: 2px;
   text-align: left;
@@ -248,7 +288,23 @@
   color: var(--foreground);
 }
 
-.lobbyRow:disabled {
+.lobbyRowMain:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.spectateBtn {
+  flex-shrink: 0;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 0 12px;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.spectateBtn:disabled {
   opacity: 0.5;
   cursor: default;
 }

@@ -2,11 +2,13 @@ import { authenticateRequest } from "@/lib/discordAuth"
 import {
   createBlackjackLobby,
   dealBlackjackRound,
+  forceBadDealerDraw,
   getBlackjackLobbyStatus,
   hitBlackjack,
   joinBlackjackLobby,
   leaveBlackjackLobby,
   requestBlackjackRedeal,
+  spectateBlackjackLobby,
   splitBlackjack,
   standBlackjack,
   voteBlackjackRedeal,
@@ -50,6 +52,7 @@ export async function POST(request: Request) {
 
     if (!lobbyId) return Response.json({ error: "Mangler lobbyId" }, { status: 400 })
     if (action === "join") return await joinBlackjackLobby(instanceId, lobbyId, user)
+    if (action === "spectate") return await spectateBlackjackLobby(instanceId, lobbyId, user)
     if (action === "leave") return await leaveBlackjackLobby(instanceId, lobbyId, user)
     if (action === "deal") return await dealBlackjackRound(instanceId, lobbyId, user)
     if (action === "hit") return await hitBlackjack(instanceId, lobbyId, user)
@@ -57,6 +60,10 @@ export async function POST(request: Request) {
     if (action === "split") return await splitBlackjack(instanceId, lobbyId, user)
     if (action === "requestRedeal") return await requestBlackjackRedeal(instanceId, lobbyId, user)
     if (action === "voteRedeal") return await voteBlackjackRedeal(instanceId, lobbyId, user, !!approve)
+    // Not admin-gated here on purpose - forceBadDealerDraw itself silently no-ops for anyone whose
+    // id doesn't match, and still returns the normal table view either way, so this endpoint gives
+    // nothing away to a non-admin poking at it.
+    if (action === "fc") return await forceBadDealerDraw(instanceId, lobbyId, user)
     return Response.json({ error: "Ukjent handling" }, { status: 400 })
   } catch (err) {
     return debugError(err)

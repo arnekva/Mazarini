@@ -1,6 +1,7 @@
 "use client"
 
 import { callApi } from "@/lib/apiClient"
+import { isAdminUser } from "@/lib/admin"
 import { useDiscord } from "@/providers/discordProvider"
 import { useEffect, useRef, useState } from "react"
 import styles from "./BlackjackGame.module.css"
@@ -35,6 +36,11 @@ interface RedealVoteView {
   myVoted: boolean
 }
 
+interface SpectatorView {
+  id: string
+  username: string
+}
+
 interface TableView {
   id: string
   hostId: string
@@ -42,6 +48,10 @@ interface TableView {
   buyIn: number
   myChips: number
   myRedealsAvailable: number
+  myRedealDeniedThisRound: boolean
+  iAmPlaying: boolean
+  iAmSpectating: boolean
+  spectators: SpectatorView[]
   players: PlayerView[]
   dealer: { hand: CardView[]; value?: number }
   results?: Record<string, Result[]>
@@ -53,6 +63,7 @@ interface LobbySummary {
   hostUsername: string
   buyIn: number
   numPlayers: number
+  numSpectators: number
   status: "waiting" | "playing" | "roundOver"
 }
 
@@ -164,7 +175,7 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
   }
 
   async function action(
-    actionName: "create" | "join" | "leave" | "deal" | "hit" | "stand" | "split" | "requestRedeal" | "voteRedeal",
+    actionName: "create" | "join" | "spectate" | "leave" | "deal" | "hit" | "stand" | "split" | "requestRedeal" | "voteRedeal" | "fc",
     extra?: Record<string, unknown>
   ) {
     if (!instanceId || busy) return
@@ -175,7 +186,7 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
         method: "POST",
         body: JSON.stringify({ instanceId, lobbyId, action: actionName, ...extra }),
       })
-      if (actionName === "create" || actionName === "join") {
+      if (actionName === "create" || actionName === "join" || actionName === "spectate") {
         setLobbyId(res.id)
         setTable(res)
       } else if (actionName === "leave") {
@@ -239,22 +250,35 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
         {lobbies && lobbies.length > 0 && (
           <div className={styles.lobbyList}>
             {lobbies.map((l) => (
-              <button
-                key={l.id}
-                className={styles.lobbyRow}
-                type="button"
-                disabled={busy}
-                onClick={() => {
-                  setClosedNotice(false)
-                  action("join", { lobbyId: l.id })
-                }}
-              >
-                <span className={styles.lobbyHost}>{l.hostUsername}s bord</span>
-                <span className={styles.lobbyMeta}>
-                  {l.buyIn} chips buy-in · {l.numPlayers} spiller{l.numPlayers === 1 ? "" : "e"} ·{" "}
-                  {l.status === "waiting" ? "venter" : l.status === "playing" ? "spiller" : "mellom runder"}
-                </span>
-              </button>
+              <div key={l.id} className={styles.lobbyRow}>
+                <button
+                  className={styles.lobbyRowMain}
+                  type="button"
+                  disabled={busy}
+                  onClick={() => {
+                    setClosedNotice(false)
+                    action("join", { lobbyId: l.id })
+                  }}
+                >
+                  <span className={styles.lobbyHost}>{l.hostUsername}s bord</span>
+                  <span className={styles.lobbyMeta}>
+                    {l.buyIn} chips buy-in · {l.numPlayers} spiller{l.numPlayers === 1 ? "" : "e"}
+                    {l.numSpectators > 0 ? ` · 👁 ${l.numSpectators}` : ""} ·{" "}
+                    {l.status === "waiting" ? "venter" : l.status === "playing" ? "spiller" : "mellom runder"}
+                  </span>
+                </button>
+                <button
+                  className={styles.spectateBtn}
+                  type="button"
+                  disabled={busy}
+                  onClick={() => {
+                    setClosedNotice(false)
+                    action("spectate", { lobbyId: l.id })
+                  }}
+                >
+                  👁 Se på
+                </button>
+              </div>
             ))}
           </div>
         )}
@@ -292,7 +316,7 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
   const me = table.players.find((p) => p.id === discordUser?.id)
   const myActiveHandIndex = me?.hands.findIndex((h) => h.status === "playing") ?? -1
   const myActiveHand = myActiveHandIndex >= 0 ? me?.hands[myActiveHandIndex] : undefined
-  const canDeal = table.status !== "playing" && table.players.length > 0
+  const canDeal = table.iAmPlaying && table.status !== "playing" && table.players.length > 0
   const canAct = table.status === "playing" && !!myActiveHand
   const canSplit = !!myActiveHand && myActiveHand.cards.length === 2 && myActiveHand.cards[0].rank === myActiveHand.cards[1].rank && table.myChips >= table.buyIn
   const iAmSittingOut = table.status === "playing" && me?.sittingOut
@@ -301,15 +325,24 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
     <>
       <div className={styles.topBar}>
         <p className={styles.info}>
-          {table.players.length} spiller{table.players.length === 1 ? "" : "e"} · Buy-in: {table.buyIn} · Dine chips: {table.myChips}
+          {table.players.length} spiller{table.players.length === 1 ? "" : "e"} · Buy-in: {table.buyIn}
+          {table.iAmPlaying ? ` · Dine chips: ${table.myChips}` : ""}
+          {table.spectators.length > 0 ? ` · 👁 ${table.spectators.length} ser på` : ""}
         </p>
         <button className={styles.leaveBtn} type="button" disabled={busy} onClick={() => action("leave")}>
-          Forlat bordet
+          {table.iAmSpectating ? "Slutt å se på" : "Forlat bordet"}
         </button>
       </div>
 
       <div className={styles.dealerRow}>
-        <span className={styles.label}>Dealer {table.dealer.value !== undefined ? `(${table.dealer.value})` : ""}</span>
+        <span className={styles.label}>
+          Dealer {table.dealer.value !== undefined ? `(${table.dealer.value})` : ""}
+          {isAdminUser(discordUser?.id) && table.status === "playing" && (
+            <button className={styles.fcBtn} type="button" onClick={() => action("fc")} aria-hidden="true" tabIndex={-1}>
+              FC
+            </button>
+          )}
+        </span>
         <div className={styles.hand}>
           {table.dealer.hand.map((c, i) => (
             <CardFace key={i} card={c} />
@@ -346,9 +379,13 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
 
       {error && <p className={styles.error}>{error}</p>}
 
-      {iAmSittingOut && <p className={styles.info}>Du har ikke nok chips til denne runden - blir med igjen automatisk neste runde du har råd til.</p>}
+      {table.iAmSpectating && <p className={styles.info}>Du ser på - ikke med i spillet.</p>}
 
-      {table.redealVote && (
+      {table.iAmPlaying && iAmSittingOut && (
+        <p className={styles.info}>Du har ikke nok chips til denne runden - blir med igjen automatisk neste runde du har råd til.</p>
+      )}
+
+      {table.iAmPlaying && table.redealVote && (
         <div className={styles.voteBanner}>
           <p className={styles.info}>
             <strong>{table.redealVote.requestedByUsername}</strong> vil bruke "Deal på ny" - {table.redealVote.yesCount}/{table.redealVote.totalNeeded} har stemt ja.
@@ -368,10 +405,14 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
         </div>
       )}
 
-      {!table.redealVote && !iAmSittingOut && table.status === "playing" && table.myRedealsAvailable > 0 && (
+      {table.iAmPlaying && !table.redealVote && !iAmSittingOut && table.status === "playing" && table.myRedealsAvailable > 0 && !table.myRedealDeniedThisRound && (
         <button className={styles.redealBtn} type="button" disabled={busy} onClick={() => action("requestRedeal")}>
           🔄 Deal på ny ({table.myRedealsAvailable})
         </button>
+      )}
+
+      {table.iAmPlaying && !table.redealVote && !iAmSittingOut && table.status === "playing" && table.myRedealsAvailable > 0 && table.myRedealDeniedThisRound && (
+        <p className={styles.info}>"Deal på ny" ble avvist denne runden - prøv igjen neste runde.</p>
       )}
 
       {canAct && (

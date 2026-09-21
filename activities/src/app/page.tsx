@@ -4,6 +4,7 @@ import { callApi } from "@/lib/apiClient"
 import { isAdminUser } from "@/lib/admin"
 import { useDiscord } from "@/providers/discordProvider"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import styles from "./page.module.css"
 
@@ -28,7 +29,9 @@ interface HubStatus {
 
 export default function Home() {
   const { accessToken, ready, discordUser } = useDiscord()
+  const router = useRouter()
   const [status, setStatus] = useState<HubStatus | null>(null)
+  const [redirecting, setRedirecting] = useState(false)
   const isAdmin = isAdminUser(discordUser?.id)
 
   useEffect(() => {
@@ -36,7 +39,29 @@ export default function Home() {
     callApi<HubStatus>("/api/hub-status", accessToken).then(setStatus)
   }, [accessToken])
 
+  // launchActivity() (used by the /terning pot-win button) always opens this root page - there's no
+  // way to deep-link straight into /multiplayer/blackjack through it - so this is the only place
+  // that can notice a pending auto-start and send the winner on. Peek-only: doesn't consume the
+  // flag, BlackjackGame does that itself once it actually loads and creates the table.
+  useEffect(() => {
+    if (!accessToken) return
+    callApi<{ pending: boolean }>("/api/multiplayer/blackjack/pending-autostart?peek=1", accessToken).then((res) => {
+      if (res.pending) {
+        setRedirecting(true)
+        router.push("/multiplayer/blackjack")
+      }
+    })
+  }, [accessToken, router])
+
   const loggedIn = ready && !!accessToken
+
+  if (redirecting) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.spinner} aria-label="Åpner Blackjack..." />
+      </div>
+    )
+  }
 
   return (
     <div className={styles.page}>

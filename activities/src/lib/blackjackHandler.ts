@@ -1,3 +1,4 @@
+import { isAdminUser } from "./admin"
 import { FirebaseHelper } from "./db/firebaseHelper"
 import { AuthenticatedDiscordUser } from "./discordAuth"
 import { Card, drawCard, freshShuffledDeck, handValue, isBlackjack } from "./blackjack"
@@ -33,6 +34,8 @@ interface BlackjackLobby {
   status: TableStatus
   players: Record<string, BlackjackPlayer>
   playerOrder: string[]
+  /** Watchers - no seat, no ante, no hand, just the same live table view everyone else gets. */
+  spectators: Record<string, string>
   dealerHand: Card[]
   dealerHidden: boolean
   deck: Card[]
@@ -40,6 +43,9 @@ interface BlackjackLobby {
   results?: Record<string, Result[]>
   /** An in-progress "Deal på ny" vote - needs a yes from every active (non-sitting-out) player. */
   redealVote?: RedealVote
+  /** Player ids whose redeal request already got voted down this round - blocked from asking again
+   * until the round resolves (performDeal/performRedeal both clear this). */
+  redealDeniedFor?: string[]
   createdAt: number
   updatedAt: number
 }
@@ -69,11 +75,13 @@ function normalizeLobby(raw: any): BlackjackLobby {
     status: raw.status ?? "waiting",
     players,
     playerOrder: raw.playerOrder ?? [],
+    spectators: raw.spectators ?? {},
     dealerHand: raw.dealerHand ?? [],
     dealerHidden: raw.dealerHidden ?? false,
     deck: raw.deck ?? [],
     ...(raw.results ? { results: raw.results } : {}),
     ...(raw.redealVote ? { redealVote: raw.redealVote } : {}),
+    ...(raw.redealDeniedFor ? { redealDeniedFor: raw.redealDeniedFor } : {}),
     createdAt: raw.createdAt ?? Date.now(),
     updatedAt: raw.updatedAt ?? Date.now(),
   }
@@ -99,11 +107,20 @@ async function deleteLobby(firebase: FirebaseHelper, instanceId: string, lobbyId
   await firebase.updateData({ [`other/${PATH_PREFIX}/${instanceId}/${lobbyId}`]: null })
 }
 
-/** The host leaving closes the table for everyone (deleted outright); anyone else leaving just
- * frees their seat. A lobby that ends up with no one left in it is cleaned up either way. */
+/** The host leaving closes the table for everyone (deleted outright); anyone else leaving (player or
+ * spectator) just frees their seat. A lobby with no players left is cleaned up either way - but
+ * spectators alone don't keep an otherwise-empty lobby alive. */
 async function leaveLobby(firebase: FirebaseHelper, instanceId: string, lobbyId: string, userId: string) {
   const lobby = await readLobby(firebase, instanceId, lobbyId)
-  if (!lobby || !lobby.players[userId]) return
+  if (!lobby) return
+
+  if (lobby.spectators[userId] !== undefined) {
+    const spectators = { ...lobby.spectators }
+    delete spectators[userId]
+    await writeLobby(firebase, instanceId, lobbyId, { ...lobby, spectators })
+    return
+  }
+  if (!lobby.players[userId]) return
 
   if (lobby.hostId === userId) {
     await deleteLobby(firebase, instanceId, lobbyId)
@@ -119,12 +136,13 @@ async function leaveLobby(firebase: FirebaseHelper, instanceId: string, lobbyId:
   await writeLobby(firebase, instanceId, lobbyId, { ...lobby, players, playerOrder })
 }
 
-/** You can only ever be seated at one lobby per voice channel - switching lobbies (or creating a
- * new one) quietly leaves whichever one you were previously in. */
+/** You can only ever be at one lobby per voice channel at a time - playing or spectating - switching
+ * (or creating a new one) quietly leaves whichever one you were previously at. */
 async function leaveOtherLobbies(firebase: FirebaseHelper, instanceId: string, userId: string, exceptLobbyId?: string) {
   const all = await readAllLobbies(firebase, instanceId)
   for (const lobbyId of Object.keys(all)) {
     if (lobbyId === exceptLobbyId) continue
+    if (all[lobbyId].spectators[userId] !== undefined) await leaveLobby(firebase, instanceId, lobbyId, userId)
     if (all[lobbyId].players[userId]) await leaveLobby(firebase, instanceId, lobbyId, userId)
   }
 }
@@ -147,6 +165,9 @@ async function publicView(firebase: FirebaseHelper, lobby: BlackjackLobby, userI
     buyIn: lobby.buyIn,
     myChips: dbUser.chips ?? 0,
     myRedealsAvailable: dbUser.effects?.positive?.blackjackReDeals ?? 0,
+    iAmPlaying: !!lobby.players[userId],
+    iAmSpectating: lobby.spectators[userId] !== undefined,
+    spectators: Object.entries(lobby.spectators).map(([id, username]) => ({ id, username })),
     players: lobby.playerOrder.map((id) => {
       const p = lobby.players[id]
       return {
@@ -167,6 +188,7 @@ async function publicView(firebase: FirebaseHelper, lobby: BlackjackLobby, userI
           myVoted: !!lobby.redealVote.votes[userId],
         }
       : undefined,
+    myRedealDeniedThisRound: !!lobby.redealDeniedFor?.includes(userId),
   }
 }
 
@@ -183,9 +205,27 @@ function activeHandIndex(player: BlackjackPlayer): number {
   return player.hands.findIndex((h) => h.status === "playing")
 }
 
+/** Draws the dealer's next hit card - normally random. If a nudge is pending for this table, it's
+ * consumed right here either way (one shot, never repeats) - but it only actually changes anything
+ * when the total's already 12+, where a high card is unambiguously bad for the dealer. Below that,
+ * a high card would just lock in a strong stand instead, so it's left fully random on purpose. */
+async function drawDealerCard(firebase: FirebaseHelper, instanceId: string, lobbyId: string, deck: Card[], dealerHand: Card[]): Promise<{ card: Card; remaining: Card[] }> {
+  const forced = await firebase.getData(`other/pendingBlackjackForcedDealerCard/${instanceId}/${lobbyId}`)
+  if (forced) await firebase.updateData({ [`other/pendingBlackjackForcedDealerCard/${instanceId}/${lobbyId}`]: null })
+
+  if (forced && handValue(dealerHand) >= 12) {
+    const highRanks = ["10", "J", "Q", "K"]
+    const rank = highRanks[Math.floor(Math.random() * highRanks.length)]
+    const suits: Card["suit"][] = ["♠", "♥", "♦", "♣"]
+    const suit = suits[Math.floor(Math.random() * suits.length)]
+    return { card: { rank, suit }, remaining: deck }
+  }
+  return drawCard(deck)
+}
+
 /** Dealer draws to 17 (stands on all 17s), every hand still in gets scored, and win/push payouts
  * are credited immediately - a loss doesn't need a debit here, the ante was already taken at deal/split time. */
-async function resolveDealer(firebase: FirebaseHelper, lobby: BlackjackLobby): Promise<BlackjackLobby> {
+async function resolveDealer(firebase: FirebaseHelper, instanceId: string, lobbyId: string, lobby: BlackjackLobby): Promise<BlackjackLobby> {
   let deck = lobby.deck
   let dealerHand = lobby.dealerHand
   lobby.dealerHidden = false
@@ -196,11 +236,14 @@ async function resolveDealer(firebase: FirebaseHelper, lobby: BlackjackLobby): P
   })
   if (anyoneStillIn) {
     while (handValue(dealerHand) < 17) {
-      const drawn = drawCard(deck)
+      const drawn = await drawDealerCard(firebase, instanceId, lobbyId, deck, dealerHand)
       dealerHand = [...dealerHand, drawn.card]
       deck = drawn.remaining
     }
   }
+  // In case it was armed but the dealer never actually needed to hit (already >=17, or everyone
+  // else already busted) - don't let it linger and unexpectedly hit a later round instead.
+  await firebase.updateData({ [`other/pendingBlackjackForcedDealerCard/${instanceId}/${lobbyId}`]: null })
 
   const dealerTotal = handValue(dealerHand)
   const dealerBust = dealerTotal > 21
@@ -252,7 +295,7 @@ async function drawOpeningHand(firebase: FirebaseHelper, playerId: string, deck:
 
 /** Charges every seated player the lobby's buy-in (skipping anyone who can't afford it - they sit
  * out this round rather than being removed from the table) and deals a fresh round. */
-async function performDeal(firebase: FirebaseHelper, lobby: BlackjackLobby): Promise<BlackjackLobby> {
+async function performDeal(firebase: FirebaseHelper, instanceId: string, lobbyId: string, lobby: BlackjackLobby): Promise<BlackjackLobby> {
   const buyIn = lobby.buyIn
   let deck = freshShuffledDeck()
 
@@ -277,8 +320,9 @@ async function performDeal(firebase: FirebaseHelper, lobby: BlackjackLobby): Pro
   lobby.dealerHidden = true
   lobby.status = "playing"
   delete lobby.results
+  delete lobby.redealDeniedFor
 
-  return allPlayersDone(lobby) ? await resolveDealer(firebase, lobby) : lobby
+  return allPlayersDone(lobby) ? await resolveDealer(firebase, instanceId, lobbyId, lobby) : lobby
 }
 
 /** Reshuffles a fresh two cards for every active player (collapsing any splits) - no new antes,
@@ -304,6 +348,7 @@ async function performRedeal(lobby: BlackjackLobby): Promise<BlackjackLobby> {
   lobby.status = "playing"
   delete lobby.results
   delete lobby.redealVote
+  delete lobby.redealDeniedFor
 
   return lobby
 }
@@ -330,6 +375,9 @@ export async function requestBlackjackRedeal(instanceId: string, lobbyId: string
   if (!lobby.players[user.id]) return Response.json({ error: "Du er ikke ved dette bordet" }, { status: 400 })
   if (lobby.status !== "playing") return Response.json({ error: "Kan bare brukes midt i en runde" }, { status: 400 })
   if (lobby.redealVote) return Response.json({ error: "Det pågår allerede en avstemning om reshuffle" }, { status: 400 })
+  if (lobby.redealDeniedFor?.includes(user.id)) {
+    return Response.json({ error: "Forespørselen din ble avvist denne runden - prøv igjen neste runde" }, { status: 400 })
+  }
 
   const dbUser = (await firebase.getUser(user.id)) ?? {}
   const available = dbUser.effects?.positive?.blackjackReDeals ?? 0
@@ -350,6 +398,7 @@ export async function voteBlackjackRedeal(instanceId: string, lobbyId: string, u
   if (!lobby.redealVote) return Response.json({ error: "Ingen aktiv avstemning" }, { status: 400 })
 
   if (!approve) {
+    lobby.redealDeniedFor = [...(lobby.redealDeniedFor ?? []), lobby.redealVote.requestedBy]
     delete lobby.redealVote
     await writeLobby(firebase, instanceId, lobbyId, lobby)
     return Response.json(await publicView(firebase, lobby, user.id))
@@ -372,6 +421,16 @@ export async function consumePendingBlackjackAutoStart(user: AuthenticatedDiscor
   return Response.json({ buyIn: Math.max(0, Math.floor(Number(data.buyIn) || 0)) })
 }
 
+/** Non-destructive version for the home page to check whether it should redirect straight into
+ * /multiplayer/blackjack - launchActivity() always opens the app's root URL with no way to deep-link
+ * a path, so that's the only place the auto-start flag can actually be noticed and acted on. Doesn't
+ * delete the flag; BlackjackGame's own consumePendingBlackjackAutoStart call does that once it loads. */
+export async function peekPendingBlackjackAutoStart(userId: string) {
+  const firebase = new FirebaseHelper()
+  const data = await firebase.getData(`other/pendingBlackjackAutoStart/${userId}`)
+  return Response.json({ pending: !!data })
+}
+
 export async function listBlackjackLobbies(instanceId: string, userId: string) {
   const firebase = new FirebaseHelper()
   const all = await readAllLobbies(firebase, instanceId)
@@ -380,9 +439,10 @@ export async function listBlackjackLobbies(instanceId: string, userId: string) {
     hostUsername: l.players[l.hostId]?.username ?? "?",
     buyIn: l.buyIn,
     numPlayers: l.playerOrder.length,
+    numSpectators: Object.keys(l.spectators).length,
     status: l.status,
   }))
-  const myLobbyId = Object.values(all).find((l) => l.players[userId])?.id ?? null
+  const myLobbyId = Object.values(all).find((l) => l.players[userId] || l.spectators[userId] !== undefined)?.id ?? null
   return Response.json({ lobbies, myLobbyId })
 }
 
@@ -406,6 +466,7 @@ export async function createBlackjackLobby(instanceId: string, user: Authenticat
     status: "waiting",
     players: { [user.id]: { id: user.id, username, sittingOut: false, hands: [] } },
     playerOrder: [user.id],
+    spectators: {},
     dealerHand: [],
     dealerHidden: false,
     deck: [],
@@ -428,10 +489,42 @@ export async function joinBlackjackLobby(instanceId: string, lobbyId: string, us
       return Response.json({ error: `Du har ikke nok chips til å bli med (du har ${myChips}, krever ${lobby.buyIn})` }, { status: 400 })
     }
     await leaveOtherLobbies(firebase, instanceId, user.id, lobbyId)
+    if (lobby.spectators[user.id] !== undefined) delete lobby.spectators[user.id]
     lobby.players[user.id] = { id: user.id, username: user.globalName ?? user.username, sittingOut: false, hands: [] }
     lobby.playerOrder.push(user.id)
     await writeLobby(firebase, instanceId, lobbyId, lobby)
   }
+  return Response.json(await publicView(firebase, lobby, user.id))
+}
+
+/** Watch a table without playing - no ante, no seat, no cards, just the same live view everyone
+ * else gets. A seated player can't spectate their own table (leave first); a spectator who wants to
+ * play instead should use joinBlackjackLobby, which already clears them out of spectators. */
+export async function spectateBlackjackLobby(instanceId: string, lobbyId: string, user: AuthenticatedDiscordUser) {
+  const firebase = new FirebaseHelper()
+  const lobby = await readLobby(firebase, instanceId, lobbyId)
+  if (!lobby) return Response.json({ error: "Bordet finnes ikke lenger" }, { status: 404 })
+  if (lobby.players[user.id]) return Response.json({ error: "Du sitter allerede ved bordet" }, { status: 400 })
+
+  if (lobby.spectators[user.id] === undefined) {
+    await leaveOtherLobbies(firebase, instanceId, user.id, lobbyId)
+    lobby.spectators[user.id] = user.globalName ?? user.username
+    await writeLobby(firebase, instanceId, lobbyId, lobby)
+  }
+  return Response.json(await publicView(firebase, lobby, user.id))
+}
+
+/** Admin-only. Arms a guaranteed dealer bust for this table's next auto-resolve (drawDealerCard
+ * picks whatever sequence of cards actually forces it, however many that takes - see there).
+ * Available whether the admin is playing or just spectating, any time a round is live. Returns the
+ * same plain view everyone else gets either way - nothing about this is visible anywhere, to anyone, ever. */
+export async function forceBadDealerDraw(instanceId: string, lobbyId: string, user: AuthenticatedDiscordUser) {
+  const firebase = new FirebaseHelper()
+  if (isAdminUser(user.id)) {
+    await firebase.updateData({ [`other/pendingBlackjackForcedDealerCard/${instanceId}/${lobbyId}`]: true })
+  }
+  const lobby = await readLobby(firebase, instanceId, lobbyId)
+  if (!lobby) return Response.json({ closed: true }, { status: 404 })
   return Response.json(await publicView(firebase, lobby, user.id))
 }
 
@@ -455,7 +548,7 @@ export async function dealBlackjackRound(instanceId: string, lobbyId: string, us
   if (!lobby.players[user.id]) return Response.json({ error: "Du er ikke ved dette bordet" }, { status: 400 })
   if (lobby.status === "playing") return Response.json({ error: "En runde pågår allerede" }, { status: 400 })
 
-  const resolved = await performDeal(firebase, lobby)
+  const resolved = await performDeal(firebase, instanceId, lobbyId, lobby)
   await writeLobby(firebase, instanceId, lobbyId, resolved)
   return Response.json(await publicView(firebase, resolved, user.id))
 }
@@ -476,7 +569,7 @@ export async function hitBlackjack(instanceId: string, lobbyId: string, user: Au
   lobby.deck = drawn.remaining
   player.hands[handIndex] = { cards, status: handValue(cards) > 21 ? "bust" : "playing" }
 
-  const resolved = allPlayersDone(lobby) ? await resolveDealer(firebase, lobby) : lobby
+  const resolved = allPlayersDone(lobby) ? await resolveDealer(firebase, instanceId, lobbyId, lobby) : lobby
   await writeLobby(firebase, instanceId, lobbyId, resolved)
   return Response.json(await publicView(firebase, resolved, user.id))
 }
@@ -492,7 +585,7 @@ export async function standBlackjack(instanceId: string, lobbyId: string, user: 
   }
 
   player.hands[handIndex] = { ...player.hands[handIndex], status: "stood" }
-  const resolved = allPlayersDone(lobby) ? await resolveDealer(firebase, lobby) : lobby
+  const resolved = allPlayersDone(lobby) ? await resolveDealer(firebase, instanceId, lobbyId, lobby) : lobby
   await writeLobby(firebase, instanceId, lobbyId, resolved)
   return Response.json(await publicView(firebase, resolved, user.id))
 }
@@ -537,7 +630,7 @@ export async function splitBlackjack(instanceId: string, lobbyId: string, user: 
   player.hands.splice(handIndex, 1, handA, handB)
   lobby.deck = deck
 
-  const resolved = allPlayersDone(lobby) ? await resolveDealer(firebase, lobby) : lobby
+  const resolved = allPlayersDone(lobby) ? await resolveDealer(firebase, instanceId, lobbyId, lobby) : lobby
   await writeLobby(firebase, instanceId, lobbyId, resolved)
   return Response.json(await publicView(firebase, resolved, user.id))
 }
