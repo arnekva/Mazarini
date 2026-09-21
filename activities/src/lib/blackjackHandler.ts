@@ -156,7 +156,9 @@ export async function dealBlackjackRound(instanceId: string, user: Authenticated
   table.deck = dealerSecond.remaining
   table.dealerHidden = true
   table.status = "playing"
-  table.results = undefined
+  // Not `= undefined` - Firebase's write throws on any value that's literally `undefined`
+  // (only `null`/omitting the key means "clear this"), which crashed every Deal.
+  delete table.results
 
   const resolved = allPlayersDone(table) ? resolveDealer(table) : table
   await writeTable(firebase, instanceId, resolved)
