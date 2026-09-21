@@ -266,7 +266,7 @@ export const GameValues: GameValuesType = {
         checkForReward: {
             sameDigitsMultiplier: 3,
             allDigitsExceptFirstAreZeroMultiplier: 3,
-            diceTargetMultiplier: 3,
+            diceTargetMultiplier: 5,
             roll2Reward: 10,
             doublePotDepositMultiplier: 2,
             minRollForMultiplier: 100,

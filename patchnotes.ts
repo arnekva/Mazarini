@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '36.0.4'
+    public static readonly currentVersion = '36.1.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,11 +27,16 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '# Daily',
-                '* Delay på melding fra Luckywheel (bedre css komme snart)',
+                '# Acitvity',
+                '* Vi har nå ENDELIG multiplayer BLACKJACK!',
+                '   * Du kan starte en lobby med valgfri innsats.',
+                '   * DPN fungerer i multiplayer - men samtlige spillere må stemme JA. ',
+                '   * Terning: Vinner du terning potten blir du nå tatt til blackjack i activities (slightly allegedly)',
+                '   * Du kan bli med som spectator og se på spill',
                 '* MOL: fikset header på resultatmelding',
                 '* Ikke lenger alternativ på hovedsteder',
-                '* ',
+                '* Country outline: Fjernet regioner og fake land.',
+                '* Dicetarget multiplier 3 -> 5',
             ].join('\n')
         )
         container.addSeparator()
