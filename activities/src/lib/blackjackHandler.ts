@@ -52,7 +52,10 @@ async function readTable(firebase: FirebaseHelper, instanceId: string): Promise<
     dealerHand: raw.dealerHand ?? [],
     dealerHidden: raw.dealerHidden ?? false,
     deck: raw.deck ?? [],
-    results: raw.results,
+    // Not `results: raw.results` - an object-literal key with value `undefined` is an own
+    // property (unlike a spread of a missing key), and that's exactly what Firebase's write
+    // rejects. Only include the key at all when there's an actual value.
+    ...(raw.results ? { results: raw.results } : {}),
     updatedAt: raw.updatedAt ?? Date.now(),
   }
 }
