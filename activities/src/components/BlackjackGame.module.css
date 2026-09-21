@@ -226,3 +226,66 @@
   color: var(--foreground);
   font-size: 14px;
 }
+
+.lobbyList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.lobbyRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  color: var(--foreground);
+}
+
+.lobbyRow:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.lobbyHost {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.lobbyMeta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.topBar .info {
+  margin: 0;
+}
+
+.leaveBtn {
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid var(--card-border);
+  color: var(--muted);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.leaveBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

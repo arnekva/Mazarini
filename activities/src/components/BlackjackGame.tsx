@@ -19,14 +19,26 @@ interface PlayerView {
 }
 
 interface TableView {
+  id: string
+  hostId: string
   status: "waiting" | "playing" | "roundOver"
-  buyIn?: number
+  buyIn: number
+  myChips: number
   players: PlayerView[]
   dealer: { hand: CardView[]; value?: number }
   results?: Record<string, "win" | "lose" | "push" | "blackjack">
 }
 
-const POLL_MS = 1500
+interface LobbySummary {
+  id: string
+  hostUsername: string
+  buyIn: number
+  numPlayers: number
+  status: "waiting" | "playing" | "roundOver"
+}
+
+const LOBBY_POLL_MS = 2000
+const TABLE_POLL_MS = 1500
 
 function CardFace({ card }: { card: CardView }) {
   if (card.rank === "?") {
@@ -72,34 +84,67 @@ const resultLabel: Record<NonNullable<TableView["results"]>[string], string> = {
 
 export function BlackjackGame({ accessToken }: { accessToken: string }) {
   const { instanceId, discordUser } = useDiscord()
+  const [lobbies, setLobbies] = useState<LobbySummary[] | null>(null)
+  const [lobbyId, setLobbyId] = useState<string | null>(null)
   const [table, setTable] = useState<TableView | null>(null)
-  const [buyInInput, setBuyInInput] = useState("0")
+  const [closedNotice, setClosedNotice] = useState(false)
+  const [createBuyIn, setCreateBuyIn] = useState("0")
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const joinedRef = useRef(false)
+  const initedRef = useRef(false)
 
-  async function refresh() {
+  async function refreshLobbies() {
     if (!instanceId) return
     try {
-      const t = await callApi<TableView>(`/api/multiplayer/blackjack?instanceId=${encodeURIComponent(instanceId)}`, accessToken)
-      setTable(t)
+      const res = await callApi<{ lobbies: LobbySummary[]; myLobbyId: string | null }>(
+        `/api/multiplayer/blackjack/lobbies?instanceId=${encodeURIComponent(instanceId)}`,
+        accessToken
+      )
+      setLobbies(res.lobbies)
+      if (res.myLobbyId && !lobbyId) setLobbyId(res.myLobbyId)
     } catch {
-      // transient poll failure - next tick retries, no need to surface a flickering error
+      // transient poll failure - next tick retries
     }
   }
 
-  async function action(action: "join" | "start" | "deal" | "hit" | "stand", extra?: Record<string, unknown>) {
+  async function refreshTable(id: string) {
+    if (!instanceId) return
+    try {
+      const res = await callApi<TableView & { closed?: boolean }>(
+        `/api/multiplayer/blackjack?instanceId=${encodeURIComponent(instanceId)}&lobbyId=${encodeURIComponent(id)}`,
+        accessToken
+      )
+      if (res.closed) {
+        setClosedNotice(true)
+        setTable(null)
+        setLobbyId(null)
+      } else {
+        setTable(res)
+      }
+    } catch {
+      // transient poll failure - next tick retries
+    }
+  }
+
+  async function action(actionName: "create" | "join" | "leave" | "deal" | "hit" | "stand", extra?: Record<string, unknown>) {
     if (!instanceId || busy) return
     setBusy(true)
     setError(null)
     try {
-      // callApi throws on any non-ok response (400 validation errors included), so a resolved
-      // promise here always means success - no separate `.error` branch to check.
-      const t = await callApi<TableView>("/api/multiplayer/blackjack", accessToken, {
+      const res = await callApi<TableView>("/api/multiplayer/blackjack", accessToken, {
         method: "POST",
-        body: JSON.stringify({ instanceId, action, ...extra }),
+        body: JSON.stringify({ instanceId, lobbyId, action: actionName, ...extra }),
       })
-      setTable(t)
+      if (actionName === "create" || actionName === "join") {
+        setLobbyId(res.id)
+        setTable(res)
+      } else if (actionName === "leave") {
+        setLobbyId(null)
+        setTable(null)
+        refreshLobbies()
+      } else {
+        setTable(res)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Noe gikk galt")
     } finally {
@@ -108,33 +153,106 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
   }
 
   useEffect(() => {
-    if (!instanceId) return
-    if (!joinedRef.current) {
-      joinedRef.current = true
-      action("join").then(refresh)
-    }
-    const interval = setInterval(refresh, POLL_MS)
-    return () => clearInterval(interval)
+    if (!instanceId || initedRef.current) return
+    initedRef.current = true
+    refreshLobbies()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instanceId])
+
+  useEffect(() => {
+    if (!instanceId) return
+    const interval = setInterval(() => {
+      if (lobbyId) refreshTable(lobbyId)
+      else refreshLobbies()
+    }, lobbyId ? TABLE_POLL_MS : LOBBY_POLL_MS)
+    return () => clearInterval(interval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [instanceId, lobbyId])
+
+  useEffect(() => {
+    if (lobbyId) refreshTable(lobbyId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lobbyId])
 
   if (!instanceId) {
     return <p className={styles.info}>Multiplayer krever at appen åpnes som en Discord Activity i en talekanal.</p>
   }
+
+  if (!lobbyId) {
+    return (
+      <>
+        {closedNotice && <p className={styles.info}>Verten forlot bordet - bordet er stengt.</p>}
+        <p className={styles.info}>Velg et bord, eller start et nytt.</p>
+
+        {lobbies === null && <p className={styles.info}>Laster bord...</p>}
+        {lobbies?.length === 0 && <p className={styles.info}>Ingen åpne bord akkurat nå.</p>}
+        {lobbies && lobbies.length > 0 && (
+          <div className={styles.lobbyList}>
+            {lobbies.map((l) => (
+              <button
+                key={l.id}
+                className={styles.lobbyRow}
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  setClosedNotice(false)
+                  action("join", { lobbyId: l.id })
+                }}
+              >
+                <span className={styles.lobbyHost}>{l.hostUsername}s bord</span>
+                <span className={styles.lobbyMeta}>
+                  {l.buyIn} chips buy-in · {l.numPlayers} spiller{l.numPlayers === 1 ? "" : "e"} · {l.status === "waiting" ? "venter" : l.status === "playing" ? "spiller" : "mellom runder"}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {error && <p className={styles.error}>{error}</p>}
+
+        <div className={styles.startRow}>
+          <input
+            className={styles.buyInInput}
+            type="number"
+            min={0}
+            step={1}
+            value={createBuyIn}
+            onChange={(e) => setCreateBuyIn(e.target.value)}
+            aria-label="Buy-in i chips"
+          />
+          <button
+            className={styles.dealBtn}
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              setClosedNotice(false)
+              action("create", { buyIn: Number(createBuyIn) || 0 })
+            }}
+          >
+            Start nytt bord
+          </button>
+        </div>
+      </>
+    )
+  }
+
   if (!table) return <p className={styles.info}>Kobler til bordet...</p>
 
   const me = table.players.find((p) => p.id === discordUser?.id)
-  const gameStarted = table.buyIn !== undefined
-  const canDeal = gameStarted && table.status !== "playing" && table.players.length > 0
+  const canDeal = table.status !== "playing" && table.players.length > 0
   const canAct = table.status === "playing" && me?.status === "playing"
   const iAmSittingOut = table.status === "playing" && me?.status === "sittingOut"
 
   return (
     <>
-      <p className={styles.info}>
-        {table.players.length} spiller{table.players.length === 1 ? "" : "e"} ved bordet.
-        {gameStarted && ` Buy-in: ${table.buyIn} chips.`}
-      </p>
+      <div className={styles.topBar}>
+        <p className={styles.info}>
+          {table.players.length} spiller{table.players.length === 1 ? "" : "e"} · Buy-in: {table.buyIn} · Dine chips: {table.myChips}
+        </p>
+        <button className={styles.leaveBtn} type="button" disabled={busy} onClick={() => action("leave")}>
+          Forlat bordet
+        </button>
+      </div>
 
       <div className={styles.dealerRow}>
         <span className={styles.label}>Dealer {table.dealer.value !== undefined ? `(${table.dealer.value})` : ""}</span>
@@ -154,7 +272,10 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
             }`}
           >
             <div className={styles.playerHeader}>
-              <span>{p.username}</span>
+              <span>
+                {p.username}
+                {p.id === table.hostId ? " 👑" : ""}
+              </span>
               <span
                 className={`${styles.status} ${p.status === "bust" || p.status === "sittingOut" ? styles.statusBust : ""} ${
                   table.results?.[p.id] === "win" || table.results?.[p.id] === "blackjack" ? styles.statusWin : ""
@@ -184,23 +305,6 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
           </button>
           <button className={styles.standBtn} type="button" disabled={busy} onClick={() => action("stand")}>
             Stand
-          </button>
-        </div>
-      )}
-
-      {!canAct && !gameStarted && (
-        <div className={styles.startRow}>
-          <input
-            className={styles.buyInInput}
-            type="number"
-            min={0}
-            step={1}
-            value={buyInInput}
-            onChange={(e) => setBuyInInput(e.target.value)}
-            aria-label="Buy-in i chips"
-          />
-          <button className={styles.dealBtn} type="button" disabled={busy} onClick={() => action("start", { buyIn: Number(buyInInput) || 0 })}>
-            Start spill
           </button>
         </div>
       )}
