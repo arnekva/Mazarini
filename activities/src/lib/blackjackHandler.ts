@@ -234,7 +234,10 @@ export async function createBlackjackLobby(instanceId: string, user: Authenticat
 
   const buyIn = Math.max(0, Math.floor(Number(buyInInput) || 0))
   const dbUser = (await firebase.getUser(user.id)) ?? {}
-  if ((dbUser.chips ?? 0) < buyIn) return Response.json({ error: `Du har ikke nok chips til å starte med denne buy-innen (krever ${buyIn})` }, { status: 400 })
+  const myChips = dbUser.chips ?? 0
+  if (myChips < buyIn) {
+    return Response.json({ error: `Du har ikke nok chips til å starte med denne buy-innen (du har ${myChips}, krever ${buyIn})` }, { status: 400 })
+  }
 
   const lobbyId = `${user.id}-${Date.now()}`
   const username = user.globalName ?? user.username
@@ -262,8 +265,9 @@ export async function joinBlackjackLobby(instanceId: string, lobbyId: string, us
 
   if (!lobby.players[user.id]) {
     const dbUser = (await firebase.getUser(user.id)) ?? {}
-    if ((dbUser.chips ?? 0) < lobby.buyIn) {
-      return Response.json({ error: `Du har ikke nok chips til å bli med (krever ${lobby.buyIn})` }, { status: 400 })
+    const myChips = dbUser.chips ?? 0
+    if (myChips < lobby.buyIn) {
+      return Response.json({ error: `Du har ikke nok chips til å bli med (du har ${myChips}, krever ${lobby.buyIn})` }, { status: 400 })
     }
     await leaveOtherLobbies(firebase, instanceId, user.id, lobbyId)
     lobby.players[user.id] = { id: user.id, username: user.globalName ?? user.username, hand: [], status: "waiting" }
