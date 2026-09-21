@@ -66,11 +66,14 @@ export async function POST(request: Request) {
       await postChannelMessage(ANNOUNCE_CHANNEL_ID, { content: `<@${user.id}> vant ${reward.amount} shards på Lykkehjulet!` })
     })
   } else if (reward.type === "chest" || reward.type === "box") {
+    // Captured into a local const so the "chest" | "box" narrowing survives into the closure below -
+    // TypeScript doesn't retain narrowing on a captured object's property across a nested function.
+    const lootType = reward.type
     after(async () => {
       await delay(ANNOUNCE_DELAY_MS)
       await postChannelMessage(ANNOUNCE_CHANNEL_ID, {
-        content: `<@${user.id}> vant en ${reward.type} på Lykkehjulet!`,
-        components: [lootButtonComponent(user.id, reward.quality ?? "basic", reward.type)],
+        content: `<@${user.id}> vant en ${lootType} på Lykkehjulet!`,
+        components: [lootButtonComponent(user.id, reward.quality ?? "basic", lootType)],
       })
     })
   } else {
