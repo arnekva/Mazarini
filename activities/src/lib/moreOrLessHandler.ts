@@ -4,284 +4,88 @@ import { FirebaseHelper } from "./db/firebaseHelper"
 import { AuthenticatedDiscordUser } from "./discordAuth"
 import { CUSTOM_MOL_GAME_TAG, moreOrLessValues } from "./gameValues"
 
-interface MolItem {
-  subject: string
-  answer: number
-  image: string
-}
-
-interface MolCategory {
-  slug: string
-  title: string
-  description: string
-  image: string
-  tags?: string[]
-  totalEntries?: number
-  strings?: { verb: string; valueTitle: string; valueSuffix?: string; buttonMore?: string; buttonLess?: string }
-}
-
-interface MolSession {
-  slug: string
-  data: MolItem[]
-  current: MolItem
-  next: MolItem
-  correctAnswers: number
-}
-
-interface MolStat {
-  attempted?: boolean
-  firstAttempt?: number
-  secondAttempt?: number | null
-  bestAttempt?: number
-  numAttempts?: number
-  completed?: boolean
-}
+interface MolItem { subject: string; answer: number; image: string }
+interface MolCategory { slug: string; title: string; description: string; image: string; tags?: string[]; totalEntries?: number; strings?: { verb: string; valueTitle: string; valueSuffix?: string; buttonMore?: string; buttonLess?: string } }
+interface MolSession { slug: string; data: MolItem[]; current: MolItem; next: MolItem; correctAnswers: number }
+interface MolStat { attempted?: boolean; firstAttempt?: number; secondAttempt?: number | null; bestAttempt?: number; numAttempts?: number; completed?: boolean }
 
 const CUSTOM_MOL_FILE_MAP: Record<string, string> = {
-  norwegianCities: "norwegianCities.json",
-  norwegianMountains: "norwegianMountains.json",
-  celebAge: "celebAge.json",
-  kommuneInnbygger: "kommuneInnbygger.json",
-  kommuneSize: "largestKommune.json",
-  tvSeriesEpisodeCount: "tvSeriesEpisodeCount.json",
-  medalsByCountry: "medalsByCountry.json",
-  footballAllTimeGoalsTop25: "footballers-by-goals.json",
-  worldPopulationTop40: "countries-by-population.json",
-  elementsAtomicNumber: "atom-number.json",
-  languagesBySpeakersTop50: "language-by-speakers.json",
-  animalsTopSpeedTop30: "animal-by-topspeed.json",
-  companiesFoundedYear: "companies-by-founding-date.json",
-  norwegianTvSeriesPremiere: "norwegian-TV-by-launch.json",
-  mostVisitedTouristAttractions: "tourist-destionations-by-visitors.json",
-  moviesByRuntime: "movies-by-runtime.json",
-  tvSeriesBySeasons: "tv-series-by-seasons.json",
-  top30TaylorSwiftSongs: "top30-taylor-swift-songs.json",
-  top30NorwegianArtistsInternationally: "top30-norwegian-artists-internationally.json",
-  mostKnownWineDistricts: "most-known-wine-districts.json",
-  countriesMostBillboard1Hits: "countries-most-billboard-1-hits.json",
-  legoSetsByPieces: "lego-sets-by-pieces.json",
-  cryptocurrenciesByWorth: "cryptocurrencies-by-worth.json",
-  citiesByAverageRent: "cities-by-average-rent.json",
-  countriesByPassportStrength: "countries-by-passport-strength.json",
-  citiesByPollutionIndex: "cities-by-pollution-index.json",
-  bordersByLength: "borders-by-length.json",
+  norwegianCities: "norwegianCities.json", norwegianMountains: "norwegianMountains.json", celebAge: "celebAge.json",
+  kommuneInnbygger: "kommuneInnbygger.json", kommuneSize: "largestKommune.json", tvSeriesEpisodeCount: "tvSeriesEpisodeCount.json",
+  medalsByCountry: "medalsByCountry.json", footballAllTimeGoalsTop25: "footballers-by-goals.json", worldPopulationTop40: "countries-by-population.json",
+  elementsAtomicNumber: "atom-number.json", languagesBySpeakersTop50: "language-by-speakers.json", animalsTopSpeedTop30: "animal-by-topspeed.json",
+  companiesFoundedYear: "companies-by-founding-date.json", norwegianTvSeriesPremiere: "norwegian-TV-by-launch.json", mostVisitedTouristAttractions: "tourist-destionations-by-visitors.json",
+  moviesByRuntime: "movies-by-runtime.json", tvSeriesBySeasons: "tv-series-by-seasons.json", top30TaylorSwiftSongs: "top30-taylor-swift-songs.json",
+  top30NorwegianArtistsInternationally: "top30-norwegian-artists-internationally.json", mostKnownWineDistricts: "most-known-wine-districts.json",
+  countriesMostBillboard1Hits: "countries-most-billboard-1-hits.json", legoSetsByPieces: "lego-sets-by-pieces.json", cryptocurrenciesByWorth: "cryptocurrencies-by-worth.json",
+  citiesByAverageRent: "cities-by-average-rent.json", countriesByPassportStrength: "countries-by-passport-strength.json", citiesByPollutionIndex: "cities-by-pollution-index.json", bordersByLength: "borders-by-length.json",
 }
 
-function findCustomMoreOrLessGameFile(slug: string) {
-  const fileName = CUSTOM_MOL_FILE_MAP[slug]
-  if (!fileName) return null
-
-  const candidates = [
-    path.resolve(process.cwd(), "data", "more-or-less", "custom-games", fileName),
-    path.resolve(process.cwd(), "custom-games", fileName),
-    path.resolve(process.cwd(), "../res", "games", "moreOrLess", "customGames", fileName),
-    path.resolve(process.cwd(), "../..", "res", "games", "moreOrLess", "customGames", fileName),
-  ]
-
-  return candidates.find((candidate) => fs.existsSync(candidate)) ?? null
-}
-
-async function fetchCustomMoreOrLessGame(slug: string) {
-  const fileName = CUSTOM_MOL_FILE_MAP[slug]
-  if (!fileName) return null
-
-  const rawUrl = `https://raw.githubusercontent.com/arnekva/Mazarini/master/res/games/moreOrLess/customGames/${fileName}`
-  const response = await fetch(rawUrl, { headers: { Accept: "application/json" } })
-  if (!response.ok) return null
-  return response.json()
-}
-
-async function loadCustomMoreOrLessGame(slug: string) {
-  const localFile = findCustomMoreOrLessGameFile(slug)
-  const raw = localFile ? JSON.parse(fs.readFileSync(localFile, "utf-8")) : await fetchCustomMoreOrLessGame(slug)
-  if (!raw) return null
-
-  const gameData = raw?.game ?? raw
-  const items: MolItem[] = (gameData?.data ?? [])
-    .filter((item: unknown) => Array.isArray(item) && item.length <= 4)
-    .map((item: [string, number, string]) => ({ subject: item[0], answer: item[1], image: item[2] ?? "" }))
-
-  const strings = gameData?.strings ?? {
-    verb: "har",
-    valueTitle: "",
-    buttonMore: "Mer",
-    buttonLess: "Mindre",
+async function loadCustomGame(slug: string) {
+  const file = CUSTOM_MOL_FILE_MAP[slug]
+  if (!file) return null
+  const localCandidates = [path.resolve(process.cwd(), "data/more-or-less/custom-games", file), path.resolve(process.cwd(), "../res/games/moreOrLess/customGames", file)]
+  const local = localCandidates.find((candidate) => fs.existsSync(candidate))
+  let raw: any
+  if (local) raw = JSON.parse(fs.readFileSync(local, "utf8"))
+  else {
+    const response = await fetch(`https://raw.githubusercontent.com/arnekva/Mazarini/master/res/games/moreOrLess/customGames/${file}`)
+    if (!response.ok) return null
+    raw = await response.json()
   }
-
-  return { items, strings }
+  const game = raw?.game ?? raw
+  const items = (game?.data ?? []).filter((item: unknown) => Array.isArray(item) && item.length <= 4).map((item: [string, number, string]) => ({ subject: item[0], answer: item[1], image: item[2] ?? "" }))
+  return { items, strings: game?.strings }
 }
 
-function toMolItems(items: unknown[]): MolItem[] {
-  return items
-    .filter((item): item is [string, number, string] => Array.isArray(item) && item.length <= 4)
-    .map((item) => ({ subject: item[0], answer: item[1], image: item[2] ?? "" }))
-}
-
-/** Chips earned for correct answers strictly after `fromExclusive` up to `toInclusive` - used both
- * for the live "how much have I earned so far this round" counter and the final round-over payout. */
-function calcTierReward(fromExclusive: number, toInclusive: number): number {
-  const rewards = moreOrLessValues.rewards
-  let reward = 0
-  for (let i = fromExclusive + 1; i <= toInclusive; i++) {
-    if (i <= 10) reward += rewards.tier1
-    else if (i <= 20) reward += rewards.tier2
-    else if (i <= 30) reward += rewards.tier3
-    else if (i <= 40) reward += rewards.tier4
-    else if (i <= 50) reward += rewards.tier5
-    else reward += rewards.tier6
-  }
-  return reward
-}
-
-function shuffle<T>(items: T[]): T[] {
-  const copy = [...items]
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[copy[i], copy[j]] = [copy[j], copy[i]]
-  }
-  return copy
-}
+function apiItems(items: unknown[]): MolItem[] { return items.filter((item): item is [string, number, string] => Array.isArray(item) && item.length <= 4).map((item) => ({ subject: item[0], answer: item[1], image: item[2] ?? "" })) }
+function shuffle<T>(items: T[]): T[] { const copy = [...items]; for (let i = copy.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [copy[i], copy[j]] = [copy[j], copy[i]] } return copy }
+function calcTierReward(from: number, to: number) { const r = moreOrLessValues.rewards; let total = 0; for (let i = from + 1; i <= to; i++) total += i <= 10 ? r.tier1 : i <= 20 ? r.tier2 : i <= 30 ? r.tier3 : i <= 40 ? r.tier4 : i <= 50 ? r.tier5 : r.tier6; return total }
 
 export async function getMoreOrLessStatus(user: AuthenticatedDiscordUser) {
-  const firebase = new FirebaseHelper()
-  const [dbUser, storage] = await Promise.all([firebase.getUser(user.id), firebase.getData("other")])
-  const category: MolCategory | undefined = storage?.moreOrLess?.current
+  const firebase = new FirebaseHelper(); const [dbUser, storage] = await Promise.all([firebase.getUser(user.id), firebase.getData("other")]); const category = storage?.moreOrLess?.current as MolCategory | undefined
   if (!category) return Response.json({ error: "Ingen kategori satt ennå" }, { status: 503 })
-
-  let session: MolSession | undefined = dbUser?.moreOrLessSession
-  if (session && session.slug !== category.slug) {
-    // Leftover session from a category the daily reset has since rolled past - drop it rather
-    // than resuming play against yesterday's data under today's title.
-    await firebase.updateUserFields(user.id, { moreOrLessSession: null })
-    session = undefined
-  }
-  return Response.json({
-    category: { title: category.title, description: category.description, image: category.image, strings: category.strings, totalEntries: category.totalEntries },
-    unsupported: false,
-    stats: dbUser?.dailyGameStats?.moreOrLess ?? {},
-    hasActiveSession: !!session,
-    active: session ? { current: { subject: session.current.subject, answer: session.current.answer, image: session.current.image }, next: { subject: session.next.subject, image: session.next.image } } : undefined,
-  })
+  let session = dbUser?.moreOrLessSession as MolSession | undefined
+  if (session && session.slug !== category.slug) { await firebase.updateUserFields(user.id, { moreOrLessSession: null }); session = undefined }
+  return Response.json({ category: { title: category.title, description: category.description, image: category.image, strings: category.strings, totalEntries: category.totalEntries }, unsupported: false, stats: dbUser?.dailyGameStats?.moreOrLess ?? {}, hasActiveSession: !!session, active: session ? { current: session.current, next: { subject: session.next.subject, image: session.next.image }, correctAnswers: session.correctAnswers } : undefined })
 }
 
 export async function startMoreOrLessGame(user: AuthenticatedDiscordUser) {
-  const firebase = new FirebaseHelper()
-  const storage = await firebase.getData("other")
-  const category: MolCategory | undefined = storage?.moreOrLess?.current
+  const firebase = new FirebaseHelper(); const storage = await firebase.getData("other"); const category = storage?.moreOrLess?.current as MolCategory | undefined
   if (!category) return Response.json({ error: "Ingen kategori satt ennå" }, { status: 503 })
-
-  let items: MolItem[] = []
-  let strings = category.strings
-
-  if (category.tags?.includes(CUSTOM_MOL_GAME_TAG)) {
-    const customGame = await loadCustomMoreOrLessGame(category.slug)
-    if (!customGame) return Response.json({ error: "Klarte ikke å laste denne kategorien i appen" }, { status: 400 })
-    items = customGame.items
-    strings = customGame.strings as MolCategory["strings"]
-  } else {
-    const response = await fetch(`https://api.moreorless.io/en/games/${category.slug}.json`, { headers: { Accept: "application/json" } })
-    if (!response.ok) return Response.json({ error: "Klarte ikke å hente kategori-data" }, { status: 502 })
-    const body = await response.json()
-    items = toMolItems(body.game?.data ?? [])
-    strings = body.game?.strings ?? strings
-  }
-
+  let items: MolItem[]; let strings = category.strings
+  if (category.tags?.includes(CUSTOM_MOL_GAME_TAG)) { const custom = await loadCustomGame(category.slug); if (!custom) return Response.json({ error: "Klarte ikke å laste denne kategorien i appen" }, { status: 400 }); items = custom.items; strings = custom.strings }
+  else { const response = await fetch(`https://api.moreorless.io/en/games/${category.slug}.json`); if (!response.ok) return Response.json({ error: "Klarte ikke å hente kategori-data" }, { status: 502 }); const body = await response.json(); items = apiItems(body.game?.data ?? []); strings = body.game?.strings ?? strings }
   if (items.length < 2) return Response.json({ error: "For få elementer i kategorien" }, { status: 502 })
-
-  const shuffled = shuffle(items)
-  const current = shuffled.pop()!
-  const next = shuffled.pop()!
-  const session: MolSession = { slug: category.slug, data: shuffled, current, next, correctAnswers: 0 }
-
-  await firebase.updateUserFields(user.id, { moreOrLessSession: session })
-
-  return Response.json({
-    current: { subject: current.subject, answer: current.answer, image: current.image },
-    next: { subject: next.subject, image: next.image },
-    correctAnswers: 0,
-    totalEntries: items.length,
-    strings,
-  })
+  const shuffled = shuffle(items); const current = shuffled.pop()!; const next = shuffled.pop()!; await firebase.updateUserFields(user.id, { moreOrLessSession: { slug: category.slug, data: shuffled, current, next, correctAnswers: 0 } })
+  return Response.json({ current, next: { subject: next.subject, image: next.image }, correctAnswers: 0, totalEntries: items.length, strings })
 }
 
 export async function guessMoreOrLess(user: AuthenticatedDiscordUser, more: boolean) {
-  const firebase = new FirebaseHelper()
-  const [dbUser, storage] = await Promise.all([firebase.getUser(user.id), firebase.getData("other")])
-  const session: MolSession | undefined = dbUser?.moreOrLessSession
+  const firebase = new FirebaseHelper(); const [dbUser, storage] = await Promise.all([firebase.getUser(user.id), firebase.getData("other")]); const session = dbUser?.moreOrLessSession as MolSession | undefined; const category = storage?.moreOrLess?.current as MolCategory | undefined
   if (!session) return Response.json({ error: "Ingen aktiv runde - start en ny" }, { status: 400 })
-
-  const category: MolCategory | undefined = storage?.moreOrLess?.current
-  if (!category || session.slug !== category.slug) {
-    // Session belongs to a category the daily reset has since rolled past.
-    await firebase.updateUserFields(user.id, { moreOrLessSession: null })
-    return Response.json({ error: "Ingen aktiv runde - start en ny" }, { status: 400 })
-  }
+  if (!category || session.slug !== category.slug) { await firebase.updateUserFields(user.id, { moreOrLessSession: null }); return Response.json({ error: "Ingen aktiv runde - start en ny" }, { status: 400 }) }
 
   const correct = (more && session.next.answer >= session.current.answer) || (!more && session.next.answer <= session.current.answer)
   const correctAnswers = correct ? session.correctAnswers + 1 : session.correctAnswers
+  const isFinalCorrectGuess = correct && session.data.length === 0
 
-  if (correct && session.data.length > 0) {
-    const remaining = [...session.data]
-    const newNext = remaining.pop()!
-    const newSession: MolSession = { ...session, current: session.next, next: newNext, data: remaining, correctAnswers }
+  // Only advance when another item actually exists. The final correct guess goes directly to the
+  // completion path below; there is deliberately no next item to fetch or serialize.
+  if (correct && !isFinalCorrectGuess) {
+    const remaining = [...session.data]; const newNext = remaining.pop()!; const newSession = { ...session, current: session.next, next: newNext, data: remaining, correctAnswers }
     await firebase.updateUserFields(user.id, { moreOrLessSession: newSession })
-
-    // Live "how much would I earn if I stopped right now" - lets the client show a running
-    // (+N chips) counter once you've passed your best, instead of only at round-end.
     const bestAttempt = dbUser?.dailyGameStats?.moreOrLess?.bestAttempt ?? 0
-    const liveReward = correctAnswers > bestAttempt ? calcTierReward(bestAttempt, correctAnswers) : 0
-
-    return Response.json({
-      correct: true,
-      finished: false,
-      current: { subject: newSession.current.subject, answer: newSession.current.answer, image: newSession.current.image },
-      next: { subject: newNext.subject, image: newNext.image },
-      correctAnswers,
-      bestAttempt,
-      liveReward,
-    })
+    return Response.json({ correct: true, finished: false, current: { subject: newSession.current.subject, answer: newSession.current.answer, image: newSession.current.image }, next: { subject: newNext.subject, image: newNext.image }, correctAnswers, bestAttempt, liveReward: correctAnswers > bestAttempt ? calcTierReward(bestAttempt, correctAnswers) : 0 })
   }
 
-  // Round over - mirrors commands/games/moreOrLess.ts's endGame in the bot repo.
-  const completedNow = session.data.length === 0 && correct
-  const stat: MolStat = dbUser?.dailyGameStats?.moreOrLess ?? {}
-  const wasAttemptedBefore = !!stat.attempted
-  const numTries = (stat.numAttempts ?? 0) + 1
-  const secondAttempt = wasAttemptedBefore && stat.firstAttempt !== undefined && stat.secondAttempt == null && numTries > 1 ? correctAnswers : (stat.secondAttempt ?? null)
-  const firstAttempt = wasAttemptedBefore ? stat.firstAttempt : correctAnswers
-  const bestAttempt = stat.bestAttempt ?? 0
-  const completedPreviously = !!stat.completed
-
-  let reward = 0
-  let chips = dbUser.chips ?? 0
-  let newBest = bestAttempt
-  let completed = completedPreviously
-
-  if (correctAnswers > bestAttempt) {
-    reward = calcTierReward(bestAttempt, correctAnswers)
-    if (completedNow && !completedPreviously) reward += moreOrLessValues.rewards.completed
-    newBest = correctAnswers
-    if (session.data.length === 0) completed = true
-    chips += reward
-  }
-
-  const newStat: MolStat = { attempted: true, firstAttempt, secondAttempt, bestAttempt: newBest, numAttempts: numTries, completed }
-
-  await firebase.updateUserFields(user.id, {
-    ...(reward > 0 ? { chips } : {}),
-    "dailyGameStats/moreOrLess": newStat,
-    moreOrLessSession: null,
-  })
-
-  return Response.json({
-    correct,
-    finished: true,
-    completedNow,
-    correctAnswers,
-    reward,
-    chips,
-    bestAttempt: newBest,
-    numAttempts: numTries,
-    revealedNext: { subject: session.next.subject, answer: session.next.answer, image: session.next.image },
-  })
+  const completedNow = isFinalCorrectGuess
+  const stat = (dbUser?.dailyGameStats?.moreOrLess ?? {}) as MolStat; const numAttempts = (stat.numAttempts ?? 0) + 1; const wasAttempted = !!stat.attempted
+  const firstAttempt = wasAttempted ? stat.firstAttempt : correctAnswers; const secondAttempt = wasAttempted && stat.secondAttempt == null && numAttempts > 1 ? correctAnswers : (stat.secondAttempt ?? null)
+  const oldBest = stat.bestAttempt ?? 0; const completedPreviously = !!stat.completed
+  const newBest = Math.max(oldBest, correctAnswers); const completed = completedPreviously || completedNow
+  const reward = correctAnswers > oldBest ? calcTierReward(oldBest, correctAnswers) + (completedNow && !completedPreviously ? moreOrLessValues.rewards.completed : 0) : (completedNow && !completedPreviously ? moreOrLessValues.rewards.completed : 0)
+  const chips = (dbUser.chips ?? 0) + reward
+  await firebase.updateUserFields(user.id, { ...(reward > 0 ? { chips } : {}), "dailyGameStats/moreOrLess": { attempted: true, firstAttempt, secondAttempt, bestAttempt: newBest, numAttempts, completed }, moreOrLessSession: null })
+  return Response.json({ correct, finished: true, completedNow, correctAnswers, reward, chips, bestAttempt: newBest, numAttempts })
 }
