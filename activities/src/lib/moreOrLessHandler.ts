@@ -6,7 +6,8 @@ import { CUSTOM_MOL_GAME_TAG, moreOrLessValues } from "./gameValues"
 
 interface MolItem { subject: string; answer: number; image: string }
 interface MolCategory { slug: string; title: string; description: string; image: string; tags?: string[]; totalEntries?: number; strings?: { verb: string; valueTitle: string; valueSuffix?: string; buttonMore?: string; buttonLess?: string } }
-interface MolSession { slug: string; data?: MolItem[]; current?: MolItem; next?: MolItem; correctAnswers?: number }
+// Firebase RTDB removes empty arrays. A completed deck is therefore persisted as null.
+interface MolSession { slug: string; data?: MolItem[] | null; current?: MolItem; next?: MolItem; correctAnswers?: number }
 interface MolStat { attempted?: boolean; firstAttempt?: number; secondAttempt?: number | null; bestAttempt?: number; numAttempts?: number; completed?: boolean }
 
 const CUSTOM_FILES: Record<string, string> = {
@@ -52,16 +53,19 @@ export async function startMoreOrLessGame(user: AuthenticatedDiscordUser) {
 export async function guessMoreOrLess(user: AuthenticatedDiscordUser, more: boolean) {
   const firebase = new FirebaseHelper(); const [dbUser, storage] = await Promise.all([firebase.getUser(user.id), firebase.getData("other")]); const session = dbUser?.moreOrLessSession as MolSession | undefined; const category = storage?.moreOrLess?.current as MolCategory | undefined
   if (!session) return Response.json({ error: "Ingen aktiv runde - start en ny" }, { status: 400 })
-  if (!category || session.slug !== category.slug || !session.current || !session.next || !Array.isArray(session.data)) { await firebase.updateUserFields(user.id, { moreOrLessSession: null }); return Response.json({ error: "Ugyldig spillrunde - start en ny" }, { status: 400 }) }
+  // Do not require data to be an array: RTDB drops [] when the penultimate guess is saved.
+  if (!category || session.slug !== category.slug || !session.current || !session.next) { await firebase.updateUserFields(user.id, { moreOrLessSession: null }); return Response.json({ error: "Ugyldig spillrunde - start en ny" }, { status: 400 }) }
 
+  const remainingItems = Array.isArray(session.data) ? session.data : []
   const correct = (more && session.next.answer >= session.current.answer) || (!more && session.next.answer <= session.current.answer)
   const correctAnswers = correct ? (session.correctAnswers ?? 0) + 1 : (session.correctAnswers ?? 0)
-  const completedNow = correct && session.data.length === 0
+  const completedNow = correct && remainingItems.length === 0
 
   if (correct && !completedNow) {
-    const remaining = [...session.data]; const newNext = remaining.pop()
+    const remaining = [...remainingItems]; const newNext = remaining.pop()
     if (!newNext) return Response.json({ error: "Ugyldig spillrunde - start en ny" }, { status: 400 })
-    const newSession = { ...session, current: session.next, next: newNext, data: remaining, correctAnswers }
+    // Explicitly persist null instead of [] because Firebase removes empty arrays.
+    const newSession = { ...session, current: session.next, next: newNext, data: remaining.length > 0 ? remaining : null, correctAnswers }
     await firebase.updateUserFields(user.id, { moreOrLessSession: newSession })
     const best = typeof dbUser?.dailyGameStats?.moreOrLess?.bestAttempt === "number" ? dbUser.dailyGameStats.moreOrLess.bestAttempt : 0
     return Response.json({ correct: true, finished: false, current: { subject: newSession.current.subject, answer: newSession.current.answer, image: newSession.current.image }, next: { subject: newNext.subject, image: newNext.image }, correctAnswers, bestAttempt: best, liveReward: correctAnswers > best ? tierReward(best, correctAnswers) : 0 })
