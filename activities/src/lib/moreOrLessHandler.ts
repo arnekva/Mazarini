@@ -37,21 +37,65 @@ interface MolStat {
   completed?: boolean
 }
 
-function findCustomMoreOrLessGameFile(slug: string) {
-  const candidates = [
-    path.resolve(process.cwd(), "../res/games/moreOrLess/customGames", `${slug}.json`),
-    path.resolve(process.cwd(), "res/games/moreOrLess/customGames", `${slug}.json`),
-    path.resolve(process.cwd(), "../..", "res/games/moreOrLess/customGames", `${slug}.json`),
-  ]
-
-  return candidates.find((candidate) => fs.existsSync(candidate))
+const CUSTOM_MOL_FILE_MAP: Record<string, string> = {
+  norwegianCities: "norwegianCities.json",
+  norwegianMountains: "norwegianMountains.json",
+  celebAge: "celebAge.json",
+  kommuneInnbygger: "kommuneInnbygger.json",
+  kommuneSize: "largestKommune.json",
+  tvSeriesEpisodeCount: "tvSeriesEpisodeCount.json",
+  medalsByCountry: "medalsByCountry.json",
+  footballAllTimeGoalsTop25: "footballers-by-goals.json",
+  worldPopulationTop40: "countries-by-population.json",
+  elementsAtomicNumber: "atom-number.json",
+  languagesBySpeakersTop50: "language-by-speakers.json",
+  animalsTopSpeedTop30: "animal-by-topspeed.json",
+  companiesFoundedYear: "companies-by-founding-date.json",
+  norwegianTvSeriesPremiere: "norwegian-TV-by-launch.json",
+  mostVisitedTouristAttractions: "tourist-destionations-by-visitors.json",
+  moviesByRuntime: "movies-by-runtime.json",
+  tvSeriesBySeasons: "tv-series-by-seasons.json",
+  top30TaylorSwiftSongs: "top30-taylor-swift-songs.json",
+  top30NorwegianArtistsInternationally: "top30-norwegian-artists-internationally.json",
+  mostKnownWineDistricts: "most-known-wine-districts.json",
+  countriesMostBillboard1Hits: "countries-most-billboard-1-hits.json",
+  legoSetsByPieces: "lego-sets-by-pieces.json",
+  cryptocurrenciesByWorth: "cryptocurrencies-by-worth.json",
+  citiesByAverageRent: "cities-by-average-rent.json",
+  countriesByPassportStrength: "countries-by-passport-strength.json",
+  citiesByPollutionIndex: "cities-by-pollution-index.json",
+  bordersByLength: "borders-by-length.json",
 }
 
-function loadCustomMoreOrLessGame(slug: string) {
-  const gameFile = findCustomMoreOrLessGameFile(slug)
-  if (!gameFile) return null
+function findCustomMoreOrLessGameFile(slug: string) {
+  const fileName = CUSTOM_MOL_FILE_MAP[slug]
+  if (!fileName) return null
 
-  const raw = JSON.parse(fs.readFileSync(gameFile, "utf-8"))
+  const candidates = [
+    path.resolve(process.cwd(), "data", "more-or-less", "custom-games", fileName),
+    path.resolve(process.cwd(), "custom-games", fileName),
+    path.resolve(process.cwd(), "../res", "games", "moreOrLess", "customGames", fileName),
+    path.resolve(process.cwd(), "../..", "res", "games", "moreOrLess", "customGames", fileName),
+  ]
+
+  return candidates.find((candidate) => fs.existsSync(candidate)) ?? null
+}
+
+async function fetchCustomMoreOrLessGame(slug: string) {
+  const fileName = CUSTOM_MOL_FILE_MAP[slug]
+  if (!fileName) return null
+
+  const rawUrl = `https://raw.githubusercontent.com/arnekva/Mazarini/master/res/games/moreOrLess/customGames/${fileName}`
+  const response = await fetch(rawUrl, { headers: { Accept: "application/json" } })
+  if (!response.ok) return null
+  return response.json()
+}
+
+async function loadCustomMoreOrLessGame(slug: string) {
+  const localFile = findCustomMoreOrLessGameFile(slug)
+  const raw = localFile ? JSON.parse(fs.readFileSync(localFile, "utf-8")) : await fetchCustomMoreOrLessGame(slug)
+  if (!raw) return null
+
   const gameData = raw?.game ?? raw
   const items: MolItem[] = (gameData?.data ?? [])
     .filter((item: unknown) => Array.isArray(item) && item.length <= 4)
@@ -130,7 +174,7 @@ export async function startMoreOrLessGame(user: AuthenticatedDiscordUser) {
   let strings = category.strings
 
   if (category.tags?.includes(CUSTOM_MOL_GAME_TAG)) {
-    const customGame = loadCustomMoreOrLessGame(category.slug)
+    const customGame = await loadCustomMoreOrLessGame(category.slug)
     if (!customGame) return Response.json({ error: "Klarte ikke å laste denne kategorien i appen" }, { status: 400 })
     items = customGame.items
     strings = customGame.strings as MolCategory["strings"]
