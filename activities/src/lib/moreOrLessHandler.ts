@@ -1,3 +1,5 @@
+import fs from "fs"
+import path from "path"
 import { FirebaseHelper } from "./db/firebaseHelper"
 import { AuthenticatedDiscordUser } from "./discordAuth"
 import { CUSTOM_MOL_GAME_TAG, moreOrLessValues } from "./gameValues"
@@ -33,6 +35,42 @@ interface MolStat {
   bestAttempt?: number
   numAttempts?: number
   completed?: boolean
+}
+
+function findCustomMoreOrLessGameFile(slug: string) {
+  const candidates = [
+    path.resolve(process.cwd(), "../res/games/moreOrLess/customGames", `${slug}.json`),
+    path.resolve(process.cwd(), "res/games/moreOrLess/customGames", `${slug}.json`),
+    path.resolve(process.cwd(), "../..", "res/games/moreOrLess/customGames", `${slug}.json`),
+  ]
+
+  return candidates.find((candidate) => fs.existsSync(candidate))
+}
+
+function loadCustomMoreOrLessGame(slug: string) {
+  const gameFile = findCustomMoreOrLessGameFile(slug)
+  if (!gameFile) return null
+
+  const raw = JSON.parse(fs.readFileSync(gameFile, "utf-8"))
+  const gameData = raw?.game ?? raw
+  const items: MolItem[] = (gameData?.data ?? [])
+    .filter((item: unknown) => Array.isArray(item) && item.length <= 4)
+    .map((item: [string, number, string]) => ({ subject: item[0], answer: item[1], image: item[2] ?? "" }))
+
+  const strings = gameData?.strings ?? {
+    verb: "har",
+    valueTitle: "",
+    buttonMore: "Mer",
+    buttonLess: "Mindre",
+  }
+
+  return { items, strings }
+}
+
+function toMolItems(items: unknown[]): MolItem[] {
+  return items
+    .filter((item): item is [string, number, string] => Array.isArray(item) && item.length <= 4)
+    .map((item) => ({ subject: item[0], answer: item[1], image: item[2] ?? "" }))
 }
 
 /** Chips earned for correct answers strictly after `fromExclusive` up to `toInclusive` - used both
@@ -75,10 +113,10 @@ export async function getMoreOrLessStatus(user: AuthenticatedDiscordUser) {
   }
   return Response.json({
     category: { title: category.title, description: category.description, image: category.image, strings: category.strings, totalEntries: category.totalEntries },
-    unsupported: !!category.tags?.includes(CUSTOM_MOL_GAME_TAG),
+    unsupported: false,
     stats: dbUser?.dailyGameStats?.moreOrLess ?? {},
     hasActiveSession: !!session,
-    active: session ? { current: { subject: session.current.subject, answer: session.current.answer, image: session.current.image }, next: { subject: session.next.subject, image: session.next.image }, correctAnswers: session.correctAnswers } : undefined,
+    active: session ? { current: { subject: session.current.subject, answer: session.current.answer, image: session.current.image }, next: { subject: session.next.subject, image: session.next.image } } : undefined,
   })
 }
 
@@ -87,16 +125,22 @@ export async function startMoreOrLessGame(user: AuthenticatedDiscordUser) {
   const storage = await firebase.getData("other")
   const category: MolCategory | undefined = storage?.moreOrLess?.current
   if (!category) return Response.json({ error: "Ingen kategori satt ennå" }, { status: 503 })
-  if (category.tags?.includes(CUSTOM_MOL_GAME_TAG)) {
-    return Response.json({ error: "Denne kategorien støttes ikke i appen ennå" }, { status: 400 })
-  }
 
-  const response = await fetch(`https://api.moreorless.io/en/games/${category.slug}.json`, { headers: { Accept: "application/json" } })
-  if (!response.ok) return Response.json({ error: "Klarte ikke å hente kategori-data" }, { status: 502 })
-  const body = await response.json()
-  const items: MolItem[] = (body.game?.data ?? [])
-    .filter((item: unknown[]) => item.length <= 4)
-    .map((item: [string, number, string]) => ({ subject: item[0], answer: item[1], image: item[2] }))
+  let items: MolItem[] = []
+  let strings = category.strings
+
+  if (category.tags?.includes(CUSTOM_MOL_GAME_TAG)) {
+    const customGame = loadCustomMoreOrLessGame(category.slug)
+    if (!customGame) return Response.json({ error: "Klarte ikke å laste denne kategorien i appen" }, { status: 400 })
+    items = customGame.items
+    strings = customGame.strings as MolCategory["strings"]
+  } else {
+    const response = await fetch(`https://api.moreorless.io/en/games/${category.slug}.json`, { headers: { Accept: "application/json" } })
+    if (!response.ok) return Response.json({ error: "Klarte ikke å hente kategori-data" }, { status: 502 })
+    const body = await response.json()
+    items = toMolItems(body.game?.data ?? [])
+    strings = body.game?.strings ?? strings
+  }
 
   if (items.length < 2) return Response.json({ error: "For få elementer i kategorien" }, { status: 502 })
 
@@ -112,7 +156,7 @@ export async function startMoreOrLessGame(user: AuthenticatedDiscordUser) {
     next: { subject: next.subject, image: next.image },
     correctAnswers: 0,
     totalEntries: items.length,
-    strings: category.strings,
+    strings,
   })
 }
 
