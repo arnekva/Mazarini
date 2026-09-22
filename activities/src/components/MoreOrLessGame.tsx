@@ -41,8 +41,6 @@ function formatValue(n: number | undefined, suffix?: string) {
   return `${n.toLocaleString("no-NO")}${suffix ?? ""}`
 }
 
-// Some categories' `verb` already spells out what valueTitle would repeat (e.g. "has the atomic
-// number" + "Atomic number") - skip valueTitle in that case rather than showing it twice.
 function relevantValueTitle(verb: string | undefined, valueTitle: string | undefined) {
   if (!valueTitle) return undefined
   if (verb && verb.toLowerCase().includes(valueTitle.toLowerCase())) return undefined
@@ -51,14 +49,13 @@ function relevantValueTitle(verb: string | undefined, valueTitle: string | undef
 
 interface RoundResult {
   correct: boolean
+  completed: boolean
   reward: number
   revealLine: string
 }
 
 export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
   const [status, setStatus] = useState<StatusResponse | null>(null)
-  // Tracked separately from `status.stats` because it needs to update after every round ends,
-  // not just on the initial page load - status itself is never re-fetched mid-session.
   const [liveStats, setLiveStats] = useState({ bestAttempt: 0, numAttempts: 0 })
   const [totalEntries, setTotalEntries] = useState<number | undefined>(undefined)
   const [current, setCurrent] = useState<Item | null>(null)
@@ -80,19 +77,12 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
       setNext(s.active.next)
       setCorrectAnswers(s.active.correctAnswers)
     } else if (!s.unsupported) {
-      // No round in progress - jump straight into one instead of making the player click a
-      // "Start" button that, on a repeat visit, read as a bare "Prøv igjen" with nothing else
-      // on screen (looked like a failure state rather than an invitation to play).
       start()
     }
   }
 
   useEffect(() => {
     loadStatus()
-
-    // The category header otherwise only ever reflects whatever was current when the page first
-    // loaded - if the Activity is left open across the daily category rotation, it'd keep showing
-    // yesterday's (or older) title indefinitely. Re-check whenever the tab/Activity regains focus.
     function onVisible() {
       if (document.visibilityState === "visible") loadStatus()
     }
@@ -141,12 +131,17 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
 
       if (res.finished) {
         setRoundOver(true)
+        setCurrent(null)
+        setNext(null)
         setCorrectAnswers(res.correctAnswers ?? correctAnswers)
         setLiveStats((s) => ({ bestAttempt: res.bestAttempt ?? s.bestAttempt, numAttempts: res.numAttempts ?? s.numAttempts }))
         setResult({
           correct: !!res.correct,
+          completed: !!res.completedNow,
           reward: res.reward ?? 0,
-          revealLine: `${res.revealedNext?.subject}: ${formatValue(res.revealedNext?.answer, status?.category.strings?.valueSuffix)}`,
+          revealLine: res.revealedNext
+            ? `${res.revealedNext.subject}: ${formatValue(res.revealedNext.answer, status?.category.strings?.valueSuffix)}`
+            : "",
         })
       } else {
         setCurrent(res.current ?? null)
@@ -162,8 +157,6 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
   if (!status) return <p className={contentStyles.status}>Laster...</p>
   if (status.error) return <p className={contentStyles.status}>{status.error}</p>
 
-  // Total entry count is only revealed once you've already completed 2+ rounds today - on your
-  // first couple of attempts it stays a "?" so you can't infer the deck size from it early on.
   const showTotal = liveStats.numAttempts >= 2
   const totalDisplay = showTotal && totalEntries !== undefined ? totalEntries : "?"
   const beatingBest = liveStats.bestAttempt > 0 && correctAnswers > liveStats.bestAttempt
@@ -171,7 +164,6 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
   return (
     <>
       <p className={contentStyles.status}>{status.category.title}</p>
-
       {status.unsupported && <p className={contentStyles.status}>Denne kategorien støttes ikke i appen ennå - prøv /moreorless i chat.</p>}
       {startError && <p className={contentStyles.status}>{startError}</p>}
       {!status.unsupported && !current && !roundOver && !startError && <p className={contentStyles.status}>Laster spill...</p>}
@@ -183,38 +175,22 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
             <div className={styles.itemText}>
               <div className={styles.itemSubject}>{current.subject}</div>
               <div className={styles.itemValue}>
-                {status.category.strings?.verb} {formatValue(current.answer, status.category.strings?.valueSuffix)}{" "}
-                {relevantValueTitle(status.category.strings?.verb, status.category.strings?.valueTitle)}
+                {status.category.strings?.verb} {formatValue(current.answer, status.category.strings?.valueSuffix)} {relevantValueTitle(status.category.strings?.verb, status.category.strings?.valueTitle)}
               </div>
             </div>
           </div>
           <div className={styles.vs}>VS</div>
           <div className={styles.itemBox}>
             {next.image && <img className={styles.itemImg} src={proxyImageUrl(next.image)} alt="" />}
-            <div className={styles.itemText}>
-              <div className={styles.itemSubject}>{next.subject}</div>
-            </div>
+            <div className={styles.itemText}><div className={styles.itemSubject}>{next.subject}</div></div>
           </div>
-
           <div className={styles.guessRow}>
-            <button className={`${styles.guessBtn} ${styles.lessBtn}`} type="button" disabled={busy} onClick={() => guess(false)}>
-              Mindre
-            </button>
-            <button className={`${styles.guessBtn} ${styles.moreBtn}`} type="button" disabled={busy} onClick={() => guess(true)}>
-              Mer
-            </button>
+            <button className={`${styles.guessBtn} ${styles.lessBtn}`} type="button" disabled={busy} onClick={() => guess(false)}>Mindre</button>
+            <button className={`${styles.guessBtn} ${styles.moreBtn}`} type="button" disabled={busy} onClick={() => guess(true)}>Mer</button>
           </div>
           <div className={styles.score}>
             {correctAnswers}/{totalDisplay}
-            {liveStats.bestAttempt > 0 &&
-              (beatingBest ? (
-                <>
-                  {" "}
-                  (+<span className={styles.textGreen}>{liveReward}</span> chips)
-                </>
-              ) : (
-                ` (score: ${liveStats.bestAttempt})`
-              ))}
+            {liveStats.bestAttempt > 0 && (beatingBest ? <> (+<span className={styles.textGreen}>{liveReward}</span> chips)</> : ` (score: ${liveStats.bestAttempt})`)}
           </div>
         </>
       )}
@@ -222,34 +198,14 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
       {result && (
         <div className={styles.resultBlock}>
           <p className={styles.resultLine}>
-            {result.correct ? (
-              <>
-                Du <span className={styles.textGreen}>fullførte</span> hele kategorien!
-              </>
-            ) : (
-              <>
-                Du svarte <span className={styles.textRed}>feil</span>
-              </>
-            )}
+            {result.completed ? <>Gratulerer, du har <span className={styles.textGreen}>fullført dagens kategori</span>!</> : result.correct ? <>Du <span className={styles.textGreen}>fullførte</span> hele kategorien!</> : <>Du svarte <span className={styles.textRed}>feil</span></>}
           </p>
-          <p className={styles.resultLine}>
-            {result.reward > 0 ? (
-              <>
-                Du fikk <span className={styles.textGreen}>+{result.reward}</span> chips
-              </>
-            ) : (
-              "Ingen nye chips - slo ikke din beste"
-            )}
-          </p>
-          <p className={styles.resultLine}>{result.revealLine}</p>
+          <p className={styles.resultLine}>{result.reward > 0 ? <>Du fikk <span className={styles.textGreen}>+{result.reward}</span> chips</> : "Ingen nye chips - slo ikke din beste"}</p>
+          {result.revealLine && <p className={styles.resultLine}>{result.revealLine}</p>}
         </div>
       )}
 
-      {roundOver && (
-        <button className={styles.startBtn} type="button" disabled={busy} onClick={start}>
-          Prøv igjen
-        </button>
-      )}
+      {roundOver && <button className={styles.startBtn} type="button" disabled={busy} onClick={start}>Prøv igjen</button>}
     </>
   )
 }
