@@ -6,7 +6,7 @@ import { CUSTOM_MOL_GAME_TAG, moreOrLessValues } from "./gameValues"
 
 interface MolItem { subject: string; answer: number; image: string }
 interface MolCategory { slug: string; title: string; description: string; image: string; tags?: string[]; totalEntries?: number; strings?: { verb: string; valueTitle: string; valueSuffix?: string; buttonMore?: string; buttonLess?: string } }
-interface MolSession { slug: string; data: MolItem[]; current: MolItem; next: MolItem; correctAnswers: number }
+interface MolSession { slug: string; data?: MolItem[]; current?: MolItem; next?: MolItem; correctAnswers?: number }
 interface MolStat { attempted?: boolean; firstAttempt?: number; secondAttempt?: number | null; bestAttempt?: number; numAttempts?: number; completed?: boolean }
 
 const CUSTOM_FILES: Record<string, string> = {
@@ -21,7 +21,7 @@ async function loadCustom(slug: string) {
   if (local) raw = JSON.parse(fs.readFileSync(local, "utf8"))
   else { const response = await fetch(`https://raw.githubusercontent.com/arnekva/Mazarini/master/res/games/moreOrLess/customGames/${file}`); if (!response.ok) return null; raw = await response.json() }
   const game = raw?.game ?? raw
-  const items: MolItem[] = (game?.data ?? []).filter((x: unknown) => Array.isArray(x) && x.length <= 4).map((x: [string, number, string]) => ({ subject: x[0], answer: x[1], image: x[2] ?? "" }))
+  const items: MolItem[] = Array.isArray(game?.data) ? game.data.filter((x: unknown) => Array.isArray(x) && x.length <= 4).map((x: [string, number, string]) => ({ subject: x[0], answer: x[1], image: x[2] ?? "" })) : []
   return { items, strings: game?.strings }
 }
 
@@ -34,7 +34,7 @@ export async function getMoreOrLessStatus(user: AuthenticatedDiscordUser) {
   if (!category) return Response.json({ error: "Ingen kategori satt ennå" }, { status: 503 })
   let session = dbUser?.moreOrLessSession as MolSession | undefined
   if (session && session.slug !== category.slug) { await firebase.updateUserFields(user.id, { moreOrLessSession: null }); session = undefined }
-  return Response.json({ category: { title: category.title, description: category.description, image: category.image, strings: category.strings, totalEntries: category.totalEntries }, unsupported: false, stats: dbUser?.dailyGameStats?.moreOrLess ?? {}, hasActiveSession: !!session, active: session ? { current: session.current, next: { subject: session.next.subject, image: session.next.image }, correctAnswers: session.correctAnswers } : undefined })
+  return Response.json({ category: { title: category.title, description: category.description, image: category.image, strings: category.strings, totalEntries: category.totalEntries }, unsupported: false, stats: dbUser?.dailyGameStats?.moreOrLess ?? {}, hasActiveSession: !!session, active: session?.current && session?.next ? { current: session.current, next: { subject: session.next.subject, image: session.next.image }, correctAnswers: session.correctAnswers ?? 0 } : undefined })
 }
 
 export async function startMoreOrLessGame(user: AuthenticatedDiscordUser) {
@@ -52,20 +52,21 @@ export async function startMoreOrLessGame(user: AuthenticatedDiscordUser) {
 export async function guessMoreOrLess(user: AuthenticatedDiscordUser, more: boolean) {
   const firebase = new FirebaseHelper(); const [dbUser, storage] = await Promise.all([firebase.getUser(user.id), firebase.getData("other")]); const session = dbUser?.moreOrLessSession as MolSession | undefined; const category = storage?.moreOrLess?.current as MolCategory | undefined
   if (!session) return Response.json({ error: "Ingen aktiv runde - start en ny" }, { status: 400 })
-  if (!category || session.slug !== category.slug || !session.current || !session.next) { await firebase.updateUserFields(user.id, { moreOrLessSession: null }); return Response.json({ error: "Ugyldig spillrunde - start en ny" }, { status: 400 }) }
+  if (!category || session.slug !== category.slug || !session.current || !session.next || !Array.isArray(session.data)) { await firebase.updateUserFields(user.id, { moreOrLessSession: null }); return Response.json({ error: "Ugyldig spillrunde - start en ny" }, { status: 400 }) }
 
   const correct = (more && session.next.answer >= session.current.answer) || (!more && session.next.answer <= session.current.answer)
-  const correctAnswers = correct ? session.correctAnswers + 1 : session.correctAnswers
+  const correctAnswers = correct ? (session.correctAnswers ?? 0) + 1 : (session.correctAnswers ?? 0)
   const completedNow = correct && session.data.length === 0
 
   if (correct && !completedNow) {
-    const remaining = [...session.data]; const newNext = remaining.pop()!; const newSession = { ...session, current: session.next, next: newNext, data: remaining, correctAnswers }
+    const remaining = [...session.data]; const newNext = remaining.pop()
+    if (!newNext) return Response.json({ error: "Ugyldig spillrunde - start en ny" }, { status: 400 })
+    const newSession = { ...session, current: session.next, next: newNext, data: remaining, correctAnswers }
     await firebase.updateUserFields(user.id, { moreOrLessSession: newSession })
     const best = typeof dbUser?.dailyGameStats?.moreOrLess?.bestAttempt === "number" ? dbUser.dailyGameStats.moreOrLess.bestAttempt : 0
     return Response.json({ correct: true, finished: false, current: { subject: newSession.current.subject, answer: newSession.current.answer, image: newSession.current.image }, next: { subject: newNext.subject, image: newNext.image }, correctAnswers, bestAttempt: best, liveReward: correctAnswers > best ? tierReward(best, correctAnswers) : 0 })
   }
 
-  // Match the main bot: finalize the round without ever reading a nonexistent next item.
   const stat = (dbUser?.dailyGameStats?.moreOrLess ?? {}) as MolStat
   const oldBest = typeof stat.bestAttempt === "number" ? stat.bestAttempt : 0
   const attempts = typeof stat.numAttempts === "number" ? stat.numAttempts + 1 : 1
@@ -76,11 +77,7 @@ export async function guessMoreOrLess(user: AuthenticatedDiscordUser, more: bool
   const reward = correctAnswers > oldBest ? tierReward(oldBest, correctAnswers) + (completedNow && !completedPreviously ? 3000 : 0) : 0
   const chips = (typeof dbUser?.chips === "number" ? dbUser.chips : 0) + reward
   const newStat: MolStat = { attempted: true, firstAttempt, secondAttempt, bestAttempt: newBest, numAttempts: attempts, completed: completedPreviously || completedNow }
-
-  // Keep this as two independent RTDB updates. This avoids an invalid mixed update path and
-  // makes the final completion write identical in shape to the bot's user update.
   if (reward > 0) await firebase.updateUserFields(user.id, { chips })
   await firebase.updateUserFields(user.id, { "dailyGameStats/moreOrLess": newStat, moreOrLessSession: null })
-
   return Response.json({ correct, finished: true, completedNow, correctAnswers, reward, chips, bestAttempt: newBest, numAttempts: attempts })
 }
