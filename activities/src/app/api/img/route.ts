@@ -2,8 +2,10 @@
 // has to be re-served from our own origin to actually load. Restricted to known-safe hosts so this
 // can't be used as an open image-fetching relay. More or Less's item images are served per-category
 // from *.pages.dev subdomains (confirmed varies: enjoy-i.pages.dev, go-image.pages.dev, ...), so
-// that one's a suffix match rather than an exact host.
-const ALLOWED_EXACT_HOSTS = ["flagcdn.com", "api.moreorless.io"]
+// that one's a suffix match rather than an exact host. cdn.discordapp.com is player/spectator
+// avatars (see discordAvatarUrl in lib/discordAvatar.ts) - Discord's CDN would actually be allowed
+// directly by the CSP, but everything still goes through this same proxy for one consistent path.
+const ALLOWED_EXACT_HOSTS = ["flagcdn.com", "api.moreorless.io", "cdn.discordapp.com"]
 const ALLOWED_HOST_SUFFIXES = [".pages.dev"]
 
 function isAllowedHost(hostname: string): boolean {
