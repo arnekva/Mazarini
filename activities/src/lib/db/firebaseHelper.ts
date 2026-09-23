@@ -1,5 +1,5 @@
 import { FirebaseApp, getApp, getApps, initializeApp } from "firebase/app"
-import { Database, get, getDatabase, ref, runTransaction, update } from "firebase/database"
+import { Database, get, getDatabase, ref, update } from "firebase/database"
 import { database, firebaseConfig } from "../env"
 
 // Server-only - the same Firebase RTDB project and `users/{id}` shape the bot uses
@@ -36,15 +36,11 @@ export class FirebaseHelper {
     return update(ref(this.db, database), updates)
   }
 
-  /** Atomic read-modify-write on a single path - the RTDB server serializes concurrent transactions
-   * against the same path, retrying `updateFn` against whatever the *current* value actually is each
-   * time, instead of two concurrent requests both reading the same stale snapshot and one silently
-   * clobbering the other's write. `updateFn` must be synchronous and side-effect-free (it can run
-   * more than once per call): do any async work before calling this, and apply any side effects
-   * (crediting chips, etc.) only after `committed` comes back true. Return `undefined` from `updateFn`
-   * to abort without writing (e.g. to reject an invalid action). */
-  public async runTransaction<T = any>(path: string, updateFn: (current: T | null) => T | null | undefined): Promise<{ committed: boolean; value: T | null }> {
-    const result = await runTransaction(ref(this.db, `${database}/${path}`), updateFn)
-    return { committed: result.committed, value: result.snapshot.val() }
-  }
+  // Deliberately no runTransaction() here - firebase/database's client-SDK transaction() needs a
+  // listener-warmed local sync cache to know a path's "current" value, which a fresh one-shot Node
+  // connection (every call from here) never has, so its callback fires with a false `null` on the
+  // first invocation even when the data genuinely exists on the server. Confirmed by direct testing
+  // (see blackjackHandler.ts's runLobbyMutation) - it silently rejected every action that used it. A
+  // real transaction would need firebase-admin's server-side SDK instead (a service account, not the
+  // apiKey config this app uses).
 }

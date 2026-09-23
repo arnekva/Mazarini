@@ -171,30 +171,30 @@ async function deleteLobby(firebase: FirebaseHelper, instanceId: string, lobbyId
 }
 
 /** What a lobby-mutating `compute` callback hands back to runLobbyMutation: the new lobby state to
- * write, plus any side effects (chip changes, a deathroll-pot refund) that must only ever apply once
- * - never inside `compute` itself, since Firebase can invoke it more than once per call if it has to
- * retry against a newer value. Applied for real only after the transaction actually commits. */
+ * write, plus any side effects (chip changes, a deathroll-pot refund) - kept separate from `lobby`
+ * so they can be applied in one clear place after the write, rather than scattered through each
+ * action's own logic. */
 interface LobbyMutationOutcome {
   lobby: BlackjackLobby
-  /** userId -> chip delta (can be negative, e.g. an ante) to apply after the transaction commits. */
+  /** userId -> chip delta (can be negative, e.g. an ante) to apply after the write. */
   chipDeltas?: Record<string, number>
   potRefundTotal?: number
 }
 
 type LobbyMutationResult = LobbyMutationOutcome | { error: string; status?: number }
 
-/** Runs `compute` as an atomic read-modify-write against the lobby's own Firebase path - two
- * concurrent requests (a double-tap, a stalled request retried, a slow client) can no longer race
- * each other into reading the same deck/hand snapshot and one silently overwriting the other's
- * result, because the RTDB server itself serializes transactions on the same path and replays
- * `compute` against whatever the current value actually is on each attempt. `compute` must be pure
- * and synchronous - any async lookups (test-hand overrides, the admin "force bad draw" flag) need to
- * happen before calling this and get passed in as plain values. */
-type LobbyMutationOutcomeTagged =
-  | { kind: "not-found" }
-  | { kind: "error"; error: string; status?: number }
-  | ({ kind: "ok" } & LobbyMutationOutcome)
-
+// NOTE: this was briefly built on firebase/database's runTransaction() for real atomicity against
+// concurrent requests, but that doesn't actually work from here - confirmed by direct testing, not a
+// guess. The *client* SDK's transaction() relies on a listener-warmed local sync cache to know the
+// "current" value; a fresh one-shot Node connection (exactly what every serverless function call is)
+// has no such cache, so its callback fires with `raw = null` on the very first invocation even when
+// the data verifiably exists on the server (confirmed: a plain getData() on the same path immediately
+// before returns the real value, then runTransaction's callback still sees null). Treating that null
+// as "doesn't exist" aborted every single call - it broke starting a new round outright in production.
+// A real fix would need firebase-admin's server-side transaction() instead (different auth - a
+// service account, not the apiKey config this app uses) - out of scope until that's set up. Back to
+// plain get-then-write for now, same shape the rest of this file already uses; the compute/chipDeltas
+// split is kept since it's good structure regardless of atomicity.
 async function runLobbyMutation(
   firebase: FirebaseHelper,
   instanceId: string,
@@ -203,44 +203,28 @@ async function runLobbyMutation(
   compute: (lobby: BlackjackLobby) => LobbyMutationResult
 ): Promise<Response> {
   const path = `other/${PATH_PREFIX}/${instanceId}/${lobbyId}`
-  // A boxed field rather than a bare reassigned `let` - TS's "narrowing through closures" otherwise
-  // collapses the variable's type down to whatever it was initialized with once you read it back
-  // after the (asynchronous, possibly-multiple-times) callback runs, which isn't right here.
-  const box: { outcome: LobbyMutationOutcomeTagged } = { outcome: { kind: "not-found" } }
+  const raw = await firebase.getData(path)
+  if (raw == null) return Response.json({ closed: true }, { status: 404 })
 
-  await firebase.runTransaction<any>(path, (raw) => {
-    if (raw == null) {
-      box.outcome = { kind: "not-found" }
-      return undefined
-    }
-    const lobby = normalizeLobby({ id: lobbyId, ...raw })
-    const result = compute(lobby)
-    if ("error" in result) {
-      box.outcome = { kind: "error", error: result.error, status: result.status }
-      return undefined // abort - nothing written, action rejected
-    }
-    box.outcome = { kind: "ok", ...result }
-    return { ...result.lobby, updatedAt: Date.now() }
-  })
+  const lobby = normalizeLobby({ id: lobbyId, ...raw })
+  const result = compute(lobby)
+  if ("error" in result) return Response.json({ error: result.error }, { status: result.status ?? 400 })
 
-  const outcome = box.outcome
-  if (outcome.kind === "not-found") return Response.json({ closed: true }, { status: 404 })
-  if (outcome.kind === "error") return Response.json({ error: outcome.error }, { status: outcome.status ?? 400 })
+  await firebase.updateData({ [path]: { ...result.lobby, updatedAt: Date.now() } })
 
-  // The transaction has committed - now, and only now, apply the side effects it decided on.
-  if (outcome.chipDeltas) {
-    for (const [id, delta] of Object.entries(outcome.chipDeltas)) {
+  if (result.chipDeltas) {
+    for (const [id, delta] of Object.entries(result.chipDeltas)) {
       if (!delta) continue
       const dbUser = (await firebase.getUser(id)) ?? {}
       await firebase.updateUserFields(id, { chips: (dbUser.chips ?? 0) + delta })
     }
   }
-  if (outcome.potRefundTotal) {
+  if (result.potRefundTotal) {
     const currentPot = (await firebase.getData("other/deathrollPot")) ?? 0
-    await firebase.updateData({ "other/deathrollPot": currentPot + outcome.potRefundTotal })
+    await firebase.updateData({ "other/deathrollPot": currentPot + result.potRefundTotal })
   }
 
-  return Response.json(await publicView(firebase, outcome.lobby, userId))
+  return Response.json(await publicView(firebase, result.lobby, userId))
 }
 
 /** Announces a leaving player's session result in Discord - only for someone who actually played at
