@@ -398,7 +398,7 @@ export const GameValues: GameValuesType = {
 
     // Deal Or No Deal
     dealOrNoDeal: {
-        effectItemChance: 35, // percent chance to get an effect item
+        effectItemChance: 50, // percent chance to get an effect item
         offerBase: 0.5, // base offer percentage
         offerPerRound: 0.05, // offer percentage increase per round
     },
