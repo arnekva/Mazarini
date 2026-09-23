@@ -1,0 +1,178 @@
+/* Circle-table / seat / deck styles are shared with Electricity (ElectricityGame.module.css);
+   this file only adds what's specific to Rød/Svart: compact hands, the Give/Take pyramid and the bus. */
+
+.hand {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 3px;
+  max-width: 110px;
+  min-height: 24px;
+}
+
+.mini {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 34px;
+  padding: 0 2px;
+  border-radius: 4px;
+  background: #fdfdfb;
+  color: #16181d;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.miniRed {
+  color: #d1263b;
+}
+
+.miniBack {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+@media (min-width: 768px) {
+  .mini {
+    min-width: 34px;
+    height: 46px;
+    font-size: 15px;
+  }
+
+  .hand {
+    max-width: 170px;
+  }
+}
+
+.roundBanner {
+  background: var(--gold-glow);
+  border: 1px solid color-mix(in srgb, var(--gold) 50%, var(--card-border));
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.resultBanner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  border: 1px solid var(--card-border);
+}
+
+.resultOk {
+  background: var(--green-glow);
+  border-color: var(--green);
+}
+
+.resultBad {
+  background: var(--red-glow);
+  border-color: var(--red);
+}
+
+/* Give/Take pyramid: chug card alone in the middle column on top, then rows 4..1 downward. */
+.gtGrid {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  justify-content: center;
+  gap: 8px 14px;
+  margin: 8px 0 14px;
+}
+
+.gtCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+
+.gtChug {
+  grid-column: 1 / -1;
+  justify-self: center;
+}
+
+.gtCurrent {
+  border-color: color-mix(in srgb, var(--gold) 70%, transparent);
+  background: var(--gold-glow);
+}
+
+.gtLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.gtTake {
+  color: var(--red);
+}
+
+.gtBoth {
+  color: var(--purple);
+}
+
+.placementList {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  font-size: 12px;
+}
+
+.myHandBox {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.myHandBox .hand {
+  justify-content: flex-start;
+  max-width: none;
+}
+
+.playerStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-bottom: 10px;
+}
+
+.stripPlayer {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.stripPlayer img {
+  width: 20px;
+  height: 20px;
+}
+
+.stripLoser {
+  color: var(--red);
+  font-weight: 700;
+}
+
+.busRow {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 14px;
+}
+
+.busCell {
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}

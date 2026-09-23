@@ -147,6 +147,12 @@ export interface MazariniUser {
     moreOrLessSession?: Record<string, unknown> | null
 }
 
+export interface IDondTokens {
+    basic?: number
+    premium?: number
+    elite?: number
+}
+
 export interface ICCGUserData {
     decks?: ICCGDeck[]
     shards?: number
@@ -561,7 +567,6 @@ export interface IMoreOrLess {
 
 export interface ICache {
     deathrollWinningNumbers: number[]
-    restartImpediments?: string[]
     deathrollPot?: number
     shuffleIgnoresDigits?: boolean
     ccg?: ICCGSystem

@@ -22,6 +22,7 @@ interface HubStatus {
   dailyClaimedToday: boolean
   dailyStreak: number
   wheelSpinsLeft: number
+  dondTokens: number
   challengesCompleted: number
   maxChallenges: number
   challenges: Record<ChallengeId, { completed: boolean; numAttempts: number }>
@@ -53,12 +54,24 @@ export default function Home() {
     })
   }, [accessToken, router])
 
+  // Same story for the "Se på" button under a Deal or No Deal announcement: the bot stores who to watch, the
+  // Activity opens here, and this forwards to that round in spectate mode.
+  useEffect(() => {
+    if (!accessToken) return
+    callApi<{ hostId: string | null }>("/api/games/dond/pending-spectate", accessToken).then((res) => {
+      if (res.hostId) {
+        setRedirecting(true)
+        router.push(`/dond?watch=${encodeURIComponent(res.hostId)}`)
+      }
+    })
+  }, [accessToken, router])
+
   const loggedIn = ready && !!accessToken
 
   if (redirecting) {
     return (
       <div className={styles.page}>
-        <div className={styles.spinner} aria-label="Åpner Blackjack..." />
+        <div className={styles.spinner} aria-label="Åpner..." />
       </div>
     )
   }
@@ -88,6 +101,10 @@ export default function Home() {
             <HubCard href="/more-or-less" enabled={loggedIn} cardClass="cardTeal" fullWidth>
               More or Less
               <span className={styles.cardSub}>Ubegrenset antall forsøk</span>
+            </HubCard>
+            <HubCard href="/dond" enabled={loggedIn} cardClass="cardGold" fullWidth>
+              Deal or No Deal
+              <span className={styles.cardSub}>{status ? `${status.dondTokens} token${status.dondTokens === 1 ? "" : "s"}` : " "}</span>
             </HubCard>
             {isAdmin && (
               <HubCard href="/song-rank" enabled cardClass="cardGreen" fullWidth>

@@ -25,3 +25,11 @@ export const firebaseConfig = {
   messagingSenderId: str("FIREBASE_MESSAGING_SENDER_ID"),
   appId: str("FIREBASE_APP_ID"),
 }
+
+/**
+ * Local-testing only: lets the app run in a plain browser tab, without Discord. The client fakes a
+ * user and sends a "dev:<userId>:<name>" token, which the server accepts in place of a real Discord
+ * one (see discordAuth.ts). Never active in a production build, whatever the variable says - and
+ * outbound Discord posts are skipped while it's on (see discordMessage.ts).
+ */
+export const devAuthEnabled = process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_DEV_AUTH === "1"

@@ -66,7 +66,7 @@ export class MazariniClient extends Client {
         this.timedEvents = new MazariniEvents(this)
         this.mazariniEventTracker = new EventTracker(this)
         this.clientListener = new ClientListener(this)
-        this.clientCache = { deathrollWinningNumbers: [], restartImpediments: [], mastermindSolution: [] }
+        this.clientCache = { deathrollWinningNumbers: [], mastermindSolution: [] }
         this.developmentChannelId = secretDevelopment ? ChannelIds.SECRET_LOCALHOST : ChannelIds.LOCALHOST
         this.moneyHelper = new MoneyHelper(this)
         this.setupDatabase(this.msgHelper)
@@ -98,18 +98,6 @@ export class MazariniClient extends Client {
         if (!silent) this.messageHelper.sendLogMessage('Running Save for all command classes')
         await this.clientListener.commandRunner.runSave()
         return true
-    }
-
-    /**
-     * Runs save for all command classes and returns any reasons a restart should be blocked right now
-     * (e.g. active games). Empty array means it is safe to restart. Shared by the /restart command and
-     * the /restart-check endpoint so manual and automated deploys honour the exact same guards.
-     * @param silent suppress the "Running Save" log message (used by the high-frequency deploy poll)
-     */
-    async collectRestartImpediments(silent = false): Promise<string[]> {
-        this.clientCache.restartImpediments = []
-        await this.onRestart(silent)
-        return this.clientCache.restartImpediments ?? []
     }
 
     async onRefresh(): Promise<boolean> {

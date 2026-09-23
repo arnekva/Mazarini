@@ -17,14 +17,14 @@ services:
       - ccg-generated:/app/res/ccg/generated
     labels:
       # Watchtower watches this container and, before swapping in a new image, runs the pre-update
-      # command inside it. curl -f exits non-zero on a 423 (active games), which makes Watchtower
-      # skip the update this cycle and retry next poll — the same guard as the /restart command.
+      # command inside it - /restart-check runs the bot's save/refund step so nothing is lost when the
+      # container is replaced. It never blocks the update.
       - com.centurylinklabs.watchtower.enable=true
       - com.centurylinklabs.watchtower.lifecycle.pre-update-timeout=1
       - com.centurylinklabs.watchtower.lifecycle.pre-update=/usr/bin/curl -fs http://localhost:8475/restart-check
 
   watchtower:
-    # Polls ghcr for a new mazarini image and deploys it (gated by the pre-update hook above).
+    # Polls ghcr for a new mazarini image and deploys it (the pre-update hook above saves state first).
     image: containrrr/watchtower
     container_name: watchtower
     restart: unless-stopped

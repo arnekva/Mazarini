@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--prefix", "activities"],
       "port": 3000
+    },
+    {
+      "name": "daily-hub-local",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:local", "--prefix", "activities"],
+      "port": 3000
     }
   ]
 }

@@ -8,7 +8,6 @@ import { MazariniUser } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { RandomUtils } from '../../utils/randomUtils'
-import { UserUtils } from '../../utils/userUtils'
 import { IEffectItem } from '../store/lootboxCommands'
 import { DondItems } from './content/dondItems'
 
@@ -475,17 +474,25 @@ export class DealOrNoDeal extends AbstractCommands {
         } else this.messageHelper.replyToInteraction(interaction, 'Dette spillet er ikke lenger aktivt', { ephemeral: true })
     }
 
-    override async onSave(): Promise<boolean> {
-        this.games.forEach((game) => {
-            this.client.cache.restartImpediments.push(`${UserUtils.findUserById(game.player.id, this.client).username} har et aktivt deal or no deal game`)
-        })
-        return true
+    /** The "Se på" button the Activity posts when someone starts a round. The Activity can only open at its root page,
+     * so the clicker is recorded as "wants to watch {hostId}" first - the hub reads that and forwards them to the round
+     * in spectate mode (see consumePendingDondSpectate in the activities app). */
+    private async spectateActivityGame(interaction: BtnInteraction) {
+        const hostId = interaction.customId.split(';')[1]
+        await this.client.database.updateData({ [`other/pendingDondSpectate/${interaction.user.id}`]: { hostId, createdAt: Date.now() } })
+        await interaction.launchActivity()
     }
 
     getAllInteractions(): IInteractionElement {
         return {
             commands: {
                 buttonInteractionComands: [
+                    {
+                        commandName: 'DOND_SPECTATE',
+                        command: (rawInteraction: BtnInteraction) => {
+                            this.spectateActivityGame(rawInteraction)
+                        },
+                    },
                     {
                         commandName: 'DEAL_OR_NO_DEAL_GAME',
                         command: (rawInteraction: BtnInteraction) => {

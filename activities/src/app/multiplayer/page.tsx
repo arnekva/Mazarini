@@ -4,7 +4,11 @@ import Link from "next/link"
 import { PageShell } from "@/components/PageShell"
 import homeStyles from "../page.module.css"
 
-const multiplayerGames = [{ id: "blackjack", label: "Blackjack", cardClass: "cardGreen" }]
+const multiplayerGames = [
+  { id: "blackjack", label: "Blackjack", cardClass: "cardGreen" },
+  { id: "electricity", label: "Electricity ⚡", cardClass: "cardGold" },
+  { id: "redblack", label: "Rød / Svart", cardClass: "cardRed" },
+]
 
 export default function MultiplayerPage() {
   return (

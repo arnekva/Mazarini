@@ -241,16 +241,13 @@ export async function guessMoreOrLess(user: AuthenticatedDiscordUser, more: bool
   const stat = (dbUser?.dailyGameStats?.moreOrLess ?? {}) as MolStat
   const oldBest = typeof stat.bestAttempt === "number" ? stat.bestAttempt : 0
   const attempts = typeof stat.numAttempts === "number" ? stat.numAttempts + 1 : 1
-  const firstAttempt = typeof stat.firstAttempt === "number" ? stat.firstAttempt : correctAnswers
-  // Mirrors commands/games/moreOrLess.ts's endGame: the *second* attempt of the day is captured
-  // once, the first time numAttempts crosses 1 with firstAttempt already set and secondAttempt still
-  // unset - this was missing here entirely, so an Activity player's second try never got recorded.
-  const secondAttempt =
-    typeof stat.firstAttempt === "number" && stat.secondAttempt == null && attempts > 1
-      ? correctAnswers
-      : typeof stat.secondAttempt === "number"
-        ? stat.secondAttempt
-        : null
+  // The daily reset job writes { attempted: false, firstAttempt: 0, secondAttempt: null, ... } for everyone, so
+  // firstAttempt being a number says nothing about whether they've played - `attempted` is the real signal
+  // (same as commands/games/moreOrLess.ts's endGame). Keying off firstAttempt made every first attempt stick at 0.
+  const alreadyPlayed = stat.attempted === true
+  const firstAttempt = alreadyPlayed && typeof stat.firstAttempt === "number" ? stat.firstAttempt : correctAnswers
+  // The *second* play of the day is captured once; any later play leaves both first and second alone.
+  const secondAttempt = alreadyPlayed && typeof stat.secondAttempt === "number" ? stat.secondAttempt : alreadyPlayed ? correctAnswers : null
   const completedPreviously = stat.completed === true
   const newBest = Math.max(oldBest, correctAnswers)
   const reward = correctAnswers > oldBest ? tierReward(oldBest, correctAnswers) + (completedNow && !completedPreviously ? moreOrLessValues.rewards.completed : 0) : 0

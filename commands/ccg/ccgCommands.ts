@@ -1348,15 +1348,6 @@ export class CCGCommands extends AbstractCommands {
         return true
     }
 
-    override onSave(): Promise<boolean> {
-        for (const game of this.games.values()) {
-            if (!(game.state.phase === 'FINISHED')) {
-                this.client.cache.restartImpediments.push(`${game.player1.name} har et aktivt CCG game mot ${game.player2?.name ?? '...'}`)
-            }
-        }
-        return Promise.resolve(true)
-    }
-
     // eslint-disable-next-line require-await
     async onTimedEvent(): Promise<IOnTimedEvent> {
         return { daily: [() => this.resetRewards(false), () => this.deleteFinishedGames()], weekly: [() => this.resetRewards(true)], hourly: [] }

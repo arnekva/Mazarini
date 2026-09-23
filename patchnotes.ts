@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '36.2.0'
+    public static readonly currentVersion = '36.2.1'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,21 +28,12 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '# Acitvity',
-                '* Blackjack',
-                '   * Nå med profilbilder og bedre indikasjon på spectators',
-                '   * Kan nå justere satsing (inkl. All In knapp)',
-                '   * Fikset knapp i når pot vinnes i deathroll',
-                '   * Fikset soft-lock når du hadde DPN',
+                '* Deal or No Deal: implementert',
+                '   * Har også en in-game chat for å lettere la mobil-brukere kommunisere med spectators (chat dumpes på game end)',
+                '* Rød eller Svart: implementert',
+                '* Electricity: implementert',
                 '* MOL',
-                '   * Sender nå melding når noen har fullført',
-                '   * Lagt til nye games fra Henrik',
-                '   * Litt oppdatert design',
-                '   * Sier nå hva verdien var når du svarte feil',
-                '   * Fikset at andre forsøk ikke alltid viste feil verdi',
-                '* Country outline: Dropper nå polygons under 5% av største areal. Burde droppe små overseas terretories',
-                '* Dond: nerfet deathroll additions kraftig',
-                '* Lykkehjul: Oppdater styling og animasjoner',
-                '* Multiplayer: Bedre håndtering av actions',
+                '   * Tracker når forsøk nr 2 igjen',
             ].join('\n')
         )
         container.addSeparator()

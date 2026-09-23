@@ -1,8 +1,8 @@
 name: Build and push Docker image
 
 # On every push to master, build the bot image and push it to GitHub Container Registry (ghcr.io).
-# The server's Watchtower then pulls it and deploys — gated by the /restart-check endpoint so active
-# games are never interrupted. The heavy native compile runs here on GitHub's runners, not the 1-core VM.
+# The server's Watchtower then pulls it and deploys (its pre-update hook hits /restart-check, which
+# runs the save/refund step first). The heavy native compile runs here on GitHub's runners, not the 1-core VM.
 
 on:
     push:

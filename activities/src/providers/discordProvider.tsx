@@ -38,6 +38,26 @@ export const DiscordProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     const clientId = process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID as string
 
+    // Local testing without Discord (see devAuthEnabled in lib/env.ts). Open with ?devUser=<discordId>[:<name>]
+    // to act as a specific user - a different one per browser tab makes multiplayer testable alone.
+    // Remembered per tab, so in-app navigation keeps the same user.
+    if (process.env.NEXT_PUBLIC_DEV_AUTH === "1" && process.env.NODE_ENV !== "production") {
+      let spec = new URLSearchParams(window.location.search).get("devUser")
+      try {
+        if (spec) sessionStorage.setItem("devUser", spec)
+        else spec = sessionStorage.getItem("devUser")
+      } catch {
+        // sessionStorage blocked - falls back to the default user below
+      }
+      const [id, ...rest] = (spec || "dev-user-1").split(":")
+      const name = rest.join(":") || id
+      setAccessToken(`dev:${id}:${name}`)
+      setDiscordUser({ id, username: name, global_name: name, avatar: null })
+      setInstanceId("dev-instance")
+      setReady(true)
+      return
+    }
+
     if (!clientId) {
       setReady(true)
       return

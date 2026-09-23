@@ -22,7 +22,7 @@ import { MazariniClient } from '../../client/MazariniClient'
 import { CCGCardGenerator } from '../../helpers/ccgCardGenerator'
 import { ClientHelper } from '../../helpers/clientHelper'
 import { ComponentsHelper } from '../../helpers/componentsHelper'
-import { dbPrefix, ILootbox, MazariniEventType, prefixList } from '../../interfaces/database/databaseInterface'
+import { dbPrefix, IDondTokens, ILootbox, MazariniEventType, prefixList } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { DailyJobs } from '../../Jobs/dailyJobs'
 import { WeeklyJobs } from '../../Jobs/weeklyJobs'
@@ -32,7 +32,7 @@ import { EmbedUtils } from '../../utils/embedUtils'
 import { MentionUtils } from '../../utils/mentionUtils'
 import { MessageUtils } from '../../utils/messageUtils'
 import { TextUtils } from '../../utils/textUtils'
-import { DealOrNoDeal, DonDQuality } from '../games/dealOrNoDeal'
+import { DonDQuality } from '../games/dealOrNoDeal'
 import { MoreOrLess } from '../games/moreOrLess'
 import { LootboxCommands, LootType } from '../store/lootboxCommands'
 
@@ -355,39 +355,31 @@ export class Admin extends AbstractCommands {
         ])
     }
 
-    private rewardUserWithDealOrNoDeal(interaction: ChatInteraction | BtnInteraction, pendingReward: IReward, user: User) {
-        const buttons = new ActionRowBuilder<ButtonBuilder>()
+    /** Grants a Deal or No Deal token for the chosen tier - it's spent to start a game in the Activities app. */
+    private async rewardUserWithDealOrNoDeal(interaction: ChatInteraction | BtnInteraction, pendingReward: IReward, user: User) {
         const dondQuality = Number(pendingReward.quality) as DonDQuality
-        const dond = DealOrNoDeal.getDealOrNoDealButton(user.id, dondQuality)
-        buttons.addComponents(dond)
-        const text = `${MentionUtils.mentionUser(user.id)} har mottatt en reward på en runde deal or no deal på grunn av *${pendingReward.reason}*`
+        const tier: keyof IDondTokens = dondQuality === DonDQuality.Elite ? 'elite' : dondQuality === DonDQuality.Premium ? 'premium' : 'basic'
+        const dbUser = await this.client.database.getUser(user.id)
+        dbUser.dondTokens = { ...dbUser.dondTokens, [tier]: (dbUser.dondTokens?.[tier] ?? 0) + 1 }
+        await this.client.database.updateUser(dbUser)
+
+        const tokenLabel = `${dondQuality}K Deal or No Deal-token`
+        const text = `${MentionUtils.mentionUser(user.id)} har mottatt en ${tokenLabel} på grunn av *${pendingReward.reason}*
+
+Bruk den i Activities for å spille.`
         const embed = EmbedUtils.createSimpleEmbed('Reward', text)
-        this.messageHelper.replyToInteraction(interaction, embed, undefined, [buttons])
+        this.messageHelper.replyToInteraction(interaction, embed)
         this.messageHelper.sendLogMessage(
-            `${user.username} har mottatt en reward på en runde deal or no deal på grunn av *${pendingReward.reason}*. Kanal: ${MentionUtils.mentionChannel(
-                interaction.channelId
-            )}. `
+            `${user.username} har mottatt en ${tokenLabel} på grunn av *${pendingReward.reason}*. Kanal: ${MentionUtils.mentionChannel(interaction.channelId)}. `
         )
     }
 
-    private async attemptRestart(interaction: ChatInteraction) {
+    /** Saves/refunds every command class's state, then exits - Docker's restart policy brings the bot back up. */
+    private async restartBot(interaction: ChatInteraction) {
         await interaction.deferReply()
-        const impediments = await this.client.collectRestartImpediments()
-        if (impediments.length > 0) {
-            const msg = impediments.reduce((prev, item) => prev + item + '\n', '')
-            await this.messageHelper.replyToInteraction(interaction, msg, { hasBeenDefered: true }, [forceRestartBtn])
-        } else {
-            this.restartBot(interaction, true)
-        }
-    }
-
-    private async restartBot(interaction: ChatInteraction | BtnInteraction, deferred: boolean = false) {
-        if (interaction instanceof ButtonInteraction) {
-            interaction.message.edit({ components: [] })
-            await this.client.onRestart() //has just been run in attemptRestart() if interaction is ChatInputCommandInteraction
-        }
+        await this.client.onRestart()
         ClientHelper.setDisplayNameMode(this.client, 'offline')
-        await this.messageHelper.replyToInteraction(interaction, `Restarter botten ...`, { hasBeenDefered: deferred })
+        await this.messageHelper.replyToInteraction(interaction, `Restarter botten ...`, { hasBeenDefered: true })
         const restartMsg = `Restart trigget av ${interaction.user.username} i kanalen ${MentionUtils.mentionChannel(
             interaction.channelId
         )}. Restarter botten ...`
@@ -1166,7 +1158,7 @@ export class Admin extends AbstractCommands {
                     {
                         commandName: 'restart',
                         command: (rawInteraction: ChatInteraction) => {
-                            this.attemptRestart(rawInteraction)
+                            this.restartBot(rawInteraction)
                         },
                     },
                     {
@@ -1241,12 +1233,6 @@ export class Admin extends AbstractCommands {
                         commandName: 'ADMIN_EVENT_TRIGGER_MENU',
                         command: (rawInteraction: BtnInteraction) => {
                             this.showEventTriggerMenu(rawInteraction)
-                        },
-                    },
-                    {
-                        commandName: 'ADMIN_FORCE_RESTART',
-                        command: (rawInteraction: BtnInteraction) => {
-                            this.restartBot(rawInteraction)
                         },
                     },
                     {
@@ -1327,16 +1313,6 @@ export class Admin extends AbstractCommands {
 
     static adminSendModalID = 'adminSendModal'
 }
-
-const forceRestartBtn = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder({
-        custom_id: `ADMIN_FORCE_RESTART`,
-        style: ButtonStyle.Primary,
-        label: `Restart likevel`,
-        disabled: false,
-        type: 2,
-    })
-)
 
 const claimRewardBtn = (rewardId: string, type: string) =>
     new ActionRowBuilder<ButtonBuilder>().addComponents(

@@ -1,0 +1,174 @@
+/* The table is a square-ish area with seats absolutely positioned on an ellipse (see seatPosition
+   in ElectricityGame.tsx) and the deck in the middle. */
+.table {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1.1;
+  margin: 8px 0 14px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--gold) 14%, var(--card)) 0%, var(--card) 70%);
+  border: 1px solid var(--card-border);
+}
+
+@media (min-width: 768px) {
+  .table {
+    aspect-ratio: 16 / 10;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+.center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.centerText {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  max-width: 130px;
+}
+
+.deck {
+  position: relative;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: default;
+  /* Stacked-deck look */
+  filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.35)) drop-shadow(4px 4px 0 rgba(0, 0, 0, 0.2));
+}
+
+.deckActive {
+  cursor: pointer;
+  animation: deckPulse 1.2s ease-in-out infinite;
+}
+
+.deckCount {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  transform: translateX(-50%);
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+@keyframes deckPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+.seat {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+}
+
+.seatTurn {
+  border-color: color-mix(in srgb, var(--gold) 60%, transparent);
+  background: var(--gold-glow);
+}
+
+.seatDrinks {
+  border-color: var(--red);
+  background: var(--red-glow);
+}
+
+.seatCard {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+}
+
+.emptyCard {
+  width: 46px;
+  height: 64px;
+  border-radius: 6px;
+  border: 1px dashed var(--card-border);
+  opacity: 0.6;
+}
+
+@media (min-width: 768px) {
+  .seatCard {
+    min-height: 90px;
+  }
+
+  .emptyCard {
+    width: 64px;
+    height: 90px;
+  }
+}
+
+.seatIdentity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid var(--card-border);
+  flex-shrink: 0;
+}
+
+.avatarMe {
+  border-color: var(--teal);
+}
+
+.seatName {
+  font-size: 11px;
+  font-weight: 700;
+  max-width: 84px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drinkBadge {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--red);
+}
+
+.drinkBanner {
+  background: var(--red-glow);
+  border: 1px solid var(--red);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.optionRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}

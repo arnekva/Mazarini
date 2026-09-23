@@ -2,6 +2,8 @@
 // route that grants chips or records a game result must go through verifyDiscordUser and use the
 // id it returns, never an id the client claims in a request body.
 
+import { devAuthEnabled } from "./env"
+
 export interface AuthenticatedDiscordUser {
   id: string
   username: string
@@ -24,6 +26,13 @@ export function extractBearerToken(request: Request): string | null {
  */
 export async function verifyDiscordUser(accessToken: string | null): Promise<AuthenticatedDiscordUser | null> {
   if (!accessToken) return null
+
+  // Local testing only (devAuthEnabled is always false in a production build): "dev:<id>:<name>".
+  if (devAuthEnabled && accessToken.startsWith("dev:")) {
+    const [, id, ...name] = accessToken.split(":")
+    if (!id) return null
+    return { id, username: name.join(":") || id, globalName: null, avatar: null }
+  }
 
   const response = await fetch("https://discord.com/api/v10/oauth2/@me", {
     headers: { Authorization: `Bearer ${accessToken}` },

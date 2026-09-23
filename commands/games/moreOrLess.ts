@@ -604,15 +604,6 @@ export class MoreOrLess extends AbstractCommands {
         await interaction.message.edit({ components: [MoreOrLess.buildBanVoteButtonRow(banVote)] })
     }
 
-    override onSave(): Promise<boolean> {
-        this.userGames.forEach((game, user) => {
-            if (game.active) {
-                this.client.cache.restartImpediments.push(`${UserUtils.findUserById(user, this.client).username} har et aktivt more or less game`)
-            }
-        })
-        return Promise.resolve(true)
-    }
-
     private wipeGames() {
         this.userGames.clear()
         return true
