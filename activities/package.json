@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/sync-mol-games.js",
     "dev": "next dev",
+    "prebuild": "node scripts/sync-mol-games.js",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

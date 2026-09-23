@@ -426,7 +426,10 @@ export class Deathroll extends AbstractCommands {
      * BLACKJACK_DEATHROLL handler via interaction.launchActivity(), which works from a plain text
      * channel/thread (unlike a target_type:2 invite, which Discord only allows on a voice channel). */
     private sendBlackjackButton(userId: string, rewarded: number) {
-        this.client.database.updateData({ [`other/pendingBlackjackAutoStart/${userId}`]: { buyIn: rewarded, createdAt: Date.now() } })
+        // fromDeathrollPot: true marks this buy-in as actual pot winnings (not just a manually-chosen
+        // stake via /blackjack vanlig) - activities/src/lib/blackjackHandler.ts uses it to apply
+        // "tilbakelegg" (half of a loss refunded back to the pot), same as the old solo bot game did.
+        this.client.database.updateData({ [`other/pendingBlackjackAutoStart/${userId}`]: { buyIn: rewarded, createdAt: Date.now(), fromDeathrollPot: true } })
         const button = blackjackButton(userId, rewarded)
         setTimeout(() => {
             this.messageHelper.sendMessage(ThreadIds.GENERAL_TERNING, { components: [button] })

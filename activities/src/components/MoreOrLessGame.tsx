@@ -12,8 +12,16 @@ interface Item {
   image: string
 }
 
+interface MolStrings {
+  verb: string
+  valueTitle: string
+  valueSuffix?: string
+  buttonMore?: string
+  buttonLess?: string
+}
+
 interface StatusResponse {
-  category: { title: string; description: string; image: string; strings?: { verb: string; valueTitle: string; valueSuffix?: string }; totalEntries?: number }
+  category: { title: string; description: string; image: string; strings?: MolStrings; totalEntries?: number }
   unsupported: boolean
   stats: { bestAttempt?: number; numAttempts?: number; completed?: boolean }
   hasActiveSession: boolean
@@ -45,6 +53,21 @@ function relevantValueTitle(verb: string | undefined, valueTitle: string | undef
   if (!valueTitle) return undefined
   if (verb && verb.toLowerCase().includes(valueTitle.toLowerCase())) return undefined
   return valueTitle
+}
+
+/** "<subject> <verb> <value> <valueTitle>, som er <mer/mindre> enn <previousSubject>." - same sentence shape
+ * the bot's /moreorless command builds (commands/games/moreOrLess.ts endGame), so guessing wrong actually
+ * reveals the value instead of leaving the player wondering what it was. */
+function buildRevealLine(revealed: Item, previous: Item | null, strings: MolStrings | undefined): string {
+  const verb = strings?.verb ?? "var"
+  const valueTitle = relevantValueTitle(strings?.verb, strings?.valueTitle)
+  const valueText = `${formatValue(revealed.answer, strings?.valueSuffix)}${valueTitle ? ` ${valueTitle}` : ""}`
+  let sentence = `${revealed.subject} ${verb} ${valueText}`
+  if (previous?.answer !== undefined && revealed.answer !== undefined) {
+    const relation = revealed.answer > previous.answer ? "mer" : revealed.answer < previous.answer ? "mindre" : "det samme som"
+    sentence += `, som er ${relation}${relation === "det samme som" ? "" : " enn"} ${previous.subject}`
+  }
+  return `${sentence}.`
 }
 
 interface RoundResult {
@@ -122,6 +145,7 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
 
   async function guess(more: boolean) {
     if (busy) return
+    const previousItem = current
     setBusy(true)
     try {
       const res = await callApi<GuessResponse>("/api/games/more-or-less/guess", accessToken, {
@@ -139,9 +163,7 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
           correct: !!res.correct,
           completed: !!res.completedNow,
           reward: res.reward ?? 0,
-          revealLine: res.revealedNext
-            ? `${res.revealedNext.subject}: ${formatValue(res.revealedNext.answer, status?.category.strings?.valueSuffix)}`
-            : "",
+          revealLine: res.revealedNext ? buildRevealLine(res.revealedNext, previousItem, status?.category.strings) : "",
         })
       } else {
         setCurrent(res.current ?? null)
@@ -185,8 +207,8 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
             <div className={styles.itemText}><div className={styles.itemSubject}>{next.subject}</div></div>
           </div>
           <div className={styles.guessRow}>
-            <button className={`${styles.guessBtn} ${styles.lessBtn}`} type="button" disabled={busy} onClick={() => guess(false)}>Mindre</button>
-            <button className={`${styles.guessBtn} ${styles.moreBtn}`} type="button" disabled={busy} onClick={() => guess(true)}>Mer</button>
+            <button className={`${styles.guessBtn} ${styles.lessBtn}`} type="button" disabled={busy} onClick={() => guess(false)}>{status.category.strings?.buttonLess ?? "Mindre"}</button>
+            <button className={`${styles.guessBtn} ${styles.moreBtn}`} type="button" disabled={busy} onClick={() => guess(true)}>{status.category.strings?.buttonMore ?? "Mer"}</button>
           </div>
           <div className={styles.score}>
             {correctAnswers}/{totalDisplay}

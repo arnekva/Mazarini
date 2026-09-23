@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '36.1.0'
+    public static readonly currentVersion = '36.2.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,15 +28,21 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '# Acitvity',
-                '* Vi har nå ENDELIG multiplayer BLACKJACK!',
-                '   * Du kan starte en lobby med valgfri innsats.',
-                '   * DPN fungerer i multiplayer - men samtlige spillere må stemme JA. ',
-                '   * Terning: Vinner du terning potten blir du nå tatt til blackjack i activities (slightly allegedly)',
-                '   * Du kan bli med som spectator og se på spill',
-                '* MOL: fikset header på resultatmelding',
-                '* Ikke lenger alternativ på hovedsteder',
-                '* Country outline: Fjernet regioner og fake land.',
-                '* Dicetarget multiplier 3 -> 5',
+                '* Blackjack',
+                '   * Nå med profilbilder og bedre indikasjon på spectators',
+                '   * Kan nå justere satsing (inkl. All In knapp)',
+                '   * Fikset knapp i når pot vinnes i deathroll',
+                '   * Fikset soft-lock når du hadde DPN',
+                '* MOL',
+                '   * Sender nå melding når noen har fullført',
+                '   * Lagt til nye games fra Henrik',
+                '   * Litt oppdatert design',
+                '   * Sier nå hva verdien var når du svarte feil',
+                '   * Fikset at andre forsøk ikke alltid viste feil verdi',
+                '* Country outline: Dropper nå polygons under 5% av største areal. Burde droppe små overseas terretories',
+                '* Dond: nerfet deathroll additions kraftig',
+                '* Lykkehjul: Oppdater styling og animasjoner',
+                '* Multiplayer: Bedre håndtering av actions',
             ].join('\n')
         )
         container.addSeparator()

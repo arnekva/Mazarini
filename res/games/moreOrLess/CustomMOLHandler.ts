@@ -21,6 +21,8 @@ export type customGameNames =
     | 'countriesByPassportStrength'
     | 'citiesByPollutionIndex'
     | 'bordersByLength'
+    | 'imdbRatingsNorwegian'
+    | 'usStatesByPopulation'
 
 /* 
     Steps for adding a custom game:
@@ -63,6 +65,8 @@ export class CustomMOLHandler {
             countriesByPassportStrength: 'countries-by-passport-strength.json',
             citiesByPollutionIndex: 'cities-by-pollution-index.json',
             bordersByLength: 'borders-by-length.json',
+            imdbRatingsNorwegian: 'imdb-ratings-norwegian.json',
+            usStatesByPopulation: 'us-states-by-population.json',
         }
 
         const fileName = fileMap[name]

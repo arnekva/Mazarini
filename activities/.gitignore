@@ -26,3 +26,7 @@ yarn-error.log*
 
 # typescript
 next-env.d.ts
+
+# synced from ../res/games/moreOrLess/customGames by scripts/sync-mol-games.js (predev/prebuild) -
+# res/ is the source of truth, this is just a local build artifact
+/src/data/more-or-less/

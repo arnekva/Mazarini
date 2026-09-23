@@ -63,7 +63,7 @@ export namespace DondItems {
     })
 
     export const veryLowQualityEffects: Array<IEffectItem> = [
-        deathrollPotReward(10000),
+        deathrollPotReward(5000),
         {
             label: '1 Blackjack re-deal',
             message: 'en ekstra deal på nytt i blackjack!',
@@ -85,7 +85,7 @@ export namespace DondItems {
     ]
 
     export const lowQualityEffects: Array<IEffectItem> = [
-        deathrollPotReward(20000),
+        deathrollPotReward(10000),
         {
             label: '2 Blackjack re-deal',
             message: 'en ekstra deal på nytt i blackjack!',
@@ -107,7 +107,7 @@ export namespace DondItems {
     ]
 
     export const mediumQualityEffects: Array<IEffectItem> = [
-        deathrollPotReward(40000),
+        deathrollPotReward(15000),
         {
             label: '2 spin',
             message: '2 ekstra /spin reward!',
@@ -147,7 +147,7 @@ export namespace DondItems {
         lootchestReward(LootboxQuality.Basic),
     ]
     export const highQualityEffects: Array<IEffectItem> = [
-        deathrollPotReward(60000),
+        deathrollPotReward(30000),
         {
             label: '5 spin',
             message: '5 ekstra /spin reward!',

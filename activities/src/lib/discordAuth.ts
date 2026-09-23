@@ -6,6 +6,8 @@ export interface AuthenticatedDiscordUser {
   id: string
   username: string
   globalName: string | null
+  /** Avatar hash, or null for the default avatar - build a CDN URL with discordAvatarUrl() in ./discordAvatar. */
+  avatar: string | null
 }
 
 /** Pulls the bearer token out of an incoming request's Authorization header, if present. */
@@ -35,6 +37,7 @@ export async function verifyDiscordUser(accessToken: string | null): Promise<Aut
     id: data.user.id,
     username: data.user.username,
     globalName: data.user.global_name ?? null,
+    avatar: data.user.avatar ?? null,
   }
 }
 

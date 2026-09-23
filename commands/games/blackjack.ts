@@ -10,8 +10,9 @@ import { EmojiHelper, emojiReturnType } from '../../helpers/emojiHelper'
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
 import { MazariniUser } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
-import { MentionUtils } from '../../utils/mentionUtils'
+import { ChannelIds, MentionUtils } from '../../utils/mentionUtils'
 import { CardCommands, ICardObject } from './cardCommands'
+import { blackjackButton } from './deathroll'
 interface BlackjackPlayer extends GamePlayer {
     id: string
     name: string
@@ -99,6 +100,36 @@ export class Blackjack extends AbstractCommands {
             return
         }
         await interaction.launchActivity()
+    }
+
+    /** `/blackjack vanlig` - opens the multiplayer Blackjack Activity directly from any channel or
+     * thread via interaction.launchActivity() (thread-safe, unlike a target_type:2 voice invite -
+     * see deathroll.ts's blackjackButton). The chosen stake is pre-written as a pending auto-start
+     * buy-in so their session lands straight at a table configured with it, same as the deathroll
+     * pot flow - others in the channel can then join in or just watch.
+     *
+     * If Discord still rejects the launch for this channel (some thread types are reportedly
+     * unreliable for this), falls back to posting a normal "Spill Blackjack" button in #vladivostok,
+     * a plain text channel, instead of leaving the user stuck with no way to open the table. */
+    private async launchMultiplayerBlackjack(interaction: ChatInteraction) {
+        const stake = SlashCommandHelper.getCleanNumberValue(interaction.options.get('satsing')?.value)
+        if (stake > 0) {
+            // fromDeathrollPot: false - this is a manually-chosen stake, not real pot winnings, so it
+            // must NOT trigger "tilbakelegg" (the half-back-on-loss refund only deathroll pot money gets).
+            this.client.database.updateData({
+                [`other/pendingBlackjackAutoStart/${interaction.user.id}`]: { buyIn: stake, createdAt: Date.now(), fromDeathrollPot: false },
+            })
+        }
+        try {
+            await interaction.launchActivity()
+        } catch (err) {
+            this.messageHelper.replyToInteraction(
+                interaction,
+                `Kunne ikke åpne Aktiviteten direkte her - prøv knappen jeg la igjen i ${MentionUtils.mentionChannel(ChannelIds.VLADIVOSTOK)} i stedet.`,
+                { ephemeral: true }
+            )
+            this.messageHelper.sendMessage(ChannelIds.VLADIVOSTOK, { components: [blackjackButton(interaction.user.id, stake)] })
+        }
     }
 
     private async setupGame(interaction: ChatInteraction | BtnInteraction, user: MazariniUser, stake: number, allIn: boolean, isDeathrollPot: number = 0) {
@@ -653,8 +684,7 @@ export class Blackjack extends AbstractCommands {
                         command: (interaction: ChatInteraction) => {
                             const subCommand = interaction.options.getSubcommand()
                             if (subCommand.toLowerCase() === 'solo') this.simpleGame(interaction)
-                            else if (subCommand.toLowerCase() === 'vanlig')
-                                this.messageHelper.replyToInteraction(interaction, 'Denne er ikke klar enda', { ephemeral: true })
+                            else if (subCommand.toLowerCase() === 'vanlig') this.launchMultiplayerBlackjack(interaction)
                         },
                     },
                 ],

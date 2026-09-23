@@ -2,6 +2,7 @@
 
 import { callApi } from "@/lib/apiClient"
 import { isAdminUser } from "@/lib/admin"
+import { proxyImageUrl } from "@/lib/imgProxy"
 import { useDiscord } from "@/providers/discordProvider"
 import { useEffect, useRef, useState } from "react"
 import styles from "./BlackjackGame.module.css"
@@ -22,6 +23,7 @@ interface HandView {
 interface PlayerView {
   id: string
   username: string
+  avatar: string
   sittingOut: boolean
   hands: HandView[]
 }
@@ -36,9 +38,19 @@ interface RedealVoteView {
   myVoted: boolean
 }
 
+interface BetVoteView {
+  proposedBuyIn: number
+  requestedBy: string
+  requestedByUsername: string
+  yesCount: number
+  totalNeeded: number
+  myVoted: boolean
+}
+
 interface SpectatorView {
   id: string
   username: string
+  avatar: string
 }
 
 interface TableView {
@@ -55,7 +67,12 @@ interface TableView {
   players: PlayerView[]
   dealer: { hand: CardView[]; value?: number }
   results?: Record<string, Result[]>
+  /** "Tilbakelegg" - chips refunded to the deathroll pot this round, keyed by whose loss triggered it. */
+  potRefunds?: Record<string, number>
   redealVote?: RedealVoteView
+  betVote?: BetVoteView
+  roundOverAt?: number
+  roundStartCooldownMs?: number
 }
 
 interface LobbySummary {
@@ -137,8 +154,10 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
   const [table, setTable] = useState<TableView | null>(null)
   const [closedNotice, setClosedNotice] = useState(false)
   const [createBuyIn, setCreateBuyIn] = useState("0")
+  const [betInput, setBetInput] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [now, setNow] = useState(() => Date.now())
   const initedRef = useRef(false)
 
   async function refreshLobbies() {
@@ -175,7 +194,20 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
   }
 
   async function action(
-    actionName: "create" | "join" | "spectate" | "leave" | "deal" | "hit" | "stand" | "split" | "requestRedeal" | "voteRedeal" | "fc",
+    actionName:
+      | "create"
+      | "join"
+      | "spectate"
+      | "leave"
+      | "deal"
+      | "hit"
+      | "stand"
+      | "split"
+      | "requestRedeal"
+      | "voteRedeal"
+      | "setBet"
+      | "voteBet"
+      | "fc",
     extra?: Record<string, unknown>
   ) {
     if (!instanceId || busy) return
@@ -234,6 +266,14 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
     if (lobbyId) refreshTable(lobbyId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lobbyId])
+
+  // Ticks `now` while a post-round cooldown is active, so the "Nytt parti" button's countdown
+  // actually counts down instead of just sitting disabled with no feedback - see dealCooldownMs below.
+  useEffect(() => {
+    if (!table?.roundOverAt) return
+    const interval = setInterval(() => setNow(Date.now()), 250)
+    return () => clearInterval(interval)
+  }, [table?.roundOverAt])
 
   if (!instanceId) {
     return <p className={styles.info}>Multiplayer krever at appen åpnes som en Discord Activity i en talekanal.</p>
@@ -316,10 +356,12 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
   const me = table.players.find((p) => p.id === discordUser?.id)
   const myActiveHandIndex = me?.hands.findIndex((h) => h.status === "playing") ?? -1
   const myActiveHand = myActiveHandIndex >= 0 ? me?.hands[myActiveHandIndex] : undefined
-  const canDeal = table.iAmPlaying && table.status !== "playing" && table.players.length > 0
+  const dealCooldownMs = table.roundOverAt ? Math.max(0, (table.roundStartCooldownMs ?? 3000) - (now - table.roundOverAt)) : 0
+  const canDeal = table.iAmPlaying && table.status !== "playing" && table.players.length > 0 && dealCooldownMs === 0
   const canAct = table.status === "playing" && !!myActiveHand
   const canSplit = !!myActiveHand && myActiveHand.cards.length === 2 && myActiveHand.cards[0].rank === myActiveHand.cards[1].rank && table.myChips >= table.buyIn
   const iAmSittingOut = table.status === "playing" && me?.sittingOut
+  const canAdjustBet = table.iAmPlaying && table.status !== "playing" && !table.betVote
 
   return (
     <>
@@ -327,7 +369,6 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
         <p className={styles.info}>
           {table.players.length} spiller{table.players.length === 1 ? "" : "e"} · Buy-in: {table.buyIn}
           {table.iAmPlaying ? ` · Dine chips: ${table.myChips}` : ""}
-          {table.spectators.length > 0 ? ` · 👁 ${table.spectators.length} ser på` : ""}
         </p>
         <button className={styles.leaveBtn} type="button" disabled={busy} onClick={() => action("leave")}>
           {table.iAmSpectating ? "Slutt å se på" : "Forlat bordet"}
@@ -359,7 +400,8 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
               className={`${styles.playerBlock} ${p.id === discordUser?.id ? styles.playerBlockMe : ""} ${p.sittingOut ? styles.playerBlockSittingOut : ""}`}
             >
               <div className={styles.playerHeader}>
-                <span>
+                <span className={styles.playerIdentity}>
+                  <img className={styles.avatar} src={proxyImageUrl(p.avatar)} alt="" />
                   {p.username}
                   {p.id === table.hostId ? " 👑" : ""}
                 </span>
@@ -377,7 +419,22 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
         })}
       </div>
 
+      {table.spectators.length > 0 && (
+        <div className={styles.spectatorRow}>
+          <span className={styles.spectatorLabel}>👁 {table.spectators.length} ser på</span>
+          {table.spectators.map((s) => (
+            <img key={s.id} className={styles.spectatorAvatar} src={proxyImageUrl(s.avatar)} alt={s.username} title={s.username} />
+          ))}
+        </div>
+      )}
+
       {error && <p className={styles.error}>{error}</p>}
+
+      {table.iAmPlaying && discordUser && table.potRefunds?.[discordUser.id] && (
+        <p className={styles.info}>
+          Siden du prøvde å gamble en deathroll-pott, er {table.potRefunds[discordUser.id]} chips lagt tilbake i potten.
+        </p>
+      )}
 
       {table.iAmSpectating && <p className={styles.info}>Du ser på - ikke med i spillet.</p>}
 
@@ -415,6 +472,56 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
         <p className={styles.info}>"Deal på ny" ble avvist denne runden - prøv igjen neste runde.</p>
       )}
 
+      {table.iAmPlaying && table.betVote && (
+        <div className={styles.voteBanner}>
+          <p className={styles.info}>
+            <strong>{table.betVote.requestedByUsername}</strong> vil heve buy-in til <strong>{table.betVote.proposedBuyIn}</strong> chips - {table.betVote.yesCount}/
+            {table.betVote.totalNeeded} har stemt ja.
+          </p>
+          {table.betVote.myVoted ? (
+            <p className={styles.info}>Venter på de andre...</p>
+          ) : (
+            <div className={styles.actionRow}>
+              <button className={styles.hitBtn} type="button" disabled={busy} onClick={() => action("voteBet", { approve: true })}>
+                Ja
+              </button>
+              <button className={styles.standBtn} type="button" disabled={busy} onClick={() => action("voteBet", { approve: false })}>
+                Nei
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {canAdjustBet && (
+        <div className={styles.startRow}>
+          <input
+            className={styles.buyInInput}
+            type="number"
+            min={0}
+            step={1}
+            value={betInput}
+            placeholder={String(table.buyIn)}
+            onChange={(e) => setBetInput(e.target.value)}
+            aria-label="Ny buy-in i chips"
+          />
+          <button
+            className={styles.dealBtn}
+            type="button"
+            disabled={busy || betInput === ""}
+            onClick={() => {
+              action("setBet", { buyIn: Number(betInput) || 0 })
+              setBetInput("")
+            }}
+          >
+            Sett satsing
+          </button>
+          <button className={styles.redealBtn} type="button" disabled={busy || table.myChips <= 0} onClick={() => action("setBet", { allIn: true })}>
+            All in ({table.myChips})
+          </button>
+        </div>
+      )}
+
       {canAct && (
         <div className={styles.actionRow}>
           <button className={styles.hitBtn} type="button" disabled={busy} onClick={() => action("hit")}>
@@ -431,9 +538,9 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
         </div>
       )}
 
-      {!canAct && canDeal && (
-        <button className={styles.dealBtn} type="button" disabled={busy} onClick={() => action("deal")}>
-          Nytt parti
+      {!canAct && table.iAmPlaying && table.status !== "playing" && table.players.length > 0 && (
+        <button className={styles.dealBtn} type="button" disabled={busy || !canDeal} onClick={() => action("deal")}>
+          {dealCooldownMs > 0 ? `Nytt parti (${Math.ceil(dealCooldownMs / 1000)}s)` : "Nytt parti"}
         </button>
       )}
     </>

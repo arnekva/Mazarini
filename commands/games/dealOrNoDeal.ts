@@ -345,6 +345,11 @@ export class DealOrNoDeal extends AbstractCommands {
             } else {
                 const effectItem = game.latestOffer as IEffectItem
                 await effectItem.effect(user, this.database)
+                // effect() only persists to Firebase - anything read from the live in-memory cache
+                // (e.g. Deathroll's rewardPot, which is what /terning actually plays against) stays
+                // stale until this runs too, same as lootboxCommands.ts/MazariniEvents.ts already do
+                // for their own effect items.
+                await effectItem.syncClientCache?.(this.client, user)
                 this.updateUserStats(user, 0, game.cases.get(game.player.caseNr).value, game.quality, undefined, undefined, undefined, true)
                 this.database.updateUser(user)
                 this.messageHelper.sendMessage(interaction.channelId, {

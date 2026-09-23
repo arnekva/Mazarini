@@ -1,0 +1,170 @@
+{
+    "slug": "imdbRatingsNorwegian",
+    "image": "",
+    "title": "IMDb-ratinger til norske filmer og serier",
+    "seoTitle": "N/A",
+    "description": "Gjett hvilke norske filmer og serier som har høyest IMDb-rating.",
+    "tags": [
+        "CUSTOM_MAZARINI_GAME"
+    ],
+    "game": {
+        "strings": {
+            "verb": "har en",
+            "valueTitle": "rating på IMDB",
+            "buttonMore": "Høyere",
+            "buttonLess": "Lavere"
+        },
+        "data": [
+            [
+                "Affeksjonsverdi",
+                7.7,
+                ""
+            ],
+            [
+                "Verdens verste menneske",
+                7.7,
+                ""
+            ],
+            [
+                "Bølgen",
+                6.6,
+                ""
+            ],
+            [
+                "Vikingane (Norsemen)",
+                7.7,
+                ""
+            ],
+            [
+                "Kon-Tiki (2012)",
+                7.1,
+                ""
+            ],
+            [
+                "Exit",
+                8.2,
+                ""
+            ],
+            [
+                "Skam",
+                8.5,
+                ""
+            ],
+            [
+                "Lilyhammer",
+                7.9,
+                ""
+            ],
+            [
+                "Død snø",
+                6.3,
+                ""
+            ],
+            [
+                "Wisting",
+                7.3,
+                ""
+            ],
+            [
+                "Skjelvet",
+                6.2,
+                ""
+            ],
+            [
+                "Flåklypa Grand Prix",
+                8.4,
+                ""
+            ],
+            [
+                "Pørni",
+                8.1,
+                ""
+            ],
+            [
+                "Dag",
+                8.5,
+                ""
+            ],
+            [
+                "Orions belte",
+                6.8,
+                ""
+            ],
+            [
+                "Mannen som elsket Yngve",
+                7.1,
+                ""
+            ],
+            [
+                "LIS",
+                7.9,
+                ""
+            ],
+            [
+                "Hotel Cæsar",
+                2.9,
+                ""
+            ],
+            [
+                "Mammon",
+                6.8,
+                ""
+            ],
+            [
+                "Mot i brøstet",
+                6.5,
+                ""
+            ],
+            [
+                "Mongoland",
+                6.6,
+                ""
+            ],
+            [
+                "Familien Lykke",
+                4.7,
+                ""
+            ],
+            [
+                "Hjem til jul",
+                7.7,
+                ""
+            ],
+            [
+                "Side om side",
+                7.8,
+                ""
+            ],
+            [
+                "Uti vår hage",
+                8.6,
+                ""
+            ],
+            [
+                "Ylvis: Stories from Norway",
+                8.3,
+                ""
+            ],
+            [
+                "Gymnaslærer Pedersen",
+                5.7,
+                ""
+            ],
+            [
+                "Hvite gutter",
+                8.1,
+                ""
+            ],
+            [
+                "Neste sommer",
+                7.6,
+                ""
+            ],
+            [
+                "Tatt av kvinnen",
+                6.6,
+                ""
+            ]
+        ]
+    }
+}

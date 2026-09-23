@@ -7,7 +7,7 @@
 
 .pointer {
   position: absolute;
-  top: -6px;
+  top: -8px;
   left: 50%;
   transform: translateX(-50%);
   width: 0;
@@ -15,17 +15,77 @@
   border-left: 12px solid transparent;
   border-right: 12px solid transparent;
   border-top: 20px solid var(--gold);
-  z-index: 2;
+  z-index: 3;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+}
+
+/* Golden rim around the wheel, with a slow pulsing glow - ported from the old canvas-based wheel's
+   WheelFrame. Sits behind .wheel so the frame itself never rotates, only the wheel inside it does. */
+.frame {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  padding: clamp(4px, 1vw, 9px);
+  background: radial-gradient(circle at 32% 30%, #f4d78c, #c9a227 45%, #7a5b12 75%, #3d2c07 100%);
+  box-shadow:
+    0 0 0 4px #1c1305,
+    0 0 40px 8px rgba(201, 162, 39, 0.4),
+    inset 0 0 22px rgba(0, 0, 0, 0.6);
+  animation: wheelGlow 4s ease-in-out infinite;
+}
+
+@keyframes wheelGlow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 4px #1c1305,
+      0 0 40px 8px rgba(201, 162, 39, 0.4),
+      inset 0 0 22px rgba(0, 0, 0, 0.6);
+  }
+  50% {
+    box-shadow:
+      0 0 0 4px #1c1305,
+      0 0 55px 14px rgba(201, 162, 39, 0.55),
+      inset 0 0 22px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* Dark ring between the golden frame and the wheel face itself. */
+.innerRing {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  padding: clamp(2px, 0.5vw, 5px);
+  background: linear-gradient(145deg, #241c02, #4a3608);
 }
 
 .wheel {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  border: 4px solid var(--card-border);
   position: relative;
-  transition: transform 4.5s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+  overflow: hidden;
+}
+
+/* Glowing overlay on the winning sector once the spin lands - a conic-gradient masked to just that
+   sector's angular range (same trick SECTOR_COLORS uses), so it rotates together with .wheel. */
+.highlight {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  animation: highlightPulse 0.9s ease-in-out infinite;
+}
+
+@keyframes highlightPulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .label {
@@ -33,7 +93,7 @@
   top: 50%;
   left: 50%;
   transform-origin: 0 0;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   color: #111;
   white-space: nowrap;
@@ -50,7 +110,7 @@
   background: var(--card);
   border: 3px solid var(--gold);
   transform: translate(-50%, -50%);
-  z-index: 1;
+  z-index: 2;
 }
 
 .spinBtn {
@@ -68,4 +128,52 @@
 .spinBtn:disabled {
   opacity: 0.5;
   cursor: default;
+}
+
+/* Winner popup - ported from the old RewardWheel's styled-components Popup. */
+.popupOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+}
+
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(160deg, #1c1712, #2a2115);
+  color: #f1e9d2;
+  padding: 20px 36px;
+  border-radius: 12px;
+  border: 2px solid #c9a227;
+  box-shadow:
+    0 0 10px rgba(0, 0, 0, 0.6),
+    0 0 40px rgba(201, 162, 39, 0.25);
+  text-align: center;
+  z-index: 1000;
+  animation: popin 0.35s ease-out;
+  max-width: min(320px, calc(100vw - 32px));
+}
+
+.popupTitle {
+  color: #c9a227;
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.popupBody {
+  margin: 0 0 16px;
+  font-size: 15px;
+}
+
+@keyframes popin {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
 }

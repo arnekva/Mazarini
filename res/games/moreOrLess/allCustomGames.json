@@ -250,5 +250,23 @@
         "badge": "Custom",
         "slug": "bordersByLength",
         "image": "https://upload.wikimedia.org/wikipedia/commons/2/2c/Border_icon.svg"
+    },
+    {
+        "title": "IMDb-ratinger (norske filmer/serier)",
+        "description": "Gjett hvilke norske filmer og serier som har høyest IMDb-rating.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "N/A",
+        "badge": "Custom",
+        "slug": "imdbRatingsNorwegian",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/6/6f/Clapperboard.svg"
+    },
+    {
+        "title": "Amerikanske delstater etter innbyggertall",
+        "description": "Gjett hvilke amerikanske delstater som har flest innbyggere.",
+        "tags": ["CUSTOM_MAZARINI_GAME"],
+        "seoTitle": "N/A",
+        "badge": "Custom",
+        "slug": "usStatesByPopulation",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/a/a4/Flag_of_the_United_States.svg"
     }
 ]

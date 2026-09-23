@@ -1,5 +1,6 @@
 import { authenticateRequest } from "@/lib/discordAuth"
 import {
+  adjustBlackjackBet,
   createBlackjackLobby,
   dealBlackjackRound,
   forceBadDealerDraw,
@@ -11,6 +12,7 @@ import {
   spectateBlackjackLobby,
   splitBlackjack,
   standBlackjack,
+  voteBlackjackBet,
   voteBlackjackRedeal,
 } from "@/lib/blackjackHandler"
 
@@ -45,7 +47,7 @@ export async function POST(request: Request) {
     const { user, error } = await authenticateRequest(request)
     if (error) return error
 
-    const { instanceId, lobbyId, action, buyIn, approve } = await request.json()
+    const { instanceId, lobbyId, action, buyIn, approve, allIn } = await request.json()
     if (!instanceId) return Response.json({ error: "Mangler instanceId" }, { status: 400 })
 
     if (action === "create") return await createBlackjackLobby(instanceId, user, buyIn)
@@ -60,6 +62,8 @@ export async function POST(request: Request) {
     if (action === "split") return await splitBlackjack(instanceId, lobbyId, user)
     if (action === "requestRedeal") return await requestBlackjackRedeal(instanceId, lobbyId, user)
     if (action === "voteRedeal") return await voteBlackjackRedeal(instanceId, lobbyId, user, !!approve)
+    if (action === "setBet") return await adjustBlackjackBet(instanceId, lobbyId, user, buyIn, !!allIn)
+    if (action === "voteBet") return await voteBlackjackBet(instanceId, lobbyId, user, !!approve)
     // Not admin-gated here on purpose - forceBadDealerDraw itself silently no-ops for anyone whose
     // id doesn't match, and still returns the normal table view either way, so this endpoint gives
     // nothing away to a non-admin poking at it.
