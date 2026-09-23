@@ -63,16 +63,7 @@ export namespace DondItems {
     })
 
     export const veryLowQualityEffects: Array<IEffectItem> = [
-        deathrollPotReward(5000),
-        {
-            label: '3 free rolls',
-            message: '3 gratis /roll!',
-            effect: (user: MazariniUser) => {
-                user.effects = user.effects ?? defaultEffects
-                user.effects.positive.freeRolls = (user.effects.positive.freeRolls ?? 0) + 3
-                return undefined
-            },
-        },
+        deathrollPotReward(10000),
         {
             label: '1 Blackjack re-deal',
             message: 'en ekstra deal på nytt i blackjack!',
@@ -83,18 +74,18 @@ export namespace DondItems {
             },
         },
         {
-            label: '1x doubled potwins',
-            message: 'at din neste hasjwins dobles!',
+            label: '2x doubled potwins',
+            message: 'at dine to neste hasjwins dobles!',
             effect: (user: MazariniUser) => {
                 user.effects = user.effects ?? defaultEffects
-                user.effects.positive.doublePotWins = (user.effects.positive.doublePotWins ?? 0) + 1
+                user.effects.positive.doublePotWins = (user.effects.positive.doublePotWins ?? 0) + 2
                 return undefined
             },
         },
     ]
 
     export const lowQualityEffects: Array<IEffectItem> = [
-        deathrollPotReward(10000),
+        deathrollPotReward(20000),
         {
             label: '2 Blackjack re-deal',
             message: 'en ekstra deal på nytt i blackjack!',
@@ -116,7 +107,7 @@ export namespace DondItems {
     ]
 
     export const mediumQualityEffects: Array<IEffectItem> = [
-        deathrollPotReward(20000),
+        deathrollPotReward(40000),
         {
             label: '2 spin',
             message: '2 ekstra /spin reward!',
@@ -126,11 +117,11 @@ export namespace DondItems {
             },
         },
         {
-            label: '10 free rolls',
-            message: '10 gratis /roll!',
+            label: '15 free rolls',
+            message: '15 gratis /roll!',
             effect: (user: MazariniUser) => {
                 user.effects = user.effects ?? defaultEffects
-                user.effects.positive.freeRolls = (user.effects.positive.freeRolls ?? 0) + 10
+                user.effects.positive.freeRolls = (user.effects.positive.freeRolls ?? 0) + 15
                 return undefined
             },
         },
@@ -143,16 +134,25 @@ export namespace DondItems {
                 return undefined
             },
         },
+          {
+            label: '1x guaranteed colors',
+            message: 'at din neste loot-item har garantert farge (gjelder ikke trade)',
+            effect: (user: MazariniUser) => {
+                user.effects = user.effects ?? defaultEffects
+                user.effects.positive.guaranteedLootColor = (user.effects.positive.guaranteedLootColor ?? 0) + 1
+                return undefined
+            },
+        },
         lootboxReward(LootboxQuality.Premium),
         lootchestReward(LootboxQuality.Basic),
     ]
     export const highQualityEffects: Array<IEffectItem> = [
-        deathrollPotReward(45000),
+        deathrollPotReward(60000),
         {
-            label: '4 spin',
-            message: '4 ekstra /spin reward!',
+            label: '5 spin',
+            message: '5 ekstra /spin reward!',
             effect: (user: MazariniUser) => {
-                user.dailySpins = 4
+                user.dailySpins = 5
                 return undefined
             },
         },
