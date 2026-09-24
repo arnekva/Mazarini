@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react"
 import shared from "./BlackjackGame.module.css"
 import el from "./ElectricityGame.module.css"
 import styles from "./RedBlackGame.module.css"
+import { SpectatorBar } from "./SpectatorBar"
 
 interface CardView {
   rank: string
@@ -634,14 +635,7 @@ export function RedBlackGame({ accessToken }: { accessToken: string }) {
         </>
       )}
 
-      {table.spectators.length > 0 && (
-        <div className={shared.spectatorRow}>
-          <span className={shared.spectatorLabel}>👁 {table.spectators.length} ser på</span>
-          {table.spectators.map((s) => (
-            <img key={s.id} className={shared.spectatorAvatar} src={proxyImageUrl(s.avatar)} alt={s.username} title={s.username} />
-          ))}
-        </div>
-      )}
+      <SpectatorBar spectators={table.spectators} />
 
       {table.phase !== "gt" && table.phase !== "bus" && error && <p className={shared.error}>{error}</p>}
       {table.iAmSpectating && <p className={shared.info}>Du ser på - ikke med i spillet.</p>}

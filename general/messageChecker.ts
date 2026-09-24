@@ -113,7 +113,7 @@ export class MessageChecker {
     private static readonly RANDOM_REACTION_CHANNELS: Set<string> = new Set([
         ChannelIds.GENERAL_DEV,
         ChannelIds.CCG,
-        ThreadIds.GENERAL_TERNING,
+        ChannelIds.TERNING,
         ChannelIds.LOOT,
         ThreadIds.MORE_OR_LESS,
         ChannelIds.BOT_UTVIKLING,

@@ -1,9 +1,9 @@
 import { ChatSession, GenerativeModel, GoogleGenerativeAI, HarmBlockThreshold, HarmCategory, Part } from '@google/generative-ai'
-import { Message, ThreadChannel } from 'discord.js'
+import { Message, TextChannel } from 'discord.js'
 import { GeminiKey } from '../client-env'
 import { MazariniClient } from '../client/MazariniClient'
 import { DateUtils } from '../utils/dateUtils'
-import { ThreadIds } from '../utils/mentionUtils'
+import { ChannelIds } from '../utils/mentionUtils'
 import { UserUtils } from '../utils/userUtils'
 import { MessageHelper } from './messageHelper'
 import { textArrays } from '../utils/textArrays'
@@ -103,9 +103,10 @@ export class GeminiHelper {
     }
 
     private async getUserContext(): Promise<IKnownUser[]> {
-        const channel = (await this.client.messageHelper.fetchAndFindChannelById(ThreadIds.GENERAL_TERNING)) as ThreadChannel
+        const channel = (await this.client.messageHelper.fetchAndFindChannelById(ChannelIds.TERNING)) as TextChannel
         if (channel) {
-            const members = await channel.members.fetch()
+            // A plain text channel now (it used to be a thread) - its members are everyone who can see it.
+            const members = Array.from(channel.members.values())
             return members.map((member) => {
                 return {
                     displayName: UserUtils.getPrettyName(member),

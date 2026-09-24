@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '36.2.1'
+    public static readonly currentVersion = '36.3.0'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -28,12 +28,12 @@ export class PatchNotes extends AbstractCommands {
         const text = new TextDisplayBuilder().setContent(
             [
                 '# Acitvity',
-                '* Deal or No Deal: implementert',
-                '   * Har også en in-game chat for å lettere la mobil-brukere kommunisere med spectators (chat dumpes på game end)',
-                '* Rød eller Svart: implementert',
-                '* Electricity: implementert',
-                '* MOL',
-                '   * Tracker når forsøk nr 2 igjen',
+                '* Flytter terning og loot til egne kanaler',
+                '* Vi har nå multiplayer rulett!',
+                '* Du kan nå se aktive dond games, samt spectators på egne games',
+                '* Fikset dpn og tilbakelegg (allegedly)',
+                '* Daily: Mangelen på kort kommer fra når folk bruker /daily heller enn å launche appen via å klikke på forrige kort, som vi gjorde med lykkehjul. /daily vil nå sende en liten melding',
+                '* Laget en onDisconnect som fanger bedre opp når brukere forlater appen',
             ].join('\n')
         )
         container.addSeparator()

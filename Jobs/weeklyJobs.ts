@@ -93,7 +93,7 @@ export class WeeklyJobs {
         //     const embed = EmbedUtils.createSimpleEmbed(`:game_die: Ukens deathrollvinner er... :game_die:`, `${MentionUtils.mentionUser(winner.id)}!`
         //                 + `\nDu tapte ${winner.userStats.deathrollStats.weeklyLosses > 0 ? 'bare ' : 'faktisk '}${((winner.userStats.deathrollStats.weeklyLosses/winner.userStats.deathrollStats.weeklyGames)*100).toFixed(1)}% av spillene dine forrige uke.`
         //                 + `\n\n:moneybag: Det er lavest av alle, og du vinne ${100 * winner.userStats.deathrollStats.weeklyGames} chips! :moneybag:`)
-        //     this.messageHelper.sendMessage(ThreadIds.GENERAL_TERNING, {embed: embed})
+        //     this.messageHelper.sendMessage(ChannelIds.TERNING, {embed: embed})
         // }
         await this.client.database.resetWeeklyDeathrollStats()
         return 'success'

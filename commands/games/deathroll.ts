@@ -11,7 +11,7 @@ import { IInteractionElement, IOnTimedEvent } from '../../interfaces/interaction
 import { ArrayUtils } from '../../utils/arrayUtils'
 import { DateUtils } from '../../utils/dateUtils'
 import { EmbedUtils } from '../../utils/embedUtils'
-import { MentionUtils, ThreadIds } from '../../utils/mentionUtils'
+import { ChannelIds, MentionUtils } from '../../utils/mentionUtils'
 import { RandomUtils } from '../../utils/randomUtils'
 import { UserUtils } from '../../utils/userUtils'
 
@@ -67,6 +67,32 @@ export class Deathroll extends AbstractCommands {
     set rewardPot(value: number) {
         this.client.cache.deathrollPot = value
     }
+    /** In flight while a sync runs, so two overlapping syncs can never both drain (and double count) the same amount. */
+    private potSync: Promise<void> | undefined
+
+    /** The Activities app can't reach the bot's in-memory pot, and the bot only writes it to the DB on save/hourly -
+     * a direct DB write from there would simply be overwritten. So the Activities app adds to other/deathrollPotPending
+     * (an atomic increment) instead, and this drains that into the pot - and straight to the DB, so the bot's own next
+     * save can't clobber it. Runs before every roll, before saves, and on a timer as a backstop. */
+    private syncPendingPot(): Promise<void> {
+        if (!this.potSync) {
+            this.potSync = (async () => {
+                try {
+                    const added = await this.client.database.drainPendingDeathrollPot()
+                    if (added) {
+                        this.rewardPot = Math.max(0, (this.rewardPot ?? 0) + added)
+                        this.saveRewardPot(true)
+                    }
+                } catch (error) {
+                    this.client.messageHelper.sendLogMessage(`Feil ved synking av deathroll pot: ${error}`)
+                } finally {
+                    this.potSync = undefined
+                }
+            })()
+        }
+        return this.potSync
+    }
+
     async onReady() {
         const oldGames = await this.fetchSavedGames()
 
@@ -78,7 +104,9 @@ export class Deathroll extends AbstractCommands {
         this.client.database
             .getDeathrollPot()
             .then((value) => (this.client.cache.deathrollPot = value ?? 0))
+            .then(() => this.syncPendingPot())
             .catch((error) => this.client.messageHelper.sendLogMessage(`Feil ved lasting av deathroll pot: ${error}`))
+        setInterval(() => this.syncPendingPot(), 30 * 1000)
 
         this.client.database
             .getStorage()
@@ -119,6 +147,7 @@ export class Deathroll extends AbstractCommands {
         } else if (diceTarget <= 0)
             this.messageHelper.replyToInteraction(interaction, `Du kan ikke trille en terning med mindre enn 1 side`, { ephemeral: true })
         else {
+            await this.syncPendingPot()
             const user = interaction.user
             const game = this.getGame(user.id, diceTarget, interaction.channelId)
 
@@ -413,7 +442,7 @@ export class Deathroll extends AbstractCommands {
     private sendNoThanksButton(userId: string, rewarded: number) {
         const button = noThanksButton(userId, rewarded)
         setTimeout(() => {
-            this.messageHelper.sendMessage(ThreadIds.GENERAL_TERNING, { components: [button] })
+            this.messageHelper.sendMessage(ChannelIds.TERNING, { components: [button] })
         }, 500)
     }
 
@@ -423,8 +452,8 @@ export class Deathroll extends AbstractCommands {
      * they open the Activity, so others in the channel can join in (or just watch).
      *
      * This just posts a normal button - the actual Activity launch happens in blackjack.ts's
-     * BLACKJACK_DEATHROLL handler via interaction.launchActivity(), which works from a plain text
-     * channel/thread (unlike a target_type:2 invite, which Discord only allows on a voice channel). */
+     * BLACKJACK_DEATHROLL handler via interaction.launchActivity(), which works from the plain text
+     * terning channel (unlike a target_type:2 invite, which Discord only allows on a voice channel). */
     private sendBlackjackButton(userId: string, rewarded: number) {
         // fromDeathrollPot: true marks this buy-in as actual pot winnings (not just a manually-chosen
         // stake via /blackjack vanlig) - activities/src/lib/blackjackHandler.ts uses it to apply
@@ -432,7 +461,7 @@ export class Deathroll extends AbstractCommands {
         this.client.database.updateData({ [`other/pendingBlackjackAutoStart/${userId}`]: { buyIn: rewarded, createdAt: Date.now(), fromDeathrollPot: true } })
         const button = blackjackButton(userId, rewarded)
         setTimeout(() => {
-            this.messageHelper.sendMessage(ThreadIds.GENERAL_TERNING, { components: [button] })
+            this.messageHelper.sendMessage(ChannelIds.TERNING, { components: [button] })
         }, 500)
     }
 
@@ -588,6 +617,7 @@ export class Deathroll extends AbstractCommands {
     }
 
     override async onSave() {
+        await this.syncPendingPot()
         this.printOldNumbers()
         this.saveRewardPot(true)
         if (this.drGames.length > 0) await this.saveActiveGamesToDatabase()
@@ -608,7 +638,7 @@ export class Deathroll extends AbstractCommands {
             hourly: [
                 () => {
                     this.saveActiveGamesToDatabase()
-                    this.saveRewardPot(true)
+                    this.syncPendingPot().then(() => this.saveRewardPot(true))
                     return true
                 },
             ],

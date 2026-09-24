@@ -1,7 +1,9 @@
+/* Compact by default (phones are the tight case); the bigger, roomier layout is restored from 768px up. */
+
 .tokenRow {
   display: flex;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .tokenBtn {
@@ -9,18 +11,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 10px 6px;
-  border-radius: 10px;
+  gap: 1px;
+  padding: 6px 4px;
+  border-radius: 8px;
   border: 1px solid var(--card-border);
   background: var(--card);
   color: var(--foreground);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .tokenBtn strong {
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .tokenBtn:disabled {
@@ -33,55 +35,53 @@
   background: var(--gold-glow);
 }
 
+/* Slimmer replacement for the shared big action buttons */
+.compactBtn {
+  padding: 8px 10px !important;
+  font-size: 13px !important;
+  border-radius: 8px !important;
+}
+
 .banker {
   background: var(--gold-glow);
   border: 1px solid color-mix(in srgb, var(--gold) 50%, var(--card-border));
   border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 12px;
-  font-size: 14px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  font-size: 13px;
   text-align: center;
 }
 
 .offer {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 800;
-  margin: 6px 0;
+  margin: 2px 0;
   color: var(--gold);
 }
 
 .layout {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-}
-
-@media (min-width: 768px) {
-  .layout {
-    flex-direction: row;
-    align-items: flex-start;
-  }
-}
-
-.board {
-  display: flex;
   gap: 8px;
-  flex-shrink: 0;
+}
+
+/* The value board: a compact grid of chips on phones (26 values in 5 short rows) instead of two tall columns. */
+.board {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 3px;
 }
 
 .boardCol {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
+  display: contents;
 }
 
 .boardValue {
-  padding: 4px 10px;
-  border-radius: 6px;
+  padding: 2px 1px;
+  border-radius: 5px;
   background: color-mix(in srgb, var(--gold) 22%, var(--card));
   border: 1px solid color-mix(in srgb, var(--gold) 40%, var(--card-border));
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   text-align: center;
   font-variant-numeric: tabular-nums;
@@ -96,19 +96,19 @@
 
 .caseGrid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
   flex: 1;
 }
 
 .case {
-  aspect-ratio: 4 / 3;
-  border-radius: 8px;
+  height: 34px;
+  border-radius: 6px;
   border: 1px solid var(--card-border);
   background: var(--card);
   color: var(--foreground);
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -128,30 +128,61 @@
 
 .caseOpened {
   opacity: 0.45;
-  font-size: 11px;
+  font-size: 10px;
+}
+
+@media (min-width: 768px) {
+  .layout {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .board {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .boardCol {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+  }
+
+  .boardValue {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+
+  .case {
+    height: 44px;
+    font-size: 13px;
+  }
 }
 
 .chat {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 14px;
+  gap: 5px;
+  margin-top: 8px;
 }
 
 .chatLog {
-  height: 160px;
+  height: 110px;
   overflow-y: auto;
-  padding: 8px 10px;
+  padding: 6px 8px;
   border: 1px solid var(--card-border);
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--card);
-  font-size: 13px;
-  line-height: 1.4;
+  font-size: 12.5px;
+  line-height: 1.35;
   overflow-wrap: anywhere;
 }
 
 .chatLine + .chatLine {
-  margin-top: 3px;
+  margin-top: 2px;
 }
 
 .chatEmpty {
@@ -160,15 +191,15 @@
 
 .chatForm {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
 .chatInput {
   flex: 1;
   min-width: 0;
-  padding: 10px 12px;
+  padding: 7px 10px;
   border: 1px solid var(--card-border);
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--card);
   color: var(--foreground);
   /* 16px stops iOS from zooming the page when the field is focused */
@@ -177,8 +208,8 @@
 
 .chatSend {
   border: none;
-  border-radius: 10px;
-  padding: 0 16px;
+  border-radius: 8px;
+  padding: 0 14px;
   font-weight: 700;
   background: var(--teal);
   color: #0b0c10;
@@ -188,4 +219,33 @@
 .chatSend:disabled {
   opacity: 0.5;
   cursor: default;
+}
+
+.activeList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.activeRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+  background: var(--card);
+  color: var(--foreground);
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.activeRow strong {
+  flex: 1;
+}
+
+.activeRow span:last-child {
+  color: var(--teal);
+  font-weight: 700;
 }

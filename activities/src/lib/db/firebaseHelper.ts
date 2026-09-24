@@ -1,5 +1,5 @@
 import { FirebaseApp, getApp, getApps, initializeApp } from "firebase/app"
-import { Database, get, getDatabase, ref, update } from "firebase/database"
+import { Database, get, getDatabase, increment, ref, runTransaction, update } from "firebase/database"
 import { database, firebaseConfig } from "../env"
 
 // Server-only - the same Firebase RTDB project and `users/{id}` shape the bot uses
@@ -30,6 +30,26 @@ export class FirebaseHelper {
    * concurrent writes from the bot itself) is left alone. Prefer this over reading+writing the whole user. */
   public updateUserFields(userId: string, fields: Record<string, unknown>) {
     return update(ref(this.db, `${database}/users/${userId}`), fields)
+  }
+
+  /** Adds to the deathroll pot. The bot keeps the pot in memory and only writes it to the DB on save/hourly, so a direct
+   * write to other/deathrollPot from here gets overwritten by the bot's next save - and the bot never re-reads it. This adds to
+   * other/deathrollPotPending instead, with a server-side atomic increment (no read-modify-write, safe against concurrent
+   * adds), and the bot drains it into the real pot (see syncPendingPot in commands/games/deathroll.ts). */
+  public addToDeathrollPot(amount: number) {
+    return update(ref(this.db, database), { "other/deathrollPotPending": increment(amount) })
+  }
+
+  /** Claims `path` for whoever asks first - true for exactly one caller, false for everyone after. Used where only one of
+   * several concurrent requests may do something (e.g. resolve a roulette spin and pay it out).
+   *
+   * This is a real transaction, and it does work from a fresh one-shot connection: the callback's first run sees a guessed
+   * `null` (the cache is cold), the server rejects the commit if that guess was wrong and re-runs it with the real value.
+   * So `null` must mean "not claimed yet" here - treating it as "doesn't exist, abort" is what made an earlier attempt
+   * elsewhere look broken. Verified with concurrent claims: exactly one winner. */
+  public async claim(path: string, value: unknown = { at: Date.now() }): Promise<boolean> {
+    const result = await runTransaction(ref(this.db, `${database}/${path}`), (current) => (current === null ? value : undefined))
+    return result.committed
   }
 
   public updateData(updates: Record<string, unknown>) {

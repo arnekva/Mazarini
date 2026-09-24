@@ -6,6 +6,7 @@ import { useDiscord } from "@/providers/discordProvider"
 import { useEffect, useRef, useState } from "react"
 import shared from "./BlackjackGame.module.css"
 import styles from "./ElectricityGame.module.css"
+import { SpectatorBar } from "./SpectatorBar"
 
 interface CardView {
   rank: string
@@ -324,14 +325,7 @@ export function ElectricityGame({ accessToken }: { accessToken: string }) {
         </div>
       )}
 
-      {table.spectators.length > 0 && (
-        <div className={shared.spectatorRow}>
-          <span className={shared.spectatorLabel}>👁 {table.spectators.length} ser på</span>
-          {table.spectators.map((s) => (
-            <img key={s.id} className={shared.spectatorAvatar} src={proxyImageUrl(s.avatar)} alt={s.username} title={s.username} />
-          ))}
-        </div>
-      )}
+      <SpectatorBar spectators={table.spectators} />
 
       {error && <p className={shared.error}>{error}</p>}
       {table.iAmSpectating && <p className={shared.info}>Du ser på - ikke med i spillet.</p>}

@@ -10,9 +10,8 @@ import { EmojiHelper, emojiReturnType } from '../../helpers/emojiHelper'
 import { SlashCommandHelper } from '../../helpers/slashCommandHelper'
 import { MazariniUser } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
-import { ChannelIds, MentionUtils } from '../../utils/mentionUtils'
+import { MentionUtils } from '../../utils/mentionUtils'
 import { CardCommands, ICardObject } from './cardCommands'
-import { blackjackButton } from './deathroll'
 interface BlackjackPlayer extends GamePlayer {
     id: string
     name: string
@@ -107,10 +106,7 @@ export class Blackjack extends AbstractCommands {
      * see deathroll.ts's blackjackButton). The chosen stake is pre-written as a pending auto-start
      * buy-in so their session lands straight at a table configured with it, same as the deathroll
      * pot flow - others in the channel can then join in or just watch.
-     *
-     * If Discord still rejects the launch for this channel (some thread types are reportedly
-     * unreliable for this), falls back to posting a normal "Spill Blackjack" button in #vladivostok,
-     * a plain text channel, instead of leaving the user stuck with no way to open the table. */
+     */
     private async launchMultiplayerBlackjack(interaction: ChatInteraction) {
         const stake = SlashCommandHelper.getCleanNumberValue(interaction.options.get('satsing')?.value)
         if (stake > 0) {
@@ -120,16 +116,7 @@ export class Blackjack extends AbstractCommands {
                 [`other/pendingBlackjackAutoStart/${interaction.user.id}`]: { buyIn: stake, createdAt: Date.now(), fromDeathrollPot: false },
             })
         }
-        try {
-            await interaction.launchActivity()
-        } catch (err) {
-            this.messageHelper.replyToInteraction(
-                interaction,
-                `Kunne ikke åpne Aktiviteten direkte her - prøv knappen jeg la igjen i ${MentionUtils.mentionChannel(ChannelIds.VLADIVOSTOK)} i stedet.`,
-                { ephemeral: true }
-            )
-            this.messageHelper.sendMessage(ChannelIds.VLADIVOSTOK, { components: [blackjackButton(interaction.user.id, stake)] })
-        }
+        await interaction.launchActivity()
     }
 
     private async setupGame(interaction: ChatInteraction | BtnInteraction, user: MazariniUser, stake: number, allIn: boolean, isDeathrollPot: number = 0) {

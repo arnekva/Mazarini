@@ -208,21 +208,21 @@ export class MazariniEvents {
                 return {
                     title: 'Terning',
                     description: 'Førstemann til å vinne et game hvor taperen triller 1 (20+). Veldig lav kvalitet reward.',
-                    channelId: ThreadIds.GENERAL_TERNING,
+                    channelId: ChannelIds.TERNING,
                     reward: { tier: MazariniEventRewardTier.VeryLow },
                 }
             case MazariniEventType.DeathrollWin:
                 return {
                     title: 'Deathroll',
                     description: 'Førstemann til å vinne et game hvor taperen triller 1 (51+). Middels kvalitet reward.',
-                    channelId: ThreadIds.GENERAL_TERNING,
+                    channelId: ChannelIds.TERNING,
                     reward: { tier: MazariniEventRewardTier.Medium },
                 }
             case MazariniEventType.DeathrollPotWin:
                 return {
                     title: 'Deathroll Pot',
                     description: 'Førstemann til å vinne deathroll-potten får en høy kvalitet reward.',
-                    channelId: ThreadIds.GENERAL_TERNING,
+                    channelId: ChannelIds.TERNING,
                     reward: { tier: MazariniEventRewardTier.High },
                 }
             case MazariniEventType.CCGHoieWin:

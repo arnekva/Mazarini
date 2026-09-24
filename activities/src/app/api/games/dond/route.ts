@@ -1,11 +1,12 @@
 import { authenticateRequest } from "@/lib/discordAuth"
-import { answerDondOffer, dismissDond, getDondStatus, getDondWatch, keepOrSwitchDond, openDondCase, postDondChat, startDond } from "@/lib/dondHandler"
+import { answerDondOffer, dismissDond, getDondStatus, getDondWatch, keepOrSwitchDond, listActiveDondGames, openDondCase, postDondChat, startDond } from "@/lib/dondHandler"
 
 export async function GET(request: Request) {
   const { user, error } = await authenticateRequest(request)
   if (error) return error
   const watch = new URL(request.url).searchParams.get("watch")
-  if (watch) return getDondWatch(watch)
+  if (watch) return getDondWatch(watch, user)
+  if (new URL(request.url).searchParams.get("active")) return listActiveDondGames(user)
   return getDondStatus(user)
 }
 

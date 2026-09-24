@@ -1,9 +1,11 @@
 "use client"
 
 import { callApi } from "@/lib/apiClient"
+import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
 import shared from "./BlackjackGame.module.css"
 import styles from "./DondGame.module.css"
+import { Spectator, SpectatorBar } from "./SpectatorBar"
 
 type Tier = "basic" | "premium" | "elite"
 
@@ -28,12 +30,22 @@ interface ChatMessage {
   at: number
 }
 
+interface ActiveGame {
+  hostId: string
+  playerName: string
+  k: number
+  round: number
+  state: string
+}
+
 interface Status {
   tokens: Record<Tier, number>
   game: GameView | null
   /** Whose round this is (the player's user id) - the chat belongs to it, and the player's lines are bold. */
   hostId?: string
   chat?: ChatMessage[]
+  /** Names of everyone currently watching this round. */
+  spectators?: Spectator[]
   /** Only when spectating someone else's round. */
   playerName?: string | null
 }
@@ -121,6 +133,29 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
   const loadedRef = useRef(false)
   // Mirrors `busy` for the poll below - its interval callback would otherwise only ever see a stale value.
   const busyRef = useRef(false)
+  const [activeGames, setActiveGames] = useState<ActiveGame[]>([])
+
+  // While you're between rounds, keep a list of rounds in progress to watch (so the announcement button isn't the only way in).
+  const browsing = !readOnly && !!status && !status.game
+  useEffect(() => {
+    if (!browsing) return
+    let cancelled = false
+    const load = () =>
+      callApi<{ games: ActiveGame[] }>("/api/games/dond?active=1", accessToken)
+        .then((res) => {
+          if (!cancelled) setActiveGames(res.games)
+        })
+        .catch(() => {
+          // transient failure - next tick retries
+        })
+    const first = setTimeout(load, 0)
+    const interval = setInterval(load, 5000)
+    return () => {
+      cancelled = true
+      clearTimeout(first)
+      clearInterval(interval)
+    }
+  }, [browsing, accessToken])
 
   useEffect(() => {
     if (loadedRef.current) return
@@ -241,7 +276,7 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
               ))}
             </div>
             <button
-              className={shared.dealBtn}
+              className={`${shared.dealBtn} ${styles.compactBtn}`}
               style={{ width: "100%", marginTop: 12 }}
               type="button"
               disabled={busy || !activeTier || pickedCase === null}
@@ -250,6 +285,20 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
               {pickedCase === null ? "Velg en koffert" : `Start spillet med koffert ${pickedCase}`}
             </button>
           </>
+        )}
+        {activeGames.length > 0 && (
+          <div className={styles.activeList}>
+            <p className={shared.info}>Pågående runder - klikk for å se på:</p>
+            {activeGames.map((g) => (
+              <Link key={g.hostId} className={styles.activeRow} href={`/dond?watch=${encodeURIComponent(g.hostId)}`}>
+                <strong>{g.playerName}</strong>
+                <span>
+                  {g.k}K · runde {g.round}
+                </span>
+                <span>👁 Se på</span>
+              </Link>
+            ))}
+          </div>
         )}
         {error && <p className={shared.error}>{error}</p>}
       </>
@@ -282,10 +331,15 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
               <span className={shared.info}>Venter på at {status.playerName ?? "spilleren"} svarer...</span>
             ) : (
               <div className={shared.actionRow}>
-                <button className={shared.hitBtn} type="button" disabled={busy} onClick={() => act({ action: "offer", deal: true })}>
+                <button className={`${shared.hitBtn} ${styles.compactBtn}`} type="button" disabled={busy} onClick={() => act({ action: "offer", deal: true })}>
                   Deal
                 </button>
-                <button className={shared.standBtn} type="button" disabled={busy} onClick={() => act({ action: "offer", deal: false })}>
+                <button
+                  className={`${shared.standBtn} ${styles.compactBtn}`}
+                  type="button"
+                  disabled={busy}
+                  onClick={() => act({ action: "offer", deal: false })}
+                >
                   No deal
                 </button>
               </div>
@@ -299,10 +353,20 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
               <span className={shared.info}>Venter på at {status.playerName ?? "spilleren"} velger...</span>
             ) : (
               <div className={shared.actionRow}>
-                <button className={shared.hitBtn} type="button" disabled={busy} onClick={() => act({ action: "keepOrSwitch", doSwitch: false })}>
+                <button
+                  className={`${shared.hitBtn} ${styles.compactBtn}`}
+                  type="button"
+                  disabled={busy}
+                  onClick={() => act({ action: "keepOrSwitch", doSwitch: false })}
+                >
                   Behold
                 </button>
-                <button className={shared.splitBtn} type="button" disabled={busy} onClick={() => act({ action: "keepOrSwitch", doSwitch: true })}>
+                <button
+                  className={`${shared.splitBtn} ${styles.compactBtn}`}
+                  type="button"
+                  disabled={busy}
+                  onClick={() => act({ action: "keepOrSwitch", doSwitch: true })}
+                >
                   Bytt
                 </button>
               </div>
@@ -330,7 +394,7 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
             </span>
             {!readOnly && (
               <button
-                className={shared.dealBtn}
+                className={`${shared.dealBtn} ${styles.compactBtn}`}
                 style={{ width: "100%", marginTop: 8 }}
                 type="button"
                 disabled={busy}
@@ -343,6 +407,7 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
         )}
       </div>
 
+      <SpectatorBar spectators={status.spectators ?? []} />
       <div className={styles.layout}>
         <div className={styles.board}>
           {columns.map((col, ci) => (

@@ -4,7 +4,7 @@ import { AuthenticatedDiscordUser } from "./discordAuth"
 import { Card, drawCard, freshShuffledDeck, handValue, isBlackjack } from "./blackjack"
 import { discordAvatarUrl } from "./discordAvatar"
 import { postChannelMessage } from "./discordMessage"
-import { ANNOUNCE_CHANNEL_ID } from "./gameValues"
+import { ANNOUNCE_CHANNEL_ID, blackjackValues } from "./gameValues"
 
 type HandStatus = "playing" | "stood" | "bust" | "blackjack"
 type TableStatus = "waiting" | "playing" | "roundOver"
@@ -166,8 +166,26 @@ async function writeLobby(firebase: FirebaseHelper, instanceId: string, lobbyId:
   await firebase.updateData({ [`other/${PATH_PREFIX}/${instanceId}/${lobbyId}`]: { ...lobby, updatedAt: Date.now() } })
 }
 
+// ---------- presence: noticing that someone's gone ----------
+//
+// There's no long-lived connection to hook an "on disconnect" into - every action is a stateless serverless request,
+// so a player who closes the Activity (or loses signal) simply stops asking. What we *can* see is that they've stopped:
+// every table poll (about every 1.5s) stamps the caller's entry under other/multiplayerBlackjackPresence, and whoever
+// polls next removes anyone whose stamp has gone stale - through the same leaveLobby a manual leave uses, so the
+// table, the round and the Discord announcement all behave the same. Kept apart from the lobby record so a heartbeat
+// can never race a game action's read-modify-write.
+const PRESENCE_PREFIX = "multiplayerBlackjackPresence"
+/** Long enough to ride out switching to another app on a phone for a moment, short enough that a dead seat doesn't hold a table hostage. */
+const DISCONNECT_AFTER_MS = 60 * 1000
+
+const presencePath = (instanceId: string, lobbyId: string) => `other/${PRESENCE_PREFIX}/${instanceId}/${lobbyId}`
+
+async function touchPresence(firebase: FirebaseHelper, instanceId: string, lobbyId: string, userId: string) {
+  await firebase.updateData({ [`${presencePath(instanceId, lobbyId)}/${userId}`]: Date.now() })
+}
+
 async function deleteLobby(firebase: FirebaseHelper, instanceId: string, lobbyId: string) {
-  await firebase.updateData({ [`other/${PATH_PREFIX}/${instanceId}/${lobbyId}`]: null })
+  await firebase.updateData({ [`other/${PATH_PREFIX}/${instanceId}/${lobbyId}`]: null, [presencePath(instanceId, lobbyId)]: null })
 }
 
 /** What a lobby-mutating `compute` callback hands back to runLobbyMutation: the new lobby state to
@@ -212,33 +230,39 @@ async function runLobbyMutation(
 
   await firebase.updateData({ [path]: { ...result.lobby, updatedAt: Date.now() } })
 
-  if (result.chipDeltas) {
-    for (const [id, delta] of Object.entries(result.chipDeltas)) {
+  await applyOutcomeEffects(firebase, result)
+
+  return Response.json(await publicView(firebase, result.lobby, userId))
+}
+
+/** The chip payouts/charges and pot refund a mutation produced - applied once, after its lobby write. */
+async function applyOutcomeEffects(firebase: FirebaseHelper, outcome: { chipDeltas?: Record<string, number>; potRefundTotal?: number }) {
+  if (outcome.chipDeltas) {
+    for (const [id, delta] of Object.entries(outcome.chipDeltas)) {
       if (!delta) continue
       const dbUser = (await firebase.getUser(id)) ?? {}
       await firebase.updateUserFields(id, { chips: (dbUser.chips ?? 0) + delta })
     }
   }
-  if (result.potRefundTotal) {
-    const currentPot = (await firebase.getData("other/deathrollPot")) ?? 0
-    await firebase.updateData({ "other/deathrollPot": currentPot + result.potRefundTotal })
+  if (outcome.potRefundTotal) {
+    await firebase.addToDeathrollPot(outcome.potRefundTotal)
   }
-
-  return Response.json(await publicView(firebase, result.lobby, userId))
 }
 
 /** Announces a leaving player's session result in Discord - only for someone who actually played at
  * least one round (not someone who sat down and immediately left), since only then does a chip
  * delta mean anything. Never lets a failed Discord post block the actual leave. */
-async function announcePlayerLeft(firebase: FirebaseHelper, player: BlackjackPlayer) {
+async function announcePlayerLeft(firebase: FirebaseHelper, player: BlackjackPlayer, reason: "left" | "disconnected") {
   if (!player.hasPlayed) return
   try {
     const dbUser = (await firebase.getUser(player.id)) ?? {}
     const delta = (dbUser.chips ?? 0) - player.startingChips
     const sign = delta >= 0 ? "+" : ""
-    await postChannelMessage(ANNOUNCE_CHANNEL_ID, {
-      content: `${player.username} gikk fra Blackjack-bordet med ${sign}${delta} chips.`,
-    })
+    const content =
+      reason === "disconnected"
+        ? `${player.username} mistet tilkoblingen til Blackjack-bordet og forlot det med ${sign}${delta} chips.`
+        : `${player.username} gikk fra Blackjack-bordet med ${sign}${delta} chips.`
+    await postChannelMessage(ANNOUNCE_CHANNEL_ID, { content })
   } catch {
     // Best-effort announcement only - the leave itself must still go through either way.
   }
@@ -246,35 +270,66 @@ async function announcePlayerLeft(firebase: FirebaseHelper, player: BlackjackPla
 
 /** The host leaving closes the table for everyone (deleted outright); anyone else leaving (player or
  * spectator) just frees their seat. A lobby with no players left is cleaned up either way - but
- * spectators alone don't keep an otherwise-empty lobby alive. */
-async function leaveLobby(firebase: FirebaseHelper, instanceId: string, lobbyId: string, userId: string) {
+ * spectators alone don't keep an otherwise-empty lobby alive. `reason` only changes the announcement:
+ * "disconnected" is what the presence sweep passes for someone who stopped polling. */
+async function leaveLobby(firebase: FirebaseHelper, instanceId: string, lobbyId: string, userId: string, reason: "left" | "disconnected" = "left") {
   const lobby = await readLobby(firebase, instanceId, lobbyId)
   if (!lobby) return
+  const clearPresence = () => firebase.updateData({ [`${presencePath(instanceId, lobbyId)}/${userId}`]: null })
 
   if (lobby.spectators[userId] !== undefined) {
     const spectators = { ...lobby.spectators }
     delete spectators[userId]
     await writeLobby(firebase, instanceId, lobbyId, { ...lobby, spectators })
+    await clearPresence()
     return
   }
   if (!lobby.players[userId]) return
   const leavingPlayer = lobby.players[userId]
 
-  if (lobby.hostId === userId) {
-    await deleteLobby(firebase, instanceId, lobbyId)
-    await announcePlayerLeft(firebase, leavingPlayer)
-    return
-  }
   const playerOrder = lobby.playerOrder.filter((id) => id !== userId)
-  if (playerOrder.length === 0) {
+  if (lobby.hostId === userId || playerOrder.length === 0) {
     await deleteLobby(firebase, instanceId, lobbyId)
-    await announcePlayerLeft(firebase, leavingPlayer)
+    await announcePlayerLeft(firebase, leavingPlayer, reason)
     return
   }
+
   const players = { ...lobby.players }
   delete players[userId]
-  await writeLobby(firebase, instanceId, lobbyId, { ...lobby, players, playerOrder })
-  await announcePlayerLeft(firebase, leavingPlayer)
+  let next: BlackjackLobby = { ...lobby, players, playerOrder }
+  // A vote the leaver started can never be answered by them - drop it rather than leave a dead banner.
+  if (next.redealVote?.requestedBy === userId) delete next.redealVote
+  if (next.betVote?.requestedBy === userId) delete next.betVote
+
+  // Someone vanishing mid-round mustn't leave the others waiting on a hand that will never be played: if everyone still
+  // at the table is now done, the round resolves right here. The leaver's stake stays forfeited, as with any manual leave.
+  let outcome: { chipDeltas?: Record<string, number>; potRefundTotal?: number } = {}
+  if (next.status === "playing" && allPlayersDone(next)) {
+    const resolved = resolveDealer(next, false)
+    next = resolved.lobby
+    outcome = { chipDeltas: resolved.chipDeltas, potRefundTotal: resolved.potRefundTotal }
+  }
+
+  await writeLobby(firebase, instanceId, lobbyId, next)
+  await applyOutcomeEffects(firebase, outcome)
+  await clearPresence()
+  await announcePlayerLeft(firebase, leavingPlayer, reason)
+}
+
+/** Removes seated players and spectators whose polling has gone quiet (see the presence notes above). Never touches the
+ * caller - they're demonstrably here. Someone with no stamp at all just hasn't polled yet, which isn't a disconnect.
+ * Returns whether anything changed, so the caller knows to re-read the lobby. */
+async function sweepDisconnected(firebase: FirebaseHelper, instanceId: string, lobby: BlackjackLobby, callerId: string): Promise<boolean> {
+  const presence = ((await firebase.getData(presencePath(instanceId, lobby.id))) ?? {}) as Record<string, number>
+  const now = Date.now()
+  let changed = false
+  for (const id of [...lobby.playerOrder, ...Object.keys(lobby.spectators)]) {
+    const seen = presence[id]
+    if (id === callerId || typeof seen !== "number" || now - seen < DISCONNECT_AFTER_MS) continue
+    await leaveLobby(firebase, instanceId, lobby.id, id, "disconnected")
+    changed = true
+  }
+  return changed
 }
 
 /** You can only ever be at one lobby per voice channel at a time - playing or spectating - switching
@@ -430,7 +485,7 @@ function resolveDealer(lobby: BlackjackLobby, forcedAvailable: boolean): { lobby
 
       const payout = Math.floor(lobby.buyIn * PAYOUT_MULTIPLIER[result])
       if (payout > 0) chipDeltas[id] = (chipDeltas[id] ?? 0) + payout
-      if (result === "lose" && player.deathrollPotStake > 0) {
+      if (result === "lose" && player.deathrollPotStake > 0 && blackjackValues.deathrollRefundEnabled) {
         potRefunds[id] = (potRefunds[id] ?? 0) + Math.floor(player.deathrollPotStake * 0.5)
       }
     }
@@ -722,7 +777,11 @@ export async function peekPendingBlackjackAutoStart(userId: string) {
 
 export async function listBlackjackLobbies(instanceId: string, userId: string) {
   const firebase = new FirebaseHelper()
-  const all = await readAllLobbies(firebase, instanceId)
+  let all = await readAllLobbies(firebase, instanceId)
+  // Anyone browsing the list also cleans up tables whose players have all gone quiet - nobody's left at those to poll them.
+  let swept = false
+  for (const l of Object.values(all)) if (await sweepDisconnected(firebase, instanceId, l, userId)) swept = true
+  if (swept) all = await readAllLobbies(firebase, instanceId)
   const lobbies = Object.values(all).map((l) => ({
     id: l.id,
     hostUsername: l.players[l.hostId]?.username ?? "?",
@@ -793,6 +852,7 @@ export async function createBlackjackLobby(instanceId: string, user: Authenticat
     updatedAt: Date.now(),
   }
   await writeLobby(firebase, instanceId, lobbyId, lobby)
+  await touchPresence(firebase, instanceId, lobbyId, user.id)
   return Response.json(await publicView(firebase, lobby, user.id))
 }
 
@@ -821,6 +881,7 @@ export async function joinBlackjackLobby(instanceId: string, lobbyId: string, us
     }
     lobby.playerOrder.push(user.id)
     await writeLobby(firebase, instanceId, lobbyId, lobby)
+    await touchPresence(firebase, instanceId, lobbyId, user.id)
   }
   return Response.json(await publicView(firebase, lobby, user.id))
 }
@@ -838,6 +899,7 @@ export async function spectateBlackjackLobby(instanceId: string, lobbyId: string
     await leaveOtherLobbies(firebase, instanceId, user.id, lobbyId)
     lobby.spectators[user.id] = { username: user.globalName ?? user.username, avatar: user.avatar }
     await writeLobby(firebase, instanceId, lobbyId, lobby)
+    await touchPresence(firebase, instanceId, lobbyId, user.id)
   }
   return Response.json(await publicView(firebase, lobby, user.id))
 }
@@ -864,8 +926,15 @@ export async function leaveBlackjackLobby(instanceId: string, lobbyId: string, u
 
 export async function getBlackjackLobbyStatus(instanceId: string, lobbyId: string, user: AuthenticatedDiscordUser) {
   const firebase = new FirebaseHelper()
-  const lobby = await readLobby(firebase, instanceId, lobbyId)
+  let lobby = await readLobby(firebase, instanceId, lobbyId)
   if (!lobby) return Response.json({ closed: true })
+
+  // This poll is the heartbeat - and the moment to notice anyone else's has stopped.
+  if (lobby.players[user.id] || lobby.spectators[user.id] !== undefined) await touchPresence(firebase, instanceId, lobbyId, user.id)
+  if (await sweepDisconnected(firebase, instanceId, lobby, user.id)) {
+    lobby = await readLobby(firebase, instanceId, lobbyId)
+    if (!lobby) return Response.json({ closed: true })
+  }
   return Response.json(await publicView(firebase, lobby, user.id))
 }
 

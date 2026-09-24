@@ -3,6 +3,8 @@ const { userMention, channelMention, roleMention } = require('@discordjs/builder
 export enum ChannelIds {
     GENERAL_DEV = '1106124769797091341',
     VLADIVOSTOK = '808992127249678386',
+    /** Deathroll / terning - a regular text channel (it used to be a thread), so launchActivity() buttons work here. */
+    TERNING = '1552748658582233208',
     CCG = '1467965812328497335',
     LOOT = '1291704343128576160',
     BOT_UTVIKLING = '802716150484041751',
@@ -21,7 +23,6 @@ export enum ChannelIds {
 }
 
 export enum ThreadIds {
-    GENERAL_TERNING = '1231880250569261106',
     LOCALHOST_TEST = '1251646425461297332',
     MORE_OR_LESS = '1331898914571292683',
 }

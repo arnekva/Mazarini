@@ -62,3 +62,33 @@ export const DOND_CASES: Record<DondTier, number[]> = {
 }
 
 export const DOND_TIER_K: Record<DondTier, number> = { basic: 10, premium: 20, elite: 50 }
+
+// Mirrors general/values.ts (blackjack) in the bot repo.
+export const blackjackValues = {
+  deathrollRefundEnabled: true, // "tilbakelegg": half of a lost deathroll-pot stake goes back to the pot
+}
+
+// Payouts mirror the bot's /rulett (commands/money/gamblingCommands.ts); the timings are specific to the shared table.
+export const rouletteValues = {
+  /** A number (0-36) pays this many times the stake, stake included. */
+  numberPayout: 36,
+  /** Red / black / odd / even pay this many times the stake, stake included. */
+  categoryPayout: 2,
+  red: [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36],
+  minBet: 1,
+  /** How long bets are open each round. */
+  bettingMs: 25000,
+  /** How long the result stays up before the next round opens - long enough for the whole show below plus a moment to read the outcome. */
+  resultMs: 14000,
+  /** The wheel grows for a moment (about 0.7s), then there is a pause before the ball is launched: result -> spin. */
+  spinDelayMs: 1700,
+  /** The wheel animation itself, shown before the outcome text and the new balance. */
+  spinMs: 8000,
+  /** The ball stays on the winning number this long before the wheel shrinks back. */
+  holdMs: 2000,
+  /** The server keeps accepting a bet request that arrived before the deadline for this long after it, so a request already
+   * in flight isn't lost to the spin - nothing new is accepted past the deadline itself. */
+  lateBetGraceMs: 4000,
+  /** When every player with a bet has hit Spin: bets close immediately and the wheel starts this long after. */
+  forcedSpinDelayMs: 1500,
+}

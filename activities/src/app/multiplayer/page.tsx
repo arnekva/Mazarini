@@ -8,6 +8,7 @@ const multiplayerGames = [
   { id: "blackjack", label: "Blackjack", cardClass: "cardGreen" },
   { id: "electricity", label: "Electricity ⚡", cardClass: "cardGold" },
   { id: "redblack", label: "Rød / Svart", cardClass: "cardRed" },
+  { id: "roulette", label: "Rulett", cardClass: "cardPurple" },
 ]
 
 export default function MultiplayerPage() {

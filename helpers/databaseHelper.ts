@@ -1,5 +1,5 @@
 import { PutObjectCommandOutput } from '@aws-sdk/client-s3'
-import { Unsubscribe } from 'firebase/database'
+import { increment, Unsubscribe } from 'firebase/database'
 import moment from 'moment'
 import { database, environment } from '../client-env'
 import { DRGame } from '../commands/games/deathroll'
@@ -425,6 +425,16 @@ export class DatabaseHelper {
 
     public async getDeathrollPot() {
         return (await this.db.getData('other/deathrollPot')) as number
+    }
+
+    /** Takes everything the Activities app has queued up for the pot (other/deathrollPotPending) and returns it. The pending
+     * value is reduced with an atomic increment rather than reset to 0, so an amount added between the read and the
+     * subtraction is kept for the next drain instead of lost. */
+    public async drainPendingDeathrollPot(): Promise<number> {
+        const pending = ((await this.db.getData('other/deathrollPotPending')) as number) ?? 0
+        if (!pending || isNaN(pending)) return 0
+        await this.db.updateData({ '/other/deathrollPotPending': increment(-pending) })
+        return pending
     }
 
     public async saveDeathrollPot(amount: number) {

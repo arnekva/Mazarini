@@ -1,0 +1,426 @@
+/* Compact by default - a phone should show the wheel, the Spin button, the stake picker and the board without scrolling.
+   The wheel sits beside the status/history/Spin column instead of above it. */
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.topInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Wheel - two copies of the same wheel (same rotation): a small one beside the status text, and a big one in a stage above
+   that opens for the spin. Only one is visible at a time, and both animate open/closed. */
+.wheelWrap {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.wheel {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.5));
+}
+
+.wheelCompact {
+  width: 132px;
+  overflow: hidden;
+  transition:
+    width 0.55s cubic-bezier(0.3, 0.7, 0.2, 1),
+    opacity 0.4s ease,
+    margin 0.55s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+
+/* Slides away (and lets the status text take its space) while the big wheel is out */
+.wheelCompactHidden {
+  width: 0;
+  opacity: 0;
+  margin-right: -10px;
+}
+
+.stage {
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transform: scale(0.85);
+  transform-origin: 50% 0;
+  transition:
+    max-height 0.7s cubic-bezier(0.3, 0.7, 0.2, 1),
+    opacity 0.5s ease,
+    transform 0.7s cubic-bezier(0.3, 0.7, 0.2, 1),
+    margin 0.7s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+
+.stageOpen {
+  max-height: 350px;
+  opacity: 1;
+  transform: scale(1);
+  margin-bottom: 8px;
+}
+
+.wheelBig {
+  width: min(88vw, 320px);
+}
+
+@media (min-width: 768px) {
+  .wheelCompact {
+    width: 180px;
+  }
+
+  .wheelBig {
+    width: 360px;
+  }
+
+  .stageOpen {
+    max-height: 390px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage,
+  .wheelCompact {
+    transition: none;
+  }
+}
+
+.pocket_green {
+  fill: #12805a;
+  stroke: #0b0c10;
+  stroke-width: 0.6;
+}
+
+.pocket_red {
+  fill: #c2263b;
+  stroke: #0b0c10;
+  stroke-width: 0.6;
+}
+
+.pocket_black {
+  fill: #1a1c22;
+  stroke: #0b0c10;
+  stroke-width: 0.6;
+}
+
+.pocketLabel {
+  fill: #fff;
+  font-size: 8px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.wheelHub {
+  fill: #2a2118;
+  stroke: #b8923a;
+  stroke-width: 2;
+}
+
+.wheelHubInner {
+  fill: #b8923a;
+}
+
+/* The rim the ball races around before it drops into a pocket */
+.track {
+  fill: none;
+  stroke: #1b1712;
+  stroke-width: 9;
+}
+
+.ball {
+  fill: #fdfdfb;
+  stroke: rgba(0, 0, 0, 0.5);
+  stroke-width: 1;
+}
+
+/* Status + history */
+.statusBar {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--card-border));
+  background: var(--gold-glow);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.resultRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.resultNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.num_green {
+  background: #12805a;
+  color: #fff;
+}
+
+.num_red {
+  background: #c2263b;
+  color: #fff;
+}
+
+.num_black {
+  background: #1a1c22;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.win {
+  color: var(--green);
+}
+
+.loss {
+  color: var(--red);
+}
+
+.history {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  min-height: 20px;
+}
+
+.historyDot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+/* Beats the shared big button's padding (that one is a single class, this is two) */
+.topInfo .spinBtn {
+  width: 100%;
+  margin: 0;
+  padding: 8px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+
+/* Stake picker */
+.stakeRow {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.stakeInput {
+  width: 62px !important;
+  flex-shrink: 0;
+  font-size: 13px !important;
+  padding: 0 6px !important;
+  border-radius: 8px !important;
+}
+
+.presetBtn {
+  flex: 1;
+  border: 1px solid var(--card-border);
+  background: var(--card);
+  color: var(--foreground);
+  border-radius: 8px;
+  padding: 7px 2px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.presetBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.presetActive {
+  border-color: var(--gold);
+  background: var(--gold-glow);
+}
+
+/* Board: 0 on top, then 1-36 in four rows of nine */
+.board {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 3px;
+}
+
+.cell {
+  position: relative;
+  height: 30px;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
+.cell:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.cell:not(:disabled):hover {
+  outline: 2px solid var(--gold);
+}
+
+.zero {
+  grid-column: 1 / -1;
+  height: 26px;
+  background: #12805a;
+}
+
+.cell_green {
+  background: #12805a;
+}
+
+.cell_red {
+  background: #c2263b;
+}
+
+.cell_black {
+  background: #1a1c22;
+}
+
+.outside {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+  margin-top: 4px;
+}
+
+.outside .cell {
+  height: 32px;
+  font-size: 12px;
+}
+
+.outside_red {
+  background: #c2263b;
+}
+
+.outside_black {
+  background: #1a1c22;
+}
+
+.outside_plain {
+  background: var(--card);
+  color: var(--foreground);
+}
+
+/* Total of your own stakes on a spot */
+.badge {
+  position: absolute;
+  right: 1px;
+  bottom: 0;
+  padding: 0 3px;
+  border-radius: 7px;
+  background: var(--gold);
+  color: #0b0c10;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 12px;
+}
+
+@media (min-width: 768px) {
+  .cell {
+    height: 38px;
+    font-size: 13px;
+  }
+
+  .outside .cell {
+    height: 40px;
+  }
+}
+
+/* Players */
+.players {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.player {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+  font-size: 11px;
+}
+
+.playerMe {
+  border-color: color-mix(in srgb, var(--teal) 45%, var(--card-border));
+}
+
+.playerName {
+  font-weight: 700;
+  flex-shrink: 0;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playerBets {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  color: var(--muted);
+}
+
+.betTag {
+  padding: 0 5px;
+  border-radius: 5px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  color: var(--foreground);
+}
+
+.betTag em {
+  font-style: normal;
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.hint {
+  margin: 6px 0 !important;
+  font-size: 11px !important;
+}
+
+.clearBtn {
+  padding: 7px !important;
+  font-size: 12px !important;
+  margin-bottom: 6px !important;
+}

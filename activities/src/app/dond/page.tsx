@@ -10,7 +10,7 @@ function DondContent() {
   const { accessToken } = useDiscord()
   // ?watch=<userId> = spectate that user's round (set by the hub after a "Se på" button click)
   const watchId = useSearchParams().get("watch") ?? undefined
-  return accessToken ? <DondGame accessToken={accessToken} watchId={watchId} /> : <p>Laster...</p>
+  return accessToken ? <DondGame key={watchId ?? "me"} accessToken={accessToken} watchId={watchId} /> : <p>Laster...</p>
 }
 
 export default function DondPage() {

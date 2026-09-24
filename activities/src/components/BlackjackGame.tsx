@@ -6,6 +6,7 @@ import { proxyImageUrl } from "@/lib/imgProxy"
 import { useDiscord } from "@/providers/discordProvider"
 import { useEffect, useRef, useState } from "react"
 import styles from "./BlackjackGame.module.css"
+import { SpectatorBar } from "./SpectatorBar"
 
 interface CardView {
   rank: string
@@ -153,6 +154,7 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
   const [lobbyId, setLobbyId] = useState<string | null>(null)
   const [table, setTable] = useState<TableView | null>(null)
   const [closedNotice, setClosedNotice] = useState(false)
+  const [removedNotice, setRemovedNotice] = useState(false)
   const [createBuyIn, setCreateBuyIn] = useState("0")
   const [betInput, setBetInput] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -183,6 +185,11 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
       )
       if (res.closed) {
         setClosedNotice(true)
+        setTable(null)
+        setLobbyId(null)
+      } else if (!res.iAmPlaying && !res.iAmSpectating) {
+        // Our own connection went quiet for long enough that the table dropped us (see the presence notes in blackjackHandler.ts).
+        setRemovedNotice(true)
         setTable(null)
         setLobbyId(null)
       } else {
@@ -219,6 +226,7 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
         body: JSON.stringify({ instanceId, lobbyId, action: actionName, ...extra }),
       })
       if (actionName === "create" || actionName === "join" || actionName === "spectate") {
+        setRemovedNotice(false)
         setLobbyId(res.id)
         setTable(res)
       } else if (actionName === "leave") {
@@ -283,6 +291,7 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
     return (
       <>
         {closedNotice && <p className={styles.info}>Verten forlot bordet - bordet er stengt.</p>}
+        {removedNotice && <p className={styles.info}>Du mistet tilkoblingen en stund og ble tatt av bordet.</p>}
         <p className={styles.info}>Velg et bord, eller start et nytt.</p>
 
         {lobbies === null && <p className={styles.info}>Laster bord...</p>}
@@ -419,14 +428,7 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
         })}
       </div>
 
-      {table.spectators.length > 0 && (
-        <div className={styles.spectatorRow}>
-          <span className={styles.spectatorLabel}>👁 {table.spectators.length} ser på</span>
-          {table.spectators.map((s) => (
-            <img key={s.id} className={styles.spectatorAvatar} src={proxyImageUrl(s.avatar)} alt={s.username} title={s.username} />
-          ))}
-        </div>
-      )}
+      <SpectatorBar spectators={table.spectators} />
 
       {error && <p className={styles.error}>{error}</p>}
 
