@@ -69,27 +69,35 @@ export class Deathroll extends AbstractCommands {
     }
     /** In flight while a sync runs, so two overlapping syncs can never both drain (and double count) the same amount. */
     private potSync: Promise<void> | undefined
+    /** Set when a sync was asked for while one was already running - that one may have read the amount before the latest addition. */
+    private potSyncAgain = false
 
     /** The Activities app can't reach the bot's in-memory pot, and the bot only writes it to the DB on save/hourly -
      * a direct DB write from there would simply be overwritten. So the Activities app adds to other/deathrollPotPending
      * (an atomic increment) instead, and this drains that into the pot - and straight to the DB, so the bot's own next
-     * save can't clobber it. Runs before every roll, before saves, and on a timer as a backstop. */
+     * save can't clobber it. Runs the moment something is queued (a live listener - see onReady, nothing polls), and also
+     * before every roll and around saves as a safety net. */
     private syncPendingPot(): Promise<void> {
-        if (!this.potSync) {
-            this.potSync = (async () => {
-                try {
+        if (this.potSync) {
+            this.potSyncAgain = true
+            return this.potSync
+        }
+        this.potSync = (async () => {
+            try {
+                do {
+                    this.potSyncAgain = false
                     const added = await this.client.database.drainPendingDeathrollPot()
                     if (added) {
                         this.rewardPot = Math.max(0, (this.rewardPot ?? 0) + added)
                         this.saveRewardPot(true)
                     }
-                } catch (error) {
-                    this.client.messageHelper.sendLogMessage(`Feil ved synking av deathroll pot: ${error}`)
-                } finally {
-                    this.potSync = undefined
-                }
-            })()
-        }
+                } while (this.potSyncAgain)
+            } catch (error) {
+                this.client.messageHelper.sendLogMessage(`Feil ved synking av deathroll pot: ${error}`)
+            } finally {
+                this.potSync = undefined
+            }
+        })()
         return this.potSync
     }
 
@@ -104,9 +112,9 @@ export class Deathroll extends AbstractCommands {
         this.client.database
             .getDeathrollPot()
             .then((value) => (this.client.cache.deathrollPot = value ?? 0))
-            .then(() => this.syncPendingPot())
+            // Only listen once the pot is loaded: a sync writes the pot back to the DB, so it must never run against an unloaded 0.
+            .then(() => this.client.database.subscribeToPendingDeathrollPot((amount) => amount > 0 && this.syncPendingPot()))
             .catch((error) => this.client.messageHelper.sendLogMessage(`Feil ved lasting av deathroll pot: ${error}`))
-        setInterval(() => this.syncPendingPot(), 30 * 1000)
 
         this.client.database
             .getStorage()

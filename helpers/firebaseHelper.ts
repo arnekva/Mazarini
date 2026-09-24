@@ -120,6 +120,19 @@ export class FirebaseHelper {
         })
     }
 
+    /**
+     * Live-subscribe to the amount the Activities app has queued up for the deathroll pot (other/deathrollPotPending). `callback`
+     * fires once on attach with the current value (0 when the node doesn't exist) and again on every change, so nothing has to poll.
+     * Returns an unsubscribe function.
+     */
+    public subscribeToPendingDeathrollPot(callback: (amount: number) => void): Unsubscribe {
+        const pendingRef = ref(this.db, `${database}/other/deathrollPotPending`)
+        return onValue(pendingRef, (snapshot) => {
+            const amount = snapshot.exists() ? Number(snapshot.val()) : 0
+            callback(isNaN(amount) ? 0 : amount)
+        })
+    }
+
     public async getMemes(): Promise<Meme[]> {
         return (await this.getData(`memes`)) as Meme[]
     }

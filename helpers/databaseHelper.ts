@@ -427,12 +427,18 @@ export class DatabaseHelper {
         return (await this.db.getData('other/deathrollPot')) as number
     }
 
+    /** Calls `callback` when the Activities app has queued something up for the pot (and once on attach, if something already is). */
+    public subscribeToPendingDeathrollPot(callback: (amount: number) => void): Unsubscribe {
+        return this.db.subscribeToPendingDeathrollPot(callback)
+    }
+
     /** Takes everything the Activities app has queued up for the pot (other/deathrollPotPending) and returns it. The pending
      * value is reduced with an atomic increment rather than reset to 0, so an amount added between the read and the
      * subtraction is kept for the next drain instead of lost. */
     public async drainPendingDeathrollPot(): Promise<number> {
-        const pending = ((await this.db.getData('other/deathrollPotPending')) as number) ?? 0
-        if (!pending || isNaN(pending)) return 0
+        const pending = ((await this.db.getData('other/deathrollPotPending', true)) as number) ?? 0
+        // Only ever a positive amount: the listener can briefly report negatives while it sees its own drain before the server confirms it.
+        if (!(pending > 0)) return 0
         await this.db.updateData({ '/other/deathrollPotPending': increment(-pending) })
         return pending
     }

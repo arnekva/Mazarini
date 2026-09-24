@@ -200,6 +200,41 @@ export class MessageHelper {
     }
 
     /**
+     * Posts a message on an interaction that has ALREADY been answered - most importantly after interaction.launchActivity(), which
+     * *is* the interaction's reply. replyToInteraction only acts on interactions that haven't been replied to (it silently returns
+     * nothing otherwise), so it can't be used there.
+     *
+     * Goes through the interaction, so - unlike sendMessage - it doesn't depend on the channel being in the bot's cache or on the bot
+     * having Send Messages in it. If that fails it falls back to sendMessage, and if that fails too it says so in the log channel
+     * (sendMessage on its own gives up without a trace).
+     * @returns the message, or undefined if nothing could be sent
+     */
+    async followUpToInteraction(
+        interaction: ChatInteraction | BtnInteraction | RepliableInteraction<CacheType>,
+        messageContent: string | EmbedBuilder,
+        components?: MessageCompontent
+    ): Promise<Message<boolean> | undefined> {
+        try {
+            const payload: InteractionReplyOptions = typeof messageContent === 'object' ? { embeds: [messageContent] } : { content: messageContent }
+            if (components) payload.components = components
+            const msg = await interaction.followUp(payload)
+            MazariniBot.numMessagesFromBot++
+            return msg
+        } catch (e) {
+            const msg =
+                typeof messageContent === 'object'
+                    ? await this.sendMessage(interaction.channelId, { embed: messageContent, components: components })
+                    : await this.sendMessage(interaction.channelId, { text: messageContent, components: components })
+            if (!msg) {
+                this.sendLogMessage(
+                    `Fikk ikke sendt en oppfølgingsmelding i ${MentionUtils.mentionChannel(interaction.channelId)}. Svar på interaction feilet (${e}), og sendMessage ga ingenting - mangler botten tilgang til kanalen, eller er den ikke i cachen?`
+                )
+            }
+            return msg
+        }
+    }
+
+    /**
      * Send a message to the specified channel. Content can be of several types.
      * @param channelId Id of channel to send the message to
      * @param content All properties are optional, but you must send at least one of them. Can be text, embed, components or file. An error may be thrown if the content is empty or undefined.

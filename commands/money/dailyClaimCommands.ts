@@ -23,7 +23,9 @@ export class DailyClaimCommands extends AbstractCommands {
         const embed = EmbedUtils.createSimpleEmbed('Game Invitation', `**Daily Activity**\n${MentionUtils.mentionUser(interaction.user.id)} har åpnet den - klikk for å bli med`)
         const avatar = this.client.user?.displayAvatarURL()
         if (avatar) embed.setThumbnail(avatar)
-        this.messageHelper.sendMessage(interaction.channelId, { embed: embed, components: [joinDailyButtonRow] })
+
+        // launchActivity() was the interaction's reply, so replyToInteraction would do nothing here - hence the follow-up helper.
+        await this.messageHelper.followUpToInteraction(interaction, embed, [joinDailyButtonRow])
     }
 
     private async joinFromButton(interaction: BtnInteraction) {
