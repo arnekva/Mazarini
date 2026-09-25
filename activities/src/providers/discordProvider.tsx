@@ -18,6 +18,10 @@ interface DiscordContextType {
   /** Shared by everyone who launched this Activity from the same voice channel - the natural
    * multiplayer "room" key. Null outside Discord (e.g. local dev in a plain browser tab). */
   instanceId: string | null
+  /** The channel the Activity was launched from - announcements about what happens here go there. */
+  channelId: string | null
+  /** Why login failed, if it did - without a user nothing in the app can act, so this is worth showing. */
+  authError: string | null
 }
 
 const DiscordContext = createContext<DiscordContextType>({
@@ -26,6 +30,8 @@ const DiscordContext = createContext<DiscordContextType>({
   accessToken: null,
   ready: false,
   instanceId: null,
+  channelId: null,
+  authError: null,
 })
 
 export const DiscordProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -34,6 +40,8 @@ export const DiscordProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [ready, setReady] = useState(false)
   const [instanceId, setInstanceId] = useState<string | null>(null)
+  const [channelId, setChannelId] = useState<string | null>(null)
+  const [authError, setAuthError] = useState<string | null>(null)
 
   useEffect(() => {
     const clientId = process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID as string
@@ -67,13 +75,15 @@ export const DiscordProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const discordSdk = new DiscordSDK(clientId)
       await discordSdk.ready()
 
-      const { code } = await discordSdk.commands.authorize({
-        client_id: clientId,
-        response_type: "code",
-        state: "",
-        prompt: "none",
-        scope: ["identify"],
-      })
+      // "none" logs in silently for someone who has already authorized the app - but it simply fails for anyone who hasn't (a first
+      // launch, or someone who came in through a Play button), and that used to leave the Activity without a user: every card greyed
+      // out, nothing able to act as anyone. So fall back to the normal request, which shows Discord's consent prompt when it's needed.
+      let code: string
+      try {
+        ;({ code } = await discordSdk.commands.authorize({ client_id: clientId, response_type: "code", state: "", prompt: "none", scope: ["identify"] }))
+      } catch {
+        ;({ code } = await discordSdk.commands.authorize({ client_id: clientId, response_type: "code", state: "", scope: ["identify"] }))
+      }
 
       const response = await fetch("/api/token", {
         method: "POST",
@@ -89,17 +99,19 @@ export const DiscordProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setDiscordUser(auth.user as DiscordUser)
       setSdk(discordSdk)
       setInstanceId(discordSdk.instanceId)
+      setChannelId(discordSdk.channelId)
       setReady(true)
     }
 
     setupDiscordSdk().catch((err) => {
       console.error("Discord SDK setup failed", err)
+      setAuthError(err instanceof Error ? err.message : String(err))
       setReady(true)
     })
   }, [])
 
   return (
-    <DiscordContext.Provider value={{ sdk, discordUser, accessToken, ready, instanceId }}>{children}</DiscordContext.Provider>
+    <DiscordContext.Provider value={{ sdk, discordUser, accessToken, ready, instanceId, channelId, authError }}>{children}</DiscordContext.Provider>
   )
 }
 

@@ -289,10 +289,10 @@ export class LootboxCommands extends AbstractCommands {
         let effect: IEffectItem = undefined
         if (Math.random() < this.getChestEffectOdds(quality)) {
             effect = RandomUtils.getRandomItemFromList(effects.filter((effect) => series.hasColor || !effect.label.includes('color')))
+            // 'deal_or_no_deal' is only a marker in the effects list: what's actually offered is a token of a rolled tier, claimed like any other effect.
+            if (effect.label === 'deal_or_no_deal') effect = DealOrNoDeal.tokenEffect(DealOrNoDeal.rollTier())
             let btn: ButtonBuilder = undefined
-            if (effect.label === 'deal_or_no_deal') {
-                btn = DealOrNoDeal.getDealOrNoDealButton(interaction.user.id)
-            } else if (effect.label === 'redeal_chest') {
+            if (effect.label === 'redeal_chest') {
                 btn = reDealChestButton(chestId)
             } else btn = lootChestButton(chestId, 'effect').setLabel(effect.label)
             buttons.addComponents(btn)

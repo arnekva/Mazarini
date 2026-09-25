@@ -4,7 +4,7 @@ import { BtnInteraction, ModalInteraction } from '../../Abstracts/MazariniIntera
 import { MazariniClient } from '../../client/MazariniClient'
 import { GameValues } from '../../general/values'
 import { EmojiHelper } from '../../helpers/emojiHelper'
-import { MazariniUser } from '../../interfaces/database/databaseInterface'
+import { IDondTokens, MazariniUser } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { EmbedUtils } from '../../utils/embedUtils'
 import { RandomUtils } from '../../utils/randomUtils'
@@ -530,15 +530,34 @@ export class DealOrNoDeal extends AbstractCommands {
         }
     }
 
-    static getDealOrNoDealButton(userId: string, quality?: DonDQuality): ButtonBuilder {
-        let tier = quality
-        if (!tier) {
-            const roll = Math.random()
-            if (roll < 1 / 6) tier = DonDQuality.Elite // 1/6 chance for elite
-            else if (roll < 1 / 2) tier = DonDQuality.Premium // 2/6 chance for premium
-            else tier = DonDQuality.Basic // 3/6 chance for basic
+    /** A random tier: 1/6 elite, 2/6 premium, 3/6 basic. */
+    static rollTier(): DonDQuality {
+        const roll = Math.random()
+        if (roll < 1 / 6) return DonDQuality.Elite
+        if (roll < 1 / 2) return DonDQuality.Premium
+        return DonDQuality.Basic
+    }
+
+    /** Which entry in a user's `dondTokens` a tier is kept under. */
+    static tokenTier(quality: DonDQuality): keyof IDondTokens {
+        return quality === DonDQuality.Elite ? 'elite' : quality === DonDQuality.Premium ? 'premium' : 'basic'
+    }
+
+    /** An effect (for chests and the like) that hands out one Deal or No Deal token of the given tier - spent to play in the Activities app. */
+    static tokenEffect(quality: DonDQuality): IEffectItem {
+        const tier = DealOrNoDeal.tokenTier(quality)
+        return {
+            label: `Deal or No Deal (${quality}K-token)`,
+            message: `en ${quality}K Deal or No Deal-token! Bruk den i Activities for å spille.`,
+            effect: (user: MazariniUser) => {
+                user.dondTokens = { ...user.dondTokens, [tier]: (user.dondTokens?.[tier] ?? 0) + 1 }
+                return undefined
+            },
         }
-        return dondGame(userId, tier)
+    }
+
+    static getDealOrNoDealButton(userId: string, quality?: DonDQuality): ButtonBuilder {
+        return dondGame(userId, quality ?? DealOrNoDeal.rollTier())
     }
 }
 

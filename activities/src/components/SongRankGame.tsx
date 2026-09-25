@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { RankTrack } from "@/app/api/spotify/playlist/route"
 import { isAdminUser } from "@/lib/admin"
 import { RankState, answer, currentCandidate, currentComparison, init, keep, skip } from "@/lib/songRanker"
+import { CompactProgress, fromCompact, loadCloudProgress, saveCloudProgress, toCompact } from "@/lib/songRankCloud"
 import { extractPlaylistId } from "@/lib/spotifyIds"
 import { clearProgress, loadProgress, saveProgress } from "@/lib/songRankStorage"
 import { useDiscord } from "@/providers/discordProvider"
@@ -11,7 +12,10 @@ import styles from "./SongRankGame.module.css"
 
 type Screen = "input" | "playing"
 
-export function SongRankGame() {
+// Coalesces a burst of quick keep/skip/compare clicks into one Firebase write.
+const CLOUD_SAVE_DELAY_MS = 800
+
+export function SongRankGame({ accessToken }: { accessToken: string | null }) {
   const { discordUser } = useDiscord()
   const isAdmin = isAdminUser(discordUser?.id)
 
@@ -26,10 +30,31 @@ export function SongRankGame() {
   const [spotifyUser, setSpotifyUser] = useState<string | null>(null)
   const [addTrackError, setAddTrackError] = useState<string | null>(null)
   const [showAdminPanel, setShowAdminPanel] = useState(false)
+  const [confirmOverwrite, setConfirmOverwrite] = useState(false)
+  const [cloud, setCloud] = useState<CompactProgress | null>(null)
+  const cloudTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     setSaved(loadProgress())
   }, [])
+
+  useEffect(() => {
+    if (!isAdmin || !accessToken) return
+    loadCloudProgress(accessToken)
+      .then(setCloud)
+      .catch(() => {})
+  }, [isAdmin, accessToken])
+
+  function scheduleCloudSave(next: RankState) {
+    if (!isAdmin || !accessToken) return
+    if (cloudTimer.current) clearTimeout(cloudTimer.current)
+    cloudTimer.current = setTimeout(() => {
+      const compact = toCompact(next)
+      saveCloudProgress(accessToken, compact)
+        .then(() => setCloud(compact))
+        .catch(() => {})
+    }, CLOUD_SAVE_DELAY_MS)
+  }
 
   useEffect(() => {
     if (!isAdmin) return
@@ -42,10 +67,19 @@ export function SongRankGame() {
   function update(next: RankState) {
     setState(next)
     saveProgress(next)
+    scheduleCloudSave(next)
   }
 
   async function loadPlaylist() {
     if (!playlistInput.trim()) return
+    // Starting fresh replaces the one saved ranking outright - never do that silently once there's
+    // real progress in it (a stray click here is what wiped a ~60-song run).
+    const hasProgress = (!!saved && (saved.ranked.length > 0 || saved.skippedCount > 0)) || (cloud?.processed ?? 0) > 0
+    if (hasProgress && !confirmOverwrite) {
+      setConfirmOverwrite(true)
+      return
+    }
+    setConfirmOverwrite(false)
     setLoading(true)
     setError(null)
     try {
@@ -70,6 +104,26 @@ export function SongRankGame() {
     if (!saved) return
     setState(saved)
     setScreen("playing")
+  }
+
+  async function resumeFromCloud() {
+    if (!cloud) return
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/spotify/playlist?playlist=${encodeURIComponent(cloud.playlistId)}`)
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error ?? "Noe gikk galt")
+        return
+      }
+      update(fromCompact(cloud, data.tracks as RankTrack[]))
+      setScreen("playing")
+    } catch {
+      setError("Klarte ikke å hente spillelisten")
+    } finally {
+      setLoading(false)
+    }
   }
 
   function doSkip() {
@@ -150,6 +204,11 @@ export function SongRankGame() {
             Fortsett forrige rangering ({saved.allTracks.length - saved.queue.length}/{saved.allTracks.length} vurdert, {saved.ranked.length} rangert)
           </button>
         )}
+        {cloud && cloud.processed > 0 && (!saved || saved.allTracks.length - saved.queue.length !== cloud.processed) && (
+          <button className={styles.resumeBtn} type="button" disabled={loading} onClick={resumeFromCloud}>
+            Fortsett fra sky ({cloud.processed}/{cloud.order.split(",").length} vurdert, {cloud.rankedIds ? cloud.rankedIds.split(",").length : 0} rangert)
+          </button>
+        )}
         <input
           className={styles.input}
           placeholder="https://open.spotify.com/playlist/..."
@@ -166,8 +225,13 @@ export function SongRankGame() {
         )}
         {error && <p className={styles.error}>{error}</p>}
         <button className={styles.startBtn} type="button" disabled={loading || !playlistInput.trim()} onClick={loadPlaylist}>
-          {loading ? "Henter..." : "Start ny rangering"}
+          {loading ? "Henter..." : confirmOverwrite ? "Ja, overskriv lagret rangering" : "Start ny rangering"}
         </button>
+        {confirmOverwrite && (
+          <p className={styles.error}>
+            Du har en påbegynt rangering ({saved?.ranked.length} rangert, {saved?.skippedCount} hoppet over). Å starte ny sletter den. Trykk igjen for å bekrefte, eller bruk «Fortsett» over.
+          </p>
+        )}
       </div>
     )
   }

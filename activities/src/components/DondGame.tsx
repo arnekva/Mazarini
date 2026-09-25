@@ -2,6 +2,7 @@
 
 import { callApi } from "@/lib/apiClient"
 import Link from "next/link"
+import { useDiscord } from "@/providers/discordProvider"
 import { useEffect, useRef, useState } from "react"
 import shared from "./BlackjackGame.module.css"
 import styles from "./DondGame.module.css"
@@ -133,6 +134,11 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
   const loadedRef = useRef(false)
   // Mirrors `busy` for the poll below - its interval callback would otherwise only ever see a stale value.
   const busyRef = useRef(false)
+  // Bumped when an action starts and again when it finishes. A poll remembers the value it started under and is thrown away if it moved
+  // meanwhile: otherwise a poll sent just before "No deal" (or before a case opened) can land just after the action's own answer and
+  // put the old screen back for a moment - the Deal button vanishing and reappearing.
+  const actSeqRef = useRef(0)
+  const { channelId } = useDiscord()
   const [activeGames, setActiveGames] = useState<ActiveGame[]>([])
 
   // While you're between rounds, keep a list of rounds in progress to watch (so the announcement button isn't the only way in).
@@ -174,9 +180,10 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
     const interval = setInterval(
       () => {
         if (busyRef.current) return
+        const seq = actSeqRef.current
         callApi<Status>(url, accessToken)
           .then((res) => {
-            if (busyRef.current) return
+            if (busyRef.current || actSeqRef.current !== seq) return
             setStatus((prev) => ({ ...res, tokens: res.tokens ?? prev?.tokens ?? { basic: 0, premium: 0, elite: 0 } }))
           })
           .catch(() => {
@@ -192,6 +199,7 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
     if (busy) return
     setBusy(true)
     busyRef.current = true
+    actSeqRef.current++
     setError(null)
     try {
       const res = await callApi<Partial<Status>>("/api/games/dond", accessToken, { method: "POST", body: JSON.stringify(body) })
@@ -208,6 +216,7 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
     } finally {
       setBusy(false)
       busyRef.current = false
+      actSeqRef.current++
     }
   }
 
@@ -280,7 +289,7 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
               style={{ width: "100%", marginTop: 12 }}
               type="button"
               disabled={busy || !activeTier || pickedCase === null}
-              onClick={() => act({ action: "start", tier: activeTier, caseNr: pickedCase })}
+              onClick={() => act({ action: "start", tier: activeTier, caseNr: pickedCase, channelId })}
             >
               {pickedCase === null ? "Velg en koffert" : `Start spillet med koffert ${pickedCase}`}
             </button>

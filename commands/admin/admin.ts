@@ -22,7 +22,7 @@ import { MazariniClient } from '../../client/MazariniClient'
 import { CCGCardGenerator } from '../../helpers/ccgCardGenerator'
 import { ClientHelper } from '../../helpers/clientHelper'
 import { ComponentsHelper } from '../../helpers/componentsHelper'
-import { dbPrefix, IDondTokens, ILootbox, MazariniEventType, prefixList } from '../../interfaces/database/databaseInterface'
+import { dbPrefix, ILootbox, MazariniEventType, prefixList } from '../../interfaces/database/databaseInterface'
 import { IInteractionElement } from '../../interfaces/interactionInterface'
 import { DailyJobs } from '../../Jobs/dailyJobs'
 import { WeeklyJobs } from '../../Jobs/weeklyJobs'
@@ -32,7 +32,7 @@ import { EmbedUtils } from '../../utils/embedUtils'
 import { MentionUtils } from '../../utils/mentionUtils'
 import { MessageUtils } from '../../utils/messageUtils'
 import { TextUtils } from '../../utils/textUtils'
-import { DonDQuality } from '../games/dealOrNoDeal'
+import { DealOrNoDeal, DonDQuality } from '../games/dealOrNoDeal'
 import { MoreOrLess } from '../games/moreOrLess'
 import { LootboxCommands, LootType } from '../store/lootboxCommands'
 
@@ -358,7 +358,7 @@ export class Admin extends AbstractCommands {
     /** Grants a Deal or No Deal token for the chosen tier - it's spent to start a game in the Activities app. */
     private async rewardUserWithDealOrNoDeal(interaction: ChatInteraction | BtnInteraction, pendingReward: IReward, user: User) {
         const dondQuality = Number(pendingReward.quality) as DonDQuality
-        const tier: keyof IDondTokens = dondQuality === DonDQuality.Elite ? 'elite' : dondQuality === DonDQuality.Premium ? 'premium' : 'basic'
+        const tier = DealOrNoDeal.tokenTier(dondQuality)
         const dbUser = await this.client.database.getUser(user.id)
         dbUser.dondTokens = { ...dbUser.dondTokens, [tier]: (dbUser.dondTokens?.[tier] ?? 0) + 1 }
         await this.client.database.updateUser(dbUser)

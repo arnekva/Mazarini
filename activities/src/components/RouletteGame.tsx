@@ -202,6 +202,8 @@ export function RouletteGame({ accessToken }: { accessToken: string }) {
   const nowRef = useRef(0)
   const tableRef = useRef<TableView | null>(null)
   const busyRef = useRef(false)
+  // Same guard as in DondGame: a poll that started before an action finished must not overwrite what the action returned.
+  const actSeqRef = useRef(0)
   const animatedRoundRef = useRef<number | null>(null)
 
   function applyTable(res: TableView) {
@@ -238,14 +240,16 @@ export function RouletteGame({ accessToken }: { accessToken: string }) {
     setNow(nowRef.current)
     let cancelled = false
     const url = `/api/multiplayer/roulette?instanceId=${encodeURIComponent(instanceId)}`
-    const load = () =>
-      callApi<TableView>(url, accessToken)
+    const load = () => {
+      const seq = actSeqRef.current
+      return callApi<TableView>(url, accessToken)
         .then((res) => {
-          if (!cancelled && !busyRef.current) applyTable(res)
+          if (!cancelled && !busyRef.current && actSeqRef.current === seq) applyTable(res)
         })
         .catch(() => {
           // transient poll failure - next tick retries
         })
+    }
     const first = setTimeout(load, 0)
     const poll = setInterval(load, 1000)
     const tick = setInterval(() => {
@@ -264,6 +268,7 @@ export function RouletteGame({ accessToken }: { accessToken: string }) {
     if (!instanceId || busy) return
     setBusy(true)
     busyRef.current = true
+    actSeqRef.current++
     setError(null)
     try {
       applyTable(await callApi<TableView>("/api/multiplayer/roulette", accessToken, { method: "POST", body: JSON.stringify({ instanceId, ...body }) }))
@@ -272,6 +277,7 @@ export function RouletteGame({ accessToken }: { accessToken: string }) {
     } finally {
       setBusy(false)
       busyRef.current = false
+      actSeqRef.current++
     }
   }
 

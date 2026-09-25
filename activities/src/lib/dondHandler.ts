@@ -1,6 +1,6 @@
 import { FirebaseHelper } from "./db/firebaseHelper"
 import { AuthenticatedDiscordUser } from "./discordAuth"
-import { dondSpectateButtonComponent, lootButtonComponent, postChannelMessage } from "./discordMessage"
+import { dondSpectateButtonComponent, lootButtonComponent, postChannelMessage, resolveAnnounceChannel } from "./discordMessage"
 import { discordAvatarUrl } from "./discordAvatar"
 import { DOND_CASES, DOND_TIER_K, DondTier, JAIL_MULTIPLIER, ANNOUNCE_CHANNEL_ID, dondValues } from "./gameValues"
 import { DondEffect, effectPoolForOffer, findEffect } from "./dondItems"
@@ -26,6 +26,8 @@ interface DondGame {
   tier: DondTier
   /** Shown to spectators. */
   playerName: string
+  /** Where this round's announcements go: the channel the Activity was launched from (when it's usable), else the default announce channel. */
+  channelId?: string
   /** values[i] is what case number i + 1 holds - never sent to the client for a closed case. */
   values: number[]
   opened: boolean[]
@@ -165,9 +167,11 @@ function jailAdjusted(dbUser: any, chips: number) {
   return Math.floor((dbUser.jail?.daysInJail ?? 0) > 0 ? chips * JAIL_MULTIPLIER : chips)
 }
 
-async function announce(body: Parameters<typeof postChannelMessage>[1]) {
+async function announce(body: Parameters<typeof postChannelMessage>[1], channelId?: string) {
+  const target = channelId ?? ANNOUNCE_CHANNEL_ID
   try {
-    await postChannelMessage(ANNOUNCE_CHANNEL_ID, body)
+    // The launch channel might be one the bot can't post in - the usual place is always a safe fallback.
+    if (!(await postChannelMessage(target, body)) && target !== ANNOUNCE_CHANNEL_ID) await postChannelMessage(ANNOUNCE_CHANNEL_ID, body)
   } catch {
     // Best-effort - the game result is already saved.
   }
@@ -297,7 +301,7 @@ function recapEmbed(userId: string, game: DondGame, chat: ChatMessage[]) {
 
 async function postRecap(firebase: FirebaseHelper, userId: string, game: DondGame, components?: unknown[]) {
   const chat = await readChat(firebase, userId)
-  await announce({ embeds: [recapEmbed(userId, game, chat)], allowed_mentions: { parse: [] }, ...(components ? { components } : {}) })
+  await announce({ embeds: [recapEmbed(userId, game, chat)], allowed_mentions: { parse: [] }, ...(components ? { components } : {}) }, game.channelId)
 }
 
 const err = (message: string, status = 400) => Response.json({ error: message }, { status })
@@ -315,7 +319,7 @@ export async function getDondStatus(user: AuthenticatedDiscordUser) {
   })
 }
 
-export async function startDond(user: AuthenticatedDiscordUser, tierInput: unknown, caseInput: unknown) {
+export async function startDond(user: AuthenticatedDiscordUser, tierInput: unknown, caseInput: unknown, channelInput?: unknown) {
   const firebase = new FirebaseHelper()
   const tier = TIERS.find((t) => t === tierInput)
   const playerCase = Math.floor(Number(caseInput))
@@ -340,11 +344,12 @@ export async function startDond(user: AuthenticatedDiscordUser, tierInput: unkno
     casesOpened: 0,
     state: "opening",
     playerName: user.globalName ?? user.username,
+    channelId: await resolveAnnounceChannel(typeof channelInput === "string" ? channelInput : null),
   }
   await writeGame(firebase, user.id, game)
   // A fresh round never inherits the previous round's chat.
   await firebase.updateData({ [chatPath(user.id)]: null, [spectatorsPath(user.id)]: null })
-  await announce({ content: `<@${user.id}> har startet en runde Deal or No Deal! Klikk på knappen for å se på`, components: [dondSpectateButtonComponent(user.id)] })
+  await announce({ content: `<@${user.id}> har startet en runde Deal or No Deal! Klikk på knappen for å se på`, components: [dondSpectateButtonComponent(user.id)] }, game.channelId)
   return Response.json({ tokens: { ...tokens, [tier]: tokens[tier] - 1 }, game: publicView(game) })
 }
 

@@ -29,7 +29,7 @@ interface HubStatus {
 }
 
 export default function Home() {
-  const { accessToken, ready, discordUser } = useDiscord()
+  const { accessToken, ready, discordUser, authError } = useDiscord()
   const router = useRouter()
   const [status, setStatus] = useState<HubStatus | null>(null)
   const [redirecting, setRedirecting] = useState(false)
@@ -82,6 +82,10 @@ export default function Home() {
       {/* Always rendered (even before status loads) so its height is reserved from first paint -
           otherwise the cards below jump down once this pops in, right where you're about to click. */}
       <span className={styles.chips}>{status ? `${status.chips} chips` : " "}</span>
+
+      {ready && !accessToken && authError && (
+        <p className={styles.subtitle}>Klarte ikke å logge deg inn med Discord, så det meste er låst. Lukk Activity-en og åpne den på nytt, og godkjenn når Discord spør.</p>
+      )}
 
       {!ready ? (
         <div className={styles.spinner} aria-label="Laster..." />

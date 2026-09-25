@@ -136,14 +136,9 @@ export class ClientListener {
             } else {
                 this.commandRunner.runCommands(message)
                 const hoieTagged = message.content.includes(`<@${MentionUtils.User_IDs.BOT_HOIE}>`)
-                let replyToHoie = false
-                if (message.mentions?.repliedUser?.id === MentionUtils.User_IDs.BOT_HOIE) {
-                    const msgId = message.reference.messageId
-                    const reference = await this.client.messageHelper.fetchMessage(message.channelId, msgId)
-                    replyToHoie = reference.interactionMetadata === null
-                }
                 const correctChannel = MessageUtils.isLegalChannel(message.channelId)
-                if ((hoieTagged || replyToHoie) && correctChannel) {
+                // Only an actual @Bot Høie tag gets an answer - replying to one of the bot's messages no longer does.
+                if (hoieTagged && correctChannel) {
                     const calcResult = MiscUtils.tryCalculate(message.content)
                     if (calcResult) {
                         this.client.messageHelper.sendMessage(message.channelId, { text: calcResult })
