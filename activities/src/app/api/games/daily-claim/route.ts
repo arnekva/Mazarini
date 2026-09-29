@@ -1,7 +1,7 @@
 import { FirebaseHelper } from "@/lib/db/firebaseHelper"
 import { authenticateRequest } from "@/lib/discordAuth"
-import { lootButtonComponent, postChannelMessage } from "@/lib/discordMessage"
-import { ANNOUNCE_CHANNEL_ID, dailyClaimValues, JAIL_MULTIPLIER } from "@/lib/gameValues"
+import { announceInChannel, lootButtonComponent } from "@/lib/discordMessage"
+import { dailyClaimValues, JAIL_MULTIPLIER } from "@/lib/gameValues"
 
 // Mirrors commands/money/dailyClaimCommands.ts in the bot repo: same reward formula, same
 // claimedToday/streak fields (so /daily in chat and this button stay in sync), same jail penalty,
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
   })
 
   if (lootAwarded && dailyClaimValues.streak7Reward === "chest") {
-    await postChannelMessage(ANNOUNCE_CHANNEL_ID, {
+    await announceInChannel(user.channelId, {
       content: `<@${user.id}> nådde 7 dager i strekk på Daily Claim og fikk en kiste!`,
       components: [lootButtonComponent(user.id, "basic", "chest")],
     })

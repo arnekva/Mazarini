@@ -3,7 +3,10 @@ import { increment } from "firebase/database"
 import { FirebaseHelper } from "./db/firebaseHelper"
 import { AuthenticatedDiscordUser } from "./discordAuth"
 import { discordAvatarUrl } from "./discordAvatar"
-import { rouletteValues } from "./gameValues"
+import { editLiveMessage, liveLogBody, LiveMessageRef, postLiveMessage, resolveAnnounceChannel } from "./discordMessage"
+import { after } from "next/server"
+import { chatEmbedFields, CHAT_VISIBLE, ChatMessage, postChat, readChat } from "./gameChat"
+import { ANNOUNCE_CHANNEL_ID, rouletteValues } from "./gameValues"
 
 // Shared roulette table - one per voice channel (instanceId), everyone who opens it sits at the same table. Port of the
 // bot's /rulett (commands/money/gamblingCommands.ts): same bets, same payouts, same stats - but with timed rounds.
@@ -52,6 +55,96 @@ const STALE_CLAIM_MS = 60 * 1000
 const root = (instanceId: string) => `other/multiplayerRoulette/${instanceId}`
 const err = (message: string, status = 400) => Response.json({ error: message }, { status })
 
+// ---------- the Discord log message and the chat ----------
+//
+// Like the blackjack table: one message is posted when the first round of a session is played and edited after every round (see the notes on live
+// messages in discordMessage.ts) - so it's up to date however the session ends. There's no "session over" event on serverless, so a session is over
+// when nobody has been at the table for a while, which is noticed the next time someone arrives (see endIdleSession). That's also when the chat is dumped.
+
+const chatPath = (instanceId: string) => `${root(instanceId)}/chat`
+const sessionPath = (instanceId: string) => `${root(instanceId)}/session`
+/** Nobody at the table for this long = the session is over. */
+const SESSION_IDLE_MS = 60 * 1000
+
+interface Session {
+  /** Where its message goes: the channel the first bettor launched the Activity from (already resolved). */
+  channelId: string
+  starter: string
+  startedAt: number
+  logRef?: LiveMessageRef
+  rounds?: string[]
+}
+
+const fmtChips = (n: number) => n.toLocaleString("nb-NO")
+
+function sessionBody(session: Session, rounds: string[], chat: ChatMessage[], footer?: string) {
+  return liveLogBody("Rulett", `**${session.starter}** startet en runde rulett`, rounds, chatEmbedFields(chat), footer)
+}
+
+async function readSession(firebase: FirebaseHelper, instanceId: string): Promise<Session | null> {
+  const raw = await firebase.getData(sessionPath(instanceId))
+  if (!raw) return null
+  return { ...raw, ...(raw.rounds ? { rounds: Object.values(raw.rounds) as string[] } : {}) }
+}
+
+/** The first bet of a session decides where its message goes. */
+async function ensureSession(firebase: FirebaseHelper, instanceId: string, user: AuthenticatedDiscordUser) {
+  if (await firebase.getData(sessionPath(instanceId))) return
+  const session: Session = { channelId: await resolveAnnounceChannel(user.channelId), starter: user.globalName ?? user.username, startedAt: Date.now() }
+  await firebase.updateData({ [sessionPath(instanceId)]: session })
+}
+
+function roundText(roundId: number, roll: number, results: Record<string, PlayerResult>): string {
+  const lines = [`**Runde ${roundId}:** ${roll} (${colorName[colorOf(roll)]})`]
+  for (const r of Object.values(results)) {
+    const outcome = r.net > 0 ? `vant ${fmtChips(r.net)}` : r.net < 0 ? `tapte ${fmtChips(-r.net)}` : "gikk i null"
+    lines.push(`${r.name} satset ${fmtChips(r.staked)}, og ${outcome}`)
+  }
+  return lines.join("\n")
+}
+
+/** Adds a finished round to the session's message - posting the message first if this is the session's first round. Best-effort. */
+async function logRound(firebase: FirebaseHelper, instanceId: string, roundId: number, roll: number, results: Record<string, PlayerResult>) {
+  try {
+    const session = (await readSession(firebase, instanceId)) ?? { channelId: ANNOUNCE_CHANNEL_ID, starter: Object.values(results)[0]?.name ?? "Noen", startedAt: Date.now() }
+    const rounds = [...(session.rounds ?? []), roundText(roundId, roll, results)]
+    const chat = await readChat(firebase, chatPath(instanceId))
+    const body = sessionBody(session, rounds, chat)
+    let logRef = session.logRef
+    if (logRef) await editLiveMessage(logRef, body)
+    else logRef = (await postLiveMessage(session.channelId, body)) ?? undefined
+    await firebase.updateData({ [sessionPath(instanceId)]: JSON.parse(JSON.stringify({ ...session, rounds, ...(logRef ? { logRef } : {}) })) })
+  } catch (e) {
+    console.error("Roulette log update failed", e)
+  }
+}
+
+/** When someone (re)arrives at a table that nobody else has been at for a while, the earlier session is over: its message gets a last edit with the
+ * chat, and the session and chat are cleared. Only checked for someone whose own presence has lapsed, i.e. arriving - not on every poll. */
+async function endIdleSession(firebase: FirebaseHelper, instanceId: string, user: AuthenticatedDiscordUser) {
+  const now = Date.now()
+  const mine = await firebase.getData(`${root(instanceId)}/presence/${user.id}`)
+  if (mine && now - mine.at < SESSION_IDLE_MS) return
+  const [presence, session, chat] = await Promise.all([
+    firebase.getData(`${root(instanceId)}/presence`) as Promise<Record<string, { at: number }> | undefined>,
+    readSession(firebase, instanceId),
+    readChat(firebase, chatPath(instanceId)),
+  ])
+  if (!session && chat.length === 0) return
+  if (Object.values(presence ?? {}).some((p) => now - p.at < SESSION_IDLE_MS)) return
+  if (!(await firebase.claim(`${root(instanceId)}/claims/end-${session?.startedAt ?? chat[0]?.at}`))) return
+  if (session?.logRef) await editLiveMessage(session.logRef, sessionBody(session, session.rounds ?? [], chat, "Bordet ble tomt - runden er over"))
+  await firebase.updateData({ [sessionPath(instanceId)]: null, [chatPath(instanceId)]: null })
+}
+
+export async function postRouletteChat(instanceId: string, user: AuthenticatedDiscordUser, text: unknown) {
+  const firebase = new FirebaseHelper()
+  await touchPresence(firebase, instanceId, user)
+  const result = await postChat(firebase, chatPath(instanceId), user, text)
+  if ("error" in result) return err(result.error)
+  return Response.json({ chat: result.chat })
+}
+
 // ---------- rules (bot parity) ----------
 
 /** How many times the stake a bet returns on this number (0 = lost). Same rules as the bot's /rulett - including that 0
@@ -71,6 +164,8 @@ function payoutMultiplier(bet: Bet, roll: number): number {
       return roll % 2 === 0 ? categoryPayout : 0
   }
 }
+
+const colorName = { green: "grønn", red: "rød", black: "svart" }
 
 function colorOf(roll: number): "green" | "red" | "black" {
   if (roll === 0) return "green"
@@ -145,6 +240,7 @@ async function resolveRound(firebase: FirebaseHelper, instanceId: string, table:
   }
   updates[`${root(instanceId)}/table`] = next
   await firebase.updateData(updates)
+  after(() => logRound(firebase, instanceId, table.roundId, roll, results))
 }
 
 /** Moves the table along if its time is up. Safe to call from every poll - see the notes at the top. */
@@ -185,11 +281,12 @@ async function advance(firebase: FirebaseHelper, instanceId: string): Promise<Ta
 
 async function publicView(firebase: FirebaseHelper, instanceId: string, table: Table, userId: string) {
   type Presence = Record<string, { name: string; avatar: string | null; at: number }>
-  const [bets, presence, dbUser, readyRaw]: [Record<string, Record<string, Bet>>, Presence | undefined, any, Record<string, true> | undefined] = await Promise.all([
+  const [bets, presence, dbUser, readyRaw, chat]: [Record<string, Record<string, Bet>>, Presence | undefined, any, Record<string, true> | undefined, ChatMessage[]] = await Promise.all([
     readBets(firebase, instanceId, table.roundId),
     firebase.getData(`${root(instanceId)}/presence`),
     firebase.getUser(userId),
     firebase.getData(`${root(instanceId)}/ready/${table.roundId}`),
+    readChat(firebase, chatPath(instanceId)),
   ])
   const readyIds = readyRaw ?? {}
   const now = Date.now()
@@ -225,6 +322,7 @@ async function publicView(firebase: FirebaseHelper, instanceId: string, table: T
     results: table.phase === "result" ? table.results : undefined,
     history: table.history,
     myChips: dbUser?.chips ?? 0,
+    chat: chat.slice(-CHAT_VISIBLE),
     myBets: summarize(bets[userId] ?? {}),
     players: [...players.values()],
     /** The Spin button: how many of the players who have a bet have pressed it. Only those with a bet can, so only they count. */
@@ -248,6 +346,7 @@ async function publicView(firebase: FirebaseHelper, instanceId: string, table: T
 
 export async function getRouletteTable(instanceId: string, user: AuthenticatedDiscordUser) {
   const firebase = new FirebaseHelper()
+  await endIdleSession(firebase, instanceId, user)
   await touchPresence(firebase, instanceId, user)
   const table = await advance(firebase, instanceId)
   return Response.json(await publicView(firebase, instanceId, table, user.id))
@@ -272,6 +371,7 @@ export async function placeRouletteBet(instanceId: string, user: AuthenticatedDi
   const dbUser = (await firebase.getUser(user.id)) ?? {}
   if ((dbUser.chips ?? 0) < stake) return err(`Du har ikke nok chips (du har ${dbUser.chips ?? 0})`)
 
+  await ensureSession(firebase, instanceId, user)
   const key = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
   const bet: Bet = { type, stake, name: user.globalName ?? user.username, ...(value !== undefined ? { value } : {}) }
   // Taking the stake and recording the bet are one write - a bet can never be paid for and then lost, or recorded but free.

@@ -88,15 +88,16 @@ export class Blackjack extends AbstractCommands {
         return this.arrowEmoji
     }
 
-    /** Opens the multiplayer Blackjack Activity - deathroll.ts already wrote the pot amount as a
+    /** Opens the multiplayer Blackjack Activity. For the winner: deathroll.ts already wrote the pot amount as a
      * pending auto-start buy-in (other/pendingBlackjackAutoStart/{userId}) before posting this
      * button, so the winner lands straight at a table configured with it. Chips aren't touched here
      * at all anymore; the Activity's own buy-in flow handles that once they actually deal. */
     private async deathrollBlackjack(interaction: BtnInteraction) {
         const userId = interaction.customId.split(';')[1]
         if (userId !== interaction.user.id) {
-            interaction.deferUpdate()
-            return
+            // Not their pot - they come along as a spectator of the winner's table (the hub reads this and forwards them; see
+            // consumePendingBlackjackSpectate in the activities app). If the table isn't up yet they wait in the lobby for it.
+            await this.client.database.updateData({ [`other/pendingBlackjackSpectate/${interaction.user.id}`]: { hostId: userId, createdAt: Date.now() } })
         }
         await interaction.launchActivity()
     }

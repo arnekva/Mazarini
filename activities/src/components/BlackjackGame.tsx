@@ -6,6 +6,7 @@ import { proxyImageUrl } from "@/lib/imgProxy"
 import { useDiscord } from "@/providers/discordProvider"
 import { useEffect, useRef, useState } from "react"
 import styles from "./BlackjackGame.module.css"
+import { ChatMessage, GameChat, postChatTo } from "./GameChat"
 import { SpectatorBar } from "./SpectatorBar"
 
 interface CardView {
@@ -74,10 +75,17 @@ interface TableView {
   betVote?: BetVoteView
   roundOverAt?: number
   roundStartCooldownMs?: number
+  frameSeq?: number
+  chat?: ChatMessage[]
+  /** Earned a "Deal på ny" from the round that just ended (a deathroll-pot stake that won). */
+  myGotRedealBonus?: boolean
+  /** Only for spectators: what happened since their last poll, oldest first. */
+  frames?: { seq: number; view: TableView }[]
 }
 
 interface LobbySummary {
   id: string
+  hostId: string
   hostUsername: string
   buyIn: number
   numPlayers: number
@@ -86,6 +94,8 @@ interface LobbySummary {
 }
 
 const LOBBY_POLL_MS = 2000
+// Someone waiting for a table to appear, and spectators of a running one, want it as live as it gets.
+const WATCH_POLL_MS = 1000
 const TABLE_POLL_MS = 1500
 
 function CardFace({ card }: { card: CardView }) {
@@ -148,7 +158,7 @@ function HandBlock({ hand, result, active, isMine }: { hand: HandView; result?: 
   )
 }
 
-export function BlackjackGame({ accessToken }: { accessToken: string }) {
+export function BlackjackGame({ accessToken, watchHostId }: { accessToken: string; watchHostId?: string }) {
   const { instanceId, discordUser } = useDiscord()
   const [lobbies, setLobbies] = useState<LobbySummary[] | null>(null)
   const [lobbyId, setLobbyId] = useState<string | null>(null)
@@ -160,7 +170,50 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [now, setNow] = useState(() => Date.now())
+  // Set while waiting for this person's table to show up in the list (a pot winner's table that isn't started yet) - it's joined as a spectator the moment it does.
+  const [waitingForHost, setWaitingForHost] = useState<string | null>(watchHostId ?? null)
   const initedRef = useRef(false)
+  const waitingForHostRef = useRef(waitingForHost)
+  // The polling loops below live in an effect that only restarts when the lobby changes - they reach the current action() through this.
+  const actionRef = useRef<typeof action>(null as unknown as typeof action)
+  // Only one poll at a time, and none whose answer is older than an action the player has taken since it was sent - either would put a stale table back on screen.
+  const pollBusyRef = useRef(false)
+  const actSeqRef = useRef(0)
+  const spectatingRef = useRef(false)
+  // Spectating: the newest frame already shown, the ones still waiting to be shown, and whether the queue is being played (see playFrames).
+  const lastFrameRef = useRef<number | null>(null)
+  const frameQueueRef = useRef<{ seq: number; view: TableView }[]>([])
+  const playingRef = useRef(false)
+
+  /** Replays what a spectator missed between two polls, one frame at a time, so a round that started and ended within a second still shows up. */
+  function playFrames() {
+    if (playingRef.current) return
+    const step = () => {
+      const frame = frameQueueRef.current.shift()
+      if (!frame) {
+        playingRef.current = false
+        return
+      }
+      playingRef.current = true
+      // A frame is the shared table only - what's about the viewer (chips, seat) stays as it was.
+      setTable((prev) =>
+        prev
+          ? {
+              ...frame.view,
+              myChips: prev.myChips,
+              myRedealsAvailable: prev.myRedealsAvailable,
+              myRedealDeniedThisRound: prev.myRedealDeniedThisRound,
+              myGotRedealBonus: false,
+              chat: prev.chat,
+              iAmPlaying: prev.iAmPlaying,
+              iAmSpectating: prev.iAmSpectating,
+            }
+          : prev
+      )
+      setTimeout(step, frameQueueRef.current.length > 4 ? 350 : 800)
+    }
+    step()
+  }
 
   async function refreshLobbies() {
     if (!instanceId) return
@@ -170,7 +223,17 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
         accessToken
       )
       setLobbies(res.lobbies)
-      if (res.myLobbyId && !lobbyId) setLobbyId(res.myLobbyId)
+      if (res.myLobbyId && !lobbyId) {
+        setWaitingForHost(null)
+        setLobbyId(res.myLobbyId)
+        return
+      }
+      const target = waitingForHostRef.current ? res.lobbies.find((l) => l.hostId === waitingForHostRef.current) : undefined
+      if (target && !lobbyId) {
+        setWaitingForHost(null)
+        setClosedNotice(false)
+        actionRef.current("spectate", { lobbyId: target.id })
+      }
     } catch {
       // transient poll failure - next tick retries
     }
@@ -178,11 +241,14 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
 
   async function refreshTable(id: string) {
     if (!instanceId) return
+    const actSeq = actSeqRef.current
     try {
+      const since = spectatingRef.current && lastFrameRef.current !== null ? `&since=${lastFrameRef.current}` : ""
       const res = await callApi<TableView & { closed?: boolean }>(
-        `/api/multiplayer/blackjack?instanceId=${encodeURIComponent(instanceId)}&lobbyId=${encodeURIComponent(id)}`,
+        `/api/multiplayer/blackjack?instanceId=${encodeURIComponent(instanceId)}&lobbyId=${encodeURIComponent(id)}${since}`,
         accessToken
       )
+      if (actSeqRef.current !== actSeq) return
       if (res.closed) {
         setClosedNotice(true)
         setTable(null)
@@ -193,7 +259,19 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
         setTable(null)
         setLobbyId(null)
       } else {
-        setTable(res)
+        spectatingRef.current = res.iAmSpectating
+        if (res.iAmSpectating) {
+          const fresh = (res.frames ?? []).filter((f) => f.seq > (lastFrameRef.current ?? -1))
+          if (fresh.length > 0) {
+            frameQueueRef.current.push(...fresh)
+            playFrames()
+          }
+          lastFrameRef.current = Math.max(lastFrameRef.current ?? 0, res.frameSeq ?? 0)
+          // While frames are being replayed the live view would jump ahead of them - the next poll after they've played catches up.
+          if (!playingRef.current && fresh.length === 0) setTable(res)
+        } else {
+          setTable(res)
+        }
       }
     } catch {
       // transient poll failure - next tick retries
@@ -219,6 +297,7 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
   ) {
     if (!instanceId || busy) return
     setBusy(true)
+    actSeqRef.current++
     setError(null)
     try {
       const res = await callApi<TableView>("/api/multiplayer/blackjack", accessToken, {
@@ -227,9 +306,16 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
       })
       if (actionName === "create" || actionName === "join" || actionName === "spectate") {
         setRemovedNotice(false)
+        // Starting over at a new table: whatever a previous one had queued to replay is of no interest.
+        frameQueueRef.current = []
+        lastFrameRef.current = actionName === "spectate" ? res.frameSeq ?? 0 : null
+        spectatingRef.current = actionName === "spectate"
         setLobbyId(res.id)
         setTable(res)
       } else if (actionName === "leave") {
+        frameQueueRef.current = []
+        lastFrameRef.current = null
+        spectatingRef.current = false
         setLobbyId(null)
         setTable(null)
         refreshLobbies()
@@ -240,12 +326,22 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
       setError(err instanceof Error ? err.message : "Noe gikk galt")
     } finally {
       setBusy(false)
+      actSeqRef.current++
     }
   }
+  useEffect(() => {
+    waitingForHostRef.current = waitingForHost
+    actionRef.current = action
+  })
 
   useEffect(() => {
     if (!instanceId || initedRef.current) return
     initedRef.current = true
+    if (watchHostId) {
+      // Sent here to watch someone's table: it may not exist yet, in which case refreshLobbies waits for it.
+      refreshLobbies()
+      return
+    }
     // Won the pot from /terning and clicked "Spill Blackjack"? Skip the lobby list entirely and
     // land straight at a table already set up with the pot as buy-in, for others to join or watch.
     callApi<{ buyIn: number | null }>("/api/multiplayer/blackjack/pending-autostart", accessToken)
@@ -257,16 +353,30 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instanceId])
 
+  // Each poll is scheduled when the previous one has finished, so a slow answer can never pile up behind or overtake the next.
   useEffect(() => {
     if (!instanceId) return
-    const interval = setInterval(
-      () => {
-        if (lobbyId) refreshTable(lobbyId)
-        else refreshLobbies()
-      },
-      lobbyId ? TABLE_POLL_MS : LOBBY_POLL_MS
-    )
-    return () => clearInterval(interval)
+    let cancelled = false
+    let timer: ReturnType<typeof setTimeout>
+    const tick = async () => {
+      if (!pollBusyRef.current) {
+        pollBusyRef.current = true
+        try {
+          if (lobbyId) await refreshTable(lobbyId)
+          else await refreshLobbies()
+        } finally {
+          pollBusyRef.current = false
+        }
+      }
+      if (cancelled) return
+      const delay = lobbyId ? (spectatingRef.current ? WATCH_POLL_MS : TABLE_POLL_MS) : waitingForHostRef.current ? WATCH_POLL_MS : LOBBY_POLL_MS
+      timer = setTimeout(tick, delay)
+    }
+    timer = setTimeout(tick, lobbyId ? TABLE_POLL_MS : LOBBY_POLL_MS)
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instanceId, lobbyId])
 
@@ -288,6 +398,16 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
   }
 
   if (!lobbyId) {
+    if (waitingForHost) {
+      return (
+        <>
+          <p className={styles.info}>Venter på at bordet blir startet - du blir med som tilskuer så fort det er oppe.</p>
+          <button className={styles.leaveBtn} type="button" onClick={() => setWaitingForHost(null)}>
+            Se alle bord i stedet
+          </button>
+        </>
+      )
+    }
     return (
       <>
         {closedNotice && <p className={styles.info}>Verten forlot bordet - bordet er stengt.</p>}
@@ -371,6 +491,8 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
   const canSplit = !!myActiveHand && myActiveHand.cards.length === 2 && myActiveHand.cards[0].rank === myActiveHand.cards[1].rank && table.myChips >= table.buyIn
   const iAmSittingOut = table.status === "playing" && me?.sittingOut
   const canAdjustBet = table.iAmPlaying && table.status !== "playing" && !table.betVote
+  // "Deal på ny" only exists before the first card is drawn (or a split made) - after that the hand has been played. Natural blackjack still counts.
+  const canRedeal = !!me && me.hands.length === 1 && me.hands[0].cards.length === 2 && (me.hands[0].status === "playing" || me.hands[0].status === "blackjack")
 
   return (
     <>
@@ -438,6 +560,10 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
         </p>
       )}
 
+      {table.iAmPlaying && table.status === "roundOver" && table.myGotRedealBonus && (
+        <p className={styles.info}>🎁 Du vant med pott-innsatsen og fikk +1 "Deal på ny"!</p>
+      )}
+
       {table.iAmSpectating && <p className={styles.info}>Du ser på - ikke med i spillet.</p>}
 
       {table.iAmPlaying && iAmSittingOut && (
@@ -464,13 +590,13 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
         </div>
       )}
 
-      {table.iAmPlaying && !table.redealVote && !iAmSittingOut && table.status === "playing" && table.myRedealsAvailable > 0 && !table.myRedealDeniedThisRound && (
+      {table.iAmPlaying && !table.redealVote && !iAmSittingOut && canRedeal && table.status === "playing" && table.myRedealsAvailable > 0 && !table.myRedealDeniedThisRound && (
         <button className={styles.redealBtn} type="button" disabled={busy} onClick={() => action("requestRedeal")}>
           🔄 Deal på ny ({table.myRedealsAvailable})
         </button>
       )}
 
-      {table.iAmPlaying && !table.redealVote && !iAmSittingOut && table.status === "playing" && table.myRedealsAvailable > 0 && table.myRedealDeniedThisRound && (
+      {table.iAmPlaying && !table.redealVote && !iAmSittingOut && canRedeal && table.status === "playing" && table.myRedealsAvailable > 0 && table.myRedealDeniedThisRound && (
         <p className={styles.info}>"Deal på ny" ble avvist denne runden - prøv igjen neste runde.</p>
       )}
 
@@ -545,6 +671,13 @@ export function BlackjackGame({ accessToken }: { accessToken: string }) {
           {dealCooldownMs > 0 ? `Nytt parti (${Math.ceil(dealCooldownMs / 1000)}s)` : "Nytt parti"}
         </button>
       )}
+
+      <GameChat
+        messages={table.chat ?? []}
+        boldUserId={table.hostId}
+        post={(text) => postChatTo("/api/multiplayer/blackjack", accessToken, { instanceId, lobbyId, action: "chat", text })}
+        onPosted={(chat) => setTable((prev) => (prev ? { ...prev, chat } : prev))}
+      />
     </>
   )
 }

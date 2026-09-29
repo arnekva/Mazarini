@@ -1,8 +1,8 @@
 import { FirebaseHelper } from "./db/firebaseHelper"
 import { AuthenticatedDiscordUser } from "./discordAuth"
 import { DailyGameStats, hasRewardedSlotsLeft } from "./dailyHub"
-import { postChannelMessage } from "./discordMessage"
-import { ANNOUNCE_CHANNEL_ID, mastermindValues } from "./gameValues"
+import { announceInChannel } from "./discordMessage"
+import { mastermindValues } from "./gameValues"
 
 interface Guess {
   guess: string[]
@@ -98,11 +98,11 @@ export async function submitMastermindGuess(user: AuthenticatedDiscordUser, gues
   })
 
   if (completed) {
-    await postChannelMessage(ANNOUNCE_CHANNEL_ID, {
+    await announceInChannel(user.channelId, {
       content: `<@${user.id}> klarte mastermind på ${numAttempts}/${mastermindValues.totalAttempts} forsøk${reward > 0 ? ` og fikk ${reward} chips!` : "!"}`,
     })
   } else if (finished) {
-    await postChannelMessage(ANNOUNCE_CHANNEL_ID, {
+    await announceInChannel(user.channelId, {
       content: `<@${user.id}> klarte IKKE mastermind på ${mastermindValues.totalAttempts} forsøk!`,
     })
   }

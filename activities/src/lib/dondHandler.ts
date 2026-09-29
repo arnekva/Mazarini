@@ -1,6 +1,7 @@
+import { after } from "next/server"
 import { FirebaseHelper } from "./db/firebaseHelper"
 import { AuthenticatedDiscordUser } from "./discordAuth"
-import { dondSpectateButtonComponent, lootButtonComponent, postChannelMessage, resolveAnnounceChannel } from "./discordMessage"
+import { dondSpectateButtonComponent, lootButtonComponent, postAnnouncement, resolveAnnounceChannel } from "./discordMessage"
 import { discordAvatarUrl } from "./discordAvatar"
 import { DOND_CASES, DOND_TIER_K, DondTier, JAIL_MULTIPLIER, ANNOUNCE_CHANNEL_ID, dondValues } from "./gameValues"
 import { DondEffect, effectPoolForOffer, findEffect } from "./dondItems"
@@ -167,15 +168,8 @@ function jailAdjusted(dbUser: any, chips: number) {
   return Math.floor((dbUser.jail?.daysInJail ?? 0) > 0 ? chips * JAIL_MULTIPLIER : chips)
 }
 
-async function announce(body: Parameters<typeof postChannelMessage>[1], channelId?: string) {
-  const target = channelId ?? ANNOUNCE_CHANNEL_ID
-  try {
-    // The launch channel might be one the bot can't post in - the usual place is always a safe fallback.
-    if (!(await postChannelMessage(target, body)) && target !== ANNOUNCE_CHANNEL_ID) await postChannelMessage(ANNOUNCE_CHANNEL_ID, body)
-  } catch {
-    // Best-effort - the game result is already saved.
-  }
-}
+/** `channelId` is already resolved (see startDond). The launch channel might be one the bot can't post in - postAnnouncement falls back to the default one. */
+const announce = (body: Parameters<typeof postAnnouncement>[1], channelId?: string) => postAnnouncement(channelId ?? ANNOUNCE_CHANNEL_ID, body)
 
 // ---------- spectators ----------
 
@@ -344,7 +338,7 @@ export async function startDond(user: AuthenticatedDiscordUser, tierInput: unkno
     casesOpened: 0,
     state: "opening",
     playerName: user.globalName ?? user.username,
-    channelId: await resolveAnnounceChannel(typeof channelInput === "string" ? channelInput : null),
+    channelId: await resolveAnnounceChannel(user.channelId ?? (typeof channelInput === "string" ? channelInput : null)),
   }
   await writeGame(firebase, user.id, game)
   // A fresh round never inherits the previous round's chat.
@@ -412,7 +406,7 @@ export async function answerDondOffer(user: AuthenticatedDiscordUser, deal: bool
   game.state = "done"
   delete game.offer
   await writeGame(firebase, user.id, game)
-  await postRecap(firebase, user.id, game, recapComponents)
+  after(() => postRecap(firebase, user.id, game, recapComponents))
   return Response.json({ game: publicView(game) })
 }
 
@@ -440,7 +434,7 @@ export async function keepOrSwitchDond(user: AuthenticatedDiscordUser, doSwitch:
   game.state = "done"
   game.result = { outcome: doSwitch ? "switched" : "kept", chips: paid, playerCaseValue: won, otherCaseValue: remaining }
   await writeGame(firebase, user.id, game)
-  await postRecap(firebase, user.id, game)
+  after(() => postRecap(firebase, user.id, game))
   return Response.json({ game: publicView(game) })
 }
 

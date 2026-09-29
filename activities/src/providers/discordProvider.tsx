@@ -1,6 +1,7 @@
 "use client"
 
 import { DiscordSDK } from "@discord/embedded-app-sdk"
+import { setApiChannelId } from "@/lib/apiClient"
 import React, { createContext, useContext, useEffect, useState } from "react"
 
 interface DiscordUser {
@@ -100,6 +101,7 @@ export const DiscordProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setSdk(discordSdk)
       setInstanceId(discordSdk.instanceId)
       setChannelId(discordSdk.channelId)
+      setApiChannelId(discordSdk.channelId)
       setReady(true)
     }
 

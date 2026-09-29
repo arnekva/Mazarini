@@ -2,6 +2,7 @@ import { authenticateRequest } from "@/lib/discordAuth"
 import {
   adjustBlackjackBet,
   createBlackjackLobby,
+  postBlackjackChat,
   dealBlackjackRound,
   forceBadDealerDraw,
   getBlackjackLobbyStatus,
@@ -36,7 +37,9 @@ export async function GET(request: Request) {
     const lobbyId = params.get("lobbyId")
     if (!instanceId || !lobbyId) return Response.json({ error: "Mangler instanceId eller lobbyId" }, { status: 400 })
 
-    return await getBlackjackLobbyStatus(instanceId, lobbyId, user)
+    const sinceParam = params.get("since")
+    const since = sinceParam !== null && sinceParam !== "" && Number.isFinite(Number(sinceParam)) ? Number(sinceParam) : undefined
+    return await getBlackjackLobbyStatus(instanceId, lobbyId, user, since)
   } catch (err) {
     return debugError(err)
   }
@@ -47,12 +50,13 @@ export async function POST(request: Request) {
     const { user, error } = await authenticateRequest(request)
     if (error) return error
 
-    const { instanceId, lobbyId, action, buyIn, approve, allIn } = await request.json()
+    const { instanceId, lobbyId, action, buyIn, approve, allIn, text } = await request.json()
     if (!instanceId) return Response.json({ error: "Mangler instanceId" }, { status: 400 })
 
     if (action === "create") return await createBlackjackLobby(instanceId, user, buyIn)
 
     if (!lobbyId) return Response.json({ error: "Mangler lobbyId" }, { status: 400 })
+    if (action === "chat") return await postBlackjackChat(instanceId, lobbyId, user, text)
     if (action === "join") return await joinBlackjackLobby(instanceId, lobbyId, user)
     if (action === "spectate") return await spectateBlackjackLobby(instanceId, lobbyId, user)
     if (action === "leave") return await leaveBlackjackLobby(instanceId, lobbyId, user)

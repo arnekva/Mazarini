@@ -1,7 +1,7 @@
-// 110m was too coarse to recognize most countries by shape alone (near-featureless blobs for anything
-// but the largest countries) - 50m keeps the SVG paths reasonably light while giving real detail.
+// 110m was too coarse to recognize most countries by shape alone, and 50m still smooths off a lot of coastline. 10m has the real edges - it's far too heavy to
+// store as-is though, so the projected points are thinned out below (buildPath): it keeps every point that's at least MIN_POINT_SPACING pixels from the last one kept.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const worldAtlas = require('world-atlas/countries-50m.json')
+const worldAtlas = require('world-atlas/countries-10m.json')
 
 const VIEW_SIZE = 300
 
@@ -44,6 +44,34 @@ function dropFarFlungExclaves(target: any, geoArea: (geometry: any) => number): 
     return { ...target, geometry: kept.length === 1 ? { type: 'Polygon', coordinates: kept[0] } : { type: 'MultiPolygon', coordinates: kept } }
 }
 
+/** Points closer than this (in the VIEW_SIZE box) to the previously kept one are dropped - sub-pixel detail nobody can see, but it's most of the size of a 10m path. */
+const MIN_POINT_SPACING = 0.3
+
+/** A canvas-style drawing context for d3's geoPath that writes an SVG path, thinning points as described above. d3 still does the projection and the
+ * clipping (antimeridian, poles), which is why this is a context rather than a loop over the raw coordinates. */
+function thinningContext() {
+    let d = ''
+    let last: [number, number] | null = null
+    const fmt = (n: number) => n.toFixed(1)
+    return {
+        moveTo(x: number, y: number) {
+            d += `M${fmt(x)},${fmt(y)}`
+            last = [x, y]
+        },
+        lineTo(x: number, y: number) {
+            if (last && Math.hypot(x - last[0], y - last[1]) < MIN_POINT_SPACING) return
+            d += `L${fmt(x)},${fmt(y)}`
+            last = [x, y]
+        },
+        closePath() {
+            d += 'Z'
+        },
+        rect() {},
+        arc() {},
+        result: () => d,
+    }
+}
+
 /** Renders a single country's outline as a standalone SVG path, fitted and centered in a VIEW_SIZE x VIEW_SIZE box. */
 export async function getCountryOutlinePath(ccn3: string): Promise<{ path: string; viewBox: string } | undefined> {
     const [features, { geoMercator, geoPath, geoArea }] = await Promise.all([getCountryFeatures(), dynamicImport('d3-geo')])
@@ -52,7 +80,9 @@ export async function getCountryOutlinePath(ccn3: string): Promise<{ path: strin
     const target = dropFarFlungExclaves(rawTarget, geoArea)
 
     const projection = geoMercator().fitSize([VIEW_SIZE, VIEW_SIZE], target)
-    const path = geoPath(projection)(target)
+    const context = thinningContext()
+    geoPath(projection, context)(target)
+    const path = context.result()
     if (!path) return undefined
 
     return { path, viewBox: `0 0 ${VIEW_SIZE} ${VIEW_SIZE}` }

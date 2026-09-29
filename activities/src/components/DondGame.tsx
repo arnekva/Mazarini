@@ -61,8 +61,8 @@ const NUM_CASES = 26
 
 const fmt = (n: number) => n.toLocaleString("nb-NO")
 
-const WATCH_POLL_MS = 1500
-const PLAYER_POLL_MS = 2500
+const WATCH_POLL_MS = 1000
+const PLAYER_POLL_MS = 1500
 
 /** Bare-bones round chat: a scrollable log (sticks to the bottom unless you've scrolled up to read) and an input. */
 function DondChat({
@@ -129,6 +129,9 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
   const [pickedCase, setPickedCase] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  // True from the moment Deal / No deal / Behold / Bytt is clicked until the server answers - hides the answer buttons at once
+  // instead of leaving them on screen (disabled) for the length of the request.
+  const [answering, setAnswering] = useState(false)
   const [chatDraft, setChatDraft] = useState("")
   const [chatBusy, setChatBusy] = useState(false)
   const loadedRef = useRef(false)
@@ -200,6 +203,7 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
     setBusy(true)
     busyRef.current = true
     actSeqRef.current++
+    setAnswering(body.action === "offer" || body.action === "keepOrSwitch")
     setError(null)
     try {
       const res = await callApi<Partial<Status>>("/api/games/dond", accessToken, { method: "POST", body: JSON.stringify(body) })
@@ -215,6 +219,7 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
       setError(e instanceof Error ? e.message : "Noe gikk galt")
     } finally {
       setBusy(false)
+      setAnswering(false)
       busyRef.current = false
       actSeqRef.current++
     }
@@ -338,6 +343,8 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
             {game.offer.kind === "effect" && <span className={shared.info}>En effekt i stedet for chips.</span>}
             {readOnly ? (
               <span className={shared.info}>Venter på at {status.playerName ?? "spilleren"} svarer...</span>
+            ) : answering ? (
+              <span className={shared.info}>Svarer...</span>
             ) : (
               <div className={shared.actionRow}>
                 <button className={`${shared.hitBtn} ${styles.compactBtn}`} type="button" disabled={busy} onClick={() => act({ action: "offer", deal: true })}>
@@ -360,6 +367,8 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
             <strong>Bare to kofferter igjen</strong> — {readOnly ? "spillerens" : "din"} nr {game.playerCase}, og nr {game.otherCase}. Beholde eller bytte?
             {readOnly ? (
               <span className={shared.info}>Venter på at {status.playerName ?? "spilleren"} velger...</span>
+            ) : answering ? (
+              <span className={shared.info}>Svarer...</span>
             ) : (
               <div className={shared.actionRow}>
                 <button

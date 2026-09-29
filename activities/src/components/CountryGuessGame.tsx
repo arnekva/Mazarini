@@ -44,7 +44,7 @@ interface GuessResponse {
   alreadyCompleted?: boolean
   noAttemptsLeft?: boolean
   answer?: string
-  hint?: { arrow: string; distanceKm: number }
+  hint?: { bearing: number; distanceKm: number }
 }
 
 export function CountryGuessGame({ game, accessToken }: { game: CountryGameId; accessToken: string }) {
@@ -52,6 +52,8 @@ export function CountryGuessGame({ game, accessToken }: { game: CountryGameId; a
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [done, setDone] = useState(false)
+  // Which way (degrees clockwise from north) the answer lies from the last wrong guess - drawn as an arrow rotated by exactly that.
+  const [hint, setHint] = useState<{ bearing: number; distanceKm: number } | null>(null)
   const [didYouMean, setDidYouMean] = useState<{ original: string; suggestion: string } | null>(null)
 
   useEffect(() => {
@@ -90,8 +92,9 @@ export function CountryGuessGame({ game, accessToken }: { game: CountryGameId; a
         setDone(true)
       } else {
         const revealed = result.revealAnswer ? ` Riktig svar var: ${result.revealAnswer}.` : ""
-        const hint = result.hint ? ` ${result.hint.arrow} ~${result.hint.distanceKm.toLocaleString("no-NO")} km unna.` : ""
-        setMessage(`Feil!${hint}${revealed} ${result.attemptsLeft ?? 0} forsøk igjen.`)
+        const distance = result.hint ? ` ~${result.hint.distanceKm.toLocaleString("no-NO")} km unna.` : ""
+        setHint(result.revealAnswer ? null : result.hint ?? null)
+        setMessage(`Feil!${distance}${revealed} ${result.attemptsLeft ?? 0} forsøk igjen.`)
         if (result.revealAnswer) setDone(true)
         setStatus((s) => (s ? { ...s, numAttempts: result.numAttempts ?? s.numAttempts } : s))
       }
@@ -120,6 +123,14 @@ export function CountryGuessGame({ game, accessToken }: { game: CountryGameId; a
       </div>
 
       {message && <div className={`${styles.result} ${message.startsWith("Riktig") ? styles.resultCorrect : styles.resultWrong}`}>{message}</div>}
+
+      {hint && !done && (
+        <div style={{ display: "flex", justifyContent: "center", margin: "6px 0" }} role="img" aria-label={`Riktig svar ligger ${hint.bearing} grader fra nord`}>
+          <svg width="44" height="44" viewBox="-22 -22 44 44" style={{ transform: `rotate(${hint.bearing}deg)` }}>
+            <path d="M0 -18 L11 2 L3 -1 L3 18 L-3 18 L-3 -1 L-11 2 Z" fill="currentColor" />
+          </svg>
+        </div>
+      )}
 
       {didYouMean && !(busy || done || status.completed) && (
         <div className={styles.status}>

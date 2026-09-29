@@ -1,8 +1,7 @@
 import { after } from "next/server"
 import { FirebaseHelper } from "@/lib/db/firebaseHelper"
 import { authenticateRequest } from "@/lib/discordAuth"
-import { lootButtonComponent, postChannelMessage } from "@/lib/discordMessage"
-import { ANNOUNCE_CHANNEL_ID } from "@/lib/gameValues"
+import { announceInChannel, lootButtonComponent } from "@/lib/discordMessage"
 
 // The client plays a several-second spin animation before revealing the result - announcing it in
 // Discord immediately would let anyone reading the channel see the outcome before the wheel stops.
@@ -57,13 +56,13 @@ export async function POST(request: Request) {
     updates.chips = (dbUser.chips ?? 0) + (reward.amount ?? 0)
     after(async () => {
       await delay(ANNOUNCE_DELAY_MS)
-      await postChannelMessage(ANNOUNCE_CHANNEL_ID, { content: `<@${user.id}> vant ${reward.amount} chips på Lykkehjulet!` })
+      await announceInChannel(user.channelId, { content: `<@${user.id}> vant ${reward.amount} chips på Lykkehjulet!` })
     })
   } else if (reward.type === "shards") {
     updates.ccg = { ...dbUser.ccg, shards: (dbUser.ccg?.shards ?? 0) + (reward.amount ?? 0) }
     after(async () => {
       await delay(ANNOUNCE_DELAY_MS)
-      await postChannelMessage(ANNOUNCE_CHANNEL_ID, { content: `<@${user.id}> vant ${reward.amount} shards på Lykkehjulet!` })
+      await announceInChannel(user.channelId, { content: `<@${user.id}> vant ${reward.amount} shards på Lykkehjulet!` })
     })
   } else if (reward.type === "chest" || reward.type === "box") {
     // Captured into a local const so the "chest" | "box" narrowing survives into the closure below -
@@ -71,7 +70,7 @@ export async function POST(request: Request) {
     const lootType = reward.type
     after(async () => {
       await delay(ANNOUNCE_DELAY_MS)
-      await postChannelMessage(ANNOUNCE_CHANNEL_ID, {
+      await announceInChannel(user.channelId, {
         content: `<@${user.id}> vant en ${lootType} på Lykkehjulet!`,
         components: [lootButtonComponent(user.id, reward.quality ?? "basic", lootType)],
       })

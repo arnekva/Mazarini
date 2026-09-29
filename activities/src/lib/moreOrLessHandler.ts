@@ -1,7 +1,7 @@
 import { FirebaseHelper } from "./db/firebaseHelper"
 import { AuthenticatedDiscordUser } from "./discordAuth"
-import { postChannelMessage } from "./discordMessage"
-import { ANNOUNCE_CHANNEL_ID, CUSTOM_MOL_GAME_TAG, moreOrLessValues } from "./gameValues"
+import { announceInChannel } from "./discordMessage"
+import { CUSTOM_MOL_GAME_TAG, moreOrLessValues } from "./gameValues"
 
 import cg_norwegianCities from "@/data/more-or-less/norwegianCities.json"
 import cg_norwegianMountains from "@/data/more-or-less/norwegianMountains.json"
@@ -257,7 +257,7 @@ export async function guessMoreOrLess(user: AuthenticatedDiscordUser, more: bool
   await firebase.updateUserFields(user.id, { "dailyGameStats/moreOrLess": newStat, moreOrLessSession: null })
 
   if (completedNow && !completedPreviously) {
-    await postChannelMessage(ANNOUNCE_CHANNEL_ID, {
+    await announceInChannel(user.channelId, {
       content: `<@${user.id}> fullførte dagens More or Less (${category.title}) med ${correctAnswers} riktige og fikk ${reward} chips!`,
     })
   }

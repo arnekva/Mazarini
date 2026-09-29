@@ -2,11 +2,18 @@
 
 // Thin fetch wrapper for calling our own API routes from client components: every game action
 // needs the caller's Discord access token attached so the server can re-verify who's asking.
+// The channel the Activity was launched from, sent with every request so the server can announce results there (see announceInChannel).
+let launchChannelId: string | null = null
+export function setApiChannelId(id: string | null) {
+  launchChannelId = id
+}
+
 export async function callApi<T>(path: string, accessToken: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
     ...init,
     headers: {
       ...init?.headers,
+      ...(launchChannelId ? { "X-Channel-Id": launchChannelId } : {}),
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
     },

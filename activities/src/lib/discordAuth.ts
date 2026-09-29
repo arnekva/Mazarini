@@ -10,6 +10,8 @@ export interface AuthenticatedDiscordUser {
   globalName: string | null
   /** Avatar hash, or null for the default avatar - build a CDN URL with discordAvatarUrl() in ./discordAvatar. */
   avatar: string | null
+  /** Only set on a user from authenticateRequest: the launch channel the client reported (X-Channel-Id) - unvalidated, see announceInChannel. */
+  channelId?: string | null
 }
 
 /** Pulls the bearer token out of an incoming request's Authorization header, if present. */
@@ -57,5 +59,5 @@ export async function authenticateRequest(request: Request): Promise<AuthResult>
   const token = extractBearerToken(request)
   const user = await verifyDiscordUser(token)
   if (!user) return { error: Response.json({ error: "Unauthorized" }, { status: 401 }) }
-  return { user }
+  return { user: { ...user, channelId: request.headers.get("x-channel-id") } }
 }

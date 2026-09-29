@@ -1,9 +1,9 @@
 import { FirebaseHelper } from "./db/firebaseHelper"
 import { AuthenticatedDiscordUser } from "./discordAuth"
 import { CountryChallenge, DailyGameStats, DailyHubChallenges, hasRewardedSlotsLeft, publicChallenge } from "./dailyHub"
-import { postChannelMessage } from "./discordMessage"
+import { announceInChannel } from "./discordMessage"
 import { getGuessHint } from "./geo"
-import { ANNOUNCE_CHANNEL_ID, countryChallengeValues } from "./gameValues"
+import { countryChallengeValues } from "./gameValues"
 
 export type CountryGameId = "flag" | "outline" | "capital"
 
@@ -64,7 +64,7 @@ export async function submitCountryGuess(game: CountryGameId, user: Authenticate
       [`dailyGameStats/${game}`]: { attempted: true, completed: true, numAttempts },
     })
 
-    await postChannelMessage(ANNOUNCE_CHANNEL_ID, {
+    await announceInChannel(user.channelId, {
       content: `<@${user.id}> gjettet rett på ${numAttempts}/${countryChallengeValues.maxAttempts} forsøk på ${shortLabels[game]}${
         reward > 0 ? ` og fikk ${reward} chips!` : "!"
       }`,
@@ -79,7 +79,7 @@ export async function submitCountryGuess(game: CountryGameId, user: Authenticate
   })
 
   if (finished) {
-    await postChannelMessage(ANNOUNCE_CHANNEL_ID, {
+    await announceInChannel(user.channelId, {
       content: `<@${user.id}> gjettet FEIL på ${shortLabels[game]}!`,
     })
   }

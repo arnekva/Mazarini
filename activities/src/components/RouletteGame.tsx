@@ -6,6 +6,7 @@ import { useDiscord } from "@/providers/discordProvider"
 import { useEffect, useRef, useState } from "react"
 import shared from "./BlackjackGame.module.css"
 import styles from "./RouletteGame.module.css"
+import { ChatMessage, GameChat, postChatTo } from "./GameChat"
 import { SpectatorBar } from "./SpectatorBar"
 
 type BetType = "number" | "red" | "black" | "even" | "odd"
@@ -34,6 +35,7 @@ interface TableView {
   results?: Record<string, { name: string; staked: number; returned: number; net: number }>
   history: number[]
   myChips: number
+  chat?: ChatMessage[]
   myBets: BetView[]
   players: PlayerView[]
   ready: { count: number; total: number; iAmReady: boolean }
@@ -467,6 +469,12 @@ export function RouletteGame({ accessToken }: { accessToken: string }) {
           )
         })}
       </div>
+
+      <GameChat
+        messages={table.chat ?? []}
+        post={(text) => postChatTo("/api/multiplayer/roulette", accessToken, { instanceId, action: "chat", text })}
+        onPosted={(chat) => setTable((prev) => (prev ? { ...prev, chat } : prev))}
+      />
     </>
   )
 }

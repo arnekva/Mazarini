@@ -66,6 +66,17 @@ export default function Home() {
     })
   }, [accessToken, router])
 
+  // And for someone else clicking the "Spill Blackjack" button on a pot win: they watch the winner's table.
+  useEffect(() => {
+    if (!accessToken) return
+    callApi<{ hostId: string | null }>("/api/multiplayer/blackjack/pending-spectate", accessToken).then((res) => {
+      if (res.hostId) {
+        setRedirecting(true)
+        router.push(`/multiplayer/blackjack?watch=${encodeURIComponent(res.hostId)}`)
+      }
+    })
+  }, [accessToken, router])
+
   const loggedIn = ready && !!accessToken
 
   if (redirecting) {
