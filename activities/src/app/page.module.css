@@ -28,10 +28,14 @@
   color: transparent;
 }
 
+/* Takes its full height before there's anything to show in it: an element with nothing in it has no height at all, and everything
+   below would drop down a line the moment the balance arrived. */
 .chips {
   color: var(--gold);
   font-weight: 700;
   font-size: 15px;
+  line-height: 20px;
+  min-height: 20px;
 }
 
 .section {
@@ -123,10 +127,13 @@
   font-size: 15px;
 }
 
+/* Same as .chips: reserves its line while the text is still loading, so the cards don't grow afterwards. */
 .cardSub {
   display: block;
   margin-top: 4px;
   font-size: 12px;
+  line-height: 16px;
+  min-height: 16px;
   font-weight: 500;
   color: var(--muted);
 }

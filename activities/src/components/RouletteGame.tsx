@@ -2,6 +2,7 @@
 
 import { callApi } from "@/lib/apiClient"
 import { proxyImageUrl } from "@/lib/imgProxy"
+import { useLivePolling } from "@/lib/liveSignal"
 import { useDiscord } from "@/providers/discordProvider"
 import { useEffect, useRef, useState } from "react"
 import shared from "./BlackjackGame.module.css"
@@ -28,6 +29,8 @@ interface PlayerView {
 }
 
 interface TableView {
+  /** Changes with every change to the table - compared with the database's to know whether this view is behind. */
+  version: number
   roundId: number
   phase: "betting" | "result"
   msLeft: number
@@ -39,7 +42,7 @@ interface TableView {
   myBets: BetView[]
   players: PlayerView[]
   ready: { count: number; total: number; iAmReady: boolean }
-  config: { spinMs: number; spinDelayMs: number; holdMs: number; resultMs: number; bettingMs: number; minBet: number }
+  config: { spinMs: number; spinDelayMs: number; holdMs: number; resultMs: number; bettingMs: number; lateBetGraceMs: number; minBet: number }
 }
 
 // Same numbers as rouletteValues.red on the server - only used for colouring here, never for deciding an outcome.
@@ -189,6 +192,8 @@ function Wheel({ plan, restNumber, className }: { plan: SpinPlan | null; restNum
   )
 }
 
+const POLL_MS = 800
+
 export function RouletteGame({ accessToken }: { accessToken: string }) {
   const { instanceId, discordUser } = useDiscord()
   const [table, setTable] = useState<TableView | null>(null)
@@ -203,6 +208,9 @@ export function RouletteGame({ accessToken }: { accessToken: string }) {
 
   const nowRef = useRef(0)
   const tableRef = useRef<TableView | null>(null)
+  /** When the current phase runs out, by this device's own clock at the moment the answer arrived (the on-screen countdown's `deadline` is
+   * measured against the ticking `now` instead, which can lag a little). */
+  const phaseEndsAtRef = useRef(0)
   const busyRef = useRef(false)
   // Same guard as in DondGame: a poll that started before an action finished must not overwrite what the action returned.
   const actSeqRef = useRef(0)
@@ -211,6 +219,7 @@ export function RouletteGame({ accessToken }: { accessToken: string }) {
   function applyTable(res: TableView) {
     const previous = tableRef.current
     tableRef.current = res
+    phaseEndsAtRef.current = Date.now() + res.msLeft
     setDeadline(nowRef.current + res.msLeft)
 
     // A new result: lay out the whole show against the moment the result actually happened on the server (not when this poll
@@ -236,35 +245,45 @@ export function RouletteGame({ accessToken }: { accessToken: string }) {
     setTable(res)
   }
 
-  useEffect(() => {
-    if (!instanceId) return
-    nowRef.current = Date.now()
-    setNow(nowRef.current)
-    let cancelled = false
-    const url = `/api/multiplayer/roulette?instanceId=${encodeURIComponent(instanceId)}`
-    const load = () => {
+  const tablePath = `other/multiplayerRoulette/${instanceId}`
+  const sync = useLivePolling({
+    key: instanceId,
+    accessToken,
+    paths: [
+      { path: `${tablePath}/v`, shown: () => tableRef.current?.version, empty: 0 },
+      { tail: `${tablePath}/chat`, shownAt: () => tableRef.current?.chat?.at(-1)?.at },
+      { path: `users/${discordUser?.id}/chips`, shown: () => tableRef.current?.myChips, empty: 0 },
+    ],
+    poll: async () => {
       const seq = actSeqRef.current
-      return callApi<TableView>(url, accessToken)
-        .then((res) => {
-          if (!cancelled && !busyRef.current && actSeqRef.current === seq) applyTable(res)
-        })
-        .catch(() => {
-          // transient poll failure - next tick retries
-        })
-    }
-    const first = setTimeout(load, 0)
-    const poll = setInterval(load, 1000)
-    const tick = setInterval(() => {
+      const res = await callApi<TableView>(`/api/multiplayer/roulette?instanceId=${encodeURIComponent(instanceId ?? "")}`, accessToken)
+      if (!busyRef.current && actSeqRef.current === seq) applyTable(res)
+    },
+    delayMs: POLL_MS,
+    // The table only moves on when someone asks for it (see advance in rouletteHandler.ts), so with live updates on the next poll
+    // is aimed at the moment the server will act on: the end of the phase, plus - when it's the betting that's ending - the pause it
+    // leaves for bets still on their way. If the table hasn't moved by then, polls stay frequent until it has.
+    liveDelayMs: (max) => {
+      const grace = tableRef.current?.phase === "betting" ? tableRef.current.config.lateBetGraceMs : 0
+      return Math.min(max, Math.max(POLL_MS, phaseEndsAtRef.current + grace - Date.now() + 300))
+    },
+    immediate: true,
+    paused: () => busyRef.current,
+  })
+
+  // The clock everything on screen is timed against.
+  useEffect(() => {
+    const tick = () => {
       nowRef.current = Date.now()
       setNow(nowRef.current)
-    }, 250)
-    return () => {
-      cancelled = true
-      clearTimeout(first)
-      clearInterval(poll)
-      clearInterval(tick)
     }
-  }, [instanceId, accessToken])
+    const first = setTimeout(tick, 0)
+    const interval = setInterval(tick, 250)
+    return () => {
+      clearTimeout(first)
+      clearInterval(interval)
+    }
+  }, [])
 
   async function act(body: Record<string, unknown>) {
     if (!instanceId || busy) return
@@ -280,6 +299,8 @@ export function RouletteGame({ accessToken }: { accessToken: string }) {
       setBusy(false)
       busyRef.current = false
       actSeqRef.current++
+      // Anything that happened at the table while the action was in flight is picked up now.
+      sync()
     }
   }
 
@@ -473,7 +494,10 @@ export function RouletteGame({ accessToken }: { accessToken: string }) {
       <GameChat
         messages={table.chat ?? []}
         post={(text) => postChatTo("/api/multiplayer/roulette", accessToken, { instanceId, action: "chat", text })}
-        onPosted={(chat) => setTable((prev) => (prev ? { ...prev, chat } : prev))}
+        onPosted={(chat) => {
+          if (tableRef.current) tableRef.current = { ...tableRef.current, chat }
+          setTable((prev) => (prev ? { ...prev, chat } : prev))
+        }}
       />
     </>
   )

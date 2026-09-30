@@ -18,7 +18,7 @@ export class JobScheduler {
             jobs.runJobs()
         })
 
-        /** Runs once a week on mondays at 06:01 to avoid write collision with dailyJobs */
+        /** Runs once a week on mondays at 05:01 - a minute after dailyJobs, to avoid write collision with them */
         this.weeklyJobs = schedule.scheduleJob('1 5 * * 1', function () {
             const jobs = new WeeklyJobs(msgHelper, client)
             jobs.runJobs()
@@ -27,6 +27,7 @@ export class JobScheduler {
             const jobs = new DayJob(msgHelper, 'friday')
             jobs.runJobs()
         })
+        // Every minute, despite the name: HourJob decides for itself what only happens on the hour.
         this.hourlyJobs = schedule.scheduleJob('* * * * *', function () {
             const jobs = new HourJob(msgHelper, client)
             jobs.runJobs()

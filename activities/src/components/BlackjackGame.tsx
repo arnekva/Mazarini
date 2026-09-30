@@ -3,6 +3,7 @@
 import { callApi } from "@/lib/apiClient"
 import { isAdminUser } from "@/lib/admin"
 import { proxyImageUrl } from "@/lib/imgProxy"
+import { useLivePolling } from "@/lib/liveSignal"
 import { useDiscord } from "@/providers/discordProvider"
 import { useEffect, useRef, useState } from "react"
 import styles from "./BlackjackGame.module.css"
@@ -57,6 +58,8 @@ interface SpectatorView {
 
 interface TableView {
   id: string
+  /** Changes with every change to the table - compared with the database's to know whether this view is behind. */
+  version?: number
   hostId: string
   status: "waiting" | "playing" | "roundOver"
   buyIn: number
@@ -95,8 +98,8 @@ interface LobbySummary {
 
 const LOBBY_POLL_MS = 2000
 // Someone waiting for a table to appear, and spectators of a running one, want it as live as it gets.
-const WATCH_POLL_MS = 1000
-const TABLE_POLL_MS = 1500
+const WATCH_POLL_MS = 700
+const TABLE_POLL_MS = 1000
 
 function CardFace({ card }: { card: CardView }) {
   if (card.rank === "?") {
@@ -162,6 +165,13 @@ export function BlackjackGame({ accessToken, watchHostId }: { accessToken: strin
   const { instanceId, discordUser } = useDiscord()
   const [lobbies, setLobbies] = useState<LobbySummary[] | null>(null)
   const [lobbyId, setLobbyId] = useState<string | null>(null)
+  // The table we're at right now, known the moment it changes (the state above only catches up on the next render): an answer
+  // about a table we've since left must not be acted on - it would report our own leaving as the table closing.
+  const lobbyIdRef = useRef<string | null>(null)
+  const enterLobby = (id: string | null) => {
+    lobbyIdRef.current = id
+    setLobbyId(id)
+  }
   const [table, setTable] = useState<TableView | null>(null)
   const [closedNotice, setClosedNotice] = useState(false)
   const [removedNotice, setRemovedNotice] = useState(false)
@@ -176,9 +186,14 @@ export function BlackjackGame({ accessToken, watchHostId }: { accessToken: strin
   const waitingForHostRef = useRef(waitingForHost)
   // The polling loops below live in an effect that only restarts when the lobby changes - they reach the current action() through this.
   const actionRef = useRef<typeof action>(null as unknown as typeof action)
-  // Only one poll at a time, and none whose answer is older than an action the player has taken since it was sent - either would put a stale table back on screen.
-  const pollBusyRef = useRef(false)
+  // No poll whose answer is older than an action the player has taken since it was sent - it would put a stale table back on screen.
+  // Bumped when an action starts and again when it finishes, so it's odd exactly while one is in flight.
   const actSeqRef = useRef(0)
+  // What the newest answer from the server had in it - what live updates are compared against (see useLivePolling).
+  const shownRef = useRef<{ version?: number; chatAt?: number; chips?: number }>({})
+  const noteShown = (res: TableView) => {
+    shownRef.current = { version: res.version, chatAt: res.chat?.at(-1)?.at, chips: res.myChips }
+  }
   const spectatingRef = useRef(false)
   // Spectating: the newest frame already shown, the ones still waiting to be shown, and whether the queue is being played (see playFrames).
   const lastFrameRef = useRef<number | null>(null)
@@ -225,7 +240,7 @@ export function BlackjackGame({ accessToken, watchHostId }: { accessToken: strin
       setLobbies(res.lobbies)
       if (res.myLobbyId && !lobbyId) {
         setWaitingForHost(null)
-        setLobbyId(res.myLobbyId)
+        enterLobby(res.myLobbyId)
         return
       }
       const target = waitingForHostRef.current ? res.lobbies.find((l) => l.hostId === waitingForHostRef.current) : undefined
@@ -240,7 +255,7 @@ export function BlackjackGame({ accessToken, watchHostId }: { accessToken: strin
   }
 
   async function refreshTable(id: string) {
-    if (!instanceId) return
+    if (!instanceId || lobbyIdRef.current !== id) return
     const actSeq = actSeqRef.current
     try {
       const since = spectatingRef.current && lastFrameRef.current !== null ? `&since=${lastFrameRef.current}` : ""
@@ -248,17 +263,18 @@ export function BlackjackGame({ accessToken, watchHostId }: { accessToken: strin
         `/api/multiplayer/blackjack?instanceId=${encodeURIComponent(instanceId)}&lobbyId=${encodeURIComponent(id)}${since}`,
         accessToken
       )
-      if (actSeqRef.current !== actSeq) return
+      if (actSeqRef.current !== actSeq || lobbyIdRef.current !== id) return
       if (res.closed) {
         setClosedNotice(true)
         setTable(null)
-        setLobbyId(null)
+        enterLobby(null)
       } else if (!res.iAmPlaying && !res.iAmSpectating) {
         // Our own connection went quiet for long enough that the table dropped us (see the presence notes in blackjackHandler.ts).
         setRemovedNotice(true)
         setTable(null)
-        setLobbyId(null)
+        enterLobby(null)
       } else {
+        noteShown(res)
         spectatingRef.current = res.iAmSpectating
         if (res.iAmSpectating) {
           const fresh = (res.frames ?? []).filter((f) => f.seq > (lastFrameRef.current ?? -1))
@@ -304,19 +320,20 @@ export function BlackjackGame({ accessToken, watchHostId }: { accessToken: strin
         method: "POST",
         body: JSON.stringify({ instanceId, lobbyId, action: actionName, ...extra }),
       })
+      if (actionName !== "leave") noteShown(res)
       if (actionName === "create" || actionName === "join" || actionName === "spectate") {
         setRemovedNotice(false)
         // Starting over at a new table: whatever a previous one had queued to replay is of no interest.
         frameQueueRef.current = []
         lastFrameRef.current = actionName === "spectate" ? res.frameSeq ?? 0 : null
         spectatingRef.current = actionName === "spectate"
-        setLobbyId(res.id)
+        enterLobby(res.id)
         setTable(res)
       } else if (actionName === "leave") {
         frameQueueRef.current = []
         lastFrameRef.current = null
         spectatingRef.current = false
-        setLobbyId(null)
+        enterLobby(null)
         setTable(null)
         refreshLobbies()
       } else {
@@ -327,6 +344,8 @@ export function BlackjackGame({ accessToken, watchHostId }: { accessToken: strin
     } finally {
       setBusy(false)
       actSeqRef.current++
+      // Anything that happened at the table while the action was in flight is picked up now.
+      sync()
     }
   }
   useEffect(() => {
@@ -353,37 +372,23 @@ export function BlackjackGame({ accessToken, watchHostId }: { accessToken: strin
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instanceId])
 
-  // Each poll is scheduled when the previous one has finished, so a slow answer can never pile up behind or overtake the next.
-  useEffect(() => {
-    if (!instanceId) return
-    let cancelled = false
-    let timer: ReturnType<typeof setTimeout>
-    const tick = async () => {
-      if (!pollBusyRef.current) {
-        pollBusyRef.current = true
-        try {
-          if (lobbyId) await refreshTable(lobbyId)
-          else await refreshLobbies()
-        } finally {
-          pollBusyRef.current = false
-        }
-      }
-      if (cancelled) return
-      const delay = lobbyId ? (spectatingRef.current ? WATCH_POLL_MS : TABLE_POLL_MS) : waitingForHostRef.current ? WATCH_POLL_MS : LOBBY_POLL_MS
-      timer = setTimeout(tick, delay)
-    }
-    timer = setTimeout(tick, lobbyId ? TABLE_POLL_MS : LOBBY_POLL_MS)
-    return () => {
-      cancelled = true
-      clearTimeout(timer)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [instanceId, lobbyId])
-
-  useEffect(() => {
-    if (lobbyId) refreshTable(lobbyId)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lobbyId])
+  // In a lobby: the table, starting right away. Otherwise: the list of tables. Either way the database says when there's something new.
+  const sync = useLivePolling({
+    key: instanceId ? `${instanceId}/${lobbyId ?? ""}` : null,
+    accessToken,
+    paths: lobbyId
+      ? [
+          { path: `other/multiplayerBlackjack/${instanceId}/${lobbyId}/updatedAt`, shown: () => shownRef.current.version },
+          { tail: `other/multiplayerBlackjackChat/${instanceId}/${lobbyId}`, shownAt: () => shownRef.current.chatAt },
+          { path: `users/${discordUser?.id}/chips`, shown: () => shownRef.current.chips, empty: 0 },
+        ]
+      : [`other/multiplayerBlackjack/${instanceId}`],
+    poll: () => (lobbyId ? refreshTable(lobbyId) : refreshLobbies()),
+    delayMs: () => (lobbyId ? (spectatingRef.current ? WATCH_POLL_MS : TABLE_POLL_MS) : waitingForHostRef.current ? WATCH_POLL_MS : LOBBY_POLL_MS),
+    // Straight away only when we've landed at a table without having its view yet (found ourselves in the list) - creating or joining one already answered with it.
+    immediate: !!lobbyId && !table,
+    paused: () => actSeqRef.current % 2 === 1,
+  })
 
   // Ticks `now` while a post-round cooldown is active, so the "Nytt parti" button's countdown
   // actually counts down instead of just sitting disabled with no feedback - see dealCooldownMs below.
@@ -676,7 +681,10 @@ export function BlackjackGame({ accessToken, watchHostId }: { accessToken: strin
         messages={table.chat ?? []}
         boldUserId={table.hostId}
         post={(text) => postChatTo("/api/multiplayer/blackjack", accessToken, { instanceId, lobbyId, action: "chat", text })}
-        onPosted={(chat) => setTable((prev) => (prev ? { ...prev, chat } : prev))}
+        onPosted={(chat) => {
+          shownRef.current.chatAt = chat.at(-1)?.at
+          setTable((prev) => (prev ? { ...prev, chat } : prev))
+        }}
       />
     </>
   )

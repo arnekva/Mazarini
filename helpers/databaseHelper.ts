@@ -1,7 +1,7 @@
 import { PutObjectCommandOutput } from '@aws-sdk/client-s3'
 import { increment, Unsubscribe } from 'firebase/database'
 import moment from 'moment'
-import { database, environment } from '../client-env'
+import { database } from '../client-env'
 import { DRGame } from '../commands/games/deathroll'
 import {
     botDataPrefix,
@@ -41,6 +41,20 @@ export class DatabaseHelper {
     private storageListener: Unsubscribe
     private storageLoadPromise: Promise<MazariniStorage>
 
+    /** What each user object handed out by getUser()/getAllUsers() looked like in the database at that moment - see updateUser(). */
+    private handedOut = new WeakMap<MazariniUser, MazariniUser>()
+
+    private track(user: MazariniUser): MazariniUser {
+        this.handedOut.set(user, structuredClone(user))
+        return user
+    }
+
+    /** Entries under "other" that belong to the Activities app (its tables, chats, heartbeats, hand-over flags). The bot only ever
+     * writes to these, so they're left out of the storage cache - they change constantly while a game is on. */
+    private static isActivityEntry(key: string): boolean {
+        return /^(multiplayer|dond|pending|molSession|deathrollPotPending)/.test(key)
+    }
+
     /** Detach every live user listener and clear the cache. Listeners are re-established lazily on next getUser(). */
     public clearUserCache() {
         this.userListeners.forEach((unsubscribe) => unsubscribe())
@@ -70,8 +84,17 @@ export class DatabaseHelper {
         const promise = new Promise<MazariniUser>((resolve) => {
             let firstValueHandled = false
             const unsubscribe = this.db.subscribeToUser(userID, (user) => {
+                // A record with no id is one the Activities app started by writing a single field for someone the bot hasn't seen yet
+                // (see FirebaseHelper.getAllUsers). It's completed with the defaults - only the fields it lacks, so what's there stays.
+                if (user && !user.id) {
+                    const defaults = DatabaseHelper.defaultUser(userID)
+                    const missing = {}
+                    for (const key of Object.keys(defaults)) if (user[key] === undefined) missing[`/users/${userID}/${key}`] = defaults[key]
+                    this.db.updateData(missing)
+                    user = { ...defaults, ...user }
+                }
                 if (user) {
-                    this.userCache.set(userID, user)
+                    this.userCache.set(userID, this.track(user))
                     if (!firstValueHandled) {
                         firstValueHandled = true
                         this.userLoadPromises.delete(userID)
@@ -82,7 +105,7 @@ export class DatabaseHelper {
                 if (!firstValueHandled) {
                     firstValueHandled = true
                     this.addUser(DatabaseHelper.defaultUser(userID)).then((created) => {
-                        this.userCache.set(userID, created)
+                        this.userCache.set(userID, this.track(created))
                         this.userLoadPromises.delete(userID)
                         resolve(created)
                     })
@@ -113,6 +136,10 @@ export class DatabaseHelper {
      *  @param logDiff - Set to true to log the difference between updated and current user. Note that this can cause a delay when updating the user, as it first needs to await a fetch for current
      */
     public async updateUser(user: MazariniUser, logDiff?: boolean) {
+        if (!user?.id) {
+            this.db.msgHelper?.sendLogMessage(`updateUser ble kalt med en bruker uten id - ingenting ble lagret`)
+            return
+        }
         this.userCache.set(user.id, user)
         const updatedUser = user
         if (logDiff) {
@@ -122,7 +149,30 @@ export class DatabaseHelper {
                 `User ${user.id} oppdater i Database, diff fra gammel bruker. Oppdaterte keys: ${diff.keys}.\nTotal diff:\n ${diff.diff}`
             )
         }
-        await this.db.updateUser(updatedUser)
+
+        // Only what this code actually changed is written - not the whole record. The object in hand can be older than what's in the
+        // database (the Activities app writes to the same users, and so can another command running at the same moment), and saving all
+        // of it would put every field back to how it was when it was read. Chips - the one field both apps change all the time - go a
+        // step further: the *difference* is applied on the server, so "+500 here" and "-200 there" both count whichever lands first.
+        const before = this.handedOut.get(user)
+        if (!before) {
+            // Not an object from getUser()/getAllUsers() (a brand new user, a test fixture): nothing to compare with.
+            await this.db.updateUser(updatedUser)
+            this.track(user)
+            return
+        }
+        const updates: { [path: string]: unknown } = {}
+        for (const key of new Set([...Object.keys(before), ...Object.keys(user)])) {
+            const was = before[key]
+            const now = user[key]
+            if (JSON.stringify(was) === JSON.stringify(now)) continue
+            const path = `/users/${user.id}/${key}`
+            if (key === 'chips' && Number.isFinite(was) && Number.isFinite(now)) updates[path] = increment(now - was)
+            // The JSON round-trip strips `undefined` fields, which Firebase rejects outright.
+            else updates[path] = now === undefined ? null : JSON.parse(JSON.stringify(now))
+        }
+        this.track(user)
+        if (Object.keys(updates).length > 0) await this.db.updateData(updates)
     }
 
     public async updateData(updates: object) {
@@ -135,16 +185,22 @@ export class DatabaseHelper {
 
         if (this.storageLoadPromise) return this.storageLoadPromise
 
-        this.storageLoadPromise = new Promise<MazariniStorage>((resolve) => {
-            let firstValueHandled = false
-            this.storageListener = this.db.subscribeToStorage((storage) => {
-                this.storageCache = storage
-                if (!firstValueHandled) {
-                    firstValueHandled = true
-                    this.storageLoadPromise = undefined
-                    resolve(storage)
-                }
-            })
+        // The listener keeps the cache current one entry at a time (see FirebaseHelper.subscribeToStorage); the one-shot read is what
+        // says "everything that exists has been seen", which entry-by-entry events can't. Whatever the listener has delivered by then
+        // is the newer of the two.
+        const live: { [key: string]: unknown } = {}
+        this.storageListener = this.db.subscribeToStorage((key, value) => {
+            const target = this.storageCache ?? live
+            if (value === undefined) delete target[key]
+            else target[key] = value
+        }, DatabaseHelper.isActivityEntry)
+        this.storageLoadPromise = this.db.getMazariniStorage().then((initial) => {
+            const storage = { ...(initial ?? {}) } as MazariniStorage
+            for (const key of Object.keys(storage)) if (DatabaseHelper.isActivityEntry(key)) delete storage[key]
+            Object.assign(storage, live)
+            this.storageCache = storage
+            this.storageLoadPromise = undefined
+            return storage
         })
         return this.storageLoadPromise
     }
@@ -236,7 +292,7 @@ export class DatabaseHelper {
 
     /** Get a list of all database users */
     public async getAllUsers(): Promise<MazariniUser[]> {
-        return await this.db.getAllUsers()
+        return (await this.db.getAllUsers()).map((user) => this.track(user))
     }
 
     //TODO: Refactor
@@ -297,9 +353,9 @@ export class DatabaseHelper {
     public async registerEmojiUpdated(oldEmojiName: string, newEmojiName: string) {
         if (oldEmojiName != newEmojiName) {
             const emoji = await this.db.getEmojiStats(oldEmojiName)
-            emoji.name = newEmojiName
             const updates = {}
             if (emoji) {
+                emoji.name = newEmojiName
                 updates[`/stats/emojis/${oldEmojiName}`] = null
                 updates[`/stats/emojis/${newEmojiName}`] = emoji
                 this.db.updateData(updates)
@@ -454,13 +510,23 @@ export class DatabaseHelper {
     public saveDeathrollGames(games: DRGame[]) {
         if (games) {
             const updates = {}
-            updates[`/other/deathrollGames`] = games
+            // The JSON round-trip strips `undefined` fields (a game without a channel id, say), which Firebase rejects outright.
+            updates[`/other/deathrollGames`] = JSON.parse(JSON.stringify(games))
             this.db.updateData(updates)
         }
     }
 
+    /** The Activities app only acts on a blackjack auto-start (other/pendingBlackjackAutoStart/{userId}) that's a few minutes old at
+     * most - so an unused one doesn't pull its owner into a blackjack table the next time they open the Activity for something else.
+     * This restarts that clock for one that's still waiting, and is called when its owner actually clicks "Spill Blackjack". */
+    public async refreshPendingBlackjackAutoStart(userId: string) {
+        const path = `other/pendingBlackjackAutoStart/${userId}`
+        if (await this.db.getData(path, true)) await this.db.updateData({ [`/${path}/createdAt`]: Date.now() })
+    }
+
     public async getDeathrollGames() {
-        return (await this.db.getData('/other/deathrollGames')) as DRGame[]
+        // Silent: no games in progress is the normal state now that the list is saved as it changes (an empty list isn't stored at all).
+        return (await this.db.getData('/other/deathrollGames', true)) as DRGame[]
     }
 
     public async resetWeeklyDeathrollStats() {
@@ -535,7 +601,8 @@ export class DatabaseHelper {
     }
 
     public async getUserInventory(user: MazariniUser, series: string, rarity: ItemRarity): Promise<string> {
-        return await this.storage.getStorageLink(`loot_inventory/${user.id}/${environment}/${series}/${rarity}.png`)
+        // Same folder uploadUserInventory writes to - the database's name, which needn't be the environment's.
+        return await this.storage.getStorageLink(`loot_inventory/${user.id}/${database}/${series}/${rarity}.png`)
     }
 
     public async createBackup() {

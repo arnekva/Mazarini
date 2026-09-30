@@ -45,6 +45,8 @@ export class Deathroll extends AbstractCommands {
 
     private latestRoll: Date
     private previousSuggestions: Map<string, DRSuggestion>
+    /** Ids of the "Nei takk" messages that have been answered - see handleNoThanks. */
+    private answeredNoThanks = new Set<string>()
 
     constructor(client: MazariniClient) {
         super(client)
@@ -64,8 +66,34 @@ export class Deathroll extends AbstractCommands {
     get rewardPot() {
         return this.client.cache.deathrollPot
     }
+    /** Every change to the pot goes to the database straight away (see queueSave). It used to be written only once an hour and on
+     * shutdown, so a crash put the pot back to its last saved value - including a pot that had just been won and paid out. */
     set rewardPot(value: number) {
         this.client.cache.deathrollPot = value
+        this.potChanged = true
+        this.queueSave()
+    }
+
+    private potChanged = false
+    private gamesChanged = false
+    private saveQueued = false
+
+    /** Saves whatever has changed - the pot, the games in progress - once the roll being handled is done. One roll changes the pot
+     * several times over (a reward, a shuffle, a win); queued like this they become a single write. */
+    private queueSave() {
+        if (this.saveQueued) return
+        this.saveQueued = true
+        setImmediate(() => {
+            this.saveQueued = false
+            if (this.potChanged) this.saveRewardPot()
+            if (this.gamesChanged) this.saveActiveGamesToDatabase()
+        })
+    }
+
+    /** Call after anything that changes a game: a roll, a new game, someone joining, a game ending. */
+    private gamesWereChanged() {
+        this.gamesChanged = true
+        this.queueSave()
     }
     /** In flight while a sync runs, so two overlapping syncs can never both drain (and double count) the same amount. */
     private potSync: Promise<void> | undefined
@@ -89,7 +117,7 @@ export class Deathroll extends AbstractCommands {
                     const added = await this.client.database.drainPendingDeathrollPot()
                     if (added) {
                         this.rewardPot = Math.max(0, (this.rewardPot ?? 0) + added)
-                        this.saveRewardPot(true)
+                        this.saveRewardPot()
                     }
                 } while (this.potSyncAgain)
             } catch (error) {
@@ -141,6 +169,7 @@ export class Deathroll extends AbstractCommands {
     }
 
     public saveActiveGamesToDatabase() {
+        this.gamesChanged = false
         this.client.database.saveDeathrollGames(this.drGames)
     }
 
@@ -173,6 +202,7 @@ export class Deathroll extends AbstractCommands {
             if (game) {
                 this.latestRoll = new Date()
                 this.updateGame(game, user.id, roll)
+                this.gamesWereChanged()
                 additionalMessage += this.checkForPotSkip(roll, diceTarget, user.id)
                 const rewards = await this.checkForReward(roll, diceTarget, interaction)
                 additionalMessage += rewards.text
@@ -229,7 +259,6 @@ export class Deathroll extends AbstractCommands {
             this.database.incrementPotSkip(userId)
             const penalty = Math.abs(GameValues.deathroll.potSkip.potPenalty)
             this.rewardPot = Math.max(0, this.rewardPot + GameValues.deathroll.potSkip.potPenalty)
-            this.saveRewardPot()
             if (penalty) return `(pot skip - ${penalty} = ${this.rewardPot} chips) `
         }
         return ''
@@ -275,7 +304,6 @@ export class Deathroll extends AbstractCommands {
         if (playerHasBiggestLoss) reward += stat.didGetNewBiggestLoss * GameValues.deathroll.addToPot.biggestLossMultiplier
         else if (diceTarget >= 100) reward += diceTarget * GameValues.deathroll.addToPot.largeNumberLossMultiplier
         this.rewardPot += Math.ceil(reward)
-        if (reward > 0) this.saveRewardPot()
         return reward >= GameValues.deathroll.addToPot.minReward ? `(pott + ${reward} = ${this.rewardPot} chips)` : ''
     }
 
@@ -284,7 +312,6 @@ export class Deathroll extends AbstractCommands {
             if ((roll == 9 || roll == 911) && Math.random() < GameValues.deathroll.jokes.nineElevenChance) {
                 const removed = this.rewardPot >= GameValues.deathroll.jokes.nineElevenRemove ? GameValues.deathroll.jokes.nineElevenRemove : this.rewardPot
                 this.rewardPot -= removed
-                if (removed > 0) this.saveRewardPot()
                 return removed > 0 ? `(pott - ${removed} = ${this.rewardPot} chips)\nNever forget :coffin:` : ''
             } else if (roll == 7) {
                 return '\n' + RandomUtils.getRandomItemFromList(['hæ, pølse?', ''])
@@ -316,7 +343,6 @@ export class Deathroll extends AbstractCommands {
         if (GameValues.deathroll.getRollReward.unSpecialNumbers.includes(roll)) {
             const penalty = roll * GameValues.deathroll.getRollReward.unSpecialNumberPenalty
             this.rewardPot = Math.max(0, this.rewardPot + penalty)
-            this.saveRewardPot()
             return {
                 val: penalty,
                 text: `(pott ${penalty} = ${this.rewardPot} chips)`,
@@ -390,7 +416,6 @@ export class Deathroll extends AbstractCommands {
         } else {
             this.rewardPot += Math.ceil(finalAmount)
         }
-        if (totalAdded > 0) this.saveRewardPot()
 
         return {
             val: totalAdded,
@@ -432,9 +457,9 @@ export class Deathroll extends AbstractCommands {
         const potentialReward = (this.rewardPot + addToPot) * potMultiplier
         const rewarded = this.client.bank.giveMoney(dbUser, potentialReward)
         this.rewardPot = Math.max(this.rewardPot + addToPot - rewarded, 0)
-        if (rewarded > 0) this.saveRewardPot()
-        if (rewarded < GameValues.deathroll.potWin.noThanksThreshold) this.sendNoThanksButton(userId, rewarded)
-        else if (rewarded >= GameValues.deathroll.potWin.noThanksThreshold) this.sendBlackjackButton(userId, rewarded)
+        // Nothing won (an empty pot) means nothing to say no thanks to - the button used to be offered anyway, and handed the pot its bonus for free.
+        if (rewarded >= GameValues.deathroll.potWin.noThanksThreshold) this.sendBlackjackButton(userId, rewarded)
+        else if (rewarded > 0) this.sendNoThanksButton(userId, rewarded)
         const jailed = this.rewardPot > 0
         return (
             ` Nice\nDu vinner potten på ${initialPot + addToPot} ${addToPot > 0 ? `(${initialPot} + ${addToPot}) ` : ''}chips!` +
@@ -443,8 +468,9 @@ export class Deathroll extends AbstractCommands {
         )
     }
 
-    private saveRewardPot(saveToDb: boolean = false) {
-        if (saveToDb && !isNaN(this.rewardPot)) this.client.database.saveDeathrollPot(this.rewardPot)
+    private saveRewardPot() {
+        this.potChanged = false
+        if (!isNaN(this.rewardPot)) this.client.database.saveDeathrollPot(this.rewardPot)
     }
 
     private sendNoThanksButton(userId: string, rewarded: number) {
@@ -476,14 +502,15 @@ export class Deathroll extends AbstractCommands {
     private async handleNoThanks(interaction: BtnInteraction) {
         const params = interaction.customId.split(';')
         const userId = params[1]
-        if (interaction.user.id !== userId) return interaction.deferUpdate()
-        await interaction.deferReply()
         const amount = Number(params[2])
+        // One answer per button: a second click that arrives before the message is gone (a double-click) must not pay the bonus again.
+        if (interaction.user.id !== userId || !(amount > 0) || this.answeredNoThanks.has(interaction.message.id)) return interaction.deferUpdate()
+        this.answeredNoThanks.add(interaction.message.id)
+        await interaction.deferReply()
         const user = await this.client.database.getUser(userId)
         const hasTheMoney = this.client.bank.takeMoney(user, amount)
         if (hasTheMoney) {
             this.rewardPot = this.rewardPot + amount + GameValues.deathroll.potWin.noThanksBonus
-            this.saveRewardPot()
             this.messageHelper.replyToInteraction(interaction, `Du ville ikke ha ${amount} chips altså? \nJaja, potten er på ${this.rewardPot} chips nå da`, {
                 hasBeenDefered: true,
             })
@@ -572,6 +599,7 @@ export class Deathroll extends AbstractCommands {
 
     private endGame(finishedGame: DRGame) {
         this.drGames = this.drGames.filter((game) => game.id != finishedGame.id)
+        this.gamesWereChanged()
         return this.client.database.registerDeathrollStats(finishedGame)
     }
 
@@ -627,8 +655,8 @@ export class Deathroll extends AbstractCommands {
     override async onSave() {
         await this.syncPendingPot()
         this.printOldNumbers()
-        this.saveRewardPot(true)
-        if (this.drGames.length > 0) await this.saveActiveGamesToDatabase()
+        this.saveRewardPot()
+        this.saveActiveGamesToDatabase()
         return true
     }
 
@@ -646,7 +674,7 @@ export class Deathroll extends AbstractCommands {
             hourly: [
                 () => {
                     this.saveActiveGamesToDatabase()
-                    this.syncPendingPot().then(() => this.saveRewardPot(true))
+                    this.syncPendingPot().then(() => this.saveRewardPot())
                     return true
                 },
             ],

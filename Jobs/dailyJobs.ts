@@ -37,27 +37,27 @@ export class DailyJobs {
             const users = await this.client.database.getAllUsers()
             const embed = EmbedUtils.createSimpleEmbed(`Daily Jobs`, `Kjører 10 jobber`)
 
-            const claim = this.validateAndResetDailyClaims(users)
+            const claim = await this.attempt('Daily claim', () => this.validateAndResetDailyClaims(users))
             embed.addFields({ name: 'Daily claim', value: EmojiHelper.getStatusEmoji(claim) })
-            const dailySpin = this.resetDailySpin(users)
+            const dailySpin = await this.attempt('Daily spin', () => this.resetDailySpin(users))
             embed.addFields({ name: 'Daily spin', value: EmojiHelper.getStatusEmoji(dailySpin) })
-            const userEffects = this.resetUserEffects(users)
+            const userEffects = await this.attempt('User effects', () => this.resetUserEffects(users))
             embed.addFields({ name: 'User effects', value: EmojiHelper.getStatusEmoji(userEffects) })
-            const jail = await this.updateJailAndJailbreakCounters(users)
+            const jail = await this.attempt('Jail status', () => this.updateJailAndJailbreakCounters(users))
             embed.addFields({ name: 'Jail status', value: EmojiHelper.getStatusEmoji(jail) })
-            const bd = this.checkForUserBirthdays(users)
+            const bd = await this.attempt('Bursdager', () => this.checkForUserBirthdays(users))
             embed.addFields({ name: 'Bursdager', value: EmojiHelper.getStatusEmoji(bd) })
             // const rl = await this.updateRLTournaments(rapidApiKey)
             // embed.addFields({ name: 'Rocket League turnering', value: EmojiHelper.getStatusEmoji(rl) })
-            const drWinNum = this.reRollWinningNumbers()
+            const drWinNum = await this.attempt('Deathroll vinnertall', () => this.reRollWinningNumbers())
             embed.addFields({ name: 'Tilfeldige deathroll vinnertall', value: EmojiHelper.getStatusEmoji(drWinNum) })
-            const moreOrLess = await this.awardAndResetMoreOrLess(users)
+            const moreOrLess = await this.attempt('More or less', () => this.awardAndResetMoreOrLess(users))
             embed.addFields({ name: 'More or less', value: EmojiHelper.getStatusEmoji(moreOrLess) })
-            const shardReward = await this.awardScheduledShardReward(users)
+            const shardReward = await this.attempt('Shard-belønning', () => this.awardScheduledShardReward(users))
             embed.addFields({ name: 'Shard-belønning', value: EmojiHelper.getStatusEmoji(shardReward) })
-            const dailyHub = await generateDailyHubChallenges(this.client, users)
+            const dailyHub = await this.attempt('Daily hub-utfordringer', () => generateDailyHubChallenges(this.client, users))
             embed.addFields({ name: 'Daily hub-utfordringer', value: EmojiHelper.getStatusEmoji(dailyHub) })
-            const mastermind = await this.resetMastermind()
+            const mastermind = await this.attempt('Mastermind', () => this.resetMastermind())
             embed.addFields({ name: 'Mastermind', value: EmojiHelper.getStatusEmoji(mastermind) })
             //const events = await this.generateDailyEvents()
             //embed.addFields({ name: 'Events', value: EmojiHelper.getStatusEmoji(events) })
@@ -65,6 +65,17 @@ export class DailyJobs {
             embed.setFooter({ text: todaysTime })
             this.messageHelper.sendMessage(ChannelIds.ACTION_LOG, { embed: embed })
             this.client.database.clearUserCache()
+        }
+    }
+
+    /** Runs one job. One that throws is reported and marked as failed - it used to take every job after it down with it. */
+    private async attempt(name: string, job: () => JobStatus | Promise<JobStatus>): Promise<JobStatus> {
+        try {
+            return await job()
+        } catch (error) {
+            console.error(`Daily job "${name}" feilet:`, error)
+            this.messageHelper.sendLogMessage(`Daily job "${name}" feilet: ${error}`)
+            return 'failed'
         }
     }
 
@@ -182,7 +193,7 @@ export class DailyJobs {
         const status: JobStatus = 'success' //No good way to verify yet?
         users.forEach((user) => {
             const daily = user?.daily
-            if (!daily?.streak && !daily.claimedToday) return //Verify that the user as a streak/claim, otherwise skip
+            if (!daily || (!daily.streak && !daily.claimedToday)) return //Verify that the user as a streak/claim, otherwise skip
             if (!daily.claimedToday) daily.streak = 0 //If not claimed today, also reset the streak
             daily.claimedToday = false //Reset check for daily claim
             const updatePath = this.client.database.getUserPathToUpdate(user.id, 'daily')
@@ -390,7 +401,7 @@ export class DailyJobs {
         )
         //Find all users with highest first
         const topFirstUsers = usersWithStats
-            .filter((user) => !user.userSettings.excludeFromMoL)
+            .filter((user) => !user.userSettings?.excludeFromMoL)
             .filter(
                 (user) =>
                     user.dailyGameStats.moreOrLess.firstAttempt === highestFirstOrSecondAttempt ||
@@ -441,9 +452,10 @@ export class DailyJobs {
             const results = sortedUsers
                 .map(
                     (user) =>
+                        // Someone who played once has no second attempt - and Math.max with a missing value is NaN.
                         `${UserUtils.findUserById(user.id, this.client)}: ${Math.max(
-                            user.dailyGameStats.moreOrLess.firstAttempt,
-                            user.dailyGameStats.moreOrLess.secondAttempt
+                            user.dailyGameStats.moreOrLess.firstAttempt ?? 0,
+                            user.dailyGameStats.moreOrLess.secondAttempt ?? 0
                         )}`
                 )
                 .join('\n')

@@ -55,26 +55,21 @@ function relevantValueTitle(verb: string | undefined, valueTitle: string | undef
   return valueTitle
 }
 
-/** "<subject> <verb> <value> <valueTitle>, som er <mer/mindre> enn <previousSubject>." - same sentence shape
- * the bot's /moreorless command builds (commands/games/moreOrLess.ts endGame), so guessing wrong actually
- * reveals the value instead of leaving the player wondering what it was. */
-function buildRevealLine(revealed: Item, previous: Item | null, strings: MolStrings | undefined): string {
-  const verb = strings?.verb ?? "var"
+/** "<value> <valueTitle>" for an item - what goes after the verb ("Norge har | 5 400 000 innbyggere"). */
+function valueText(item: Item, strings: MolStrings | undefined) {
   const valueTitle = relevantValueTitle(strings?.verb, strings?.valueTitle)
-  const valueText = `${formatValue(revealed.answer, strings?.valueSuffix)}${valueTitle ? ` ${valueTitle}` : ""}`
-  let sentence = `${revealed.subject} ${verb} ${valueText}`
-  if (previous?.answer !== undefined && revealed.answer !== undefined) {
-    const relation = revealed.answer > previous.answer ? "mer" : revealed.answer < previous.answer ? "mindre" : "det samme som"
-    sentence += `, som er ${relation}${relation === "det samme som" ? "" : " enn"} ${previous.subject}`
-  }
-  return `${sentence}.`
+  return `${formatValue(item.answer, strings?.valueSuffix)}${valueTitle ? ` ${valueTitle}` : ""}`
 }
 
 interface RoundResult {
   correct: boolean
   completed: boolean
   reward: number
-  revealLine: string
+  /** How many were right in the round that just ended. */
+  score: number
+  /** The item that was being guessed, now with its value - and the one it was up against. */
+  revealed?: Item
+  previous?: Item
 }
 
 export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
@@ -163,7 +158,9 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
           correct: !!res.correct,
           completed: !!res.completedNow,
           reward: res.reward ?? 0,
-          revealLine: res.revealedNext ? buildRevealLine(res.revealedNext, previousItem, status?.category.strings) : "",
+          score: res.correctAnswers ?? correctAnswers,
+          revealed: res.revealedNext,
+          previous: previousItem ?? undefined,
         })
       } else {
         setCurrent(res.current ?? null)
@@ -217,17 +214,56 @@ export function MoreOrLessGame({ accessToken }: { accessToken: string }) {
         </>
       )}
 
-      {result && (
-        <div className={styles.resultBlock}>
-          <p className={styles.resultLine}>
-            {result.completed ? <>Gratulerer, du har <span className={styles.textGreen}>fullført dagens kategori</span>!</> : result.correct ? <>Du <span className={styles.textGreen}>fullførte</span> hele kategorien!</> : <>Du svarte <span className={styles.textRed}>feil</span></>}
-          </p>
-          <p className={styles.resultLine}>{result.reward > 0 ? <>Du fikk <span className={styles.textGreen}>+{result.reward}</span> chips</> : "Ingen nye chips - slo ikke din beste"}</p>
-          {result.revealLine && <p className={styles.resultLine}>{result.revealLine}</p>}
-        </div>
-      )}
+      {result && <RoundResultCard result={result} strings={status.category.strings} best={liveStats.bestAttempt} />}
 
       {roundOver && <button className={styles.startBtn} type="button" disabled={busy} onClick={start}>Prøv igjen</button>}
     </>
+  )
+}
+
+/** The end of a round at a glance: right or wrong, what the answer was, and what the round was worth. */
+function RoundResultCard({ result, strings, best }: { result: RoundResult; strings: MolStrings | undefined; best: number }) {
+  const { revealed, previous } = result
+  const won = result.correct
+  const verb = strings?.verb ?? "var"
+  const relation =
+    revealed?.answer !== undefined && previous?.answer !== undefined
+      ? revealed.answer > previous.answer
+        ? "Mer enn"
+        : revealed.answer < previous.answer
+          ? "Mindre enn"
+          : "Det samme som"
+      : null
+
+  return (
+    <div className={`${styles.resultCard} ${won ? styles.resultCardWin : styles.resultCardLose}`}>
+      <div className={styles.resultTitle}>{result.completed ? "Dagens kategori fullført!" : won ? "Hele kategorien fullført!" : "Feil!"}</div>
+
+      {revealed && (
+        <div className={styles.resultReveal}>
+          <strong>{revealed.subject}</strong> {verb} <span className={styles.resultValue}>{valueText(revealed, strings)}</span>
+        </div>
+      )}
+      {relation && previous && (
+        <div className={styles.resultCompare}>
+          {relation} {previous.subject} ({valueText(previous, strings)})
+        </div>
+      )}
+
+      <div className={styles.resultStats}>
+        <div className={styles.resultStat}>
+          <span className={styles.resultStatValue}>{result.score}</span>
+          <span className={styles.resultStatLabel}>riktige</span>
+        </div>
+        <div className={styles.resultStat}>
+          <span className={styles.resultStatValue}>{best}</span>
+          <span className={styles.resultStatLabel}>beste</span>
+        </div>
+        <div className={styles.resultStat}>
+          <span className={`${styles.resultStatValue} ${result.reward > 0 ? styles.textGreen : ""}`}>{result.reward > 0 ? `+${result.reward}` : "0"}</span>
+          <span className={styles.resultStatLabel}>{result.reward > 0 ? "chips" : "chips - slo ikke din beste"}</span>
+        </div>
+      </div>
+    </div>
   )
 }

@@ -132,26 +132,61 @@ function normalizeLobby(raw: any): RedBlackLobby {
   }
 }
 
+const lobbyPath = (instanceId: string, lobbyId: string) => `other/${PATH_PREFIX}/${instanceId}/${lobbyId}`
+
+/** A lobby as it's stored, stamped with the time of this write - which doubles as its version: every view carries it, and clients
+ * compare it with the one in the database to know whether they're behind (see lib/liveSignal.ts). The JSON round-trip strips
+ * `undefined` fields, which Firebase rejects outright. */
+function forDb(lobby: RedBlackLobby) {
+  lobby.updatedAt = Date.now()
+  return JSON.parse(JSON.stringify(lobby))
+}
+
+/** There's no heartbeat at these tables, so one that everybody just walked away from stays behind. A lobby nobody has touched
+ * for this long is cleared out the next time someone looks at the list. */
+const STALE_LOBBY_MS = 6 * 60 * 60 * 1000
+
 async function readLobby(firebase: FirebaseHelper, instanceId: string, lobbyId: string): Promise<RedBlackLobby | null> {
-  const data = await firebase.getData(`other/${PATH_PREFIX}/${instanceId}/${lobbyId}`)
+  const data = await firebase.getData(lobbyPath(instanceId, lobbyId))
   return data ? normalizeLobby({ id: lobbyId, ...data }) : null
 }
 
 async function readAllLobbies(firebase: FirebaseHelper, instanceId: string): Promise<Record<string, RedBlackLobby>> {
   const data = (await firebase.getData(`other/${PATH_PREFIX}/${instanceId}`)) ?? {}
   const result: Record<string, RedBlackLobby> = {}
-  for (const lobbyId of Object.keys(data)) result[lobbyId] = normalizeLobby({ id: lobbyId, ...data[lobbyId] })
+  const stale: Record<string, null> = {}
+  for (const lobbyId of Object.keys(data)) {
+    if (Date.now() - (data[lobbyId].updatedAt ?? 0) > STALE_LOBBY_MS) stale[lobbyPath(instanceId, lobbyId)] = null
+    else result[lobbyId] = normalizeLobby({ id: lobbyId, ...data[lobbyId] })
+  }
+  if (Object.keys(stale).length > 0) await firebase.updateData(stale)
   return result
 }
 
 async function writeLobby(firebase: FirebaseHelper, instanceId: string, lobbyId: string, lobby: RedBlackLobby) {
-  // The JSON round-trip strips `undefined` fields, which Firebase rejects outright.
-  const clean = JSON.parse(JSON.stringify({ ...lobby, updatedAt: Date.now() }))
-  await firebase.updateData({ [`other/${PATH_PREFIX}/${instanceId}/${lobbyId}`]: clean })
+  await firebase.updateData({ [lobbyPath(instanceId, lobbyId)]: forDb(lobby) })
+}
+
+/** Every change to an existing lobby goes through here: an atomic read-modify-write (see FirebaseHelper.transact), so two requests
+ * landing together can't overwrite each other. `apply` changes the lobby in place, or returns a message to reject the change instead.
+ * It can run more than once. Resolves to the lobby as it is afterwards - null if it's gone. */
+async function updateLobby(
+  firebase: FirebaseHelper,
+  instanceId: string,
+  lobbyId: string,
+  apply: (lobby: RedBlackLobby) => string | void
+): Promise<{ lobby: RedBlackLobby | null; error?: string }> {
+  const box: { error?: string } = {}
+  const raw = await firebase.transact<any>(lobbyPath(instanceId, lobbyId), (current) => {
+    const lobby = normalizeLobby({ id: lobbyId, ...current })
+    box.error = apply(lobby) || undefined
+    return box.error ? undefined : forDb(lobby)
+  })
+  return { lobby: raw ? normalizeLobby({ id: lobbyId, ...raw }) : null, error: box.error }
 }
 
 async function deleteLobby(firebase: FirebaseHelper, instanceId: string, lobbyId: string) {
-  await firebase.updateData({ [`other/${PATH_PREFIX}/${instanceId}/${lobbyId}`]: null })
+  await firebase.updateData({ [lobbyPath(instanceId, lobbyId)]: null })
 }
 
 /** Ace defaults to high (14) until rigAce fixes it to 1 or 14 for the rest of the game. */
@@ -269,6 +304,7 @@ function publicView(lobby: RedBlackLobby, userId: string) {
 
   return {
     id: lobby.id,
+    version: lobby.updatedAt,
     hostId: lobby.hostId,
     phase: lobby.phase,
     rbRound: lobby.rbRound,
@@ -316,42 +352,41 @@ function publicView(lobby: RedBlackLobby, userId: string) {
 // ---------- lobby management ----------
 
 async function leaveLobby(firebase: FirebaseHelper, instanceId: string, lobbyId: string, userId: string) {
-  const lobby = await readLobby(firebase, instanceId, lobbyId)
-  if (!lobby) return
-
-  if (lobby.spectators[userId] !== undefined) {
-    delete lobby.spectators[userId]
-    await writeLobby(firebase, instanceId, lobbyId, lobby)
-    return
-  }
-  if (!lobby.players[userId]) return
-
-  const playerOrder = lobby.playerOrder.filter((id) => id !== userId)
-  if (lobby.hostId === userId || playerOrder.length === 0) {
+  const peek = await readLobby(firebase, instanceId, lobbyId)
+  if (!peek) return
+  if (peek.players[userId] && (peek.hostId === userId || peek.playerOrder.length <= 1)) {
     await deleteLobby(firebase, instanceId, lobbyId)
     return
   }
 
-  const leavingIndex = lobby.playerOrder.indexOf(userId)
-  let turnIndex = lobby.turnIndex
-  if (leavingIndex < turnIndex) turnIndex--
-  const wrapped = turnIndex >= playerOrder.length
-  turnIndex %= playerOrder.length
+  await updateLobby(firebase, instanceId, lobbyId, (lobby) => {
+    if (lobby.spectators[userId] !== undefined) {
+      delete lobby.spectators[userId]
+      return
+    }
+    if (!lobby.players[userId]) return
 
-  delete lobby.players[userId]
-  lobby.playerOrder = playerOrder
-  lobby.turnIndex = turnIndex
-  if (lobby.last?.playerId === userId) delete lobby.last
+    const playerOrder = lobby.playerOrder.filter((id) => id !== userId)
+    const leavingIndex = lobby.playerOrder.indexOf(userId)
+    let turnIndex = lobby.turnIndex
+    if (leavingIndex < turnIndex) turnIndex--
+    const wrapped = turnIndex >= playerOrder.length
+    turnIndex %= Math.max(1, playerOrder.length)
 
-  // If the leaver was the last one to still have a turn this round, the round is over.
-  if (lobby.phase === "rb" && wrapped && lobby.rbRound !== "DONE") lobby.rbRound = RB_ORDER[RB_ORDER.indexOf(lobby.rbRound) + 1]
+    delete lobby.players[userId]
+    lobby.playerOrder = playerOrder
+    lobby.turnIndex = turnIndex
+    if (lobby.last?.playerId === userId) delete lobby.last
 
-  if (lobby.phase === "bus" && lobby.bus) {
-    lobby.bus.candidates = lobby.bus.candidates.filter((id) => id !== userId)
-    if (lobby.bus.loserId === userId) lobby.phase = "finished"
-    else if (lobby.bus.stage === "pickLoser" && lobby.bus.candidates.length === 1) startBus(lobby, lobby.bus.candidates[0])
-  }
-  await writeLobby(firebase, instanceId, lobbyId, lobby)
+    // If the leaver was the last one to still have a turn this round, the round is over.
+    if (lobby.phase === "rb" && wrapped && lobby.rbRound !== "DONE") lobby.rbRound = RB_ORDER[RB_ORDER.indexOf(lobby.rbRound) + 1]
+
+    if (lobby.phase === "bus" && lobby.bus) {
+      lobby.bus.candidates = lobby.bus.candidates.filter((id) => id !== userId)
+      if (lobby.bus.loserId === userId) lobby.phase = "finished"
+      else if (lobby.bus.stage === "pickLoser" && lobby.bus.candidates.length === 1) startBus(lobby, lobby.bus.candidates[0])
+    }
+  })
 }
 
 async function leaveOtherLobbies(firebase: FirebaseHelper, instanceId: string, userId: string, exceptLobbyId?: string) {
@@ -400,35 +435,40 @@ export async function createRedBlackLobby(instanceId: string, user: Authenticate
   return Response.json(publicView(lobby, user.id))
 }
 
+const STARTED = "Spillet har allerede startet - du kan se på i stedet"
+
 export async function joinRedBlackLobby(instanceId: string, lobbyId: string, user: AuthenticatedDiscordUser) {
   const firebase = new FirebaseHelper()
-  const lobby = await readLobby(firebase, instanceId, lobbyId)
-  if (!lobby) return Response.json({ error: "Bordet finnes ikke lenger" }, { status: 404 })
+  const peek = await readLobby(firebase, instanceId, lobbyId)
+  if (!peek) return Response.json({ error: "Bordet finnes ikke lenger" }, { status: 404 })
+  if (peek.players[user.id]) return Response.json(publicView(peek, user.id))
+  if (peek.phase !== "waiting" && peek.phase !== "finished") return Response.json({ error: STARTED }, { status: 400 })
 
-  if (!lobby.players[user.id]) {
-    if (lobby.phase !== "waiting" && lobby.phase !== "finished") {
-      return Response.json({ error: "Spillet har allerede startet - du kan se på i stedet" }, { status: 400 })
-    }
-    await leaveOtherLobbies(firebase, instanceId, user.id, lobbyId)
-    delete lobby.spectators[user.id]
-    lobby.players[user.id] = playerFrom(user)
-    lobby.playerOrder.push(user.id)
-    await writeLobby(firebase, instanceId, lobbyId, lobby)
-  }
+  await leaveOtherLobbies(firebase, instanceId, user.id, lobbyId)
+  const { lobby, error } = await updateLobby(firebase, instanceId, lobbyId, (current) => {
+    if (current.players[user.id]) return
+    if (current.phase !== "waiting" && current.phase !== "finished") return STARTED
+    delete current.spectators[user.id]
+    current.players[user.id] = playerFrom(user)
+    current.playerOrder.push(user.id)
+  })
+  if (!lobby) return Response.json({ error: "Bordet finnes ikke lenger" }, { status: 404 })
+  if (error) return Response.json({ error }, { status: 400 })
   return Response.json(publicView(lobby, user.id))
 }
 
 export async function spectateRedBlackLobby(instanceId: string, lobbyId: string, user: AuthenticatedDiscordUser) {
   const firebase = new FirebaseHelper()
-  const lobby = await readLobby(firebase, instanceId, lobbyId)
-  if (!lobby) return Response.json({ error: "Bordet finnes ikke lenger" }, { status: 404 })
-  if (lobby.players[user.id]) return Response.json({ error: "Du sitter allerede ved bordet" }, { status: 400 })
+  const peek = await readLobby(firebase, instanceId, lobbyId)
+  if (!peek) return Response.json({ error: "Bordet finnes ikke lenger" }, { status: 404 })
+  if (peek.players[user.id]) return Response.json({ error: "Du sitter allerede ved bordet" }, { status: 400 })
+  if (peek.spectators[user.id] !== undefined) return Response.json(publicView(peek, user.id))
 
-  if (lobby.spectators[user.id] === undefined) {
-    await leaveOtherLobbies(firebase, instanceId, user.id, lobbyId)
-    lobby.spectators[user.id] = { username: user.globalName ?? user.username, avatar: user.avatar }
-    await writeLobby(firebase, instanceId, lobbyId, lobby)
-  }
+  await leaveOtherLobbies(firebase, instanceId, user.id, lobbyId)
+  const { lobby } = await updateLobby(firebase, instanceId, lobbyId, (current) => {
+    if (!current.players[user.id]) current.spectators[user.id] = { username: user.globalName ?? user.username, avatar: user.avatar }
+  })
+  if (!lobby) return Response.json({ error: "Bordet finnes ikke lenger" }, { status: 404 })
   return Response.json(publicView(lobby, user.id))
 }
 
@@ -452,15 +492,13 @@ interface ActionInput {
   loserId?: string
 }
 
-/** Read-modify-write on a lobby (same non-transactional shape as the other multiplayer handlers).
- * `apply` mutates the lobby in place and returns an error message to reject the action instead. */
+/** A game action: `apply` mutates the lobby in place and returns an error message to reject the action instead (see updateLobby -
+ * it's atomic, which matters here: in the Give/Take phase everyone lays cards at the same moment). */
 async function mutate(instanceId: string, lobbyId: string, user: AuthenticatedDiscordUser, apply: (lobby: RedBlackLobby) => string | void) {
   const firebase = new FirebaseHelper()
-  const lobby = await readLobby(firebase, instanceId, lobbyId)
+  const { lobby, error } = await updateLobby(firebase, instanceId, lobbyId, apply)
   if (!lobby) return Response.json({ closed: true }, { status: 404 })
-  const err = apply(lobby)
-  if (err) return Response.json({ error: err }, { status: 400 })
-  await writeLobby(firebase, instanceId, lobbyId, lobby)
+  if (error) return Response.json({ error }, { status: 400 })
   return Response.json(publicView(lobby, user.id))
 }
 

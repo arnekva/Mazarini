@@ -1,3 +1,5 @@
+import { increment } from "firebase/database"
+import { after } from "next/server"
 import { FirebaseHelper } from "@/lib/db/firebaseHelper"
 import { authenticateRequest } from "@/lib/discordAuth"
 import { announceInChannel, lootButtonComponent } from "@/lib/discordMessage"
@@ -11,33 +13,43 @@ export async function POST(request: Request) {
   if (error) return error
 
   const firebase = new FirebaseHelper()
-  const dbUser = (await firebase.getUser(user.id)) ?? {}
+  // The three things a claim depends on - not the whole user record.
+  const [daily, daysInJail, chipsBefore] = await Promise.all([
+    firebase.getData(`users/${user.id}/daily`),
+    firebase.getData(`users/${user.id}/jail/daysInJail`),
+    firebase.getChips(user.id),
+  ])
 
-  if (dbUser.daily?.claimedToday) {
-    return Response.json({ claimed: false, alreadyClaimed: true, streak: dbUser.daily?.streak ?? 0 })
+  if (daily?.claimedToday) {
+    return Response.json({ claimed: false, alreadyClaimed: true, streak: daily?.streak ?? 0 })
   }
 
-  const newStreak = (dbUser.daily?.streak ?? 0) + 1
-  const inJail = (dbUser.jail?.daysInJail ?? 0) > 0
+  const newStreak = (daily?.streak ?? 0) + 1
+  const inJail = (daysInJail ?? 0) > 0
 
   let reward = dailyClaimValues.baseReward + dailyClaimValues.baseReward * newStreak * dailyClaimValues.streakMultiplier
   if (inJail) reward *= JAIL_MULTIPLIER
   reward = Math.floor(reward)
 
-  const chips = (dbUser.chips ?? 0) + reward
+  const chips = chipsBefore + reward
   const lootAwarded = newStreak === 7
   const finalStreak = lootAwarded ? 0 : newStreak
 
   await firebase.updateUserFields(user.id, {
-    chips,
-    daily: { claimedToday: true, streak: finalStreak },
+    // Added on the server rather than written as "what it was + reward": the balance may have changed since it was read.
+    chips: increment(reward),
+    // The two fields a claim changes, not the whole `daily` object - whatever else is kept there stays.
+    "daily/claimedToday": true,
+    "daily/streak": finalStreak,
   })
 
   if (lootAwarded && dailyClaimValues.streak7Reward === "chest") {
-    await announceInChannel(user.channelId, {
-      content: `<@${user.id}> nådde 7 dager i strekk på Daily Claim og fikk en kiste!`,
-      components: [lootButtonComponent(user.id, "basic", "chest")],
-    })
+    after(() =>
+      announceInChannel(user.channelId, {
+        content: `<@${user.id}> nådde 7 dager i strekk på Daily Claim og fikk en kiste!`,
+        components: [lootButtonComponent(user.id, "basic", "chest")],
+      })
+    )
   }
 
   return Response.json({ claimed: true, reward, streak: newStreak, chips, lootAwarded })

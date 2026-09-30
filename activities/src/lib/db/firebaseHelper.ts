@@ -1,5 +1,5 @@
 import { FirebaseApp, getApp, getApps, initializeApp } from "firebase/app"
-import { Database, get, getDatabase, increment, ref, runTransaction, update } from "firebase/database"
+import { Database, get, getDatabase, increment, limitToLast, orderByKey, query, ref, runTransaction, update } from "firebase/database"
 import { database, firebaseConfig } from "../env"
 
 // Server-only - the same Firebase RTDB project and `users/{id}` shape the bot uses
@@ -22,8 +22,19 @@ export class FirebaseHelper {
     return response.exists() ? response.val() : undefined
   }
 
+  /** The whole user record - it's big (stats, loot, decks). Anything that polls should read just the field it needs instead. */
   public async getUser(userId: string): Promise<any> {
     return this.getData(`users/${userId}`)
+  }
+
+  public async getChips(userId: string): Promise<number> {
+    return (await this.getData(`users/${userId}/chips`)) ?? 0
+  }
+
+  /** The newest `count` children of `path` by key - for lists whose keys sort by time (chat messages). */
+  public async getLastChildren(path: string, count: number): Promise<Record<string, any>> {
+    const response = await get(query(ref(this.db, `${database}/${path}`), orderByKey(), limitToLast(count)))
+    return response.exists() ? response.val() : {}
   }
 
   /** Shallow-merges `fields` onto users/{userId} - only the given fields change, everything else (including
@@ -56,11 +67,16 @@ export class FirebaseHelper {
     return update(ref(this.db, database), updates)
   }
 
-  // Deliberately no runTransaction() here - firebase/database's client-SDK transaction() needs a
-  // listener-warmed local sync cache to know a path's "current" value, which a fresh one-shot Node
-  // connection (every call from here) never has, so its callback fires with a false `null` on the
-  // first invocation even when the data genuinely exists on the server. Confirmed by direct testing
-  // (see blackjackHandler.ts's runLobbyMutation) - it silently rejected every action that used it. A
-  // real transaction would need firebase-admin's server-side SDK instead (a service account, not the
-  // apiKey config this app uses).
+  /** Atomic read-modify-write of whatever is at `path`: the server only accepts the write if the value is still the one `apply`
+   * was given, and otherwise `apply` runs again on the newer one - so two requests landing together can't overwrite each other.
+   * `apply` returns the new value, or undefined to leave things as they are. It can run more than once, so it must not have
+   * side effects: do those after this resolves. Resolves to what's at the path afterwards - null if there's nothing there.
+   *
+   * The first run always sees `null` from here (see claim above) - that's "not known yet", not "missing", so it's answered with
+   * `null` without calling `apply`: if there really is nothing, nothing is written; if there is, the server rejects that and the
+   * next run gets the real value. Aborting on that first null is what broke the earlier attempt at this. */
+  public async transact<T = any>(path: string, apply: (current: T) => T | undefined): Promise<T | null> {
+    const result = await runTransaction(ref(this.db, `${database}/${path}`), (current) => (current === null ? null : apply(current)), { applyLocally: false })
+    return result.snapshot.val()
+  }
 }

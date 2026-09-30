@@ -55,6 +55,8 @@ export function CountryGuessGame({ game, accessToken }: { game: CountryGameId; a
   // Which way (degrees clockwise from north) the answer lies from the last wrong guess - drawn as an arrow rotated by exactly that.
   const [hint, setHint] = useState<{ bearing: number; distanceKm: number } | null>(null)
   const [didYouMean, setDidYouMean] = useState<{ original: string; suggestion: string } | null>(null)
+  // The outline shown full-screen - it's kept small on the page so the answer field fits below it.
+  const [zoomed, setZoomed] = useState(false)
 
   useEffect(() => {
     callApi<StatusResponse>(`/api/games/${game}`, accessToken).then(setStatus)
@@ -115,12 +117,22 @@ export function CountryGuessGame({ game, accessToken }: { game: CountryGameId; a
       <div className={styles.visualBox}>
         {game === "flag" && status.challenge.flagPng && <img className={styles.flagImg} src={proxyImageUrl(status.challenge.flagPng)} alt="Flagg" />}
         {game === "outline" && status.challenge.path && (
-          <svg className={styles.outlineSvg} viewBox={status.challenge.viewBox}>
-            <path d={status.challenge.path} />
-          </svg>
+          <button type="button" className={styles.outlineButton} onClick={() => setZoomed(true)} aria-label="Forstørr omrisset">
+            <svg className={styles.outlineSvg} viewBox={status.challenge.viewBox}>
+              <path d={status.challenge.path} />
+            </svg>
+          </button>
         )}
         {game === "capital" && <div className={styles.countryName}>{status.challenge.countryName}</div>}
       </div>
+      {game === "outline" && status.challenge.path && <div className={styles.zoomHint}>Trykk på omrisset for å se detaljene</div>}
+      {zoomed && status.challenge.path && (
+        <div className={styles.zoomOverlay} onClick={() => setZoomed(false)} role="button" aria-label="Lukk">
+          <svg className={styles.outlineZoomed} viewBox={status.challenge.viewBox}>
+            <path d={status.challenge.path} />
+          </svg>
+        </div>
+      )}
 
       {message && <div className={`${styles.result} ${message.startsWith("Riktig") ? styles.resultCorrect : styles.resultWrong}`}>{message}</div>}
 

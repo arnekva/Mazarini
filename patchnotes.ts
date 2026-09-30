@@ -16,7 +16,7 @@ export class PatchNotes extends AbstractCommands {
         super(client)
     }
 
-    public static readonly currentVersion = '36.3.1'
+    public static readonly currentVersion = '36.3.2'
 
     static getCurrentPatchNotes() {
         const container = new SimpleContainer()
@@ -27,12 +27,21 @@ export class PatchNotes extends AbstractCommands {
 
         const text = new TextDisplayBuilder().setContent(
             [
-                '# Acitvity',
-                '* Chats i blackjack og rulett',
-                '* Bedre spectating',
-                '* Fikset dpn bug :grrr: (allegedly)',
-                '* Forbedret logging under spill',
-                '* Økt antall kanter på country outline, og forbedret direction på pil slightly',
+                '# Activity',
+                '* Multiplayer e mye kjappere - bordet oppdatere seg med ein gong någen gjør någe',
+                '* To så trykke samtidig overskrive ikkje kverandre lenger',
+                '* Outline vise nå øyer, fjorder og havner. Trykk på omrisset for å se det stort',
+                '* More or Less har fått ein tydeligere "Feil!"-skjerm',
+                '* Blackjack-meldingen i chatten e kortere: antall runder og total +/- per spiller',
+                '* Chipsene på forsiden hoppe ikkje ner lenger når de laste inn',
+                '# Terning',
+                '* Potten og spillene lagres med ein gong, så ingenting forsvinne om botten kræsje',
+                '* "Spill Blackjack"-knappen dra deg ikkje inn i blackjack fleire dager seinere',
+                '* Førstemann så sende "lmao" i #loot får ein liten reward',
+                '# Diverse',
+                '* Chips kan ikkje lenger bli overskrevet når botten og Activity endre de samtidig',
+                '* Fiksa NaN i More or Less-resultatene, og någen bugs i daily jobs',
+                '* tyvm te opus for de fine patch noteså som alle lese',
             ].join('\n')
         )
         container.addSeparator()

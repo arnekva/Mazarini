@@ -13,12 +13,14 @@ export class HourJob {
         this.messageHelper = messageHelper
         this.client = client
     }
+    /** Called every minute (see JobScheduler). Scheduled messages are checked each time - they're sent at the minute they were set for -
+     * and everything else only on the hour. */
     async runJobs() {
+        await this.sendScheduledMessage()
         const isTopOfHour = new Date().getMinutes() === 0
         if (isTopOfHour) {
             this.client.onTimedEvent('hourly')
             await this.checkForUpcomingRLTournaments()
-            await this.sendScheduledMessage()
             if (new Date().getHours() === 18) {
                 await MoreOrLess.instance?.sendScheduledResults()
             }
@@ -31,7 +33,12 @@ export class HourJob {
         const storage = await this.client.database.getStorage()
         const tournaments = storage?.rocketLeagueTournaments?.tournaments
         if (tournaments) {
-            const nextTournaments = tournaments.filter((t) => new Date(t.starts).getHours() === new Date().getHours() + 1 && t.shouldNotify)
+            // The hour (and day) it is one hour from now - not "this hour + 1", which is 24 at 23:00 and matches nothing.
+            const inAnHour = new Date(Date.now() + 60 * 60 * 1000)
+            const nextTournaments = tournaments.filter((t) => {
+                const starts = new Date(t.starts)
+                return starts.getHours() === inAnHour.getHours() && starts.getDate() === inAnHour.getDate() && t.shouldNotify
+            })
 
             if (nextTournaments.length > 0) {
                 const embed = EmbedUtils.createSimpleEmbed(
@@ -52,10 +59,13 @@ export class HourJob {
             const messagesToSend = shceduledMessages.filter((msg) => {
                 const date = new Date(msg.dateToSendOn * 1000)
                 const today = new Date()
-                const dateMatches = date.getDay() === today.getDay() && date.getMonth() === today.getMonth()
+                // getDate() is the day of the month; getDay() (which this used) is the weekday, and sent the message on the first
+                // matching weekday of the month instead.
+                const dateMatches = date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear()
                 const timeMatches = date.getHours() === today.getHours() && date.getMinutes() === today.getMinutes()
                 return dateMatches && timeMatches
             })
+            if (messagesToSend.length === 0) return
             messagesToSend.forEach((msg) => {
                 this.messageHelper.sendMessage(msg.channelId, { text: msg.message })
                 this.messageHelper.sendLogMessage(`En planlagt melding ble sendt til ${MentionUtils.mentionChannel(msg.channelId)}`)

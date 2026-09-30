@@ -91,25 +91,81 @@
   cursor: default;
 }
 
-.resultBlock {
-  padding: 4px 2px;
+/* The end of a round: a verdict you can read in one glance, the answer, and the numbers - rather than three sentences. */
+.resultCard {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  text-align: center;
 }
 
-.resultLine {
-  text-align: left;
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 1.5;
-  margin: 0;
-  color: var(--foreground);
+.resultCardLose {
+  border-color: color-mix(in srgb, var(--red) 55%, var(--card-border));
+  background: var(--red-glow);
 }
 
-.textRed {
+.resultCardWin {
+  border-color: color-mix(in srgb, var(--green) 55%, var(--card-border));
+  background: var(--green-glow);
+}
+
+.resultTitle {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.resultCardLose .resultTitle {
   color: var(--red);
-  font-weight: 700;
+}
+
+.resultCardWin .resultTitle {
+  color: var(--green);
+}
+
+.resultReveal {
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.resultValue {
+  color: var(--gold);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.resultCompare {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.resultStats {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--card-border);
+}
+
+.resultStat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.resultStatValue {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.resultStatLabel {
+  font-size: 11px;
+  color: var(--muted);
 }
 
 .textGreen {

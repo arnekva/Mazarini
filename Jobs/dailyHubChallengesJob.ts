@@ -11,6 +11,7 @@ interface Country {
     name: { common: string }
     capital?: string[]
     cca2: string
+    cca3?: string
     ccn3?: string
     independent?: boolean
 }
@@ -77,7 +78,7 @@ export async function generateDailyHubChallenges(client: MazariniClient, users: 
         ])
 
         const { picked: outlineCountry, newPrevious: outlineHistory } = pickWithHistory(withOutline, history.outline ?? [])
-        const outline = await getCountryOutlinePath(outlineCountry.ccn3)
+        const outline = await getCountryOutlinePath(outlineCountry.ccn3, outlineCountry.cca3)
         if (!outline) return 'failed'
         const outlineOptions = shuffled([
             outlineCountry.name.common,

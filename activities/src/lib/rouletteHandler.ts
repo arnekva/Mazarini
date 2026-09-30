@@ -5,7 +5,7 @@ import { AuthenticatedDiscordUser } from "./discordAuth"
 import { discordAvatarUrl } from "./discordAvatar"
 import { editLiveMessage, liveLogBody, LiveMessageRef, postLiveMessage, resolveAnnounceChannel } from "./discordMessage"
 import { after } from "next/server"
-import { chatEmbedFields, CHAT_VISIBLE, ChatMessage, postChat, readChat } from "./gameChat"
+import { chatEmbedFields, ChatMessage, postChat, readChat, readChatTail } from "./gameChat"
 import { ANNOUNCE_CHANNEL_ID, rouletteValues } from "./gameValues"
 
 // Shared roulette table - one per voice channel (instanceId), everyone who opens it sits at the same table. Port of the
@@ -49,10 +49,15 @@ const BET_TYPES: BetType[] = ["number", "red", "black", "even", "odd"]
 const HISTORY_LENGTH = 18
 /** Someone who hasn't polled for this long is no longer "at the table" in the player list. */
 const PRESENCE_VISIBLE_MS = 20 * 1000
+/** A presence stamp younger than this isn't rewritten - polls come every second, the stamp only has to stay inside PRESENCE_VISIBLE_MS. */
+const PRESENCE_TOUCH_MS = 5 * 1000
 /** A spin claim older than this that still hasn't produced a result is presumed dead (crashed request) and can be retried. */
 const STALE_CLAIM_MS = 60 * 1000
 
 const root = (instanceId: string) => `other/multiplayerRoulette/${instanceId}`
+/** The table's version: goes into every write that changes what the table looks like (as part of that same write), and into
+ * every view - clients compare the two to know whether they're behind (see lib/liveSignal.ts). */
+const bump = (instanceId: string) => ({ [`${root(instanceId)}/v`]: increment(1) })
 const err = (message: string, status = 400) => Response.json({ error: message }, { status })
 
 // ---------- the Discord log message and the chat ----------
@@ -120,21 +125,17 @@ async function logRound(firebase: FirebaseHelper, instanceId: string, roundId: n
 }
 
 /** When someone (re)arrives at a table that nobody else has been at for a while, the earlier session is over: its message gets a last edit with the
- * chat, and the session and chat are cleared. Only checked for someone whose own presence has lapsed, i.e. arriving - not on every poll. */
-async function endIdleSession(firebase: FirebaseHelper, instanceId: string, user: AuthenticatedDiscordUser) {
+ * chat, and the session and chat are cleared. Only called for someone whose own presence has lapsed, i.e. arriving - not on every poll.
+ * `presence` is the table's presence as it was before the caller's own arrival was stamped. Returns whether a session was ended. */
+async function endIdleSession(firebase: FirebaseHelper, instanceId: string, presence: Presence): Promise<boolean> {
   const now = Date.now()
-  const mine = await firebase.getData(`${root(instanceId)}/presence/${user.id}`)
-  if (mine && now - mine.at < SESSION_IDLE_MS) return
-  const [presence, session, chat] = await Promise.all([
-    firebase.getData(`${root(instanceId)}/presence`) as Promise<Record<string, { at: number }> | undefined>,
-    readSession(firebase, instanceId),
-    readChat(firebase, chatPath(instanceId)),
-  ])
-  if (!session && chat.length === 0) return
-  if (Object.values(presence ?? {}).some((p) => now - p.at < SESSION_IDLE_MS)) return
-  if (!(await firebase.claim(`${root(instanceId)}/claims/end-${session?.startedAt ?? chat[0]?.at}`))) return
+  if (Object.values(presence).some((p) => now - p.at < SESSION_IDLE_MS)) return false
+  const [session, chat] = await Promise.all([readSession(firebase, instanceId), readChat(firebase, chatPath(instanceId))])
+  if (!session && chat.length === 0) return false
+  if (!(await firebase.claim(`${root(instanceId)}/claims/end-${session?.startedAt ?? chat[0]?.at}`))) return false
   if (session?.logRef) await editLiveMessage(session.logRef, sessionBody(session, session.rounds ?? [], chat, "Bordet ble tomt - runden er over"))
   await firebase.updateData({ [sessionPath(instanceId)]: null, [chatPath(instanceId)]: null })
+  return true
 }
 
 export async function postRouletteChat(instanceId: string, user: AuthenticatedDiscordUser, text: unknown) {
@@ -178,12 +179,13 @@ function normalizeTable(raw: any): Table {
   return { ...raw, history: raw.history ?? [] }
 }
 
-async function readTable(firebase: FirebaseHelper, instanceId: string): Promise<Table> {
-  const raw = await firebase.getData(`${root(instanceId)}/table`)
+/** `raw` is what's at the table's path, for a caller that has read it already. */
+async function readTable(firebase: FirebaseHelper, instanceId: string, raw?: any): Promise<Table> {
+  raw ??= await firebase.getData(`${root(instanceId)}/table`)
   if (raw) return normalizeTable(raw)
   // First visit to this channel's table. Two people opening it at once both write essentially the same thing.
   const fresh: Table = { roundId: 1, phase: "betting", endsAt: Date.now() + rouletteValues.bettingMs, history: [] }
-  await firebase.updateData({ [`${root(instanceId)}/table`]: fresh })
+  await firebase.updateData({ [`${root(instanceId)}/table`]: fresh, ...bump(instanceId) })
   return fresh
 }
 
@@ -192,10 +194,44 @@ async function readBets(firebase: FirebaseHelper, instanceId: string, roundId: n
   return (await firebase.getData(`${root(instanceId)}/bets/${roundId}`)) ?? {}
 }
 
-async function touchPresence(firebase: FirebaseHelper, instanceId: string, user: AuthenticatedDiscordUser) {
-  await firebase.updateData({
-    [`${root(instanceId)}/presence/${user.id}`]: { name: user.globalName ?? user.username, avatar: user.avatar ?? null, at: Date.now() },
-  })
+type Presence = Record<string, { name: string; avatar: string | null; at: number }>
+
+const presenceOf = (user: AuthenticatedDiscordUser) => ({ name: user.globalName ?? user.username, avatar: user.avatar ?? null, at: Date.now() })
+
+/** `arriving`: they weren't in the player list before this, so it's a change to the table and not just a heartbeat. */
+async function touchPresence(firebase: FirebaseHelper, instanceId: string, user: AuthenticatedDiscordUser, arriving = false) {
+  await firebase.updateData({ [`${root(instanceId)}/presence/${user.id}`]: presenceOf(user), ...(arriving ? bump(instanceId) : {}) })
+}
+
+/** Everything one view of the table is made from. */
+interface TableState {
+  table: Table
+  /** This round's bets: userId -> key -> bet */
+  bets: Record<string, Record<string, Bet>>
+  presence: Presence
+  /** Who has pressed Spin this round. */
+  ready: Record<string, true>
+  chips: number
+  chat: ChatMessage[]
+  version: number
+}
+
+/** Reads the whole state in one go - small reads side by side instead of one after the other. Bets and the ready list are
+ * stored per round, and only the current round's are kept around, so they're read whole and the round picked out afterwards.
+ * The version is asked for first, so it's never newer than the rest: the worst a change landing in the middle can do is make
+ * a client ask once more. */
+async function loadState(firebase: FirebaseHelper, instanceId: string, userId: string): Promise<TableState> {
+  const [version, tableRaw, bets, presence, ready, chips, chat] = await Promise.all([
+    firebase.getData(`${root(instanceId)}/v`),
+    firebase.getData(`${root(instanceId)}/table`),
+    firebase.getData(`${root(instanceId)}/bets`),
+    firebase.getData(`${root(instanceId)}/presence`),
+    firebase.getData(`${root(instanceId)}/ready`),
+    firebase.getChips(userId),
+    readChatTail(firebase, chatPath(instanceId)),
+  ])
+  const table = await readTable(firebase, instanceId, tableRaw)
+  return { table, bets: bets?.[table.roundId] ?? {}, presence: presence ?? {}, ready: ready?.[table.roundId] ?? {}, chips, chat, version: version ?? 0 }
 }
 
 /** Picks the winning number and settles every bet in one atomic write together with the move to the result phase.
@@ -239,13 +275,14 @@ async function resolveRound(firebase: FirebaseHelper, instanceId: string, table:
     results,
   }
   updates[`${root(instanceId)}/table`] = next
-  await firebase.updateData(updates)
+  await firebase.updateData({ ...updates, ...bump(instanceId) })
   after(() => logRound(firebase, instanceId, table.roundId, roll, results))
 }
 
-/** Moves the table along if its time is up. Safe to call from every poll - see the notes at the top. */
-async function advance(firebase: FirebaseHelper, instanceId: string): Promise<Table> {
-  let table = await readTable(firebase, instanceId)
+/** Moves the table along if its time is up. Safe to call from every poll - see the notes at the top. `current` is the table for a
+ * caller that has read it already; it's handed back untouched (the same object) when there was nothing to do. */
+async function advance(firebase: FirebaseHelper, instanceId: string, current?: Table): Promise<Table> {
+  let table = current ?? (await readTable(firebase, instanceId))
   const now = Date.now()
 
   if (table.phase === "betting" && now >= table.endsAt + rouletteValues.lateBetGraceMs) {
@@ -253,7 +290,7 @@ async function advance(firebase: FirebaseHelper, instanceId: string): Promise<Ta
     if (Object.keys(bets).length === 0) {
       // Nobody bet: don't spin an empty wheel, just keep the round open for whoever shows up.
       table = { ...table, endsAt: now + rouletteValues.bettingMs }
-      await firebase.updateData({ [`${root(instanceId)}/table/endsAt`]: table.endsAt })
+      await firebase.updateData({ [`${root(instanceId)}/table/endsAt`]: table.endsAt, ...bump(instanceId) })
     } else {
       // A fresh claim key per minute past the deadline: if the process that won an earlier one died before finishing, the next
       // minute's poll can take over.
@@ -272,6 +309,7 @@ async function advance(firebase: FirebaseHelper, instanceId: string): Promise<Ta
         // Old claims are only kept a few rounds - long enough that nothing can re-win one.
         [`${root(instanceId)}/claims/${table.roundId - 3}-spin-0`]: null,
         [`${root(instanceId)}/claims/${table.roundId - 3}-next`]: null,
+        ...bump(instanceId),
       })
     }
     table = await readTable(firebase, instanceId)
@@ -279,16 +317,9 @@ async function advance(firebase: FirebaseHelper, instanceId: string): Promise<Ta
   return table
 }
 
-async function publicView(firebase: FirebaseHelper, instanceId: string, table: Table, userId: string) {
-  type Presence = Record<string, { name: string; avatar: string | null; at: number }>
-  const [bets, presence, dbUser, readyRaw, chat]: [Record<string, Record<string, Bet>>, Presence | undefined, any, Record<string, true> | undefined, ChatMessage[]] = await Promise.all([
-    readBets(firebase, instanceId, table.roundId),
-    firebase.getData(`${root(instanceId)}/presence`),
-    firebase.getUser(userId),
-    firebase.getData(`${root(instanceId)}/ready/${table.roundId}`),
-    readChat(firebase, chatPath(instanceId)),
-  ])
-  const readyIds = readyRaw ?? {}
+function tableView(state: TableState, userId: string) {
+  const { table, bets, presence, chat } = state
+  const readyIds = state.ready
   const now = Date.now()
 
   const summarize = (userBets: Record<string, Bet>) =>
@@ -298,7 +329,7 @@ async function publicView(firebase: FirebaseHelper, instanceId: string, table: T
   // Everyone with a bet this round, plus everyone who's currently at the table (polling) even without one.
   for (const [id, userBets] of Object.entries(bets)) {
     const list = summarize(userBets)
-    const p = presence?.[id]
+    const p = presence[id]
     players.set(id, {
       id,
       username: Object.values(userBets)[0]?.name ?? p?.name ?? "?",
@@ -308,12 +339,13 @@ async function publicView(firebase: FirebaseHelper, instanceId: string, table: T
       ready: !!readyIds[id],
     })
   }
-  for (const [id, p] of Object.entries(presence ?? {})) {
+  for (const [id, p] of Object.entries(presence)) {
     if (players.has(id) || now - p.at > PRESENCE_VISIBLE_MS) continue
     players.set(id, { id, username: p.name, avatar: discordAvatarUrl(id, p.avatar ?? null, 48), bets: [], staked: 0, ready: false })
   }
 
   return {
+    version: state.version,
     roundId: table.roundId,
     phase: table.phase,
     /** Time left in the current phase, measured on the server's clock so every client's countdown agrees. */
@@ -321,8 +353,8 @@ async function publicView(firebase: FirebaseHelper, instanceId: string, table: T
     winningNumber: table.phase === "result" ? table.winningNumber : undefined,
     results: table.phase === "result" ? table.results : undefined,
     history: table.history,
-    myChips: dbUser?.chips ?? 0,
-    chat: chat.slice(-CHAT_VISIBLE),
+    myChips: state.chips,
+    chat,
     myBets: summarize(bets[userId] ?? {}),
     players: [...players.values()],
     /** The Spin button: how many of the players who have a bet have pressed it. Only those with a bet can, so only they count. */
@@ -337,19 +369,34 @@ async function publicView(firebase: FirebaseHelper, instanceId: string, table: T
       holdMs: rouletteValues.holdMs,
       resultMs: rouletteValues.resultMs,
       bettingMs: rouletteValues.bettingMs,
+      lateBetGraceMs: rouletteValues.lateBetGraceMs,
       minBet: rouletteValues.minBet,
     },
   }
+}
+
+/** The view after an action: read fresh, since the action has just changed it. */
+async function publicView(firebase: FirebaseHelper, instanceId: string, userId: string) {
+  return tableView(await loadState(firebase, instanceId, userId), userId)
 }
 
 // ---------- actions ----------
 
 export async function getRouletteTable(instanceId: string, user: AuthenticatedDiscordUser) {
   const firebase = new FirebaseHelper()
-  await endIdleSession(firebase, instanceId, user)
-  await touchPresence(firebase, instanceId, user)
-  const table = await advance(firebase, instanceId)
-  return Response.json(await publicView(firebase, instanceId, table, user.id))
+  let state = await loadState(firebase, instanceId, user.id)
+
+  // This poll is the heartbeat. The stamp is only rewritten once it's getting old, and after the answer has gone out - the
+  // caller is put in the presence list used for this answer either way.
+  const mine = state.presence[user.id]
+  const age = mine ? Date.now() - mine.at : Infinity
+  if (age >= SESSION_IDLE_MS && (await endIdleSession(firebase, instanceId, state.presence))) state.chat = []
+  if (age > PRESENCE_TOUCH_MS) after(() => touchPresence(firebase, instanceId, user, age > PRESENCE_VISIBLE_MS))
+
+  const table = await advance(firebase, instanceId, state.table)
+  if (table !== state.table) state = await loadState(firebase, instanceId, user.id)
+  state.presence[user.id] = presenceOf(user)
+  return Response.json(tableView(state, user.id))
 }
 
 export async function placeRouletteBet(instanceId: string, user: AuthenticatedDiscordUser, input: { type?: unknown; value?: unknown; stake?: unknown }) {
@@ -364,12 +411,9 @@ export async function placeRouletteBet(instanceId: string, user: AuthenticatedDi
   const stake = Math.floor(Number(input.stake))
   if (!(stake >= rouletteValues.minBet)) return err(`Minste innsats er ${rouletteValues.minBet}`)
 
-  await touchPresence(firebase, instanceId, user)
-  const table = await advance(firebase, instanceId)
+  const [table, chips] = await Promise.all([advance(firebase, instanceId), firebase.getChips(user.id), touchPresence(firebase, instanceId, user)])
   if (table.phase !== "betting" || Date.now() >= table.endsAt) return err("Innsatsene er stengt for denne runden")
-
-  const dbUser = (await firebase.getUser(user.id)) ?? {}
-  if ((dbUser.chips ?? 0) < stake) return err(`Du har ikke nok chips (du har ${dbUser.chips ?? 0})`)
+  if (chips < stake) return err(`Du har ikke nok chips (du har ${chips})`)
 
   await ensureSession(firebase, instanceId, user)
   const key = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
@@ -378,26 +422,26 @@ export async function placeRouletteBet(instanceId: string, user: AuthenticatedDi
   await firebase.updateData({
     [`users/${user.id}/chips`]: increment(-stake),
     [`${root(instanceId)}/bets/${table.roundId}/${user.id}/${key}`]: bet,
+    ...bump(instanceId),
   })
 
   // Two of this player's requests can both pass the balance check above before either lands. If that overdrew them,
   // undo this bet instead of leaving them in the red.
-  const after = (await firebase.getUser(user.id)) ?? {}
-  if ((after.chips ?? 0) < 0) {
+  if ((await firebase.getChips(user.id)) < 0) {
     await firebase.updateData({
       [`users/${user.id}/chips`]: increment(stake),
       [`${root(instanceId)}/bets/${table.roundId}/${user.id}/${key}`]: null,
+      ...bump(instanceId),
     })
     return err("Du har ikke nok chips")
   }
-  return Response.json(await publicView(firebase, instanceId, table, user.id))
+  return Response.json(await publicView(firebase, instanceId, user.id))
 }
 
 /** Takes back all of your bets for the round that's still open, refunding the stakes. */
 export async function clearRouletteBets(instanceId: string, user: AuthenticatedDiscordUser) {
   const firebase = new FirebaseHelper()
-  await touchPresence(firebase, instanceId, user)
-  const table = await advance(firebase, instanceId)
+  const [table] = await Promise.all([advance(firebase, instanceId), touchPresence(firebase, instanceId, user)])
   if (table.phase !== "betting" || Date.now() >= table.endsAt) return err("Innsatsene er stengt for denne runden")
 
   const mine = ((await firebase.getData(`${root(instanceId)}/bets/${table.roundId}/${user.id}`)) ?? {}) as Record<string, Bet>
@@ -407,9 +451,10 @@ export async function clearRouletteBets(instanceId: string, user: AuthenticatedD
       [`users/${user.id}/chips`]: increment(refund),
       [`${root(instanceId)}/bets/${table.roundId}/${user.id}`]: null,
       [`${root(instanceId)}/ready/${table.roundId}/${user.id}`]: null,
+      ...bump(instanceId),
     })
   }
-  return Response.json(await publicView(firebase, instanceId, table, user.id))
+  return Response.json(await publicView(firebase, instanceId, user.id))
 }
 
 /** "Spin": you're done betting. Needs at least one bet of your own. Once every player who has a bet has pressed it there's nothing
@@ -418,14 +463,13 @@ export async function clearRouletteBets(instanceId: string, user: AuthenticatedD
  * exactly the same exactly-once handling as one that ran out of time. */
 export async function readyRouletteSpin(instanceId: string, user: AuthenticatedDiscordUser) {
   const firebase = new FirebaseHelper()
-  await touchPresence(firebase, instanceId, user)
-  let table = await advance(firebase, instanceId)
+  const [table] = await Promise.all([advance(firebase, instanceId), touchPresence(firebase, instanceId, user)])
   if (table.phase !== "betting" || Date.now() >= table.endsAt) return err("Innsatsene er stengt for denne runden")
 
   const mine = (await firebase.getData(`${root(instanceId)}/bets/${table.roundId}/${user.id}`)) ?? {}
   if (Object.keys(mine).length === 0) return err("Legg en innsats før du spinner")
 
-  await firebase.updateData({ [`${root(instanceId)}/ready/${table.roundId}/${user.id}`]: true })
+  await firebase.updateData({ [`${root(instanceId)}/ready/${table.roundId}/${user.id}`]: true, ...bump(instanceId) })
 
   const [bets, ready] = await Promise.all([
     readBets(firebase, instanceId, table.roundId),
@@ -434,10 +478,7 @@ export async function readyRouletteSpin(instanceId: string, user: AuthenticatedD
   if (Object.keys(bets).every((id) => ready?.[id])) {
     // Back-dated by the grace period so bets are refused from this instant, while the spin itself is only forcedSpinDelayMs away.
     const forcedEnd = Date.now() - rouletteValues.lateBetGraceMs + rouletteValues.forcedSpinDelayMs
-    if (table.endsAt > forcedEnd) {
-      await firebase.updateData({ [`${root(instanceId)}/table/endsAt`]: forcedEnd })
-      table = { ...table, endsAt: forcedEnd }
-    }
+    if (table.endsAt > forcedEnd) await firebase.updateData({ [`${root(instanceId)}/table/endsAt`]: forcedEnd, ...bump(instanceId) })
   }
-  return Response.json(await publicView(firebase, instanceId, table, user.id))
+  return Response.json(await publicView(firebase, instanceId, user.id))
 }

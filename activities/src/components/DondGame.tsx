@@ -2,6 +2,8 @@
 
 import { callApi } from "@/lib/apiClient"
 import Link from "next/link"
+import { useLivePolling } from "@/lib/liveSignal"
+import { usePolling } from "@/lib/usePolling"
 import { useDiscord } from "@/providers/discordProvider"
 import { useEffect, useRef, useState } from "react"
 import shared from "./BlackjackGame.module.css"
@@ -11,6 +13,8 @@ import { Spectator, SpectatorBar } from "./SpectatorBar"
 type Tier = "basic" | "premium" | "elite"
 
 interface GameView {
+  /** Changes with every change to the round - compared with the database's to know whether this view is behind. */
+  version?: number
   tier: Tier
   k: number
   state: "opening" | "offer" | "keepOrSwitch" | "done"
@@ -61,7 +65,7 @@ const NUM_CASES = 26
 
 const fmt = (n: number) => n.toLocaleString("nb-NO")
 
-const WATCH_POLL_MS = 1000
+const WATCH_POLL_MS = 700
 const PLAYER_POLL_MS = 1500
 
 /** Bare-bones round chat: a scrollable log (sticks to the bottom unless you've scrolled up to read) and an input. */
@@ -141,62 +145,54 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
   // meanwhile: otherwise a poll sent just before "No deal" (or before a case opened) can land just after the action's own answer and
   // put the old screen back for a moment - the Deal button vanishing and reappearing.
   const actSeqRef = useRef(0)
+  // What the newest answer from the server had in it - what live updates are compared against (see useLivePolling).
+  const shownRef = useRef<{ version?: number; chatAt?: number }>({})
   const { channelId } = useDiscord()
   const [activeGames, setActiveGames] = useState<ActiveGame[]>([])
 
   // While you're between rounds, keep a list of rounds in progress to watch (so the announcement button isn't the only way in).
   const browsing = !readOnly && !!status && !status.game
-  useEffect(() => {
-    if (!browsing) return
-    let cancelled = false
-    const load = () =>
-      callApi<{ games: ActiveGame[] }>("/api/games/dond?active=1", accessToken)
-        .then((res) => {
-          if (!cancelled) setActiveGames(res.games)
-        })
-        .catch(() => {
-          // transient failure - next tick retries
-        })
-    const first = setTimeout(load, 0)
-    const interval = setInterval(load, 5000)
-    return () => {
-      cancelled = true
-      clearTimeout(first)
-      clearInterval(interval)
-    }
-  }, [browsing, accessToken])
+  usePolling(
+    browsing ? "browsing" : null,
+    async () => setActiveGames((await callApi<{ games: ActiveGame[] }>("/api/games/dond?active=1", accessToken)).games),
+    5000,
+    true
+  )
 
   useEffect(() => {
     if (loadedRef.current) return
     loadedRef.current = true
     callApi<Status>(watchId ? `/api/games/dond?watch=${encodeURIComponent(watchId)}` : "/api/games/dond", accessToken)
-      .then((res) => setStatus((prev) => ({ ...res, tokens: res.tokens ?? prev?.tokens ?? { basic: 0, premium: 0, elite: 0 } })))
+      .then((res) => {
+        shownRef.current = { version: res.game?.version, chatAt: res.chat?.at(-1)?.at }
+        setStatus((prev) => ({ ...res, tokens: res.tokens ?? prev?.tokens ?? { basic: 0, premium: 0, elite: 0 } }))
+      })
       .catch((e) => setError(e instanceof Error ? e.message : "Noe gikk galt"))
   }, [accessToken, watchId])
 
   // Spectators follow the round live; the player polls too while a round exists, to pick up chat messages.
   // A poll never overwrites the screen while one of the player's own actions is in flight.
   const roundExists = !!status?.game
-  useEffect(() => {
-    if (!watchId && !roundExists) return
-    const url = watchId ? `/api/games/dond?watch=${encodeURIComponent(watchId)}` : "/api/games/dond"
-    const interval = setInterval(
-      () => {
-        if (busyRef.current) return
-        const seq = actSeqRef.current
-        callApi<Status>(url, accessToken)
-          .then((res) => {
-            if (busyRef.current || actSeqRef.current !== seq) return
-            setStatus((prev) => ({ ...res, tokens: res.tokens ?? prev?.tokens ?? { basic: 0, premium: 0, elite: 0 } }))
-          })
-          .catch(() => {
-            // transient poll failure - next tick retries
-          })
-      },
-      watchId ? WATCH_POLL_MS : PLAYER_POLL_MS
-    )
-    return () => clearInterval(interval)
-  }, [accessToken, watchId, roundExists])
+  // Whose round this is: the one being watched, or your own.
+  const roundHostId = watchId ?? status?.hostId
+  const sync = useLivePolling({
+    key: watchId || roundExists ? `round/${watchId ?? ""}` : null,
+    accessToken,
+    paths: [
+      { path: `other/dondGames/${roundHostId}/updatedAt`, shown: () => shownRef.current.version },
+      { tail: `other/dondChat/${roundHostId}`, shownAt: () => shownRef.current.chatAt },
+    ],
+    poll: async () => {
+      if (busyRef.current) return
+      const seq = actSeqRef.current
+      const res = await callApi<Status>(watchId ? `/api/games/dond?watch=${encodeURIComponent(watchId)}` : "/api/games/dond", accessToken)
+      if (busyRef.current || actSeqRef.current !== seq) return
+      shownRef.current = { version: res.game?.version, chatAt: res.chat?.at(-1)?.at }
+      setStatus((prev) => ({ ...res, tokens: res.tokens ?? prev?.tokens ?? { basic: 0, premium: 0, elite: 0 } }))
+    },
+    delayMs: watchId ? WATCH_POLL_MS : PLAYER_POLL_MS,
+    paused: () => busyRef.current,
+  })
 
   async function act(body: Record<string, unknown>) {
     if (busy) return
@@ -207,6 +203,7 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
     setError(null)
     try {
       const res = await callApi<Partial<Status>>("/api/games/dond", accessToken, { method: "POST", body: JSON.stringify(body) })
+      if ("game" in res) shownRef.current = res.game ? { ...shownRef.current, version: res.game.version } : {}
       setStatus((prev) => ({
         ...prev,
         tokens: res.tokens ?? prev?.tokens ?? { basic: 0, premium: 0, elite: 0 },
@@ -222,6 +219,8 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
       setAnswering(false)
       busyRef.current = false
       actSeqRef.current++
+      // Anything that happened in the round while the action was in flight (a chat message) is picked up now.
+      sync()
     }
   }
 
@@ -235,6 +234,7 @@ export function DondGame({ accessToken, watchId }: { accessToken: string; watchI
         method: "POST",
         body: JSON.stringify({ action: "chat", hostId, text }),
       })
+      shownRef.current.chatAt = res.chat.at(-1)?.at
       setStatus((prev) => (prev ? { ...prev, chat: res.chat } : prev))
       setChatDraft("")
     } catch (e) {

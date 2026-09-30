@@ -1,3 +1,5 @@
+import { increment } from "firebase/database"
+import { after } from "next/server"
 import { FirebaseHelper } from "./db/firebaseHelper"
 import { AuthenticatedDiscordUser } from "./discordAuth"
 import { announceInChannel } from "./discordMessage"
@@ -54,14 +56,25 @@ interface MolCategory {
   totalEntries?: number
   strings?: MolStrings
 }
-// Firebase RTDB removes empty arrays. A completed deck is therefore persisted as null.
+// A round in progress. Kept outside the user's own record, and in two parts: this small one, which is read and written on every guess,
+// and the shuffled deck of items still to come (deckPath), which is written once when the round starts and then only ever read one
+// item at a time. It used to be a single object inside the user record, deck and all - rewritten in full on every guess, and delivered
+// in full to the bot each time, since the bot listens to the users it knows.
 interface MolSession {
   slug: string
-  data?: MolItem[] | null
   current?: MolItem
   next?: MolItem
   correctAnswers?: number
+  /** How many items have been taken off the deck so far, and how many it had. */
+  drawn?: number
+  deckSize?: number
 }
+const sessionPath = (userId: string) => `other/molSessions/${userId}`
+const deckPath = (userId: string) => `other/molSessionItems/${userId}`
+const statsPath = (userId: string) => `users/${userId}/dailyGameStats/moreOrLess`
+const CATEGORY_PATH = "other/moreOrLess/current"
+
+const endSession = (userId: string) => ({ [sessionPath(userId)]: null, [deckPath(userId)]: null })
 interface MolStat {
   attempted?: boolean
   firstAttempt?: number
@@ -148,21 +161,24 @@ function tierReward(from: number, to: number) {
 
 export async function getMoreOrLessStatus(user: AuthenticatedDiscordUser) {
   const firebase = new FirebaseHelper()
-  const [dbUser, storage] = await Promise.all([firebase.getUser(user.id), firebase.getData("other")])
-  const category = storage?.moreOrLess?.current as MolCategory | undefined
+  const [stats, category, stored]: [MolStat | undefined, MolCategory | undefined, MolSession | undefined] = await Promise.all([
+    firebase.getData(statsPath(user.id)),
+    firebase.getData(CATEGORY_PATH),
+    firebase.getData(sessionPath(user.id)),
+  ])
   if (!category) return Response.json({ error: "Ingen kategori satt ennå" }, { status: 503 })
 
-  let session = dbUser?.moreOrLessSession as MolSession | undefined
+  let session = stored
   if (session && session.slug !== category.slug) {
     // Leftover session from a category the daily reset has since rolled past.
-    await firebase.updateUserFields(user.id, { moreOrLessSession: null })
+    await firebase.updateData(endSession(user.id))
     session = undefined
   }
 
   return Response.json({
     category: { title: category.title, description: category.description, image: category.image, strings: category.strings, totalEntries: category.totalEntries },
     unsupported: false,
-    stats: dbUser?.dailyGameStats?.moreOrLess ?? {},
+    stats: stats ?? {},
     hasActiveSession: !!session,
     active:
       session?.current && session?.next
@@ -173,8 +189,7 @@ export async function getMoreOrLessStatus(user: AuthenticatedDiscordUser) {
 
 export async function startMoreOrLessGame(user: AuthenticatedDiscordUser) {
   const firebase = new FirebaseHelper()
-  const storage = await firebase.getData("other")
-  const category = storage?.moreOrLess?.current as MolCategory | undefined
+  const category = (await firebase.getData(CATEGORY_PATH)) as MolCategory | undefined
   if (!category) return Response.json({ error: "Ingen kategori satt ennå" }, { status: 503 })
 
   let items: MolItem[]
@@ -193,44 +208,47 @@ export async function startMoreOrLessGame(user: AuthenticatedDiscordUser) {
   }
   if (items.length < 2) return Response.json({ error: "For få elementer i kategorien" }, { status: 502 })
 
-  const shuffled = shuffle(items)
-  const current = shuffled.pop()!
-  const next = shuffled.pop()!
-  const session: MolSession = { slug: category.slug, data: shuffled, current, next, correctAnswers: 0 }
-  await firebase.updateUserFields(user.id, { moreOrLessSession: session })
+  const [current, next, ...deck] = shuffle(items)
+  const session: MolSession = { slug: category.slug, current, next, correctAnswers: 0, drawn: 0, deckSize: deck.length }
+  await firebase.updateData({
+    [sessionPath(user.id)]: session,
+    // Firebase drops an empty array, which is fine: an empty deck is never read from.
+    [deckPath(user.id)]: deck,
+    // Where a round in progress used to be kept.
+    [`users/${user.id}/moreOrLessSession`]: null,
+  })
 
   return Response.json({ current, next: { subject: next.subject, image: next.image }, correctAnswers: 0, totalEntries: items.length, strings })
 }
 
 export async function guessMoreOrLess(user: AuthenticatedDiscordUser, more: boolean) {
   const firebase = new FirebaseHelper()
-  const [dbUser, storage] = await Promise.all([firebase.getUser(user.id), firebase.getData("other")])
-  const session = dbUser?.moreOrLessSession as MolSession | undefined
-  const category = storage?.moreOrLess?.current as MolCategory | undefined
+  const [session, category, storedStat]: [MolSession | undefined, MolCategory | undefined, MolStat | undefined] = await Promise.all([
+    firebase.getData(sessionPath(user.id)),
+    firebase.getData(CATEGORY_PATH),
+    firebase.getData(statsPath(user.id)),
+  ])
   if (!session) return Response.json({ error: "Ingen aktiv runde - start en ny" }, { status: 400 })
-  // Do not require data to be an array: RTDB drops [] when the penultimate guess is saved.
   if (!category || session.slug !== category.slug || !session.current || !session.next) {
-    await firebase.updateUserFields(user.id, { moreOrLessSession: null })
+    await firebase.updateData(endSession(user.id))
     return Response.json({ error: "Ugyldig spillrunde - start en ny" }, { status: 400 })
   }
 
-  const remainingItems = Array.isArray(session.data) ? session.data : []
+  const drawn = session.drawn ?? 0
   const correct = (more && session.next.answer >= session.current.answer) || (!more && session.next.answer <= session.current.answer)
   const correctAnswers = correct ? (session.correctAnswers ?? 0) + 1 : (session.correctAnswers ?? 0)
-  const completedNow = correct && remainingItems.length === 0
+  const completedNow = correct && drawn >= (session.deckSize ?? 0)
+  const stat = storedStat ?? {}
 
   if (correct && !completedNow) {
-    const remaining = [...remainingItems]
-    const newNext = remaining.pop()
+    const newNext = (await firebase.getData(`${deckPath(user.id)}/${drawn}`)) as MolItem | undefined
     if (!newNext) return Response.json({ error: "Ugyldig spillrunde - start en ny" }, { status: 400 })
-    // Explicitly persist null instead of [] because Firebase removes empty arrays.
-    const newSession = { ...session, current: session.next, next: newNext, data: remaining.length > 0 ? remaining : null, correctAnswers }
-    await firebase.updateUserFields(user.id, { moreOrLessSession: newSession })
-    const best = typeof dbUser?.dailyGameStats?.moreOrLess?.bestAttempt === "number" ? dbUser.dailyGameStats.moreOrLess.bestAttempt : 0
+    await firebase.updateData({ [sessionPath(user.id)]: { ...session, current: session.next, next: newNext, correctAnswers, drawn: drawn + 1 } })
+    const best = typeof stat.bestAttempt === "number" ? stat.bestAttempt : 0
     return Response.json({
       correct: true,
       finished: false,
-      current: { subject: newSession.current.subject, answer: newSession.current.answer, image: newSession.current.image },
+      current: { subject: session.next.subject, answer: session.next.answer, image: session.next.image },
       next: { subject: newNext.subject, image: newNext.image },
       correctAnswers,
       bestAttempt: best,
@@ -238,7 +256,6 @@ export async function guessMoreOrLess(user: AuthenticatedDiscordUser, more: bool
     })
   }
 
-  const stat = (dbUser?.dailyGameStats?.moreOrLess ?? {}) as MolStat
   const oldBest = typeof stat.bestAttempt === "number" ? stat.bestAttempt : 0
   const attempts = typeof stat.numAttempts === "number" ? stat.numAttempts + 1 : 1
   // The daily reset job writes { attempted: false, firstAttempt: 0, secondAttempt: null, ... } for everyone, so
@@ -251,15 +268,20 @@ export async function guessMoreOrLess(user: AuthenticatedDiscordUser, more: bool
   const completedPreviously = stat.completed === true
   const newBest = Math.max(oldBest, correctAnswers)
   const reward = correctAnswers > oldBest ? tierReward(oldBest, correctAnswers) + (completedNow && !completedPreviously ? moreOrLessValues.rewards.completed : 0) : 0
-  const chips = (typeof dbUser?.chips === "number" ? dbUser.chips : 0) + reward
   const newStat: MolStat = { attempted: true, firstAttempt, secondAttempt, bestAttempt: newBest, numAttempts: attempts, completed: completedPreviously || completedNow }
-  if (reward > 0) await firebase.updateUserFields(user.id, { chips })
-  await firebase.updateUserFields(user.id, { "dailyGameStats/moreOrLess": newStat, moreOrLessSession: null })
+  await firebase.updateData({
+    // Added on the server rather than written as "what it was + reward": the balance may have changed since anyone last read it.
+    ...(reward > 0 ? { [`users/${user.id}/chips`]: increment(reward) } : {}),
+    [statsPath(user.id)]: newStat,
+    ...endSession(user.id),
+  })
 
   if (completedNow && !completedPreviously) {
-    await announceInChannel(user.channelId, {
-      content: `<@${user.id}> fullførte dagens More or Less (${category.title}) med ${correctAnswers} riktige og fikk ${reward} chips!`,
-    })
+    after(() =>
+      announceInChannel(user.channelId, {
+        content: `<@${user.id}> fullførte dagens More or Less (${category.title}) med ${correctAnswers} riktige og fikk ${reward} chips!`,
+      })
+    )
   }
 
   return Response.json({
@@ -268,7 +290,6 @@ export async function guessMoreOrLess(user: AuthenticatedDiscordUser, more: bool
     completedNow,
     correctAnswers,
     reward,
-    chips,
     bestAttempt: newBest,
     numAttempts: attempts,
     // The item the player guessed wrong on (or the final one, if they just completed the category) -

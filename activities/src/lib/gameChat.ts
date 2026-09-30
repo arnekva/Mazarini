@@ -22,6 +22,11 @@ export async function readChat(firebase: FirebaseHelper, path: string): Promise<
   return (Object.values(raw) as ChatMessage[]).sort((a, b) => a.at - b.at)
 }
 
+/** The part of the chat the table shows - what a poll needs, without fetching the whole log every time. */
+export async function readChatTail(firebase: FirebaseHelper, path: string): Promise<ChatMessage[]> {
+  return (Object.values(await firebase.getLastChildren(path, CHAT_VISIBLE)) as ChatMessage[]).sort((a, b) => a.at - b.at)
+}
+
 /** Appends a message; returns the visible tail of the chat, or an error to show the sender. */
 export async function postChat(
   firebase: FirebaseHelper,

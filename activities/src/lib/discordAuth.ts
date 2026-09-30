@@ -21,14 +21,37 @@ export function extractBearerToken(request: Request): string | null {
   return header.slice("Bearer ".length)
 }
 
-/**
- * Asks Discord itself who this access token belongs to. Re-checked on every call by design -
- * there's no session/cache layer, so a revoked or expired token stops working immediately and
- * there's no local state to get out of sync with Discord.
- */
-export async function verifyDiscordUser(accessToken: string | null): Promise<AuthenticatedDiscordUser | null> {
-  if (!accessToken) return null
+/** How long a verified token is trusted before Discord is asked again. */
+const VERIFIED_CACHE_MS = 10 * 60 * 1000
+const VERIFIED_CACHE_MAX = 200
+const verified = new Map<string, { user: Promise<AuthenticatedDiscordUser | null>; expires: number }>()
 
+/**
+ * Who this access token belongs to, according to Discord. The answer is remembered for a few minutes per warm server
+ * instance: every poll of every game comes through here, and asking Discord each time put an external round trip in
+ * front of every single request. The price is that a revoked token keeps working until its entry expires.
+ */
+export function verifyDiscordUser(accessToken: string | null): Promise<AuthenticatedDiscordUser | null> {
+  if (!accessToken) return Promise.resolve(null)
+
+  const now = Date.now()
+  const hit = verified.get(accessToken)
+  if (hit && hit.expires > now) return hit.user
+
+  if (verified.size >= VERIFIED_CACHE_MAX) {
+    for (const [token, entry] of verified) if (entry.expires <= now) verified.delete(token)
+    if (verified.size >= VERIFIED_CACHE_MAX) verified.clear()
+  }
+  // The promise itself is cached, so requests arriving together share one lookup. A failed one isn't kept.
+  const user = fetchDiscordUser(accessToken).catch(() => null)
+  verified.set(accessToken, { user, expires: now + VERIFIED_CACHE_MS })
+  user.then((u) => {
+    if (!u && verified.get(accessToken)?.user === user) verified.delete(accessToken)
+  })
+  return user
+}
+
+async function fetchDiscordUser(accessToken: string): Promise<AuthenticatedDiscordUser | null> {
   // Local testing only (devAuthEnabled is always false in a production build): "dev:<id>:<name>".
   if (devAuthEnabled && accessToken.startsWith("dev:")) {
     const [, id, ...name] = accessToken.split(":")

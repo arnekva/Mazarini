@@ -68,24 +68,61 @@ function normalizeLobby(raw: any): ElectricityLobby {
   }
 }
 
+const lobbyPath = (instanceId: string, lobbyId: string) => `other/${PATH_PREFIX}/${instanceId}/${lobbyId}`
+
+/** A lobby as it's stored, stamped with the time of this write - which doubles as its version: every view carries it, and clients
+ * compare it with the one in the database to know whether they're behind (see lib/liveSignal.ts). The JSON round-trip strips
+ * `undefined` fields, which Firebase rejects outright. */
+function forDb(lobby: ElectricityLobby) {
+  lobby.updatedAt = Date.now()
+  return JSON.parse(JSON.stringify(lobby))
+}
+
+/** There's no heartbeat at these tables, so one that everybody just walked away from stays behind. A lobby nobody has touched
+ * for this long is cleared out the next time someone looks at the list. */
+const STALE_LOBBY_MS = 6 * 60 * 60 * 1000
+
 async function readLobby(firebase: FirebaseHelper, instanceId: string, lobbyId: string): Promise<ElectricityLobby | null> {
-  const data = await firebase.getData(`other/${PATH_PREFIX}/${instanceId}/${lobbyId}`)
+  const data = await firebase.getData(lobbyPath(instanceId, lobbyId))
   return data ? normalizeLobby({ id: lobbyId, ...data }) : null
 }
 
 async function readAllLobbies(firebase: FirebaseHelper, instanceId: string): Promise<Record<string, ElectricityLobby>> {
   const data = (await firebase.getData(`other/${PATH_PREFIX}/${instanceId}`)) ?? {}
   const result: Record<string, ElectricityLobby> = {}
-  for (const lobbyId of Object.keys(data)) result[lobbyId] = normalizeLobby({ id: lobbyId, ...data[lobbyId] })
+  const stale: Record<string, null> = {}
+  for (const lobbyId of Object.keys(data)) {
+    if (Date.now() - (data[lobbyId].updatedAt ?? 0) > STALE_LOBBY_MS) stale[lobbyPath(instanceId, lobbyId)] = null
+    else result[lobbyId] = normalizeLobby({ id: lobbyId, ...data[lobbyId] })
+  }
+  if (Object.keys(stale).length > 0) await firebase.updateData(stale)
   return result
 }
 
 async function writeLobby(firebase: FirebaseHelper, instanceId: string, lobbyId: string, lobby: ElectricityLobby) {
-  await firebase.updateData({ [`other/${PATH_PREFIX}/${instanceId}/${lobbyId}`]: { ...lobby, updatedAt: Date.now() } })
+  await firebase.updateData({ [lobbyPath(instanceId, lobbyId)]: forDb(lobby) })
+}
+
+/** Every change to an existing lobby goes through here: an atomic read-modify-write (see FirebaseHelper.transact), so two requests
+ * landing together can't overwrite each other. `apply` changes the lobby in place, or returns a message to reject the change instead.
+ * It can run more than once. Resolves to the lobby as it is afterwards - null if it's gone. */
+async function updateLobby(
+  firebase: FirebaseHelper,
+  instanceId: string,
+  lobbyId: string,
+  apply: (lobby: ElectricityLobby) => string | void
+): Promise<{ lobby: ElectricityLobby | null; error?: string }> {
+  const box: { error?: string } = {}
+  const raw = await firebase.transact<any>(lobbyPath(instanceId, lobbyId), (current) => {
+    const lobby = normalizeLobby({ id: lobbyId, ...current })
+    box.error = apply(lobby) || undefined
+    return box.error ? undefined : forDb(lobby)
+  })
+  return { lobby: raw ? normalizeLobby({ id: lobbyId, ...raw }) : null, error: box.error }
 }
 
 async function deleteLobby(firebase: FirebaseHelper, instanceId: string, lobbyId: string) {
-  await firebase.updateData({ [`other/${PATH_PREFIX}/${instanceId}/${lobbyId}`]: null })
+  await firebase.updateData({ [lobbyPath(instanceId, lobbyId)]: null })
 }
 
 /** Two cards "connect" if they share a rank or a suit. */
@@ -133,6 +170,7 @@ function publicView(lobby: ElectricityLobby, userId: string) {
   }
   return {
     id: lobby.id,
+    version: lobby.updatedAt,
     hostId: lobby.hostId,
     status: lobby.status,
     chugOnLoop: lobby.chugOnLoop,
@@ -152,38 +190,27 @@ function publicView(lobby: ElectricityLobby, userId: string) {
 }
 
 async function leaveLobby(firebase: FirebaseHelper, instanceId: string, lobbyId: string, userId: string) {
-  const lobby = await readLobby(firebase, instanceId, lobbyId)
-  if (!lobby) return
-
-  if (lobby.spectators[userId] !== undefined) {
-    const spectators = { ...lobby.spectators }
-    delete spectators[userId]
-    await writeLobby(firebase, instanceId, lobbyId, { ...lobby, spectators })
-    return
-  }
-  if (!lobby.players[userId]) return
-
-  const playerOrder = lobby.playerOrder.filter((id) => id !== userId)
-  if (lobby.hostId === userId || playerOrder.length === 0) {
+  const peek = await readLobby(firebase, instanceId, lobbyId)
+  if (!peek) return
+  if (peek.players[userId] && (peek.hostId === userId || peek.playerOrder.length <= 1)) {
     await deleteLobby(firebase, instanceId, lobbyId)
     return
   }
 
-  const leavingIndex = lobby.playerOrder.indexOf(userId)
-  let turnIndex = lobby.turnIndex
-  if (leavingIndex < turnIndex) turnIndex--
-  turnIndex %= playerOrder.length
+  await updateLobby(firebase, instanceId, lobbyId, (lobby) => {
+    if (lobby.spectators[userId] !== undefined) {
+      delete lobby.spectators[userId]
+      return
+    }
+    if (!lobby.players[userId]) return
 
-  const players = { ...lobby.players }
-  delete players[userId]
-  const { lastDrawerId, ...rest } = lobby
-  await writeLobby(firebase, instanceId, lobbyId, {
-    ...rest,
-    players,
-    playerOrder,
-    turnIndex,
+    const leavingIndex = lobby.playerOrder.indexOf(userId)
+    lobby.playerOrder = lobby.playerOrder.filter((id) => id !== userId)
+    if (leavingIndex < lobby.turnIndex) lobby.turnIndex--
+    lobby.turnIndex %= Math.max(1, lobby.playerOrder.length)
+    delete lobby.players[userId]
     // The chain is only meaningful relative to the last drawer - if they left, there's nothing to show.
-    ...(lastDrawerId && lastDrawerId !== userId ? { lastDrawerId } : {}),
+    if (lobby.lastDrawerId === userId) delete lobby.lastDrawerId
   })
 }
 
@@ -232,33 +259,40 @@ export async function createElectricityLobby(instanceId: string, user: Authentic
   return Response.json(publicView(lobby, user.id))
 }
 
+const STARTED = "Spillet har allerede startet - du kan se på i stedet"
+
 export async function joinElectricityLobby(instanceId: string, lobbyId: string, user: AuthenticatedDiscordUser) {
   const firebase = new FirebaseHelper()
-  const lobby = await readLobby(firebase, instanceId, lobbyId)
-  if (!lobby) return Response.json({ error: "Bordet finnes ikke lenger" }, { status: 404 })
+  const peek = await readLobby(firebase, instanceId, lobbyId)
+  if (!peek) return Response.json({ error: "Bordet finnes ikke lenger" }, { status: 404 })
+  if (peek.players[user.id]) return Response.json(publicView(peek, user.id))
+  if (peek.status === "playing") return Response.json({ error: STARTED }, { status: 400 })
 
-  if (!lobby.players[user.id]) {
-    if (lobby.status === "playing") return Response.json({ error: "Spillet har allerede startet - du kan se på i stedet" }, { status: 400 })
-    await leaveOtherLobbies(firebase, instanceId, user.id, lobbyId)
-    delete lobby.spectators[user.id]
-    lobby.players[user.id] = { id: user.id, username: user.globalName ?? user.username, avatar: user.avatar, card: null }
-    lobby.playerOrder.push(user.id)
-    await writeLobby(firebase, instanceId, lobbyId, lobby)
-  }
+  await leaveOtherLobbies(firebase, instanceId, user.id, lobbyId)
+  const { lobby, error } = await updateLobby(firebase, instanceId, lobbyId, (current) => {
+    if (current.players[user.id]) return
+    if (current.status === "playing") return STARTED
+    delete current.spectators[user.id]
+    current.players[user.id] = { id: user.id, username: user.globalName ?? user.username, avatar: user.avatar, card: null }
+    current.playerOrder.push(user.id)
+  })
+  if (!lobby) return Response.json({ error: "Bordet finnes ikke lenger" }, { status: 404 })
+  if (error) return Response.json({ error }, { status: 400 })
   return Response.json(publicView(lobby, user.id))
 }
 
 export async function spectateElectricityLobby(instanceId: string, lobbyId: string, user: AuthenticatedDiscordUser) {
   const firebase = new FirebaseHelper()
-  const lobby = await readLobby(firebase, instanceId, lobbyId)
-  if (!lobby) return Response.json({ error: "Bordet finnes ikke lenger" }, { status: 404 })
-  if (lobby.players[user.id]) return Response.json({ error: "Du sitter allerede ved bordet" }, { status: 400 })
+  const peek = await readLobby(firebase, instanceId, lobbyId)
+  if (!peek) return Response.json({ error: "Bordet finnes ikke lenger" }, { status: 404 })
+  if (peek.players[user.id]) return Response.json({ error: "Du sitter allerede ved bordet" }, { status: 400 })
+  if (peek.spectators[user.id] !== undefined) return Response.json(publicView(peek, user.id))
 
-  if (lobby.spectators[user.id] === undefined) {
-    await leaveOtherLobbies(firebase, instanceId, user.id, lobbyId)
-    lobby.spectators[user.id] = { username: user.globalName ?? user.username, avatar: user.avatar }
-    await writeLobby(firebase, instanceId, lobbyId, lobby)
-  }
+  await leaveOtherLobbies(firebase, instanceId, user.id, lobbyId)
+  const { lobby } = await updateLobby(firebase, instanceId, lobbyId, (current) => {
+    if (!current.players[user.id]) current.spectators[user.id] = { username: user.globalName ?? user.username, avatar: user.avatar }
+  })
+  if (!lobby) return Response.json({ error: "Bordet finnes ikke lenger" }, { status: 404 })
   return Response.json(publicView(lobby, user.id))
 }
 
@@ -275,52 +309,55 @@ export async function getElectricityLobbyStatus(instanceId: string, lobbyId: str
   return Response.json(publicView(lobby, user.id))
 }
 
-/** Host-only: shuffles a fresh deck and starts the first turn. Also used to restart a finished game. */
-export async function startElectricity(instanceId: string, lobbyId: string, user: AuthenticatedDiscordUser) {
+/** A game action (see updateLobby): `apply` changes the lobby in place, or returns an error message - with the status to send it with. */
+async function mutate(instanceId: string, lobbyId: string, user: AuthenticatedDiscordUser, apply: (lobby: ElectricityLobby) => string | void, status = 400) {
   const firebase = new FirebaseHelper()
-  const lobby = await readLobby(firebase, instanceId, lobbyId)
+  const { lobby, error } = await updateLobby(firebase, instanceId, lobbyId, apply)
   if (!lobby) return Response.json({ closed: true }, { status: 404 })
-  if (lobby.hostId !== user.id) return Response.json({ error: "Bare verten kan starte spillet" }, { status: 403 })
-
-  for (const id of lobby.playerOrder) lobby.players[id] = { ...lobby.players[id], card: null }
-  lobby.deck = freshShuffledDeck()
-  lobby.status = "playing"
-  lobby.turnIndex = 0
-  delete lobby.lastDrawerId
-  await writeLobby(firebase, instanceId, lobbyId, lobby)
+  if (error) return Response.json({ error }, { status })
   return Response.json(publicView(lobby, user.id))
 }
 
+/** Host-only: shuffles a fresh deck and starts the first turn. Also used to restart a finished game. */
+export async function startElectricity(instanceId: string, lobbyId: string, user: AuthenticatedDiscordUser) {
+  return mutate(
+    instanceId,
+    lobbyId,
+    user,
+    (lobby) => {
+      if (lobby.hostId !== user.id) return "Bare verten kan starte spillet"
+      for (const id of lobby.playerOrder) lobby.players[id] = { ...lobby.players[id], card: null }
+      lobby.deck = freshShuffledDeck()
+      lobby.status = "playing"
+      lobby.turnIndex = 0
+      delete lobby.lastDrawerId
+    },
+    403
+  )
+}
+
 export async function drawElectricityCard(instanceId: string, lobbyId: string, user: AuthenticatedDiscordUser) {
-  const firebase = new FirebaseHelper()
-  const lobby = await readLobby(firebase, instanceId, lobbyId)
-  if (!lobby) return Response.json({ closed: true }, { status: 404 })
-  if (lobby.status !== "playing") return Response.json({ error: "Spillet har ikke startet" }, { status: 400 })
+  return mutate(instanceId, lobbyId, user, (lobby) => {
+    if (lobby.status !== "playing") return "Spillet har ikke startet"
+    if (lobby.playerOrder[lobby.turnIndex % lobby.playerOrder.length] !== user.id) return "Ikke din tur"
+    if (lobby.deck.length === 0) return "Kortstokken er tom - stokk om for å fortsette"
 
-  const turnPlayerId = lobby.playerOrder[lobby.turnIndex % lobby.playerOrder.length]
-  if (turnPlayerId !== user.id) return Response.json({ error: "Ikke din tur" }, { status: 400 })
-  if (lobby.deck.length === 0) return Response.json({ error: "Kortstokken er tom - stokk om for å fortsette" }, { status: 400 })
-
-  const [card, ...deck] = lobby.deck
-  lobby.deck = deck
-  lobby.players[user.id] = { ...lobby.players[user.id], card }
-  lobby.lastDrawerId = user.id
-  lobby.turnIndex = (lobby.turnIndex + 1) % lobby.playerOrder.length
-  await writeLobby(firebase, instanceId, lobbyId, lobby)
-  return Response.json(publicView(lobby, user.id))
+    const [card, ...deck] = lobby.deck
+    lobby.deck = deck
+    lobby.players[user.id] = { ...lobby.players[user.id], card }
+    lobby.lastDrawerId = user.id
+    lobby.turnIndex = (lobby.turnIndex + 1) % lobby.playerOrder.length
+  })
 }
 
 /** Any seated player can reshuffle once the deck runs dry - cards currently face up on the table
  * are left out of the new deck, so the same card never exists twice at once. */
 export async function reshuffleElectricity(instanceId: string, lobbyId: string, user: AuthenticatedDiscordUser) {
-  const firebase = new FirebaseHelper()
-  const lobby = await readLobby(firebase, instanceId, lobbyId)
-  if (!lobby) return Response.json({ closed: true }, { status: 404 })
-  if (!lobby.players[user.id]) return Response.json({ error: "Du er ikke ved dette bordet" }, { status: 400 })
-  if (lobby.deck.length > 0) return Response.json({ error: "Kortstokken er ikke tom" }, { status: 400 })
+  return mutate(instanceId, lobbyId, user, (lobby) => {
+    if (!lobby.players[user.id]) return "Du er ikke ved dette bordet"
+    if (lobby.deck.length > 0) return "Kortstokken er ikke tom"
 
-  const onTable = lobby.playerOrder.map((id) => lobby.players[id].card).filter((c): c is Card => !!c)
-  lobby.deck = freshShuffledDeck().filter((c) => !onTable.some((t) => t.rank === c.rank && t.suit === c.suit))
-  await writeLobby(firebase, instanceId, lobbyId, lobby)
-  return Response.json(publicView(lobby, user.id))
+    const onTable = lobby.playerOrder.map((id) => lobby.players[id].card).filter((c): c is Card => !!c)
+    lobby.deck = freshShuffledDeck().filter((c) => !onTable.some((t) => t.rank === c.rank && t.suit === c.suit))
+  })
 }

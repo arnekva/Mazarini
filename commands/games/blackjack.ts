@@ -98,6 +98,9 @@ export class Blackjack extends AbstractCommands {
             // Not their pot - they come along as a spectator of the winner's table (the hub reads this and forwards them; see
             // consumePendingBlackjackSpectate in the activities app). If the table isn't up yet they wait in the lobby for it.
             await this.client.database.updateData({ [`other/pendingBlackjackSpectate/${interaction.user.id}`]: { hostId: userId, createdAt: Date.now() } })
+        } else {
+            // The winner may well click this long after the pot was won - the auto-start only counts for a few minutes (see there).
+            await this.client.database.refreshPendingBlackjackAutoStart(userId)
         }
         await interaction.launchActivity()
     }
@@ -472,6 +475,7 @@ export class Blackjack extends AbstractCommands {
     private updatePot(game: BlackjackGame) {
         if (game.fromDeathroll && GameValues.blackjack.deathrollRefundEnabled) {
             this.client.cache.deathrollPot += Math.floor(game.fromDeathroll * 0.5)
+            this.client.database.saveDeathrollPot(this.client.cache.deathrollPot)
         }
     }
 
@@ -486,6 +490,7 @@ export class Blackjack extends AbstractCommands {
         game.messages.buttons.edit({ components: [game.messages.buttonRow] })
         if (game.fromDeathroll && GameValues.blackjack.deathrollRefundEnabled) {
             this.client.cache.deathrollPot += Math.floor(game.fromDeathroll * 0.5)
+            this.client.database.saveDeathrollPot(this.client.cache.deathrollPot)
         }
         const refundText =
             game.fromDeathroll && GameValues.blackjack.deathrollRefundEnabled

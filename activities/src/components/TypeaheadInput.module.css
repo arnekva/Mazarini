@@ -27,14 +27,14 @@
   border-radius: 10px;
   overflow: hidden;
   z-index: 10;
-  max-height: 220px;
+  max-height: 210px;
   overflow-y: auto;
 }
 
 .suggestion {
   width: 100%;
   text-align: left;
-  padding: 10px 14px;
+  padding: 8px 14px;
   background: none;
   border: none;
   color: inherit;

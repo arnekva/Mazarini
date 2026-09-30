@@ -72,8 +72,11 @@ async function readGame(firebase: FirebaseHelper, userId: string): Promise<DondG
 }
 
 async function writeGame(firebase: FirebaseHelper, userId: string, game: DondGame) {
+  // The time of the write doubles as the round's version: every view carries it, and clients compare it with the one in the
+  // database to know whether they're behind (see lib/liveSignal.ts).
+  game.updatedAt = Date.now()
   // The JSON round-trip strips `undefined` fields, which Firebase rejects outright.
-  await firebase.updateData({ [gamePath(userId)]: JSON.parse(JSON.stringify({ ...game, updatedAt: Date.now() })) })
+  await firebase.updateData({ [gamePath(userId)]: JSON.parse(JSON.stringify(game)) })
 }
 
 function tokensOf(dbUser: any): Record<DondTier, number> {
@@ -176,15 +179,16 @@ const announce = (body: Parameters<typeof postAnnouncement>[1], channelId?: stri
 /** Spectators announce themselves by polling - each poll refreshes their entry, and one that hasn't been refreshed
  * in a few poll intervals has left. Kept apart from the game record like the chat, so a heartbeat never races a game action. */
 const spectatorsPath = (hostId: string) => `other/dondSpectators/${hostId}`
-const SPECTATOR_TIMEOUT_MS = 8000
+const SPECTATOR_TIMEOUT_MS = 25000
 /** A round nobody has touched for this long is treated as abandoned and left out of the list of running rounds. */
 const ACTIVE_GAME_MAX_AGE_MS = 12 * 60 * 60 * 1000
 
-async function readSpectators(firebase: FirebaseHelper, hostId: string) {
-  const raw = await firebase.getData(spectatorsPath(hostId))
+type SpectatorStamps = Record<string, { name: string; avatar?: string | null; at: number }>
+
+function spectatorList(raw: SpectatorStamps | undefined) {
   if (!raw) return []
   const now = Date.now()
-  return Object.entries(raw as Record<string, { name: string; avatar?: string | null; at: number }>)
+  return Object.entries(raw)
     .filter(([, s]) => now - s.at < SPECTATOR_TIMEOUT_MS)
     .map(([id, s]) => ({ id, username: s.name, avatar: discordAvatarUrl(id, s.avatar ?? null, 32) }))
 }
@@ -222,6 +226,11 @@ async function readChat(firebase: FirebaseHelper, hostId: string): Promise<ChatM
   const raw = await firebase.getData(chatPath(hostId))
   if (!raw) return []
   return (Object.values(raw) as ChatMessage[]).sort((a, b) => a.at - b.at)
+}
+
+/** The part of the chat that's shown - what a poll needs, without fetching the whole log every time. */
+async function readChatTail(firebase: FirebaseHelper, hostId: string): Promise<ChatMessage[]> {
+  return (Object.values(await firebase.getLastChildren(chatPath(hostId), CHAT_VISIBLE)) as ChatMessage[]).sort((a, b) => a.at - b.at)
 }
 
 /** Anyone at the round - the player or a spectator - can post to it. `hostIdInput` is whose round the chat belongs to. */
@@ -302,14 +311,19 @@ const err = (message: string, status = 400) => Response.json({ error: message },
 
 export async function getDondStatus(user: AuthenticatedDiscordUser) {
   const firebase = new FirebaseHelper()
-  const dbUser = (await firebase.getUser(user.id)) ?? {}
-  const game = await readGame(firebase, user.id)
+  // One round trip: this is polled while a round is on, and only needs the token counts out of the (large) user record.
+  const [dondTokens, game, chat, spectators] = await Promise.all([
+    firebase.getData(`users/${user.id}/dondTokens`),
+    readGame(firebase, user.id),
+    readChatTail(firebase, user.id),
+    firebase.getData(spectatorsPath(user.id)),
+  ])
   return Response.json({
-    tokens: tokensOf(dbUser),
+    tokens: tokensOf({ dondTokens }),
     game: game ? publicView(game) : null,
     hostId: user.id,
-    chat: game ? (await readChat(firebase, user.id)).slice(-CHAT_VISIBLE) : [],
-    spectators: game ? await readSpectators(firebase, user.id) : [],
+    chat: game ? chat : [],
+    spectators: game ? spectatorList(spectators) : [],
   })
 }
 
@@ -449,17 +463,22 @@ export async function dismissDond(user: AuthenticatedDiscordUser) {
 /** Read-only view of someone else's round - same masked view the player gets, so closed cases stay hidden. */
 export async function getDondWatch(hostId: string, viewer: AuthenticatedDiscordUser) {
   const firebase = new FirebaseHelper()
-  // Polling doubles as the "I'm watching" heartbeat the player's screen shows.
+  const [game, chat, spectatorsRaw] = await Promise.all([readGame(firebase, hostId), readChatTail(firebase, hostId), firebase.getData(spectatorsPath(hostId))])
+  const spectators: SpectatorStamps = spectatorsRaw ?? {}
+  // Polling doubles as the "I'm watching" heartbeat the player's screen shows. The stamp is only rewritten once it's getting old,
+  // and after the answer has gone out - the viewer is in the list used for this answer either way.
   if (viewer.id !== hostId) {
-    await firebase.updateData({ [`${spectatorsPath(hostId)}/${viewer.id}`]: { name: viewer.globalName ?? viewer.username, avatar: viewer.avatar ?? null, at: Date.now() } })
+    const mine = { name: viewer.globalName ?? viewer.username, avatar: viewer.avatar ?? null, at: Date.now() }
+    const seen = spectators[viewer.id]?.at ?? 0
+    if (mine.at - seen > SPECTATOR_TIMEOUT_MS / 3) after(() => firebase.updateData({ [`${spectatorsPath(hostId)}/${viewer.id}`]: mine }))
+    spectators[viewer.id] = mine
   }
-  const game = await readGame(firebase, hostId)
   return Response.json({
     playerName: game?.playerName ?? null,
     game: game ? publicView(game) : null,
     hostId,
-    chat: game ? (await readChat(firebase, hostId)).slice(-CHAT_VISIBLE) : [],
-    spectators: game ? await readSpectators(firebase, hostId) : [],
+    chat: game ? chat : [],
+    spectators: game ? spectatorList(spectators) : [],
   })
 }
 

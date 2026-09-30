@@ -1,3 +1,5 @@
+import { increment } from "firebase/database"
+import { after } from "next/server"
 import { FirebaseHelper } from "./db/firebaseHelper"
 import { AuthenticatedDiscordUser } from "./discordAuth"
 import { DailyGameStats, hasRewardedSlotsLeft } from "./dailyHub"
@@ -49,8 +51,7 @@ function isValidGuess(guess: unknown): guess is string[] {
 
 export async function getMastermindStatus(user: AuthenticatedDiscordUser) {
   const firebase = new FirebaseHelper()
-  const dbUser = await firebase.getUser(user.id)
-  const stat: MastermindStat = dbUser?.dailyGameStats?.mastermind ?? {}
+  const stat: MastermindStat = (await firebase.getData(`users/${user.id}/dailyGameStats/mastermind`)) ?? {}
 
   return Response.json({
     guesses: stat.guesses ?? [],
@@ -66,13 +67,16 @@ export async function submitMastermindGuess(user: AuthenticatedDiscordUser, gues
   if (!isValidGuess(guess)) return Response.json({ error: "Invalid guess" }, { status: 400 })
 
   const firebase = new FirebaseHelper()
-  const [dbUser, storage] = await Promise.all([firebase.getUser(user.id), firebase.getData("other")])
-  const solution: string[] | undefined = storage?.mastermind
+  // Just the solution and this player's daily stats - not the whole shared storage and the whole user record they sit in.
+  const [storedStats, solution]: [DailyGameStats | undefined, string[] | undefined] = await Promise.all([
+    firebase.getData(`users/${user.id}/dailyGameStats`),
+    firebase.getData("other/mastermind"),
+  ])
   if (!solution || solution.length !== mastermindValues.codeLength) {
     return Response.json({ error: "Ingen mastermind-løsning generert ennå" }, { status: 503 })
   }
 
-  const dailyGameStats: DailyGameStats = dbUser?.dailyGameStats ?? {}
+  const dailyGameStats: DailyGameStats = storedStats ?? {}
   const stat: MastermindStat = dailyGameStats.mastermind ?? {}
   if (stat.completed) return Response.json({ alreadyCompleted: true })
   if ((stat.numAttempts ?? 0) >= mastermindValues.totalAttempts) {
@@ -85,26 +89,23 @@ export async function submitMastermindGuess(user: AuthenticatedDiscordUser, gues
   const completed = hint.black === mastermindValues.codeLength
   const finished = completed || numAttempts >= mastermindValues.totalAttempts
 
-  let reward = 0
-  let chips = dbUser.chips ?? 0
-  if (completed) {
-    reward = hasRewardedSlotsLeft(dailyGameStats) ? Math.max(0, mastermindValues.baseReward - mastermindValues.perGuessPenalty * numAttempts) : 0
-    chips += reward
-  }
+  const reward = completed && hasRewardedSlotsLeft(dailyGameStats) ? Math.max(0, mastermindValues.baseReward - mastermindValues.perGuessPenalty * numAttempts) : 0
 
   await firebase.updateUserFields(user.id, {
-    ...(completed ? { chips } : {}),
+    // Added on the server rather than written as "what it was + reward": the balance may have changed since anyone last read it.
+    ...(reward > 0 ? { chips: increment(reward) } : {}),
     "dailyGameStats/mastermind": { attempted: true, completed, numAttempts, guesses },
   })
 
+  // After the answer has gone out - the player shouldn't wait for Discord to see how the guess went.
   if (completed) {
-    await announceInChannel(user.channelId, {
-      content: `<@${user.id}> klarte mastermind på ${numAttempts}/${mastermindValues.totalAttempts} forsøk${reward > 0 ? ` og fikk ${reward} chips!` : "!"}`,
-    })
+    after(() =>
+      announceInChannel(user.channelId, {
+        content: `<@${user.id}> klarte mastermind på ${numAttempts}/${mastermindValues.totalAttempts} forsøk${reward > 0 ? ` og fikk ${reward} chips!` : "!"}`,
+      })
+    )
   } else if (finished) {
-    await announceInChannel(user.channelId, {
-      content: `<@${user.id}> klarte IKKE mastermind på ${mastermindValues.totalAttempts} forsøk!`,
-    })
+    after(() => announceInChannel(user.channelId, { content: `<@${user.id}> klarte IKKE mastermind på ${mastermindValues.totalAttempts} forsøk!` }))
   }
 
   return Response.json({
@@ -113,7 +114,6 @@ export async function submitMastermindGuess(user: AuthenticatedDiscordUser, gues
     numAttempts,
     completed,
     reward,
-    chips,
     solution: finished && !completed ? solution : undefined,
   })
 }

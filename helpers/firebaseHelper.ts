@@ -1,5 +1,21 @@
 import { FirebaseApp } from 'firebase/app'
-import { child, Database, get, getDatabase, increment, onValue, ref, remove, set, update, Unsubscribe } from 'firebase/database'
+import {
+    child,
+    Database,
+    DataSnapshot,
+    get,
+    getDatabase,
+    increment,
+    onChildAdded,
+    onChildChanged,
+    onChildRemoved,
+    onValue,
+    ref,
+    remove,
+    set,
+    update,
+    Unsubscribe,
+} from 'firebase/database'
 import {
     FirebaseStorage,
     getBytes,
@@ -52,7 +68,7 @@ export class FirebaseHelper {
     }
 
     public async saveUsers(users: MazariniUser[]) {
-        await users.forEach((user) => this.saveUser(user))
+        await Promise.all(users.map((user) => this.saveUser(user)))
     }
 
     public async saveUser(user: MazariniUser) {
@@ -74,8 +90,11 @@ export class FirebaseHelper {
         set(ref(this.db, `${database}/textCommand/${name}`), texts)
     }
 
+    /** Every user record. The id is taken from the record's key when the record itself doesn't have one: the Activities app writes
+     * single fields straight to users/{id}, which for someone the bot has never seen leaves a record with nothing else in it. */
     public async getAllUsers(): Promise<MazariniUser[]> {
-        return Object.values(await this.getData(`users`))
+        const users = ((await this.getData(`users`)) ?? {}) as Record<string, MazariniUser>
+        return Object.entries(users).map(([id, user]) => (user.id ? user : { ...user, id }))
     }
 
     public async getUser(userId: string): Promise<MazariniUser> {
@@ -108,16 +127,27 @@ export class FirebaseHelper {
     }
 
     /**
-     * Live-subscribe to the shared MazariniStorage ("other") node. `callback` fires immediately with the
-     * current value, then again on every subsequent change - including writes made by other processes -
-     * so a cached copy never goes stale the way a one-shot get() would between polls.
+     * Live-subscribe to the shared MazariniStorage ("other") node, one top-level entry at a time: `onEntry` is called with each entry's
+     * key and value as it's first seen and again whenever it changes (`undefined` when it's removed) - including writes made by other
+     * processes - so a cached copy never goes stale the way a one-shot get() would between polls.
+     *
+     * Per entry rather than the node as a whole, because the Activities app keeps its live game state under the same node: listening to
+     * all of it meant rebuilding the entire storage object on every card dealt there. Entries `skip` says yes to are never even unpacked.
      * Returns an unsubscribe function; the caller is responsible for detaching it when done.
      */
-    public subscribeToStorage(callback: (storage: MazariniStorage | null) => void): Unsubscribe {
+    public subscribeToStorage(onEntry: (key: string, value: unknown) => void, skip: (key: string) => boolean): Unsubscribe {
         const otherRef = ref(this.db, `${database}/other`)
-        return onValue(otherRef, (snapshot) => {
-            callback(snapshot.exists() ? (snapshot.val() as MazariniStorage) : null)
-        })
+        const changed = (snapshot: DataSnapshot) => {
+            if (snapshot.key && !skip(snapshot.key)) onEntry(snapshot.key, snapshot.val())
+        }
+        const stops = [
+            onChildAdded(otherRef, changed),
+            onChildChanged(otherRef, changed),
+            onChildRemoved(otherRef, (snapshot) => {
+                if (snapshot.key && !skip(snapshot.key)) onEntry(snapshot.key, undefined)
+            }),
+        ]
+        return () => stops.forEach((stop) => stop())
     }
 
     /**
@@ -186,7 +216,9 @@ export class FirebaseHelper {
         const allCurrentData = (await get(child(ref(this.db), `${database}/`))).val()
         const allBackups = (await get(child(ref(this.db), `${BACKUP_KEY}/`))).val()
         const backupLength = Object.keys(allBackups || {}).length
-        const oldestKey = Object.keys(allBackups || {}).sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0]
+        // The keys are dates as DD-MM-YYYY - which `new Date()` either can't read at all or reads as MM-DD, so they're parsed as what they are.
+        const takenAt = (key: string) => moment(key, 'DD-MM-YYYY').valueOf()
+        const oldestKey = Object.keys(allBackups || {}).sort((a, b) => takenAt(a) - takenAt(b))[0]
         if (oldestKey && backupLength >= 4) {
             await this.deleteData(`${oldestKey}`, BACKUP_KEY)
         }

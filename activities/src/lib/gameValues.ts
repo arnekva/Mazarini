@@ -92,3 +92,8 @@ export const rouletteValues = {
   /** When every player with a bet has hit Spin: bets close immediately and the wheel starts this long after. */
   forcedSpinDelayMs: 1500,
 }
+
+/** The Lykkehjul prize types the app knows how to hand out. The bot's list (LuckyWheelRewardType) also has dond, pack and effect_* -
+ * nothing grants those yet, so they're kept off the wheel entirely rather than being a segment that wins you nothing. */
+const GRANTABLE_WHEEL_REWARDS = ["chips", "shards", "chest", "box"]
+export const isGrantableWheelReward = (type: string) => GRANTABLE_WHEEL_REWARDS.includes(type)

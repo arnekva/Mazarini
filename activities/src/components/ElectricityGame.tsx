@@ -2,6 +2,7 @@
 
 import { callApi } from "@/lib/apiClient"
 import { proxyImageUrl } from "@/lib/imgProxy"
+import { useLivePolling } from "@/lib/liveSignal"
 import { useDiscord } from "@/providers/discordProvider"
 import { useEffect, useRef, useState } from "react"
 import shared from "./BlackjackGame.module.css"
@@ -28,6 +29,8 @@ interface SpectatorView {
 
 interface TableView {
   id: string
+  /** Changes with every change to the table - compared with the database's to know whether this view is behind. */
+  version?: number
   hostId: string
   status: "waiting" | "playing"
   chugOnLoop: boolean
@@ -51,7 +54,7 @@ interface LobbySummary {
 }
 
 const LOBBY_POLL_MS = 2000
-const TABLE_POLL_MS = 1200
+const TABLE_POLL_MS = 800
 
 function CardFace({ card }: { card: CardView }) {
   const isRed = card.suit === "♥" || card.suit === "♦"
@@ -92,12 +95,24 @@ export function ElectricityGame({ accessToken }: { accessToken: string }) {
   const { instanceId, discordUser } = useDiscord()
   const [lobbies, setLobbies] = useState<LobbySummary[] | null>(null)
   const [lobbyId, setLobbyId] = useState<string | null>(null)
+  // The table we're at right now, known the moment it changes (the state above only catches up on the next render): an answer
+  // about a table we've since left must not be acted on - it would report our own leaving as the table closing.
+  const lobbyIdRef = useRef<string | null>(null)
+  const enterLobby = (id: string | null) => {
+    lobbyIdRef.current = id
+    setLobbyId(id)
+  }
   const [table, setTable] = useState<TableView | null>(null)
   const [closedNotice, setClosedNotice] = useState(false)
   const [chugOnLoop, setChugOnLoop] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const initedRef = useRef(false)
+  // Bumped when an action starts and again when it finishes (so it's odd exactly while one is in flight): a poll sent before or
+  // during one is thrown away, or it would put the old table back on screen.
+  const actSeqRef = useRef(0)
+  // The version of the newest answer from the server - what live updates are compared against (see useLivePolling).
+  const versionRef = useRef<number | undefined>(undefined)
 
   async function refreshLobbies() {
     if (!instanceId) return
@@ -107,24 +122,27 @@ export function ElectricityGame({ accessToken }: { accessToken: string }) {
         accessToken
       )
       setLobbies(res.lobbies)
-      if (res.myLobbyId && !lobbyId) setLobbyId(res.myLobbyId)
+      if (res.myLobbyId && !lobbyId) enterLobby(res.myLobbyId)
     } catch {
       // transient poll failure - next tick retries
     }
   }
 
   async function refreshTable(id: string) {
-    if (!instanceId) return
+    if (!instanceId || lobbyIdRef.current !== id) return
+    const actSeq = actSeqRef.current
     try {
       const res = await callApi<TableView & { closed?: boolean }>(
         `/api/multiplayer/electricity?instanceId=${encodeURIComponent(instanceId)}&lobbyId=${encodeURIComponent(id)}`,
         accessToken
       )
+      if (actSeqRef.current !== actSeq || lobbyIdRef.current !== id) return
       if (res.closed) {
         setClosedNotice(true)
         setTable(null)
-        setLobbyId(null)
+        enterLobby(null)
       } else {
+        versionRef.current = res.version
         setTable(res)
       }
     } catch {
@@ -135,17 +153,19 @@ export function ElectricityGame({ accessToken }: { accessToken: string }) {
   async function action(actionName: "create" | "join" | "spectate" | "leave" | "start" | "draw" | "reshuffle", extra?: Record<string, unknown>) {
     if (!instanceId || busy) return
     setBusy(true)
+    actSeqRef.current++
     setError(null)
     try {
       const res = await callApi<TableView>("/api/multiplayer/electricity", accessToken, {
         method: "POST",
         body: JSON.stringify({ instanceId, lobbyId, action: actionName, ...extra }),
       })
+      if (actionName !== "leave") versionRef.current = res.version
       if (actionName === "create" || actionName === "join" || actionName === "spectate") {
-        setLobbyId(res.id)
+        enterLobby(res.id)
         setTable(res)
       } else if (actionName === "leave") {
-        setLobbyId(null)
+        enterLobby(null)
         setTable(null)
         refreshLobbies()
       } else {
@@ -155,6 +175,9 @@ export function ElectricityGame({ accessToken }: { accessToken: string }) {
       setError(err instanceof Error ? err.message : "Noe gikk galt")
     } finally {
       setBusy(false)
+      actSeqRef.current++
+      // Anything that happened at the table while the action was in flight is picked up now.
+      sync()
     }
   }
 
@@ -165,23 +188,17 @@ export function ElectricityGame({ accessToken }: { accessToken: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instanceId])
 
-  useEffect(() => {
-    if (!instanceId) return
-    const interval = setInterval(
-      () => {
-        if (lobbyId) refreshTable(lobbyId)
-        else refreshLobbies()
-      },
-      lobbyId ? TABLE_POLL_MS : LOBBY_POLL_MS
-    )
-    return () => clearInterval(interval)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [instanceId, lobbyId])
-
-  useEffect(() => {
-    if (lobbyId) refreshTable(lobbyId)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lobbyId])
+  // In a lobby: the table, starting right away. Otherwise: the list of tables. Either way the database says when there's something new.
+  const sync = useLivePolling({
+    key: instanceId ? `${instanceId}/${lobbyId ?? ""}` : null,
+    accessToken,
+    paths: [lobbyId ? { path: `other/multiplayerElectricity/${instanceId}/${lobbyId}/updatedAt`, shown: () => versionRef.current } : `other/multiplayerElectricity/${instanceId}`],
+    poll: () => (lobbyId ? refreshTable(lobbyId) : refreshLobbies()),
+    delayMs: lobbyId ? TABLE_POLL_MS : LOBBY_POLL_MS,
+    // Straight away only when we've landed at a table without having its view yet (found ourselves in the list) - creating or joining one already answered with it.
+    immediate: !!lobbyId && !table,
+    paused: () => actSeqRef.current % 2 === 1,
+  })
 
   if (!instanceId) {
     return <p className={shared.info}>Multiplayer krever at appen åpnes som en Discord Activity i en talekanal.</p>

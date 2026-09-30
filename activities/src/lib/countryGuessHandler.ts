@@ -1,6 +1,8 @@
+import { increment } from "firebase/database"
+import { after } from "next/server"
 import { FirebaseHelper } from "./db/firebaseHelper"
 import { AuthenticatedDiscordUser } from "./discordAuth"
-import { CountryChallenge, DailyGameStats, DailyHubChallenges, hasRewardedSlotsLeft, publicChallenge } from "./dailyHub"
+import { CountryChallenge, DailyGameStats, hasRewardedSlotsLeft, publicChallenge } from "./dailyHub"
 import { announceInChannel } from "./discordMessage"
 import { getGuessHint } from "./geo"
 import { countryChallengeValues } from "./gameValues"
@@ -20,13 +22,12 @@ export function isCountryGameId(value: string): value is CountryGameId {
 
 export async function getCountryGameStatus(game: CountryGameId, user: AuthenticatedDiscordUser) {
   const firebase = new FirebaseHelper()
-  const [dbUser, storage] = await Promise.all([firebase.getUser(user.id), firebase.getData("other")])
-  const challenges = storage?.dailyHubChallenges as DailyHubChallenges | undefined
-
-  if (!challenges) return Response.json({ error: "Ingen utfordring generert ennå" }, { status: 503 })
-
-  const challenge = challenges[game] as CountryChallenge
-  const stat = dbUser?.dailyGameStats?.[game] ?? {}
+  // Just this game's puzzle and this player's count - not the whole shared storage and the whole user record they sit in.
+  const [stat = {}, challenge]: [DailyGameStats[CountryGameId], CountryChallenge | undefined] = await Promise.all([
+    firebase.getData(`users/${user.id}/dailyGameStats/${game}`),
+    firebase.getData(`other/dailyHubChallenges/${game}`),
+  ])
+  if (!challenge) return Response.json({ error: "Ingen utfordring generert ennå" }, { status: 503 })
 
   return Response.json({
     challenge: publicChallenge(challenge),
@@ -39,12 +40,11 @@ export async function getCountryGameStatus(game: CountryGameId, user: Authentica
 
 export async function submitCountryGuess(game: CountryGameId, user: AuthenticatedDiscordUser, guess: string) {
   const firebase = new FirebaseHelper()
-  const [dbUser, storage] = await Promise.all([firebase.getUser(user.id), firebase.getData("other")])
-  const challenges = storage?.dailyHubChallenges as DailyHubChallenges | undefined
-  if (!challenges) return Response.json({ error: "Ingen utfordring generert ennå" }, { status: 503 })
-
-  const challenge = challenges[game] as CountryChallenge
-  const dailyGameStats: DailyGameStats = dbUser?.dailyGameStats ?? {}
+  const [dailyGameStats = {}, challenge]: [DailyGameStats, CountryChallenge | undefined] = await Promise.all([
+    firebase.getData(`users/${user.id}/dailyGameStats`),
+    firebase.getData(`other/dailyHubChallenges/${game}`),
+  ])
+  if (!challenge) return Response.json({ error: "Ingen utfordring generert ennå" }, { status: 503 })
   const stat = dailyGameStats[game] ?? {}
 
   if (stat.completed) return Response.json({ alreadyCompleted: true })
@@ -57,20 +57,23 @@ export async function submitCountryGuess(game: CountryGameId, user: Authenticate
 
   if (correct) {
     const reward = hasRewardedSlotsLeft(dailyGameStats) ? countryChallengeValues.reward : 0
-    const chips = (dbUser.chips ?? 0) + reward
 
     await firebase.updateUserFields(user.id, {
-      chips,
+      // Added on the server rather than written as "what it was + reward": the balance may have changed since anyone last read it.
+      ...(reward > 0 ? { chips: increment(reward) } : {}),
       [`dailyGameStats/${game}`]: { attempted: true, completed: true, numAttempts },
     })
 
-    await announceInChannel(user.channelId, {
-      content: `<@${user.id}> gjettet rett på ${numAttempts}/${countryChallengeValues.maxAttempts} forsøk på ${shortLabels[game]}${
-        reward > 0 ? ` og fikk ${reward} chips!` : "!"
-      }`,
-    })
+    // After the answer has gone out - the player shouldn't wait for Discord to hear they were right.
+    after(() =>
+      announceInChannel(user.channelId, {
+        content: `<@${user.id}> gjettet rett på ${numAttempts}/${countryChallengeValues.maxAttempts} forsøk på ${shortLabels[game]}${
+          reward > 0 ? ` og fikk ${reward} chips!` : "!"
+        }`,
+      })
+    )
 
-    return Response.json({ correct: true, reward, chips, numAttempts })
+    return Response.json({ correct: true, reward, numAttempts })
   }
 
   const finished = numAttempts >= countryChallengeValues.maxAttempts
@@ -78,11 +81,7 @@ export async function submitCountryGuess(game: CountryGameId, user: Authenticate
     [`dailyGameStats/${game}`]: { attempted: true, completed: false, numAttempts },
   })
 
-  if (finished) {
-    await announceInChannel(user.channelId, {
-      content: `<@${user.id}> gjettet FEIL på ${shortLabels[game]}!`,
-    })
-  }
+  if (finished) after(() => announceInChannel(user.channelId, { content: `<@${user.id}> gjettet FEIL på ${shortLabels[game]}!` }))
 
   // No hint once the answer is being revealed outright - it'd just be redundant noise at that point.
   const hint = finished ? undefined : getGuessHint(game === "capital" ? "capital" : "country", guess, challenge.answer)
